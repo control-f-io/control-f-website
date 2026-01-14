@@ -6,16 +6,16 @@ To run a local webserver to develop the site run `uv run -m http.server` in the 
 
 ## Fragen
 
-- kontakt email adresse?
-- als control-f.io und controlf.io hosten?
-- haumbuger button als navigation?
-- welchen footer wollen wir haben? So minimalistisch wie jetzt?
-- wollen wir "blog" und Maschinenbau und Energie, oder sollen die "blog" ersetzen?
-- oben "Home" haben?
-- Ich würde die drei Kacheln in "home" weglassen.
+- contact email: info@control-f.io?
+- host control-f.io or controlf.io or both?
+- Use a hamburger manu at the header?
+- Do we want "Home" Link at the top?
+- Should we remove the map, mail and linkdin elegments at the start of the homepage?
 
 ## TODOs
 
-- favicon und richtiges svg Logo hinzufügen
+- Add Favicon and control-f svg logo
+- Add text animations, like in the old page?
 - SEO optimizations
-- Am Ende: "en" Seiten hinzufügen
+- optimize for Google Lighthouse
+- Add english variants (do this at the very end)
