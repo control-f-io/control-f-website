@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geometry &amp; Lines — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  .iso-demo { display:grid; grid-template-columns:repeat(auto-fit,minmax(16rem,1fr)); gap:var(--space-8); align-items:center; }
+  .iso-demo figcaption { margin-top:var(--space-3); font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--text-muted); }
+  .square-demo { width:8rem; height:8rem; border:1px solid var(--border-strong); background:rgba(225,255,0,.4); }
+  .lines-demo > * + * { margin-top:var(--space-6); }
+  .lines-demo figcaption { margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs); color:var(--text-muted); }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 04</p>
+    <h1>Geometry &amp; Lines</h1>
+    <p>
+      The brand draws, it does not fill. Anything spatial is built in 2:1 isometry, anything
+      bounded is built from 1 px contours. Four angles, four line types, four stroke
+      weights — that is the whole vocabulary.
+    </p>
+  </header>
+
+  <section class="docs-section" id="isometry">
+    <h2>2:1 isometry</h2>
+    <p>
+      A square rotated 45° and squashed to exactly 50 % of its height. Mathematically a
+      dimetry, practically the standard for digital graphics: every edge lands on a whole
+      pixel, so nothing shimmers.
+    </p>
+    <div class="docs-demo docs-demo--flat">
+      <div class="iso-demo">
+        <figure style="margin:0;display:grid;place-items:center">
+          <div class="square-demo"></div>
+          <figcaption>Square</figcaption>
+        </figure>
+        <figure style="margin:0;display:grid;place-items:center">
+          <div class="square-demo" style="transform:rotate(45deg)"></div>
+          <figcaption>+ rotate(45deg)</figcaption>
+        </figure>
+        <figure style="margin:0;display:grid;place-items:center">
+          <div class="square-demo iso"></div>
+          <figcaption>+ scaleY(.5) = 2:1</figcaption>
+        </figure>
+      </div>
+    </div>
+    <pre class="docs-code"><span class="attr">--iso-transform</span>: <span class="val">rotate(45deg) scaleY(0.5)</span>;
+
+<span class="com">/* as a utility */</span>
+.iso { <span class="attr">transform</span>: <span class="val">var(--iso-transform)</span>; <span class="attr">transform-origin</span>: <span class="val">center</span>; }</pre>
+  </section>
+
+  <section class="docs-section" id="angles">
+    <h2>The four angles</h2>
+    <p>
+      The 2:1 ratio produces two brand angles; 45° and 90° are the neutral complements.
+      Every diagonal on the site — illustration line, gradient axis, cut edge — uses one of
+      these four values.
+    </p>
+    <div class="docs-demo docs-demo--flat">
+      <svg viewBox="0 0 420 200" style="width:100%;max-width:32rem;margin-inline:auto" fill="none" stroke="currentColor">
+        <line x1="20" y1="180" x2="400" y2="180" stroke-width="1"/>
+        <line x1="20" y1="180" x2="400" y2="10" stroke-width="1"/>
+        <line x1="20" y1="180" x2="230" y2="10" stroke-width="1"/>
+        <line x1="20" y1="180" x2="120" y2="10" stroke-width="1"/>
+        <line x1="20" y1="180" x2="20" y2="10" stroke-width="1"/>
+        <g fill="currentColor" stroke="none" font-family="var(--font-mono)" font-size="11">
+          <text x="404" y="184">0°</text>
+          <text x="404" y="14">26.57°</text>
+          <text x="234" y="14">45°</text>
+          <text x="124" y="14">63.43°</text>
+          <text x="8" y="8">90°</text>
+        </g>
+      </svg>
+    </div>
+    <table class="docs-table">
+      <thead><tr><th>Token</th><th>Value</th><th>Where it comes from</th></tr></thead>
+      <tbody>
+        <tr><td><code>--angle-b</code></td><td>26.57°</td><td>the tilt of the isometry (arctan 0.5)</td></tr>
+        <tr><td><code>--angle-a</code></td><td>63.43°</td><td>its complement (90° − 26.57°)</td></tr>
+        <tr><td><code>--angle-neutral</code></td><td>45°</td><td>neutral diagonal</td></tr>
+        <tr><td><code>--angle-square</code></td><td>90°</td><td>right angle — the default for layout edges</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="objects">
+    <h2>Isometric objects</h2>
+    <p>
+      The brand's standard building block: stacked cuboids, top faces in CF-Grau, edges as
+      1 px contours, corners marked with dots. Exactly one element carries the lime
+      gradient — it is the place where something happens.
+    </p>
+    <div class="docs-demo">
+      <svg viewBox="0 0 640 640" style="width:100%;max-width:26rem;margin-inline:auto" fill="none">
+        <defs>
+          <linearGradient id="isoLight" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"  stop-color="#E1FF00"/>
+            <stop offset="32%" stop-color="#C5EBE2"/>
+            <stop offset="100%" stop-color="#CFCFCF"/>
+          </linearGradient>
+        </defs>
+        <g stroke="#000" stroke-width="1">
+          <polygon points="80,400 320,520 320,620 80,500" fill="#CFCFCF"/>
+          <polygon points="560,400 320,520 320,620 560,500" fill="#C4C4C4"/>
+          <polygon points="320,280 560,400 320,520 80,400" fill="#DADADA"/>
+          <polygon points="140,300 320,390 320,490 140,400" fill="#CFCFCF"/>
+          <polygon points="500,300 320,390 320,490 500,400" fill="#C4C4C4"/>
+          <polygon points="320,210 500,300 320,390 140,300" fill="#DADADA"/>
+          <polygon points="200,200 320,260 320,360 200,300" fill="#CFCFCF"/>
+          <polygon points="440,200 320,260 320,360 440,300" fill="#C4C4C4"/>
+          <polygon points="320,140 440,200 320,260 200,200" fill="url(#isoLight)"/>
+        </g>
+        <g fill="#000">
+          <circle cx="320" cy="140" r="4"/><circle cx="440" cy="200" r="4"/>
+          <circle cx="320" cy="260" r="4"/><circle cx="200" cy="200" r="4"/>
+        </g>
+      </svg>
+    </div>
+    <p style="margin-top:var(--space-4)">
+      The four process illustrations on the landing page are variations of the same
+      principle: a stack (Discovery), layers (Datenfundament), a solid of revolution
+      (Predictive Maintenance), a sphere (Asset Performance). They ship as SVG, not as
+      images — the contour has to stay 1 px at every width.
+    </p>
+  </section>
+
+  <section class="docs-section" id="lines">
+    <h2>Line types</h2>
+    <p>
+      Four defined types. Within one context the stroke weight stays constant; on screen
+      1–2 px is the recommendation.
+    </p>
+    <div class="docs-demo docs-demo--flat lines-demo">
+      <figure style="margin:0">
+        <div class="rule"></div>
+        <figcaption>solid · <code>.rule</code> · default divider, frames</figcaption>
+      </figure>
+      <figure style="margin:0">
+        <div class="rule rule--dashed-2-1"></div>
+        <figcaption>dashed 2-1 · <code>.rule--dashed-2-1</code> · secondary axes</figcaption>
+      </figure>
+      <figure style="margin:0">
+        <div class="rule rule--dashed-1-2"></div>
+        <figcaption>dashed 1-2 · <code>.rule--dashed-1-2</code> · construction lines</figcaption>
+      </figure>
+      <figure style="margin:0">
+        <div class="rule rule--dashed-1-4"></div>
+        <figcaption>dashed 1-4 · <code>.rule--dashed-1-4</code> · dividers inside panels</figcaption>
+      </figure>
+    </div>
+    <div class="docs-note">
+      <strong>Why not <code>border-style: dashed</code>.</strong> CSS does not control the
+      dash-to-gap ratio — every browser draws its own. The four types are therefore built
+      with <code>repeating-linear-gradient</code>, and with <code>stroke-dasharray</code>
+      in SVG.
+    </div>
+
+    <h3>Stroke weights</h3>
+    <div class="docs-demo docs-demo--flat lines-demo">
+      <figure style="margin:0"><div class="rule"></div><figcaption>1 px · <code>--stroke-1</code> · the default for all UI contours</figcaption></figure>
+      <figure style="margin:0"><div class="rule rule--2"></div><figcaption>2 px · <code>--stroke-2</code> · focus ring, emphasis</figcaption></figure>
+      <figure style="margin:0"><div class="rule rule--4"></div><figcaption>4 px · <code>--stroke-4</code> · diagrams, accent edges</figcaption></figure>
+      <figure style="margin:0"><div class="rule rule--8"></div><figcaption>8 px · <code>--stroke-8</code> · large format only, never in UI</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="docs-section" id="corners">
+    <h2>Corners</h2>
+    <p>
+      Square. <code>--radius-none</code> is the default for cards, panels, buttons, inputs
+      and images. There are exactly two exceptions: the logo pill and the navigation pill
+      (<code>--radius-pill</code>), and round avatars (<code>--radius-full</code>).
+      Anything else with rounded corners is a mistake.
+    </p>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>

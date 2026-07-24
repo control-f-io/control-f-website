@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forms — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Components</p>
+    <h1>Forms</h1>
+    <p>
+      No boxes. A field is a line with a mono label above it — the same hairline that
+      separates sections and frames cards.
+    </p>
+  </header>
+
+  <section class="docs-section" id="demo">
+    <h2>Contact form</h2>
+    <div class="docs-demo">
+      <form class="stack stack--8" style="max-width:38rem" novalidate>
+        <div class="cf-field">
+          <label class="cf-field__label" for="f-name">Name</label>
+          <input class="cf-field__input" id="f-name" name="name" type="text" placeholder="Vor- und Nachname" required>
+        </div>
+
+        <div class="cf-field">
+          <label class="cf-field__label" for="f-mail">E-Mail</label>
+          <input class="cf-field__input" id="f-mail" name="email" type="email" placeholder="name@unternehmen.de"
+                 required aria-describedby="f-mail-hint">
+          <span class="cf-field__hint" id="f-mail-hint">Wir antworten in der Regel innerhalb eines Werktages.</span>
+        </div>
+
+        <div class="cf-field">
+          <label class="cf-field__label" for="f-topic">Thema</label>
+          <select class="cf-field__select" id="f-topic" name="topic">
+            <option>Discovery-Workshop</option>
+            <option>Datenfundament</option>
+            <option>Predictive Maintenance</option>
+            <option>Asset Performance</option>
+            <option>Etwas anderes</option>
+          </select>
+        </div>
+
+        <div class="cf-field">
+          <label class="cf-field__label" for="f-msg">Nachricht</label>
+          <textarea class="cf-field__textarea" id="f-msg" name="message" placeholder="Worum geht es?"></textarea>
+        </div>
+
+        <div class="cf-field cf-field--invalid">
+          <label class="cf-field__label" for="f-err">Error state</label>
+          <input class="cf-field__input" id="f-err" type="text" value="keine-gültige-adresse"
+                 aria-invalid="true" aria-describedby="f-err-msg">
+          <span class="cf-field__error" id="f-err-msg">Bitte geben Sie eine gültige E-Mail-Adresse an.</span>
+        </div>
+
+        <button class="cf-btn cf-btn--primary" type="submit">
+          Nachricht senden
+          <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+        </button>
+      </form>
+    </div>
+
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-field"</span>&gt;
+  &lt;<span class="tag">label</span> <span class="attr">class</span>=<span class="val">"cf-field__label"</span> <span class="attr">for</span>=<span class="val">"f-mail"</span>&gt;E-Mail&lt;/<span class="tag">label</span>&gt;
+  &lt;<span class="tag">input</span> <span class="attr">class</span>=<span class="val">"cf-field__input"</span> <span class="attr">id</span>=<span class="val">"f-mail"</span> <span class="attr">type</span>=<span class="val">"email"</span>
+         <span class="attr">aria-describedby</span>=<span class="val">"f-mail-hint"</span> <span class="attr">required</span>&gt;
+  &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-field__hint"</span> <span class="attr">id</span>=<span class="val">"f-mail-hint"</span>&gt;Wir antworten …&lt;/<span class="tag">span</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <table class="docs-table">
+      <thead><tr><th>Element</th><th>Style</th></tr></thead>
+      <tbody>
+        <tr><td>Label</td><td>Geist Mono Medium, 11 px, uppercase, <code>--text-secondary</code></td></tr>
+        <tr><td>Input</td><td>Geist Light, 16 px — large enough that iOS does not zoom on focus</td></tr>
+        <tr><td>Line</td><td>1 px underneath; 2 px on focus, no colour change</td></tr>
+        <tr><td>Placeholder</td><td><code>--text-muted</code> — it supplements the label, never replaces it</td></tr>
+        <tr><td>Hint</td><td>12 px below the field, always visible</td></tr>
+        <tr><td>Error</td><td>line and text in <code>#B3261E</code>, plus a plain-language message</td></tr>
+        <tr><td>Field spacing</td><td><code>--space-8</code> (32 px)</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>Red is the only colour outside the brand palette.</strong> Errors need a signal
+      nobody can misread, and lime does not do that job. It is confined to form errors and
+      appears nowhere else in the system. It never stands alone: there is always a message
+      and <code>aria-invalid</code> alongside it.
+    </div>
+  </section>
+
+  <section class="docs-section" id="a11y">
+    <h2>Accessibility &amp; data protection</h2>
+    <ul>
+      <li>Every field has a visible <code>&lt;label&gt;</code> with <code>for</code>. Never placeholder-as-label.</li>
+      <li>Errors via <code>aria-invalid="true"</code> and <code>aria-describedby</code> pointing at the message.</li>
+      <li>Validate on blur, not on every keystroke.</li>
+      <li>After submit, move focus to the confirmation or to the first error.</li>
+      <li>Set <code>autocomplete</code> correctly (<code>name</code>, <code>email</code>, <code>organization</code>).</li>
+      <li>The privacy notice with its link sits above the submit button — no pre-ticked checkbox.</li>
+      <li>Spam protection by honeypot and timing; no third-party captcha service.</li>
+    </ul>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>
