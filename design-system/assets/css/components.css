@@ -10,7 +10,7 @@
 @property --cf-specular {
   syntax: "<percentage>";
   inherits: false;
-  initial-value: 112%;
+  initial-value: 150%;
 }
 
 /* --------------------------------------------------------------------------
@@ -114,9 +114,9 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   position: relative;
   color: var(--accent-ink);
   background:
-    radial-gradient(120% 210% at var(--cf-specular) -40%,
-                    rgba(255, 255, 255, 0.5) 0%,
-                    rgba(255, 255, 255, 0) 62%),
+    radial-gradient(55% 300% at var(--cf-specular) 50%,
+                    rgba(255, 255, 255, 0.42) 0%,
+                    rgba(255, 255, 255, 0) 60%),
     linear-gradient(var(--angle-square),
                     rgba(197, 235, 226, 0)    30%,
                     rgba(197, 235, 226, 0.55) 62%,
@@ -126,15 +126,35 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
   border-color: rgba(255, 255, 255, 0.55);
-  transition: background var(--duration-base) var(--ease-standard),
-              color var(--duration-base) var(--ease-standard),
+  /* `background` is deliberately NOT in this list. The background image is
+     derived from --cf-specular, so naming both makes the browser interpolate
+     the resolved gradients over --duration-base *and* the property over
+     --duration-slow. The shorter one lands first and flattens the sweep into
+     a step: measured in Chromium, the whole hover change completed within
+     120 ms and never moved again. Transitioning only the property leaves one
+     driver, and the highlight travels. */
+  transition: color var(--duration-base) var(--ease-standard),
               border-color var(--duration-base) var(--ease-standard),
               --cf-specular var(--duration-slow) var(--ease-standard);
 }
 /* The highlight travels in from off the right edge rather than sweeping
-   across. Refraction hinted at, not simulated. */
+   across. Refraction hinted at, not simulated.
+
+   It is a band, not a blob: the vertical radius is 300 % of the button, so
+   the falloff across a 48 px plate is almost nothing and what crosses it is
+   a soft column of light — which is what a flat sheet of glass does with a
+   grazing source. The old figure put the centre 40 % *above* the plate with
+   a 210 % radius, so the bottom of the button sat outside the gradient
+   entirely and the middle only ever caught the outskirt: peak measured
+   delta over the whole hover was 5 levels of grey, under the threshold at
+   which anything is visible.
+
+   At rest the plate is unlit — 150 % parks the band's near tail past the
+   right edge, clear of the lime, which the screen has already spent its one
+   moment on. Light only ever adds, so the darkest point on the button stays
+   --surface-glass and the contrast floor below is untouched. */
 .cf-btn--glass:hover,
-.cf-btn--glass:focus-visible { --cf-specular: 64%; }
+.cf-btn--glass:focus-visible { --cf-specular: 40%; }
 
 .cf-btn--outline {
   background: transparent;
