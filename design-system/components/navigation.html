@@ -17,8 +17,11 @@
     <p class="docs-header__eyebrow">Components</p>
     <h1>Navigation</h1>
     <p>
-      Two pills floating over the content: the logo on anthracite at the left, the links on
-      frosted glass at the right. The bar has no background of its own — it lies on the hero.
+      Two opaque pills on a full-bleed sheet of frosted glass: the logo at the left, the
+      links at the right. The glass is the bar, not the pills — that is the manual's
+      stacking order, opaque surfaces on top of the frosted layer, and it is what both
+      mockups draw. It is also the only arrangement that holds its contrast, because an
+      opaque pill reads the same over every frame of the hero video underneath it.
     </p>
   </header>
 
@@ -59,18 +62,27 @@
     <table class="docs-table">
       <thead><tr><th>State</th><th>Appearance</th></tr></thead>
       <tbody>
-        <tr><td>Default</td><td>frosted glass at 32 %, links in <code>--text-secondary</code></td></tr>
-        <tr><td>Hover</td><td>link goes to <code>--text-primary</code>, 120 ms</td></tr>
-        <tr><td>Current page</td><td><code>aria-current="page"</code> → white pill behind the link</td></tr>
-        <tr><td>Sticky</td><td>stays at the top on scroll; the frosted layer carries the contrast</td></tr>
-        <tr><td>Below 780 px</td><td>links fold under the bar, the toggle button appears</td></tr>
+        <tr><td>Default</td><td>anthracite pills, links at white 72 % — 9.1:1</td></tr>
+        <tr><td>Hover</td><td>link goes to white, 120 ms</td></tr>
+        <tr><td>Current page</td><td><code>aria-current="page"</code> → white link on a white 14 % pill</td></tr>
+        <tr><td>Sticky</td><td>stays at the top on scroll; over the first 80 px the edge light resolves and the bar becomes a separate plane</td></tr>
+        <tr><td>Below 780 px</td><td>links fold under the bar, the toggle button appears — both opaque</td></tr>
       </tbody>
     </table>
     <div class="docs-note">
-      <strong>Frosted glass needs substance behind it.</strong> If a page starts without
-      hero artwork, the navigation sits over the grey wash — that is enough. Over a white
-      surface it disappears; those pages get
-      <code>--surface-glass: rgba(0,0,0,.04)</code> and a 1 px contour instead.
+      <strong>The glass band is nearly clear on purpose.</strong> It carries
+      <code>--surface-glass-veil</code> (white 4 %), because nothing sits on it but opaque
+      pills — the blur is what you are meant to see, not a wash of white. Sampled from the
+      mockups, CF-Grau reads 207 above the band and 208 inside it. That also means the band
+      is invisible over a flat surface, which is correct: on Über uns it does nothing, and
+      the manual reserves frosted glass for calming complex graphics.
+    </div>
+    <div class="docs-note">
+      <strong>The bar is <code>sticky</code>, never <code>fixed</code>.</strong> A
+      <code>backdrop-filter</code> on a fixed element repaints its blurred region on every
+      scroll frame in iOS Safari. The glass sheet also reaches
+      <code>--glass-lookahead</code> past the bar's bottom edge and is masked back, so
+      content arrives through the blur instead of appearing at the boundary already sharp.
     </div>
   </section>
 
