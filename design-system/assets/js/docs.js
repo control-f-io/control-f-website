@@ -38,6 +38,13 @@
       { href: 'patterns/ueber-uns.html',    label: 'Über uns page' },
       { href: 'patterns/blog-artikel.html', label: 'Blog article' }
     ]},
+    /* Full-page scroll studies, not components. They carry their own styling
+       and their own scroll engine, so they sit outside the documentation
+       chrome like the patterns do. */
+    { title: 'Animation Prototypes', items: [
+      { href: 'prototypes/werte-scroll.html',    label: 'Werte — logo build' },
+      { href: 'prototypes/services-scroll.html', label: 'Services — assembly' }
+    ]},
     { title: 'Reference', items: [
       { href: 'reference.html', label: 'Source Material' }
     ]}
@@ -52,7 +59,7 @@
     var parts = window.location.pathname.split('/').filter(Boolean);
     var file = parts[parts.length - 1] || 'index.html';
     var dir = parts[parts.length - 2] || '';
-    return ['foundations', 'components', 'patterns'].indexOf(dir) > -1
+    return ['foundations', 'components', 'patterns', 'prototypes'].indexOf(dir) > -1
       ? dir + '/' + file
       : file;
   }
