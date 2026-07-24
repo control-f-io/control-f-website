@@ -18,7 +18,9 @@
   .lp-statement-figure { display: grid; place-items: center; }
   /* Preview only: link back to the documentation. Remove in production. */
   .ds-back {
-    position: fixed; left: 0; bottom: 0; z-index: 999;
+    /* Under --z-overlay: preview chrome must never cover real UI, and the
+       consent banner sits in that layer along this edge. */
+    position: fixed; left: 0; bottom: 0; z-index: calc(var(--z-overlay) - 1);
     padding: var(--space-2) var(--space-4);
     background: var(--cf-anthrazit); color: var(--cf-lime);
     font-family: var(--font-mono); font-size: var(--text-xs);
@@ -28,6 +30,68 @@
 </head>
 <body class="page-wash">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+
+<!-- Consent — first thing after the skip link, so it is first in reading and
+     tab order. `hidden` until cf-consent.js decides; with JS off it never
+     appears and no non-essential script is ever activated. -->
+<section class="cf-consent" data-cf-consent-banner hidden
+         role="dialog" aria-labelledby="cf-consent-title">
+  <div class="container cf-consent__inner">
+    <div>
+      <h2 class="cf-consent__title" id="cf-consent-title" tabindex="-1" data-cf-consent-title>Datenschutz-Einstellungen</h2>
+      <p class="cf-consent__body">
+        Notwendige Cookies brauchen wir, damit die Seite funktioniert. Statistik und Marketing
+        nur, wenn Sie zustimmen — Sie können das jederzeit im Footer ändern.
+        <a href="/datenschutz">Datenschutzerklärung</a> · <a href="/impressum">Impressum</a>
+      </p>
+    </div>
+    <div class="cf-consent__actions">
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="reject">Nur notwendige</button>
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="accept">Alle akzeptieren</button>
+      <button type="button" class="cf-btn cf-btn--ghost" data-cf-consent-action="open">Einstellungen</button>
+    </div>
+  </div>
+</section>
+
+<dialog class="cf-consent__dialog" data-cf-consent-dialog aria-labelledby="cf-consent-settings-title">
+  <div class="cf-consent__dialog-inner">
+    <h2 class="cf-consent__dialog-title" id="cf-consent-settings-title">Ihre Einstellungen</h2>
+    <p class="cf-consent__body" style="margin-top:var(--space-4)">
+      Sie entscheiden pro Kategorie. Notwendige Cookies lassen sich nicht abwählen, weil ohne
+      sie nichts funktioniert.
+    </p>
+
+    <div class="cf-consent__group">
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" checked disabled>
+          <span class="cf-check__label"><strong>Notwendig</strong>Sitzung, Sprachwahl und die Speicherung dieser Entscheidung.</span>
+        </label>
+        <p class="cf-consent__meta">Immer aktiv · 1 Eintrag · 12 Monate</p>
+      </div>
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" data-cf-consent-category="statistik">
+          <span class="cf-check__label"><strong>Statistik</strong>Anonyme Reichweitenmessung, damit wir sehen, welche Inhalte gelesen werden.</span>
+        </label>
+        <p class="cf-consent__meta">Optional · 2 Einträge · 14 Monate</p>
+      </div>
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" data-cf-consent-category="marketing">
+          <span class="cf-check__label"><strong>Marketing</strong>Messung von Kampagnen und Einbindung externer Medien.</span>
+        </label>
+        <p class="cf-consent__meta">Optional · 3 Einträge · 12 Monate</p>
+      </div>
+    </div>
+
+    <div class="cf-consent__actions">
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="reject">Nur notwendige</button>
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="accept">Alle akzeptieren</button>
+      <button type="button" class="cf-btn cf-btn--ghost" data-cf-consent-action="save">Auswahl speichern</button>
+    </div>
+  </div>
+</dialog>
 
 <svg aria-hidden="true" style="display:none">
   <symbol id="cf-arrow" viewBox="0 0 600 480"><g transform="translate(600,0) scale(-1,1)">
@@ -510,6 +574,7 @@
         <li><a href="/karriere">Karriere</a></li>
         <li><a href="/datenschutz">Datenschutz</a></li>
         <li><a href="/impressum">Impressum</a></li>
+        <li><button type="button" class="cf-footer__linkbtn" data-cf-consent-action="open">Cookie-Einstellungen</button></li>
       </ul>
       <span>©2026 Control-F GmbH</span>
       <span>Am Seerhein 6, 78467 Konstanz · <a href="mailto:info@control-f.de">info@control-f.de</a></span>
@@ -526,5 +591,6 @@
     this.setAttribute('aria-expanded', String(!open));
   });
 </script>
+<script src="../assets/js/cf-consent.js"></script>
 </body>
 </html>
