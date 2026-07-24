@@ -95,17 +95,118 @@
   --accent-ink:       var(--cf-schwarz);   /* text on lime */
   --focus-ring:       var(--cf-schwarz);
 
-  /* The signature gradient. 132.36° is a brand angle (90° + 42°) carried
-     over from the isometric surfaces; keep the stops, vary the angle only
-     when the geometry demands it. */
+  /* ------------------------------------------------------------------
+     3b. THE LIGHT FAMILY — "Licht-Ebene"
+     Every gradient in the system is the same ramp: lime → Glas → CF-Grau.
+     Lime is the light source, CF-Grau is the surface it falls away to,
+     and Glas is the one free parameter — where the two meet.
+
+     That position is the RAKE: how steeply the light crosses the surface.
+     Near = a bright, short falloff. Far = a long grazing wash. Three rakes
+     are sanctioned, and all three are measured off the designer's material,
+     not invented. Read every stop below as a percentage of the band from
+     the lime end.
+
+       near  32 %  Figma dump, 132.36° linear · 01-discovery.svg (0.32)
+       mid   51 %  Figma dump, 239.25° linear · 03-weniger-ausfaelle.svg (0.51)
+       far   64 %  Figma dump, 45.72%/95% radial · 04-mehr-leistung.svg
+
+     The Figma percentages look different from these because Figma states
+     them across the whole fill box, with flat colour either side of the
+     ramp. Renormalise to the band and they land exactly here:
+       (40.45 − 24.97) / (73.05 − 24.97) = 32.2 %
+       (43.85 −  4.82) / (81.19 −  4.82) = 51.1 %
+     One ramp, three rakes. Nothing else is a gradient in this brand.
+     ------------------------------------------------------------------ */
+  --rake-near: 32%;
+  --rake-mid:  51%;
+  --rake-far:  64%;
+
+  /* The signature. Angle and stops are the designer's measured values from
+     the Figma dump and are kept verbatim, inset and all. Note that 132.36°
+     is 2.6° off the sanctioned 135° (90° + 45°) — the material wins, but
+     see foundations/geometry.html before deriving new angles from it. */
   --gradient-light: linear-gradient(132.36deg,
                       var(--cf-lime)  24.97%,
                       var(--cf-glas)  40.45%,
                       var(--cf-grau)  73.05%);
+
+  /* The same ramp mirrored onto a horizontal run — buttons, edges, rules.
+     calc() keeps it provably the mirror of --rake-near rather than a
+     second hand-picked number. Sampling the primary button out of the
+     landing-page mockup puts Glas at 63 %; the mirror puts it at 68 %. */
   --gradient-light-90: linear-gradient(90deg,
                       var(--cf-grau)  0%,
-                      var(--cf-glas)  46%,
+                      var(--cf-glas)  calc(100% - var(--rake-near)),
                       var(--cf-lime)  100%);
+
+  /* Grazing light — the second linear in the Figma dump, verbatim. */
+  --gradient-light-raking: linear-gradient(239.25deg,
+                      var(--cf-lime)  4.82%,
+                      var(--cf-glas)  43.85%,
+                      var(--cf-grau)  81.19%);
+
+  /* Light arriving as a bloom rather than a sweep. Four of the six gradients
+     in the Figma dump are radial and the system had none, which is why two
+     of the four process illustrations were built as linears against a radial
+     source. The dominant form puts the surface at the centre and the light
+     on the rim — cards 02 and 04 both do it — so that is --gradient-bloom.
+     --gradient-bloom-iso squashes it to 2:1 so the bloom is isometric like
+     everything else spatial (source: 02-datenfundament.svg, scale(120 59.88)).
+     --gradient-bloom-top is the one that lights from above, for surfaces
+     rather than objects. */
+  --gradient-bloom: radial-gradient(circle at 50% 50%,
+                      var(--cf-grau)  0%,
+                      var(--cf-glas)  calc(100% - var(--rake-mid)),
+                      var(--cf-lime)  100%);
+  --gradient-bloom-iso: radial-gradient(100% 50% at 50% 50%,
+                      var(--cf-grau)  0%,
+                      var(--cf-glas)  calc(100% - var(--rake-mid)),
+                      var(--cf-lime)  100%);
+  --gradient-bloom-top: radial-gradient(45.72% 95% at 50% 0%,
+                      var(--cf-lime)  26.66%,
+                      var(--cf-glas)  73.62%,
+                      var(--cf-grau)  100%);
+
+  /* ------------------------------------------------------------------
+     3c. THE FOIL
+     The same light, carried far enough to split. Lime → Weiss → Glas →
+     Sky → Violett is the brand's own spectrum: it is the order of the
+     column on Farben > Dosierung, and it is what the hero artwork does
+     across a single isometric plane — lime at the lit edge, a white hot
+     spot, then cyan, blue and violet in the falloff.
+
+     Iridescence is hue travel inside a narrow luminance band, not more
+     saturation. Sky and Violett are taken at their 300 tints so the whole
+     ramp stays between OKLab L 0.82 and 0.95: 166° of hue across 0.13 of
+     lightness. At their 500 values the band would open to 0.31 and the
+     ramp would read as a fade, not a foil.
+     ------------------------------------------------------------------ */
+  --gradient-spectrum: linear-gradient(132.36deg,
+                      var(--cf-lime)   0%,
+                      var(--cf-weiss)  18%,
+                      var(--cf-glas)   var(--rake-near),
+                      var(--sky-300)   64%,
+                      var(--violett-300) 100%);
+
+  /* The cool half — no lime, so it can be used on a screen that has
+     already spent its one lime moment. This is the type foil: on
+     anthracite its worst sample is 9.3:1, well past AA at any size. */
+  --gradient-foil: linear-gradient(116.57deg,
+                      var(--cf-glas)     0%,
+                      var(--sky-300)     46%,
+                      var(--violett-300) 100%);
+
+  /* Dither. 8-bit sRGB cannot resolve a 5,000 px ramp between two colours
+     this close, so the page wash bands into visible steps. One tile of
+     static, greyscale fractal noise breaks the step edges up. Pure SVG, no
+     request, no build step, `stitchTiles` so the 140 px tile has no seam.
+
+     8 % is measured, not guessed: it puts about five 8-bit levels of grain
+     on the wash — a band edge is one level, so that is plenty — while
+     shifting the mean by 0.9 of a level, i.e. CF-Grau still rounds to
+     #CFCFCF. Louder than this and the brand's anchor colour moves. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)' opacity='0.08'/%3E%3C/svg%3E");
 
   /* ------------------------------------------------------------------
      4. TYPEFACES
@@ -144,6 +245,12 @@
   --leading-normal: 1.3;    /* brand default — headings and mono */
   --leading-relaxed:1.45;   /* body copy */
 
+  /* Line length. Prose wants roughly 55–65 characters; a display line wants
+     far fewer, so it breaks where the eye expects rather than where the
+     column happens to end. */
+  --measure:       56ch;
+  --measure-tight: 26ch;
+
   --tracking-display: -0.02em;
   --tracking-normal:   0;
   --tracking-label:    0.01em;  /* Mono/Label as specced in Figma */
@@ -156,6 +263,7 @@
   --space-2:  0.5rem;   /*   8 */
   --space-3:  0.75rem;  /*  12 */
   --space-4:  1rem;     /*  16 */
+  --space-5:  1.25rem;  /*  20 */
   --space-6:  1.5rem;   /*  24 */
   --space-8:  2rem;     /*  32 */
   --space-12: 3rem;     /*  48 */
@@ -168,12 +276,23 @@
   --section-gap:    clamp(4rem, 8vw, 10rem);   /* space between page sections */
   --section-gap-sm: clamp(2rem, 5vw, 5rem);
 
+  /* The air between a section header's hairline and the content it opens.
+     Measured off both mockups: 88 px at the 1440 frame, so 80 px on the scale.
+     A section whose content is a ruled box is the exception — there the box's
+     own top border IS the header rule. See .cf-section-header--flush. */
+  --section-header-gap: var(--space-20);
+
   /* ------------------------------------------------------------------
      7. LAYOUT
      1440 frame, 80 px gutters, 1280 content. 12 columns, 24 px gap.
      ------------------------------------------------------------------ */
   --container-max: 80rem;   /* 1280 */
   --gutter:        clamp(1.25rem, 5.5vw, 5rem);  /* 20 → 80 */
+
+  /* The floating nav's own height: 2 × --space-5 plus the 44 px logo pill.
+     The hero pulls itself up by exactly this so the bar overlays the artwork
+     instead of sitting on a band above it. */
+  --nav-height:    5.25rem; /* 84 */
   --grid-columns:  12;
   --grid-gap:      var(--space-6);
 
@@ -238,6 +357,69 @@
   --z-nav: 200;
   --z-overlay: 300;
   --z-modal: 400;
+}
+
+/* ==========================================================================
+   INTERPOLATION
+   Everything above is stated in sRGB, because sRGB is what every browser
+   understands and what the designer's files are measured in. sRGB is not,
+   however, where light mixes. Interpolating lime → Glas in sRGB dips through
+   #D0F38C at the quarter point; the same stops in OKLab give #CFF4AF, which
+   holds 0.01 more lightness and visibly more chroma through the crossover.
+   The dip is small on any one gradient and cumulative across a page of them.
+
+   So the family is re-declared once, in OKLab, behind a support test. The
+   stops do not move — only the path between them.
+
+   OKLab and not OKLCh: OKLCh interpolates hue along an arc, and CF-Grau and
+   Weiss are achromatic, so their hue is arbitrary and the arc through them
+   is unpredictable. The family is built on both. OKLab is rectangular and
+   has no hue to swing. Where a hue path is wanted it is written as an
+   explicit stop instead — see --gradient-spectrum.
+
+   Browsers without `in oklab` (roughly 7 %) keep the sRGB declarations
+   above unchanged. Nothing degrades; the ramp is only slightly duller.
+   ========================================================================== */
+@supports (background: linear-gradient(in oklab, red, blue)) {
+  :root {
+    --surface-page-wash: linear-gradient(180deg in oklab,
+                        var(--grey-300) 0%, var(--grey-000) 100%);
+
+    --gradient-light: linear-gradient(132.36deg in oklab,
+                        var(--cf-lime)  24.97%,
+                        var(--cf-glas)  40.45%,
+                        var(--cf-grau)  73.05%);
+    --gradient-light-90: linear-gradient(90deg in oklab,
+                        var(--cf-grau)  0%,
+                        var(--cf-glas)  calc(100% - var(--rake-near)),
+                        var(--cf-lime)  100%);
+    --gradient-light-raking: linear-gradient(239.25deg in oklab,
+                        var(--cf-lime)  4.82%,
+                        var(--cf-glas)  43.85%,
+                        var(--cf-grau)  81.19%);
+    --gradient-bloom: radial-gradient(circle at 50% 50% in oklab,
+                        var(--cf-grau)  0%,
+                        var(--cf-glas)  calc(100% - var(--rake-mid)),
+                        var(--cf-lime)  100%);
+    --gradient-bloom-iso: radial-gradient(100% 50% at 50% 50% in oklab,
+                        var(--cf-grau)  0%,
+                        var(--cf-glas)  calc(100% - var(--rake-mid)),
+                        var(--cf-lime)  100%);
+    --gradient-bloom-top: radial-gradient(45.72% 95% at 50% 0% in oklab,
+                        var(--cf-lime)  26.66%,
+                        var(--cf-glas)  73.62%,
+                        var(--cf-grau)  100%);
+    --gradient-spectrum: linear-gradient(132.36deg in oklab,
+                        var(--cf-lime)   0%,
+                        var(--cf-weiss)  18%,
+                        var(--cf-glas)   var(--rake-near),
+                        var(--sky-300)   64%,
+                        var(--violett-300) 100%);
+    --gradient-foil: linear-gradient(116.57deg in oklab,
+                        var(--cf-glas)     0%,
+                        var(--sky-300)     46%,
+                        var(--violett-300) 100%);
+  }
 }
 
 /* Dark context — used for the footer and any inverted section. Set
