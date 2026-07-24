@@ -205,23 +205,36 @@ hr {
 .section--tight { padding-block: var(--section-gap-sm); }
 .section--flush { padding-block: 0; }
 
-/* 12-column content grid */
+/* 12-column content grid.
+
+   Stacked first. A .col-* is full width until the container it sits in is wide
+   enough to hold the split, which is the same shape .cf-statement, .cf-process
+   and .cf-value-row already use: the safe layout is the default, and the wide
+   one is the enhancement. A browser with no container-query support, or a .grid
+   placed outside any .container, therefore stacks rather than overflowing.
+
+   The threshold is the container's own width, not the viewport's, for the
+   reason written on .container: the same two-column split is comfortable in the
+   1280 px content column and cramped in a 533 px documentation panel, and only
+   the container can tell those apart. 56rem is the system's two-column
+   threshold — see the breakpoint register in tokens.css. */
 .grid {
   display: grid;
   grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
   gap: var(--grid-gap);
 }
-.col-2  { grid-column: span 2; }
-.col-3  { grid-column: span 3; }
-.col-4  { grid-column: span 4; }
-.col-5  { grid-column: span 5; }
-.col-6  { grid-column: span 6; }
-.col-7  { grid-column: span 7; }
-.col-8  { grid-column: span 8; }
-.col-12 { grid-column: span 12; }
+.col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-12 {
+  grid-column: span var(--grid-columns);
+}
 
-@media (max-width: 900px) {
-  .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8 { grid-column: span 12; }
+@container layout (min-width: 56rem) {
+  .col-2 { grid-column: span 2; }
+  .col-3 { grid-column: span 3; }
+  .col-4 { grid-column: span 4; }
+  .col-5 { grid-column: span 5; }
+  .col-6 { grid-column: span 6; }
+  .col-7 { grid-column: span 7; }
+  .col-8 { grid-column: span 8; }
 }
 
 .stack { display: flex; flex-direction: column; }
