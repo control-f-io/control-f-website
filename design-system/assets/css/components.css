@@ -876,6 +876,16 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   filter: grayscale(1);
 }
 
+/* Photo, name, role. The three lines have to sit on the same baselines right
+   across a row — a portrait wall whose role labels stagger reads as a mistake,
+   and it only takes one name that wraps to two lines. The card boxes are equal
+   height already (grid stretch), so nothing looks wrong until real names land,
+   and the README says real names are still to come.
+
+   Each card spans three row tracks of the parent and adopts them with
+   `subgrid`, so a two-line name grows that track for every card in the row at
+   once. Without it, a single wrapped name pushes its own role label 21 px below
+   its neighbours' and nothing else moves. */
 .cf-team-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
@@ -892,6 +902,23 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   aspect-ratio: 4 / 5;
   object-fit: cover;
   margin-bottom: var(--space-4);
+}
+/* The enhancement, behind a support query: the fallback above is the current
+   shipping layout, so a browser without subgrid loses the cross-card alignment
+   and nothing else changes.
+
+   row-gap is 0 and the existing margins are left alone on purpose. The two
+   gaps in this card are not equal — 16 under the photo, 4 under the name — and
+   a single row-gap cannot express that. Margins are part of a grid item's outer
+   size, so the tracks size to content plus margin and the card is drawn exactly
+   as before; the only difference is that the three tracks are now shared. */
+@supports (grid-template-rows: subgrid) {
+  .cf-team-grid__item {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
 }
 
 /* --------------------------------------------------------------------------
