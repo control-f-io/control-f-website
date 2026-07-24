@@ -88,9 +88,23 @@
     <p style="margin-top:var(--space-4)">
       The splits that recur in the design: <strong>6 + 6</strong> for process cards and
       statements, <strong>12</strong> for section headers and full-width bands,
-      <strong>4 + 4 + 4</strong> for card rows. Every <code>.col-*</code> collapses to full
-      width below 900 px — the one page-level breakpoint in the system.
+      <strong>4 + 4 + 4</strong> for card rows.
     </p>
+    <div class="docs-note">
+      <strong>Stacked first.</strong> A <code>.col-*</code> is full width until the container
+      it sits in reaches <strong>56rem</strong>, at which point it takes its real span. The
+      wide layout is the enhancement, not the default — so a browser without container-query
+      support, or a <code>.grid</code> dropped outside any <code>.container</code>, stacks
+      rather than overflowing. That is the same shape <code>.cf-statement</code>,
+      <code>.cf-process</code> and <code>.cf-value-row</code> already use.
+    </div>
+    <div class="docs-note">
+      <strong>The threshold is the container, not the viewport.</strong> A size query measures
+      the container's <em>content</em> box, and the gutter is 5.5vw — so inside a
+      <code>.container</code>, 56rem of container is reached at a viewport of about
+      <strong>1007 px</strong>, not 896. Measured, not derived. Worth knowing before you reach
+      for a viewport number to describe when something folds.
+    </div>
     <div class="docs-note">
       <strong>Two 6 + 6s.</strong> A statement or a process card is a 6 + 6 split, but it is
       built as a component with its own two-track grid rather than as two <code>.col-6</code>
@@ -99,12 +113,64 @@
       independent siblings that happen to sit side by side.
     </div>
     <div class="docs-note">
+      <strong>Nothing on the site uses this grid yet.</strong> Both pattern pages express their
+      splits at component level — the two 6 + 6s above, and the 4 + 4 + 4 card rows as
+      <code>auto-fill</code> tracks that pack themselves. <code>.grid</code> and
+      <code>.col-*</code> are the primitive for page composition when a page needs it; they are
+      documented here as a promise, not as a description of the two pages that exist. Said
+      plainly so nobody reads the demo above as a picture of the shipping layout.
+    </div>
+    <div class="docs-note">
+      <strong>3-up folds straight to stacked.</strong> A row of <code>.col-4</code> goes from
+      three across to full width in one step; there is no 3 → 2 → 1 ladder, because that would
+      need a second container threshold and the register below is deliberately short. If a
+      three-card row ever needs an intermediate state, add the threshold to the register rather
+      than to the component.
+    </div>
+    <div class="docs-note">
       <strong>Never a bare <code>1fr</code>.</strong> <code>1fr</code> is shorthand for
       <code>minmax(auto, 1fr)</code>, and <code>auto</code> floors at min-content — so one long
       unbreakable headline in a track sets a floor the whole grid cannot go below, and the page
       scrolls sideways. Every track in this system is written
       <code>minmax(0, 1fr)</code>, and any grid or flex child that has to be allowed to
       truncate carries <code>min-width: 0</code>.
+    </div>
+  </section>
+
+  <section class="docs-section" id="breakpoints">
+    <h2>Breakpoints</h2>
+    <p>
+      A threshold cannot be a design token. <code>var()</code> is not allowed in the prelude of
+      <code>@media</code> or <code>@container</code>, and <code>@custom-media</code> needs a
+      build step this system does not have. Every threshold is therefore a literal typed into
+      the CSS, and the only defence against them multiplying is to write them all down in one
+      place and add to the list on purpose. This table and the register comment in
+      <code>tokens.css</code> are that place. It covers the three shipping stylesheets; the
+      documentation pages carry a few local thresholds of their own for demos, which ship
+      nowhere and are not part of the system.
+    </p>
+    <div class="docs-note">
+      <strong>The rule.</strong> A component asks its <em>container</em>. Only page furniture
+      that is genuinely pinned to the viewport — the nav bar, the hero, the footer, the consent
+      banner — may ask the viewport. A new component that reaches for a media query is almost
+      always the wrong answer.
+    </div>
+    <table class="docs-table">
+      <thead><tr><th>Threshold</th><th>Kind</th><th>What it governs</th></tr></thead>
+      <tbody>
+        <tr><td><code>44rem</code> / 704</td><td>container</td><td><code>.subdivide</code> folds to a stack; the blog axis goes with it</td></tr>
+        <tr><td><code>48rem</code> / 768</td><td>container</td><td><code>.cf-value-row</code> splits into icon + copy</td></tr>
+        <tr><td><code>56rem</code> / 896</td><td>container</td><td>the two-column threshold — <code>.col-*</code>, <code>.cf-statement</code>, <code>.cf-process</code></td></tr>
+        <tr><td><code>780px</code></td><td>viewport</td><td>nav collapses to a toggle; hero action drops into the flow; accordion loses its indent; footer CTA folds</td></tr>
+        <tr><td><code>900px</code></td><td>viewport</td><td>page-header figure is dropped; consent banner goes single column</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>Two viewport tiers is an open question.</strong> 780 and 900 govern different
+      objects and neither was measured off the mockups — they are inherited numbers. They may
+      well be right, but nothing here justifies two. Left as they are rather than reconciled,
+      because collapsing them changes designed behaviour on both pages and that is a designer's
+      call, not a layout one.
     </div>
   </section>
 
@@ -139,12 +205,42 @@
     </p>
     <div class="docs-note">
       <strong>Every step is accounted for.</strong> A scale is only honest if you can say who
-      uses each rung. 1 through 24 are used directly across the CSS and the two pattern pages.
-      <code>--space-5</code> (20) exists because a component was already reaching for it and
-      silently falling back to a hard-coded <code>1.25rem</code>. <code>--space-30</code> (120)
-      and <code>--space-40</code> (160) are never written by hand: they are the values
-      <code>--section-gap</code> resolves to at 1440 and at 1920. If a step ever loses its last
-      consumer, delete it rather than leaving it as a suggestion.
+      uses each rung, so here is the count, taken from the shipping CSS
+      (<code>tokens</code> + <code>base</code> + <code>components</code>):
+    </div>
+    <table class="docs-table">
+      <thead><tr><th>Step</th><th>px</th><th>Rules that use it</th><th>Where it earns its place</th></tr></thead>
+      <tbody>
+        <tr><td><code>--space-1</code></td><td>4</td><td>3</td><td>the gap under a name, inside a tight cluster</td></tr>
+        <tr><td><code>--space-2</code></td><td>8</td><td>14</td><td>icon-to-label, chip padding</td></tr>
+        <tr><td><code>--space-3</code></td><td>12</td><td>13</td><td>button padding-block</td></tr>
+        <tr><td><code>--space-4</code></td><td>16</td><td>27</td><td>the default gap — the most used step in the system</td></tr>
+        <tr><td><code>--space-5</code></td><td>20</td><td>1</td><td>the nav bar's own padding — its only consumer</td></tr>
+        <tr><td><code>--space-6</code></td><td>24</td><td>19</td><td><code>--grid-gap</code>, panel padding</td></tr>
+        <tr><td><code>--space-8</code></td><td>32</td><td>12</td><td>the gap between an object and its copy</td></tr>
+        <tr><td><code>--space-12</code></td><td>48</td><td>7</td><td>panel padding at the wide breakpoint</td></tr>
+        <tr><td><code>--space-16</code></td><td>64</td><td>5</td><td>the <code>--section-gap</code> floor</td></tr>
+        <tr><td><code>--space-20</code></td><td>80</td><td>5</td><td><code>--section-header-gap</code>, the <code>-sm</code> ceiling, the accordion indent</td></tr>
+        <tr><td><code>--space-24</code></td><td>96</td><td>3</td><td>page-header and footer padding-block</td></tr>
+        <tr><td><code>--space-30</code></td><td>120</td><td><strong>0</strong></td><td>—</td></tr>
+        <tr><td><code>--space-40</code></td><td>160</td><td>1</td><td>the <code>--section-gap</code> ceiling</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong><code>--space-30</code> is the one step with no consumer</strong> — and the
+      previous version of this note was wrong about it, claiming it and
+      <code>--space-40</code> were both values <code>--section-gap</code> merely resolves to.
+      <code>--space-40</code> is written by hand, as the clamp's ceiling. <code>--space-30</code>
+      is written nowhere. It is kept as the single deliberate exception to the rule below,
+      because 120 is a real rung of a 4 px scale and it is the value the rhythm lands on at the
+      1440 reference frame — the landmark the whole vertical system is measured against. If a
+      designer would rather see the rule enforced than the landmark kept, delete it; that is a
+      reasonable ruling and this note exists so it can be made deliberately.
+    </div>
+    <div class="docs-note">
+      <strong>If a step loses its last consumer, delete it</strong> rather than leaving it as a
+      suggestion. A scale that lists options nobody took is a menu, not a system. The count
+      above is the check — run it before adding a rung, not after.
     </div>
   </section>
 
@@ -179,6 +275,36 @@
         <tr><td>1920</td><td>80</td><td>1280</td><td><strong>160</strong> = <code>--space-40</code></td><td>80</td></tr>
       </tbody>
     </table>
+    <div class="docs-note">
+      <strong>The 2 : 3 ratio holds in the middle, not everywhere.</strong> The two tokens are
+      1/18 and 1/12 of the frame, so where both are fluid they sit at exactly 1.50. Measured
+      across the range that is <strong>768 to 1440 and nowhere else</strong>: 2.00 below 576
+      where both rest on their floors, sliding 1.80 → 1.50 across 576–768 as
+      <code>-sm</code> leaves its floor first, flat at 1.50 through the middle, then opening
+      back out to 2.00 by 1920 as <code>-sm</code> caps and <code>--section-gap</code> climbs
+      on alone. This is the failure mode <code>clamp()</code> is known for — two ramps that
+      agree at the ends and drift in between — and it is checked here rather than assumed.
+      The drift is benign: the ratio only widens, so the tight rhythm never overtakes the loose
+      one.
+    </div>
+    <div class="docs-note">
+      <strong>Where the rationale stops being literally true.</strong>
+      <code>--section-gap</code> is justified as "one column of the 12-column grid", and
+      100vw ÷ 12 is exactly that — until about <strong>1438 px</strong>, where the container
+      caps. Above it a real column stops growing and 100vw ÷ 12 does not, so section rhythm
+      keeps opening while the content column stays frozen at 1280: measured as a share of
+      content width, the air per section goes 9.4 % flat from 768 to 1440, then climbs to
+      12.5 % at 1920. At the other end it reaches 19.2 % at 375 and 22.9 % at 320, because the
+      64 px floor is held while the column keeps narrowing.
+      <br><br>
+      Neither end is broken and both look deliberate, but neither was measured off a mockup —
+      the designer's frame is 1440. The alternative is to cap the fluid part at the frame
+      (<code>min(100vw, 89.9rem) ÷ 12</code>), which would freeze the rhythm at
+      <code>--space-30</code> exactly where the column freezes, and give that step the consumer
+      it currently lacks. That is a visible change to every viewport above 1500 — 240 px between
+      sections instead of up to 320 — so it is left for a designer to rule on rather than taken
+      here.
+    </div>
     <div class="docs-note">
       <strong>The token is padding, not the gap.</strong> <code>.section</code> applies
       <code>--section-gap</code> as <code>padding-block</code>, so it sits on both edges and the

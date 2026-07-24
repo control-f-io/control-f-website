@@ -287,9 +287,19 @@
        --section-gap-sm  100vw / 18   32 at 576 ·  80 at 1440 (capped)
 
      One twelfth of the frame is one column of the 12-column grid, which is why
-     the reference frame resolves it to exactly --space-30. The two hold a 2:3
-     ratio right across the fluid band (1/18 : 1/12), then --section-gap alone
-     keeps climbing to its ceiling.
+     the reference frame resolves it to exactly --space-30 (120).
+
+     The 2:3 ratio between them (1/18 : 1/12) holds exactly where BOTH are
+     fluid — 768 to 1440 — and nowhere else. Measured: 2.00 below 576 where
+     both sit on their floors, sliding 1.80 → 1.50 across 576–768 as -sm
+     leaves its floor first, a flat 1.50 from 768 to 1440, then opening back
+     out to 2.00 by 1920 as -sm caps and --section-gap climbs on alone.
+
+     Above ~1438 the "one grid column" rationale stops being literally true:
+     the container caps, so a real column stops growing while 100vw/12 does
+     not. Section rhythm therefore keeps opening on a very wide window even
+     though the content column is frozen at 1280. That is a deliberate-looking
+     choice nobody has actually ruled on — see foundations/layout.html.
 
      These are padding on `.section`, applied to both edges — so the air BETWEEN
      two adjacent sections is twice the token. See foundations/layout.html. */
@@ -320,6 +330,40 @@
   --nav-height:    5.25rem; /* 84 */
   --grid-columns:  12;
   --grid-gap:      var(--space-6);
+
+  /* ------------------------------------------------------------------
+     THE BREAKPOINT REGISTER
+     A threshold cannot be a custom property: var() is not allowed in the
+     prelude of @media or @container, and @custom-media needs a build step
+     this system does not have. So every threshold is a literal, and the
+     only way to keep them from multiplying is to write them all down in
+     one place and add to the list deliberately.
+
+     The rule: a component asks its CONTAINER. Only page furniture that is
+     genuinely pinned to the viewport — the nav bar, the hero, the footer,
+     the consent banner — may ask the viewport.
+
+     CONTAINER thresholds — the width of the component's own container:
+
+       44rem / 704   .subdivide folds; the blog axis goes with it
+       48rem / 768   .cf-value-row splits into icon + copy
+       56rem / 896   the two-column threshold: .col-*, .cf-statement,
+                     .cf-process. Inside a .container this is reached at a
+                     viewport of about 1007, because a size query measures
+                     the CONTENT box and the gutter is 5.5vw.
+
+     VIEWPORT thresholds — page furniture only:
+
+       780           nav collapses to a toggle; the hero action drops into
+                     the flow; the accordion loses its indent; the footer
+                     CTA folds
+       900           the page-header figure is dropped; the consent banner
+                     goes single column
+
+     Two viewport tiers rather than one is a live question — they govern
+     different objects and neither was measured off the mockups. Flagged
+     for a designer rather than reconciled here.
+     ------------------------------------------------------------------ */
 
   /* ------------------------------------------------------------------
      8. GEOMETRY — the isometric system
