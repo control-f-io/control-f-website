@@ -69,6 +69,21 @@ nav pill and round avatars. Lime is light, not a surface: one element per screen
 Publica Sans sets display headlines, Geist sets everything readable, Geist Mono sets
 labels and every number.
 
+## Vertical rhythm
+
+Every section opens with a `cf-section-header`, and **the header owns the air beneath
+it** — no page sets that distance locally. There are exactly two cases, both measured
+off the mockups:
+
+| | |
+|---|---|
+| **default** | Content sits `--section-header-gap` (80 px) below the hairline. For content that is not itself a ruled box: the logo wall, the team strip, a block of copy. |
+| **`--flush`** | The content below *is* a ruled container — process card, accordion, blog grid — and its own top border is the header's rule. The header drops its border and its gap so one hairline does both jobs. This is how all three are drawn in the mockups. |
+
+Before this rule the same relationship was set six different ways across the two pages
+(24, 32, 48, 64 px, plus two container paddings). If a section needs a different
+distance, change the token — not the page.
+
 ## Before launch
 
 | | |
@@ -94,7 +109,10 @@ These were judgement calls, each documented on the relevant page:
 - **Body copy is 14 px,** not the 11 px in the process-card Figma export. 11 px stays
   reserved for uppercase mono labels, where it is still legible.
   → `foundations/typography.html`
-- **Muted labels never sit on CF-Grau.** `#919191` on `#CFCFCF` is 1.9:1 — unreadable.
+- **Muted labels never sit on CF-Grau.** `#919191` on `#CFCFCF` is 2.0:1 — unreadable.
+  Every label that sits on the page wash — section-header counters, blog meta, the blog
+  axis, benefit labels, stat labels, field hints — therefore uses `--text-secondary`
+  (5.9:1 on CF-Grau), not `--text-muted`, even though the mockups paint them lighter.
   Decorative counters are also `aria-hidden`. → `foundations/colors.html`
 - **Anthracite `#1B2022` exists as a token but is not a core colour.** It is the measured
   footer and logo-pill fill from the mockups and cannot be mixed from the seven, so it is
