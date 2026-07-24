@@ -75,7 +75,11 @@
   --surface-raised:   var(--grey-050);
   --surface-card:     var(--grey-050);
   --surface-inverse:  var(--cf-anthrazit);
-  --surface-glass:    rgba(255, 255, 255, 0.32);
+
+  /* Milchglas has two jobs, so it has two tints. See section 9. */
+  --surface-glass:       rgba(255, 255, 255, 0.46);
+  --surface-glass-veil:  rgba(255, 255, 255, 0.04);
+  --surface-glass-solid: var(--grey-100);
 
   /* The page itself is a slow vertical wash from CF-Grau to white. */
   --surface-page-wash: linear-gradient(180deg, var(--grey-300) 0%, var(--grey-000) 100%);
@@ -349,9 +353,59 @@
   /* ------------------------------------------------------------------
      9. MATERIALS — "Formsprache > Materialien"
      ------------------------------------------------------------------ */
-  --glass-blur:       blur(16px) saturate(1.1);
-  --glass-blur-heavy: blur(28px) saturate(1.2);
-  --glass-border:     1px solid rgba(255, 255, 255, 0.4);
+  /* Milchglas — frosted glass. It exists to calm a complex graphic beneath
+     it, never to sit on a flat surface, where it is only a grey box.
+
+     Two tints, because glass does two different jobs:
+
+     --surface-glass       BEARING glass. Text sits directly on it, over a
+                           backdrop we do not control — the hero video. 46 %
+                           white is the floor at which black type still clears
+                           4.5:1 composited over a *pure black* backdrop, so
+                           the guarantee holds for every frame of any video
+                           rather than for the frames someone happened to
+                           check. Measured against the hero poster's darkest
+                           blurred patch it lands at 6.5:1.
+     --surface-glass-veil  VEIL glass. Carries nothing but opaque objects, so
+                           it stays almost clear and lets the blur do the work.
+                           Measured off the navigation band in both mockups:
+                           CF-Grau reads 207 above the band and 208 inside it.
+     --surface-glass-solid The opaque stand-in when the browser cannot blur, or
+                           when the reader has asked for less transparency.
+
+     Blur radius is 16 px. Larger reads no better and costs more. The system
+     never stacks glass on glass: the navigation band and the hero button are
+     the only two blurred layers any screen carries, and they do not overlap. */
+  --glass-blur:       blur(16px) saturate(1.08);
+  --glass-blur-heavy: blur(28px) saturate(1.16);
+  --glass-border:     1px solid rgba(255, 255, 255, 0.55);
+
+  /* How far a glass sheet reaches past its own edge so that content
+     arriving from outside is already inside the blur. backdrop-filter only
+     samples what is directly behind the element, and the sample that
+     matters is one blur kernel deep — reaching further blurs more pixels
+     every frame for no visible gain. 16 px radius, 24 px of reach. */
+  --glass-lookahead: 24px;
+
+  /* The lit edge of a glass sheet — white at the rim, drifting through Glas
+     into Sky as it runs out. This is the foil, at one pixel: hue travel
+     inside a narrow luminance band, not a shine. */
+  --glass-edge: linear-gradient(90deg,
+                  rgba(255, 255, 255, 0)    0%,
+                  rgba(255, 255, 255, 0.42) 16%,
+                  rgba(197, 235, 226, 0.42) 54%,
+                  rgba(114, 176, 226, 0.28) 80%,
+                  rgba(255, 255, 255, 0)   100%);
+
+  /* Light crossing a flat panel — the hover state of any surface that is
+     *not* glass. Parked in its own transparent half and slid across on
+     hover, so the panel reads as lit rather than tinted. Never lime: the
+     screen only gets one of those. */
+  --sheen-panel: linear-gradient(90deg,
+                   rgba(255, 255, 255, 0)    0%,
+                   rgba(255, 255, 255, 0)   50%,
+                   rgba(255, 255, 255, 0.5) 78%,
+                   rgba(197, 235, 226, 0.34) 100%);
 
   /* Light layer: lime is a temporary effect, not a fill. */
   --glow-lime: 0 0 32px rgba(225, 255, 0, 0.45);
@@ -451,7 +505,25 @@
   --surface-sunken: #14181A;
   --surface-raised: #232A2C;
   --surface-card:   #232A2C;
-  --surface-glass:  rgba(255, 255, 255, 0.08);
+
+  /* Inverted glass darkens instead of lightening, and the floor flips with
+     it: 56 % black is where white type still clears 4.5:1 composited over a
+     pure white backdrop. */
+  --surface-glass:       rgba(0, 0, 0, 0.56);
+  --surface-glass-veil:  rgba(0, 0, 0, 0.06);
+  --surface-glass-solid: var(--surface-raised);
+  --glass-border:        1px solid rgba(255, 255, 255, 0.18);
+  --glass-edge: linear-gradient(90deg,
+                  rgba(255, 255, 255, 0)    0%,
+                  rgba(255, 255, 255, 0.26) 16%,
+                  rgba(197, 235, 226, 0.26) 54%,
+                  rgba(114, 176, 226, 0.18) 80%,
+                  rgba(255, 255, 255, 0)   100%);
+  --sheen-panel: linear-gradient(90deg,
+                   rgba(255, 255, 255, 0)    0%,
+                   rgba(255, 255, 255, 0)   50%,
+                   rgba(255, 255, 255, 0.12) 78%,
+                   rgba(197, 235, 226, 0.10) 100%);
 
   --text-primary:   var(--grey-000);
   --text-secondary: rgba(255, 255, 255, 0.72);
@@ -469,5 +541,33 @@
     --duration-base: 1ms;
     --duration-slow: 1ms;
     --duration-scene: 1ms;
+  }
+}
+
+/* No backdrop-filter, no glass. Everything that would have been frosted
+   becomes an opaque plate instead — the veil layer has to carry the
+   separation on its own, so it stops being a veil. Redefining the tokens
+   here means no component needs its own fallback. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --glass-blur:          none;
+    --glass-blur-heavy:    none;
+    --surface-glass:       var(--surface-glass-solid);
+    --surface-glass-veil:  rgba(255, 255, 255, 0.72);
+  }
+  [data-theme="inverse"] {
+    --surface-glass-veil:  rgba(0, 0, 0, 0.72);
+  }
+}
+
+/* The reader has asked for less transparency. Give them none of it: opaque
+   plates, no blur, and the edge light stays because it is a contour, not a
+   translucency. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-blur:          none;
+    --glass-blur-heavy:    none;
+    --surface-glass:       var(--surface-glass-solid);
+    --surface-glass-veil:  var(--surface-glass-solid);
   }
 }
