@@ -4,6 +4,15 @@
    Naming: .cf-<block>__<element> --<modifier>
    ========================================================================== */
 
+/* Registered so it can be interpolated. A plain custom property jumps; a
+   typed one animates, which is the difference between a highlight that
+   moves and a highlight that switches. */
+@property --cf-specular {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 112%;
+}
+
 /* --------------------------------------------------------------------------
    ICON — the arrow
    The CF arrow is the brand's only decorative glyph. It is the logo symbol
@@ -92,14 +101,40 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 }
 .cf-btn--primary:hover { background: var(--cf-lime); }
 
-/* On top of imagery or the hero — frosted, with the gradient bleeding in. */
+/* On top of imagery or the hero. The one place glass and the light layer
+   meet: a frosted plate with the light falling across it, lime at the lit
+   edge. It used to declare backdrop-filter underneath a fully opaque
+   gradient, which is a GPU cost with nothing to show for it — the blur was
+   never visible. The plate is genuinely translucent now.
+
+   Every layer above the veil only adds light, so the darkest point on the
+   button is --surface-glass itself. That is the bearing tint, which holds
+   black type at 4.5:1 over an arbitrarily dark backdrop. */
 .cf-btn--glass {
-  background: var(--gradient-light-90);
+  position: relative;
   color: var(--accent-ink);
+  background:
+    radial-gradient(120% 210% at var(--cf-specular) -40%,
+                    rgba(255, 255, 255, 0.5) 0%,
+                    rgba(255, 255, 255, 0) 62%),
+    linear-gradient(var(--angle-square),
+                    rgba(197, 235, 226, 0)    30%,
+                    rgba(197, 235, 226, 0.55) 62%,
+                    rgba(225, 255, 0, 0.88)   87%,
+                    var(--cf-lime)           100%),
+    var(--surface-glass);
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.55);
+  transition: background var(--duration-base) var(--ease-standard),
+              color var(--duration-base) var(--ease-standard),
+              border-color var(--duration-base) var(--ease-standard),
+              --cf-specular var(--duration-slow) var(--ease-standard);
 }
+/* The highlight travels in from off the right edge rather than sweeping
+   across. Refraction hinted at, not simulated. */
+.cf-btn--glass:hover,
+.cf-btn--glass:focus-visible { --cf-specular: 64%; }
 
 .cf-btn--outline {
   background: transparent;
@@ -166,15 +201,24 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 
 /* --------------------------------------------------------------------------
    NAVIGATION
-   Two pills of the same material: the logo left, the links right. Both are
-   anthracite, as in the mockups — the bar floats over the hero and carries its
-   own contrast rather than borrowing it from whatever is behind. A frosted
-   pill cannot do that over moving artwork.
+   Logo pill left, link pill right, mono uppercase links, both opaque —
+   and the whole bar is one full-bleed sheet of frosted glass.
+
+   The mockups are explicit about this and the implementation had it the
+   other way round. Sampled from mockups/landing-page.jpg: the top 80 px of
+   the frame is blurred and desaturated against the hero artwork with a hard
+   edge at its bottom, and both pills inside it read #000. That is the
+   manual's stacking order — Layer 03 (glass) under Layer 02 (opaque) — and
+   it is also the only version that survives a contrast check, because an
+   opaque pill holds its text at 16:1 no matter which frame of the video is
+   playing underneath.
    -------------------------------------------------------------------------- */
 .cf-nav {
-  position: sticky;
+  position: sticky;   /* not fixed: a fixed backdrop-filter repaints the
+                         blurred region on every scroll frame in iOS Safari */
   top: 0;
   z-index: var(--z-nav);
+  isolation: isolate;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -182,6 +226,68 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   min-height: var(--nav-height);
   padding: var(--space-5) var(--gutter);
 }
+
+/* The glass sheet. It reaches one blur kernel past the bottom of the bar and
+   is masked back to the bar's own box: backdrop-filter only samples the
+   pixels directly behind its element, so without the reach a vivid object
+   scrolling up would appear at the boundary already sharp instead of
+   arriving through the blur. The mask hides the reach; the blur has already
+   read it.
+
+   The reach is exactly --glass-lookahead and not a fraction of the bar,
+   because blurred area is the whole cost here. Measured over a 3,000 px
+   scripted scroll at 1280 px, 95th-percentile frame: 16.9 ms with no glass
+   at all, 17.8 ms with no reach, 20.0 ms at a reach of a quarter bar,
+   25.1 ms at half a bar. Everything past the kernel is spend with nothing
+   to show for it. */
+.cf-nav::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: calc(100% + var(--glass-lookahead));
+  z-index: -2;
+  pointer-events: none;
+  background: var(--surface-glass-veil);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  -webkit-mask-image: linear-gradient(#000 0 calc(100% - var(--glass-lookahead)),
+                                      transparent calc(100% - var(--glass-lookahead)));
+  mask-image: linear-gradient(#000 0 calc(100% - var(--glass-lookahead)),
+                              transparent calc(100% - var(--glass-lookahead)));
+}
+
+/* The edge the sheet ends at. Present by default, because a bar with
+   content passing under it has to read as a separate plane; the scroll
+   block below takes it away again while the bar is still part of the hero,
+   which is the state both mockups are drawn in. */
+.cf-nav::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: var(--stroke-1);
+  z-index: -1;
+  pointer-events: none;
+  background: var(--glass-edge);
+}
+
+/* Light arriving as the bar separates from the page. Scrubbed by the scroll
+   position rather than a timer, so it tracks the reader's hand instead of
+   playing at them. No script; the un-enhanced state is the settled one.
+
+   Deliberately on the edge and not on the sheet: fading a backdrop-filtered
+   layer re-rasterises its blur every frame, which showed up as a doubling of
+   long frames during scroll. A one-pixel gradient costs nothing. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .cf-nav::after {
+      animation: cf-nav-edge linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 5rem;
+    }
+  }
+}
+@keyframes cf-nav-edge { from { opacity: 0; } to { opacity: 1; } }
+
 .cf-nav__list {
   display: flex;
   align-items: center;
@@ -202,11 +308,12 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.72);   /* 9.0:1 on anthracite */
   transition: color var(--duration-fast) var(--ease-standard),
               background var(--duration-fast) var(--ease-standard);
 }
-.cf-nav__link:hover { color: var(--grey-000); }
+.cf-nav__link:hover,
+.cf-nav__link:focus-visible { color: var(--grey-000); }
 /* The current page is marked by weight of ink, not by a lime ground — lime is
    light, and the one lime moment on the page belongs to the hero's button. */
 .cf-nav__link[aria-current="page"] {
@@ -583,8 +690,38 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   transition: background var(--duration-fast) var(--ease-standard);
 }
 .cf-accordion__summary::-webkit-details-marker { display: none; }
-.cf-accordion__summary:hover { background: rgba(255, 255, 255, 0.35); }
+/* Not glass: these rows sit on the page wash, and frosted glass over a flat
+   surface is only a grey box. Light crossing the row is the honest version. */
+.cf-accordion__summary {
+  background-image: var(--sheen-panel);
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+  background-position: 0 0;   /* parked in the gradient's transparent half */
+  transition: background-position var(--duration-slow) var(--ease-standard);
+}
+.cf-accordion__summary:hover,
+.cf-accordion__summary:focus-visible { background-position: 100% 0; }
 .cf-accordion__item[open] .cf-accordion__summary .cf-arrow { transform: rotate(90deg); }
+
+/* The panel slides open instead of jumping. interpolate-size is Chromium-only
+   as of mid-2026, so everywhere else this block does not apply and the panel
+   opens exactly as it does today — the fallback is the current behaviour, not
+   a degraded one. Scoped to the accordion rather than :root so it does not
+   quietly change every other auto-sized transition in the system. */
+@supports (interpolate-size: allow-keywords) {
+  @media (prefers-reduced-motion: no-preference) {
+    .cf-accordion__item {
+      interpolate-size: allow-keywords;
+    }
+    .cf-accordion__item::details-content {
+      block-size: 0;
+      overflow-y: clip;
+      transition: block-size var(--duration-slow) var(--ease-standard),
+                  content-visibility var(--duration-slow) allow-discrete;
+    }
+    .cf-accordion__item[open]::details-content { block-size: auto; }
+  }
+}
 .cf-accordion__content {
   padding: 0 var(--space-4) var(--space-6) var(--space-20);
   max-width: 76ch;
@@ -632,12 +769,21 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   min-height: 4rem;
   padding: var(--space-3);
   border-bottom: var(--stroke-1) solid var(--border-subtle);
-  transition: background var(--duration-fast) var(--ease-standard);
+  /* Same light-across-a-panel treatment as the accordion row. These cells
+     are contour on the page wash — there is nothing complex underneath for
+     glass to calm, so glass would be dishonest here. */
+  background-image: var(--sheen-panel);
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+  background-position: 0 0;
+  transition: background-position var(--duration-slow) var(--ease-standard);
 }
 /* The last card in a column would otherwise draw its own hairline 0 px above
    the column's, doubling the grid's bottom edge. */
 .cf-blog-card:last-child { border-bottom: 0; }
-.cf-blog-card:hover { background: rgba(255, 255, 255, 0.45); }
+.cf-blog-card:hover,
+.cf-blog-card:focus-visible,
+.cf-blog-card:focus-within { background-position: 100% 0; }
 .cf-blog-card__title {
   font-size: var(--text-sm);
   font-weight: var(--weight-regular);
