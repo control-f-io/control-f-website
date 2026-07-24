@@ -20,9 +20,10 @@ Then open <http://localhost:8000/design-system/>. It also works by opening
 ```
 design-system/
 ├── index.html              overview + how to include the CSS
-├── foundations/            colour, type, layout, geometry, materials, logo, photo, motion
+├── foundations/            colour, type, layout, geometry, iconography, materials,
+│                           logo, photo, motion
 ├── components/             buttons, nav, section header, process card, accordion,
-│                           blog grid, team, forms, footer
+│                           blog grid, team, forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html
 ├── reference.html          the designer's source material, next to what implements it
 └── assets/
@@ -31,7 +32,10 @@ design-system/
     │   ├── base.css        fonts, reset, type classes, layout primitives, utilities
     │   ├── components.css  every component
     │   └── docs.css        this documentation site only — does not ship
-    ├── js/docs.js          sidebar, swatch copy, icon sprite — documentation only
+    ├── js/
+    │   ├── cf-consent.js   the consent banner + settings dialog. Ships.
+    │   ├── cf-icons.js     the icon set — the one place a glyph is drawn. Ships.
+    │   └── docs.js         sidebar, swatch copy, arrow sprite — documentation only
     ├── fonts/              (empty — see below)
     ├── img/                logo SVGs, icons, hero poster, team photos
     ├── video/hero-abstract-art.mp4
@@ -55,9 +59,22 @@ Three stylesheets, in this order:
 <link rel="stylesheet" href="/design-system/assets/css/components.css">
 ```
 
-Then paste the icon sprite right after `<body>` (see `components/buttons.html`),
-and build pages from the classes documented in `components/`.
+Then paste the arrow sprite right after `<body>` (see `components/buttons.html`), add
+the icon sprite with `<script src="/design-system/assets/js/cf-icons.js"></script>` — or
+paste its markup instead, see `foundations/iconography.html` — and build pages from the
+classes documented in `components/`.
 `patterns/landing-page.html` is a working reference for a whole page.
+
+One script ships, and only one:
+
+```html
+<script src="/design-system/assets/js/cf-consent.js"></script>
+```
+
+It drives the consent banner and the settings dialog, which the site cannot legally
+do without (TDDDG § 25). It is dependency-free, creates no markup of its own, and if
+it never runs, no non-essential script runs either. Everything else in the system is
+HTML and CSS. → `components/consent.html`
 
 ## The system in one paragraph
 
@@ -69,15 +86,32 @@ nav pill and round avatars. Lime is light, not a surface: one element per screen
 Publica Sans sets display headlines, Geist sets everything readable, Geist Mono sets
 labels and every number.
 
+## Vertical rhythm
+
+Every section opens with a `cf-section-header`, and **the header owns the air beneath
+it** — no page sets that distance locally. There are exactly two cases, both measured
+off the mockups:
+
+| | |
+|---|---|
+| **default** | Content sits `--section-header-gap` (80 px) below the hairline. For content that is not itself a ruled box: the logo wall, the team strip, a block of copy. |
+| **`--flush`** | The content below *is* a ruled container — process card, accordion, blog grid — and its own top border is the header's rule. The header drops its border and its gap so one hairline does both jobs. This is how all three are drawn in the mockups. |
+
+Before this rule the same relationship was set six different ways across the two pages
+(24, 32, 48, 64 px, plus two container paddings). If a section needs a different
+distance, change the token — not the page.
+
 ## Before launch
 
 | | |
 |---|---|
 | **Publica Sans** | Commercial licence required. Drop `PublicaSans-Variable.woff2` into `assets/fonts/`. Until then `--font-display` falls back to Geist. |
 | **Geist / Geist Mono** | OFL, free. Self-host the `.woff2` files in `assets/fonts/` — deliberately **not** the Google Fonts CDN (DSGVO). |
-| **Process illustrations** | The four isometric objects are systems-correct approximations, not final assets. |
+| **Process illustrations** | Done. Built from the designer's source vectors in `assets/source/illustrations/`. The four documented deviations are listed on `components/process-card.html`. |
 | **Partner logos** | The logo wall renders text placeholders; drop in the real SVGs. |
 | **Team photos** | Six placeholder portraits from the shoot. Real names, roles and the full set of ten still needed. |
+| **Consent copy** | The three categories, their retention periods and the entry counts on `components/consent.html` are placeholders. A lawyer signs off the wording, and the real cookie inventory replaces the numbers. |
+| **Consent record** | `localStorage` proves nothing to a supervisory authority. The decision needs logging server-side before launch. |
 | **Redirects** | The old topic pages (Maschinenbau, Energie, Dienstleistungen, Experten) are gone. They need 301s to the new structure. |
 
 ## Language
@@ -94,8 +128,18 @@ These were judgement calls, each documented on the relevant page:
 - **Body copy is 14 px,** not the 11 px in the process-card Figma export. 11 px stays
   reserved for uppercase mono labels, where it is still legible.
   → `foundations/typography.html`
-- **Muted labels never sit on CF-Grau.** `#919191` on `#CFCFCF` is 1.9:1 — unreadable.
+- **Muted labels never sit on CF-Grau.** `#919191` on `#CFCFCF` is 2.0:1 — unreadable.
+  Every label that sits on the page wash — section-header counters, blog meta, the blog
+  axis, benefit labels, stat labels, field hints — therefore uses `--text-secondary`
+  (5.9:1 on CF-Grau), not `--text-muted`, even though the mockups paint them lighter.
   Decorative counters are also `aria-hidden`. → `foundations/colors.html`
 - **Anthracite `#1B2022` exists as a token but is not a core colour.** It is the measured
   footer and logo-pill fill from the mockups and cannot be mixed from the seven, so it is
   declared once rather than hard-coded per component. → `foundations/colors.html`
+- **The process illustrations correct four things in the Figma export:** the lime hex, three
+  unsanctioned dash patterns, a second lime element on card 02, and a tangent that was
+  0.4° off the brand angle. Figma's inner-shadow bevel on card 03 is dropped — it is not
+  one of the six material layers. → `components/process-card.html`
+- **Isometric contours use `vector-effect: non-scaling-stroke`.** "1 px contour at every
+  size" is a device pixel. A 640-unit drawing shown at 352 px would otherwise put its
+  contours on screen at 0.55 px. → `foundations/motion.html`
