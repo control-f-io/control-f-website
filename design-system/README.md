@@ -23,8 +23,9 @@ design-system/
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
 │                           logo, photo, motion
 ├── components/             buttons, nav, section header, process card, accordion,
-│                           blog grid, team, forms, footer, consent
-├── patterns/               full page templates — landing-page.html, ueber-uns.html
+│                           blog grid, article + prose, team, forms, footer, consent
+├── patterns/               full page templates — landing-page.html, ueber-uns.html,
+│                           blog-artikel.html
 ├── reference.html          the designer's source material, next to what implements it
 └── assets/
     ├── css/
@@ -128,6 +129,10 @@ These were judgement calls, each documented on the relevant page:
 - **Body copy is 14 px,** not the 11 px in the process-card Figma export. 11 px stays
   reserved for uppercase mono labels, where it is still legible.
   → `foundations/typography.html`
+- **Running text in an article is 16 px and 66 ch wide,** not the system's 14 px and 56 ch.
+  Copy that supports a layout and copy that is read for minutes are different problems; the
+  readable band for the second is 45–90 characters. `.cf-value-row__body` already made this
+  step silently, so `.cf-prose` only makes it explicit. → `components/article.html`
 - **Muted labels never sit on CF-Grau.** `#919191` on `#CFCFCF` is 2.0:1 — unreadable.
   Every label that sits on the page wash — section-header counters, blog meta, the blog
   axis, benefit labels, stat labels, field hints — therefore uses `--text-secondary`
