@@ -127,9 +127,10 @@ body.docs {
 .docs-demo {
   padding: var(--space-8);
   border: 1px solid var(--border-default);
-  background:
-    linear-gradient(180deg, var(--grey-300) 0%, var(--grey-000) 100%),
-    var(--grey-050);
+  background-color: var(--grey-050);
+  background-image: var(--grain), var(--surface-page-wash);
+  background-repeat: repeat, no-repeat;
+  background-size: 140px 140px, cover;
 }
 .docs-demo--flat  { background: var(--grey-050); }
 .docs-demo--dark  { background: var(--cf-anthrazit); }
@@ -194,7 +195,17 @@ body.docs {
 }
 
 /* ---------- spec tables ---------- */
-.docs-table { width: 100%; border-collapse: collapse; font-size: var(--text-md); }
+/* display:block so a wide table scrolls inside itself instead of pushing the
+   whole page sideways on a phone. */
+.docs-table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: var(--text-md);
+}
+.docs-table th { white-space: nowrap; }
 .docs-table th,
 .docs-table td {
   padding: var(--space-3) var(--space-4);
@@ -309,7 +320,10 @@ body.docs {
 }
 
 @media (max-width: 900px) {
-  body.docs { grid-template-columns: 1fr; }
+  /* minmax(0, 1fr), not 1fr: a bare 1fr track floors at min-content, so one
+     long line in a <pre> pushes the whole documentation page sideways on a
+     phone instead of scrolling inside its own box. */
+  body.docs { grid-template-columns: minmax(0, 1fr); }
   .docs-sidebar { position: static; height: auto; }
   .docs-main { padding: var(--space-8) var(--space-6) var(--space-16); }
   .docs-rules { grid-template-columns: 1fr; }
