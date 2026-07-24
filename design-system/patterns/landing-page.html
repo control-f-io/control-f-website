@@ -16,6 +16,12 @@
     color: var(--text-muted); opacity: .55;
   }
   .lp-statement-figure { display: grid; place-items: center; }
+  /* --iso-travel is measured in viewBox units, so its meaning depends on how big
+     the drawing's own coordinate system is. The process objects are 640 units and
+     travel 16, which is 2.5 % of the drawing. This one is 480 units, so it needs
+     12 to travel the same fraction — 12/480 == 16/640. Without the override it
+     would cover 3.33 % and visibly out-run the four objects below it. */
+  .lp-statement-figure .cf-iso { --iso-travel: 12; }
   /* Preview only: link back to the documentation. Remove in production. */
   .ds-back {
     /* Under --z-overlay: preview chrome must never cover real UI, and the
@@ -142,20 +148,26 @@
     <div class="container">
       <div class="cf-statement">
         <div class="lp-statement-figure">
-          <svg viewBox="0 0 480 480" fill="none" aria-hidden="true">
-            <g stroke="#000" stroke-width="1" opacity=".35">
-              <line x1="40" y1="240" x2="440" y2="240" stroke-dasharray="1 5"/>
-              <line x1="240" y1="40" x2="240" y2="440"/>
-              <line x1="80" y1="80" x2="400" y2="400" stroke-dasharray="1 5"/>
-              <line x1="400" y1="80" x2="80" y2="400" stroke-dasharray="1 5"/>
-              <line x1="40" y1="140" x2="440" y2="340" stroke-dasharray="1 5"/>
-              <line x1="40" y1="340" x2="440" y2="140" stroke-dasharray="1 5"/>
+          <!-- Drawn in the 2:1 system, so it carries .cf-iso: that is what gives it
+               non-scaling-stroke (a true 1 px contour at every width, and dashes pinned
+               to --dash-1-4) and enrols it in the scroll assembly. The axis rides the
+               scene, the rays resolve after it, the lime centre lights up last. -->
+          <svg class="cf-iso" viewBox="0 0 480 480" fill="none" aria-hidden="true">
+            <g class="cf-iso__scene">
+              <g stroke="#000" stroke-width="1" opacity=".35">
+                <line class="cf-iso__ghost" x1="40" y1="240" x2="440" y2="240" stroke-dasharray="1 4"/>
+                <line class="cf-iso__form"  x1="240" y1="40" x2="240" y2="440"/>
+                <line class="cf-iso__ghost" x1="80" y1="80" x2="400" y2="400" stroke-dasharray="1 4"/>
+                <line class="cf-iso__ghost" x1="400" y1="80" x2="80" y2="400" stroke-dasharray="1 4"/>
+                <line class="cf-iso__ghost" x1="40" y1="140" x2="440" y2="340" stroke-dasharray="1 4"/>
+                <line class="cf-iso__ghost" x1="40" y1="340" x2="440" y2="140" stroke-dasharray="1 4"/>
+              </g>
+              <g class="cf-iso__form" transform="translate(268,196) scale(0.28)" fill="#DEDEDE" stroke="#fff">
+                <path d="M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 327.317C183.155 328.422 183.155 331.578 185.367 332.683L476.422 478.211C478.675 479.337 481.325 479.337 483.578 478.211L594.633 422.683C596.845 421.578 596.845 418.422 594.633 417.317L425.367 332.683Z"/>
+                <path d="M116.422 298.211C118.675 299.337 121.325 299.337 123.578 298.211L594.633 62.6833C596.845 61.5777 596.845 58.4223 594.633 57.3167L483.578 1.78885C481.325 0.662745 478.675 0.662745 476.422 1.78885L5.36656 237.317C3.15542 238.422 3.15542 241.578 5.36656 242.683L116.422 298.211Z"/>
+              </g>
+              <circle class="cf-iso__light" cx="240" cy="240" r="7" fill="#E1FF00" stroke="#000"/>
             </g>
-            <g transform="translate(268,196) scale(0.28)" fill="#DEDEDE" stroke="#fff">
-              <path d="M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 327.317C183.155 328.422 183.155 331.578 185.367 332.683L476.422 478.211C478.675 479.337 481.325 479.337 483.578 478.211L594.633 422.683C596.845 421.578 596.845 418.422 594.633 417.317L425.367 332.683Z"/>
-              <path d="M116.422 298.211C118.675 299.337 121.325 299.337 123.578 298.211L594.633 62.6833C596.845 61.5777 596.845 58.4223 594.633 57.3167L483.578 1.78885C481.325 0.662745 478.675 0.662745 476.422 1.78885L5.36656 237.317C3.15542 238.422 3.15542 241.578 5.36656 242.683L116.422 298.211Z"/>
-            </g>
-            <circle cx="240" cy="240" r="7" fill="#E1FF00" stroke="#000"/>
           </svg>
         </div>
         <div>
