@@ -75,7 +75,7 @@ labels and every number.
 |---|---|
 | **Publica Sans** | Commercial licence required. Drop `PublicaSans-Variable.woff2` into `assets/fonts/`. Until then `--font-display` falls back to Geist. |
 | **Geist / Geist Mono** | OFL, free. Self-host the `.woff2` files in `assets/fonts/` — deliberately **not** the Google Fonts CDN (DSGVO). |
-| **Process illustrations** | The four isometric objects are systems-correct approximations, not final assets. |
+| **Process illustrations** | Done. Built from the designer's source vectors in `assets/source/illustrations/`. The four documented deviations are listed on `components/process-card.html`. |
 | **Partner logos** | The logo wall renders text placeholders; drop in the real SVGs. |
 | **Team photos** | Six placeholder portraits from the shoot. Real names, roles and the full set of ten still needed. |
 | **Redirects** | The old topic pages (Maschinenbau, Energie, Dienstleistungen, Experten) are gone. They need 301s to the new structure. |
@@ -99,3 +99,10 @@ These were judgement calls, each documented on the relevant page:
 - **Anthracite `#1B2022` exists as a token but is not a core colour.** It is the measured
   footer and logo-pill fill from the mockups and cannot be mixed from the seven, so it is
   declared once rather than hard-coded per component. → `foundations/colors.html`
+- **The process illustrations correct four things in the Figma export:** the lime hex, three
+  unsanctioned dash patterns, a second lime element on card 02, and a tangent that was
+  0.4° off the brand angle. Figma's inner-shadow bevel on card 03 is dropped — it is not
+  one of the six material layers. → `components/process-card.html`
+- **Isometric contours use `vector-effect: non-scaling-stroke`.** "1 px contour at every
+  size" is a device pixel. A 640-unit drawing shown at 352 px would otherwise put its
+  contours on screen at 0.55 px. → `foundations/motion.html`
