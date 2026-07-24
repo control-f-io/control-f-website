@@ -121,10 +121,19 @@
        (40.45 − 24.97) / (73.05 − 24.97) = 32.2 %
        (43.85 −  4.82) / (81.19 −  4.82) = 51.1 %
      One ramp, three rakes. Nothing else is a gradient in this brand.
+
+     Each rake is declared twice: once as a bare number and once as the
+     percentage built from it. calc() cannot divide a percentage by a
+     percentage, and the foil below renormalises one stop against another,
+     so that arithmetic needs the unitless form. Change the number and both
+     the rake and everything derived from it follow.
      ------------------------------------------------------------------ */
-  --rake-near: 32%;
-  --rake-mid:  51%;
-  --rake-far:  64%;
+  --rake-near-n: 32;
+  --rake-mid-n:  51;
+  --rake-far-n:  64;
+  --rake-near: calc(var(--rake-near-n) * 1%);
+  --rake-mid:  calc(var(--rake-mid-n)  * 1%);
+  --rake-far:  calc(var(--rake-far-n)  * 1%);
 
   /* The signature. Angle and stops are the designer's measured values from
      the Figma dump and are kept verbatim, inset and all. Note that 132.36°
@@ -193,9 +202,15 @@
      keeps the ramp iridescent, the hot spot is what makes it catch.
      ------------------------------------------------------------------ */
   /* The spectrum's own stop positions, named so the foil below can be
-     derived from them instead of being hand-picked a second time. */
-  --spectrum-hot:  18%;   /* the white hot spot */
-  --spectrum-cool: 64%;   /* where Sky takes over from Glas */
+     derived from them instead of being hand-picked a second time. Same
+     number-plus-percentage pairing as the rakes, and for the same reason. */
+  --spectrum-hot-n:  18;  /* the white hot spot */
+  --spectrum-cool-n: 64;  /* where Sky takes over from Glas */
+  --spectrum-hot:  calc(var(--spectrum-hot-n)  * 1%);
+  --spectrum-cool: calc(var(--spectrum-cool-n) * 1%);
+
+  /* The band the foil renormalises onto: everything above the hot spot. */
+  --spectrum-span-n: calc(100 - var(--spectrum-hot-n));
 
   --gradient-spectrum: linear-gradient(132.36deg,
                       var(--cf-lime)   0%,
@@ -214,6 +229,11 @@
        Sky      ( 64 − 18) / 82 =  56 %
        Violett  (100 − 18) / 82 = 100 %
 
+     That arithmetic is written as calc() rather than pasted in as literals,
+     so moving --rake-near or --spectrum-cool moves this gradient with it.
+     Weiss and Violett are 0 % and 100 % by construction — they are the ends
+     of the band being renormalised, so they cannot be anything else.
+
      Keeping the hot spot is the point. The earlier three-stop version
      started at Glas and read as a flat mint tint; starting at Weiss gives
      the letterform an edge for the light to land on, and lands much closer
@@ -229,8 +249,8 @@
      is 9.3:1, well past AA at any size. */
   --gradient-foil: linear-gradient(116.57deg,
                       var(--cf-weiss)    0%,
-                      var(--cf-glas)     17%,
-                      var(--sky-300)     56%,
+                      var(--cf-glas)     calc((var(--rake-near-n)     - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
+                      var(--sky-300)     calc((var(--spectrum-cool-n) - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
                       var(--violett-300) 100%);
 
   /* Dither. 8-bit sRGB cannot resolve a 5,000 px ramp between two colours
@@ -535,8 +555,8 @@
                         var(--violett-300) 100%);
     --gradient-foil: linear-gradient(116.57deg in oklab,
                         var(--cf-weiss)    0%,
-                        var(--cf-glas)     17%,
-                        var(--sky-300)     56%,
+                        var(--cf-glas)     calc((var(--rake-near-n)     - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
+                        var(--sky-300)     calc((var(--spectrum-cool-n) - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
                         var(--violett-300) 100%);
   }
 }
