@@ -152,6 +152,13 @@ These were judgement calls, each documented on the relevant page:
   `.cf-footer__title` sets no colour and inherits white, so any browser that cannot clip a
   background into text renders exactly what the designer drew.
   → `components/footer.html`, `foundations/colors.html`
+- **Inline SVG gradients carry an oklab waypoint the source vectors do not have.** Figma
+  interpolates in sRGB, and SVG can only interpolate in sRGB or linearRGB, so the illustrations
+  inherited the sRGB path. The CSS gradients interpolate in oklab. Same three colours, two
+  visibly different curves on the lime→Glas leg (ΔE 0.045). Rather than give up oklab in CSS,
+  each lime→Glas leg in an inline SVG gets one stop — `#DBFC60` at 19 % of the leg — which puts
+  it back on the oklab path to within ΔE 0.0125. The source vectors in `assets/source/` are
+  untouched. → `foundations/colors.html`
 - **Isometric contours use `vector-effect: non-scaling-stroke`.** "1 px contour at every
   size" is a device pixel. A 640-unit drawing shown at 352 px would otherwise put its
   contours on screen at 0.55 px. The one exception is `.cf-iso__trace`: under
