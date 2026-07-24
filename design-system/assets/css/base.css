@@ -236,9 +236,15 @@ hr {
   gap: var(--space-4);
 }
 
-/* Page wash — the long CF-Grau → white gradient the whole site sits on. */
+/* Page wash — the long CF-Grau → white gradient the whole site sits on.
+   The grain tile rides on top of the ramp inside the same background, so it
+   dithers the wash and never touches the text above it. Fixed attachment on
+   both layers: the wash does not scroll, and neither does the grain, which
+   is what film grain does. */
 .page-wash {
-  background: var(--surface-page-wash);
+  background-image: var(--grain), var(--surface-page-wash);
+  background-repeat: repeat, no-repeat;
+  background-size: 140px 140px, cover;
   background-attachment: fixed;
 }
 
@@ -269,6 +275,56 @@ hr {
 /* Licht-Ebene — lime, as a highlight. Never as a background for text blocks. */
 .material-light { background: var(--gradient-light); color: var(--accent-ink); }
 .material-solid { background: var(--surface-inverse); color: var(--text-inverse); }
+/* The foil — the light layer carried far enough to split into the brand's
+   own spectrum. A surface material, like .material-light: an isometric face,
+   an edge, a plate. Not a background for text. */
+.material-foil { background: var(--gradient-spectrum); color: var(--accent-ink); }
+
+/* --------------------------------------------------------------------------
+   FOIL TYPE
+   The one place a gradient is allowed inside letterforms. It is the cool half
+   of the spectrum — no lime — so a screen that has already spent its lime
+   moment can still carry it, and every sample of it clears 9.3:1 on
+   anthracite. Reserve it for one display headline per page.
+
+   The unenhanced state is the fallback: the element keeps its inherited
+   colour and nothing is clipped. Only inside @supports does the text go
+   transparent, so a browser without background-clip:text, a printer, and
+   Windows high-contrast all get solid, legible type.
+   -------------------------------------------------------------------------- */
+.text-foil {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .text-foil {
+    background-image: var(--gradient-foil);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  /* Clipped text has no colour left for the selection layer to invert. */
+  .text-foil::selection {
+    color: var(--cf-schwarz);
+    -webkit-text-fill-color: var(--cf-schwarz);
+    background: var(--cf-lime);
+  }
+}
+@media print {
+  .text-foil {
+    background: none;
+    color: var(--cf-schwarz);
+    -webkit-text-fill-color: var(--cf-schwarz);
+  }
+}
+@media (forced-colors: active) {
+  .text-foil {
+    background: none;
+    color: CanvasText;
+    -webkit-text-fill-color: CanvasText;
+  }
+}
 
 /* --------------------------------------------------------------------------
    LINE UTILITIES
