@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motion — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  .motion-demo { display:grid; grid-template-columns:repeat(auto-fit,minmax(12rem,1fr)); gap:var(--space-6); }
+  .motion-box { height:8rem; display:grid; place-items:center; border:1px solid var(--border-strong); background:var(--grey-000); overflow:hidden; }
+  .motion-box i { display:block; width:3rem; height:3rem; background:var(--gradient-light); border:1px solid var(--border-strong); }
+  .motion-box i { transition:transform var(--duration-base) var(--ease-standard); }
+  .motion-box:hover i.d-fast  { transform:var(--iso-transform); transition-duration:var(--duration-fast); }
+  .motion-box:hover i.d-base  { transform:var(--iso-transform); transition-duration:var(--duration-base); }
+  .motion-box:hover i.d-slow  { transform:var(--iso-transform); transition-duration:var(--duration-slow); }
+  .motion-box:hover i.d-scene { transform:var(--iso-transform); transition-duration:var(--duration-scene); transition-timing-function:var(--ease-out); }
+  .motion-demo figcaption { margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--text-muted); }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 08</p>
+    <h1>Motion</h1>
+    <p>
+      Two speeds. UI responds immediately and briefly; isometric objects turn slowly and
+      come to rest. There is nothing in between.
+    </p>
+  </header>
+
+  <section class="docs-section" id="durations">
+    <h2>Durations</h2>
+    <p>Hover the tiles — each object tips into the isometry, at a different duration.</p>
+    <div class="docs-demo docs-demo--flat">
+      <div class="motion-demo">
+        <figure style="margin:0">
+          <div class="motion-box"><i class="d-fast"></i></div>
+          <figcaption>120 ms · --duration-fast</figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="motion-box"><i class="d-base"></i></div>
+          <figcaption>240 ms · --duration-base</figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="motion-box"><i class="d-slow"></i></div>
+          <figcaption>480 ms · --duration-slow</figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="motion-box"><i class="d-scene"></i></div>
+          <figcaption>1200 ms · --duration-scene</figcaption>
+        </figure>
+      </div>
+    </div>
+    <table class="docs-table">
+      <thead><tr><th>Token</th><th>Duration</th><th>Used for</th></tr></thead>
+      <tbody>
+        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change</td></tr>
+        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>accordion, menu, arrow movement</td></tr>
+        <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>section reveal on scroll</td></tr>
+        <tr><td><code>--duration-scene</code></td><td>1200 ms</td><td>isometric illustrations, hero build-up</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="curves">
+    <h2>Curves</h2>
+    <table class="docs-table">
+      <thead><tr><th>Token</th><th>Value</th><th>Used for</th></tr></thead>
+      <tbody>
+        <tr><td><code>--ease-standard</code></td><td>cubic-bezier(.2, 0, 0, 1)</td><td>the default — quick start, soft arrival</td></tr>
+        <tr><td><code>--ease-out</code></td><td>cubic-bezier(0, 0, .2, 1)</td><td>objects that fly in and stay</td></tr>
+        <tr><td><code>--ease-in-out</code></td><td>cubic-bezier(.4, 0, .2, 1)</td><td>states that toggle back and forth</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="principles">
+    <h2>Principles</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Move along the brand angles — isometric objects travel on 26.57°, not straight down.</li>
+          <li>Let lime appear <em>through</em> movement: an edge lights up as it is reached.</li>
+          <li>Shift the arrow 4 px right on hover. That is the standard feedback.</li>
+          <li>On scroll, animate position and opacity only — never scale.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>No parallax on text.</li>
+          <li>No bounce or elastic curves — the brand does not spring.</li>
+          <li>No infinite loops other than the hero artwork.</li>
+          <li>No animation that shifts content while the page loads.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="reduced">
+    <h2>Reduced motion</h2>
+    <p>
+      <code>prefers-reduced-motion: reduce</code> sets all four durations to 1 ms — states
+      then switch instantly instead of animating. That is already in
+      <code>tokens.css</code> and applies automatically to any component built on the
+      tokens. Hero video and infinite loops need to be stopped separately:
+    </p>
+    <pre class="docs-code"><span class="tag">@media</span> (<span class="attr">prefers-reduced-motion</span>: <span class="val">reduce</span>) {
+  .cf-hero__media video { <span class="attr">display</span>: <span class="val">none</span>; }
+  .cf-hero__media img   { <span class="attr">display</span>: <span class="val">block</span>; } <span class="com">/* still frame instead */</span>
+}</pre>
+  </section>
+
+  <section class="docs-section" id="hero">
+    <h2>Hero artwork</h2>
+    <p>
+      The landing page hero runs an isometric loop
+      (<code>05-motion/hero-abstract-art.mp4</code>): slowly shifting planes in CF-Grau with
+      lime edges. Rules for embedding it:
+    </p>
+    <ul>
+      <li><code>muted</code>, <code>loop</code>, <code>playsinline</code>, <code>autoplay</code> — never with sound.</li>
+      <li>A <code>poster</code> with the first frame, so the hero is there immediately.</li>
+      <li>Under reduced motion, only the poster is shown.</li>
+      <li>The headline sits <em>on top</em> of the video and needs at least 4.5:1 there — if in doubt, darken the lower half.</li>
+    </ul>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>

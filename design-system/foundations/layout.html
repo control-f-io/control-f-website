@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Layout &amp; Grid — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  .demo-grid { display:grid; grid-template-columns:repeat(12,1fr); gap:var(--space-6); }
+  .demo-grid span { background:rgba(225,255,0,.55); border:1px solid var(--border-strong); padding:var(--space-4) 0; text-align:center; font-family:var(--font-mono); font-size:var(--text-xs); }
+  .demo-space { display:flex; align-items:flex-end; gap:var(--space-4); flex-wrap:wrap; }
+  .demo-space div { background:var(--cf-lime); border:1px solid var(--border-strong); }
+  .demo-space figcaption { font-family:var(--font-mono); font-size:var(--text-xs); text-align:center; margin-top:var(--space-2); color:var(--text-muted); }
+  .subdiv { display:grid; grid-template-columns:repeat(2,1fr); border:1px solid var(--border-strong); aspect-ratio:2/1; }
+  .subdiv > div { border-right:1px solid var(--border-strong); display:grid; }
+  .subdiv > div:last-child { border-right:0; }
+  .subdiv .cell { border-bottom:1px solid var(--border-strong); display:grid; place-items:center; font-family:var(--font-mono); font-size:var(--text-xs); color:var(--text-muted); }
+  .subdiv .cell:last-child { border-bottom:0; }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 03</p>
+    <h1>Layout &amp; Grid</h1>
+    <p>
+      Two grids side by side: a conventional 12-column grid for content, and the brand's
+      recursive subdivision grid for editorial surfaces.
+    </p>
+  </header>
+
+  <section class="docs-section" id="container">
+    <h2>Container</h2>
+    <p>
+      The design is built on a 1440 px frame with 80 px outer margins — 1280 px of content.
+      The margin scales down to 20 px on mobile; the content width is capped.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Token</th><th>Value</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>--container-max</code></td><td>1280 px</td><td>maximum content width</td></tr>
+        <tr><td><code>--gutter</code></td><td>20 → 80 px</td><td>outer margin, <code>clamp(1.25rem, 5.5vw, 5rem)</code></td></tr>
+        <tr><td><code>--grid-columns</code></td><td>12</td><td>columns</td></tr>
+        <tr><td><code>--grid-gap</code></td><td>24 px</td><td>column gap</td></tr>
+        <tr><td><code>--section-gap</code></td><td>64 → 160 px</td><td>space between sections</td></tr>
+      </tbody>
+    </table>
+    <pre class="docs-code">&lt;<span class="tag">section</span> <span class="attr">class</span>=<span class="val">"section"</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"container"</span>&gt;
+    &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"grid"</span>&gt;
+      &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"col-6"</span>&gt;…&lt;/<span class="tag">div</span>&gt;
+      &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"col-6"</span>&gt;…&lt;/<span class="tag">div</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+  &lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">section</span>&gt;</pre>
+  </section>
+
+  <section class="docs-section" id="columns">
+    <h2>12 columns</h2>
+    <div class="docs-demo docs-demo--flat">
+      <div class="demo-grid">
+        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
+        <span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span>
+      </div>
+    </div>
+    <p style="margin-top:var(--space-4)">
+      The splits that recur in the design: <strong>6 + 6</strong> for process cards and
+      statements, <strong>12</strong> for section headers and full-width bands,
+      <strong>4 + 4 + 4</strong> for card rows. Every column collapses to full width below
+      900 px.
+    </p>
+  </section>
+
+  <section class="docs-section" id="space">
+    <h2>Space</h2>
+    <p>A 4 px base unit. These values only, no steps in between.</p>
+    <div class="docs-demo docs-demo--flat">
+      <div class="demo-space">
+        <figure style="margin:0"><div style="width:4px;height:4px"></div><figcaption>1<br>4</figcaption></figure>
+        <figure style="margin:0"><div style="width:8px;height:8px"></div><figcaption>2<br>8</figcaption></figure>
+        <figure style="margin:0"><div style="width:12px;height:12px"></div><figcaption>3<br>12</figcaption></figure>
+        <figure style="margin:0"><div style="width:16px;height:16px"></div><figcaption>4<br>16</figcaption></figure>
+        <figure style="margin:0"><div style="width:24px;height:24px"></div><figcaption>6<br>24</figcaption></figure>
+        <figure style="margin:0"><div style="width:32px;height:32px"></div><figcaption>8<br>32</figcaption></figure>
+        <figure style="margin:0"><div style="width:48px;height:48px"></div><figcaption>12<br>48</figcaption></figure>
+        <figure style="margin:0"><div style="width:64px;height:64px"></div><figcaption>16<br>64</figcaption></figure>
+        <figure style="margin:0"><div style="width:80px;height:80px"></div><figcaption>20<br>80</figcaption></figure>
+        <figure style="margin:0"><div style="width:96px;height:96px"></div><figcaption>24<br>96</figcaption></figure>
+        <figure style="margin:0"><div style="width:120px;height:120px"></div><figcaption>30<br>120</figcaption></figure>
+        <figure style="margin:0"><div style="width:160px;height:160px"></div><figcaption>40<br>160</figcaption></figure>
+      </div>
+    </div>
+    <p style="margin-top:var(--space-4)">
+      The most common values in the design: <code>--space-6</code> (24) as the default gap
+      between elements, <code>--space-12</code> (48) as panel padding, and
+      <code>--space-20</code> (80) as the page gutter.
+    </p>
+  </section>
+
+  <section class="docs-section" id="subdivision">
+    <h2>Subdivision grid</h2>
+    <p>
+      The recursive square-subdivision system from the manual: halve a surface, halve the
+      half, and so on. Applied as an editorial layout it produces hierarchy automatically —
+      the newest article gets the largest area, older ones shrink to rows. That is exactly
+      how the blog grid on the landing page is built.
+    </p>
+    <div class="docs-demo docs-demo--flat">
+      <div class="subdiv">
+        <div><div class="cell" style="font-size:var(--text-md);color:var(--text-primary)">1/2</div></div>
+        <div>
+          <div style="display:grid;grid-template-columns:1fr 1fr">
+            <div style="border-right:1px solid var(--border-strong);display:grid">
+              <div class="cell">1/4</div><div class="cell">1/4</div>
+            </div>
+            <div style="display:grid">
+              <div class="cell">1/8</div><div class="cell">1/8</div>
+              <div class="cell">1/16</div><div class="cell">1/16</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="docs-note">
+      <strong>Which grid when.</strong> The 12-column grid orders <em>content</em> — text,
+      forms, cards of equal rank. The subdivision grid orders <em>quantity</em> — article
+      lists, archives, anything with many items of unequal weight. The two are never nested
+      inside each other.
+    </div>
+  </section>
+
+  <section class="docs-section" id="sections">
+    <h2>Section structure</h2>
+    <p>Every section on the site follows the same order:</p>
+    <ol style="max-width:72ch;color:var(--text-secondary);padding-left:1.2rem">
+      <li><strong>Section header</strong> — mono label left, counter right, hairline underneath.</li>
+      <li><strong>Content</strong> — in the 12-column grid.</li>
+      <li><strong>Air</strong> — <code>--section-gap</code> to the next section, no divider.</li>
+    </ol>
+    <p>
+      Sections get no background colour of their own. The sense of depth comes entirely from
+      the page-wide wash and the contours.
+    </p>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>
