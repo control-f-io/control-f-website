@@ -14,6 +14,7 @@
       { href: 'foundations/typography.html',  label: 'Typography' },
       { href: 'foundations/layout.html',      label: 'Layout & Grid' },
       { href: 'foundations/geometry.html',    label: 'Geometry & Lines' },
+      { href: 'foundations/iconography.html', label: 'Iconography' },
       { href: 'foundations/materials.html',   label: 'Materials' },
       { href: 'foundations/logo.html',        label: 'Logo' },
       { href: 'foundations/photography.html', label: 'Photography' },

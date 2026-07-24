@@ -20,7 +20,8 @@ Then open <http://localhost:8000/design-system/>. It also works by opening
 ```
 design-system/
 ├── index.html              overview + how to include the CSS
-├── foundations/            colour, type, layout, geometry, materials, logo, photo, motion
+├── foundations/            colour, type, layout, geometry, iconography, materials,
+│                           logo, photo, motion
 ├── components/             buttons, nav, section header, process card, accordion,
 │                           blog grid, team, forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html
@@ -32,8 +33,9 @@ design-system/
     │   ├── components.css  every component
     │   └── docs.css        this documentation site only — does not ship
     ├── js/
-    │   ├── cf-consent.js  the consent banner + settings dialog — SHIPS
-    │   └── docs.js        sidebar, swatch copy, icon sprite — documentation only
+    │   ├── cf-consent.js   the consent banner + settings dialog. Ships.
+    │   ├── cf-icons.js     the icon set — the one place a glyph is drawn. Ships.
+    │   └── docs.js         sidebar, swatch copy, arrow sprite — documentation only
     ├── fonts/              (empty — see below)
     ├── img/                logo SVGs, icons, hero poster, team photos
     ├── video/hero-abstract-art.mp4
@@ -57,8 +59,10 @@ Three stylesheets, in this order:
 <link rel="stylesheet" href="/design-system/assets/css/components.css">
 ```
 
-Then paste the icon sprite right after `<body>` (see `components/buttons.html`),
-and build pages from the classes documented in `components/`.
+Then paste the arrow sprite right after `<body>` (see `components/buttons.html`), add
+the icon sprite with `<script src="/design-system/assets/js/cf-icons.js"></script>` — or
+paste its markup instead, see `foundations/iconography.html` — and build pages from the
+classes documented in `components/`.
 `patterns/landing-page.html` is a working reference for a whole page.
 
 One script ships, and only one:
@@ -81,6 +85,21 @@ drawn with 1 px contours rather than filled, and anything spatial is constructed
 nav pill and round avatars. Lime is light, not a surface: one element per screen.
 Publica Sans sets display headlines, Geist sets everything readable, Geist Mono sets
 labels and every number.
+
+## Vertical rhythm
+
+Every section opens with a `cf-section-header`, and **the header owns the air beneath
+it** — no page sets that distance locally. There are exactly two cases, both measured
+off the mockups:
+
+| | |
+|---|---|
+| **default** | Content sits `--section-header-gap` (80 px) below the hairline. For content that is not itself a ruled box: the logo wall, the team strip, a block of copy. |
+| **`--flush`** | The content below *is* a ruled container — process card, accordion, blog grid — and its own top border is the header's rule. The header drops its border and its gap so one hairline does both jobs. This is how all three are drawn in the mockups. |
+
+Before this rule the same relationship was set six different ways across the two pages
+(24, 32, 48, 64 px, plus two container paddings). If a section needs a different
+distance, change the token — not the page.
 
 ## Before launch
 
@@ -109,7 +128,10 @@ These were judgement calls, each documented on the relevant page:
 - **Body copy is 14 px,** not the 11 px in the process-card Figma export. 11 px stays
   reserved for uppercase mono labels, where it is still legible.
   → `foundations/typography.html`
-- **Muted labels never sit on CF-Grau.** `#919191` on `#CFCFCF` is 1.9:1 — unreadable.
+- **Muted labels never sit on CF-Grau.** `#919191` on `#CFCFCF` is 2.0:1 — unreadable.
+  Every label that sits on the page wash — section-header counters, blog meta, the blog
+  axis, benefit labels, stat labels, field hints — therefore uses `--text-secondary`
+  (5.9:1 on CF-Grau), not `--text-muted`, even though the mockups paint them lighter.
   Decorative counters are also `aria-hidden`. → `foundations/colors.html`
 - **Anthracite `#1B2022` exists as a token but is not a core colour.** It is the measured
   footer and logo-pill fill from the mockups and cannot be mixed from the seven, so it is
