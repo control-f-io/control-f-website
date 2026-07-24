@@ -181,24 +181,56 @@
      spot, then cyan, blue and violet in the falloff.
 
      Iridescence is hue travel inside a narrow luminance band, not more
-     saturation. Sky and Violett are taken at their 300 tints so the whole
-     ramp stays between OKLab L 0.82 and 0.95: 166° of hue across 0.13 of
-     lightness. At their 500 values the band would open to 0.31 and the
-     ramp would read as a fade, not a foil.
+     saturation. Sky and Violett are taken at their 300 tints so the four
+     chromatic stops sit between OKLab L 0.820 and 0.945 — 166° of hue
+     (118° → 284°) across 0.125 of lightness. At their 500 values that
+     band opens to 0.31 and the ramp reads as a fade, not a foil.
+
+     Weiss is the exception and is meant to be one: at L 1.000 it sits
+     deliberately *above* the band, which is what makes it read as a
+     specular hot spot rather than as one more step in the ramp. Counting
+     it, the full span is 0.180. Both numbers matter — the band is what
+     keeps the ramp iridescent, the hot spot is what makes it catch.
      ------------------------------------------------------------------ */
+  /* The spectrum's own stop positions, named so the foil below can be
+     derived from them instead of being hand-picked a second time. */
+  --spectrum-hot:  18%;   /* the white hot spot */
+  --spectrum-cool: 64%;   /* where Sky takes over from Glas */
+
   --gradient-spectrum: linear-gradient(132.36deg,
                       var(--cf-lime)   0%,
-                      var(--cf-weiss)  18%,
+                      var(--cf-weiss)  var(--spectrum-hot),
                       var(--cf-glas)   var(--rake-near),
-                      var(--sky-300)   64%,
+                      var(--sky-300)   var(--spectrum-cool),
                       var(--violett-300) 100%);
 
-  /* The cool half — no lime, so it can be used on a screen that has
-     already spent its one lime moment. This is the type foil: on
-     anthracite its worst sample is 9.3:1, well past AA at any size. */
+  /* The cool half — the spectrum with lime removed and the remaining band
+     renormalised onto 0–100 %, so it can be used on a screen that has
+     already spent its one lime moment. Nothing here is hand-picked: every
+     stop is the spectrum's own, re-based off the white hot spot.
+
+       Weiss    ( 18 − 18) / 82 =   0 %
+       Glas     ( 32 − 18) / 82 =  17 %
+       Sky      ( 64 − 18) / 82 =  56 %
+       Violett  (100 − 18) / 82 = 100 %
+
+     Keeping the hot spot is the point. The earlier three-stop version
+     started at Glas and read as a flat mint tint; starting at Weiss gives
+     the letterform an edge for the light to land on, and lands much closer
+     to the near-white the designer actually painted this headline (see
+     README, "Decisions that differ from the source material").
+
+     116.57° = 90° + 26.57°, the shallow isometric rake, not the 132.36° of
+     the spectrum. A headline is a wide, short box: at 132.36° the ramp
+     completes inside the first two or three letters. The shallow angle
+     spreads it across the whole line.
+
+     This is the type foil: on anthracite its worst sample — Violett 300 —
+     is 9.3:1, well past AA at any size. */
   --gradient-foil: linear-gradient(116.57deg,
-                      var(--cf-glas)     0%,
-                      var(--sky-300)     46%,
+                      var(--cf-weiss)    0%,
+                      var(--cf-glas)     17%,
+                      var(--sky-300)     56%,
                       var(--violett-300) 100%);
 
   /* Dither. 8-bit sRGB cannot resolve a 5,000 px ramp between two colours
@@ -426,6 +458,17 @@
   --ease-out:       cubic-bezier(0, 0, 0.2, 1);
   --ease-in-out:    cubic-bezier(0.4, 0, 0.2, 1);
 
+  /* How far an isometric object travels as it arrives. Unitless, in viewBox
+     units, because the drawing it moves is in viewBox units: the object travels
+     a fixed fraction of its own size rather than a fixed number of screen pixels,
+     so the same illustration reads the same at 352 px and at 268 px.
+
+     The number is the RISE. The run is always twice it — that is what makes the
+     26.57° brand angle, and writing it as one value keeps the 2:1 provable
+     instead of leaving two hand-written numbers that merely happen to agree.
+     16 on a 640 viewBox is 2.5 % of the drawing down, 5 % across. */
+  --iso-travel:     16;
+
   /* 11. Z-INDEX */
   --z-base: 0;
   --z-sticky: 100;
@@ -486,13 +529,14 @@
                         var(--cf-grau)  100%);
     --gradient-spectrum: linear-gradient(132.36deg in oklab,
                         var(--cf-lime)   0%,
-                        var(--cf-weiss)  18%,
+                        var(--cf-weiss)  var(--spectrum-hot),
                         var(--cf-glas)   var(--rake-near),
-                        var(--sky-300)   64%,
+                        var(--sky-300)   var(--spectrum-cool),
                         var(--violett-300) 100%);
     --gradient-foil: linear-gradient(116.57deg in oklab,
-                        var(--cf-glas)     0%,
-                        var(--sky-300)     46%,
+                        var(--cf-weiss)    0%,
+                        var(--cf-glas)     17%,
+                        var(--sky-300)     56%,
                         var(--violett-300) 100%);
   }
 }
