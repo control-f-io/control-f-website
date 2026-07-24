@@ -22,7 +22,7 @@ design-system/
 ├── index.html              overview + how to include the CSS
 ├── foundations/            colour, type, layout, geometry, materials, logo, photo, motion
 ├── components/             buttons, nav, section header, process card, accordion,
-│                           blog grid, team, forms, footer
+│                           blog grid, team, forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html
 ├── reference.html          the designer's source material, next to what implements it
 └── assets/
@@ -31,7 +31,9 @@ design-system/
     │   ├── base.css        fonts, reset, type classes, layout primitives, utilities
     │   ├── components.css  every component
     │   └── docs.css        this documentation site only — does not ship
-    ├── js/docs.js          sidebar, swatch copy, icon sprite — documentation only
+    ├── js/
+    │   ├── cf-consent.js  the consent banner + settings dialog — SHIPS
+    │   └── docs.js        sidebar, swatch copy, icon sprite — documentation only
     ├── fonts/              (empty — see below)
     ├── img/                logo SVGs, icons, hero poster, team photos
     ├── video/hero-abstract-art.mp4
@@ -59,6 +61,17 @@ Then paste the icon sprite right after `<body>` (see `components/buttons.html`),
 and build pages from the classes documented in `components/`.
 `patterns/landing-page.html` is a working reference for a whole page.
 
+One script ships, and only one:
+
+```html
+<script src="/design-system/assets/js/cf-consent.js"></script>
+```
+
+It drives the consent banner and the settings dialog, which the site cannot legally
+do without (TDDDG § 25). It is dependency-free, creates no markup of its own, and if
+it never runs, no non-essential script runs either. Everything else in the system is
+HTML and CSS. → `components/consent.html`
+
 ## The system in one paragraph
 
 The site sits on CF-Grau, not on white — a data space, not a sheet of paper, with a
@@ -78,6 +91,8 @@ labels and every number.
 | **Process illustrations** | Done. Built from the designer's source vectors in `assets/source/illustrations/`. The four documented deviations are listed on `components/process-card.html`. |
 | **Partner logos** | The logo wall renders text placeholders; drop in the real SVGs. |
 | **Team photos** | Six placeholder portraits from the shoot. Real names, roles and the full set of ten still needed. |
+| **Consent copy** | The three categories, their retention periods and the entry counts on `components/consent.html` are placeholders. A lawyer signs off the wording, and the real cookie inventory replaces the numbers. |
+| **Consent record** | `localStorage` proves nothing to a supervisory authority. The decision needs logging server-side before launch. |
 | **Redirects** | The old topic pages (Maschinenbau, Energie, Dienstleistungen, Experten) are gone. They need 301s to the new structure. |
 
 ## Language
