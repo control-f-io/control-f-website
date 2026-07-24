@@ -258,6 +258,30 @@
         unrelated gradients are the same ramp at two rakes.
       </p>
     </div>
+    <div class="docs-note">
+      <strong>One ramp, two colour spaces.</strong>
+      <p>
+        The CSS gradients interpolate in oklab where the browser supports it. SVG cannot:
+        its <code>color-interpolation</code> attribute offers only sRGB and linearRGB, so an
+        inline <code>&lt;linearGradient&gt;</code> is always sRGB. That split matters on one
+        leg of the ramp and one only. Lime to Glas crosses a wide arc of hue, and the two
+        paths pull apart by <strong>ΔE 0.045</strong> in oklab — roughly twice the just-noticeable
+        threshold for a smooth ramp, with sRGB taking the darker, more saturated route through
+        chartreuse. Glas to CF-Grau, and the page wash, differ by ΔE 0.000. So the process-card
+        illustrations and the primary button were drawing the same three colours along visibly
+        different curves.
+      </p>
+      <p>
+        Every lime-to-Glas leg in an inline SVG therefore carries one waypoint,
+        <code>#DBFC60</code> at <strong>19 %</strong> of the leg, which is the colour the oklab
+        path passes through there. One stop is enough: it takes the divergence to ΔE 0.0125,
+        below the threshold. Evenly spaced stops do not work — the curve bends hardest near
+        the lime end, so three even stops still leave ΔE 0.0125 while one placed at 19 % matches
+        it. The waypoint is scaled into each gradient's own offset space:
+        <code>0.061</code> on the near rake, <code>0.097</code> on the mid rake,
+        <code>0.905</code> and <code>0.822</code> on the two radials that run Glas → lime.
+      </p>
+    </div>
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Shape</th><th>Used for</th></tr></thead>
       <tbody>
