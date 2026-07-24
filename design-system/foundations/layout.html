@@ -161,10 +161,37 @@
         <tr><td><code>44rem</code> / 704</td><td>container</td><td><code>.subdivide</code> folds to a stack; the blog axis goes with it</td></tr>
         <tr><td><code>48rem</code> / 768</td><td>container</td><td><code>.cf-value-row</code> splits into icon + copy</td></tr>
         <tr><td><code>56rem</code> / 896</td><td>container</td><td>the two-column threshold — <code>.col-*</code>, <code>.cf-statement</code>, <code>.cf-process</code></td></tr>
+        <tr><td><code>60rem</code> / 960</td><td>container</td><td><code>.cf-article</code> splits into rail + body; the rail goes sticky</td></tr>
         <tr><td><code>780px</code></td><td>viewport</td><td>nav collapses to a toggle; hero action drops into the flow; accordion loses its indent; footer CTA folds</td></tr>
         <tr><td><code>900px</code></td><td>viewport</td><td>page-header figure is dropped; consent banner goes single column</td></tr>
+        <tr><td><code>560px</code> height</td><td>viewport</td><td>the consent banner caps at <code>70vh</code> and scrolls — the one height threshold in the system</td></tr>
       </tbody>
     </table>
+    <div class="docs-note">
+      <strong>Two of these were missing from the register.</strong> <code>60rem</code> and the
+      560 px height threshold were both live in <code>components.css</code> while this table and
+      the register comment in <code>tokens.css</code> claimed three container thresholds and two
+      viewport ones. That is exactly the drift the register exists to prevent, so the fix is not
+      only to list them but to say so: <strong>a threshold and its register entry belong in the
+      same commit.</strong>
+    </div>
+    <div class="docs-note">
+      <strong><code>60rem</code> is the one threshold nothing derives.</strong> The other three
+      container numbers each answer to something — 44rem is where the finest subdivision ranks
+      stop being readable, 48rem is the value row's icon cell, 56rem is the system's declared
+      two-column threshold. 60rem is a judgement call, and measuring it does not rescue it:
+      the article rail is a fixed 13rem with a 64 px gap, so at 56rem of container the prose
+      column would be <strong>624 px</strong> against a 66 ch measure of <strong>587 px</strong>,
+      and at 60rem it is <strong>688 px</strong>. Both clear the measure. 60rem buys the prose
+      1.17 × its measure instead of 1.06 ×, which is a defensible thing to want next to a sticky
+      rail — it is simply not a derived number, and the register should not imply that it is.
+      Measured in Chromium: the split fires at a viewport of <strong>1079 px</strong>.
+      <br><br>
+      Whether to reconcile it down to 56rem and let the system carry three container thresholds
+      instead of four is a designer's call, for the same reason the 780 / 900 pair is: it changes
+      designed behaviour on <code>patterns/blog-artikel.html</code>. Left as it is, now on the
+      record.
+    </div>
     <div class="docs-note">
       <strong>Two viewport tiers is an open question.</strong> 780 and 900 govern different
       objects and neither was measured off the mockups — they are inherited numbers. They may
@@ -205,27 +232,48 @@
     </p>
     <div class="docs-note">
       <strong>Every step is accounted for.</strong> A scale is only honest if you can say who
-      uses each rung, so here is the count, taken from the shipping CSS
-      (<code>tokens</code> + <code>base</code> + <code>components</code>):
+      uses each rung, so here is the count of <em>declarations</em> that reference each step in
+      the shipping CSS (<code>tokens</code> + <code>base</code> + <code>components</code>),
+      comments excluded. Measured at commit <code>c2a1086</code>:
     </div>
     <table class="docs-table">
-      <thead><tr><th>Step</th><th>px</th><th>Rules that use it</th><th>Where it earns its place</th></tr></thead>
+      <thead><tr><th>Step</th><th>px</th><th>Declarations</th><th>Where it earns its place</th></tr></thead>
       <tbody>
-        <tr><td><code>--space-1</code></td><td>4</td><td>3</td><td>the gap under a name, inside a tight cluster</td></tr>
-        <tr><td><code>--space-2</code></td><td>8</td><td>14</td><td>icon-to-label, chip padding</td></tr>
-        <tr><td><code>--space-3</code></td><td>12</td><td>13</td><td>button padding-block</td></tr>
-        <tr><td><code>--space-4</code></td><td>16</td><td>27</td><td>the default gap — the most used step in the system</td></tr>
+        <tr><td><code>--space-1</code></td><td>4</td><td>4</td><td>the gap under a name, inside a tight cluster</td></tr>
+        <tr><td><code>--space-2</code></td><td>8</td><td>16</td><td>icon-to-label, chip padding</td></tr>
+        <tr><td><code>--space-3</code></td><td>12</td><td>23</td><td>button padding-block</td></tr>
+        <tr><td><code>--space-4</code></td><td>16</td><td>31</td><td>the default gap — the most used step in the system</td></tr>
         <tr><td><code>--space-5</code></td><td>20</td><td>1</td><td>the nav bar's own padding — its only consumer</td></tr>
-        <tr><td><code>--space-6</code></td><td>24</td><td>19</td><td><code>--grid-gap</code>, panel padding</td></tr>
-        <tr><td><code>--space-8</code></td><td>32</td><td>12</td><td>the gap between an object and its copy</td></tr>
-        <tr><td><code>--space-12</code></td><td>48</td><td>7</td><td>panel padding at the wide breakpoint</td></tr>
-        <tr><td><code>--space-16</code></td><td>64</td><td>5</td><td>the <code>--section-gap</code> floor</td></tr>
+        <tr><td><code>--space-6</code></td><td>24</td><td>26</td><td><code>--grid-gap</code>, panel padding</td></tr>
+        <tr><td><code>--space-8</code></td><td>32</td><td>14</td><td>the gap between an object and its copy</td></tr>
+        <tr><td><code>--space-12</code></td><td>48</td><td>11</td><td>panel padding at the wide breakpoint</td></tr>
+        <tr><td><code>--space-16</code></td><td>64</td><td>8</td><td>the <code>--section-gap</code> floor</td></tr>
         <tr><td><code>--space-20</code></td><td>80</td><td>5</td><td><code>--section-header-gap</code>, the <code>-sm</code> ceiling, the accordion indent</td></tr>
         <tr><td><code>--space-24</code></td><td>96</td><td>3</td><td>page-header and footer padding-block</td></tr>
         <tr><td><code>--space-30</code></td><td>120</td><td><strong>0</strong></td><td>—</td></tr>
         <tr><td><code>--space-40</code></td><td>160</td><td>1</td><td>the <code>--section-gap</code> ceiling</td></tr>
       </tbody>
     </table>
+    <div class="docs-note">
+      <strong>Re-measure it rather than trusting it.</strong> The previous version of this table
+      was written by hand and six of its thirteen rows had drifted as components changed —
+      <code>--space-3</code> was listed at 13 against a real 23, <code>--space-6</code> at 19
+      against 26. A stale count is worse than none, because it is the one number here anybody
+      would act on. So the table now carries the commit it was measured at, and the measurement
+      is a command rather than a reading. It needs nothing the system does not already assume
+      (<code>python3</code>, the same thing that serves these pages):
+    </div>
+    <pre class="docs-code">cd design-system/assets/css &amp;&amp; python3 -c "
+import re
+s=re.sub(r'/\*.*?\*/','',''.join(open(f).read() for f in ('tokens.css','base.css','components.css')),flags=re.S)
+for n in (1,2,3,4,5,6,8,12,16,20,24,30,40):
+    print(n, sum('var(--space-%d)'%n in d for d in s.split(';')))
+"</pre>
+    <div class="docs-note">
+      Comments are stripped first, which matters more than it sounds: <code>--space-30</code>
+      is named eight times across <code>tokens.css</code> and this page and used in exactly zero
+      declarations, so a naive <code>grep</code> would report it as a healthy rung.
+    </div>
     <div class="docs-note">
       <strong><code>--space-30</code> is the one step with no consumer</strong> — and the
       previous version of this note was wrong about it, claiming it and
