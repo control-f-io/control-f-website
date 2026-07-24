@@ -544,6 +544,15 @@
   }
 }
 
+/* Both fallbacks below have to name [data-theme="inverse"] as well as :root,
+   and repeat every token the inverse block declares — not just the ones that
+   differ. A custom property is resolved per element: an element inside an
+   inverse section has its own declaration from the block above, so a rule
+   targeting :root never reaches it, however specific the surrounding @media
+   or @supports is. Redeclaring --glass-blur there is redundant and kept
+   anyway, so that adding a token to the inverse block cannot silently punch
+   a hole in a fallback again. */
+
 /* No backdrop-filter, no glass. Everything that would have been frosted
    becomes an opaque plate instead — the veil layer has to carry the
    separation on its own, so it stops being a veil. Redefining the tokens
@@ -556,15 +565,26 @@
     --surface-glass-veil:  rgba(255, 255, 255, 0.72);
   }
   [data-theme="inverse"] {
+    --glass-blur:          none;
+    --glass-blur-heavy:    none;
+    --surface-glass:       var(--surface-glass-solid);
     --surface-glass-veil:  rgba(0, 0, 0, 0.72);
   }
 }
 
 /* The reader has asked for less transparency. Give them none of it: opaque
    plates, no blur, and the edge light stays because it is a contour, not a
-   translucency. */
+   translucency. Leaving a tint translucent while switching the blur off is
+   the worst of the three states — content behind it bleeds through sharp —
+   so the inverse case is spelled out rather than inherited. */
 @media (prefers-reduced-transparency: reduce) {
   :root {
+    --glass-blur:          none;
+    --glass-blur-heavy:    none;
+    --surface-glass:       var(--surface-glass-solid);
+    --surface-glass-veil:  var(--surface-glass-solid);
+  }
+  [data-theme="inverse"] {
     --glass-blur:          none;
     --glass-blur-heavy:    none;
     --surface-glass:       var(--surface-glass-solid);
