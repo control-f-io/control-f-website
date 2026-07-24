@@ -24,6 +24,7 @@ design-system/
 ├── components/             buttons, nav, section header, process card, accordion,
 │                           blog grid, team, forms, footer
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html
+├── reference.html          the designer's source material, next to what implements it
 └── assets/
     ├── css/
     │   ├── tokens.css      every design decision as a custom property
@@ -33,8 +34,16 @@ design-system/
     ├── js/docs.js          sidebar, swatch copy, icon sprite — documentation only
     ├── fonts/              (empty — see below)
     ├── img/                logo SVGs, icons, hero poster, team photos
-    └── video/hero-abstract-art.mp4
+    ├── video/hero-abstract-art.mp4
+    └── source/             reference only, never linked from a shipping page
+        ├── manual/         22 brand-manual plates as compressed renders
+        ├── mockups/        both designed pages, full length
+        └── illustrations/  the 4 process cards as source vectors + Figma spec dump
 ```
+
+`assets/source/` is the curated slice of the designer's archive that the system was built
+from — enough to check or extend any decision without the full 194 MB folder. See
+`reference.html` for what each plate governs.
 
 ## Using it in the website
 

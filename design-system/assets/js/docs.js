@@ -33,6 +33,9 @@
     { title: 'Patterns', items: [
       { href: 'patterns/landing-page.html', label: 'Landing Page' },
       { href: 'patterns/ueber-uns.html',    label: 'Über uns page' }
+    ]},
+    { title: 'Reference', items: [
+      { href: 'reference.html', label: 'Source Material' }
     ]}
   ];
 
