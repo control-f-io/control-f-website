@@ -103,25 +103,96 @@
     </div>
   </section>
 
+  <section class="docs-section" id="assembly">
+    <h2>The isometric assembly</h2>
+    <p>
+      The one piece of scripted motion in the system. An isometric object assembles as it
+      scrolls into view: the body travels in along 26.57°, the dashed reference geometry
+      resolves after it, the signal line draws itself, and lime arrives last. Scroll the
+      <a href="../components/process-card.html">process card</a> or the
+      <a href="../patterns/landing-page.html">landing page</a> to see it.
+    </p>
+    <p>
+      Put <code>.cf-iso</code> on the <code>&lt;svg&gt;</code> and give each element the part
+      it plays. Nothing else is needed — no script, no wrapper, no data attribute.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>What it is</th><th>What it does</th><th>Range</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-iso__scene</code></td><td>the whole object</td><td>travels in on 26.57° — 32 px across, 16 px down — and fades up. The only thing that moves.</td><td>cover 5–30 %</td></tr>
+        <tr><td><code>.cf-iso__form</code></td><td>solid contoured body</td><td>nothing on its own; it rides the scene</td><td>—</td></tr>
+        <tr><td><code>.cf-iso__ghost</code></td><td>dashed reference geometry</td><td>fades up after the body it belongs to</td><td>cover 20–40 %</td></tr>
+        <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object</td><td>draws itself, start to end</td><td>cover 18–45 %</td></tr>
+        <tr><td><code>.cf-iso__light</code></td><td>the single lime-gradient element</td><td>its fill comes up last. Light arrives; it does not fly in.</td><td>cover 30–48 %</td></tr>
+        <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>fade up last of all</td><td>cover 35–50 %</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Everything is finished by the time the object reaches the middle of the viewport, so
+      the illustration is never caught half-built while it is being read.
+    </p>
+
+    <h3>How it is driven</h3>
+    <p>
+      Native scroll-driven animation — <code>view-timeline-name</code> on the SVG and
+      <code>animation-timeline</code> on the parts. No IntersectionObserver, no script, and
+      no third-party library. Chrome and Edge 115+, Safari 26+, Firefox 155+; roughly 84 %
+      of traffic today.
+    </p>
+    <p>
+      The whole block sits inside <code>@supports (animation-timeline: view())</code>, and
+      the fallback runs in the honest direction: <strong>a browser without support draws the
+      finished object.</strong> Nothing starts at <code>opacity: 0</code> waiting to be
+      rescued, so there is no way for the illustration to end up invisible. Only
+      <code>transform</code>, <code>opacity</code>, <code>fill-opacity</code> and
+      <code>stroke-dashoffset</code> animate, so nothing reflows and nothing is painted off
+      the compositor.
+    </p>
+    <p>
+      The line-drawing uses <code>pathLength="1"</code> in the markup, which normalises the
+      path to a length of 1 and makes the dash maths the same for every path regardless of
+      how long it actually is:
+    </p>
+    <pre class="docs-code">.cf-iso__trace { <span class="attr">stroke-dasharray</span>: <span class="val">1</span>; }
+<span class="tag">@keyframes</span> cf-iso-draw {
+  <span class="tag">from</span> { <span class="attr">stroke-dashoffset</span>: <span class="val">1</span>; }  <span class="com">/* nothing drawn */</span>
+  <span class="tag">to</span>   { <span class="attr">stroke-dashoffset</span>: <span class="val">0</span>; }  <span class="com">/* fully drawn  */</span>
+}</pre>
+  </section>
+
   <section class="docs-section" id="reduced">
     <h2>Reduced motion</h2>
     <p>
       <code>prefers-reduced-motion: reduce</code> sets all four durations to 1 ms — states
       then switch instantly instead of animating. That is already in
       <code>tokens.css</code> and applies automatically to any component built on the
-      tokens. Hero video and infinite loops need to be stopped separately:
+      tokens.
     </p>
-    <pre class="docs-code"><span class="tag">@media</span> (<span class="attr">prefers-reduced-motion</span>: <span class="val">reduce</span>) {
+    <p>
+      Durations do not help against animations that are driven by scroll or that loop
+      forever, so those are switched off by hand in <code>components.css</code>. The whole
+      isometric assembly is wrapped in
+      <code>@media (prefers-reduced-motion: no-preference)</code>, which leaves the object
+      drawn in its finished state — the same thing an unsupporting browser gets.
+      The hero swaps its loop for the poster:
+    </p>
+    <pre class="docs-code">.cf-hero__media img { <span class="attr">display</span>: <span class="val">none</span>; }
+<span class="tag">@media</span> (<span class="attr">prefers-reduced-motion</span>: <span class="val">reduce</span>) {
   .cf-hero__media video { <span class="attr">display</span>: <span class="val">none</span>; }
   .cf-hero__media img   { <span class="attr">display</span>: <span class="val">block</span>; } <span class="com">/* still frame instead */</span>
 }</pre>
+    <p>
+      This means the hero needs both elements in the markup — a <code>&lt;video&gt;</code>
+      with its <code>poster</code>, and an <code>&lt;img&gt;</code> of the same frame.
+      <code>poster</code> alone is not enough: it disappears with the video.
+    </p>
   </section>
 
   <section class="docs-section" id="hero">
     <h2>Hero artwork</h2>
     <p>
       The landing page hero runs an isometric loop
-      (<code>05-motion/hero-abstract-art.mp4</code>): slowly shifting planes in CF-Grau with
+      (<code>assets/video/hero-abstract-art.mp4</code>): slowly shifting planes in CF-Grau with
       lime edges. Rules for embedding it:
     </p>
     <ul>
