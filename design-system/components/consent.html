@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consent — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+</head>
+<body class="docs" data-root="../">
+
+<!-- Documentation only. The banner decides for itself whether to appear, so on
+     a first visit it would open over these docs. This seeds a "necessary only"
+     decision so the page opens quiet; the Replay button below clears it. -->
+<script>
+  (function () {
+    try {
+      if (sessionStorage.getItem('cf-consent-demo-replay')) {
+        sessionStorage.removeItem('cf-consent-demo-replay');
+        localStorage.removeItem('cf-consent');
+      } else if (!localStorage.getItem('cf-consent')) {
+        localStorage.setItem('cf-consent', JSON.stringify({
+          v: 1, ts: new Date().toISOString(),
+          categories: { statistik: false, marketing: false }
+        }));
+      }
+    } catch (e) { /* storage blocked — the banner simply asks every time */ }
+  })();
+</script>
+
+<!-- The real component, exactly as a page would carry it. -->
+<section class="cf-consent" data-cf-consent-banner hidden
+         role="dialog" aria-labelledby="cf-consent-title">
+  <div class="container cf-consent__inner">
+    <div>
+      <h2 class="cf-consent__title" id="cf-consent-title" tabindex="-1" data-cf-consent-title>Datenschutz-Einstellungen</h2>
+      <p class="cf-consent__body">
+        Notwendige Cookies brauchen wir, damit die Seite funktioniert. Statistik und Marketing
+        nur, wenn Sie zustimmen — Sie können das jederzeit im Footer ändern.
+        <a href="../patterns/landing-page.html">Datenschutzerklärung</a>
+      </p>
+    </div>
+    <div class="cf-consent__actions">
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="reject">Nur notwendige</button>
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="accept">Alle akzeptieren</button>
+      <button type="button" class="cf-btn cf-btn--ghost" data-cf-consent-action="open">Einstellungen</button>
+    </div>
+  </div>
+</section>
+
+<dialog class="cf-consent__dialog" data-cf-consent-dialog aria-labelledby="cf-consent-settings-title">
+  <div class="cf-consent__dialog-inner">
+    <h2 class="cf-consent__dialog-title" id="cf-consent-settings-title">Ihre Einstellungen</h2>
+    <p class="cf-consent__body" style="margin-top:var(--space-4)">
+      Sie entscheiden pro Kategorie. Notwendige Cookies lassen sich nicht abwählen, weil ohne
+      sie nichts funktioniert.
+    </p>
+
+    <div class="cf-consent__group">
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" checked disabled>
+          <span class="cf-check__label"><strong>Notwendig</strong>Sitzung, Sprachwahl und die Speicherung dieser Entscheidung.</span>
+        </label>
+        <p class="cf-consent__meta">Immer aktiv · 1 Eintrag · 12 Monate</p>
+      </div>
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" data-cf-consent-category="statistik">
+          <span class="cf-check__label"><strong>Statistik</strong>Anonyme Reichweitenmessung, damit wir sehen, welche Inhalte gelesen werden.</span>
+        </label>
+        <p class="cf-consent__meta">Optional · 2 Einträge · 14 Monate</p>
+      </div>
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" data-cf-consent-category="marketing">
+          <span class="cf-check__label"><strong>Marketing</strong>Messung von Kampagnen und Einbindung externer Medien.</span>
+        </label>
+        <p class="cf-consent__meta">Optional · 3 Einträge · 12 Monate</p>
+      </div>
+    </div>
+
+    <div class="cf-consent__actions">
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="reject">Nur notwendige</button>
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="accept">Alle akzeptieren</button>
+      <button type="button" class="cf-btn cf-btn--ghost" data-cf-consent-action="save">Auswahl speichern</button>
+    </div>
+  </div>
+</dialog>
+
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Components</p>
+    <h1>Consent</h1>
+    <p>
+      Two layers. A banner that asks once, and a settings dialog that lets someone answer
+      per category and change their mind later. The site is German and sets more than
+      strictly necessary cookies, so this is not a nicety — <span lang="de">TDDDG</span>
+      § 25 requires the question to be asked before anything non-essential is stored.
+    </p>
+  </header>
+
+  <section class="docs-section" id="demo">
+    <h2>Layer 1 — the banner</h2>
+    <p>
+      Pinned to the bottom of the viewport, on anthracite, with the foil as a 2 px edge
+      along the top. Shown here in place rather than fixed; press
+      <em>Replay the real banner</em> below to see it behave.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <section class="cf-consent cf-consent--static" role="dialog" aria-labelledby="cf-consent-demo-title">
+        <div class="container cf-consent__inner">
+          <div>
+            <h2 class="cf-consent__title" id="cf-consent-demo-title">Datenschutz-Einstellungen</h2>
+            <p class="cf-consent__body">
+              Notwendige Cookies brauchen wir, damit die Seite funktioniert. Statistik und
+              Marketing nur, wenn Sie zustimmen — Sie können das jederzeit im Footer ändern.
+              <a href="#a11y">Datenschutzerklärung</a>
+            </p>
+          </div>
+          <div class="cf-consent__actions">
+            <button type="button" class="cf-btn cf-btn--outline">Nur notwendige</button>
+            <button type="button" class="cf-btn cf-btn--outline">Alle akzeptieren</button>
+            <button type="button" class="cf-btn cf-btn--ghost">Einstellungen</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <pre class="docs-code">&lt;<span class="com">!-- immediately after the skip link, before the nav and everything else --&gt;</span>
+&lt;<span class="tag">section</span> <span class="attr">class</span>=<span class="val">"cf-consent"</span> <span class="attr">data-cf-consent-banner</span> <span class="attr">hidden</span>
+         <span class="attr">role</span>=<span class="val">"dialog"</span> <span class="attr">aria-labelledby</span>=<span class="val">"cf-consent-title"</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"container cf-consent__inner"</span>&gt;
+    &lt;<span class="tag">div</span>&gt;
+      &lt;<span class="tag">h2</span> <span class="attr">class</span>=<span class="val">"cf-consent__title"</span> <span class="attr">id</span>=<span class="val">"cf-consent-title"</span> <span class="attr">tabindex</span>=<span class="val">"-1"</span> <span class="attr">data-cf-consent-title</span>&gt;
+        Datenschutz-Einstellungen
+      &lt;/<span class="tag">h2</span>&gt;
+      &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-consent__body"</span>&gt;
+        Notwendige Cookies brauchen wir, damit die Seite funktioniert. …
+        &lt;<span class="tag">a</span> <span class="attr">href</span>=<span class="val">"/datenschutz"</span>&gt;Datenschutzerklärung&lt;/<span class="tag">a</span>&gt;
+      &lt;/<span class="tag">p</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+    &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-consent__actions"</span>&gt;
+      &lt;<span class="tag">button</span> <span class="attr">type</span>=<span class="val">"button"</span> <span class="attr">class</span>=<span class="val">"cf-btn cf-btn--outline"</span> <span class="attr">data-cf-consent-action</span>=<span class="val">"reject"</span>&gt;Nur notwendige&lt;/<span class="tag">button</span>&gt;
+      &lt;<span class="tag">button</span> <span class="attr">type</span>=<span class="val">"button"</span> <span class="attr">class</span>=<span class="val">"cf-btn cf-btn--outline"</span> <span class="attr">data-cf-consent-action</span>=<span class="val">"accept"</span>&gt;Alle akzeptieren&lt;/<span class="tag">button</span>&gt;
+      &lt;<span class="tag">button</span> <span class="attr">type</span>=<span class="val">"button"</span> <span class="attr">class</span>=<span class="val">"cf-btn cf-btn--ghost"</span> <span class="attr">data-cf-consent-action</span>=<span class="val">"open"</span>&gt;Einstellungen&lt;/<span class="tag">button</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+  &lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">section</span>&gt;</pre>
+
+    <div class="docs-note">
+      <strong>Reject and accept are the same button twice.</strong> Same size, same variant,
+      same row, one click each. German supervisory authorities treat a prominent
+      <em>Accept</em> beside a quiet <em>Settings</em> link as a dark pattern, and a reject
+      that costs an extra click is not a valid choice architecture. <em>Einstellungen</em> is
+      allowed to be the quiet one precisely because it is not the reject path — refusing is
+      already possible without opening it.
+    </div>
+  </section>
+
+  <section class="docs-section" id="settings">
+    <h2>Layer 2 — the settings dialog</h2>
+    <p>
+      A real <code>&lt;dialog&gt;</code> opened with <code>showModal()</code>: the focus trap,
+      the inert background, <kbd>Esc</kbd> and the <code>::backdrop</code> all come from the
+      browser rather than from us. It is the same dialog the footer link reopens, which is how
+      withdrawal works — Art. 7(3) DSGVO wants taking consent back to be as easy as giving it,
+      so it is literally the same control.
+    </p>
+    <div class="docs-demo">
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="open">Open the settings dialog</button>
+    </div>
+
+    <pre class="docs-code">&lt;<span class="tag">dialog</span> <span class="attr">class</span>=<span class="val">"cf-consent__dialog"</span> <span class="attr">data-cf-consent-dialog</span> <span class="attr">aria-labelledby</span>=<span class="val">"cf-consent-settings-title"</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-consent__dialog-inner"</span>&gt;
+    &lt;<span class="tag">h2</span> <span class="attr">class</span>=<span class="val">"cf-consent__dialog-title"</span> <span class="attr">id</span>=<span class="val">"cf-consent-settings-title"</span>&gt;Ihre Einstellungen&lt;/<span class="tag">h2</span>&gt;
+
+    &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-consent__group"</span>&gt;
+      &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-consent__row"</span>&gt;
+        &lt;<span class="tag">label</span> <span class="attr">class</span>=<span class="val">"cf-check"</span>&gt;
+          &lt;<span class="tag">input</span> <span class="attr">class</span>=<span class="val">"cf-check__box"</span> <span class="attr">type</span>=<span class="val">"checkbox"</span> <span class="attr">checked</span> <span class="attr">disabled</span>&gt;
+          &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-check__label"</span>&gt;&lt;<span class="tag">strong</span>&gt;Notwendig&lt;/<span class="tag">strong</span>&gt;Sitzung, Sprachwahl …&lt;/<span class="tag">span</span>&gt;
+        &lt;/<span class="tag">label</span>&gt;
+        &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-consent__meta"</span>&gt;Immer aktiv · 1 Eintrag · 12 Monate&lt;/<span class="tag">p</span>&gt;
+      &lt;/<span class="tag">div</span>&gt;
+      &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-consent__row"</span>&gt;
+        &lt;<span class="tag">label</span> <span class="attr">class</span>=<span class="val">"cf-check"</span>&gt;
+          &lt;<span class="tag">input</span> <span class="attr">class</span>=<span class="val">"cf-check__box"</span> <span class="attr">type</span>=<span class="val">"checkbox"</span> <span class="attr">data-cf-consent-category</span>=<span class="val">"statistik"</span>&gt;
+          &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-check__label"</span>&gt;&lt;<span class="tag">strong</span>&gt;Statistik&lt;/<span class="tag">strong</span>&gt;Anonyme Reichweitenmessung …&lt;/<span class="tag">span</span>&gt;
+        &lt;/<span class="tag">label</span>&gt;
+        &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-consent__meta"</span>&gt;Optional · 2 Einträge · 14 Monate&lt;/<span class="tag">p</span>&gt;
+      &lt;/<span class="tag">div</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+
+    &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-consent__actions"</span>&gt;
+      &lt;<span class="tag">button</span> <span class="attr">type</span>=<span class="val">"button"</span> <span class="attr">class</span>=<span class="val">"cf-btn cf-btn--outline"</span> <span class="attr">data-cf-consent-action</span>=<span class="val">"reject"</span>&gt;Nur notwendige&lt;/<span class="tag">button</span>&gt;
+      &lt;<span class="tag">button</span> <span class="attr">type</span>=<span class="val">"button"</span> <span class="attr">class</span>=<span class="val">"cf-btn cf-btn--outline"</span> <span class="attr">data-cf-consent-action</span>=<span class="val">"accept"</span>&gt;Alle akzeptieren&lt;/<span class="tag">button</span>&gt;
+      &lt;<span class="tag">button</span> <span class="attr">type</span>=<span class="val">"button"</span> <span class="attr">class</span>=<span class="val">"cf-btn cf-btn--ghost"</span> <span class="attr">data-cf-consent-action</span>=<span class="val">"save"</span>&gt;Auswahl speichern&lt;/<span class="tag">button</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+  &lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">dialog</span>&gt;</pre>
+  </section>
+
+  <section class="docs-section" id="checkbox">
+    <h2>The checkbox</h2>
+    <p>
+      <code>.cf-check</code> is a real <code>&lt;input type="checkbox"&gt;</code> with
+      <code>appearance: none</code>. The element keeps its role, its state and its keyboard
+      behaviour; only the paint is ours, so there is no ARIA to get wrong. Square, 1 px
+      contour, no radius. Checked fills with <code>--gradient-foil</code> rather than lime,
+      because a checkbox is never the one thing happening on a screen — and the tick is two
+      borders rotated 45°, which keeps it on the sanctioned angles.
+    </p>
+    <div class="docs-demo">
+      <div style="display:grid; gap:var(--space-4)">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox">
+          <span class="cf-check__label">Unchecked — the default for every optional category.</span>
+        </label>
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" checked>
+          <span class="cf-check__label">Checked — foil fill, black tick.</span>
+        </label>
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" checked disabled>
+          <span class="cf-check__label">Checked and disabled — <em>Notwendig</em>, which is not a choice.</span>
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="live">
+    <h2>Try it</h2>
+    <p>
+      This page carries the real component. Replaying clears the stored decision and reloads,
+      so the banner comes back exactly as a first-time visitor meets it.
+    </p>
+    <div class="docs-demo">
+      <div style="display:flex; flex-wrap:wrap; gap:var(--space-3)">
+        <button type="button" class="cf-btn cf-btn--outline" data-consent-replay>Replay the real banner</button>
+        <button type="button" class="cf-btn cf-btn--ghost" data-cf-consent-action="open">Change your settings</button>
+      </div>
+      <p class="cf-consent__meta" style="padding-left:0; color:var(--text-secondary)" data-consent-state></p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="gating">
+    <h2>Gating a script</h2>
+    <p>
+      Anything non-essential ships as <code>type="text/plain"</code> with a category on it.
+      The browser will not fetch or run it. On grant, <code>cf-consent.js</code> copies the
+      attributes onto a real <code>&lt;script&gt;</code> and swaps it in.
+    </p>
+    <pre class="docs-code">&lt;<span class="tag">script</span> <span class="attr">type</span>=<span class="val">"text/plain"</span> <span class="attr">data-cf-consent</span>=<span class="val">"statistik"</span> <span class="attr">src</span>=<span class="val">"/js/analytics.js"</span>&gt;&lt;/<span class="tag">script</span>&gt;
+
+<span class="com">// or react to the decision directly</span>
+&lt;<span class="tag">script</span>&gt;
+  document.addEventListener(<span class="val">'cf:consent'</span>, <span class="tag">function</span> (event) {
+    <span class="tag">if</span> (event.detail.granted.includes(<span class="val">'marketing'</span>)) { … }
+  });
+&lt;/<span class="tag">script</span>&gt;</pre>
+    <p>
+      Revoking cannot unload a script that already ran, so a decision that removes a category
+      reloads the page. That is the honest behaviour, and it is why the reload is not
+      configurable.
+    </p>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Surface</td><td><code>--surface-inverse</code> — opaque, never frosted glass</td></tr>
+        <tr><td>Top edge</td><td><code>--stroke-2</code>, painted with <code>--gradient-foil</code> via <code>border-image</code></td></tr>
+        <tr><td>Lime</td><td>none — the page under the banner has already spent it</td></tr>
+        <tr><td>Title</td><td>Geist Mono, 11 px, uppercase, <code>--tracking-wide</code></td></tr>
+        <tr><td>Body</td><td>Geist, 14 px, measure capped at 68 characters</td></tr>
+        <tr><td>Actions</td><td>two <code>.cf-btn--outline</code> of equal width, one <code>.cf-btn--ghost</code></td></tr>
+        <tr><td>Padding</td><td><code>--space-6</code> block, page gutter inline via <code>.container</code></td></tr>
+        <tr><td>Entry</td><td>rises <code>100%</code> over <code>--duration-base</code>, <code>--ease-out</code></td></tr>
+        <tr><td>Dialog width</td><td><code>min(38rem, 100vw − 2 × --space-4)</code></td></tr>
+        <tr><td>Checkbox</td><td>20 px square, 1 px contour, foil fill when checked</td></tr>
+        <tr><td>Stacking</td><td><code>--z-overlay</code>, below <code>--z-modal</code>; the dialog is in the browser's top layer and needs no z-index at all</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="api">
+    <h2>Hooks</h2>
+    <table class="docs-table">
+      <thead><tr><th>Attribute</th><th>Does</th></tr></thead>
+      <tbody>
+        <tr><td><code>data-cf-consent-banner</code></td><td>marks the first layer</td></tr>
+        <tr><td><code>data-cf-consent-dialog</code></td><td>marks the settings <code>&lt;dialog&gt;</code></td></tr>
+        <tr><td><code>data-cf-consent-action="accept"</code></td><td>grants everything</td></tr>
+        <tr><td><code>data-cf-consent-action="reject"</code></td><td>grants nothing beyond necessary</td></tr>
+        <tr><td><code>data-cf-consent-action="save"</code></td><td>grants what the checkboxes say</td></tr>
+        <tr><td><code>data-cf-consent-action="open"</code></td><td>opens the dialog — works anywhere, including the footer</td></tr>
+        <tr><td><code>data-cf-consent-category="…"</code></td><td>binds a checkbox to a category</td></tr>
+        <tr><td><code>data-cf-consent="…"</code> on a script</td><td>gates it on that category</td></tr>
+        <tr><td><code>cf:consent</code> event</td><td><code>detail.granted</code> — fires on load and on every decision</td></tr>
+        <tr><td><code>&lt;html data-cf-consent&gt;</code></td><td>the granted categories, space separated, for CSS or debugging</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Stored under <code>cf-consent</code> in <code>localStorage</code> as
+      <code>{ v, ts, categories }</code>. The <code>ts</code> is there because consent has to be
+      demonstrable — but <code>localStorage</code> lives on the visitor's machine and proves
+      nothing to a supervisory authority. A production deployment still needs to log the
+      decision server-side. Bumping <code>VERSION</code> invalidates every stored answer, which
+      is what a changed set of purposes requires.
+    </p>
+  </section>
+
+  <section class="docs-section" id="legal">
+    <h2>What the law asks for</h2>
+    <p>
+      Not legal advice, and the wording of the categories needs a lawyer's eye before launch.
+      These are the requirements the component is built to satisfy.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Requirement</th><th>How this meets it</th></tr></thead>
+      <tbody>
+        <tr><td>Consent before storage (<span lang="de">TDDDG</span> § 25)</td><td>gated scripts are <code>text/plain</code> and never fetched until granted</td></tr>
+        <tr><td>Reject as easy as accept</td><td>identical buttons, same row, one click each</td></tr>
+        <tr><td>No pre-ticked boxes (<em>Planet49</em>)</td><td>optional categories ship unchecked; the stored default is nothing granted</td></tr>
+        <tr><td>Granular per purpose</td><td>one checkbox per category, saved independently</td></tr>
+        <tr><td>Withdrawal as easy as consent (Art. 7(3))</td><td>the footer link reopens the same dialog</td></tr>
+        <tr><td>Informed</td><td>purpose, count and retention on every row; policy linked from layer 1</td></tr>
+        <tr><td>No cookie wall</td><td>non-modal banner — the page stays readable and operable</td></tr>
+        <tr><td>Demonstrable</td><td>versioned record with a timestamp; server-side logging still required</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="a11y">
+    <h2>Accessibility</h2>
+    <ul>
+      <li>
+        The banner is a <strong>non-modal</strong> <code>role="dialog"</code>. It carries no
+        <code>aria-modal</code>, traps nothing and inerts nothing, because the page behind it
+        must stay usable — a banner that blocks the site until you answer is a cookie wall.
+      </li>
+      <li>
+        It sits immediately after the skip link, so it is first in reading and tab order, and
+        focus moves to its heading once on appearance. The heading and not the accept button: nothing should be
+        pre-selected when the question is which button to press.
+      </li>
+      <li>
+        <kbd>Esc</kbd> does nothing on layer 1, deliberately. Dismissal is not an answer, and a
+        banner that vanishes on <kbd>Esc</kbd> either loses the question or quietly counts as
+        consent. There is no close cross for the same reason.
+      </li>
+      <li>
+        Layer 2 is <code>showModal()</code>, so it follows the APG modal dialog pattern
+        natively: focus enters the dialog, <kbd>Tab</kbd> cycles inside it, the background is
+        inert, <kbd>Esc</kbd> closes, and focus returns to whatever opened it.
+      </li>
+      <li>
+        Contrast on anthracite, measured in the browser: heading and button labels 16.5:1,
+        body copy and mono meta 9.1:1, button contours 9.1:1. The focus ring flips to lime,
+        which is 14.5:1 here. The black tick on the foil ranges 11.9:1 to 16.4:1 across the
+        ramp. Nothing in the component relies on colour alone.
+      </li>
+      <li>
+        Every control is a real <code>&lt;button type="button"&gt;</code> or a real checkbox,
+        each at least 48 px tall.
+      </li>
+      <li>
+        With JavaScript off the banner stays <code>hidden</code> and no gated script ever runs.
+        The visitor is never asked a question that cannot be answered.
+      </li>
+    </ul>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Keep reject and accept identical in size, weight and position.</li>
+          <li>Name the purpose in plain German — what is measured, by whom, for how long.</li>
+          <li>Put <em>Cookie-Einstellungen</em> in the footer of every page.</li>
+          <li>Bump <code>VERSION</code> whenever a purpose changes, and ask again.</li>
+          <li>Log the decision server-side as well; the browser record proves nothing.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>No lime here — the page underneath has already spent it.</li>
+          <li>No frosted glass: the banner floats over content whose colour it cannot know.</li>
+          <li>No pre-ticked boxes, and no category checked by default.</li>
+          <li>No close cross, and no dismissal that counts as consent.</li>
+          <li>Don't block the page. A consent notice is a question, not a gate.</li>
+          <li>Don't load a third-party consent platform to do this. It is 5 kB.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+<script src="../assets/js/cf-consent.js"></script>
+<script>
+  /* Documentation only — the replay button and the state read-out. */
+  document.addEventListener('DOMContentLoaded', function () {
+    var out = document.querySelector('[data-consent-state]');
+    function render() {
+      var raw = null;
+      try { raw = localStorage.getItem('cf-consent'); } catch (e) { /* blocked */ }
+      out.textContent = raw ? 'Stored: ' + raw : 'Nothing stored — the banner will ask.';
+    }
+    document.addEventListener('cf:consent', render);
+    render();
+
+    var replay = document.querySelector('[data-consent-replay]');
+    replay.addEventListener('click', function () {
+      try { sessionStorage.setItem('cf-consent-demo-replay', '1'); } catch (e) { /* blocked */ }
+      window.location.reload();
+    });
+  });
+</script>
+</body>
+</html>

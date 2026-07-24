@@ -28,6 +28,46 @@
 .cf-arrow--sm { width: 1em; height: 1em; }
 
 /* --------------------------------------------------------------------------
+   ICON — the drawn set
+   The arrow above is a filled glyph and stands apart. Everything else in the
+   system is drawn: a 24 x 24 box, a 20 x 20 live area, a 1 px contour that
+   stays 1 px at any size. Shapes live in assets/js/cf-icons.js.
+   -------------------------------------------------------------------------- */
+.cf-icon {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--stroke-1);
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+/* Sizes are on the 4 px unit. 16 px is the floor — below it the contour and
+   the counters inside the isometric objects stop being readable. */
+.cf-icon--sm { width: 1rem;    height: 1rem;    }   /* 16 */
+.cf-icon--md { width: 1.5rem;  height: 1.5rem;  }   /* 24 — default */
+.cf-icon--lg { width: 2.5rem;  height: 2.5rem;  }   /* 40 */
+.cf-icon--xl { width: 5rem;    height: 5rem;    }   /* 80 */
+
+/* 2 px for large formats or a low-contrast surface. Never above 2 px on screen. */
+.cf-icon--bold { stroke-width: var(--stroke-2); }
+
+/* The light layer. The contour stops being a line and starts being a source.
+   Decorative only, dark surfaces only, one per screen: lime is 14.5:1 on
+   anthracite and 1.4:1 on CF-Grau. See foundations/iconography.html. */
+.cf-icon--light {
+  stroke: var(--cf-lime);
+  filter: drop-shadow(0 0 6px rgba(225, 255, 0, 0.55));
+}
+
+/* An icon inside a button or link tracks the label's motion, nothing more. */
+.cf-icon--motion { transition: transform var(--duration-base) var(--ease-standard); }
+a:hover > .cf-icon--motion,
+button:hover > .cf-icon--motion { transform: translateX(4px); }
+
+/* --------------------------------------------------------------------------
    BUTTON
    Square corners, mono uppercase label, arrow on the right.
    Primary uses the lime gradient — the "Licht-Ebene" material.
@@ -121,6 +161,27 @@
 
 .cf-btn--block { display: flex; width: 100%; }
 
+/* Width steps. A CF button is a wide slab with the label left and the arrow
+   pinned right, so it needs a set width to keep that proportion — two steps
+   cover every use on the site: --wide for an inline CTA, --xwide for the
+   footer's.
+
+   Width plus max-width, not min-width. A minimum cannot be overridden by a
+   maximum, so a floor wider than its column is an overflow with no way out.
+   `min-width: min(16rem, 100%)` reads like it solves that but does not: the
+   hero's CTA sits in an absolutely positioned shrink-to-fit wrapper, so the
+   percentage is circular and collapses the button to its label — measured at
+   171 px against a designed 256 px. A definite width keeps that wrapper
+   sized, and max-width gives way when the column is genuinely narrower. */
+.cf-btn--wide,
+.cf-btn--xwide {
+  width: var(--btn-w);
+  min-width: 0;
+  max-width: 100%;
+}
+.cf-btn--wide  { --btn-w: 16rem; }
+.cf-btn--xwide { --btn-w: 22rem; }
+
 /* --------------------------------------------------------------------------
    LOGO LOCKUP
    The logo sits in a black pill in the top-left. It is the one rounded
@@ -162,7 +223,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-5, 1.25rem) var(--gutter);
+  min-height: var(--nav-height);
+  padding: var(--space-5) var(--gutter);
 }
 
 /* The glass sheet. It reaches one blur kernel past the bottom of the bar and
@@ -234,7 +296,7 @@
   padding: var(--space-2);
   list-style: none;
   background: var(--cf-anthrazit);
-  border: var(--stroke-1) solid transparent;
+  border: var(--stroke-1) solid var(--border-inverse);
   border-radius: var(--radius-pill);
 }
 .cf-nav__link {
@@ -252,10 +314,13 @@
 }
 .cf-nav__link:hover,
 .cf-nav__link:focus-visible { color: var(--grey-000); }
+/* The current page is marked by weight of ink, not by a lime ground — lime is
+   light, and the one lime moment on the page belongs to the hero's button. */
 .cf-nav__link[aria-current="page"] {
   color: var(--grey-000);
   background: rgba(255, 255, 255, 0.14);
 }
+.cf-nav :focus-visible { outline-color: var(--cf-lime); }
 .cf-nav__toggle { display: none; }
 
 @media (max-width: 780px) {
@@ -275,7 +340,7 @@
     padding: var(--space-3) var(--space-4);
     background: var(--cf-anthrazit);
     color: var(--grey-000);
-    border: var(--stroke-1) solid transparent;
+    border: var(--stroke-1) solid var(--border-inverse);
     border-radius: var(--radius-pill);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
@@ -288,14 +353,29 @@
    SECTION HEADER
    Mono label on the left, counter on the right, 1 px rule underneath.
    This is the connective tissue of every page — use it to open each section.
+
+   The header owns the air beneath it, so every section on the site opens on
+   the same axis. Two cases, both taken from the mockups:
+
+     default   content sits --section-header-gap below the rule. For content
+               that is not itself a ruled box: a logo wall, a team strip, a
+               block of copy.
+     --flush   the content below is a ruled container (process card, accordion,
+               blog grid) and ITS top border is the rule. The header gives up
+               its own border rather than drawing a second hairline 1 px away.
    -------------------------------------------------------------------------- */
 .cf-section-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-4);
+  margin-bottom: var(--section-header-gap);
   padding-bottom: var(--space-3);
   border-bottom: var(--stroke-1) solid var(--border-strong);
+}
+.cf-section-header--flush {
+  margin-bottom: 0;
+  border-bottom: 0;
 }
 .cf-section-header__label {
   font-family: var(--font-mono);
@@ -311,7 +391,7 @@
   font-weight: var(--weight-medium);
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--tracking-label);
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 /* --------------------------------------------------------------------------
@@ -324,6 +404,9 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  /* The nav floats over the artwork, so the hero starts where the page starts —
+     pulled up by exactly the nav's height, never by a rounded-off guess. */
+  margin-top: calc(var(--nav-height) * -1);
   min-height: min(92vh, 56rem);
   padding-block: var(--space-16) var(--space-12);
   overflow: hidden;
@@ -373,7 +456,13 @@
   z-index: 1;
 }
 @media (max-width: 780px) {
-  .cf-hero__action { position: static; margin-top: var(--space-8); }
+  /* Dropped back into the flow it has to pick up the container's gutter, or it
+     sits a gutter-width left of the headline it belongs to. */
+  .cf-hero__action {
+    position: static;
+    margin-top: var(--space-8);
+    padding-inline: var(--gutter);
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -435,9 +524,9 @@
    -------------------------------------------------------------------------- */
 .cf-statement {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: var(--space-16);
+  gap: var(--space-8);
 }
 .cf-statement__title {
   font-size: var(--text-h2);
@@ -451,8 +540,14 @@
   font-size: var(--text-md);
   color: var(--text-secondary);
 }
-@media (max-width: 900px) {
-  .cf-statement { grid-template-columns: 1fr; gap: var(--space-8); }
+/* Two columns once the component itself has room for them, not once the
+   viewport does. Stacked is the default, so a browser without container
+   query support gets the safe layout rather than a broken one. */
+@container (min-width: 56rem) {
+  .cf-statement {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-16);
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -462,22 +557,27 @@
    -------------------------------------------------------------------------- */
 .cf-process {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr);
   border: var(--stroke-1) solid var(--border-strong);
   background: var(--surface-card);
 }
 .cf-process__figure {
   display: grid;
   place-items: center;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 3;
+  min-width: 0;
   padding: var(--space-8);
-  border-right: var(--stroke-1) solid var(--border-strong);
+  border-bottom: var(--stroke-1) solid var(--border-strong);
   background: transparent;
 }
+/* One size for every isometric object in a card, so the four steps read as a
+   set rather than four drawings that happen to sit next to each other. */
+.cf-process__figure > svg { width: 100%; max-width: 22rem; }
 .cf-process__panel {
   display: flex;
   flex-direction: column;
-  padding: var(--space-12);
+  min-width: 0;
+  padding: var(--space-6);
   background: var(--surface-raised);
 }
 .cf-process__title {
@@ -512,7 +612,7 @@
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 .cf-process__benefit {
   margin-top: var(--space-2);
@@ -532,14 +632,19 @@
   font-weight: var(--weight-semibold);
   color: var(--text-primary);
 }
-@media (max-width: 900px) {
-  .cf-process { grid-template-columns: 1fr; }
+/* Square illustration panel beside the copy once there is room for both.
+   Below that the panel goes full width and shortens to 4:3 so the card does
+   not become a tower. Measured against the card's own container: on the
+   documentation page a 901 px viewport leaves this component 533 px, and the
+   old viewport query put it in two columns anyway. */
+@container (min-width: 56rem) {
+  .cf-process { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .cf-process__figure {
-    border-right: 0;
-    border-bottom: var(--stroke-1) solid var(--border-strong);
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1;
+    border-bottom: 0;
+    border-right: var(--stroke-1) solid var(--border-strong);
   }
-  .cf-process__panel { padding: var(--space-6); }
+  .cf-process__panel { padding: var(--space-12); }
 }
 
 /* --------------------------------------------------------------------------
@@ -553,7 +658,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-12);
-  padding-block: var(--space-12);
+  /* The section header above owns the air; the section owns the air below. */
+  padding-block: 0;
 }
 .cf-logo-wall img {
   height: 1.75rem;
@@ -633,26 +739,33 @@
    editorial layout: newest article is largest, older ones halve down to
    a title-only list. Anchored by a mono timeline axis.
    -------------------------------------------------------------------------- */
+/* Built on the .subdivide primitive in base.css — this rule only adds the
+   contours and the rank each column carries. The even form is what the
+   manual's application plate shows: equal columns, hierarchy from the rows.
+
+   Two edges on the container, the other two on the cells — same construction as
+   .cf-team-grid. Bordering all four sides here would lay a second hairline over
+   the right and bottom edges and the grid would read 2 px there and 1 px on the
+   other two. */
 .cf-blog-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  border: var(--stroke-1) solid var(--border-strong);
+  border-top: var(--stroke-1) solid var(--border-strong);
+  border-left: var(--stroke-1) solid var(--border-strong);
 }
 .cf-blog-grid > * {
   border-right: var(--stroke-1) solid var(--border-strong);
   border-bottom: var(--stroke-1) solid var(--border-strong);
 }
-.cf-blog-col { display: grid; }
-.cf-blog-col--1 { grid-template-rows: 1fr; }
-.cf-blog-col--2 { grid-template-rows: repeat(2, 1fr); }
-.cf-blog-col--3 { grid-template-rows: repeat(3, 1fr); }
-.cf-blog-col--6 { grid-template-rows: repeat(6, 1fr); }
+.cf-blog-col--1 { --rank: 1; }
+.cf-blog-col--2 { --rank: 2; }
+.cf-blog-col--3 { --rank: 3; }
+.cf-blog-col--6 { --rank: 6; }
 
 .cf-blog-card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: var(--space-4);
+  min-width: 0;
   min-height: 4rem;
   padding: var(--space-3);
   border-bottom: var(--stroke-1) solid var(--border-subtle);
@@ -665,6 +778,9 @@
   background-position: 0 0;
   transition: background-position var(--duration-slow) var(--ease-standard);
 }
+/* The last card in a column would otherwise draw its own hairline 0 px above
+   the column's, doubling the grid's bottom edge. */
+.cf-blog-card:last-child { border-bottom: 0; }
 .cf-blog-card:hover,
 .cf-blog-card:focus-visible,
 .cf-blog-card:focus-within { background-position: 100% 0; }
@@ -678,7 +794,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 /* Older entries collapse to a single line — the tail of the subdivision. */
 .cf-blog-card--compact {
@@ -686,7 +802,12 @@
   align-items: center;
   min-height: 2rem;
 }
+/* The title is nowrap + ellipsis, so without min-width: 0 the card's
+   min-content width is the full untruncated headline and the whole grid
+   refuses to shrink below it. This is what pushed the landing page 17 px
+   sideways at 375 px. */
 .cf-blog-card--compact .cf-blog-card__title {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -701,11 +822,12 @@
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   writing-mode: vertical-rl;
 }
-@media (max-width: 900px) {
-  .cf-blog-grid { grid-template-columns: 1fr; }
+/* The grid folds itself (see .subdivide in base.css); the axis is a separate
+   element, so it follows at the same threshold measured on the same width. */
+@container (max-width: 44rem) {
   .cf-blog-axis { display: none; }
 }
 
@@ -776,32 +898,37 @@
    VALUE TABLE
    Icon cell + copy cell, hairline ruled. The Über uns "wer wir sind" block.
    -------------------------------------------------------------------------- */
-.cf-value-table { border: var(--stroke-1) solid var(--border-strong); }
+.cf-value-table {
+  border: var(--stroke-1) solid var(--border-strong);
+  container-type: inline-size;
+}
 .cf-value-row {
   display: grid;
-  grid-template-columns: 15rem 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 .cf-value-row + .cf-value-row { border-top: var(--stroke-1) solid var(--border-strong); }
 .cf-value-row__figure {
   display: grid;
   place-items: center;
-  padding: var(--space-8);
-  border-right: var(--stroke-1) solid var(--border-strong);
+  min-width: 0;
+  padding: var(--space-6);
+  border-bottom: var(--stroke-1) solid var(--border-strong);
 }
 .cf-value-row__body {
-  padding: var(--space-8);
-  font-size: var(--text-lg);
+  min-width: 0;
+  padding: var(--space-6);
+  font-size: var(--text-md);
   line-height: var(--leading-relaxed);
 }
 .cf-value-row__body > * + * { margin-top: var(--space-4); }
-@media (max-width: 780px) {
-  .cf-value-row { grid-template-columns: 1fr; }
+@container (min-width: 48rem) {
+  .cf-value-row { grid-template-columns: 15rem minmax(0, 1fr); }
   .cf-value-row__figure {
-    border-right: 0;
-    border-bottom: var(--stroke-1) solid var(--border-strong);
-    padding: var(--space-6);
+    padding: var(--space-8);
+    border-bottom: 0;
+    border-right: var(--stroke-1) solid var(--border-strong);
   }
-  .cf-value-row__body { padding: var(--space-6); font-size: var(--text-md); }
+  .cf-value-row__body { padding: var(--space-8); font-size: var(--text-lg); }
 }
 
 /* --------------------------------------------------------------------------
@@ -839,9 +966,58 @@
   outline: 0;
   border-bottom-width: var(--stroke-2);
 }
-.cf-field__hint { font-size: var(--text-sm); color: var(--text-muted); }
+.cf-field__hint { font-size: var(--text-sm); color: var(--text-secondary); }
 .cf-field--invalid .cf-field__input { border-bottom-color: #B3261E; }
 .cf-field__error { font-size: var(--text-sm); color: #B3261E; }
+
+/* --------------------------------------------------------------------------
+   CHECKBOX
+   A real <input type="checkbox">, restyled. `appearance: none` keeps the
+   element — and therefore its role, its state and its keyboard behaviour —
+   and only takes the paint away, so nothing has to be reimplemented in ARIA.
+
+   Square, 1 px contour, no radius: the same box the rest of the system draws.
+   Checked fills with the foil rather than with lime, because a checkbox is
+   never the one thing happening on a screen. The tick is two borders on a
+   45° rotation — 45° and 135° are both sanctioned angles.
+   -------------------------------------------------------------------------- */
+.cf-check { display: flex; align-items: flex-start; gap: var(--space-3); }
+.cf-check__box {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  position: relative;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  background: transparent;
+  border: var(--stroke-1) solid var(--border-strong);
+  border-radius: var(--radius-none);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+.cf-check__box:checked { background: var(--gradient-foil); }
+.cf-check__box:checked::after {
+  content: "";
+  position: absolute;
+  left: 0.375rem;
+  top: 0.125rem;
+  width: 0.3125rem;
+  height: 0.625rem;
+  border: solid var(--cf-schwarz);
+  border-width: 0 var(--stroke-2) var(--stroke-2) 0;
+  transform: rotate(45deg);
+}
+.cf-check__box:disabled { cursor: not-allowed; opacity: 0.72; }
+.cf-check__label { font-size: var(--text-md); line-height: var(--leading-relaxed); }
+.cf-check__label > strong {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
 
 /* --------------------------------------------------------------------------
    STAT
@@ -860,7 +1036,7 @@
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 /* --------------------------------------------------------------------------
@@ -872,9 +1048,13 @@
   color: var(--text-inverse);
   padding-block: var(--space-24) var(--space-8);
 }
+/* For pages whose last section is .section--flush and so carries no bottom
+   padding of its own. Keeps the gap before the footer identical on every page
+   instead of leaving it to a per-page margin. */
+.cf-footer--detached { margin-top: var(--section-gap); }
 .cf-footer__cta {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-20);
   justify-content: center;
@@ -904,8 +1084,163 @@
 .cf-footer__meta a { text-decoration: none; }
 .cf-footer__meta a:hover { color: var(--grey-000); text-decoration: underline; text-underline-offset: 0.25em; }
 .cf-footer__links li + li::before { content: "• "; }
+/* "Cookie-Einstellungen" opens a dialog rather than navigating, so it is a
+   button. It is dressed as a link because it belongs to that row, but the
+   element stays honest about what it does. */
+.cf-footer__linkbtn {
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.cf-footer__linkbtn:hover { color: var(--grey-000); text-decoration: underline; text-underline-offset: 0.25em; }
 @media (max-width: 780px) {
-  .cf-footer__cta { grid-template-columns: 1fr; gap: var(--space-8); }
+  .cf-footer__cta { grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
+}
+
+/* --------------------------------------------------------------------------
+   CONSENT
+   Two layers. The banner is the first one: a non-modal dialog pinned to the
+   bottom of the viewport, on anthracite so its contrast never depends on what
+   it happens to be covering. The settings panel is the second, and it is a
+   real modal <dialog>.
+
+   Anthracite, not frosted glass: a consent notice can be over a video, a
+   photograph or a white section, and glass would put the text on a background
+   the page controls. The material rules allow both; only one of them is
+   readable everywhere.
+
+   The banner spends no lime. Whatever page it covers has already spent the
+   screen's one lime moment, so the light layer arrives here as the foil —
+   the cool half of the ramp, which exists for exactly this case — and it
+   arrives as an edge, not as a fill.
+   -------------------------------------------------------------------------- */
+/* The dark context is declared by the component, not asked for in the markup.
+   `data-theme="inverse"` would do the same job, but a consent notice that
+   silently becomes black-on-black because someone dropped an attribute is not
+   a risk worth carrying. Same mappings as the theme block in tokens.css. */
+.cf-consent,
+.cf-consent__dialog {
+  --text-primary:   var(--grey-000);
+  --text-secondary: rgba(255, 255, 255, 0.72);
+  --border-strong:  rgba(255, 255, 255, 0.72);
+  --border-default: rgba(255, 255, 255, 0.18);
+  --focus-ring:     var(--cf-lime);
+}
+.cf-consent {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: var(--z-overlay);
+  background: var(--surface-inverse);
+  color: var(--text-inverse);
+  border-top: var(--stroke-2) solid transparent;
+  border-image: var(--gradient-foil) 1;
+  transition: transform var(--duration-base) var(--ease-out),
+              opacity   var(--duration-base) var(--ease-out);
+}
+.cf-consent[hidden] { display: none; }
+/* Entry state. Removed on the frame after insertion, so the banner rises into
+   place; with reduced motion the durations collapse to 1 ms and it just is. */
+.cf-consent[data-enter="true"] { transform: translateY(100%); opacity: 0; }
+
+.cf-consent__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-12);
+  padding-block: var(--space-6);
+}
+.cf-consent__title {
+  /* fit-content so the focus ring hugs the words. The heading takes focus when
+     the banner appears, and a block-level h2 would draw a ring the width of
+     the whole column — a box around nothing. */
+  width: fit-content;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}
+.cf-consent__title:focus-visible { outline: var(--stroke-2) solid var(--focus-ring); outline-offset: 4px; }
+.cf-consent__body {
+  max-width: 68ch;
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+}
+.cf-consent__body a { color: var(--text-inverse); text-underline-offset: 0.25em; }
+
+/* Accept and reject are one control repeated, never a strong one and a weak
+   one: German supervisory authorities read unequal prominence as a dark
+   pattern. Same size, same weight, same row. Settings is the third option,
+   and it is allowed to be quieter because it is not the reject path. */
+.cf-consent__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.cf-consent__actions .cf-btn { flex: 1 1 auto; justify-content: center; min-width: min(13rem, 100%); }
+.cf-consent__actions .cf-btn--ghost { flex: 0 0 auto; min-width: 0; }
+/* --outline inverts on a dark surface: its default hover paints black on
+   anthracite, which is nearly no change at all. */
+.cf-consent :is(.cf-btn--outline, .cf-btn--ghost):hover {
+  background: var(--grey-000);
+  color: var(--cf-schwarz);
+}
+.cf-consent .cf-btn--ghost:hover { background: none; color: var(--grey-000); }
+
+.cf-consent__dialog {
+  width: min(38rem, calc(100vw - 2 * var(--space-4)));
+  max-height: min(80vh, 46rem);
+  padding: 0;
+  background: var(--surface-inverse);
+  color: var(--text-inverse);
+  border: var(--stroke-1) solid var(--border-strong);
+  border-radius: var(--radius-none);
+}
+.cf-consent__dialog::backdrop { background: rgba(0, 0, 0, 0.56); }
+.cf-consent__dialog-inner { padding: var(--space-8); }
+.cf-consent__dialog-title {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-display);
+}
+.cf-consent__group {
+  display: grid;
+  gap: var(--space-4);
+  margin-block: var(--space-8);
+  border-top: var(--stroke-1) solid var(--border-default);
+}
+.cf-consent__row {
+  padding-block: var(--space-4);
+  border-bottom: var(--stroke-1) solid var(--border-default);
+}
+.cf-consent__meta {
+  margin-top: var(--space-2);
+  padding-left: 2rem;   /* box + gap, so the meta hangs off the label */
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-secondary);
+}
+.cf-consent__dialog .cf-check__label { color: var(--text-inverse); }
+.cf-consent__dialog .cf-check__box { border-color: var(--border-strong); }
+
+@media (max-width: 900px) {
+  .cf-consent__inner { grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
+  .cf-consent__actions .cf-btn { flex: 1 1 100%; min-width: 0; }
+  .cf-consent__actions .cf-btn--ghost { flex: 1 1 100%; justify-content: flex-start; }
+}
+/* A tall banner on a short screen must not eat the page it is asking about. */
+@media (max-height: 560px) {
+  .cf-consent { max-height: 70vh; overflow-y: auto; }
 }
 
 /* --------------------------------------------------------------------------
@@ -920,7 +1255,111 @@
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 .cf-hint::before { content: "( "; }
 .cf-hint::after  { content: " )"; }
+
+/* --------------------------------------------------------------------------
+   ISOMETRIC ILLUSTRATION
+   The four process objects, and anything else drawn in the 2:1 system.
+   Geometry lives in the markup; this file owns the contour weight and the
+   one piece of motion the objects are allowed.
+
+   Part roles, used by both the drawing and the motion:
+     .cf-iso__scene   the whole object — the only thing that travels
+     .cf-iso__form    solid contoured body
+     .cf-iso__ghost   dashed reference geometry, the object's future states
+     .cf-iso__light   the single lime-gradient element. One per object.
+     .cf-iso__trace   the signal reaching the object — draws itself
+     .cf-iso__node    construction points
+   -------------------------------------------------------------------------- */
+.cf-iso { display: block; }
+
+/* "1 px contour at every size" is a device pixel, not a viewBox unit. A 640-unit
+   drawing rendered at 352 px would otherwise put its contours on screen at
+   0.55 px — grey, not black. non-scaling-stroke makes the rule literally true,
+   and pins the dash patterns to the px values in --dash-*. */
+.cf-iso :is(path, line, circle, ellipse, rect, polygon, polyline) {
+  vector-effect: non-scaling-stroke;
+}
+
+/* Scroll-driven assembly.
+   Progressive enhancement in the honest direction: without support for
+   scroll-driven animations, or under reduced motion, the object is simply
+   drawn in its finished state. Nothing is ever hidden behind a script.
+   Only transform and opacity animate, so nothing reflows. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .cf-iso {
+      view-timeline-name: --cf-iso;
+      view-timeline-axis: block;
+    }
+    .cf-iso__scene,
+    .cf-iso__ghost,
+    .cf-iso__light,
+    .cf-iso__trace,
+    .cf-iso__node {
+      animation-timeline: --cf-iso;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: var(--ease-out);
+    }
+
+    /* The object arrives along 26.57° — 2 across, 1 down — never straight up. */
+    .cf-iso__scene {
+      animation-name: cf-iso-arrive;
+      animation-range: cover 5% cover 30%;
+    }
+    /* The dashed geometry resolves after the body it belongs to. */
+    .cf-iso__ghost {
+      animation-name: cf-iso-fade;
+      animation-range: cover 20% cover 40%;
+    }
+    /* The incoming signal draws itself. pathLength="1" in the markup makes the
+       dash maths independent of how long the path actually is. */
+    .cf-iso__trace {
+      stroke-dasharray: 1;
+      animation-name: cf-iso-draw;
+      animation-range: cover 18% cover 45%;
+    }
+    /* Lime is light: it is the last thing to arrive, and it arrives as a fill
+       coming up, not as an object moving. */
+    .cf-iso__light {
+      animation-name: cf-iso-light;
+      animation-range: cover 30% cover 48%;
+    }
+    .cf-iso__node {
+      animation-name: cf-iso-fade;
+      animation-range: cover 35% cover 50%;
+    }
+  }
+}
+
+@keyframes cf-iso-arrive {
+  from { transform: translate(-32px, -16px); opacity: 0; }
+  to   { transform: translate(0, 0);         opacity: 1; }
+}
+@keyframes cf-iso-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cf-iso-light {
+  from { fill-opacity: 0; }
+  to   { fill-opacity: 1; }
+}
+@keyframes cf-iso-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* --------------------------------------------------------------------------
+   HERO — reduced motion
+   The loop is the one infinite animation in the system, so it is also the one
+   that has to be switched off by hand. The poster carries the hero instead.
+   -------------------------------------------------------------------------- */
+.cf-hero__media img { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .cf-hero__media video { display: none; }
+  .cf-hero__media img   { display: block; }
+}

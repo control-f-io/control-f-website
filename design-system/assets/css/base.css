@@ -180,6 +180,10 @@ hr {
 .t-muted     { color: var(--text-muted); }
 .t-secondary { color: var(--text-secondary); }
 
+/* Measure — how wide a line of text is allowed to get. */
+.measure       { max-width: var(--measure); }
+.measure-tight { max-width: var(--measure-tight); }
+
 /* --------------------------------------------------------------------------
    LAYOUT PRIMITIVES
    -------------------------------------------------------------------------- */
@@ -188,6 +192,11 @@ hr {
   max-width: calc(var(--container-max) + var(--gutter) * 2);
   margin-inline: auto;
   padding-inline: var(--gutter);
+  /* Every container is a query container, so a component can ask how much
+     room it actually has instead of guessing from the viewport. A card in
+     the 1280 content column and the same card in a 300 px documentation
+     panel are different problems; the viewport cannot tell them apart. */
+  container: layout / inline-size;
 }
 
 .section {
@@ -236,9 +245,71 @@ hr {
   gap: var(--space-4);
 }
 
-/* Page wash — the long CF-Grau → white gradient the whole site sits on. */
+/* --------------------------------------------------------------------------
+   SUBDIVISION GRID — "Raster > Teilungsraster"
+   The manual's recursive square-subdivision system. Halve a surface, halve
+   the half, and so on: each column is half the width of the one before it
+   and carries twice as many rows, so every cell keeps the same proportion.
+
+   Two forms, both in the manual:
+     .subdivide            the pure system — geometric column widths
+     .subdivide--even      the applied editorial form — equal columns,
+                           hierarchy carried by the row count alone
+   The plate "Teilungsraster (Anwendungsbeispiel)" uses the even form; it is
+   what the blog grid is built on.
+
+   Depth is a class because grid-template-columns cannot be generated in
+   plain CSS. Rank — how many rows a column holds — is a number, so it is a
+   custom property: --rank. Track counts use minmax(0, …) throughout; a bare
+   1fr floors at min-content, which is how a single long headline pushes an
+   entire page sideways.
+   -------------------------------------------------------------------------- */
+.subdivide {
+  display: grid;
+  grid-template-columns: var(--subdivide-cols);
+  container-type: inline-size;
+}
+/* Exact halves: the last two tracks are equal, so the series sums to a power
+   of two. 8+4+2+2 = 16 gives 1/2, 1/4, 1/8, 1/8. */
+.subdivide--3 { --subdivide-cols: 4fr 2fr 2fr; }
+.subdivide--4 { --subdivide-cols: 8fr 4fr 2fr 2fr; }
+.subdivide--5 { --subdivide-cols: 16fr 8fr 4fr 2fr 2fr; }
+.subdivide--6 { --subdivide-cols: 32fr 16fr 8fr 4fr 2fr 2fr; }
+
+/* The applied form. Column count is a plain number, so it is a property
+   rather than four more classes: style="--subdivide-count:4". */
+.subdivide--even { --subdivide-cols: repeat(var(--subdivide-count, 5), minmax(0, 1fr)); }
+
+/* A column of the subdivision. --rank is the number of rows it carries;
+   the manual doubles it from one column to the next: 1, 2, 4, 8, 16. */
+.subdivide__col {
+  display: grid;
+  grid-template-rows: repeat(var(--rank, 1), minmax(0, 1fr));
+  min-width: 0;
+}
+.subdivide__col > * { min-width: 0; }
+
+/* Below the width where the finest ranks stop being readable, every column
+   spans the whole grid and they stack instead. The query asks .subdivide
+   itself — the same grid is fine in 900 px of page and unreadable in 900 px
+   of viewport with a 272 px sidebar in front of it, and only the container
+   knows the difference. */
+@container (max-width: 44rem) {
+  .subdivide__col {
+    grid-column: 1 / -1;
+    grid-template-rows: none;
+  }
+}
+
+/* Page wash — the long CF-Grau → white gradient the whole site sits on.
+   The grain tile rides on top of the ramp inside the same background, so it
+   dithers the wash and never touches the text above it. Fixed attachment on
+   both layers: the wash does not scroll, and neither does the grain, which
+   is what film grain does. */
 .page-wash {
-  background: var(--surface-page-wash);
+  background-image: var(--grain), var(--surface-page-wash);
+  background-repeat: repeat, no-repeat;
+  background-size: 140px 140px, cover;
   background-attachment: fixed;
 }
 
@@ -281,6 +352,56 @@ hr {
 /* Licht-Ebene — lime, as a highlight. Never as a background for text blocks. */
 .material-light { background: var(--gradient-light); color: var(--accent-ink); }
 .material-solid { background: var(--surface-inverse); color: var(--text-inverse); }
+/* The foil — the light layer carried far enough to split into the brand's
+   own spectrum. A surface material, like .material-light: an isometric face,
+   an edge, a plate. Not a background for text. */
+.material-foil { background: var(--gradient-spectrum); color: var(--accent-ink); }
+
+/* --------------------------------------------------------------------------
+   FOIL TYPE
+   The one place a gradient is allowed inside letterforms. It is the cool half
+   of the spectrum — no lime — so a screen that has already spent its lime
+   moment can still carry it, and every sample of it clears 9.3:1 on
+   anthracite. Reserve it for one display headline per page.
+
+   The unenhanced state is the fallback: the element keeps its inherited
+   colour and nothing is clipped. Only inside @supports does the text go
+   transparent, so a browser without background-clip:text, a printer, and
+   Windows high-contrast all get solid, legible type.
+   -------------------------------------------------------------------------- */
+.text-foil {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .text-foil {
+    background-image: var(--gradient-foil);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  /* Clipped text has no colour left for the selection layer to invert. */
+  .text-foil::selection {
+    color: var(--cf-schwarz);
+    -webkit-text-fill-color: var(--cf-schwarz);
+    background: var(--cf-lime);
+  }
+}
+@media print {
+  .text-foil {
+    background: none;
+    color: var(--cf-schwarz);
+    -webkit-text-fill-color: var(--cf-schwarz);
+  }
+}
+@media (forced-colors: active) {
+  .text-foil {
+    background: none;
+    color: CanvasText;
+    -webkit-text-fill-color: CanvasText;
+  }
+}
 
 /* --------------------------------------------------------------------------
    LINE UTILITIES
