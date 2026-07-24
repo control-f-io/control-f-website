@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iconography — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* The gallery. Each tile carries the construction grid the glyph was drawn
+     on; it stays hidden until you look closely (hover, focus, or the toggle),
+     which is the point — the grid is how the icon was made, not what it is.
+     Borders sit on the tiles rather than in the gaps, so a half-empty last row
+     leaves nothing behind: the grid ends where the glyphs end. */
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+    border-top: var(--stroke-1) solid var(--border-subtle);
+    border-left: var(--stroke-1) solid var(--border-subtle);
+  }
+  .icon-tile {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    padding: var(--space-6) var(--space-2);
+    background: var(--grey-050);
+    border: 0;
+    border-right: var(--stroke-1) solid var(--border-subtle);
+    border-bottom: var(--stroke-1) solid var(--border-subtle);
+    cursor: copy;
+    text-align: center;
+    transition: background var(--duration-base) var(--ease-standard);
+  }
+  .icon-tile:hover, .icon-tile:focus-visible { background: var(--grey-000); }
+  /* The glyph fills the stage exactly, so when the keylines come up it is
+     sitting on its own construction rather than floating inside it. */
+  .icon-tile__stage { position: relative; width: 4rem; height: 4rem; display: grid; place-items: center; }
+  .icon-tile__stage .cf-icon { width: 100%; height: 100%; }
+  .icon-tile__grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    color: var(--cf-schwarz);
+    transition: opacity var(--duration-base) var(--ease-standard);
+  }
+  .icon-tile:hover .icon-tile__grid,
+  .icon-tile:focus-visible .icon-tile__grid,
+  .icon-grid[data-keylines="true"] .icon-tile__grid { opacity: 0.5; }
+  .icon-tile__name {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    color: var(--text-secondary);
+    word-break: break-word;
+  }
+  .icon-tile.is-copied .icon-tile__name { color: var(--text-primary); }
+  .icon-tile.is-copied .icon-tile__name::after { content: " copied"; color: var(--text-secondary); }
+
+  .icon-toolbar { display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-4); }
+  .icon-toggle {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide); text-transform: uppercase;
+    color: var(--text-secondary);
+    border: var(--stroke-1) solid var(--border-default);
+    padding: var(--space-2) var(--space-3);
+  }
+  .icon-toggle[aria-pressed="true"] { color: var(--text-primary); border-color: var(--border-strong); }
+  /* --text-secondary, not --text-muted: #919191 on the docs surface is 3.0:1. */
+  .icon-count { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-secondary); }
+
+  .icon-sizes { display: flex; align-items: flex-end; gap: var(--space-8); flex-wrap: wrap; }
+  .icon-sizes figure { margin: 0; display: grid; justify-items: center; gap: var(--space-3); }
+  .icon-sizes figcaption { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-secondary); }
+
+  .icon-light { display: flex; gap: var(--space-12); flex-wrap: wrap; align-items: center; justify-content: center; }
+  .icon-inline { display: inline-flex; align-items: center; gap: var(--space-3); }
+  .icon-bullets { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+  .icon-bullets li { display: flex; align-items: baseline; gap: var(--space-3); }
+  .icon-bullets .cf-icon { transform: translateY(0.35em); }
+
+  .icon-anatomy { display: grid; grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: var(--space-8); align-items: center; }
+  @media (max-width: 48rem) { .icon-anatomy { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 05</p>
+    <h1>Iconography</h1>
+    <p>
+      The manual draws its icons the same way it draws everything else: 1 px contours, the
+      isometric rhombus, the four angles. This is that plate built for the screen — one
+      24 × 24 box, one live area, one stroke weight that never changes. The CF arrow stays
+      what it always was, a filled glyph and a thing apart; every icon here is drawn.
+    </p>
+  </header>
+
+  <section class="docs-section" id="set">
+    <h2>The set</h2>
+    <p>
+      Twenty-two glyphs in four families: direction, operators, primitives, objects. Hover
+      a tile to see the construction grid it was built on, or turn the keylines on for all
+      of them. Click any tile to copy its markup.
+    </p>
+    <div class="icon-toolbar">
+      <button class="icon-toggle" type="button" id="keyline-toggle" aria-pressed="false">Keylines</button>
+      <span class="icon-count" id="icon-count"></span>
+    </div>
+    <div class="icon-grid" id="icon-grid" data-keylines="false"></div>
+  </section>
+
+  <section class="docs-section" id="construction">
+    <h2>Construction</h2>
+    <p>
+      Every glyph is drawn in a 24 × 24 box with a 2 px margin, so the live area is
+      20 × 20. Inside it sit three keylines, and an icon is built on one of them: the
+      isometric rhombus (20 × 10), the isometric circle — an ellipse at 2:1 — and the
+      upright square (18 × 18, inset because a square reads heavier than a rhombus of the
+      same width). Diagonals use only 26.57°, 63.43°, 45° and 90°. A 26.57° line rotated
+      by 90° is a 63.43° line, which is why the four chevrons are one drawing turned four
+      times rather than four drawings.
+    </p>
+    <div class="docs-demo">
+      <div class="icon-anatomy">
+        <svg viewBox="0 0 24 24" style="width:100%;max-width:20rem;margin-inline:auto" fill="none">
+          <rect x="0.5" y="0.5" width="23" height="23" stroke="#000" stroke-width="0.25" stroke-dasharray="1 0.5"/>
+          <rect x="2" y="2" width="20" height="20" stroke="#000" stroke-width="0.25" stroke-dasharray="0.5 1"/>
+          <path d="M12 7 L22 12 L12 17 L2 12 Z" stroke="#000" stroke-width="0.25" stroke-dasharray="0.5 1"/>
+          <ellipse cx="12" cy="12" rx="10" ry="5" stroke="#000" stroke-width="0.25" stroke-dasharray="0.5 1"/>
+          <rect x="3" y="3" width="18" height="18" stroke="#000" stroke-width="0.25" stroke-dasharray="0.5 1"/>
+          <g stroke="#000" stroke-width="0.5" vector-effect="non-scaling-stroke">
+            <path d="M12 4 L20 8 L12 12 L4 8 Z"/><path d="M4 8 V16"/><path d="M20 8 V16"/>
+            <path d="M12 12 V20"/><path d="M4 16 L12 20 L20 16"/>
+          </g>
+        </svg>
+        <table class="docs-table" style="margin:0">
+          <thead><tr><th>Element</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Box</td><td>24 × 24</td></tr>
+            <tr><td>Margin</td><td>2 — nothing crosses it</td></tr>
+            <tr><td>Live area</td><td>20 × 20</td></tr>
+            <tr><td>Rhombus keyline</td><td>20 × 10 (2:1)</td></tr>
+            <tr><td>Circle keyline</td><td>rx 10 / ry 5 (2:1)</td></tr>
+            <tr><td>Square keyline</td><td>18 × 18, optically inset</td></tr>
+            <tr><td>Angles</td><td>26.57° · 63.43° · 45° · 90°</td></tr>
+            <tr><td>Stroke</td><td>1 px, <code>non-scaling-stroke</code></td></tr>
+            <tr><td>Caps / joins</td><td>square / miter</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="docs-note">
+      <strong>Why the stroke never scales.</strong> The contour is 1 px at 16 px and still
+      1 px at 80 px, because <code>vector-effect="non-scaling-stroke"</code> is set on every
+      shape in the sprite. This is the same rule the process illustrations follow — a
+      contour that thickens with the artwork stops being a contour and becomes a shape.
+    </div>
+  </section>
+
+  <section class="docs-section" id="sizes">
+    <h2>Sizes</h2>
+    <p>
+      Four sizes on the 4 px unit. 16 px is the floor: below it the counters inside the
+      isometric objects close up and the glyph turns into a smudge. Use the object icons at
+      40 px and above; the direction and operator glyphs work at any size.
+    </p>
+    <div class="docs-demo docs-demo--flat">
+      <div class="icon-sizes">
+        <figure><svg class="cf-icon cf-icon--sm" aria-hidden="true"><use href="#cf-cube"></use></svg><figcaption>16 · --sm</figcaption></figure>
+        <figure><svg class="cf-icon" aria-hidden="true"><use href="#cf-cube"></use></svg><figcaption>24 · default</figcaption></figure>
+        <figure><svg class="cf-icon cf-icon--lg" aria-hidden="true"><use href="#cf-cube"></use></svg><figcaption>40 · --lg</figcaption></figure>
+        <figure><svg class="cf-icon cf-icon--xl" aria-hidden="true"><use href="#cf-cube"></use></svg><figcaption>80 · --xl</figcaption></figure>
+        <figure><svg class="cf-icon cf-icon--xl cf-icon--bold" aria-hidden="true"><use href="#cf-cube"></use></svg><figcaption>80 · --bold (2 px)</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="light">
+    <h2>The light layer</h2>
+    <p>
+      One icon per screen may stop being a line and become a source. <code>.cf-icon--light</code>
+      switches the contour to lime and lets it glow — the Licht-Ebene applied to a glyph,
+      a temporary effect rather than a fill.
+    </p>
+    <div class="docs-demo docs-demo--dark" data-theme="inverse">
+      <div class="icon-light">
+        <svg class="cf-icon cf-icon--xl cf-icon--light" aria-hidden="true"><use href="#cf-sphere"></use></svg>
+        <svg class="cf-icon cf-icon--xl" aria-hidden="true"><use href="#cf-layers"></use></svg>
+        <svg class="cf-icon cf-icon--xl" aria-hidden="true"><use href="#cf-cylinder"></use></svg>
+        <svg class="cf-icon cf-icon--xl" aria-hidden="true"><use href="#cf-node"></use></svg>
+      </div>
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>Dark surfaces only, and decorative only.</strong> Lime is 14.5:1 on anthracite
+      and 1.4:1 on CF-Grau. A lit icon on the page surface is invisible to a good many
+      people and fails the 3:1 minimum for UI contours, so it must never be the only thing
+      carrying a meaning — always a black contour, or a lit one next to a label.
+    </div>
+    <div class="docs-note">
+      <strong>Why a glow and not a gradient.</strong> The obvious move is to stroke the
+      contour with <code>--gradient-light</code>. It cannot be done through a sprite: a
+      paint server referenced from inside a <code>&lt;use&gt;</code> shadow tree resolves
+      inconsistently across engines — the stroke computes to <code>url(#…)</code> and then
+      paints nothing at all. An icon that silently disappears in one browser is worse than
+      one that never promised the gradient, so the light layer here is lime plus
+      <code>--glow-lime</code>. If a single hero-scale glyph genuinely needs the gradient,
+      inline that one symbol instead of referencing it.
+    </div>
+  </section>
+
+  <section class="docs-section" id="usage">
+    <h2>In use</h2>
+    <p>
+      An icon sits next to a label, or it carries an accessible name of its own. It never
+      floats without either.
+    </p>
+    <div class="docs-demo">
+      <div class="stack" style="display:grid;gap:var(--space-8);justify-items:start">
+        <span class="icon-inline">
+          <svg class="cf-icon cf-icon--sm" aria-hidden="true"><use href="#cf-pin"></use></svg>
+          <span>Werk Ludwigshafen</span>
+        </span>
+
+        <button class="cf-btn cf-btn--outline" style="min-width:min(18rem, 100%)">
+          Weniger anzeigen
+          <svg class="cf-icon cf-icon--sm cf-icon--motion" aria-hidden="true"><use href="#cf-chevron-up"></use></svg>
+        </button>
+
+        <button type="button" aria-label="Dialog schließen"
+                style="display:grid;place-items:center;width:3rem;height:3rem;border:1px solid var(--border-strong)">
+          <svg class="cf-icon" aria-hidden="true"><use href="#cf-close"></use></svg>
+        </button>
+
+        <ul class="icon-bullets">
+          <li><svg class="cf-icon cf-icon--sm" aria-hidden="true"><use href="#cf-diamond"></use></svg><span>Sensordaten aus der Anlage</span></li>
+          <li><svg class="cf-icon cf-icon--sm" aria-hidden="true"><use href="#cf-diamond"></use></svg><span>Instandhaltungshistorie</span></li>
+          <li><svg class="cf-icon cf-icon--sm" aria-hidden="true"><use href="#cf-diamond-nested"></use></svg><span>Betriebsparameter — laufend</span></li>
+        </ul>
+      </div>
+    </div>
+    <pre class="docs-code"><span class="com">&lt;!-- next to a label: the icon is decoration, hide it --&gt;</span>
+&lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"icon-inline"</span>&gt;
+  &lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-icon cf-icon--sm"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;&lt;<span class="tag">use</span> <span class="attr">href</span>=<span class="val">"#cf-pin"</span>&gt;&lt;/<span class="tag">use</span>&gt;&lt;/<span class="tag">svg</span>&gt;
+  &lt;<span class="tag">span</span>&gt;Werk Ludwigshafen&lt;/<span class="tag">span</span>&gt;
+&lt;/<span class="tag">span</span>&gt;
+
+<span class="com">&lt;!-- alone: the name goes on the control, not on the svg --&gt;</span>
+&lt;<span class="tag">button</span> <span class="attr">type</span>=<span class="val">"button"</span> <span class="attr">aria-label</span>=<span class="val">"Dialog schließen"</span>&gt;
+  &lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-icon"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;&lt;<span class="tag">use</span> <span class="attr">href</span>=<span class="val">"#cf-close"</span>&gt;&lt;/<span class="tag">use</span>&gt;&lt;/<span class="tag">svg</span>&gt;
+&lt;/<span class="tag">button</span>&gt;</pre>
+  </section>
+
+  <section class="docs-section" id="sprite">
+    <h2>The sprite</h2>
+    <p>
+      One file defines the set: <code>assets/js/cf-icons.js</code>. Unlike
+      <code>docs.js</code> it ships. Include it once per page and it injects the sprite
+      after <code>&lt;body&gt;</code>, or paste the block below into the page template and
+      drop the script.
+    </p>
+    <pre class="docs-code">&lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="val">"/design-system/assets/js/cf-icons.js"</span>&gt;&lt;/<span class="tag">script</span>&gt;</pre>
+    <p>
+      Its markup, generated from the same array the gallery above reads — there is no
+      second copy of any glyph anywhere in the system:
+    </p>
+    <pre class="docs-code" id="sprite-source" style="max-height:18rem;overflow:auto"></pre>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Class</th><th>Effect</th><th>When</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-icon</code></td><td>24 px box, 1 px <code>currentColor</code> contour, no fill</td><td>always</td></tr>
+        <tr><td><code>.cf-icon--sm</code></td><td>16 px</td><td>inline with 14 px body copy, inside buttons</td></tr>
+        <tr><td><code>.cf-icon--md</code></td><td>24 px</td><td>the default; explicit when it sits next to a modifier</td></tr>
+        <tr><td><code>.cf-icon--lg</code></td><td>40 px</td><td>list markers, card headers, the object glyphs</td></tr>
+        <tr><td><code>.cf-icon--xl</code></td><td>80 px</td><td>section openers, empty states</td></tr>
+        <tr><td><code>.cf-icon--bold</code></td><td>2 px contour</td><td>large format, or a surface too busy for 1 px</td></tr>
+        <tr><td><code>.cf-icon--light</code></td><td>lime contour + glow</td><td>one per screen, dark surfaces, decorative</td></tr>
+        <tr><td><code>.cf-icon--motion</code></td><td>+4 px on the parent's hover</td><td>only inside a link or button</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="docs-section" id="drawing">
+    <h2>Drawing a new one</h2>
+    <p>
+      The set is meant to grow, and it grows in one place: the <code>ICONS</code> array in
+      <code>assets/js/cf-icons.js</code>. An entry records the id, a label, what the glyph
+      is for, and the keyline it was built on — that last field is not bookkeeping, it is
+      the constraint. If a new glyph cannot name the keyline it stands on, it does not
+      belong to this system yet.
+    </p>
+    <pre class="docs-code">{ <span class="attr">id</span>: <span class="val">'cf-cube'</span>, <span class="attr">label</span>: <span class="val">'Cube'</span>, <span class="attr">use</span>: <span class="val">'An asset, a machine, one unit of anything'</span>,
+  <span class="attr">keyline</span>: <span class="val">'rhombus 16 x 8 + 8 px extrusion'</span>,
+  <span class="attr">shapes</span>: <span class="val">'&lt;path d="M12 4 L20 8 L12 12 L4 8 Z"/&gt;…'</span> }</pre>
+    <p>
+      Write the shapes without stroke or size attributes — those come from
+      <code>.cf-icon</code>. The build step that would normally add
+      <code>vector-effect</code> to every shape is four lines of JavaScript in the same
+      file, so a new glyph inherits the 1 px rule for free.
+    </p>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Draw on a keyline. Rhombus, ellipse or square — name it in the entry.</li>
+          <li>Keep to the four angles. A rotation of a sanctioned angle is sanctioned.</li>
+          <li>Contour before fill. The only solid marks in the set are dots.</li>
+          <li>Hide decorative icons with <code>aria-hidden="true"</code> and name the control instead.</li>
+          <li>One weight per context — do not mix 1 px and 2 px in the same row.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>No third-party icon set, ever. If it is not in the array, it is not drawn yet.</li>
+          <li>No rounded caps, no rounded joins, no corner radii.</li>
+          <li>No perspective and no true 30° isometry — this system is 2:1, at 26.57°.</li>
+          <li>No lit icon on CF-Grau, and never a lit icon carrying meaning on its own.</li>
+          <li>No icon inside a button next to the CF arrow — one mark per control.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../assets/js/cf-icons.js"></script>
+<script src="../assets/js/docs.js"></script>
+<script>
+/* The gallery, the keyline overlay and the sprite listing are all rendered
+   from CF_ICONS / CF_ICON_SPRITE so this page can never drift from the set. */
+(function () {
+  'use strict';
+
+  /* The construction grid, drawn once and reused behind every tile: the box,
+     the live area and the three keylines, in the 1-2 dashed line type the
+     system reserves for construction. */
+  var KEYLINES =
+    '<svg class="icon-tile__grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="0.25" aria-hidden="true">' +
+    '<rect x="2" y="2" width="20" height="20" stroke-dasharray="0.5 1"/>' +
+    '<path d="M12 7 L22 12 L12 17 L2 12 Z" stroke-dasharray="0.5 1"/>' +
+    '<ellipse cx="12" cy="12" rx="10" ry="5" stroke-dasharray="0.5 1"/>' +
+    '<path d="M12 0 V24" stroke-dasharray="0.5 1"/>' +
+    '<path d="M0 12 H24" stroke-dasharray="0.5 1"/>' +
+    '</svg>';
+
+  function markup(id) {
+    return '<svg class="cf-icon" aria-hidden="true"><use href="#' + id + '"></use></svg>';
+  }
+
+  function build() {
+    var grid = document.getElementById('icon-grid');
+    if (!grid || !window.CF_ICONS) return;
+
+    window.CF_ICONS.forEach(function (icon) {
+      var tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'icon-tile';
+      tile.dataset.id = icon.id;
+      tile.title = icon.use + ' — built on ' + icon.keyline;
+      tile.innerHTML =
+        '<span class="icon-tile__stage">' + KEYLINES +
+        '<svg class="cf-icon cf-icon--lg" aria-hidden="true"><use href="#' + icon.id + '"></use></svg>' +
+        '</span><span class="icon-tile__name">' + icon.id.replace('cf-', '') + '</span>';
+      grid.appendChild(tile);
+    });
+
+    document.getElementById('icon-count').textContent = window.CF_ICONS.length + ' glyphs';
+
+    grid.addEventListener('click', function (event) {
+      var tile = event.target.closest('.icon-tile');
+      if (!tile || !navigator.clipboard) return;
+      navigator.clipboard.writeText(markup(tile.dataset.id)).then(function () {
+        tile.classList.add('is-copied');
+        setTimeout(function () { tile.classList.remove('is-copied'); }, 1400);
+      });
+    });
+
+    var toggle = document.getElementById('keyline-toggle');
+    toggle.addEventListener('click', function () {
+      var on = toggle.getAttribute('aria-pressed') === 'true';
+      toggle.setAttribute('aria-pressed', String(!on));
+      grid.dataset.keylines = String(!on);
+    });
+
+    /* The production block, printed verbatim from the shipped constant. */
+    var out = document.getElementById('sprite-source');
+    out.textContent = window.CF_ICON_SPRITE
+      .replace(/<symbol/g, '\n  <symbol')
+      .replace('</svg>', '\n</svg>');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', build);
+  } else {
+    build();
+  }
+})();
+</script>
+</body>
+</html>
