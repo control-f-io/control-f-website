@@ -126,6 +126,13 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 
 .cf-btn--block { display: flex; width: 100%; }
 
+/* Width steps. A CF button is a wide slab with the label left and the arrow
+   pinned right, so it needs a floor to keep that proportion — two steps cover
+   every use on the site: --wide for an inline CTA, --xwide for the footer's.
+   min() so the floor never outgrows its container on a narrow screen. */
+.cf-btn--wide  { min-width: min(16rem, 100%); }
+.cf-btn--xwide { min-width: min(22rem, 100%); }
+
 /* --------------------------------------------------------------------------
    LOGO LOCKUP
    The logo sits in a black pill in the top-left. It is the one rounded
@@ -145,8 +152,10 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 
 /* --------------------------------------------------------------------------
    NAVIGATION
-   Logo pill left, frosted glass pill right, mono uppercase links.
-   The bar floats over the hero — it does not have its own background.
+   Two pills of the same material: the logo left, the links right. Both are
+   anthracite, as in the mockups — the bar floats over the hero and carries its
+   own contrast rather than borrowing it from whatever is behind. A frosted
+   pill cannot do that over moving artwork.
    -------------------------------------------------------------------------- */
 .cf-nav {
   position: sticky;
@@ -156,7 +165,8 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-5, 1.25rem) var(--gutter);
+  min-height: var(--nav-height);
+  padding: var(--space-5) var(--gutter);
 }
 .cf-nav__list {
   display: flex;
@@ -165,10 +175,8 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   margin: 0;
   padding: var(--space-2);
   list-style: none;
-  background: var(--surface-glass);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
-  border: var(--glass-border);
+  background: var(--cf-anthrazit);
+  border: var(--stroke-1) solid var(--border-inverse);
   border-radius: var(--radius-pill);
 }
 .cf-nav__link {
@@ -180,15 +188,18 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.72);
   transition: color var(--duration-fast) var(--ease-standard),
               background var(--duration-fast) var(--ease-standard);
 }
-.cf-nav__link:hover { color: var(--text-primary); }
+.cf-nav__link:hover { color: var(--grey-000); }
+/* The current page is marked by weight of ink, not by a lime ground — lime is
+   light, and the one lime moment on the page belongs to the hero's button. */
 .cf-nav__link[aria-current="page"] {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.55);
+  color: var(--grey-000);
+  background: rgba(255, 255, 255, 0.14);
 }
+.cf-nav :focus-visible { outline-color: var(--cf-lime); }
 .cf-nav__toggle { display: none; }
 
 @media (max-width: 780px) {
@@ -206,10 +217,9 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-3) var(--space-4);
-    background: var(--surface-glass);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border: var(--glass-border);
+    background: var(--cf-anthrazit);
+    color: var(--grey-000);
+    border: var(--stroke-1) solid var(--border-inverse);
     border-radius: var(--radius-pill);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
@@ -222,14 +232,29 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
    SECTION HEADER
    Mono label on the left, counter on the right, 1 px rule underneath.
    This is the connective tissue of every page — use it to open each section.
+
+   The header owns the air beneath it, so every section on the site opens on
+   the same axis. Two cases, both taken from the mockups:
+
+     default   content sits --section-header-gap below the rule. For content
+               that is not itself a ruled box: a logo wall, a team strip, a
+               block of copy.
+     --flush   the content below is a ruled container (process card, accordion,
+               blog grid) and ITS top border is the rule. The header gives up
+               its own border rather than drawing a second hairline 1 px away.
    -------------------------------------------------------------------------- */
 .cf-section-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-4);
+  margin-bottom: var(--section-header-gap);
   padding-bottom: var(--space-3);
   border-bottom: var(--stroke-1) solid var(--border-strong);
+}
+.cf-section-header--flush {
+  margin-bottom: 0;
+  border-bottom: 0;
 }
 .cf-section-header__label {
   font-family: var(--font-mono);
@@ -245,7 +270,7 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   font-weight: var(--weight-medium);
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--tracking-label);
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 /* --------------------------------------------------------------------------
@@ -258,6 +283,9 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  /* The nav floats over the artwork, so the hero starts where the page starts —
+     pulled up by exactly the nav's height, never by a rounded-off guess. */
+  margin-top: calc(var(--nav-height) * -1);
   min-height: min(92vh, 56rem);
   padding-block: var(--space-16) var(--space-12);
   overflow: hidden;
@@ -307,7 +335,13 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   z-index: 1;
 }
 @media (max-width: 780px) {
-  .cf-hero__action { position: static; margin-top: var(--space-8); }
+  /* Dropped back into the flow it has to pick up the container's gutter, or it
+     sits a gutter-width left of the headline it belongs to. */
+  .cf-hero__action {
+    position: static;
+    margin-top: var(--space-8);
+    padding-inline: var(--gutter);
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -408,6 +442,9 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   border-right: var(--stroke-1) solid var(--border-strong);
   background: transparent;
 }
+/* One size for every isometric object in a card, so the four steps read as a
+   set rather than four drawings that happen to sit next to each other. */
+.cf-process__figure > svg { width: 100%; max-width: 22rem; }
 .cf-process__panel {
   display: flex;
   flex-direction: column;
@@ -446,7 +483,7 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 .cf-process__benefit {
   margin-top: var(--space-2);
@@ -487,7 +524,8 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   align-items: center;
   justify-content: space-between;
   gap: var(--space-12);
-  padding-block: var(--space-12);
+  /* The section header above owns the air; the section owns the air below. */
+  padding-block: 0;
 }
 .cf-logo-wall img {
   height: 1.75rem;
@@ -537,16 +575,23 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
    editorial layout: newest article is largest, older ones halve down to
    a title-only list. Anchored by a mono timeline axis.
    -------------------------------------------------------------------------- */
+/* Two edges on the container, the other two on the cells — same construction as
+   .cf-team-grid. Bordering all four sides here would lay a second hairline over
+   the right and bottom edges and the grid would read 2 px there and 1 px on the
+   other two. */
 .cf-blog-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  border: var(--stroke-1) solid var(--border-strong);
+  border-top: var(--stroke-1) solid var(--border-strong);
+  border-left: var(--stroke-1) solid var(--border-strong);
 }
 .cf-blog-grid > * {
   border-right: var(--stroke-1) solid var(--border-strong);
   border-bottom: var(--stroke-1) solid var(--border-strong);
 }
-.cf-blog-col { display: grid; }
+/* min-width:0 or the column takes its min-content width from the longest
+   headline and pushes the whole grid past the container. */
+.cf-blog-col { display: grid; min-width: 0; }
 .cf-blog-col--1 { grid-template-rows: 1fr; }
 .cf-blog-col--2 { grid-template-rows: repeat(2, 1fr); }
 .cf-blog-col--3 { grid-template-rows: repeat(3, 1fr); }
@@ -557,11 +602,15 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   flex-direction: column;
   justify-content: space-between;
   gap: var(--space-4);
+  min-width: 0;
   min-height: 4rem;
   padding: var(--space-3);
   border-bottom: var(--stroke-1) solid var(--border-subtle);
   transition: background var(--duration-fast) var(--ease-standard);
 }
+/* The last card in a column would otherwise draw its own hairline 0 px above
+   the column's, doubling the grid's bottom edge. */
+.cf-blog-card:last-child { border-bottom: 0; }
 .cf-blog-card:hover { background: rgba(255, 255, 255, 0.45); }
 .cf-blog-card__title {
   font-size: var(--text-sm);
@@ -573,7 +622,7 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 /* Older entries collapse to a single line — the tail of the subdivision. */
 .cf-blog-card--compact {
@@ -582,6 +631,10 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   min-height: 2rem;
 }
 .cf-blog-card--compact .cf-blog-card__title {
+  /* A flex item will not shrink below its min-content width by default, so
+     without this the ellipsis never engages and a long headline simply runs
+     out of the card. */
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -596,11 +649,11 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   writing-mode: vertical-rl;
 }
 @media (max-width: 900px) {
-  .cf-blog-grid { grid-template-columns: 1fr; }
+  .cf-blog-grid { grid-template-columns: minmax(0, 1fr); }
   .cf-blog-axis { display: none; }
 }
 
@@ -734,7 +787,7 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   outline: 0;
   border-bottom-width: var(--stroke-2);
 }
-.cf-field__hint { font-size: var(--text-sm); color: var(--text-muted); }
+.cf-field__hint { font-size: var(--text-sm); color: var(--text-secondary); }
 .cf-field--invalid .cf-field__input { border-bottom-color: #B3261E; }
 .cf-field__error { font-size: var(--text-sm); color: #B3261E; }
 
@@ -755,7 +808,7 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 /* --------------------------------------------------------------------------
@@ -767,6 +820,10 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   color: var(--text-inverse);
   padding-block: var(--space-24) var(--space-8);
 }
+/* For pages whose last section is .section--flush and so carries no bottom
+   padding of its own. Keeps the gap before the footer identical on every page
+   instead of leaving it to a per-page margin. */
+.cf-footer--detached { margin-top: var(--section-gap); }
 .cf-footer__cta {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -815,7 +872,111 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 .cf-hint::before { content: "( "; }
 .cf-hint::after  { content: " )"; }
+
+/* --------------------------------------------------------------------------
+   ISOMETRIC ILLUSTRATION
+   The four process objects, and anything else drawn in the 2:1 system.
+   Geometry lives in the markup; this file owns the contour weight and the
+   one piece of motion the objects are allowed.
+
+   Part roles, used by both the drawing and the motion:
+     .cf-iso__scene   the whole object — the only thing that travels
+     .cf-iso__form    solid contoured body
+     .cf-iso__ghost   dashed reference geometry, the object's future states
+     .cf-iso__light   the single lime-gradient element. One per object.
+     .cf-iso__trace   the signal reaching the object — draws itself
+     .cf-iso__node    construction points
+   -------------------------------------------------------------------------- */
+.cf-iso { display: block; }
+
+/* "1 px contour at every size" is a device pixel, not a viewBox unit. A 640-unit
+   drawing rendered at 352 px would otherwise put its contours on screen at
+   0.55 px — grey, not black. non-scaling-stroke makes the rule literally true,
+   and pins the dash patterns to the px values in --dash-*. */
+.cf-iso :is(path, line, circle, ellipse, rect, polygon, polyline) {
+  vector-effect: non-scaling-stroke;
+}
+
+/* Scroll-driven assembly.
+   Progressive enhancement in the honest direction: without support for
+   scroll-driven animations, or under reduced motion, the object is simply
+   drawn in its finished state. Nothing is ever hidden behind a script.
+   Only transform and opacity animate, so nothing reflows. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .cf-iso {
+      view-timeline-name: --cf-iso;
+      view-timeline-axis: block;
+    }
+    .cf-iso__scene,
+    .cf-iso__ghost,
+    .cf-iso__light,
+    .cf-iso__trace,
+    .cf-iso__node {
+      animation-timeline: --cf-iso;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: var(--ease-out);
+    }
+
+    /* The object arrives along 26.57° — 2 across, 1 down — never straight up. */
+    .cf-iso__scene {
+      animation-name: cf-iso-arrive;
+      animation-range: cover 5% cover 30%;
+    }
+    /* The dashed geometry resolves after the body it belongs to. */
+    .cf-iso__ghost {
+      animation-name: cf-iso-fade;
+      animation-range: cover 20% cover 40%;
+    }
+    /* The incoming signal draws itself. pathLength="1" in the markup makes the
+       dash maths independent of how long the path actually is. */
+    .cf-iso__trace {
+      stroke-dasharray: 1;
+      animation-name: cf-iso-draw;
+      animation-range: cover 18% cover 45%;
+    }
+    /* Lime is light: it is the last thing to arrive, and it arrives as a fill
+       coming up, not as an object moving. */
+    .cf-iso__light {
+      animation-name: cf-iso-light;
+      animation-range: cover 30% cover 48%;
+    }
+    .cf-iso__node {
+      animation-name: cf-iso-fade;
+      animation-range: cover 35% cover 50%;
+    }
+  }
+}
+
+@keyframes cf-iso-arrive {
+  from { transform: translate(-32px, -16px); opacity: 0; }
+  to   { transform: translate(0, 0);         opacity: 1; }
+}
+@keyframes cf-iso-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cf-iso-light {
+  from { fill-opacity: 0; }
+  to   { fill-opacity: 1; }
+}
+@keyframes cf-iso-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* --------------------------------------------------------------------------
+   HERO — reduced motion
+   The loop is the one infinite animation in the system, so it is also the one
+   that has to be switched off by hand. The poster carries the hero instead.
+   -------------------------------------------------------------------------- */
+.cf-hero__media img { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .cf-hero__media video { display: none; }
+  .cf-hero__media img   { display: block; }
+}
