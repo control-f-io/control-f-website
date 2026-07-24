@@ -14,6 +14,7 @@
       { href: 'foundations/typography.html',  label: 'Typography' },
       { href: 'foundations/layout.html',      label: 'Layout & Grid' },
       { href: 'foundations/geometry.html',    label: 'Geometry & Lines' },
+      { href: 'foundations/iconography.html', label: 'Iconography' },
       { href: 'foundations/materials.html',   label: 'Materials' },
       { href: 'foundations/logo.html',        label: 'Logo' },
       { href: 'foundations/photography.html', label: 'Photography' },
@@ -28,7 +29,8 @@
       { href: 'components/blog-grid.html',      label: 'Blog Grid' },
       { href: 'components/team.html',           label: 'Team' },
       { href: 'components/forms.html',          label: 'Forms' },
-      { href: 'components/footer.html',         label: 'Footer' }
+      { href: 'components/footer.html',         label: 'Footer' },
+      { href: 'components/consent.html',        label: 'Consent' }
     ]},
     { title: 'Patterns', items: [
       { href: 'patterns/landing-page.html', label: 'Landing Page' },

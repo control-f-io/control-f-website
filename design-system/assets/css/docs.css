@@ -68,7 +68,11 @@ body.docs {
 }
 
 /* ---------- content ---------- */
-.docs-main { padding: var(--space-12) var(--space-12) var(--space-24); max-width: 76rem; }
+/* min-width:0 or this grid item takes its min-content width from the widest
+   demo on the page — the team strip, the blog grid — and pushes the whole
+   documentation shell into a horizontal scroll instead of letting the demo
+   scroll inside itself. */
+.docs-main { min-width: 0; padding: var(--space-12) var(--space-12) var(--space-24); max-width: 76rem; }
 .docs-header { margin-bottom: var(--space-12); }
 .docs-header__eyebrow {
   font-family: var(--font-mono);
@@ -302,6 +306,11 @@ body.docs {
   color: var(--text-primary);
 }
 
+/* Wrap a wide table in this. A table has a min-content width it will not go
+   below, so on a phone it pushes the whole page sideways unless something
+   around it is allowed to scroll. */
+.docs-table-scroll { overflow-x: auto; }
+
 /* Tall full-page mockups: cap the height, scroll inside the frame. */
 .docs-scroller {
   max-height: 34rem;
@@ -319,6 +328,12 @@ body.docs {
   background: var(--grey-000);
 }
 
+/* ---------- consent banner, shown in place ---------- */
+/* The component is `position: fixed` by definition. This unpins it so the
+   documentation can show it as a static specimen. Documentation only — it is
+   not a variant, and a page must never use it. */
+.cf-consent--static { position: static; }
+
 @media (max-width: 900px) {
   /* minmax(0, 1fr), not 1fr: a bare 1fr track floors at min-content, so one
      long line in a <pre> pushes the whole documentation page sideways on a
@@ -328,4 +343,7 @@ body.docs {
   .docs-main { padding: var(--space-8) var(--space-6) var(--space-16); }
   .docs-rules { grid-template-columns: 1fr; }
   .docs-ramp { grid-template-columns: 1fr; }
+  /* A table cannot shrink below its min-content width, so on a phone it has to
+     scroll inside itself rather than take the page with it. */
+  .docs-table { display: block; overflow-x: auto; }
 }
