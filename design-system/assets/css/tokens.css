@@ -75,7 +75,11 @@
   --surface-raised:   var(--grey-050);
   --surface-card:     var(--grey-050);
   --surface-inverse:  var(--cf-anthrazit);
-  --surface-glass:    rgba(255, 255, 255, 0.32);
+
+  /* Milchglas has two jobs, so it has two tints. See section 9. */
+  --surface-glass:       rgba(255, 255, 255, 0.46);
+  --surface-glass-veil:  rgba(255, 255, 255, 0.04);
+  --surface-glass-solid: var(--grey-100);
 
   /* The page itself is a slow vertical wash from CF-Grau to white. */
   --surface-page-wash: linear-gradient(180deg, var(--grey-300) 0%, var(--grey-000) 100%);
@@ -277,6 +281,12 @@
   --leading-normal: 1.3;    /* brand default — headings and mono */
   --leading-relaxed:1.45;   /* body copy */
 
+  /* Line length. Prose wants roughly 55–65 characters; a display line wants
+     far fewer, so it breaks where the eye expects rather than where the
+     column happens to end. */
+  --measure:       56ch;
+  --measure-tight: 26ch;
+
   --tracking-display: -0.02em;
   --tracking-normal:   0;
   --tracking-label:    0.01em;  /* Mono/Label as specced in Figma */
@@ -284,29 +294,62 @@
 
   /* ------------------------------------------------------------------
      6. SPACE — 4 px base unit
+     Every multiple of 4 up to 24, then the doubling run. The step number
+     is the multiple, so --space-6 is always 6 × 4 px. Nothing in between.
      ------------------------------------------------------------------ */
   --space-1:  0.25rem;  /*   4 */
   --space-2:  0.5rem;   /*   8 */
   --space-3:  0.75rem;  /*  12 */
   --space-4:  1rem;     /*  16 */
+  --space-5:  1.25rem;  /*  20 */
   --space-6:  1.5rem;   /*  24 */
   --space-8:  2rem;     /*  32 */
   --space-12: 3rem;     /*  48 */
   --space-16: 4rem;     /*  64 */
   --space-20: 5rem;     /*  80 */
   --space-24: 6rem;     /*  96 */
-  --space-30: 7.5rem;   /* 120 */
-  --space-40: 10rem;    /* 160 */
+  --space-30: 7.5rem;   /* 120 — --section-gap at the 1440 reference frame */
+  --space-40: 10rem;    /* 160 — --section-gap at 1920, its ceiling */
 
-  --section-gap:    clamp(4rem, 8vw, 10rem);   /* space between page sections */
-  --section-gap-sm: clamp(2rem, 5vw, 5rem);
+  /* Vertical rhythm. Both are one fraction of the frame, clamped to a scale
+     step at each end, so the endpoints land on real device widths rather than
+     somewhere off the edge of the range:
+
+       --section-gap     100vw / 12   64 at 768 · 120 at 1440 · 160 at 1920
+       --section-gap-sm  100vw / 18   32 at 576 ·  80 at 1440 (capped)
+
+     One twelfth of the frame is one column of the 12-column grid, which is why
+     the reference frame resolves it to exactly --space-30. The two hold a 2:3
+     ratio right across the fluid band (1/18 : 1/12), then --section-gap alone
+     keeps climbing to its ceiling.
+
+     These are padding on `.section`, applied to both edges — so the air BETWEEN
+     two adjacent sections is twice the token. See foundations/layout.html. */
+  --section-gap:    clamp(var(--space-16), calc(100vw / 12), var(--space-40));
+  --section-gap-sm: clamp(var(--space-8),  calc(100vw / 18), var(--space-20));
+
+  /* The air between a section header's hairline and the content it opens.
+     Measured off both mockups: 88 px at the 1440 frame, so 80 px on the scale.
+     A section whose content is a ruled box is the exception — there the box's
+     own top border IS the header rule. See .cf-section-header--flush. */
+  --section-header-gap: var(--space-20);
 
   /* ------------------------------------------------------------------
      7. LAYOUT
      1440 frame, 80 px gutters, 1280 content. 12 columns, 24 px gap.
+
+     The gutter is proportional on purpose: (1440 − 1280) / 2 / 1440 = 5.56 %,
+     so a ~5.5vw gutter is what makes content reach exactly 1280 at the frame
+     the design was measured on. Above that the container caps and the outer
+     margin grows instead. Below 364 px the 20 px floor takes over.
      ------------------------------------------------------------------ */
   --container-max: 80rem;   /* 1280 */
   --gutter:        clamp(1.25rem, 5.5vw, 5rem);  /* 20 → 80 */
+
+  /* The floating nav's own height: 2 × --space-5 plus the 44 px logo pill.
+     The hero pulls itself up by exactly this so the bar overlays the artwork
+     instead of sitting on a band above it. */
+  --nav-height:    5.25rem; /* 84 */
   --grid-columns:  12;
   --grid-gap:      var(--space-6);
 
@@ -342,9 +385,59 @@
   /* ------------------------------------------------------------------
      9. MATERIALS — "Formsprache > Materialien"
      ------------------------------------------------------------------ */
-  --glass-blur:       blur(16px) saturate(1.1);
-  --glass-blur-heavy: blur(28px) saturate(1.2);
-  --glass-border:     1px solid rgba(255, 255, 255, 0.4);
+  /* Milchglas — frosted glass. It exists to calm a complex graphic beneath
+     it, never to sit on a flat surface, where it is only a grey box.
+
+     Two tints, because glass does two different jobs:
+
+     --surface-glass       BEARING glass. Text sits directly on it, over a
+                           backdrop we do not control — the hero video. 46 %
+                           white is the floor at which black type still clears
+                           4.5:1 composited over a *pure black* backdrop, so
+                           the guarantee holds for every frame of any video
+                           rather than for the frames someone happened to
+                           check. Measured against the hero poster's darkest
+                           blurred patch it lands at 6.5:1.
+     --surface-glass-veil  VEIL glass. Carries nothing but opaque objects, so
+                           it stays almost clear and lets the blur do the work.
+                           Measured off the navigation band in both mockups:
+                           CF-Grau reads 207 above the band and 208 inside it.
+     --surface-glass-solid The opaque stand-in when the browser cannot blur, or
+                           when the reader has asked for less transparency.
+
+     Blur radius is 16 px. Larger reads no better and costs more. The system
+     never stacks glass on glass: the navigation band and the hero button are
+     the only two blurred layers any screen carries, and they do not overlap. */
+  --glass-blur:       blur(16px) saturate(1.08);
+  --glass-blur-heavy: blur(28px) saturate(1.16);
+  --glass-border:     1px solid rgba(255, 255, 255, 0.55);
+
+  /* How far a glass sheet reaches past its own edge so that content
+     arriving from outside is already inside the blur. backdrop-filter only
+     samples what is directly behind the element, and the sample that
+     matters is one blur kernel deep — reaching further blurs more pixels
+     every frame for no visible gain. 16 px radius, 24 px of reach. */
+  --glass-lookahead: 24px;
+
+  /* The lit edge of a glass sheet — white at the rim, drifting through Glas
+     into Sky as it runs out. This is the foil, at one pixel: hue travel
+     inside a narrow luminance band, not a shine. */
+  --glass-edge: linear-gradient(90deg,
+                  rgba(255, 255, 255, 0)    0%,
+                  rgba(255, 255, 255, 0.42) 16%,
+                  rgba(197, 235, 226, 0.42) 54%,
+                  rgba(114, 176, 226, 0.28) 80%,
+                  rgba(255, 255, 255, 0)   100%);
+
+  /* Light crossing a flat panel — the hover state of any surface that is
+     *not* glass. Parked in its own transparent half and slid across on
+     hover, so the panel reads as lit rather than tinted. Never lime: the
+     screen only gets one of those. */
+  --sheen-panel: linear-gradient(90deg,
+                   rgba(255, 255, 255, 0)    0%,
+                   rgba(255, 255, 255, 0)   50%,
+                   rgba(255, 255, 255, 0.5) 78%,
+                   rgba(197, 235, 226, 0.34) 100%);
 
   /* Light layer: lime is a temporary effect, not a fill. */
   --glow-lime: 0 0 32px rgba(225, 255, 0, 0.45);
@@ -445,7 +538,25 @@
   --surface-sunken: #14181A;
   --surface-raised: #232A2C;
   --surface-card:   #232A2C;
-  --surface-glass:  rgba(255, 255, 255, 0.08);
+
+  /* Inverted glass darkens instead of lightening, and the floor flips with
+     it: 56 % black is where white type still clears 4.5:1 composited over a
+     pure white backdrop. */
+  --surface-glass:       rgba(0, 0, 0, 0.56);
+  --surface-glass-veil:  rgba(0, 0, 0, 0.06);
+  --surface-glass-solid: var(--surface-raised);
+  --glass-border:        1px solid rgba(255, 255, 255, 0.18);
+  --glass-edge: linear-gradient(90deg,
+                  rgba(255, 255, 255, 0)    0%,
+                  rgba(255, 255, 255, 0.26) 16%,
+                  rgba(197, 235, 226, 0.26) 54%,
+                  rgba(114, 176, 226, 0.18) 80%,
+                  rgba(255, 255, 255, 0)   100%);
+  --sheen-panel: linear-gradient(90deg,
+                   rgba(255, 255, 255, 0)    0%,
+                   rgba(255, 255, 255, 0)   50%,
+                   rgba(255, 255, 255, 0.12) 78%,
+                   rgba(197, 235, 226, 0.10) 100%);
 
   --text-primary:   var(--grey-000);
   --text-secondary: rgba(255, 255, 255, 0.72);
@@ -463,5 +574,33 @@
     --duration-base: 1ms;
     --duration-slow: 1ms;
     --duration-scene: 1ms;
+  }
+}
+
+/* No backdrop-filter, no glass. Everything that would have been frosted
+   becomes an opaque plate instead — the veil layer has to carry the
+   separation on its own, so it stops being a veil. Redefining the tokens
+   here means no component needs its own fallback. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --glass-blur:          none;
+    --glass-blur-heavy:    none;
+    --surface-glass:       var(--surface-glass-solid);
+    --surface-glass-veil:  rgba(255, 255, 255, 0.72);
+  }
+  [data-theme="inverse"] {
+    --surface-glass-veil:  rgba(0, 0, 0, 0.72);
+  }
+}
+
+/* The reader has asked for less transparency. Give them none of it: opaque
+   plates, no blur, and the edge light stays because it is a contour, not a
+   translucency. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-blur:          none;
+    --glass-blur-heavy:    none;
+    --surface-glass:       var(--surface-glass-solid);
+    --surface-glass-veil:  var(--surface-glass-solid);
   }
 }
