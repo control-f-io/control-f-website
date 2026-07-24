@@ -140,6 +140,16 @@ These were judgement calls, each documented on the relevant page:
   unsanctioned dash patterns, a second lime element on card 02, and a tangent that was
   0.4° off the brand angle. Figma's inner-shadow bevel on card 03 is dropped — it is not
   one of the six material layers. → `components/process-card.html`
+- **The footer title is filled with the foil; the mockup paints it solid near-white.**
+  Sampled off `mockups/landing-page.jpg`, "Jetzt Projekt starten!" is a flat `#EDF1F2`.
+  The system clips `--gradient-foil` into it instead — one gradient headline per page, on
+  the one surface where it clears AA comfortably. The fallback is the mockup's own value:
+  `.cf-footer__title` sets no colour and inherits white, so any browser that cannot clip a
+  background into text renders exactly what the designer drew.
+  → `components/footer.html`, `foundations/colors.html`
 - **Isometric contours use `vector-effect: non-scaling-stroke`.** "1 px contour at every
   size" is a device pixel. A 640-unit drawing shown at 352 px would otherwise put its
-  contours on screen at 0.55 px. → `foundations/motion.html`
+  contours on screen at 0.55 px. The one exception is `.cf-iso__trace`: under
+  `non-scaling-stroke` the dash is measured in screen px while `pathLength` normalises
+  against user space, which makes the line-drawing finish at 45 % of its range instead of
+  100 %. Traces are stroked in user units at width 2 instead. → `foundations/motion.html`

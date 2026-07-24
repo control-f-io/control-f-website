@@ -1306,18 +1306,41 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 /* "1 px contour at every size" is a device pixel, not a viewBox unit. A 640-unit
    drawing rendered at 352 px would otherwise put its contours on screen at
    0.55 px — grey, not black. non-scaling-stroke makes the rule literally true,
-   and pins the dash patterns to the px values in --dash-*. */
-.cf-iso :is(path, line, circle, ellipse, rect, polygon, polyline) {
+   and pins the dash patterns to the px values in --dash-*, which is what keeps a
+   ghost's 1-4 dash a 1-4 dash at any size. The trace is excluded — see below. */
+.cf-iso :is(path, line, circle, ellipse, rect, polygon, polyline):not(.cf-iso__trace) {
   vector-effect: non-scaling-stroke;
 }
 
+/* The trace is the one exception, and it has to be.
+   Under non-scaling-stroke the dash pattern is measured in SCREEN pixels, but
+   pathLength normalises against the path's USER-space length. The two disagree
+   by exactly the render scale, so a pathLength="1" draw is stretched by 1/scale:
+   at the shipped 352 px size (scale 0.55) the line is fully drawn once
+   stroke-dashoffset falls to 0.45, and the last 45 % of its range does nothing.
+   Measured at 0.75 / 0.50 / 0.25 offset: 45 % / 91 % / 100 % drawn, against the
+   25 / 50 / 75 % those offsets are supposed to mean.
+
+   So the trace is stroked in user units, where pathLength works, and carries
+   stroke-width 2 to land back on the contour weight: 1.1 px at 352 px, 0.84 px
+   at a 375 px viewport. Slightly under a device pixel at the small end, which is
+   the cost of a draw that is linear at every size. Verified 25/50/75 % exact. */
+.cf-iso__trace { stroke-width: 2; }
+
 /* Scroll-driven assembly.
    Progressive enhancement in the honest direction: without support for
-   scroll-driven animations, or under reduced motion, the object is simply
-   drawn in its finished state. Nothing is ever hidden behind a script.
-   Only transform and opacity animate, so nothing reflows. */
+   scroll-driven animations, under reduced motion, or on paper, the object is
+   simply drawn in its finished state. Nothing is ever hidden behind a script.
+   Only transform and opacity animate, so nothing reflows.
+
+   `screen and` is doing real work. A paged medium has no scroll, so a view
+   timeline never advances: printing put whichever illustration happened to be at
+   the current scroll position on the page and left the other three blank at
+   opacity 0. Scoping the whole assembly to `screen` is the fix — print then sees
+   no animation at all and draws the finished object, which is the same thing an
+   unsupporting browser gets. */
 @supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
+  @media screen and (prefers-reduced-motion: no-preference) {
     .cf-iso {
       view-timeline-name: --cf-iso;
       view-timeline-axis: block;
@@ -1363,9 +1386,13 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   }
 }
 
+/* The run is twice the rise, so the object arrives along 26.57°. See --iso-travel. */
 @keyframes cf-iso-arrive {
-  from { transform: translate(-32px, -16px); opacity: 0; }
-  to   { transform: translate(0, 0);         opacity: 1; }
+  from {
+    transform: translate(calc(var(--iso-travel) * -2px), calc(var(--iso-travel) * -1px));
+    opacity: 0;
+  }
+  to   { transform: translate(0, 0); opacity: 1; }
 }
 @keyframes cf-iso-fade {
   from { opacity: 0; }
