@@ -201,6 +201,7 @@
   <section class="docs-section" id="semantic">
     <h2>Semantic tokens</h2>
     <p>Components use these only — never a ramp value directly.</p>
+    <div class="docs-table-scroll">
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Value</th><th>Used for</th></tr></thead>
       <tbody>
@@ -208,7 +209,9 @@
         <tr><td><code>--surface-sunken</code></td><td>grey-100</td><td>inset blocks, note panels</td></tr>
         <tr><td><code>--surface-raised</code></td><td>grey-050</td><td>card panels, text areas</td></tr>
         <tr><td><code>--surface-inverse</code></td><td>anthracite</td><td>footer, logo pill, dark sections</td></tr>
-        <tr><td><code>--surface-glass</code></td><td>white 32 %</td><td>frosted layer, always with <code>backdrop-filter</code></td></tr>
+        <tr><td><code>--surface-glass</code></td><td>white 46 %</td><td>frosted layer that carries text — the tint at which black type clears 4.5:1 over any backdrop</td></tr>
+        <tr><td><code>--surface-glass-veil</code></td><td>white 4 %</td><td>frosted layer that carries only opaque objects; the blur does the work</td></tr>
+        <tr><td><code>--surface-glass-solid</code></td><td>grey-100</td><td>the opaque stand-in when the browser cannot blur, or the reader asked for less transparency</td></tr>
         <tr><td><code>--text-primary</code></td><td>black</td><td>headings, body copy</td></tr>
         <tr><td><code>--text-secondary</code></td><td>grey-700</td><td>descriptions, secondary text</td></tr>
         <tr><td><code>--text-muted</code></td><td>grey-400</td><td>mono labels, counters, meta</td></tr>
@@ -217,6 +220,7 @@
         <tr><td><code>--gradient-light</code></td><td>lime → glas → grey, 132.36°</td><td>isometric surfaces, primary button</td></tr>
       </tbody>
     </table>
+    </div>
   </section>
 
   <section class="docs-section" id="gradients">
@@ -264,7 +268,9 @@
         <tr><td><code>--gradient-bloom-iso</code></td><td>radial 2:1 ellipse, mid</td><td>the same bloom on an isometric plate</td></tr>
         <tr><td><code>--gradient-bloom-top</code></td><td>radial from above, far</td><td>light entering a surface from the top edge</td></tr>
         <tr><td><code>--gradient-spectrum</code></td><td>linear 132.36°, five stops</td><td><code>.material-foil</code> — surfaces only</td></tr>
-        <tr><td><code>--gradient-foil</code></td><td>linear 116.57°, no lime</td><td><code>.text-foil</code> — one display headline per page</td></tr>
+        <tr><td><code>--gradient-foil</code></td><td>linear 116.57°, the spectrum minus lime, renormalised</td><td><code>.text-foil</code> — one display headline per page</td></tr>
+        <tr><td><code>--spectrum-hot</code></td><td>18 % — the white hot spot</td><td>shared by both foil gradients; not used alone</td></tr>
+        <tr><td><code>--spectrum-cool</code></td><td>64 % — where Sky takes over</td><td>shared by both foil gradients; not used alone</td></tr>
         <tr><td><code>--grain</code></td><td>SVG fractal noise tile</td><td>dithering the page wash</td></tr>
       </tbody>
     </table>
@@ -282,9 +288,15 @@
     <p>
       Iridescence comes from hue travel inside a <em>narrow luminance band</em>, not from
       more saturation. Sky and Violett are therefore taken at their 300 tints, which keeps
-      the whole ramp between OKLab L 0.82 and 0.95 — 166° of hue across 0.13 of lightness.
-      At their 500 values the band opens to 0.31 and the ramp reads as a fade rather than a
-      foil.
+      the four chromatic stops between OKLab L 0.820 and 0.945 — 166° of hue (118° → 284°)
+      across 0.125 of lightness. At their 500 values the band opens to 0.31 and the ramp
+      reads as a fade rather than a foil.
+    </p>
+    <p>
+      Weiss is the deliberate exception. At L 1.000 it sits <em>above</em> that band, and
+      that is precisely why it reads as a specular hot spot rather than as one more step in
+      the ramp. Counting it, the full span is 0.180. Both numbers matter: the band is what
+      keeps the ramp iridescent, the hot spot is what makes it catch.
     </p>
     <div class="docs-demo docs-demo--plain">
       <div style="height:9rem;background:var(--gradient-spectrum);border:1px solid var(--border-default)"></div>
@@ -296,6 +308,20 @@
       one lime moment can still carry it. Every sample along it clears <strong>9.3:1</strong>
       on anthracite, which is past AA at any size; on a light surface it fails, so it is an
       inverse-surface material only. One display headline per page.
+    </p>
+    <p>
+      Its stops are not chosen separately. They are the spectrum's own, with lime removed
+      and the remaining band renormalised onto 0–100 %, so the two gradients cannot drift
+      apart: Weiss (18−18)/82 = 0 %, Glas (32−18)/82 = 17 %, Sky (64−18)/82 = 56 %,
+      Violett (100−18)/82 = 100 %. Keeping the white hot spot is the point — it gives the
+      letterform an edge for the light to land on. Started at Glas instead, the same ramp
+      reads as a flat mint tint rather than as foil.
+    </p>
+    <p>
+      The angle is <strong>116.57°</strong> (90° + 26.57°, the shallow isometric rake) and
+      not the spectrum's 132.36°. A headline is a wide, short box: at the steeper angle the
+      ramp completes inside the first two or three letters. The shallow rake spreads it
+      across the whole line.
     </p>
     <div class="docs-demo docs-demo--dark">
       <p class="text-foil" style="font-family:var(--font-display);font-size:var(--text-display-2);font-weight:var(--weight-bold);letter-spacing:var(--tracking-display);margin:0">Jetzt Projekt starten!</p>
@@ -363,6 +389,7 @@
   <section class="docs-section" id="contrast">
     <h2>Contrast</h2>
     <p>Checked combinations. The target is WCAG 2.1 AA — 4.5:1 for text, 3:1 for large text and UI contours.</p>
+    <div class="docs-table-scroll">
     <table class="docs-table">
       <thead><tr><th>Foreground</th><th>Background</th><th>Ratio</th><th>Use</th></tr></thead>
       <tbody>
@@ -375,6 +402,7 @@
         <tr><td>Lime</td><td>Anthracite</td><td>13.0:1</td><td>accent on dark</td></tr>
       </tbody>
     </table>
+    </div>
     <div class="docs-note docs-note--warn">
       <strong>Careful with mono labels on CF-Grau.</strong> The Figma design sets counters
       like “01 / 04” in <code>#919191</code> on grey — that is 1.9:1 and unreadable for many

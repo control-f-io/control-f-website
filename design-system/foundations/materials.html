@@ -21,7 +21,7 @@
 
 <main class="docs-main">
   <header class="docs-header">
-    <p class="docs-header__eyebrow">Foundations · 05</p>
+    <p class="docs-header__eyebrow">Foundations · 06</p>
     <h1>Materials</h1>
     <p>
       The manual describes six layers that always stack in the same order. Keep the order
@@ -55,8 +55,30 @@
       <div class="mat__sample material-glass" style="background-image:var(--gradient-light)">03</div>
       <div>
         <h3 style="margin-top:0">Frosted glass</h3>
-        <p>A background layer that calms complex graphics underneath. The navigation pill sits on it. It always needs something behind it, or it is just a grey box.</p>
+        <p>
+          A background layer that calms complex graphics underneath. The navigation band is
+          made of it, and the opaque logo and link pills sit <em>on top</em> of it — glass
+          under opaque, never the other way round. It always needs something behind it, and
+          something complex behind it, or it is just a grey box.
+        </p>
         <p><code>.material-glass</code> · <code>--glass-blur</code></p>
+      </div>
+    </div>
+
+    <div class="mat">
+      <div class="mat__sample material-glass material-glass--veil" style="background-image:var(--gradient-light)">03b</div>
+      <div>
+        <h3 style="margin-top:0">…and the same glass, almost clear</h3>
+        <p>
+          Glass does two jobs and therefore has two tints. <strong>Bearing</strong> glass has
+          text sitting directly on it over a backdrop nobody controls — the hero video — so
+          its veil is a contrast floor, not a look: white 46 % is the point at which black
+          type still clears 4.5:1 composited over a <em>pure black</em> backdrop, which makes
+          the guarantee hold for every frame rather than for the frames someone checked.
+          <strong>Veil</strong> glass carries nothing but opaque objects, so it stays at
+          white 4 % and lets the blur be the whole effect.
+        </p>
+        <p><code>.material-glass--veil</code> · <code>--surface-glass</code> · <code>--surface-glass-veil</code></p>
       </div>
     </div>
 
@@ -97,13 +119,15 @@
         <div class="iso" style="position:absolute;left:12%;top:18%;width:9rem;height:9rem;background:var(--gradient-light);border:1px solid var(--border-strong)"></div>
         <!-- 04 contour -->
         <div class="iso" style="position:absolute;left:34%;top:34%;width:11rem;height:11rem;border:1px solid var(--border-strong)"></div>
-        <!-- 03 frosted glass -->
-        <div class="material-glass" style="position:absolute;right:1.5rem;top:1.5rem;padding:var(--space-2) var(--space-4);border-radius:var(--radius-pill)">
-          <span class="t-label">Frosted</span>
-        </div>
-        <!-- 02 opaque + 06 text -->
+        <!-- 03 frosted glass — the band, running the full width -->
+        <div class="material-glass material-glass--veil" style="position:absolute;inset:0 0 auto 0;height:4.5rem;border:0"></div>
+        <div class="material-glass-edge" style="position:absolute;inset:4.5rem 0 auto 0"></div>
+        <!-- 02 opaque + 06 text — the pills, on the glass, not made of it -->
         <div class="material-solid" style="position:absolute;left:1.5rem;top:1.5rem;padding:var(--space-2) var(--space-4);border-radius:var(--radius-pill)">
           <span class="t-label">Control-F</span>
+        </div>
+        <div class="material-solid" style="position:absolute;right:1.5rem;top:1.5rem;padding:var(--space-2) var(--space-4);border-radius:var(--radius-pill)">
+          <span class="t-label">Menü</span>
         </div>
         <p class="t-h3" style="position:absolute;left:1.5rem;bottom:1.5rem;max-width:20ch">Find the answers.</p>
       </div>
@@ -117,7 +141,9 @@
         <h4>Do</h4>
         <ul>
           <li>Keep the order: base → opaque → glass → contour → light → text.</li>
-          <li>Use frosted glass only where something actually sits behind it.</li>
+          <li>Use frosted glass only where something complex actually sits behind it.</li>
+          <li>Put opaque objects <em>on</em> the glass; that is what the layer order means.</li>
+          <li>Use the bearing tint the moment text sits on glass, and the veil tint otherwise.</li>
           <li>Contours before fills — a frame says enough.</li>
           <li>Use shadows sparingly; depth comes from overlap, not from blur.</li>
         </ul>
@@ -126,12 +152,56 @@
         <h4>Don't</h4>
         <ul>
           <li>No frosted glass on top of frosted glass.</li>
+          <li>No frosted glass over a flat surface — it has nothing to calm and becomes a grey box.</li>
+          <li>No <code>backdrop-filter</code> under an opaque background. The blur cannot be seen and still costs a GPU pass.</li>
           <li>No lime under text — the light layer never sits behind body copy.</li>
           <li>No opaque surface in an accent colour.</li>
           <li>No gradients on large areas other than the base wash.</li>
         </ul>
       </div>
     </div>
+  </section>
+
+  <section class="docs-section" id="glass">
+    <h2>Working with glass</h2>
+
+    <h3>Where it is, and where it deliberately is not</h3>
+    <p>
+      Two surfaces in the whole system are frosted, and they do not overlap: the navigation
+      band, and the hero button. Everything else that looks like a panel — the process card
+      and its note block, the value-table cells, the blog-grid cells, the footer CTA — sits
+      on the page wash with nothing complex behind it, so it is drawn with a contour instead.
+      Frosted glass there would be an effect rather than a material.
+    </p>
+    <p>
+      Those panels still respond. <code>--sheen-panel</code> parks a light gradient in its own
+      transparent half and slides it across on hover, so the row reads as lit rather than
+      tinted. It is the light layer, not the glass layer, and it is never lime — the screen
+      only gets one lime moment and the page has already spent it.
+    </p>
+
+    <h3>Cost</h3>
+    <p>
+      <code>backdrop-filter</code> is the most expensive thing in this stylesheet. The rules
+      that keep it affordable: never stack two blurred layers; keep the blur radius at 16 px,
+      since more reads no better; use <code>position: sticky</code> rather than
+      <code>fixed</code>, because a fixed blurred element repaints its whole region every
+      scroll frame in iOS Safari; and never animate the opacity of a blurred layer, which
+      re-rasterises the blur on every frame. A sheet may reach past its own edge by
+      <code>--glass-lookahead</code> so content arrives through the blur rather than popping
+      into it, but no further — everything past one blur kernel is spend with nothing to show.
+    </p>
+
+    <h3>When there is no glass</h3>
+    <p>
+      Both fallbacks are handled once, in <code>tokens.css</code>, by redefining the tokens
+      rather than by giving every component its own escape hatch. Where
+      <code>backdrop-filter</code> is unsupported, the blur becomes <code>none</code> and the
+      veil thickens to white 72 % so the band still separates. Where the reader has asked for
+      <code>prefers-reduced-transparency</code>, every glass surface becomes the opaque
+      <code>--surface-glass-solid</code> plate. The edge light survives both, because it is a
+      contour rather than a translucency.
+    </p>
   </section>
 </main>
 
