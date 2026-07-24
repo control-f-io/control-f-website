@@ -20,7 +20,8 @@ Then open <http://localhost:8000/design-system/>. It also works by opening
 ```
 design-system/
 ├── index.html              overview + how to include the CSS
-├── foundations/            colour, type, layout, geometry, materials, logo, photo, motion
+├── foundations/            colour, type, layout, geometry, iconography, materials,
+│                           logo, photo, motion
 ├── components/             buttons, nav, section header, process card, accordion,
 │                           blog grid, team, forms, footer
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html
@@ -31,7 +32,9 @@ design-system/
     │   ├── base.css        fonts, reset, type classes, layout primitives, utilities
     │   ├── components.css  every component
     │   └── docs.css        this documentation site only — does not ship
-    ├── js/docs.js          sidebar, swatch copy, icon sprite — documentation only
+    ├── js/
+    │   ├── cf-icons.js     the icon set — the one place a glyph is drawn. Ships.
+    │   └── docs.js         sidebar, swatch copy, arrow sprite — documentation only
     ├── fonts/              (empty — see below)
     ├── img/                logo SVGs, icons, hero poster, team photos
     ├── video/hero-abstract-art.mp4
@@ -55,8 +58,10 @@ Three stylesheets, in this order:
 <link rel="stylesheet" href="/design-system/assets/css/components.css">
 ```
 
-Then paste the icon sprite right after `<body>` (see `components/buttons.html`),
-and build pages from the classes documented in `components/`.
+Then paste the arrow sprite right after `<body>` (see `components/buttons.html`), add
+the icon sprite with `<script src="/design-system/assets/js/cf-icons.js"></script>` — or
+paste its markup instead, see `foundations/iconography.html` — and build pages from the
+classes documented in `components/`.
 `patterns/landing-page.html` is a working reference for a whole page.
 
 ## The system in one paragraph
