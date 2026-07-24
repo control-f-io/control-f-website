@@ -128,13 +128,27 @@ body.docs {
 .docs-note--warn { background: var(--grey-100); }
 
 /* ---------- live demo frame ---------- */
-/* The frame is a query container, because four components size themselves
-   against one (.cf-statement, .cf-process, .cf-value-row, .cf-article) and a
-   demo with no container ancestor never matches any of their queries. Without
-   this line every one of those pages documented only the stacked fallback,
-   which is not the layout the component ships in. */
+/* The frame is a query container. Documentation pages are built on .docs-main
+   and never on .container, so nothing in the docs was a container at all, and
+   a component that sizes itself against one could only ever show its fallback
+   here. Measured, on the demos that actually contain such a component:
+
+     components/process-card.html   stacked at every width  ->  two columns
+     components/article.html        the same, for .cf-article
+     components/blog-grid.html      at 375 the grid folded but the timeline
+                                    axis stayed — the axis is a SIBLING of
+                                    .subdivide, so unlike the columns it had no
+                                    container to ask. Now both fold together.
+
+   .cf-statement and .cf-value-row are container-queried too but appear only on
+   the pattern pages, so this line does not reach them — they have no
+   documentation page at all, which is its own gap.
+
+   Named, not bare `container-type`, to match .container in base.css: a named
+   container still answers unnamed queries, so this satisfies both those and a
+   `@container layout (…)` query. */
 .docs-demo {
-  container-type: inline-size;
+  container: layout / inline-size;
   padding: var(--space-8);
   border: 1px solid var(--border-default);
   background-color: var(--grey-050);
