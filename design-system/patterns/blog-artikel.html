@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Digitale Zwillinge im Energiesektor — Control-F</title>
+<meta name="description" content="Ein digitaler Zwilling ist keine 3D-Animation, sondern ein Datenmodell. Warum die meisten Projekte an der Telemetrie scheitern und nicht an der Simulation.">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<style>
+  /* Preview only: link back to the documentation. Remove in production. */
+  .ds-back {
+    /* Under --z-overlay: preview chrome must never cover real UI, and the
+       consent banner sits in that layer along this edge. */
+    position: fixed; left: 0; bottom: 0; z-index: calc(var(--z-overlay) - 1);
+    padding: var(--space-2) var(--space-4);
+    background: var(--cf-anthrazit); color: var(--cf-lime);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label); text-transform: uppercase;
+  }
+</style>
+</head>
+<body class="page-wash">
+<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+
+<!-- Consent — first thing after the skip link, so it is first in reading and
+     tab order. `hidden` until cf-consent.js decides; with JS off it never
+     appears and no non-essential script is ever activated. -->
+<section class="cf-consent" data-cf-consent-banner hidden
+         role="dialog" aria-labelledby="cf-consent-title">
+  <div class="container cf-consent__inner">
+    <div>
+      <h2 class="cf-consent__title" id="cf-consent-title" tabindex="-1" data-cf-consent-title>Datenschutz-Einstellungen</h2>
+      <p class="cf-consent__body">
+        Notwendige Cookies brauchen wir, damit die Seite funktioniert. Statistik und Marketing
+        nur, wenn Sie zustimmen — Sie können das jederzeit im Footer ändern.
+        <a href="/datenschutz">Datenschutzerklärung</a> · <a href="/impressum">Impressum</a>
+      </p>
+    </div>
+    <div class="cf-consent__actions">
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="reject">Nur notwendige</button>
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="accept">Alle akzeptieren</button>
+      <button type="button" class="cf-btn cf-btn--ghost" data-cf-consent-action="open">Einstellungen</button>
+    </div>
+  </div>
+</section>
+
+<dialog class="cf-consent__dialog" data-cf-consent-dialog aria-labelledby="cf-consent-settings-title">
+  <div class="cf-consent__dialog-inner">
+    <h2 class="cf-consent__dialog-title" id="cf-consent-settings-title">Ihre Einstellungen</h2>
+    <p class="cf-consent__body" style="margin-top:var(--space-4)">
+      Sie entscheiden pro Kategorie. Notwendige Cookies lassen sich nicht abwählen, weil ohne
+      sie nichts funktioniert.
+    </p>
+
+    <div class="cf-consent__group">
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" checked disabled>
+          <span class="cf-check__label"><strong>Notwendig</strong>Sitzung, Sprachwahl und die Speicherung dieser Entscheidung.</span>
+        </label>
+        <p class="cf-consent__meta">Immer aktiv · 1 Eintrag · 12 Monate</p>
+      </div>
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" data-cf-consent-category="statistik">
+          <span class="cf-check__label"><strong>Statistik</strong>Anonyme Reichweitenmessung, damit wir sehen, welche Inhalte gelesen werden.</span>
+        </label>
+        <p class="cf-consent__meta">Optional · 2 Einträge · 14 Monate</p>
+      </div>
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" data-cf-consent-category="marketing">
+          <span class="cf-check__label"><strong>Marketing</strong>Messung von Kampagnen und Einbindung externer Medien.</span>
+        </label>
+        <p class="cf-consent__meta">Optional · 3 Einträge · 12 Monate</p>
+      </div>
+    </div>
+
+    <div class="cf-consent__actions">
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="reject">Nur notwendige</button>
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="accept">Alle akzeptieren</button>
+      <button type="button" class="cf-btn cf-btn--ghost" data-cf-consent-action="save">Auswahl speichern</button>
+    </div>
+  </div>
+</dialog>
+
+<svg aria-hidden="true" style="display:none">
+  <symbol id="cf-arrow" viewBox="0 0 600 480"><g transform="translate(600,0) scale(-1,1)">
+    <path d="M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 327.317C183.155 328.422 183.155 331.578 185.367 332.683L476.422 478.211C478.675 479.337 481.325 479.337 483.578 478.211L594.633 422.683C596.845 421.578 596.845 418.422 594.633 417.317L425.367 332.683Z"/>
+    <path d="M116.422 298.211C118.675 299.337 121.325 299.337 123.578 298.211L594.633 62.6833C596.845 61.5777 596.845 58.4223 594.633 57.3167L483.578 1.78885C481.325 0.662745 478.675 0.662745 476.422 1.78885L5.36656 237.317C3.15542 238.422 3.15542 241.578 5.36656 242.683L116.422 298.211Z"/>
+  </g></symbol>
+</svg>
+
+<nav class="cf-nav" aria-label="Hauptnavigation">
+  <a class="cf-logo" href="/"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
+  <button class="cf-nav__toggle" aria-controls="hauptnav" aria-expanded="false">Menü</button>
+  <ul class="cf-nav__list" id="hauptnav" role="list">
+    <li><a class="cf-nav__link" href="/">Home</a></li>
+    <li><a class="cf-nav__link" href="/ueber-uns">Über uns</a></li>
+    <li><a class="cf-nav__link" href="/news" aria-current="page">News</a></li>
+    <li><a class="cf-nav__link" href="/karriere">Karriere</a></li>
+    <li><a class="cf-nav__link" href="/kontakt">Kontakt</a></li>
+  </ul>
+</nav>
+
+<main id="inhalt">
+  <article>
+
+    <!-- 01 · Artikelkopf. Dieselbe Komponente wie auf jeder Unterseite —
+         Titel, Haarlinie, eine Mono-Zeile links/rechts. -->
+    <header class="cf-page-header">
+      <div class="container">
+        <div class="cf-page-header__body">
+          <h1 class="cf-page-header__title">Digitale Zwillinge im Energiesektor: Simulation trifft Realität</h1>
+          <div class="cf-page-header__rule"></div>
+          <p class="cf-page-header__meta">
+            <span>Analyse · <time datetime="2025-01-01">01.01.2025</time></span>
+            <span>8 Min. Lesezeit</span>
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- 02 · Inhalt: Register links, Text rechts -->
+    <div class="section section--tight">
+      <div class="container">
+        <div class="cf-article">
+
+          <div class="cf-article__rail">
+            <nav aria-labelledby="inhaltsverzeichnis">
+              <p class="cf-article__toc-title" id="inhaltsverzeichnis">Inhalt</p>
+              <ol class="cf-article__toc">
+                <li><a href="#was-er-ist">Was ein Zwilling wirklich ist</a></li>
+                <li><a href="#datenfundament">Das Datenfundament</a></li>
+                <li><a href="#latenz">Die Frage der Latenz</a></li>
+                <li><a href="#praxis">Drei Dinge aus der Praxis</a></li>
+                <li><a href="#fazit">Fazit</a></li>
+              </ol>
+            </nav>
+          </div>
+
+          <div class="cf-article__body">
+
+            <div class="cf-article__byline">
+              <img class="cf-article__avatar" src="../assets/img/team/portrait-02.jpg" alt="">
+              <div>
+                <p class="cf-person__name">Daniel Tremer</p>
+                <p class="cf-person__role">CEO &amp; Managing Partner</p>
+              </div>
+            </div>
+
+            <div class="cf-prose" style="margin-top:var(--space-8)">
+              <p class="cf-article__lead">
+                Ein digitaler Zwilling ist keine 3D-Animation einer Anlage. Er ist ein Datenmodell,
+                das mit der Anlage mitläuft — und genau daran scheitern die meisten Projekte:
+                nicht an der Simulation, sondern an der Telemetrie darunter.
+              </p>
+
+              <h2 id="was-er-ist">Was ein Zwilling wirklich ist</h2>
+              <p>
+                In Ausschreibungen steht meistens „digitaler Zwilling“, gemeint ist aber eines von
+                drei sehr verschiedenen Dingen: ein Geometriemodell, eine Simulation, oder ein
+                laufendes Abbild des Betriebszustands. Nur das dritte verdient den Namen. Ein
+                Zwilling, der nicht mit den Messwerten der echten Anlage synchron läuft, ist ein
+                Modell — nützlich, aber eben ein Modell.
+              </p>
+              <p>
+                Der Unterschied ist keine Wortklauberei, sondern eine Frage der Architektur. Ein
+                Geometriemodell wird gerechnet und ist danach fertig. Ein Zwilling hat einen
+                Zustand, und dieser Zustand veraltet in dem Moment, in dem er geschrieben wird.
+                Alles Weitere folgt daraus.
+              </p>
+
+              <figure>
+                <svg class="cf-iso" viewBox="0 0 640 360" fill="none" stroke="#000" role="img"
+                     aria-label="Isometrische Skizze: ein konturierter Körper und darüber, um 26,57 Grad versetzt, sein gestricheltes Abbild. Eine Linie verbindet beide.">
+                  <g class="cf-iso__scene">
+                    <!-- Das Abbild: dieselbe Geometrie, um 2:1 versetzt, 1-4 gestrichelt -->
+                    <g class="cf-iso__ghost" stroke-dasharray="1 4" transform="translate(150,-75)">
+                      <path d="M160 210 L280 150 L400 210 L280 270 Z"/>
+                      <path d="M160 210 L160 285 L280 345 L280 270 Z"/>
+                      <path d="M400 210 L400 285 L280 345 L280 270 Z"/>
+                    </g>
+                    <!-- Der Körper -->
+                    <g class="cf-iso__form">
+                      <path d="M160 210 L280 150 L400 210 L280 270 Z"/>
+                      <path d="M160 210 L160 285 L280 345 L280 270 Z"/>
+                      <path d="M400 210 L400 285 L280 345 L280 270 Z"/>
+                    </g>
+                    <!-- Das Signal: 26,57 Grad, 2 nach rechts auf 1 nach oben.
+                         Bewusst KEIN .cf-iso__trace: der Trace wird in
+                         Nutzereinheiten mit Breite 2 gezeichnet, und in einer
+                         Figur über die volle Spaltenbreite (Maßstab 1,35)
+                         landet er bei 2,7 px — über der 2-px-Grenze für den
+                         Bildschirm. Als normale Kontur bleibt er bei 1 px und
+                         blendet mit dem Abbild ein, zu dem er gehört. -->
+                    <path class="cf-iso__ghost" stroke-dasharray="4 2" d="M280 150 L430 75"/>
+                    <!-- Die eine Licht-Ebene: eine Kachel auf der Deckfläche -->
+                    <path class="cf-iso__light" d="M240 210 L280 190 L320 210 L280 230 Z"
+                          fill="#E1FF00" stroke="none"/>
+                    <g class="cf-iso__node" fill="#000" stroke="none">
+                      <circle cx="280" cy="150" r="3"/>
+                      <circle cx="430" cy="75" r="3"/>
+                    </g>
+                  </g>
+                </svg>
+                <figcaption>
+                  Körper und Abbild teilen die Geometrie, nicht den Zeitpunkt. Der Versatz ist die
+                  Latenz — und er ist nie null.
+                </figcaption>
+              </figure>
+
+              <h2 id="datenfundament">Das Datenfundament</h2>
+              <p>
+                Bevor irgendetwas simuliert wird, muss die Telemetrie stimmen. In den Projekten,
+                die wir seit 2022 begleitet haben, lagen die Probleme fast immer in derselben
+                Schicht:
+              </p>
+              <ul>
+                <li>
+                  <strong>Zeitstempel ohne Zeitzone.</strong> Zwei Anlagen, zwei Steuerungen, zwei
+                  Auslegungen von <code>timestamp</code> — und eine Auswertung, die im Oktober
+                  eine Stunde doppelt zählt.
+                </li>
+                <li>
+                  <strong>Signale ohne Einheit.</strong> Ein Wert von 3,2 ist erst dann eine
+                  Messung, wenn irgendwo steht, wovon.
+                </li>
+                <li>
+                  <strong>Lücken, die als Nullen ankommen.</strong> Der teuerste Fehler von allen,
+                  weil er wie ein Messwert aussieht.
+                </li>
+              </ul>
+              <p>
+                Keines dieser Probleme ist anspruchsvoll. Alle drei sind teuer, wenn sie erst im
+                Modell auffallen statt an der Schnittstelle.
+              </p>
+
+              <div class="cf-prose__note">
+                <p>
+                  <strong>Faustregel.</strong> Wenn sich der Zustand einer Anlage nicht aus dem
+                  Rohdatenstrom rekonstruieren lässt, rekonstruiert ihn auch kein Zwilling. Ein
+                  Modell kann Daten interpretieren, aber nicht erfinden.
+                </p>
+              </div>
+
+              <h2 id="latenz">Die Frage der Latenz</h2>
+              <p>
+                Die zweite Frage nach der Datenqualität ist die nach dem erlaubten Versatz. Sie
+                wird selten gestellt und entscheidet trotzdem über die halbe Architektur, weil
+                Kosten und Aktualität hier direkt gegeneinander stehen.
+              </p>
+
+              <h3>Drei Betriebsarten, drei Architekturen</h3>
+              <div class="cf-prose__table-scroll">
+                <table>
+                  <caption>Typischer Versatz und was er kostet</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Betriebsart</th>
+                      <th scope="col">Versatz</th>
+                      <th scope="col">Geeignet für</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Batch</td>
+                      <td>1–24 h</td>
+                      <td>Berichte, Abrechnung, Trends</td>
+                    </tr>
+                    <tr>
+                      <td>Micro-Batch</td>
+                      <td>1–5 min</td>
+                      <td>Zustandsüberwachung, Alarme</td>
+                    </tr>
+                    <tr>
+                      <td>Streaming</td>
+                      <td>&lt; 1 s</td>
+                      <td>Regelung, Netzstabilität</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>
+                Die meisten Anwendungsfälle, die als „Echtzeit“ ausgeschrieben werden, sind in
+                Wahrheit Micro-Batch. Das ist keine schlechte Nachricht: Die Architektur wird um
+                eine Größenordnung einfacher und um etwa denselben Faktor billiger.
+              </p>
+
+              <figure class="cf-quote">
+                <blockquote cite="https://www.control-f.de/ueber-uns">
+                  Wir managen Lösungen, nicht ausschließlich Projekte. Und wir bauen Code statt
+                  PowerPoints.
+                </blockquote>
+                <figcaption>— Aus unseren Werten, <a href="/ueber-uns">Über uns</a></figcaption>
+              </figure>
+
+              <h2 id="praxis">Drei Dinge aus der Praxis</h2>
+              <ol>
+                <li>
+                  <strong>Erst messen, dann modellieren.</strong> Zwei Wochen Datenaufnahme vor
+                  dem ersten Modell sparen im Schnitt mehr Zeit, als sie kosten.
+                </li>
+                <li>
+                  <strong>Den Zwilling versionieren wie Code.</strong> Ein Modell ohne Historie
+                  lässt sich nicht gegen die Realität prüfen, weil niemand weiß, welches Modell
+                  am fraglichen Tag lief.
+                </li>
+                <li>
+                  <strong>Eine Kennzahl, die weh tut.</strong> Nicht „Verfügbarkeit des
+                  Dashboards“, sondern die Abweichung zwischen Vorhersage und Messung, täglich,
+                  sichtbar für alle.
+                </li>
+              </ol>
+
+              <hr>
+
+              <h2 id="fazit">Fazit</h2>
+              <p>
+                Der Zwilling ist der sichtbare Teil, das Datenfundament der teure. Wer die
+                Reihenfolge umdreht, bekommt eine sehr schöne Visualisierung von Daten, denen
+                niemand traut. Wer sie einhält, hat nach ein paar Monaten etwas, das im
+                Betrieb tatsächlich benutzt wird — meistens sehr viel unspektakulärer, als es
+                in der Ausschreibung stand.
+              </p>
+            </div>
+
+            <div class="cf-article__tail">
+              <ul class="cf-article__tags">
+                <li><a class="cf-article__tag" href="/news?thema=telemetrie">Telemetrie</a></li>
+                <li><a class="cf-article__tag" href="/news?thema=energie">Energie</a></li>
+                <li><a class="cf-article__tag" href="/news?thema=architektur">Architektur</a></li>
+              </ul>
+              <a class="cf-btn cf-btn--ghost" href="/news">
+                Alle Beiträge
+                <svg class="cf-arrow cf-arrow--sm" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 · Weiterlesen. Dieselbe Rasterzelle wie im Blog-Grid, nur drei
+         Spalten mit je einem Beitrag. -->
+    <section class="section section--flush" aria-labelledby="weiterlesen">
+      <div class="container">
+        <div class="cf-section-header cf-section-header--flush">
+          <h2 class="cf-section-header__label" id="weiterlesen">Weiterlesen</h2>
+          <span class="cf-section-header__count">3 von 189</span>
+        </div>
+        <div class="cf-blog-grid subdivide subdivide--even" style="--subdivide-count:3">
+          <div class="cf-blog-col subdivide__col cf-blog-col--1">
+            <a class="cf-blog-card cf-blog-card--lead" href="#">
+              <span class="cf-blog-card__title">Agri-Photovoltaik: Wenn Acker und Solarpanel koexistieren</span>
+              <span class="cf-blog-card__meta">01.01.2025 · 4 min</span>
+            </a>
+          </div>
+          <div class="cf-blog-col subdivide__col cf-blog-col--1">
+            <a class="cf-blog-card cf-blog-card--lead" href="#">
+              <span class="cf-blog-card__title">Microgrids auf dem Vormarsch: Energie für abgelegene Regionen</span>
+              <span class="cf-blog-card__meta">01.01.2025 · 4 min</span>
+            </a>
+          </div>
+          <div class="cf-blog-col subdivide__col cf-blog-col--1">
+            <a class="cf-blog-card cf-blog-card--lead" href="#">
+              <span class="cf-blog-card__title">Aggregatoren als neue Akteure im Energiemarkt</span>
+              <span class="cf-blog-card__meta">01.01.2024 · 5 min</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </article>
+</main>
+
+<footer class="cf-footer cf-footer--detached" data-theme="inverse">
+  <div class="container">
+    <div class="cf-footer__cta">
+      <img class="cf-footer__mark" src="../assets/img/icons/cf-footer-mark.svg" alt="">
+      <div>
+        <p class="cf-footer__title text-foil">Jetzt Projekt starten!</p>
+        <a class="cf-btn cf-btn--primary cf-btn--xwide" href="/kontakt">
+          Kontakt aufnehmen
+          <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+        </a>
+      </div>
+    </div>
+    <div class="cf-footer__meta">
+      <a class="cf-logo cf-logo--bare" href="/"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
+      <ul class="cf-footer__links" role="list">
+        <li><a href="/ueber-uns">Über uns</a></li>
+        <li><a href="/news">News</a></li>
+        <li><a href="/karriere">Karriere</a></li>
+        <li><a href="/datenschutz">Datenschutz</a></li>
+        <li><a href="/impressum">Impressum</a></li>
+        <li><button type="button" class="cf-footer__linkbtn" data-cf-consent-action="open">Cookie-Einstellungen</button></li>
+      </ul>
+      <span>©2026 Control-F GmbH</span>
+      <span>Am Seerhein 6, 78467 Konstanz · <a href="mailto:info@control-f.de">info@control-f.de</a></span>
+    </div>
+  </div>
+</footer>
+
+<a class="ds-back" href="../index.html">← Design System</a>
+<script>
+  document.querySelector('.cf-nav__toggle').addEventListener('click', function () {
+    var list = document.getElementById('hauptnav');
+    var open = list.dataset.open === 'true';
+    list.dataset.open = String(!open);
+    this.setAttribute('aria-expanded', String(!open));
+  });
+</script>
+<script src="../assets/js/cf-consent.js"></script>
+</body>
+</html>
