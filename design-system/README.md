@@ -149,4 +149,7 @@ These were judgement calls, each documented on the relevant page:
   → `components/footer.html`, `foundations/colors.html`
 - **Isometric contours use `vector-effect: non-scaling-stroke`.** "1 px contour at every
   size" is a device pixel. A 640-unit drawing shown at 352 px would otherwise put its
-  contours on screen at 0.55 px. → `foundations/motion.html`
+  contours on screen at 0.55 px. The one exception is `.cf-iso__trace`: under
+  `non-scaling-stroke` the dash is measured in screen px while `pathLength` normalises
+  against user space, which makes the line-drawing finish at 45 % of its range instead of
+  100 %. Traces are stroked in user units at width 2 instead. → `foundations/motion.html`

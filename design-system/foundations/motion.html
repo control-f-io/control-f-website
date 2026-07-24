@@ -57,14 +57,25 @@
       </div>
     </div>
     <table class="docs-table">
-      <thead><tr><th>Token</th><th>Duration</th><th>Used for</th></tr></thead>
+      <thead><tr><th>Token</th><th>Duration</th><th>Used for</th><th>In the CSS today</th></tr></thead>
       <tbody>
-        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change</td></tr>
-        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>accordion, menu, arrow movement</td></tr>
-        <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>section reveal on scroll</td></tr>
-        <tr><td><code>--duration-scene</code></td><td>1200 ms</td><td>isometric illustrations, hero build-up</td></tr>
+        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change</td><td>6 rules</td></tr>
+        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>accordion, menu, arrow movement</td><td>5 rules</td></tr>
+        <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>a reveal long enough to read as motion</td><td><strong>none yet</strong></td></tr>
+        <tr><td><code>--duration-scene</code></td><td>1200 ms</td><td>a full object build, if one is ever driven by time</td><td><strong>none yet</strong></td></tr>
       </tbody>
     </table>
+    <p>
+      The last column is the honest one. Two of these four tokens currently have no
+      consumer in <code>components.css</code>, and it is worth knowing why rather than
+      assuming they are being used: <strong>the isometric assembly is driven by scroll
+      range, not by a duration.</strong> Its <code>animation-duration</code> is
+      <code>auto</code>, and how long it takes depends entirely on how fast you scroll.
+      So <code>--duration-scene</code> describes the intent of that motion without being
+      the mechanism behind it. Both are kept because the two-speed rule is a design
+      decision, not an implementation detail — but neither should be cited as evidence
+      that something on the site takes 480 or 1200 ms.
+    </p>
   </section>
 
   <section class="docs-section" id="curves">
@@ -73,10 +84,14 @@
       <thead><tr><th>Token</th><th>Value</th><th>Used for</th></tr></thead>
       <tbody>
         <tr><td><code>--ease-standard</code></td><td>cubic-bezier(.2, 0, 0, 1)</td><td>the default — quick start, soft arrival</td></tr>
-        <tr><td><code>--ease-out</code></td><td>cubic-bezier(0, 0, .2, 1)</td><td>objects that fly in and stay</td></tr>
-        <tr><td><code>--ease-in-out</code></td><td>cubic-bezier(.4, 0, .2, 1)</td><td>states that toggle back and forth</td></tr>
+        <tr><td><code>--ease-out</code></td><td>cubic-bezier(0, 0, .2, 1)</td><td>objects that fly in and stay — the whole isometric assembly</td></tr>
+        <tr><td><code>--ease-in-out</code></td><td>cubic-bezier(.4, 0, .2, 1)</td><td>states that toggle back and forth — <strong>no consumer yet</strong></td></tr>
       </tbody>
     </table>
+    <p>
+      All three start or end at 0 or 1 and never overshoot, which is what keeps the brand
+      from springing. There is no elastic curve in the system and there should not be one.
+    </p>
   </section>
 
   <section class="docs-section" id="principles">
@@ -106,9 +121,10 @@
   <section class="docs-section" id="assembly">
     <h2>The isometric assembly</h2>
     <p>
-      The one piece of scripted motion in the system. An isometric object assembles as it
-      scrolls into view: the body travels in along 26.57°, the dashed reference geometry
-      resolves after it, the signal line draws itself, and lime arrives last. Scroll the
+      The one composed piece of motion in the system, and it carries no script at all. An
+      isometric object assembles as it scrolls into view: the body travels in along 26.57°,
+      the dashed reference geometry resolves after it, the signal line draws itself, and
+      lime arrives last. Scroll the
       <a href="../components/process-card.html">process card</a> or the
       <a href="../patterns/landing-page.html">landing page</a> to see it.
     </p>
@@ -119,7 +135,7 @@
     <table class="docs-table">
       <thead><tr><th>Part</th><th>What it is</th><th>What it does</th><th>Range</th></tr></thead>
       <tbody>
-        <tr><td><code>.cf-iso__scene</code></td><td>the whole object</td><td>travels in on 26.57° — 32 px across, 16 px down — and fades up. The only thing that moves.</td><td>cover 5–30 %</td></tr>
+        <tr><td><code>.cf-iso__scene</code></td><td>the whole object</td><td>travels in on 26.57° — see below — and fades up. The only thing that moves.</td><td>cover 5–30 %</td></tr>
         <tr><td><code>.cf-iso__form</code></td><td>solid contoured body</td><td>nothing on its own; it rides the scene</td><td>—</td></tr>
         <tr><td><code>.cf-iso__ghost</code></td><td>dashed reference geometry</td><td>fades up after the body it belongs to</td><td>cover 20–40 %</td></tr>
         <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object</td><td>draws itself, start to end</td><td>cover 18–45 %</td></tr>
@@ -129,15 +145,51 @@
     </table>
     <p>
       Everything is finished by the time the object reaches the middle of the viewport, so
-      the illustration is never caught half-built while it is being read.
+      the illustration is never caught half-built while it is being read. The last range
+      ends at cover 50 %, which is exactly that moment.
+    </p>
+
+    <h3>How far it travels</h3>
+    <p>
+      The distance is one token, <code>--iso-travel</code>, and it is the <em>rise</em>.
+      The run is always twice it, which is what makes the 26.57°; writing it once keeps the
+      2:1 provable rather than leaving two hand-written numbers that happen to agree.
+    </p>
+    <pre class="docs-code"><span class="tag">@keyframes</span> cf-iso-arrive {
+  <span class="tag">from</span> { <span class="attr">transform</span>: translate(calc(<span class="val">var(--iso-travel)</span> * -2px), calc(<span class="val">var(--iso-travel)</span> * -1px)); <span class="attr">opacity</span>: <span class="val">0</span>; }
+  <span class="tag">to</span>   { <span class="attr">transform</span>: translate(<span class="val">0</span>, <span class="val">0</span>); <span class="attr">opacity</span>: <span class="val">1</span>; }
+}</pre>
+    <p>
+      The value is in <strong>viewBox units, not screen pixels</strong> — a CSS transform on
+      an element inside an SVG is in that SVG's user coordinate system. On the 640-unit
+      drawings that is 2.5 % of the object down and 5 % across, so the object travels a
+      fixed fraction of its own size rather than a fixed number of pixels. Measured:
+      17.6 × 8.8 px where the illustration renders at 352 px, 13.4 × 6.7 px at a 375 px
+      viewport. <strong>The angle is what is fixed; the distance is proportional.</strong>
+      That is deliberate — the same drawing at two sizes should move the same amount
+      relative to itself, not skid further at the small end.
     </p>
 
     <h3>How it is driven</h3>
     <p>
       Native scroll-driven animation — <code>view-timeline-name</code> on the SVG and
       <code>animation-timeline</code> on the parts. No IntersectionObserver, no script, and
-      no third-party library. Chrome and Edge 115+, Safari 26+, Firefox 155+; roughly 84 %
-      of traffic today.
+      no third-party library.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Engine</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Chrome / Edge 115+</td><td>shipped, July 2023</td></tr>
+        <tr><td>Safari 26+</td><td>shipped, September 2025</td></tr>
+        <tr><td>Firefox</td><td>as of 152, still behind <code>layout.css.scroll-driven-animations.enabled</code> in stable; on by default in Nightly</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Firefox users therefore get the finished object rather than the assembly, which is a
+      perfectly good outcome and the reason the fallback direction matters more than the
+      support number. Do not quote a traffic percentage for this — it moves, and the
+      decision does not depend on it: the assembly is an enhancement, and the page is
+      complete without it.
     </p>
     <p>
       The whole block sits inside <code>@supports (animation-timeline: view())</code>, and
@@ -158,6 +210,45 @@
   <span class="tag">from</span> { <span class="attr">stroke-dashoffset</span>: <span class="val">1</span>; }  <span class="com">/* nothing drawn */</span>
   <span class="tag">to</span>   { <span class="attr">stroke-dashoffset</span>: <span class="val">0</span>; }  <span class="com">/* fully drawn  */</span>
 }</pre>
+
+    <h3>The one place the contour rule has to give way</h3>
+    <p>
+      Every other stroke in an illustration carries
+      <code>vector-effect: non-scaling-stroke</code>, which is what makes "1 px contour at
+      every size" literally true. <strong>The trace is the exception, and it has to be.</strong>
+    </p>
+    <p>
+      Under <code>non-scaling-stroke</code> the dash pattern is measured in <em>screen</em>
+      pixels, while <code>pathLength</code> normalises against the path's <em>user-space</em>
+      length. The two disagree by exactly the render scale, so the draw is stretched by
+      1/scale and finishes early. Measured on a 640-unit drawing rendered at 352 px
+      (scale 0.55), against what each offset is supposed to mean:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th><code>stroke-dashoffset</code></th><th>Should be drawn</th><th>With <code>non-scaling-stroke</code></th><th>Stroked in user units</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>0 %</td><td>0 %</td><td>0 %</td></tr>
+        <tr><td>0.75</td><td>25 %</td><td>45 %</td><td>25 %</td></tr>
+        <tr><td>0.5</td><td>50 %</td><td>91 %</td><td>50 %</td></tr>
+        <tr><td>0.25</td><td>75 %</td><td>100 %</td><td>75 %</td></tr>
+        <tr><td>0</td><td>100 %</td><td>100 %</td><td>100 %</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The line was fully drawn by the time the offset reached 0.45, so the last 45 % of the
+      trace's scroll range did nothing at all — and worse at small sizes, where the scale is
+      lower and the dead stretch is longer. So <code>.cf-iso__trace</code> is excluded from
+      the <code>non-scaling-stroke</code> rule and given <code>stroke-width: 2</code>
+      instead, which puts it back on the contour weight: 1.1 px at 352 px, 0.84 px at a
+      375 px viewport. Slightly under a device pixel at the small end is the price of a
+      draw that is linear at every size, and it is the right trade — a trace is a signal,
+      not a structural contour.
+    </p>
+    <p>
+      If you add an illustration with a trace of its own, give the path
+      <code>pathLength="1"</code> and the class, and leave the stroke alone. Do not put
+      <code>non-scaling-stroke</code> back on it.
+    </p>
   </section>
 
   <section class="docs-section" id="reduced">
@@ -172,8 +263,7 @@
       Durations do not help against animations that are driven by scroll or that loop
       forever, so those are switched off by hand in <code>components.css</code>. The whole
       isometric assembly is wrapped in
-      <code>@media (prefers-reduced-motion: no-preference)</code>, which leaves the object
-      drawn in its finished state — the same thing an unsupporting browser gets.
+      <code>@media screen and (prefers-reduced-motion: no-preference)</code>.
       The hero swaps its loop for the poster:
     </p>
     <pre class="docs-code">.cf-hero__media img { <span class="attr">display</span>: <span class="val">none</span>; }
@@ -185,6 +275,31 @@
       This means the hero needs both elements in the markup — a <code>&lt;video&gt;</code>
       with its <code>poster</code>, and an <code>&lt;img&gt;</code> of the same frame.
       <code>poster</code> alone is not enough: it disappears with the video.
+    </p>
+
+    <h3>Three ways to get the finished object</h3>
+    <p>
+      The assembly is written so that every path <em>away</em> from it lands on the same
+      place — the object fully drawn. There is no state in which an illustration can end up
+      invisible, because nothing starts at <code>opacity: 0</code> except inside the block
+      that also animates it back to 1.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Condition</th><th>What switches it off</th></tr></thead>
+      <tbody>
+        <tr><td>No scroll-driven animation support</td><td><code>@supports (animation-timeline: view())</code></td></tr>
+        <tr><td>Reduced motion</td><td><code>(prefers-reduced-motion: no-preference)</code></td></tr>
+        <tr><td>Print and any paged medium</td><td><code>screen and</code></td></tr>
+      </tbody>
+    </table>
+    <p>
+      The third one is easy to miss and was a real bug. A paged medium has no scroll, so a
+      view timeline never advances: printing the landing page put whichever illustration
+      happened to be at the current scroll position on the paper and left the other three
+      blank. Scoping the assembly to <code>screen</code> is the whole fix — print then sees
+      no animation at all and draws the finished object, exactly as an unsupporting browser
+      does. <strong>Any scroll-driven animation added to this system must be scoped to
+      <code>screen</code> for the same reason.</strong>
     </p>
   </section>
 
