@@ -9,16 +9,21 @@
 <link rel="stylesheet" href="../assets/css/components.css">
 <link rel="stylesheet" href="../assets/css/docs.css">
 <style>
-  .demo-grid { display:grid; grid-template-columns:repeat(12,1fr); gap:var(--space-6); }
+  .demo-grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:var(--space-6); }
+  /* 12 tracks plus eleven 24 px gaps do not fit on a phone; the gap gives way
+     first so the demo still shows twelve columns rather than scrolling. */
+  @media (max-width:640px) { .demo-grid { gap:var(--space-1); } }
   .demo-grid span { background:rgba(225,255,0,.55); border:1px solid var(--border-strong); padding:var(--space-4) 0; text-align:center; font-family:var(--font-mono); font-size:var(--text-xs); }
   .demo-space { display:flex; align-items:flex-end; gap:var(--space-4); flex-wrap:wrap; }
   .demo-space div { background:var(--cf-lime); border:1px solid var(--border-strong); }
   .demo-space figcaption { font-family:var(--font-mono); font-size:var(--text-xs); text-align:center; margin-top:var(--space-2); color:var(--text-muted); }
-  .subdiv { display:grid; grid-template-columns:repeat(2,1fr); border:1px solid var(--border-strong); aspect-ratio:2/1; }
-  .subdiv > div { border-right:1px solid var(--border-strong); display:grid; }
-  .subdiv > div:last-child { border-right:0; }
+  /* Contours only — the tracks come from .subdivide in base.css. */
+  .subdiv { border:1px solid var(--border-strong); aspect-ratio:2/1; }
+  .subdiv > .subdivide__col { border-right:1px solid var(--border-strong); }
+  .subdiv > .subdivide__col:last-child { border-right:0; }
   .subdiv .cell { border-bottom:1px solid var(--border-strong); display:grid; place-items:center; font-family:var(--font-mono); font-size:var(--text-xs); color:var(--text-muted); }
-  .subdiv .cell:last-child { border-bottom:0; }
+  .subdiv .cell--lead { font-size:var(--text-md); color:var(--text-primary); }
+  .subdiv .subdivide__col > .cell:last-child { border-bottom:0; }
 </style>
 </head>
 <body class="docs" data-root="../">
@@ -47,9 +52,21 @@
         <tr><td><code>--gutter</code></td><td>20 → 80 px</td><td>outer margin, <code>clamp(1.25rem, 5.5vw, 5rem)</code></td></tr>
         <tr><td><code>--grid-columns</code></td><td>12</td><td>columns</td></tr>
         <tr><td><code>--grid-gap</code></td><td>24 px</td><td>column gap</td></tr>
-        <tr><td><code>--section-gap</code></td><td>64 → 160 px</td><td>space between sections</td></tr>
+        <tr><td><code>--section-gap</code></td><td>64 → 160 px</td><td><em>padding</em> on each edge of a section — see Rhythm</td></tr>
       </tbody>
     </table>
+    <p>
+      The gutter is proportional rather than stepped, and the proportion is not arbitrary:
+      (1440 − 1280) ÷ 2 ÷ 1440 = 5.56 %, so a ~5.5vw gutter is exactly what makes the content
+      column reach 1280 px at the frame the design was measured on. Above 1440 the container
+      caps and the outer margin grows instead of the content.
+    </p>
+    <p>
+      Every <code>.container</code> is also a <strong>query container</strong> named
+      <code>layout</code>. Components that behave differently at different widths ask it how
+      much room they actually have, rather than asking the viewport — which cannot tell a card
+      in the 1280 px content column from the same card in a 533 px documentation panel.
+    </p>
     <pre class="docs-code">&lt;<span class="tag">section</span> <span class="attr">class</span>=<span class="val">"section"</span>&gt;
   &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"container"</span>&gt;
     &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"grid"</span>&gt;
@@ -71,20 +88,40 @@
     <p style="margin-top:var(--space-4)">
       The splits that recur in the design: <strong>6 + 6</strong> for process cards and
       statements, <strong>12</strong> for section headers and full-width bands,
-      <strong>4 + 4 + 4</strong> for card rows. Every column collapses to full width below
-      900 px.
+      <strong>4 + 4 + 4</strong> for card rows. Every <code>.col-*</code> collapses to full
+      width below 900 px — the one page-level breakpoint in the system.
     </p>
+    <div class="docs-note">
+      <strong>Two 6 + 6s.</strong> A statement or a process card is a 6 + 6 split, but it is
+      built as a component with its own two-track grid rather than as two <code>.col-6</code>
+      children. That is deliberate: those two halves are one object with one contour around
+      them, and they need to fold on the width of that object. <code>.col-*</code> is for
+      independent siblings that happen to sit side by side.
+    </div>
+    <div class="docs-note">
+      <strong>Never a bare <code>1fr</code>.</strong> <code>1fr</code> is shorthand for
+      <code>minmax(auto, 1fr)</code>, and <code>auto</code> floors at min-content — so one long
+      unbreakable headline in a track sets a floor the whole grid cannot go below, and the page
+      scrolls sideways. Every track in this system is written
+      <code>minmax(0, 1fr)</code>, and any grid or flex child that has to be allowed to
+      truncate carries <code>min-width: 0</code>.
+    </div>
   </section>
 
   <section class="docs-section" id="space">
     <h2>Space</h2>
-    <p>A 4 px base unit. These values only, no steps in between.</p>
+    <p>
+      A 4 px base unit. The step number <em>is</em> the multiple, so <code>--space-6</code> is
+      always 6 × 4 px and the name survives any future insertion. Every multiple of 4 up to 24,
+      then the doubling run. These values only, no steps in between.
+    </p>
     <div class="docs-demo docs-demo--flat">
       <div class="demo-space">
         <figure style="margin:0"><div style="width:4px;height:4px"></div><figcaption>1<br>4</figcaption></figure>
         <figure style="margin:0"><div style="width:8px;height:8px"></div><figcaption>2<br>8</figcaption></figure>
         <figure style="margin:0"><div style="width:12px;height:12px"></div><figcaption>3<br>12</figcaption></figure>
         <figure style="margin:0"><div style="width:16px;height:16px"></div><figcaption>4<br>16</figcaption></figure>
+        <figure style="margin:0"><div style="width:20px;height:20px"></div><figcaption>5<br>20</figcaption></figure>
         <figure style="margin:0"><div style="width:24px;height:24px"></div><figcaption>6<br>24</figcaption></figure>
         <figure style="margin:0"><div style="width:32px;height:32px"></div><figcaption>8<br>32</figcaption></figure>
         <figure style="margin:0"><div style="width:48px;height:48px"></div><figcaption>12<br>48</figcaption></figure>
@@ -100,6 +137,64 @@
       between elements, <code>--space-12</code> (48) as panel padding, and
       <code>--space-20</code> (80) as the page gutter.
     </p>
+    <div class="docs-note">
+      <strong>Every step is accounted for.</strong> A scale is only honest if you can say who
+      uses each rung. 1 through 24 are used directly across the CSS and the two pattern pages.
+      <code>--space-5</code> (20) exists because a component was already reaching for it and
+      silently falling back to a hard-coded <code>1.25rem</code>. <code>--space-30</code> (120)
+      and <code>--space-40</code> (160) are never written by hand: they are the values
+      <code>--section-gap</code> resolves to at 1440 and at 1920. If a step ever loses its last
+      consumer, delete it rather than leaving it as a suggestion.
+    </div>
+  </section>
+
+  <section class="docs-section" id="rhythm">
+    <h2>Vertical rhythm</h2>
+    <p>
+      Two fluid tokens carry all vertical air between sections. Both are one fraction of the
+      frame rather than a hand-picked slope, and both are clamped to a scale step at each end:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Token</th><th>Fluid part</th><th>Floor</th><th>Ceiling</th></tr></thead>
+      <tbody>
+        <tr><td><code>--section-gap</code></td><td><code>100vw / 12</code> — one column of the 12-column grid</td><td>64 below 768</td><td>160 from 1920</td></tr>
+        <tr><td><code>--section-gap-sm</code></td><td><code>100vw / 18</code></td><td>32 below 576</td><td>80 from 1440</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The point of choosing the fractions this way is where the clamp <em>stops</em> being
+      fluid. A <code>clamp()</code> whose ends are reached at 800 px and 2000 px is a scale
+      whose declared endpoints nobody ever sees; these hit their floor and ceiling on real
+      device widths, and land on scale steps at the frame the design was drawn on:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Viewport</th><th>Gutter</th><th>Content</th><th><code>--section-gap</code></th><th><code>-sm</code></th></tr></thead>
+      <tbody>
+        <tr><td>375</td><td>20.6</td><td>334</td><td>64 <span class="t-muted">(floor)</span></td><td>32 <span class="t-muted">(floor)</span></td></tr>
+        <tr><td>576</td><td>31.7</td><td>513</td><td>64</td><td>32 <span class="t-muted">(crossover)</span></td></tr>
+        <tr><td>768</td><td>42.2</td><td>684</td><td>64 <span class="t-muted">(crossover)</span></td><td>42.7</td></tr>
+        <tr><td>1024</td><td>56.3</td><td>911</td><td>85.3</td><td>56.9</td></tr>
+        <tr><td>1280</td><td>70.4</td><td>1139</td><td>106.7</td><td>71.1</td></tr>
+        <tr><td>1440</td><td>79.2</td><td><strong>1280</strong></td><td><strong>120</strong> = <code>--space-30</code></td><td><strong>80</strong> = <code>--space-20</code></td></tr>
+        <tr><td>1920</td><td>80</td><td>1280</td><td><strong>160</strong> = <code>--space-40</code></td><td>80</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>The token is padding, not the gap.</strong> <code>.section</code> applies
+      <code>--section-gap</code> as <code>padding-block</code>, so it sits on both edges and the
+      air <em>between</em> two adjacent sections is twice the number above — 128 px on mobile,
+      240 px at the reference frame. Reach for the token when you want one section's breathing
+      room; double it in your head when you are reasoning about the page rhythm.
+    </div>
+    <div class="docs-note">
+      <strong>Why these are pure viewport fractions.</strong> The fluid type scale deliberately
+      mixes <code>rem</code> into its <code>clamp()</code> so that browser zoom still moves the
+      text — a pure <code>vw</code> size would sit frozen while the rest of the page grows, and
+      fail WCAG 1.4.4. Space is the opposite case: it should stay proportional to the frame, and
+      it reflows rather than clipping when the frame narrows. Checked against the same 2.5×
+      rule the type scale is held to, every display step passes with room to spare — the widest
+      ratio in the system is <code>--text-display-1</code> at 1.6×.
+    </div>
   </section>
 
   <section class="docs-section" id="subdivision">
@@ -111,26 +206,62 @@
       how the blog grid on the landing page is built.
     </p>
     <div class="docs-demo docs-demo--flat">
-      <div class="subdiv">
-        <div><div class="cell" style="font-size:var(--text-md);color:var(--text-primary)">1/2</div></div>
-        <div>
-          <div style="display:grid;grid-template-columns:1fr 1fr">
-            <div style="border-right:1px solid var(--border-strong);display:grid">
-              <div class="cell">1/4</div><div class="cell">1/4</div>
-            </div>
-            <div style="display:grid">
-              <div class="cell">1/8</div><div class="cell">1/8</div>
-              <div class="cell">1/16</div><div class="cell">1/16</div>
-            </div>
-          </div>
-        </div>
+      <div class="subdiv subdivide subdivide--4">
+        <div class="subdivide__col" style="--rank:1"><span class="cell cell--lead">1/2</span></div>
+        <div class="subdivide__col" style="--rank:2"><span class="cell">1/4</span><span class="cell">1/4</span></div>
+        <div class="subdivide__col" style="--rank:4"><span class="cell">1/8</span><span class="cell">1/8</span><span class="cell">1/8</span><span class="cell">1/8</span></div>
+        <div class="subdivide__col" style="--rank:8"><span class="cell">1/8</span><span class="cell">1/8</span><span class="cell">1/8</span><span class="cell">1/8</span><span class="cell">1/8</span><span class="cell">1/8</span><span class="cell">1/8</span><span class="cell">1/8</span></div>
       </div>
     </div>
+    <p style="margin-top:var(--space-4)">
+      Labels are column widths. Each column is half the width of the one to its left and
+      carries twice as many rows, so every cell keeps roughly the proportion of the whole. The
+      series has to terminate somewhere: the last two columns are the same width, which is what
+      makes the fractions sum to exactly one.
+    </p>
+    <h3 style="margin-top:var(--space-8)">The primitive</h3>
+    <p>
+      The manual draws the system twice: once pure, with each column half the width of the one
+      before it, and once applied to a blog index, where the columns are equal and the hierarchy
+      is carried by the row count alone. Both forms are available as
+      <code>.subdivide</code>, so a subdivision layout is a composition rather than a fresh
+      block of bespoke CSS each time.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Class</th><th>Columns</th></tr></thead>
+      <tbody>
+        <tr><td><code>.subdivide--4</code></td><td>1/2 · 1/4 · 1/8 · 1/8 — the pure form, exact halves</td></tr>
+        <tr><td><code>.subdivide--3</code>, <code>--5</code>, <code>--6</code></td><td>the same series at other depths</td></tr>
+        <tr><td><code>.subdivide--even</code></td><td>equal columns — the applied form; count via <code>--subdivide-count</code></td></tr>
+        <tr><td><code>.subdivide__col</code></td><td>one column; <code>--rank</code> sets how many rows it carries</td></tr>
+      </tbody>
+    </table>
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"subdivide subdivide--even"</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"subdivide__col"</span> <span class="attr">style</span>=<span class="val">"--rank:1"</span>&gt;…&lt;/<span class="tag">div</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"subdivide__col"</span> <span class="attr">style</span>=<span class="val">"--rank:2"</span>&gt;…&lt;/<span class="tag">div</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"subdivide__col"</span> <span class="attr">style</span>=<span class="val">"--rank:4"</span>&gt;…&lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+    <p>
+      Depth is a class because <code>grid-template-columns</code> cannot be generated in plain
+      CSS; rank is a plain number, so it is a custom property. Below 44rem of its own width the
+      grid folds: every column spans the full track set and they stack. That threshold is a
+      <strong>container</strong> query, not a media query, because the same grid is comfortable
+      in 900 px of page and unreadable in 900 px of viewport with a 272 px sidebar in front
+      of it.
+    </p>
     <div class="docs-note">
       <strong>Which grid when.</strong> The 12-column grid orders <em>content</em> — text,
       forms, cards of equal rank. The subdivision grid orders <em>quantity</em> — article
       lists, archives, anything with many items of unequal weight. The two are never nested
       inside each other.
+    </div>
+    <div class="docs-note">
+      <strong>Rank should double.</strong> The manual's application plate runs 1, 3, 4, 8, 16
+      articles down its five columns — near enough to a doubling that the intent is clear. The
+      blog grid currently runs 1, 2, 3, 6, 6, which flattens the tail: the last two columns are
+      the same rank, so the finest subdivision never appears. That is a content decision rather
+      than a layout one, so the primitive supports any rank and the markup has been left as it
+      is.
     </div>
   </section>
 
