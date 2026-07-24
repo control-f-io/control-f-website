@@ -43,6 +43,21 @@
               color   var(--duration-base) var(--ease-standard),
               border-color var(--duration-base) var(--ease-standard);
 }
+/* The mockups give the standing CTAs a measured width — 22rem in the footer,
+   16rem over the hero — rather than letting them hug their label. That width
+   is per-instance, so it arrives as --btn-min.
+
+   Width, not min-width: a minimum cannot be overridden by max-width, so a
+   floor wider than the column is an overflow with no way out. A definite
+   width that max-width can cap gives way instead. Definite also matters for
+   the hero, whose absolutely positioned wrapper is sized by this button —
+   a percentage here would be circular and collapse it to its label. */
+.cf-btn--wide {
+  width: var(--btn-min, 22rem);
+  min-width: 0;
+  max-width: 100%;
+}
+
 .cf-btn:hover .cf-arrow { transform: translateX(4px); }
 
 .cf-btn--primary {
@@ -116,7 +131,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-5, 1.25rem) var(--gutter);
+  padding: var(--space-5) var(--gutter);
 }
 .cf-nav__list {
   display: flex;
@@ -329,9 +344,9 @@
    -------------------------------------------------------------------------- */
 .cf-statement {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: var(--space-16);
+  gap: var(--space-8);
 }
 .cf-statement__title {
   font-size: var(--text-h2);
@@ -345,8 +360,14 @@
   font-size: var(--text-md);
   color: var(--text-secondary);
 }
-@media (max-width: 900px) {
-  .cf-statement { grid-template-columns: 1fr; gap: var(--space-8); }
+/* Two columns once the component itself has room for them, not once the
+   viewport does. Stacked is the default, so a browser without container
+   query support gets the safe layout rather than a broken one. */
+@container (min-width: 56rem) {
+  .cf-statement {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-16);
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -356,22 +377,24 @@
    -------------------------------------------------------------------------- */
 .cf-process {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr);
   border: var(--stroke-1) solid var(--border-strong);
   background: var(--surface-card);
 }
 .cf-process__figure {
   display: grid;
   place-items: center;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 3;
+  min-width: 0;
   padding: var(--space-8);
-  border-right: var(--stroke-1) solid var(--border-strong);
+  border-bottom: var(--stroke-1) solid var(--border-strong);
   background: transparent;
 }
 .cf-process__panel {
   display: flex;
   flex-direction: column;
-  padding: var(--space-12);
+  min-width: 0;
+  padding: var(--space-6);
   background: var(--surface-raised);
 }
 .cf-process__title {
@@ -426,14 +449,19 @@
   font-weight: var(--weight-semibold);
   color: var(--text-primary);
 }
-@media (max-width: 900px) {
-  .cf-process { grid-template-columns: 1fr; }
+/* Square illustration panel beside the copy once there is room for both.
+   Below that the panel goes full width and shortens to 4:3 so the card does
+   not become a tower. Measured against the card's own container: on the
+   documentation page a 901 px viewport leaves this component 533 px, and the
+   old viewport query put it in two columns anyway. */
+@container (min-width: 56rem) {
+  .cf-process { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .cf-process__figure {
-    border-right: 0;
-    border-bottom: var(--stroke-1) solid var(--border-strong);
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1;
+    border-bottom: 0;
+    border-right: var(--stroke-1) solid var(--border-strong);
   }
-  .cf-process__panel { padding: var(--space-6); }
+  .cf-process__panel { padding: var(--space-12); }
 }
 
 /* --------------------------------------------------------------------------
@@ -497,20 +525,20 @@
    editorial layout: newest article is largest, older ones halve down to
    a title-only list. Anchored by a mono timeline axis.
    -------------------------------------------------------------------------- */
+/* Built on the .subdivide primitive in base.css — this rule only adds the
+   contours and the rank each column carries. The even form is what the
+   manual's application plate shows: equal columns, hierarchy from the rows. */
 .cf-blog-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
   border: var(--stroke-1) solid var(--border-strong);
 }
 .cf-blog-grid > * {
   border-right: var(--stroke-1) solid var(--border-strong);
   border-bottom: var(--stroke-1) solid var(--border-strong);
 }
-.cf-blog-col { display: grid; }
-.cf-blog-col--1 { grid-template-rows: 1fr; }
-.cf-blog-col--2 { grid-template-rows: repeat(2, 1fr); }
-.cf-blog-col--3 { grid-template-rows: repeat(3, 1fr); }
-.cf-blog-col--6 { grid-template-rows: repeat(6, 1fr); }
+.cf-blog-col--1 { --rank: 1; }
+.cf-blog-col--2 { --rank: 2; }
+.cf-blog-col--3 { --rank: 3; }
+.cf-blog-col--6 { --rank: 6; }
 
 .cf-blog-card {
   display: flex;
@@ -541,7 +569,12 @@
   align-items: center;
   min-height: 2rem;
 }
+/* The title is nowrap + ellipsis, so without min-width: 0 the card's
+   min-content width is the full untruncated headline and the whole grid
+   refuses to shrink below it. This is what pushed the landing page 17 px
+   sideways at 375 px. */
 .cf-blog-card--compact .cf-blog-card__title {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -559,8 +592,9 @@
   color: var(--text-muted);
   writing-mode: vertical-rl;
 }
-@media (max-width: 900px) {
-  .cf-blog-grid { grid-template-columns: 1fr; }
+/* The grid folds itself (see .subdivide in base.css); the axis is a separate
+   element, so it follows at the same threshold measured on the same width. */
+@container (max-width: 44rem) {
   .cf-blog-axis { display: none; }
 }
 
@@ -631,32 +665,37 @@
    VALUE TABLE
    Icon cell + copy cell, hairline ruled. The Über uns "wer wir sind" block.
    -------------------------------------------------------------------------- */
-.cf-value-table { border: var(--stroke-1) solid var(--border-strong); }
+.cf-value-table {
+  border: var(--stroke-1) solid var(--border-strong);
+  container-type: inline-size;
+}
 .cf-value-row {
   display: grid;
-  grid-template-columns: 15rem 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 .cf-value-row + .cf-value-row { border-top: var(--stroke-1) solid var(--border-strong); }
 .cf-value-row__figure {
   display: grid;
   place-items: center;
-  padding: var(--space-8);
-  border-right: var(--stroke-1) solid var(--border-strong);
+  min-width: 0;
+  padding: var(--space-6);
+  border-bottom: var(--stroke-1) solid var(--border-strong);
 }
 .cf-value-row__body {
-  padding: var(--space-8);
-  font-size: var(--text-lg);
+  min-width: 0;
+  padding: var(--space-6);
+  font-size: var(--text-md);
   line-height: var(--leading-relaxed);
 }
 .cf-value-row__body > * + * { margin-top: var(--space-4); }
-@media (max-width: 780px) {
-  .cf-value-row { grid-template-columns: 1fr; }
+@container (min-width: 48rem) {
+  .cf-value-row { grid-template-columns: 15rem minmax(0, 1fr); }
   .cf-value-row__figure {
-    border-right: 0;
-    border-bottom: var(--stroke-1) solid var(--border-strong);
-    padding: var(--space-6);
+    padding: var(--space-8);
+    border-bottom: 0;
+    border-right: var(--stroke-1) solid var(--border-strong);
   }
-  .cf-value-row__body { padding: var(--space-6); font-size: var(--text-md); }
+  .cf-value-row__body { padding: var(--space-8); font-size: var(--text-lg); }
 }
 
 /* --------------------------------------------------------------------------
@@ -729,7 +768,7 @@
 }
 .cf-footer__cta {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-20);
   justify-content: center;
@@ -760,7 +799,7 @@
 .cf-footer__meta a:hover { color: var(--grey-000); text-decoration: underline; text-underline-offset: 0.25em; }
 .cf-footer__links li + li::before { content: "• "; }
 @media (max-width: 780px) {
-  .cf-footer__cta { grid-template-columns: 1fr; gap: var(--space-8); }
+  .cf-footer__cta { grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
 }
 
 /* --------------------------------------------------------------------------
