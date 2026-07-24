@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>control-f — Unsere Werte</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<style>
+  :root{
+    --ink:#0a0a0a;
+    --paper:#ffffff;
+    --muted:#8a8a8a;
+    --hair:#e6e6e6;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:auto}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Helvetica Neue",Helvetica,Arial,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- intro ---------- */
+  .intro{
+    height:72vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding:48px 6vw 64px;
+    border-bottom:1px solid var(--hair);
+  }
+  .intro .eyebrow{
+    font-size:12px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:20px;
+  }
+  .intro h1{
+    font-size:clamp(34px,5.4vw,72px);
+    font-weight:700;
+    letter-spacing:-.02em;
+    line-height:1.02;
+    max-width:14ch;
+  }
+  .intro .hint{
+    margin-top:36px;
+    font-size:13px;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .intro .hint .line{
+    display:inline-block;width:36px;height:1px;background:var(--ink);
+    animation:pulse 2.2s ease-in-out infinite;
+    transform-origin:left;
+  }
+  @keyframes pulse{0%,100%{transform:scaleX(.4);opacity:.35}50%{transform:scaleX(1);opacity:1}}
+
+  /* ---------- scroll track ---------- */
+  .track{
+    /* 6 stages */
+    height:660vh;
+    position:relative;
+  }
+  .stage-viewport{
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow:hidden;
+    display:grid;
+    grid-template-columns:1fr minmax(240px,30vw) 1fr;
+    align-items:center;
+  }
+
+  /* logo */
+  .logo-wrap{
+    grid-column:2;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+  }
+  .logo-wrap svg{
+    width:100%;
+    max-width:180px;
+    height:auto;
+    display:block;
+    margin:0 auto;
+    overflow:visible;
+  }
+  svg .draw{
+    stroke:var(--ink);
+    fill:none;
+    stroke-dasharray:1;
+    stroke-dashoffset:calc(1 - var(--p,0));
+    opacity:var(--o,0);
+  }
+  svg .fillshape{
+    fill:var(--ink);
+    stroke:none;
+  }
+
+  /* text columns */
+  .col{
+    position:relative;
+    height:100%;
+  }
+  .titles,.descs{
+    position:absolute;
+    top:50%;
+    width:100%;
+  }
+  .titles{right:0;padding-right:2.5vw;text-align:right}
+  .descs{left:0;padding-left:2.5vw;max-width:330px}
+  .t-item,.d-item{
+    position:absolute;
+    top:0;
+    right:0;
+    left:0;
+    transform:translateY(-50%);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s linear;
+    will-change:opacity;
+  }
+  .t-item.active,.d-item.active{opacity:1}
+  .t-item h2{
+    font-size:clamp(17px,1.7vw,24px);
+    font-weight:700;
+    letter-spacing:-.01em;
+    line-height:1.25;
+    min-height:2.5em;
+  }
+  .d-item p{
+    font-size:13px;
+    line-height:1.7;
+    color:#5c5c5c;
+  }
+  /* fixed box so streaming text doesn't reflow the layout */
+  .d-item p{min-height:7.5em}
+  .caret{
+    display:inline-block;
+    width:7px;
+    height:.95em;
+    margin-left:2px;
+    background:var(--ink);
+    vertical-align:text-bottom;
+    animation:caretblink .9s steps(1) infinite;
+  }
+  .caret.done{opacity:0;animation:none}
+  @keyframes caretblink{0%,100%{opacity:1}50%{opacity:0}}
+  .stage-index{
+    position:absolute;
+    left:6vw;
+    bottom:40px;
+    font-size:12px;
+    letter-spacing:.18em;
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+  }
+  .stage-index b{color:var(--ink);font-weight:600}
+  .progress{
+    position:absolute;
+    right:6vw;
+    bottom:44px;
+    width:120px;
+    height:1px;
+    background:var(--hair);
+  }
+  .progress i{
+    display:block;height:100%;width:0;background:var(--ink);
+  }
+
+  /* ---------- outro ---------- */
+  .outro{
+    min-height:60vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:18px;
+    border-top:1px solid var(--hair);
+    padding:80px 6vw;
+    text-align:center;
+  }
+  .outro svg{width:120px;height:auto}
+  .outro p{
+    font-size:13px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  /* ---------- mobile ---------- */
+  @media (max-width:820px){
+    .stage-viewport{
+      grid-template-columns:1fr;
+      grid-template-rows:auto auto auto;
+      align-content:center;
+      gap:8px;
+      padding:0 7vw;
+    }
+    .logo-wrap{grid-column:1;grid-row:2;padding:6vh 4vw}
+    .col{height:auto;min-height:84px}
+    .titles,.descs{position:relative;top:auto;padding:0;text-align:left;max-width:none}
+    .col.left{grid-row:1}
+    .col.right{grid-row:3}
+    .t-item,.d-item{transform:none}
+    .t-item{top:auto}
+    .stage-index{left:7vw;bottom:24px}
+    .progress{right:7vw;bottom:28px;width:80px}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .intro .hint .line{animation:none}
+    .t-item,.d-item{transition:none}
+    .caret{animation:none;opacity:0}
+  }
+
+  /* Preview only: link back to the documentation. Remove in production. */
+  .ds-back {
+    position: fixed; left: 0; bottom: 0; z-index: 9999;
+    padding: var(--space-2, .5rem) var(--space-4, 1rem);
+    background: var(--cf-anthrazit, #1B2022); color: var(--cf-lime, #E1FF00);
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: var(--text-xs, .6875rem);
+    letter-spacing: var(--tracking-label, .08em);
+    text-transform: uppercase; text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<header class="intro">
+  <div class="eyebrow">control-f · Kultur</div>
+  <h1>Unsere Werte, Schicht für Schicht.</h1>
+  <div class="hint"><span class="line"></span> Scrollen, um das Zeichen aufzubauen</div>
+</header>
+
+<section class="track" id="track">
+  <div class="stage-viewport">
+
+    <div class="col left">
+      <div class="titles" id="titles"></div>
+    </div>
+
+    <div class="logo-wrap">
+      <svg id="logo" xmlns="http://www.w3.org/2000/svg" aria-label="control-f Logo, das sich beim Scrollen aufbaut"></svg>
+    </div>
+
+    <div class="col right">
+      <div class="descs" id="descs"></div>
+    </div>
+
+    <div class="stage-index"><b id="idx">01</b> / 06</div>
+    <div class="progress"><i id="bar"></i></div>
+  </div>
+</section>
+
+<footer class="outro">
+  <svg id="logo-final" xmlns="http://www.w3.org/2000/svg"></svg>
+  <p>control-f · Wirkung, nicht Show</p>
+</footer>
+
+<script>
+/* ================= content ================= */
+const VALUES = [
+  {
+    t:"Klarheit und Ergebnisorientierung",
+    d:"Wir liefern Klarheit und messbare Ergebnisse, ohne Umwege, ohne Ablenkungen. Erfolg heißt für uns: Wirkung im Unternehmen, nicht Aufwand im Prozess."
+  },
+  {
+    t:"Eigenverantwortung und Anpassungsfähigkeit",
+    d:"Wir setzen auf Eigenverantwortung und Flexibilität. Statt starrer Vorgaben vertrauen wir auf die Initiative und Anpassungsfähigkeit unseres Teams."
+  },
+  {
+    t:"Technologie-Kompetenz und kritische KI",
+    d:"Wir beherrschen unsere Werkzeuge, und wir hinterfragen sie. KI setzen wir dort ein, wo sie echten Mehrwert schafft: kritisch geprüft, statt blind vertraut."
+  },
+  {
+    t:"Pragmatismus und Geschwindigkeit",
+    d:"Wir streben nach eleganten, schnellen Lösungen und vermeiden unnötige Komplexität. Was zählt, ist die Wirkung, nicht die Show."
+  },
+  {
+    t:"Transparenz und offene Kommunikation",
+    d:"Wir kommunizieren offen und ehrlich, intern wie mit unseren Kunden. Klare Worte schaffen Vertrauen und verhindern Missverständnisse."
+  },
+  {
+    t:"Lernen und Weiterentwicklung",
+    d:"Wir sind überzeugt: Lernen ist nie abgeschlossen. Wir entwickeln uns kontinuierlich weiter, bilden uns fort und suchen aktiv nach neuen Perspektiven, als Team und als Individuen."
+  }
+];
+const N = VALUES.length; // 6 stages
+
+/* ================= geometry =================
+   Exact logo paths from the Figma export (viewBox 0 0 600 480).
+   The subdivision grid is aligned to the mark's own 2:1 isometric axes:
+   basis U = (120,-60) up-right, V = (120,60) down-right, origin at the
+   bar's top-right corner (480,0). The bar is exactly 4x1 cells; the
+   chevron arms are 2.5x1 on the same continuous grid. */
+const PATH_A = "M116.422 298.211C118.675 299.337 121.325 299.337 123.578 298.211L594.633 62.6833C596.845 61.5777 596.845 58.4223 594.633 57.3167L483.578 1.78885C481.325 0.662745 478.675 0.662745 476.422 1.78885L5.36656 237.317C3.15542 238.422 3.15542 241.578 5.36656 242.683L116.422 298.211Z";
+const PATH_B = "M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 327.317C183.155 328.422 183.155 331.578 185.367 332.683L476.422 478.211C478.675 479.337 481.325 479.337 483.578 478.211L594.633 422.683C596.845 421.578 596.845 418.422 594.633 417.317L425.367 332.683Z";
+
+const O=[480,0], Uv=[120,-60], Vv=[120,60];
+function P(gx,gy){ return [O[0]+gx*Uv[0]+gy*Vv[0], O[1]+gx*Uv[1]+gy*Vv[1]]; }
+
+const SVGNS="http://www.w3.org/2000/svg";
+function el(name,attrs,parent){
+  const n=document.createElementNS(SVGNS,name);
+  for(const k in attrs) n.setAttribute(k,attrs[k]);
+  if(parent) parent.appendChild(n);
+  return n;
+}
+
+/* grid coverage in grid coordinates (covers the whole 600x480 canvas) */
+const GX0=-6,GX1=1,GY0=-2,GY1=5;
+let clipCounter=0;
+
+function buildLogo(svg,{withLayers=true}={}){
+  svg.setAttribute("viewBox","-6 -6 612 492");
+  const layers={lines:[],fill:null,outline:null};
+
+  /* fill layer (stage 6) */
+  const gFill=el("g",{},svg);
+  el("path",{d:PATH_A,class:"fillshape"},gFill);
+  el("path",{d:PATH_B,class:"fillshape"},gFill);
+  gFill.style.opacity=withLayers?0:1;
+  layers.fill=gFill;
+
+  if(!withLayers){ return layers; }
+
+  /* clip: grid lines only show inside the mark */
+  const defs=el("defs",{},svg);
+  const clipId="logoClip"+(clipCounter++);
+  const cp=el("clipPath",{id:clipId},defs);
+  el("path",{d:PATH_A},cp);
+  el("path",{d:PATH_B},cp);
+
+  /* outline layer (stage 1) — the real contours draw themselves */
+  const gOut=el("g",{},svg);
+  [PATH_A,PATH_B].forEach(d=>{
+    el("path",{d:d,class:"draw","pathLength":"1","stroke-width":"2.4","stroke-linejoin":"round"},gOut);
+  });
+  layers.outline=gOut;
+
+  /* grid layers: spacings 1, .5, .25, .125 — skip lines already drawn by coarser layers */
+  const spacings=[1,0.5,0.25,0.125];
+  const widths=[1.6,1.25,0.95,0.65];
+  spacings.forEach((d,li)=>{
+    const g=el("g",{"clip-path":`url(#${clipId})`},svg);
+    const isNew=v=>{
+      for(let c=0;c<li;c++){ if(Math.abs(v/spacings[c]-Math.round(v/spacings[c]))<1e-6) return false; }
+      return true;
+    };
+    // lines of constant gx (running along V)
+    for(let v=GX0; v<=GX1+1e-6; v+=d){
+      if(li>0 && !isNew(v)) continue;
+      const [x1,y1]=P(v,GY0),[x2,y2]=P(v,GY1);
+      el("line",{x1:x1.toFixed(2),y1:y1.toFixed(2),x2:x2.toFixed(2),y2:y2.toFixed(2),
+                 class:"draw","pathLength":"1","stroke-width":widths[li]},g);
+    }
+    // lines of constant gy (running along U)
+    for(let v=GY0; v<=GY1+1e-6; v+=d){
+      if(li>0 && !isNew(v)) continue;
+      const [x1,y1]=P(GX0,v),[x2,y2]=P(GX1,v);
+      el("line",{x1:x1.toFixed(2),y1:y1.toFixed(2),x2:x2.toFixed(2),y2:y2.toFixed(2),
+                 class:"draw","pathLength":"1","stroke-width":widths[li]},g);
+    }
+    layers.lines.push(g);
+  });
+  return layers;
+}
+
+
+const logoSvg=document.getElementById("logo");
+const layers=buildLogo(logoSvg);
+buildLogo(document.getElementById("logo-final"),{withLayers:false});
+
+/* ================= text ================= */
+const titles=document.getElementById("titles");
+const descs=document.getElementById("descs");
+VALUES.forEach((v,i)=>{
+  const t=document.createElement("div");t.className="t-item";
+  t.innerHTML=`<h2><span class="typed"></span></h2>`;titles.appendChild(t);
+  const d=document.createElement("div");d.className="d-item";
+  d.innerHTML=`<p><span class="typed"></span><span class="caret"></span></p>`;descs.appendChild(d);
+});
+const tItems=[...titles.children], dItems=[...descs.children];
+const tSpans=tItems.map(n=>n.querySelector(".typed"));
+const dSpans=dItems.map(n=>n.querySelector(".typed"));
+const carets=dItems.map(n=>n.querySelector(".caret"));
+const idxEl=document.getElementById("idx");
+const barEl=document.getElementById("bar");
+
+/* ================= streaming text engine =================
+   Typing is driven directly by scroll progress inside each stage, so it
+   builds char-by-char on the way down and un-builds (reverses) on the way
+   up. Only the active stage is shown; the reveal happens over the first
+   ~65% of the stage window, then holds complete while the logo rests. */
+let shownStage=-1;
+
+// smooth easing so early chars come a touch faster, feels like token output
+const easeReveal=x=>x*x*(3-2*x); // smoothstep
+
+/* set the visible stage; hide the rest */
+function showStage(stage){
+  if(stage===shownStage) return;
+  tItems.forEach((n,i)=>{
+    const on=i===stage;
+    n.classList.toggle("active",on);
+    dItems[i].classList.toggle("active",on);
+  });
+  shownStage=stage;
+}
+
+/* progress p in [0..1] = how far the reveal is for this stage */
+function paintText(stage,p){
+  const v=VALUES[stage];
+  const tp=clamp(p/0.28,0,1);                 // title reveals in first slice
+  const dp=clamp((p-0.14)/0.72,0,1);          // desc trails, spans the rest
+  const tn=Math.round(v.t.length*easeReveal(tp));
+  const dn=Math.round(v.d.length*easeReveal(dp));
+  if(tSpans[stage].textContent.length!==tn) tSpans[stage].textContent=v.t.slice(0,tn);
+  if(dSpans[stage].textContent.length!==dn) dSpans[stage].textContent=v.d.slice(0,dn);
+  // caret shows while the description is mid-stream, hidden when at rest
+  const streaming=dp>0 && dp<1;
+  carets[stage].classList.toggle("done",!streaming);
+}
+
+/* ================= scroll engine ================= */
+const track=document.getElementById("track");
+const reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const easeOut=x=>1-Math.pow(1-x,3);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+function setLayer(g,progress){
+  // progress 0..1 for this layer: draw lines then hold
+  const p=reduceMotion?(progress>0?1:0):easeOut(clamp(progress,0,1));
+  g.style.setProperty("--p",p.toFixed(4));
+  g.style.setProperty("--o",p>0?1:0);
+}
+
+let ticking=false, lastIdx=-1;
+function update(){
+  ticking=false;
+  const rect=track.getBoundingClientRect();
+  const total=rect.height-window.innerHeight;
+  const t=clamp(-rect.top/total,0,1);
+  const f=t*N;                       // 0..6
+  const stage=Math.min(Math.floor(f),N-1);
+  const local=f-stage;
+
+  // Logo phases are aligned 1:1 with the six value stages:
+  //   phase 0 = outline (stage Klarheit)
+  //   phase 1..4 = grid 1.0 / .5 / .25 / .125 (stages 2..5)
+  //   phase 5 = solid fill (stage Lernen)
+  // Each phase draws over the first REVEAL portion of ITS stage, then holds
+  // complete while that stage rests — so a resting stage always shows its
+  // full intended density, and scrolling up un-draws it in reverse.
+  const REVEAL=0.62;
+  const phaseProg=p=>clamp((f-p)/REVEAL,0,1);
+  setLayer(layers.outline, phaseProg(0));
+  layers.lines.forEach((g,i)=>setLayer(g, phaseProg(i+1)));
+  const pf=reduceMotion?(f>=5?1:0):easeOut(phaseProg(5));
+  layers.fill.style.opacity=pf.toFixed(3);
+
+  // subtle settle: whole logo eases in scale during first stage
+  const s=0.94+0.06*easeOut(clamp(f,0,1));
+  logoSvg.style.transform=reduceMotion?"none":`scale(${s.toFixed(4)})`;
+
+  // text: reveal over the same window, hold complete at rest
+  showStage(stage);
+  paintText(stage, clamp(local/REVEAL,0,1));
+  if(stage!==lastIdx){ idxEl.textContent=String(stage+1).padStart(2,"0"); lastIdx=stage; }
+  barEl.style.width=(t*100).toFixed(2)+"%";
+}
+function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(update); } }
+window.addEventListener("scroll",onScroll,{passive:true});
+window.addEventListener("resize",onScroll);
+update();
+</script>
+
+<a class="ds-back" href="../index.html">← Design System</a>
+</body>
+</html>
