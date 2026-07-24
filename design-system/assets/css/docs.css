@@ -292,6 +292,11 @@ body.docs {
 }
 
 /* Tall full-page mockups: cap the height, scroll inside the frame. */
+/* Wrap a wide table in this. A table has a min-content width it will not go
+   below, so on a phone it pushes the whole page sideways unless something
+   around it is allowed to scroll. */
+.docs-table-scroll { overflow-x: auto; }
+
 .docs-scroller {
   max-height: 34rem;
   overflow-y: auto;
@@ -309,7 +314,9 @@ body.docs {
 }
 
 @media (max-width: 900px) {
-  body.docs { grid-template-columns: 1fr; }
+  /* minmax(0,…), not 1fr: a bare 1fr track keeps min-width:auto, so one wide
+     code block or table pushed the whole documentation sideways at 375 px. */
+  body.docs { grid-template-columns: minmax(0, 1fr); }
   .docs-sidebar { position: static; height: auto; }
   .docs-main { padding: var(--space-8) var(--space-6) var(--space-16); }
   .docs-rules { grid-template-columns: 1fr; }
