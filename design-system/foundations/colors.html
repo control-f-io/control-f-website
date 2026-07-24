@@ -267,7 +267,8 @@
         leg of the ramp and one only. Lime to Glas crosses a wide arc of hue, and the two
         paths pull apart by <strong>ΔE 0.045</strong> in oklab — roughly twice the just-noticeable
         threshold for a smooth ramp, with sRGB taking the darker, more saturated route through
-        chartreuse. Glas to CF-Grau, and the page wash, differ by ΔE 0.000. So the process-card
+        chartreuse. Glas to CF-Grau peaks at ΔE 0.0037 and the page wash at ΔE 0.0031 — an order of
+        magnitude below the threshold, so both stay on the sRGB path untouched. So the process-card
         illustrations and the primary button were drawing the same three colours along visibly
         different curves.
       </p>
@@ -280,6 +281,15 @@
         it. The waypoint is scaled into each gradient's own offset space:
         <code>0.061</code> on the near rake, <code>0.097</code> on the mid rake,
         <code>0.905</code> and <code>0.822</code> on the two radials that run Glas → lime.
+      </p>
+      <p>
+        <strong>The correction is not unconditional.</strong> The oklab gradients sit behind
+        <code>@supports</code>; the base CSS declarations are sRGB. A browser that fails that query
+        therefore takes the sRGB route in CSS while the SVGs carry the corrected path, which puts the
+        two back out of step by about the same ΔE 0.045 — in the opposite direction, where before
+        they at least matched. That is the accepted cost: oklab gradient interpolation is supported
+        across all mainline browsers, so the affected population is small and shrinking, and the
+        alternative is holding the whole system to the worse curve for it.
       </p>
     </div>
     <table class="docs-table">
