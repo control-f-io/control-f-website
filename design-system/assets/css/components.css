@@ -779,3 +779,107 @@
 }
 .cf-hint::before { content: "( "; }
 .cf-hint::after  { content: " )"; }
+
+/* --------------------------------------------------------------------------
+   ISOMETRIC ILLUSTRATION
+   The four process objects, and anything else drawn in the 2:1 system.
+   Geometry lives in the markup; this file owns the contour weight and the
+   one piece of motion the objects are allowed.
+
+   Part roles, used by both the drawing and the motion:
+     .cf-iso__scene   the whole object — the only thing that travels
+     .cf-iso__form    solid contoured body
+     .cf-iso__ghost   dashed reference geometry, the object's future states
+     .cf-iso__light   the single lime-gradient element. One per object.
+     .cf-iso__trace   the signal reaching the object — draws itself
+     .cf-iso__node    construction points
+   -------------------------------------------------------------------------- */
+.cf-iso { display: block; }
+
+/* "1 px contour at every size" is a device pixel, not a viewBox unit. A 640-unit
+   drawing rendered at 352 px would otherwise put its contours on screen at
+   0.55 px — grey, not black. non-scaling-stroke makes the rule literally true,
+   and pins the dash patterns to the px values in --dash-*. */
+.cf-iso :is(path, line, circle, ellipse, rect, polygon, polyline) {
+  vector-effect: non-scaling-stroke;
+}
+
+/* Scroll-driven assembly.
+   Progressive enhancement in the honest direction: without support for
+   scroll-driven animations, or under reduced motion, the object is simply
+   drawn in its finished state. Nothing is ever hidden behind a script.
+   Only transform and opacity animate, so nothing reflows. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .cf-iso {
+      view-timeline-name: --cf-iso;
+      view-timeline-axis: block;
+    }
+    .cf-iso__scene,
+    .cf-iso__ghost,
+    .cf-iso__light,
+    .cf-iso__trace,
+    .cf-iso__node {
+      animation-timeline: --cf-iso;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: var(--ease-out);
+    }
+
+    /* The object arrives along 26.57° — 2 across, 1 down — never straight up. */
+    .cf-iso__scene {
+      animation-name: cf-iso-arrive;
+      animation-range: cover 5% cover 30%;
+    }
+    /* The dashed geometry resolves after the body it belongs to. */
+    .cf-iso__ghost {
+      animation-name: cf-iso-fade;
+      animation-range: cover 20% cover 40%;
+    }
+    /* The incoming signal draws itself. pathLength="1" in the markup makes the
+       dash maths independent of how long the path actually is. */
+    .cf-iso__trace {
+      stroke-dasharray: 1;
+      animation-name: cf-iso-draw;
+      animation-range: cover 18% cover 45%;
+    }
+    /* Lime is light: it is the last thing to arrive, and it arrives as a fill
+       coming up, not as an object moving. */
+    .cf-iso__light {
+      animation-name: cf-iso-light;
+      animation-range: cover 30% cover 48%;
+    }
+    .cf-iso__node {
+      animation-name: cf-iso-fade;
+      animation-range: cover 35% cover 50%;
+    }
+  }
+}
+
+@keyframes cf-iso-arrive {
+  from { transform: translate(-32px, -16px); opacity: 0; }
+  to   { transform: translate(0, 0);         opacity: 1; }
+}
+@keyframes cf-iso-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cf-iso-light {
+  from { fill-opacity: 0; }
+  to   { fill-opacity: 1; }
+}
+@keyframes cf-iso-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* --------------------------------------------------------------------------
+   HERO — reduced motion
+   The loop is the one infinite animation in the system, so it is also the one
+   that has to be switched off by hand. The poster carries the hero instead.
+   -------------------------------------------------------------------------- */
+.cf-hero__media img { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .cf-hero__media video { display: none; }
+  .cf-hero__media img   { display: block; }
+}
