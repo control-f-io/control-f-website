@@ -176,6 +176,15 @@
       same commit.</strong>
     </div>
     <div class="docs-note">
+      <strong>One number collides across the scope line.</strong> The register covers the three
+      shipping stylesheets; the demo queries in these pages' own <code>&lt;style&gt;</code>
+      blocks are not part of it. Usually that boundary is uneventful, but
+      <code>foundations/iconography.html</code> asks a <strong>viewport</strong> <code>48rem</code>
+      while the table above lists <code>48rem</code> as a <strong>container</strong> threshold.
+      Same figure, unrelated queries, and the resemblance is a coincidence — so do not read the
+      one as evidence of the other, and do not "reconcile" them.
+    </div>
+    <div class="docs-note">
       <strong><code>60rem</code> is the one threshold nothing derives.</strong> The other three
       container numbers each answer to something — 44rem is where the finest subdivision ranks
       stop being readable, 48rem is the value row's icon cell, 56rem is the system's declared
@@ -234,7 +243,7 @@
       <strong>Every step is accounted for.</strong> A scale is only honest if you can say who
       uses each rung, so here is the count of <em>declarations</em> that reference each step in
       the shipping CSS (<code>tokens</code> + <code>base</code> + <code>components</code>),
-      comments excluded. Stamped <code>362f56fa</code> — see below for what that is and how to
+      comments excluded. Stamped <code>8e29963b</code> — see below for what that is and how to
       check it in one command:
     </div>
     <table class="docs-table">
@@ -267,9 +276,9 @@
     <pre class="docs-code">cd design-system/assets/css &amp;&amp; python3 -c "
 import re, hashlib
 s=re.sub(r'/\*.*?\*/','',''.join(open(f).read() for f in ('tokens.css','base.css','components.css')),flags=re.S)
-print('stamp', hashlib.sha256(s.encode()).hexdigest()[:8])
-for n in (1,2,3,4,5,6,8,12,16,20,24,30,40):
-    print(n, sum('var(--space-%d)'%n in d for d in s.split(';')))
+counts=[sum('var(--space-%d)'%n in d for d in s.split(';')) for n in (1,2,3,4,5,6,8,12,16,20,24,30,40)]
+print('stamp', hashlib.sha256(repr(counts).encode()).hexdigest()[:8])
+print(counts)
 "</pre>
     <div class="docs-note">
       Comments are stripped first, which matters more than it sounds: <code>--space-30</code>
@@ -277,17 +286,25 @@ for n in (1,2,3,4,5,6,8,12,16,20,24,30,40):
       declarations, so a naive <code>grep</code> would report it as a healthy rung.
     </div>
     <div class="docs-note">
-      <strong>The stamp is a content digest, not a commit.</strong> It is the first eight hex of
-      a SHA-256 over exactly the text the counts are taken from — the three stylesheets with
-      comments stripped. The command prints it alongside the numbers, so if it still reads
-      <code>362f56fa</code> the table is current and there is nothing to re-derive.
+      <strong>The stamp is a digest of the counts themselves.</strong> It is the first eight hex
+      of a SHA-256 over the thirteen numbers, printed by the same command that prints them — so
+      if it still reads <code>8e29963b</code>, the table is current and there is nothing to
+      re-derive.
       <br><br>
-      A commit hash was the obvious choice and it is the wrong one. It would move on a
-      comment-only edit, and <strong>this very page's commit is the counterexample</strong>: the
-      change that added this table also rewrote comments in <code>tokens.css</code>, which moves
-      the commit and cannot move a single count. Stamping the declarations instead means the
-      stamp changes exactly when the numbers could — verified across this branch and
-      <code>main</code>, where the comment-stripped digest is identical.
+      It took two wrong answers to get here, and both are worth keeping because both are the
+      obvious choice. <strong>A commit hash</strong> moves on a comment-only edit: the change
+      that first wrote this table also rewrote comments in <code>tokens.css</code>, so a
+      <code>git log</code> stamp would have declared the table stale on the very commit that
+      measured it. <strong>A digest of the stylesheet text</strong> fixes that and still
+      over-triggers, because it moves when <em>any</em> declaration changes — and almost no
+      declaration in this system touches a spacing token. Measured across four in-flight
+      branches at once, every one of them moved the text digest and not one moved a single
+      count. The first to land would have advertised a stale stamp for a table that was still
+      correct, which is the failure the stamp exists to prevent, one level up.
+      <br><br>
+      Digesting the output rather than the input is the version that holds: it changes if and
+      only if a number changes. The general lesson is worth more than the token — <strong>stamp
+      the claim, not the material the claim was made from.</strong>
     </div>
     <div class="docs-note">
       <strong><code>--space-30</code> is the one step with no consumer</strong> — and the
