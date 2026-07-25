@@ -26,6 +26,7 @@ design-system/
 │                           blog grid, article + prose, team, forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html,
 │                           blog-artikel.html
+├── prototypes/             scroll-animation studies — standalone, not yet system
 ├── reference.html          the designer's source material, next to what implements it
 └── assets/
     ├── css/
@@ -76,6 +77,39 @@ It drives the consent banner and the settings dialog, which the site cannot lega
 do without (TDDDG § 25). It is dependency-free, creates no markup of its own, and if
 it never runs, no non-essential script runs either. Everything else in the system is
 HTML and CSS. → `components/consent.html`
+
+## Animation prototypes
+
+`prototypes/` holds scroll-animation studies. They are **not part of the system**: each
+one carries its own styling and its own scroll engine, neither has been reconciled with
+the tokens, and nothing in `components/` depends on them. They are in the sidebar so the
+motion they propose can be reviewed against the pages it would land on.
+
+| | |
+|---|---|
+| `werte-scroll.html` | The mark builds itself from its own isometric subdivision grid across six value stages, with the copy streaming in char by char. Scroll-scrubbed, so it un-builds on the way back up. |
+| `services-scroll.html` | The four process cards assemble inside a pinned section — cubes telescoping up, layers sliding in, contours drawing themselves. 1.4 MB, almost all of it one inline Figma export. |
+
+Both scrub from scroll position rather than playing on a timer, which is what the system
+already commits to in `foundations/motion.html` — the animation tracks the reader's hand
+and reverses when they scroll back.
+
+**They do not agree on `prefers-reduced-motion`, and one of them fails it.** Measured, not
+assumed:
+
+- `services-scroll.html` is correct. The scrub script returns early, the pinned section
+  goes `static` and auto-height, and the illustration renders in its authored, finished
+  state. Same shape as the fix in #11.
+- `werte-scroll.html` only removes the easing, the fade transition and the caret blink.
+  The 660 vh track and the scroll gating both survive, so at scroll 0 the mark is still
+  empty and its six values are still unreadable until the reader scrolls six screens.
+  A reader who asked for less motion still gets the whole scroll hijack, and the copy is
+  the thing behind it.
+
+That needs deciding before either goes near a shipping page: under `reduce`, the values
+should almost certainly be six readable blocks with the finished mark, and no track at
+all. Left as-is here rather than rewritten, because it is a prototype for review and the
+behaviour is the designer's call.
 
 ## The system in one paragraph
 
@@ -152,6 +186,13 @@ These were judgement calls, each documented on the relevant page:
   `.cf-footer__title` sets no colour and inherits white, so any browser that cannot clip a
   background into text renders exactly what the designer drew.
   → `components/footer.html`, `foundations/colors.html`
+- **Inline SVG gradients carry an oklab waypoint the source vectors do not have.** Figma
+  interpolates in sRGB, and SVG can only interpolate in sRGB or linearRGB, so the illustrations
+  inherited the sRGB path. The CSS gradients interpolate in oklab. Same three colours, two
+  visibly different curves on the lime→Glas leg (ΔE 0.045). Rather than give up oklab in CSS,
+  each lime→Glas leg in an inline SVG gets one stop — `#DBFC60` at 19 % of the leg — which puts
+  it back on the oklab path to within ΔE 0.0125. The source vectors in `assets/source/` are
+  untouched. → `foundations/colors.html`
 - **Isometric contours use `vector-effect: non-scaling-stroke`.** "1 px contour at every
   size" is a device pixel. A 640-unit drawing shown at 352 px would otherwise put its
   contours on screen at 0.55 px. The one exception is `.cf-iso__trace`: under
