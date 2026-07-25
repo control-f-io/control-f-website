@@ -471,16 +471,29 @@ hr {
    -------------------------------------------------------------------------- */
 .text-foil {
   /* Declared here and not only in the @supports block below, so the modifier
-     can swap the image without either rule having to know about the other's
+     can swap the ramp without either rule having to know about the other's
      nesting or source order. An unresolvable var() in background-image is
      guaranteed-invalid and would take the whole declaration with it, so the
      rest value belongs on the class rather than in a var() fallback — the
-     same reasoning as --cf-specular on .cf-btn--glass. */
-  --foil-image: var(--gradient-foil);
+     same reasoning as --cf-specular on .cf-btn--glass.
+
+     What the modifier swaps is the RAMP, not the finished image. The image is
+     composed once, below, out of a ramp and an angle — see THE RAKE SWINGS. */
+  --foil-ramp: var(--foil-stops);
+  --foil-angle: var(--foil-rake);
+  --foil-image: linear-gradient(var(--foil-angle), var(--foil-ramp));
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
-.text-foil--ink { --foil-image: var(--gradient-foil-ink); }
+.text-foil--ink { --foil-ramp: var(--foil-ink-stops); }
+
+/* The one place the oklab path has to be restated for these two, because the
+   image is composed here rather than at :root. Same reasoning as the block at
+   the foot of tokens.css: the stops do not move, only the path between them. */
+@supports (background: linear-gradient(in oklab, red, blue)) {
+  .text-foil { --foil-image: linear-gradient(var(--foil-angle) in oklab, var(--foil-ramp)); }
+}
+
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .text-foil {
     width: fit-content;
@@ -497,6 +510,125 @@ hr {
     background: var(--cf-lime);
   }
 }
+
+/* --------------------------------------------------------------------------
+   THE RAKE SWINGS
+   Holographic stock is not a picture of a spectrum. It is a surface that
+   hands you a different part of one from every angle, which is why a foil
+   catalogue is photographed tilting and a printed one looks dead. Static, the
+   foil above is the photograph. This is the tilt: the angle light crosses the
+   letterforms at opens by exactly one brand angle as the type travels up the
+   viewport, scrubbed from scroll position so it tracks the reader's hand and
+   runs backwards when they scroll back — the same commitment
+   foundations/motion.html already makes for everything else that moves.
+
+   THE CONTRAST FLOOR IS UNCHANGED BY CONSTRUCTION, and that is the whole
+   reason this is an angle and not a slide. No stop moves, no colour is added,
+   no layer is composited over the glyphs, and — the part that matters — the
+   entire ramp is still inside the box at every frame. Turning a linear
+   gradient changes WHERE each stop lands, never WHICH stops are present. So
+   the worst sample of the swinging foil is the worst sample of the static
+   one, which is the number tokens.css states: 9.3:1 for the lit half on
+   anthracite, 5.24:1 for the ink half on CF-Grau. Nothing here needs
+   re-measuring, and that is a property of the mechanism rather than a lucky
+   result.
+
+   Two rejected alternatives, both of which would have needed re-measuring:
+
+     A specular band composited over the type. On the lit half it raises
+     contrast and on the ink half it lowers it — lightening dark letters on a
+     light page — so the ink foil would have had to be checked frame by frame
+     and would have failed somewhere.
+
+     The ramp painted wider than its clip box and slid across (background-size
+     over 100 % plus a background-position travel). Contrast survives that one
+     too, by the same argument, but iridescence does not: overscanning to 150 %
+     leaves the glyphs standing in two thirds of the ramp at any instant, so
+     the type reads as changing colour rather than as catching light. Measured
+     on the two pages that actually carry foil, it is also nearly a no-op —
+     both foil moments sit at a document extreme (a page header at the top, a
+     footer at the bottom), where a view() timeline has a quarter of its range
+     to work with. The Über uns title travelled from 74.6 % to 100 % of the
+     sweep and never showed the Glas end at all.
+
+   90° TO 116.57°, AND THE SWING IS ITSELF A BRAND ANGLE. Both endpoints are
+   sanctioned — 90° is the flat rake, 116.57° is 90° + 26.57° — and the
+   distance between them is 26.57°, the isometric angle itself. The swing
+   therefore cannot drift off the four permitted angles no matter where it is
+   stopped, because it is bounded by two of them.
+
+   It stays shallow throughout, and that is not a free choice: a headline is a
+   wide short box, and tokens.css records that at 132.36° the ramp completes
+   inside the first two or three letters, which is why the foil took the
+   shallow rake in the first place. A swing towards the steep angles would
+   have undone that decision every time the reader scrolled. 90° and 116.57°
+   both run the ramp along the line rather than down it.
+
+   116.57° IS WHAT YOU SEE HEAD-ON, which is the model the whole thing is
+   built on and the reason the swing turns round at the halfway mark rather
+   than running straight through. A sheet of foil looks different at an angle
+   because you are looking at it from one; you see the material as drawn when
+   you are square to it. Timeline 50 % is the type at the middle of the
+   viewport — square to the reader — so that is where the rake is the
+   designer's 116.57°. At either edge of the screen the line of sight is
+   oblique and the rake flattens to 90°. Run the swing straight through
+   instead and the type would be square to nobody at one end of its journey.
+
+   Wherever the swing cannot run — no @property, no scroll timeline, reduced
+   motion, print, forced colours — the rake is the documented 116.57°: the
+   head-on value, which is the right thing to fall back to.
+
+   NEITHER FOIL MOMENT ON THE TWO DESIGNED PAGES REACHES HEAD-ON, and that is
+   worth knowing before reading a screen. Both sit at a document extreme — a
+   page header at the top, a footer at the bottom — where a view() timeline
+   only has part of its range to work with. Measured at 1280 x 900:
+
+     Über uns title    timeline 74.6 % -> 100 %   rake 103.5° -> 90°
+     footer title      timeline    0 % ->  34 %   rake    90° -> 108.1°
+
+   So both read between 90° and 108°, opening towards the designed rake as
+   they approach the middle of the screen and never quite arriving. That is
+   the honest behaviour of the model rather than a shortfall in it: a headline
+   the reader cannot bring to the centre of the screen is a headline they
+   never look at square on. A foil moment placed mid-page — a blog article
+   title, say — gets the whole journey. Nothing was bent to hide this; the
+   alternative was a per-element animation-range, which would put the footer
+   on a different rule from every other foil moment to fix something only a
+   side-by-side reveals.
+
+   WHAT DOES NOT SWING: .cf-btn--solid. Its foil is the component's own
+   colour rather than an emphasis, its clip box is the whole button on
+   purpose, and a label whose light shifts while the reader is aiming at it is
+   a different thing from a headline catching it. It reads --gradient-foil
+   from :root, which is static, so it is untouched — do not propagate this to
+   it, for the same reason fit-content was not propagated to it.
+
+   --foil-angle is registered so it can interpolate at all: an unregistered
+   custom property has no type and jumps rather than travels. inherits: false
+   keeps the invalidation on the handful of .text-foil elements instead of
+   putting an animated inherited property on :root, which would restyle the
+   whole document once per frame. The rest value is declared on .text-foil
+   above as well as here, for the guaranteed-invalid reason written there.
+   -------------------------------------------------------------------------- */
+@property --foil-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 116.57deg;
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) and (animation-timeline: view()) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .text-foil {
+      animation: cf-foil-swing linear both;
+      animation-timeline: view();
+    }
+  }
+}
+@keyframes cf-foil-swing {
+  from { --foil-angle: var(--angle-square); }
+  50%  { --foil-angle: var(--foil-rake); }
+  to   { --foil-angle: var(--angle-square); }
+}
+
 @media print {
   .text-foil {
     background: none;

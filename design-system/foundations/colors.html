@@ -327,8 +327,11 @@
         <tr><td><code>--gradient-bloom-iso</code></td><td>radial 2:1 ellipse, mid</td><td>the same bloom on an isometric plate</td></tr>
         <tr><td><code>--gradient-bloom-top</code></td><td>radial from above, far</td><td>light entering a surface from the top edge</td></tr>
         <tr><td><code>--gradient-spectrum</code></td><td>linear 132.36°, five stops</td><td><code>.material-foil</code> — surfaces only</td></tr>
-        <tr><td><code>--gradient-foil</code></td><td>linear 116.57°, the spectrum minus lime, renormalised</td><td><code>.text-foil</code> — the lit half, inverse surfaces; and every <code>.cf-btn--solid</code> label</td></tr>
-        <tr><td><code>--gradient-foil-ink</code></td><td>linear 116.57°, the same three hues in the 800 band</td><td><code>.text-foil--ink</code> — the shadow half, light surfaces</td></tr>
+        <tr><td><code>--gradient-foil</code></td><td>linear <code>--foil-rake</code>, the spectrum minus lime, renormalised</td><td><code>.text-foil</code> — the lit half, inverse surfaces; and every <code>.cf-btn--solid</code> label</td></tr>
+        <tr><td><code>--gradient-foil-ink</code></td><td>linear <code>--foil-rake</code>, the same three hues in the 800 band</td><td><code>.text-foil--ink</code> — the shadow half, light surfaces</td></tr>
+        <tr><td><code>--foil-rake</code></td><td>116.57° = 90° + 26.57°</td><td>the angle both foils are drawn at head-on</td></tr>
+        <tr><td><code>--foil-stops</code></td><td>the lit half's four stops, without an angle</td><td>the material, so the rake can change without restating it</td></tr>
+        <tr><td><code>--foil-ink-stops</code></td><td>the shadow half's three stops, without an angle</td><td>the same, for the 800 band</td></tr>
         <tr><td><code>--spectrum-hot</code></td><td>18 % — the white hot spot</td><td>shared by both foil gradients; not used alone</td></tr>
         <tr><td><code>--spectrum-cool</code></td><td>64 % — where Sky takes over</td><td>shared by both foil gradients; not used alone</td></tr>
         <tr><td><code>--grain</code></td><td>SVG fractal noise tile</td><td>dithering the page wash</td></tr>
@@ -541,9 +544,70 @@
         <code>::selection</code> gets an explicit fill because clipped text has no colour
         left for the selection layer to invert. Both variants share every one of those
         rules: <code>--ink</code> is a modifier that swaps one custom property,
-        <code>--foil-image</code>, so it cannot drift out of the safety net.
+        <code>--foil-ramp</code>, so it cannot drift out of the safety net.
       </p>
     </div>
+
+    <h3>The rake swings</h3>
+    <p>
+      Holographic stock is not a picture of a spectrum. It is a surface that hands you a
+      different part of one from every angle, which is why a foil sample book is photographed
+      tilting and a printed one looks dead. Static, the foil is the photograph. The swing is
+      the tilt: the angle the light crosses the letterforms at opens and closes by exactly one
+      brand angle as the type travels up the viewport, scrubbed from scroll position so it
+      tracks the reader's hand and runs backwards when they scroll back.
+    </p>
+    <p>
+      <strong>The contrast floor is unchanged by construction</strong>, and that is the reason
+      it is an angle and not a slide. Turning a linear gradient changes <em>where</em> each
+      stop lands, never <em>which</em> stops are present — the whole ramp is inside the box at
+      every frame. So the worst sample of the swinging foil is the worst sample of the static
+      one: 9.3:1 on anthracite, 5.24:1 on CF-Grau. Nothing needs re-measuring per frame, which
+      is a property of the mechanism rather than a lucky result. The two alternatives both
+      would have needed it: a specular band composited over the type raises contrast on the lit
+      half and lowers it on the ink half, and a ramp painted wider than its clip box and slid
+      across leaves the glyphs standing in two thirds of the ramp at any instant, which reads
+      as changing colour rather than as catching light.
+    </p>
+    <p>
+      <strong>90° to 116.57°, and the swing is itself a brand angle.</strong> Both endpoints
+      are sanctioned — 90° is the flat rake and 116.57° is 90° + 26.57° — and the distance
+      between them is 26.57°, the isometric angle. The swing cannot drift off the four
+      permitted angles wherever it is stopped, because it is bounded by two of them. It stays
+      shallow throughout on purpose: a headline is a wide short box, and the foil took the
+      shallow rake in the first place because at 132.36° the ramp completes inside the first
+      two or three letters.
+    </p>
+    <p>
+      <strong>116.57° is what you see head-on</strong>, which is why the swing turns round at
+      the halfway mark instead of running straight through. You see a material as drawn when
+      you are square to it, so timeline 50 % — the type at the middle of the viewport — is
+      where the rake is the designer's value, and either edge of the screen is an oblique
+      line of sight where it flattens to 90°. That is also the value everything falls back to
+      when the swing cannot run: no <code>@property</code>, no scroll timeline, reduced
+      motion, print, forced colours.
+    </p>
+    <div class="docs-note">
+      <strong>Neither foil moment on the two designed pages reaches head-on.</strong>
+      <p>
+        Both sit at a document extreme — a page header at the top, a footer at the bottom —
+        where a <code>view()</code> timeline only has part of its range to work with.
+        Measured at 1280 × 900: the Über uns title runs 74.6 % → 100 % of the timeline, so
+        103.5° → 90°; the footer title runs 0 % → 34 %, so 90° → 108.2°. Both therefore read
+        between 90° and 108°, opening towards the designed rake as they approach the middle
+        of the screen and never quite arriving. That is the honest behaviour of the model
+        rather than a shortfall in it — a headline the reader cannot bring to the centre of
+        the screen is a headline they never look at square on. A foil moment placed mid-page,
+        such as a blog article title, gets the whole journey.
+      </p>
+    </div>
+    <p>
+      <strong><code>.cf-btn--solid</code> does not swing.</strong> Its foil is the component's
+      own colour rather than an emphasis, its clip box is the whole button on purpose, and a
+      label whose light shifts while the reader is aiming at it is a different thing from a
+      headline catching it. It reads <code>--gradient-foil</code> from <code>:root</code>,
+      which is static, so it is untouched.
+    </p>
   </section>
 
   <section class="docs-section" id="wash">

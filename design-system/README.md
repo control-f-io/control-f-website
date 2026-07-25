@@ -249,6 +249,18 @@ These were judgement calls, each documented on the relevant page:
   across 0.090. Worst sample on the shipped header is 5.45:1. As above, the fallback is the
   designer's own value — the title inherits `--text-primary`.
   → `foundations/colors.html`
+- **The foil's rake swings; the mockups draw it at one angle.** A foil that never moves is a
+  photograph of a foil. `.text-foil` therefore opens and closes the angle its gradient is drawn
+  at — 90° to 116.57°, both sanctioned, and the 26.57° between them is the isometric angle
+  itself — scrubbed from the element's position in the viewport. 116.57° is what you see
+  head-on, so the swing turns round at the middle of the screen and every path away from it
+  (no `@property`, no scroll timeline, reduced motion, print, forced colours) lands on the
+  designer's own value. Turning a gradient changes where its stops land and never which stops
+  are present, so the measured contrast floor holds at every frame without re-measuring —
+  which is why this is an angle rather than a specular band or a sliding ramp. Neither foil
+  moment on the two designed pages can reach the middle of the screen, so both read between
+  90° and 108°; that is documented rather than bent.
+  → `foundations/colors.html`, `foundations/motion.html`
 - **Inline SVG gradients carry an oklab waypoint the source vectors do not have.** Figma
   interpolates in sRGB, and SVG can only interpolate in sRGB or linearRGB, so the illustrations
   inherited the sRGB path. The CSS gradients interpolate in oklab. Same three colours, two
