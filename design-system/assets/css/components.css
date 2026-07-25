@@ -69,8 +69,13 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 
 /* --------------------------------------------------------------------------
    BUTTON
-   Square corners, mono uppercase label, arrow on the right.
+   Rectangular, 2 px corners, mono uppercase label, arrow on the right.
    Primary uses the lime gradient — the "Licht-Ebene" material.
+
+   The corner is --radius-sm and not --radius-none. All three CTAs in the
+   Figma export carry rx="2" — hero 189x48, footer 396x46, ueber-uns 228x46 —
+   so a square button was never what was drawn. See the note on the radius
+   tokens for the full count.
    -------------------------------------------------------------------------- */
 .cf-btn {
   display: inline-flex;
@@ -89,7 +94,7 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
      start in the strip at the RIGHT, one full period out of place. Sizing the
      image to the border box removes the strip to be filled. */
   background-origin: border-box;
-  border-radius: var(--radius-none);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
@@ -360,12 +365,136 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 }
 .cf-btn--outline:hover { background: var(--cf-schwarz); color: var(--grey-000); }
 
+/* The black button. Its label is not white — it is the foil, clipped into the
+   letterforms, and the arrow is the colour the ramp has arrived at by the time
+   it reaches the right edge.
+
+   This is the brand's own move, not an invention. The manual's app icon
+   (Farben > Anwendung) is a black plate with the mark filled by the light
+   ramp; the mark is what carries the colour and the plate stays black. A black
+   button is the same object at UI scale, so the label carries the colour.
+
+   The foil and not --gradient-light, and that is the load-bearing choice: the
+   light ramp starts at lime, and lime is a moment — one element per screen.
+   A black button is furniture and there can be several of them on a page, so
+   a lime-tipped label would spend the screen's one lime moment on a secondary
+   download link. The foil is the cool half of the same spectrum with the lime
+   cut off, which is exactly why it exists. See base.css, FOIL TYPE.
+
+   Contrast, measured, worst sample of the ramp against the plate:
+
+     Weiss       #FFFFFF   16.45:1 on anthracite   21.00:1 on black
+     Glas        #C5EBE2   12.81:1                 16.36:1
+     Sky 300     #B8D7F1   10.99:1                 14.03:1
+     Violett 300 #BEBFF0    9.32:1                 11.90:1   <- floor
+
+   So the floor is 9.3:1 at rest and 11.9:1 on hover, against a 4.5:1
+   requirement. There is no size at which this label is the weak part of the
+   page, which is why the treatment can be the default here rather than an
+   opt-in for large type only. */
 .cf-btn--solid {
   background: var(--surface-inverse);
   color: var(--text-inverse);
 }
 .cf-btn--solid:hover { background: var(--cf-schwarz); }
 
+/* The gradient box is the WHOLE button, not the label, and that is what makes
+   the effect read. At 116.57° across a 352 x 48 slab the ramp is 336 px long
+   and runs left to right, so the label — which sits in the left half — gets
+   the Weiss -> Glas -> Sky leg and the arrow at the far right gets Violett.
+   Light enters at the first letter and arrives, coloured, at the arrow. Scope
+   the gradient to a label span instead and every button ramps the full
+   spectrum inside ten characters, which reads as a rainbow rather than as
+   light crossing a plate.
+
+   It also means no markup changes: a label span would have to be added to
+   every .cf-btn--solid on the site, and the ones that were missed would
+   silently keep white text.
+
+   TWO BACKGROUND LAYERS WITH TWO CLIPS, and the second one is not optional.
+   background-clip: text clips the whole background — background-color
+   included — so a single-layer version leaves the button with no plate and a
+   label that reads as pale type directly on the page. The layer list splits
+   the two jobs: layer 1 is the foil, clipped to the glyphs; layer 2 is empty
+   and exists only to carry `border-box`, because the background-color is
+   painted with the clip of the FINAL layer. The plate is therefore still a
+   plain background-color and still transitions on hover, which a pseudo-
+   element plate would not have done.
+
+   The obvious alternative — plate on a ::before at z-index: -1 — is wrong,
+   and wrong in a way that looks like a browser bug. Within a stacking
+   context, negative-z-index children paint AFTER the element's own
+   background, so the plate covers the clipped-to-text gradient and the label
+   disappears entirely. Measured, not reasoned about: it renders as a black
+   slab with a violet arrow and no text.
+
+   Everything is inside @supports. The unenhanced state is the rule above it,
+   untouched — opaque plate, white label. Nothing to fall back to, because
+   nothing was taken away. */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .cf-btn--solid {
+    background-image: var(--gradient-foil), none;
+    -webkit-background-clip: text, border-box;
+    background-clip: text, border-box;
+    background-color: var(--surface-inverse);
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  /* The hover state has to RESTATE the layer list, not just recolour the
+     plate. `.cf-btn--solid:hover { background: … }` above is a shorthand, so
+     it sets every background longhand for the hovered state — including
+     background-image: none and background-clip: border-box. Overriding only
+     background-color here leaves those two standing, and the button loses its
+     foil the moment a pointer touches it: clip gone, image gone, and the label
+     is still -webkit-text-fill-color: transparent, so it disappears entirely.
+     Caught in review, before it shipped.
+
+     Restating is the fix rather than removing the shorthand above, because
+     that shorthand is the fallback path's hover and has to stay intact for
+     browsers that never enter this block. */
+  .cf-btn--solid:hover {
+    background-image: var(--gradient-foil), none;
+    -webkit-background-clip: text, border-box;
+    background-clip: text, border-box;
+    background-color: var(--cf-schwarz);
+  }
+
+  /* fill: currentColor would resolve to transparent and the arrow would
+     disappear. --violett-300 is not a picked colour: it is the foil's own
+     100 % stop, which is where the ramp stands at the arrow's x. */
+  .cf-btn--solid .cf-arrow { fill: var(--violett-300); }
+
+  /* Clipped text has no colour left for the selection layer to invert. */
+  .cf-btn--solid::selection {
+    color: var(--cf-schwarz);
+    -webkit-text-fill-color: var(--cf-schwarz);
+    background: var(--cf-lime);
+  }
+}
+
+/* Both of these hand the label back a real colour. Ink on paper has no plate
+   to sit on, and forced-colors has already decided what a button looks like. */
+@media print {
+  .cf-btn--solid {
+    background: none;
+    color: var(--cf-schwarz);
+    -webkit-text-fill-color: var(--cf-schwarz);
+  }
+  .cf-btn--solid .cf-arrow { fill: var(--cf-schwarz); }
+}
+@media (forced-colors: active) {
+  .cf-btn--solid {
+    background: none;
+    color: ButtonText;
+    -webkit-text-fill-color: ButtonText;
+  }
+  .cf-btn--solid .cf-arrow { fill: ButtonText; }
+}
+
+/* The one button that goes back to square, because it has no plate: it is a
+   label over a 1 px rule, and a rule is structure. Inheriting --radius-sm from
+   .cf-btn would curl the last 2 px at each end of that hairline upward, which
+   at 1 px reads as a rendering fault rather than as a corner. */
 .cf-btn--ghost {
   min-height: auto;
   padding: var(--space-2) 0;
@@ -374,6 +503,7 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   color: var(--text-primary);
   border: 0;
   border-bottom: var(--stroke-1) solid var(--border-strong);
+  border-radius: var(--radius-none);
 }
 
 .cf-btn--block { display: flex; width: 100%; }
@@ -401,8 +531,8 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 
 /* --------------------------------------------------------------------------
    LOGO LOCKUP
-   The logo sits in a black pill in the top-left. It is the one rounded
-   element in the system besides avatars.
+   The logo sits on a black plate in the top-left. A plate, not a pill: the
+   export draws it 152.09 x 35.25 at rx="2", where a pill would be rx 17.6.
    -------------------------------------------------------------------------- */
 .cf-logo {
   display: inline-flex;
@@ -410,7 +540,7 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   gap: var(--space-2);
   padding: var(--space-3) var(--space-6);
   background: var(--cf-anthrazit);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   color: var(--grey-000);
 }
 .cf-logo img, .cf-logo svg { height: 1.25rem; width: auto; }
@@ -418,17 +548,23 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 
 /* --------------------------------------------------------------------------
    NAVIGATION
-   Logo pill left, link pill right, mono uppercase links, both opaque —
+   Logo plate left, link plate right, mono uppercase links, both opaque —
    and the whole bar is one full-bleed sheet of frosted glass.
 
    The mockups are explicit about this and the implementation had it the
    other way round. Sampled from mockups/landing-page.jpg: the top 80 px of
    the frame is blurred and desaturated against the hero artwork with a hard
-   edge at its bottom, and both pills inside it read #000. That is the
+   edge at its bottom, and both plates inside it read #000. That is the
    manual's stacking order — Layer 03 (glass) under Layer 02 (opaque) — and
    it is also the only version that survives a contrast check, because an
-   opaque pill holds its text at 16:1 no matter which frame of the video is
+   opaque plate holds its text at 16:1 no matter which frame of the video is
    playing underneath.
+
+   Both plates are rectangles with a 2 px corner, not pills. The link bar is
+   417 x 41 at rx="2" in the export, where a pill would be rx 20.5 — the
+   compressed JPG is what made it look like a capsule, and the vectors settle
+   it. The same 2 px is on the logo plate, on all three CTAs and on the team
+   photos; see the note on the radius tokens.
    -------------------------------------------------------------------------- */
 /* The bar has to stay a POSITIONED element. Three absolutely positioned
    children resolve against it — the glass sheet, the edge, and the mobile
@@ -527,12 +663,12 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   list-style: none;
   background: var(--cf-anthrazit);
   border: var(--stroke-1) solid var(--border-inverse);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
 }
 .cf-nav__link {
   display: block;
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
@@ -545,7 +681,14 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 .cf-nav__link:hover,
 .cf-nav__link:focus-visible { color: var(--grey-000); }
 /* The current page is marked by weight of ink, not by a lime ground — lime is
-   light, and the one lime moment on the page belongs to the hero's button. */
+   light, and the one lime moment on the page belongs to the hero's button.
+
+   The export has no marker at all: the nav is one black rect and five text
+   runs, all the same grey. That is the mockup showing a single page rather
+   than a rule, and a five-item bar that never says where you are is a real
+   loss, so the marker stays — as a 2 px plate inside a 2 px plate, which is
+   the same corner the bar itself carries. It was a capsule inside a capsule
+   before, and that shape is what made the whole bar read as a pill. */
 .cf-nav__link[aria-current="page"] {
   color: var(--grey-000);
   background: rgba(255, 255, 255, 0.14);
@@ -553,6 +696,8 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 .cf-nav :focus-visible { outline-color: var(--cf-lime); }
 .cf-nav__toggle { display: none; }
 
+/* The open menu already used --radius-sm while the closed bar was a pill, so
+   the bar changed shape on the way to the small screen. One corner now. */
 @media (max-width: 780px) {
   .cf-nav__list {
     display: none;
@@ -560,7 +705,6 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
     inset: 100% var(--gutter) auto var(--gutter);
     flex-direction: column;
     align-items: stretch;
-    border-radius: var(--radius-sm);
   }
   .cf-nav__list[data-open="true"] { display: flex; }
   .cf-nav__toggle {
@@ -571,7 +715,7 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
     background: var(--cf-anthrazit);
     color: var(--grey-000);
     border: var(--stroke-1) solid var(--border-inverse);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-sm);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-label);
@@ -1167,8 +1311,8 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 .cf-article__toc a:hover,
 .cf-article__toc a:hover::before { color: var(--text-primary); }
 
-/* Byline. The round avatar is one of the three sanctioned curves in the
-   system — logo pill, nav pill, avatar — and this is the third. */
+/* Byline. The round avatar is the system's one true curve: everything else
+   that is not square is 2 px, and a circle cannot be expressed as 2 px. */
 .cf-article__byline {
   display: flex;
   align-items: center;
@@ -1561,10 +1705,14 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   border-right: var(--stroke-1) solid var(--border-strong);
   border-bottom: var(--stroke-1) solid var(--border-strong);
 }
+/* rx="2" on all five portraits in ueber-uns-full.svg (200 x 300 each). A photo
+   is an object with a body of its own, so it takes the system corner; the cell
+   around it is structure and stays square. */
 .cf-team-grid__photo {
   width: 100%;
   aspect-ratio: 4 / 5;
   object-fit: cover;
+  border-radius: var(--radius-sm);
   margin-bottom: var(--space-4);
 }
 /* The enhancement, behind a support query: the fallback above is the current

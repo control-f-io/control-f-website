@@ -404,7 +404,7 @@ hr {
 
 /* --------------------------------------------------------------------------
    FOIL TYPE
-   The one place a gradient is allowed inside letterforms. It carries no lime,
+   The gradient inside letterforms. It carries no lime,
    so a screen that has already spent its lime moment can still take it.
 
    Two variants, because a foil has two sides and the site has two surfaces:
@@ -438,6 +438,31 @@ hr {
    and fills its column exactly as before. It lives inside @supports because
    outside it nothing is clipped and shrinking the box would be a layout
    change for no reason.
+
+   THIS CLASS IS NOT THE ONLY CONSUMER OF --gradient-foil, and the other one
+   inverts both rules above on purpose:
+
+   .cf-btn--solid clips the lit half into its own label, automatically, with
+   no class to opt in. It is under no foil-moment budget, because there the
+   foil is the component's own colour — the way the light ramp is the primary
+   button's — rather than an emphasis applied to it. A 12 px mono label is not
+   competing with a display headline; three black buttons on a page are three
+   buttons. What the budget does still forbid is a foil HEADLINE and a black
+   button in one eyeful, because then the headline is no longer the only
+   iridescent thing on screen.
+
+   And it deliberately does NOT size its clip box to the text. That fix is
+   right for a headline in a block, where the box is the column and the ramp
+   dies a third of the way in; it would be wrong here. The button's gradient
+   box is the whole button ON PURPOSE, so the label takes the Weiss -> Glas ->
+   Sky leg and the arrow at the far right sits in Violett — light entering at
+   the first letter and arriving, coloured, at the arrow. Shrink that box to
+   the label and every button ramps the full spectrum inside ten characters,
+   which reads as a rainbow rather than as light crossing a plate. Do not
+   propagate fit-content to it.
+
+   See components.css, and foundations/colors.html for the table that governs
+   both.
 
    The unenhanced state is the fallback: the element keeps its inherited
    colour and nothing is clipped. Only inside @supports does the text go
