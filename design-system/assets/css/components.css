@@ -113,35 +113,40 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 .cf-btn--glass {
   position: relative;
   color: var(--accent-ink);
-  /* The rest position, declared here and not left to the initial-value in the
-     @property block. It has to be a real declaration, and it must not be a
-     var() fallback either — both alternatives fail, in opposite directions:
+  /* DELETE THIS LINE AND BROWSERS WITHOUT @property LOSE THE PLATE, NOT JUST
+     THE ANIMATION. The long version follows; that sentence is the whole of it.
 
-     Bare var() with no declaration. A browser that does not support @property
-     leaves --cf-specular unset, and an unresolvable var() is *guaranteed
-     invalid*, which makes the whole `background` shorthand invalid at
-     computed-value time. Not only this layer — the linear-gradient and
-     --surface-glass under it go with it, and the button computes to
-     background-image: none over a transparent background-color.
-     backdrop-filter is a separate declaration and survives, so what is left
-     is a blur with no plate and a pure-black label (--accent-ink) directly
-     over the hero video, with nothing holding the contrast floor.
+     The rest position is declared here rather than left to the initial-value
+     in the @property block, because leaving it there makes --cf-specular
+     unset wherever @property is unsupported — and an unresolvable var() is
+     *guaranteed invalid*, which takes the whole `background` shorthand with
+     it at computed-value time. Not only this layer: the linear-gradient and
+     --surface-glass go too, and the button computes to background-image: none
+     over a transparent background-color. backdrop-filter is a separate
+     declaration and survives, so what is left is a blur with no plate and a
+     pure-black label (--accent-ink) directly over the hero video, with
+     nothing holding the contrast floor. That is the load-bearing reason, it
+     is spec behaviour, and it does not expire.
 
-     var(--cf-specular, 150%). Fixes that, and silently costs the whole
-     effect. The property still interpolates perfectly — that is the trap.
-     What stops is the REPAINT: with a fallback in the var(), the background
-     is not invalidated as the property changes, so the plate holds its rest
-     paint for the whole transition and snaps at the end.
-
-     Compared at identical property values rather than identical times, so
-     there is no timing jitter in it (Chromium 141, 4 s transition):
+     A var(--cf-specular, 150%) fallback would also resolve the value, and in
+     a correct browser it should be indistinguishable from this declaration —
+     a registered property with an initial-value is never guaranteed-invalid,
+     so its fallback is never consulted. Prefer the plain declaration anyway,
+     for a second and weaker reason: in Chromium 141 the fallback form breaks
+     repaint invalidation. The property still interpolates, and the form
+     paints correctly when sampled statically at either endpoint, but the
+     background is not invalidated as the property changes, so the plate holds
+     its rest paint and snaps at the end. Measured at identical property
+     values rather than identical times, so no timing jitter is in it:
 
        at --cf-specular = 109.67 %   bare var: band visible at the right end
-                                     fallback: zero change across all 16 columns
+                                     fallback: zero change across 16 columns
        at --cf-specular =  79.88 %   bare var: a clear band, peak 14
                                      fallback: still zero
 
-     Both settle to the same profile. Only the travel is lost.
+     Treat that as a browser bug and not as a rule — if it is fixed, this
+     paragraph stops being true while the declaration above stays correct and
+     still necessary.
 
      Note for anyone re-checking this: getComputedStyle cannot see it. The
      property reads as interpolating in both forms, to three decimal places.
