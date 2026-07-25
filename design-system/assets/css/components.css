@@ -1001,10 +1001,20 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 }
 .cf-page-header__meta :last-child { color: var(--text-secondary); }
 
-/* Below 900 px the object would sit behind the title instead of beside it. */
+/* Below 900 px the object would sit behind the title instead of beside it.
+
+   THE SELECTOR CARRIES THE PARENT DELIBERATELY, and this is a bug fix rather
+   than a style. `.cf-iso { display: block }` is declared further down this
+   file at the same specificity (0,1,0), a media query adds none of its own,
+   and the figure on Über uns is `.cf-page-header__figure.cf-iso` — so the
+   plain class lost on source order and the object never disappeared. It was
+   painting on every phone the rule was written to protect: measured at a 375
+   viewport, 172.5 px of isometric drawing sitting behind the page title.
+   Naming the parent puts the hide at (0,2,0), which wins wherever .cf-iso
+   ends up in the file. → foundations/mobile.html */
 @media (max-width: 900px) {
   .cf-page-header { padding-block: var(--space-16) var(--space-12); }
-  .cf-page-header__figure { display: none; }
+  .cf-page-header .cf-page-header__figure { display: none; }
 }
 
 /* --------------------------------------------------------------------------

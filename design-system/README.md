@@ -36,7 +36,7 @@ The table in that page is **generated**. Run `--fix` rather than editing a count
 design-system/
 ├── index.html              overview + how to include the CSS
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
-│                           illustration, logo, photo, motion
+│                           illustration, logo, photo, motion, mobile
 ├── components/             buttons, nav, section header, statement + value table,
 │                           plot, process card, accordion, blog grid, pagination,
 │                           article + prose, team, forms, footer, consent
