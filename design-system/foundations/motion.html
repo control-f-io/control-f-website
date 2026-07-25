@@ -59,9 +59,9 @@
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Duration</th><th>Used for</th><th>In the CSS today</th></tr></thead>
       <tbody>
-        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change</td><td>8 rules</td></tr>
-        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>the control itself responding — arrow, button, menu</td><td>6 rules</td></tr>
-        <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>a reveal, or light crossing a surface</td><td>4 rules</td></tr>
+        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change</td><td>9 rules</td></tr>
+        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>the control itself responding — arrow, button, menu</td><td>8 rules</td></tr>
+        <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>a reveal, or light crossing a surface</td><td>6 rules</td></tr>
         <tr><td><code>--duration-scene</code></td><td>1200 ms</td><td>a full object build, if one is ever driven by time</td><td><strong>none yet</strong></td></tr>
       </tbody>
     </table>
@@ -70,17 +70,35 @@
       <code>var()</code> occurrence — a rule naming a token twice is one consumer, not two.
       Only <code>--duration-scene</code> has none.
     </p>
+    <div class="docs-note">
+      <strong>Three of those four counts were stale, and the count is the only part of this
+      page that can go stale silently.</strong> Measured against the shipping CSS they read 8,
+      6 and 4 while the stylesheets held 8, 8 and 5; the mobile menu below then took two of
+      them up again. Nothing rendered wrong — a table simply stopped describing the code, in
+      the one column that exists to be checked. It is counted by hand, so the next rule that
+      names a duration has to come back here. Treat a number in that column as a claim, not
+      as a fact, and re-count before citing it.
+    </div>
     <p>
       <strong>480 ms carries two different kinds of motion, and the distinction is worth
-      keeping.</strong> Three of its four consumers are light crossing a surface — the glass
-      button's specular, and the accordion row and blog cell each sliding
-      <code>--sheen-panel</code> by <code>background-position</code>. The fourth,
-      <code>.cf-accordion__item::details-content</code>, is a panel opening. That looks like a
-      counterexample to "the control responds fast" and is not one: a reveal is not the control
-      answering a click, it is content arriving, and 480 ms is this token's stated purpose.
-      What belongs at <code>--duration-base</code> is the control's own acknowledgement — the
-      arrow stepping, the border changing. The glass button does both at once, which is why it
-      names two durations in one rule.
+      keeping.</strong> Four of its six consumers are light crossing a surface — the specular
+      on each of the two lit buttons, and the accordion row and blog cell each sliding
+      <code>--sheen-panel</code> by <code>background-position</code>. The other two are a panel
+      opening: <code>.cf-accordion__item::details-content</code>, and the mobile navigation
+      menu, whose clip edge travels down the panel to draw it out from under the bar. That
+      looks like a counterexample to "the control responds fast" and is not one: a reveal is
+      not the control answering a click, it is content arriving, and 480 ms is this token's
+      stated purpose. What belongs at <code>--duration-base</code> is the control's own
+      acknowledgement — the arrow stepping, the border changing. The glass button does both at
+      once, which is why it names two durations in one rule.
+    </p>
+    <p>
+      <strong>The two panel reveals deliberately share a curve as well as a duration.</strong>
+      <code>--ease-in-out</code>'s entry in the table below — states that toggle back and forth
+      — describes the menu almost exactly, and it is still the one curve with no consumer. It
+      was left that way on purpose: the accordion got to <code>--ease-standard</code> first,
+      and two panels opening in one system should not move on two different curves for a
+      distinction only their stylesheets can see.
     </p>
     <p>
       <code>--duration-scene</code> genuinely has no consumer, and it is worth knowing why
