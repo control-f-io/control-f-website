@@ -261,20 +261,20 @@
       A <code>var(--cf-specular, 150%)</code> fallback would resolve the value too, and in a
       correct browser it should be indistinguishable — a registered property with an
       <code>initial-value</code> is never guaranteed-invalid, so its fallback is never
-      consulted. Prefer the plain declaration anyway, for a second and weaker reason: in
-      Chromium 141 the fallback form breaks repaint invalidation. The property still
-      interpolates, and the form paints correctly when sampled statically at either endpoint,
-      but the background is not invalidated as the property changes, so the plate holds its
-      rest paint and snaps at the end. Measured at identical property values rather than
-      identical times: at <code>--cf-specular</code> = 109.67 % the bare form already shows a
-      band and the fallback form shows zero change across all sixteen sampled columns; at
-      79.88 % the bare form shows a clear band and the fallback is still zero.
+      consulted and the two forms are equivalent. Use the plain declaration because it states
+      the guarantee where the declaration is, rather than leaving it implied inside a
+      <code>var()</code> argument that a reader may take for decoration and remove.
     </p>
     <p>
-      <strong>That is a browser bug, not a rule.</strong> If it is fixed the paragraph above
-      stops being true, while the declaration stays correct and still necessary for the
-      guaranteed-invalid reason, which is spec behaviour and does not expire. Keep the two
-      arguments separate — the spec one is the load-bearing half.
+      <strong>A Chromium 141 repaint quirk was cited here as a second reason and has been
+      demoted, because it does not reproduce the way this page tells you to test.</strong>
+      Driven by pointer hover, the fallback form does not repaint while the property
+      interpolates — the plate holds its rest paint and snaps at the end, measured at identical
+      property values rather than identical times. Driven by <code>element.focus()</code>, both
+      forms travel identically. A reviewing lane could not reproduce it at all, for exactly that
+      reason. Recorded here so nobody re-derives it, and deliberately load-bearing on nothing:
+      if it were left as an argument, the first person to check it correctly would find nothing
+      and delete the sound reasoning next to it.
     </p>
     <p>
       Two traps worth remembering on their own, because between them they rule out both
@@ -332,8 +332,12 @@
       to 732 — about 150&nbsp;px of scroll carrying two stacked <code>backdrop-filter</code>s.
       It costs nothing measurable; sweeps through the overlap window and through clear page
       give the same 16.7&nbsp;ms median and overlapping p95 ranges. The rule worth keeping is
-      therefore the one that pays — exactly two blurred layers on a page, never a third — not
-      the stronger one the comment used to assert.
+      therefore the one that pays — exactly two blurred layers on a <em>shipping</em> page,
+      never a third — not the stronger one the comment used to assert. The scope matters, and
+      this page is why: it carries three composited plates of its own, the two samples above
+      and the band in the layer stack below. A documentation page showing a material has to be
+      allowed more of it than a page selling something. Census of the shipping tree — landing
+      page 2, Über uns 1, and 1 each on the component pages that demo it.
     </p>
     <p>
       <strong>Where the third layer would come from, so it does not.</strong> The budget is
