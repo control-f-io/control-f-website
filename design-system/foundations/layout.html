@@ -232,6 +232,16 @@
       rail — it is simply not a derived number, and the register should not imply that it is.
       Measured in Chromium: the split fires at a viewport of <strong>1079 px</strong>.
       <br><br>
+      <strong>One caveat, and it could invert that conclusion.</strong> The 587 px is the only
+      font-dependent number in the argument, and it was measured against the <em>fallback</em>:
+      <code>assets/fonts/</code> is still empty, so Geist never loads
+      (<code>document.fonts.check("16px Geist")</code> is <code>false</code>) and
+      <code>ch</code> resolves against Arial, whose digit advance is 0.556 em — narrow for a
+      grotesk. The tipping point is <strong>0.591 em</strong>: any face wider than that puts 66 ch
+      past the 624 px column, and then 56rem does <em>not</em> clear the measure and 60rem stops
+      being a free choice. So this is the one figure on the page that has to be re-measured the
+      day Geist lands. The direction of the risk favours keeping 60rem.
+      <br><br>
       Whether to reconcile it down to 56rem and let the system carry three container thresholds
       instead of four is a designer's call, for the same reason the 780 / 900 pair is: it changes
       designed behaviour on <code>patterns/blog-artikel.html</code>. Left as it is, now on the
@@ -328,6 +338,10 @@ print(counts)
       Comments are stripped first, which matters more than it sounds: <code>--space-30</code>
       is named eight times across <code>tokens.css</code> and this page and used in exactly zero
       declarations, so a naive <code>grep</code> would report it as a healthy rung.
+      <br><br>
+      The other thing a sceptical reader checks first: the match includes the closing paren, so
+      <code>var(--space-1)</code> cannot match <code>var(--space-12)</code>. The narrow steps are
+      not silently inflated by the wide ones.
     </div>
     <div class="docs-note">
       <strong>The stamp is a digest of the counts themselves.</strong> It is the first eight hex
