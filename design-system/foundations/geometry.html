@@ -181,10 +181,73 @@
   <section class="docs-section" id="corners">
     <h2>Corners</h2>
     <p>
-      Square. <code>--radius-none</code> is the default for cards, panels, buttons, inputs
-      and images. There are exactly two exceptions: the logo pill and the navigation pill
-      (<code>--radius-pill</code>), and round avatars (<code>--radius-full</code>).
-      Anything else with rounded corners is a mistake.
+      Two corners, and neither of them is a pill. Structure is square
+      (<code>--radius-none</code>); anything that reads as an object of its own takes a
+      2 px corner (<code>--radius-sm</code>). Round avatars
+      (<code>--radius-full</code>) are the single curve in the system, because a circle
+      cannot be expressed as 2 px.
+    </p>
+
+    <div class="docs-demo docs-demo--flat" style="display:flex;gap:var(--space-6);flex-wrap:wrap;align-items:center">
+      <figure style="margin:0">
+        <div style="width:11rem;height:4rem;background:var(--cf-anthrazit);border-radius:var(--radius-sm)"></div>
+        <figcaption><code>--radius-sm</code> · 2 px · objects</figcaption>
+      </figure>
+      <figure style="margin:0">
+        <div style="width:11rem;height:4rem;border:var(--stroke-1) solid var(--border-strong);border-radius:var(--radius-none)"></div>
+        <figcaption><code>--radius-none</code> · 0 · structure</figcaption>
+      </figure>
+      <figure style="margin:0">
+        <div style="width:4rem;height:4rem;background:var(--cf-anthrazit);border-radius:var(--radius-full)"></div>
+        <figcaption><code>--radius-full</code> · avatars</figcaption>
+      </figure>
+    </div>
+
+    <h3>Where the 2 px comes from</h3>
+    <p>
+      Counted off the Figma export rather than read off the mockup JPGs. Across
+      <code>landing-page-full.svg</code> and <code>ueber-uns-full.svg</code> there are 170
+      <code>&lt;rect&gt;</code> elements. Ten carry a radius. Every one of those ten is
+      <code>rx="2"</code>:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Element</th><th>Drawn at</th><th>Radius</th><th>A pill would be</th></tr></thead>
+      <tbody>
+        <tr><td>Logo lockup</td><td>152.09 × 35.25</td><td><code>rx="2"</code></td><td>17.6</td></tr>
+        <tr><td>Navigation bar</td><td>417 × 41</td><td><code>rx="2"</code></td><td>20.5</td></tr>
+        <tr><td>Hero CTA</td><td>189 × 48</td><td><code>rx="2"</code></td><td>24</td></tr>
+        <tr><td>Footer CTA</td><td>396 × 46</td><td><code>rx="2"</code></td><td>23</td></tr>
+        <tr><td>Über-uns CTA</td><td>228 × 46</td><td><code>rx="2"</code></td><td>23</td></tr>
+        <tr><td>Team portrait ×5</td><td>200 × 300</td><td><code>rx="2"</code></td><td>100</td></tr>
+        <tr><td>Blog container</td><td>1277 × 524</td><td><code>rx="2"</code></td><td>262</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The other 160 rects are square. So the split is not a matter of taste: what carries
+      the 2 px is a <b>control, a plate, a photo</b> — something with a body of its own.
+      What stays square is <b>structure</b> — hairline frames, section rules, and the grid
+      cells that are drawn by their neighbours' borders rather than by a box of their own.
+    </p>
+    <div class="docs-note">
+      <strong>There was a <code>--radius-pill</code> and it was wrong.</strong> It sat at
+      999 px and was applied to the logo lockup and the nav bar. That was a reading of the
+      compressed mockup JPGs, where a 41 px-tall black bar with 2 px corners genuinely does
+      look like a capsule. The vectors settle it, and the token is gone. Do not reintroduce
+      it: if a control needs a corner, the corner is 2 px.
+    </div>
+    <p>
+      2 px is small enough that it does not read as “rounded” at all. It reads as a corner
+      that has been cut rather than left raw, which is the whole intent — and it is why the
+      system can describe itself as rectangular while nothing in it is actually sharp.
+    </p>
+
+    <h3>The one exception in the implementation</h3>
+    <p>
+      The blog container is <code>rx="2"</code> in the export and square in the code. The
+      grid has no outer box to round: it is drawn as
+      <code>border-top</code> + <code>border-left</code> on the container with the other two
+      edges on the cells, so the four corners belong to four different elements and a radius
+      on the container would round one of them. Documented rather than faked.
     </p>
   </section>
 </main>
