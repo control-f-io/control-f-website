@@ -109,23 +109,32 @@ body.docs {
   font-size: var(--text-h4);
   font-weight: var(--weight-semibold);
 }
-.docs-section p { max-width: 72ch; color: var(--text-secondary); }
-.docs-section p + p { margin-top: var(--space-3); }
-.docs-section ul { max-width: 72ch; color: var(--text-secondary); padding-left: 1.1rem; }
-.docs-section li + li { margin-top: var(--space-2); }
+/* These four style this page's own writing — the prose a documentation page is
+   made of. Everything inside .docs-demo is the component instead, and has to be
+   left exactly as it ships, so the demo frame is excluded at the source rather
+   than overridden further down.
 
-/* Prose lists are this page's own writing. A list inside the demo frame is the
-   component, and must be left exactly as it ships — the rule above was giving
-   the footer's link list a 17.6 px indent and a 72 ch cap it does not have on
-   the site, and would have done the same to any component built on a <ul>.
-   base.css already zeroes ul[role="list"]; this stops the docs from undoing it. */
-.docs-demo ul,
-.docs-demo ol {
-  max-width: none;
-  padding-left: 0;
-  color: inherit;
-}
-.docs-demo li + li { margin-top: 0; }
+   Overriding does not work here, and the difference is the whole reason for the
+   :not(). A blanket reset inside .docs-demo has to pick one value, and there is
+   no single right one: a component that declares nothing (.cf-footer__links)
+   wants the browser default, while one that declares its own (.cf-prose li + li,
+   12 px) wants its value kept. Zeroing serves the first and silently flattens
+   the second. Not applying the rule at all serves both.
+
+   Measured leaks this closes, demo vs the same component on a pattern page:
+     .cf-footer__links   17.6 px indent + 72 ch cap it does not have on the site
+     .cf-prose li + li   8 px instead of its own 12 px
+     .cf-statement__body 72 ch instead of its own 46 ch
+     .cf-value-row__body grey + capped instead of black + uncapped
+
+   The :not() sits on the element the declaration lands on, which for the two
+   adjacent-sibling rules is the second one. Siblings share a parent, so either
+   position behaves the same here; this is the one that stays correct if the
+   selectors are ever changed. */
+.docs-section p:not(.docs-demo *) { max-width: 72ch; color: var(--text-secondary); }
+.docs-section p + p:not(.docs-demo *) { margin-top: var(--space-3); }
+.docs-section ul:not(.docs-demo *) { max-width: 72ch; color: var(--text-secondary); padding-left: 1.1rem; }
+.docs-section li + li:not(.docs-demo *) { margin-top: var(--space-2); }
 
 /* A note the implementer must not skip. Contour + surface, no accent bar —
    the brand draws boxes with a 1 px line, not with a coloured stripe. */
