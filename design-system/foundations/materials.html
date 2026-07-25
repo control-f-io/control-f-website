@@ -14,8 +14,19 @@
   .mat__sample { height:8rem; display:grid; place-items:center; font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label); text-transform:uppercase; }
   /* Glass has to sit ON something complex, not carry it. Painting the gradient
      onto the sample itself — which is what these two did — puts the artwork in
-     front of the material and demonstrates a gradient, not frosting. */
-  .mat__art { height:8rem; padding:var(--space-4); background:url(../assets/img/hero-poster.jpg) center/cover; }
+     front of the material and demonstrates a gradient, not frosting. The field
+     itself comes from .docs-poster in docs.css, so the decision lives in one
+     place; this only sizes it.
+
+     The padding insets the two glass plates 16 px inside a column whose other
+     five samples run flush to its edge. That break is deliberate and not
+     removable: glass needs a visible field around it to be legible AS glass —
+     sharp outside, calmed inside — and painting the poster onto .mat__sample
+     would not work, since backdrop-filter blurs what is behind an element and
+     not its own background. The outer cell still holds the column at 224x128,
+     so the axis survives; it is the plate edge that steps in. Truthful demo
+     over a tidy column. */
+  .mat__art { height:8rem; padding:var(--space-4); }
   .mat__art > .mat__sample { height:100%; }
   .mat__stack { position:relative; height:16rem; background:var(--surface-page-wash); border:1px solid var(--border-default); overflow:hidden; }
   @media (max-width:780px){ .mat { grid-template-columns:1fr; } }
@@ -57,7 +68,7 @@
     </div>
 
     <div class="mat">
-      <div class="mat__art"><div class="mat__sample material-glass">03</div></div>
+      <div class="mat__art docs-poster"><div class="mat__sample material-glass">03</div></div>
       <div>
         <h3 style="margin-top:0">Frosted glass</h3>
         <p>
@@ -71,7 +82,7 @@
     </div>
 
     <div class="mat">
-      <div class="mat__art"><div class="mat__sample material-glass material-glass--veil">03b</div></div>
+      <div class="mat__art docs-poster"><div class="mat__sample material-glass material-glass--veil">03b</div></div>
       <div>
         <h3 style="margin-top:0">…and the same glass, almost clear</h3>
         <p>
@@ -247,21 +258,29 @@
       missing declaration is not.
     </p>
     <p>
-      The obvious repair — a <code>var(--cf-specular, 150%)</code> fallback — fixes that and
-      silently costs the whole effect. The property still interpolates; what stops is the
-      <em>repaint</em>. With a fallback in the <code>var()</code>, the background is not
-      invalidated as the property changes, so the plate holds its rest paint for the entire
-      transition and snaps at the end. Compared at identical property values rather than
+      A <code>var(--cf-specular, 150%)</code> fallback would resolve the value too, and in a
+      correct browser it should be indistinguishable — a registered property with an
+      <code>initial-value</code> is never guaranteed-invalid, so its fallback is never
+      consulted. Prefer the plain declaration anyway, for a second and weaker reason: in
+      Chromium 141 the fallback form breaks repaint invalidation. The property still
+      interpolates, and the form paints correctly when sampled statically at either endpoint,
+      but the background is not invalidated as the property changes, so the plate holds its
+      rest paint and snaps at the end. Measured at identical property values rather than
       identical times: at <code>--cf-specular</code> = 109.67 % the bare form already shows a
       band and the fallback form shows zero change across all sixteen sampled columns; at
-      79.88 % the bare form shows a clear band and the fallback form is still zero. Both
-      settle to the same profile, so only the travel is lost.
+      79.88 % the bare form shows a clear band and the fallback is still zero.
     </p>
     <p>
-      That trap is worth remembering on its own: <strong><code>getComputedStyle</code> cannot
-      see it.</strong> The property reads as interpolating in both forms, to three decimal
-      places — a custom-property animation verified only by sampling computed values will look
-      correct while painting nothing. It has to be checked in pixels.
+      <strong>That is a browser bug, not a rule.</strong> If it is fixed the paragraph above
+      stops being true, while the declaration stays correct and still necessary for the
+      guaranteed-invalid reason, which is spec behaviour and does not expire. Keep the two
+      arguments separate — the spec one is the load-bearing half.
+    </p>
+    <p>
+      One trap worth remembering on its own: <strong><code>getComputedStyle</code> cannot see
+      the invalidation failure.</strong> The property reads as interpolating in both forms, to
+      three decimal places — a custom-property animation verified only by sampling computed
+      values will look correct while painting nothing. It has to be checked in pixels.
     </p>
     <p>
       One catch to carry with the rule: the rest value now exists twice — as
@@ -276,6 +295,14 @@
       from-value and interpolation is unaffected; unregistered it keeps the <code>var()</code>
       resolvable, so the plate survives and the highlight switches instead of travelling. The
       state change still reads and the contrast floor is untouched.
+    </p>
+    <p>
+      Reduced motion needs no handling here, but only by inheritance:
+      <code>--cf-specular</code> is transitioned over <code>--duration-slow</code>, which
+      <code>tokens.css</code> collapses to 1&nbsp;ms under
+      <code>prefers-reduced-motion: reduce</code>. The next component animating a registered
+      property inherits that protection <em>only</em> if it also reaches for a duration token
+      rather than writing a literal.
     </p>
 
     <h3>Cost</h3>
@@ -299,6 +326,15 @@
       give the same 16.7&nbsp;ms median and overlapping p95 ranges. The rule worth keeping is
       therefore the one that pays — exactly two blurred layers on a page, never a third — not
       the stronger one the comment used to assert.
+    </p>
+    <p>
+      <strong>Where the third layer would come from, so it does not.</strong> The budget is
+      spent; naming the likely spenders is worth more than a count somebody has to remember.
+      The process-card panel and its note block, the value-table cells, the blog-grid cells
+      and the footer CTA are the four surfaces that look like they want glass and must not
+      have it — every one sits on the page wash with nothing complex behind it, where frosting
+      has nothing to calm and becomes a grey box. They get <code>--sheen-panel</code> instead.
+      If a genuine third case ever appears, something else has to give up its blur first.
     </p>
 
     <h3>The glass button is light contexts only</h3>
