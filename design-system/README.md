@@ -189,10 +189,14 @@ These were judgement calls, each documented on the relevant page:
 - **Inline SVG gradients carry an oklab waypoint the source vectors do not have.** Figma
   interpolates in sRGB, and SVG can only interpolate in sRGB or linearRGB, so the illustrations
   inherited the sRGB path. The CSS gradients interpolate in oklab. Same three colours, two
-  visibly different curves on the lime→Glas leg (ΔE 0.045). Rather than give up oklab in CSS,
-  each lime→Glas leg in an inline SVG gets one stop — `#DBFC60` at 19 % of the leg — which puts
-  it back on the oklab path to within ΔE 0.0125. The source vectors in `assets/source/` are
-  untouched. → `foundations/colors.html`
+  visibly different curves on the lime→Glas leg (ΔE 0.044). Rather than give up oklab in CSS,
+  each lime→Glas leg in an inline SVG gets one stop — `#DBFC60` at 19 % of the leg, measured from
+  lime — which puts it back on the oklab path to within ΔE 0.0116. The source vectors in
+  `assets/source/` are untouched. **`#DBFC60` appears in none of the four source vectors, so
+  re-exporting a shipped illustration from its source drops the waypoint silently and reverts
+  that leg to the sRGB path.** Nothing fails when this happens; the stop is simply gone. Every
+  waypoint therefore carries a comment at the stop itself. Re-add it after any rebuild.
+  → `foundations/colors.html`
 - **Isometric contours use `vector-effect: non-scaling-stroke`.** "1 px contour at every
   size" is a device pixel. A 640-unit drawing shown at 352 px would otherwise put its
   contours on screen at 0.55 px. The one exception is `.cf-iso__trace`: under
