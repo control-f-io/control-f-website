@@ -1343,6 +1343,163 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 }
 
 /* --------------------------------------------------------------------------
+   PAGINATION
+   The closing bracket of a listing, and deliberately the section header read
+   backwards. The header opens a section with a mono label on the left, a
+   counter on the right and a rule underneath; the pagination closes it with
+   the rule on top, the counter on the left and the controls on the right.
+   Same three parts, same order, mirrored — so a listing is framed by one
+   shape rather than by two unrelated ones.
+
+   Four decisions worth their comment:
+
+   1. THE CURRENT PAGE IS NOT A LINK. It is a <span aria-current="page">.
+      A link to where you already are is a target that does nothing, and
+      taking it out of the tab order is the difference between eleven stops
+      and ten. This is also why the current slot needs no :hover — it cannot
+      be one.
+
+   2. NO CONTOUR AT REST. Contour before fill governs how an OBJECT is drawn,
+      and at rest a page number is type, not an object. The contour arrives on
+      hover and focus, which is also the only thing that can tell you the
+      target is larger than the glyph — the slots are 44 px and the numerals
+      are 11 px, well past WCAG 2.2 SC 2.5.8's 24 px floor.
+
+      The one slot drawn as an object at every moment is the current one, and
+      it is drawn the way this system draws "this is the one": an opaque black
+      plate, the same move as .cf-btn--solid. Not lime. Lime is light and there
+      is one lime moment per screen, which on a listing page belongs to the
+      call to action, not to a number.
+
+   3. THE NUMBERS LEAVE BEFORE THE ROW WRAPS. Under 34rem every slot except
+      the current one is hidden and Zurück/Weiter carry the component, with the
+      status line saying where you are. A pagination that has wrapped onto
+      three lines has stopped being one control. The container query measures
+      the component, not the viewport, so it also folds correctly in a column.
+
+   4. THE STATUS LINE IS NOT DECORATION. "Seite 1 von 11" is the one part that
+      states position without asking anyone to infer it from which numeral is
+      filled — which is what the ellipsis costs you. It carries no ARIA: it is
+      the first thing inside the labelled <nav>, so it is read on entry.
+   -------------------------------------------------------------------------- */
+.cf-pagination {
+  container-type: inline-size;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: var(--stroke-1) solid var(--border-strong);
+}
+/* The margin is the component's, not the page's, for the reason
+   .cf-footer--detached carries its own: the distance belongs to the shape and
+   every page wants the same one. It also stops a rule of its own from landing
+   on top of somebody else's. patterns/news.html is the case that found this —
+   its blog timeline axis separates the grid from the pagination at desktop, so
+   the pagination keeps its rule; below the fold the axis is display: none and
+   without this margin the two hairlines would meet and read 2 px. */
+/* Same contract as .cf-section-header--flush, the other way up: the ruled
+   container ABOVE — a blog grid, a table — already draws this hairline with
+   its own bottom border, so drawing a second one 0 px below it would read
+   2 px there and 1 px everywhere else. The air stays; only the rule goes.
+
+   IMMEDIATELY above, though. Anything in between — patterns/news.html puts
+   the blog timeline axis there — and --flush deletes the only rule the
+   component had, because the one it was deferring to is no longer adjacent.
+   Then the pagination floats. If something sits between, do not use it.
+
+   Flush also drops the margin: it is not standing off the container above, it
+   is continuing it. */
+.cf-pagination--flush { margin-top: 0; border-top: 0; }
+
+.cf-pagination__status {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* margin-inline-start: auto rather than relying on the parent's
+   space-between — without a status line there is only one flex child, and
+   space-between would park it on the left. */
+.cf-pagination__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  margin-inline-start: auto;
+  padding: 0;
+  list-style: none;
+}
+
+.cf-pagination__page,
+.cf-pagination__step,
+.cf-pagination__gap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  border: var(--stroke-1) solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  /* Tabular figures so the slots stop shuffling sideways between 1 and 11. */
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  transition: border-color var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard);
+}
+.cf-pagination__page { min-width: 2.75rem; padding-inline: var(--space-2); }
+.cf-pagination__step { padding-inline: var(--space-3); }
+/* The gap is punctuation, not a target: no border box, no minimum width past
+   the glyph, and aria-hidden in the markup. */
+.cf-pagination__gap  { min-width: 1.5rem; border: 0; }
+
+a.cf-pagination__page:hover,
+a.cf-pagination__step:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.cf-pagination__page[aria-current] {
+  background: var(--surface-inverse);
+  border-color: var(--surface-inverse);
+  color: var(--grey-000);
+}
+
+/* The chevron leans the way it points, the same 240 ms nudge .cf-btn gives
+   the arrow. Transform only — nothing here reflows. */
+.cf-pagination__step .cf-icon {
+  transition: transform var(--duration-base) var(--ease-standard);
+}
+a.cf-pagination__step--prev:hover .cf-icon { transform: translateX(-3px); }
+a.cf-pagination__step--next:hover .cf-icon { transform: translateX(3px); }
+
+@container (max-width: 34rem) {
+  .cf-pagination__page:not([aria-current]),
+  .cf-pagination__gap { display: none; }
+}
+
+/* The plate is the whole state here, and forced-colours throws backgrounds
+   away. Highlight/HighlightText is the pair the mode reserves for exactly
+   this — "the selected one of a set". */
+@media (forced-colors: active) {
+  .cf-pagination__page[aria-current] {
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+  }
+}
+
+/* --------------------------------------------------------------------------
    ARTICLE
    The reading page the blog grid has been linking to. Two parts, and they
    are deliberately separable:
@@ -1477,6 +1634,14 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
               color var(--duration-fast) var(--ease-standard);
 }
 a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000); }
+/* A tag row used as a filter needs a selected state, and the selected chip is
+   a <span>, not a link — same reasoning as the current page in .cf-pagination.
+   It lands on the same inverted plate that hover lands on, which is safe here
+   precisely because the two can never be the same element. */
+.cf-article__tag[aria-current] { background: var(--cf-schwarz); color: var(--grey-000); }
+@media (forced-colors: active) {
+  .cf-article__tag[aria-current] { background: Highlight; color: HighlightText; }
+}
 
 /* --------------------------------------------------------------------------
    PROSE

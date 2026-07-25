@@ -30,6 +30,7 @@
       { href: 'components/process-card.html',   label: 'Process Card' },
       { href: 'components/accordion.html',      label: 'Accordion / FAQ' },
       { href: 'components/blog-grid.html',      label: 'Blog Grid' },
+      { href: 'components/pagination.html',     label: 'Pagination' },
       { href: 'components/article.html',        label: 'Article & Prose' },
       { href: 'components/team.html',           label: 'Team' },
       { href: 'components/forms.html',          label: 'Forms' },
@@ -39,6 +40,7 @@
     { title: 'Patterns', items: [
       { href: 'patterns/landing-page.html', label: 'Landing Page' },
       { href: 'patterns/ueber-uns.html',    label: 'Über uns page' },
+      { href: 'patterns/news.html',         label: 'News overview' },
       { href: 'patterns/blog-artikel.html', label: 'Blog article' },
       { href: 'patterns/kontakt.html',      label: 'Kontakt page' }
     ]},

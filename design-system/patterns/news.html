@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>News — Control-F</title>
+<meta name="description" content="Beiträge von Control-F zu Telemetrie, Energie und Architektur — das vollständige Archiv, nach Zeit sortiert.">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<style>
+  /* Preview only: link back to the documentation. Remove in production. */
+  .ds-back {
+    /* Under --z-overlay: preview chrome must never cover real UI, and the
+       consent banner sits in that layer along this edge. */
+    position: fixed; left: 0; bottom: 0; z-index: calc(var(--z-overlay) - 1);
+    padding: var(--space-2) var(--space-4);
+    background: var(--cf-schwarz); color: var(--cf-lime);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label); text-transform: uppercase;
+  }
+</style>
+</head>
+<body class="page-wash">
+<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+
+<!-- Consent — first thing after the skip link, so it is first in reading and
+     tab order. `hidden` until cf-consent.js decides; with JS off it never
+     appears and no non-essential script is ever activated. -->
+<section class="cf-consent" data-cf-consent-banner hidden
+         role="dialog" aria-labelledby="cf-consent-title">
+  <div class="container cf-consent__inner">
+    <div>
+      <h2 class="cf-consent__title" id="cf-consent-title" tabindex="-1" data-cf-consent-title>Datenschutz-Einstellungen</h2>
+      <p class="cf-consent__body">
+        Notwendige Cookies brauchen wir, damit die Seite funktioniert. Statistik und Marketing
+        nur, wenn Sie zustimmen — Sie können das jederzeit im Footer ändern.
+        <a href="/datenschutz">Datenschutzerklärung</a> · <a href="/impressum">Impressum</a>
+      </p>
+    </div>
+    <div class="cf-consent__actions">
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="reject">Nur notwendige</button>
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="accept">Alle akzeptieren</button>
+      <button type="button" class="cf-btn cf-btn--ghost" data-cf-consent-action="open">Einstellungen</button>
+    </div>
+  </div>
+</section>
+
+<dialog class="cf-consent__dialog" data-cf-consent-dialog aria-labelledby="cf-consent-settings-title">
+  <div class="cf-consent__dialog-inner">
+    <h2 class="cf-consent__dialog-title" id="cf-consent-settings-title">Ihre Einstellungen</h2>
+    <p class="cf-consent__body">
+      Sie entscheiden pro Kategorie. Notwendige Cookies lassen sich nicht abwählen, weil ohne
+      sie nichts funktioniert.
+    </p>
+
+    <div class="cf-consent__group">
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" checked disabled>
+          <span class="cf-check__label"><strong>Notwendig</strong>Sitzung, Sprachwahl und die Speicherung dieser Entscheidung.</span>
+        </label>
+        <p class="cf-consent__meta">Immer aktiv · 1 Eintrag · 12 Monate</p>
+      </div>
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" data-cf-consent-category="statistik">
+          <span class="cf-check__label"><strong>Statistik</strong>Anonyme Reichweitenmessung, damit wir sehen, welche Inhalte gelesen werden.</span>
+        </label>
+        <p class="cf-consent__meta">Optional · 2 Einträge · 14 Monate</p>
+      </div>
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" data-cf-consent-category="marketing">
+          <span class="cf-check__label"><strong>Marketing</strong>Messung von Kampagnen und Einbindung externer Medien.</span>
+        </label>
+        <p class="cf-consent__meta">Optional · 3 Einträge · 12 Monate</p>
+      </div>
+    </div>
+
+    <div class="cf-consent__actions">
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="reject">Nur notwendige</button>
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="accept">Alle akzeptieren</button>
+      <button type="button" class="cf-btn cf-btn--ghost" data-cf-consent-action="save">Auswahl speichern</button>
+    </div>
+  </div>
+</dialog>
+
+<svg aria-hidden="true" style="display:none">
+  <symbol id="cf-arrow" viewBox="0 0 600 480"><g transform="translate(600,0) scale(-1,1)">
+    <path d="M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 327.317C183.155 328.422 183.155 331.578 185.367 332.683L476.422 478.211C478.675 479.337 481.325 479.337 483.578 478.211L594.633 422.683C596.845 421.578 596.845 418.422 594.633 417.317L425.367 332.683Z"/>
+    <path d="M116.422 298.211C118.675 299.337 121.325 299.337 123.578 298.211L594.633 62.6833C596.845 61.5777 596.845 58.4223 594.633 57.3167L483.578 1.78885C481.325 0.662745 478.675 0.662745 476.422 1.78885L5.36656 237.317C3.15542 238.422 3.15542 241.578 5.36656 242.683L116.422 298.211Z"/>
+  </g></symbol>
+</svg>
+
+<nav class="cf-nav" aria-label="Hauptnavigation">
+  <a class="cf-logo" href="/"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
+  <button class="cf-nav__toggle" aria-controls="hauptnav" aria-expanded="false">Menü</button>
+  <ul class="cf-nav__list" id="hauptnav" role="list">
+    <li><a class="cf-nav__link" href="/">Home</a></li>
+    <li><a class="cf-nav__link" href="/ueber-uns">Über uns</a></li>
+    <li><a class="cf-nav__link" href="/news" aria-current="page">News</a></li>
+    <li><a class="cf-nav__link" href="/karriere">Karriere</a></li>
+    <li><a class="cf-nav__link" href="/kontakt">Kontakt</a></li>
+  </ul>
+</nav>
+
+<main id="inhalt">
+
+  <!-- 01 · Seitenkopf. Dieselbe Komponente wie auf jeder Unterseite —
+       Titel, Haarlinie, eine Mono-Zeile links/rechts. Kein Iso-Objekt und
+       kein Lime: das eine Licht dieser Seite ist der Button im Footer.
+       Die rechte Meta-Angabe nennt die Seitenzahl, weil sie im Seitenkopf
+       schon steht, bevor man bis zur Pagination gescrollt hat. -->
+  <header class="cf-page-header">
+    <div class="container">
+      <div class="cf-page-header__body">
+        <h1 class="cf-page-header__title">News</h1>
+        <div class="cf-page-header__rule"></div>
+        <p class="cf-page-header__meta">
+          <span>189 Beiträge seit 2022</span>
+          <span>Seite 1 von 11</span>
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- 02 · Themen. Die Artikel-Seite verlinkt ihre Tags nach
+       /news?thema=… — das ist die Seite, auf der diese Links ankommen,
+       also muss der Filter hier sichtbar sein und der aktive Zustand
+       erkennbar. Das aktive Chip ist ein <span>, kein Link: ein Link auf
+       den Zustand, in dem man schon ist, tut nichts. Serverseitig
+       gefiltert, der Filter IST die URL. -->
+  <section class="section section--tight" aria-labelledby="themen">
+    <div class="container">
+      <div class="cf-section-header">
+        <h2 class="cf-section-header__label" id="themen">Themen</h2>
+        <span class="cf-section-header__count">4</span>
+      </div>
+      <nav aria-label="Nach Thema filtern">
+        <ul class="cf-article__tags" role="list">
+          <li><span class="cf-article__tag" aria-current="page">Alle</span></li>
+          <li><a class="cf-article__tag" href="/news?thema=telemetrie">Telemetrie</a></li>
+          <li><a class="cf-article__tag" href="/news?thema=energie">Energie</a></li>
+          <li><a class="cf-article__tag" href="/news?thema=architektur">Architektur</a></li>
+        </ul>
+      </nav>
+    </div>
+  </section>
+
+  <!-- 03 · Das Archiv. Dieselbe Subdivision wie auf der Startseite, hier
+       aber als eigentlicher Zweck der Seite: fünf Spalten, 1/2/3/6/6
+       Zeilen, von aktuell nach alt und von ausführlich nach knapp. Der
+       Zähler nennt beide Zahlen — was auf dieser Seite steht und was es
+       insgesamt gibt.
+
+       Die Pagination trägt KEIN --flush, obwohl ein umrandeter Container
+       darüber steht: dazwischen liegt die Zeitachse. --flush setzt voraus,
+       dass die Haarlinie unmittelbar darüber liegt — hier tut sie das nicht,
+       und ohne eigene Linie stünde die Pagination frei im Raum. Ihre eigene
+       Linie schließt stattdessen das Achsenband ab. -->
+  <section class="section" aria-labelledby="beitraege">
+    <div class="container">
+      <div class="cf-section-header cf-section-header--flush">
+        <h2 class="cf-section-header__label" id="beitraege">Beiträge</h2>
+        <span class="cf-section-header__count">18 von 189</span>
+      </div>
+      <div class="subdivide subdivide--even">
+        <div class="cf-blog-grid subdivide__row">
+          <div class="cf-blog-col subdivide__col cf-blog-col--1">
+            <a class="cf-blog-card cf-blog-card--lead" href="#">
+              <span class="cf-blog-card__title">Wärmepumpen im Winter: Was Hausbesitzer jetzt wissen müssen</span>
+              <span class="cf-blog-card__meta">Simon Deussen · 01.01.2026 · 6 min</span>
+            </a>
+          </div>
+          <div class="cf-blog-col subdivide__col cf-blog-col--2">
+            <a class="cf-blog-card" href="#"><span class="cf-blog-card__title">Energiearmut in Deutschland – ein unterschätztes Problem</span><span class="cf-blog-card__meta">01.01.2026 · 4 min</span></a>
+            <a class="cf-blog-card" href="#"><span class="cf-blog-card__title">Elektroautos als Puffer: Vehicle-to-Grid im Praxistest</span><span class="cf-blog-card__meta">01.01.2026 · 4 min</span></a>
+          </div>
+          <div class="cf-blog-col subdivide__col cf-blog-col--3">
+            <a class="cf-blog-card" href="#"><span class="cf-blog-card__title">Microgrids auf dem Vormarsch: Energie für abgelegene Regionen</span><span class="cf-blog-card__meta">01.01.2025 · 4 min</span></a>
+            <a class="cf-blog-card" href="#"><span class="cf-blog-card__title">Digitale Zwillinge im Energiesektor: Simulation trifft Realität</span><span class="cf-blog-card__meta">01.01.2025 · 4 min</span></a>
+            <a class="cf-blog-card" href="#"><span class="cf-blog-card__title">Agri-Photovoltaik: Wenn Acker und Solarpanel koexistieren</span><span class="cf-blog-card__meta">01.01.2025 · 4 min</span></a>
+          </div>
+          <div class="cf-blog-col subdivide__col cf-blog-col--6">
+            <a class="cf-blog-card cf-blog-card--compact" href="#"><span class="cf-blog-card__title">Klimaneutrale Industrie: Was braucht die Transformation?</span></a>
+            <a class="cf-blog-card cf-blog-card--compact" href="#"><span class="cf-blog-card__title">Nachts Strom sparen: Warum Nachtabsenkung wieder Thema ist</span></a>
+            <a class="cf-blog-card cf-blog-card--compact" href="#"><span class="cf-blog-card__title">Erneuerbaren-Ausbau beschleunigen: Was jetzt hilft</span></a>
+            <a class="cf-blog-card cf-blog-card--compact" href="#"><span class="cf-blog-card__title">Speicherlösungen im Vergleich: Lithium vs. Redox-Flow</span></a>
+            <a class="cf-blog-card cf-blog-card--compact" href="#"><span class="cf-blog-card__title">Smart-Home-Systeme und ihre Wirkung auf den Verbrauch</span></a>
+            <a class="cf-blog-card cf-blog-card--compact" href="#"><span class="cf-blog-card__title">Wie Blockchaintechnologie die Energiewirtschaft verändert</span></a>
+          </div>
+          <div class="cf-blog-col subdivide__col cf-blog-col--6">
+            <a class="cf-blog-card cf-blog-card--compact" href="#"><span class="cf-blog-card__title">Wie Stahl klimaneutral werden soll</span></a>
+            <a class="cf-blog-card cf-blog-card--compact" href="#"><span class="cf-blog-card__title">Welche Rolle spielt Biogas in der Wärmewende?</span></a>
+            <a class="cf-blog-card cf-blog-card--compact" href="#"><span class="cf-blog-card__title">Freiflächenanlagen: Landschaft und Energie</span></a>
+            <a class="cf-blog-card cf-blog-card--compact" href="#"><span class="cf-blog-card__title">Aggregatoren als neue Akteure im Energiemarkt</span></a>
+            <a class="cf-blog-card cf-blog-card--compact" href="#"><span class="cf-blog-card__title">Speicherpflicht für Neubauten: Kommt sie?</span></a>
+            <a class="cf-blog-card cf-blog-card--compact" href="#"><span class="cf-blog-card__title">Wie Stadtwerke zu Energiedienstleistern werden</span></a>
+          </div>
+        </div>
+        <div class="cf-blog-axis subdivide__row" aria-hidden="true">
+          <span class="cf-blog-axis__tick">Aktuell</span>
+          <span class="cf-blog-axis__tick">2026</span>
+          <span class="cf-blog-axis__tick">2025</span>
+          <span class="cf-blog-axis__tick">2024</span>
+          <span class="cf-blog-axis__tick">2022–2023</span>
+        </div>
+      </div>
+
+      <!-- Erste Seite: kein „Zurück“. Der Schritt wird entfernt, nicht
+           deaktiviert — ein deaktiviertes Ziel antwortet nicht, wenn man
+           dort ankommt. Nichts verrutscht dadurch, weil die Statuszeile
+           die linke Kante hält. -->
+      <nav class="cf-pagination" aria-label="Beiträge, Seiten">
+        <p class="cf-pagination__status">Seite 1 von 11</p>
+        <ul class="cf-pagination__list" role="list">
+          <li><span class="cf-pagination__page" aria-current="page">1</span></li>
+          <li><a class="cf-pagination__page" href="/news?seite=2" aria-label="Seite 2">2</a></li>
+          <li><a class="cf-pagination__page" href="/news?seite=3" aria-label="Seite 3">3</a></li>
+          <li><a class="cf-pagination__page" href="/news?seite=4" aria-label="Seite 4">4</a></li>
+          <li><span class="cf-pagination__gap" aria-hidden="true">…</span></li>
+          <li><a class="cf-pagination__page" href="/news?seite=11" aria-label="Seite 11, letzte Seite">11</a></li>
+          <li>
+            <a class="cf-pagination__step cf-pagination__step--next" href="/news?seite=2" rel="next">
+              Weiter
+              <svg class="cf-icon cf-icon--sm" aria-hidden="true"><use href="#cf-chevron-right"></use></svg>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </section>
+
+</main>
+
+<footer class="cf-footer" data-theme="inverse">
+  <div class="container">
+    <div class="cf-footer__cta">
+      <img class="cf-footer__mark" src="../assets/img/icons/cf-footer-mark.svg" alt="">
+      <div>
+        <p class="cf-footer__title text-foil">Jetzt Projekt starten!</p>
+        <a class="cf-btn cf-btn--primary cf-btn--xwide" href="/kontakt">
+          Kontakt aufnehmen
+          <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+        </a>
+      </div>
+    </div>
+    <div class="cf-footer__meta">
+      <a class="cf-logo cf-logo--bare" href="/"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
+      <ul class="cf-footer__links" role="list">
+        <li><a href="/ueber-uns">Über uns</a></li>
+        <li><a href="/news">News</a></li>
+        <li><a href="/karriere">Karriere</a></li>
+        <li><a href="/datenschutz">Datenschutz</a></li>
+        <li><a href="/impressum">Impressum</a></li>
+        <li><button type="button" class="cf-footer__linkbtn" data-cf-consent-action="open">Cookie-Einstellungen</button></li>
+      </ul>
+      <span>©2026 Control-F GmbH</span>
+      <span>Am Seerhein 6, 78467 Konstanz · <a href="mailto:info@control-f.de">info@control-f.de</a></span>
+    </div>
+  </div>
+</footer>
+
+<a class="ds-back" href="../index.html">← Design System</a>
+<script>
+  document.querySelector('.cf-nav__toggle').addEventListener('click', function () {
+    var list = document.getElementById('hauptnav');
+    var open = list.dataset.open === 'true';
+    list.dataset.open = String(!open);
+    this.setAttribute('aria-expanded', String(!open));
+  });
+</script>
+<script src="../assets/js/cf-icons.js"></script>
+<script src="../assets/js/cf-consent.js"></script>
+</body>
+</html>

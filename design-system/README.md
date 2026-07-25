@@ -38,10 +38,10 @@ design-system/
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
 │                           illustration, logo, photo, motion
 ├── components/             buttons, nav, section header, statement + value table,
-│                           plot, process card, accordion, blog grid,
+│                           plot, process card, accordion, blog grid, pagination,
 │                           article + prose, team, forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html,
-│                           blog-artikel.html, kontakt.html
+│                           news.html, blog-artikel.html, kontakt.html
 ├── prototypes/             scroll-animation studies — standalone, not yet system
 ├── reference.html          the designer's source material, next to what implements it
 └── assets/
@@ -184,14 +184,16 @@ distance, change the token — not the page.
 | **Consent copy** | The three categories, their retention periods and the entry counts on `components/consent.html` are placeholders. A lawyer signs off the wording, and the real cookie inventory replaces the numbers. |
 | **Consent record** | `localStorage` proves nothing to a supervisory authority. The decision needs logging server-side before launch. |
 | **Contact endpoint** | `patterns/kontakt.html` posts to `/kontakt` and expects the server to validate, re-render the form with the reader's values and an error summary, drop anything that filled the honeypot, and serve the whole thing over HTTPS. The phone number on the page is a placeholder. |
+| **News listing** | `patterns/news.html` is page 1 of 11 rendered flat. The server owns the paging: `?seite=N` selects the slice, `?thema=…` filters it, and both are reflected in the counters, the status line and which slot carries `aria-current`. Out of range should 404 rather than render an empty grid. |
 | **Redirects** | The old topic pages (Maschinenbau, Energie, Dienstleistungen, Experten) are gone. They need 301s to the new structure. |
 
 ## Language
 
 The documentation is English. The pattern pages carry German copy, because that is the
 language the site ships in — translating it here would invent content that does not exist.
-Landing Page and Über uns take theirs verbatim from the Figma mockups; Blog article and
-Kontakt have no mockup and their copy is written placeholder in the same voice. Colour
+Landing Page and Über uns take theirs verbatim from the Figma mockups; News overview,
+Blog article and Kontakt have no mockup and their copy is written placeholder in the
+same voice. Colour
 names (Glas, Violett, CF-Grau, Schwarz, Weiß) stay German everywhere: they are the brand's
 names for them.
 
