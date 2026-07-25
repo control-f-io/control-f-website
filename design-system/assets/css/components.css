@@ -2555,6 +2555,38 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
    the cost of a draw that is linear at every size. Verified 25/50/75 % exact. */
 .cf-iso__trace { stroke-width: 2; }
 
+/* The frame is a crop, not a bounding box, and a trace is a signal from
+   off-stage — so its path routinely runs past the edge. pathLength normalises
+   against the DRAWN length, which means every unit outside the crop spends
+   scroll range on a line nobody can see. Measured on the landing page, at the
+   settled object: card 02's outgoing trace is 54 % inside the crop and its
+   incoming one 49 %, so under a plain 1 → 0 draw the first finished in the
+   first fifth of its range and the second had not appeared at all by the
+   halfway mark.
+
+   So the two ends of the draw are authored rather than assumed:
+     --trace-from  stroke-dashoffset at the start. 1 = nothing drawn.
+     --trace-to    stroke-dashoffset at the end.   0 = drawn to the last unit.
+   A trace that leaves the crop stops at the edge (--trace-to = the fraction
+   still to run); one that enters from outside starts at the edge
+   (--trace-from = 1 − the fraction already behind it). Defaults draw the whole
+   path, so a trace that fits its frame needs neither.
+
+   These are the animated values themselves, NOT an expression over them, and
+   that is load-bearing: a keyframe whose value is a calc() containing var()
+   is not interpolated — Chromium steps straight from `from` to `to`. Measured
+   across the range at cover 18/20/22/24/27/30/35/45 %: `calc(1 - var(--lead))`
+   gave 0 0 0 then the end value, five samples of nothing. Registering the
+   property with @property does not rescue it; the calc is what fails. Keep
+   these two properties whole values.
+
+   Measure them once against the SETTLED object: while the scene is still
+   arriving it carries the 26.57° offset, which moves the crop boundary by up
+   to --iso-travel. Only the endpoints count — a path that leaves the crop and
+   re-enters wastes no range at either end, so a gap in the middle is left
+   alone. It reads as the signal passing behind the crop, which is what it is. */
+.cf-iso__trace { --trace-from: 1; --trace-to: 0; }
+
 /* Scroll-driven assembly.
    Progressive enhancement in the honest direction: without support for
    scroll-driven animations, under reduced motion, or on paper, the object is
@@ -2630,9 +2662,10 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   from { fill-opacity: 0; }
   to   { fill-opacity: 1; }
 }
+/* The ends are per-trace, so the range that is spent is the range that is seen. */
 @keyframes cf-iso-draw {
-  from { stroke-dashoffset: 1; }
-  to   { stroke-dashoffset: 0; }
+  from { stroke-dashoffset: var(--trace-from); }
+  to   { stroke-dashoffset: var(--trace-to); }
 }
 
 /* --------------------------------------------------------------------------

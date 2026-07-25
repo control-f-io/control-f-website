@@ -355,11 +355,11 @@ Two things it settles that the source material does not:
   that cannot contradict itself. Flagged there for a designer; it is three fill values, not a
   redraw.
 
-## Redrawing an illustration: two things that vanish quietly
+## Redrawing an illustration: three things that vanish quietly
 
-Both bite when an object is rebuilt or re-exported from `assets/source/illustrations/`, and
-neither announces itself — the drawing still renders, it is simply no longer what the
-designer drew.
+All three bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
+and none of them announces itself — the drawing still renders, it is simply no longer what
+the designer drew.
 
 - **The oklab waypoint.** `#DBFC60` exists in no source vector, so a re-export drops it and
   that lime→Glas leg reverts to the sRGB path. Every waypoint carries a comment at the stop.
@@ -369,3 +369,9 @@ designer drew.
   rotates its gradient too. On a circle the rotation looks like a no-op against the geometry
   and is not: card 04's largest orbit had lost `rotate(-90)` and was fading 90° off the
   designer's axis. Measured and fixed. → `components/process-card.html`
+- **`--trace-from` / `--trace-to` on a trace the crop cuts.** They are inline custom
+  properties on the path, so a re-export drops them and the line-drawing goes back to being
+  timed against its full length — including the half of it that is outside the frame. The
+  drawing is not wrong, it just spends most of its scroll range invisible. Each one carries a
+  comment at the element, and there are three: two on card 02, one on card 04.
+  → `foundations/motion.html`
