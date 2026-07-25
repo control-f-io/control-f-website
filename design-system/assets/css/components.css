@@ -2213,7 +2213,13 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   gap: var(--space-8);
   align-items: center;
 }
-.cf-values__mark { display: block; width: 100%; max-width: 18rem; margin-inline: auto; }
+/* 11.25rem is the prototype's 180px cap, and it is the mark's real size rather
+   than a limit it rarely reaches. The middle column is deliberately wider than
+   the mark: the prototype gives it minmax(240px, 30vw) and then draws a 180px
+   sign inside it, so the sign sits in air rather than filling its column. Drop
+   the cap and the mark takes the whole column — 317px at 1440, near twice the
+   drawn size — which is what made this read as the wrong scale. */
+.cf-values__mark { display: block; width: 100%; max-width: 11.25rem; margin-inline: auto; }
 .cf-values__mark line,
 .cf-values__contour { stroke: var(--cf-schwarz); }
 .cf-values__solid   { fill: var(--cf-schwarz); }
@@ -2262,21 +2268,36 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
       display: grid;
       align-content: center;
     }
+    /* The composition is 4 + 4 + 4 on the page's own 12 columns — title, mark,
+       body — not a bespoke three-track ruler. At 1440 that puts each band at
+       410px against the prototype's 432px middle column, so the proportions
+       come out where the prototype had them while every edge still lands on a
+       column line the rest of the page uses.
+
+       The items were previously `position: absolute; inset: 0` against this
+       frame. .cf-values__frame is also a .container, and an absolutely
+       positioned child resolves against the PADDING box, so each item's three
+       tracks were measured across 1438px while the frame's own were measured
+       across the 1280px content box: 528.8 / 316.8 / 528.8 against 449.6 /
+       316.8 / 449.6. The title and body were hanging one full gutter — 79px a
+       side at 1440 — outside the grid everything above them is aligned to.
+       Stacking them as grid items in a shared cell keeps the overlay without
+       leaving the content box. */
     .cf-values__frame {
       position: relative;
-      grid-template-columns: 1fr minmax(12rem, 22vw) 1fr;
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      gap: var(--grid-gap);
       min-height: 60vh;
     }
-    .cf-values__mark { grid-column: 2; grid-row: 1; max-width: none; }
+    .cf-values__mark { grid-column: 5 / 9; grid-row: 1; }
 
     /* every value occupies the same place; the timeline chooses which is lit */
-    .cf-values__list { position: absolute; inset: 0; }
+    .cf-values__list { grid-column: 1 / -1; grid-row: 1; display: grid; }
     .cf-values__item {
-      position: absolute;
-      inset: 0;
+      grid-area: 1 / 1;
       display: grid;
-      grid-template-columns: 1fr minmax(12rem, 22vw) 1fr;
-      gap: var(--space-8);
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      gap: var(--grid-gap);
       align-items: center;
       margin: 0;
       padding: 0;
@@ -2288,8 +2309,8 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
       animation-fill-mode: both;
       animation-timing-function: linear;
     }
-    .cf-values__title { grid-column: 1; text-align: right; }
-    .cf-values__body  { grid-column: 3; margin-top: 0; }
+    .cf-values__title { grid-column: 1 / 5; text-align: right; }
+    .cf-values__body  { grid-column: 9 / 13; margin-top: 0; }
 
     .cf-values__item:nth-child(1) { animation-range: contain 0%      contain 16.667%; }
     .cf-values__item:nth-child(2) { animation-range: contain 16.667% contain 33.333%; }
