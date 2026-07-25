@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mobile — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* A real page at a real phone width, not a picture of one. The frame is
+     375 wide because that is the narrowest common phone; it scrolls inside
+     itself and shrinks below that on a narrow screen, because a page about
+     not overflowing must not overflow. */
+  .mob-frame {
+    display: block;
+    width: 375px;
+    max-width: 100%;
+    height: 42rem;
+    border: var(--stroke-1) solid var(--border-strong);
+    background: var(--grey-000);
+  }
+  .mob-frames { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: flex-start; }
+  .mob-load > summary {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: var(--stroke-1) solid var(--border-strong);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label); text-transform: uppercase;
+    cursor: pointer;
+  }
+  .mob-load > summary::marker { content: ""; }
+  .mob-cap {
+    margin-top: var(--space-2);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label); text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  /* The measured widths as a ruler: one row per threshold, drawn to scale
+     against the 320–1280 band so the crowding around 780–1007 is visible
+     rather than only tabulated. */
+  .mob-ruler { display: grid; gap: var(--space-1); margin-top: var(--space-4); }
+  .mob-ruler__row { display: grid; grid-template-columns: 5rem minmax(0, 1fr); gap: var(--space-3); align-items: center; }
+  .mob-ruler__n { font-family: var(--font-mono); font-size: var(--text-xs); text-align: right; }
+  .mob-ruler__bar { position: relative; height: 1.35rem; background: var(--grey-100); }
+  .mob-ruler__bar i { position: absolute; inset-block: 0; left: 0; display: block; background: var(--gradient-light-90); border-right: var(--stroke-2) solid var(--border-strong); }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 11</p>
+    <h1>Mobile</h1>
+    <p>
+      There is no mobile version of this site. There is one page that narrows, and this
+      is the record of what it does on the way down — measured on the shipping pattern
+      pages rather than described from the stylesheets.
+    </p>
+  </header>
+
+  <section class="docs-section" id="principle">
+    <h2>One layout, narrowed</h2>
+    <p>
+      Every page is built from components that stack by default and split when there is
+      room. The narrow state is not a fallback bolted on at the end: it is the state the
+      CSS starts in, and the wide layout is what a query adds. A component that is never
+      asked about its width is already correct on a phone.
+    </p>
+    <p>
+      That is why almost nothing here asks the viewport. A component asks its
+      <strong>container</strong>, so the same card is right in a 1280 px content column,
+      in a half-width split and in a 375 px phone without knowing which it is in. Only
+      furniture genuinely pinned to the screen — the nav bar, the hero, the footer, the
+      consent banner — is allowed to ask the viewport, and each of those exceptions is
+      written down in the breakpoint register in <code>tokens.css</code>.
+    </p>
+    <div class="docs-note">
+      <strong>This page is the register's other half.</strong> The register lists
+      thresholds as the numbers a query is written against — mostly container widths. A
+      phone does not have a container width; it has a viewport. Everything below is the
+      same set of thresholds seen from the device's side, with the viewport width at
+      which each one actually trips on a shipping page, found by binary search rather
+      than by arithmetic. → <a href="layout.html">Layout &amp; Grid</a>
+    </div>
+  </section>
+
+  <section class="docs-section" id="fluid">
+    <h2>What changes continuously</h2>
+    <p>
+      Before any threshold fires, three things are already moving with the viewport.
+      They are <code>clamp()</code>s, so each has a floor, a ramp and a ceiling, and the
+      widths where the arms swap are as real as a breakpoint — they are just not queries,
+      which is why the register deliberately leaves them out.
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Token</th><th>Floor</th><th>Ramp</th><th>Ceiling</th><th>Floor binds below</th></tr></thead>
+      <tbody>
+        <tr><td><code>--gutter</code></td><td>20 px</td><td>5.5vw</td><td>80 px</td><td><strong>364</strong></td></tr>
+        <tr><td><code>--section-gap</code></td><td>64 px</td><td>100vw / 12</td><td>160 px</td><td><strong>768</strong></td></tr>
+        <tr><td><code>--section-gap-sm</code></td><td>32 px</td><td>100vw / 18</td><td>80 px</td><td><strong>576</strong></td></tr>
+        <tr><td><code>--text-display-1</code></td><td>40 px</td><td>1.4rem + 4.9vw</td><td>64 px</td><td><strong>359</strong></td></tr>
+        <tr><td><code>--text-display-2</code></td><td>32 px</td><td>1.3rem + 3.1vw</td><td>40 px</td><td><strong>361</strong></td></tr>
+        <tr><td><code>--text-h1</code></td><td>28 px</td><td>1.3rem + 2vw</td><td>40 px</td><td><strong>360</strong></td></tr>
+        <tr><td><code>--text-h2</code></td><td>22 px</td><td>1.1rem + 1.2vw</td><td>32 px</td><td><strong>367</strong></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      <strong>All four type floors land within 8 px of each other, just under the
+      narrowest phone in use.</strong> 359, 360, 361, 367 — the scale stops shrinking at
+      about 360 and holds. That is worth knowing because it means a 320 px device and a
+      360 px device get <em>identical</em> type; only the gutter and the measure differ.
+      Measured at 320 and at 360: display-1 is 40.00 and 40.04 px.
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Viewport</th><th>display-1</th><th>display-2</th><th>h1</th><th>h2</th><th>gutter</th></tr></thead>
+      <tbody>
+        <tr><td>320</td><td>40.00</td><td>32.00</td><td>28.00</td><td>22.00</td><td>20.00</td></tr>
+        <tr><td>375</td><td>40.78</td><td>32.42</td><td>28.30</td><td>22.10</td><td>20.63</td></tr>
+        <tr><td>390</td><td>41.51</td><td>32.89</td><td>28.60</td><td>22.28</td><td>21.45</td></tr>
+        <tr><td>768</td><td>60.03</td><td>40.00</td><td>36.16</td><td>26.82</td><td>42.24</td></tr>
+        <tr><td>1440</td><td>64.00</td><td>40.00</td><td>40.00</td><td>32.00</td><td>79.20</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      Body copy is <strong>14 px at every width</strong> and does not participate. It is
+      not a display size, it is the reading size, and a reading size that changes with
+      the window is a reading size nobody has tuned. What changes on a phone is the
+      measure, which the gutter and the single column take care of.
+    </p>
+  </section>
+
+  <section class="docs-section" id="order">
+    <h2>The order things happen in</h2>
+    <p>
+      Widest to narrowest, every layout change a page makes on the way to a phone. Each
+      row was found by binary-searching the viewport width on the pattern page named —
+      set the window one pixel either side of the number and the state flips.
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Viewport</th><th>What changes</th><th>Query</th><th>Measured on</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1079</strong></td><td><code>.cf-article</code> puts its rail beside the body and makes it sticky</td><td>container 60rem</td><td>blog-artikel</td></tr>
+        <tr><td><strong>1007</strong></td><td><code>.cf-process</code> and <code>.cf-statement</code> split into two columns; <code>.col-*</code> spans take effect</td><td>container 56rem</td><td>landing-page</td></tr>
+        <tr><td><strong>901</strong></td><td>the page-header object appears; the consent banner goes two-column</td><td>viewport 900</td><td>ueber-uns, consent</td></tr>
+        <tr><td><strong>866</strong></td><td><code>.cf-value-row</code> splits into icon and copy</td><td>container 48rem</td><td>ueber-uns</td></tr>
+        <tr><td><strong>820</strong></td><td>the values section becomes pinned and scroll-scrubbed</td><td>viewport 820</td><td>ueber-uns</td></tr>
+        <tr><td><strong>792</strong></td><td>the blog axis appears; <code>.subdivide</code> unfolds</td><td>container 44rem</td><td>landing-page</td></tr>
+        <tr><td><strong>781</strong></td><td>the nav bar opens out of its toggle; the hero action returns to the corner; the footer CTA goes two-column; the accordion regains its indent</td><td>viewport 780</td><td>landing-page</td></tr>
+        <tr><td><strong>612</strong></td><td>pagination shows the individual page numbers</td><td>container 34rem</td><td>news</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="mob-ruler" aria-hidden="true">
+      <div class="mob-ruler__row"><span class="mob-ruler__n">1079</span><span class="mob-ruler__bar"><i style="width:79.1%"></i></span></div>
+      <div class="mob-ruler__row"><span class="mob-ruler__n">1007</span><span class="mob-ruler__bar"><i style="width:71.6%"></i></span></div>
+      <div class="mob-ruler__row"><span class="mob-ruler__n">901</span><span class="mob-ruler__bar"><i style="width:60.5%"></i></span></div>
+      <div class="mob-ruler__row"><span class="mob-ruler__n">866</span><span class="mob-ruler__bar"><i style="width:56.9%"></i></span></div>
+      <div class="mob-ruler__row"><span class="mob-ruler__n">820</span><span class="mob-ruler__bar"><i style="width:52.1%"></i></span></div>
+      <div class="mob-ruler__row"><span class="mob-ruler__n">792</span><span class="mob-ruler__bar"><i style="width:49.2%"></i></span></div>
+      <div class="mob-ruler__row"><span class="mob-ruler__n">781</span><span class="mob-ruler__bar"><i style="width:48.0%"></i></span></div>
+      <div class="mob-ruler__row"><span class="mob-ruler__n">612</span><span class="mob-ruler__bar"><i style="width:30.4%"></i></span></div>
+      <div class="mob-ruler__row"><span class="mob-ruler__n">375</span><span class="mob-ruler__bar"><i style="width:5.7%"></i></span></div>
+    </div>
+    <p class="mob-cap">Drawn to scale across 320 → 1280. The last flip is at 612; the 375 row is a phone, marked for scale.</p>
+    <p>
+      <strong>Nothing happens between 612 and 320.</strong> Every threshold in the system
+      is above the widest phone, so a phone is not a special width the layout switches
+      into — it is the far end of a ramp the layout has already been on since a laptop.
+      The last 300 px of narrowing change only the gutter and the measure.
+    </p>
+    <div class="docs-note">
+      <strong>The two viewport tiers, 780 and 900, are still an open question.</strong>
+      They govern different objects, neither was measured off the mockups, and the
+      register flags them rather than reconciling them. Note what that costs on a real
+      device: between 781 and 900 a page has an open nav bar and a hidden page-header
+      object at the same time. It is not wrong, but it is not designed either.
+    </div>
+    <div class="docs-note">
+      <strong>One height threshold.</strong> At a viewport <em>height</em> of 560 or less
+      — a phone in landscape — the consent banner caps at 70vh and scrolls inside itself,
+      so it cannot swallow the page it is asking about. It is the only height query in the
+      system. → <a href="../components/consent.html">Consent</a>
+    </div>
+  </section>
+
+  <section class="docs-section" id="phone">
+    <h2>The phone column</h2>
+    <p>
+      Below 612 every component is in its narrow state, and the page is one column of
+      full-width blocks separated by 64 px of section gap. Real pages, live, at 375:
+    </p>
+    <details class="mob-load">
+      <summary>Load the two pattern pages at 375 px</summary>
+      <div class="docs-demo docs-demo--plain">
+        <div class="mob-frames">
+          <div>
+            <iframe class="mob-frame" src="../patterns/landing-page.html" loading="lazy" title="Landing page at 375 px"></iframe>
+            <p class="mob-cap">landing-page · 375</p>
+          </div>
+          <div>
+            <iframe class="mob-frame" src="../patterns/ueber-uns.html" loading="lazy" title="Über uns page at 375 px"></iframe>
+            <p class="mob-cap">ueber-uns · 375</p>
+          </div>
+        </div>
+      </div>
+    </details>
+    <p>
+      Scroll them. They are the same files the patterns section serves, in a 375 px
+      frame — not screenshots, and not a mobile build. The consent banner is showing
+      because each frame is a first visit, which is worth seeing here: it is the
+      single-column, full-width-button state the table below describes, and on a phone it
+      covers about a third of the screen until it is answered.
+    </p>
+    <div class="docs-note">
+      <strong>Behind a <code>&lt;details&gt;</code> on purpose.</strong> The pattern pages
+      run the real consent script, and the real consent script moves focus to the banner
+      when it appears. Two frames loaded on page load would take the keyboard away from
+      someone reading this page, twice, before they had done anything. Closed, they
+      cannot: <code>document.activeElement</code> is still <code>body</code> a second and
+      a half in, and the focus move happens when you open the frames, as the answer to a
+      control you pressed. No script on this page — the element does it.
+      <p>
+        <strong>Not for the reason it looks like, and this was measured rather than
+        assumed.</strong> The first version of this note said a lazy iframe inside a
+        closed <code>&lt;details&gt;</code> is never fetched. It is: Chromium requests
+        both pattern pages on load regardless. What a closed <code>&lt;details&gt;</code>
+        actually buys is that the frame is never <em>rendered</em>, and an unrendered
+        frame cannot move the parent's focus. Same outcome for the reader, a different
+        mechanism, and the difference matters if you ever reach for this trick to save a
+        request.
+      </p>
+    </div>
+    <h3>What each component does</h3>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Component</th><th>At 375</th></tr></thead>
+      <tbody>
+        <tr><td>Navigation</td><td>logo plate stays; links collapse into a <em>Menü</em> toggle that opens them as a full-width column under the bar</td></tr>
+        <tr><td>Hero</td><td><code>min(92vh, 56rem)</code> tall — 747 px on a 812 px screen; the button leaves the bottom-right corner and drops into the flow under the kicker</td></tr>
+        <tr><td>Statement, process card, value row</td><td>one column: figure above, copy below, the contour still around the pair</td></tr>
+        <tr><td>Blog grid</td><td>cards full width; the decorative time axis is dropped</td></tr>
+        <tr><td>Pagination</td><td>page numbers drop; previous, next and the current page remain</td></tr>
+        <tr><td>Article</td><td>rail above the body rather than beside it, and not sticky</td></tr>
+        <tr><td>Values</td><td>stacked and readable — never pinned, never scrubbed</td></tr>
+        <tr><td>Accordion</td><td>loses its indent; rows are 52–73 px tall</td></tr>
+        <tr><td>Forms</td><td>fields already full width; nothing changes</td></tr>
+        <tr><td>Consent</td><td>single column, and the three controls go full width in a stack</td></tr>
+        <tr><td>Footer</td><td>CTA stacks over the button; meta rows wrap</td></tr>
+        <tr><td>Tables and code blocks</td><td>scroll inside their own box, never widen the page</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note">
+      <strong>Nothing that carries meaning is hidden on a phone.</strong> Two things are
+      dropped and both are decoration: the blog grid's time axis, which is
+      <code>aria-hidden</code> and duplicates the dates printed on the cards, and the
+      page-header's isometric object, which is behind the title. No copy, no link and no
+      control exists only on the wide layout.
+    </div>
+    <div class="docs-note">
+      <strong>Measured: no page overflows sideways at any width down to 320.</strong> All
+      five pattern pages, at 320 / 375 / 390 / 768, have
+      <code>scrollWidth === clientWidth</code> to the pixel. That is not luck — it is
+      <code>minmax(0, 1fr)</code> on every grid track that holds text and
+      <code>overflow-x: auto</code> on the three things that genuinely cannot shrink:
+      tables, <code>&lt;pre&gt;</code>, and the documentation's own table wrapper.
+    </div>
+  </section>
+
+  <section class="docs-section" id="touch">
+    <h2>Touch, not pointer</h2>
+    <p>
+      A phone has no hover and a fingertip is about 9 mm across. Two consequences, both
+      checkable.
+    </p>
+    <h3>Nothing is hover-only</h3>
+    <p>
+      Every hover in the system is an enhancement of something already visible: the
+      button's specular travel, the nav link brightening, the card's rule inking, the
+      arrow's 4 px nudge. Remove hover entirely and no state, no label and no destination
+      becomes unreachable. The one place this was a real risk — the current-page marker in
+      the navigation — is drawn with ink and a plate rather than a hover, which is also
+      why it survives on touch. → <a href="../components/navigation.html">Navigation</a>
+    </p>
+    <h3>Target sizes, measured</h3>
+    <p>
+      Every interactive element on the four pattern pages, at a 375 × 812 touch viewport:
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Page</th><th>Controls</th><th>Under 24 px</th><th>24–43 px</th><th>Spacing-exception failures</th></tr></thead>
+      <tbody>
+        <tr><td>landing-page</td><td>43</td><td>9</td><td>4</td><td><strong>0</strong></td></tr>
+        <tr><td>blog-artikel</td><td>31</td><td>10</td><td>7</td><td><strong>0</strong></td></tr>
+        <tr><td>kontakt</td><td>32</td><td>14</td><td>2</td><td><strong>0</strong></td></tr>
+        <tr><td>news</td><td>40</td><td>9</td><td>7</td><td><strong>0</strong></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      <strong>WCAG 2.2 AA (2.5.8, Target Size Minimum) passes on all four.</strong> The
+      requirement is 24 × 24 CSS px <em>or</em> enough space around a smaller target that
+      a 24 px circle centred on it touches no other target's circle. Every element under
+      24 px is an inline text link — footer meta, legal lines, the address — and every one
+      of them clears the circle test, checked pairwise against every other control on the
+      page. Nothing relies on the inline exception to pass.
+    </p>
+    <p>
+      Every plate-shaped control clears <strong>48 px</strong>, because
+      <code>.cf-btn</code> carries <code>min-height: 3rem</code> and the accordion row
+      carries 4 rem. Three things sit between 24 and 44 — legible, tappable, and short of
+      the 44 px convention (WCAG 2.5.5 AAA, and Apple's HIG):
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Control</th><th>Measured</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-nav__toggle</code></td><td>61 × <strong>42</strong></td><td>it is not a <code>.cf-btn</code>, so it never gets the 3 rem floor — 11 px mono inside <code>--space-3</code> padding lands at 42</td></tr>
+        <tr><td><code>.cf-btn--ghost</code></td><td>334 × <strong>34</strong></td><td>the ghost variant sets <code>min-height: auto</code> on purpose: it is a text-weight action, not a plate</td></tr>
+        <tr><td><code>.cf-blog-card--compact</code></td><td>332 × <strong>41</strong></td><td>a one-line card in a dense list; the row height is the type's, not a control's</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>The nav toggle is the one to look at.</strong> It is the primary control on
+      a phone — the only way to reach any other page — and at 42 px it misses the 44 px
+      convention by two. The other two are defensible where they are: a ghost action is
+      deliberately not a plate, and a compact card is a row of a list rather than a
+      button. Adding <code>min-height: 2.75rem</code> to <code>.cf-nav__toggle</code>
+      fixes it in one line and changes nothing above 780 px, where the toggle is not
+      rendered at all. Flagged rather than changed here, because the toggle's height is
+      the mono label's own metric and that is a designer's call.
+    </div>
+  </section>
+
+  <section class="docs-section" id="text">
+    <h2>Text, zoom and the URL bar</h2>
+    <p>
+      Every page carries <code>width=device-width, initial-scale=1</code> and nothing
+      else. No <code>maximum-scale</code>, no <code>user-scalable=no</code>: pinch zoom
+      works everywhere, which is not a nicety — it is how a large share of people read on
+      a phone at all.
+    </p>
+    <p>
+      <code>-webkit-text-size-adjust: 100%</code> is set on <code>html</code>. That is
+      not a zoom lock either; it switches off iOS Safari's own text inflation in
+      landscape, which would otherwise resize some blocks and not others and quietly
+      break every measured line length on this site. Reader-initiated zoom is untouched.
+    </p>
+    <h3>Viewport units, and where they bite</h3>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Where</th><th>Value</th><th>On a phone</th></tr></thead>
+      <tbody>
+        <tr><td>Hero</td><td><code>min-height: min(92vh, 56rem)</code></td><td>747 px on a 812 px screen. 92 rather than 100 on purpose: the page has to show that it continues</td></tr>
+        <tr><td>Consent, short screens</td><td><code>max-height: 70vh</code></td><td>only under a 560 px viewport height, i.e. landscape</td></tr>
+        <tr><td>Values track</td><td><code>100vh</code> per stage</td><td><strong>never runs below 820 px</strong>, so the 100vh stage does not exist on a phone</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      All three are <code>vh</code>, not <code>dvh</code> — deliberately, and it is worth
+      knowing which behaviour that buys. <code>vh</code> is the <em>large</em> viewport:
+      it resolves as though the URL bar were collapsed and does not change while the bar
+      slides away, so nothing reflows mid-scroll. The cost is that the hero is a little
+      taller than the visible screen on first paint, which is the direction of error this
+      layout wants — the hero is meant to run past the fold. <code>dvh</code> would fix
+      the overshoot and pay for it with a relayout on every scroll direction change.
+    </p>
+  </section>
+
+  <section class="docs-section" id="not">
+    <h2>What does not happen on mobile</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Write the stacked state first and let a query add the wide one.</li>
+          <li>Ask the container. The viewport is for furniture pinned to the screen.</li>
+          <li>Give any element that cannot shrink — a table, a code block — its own scroll box.</li>
+          <li>Put <code>minmax(0, 1fr)</code> on grid tracks that hold text, or one long word takes the page sideways.</li>
+          <li>Check 320, 375, 390 and 768. The first is the floor, the last is where the section gap stops moving.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>No separate mobile stylesheet, no mobile-only components, no device sniffing. One page, narrowed.</li>
+          <li>Don't hide content on small screens. Decoration may go; copy, links and controls may not.</li>
+          <li>Don't put a scroll hijack on a phone — the values track is gated at 820 for exactly this reason.</li>
+          <li>Don't add a threshold without writing it into the register in <code>tokens.css</code> in the same commit.</li>
+          <li>Never <code>user-scalable=no</code>, and never a <code>maximum-scale</code> under 5.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="checking">
+    <h2>Checking it yourself</h2>
+    <p>
+      Everything on this page is reproducible in a browser with no tooling. Open a
+      pattern page, narrow the window, and watch for four things in this order: does the
+      document scroll sideways; does any block overflow its gutter; does every control
+      stay tappable; does anything that carries meaning disappear.
+    </p>
+    <pre class="docs-code"><span class="com">// paste in the console at any width — the only test that matters first</span>
+document.documentElement.scrollWidth - document.documentElement.clientWidth
+<span class="com">// 0 means the page fits. Anything else, find the culprit:</span>
+[...document.querySelectorAll(<span class="val">'body *'</span>)]
+  .filter(el =&gt; el.getBoundingClientRect().right &gt; innerWidth + 1)
+  .map(el =&gt; el.className || el.tagName)</pre>
+    <p>
+      The threshold numbers in the table above were found the same way, by binary search:
+      set the viewport, read a computed style, halve the interval. That is why they are
+      given as <em>narrow at n, wide at n+1</em> rather than as the round number in the
+      query — a container threshold and the viewport that produces it are two different
+      numbers, and only one of them is what you can check with a window.
+    </p>
+    <div class="docs-note">
+      <strong>Writing this page found one bug and one open question.</strong>
+      <p>
+        The bug: the page-header's isometric object was supposed to disappear below
+        900 px and did not. <code>.cf-iso { display: block }</code> is declared later in
+        <code>components.css</code> at the same specificity, and a media query adds none
+        of its own, so the hide lost on source order — 172.5 px of drawing sat behind the
+        title on every phone, for exactly the reason the rule was written to prevent. The
+        hide now names its parent, which puts it at (0,2,0) and makes it independent of
+        where <code>.cf-iso</code> sits in the file. Verified: hidden at 900, shown at
+        901.
+      </p>
+      <p>
+        The open question is the nav toggle's 42 px, above.
+      </p>
+    </div>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>
