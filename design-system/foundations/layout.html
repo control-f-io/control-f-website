@@ -16,12 +16,15 @@
   .demo-grid span { background:rgba(225,255,0,.55); border:1px solid var(--border-strong); padding:var(--space-4) 0; text-align:center; font-family:var(--font-mono); font-size:var(--text-xs); }
   .demo-space { display:flex; align-items:flex-end; gap:var(--space-4); flex-wrap:wrap; }
   .demo-space div { background:var(--cf-lime); border:1px solid var(--border-strong); }
-  .demo-space figcaption { font-family:var(--font-mono); font-size:var(--text-xs); text-align:center; margin-top:var(--space-2); color:var(--text-muted); }
+  /* --text-secondary, not --text-muted: #919191 on the #F8F8F8 docs surface is
+     2.97:1, which fails AA at 11 px. Same substitution, and the same reason, as
+     the README's "muted labels never sit on CF-Grau" rule. 8.61:1. */
+  .demo-space figcaption { font-family:var(--font-mono); font-size:var(--text-xs); text-align:center; margin-top:var(--space-2); color:var(--text-secondary); }
   /* Contours only — the tracks come from .subdivide in base.css. */
   .subdiv { border:1px solid var(--border-strong); aspect-ratio:2/1; }
   .subdiv > .subdivide__col { border-right:1px solid var(--border-strong); }
   .subdiv > .subdivide__col:last-child { border-right:0; }
-  .subdiv .cell { border-bottom:1px solid var(--border-strong); display:grid; place-items:center; font-family:var(--font-mono); font-size:var(--text-xs); color:var(--text-muted); }
+  .subdiv .cell { border-bottom:1px solid var(--border-strong); display:grid; place-items:center; font-family:var(--font-mono); font-size:var(--text-xs); color:var(--text-secondary); }
   .subdiv .cell--lead { font-size:var(--text-md); color:var(--text-primary); }
   .subdiv .subdivide__col > .cell:last-child { border-bottom:0; }
 </style>
@@ -57,10 +60,32 @@
     </table>
     <p>
       The gutter is proportional rather than stepped, and the proportion is not arbitrary:
-      (1440 − 1280) ÷ 2 ÷ 1440 = 5.56 %, so a ~5.5vw gutter is exactly what makes the content
-      column reach 1280 px at the frame the design was measured on. Above 1440 the container
-      caps and the outer margin grows instead of the content.
+      (1440 − 1280) ÷ 2 ÷ 1440 = <strong>5.5556 %</strong>, rounded down to the 5.5vw in the token.
+      Above 1440 the container caps and the outer margin grows instead of the content.
     </p>
+    <div class="docs-note">
+      <strong>The cap lands the 1280, not the gutter.</strong> An earlier version of this paragraph
+      said a ~5.5vw gutter "is exactly what makes the content column reach 1280 at the frame the
+      design was measured on." It is not. At 1440 the gutter computes to <strong>79.2 px</strong>,
+      so the gutter alone would leave 1440 − 158.4 = <strong>1281.6 px</strong> of content. What
+      pins it to exactly 1280 is <code>--container-max</code> — <code>.container</code>'s
+      <code>max-width</code> is <code>calc(1280 + 2 × gutter)</code>, so the cap binds and the
+      padding subtracts back to 1280 precisely. The gutter's job is to make the outer margin
+      proportional; the cap's job is the content width.
+      <br><br>
+      The two also decouple at the top, which is the tell: <strong>5.5vw does not reach 80 px until
+      a viewport of 1454.5</strong>, while the content column reaches 1280 at <strong>1438.2</strong>
+      (where <code>v = 1280 + 0.11v</code>). If the gutter were the mechanism those would be the
+      same number. The exact gutter for a 1440 / 80 / 1280 frame is <strong>5.5556vw</strong>; 5.5
+      is a deliberate rounding, and the tilde was doing honest work — the sentence around it was not.
+      <br><br>
+      Measured, so the correction does not overclaim in its turn: the cap starts binding between
+      1438 and 1439 (at 1438 the container is still the full viewport and content is 1279.82; at
+      1439 the container is 1438.28 and content is 1279.99). Content reaches a clean
+      <strong>1280.00</strong> only from 1454 up, where the gutter has finished rounding to 80. So
+      "exactly 1280 at the 1440 frame" is exact in the algebra and 1279.99 in device pixels — which
+      is invisible, and still worth writing down on a page that keeps four decimals elsewhere.
+    </div>
     <p>
       Every <code>.container</code> is also a <strong>query container</strong> named
       <code>layout</code>. Components that behave differently at different widths ask it how
@@ -104,6 +129,25 @@
       <code>.container</code>, 56rem of container is reached at a viewport of about
       <strong>1007 px</strong>, not 896. Measured, not derived. Worth knowing before you reach
       for a viewport number to describe when something folds.
+      <br><br>
+      <strong>1007 is the figure for a page <code>.container</code>. There is a second one.</strong>
+      A named query matches the nearest ancestor whose <code>container-name</code> includes
+      <code>layout</code> — so <em>which</em> element answers <code>@container layout</code> depends
+      on what is named, and a documentation-only wrapper can take the answer without any threshold
+      changing. Both cases, measured:
+      <table class="docs-table" style="margin-top:var(--space-4)">
+        <thead><tr><th>Nearest <code>layout</code> container</th><th><code>.col-*</code> takes its span at</th></tr></thead>
+        <tbody>
+          <tr><td><code>.container</code> — the page column</td><td>viewport <strong>~1007</strong> (content box 896)</td></tr>
+          <tr><td>a framed <code>.docs-demo</code>, if it carries the name</td><td>viewport <strong>1330</strong> (content box 898)</td></tr>
+        </tbody>
+      </table>
+      Which one applies is not a fact about this page — it is whatever <code>container-name</code>
+      is set to in <code>docs.css</code>, so <strong>check there rather than trusting a sentence
+      here.</strong> An earlier version of this note asserted the frame was anonymous and therefore
+      could not answer; that was true when written and is exactly the kind of claim that goes false
+      on somebody else's merge, which is why it now gives both numbers instead of one plus an
+      assumption.
     </div>
     <div class="docs-note">
       <strong>Two 6 + 6s.</strong> A statement or a process card is a 6 + 6 split, but it is
@@ -161,10 +205,169 @@
         <tr><td><code>44rem</code> / 704</td><td>container</td><td><code>.subdivide</code> folds to a stack; the blog axis goes with it</td></tr>
         <tr><td><code>48rem</code> / 768</td><td>container</td><td><code>.cf-value-row</code> splits into icon + copy</td></tr>
         <tr><td><code>56rem</code> / 896</td><td>container</td><td>the two-column threshold — <code>.col-*</code>, <code>.cf-statement</code>, <code>.cf-process</code></td></tr>
+        <tr><td><code>60rem</code> / 960</td><td>container</td><td><code>.cf-article</code> splits into rail + body; the rail goes sticky</td></tr>
         <tr><td><code>780px</code></td><td>viewport</td><td>nav collapses to a toggle; hero action drops into the flow; accordion loses its indent; footer CTA folds</td></tr>
         <tr><td><code>900px</code></td><td>viewport</td><td>page-header figure is dropped; consent banner goes single column</td></tr>
+        <tr><td><code>560px</code> height</td><td>viewport&nbsp;height</td><td>the consent banner caps at <code>70vh</code> and scrolls — the one height threshold in the system</td></tr>
       </tbody>
     </table>
+    <div class="docs-note">
+      <strong>Two of these were missing from the register.</strong> <code>60rem</code> and the
+      560 px height threshold were both live in <code>components.css</code> while this table and
+      the register comment in <code>tokens.css</code> claimed three container thresholds and two
+      viewport ones. That is exactly the drift the register exists to prevent, so the fix is not
+      only to list them but to say so: <strong>a threshold and its register entry belong in the
+      same commit.</strong>
+    </div>
+    <div class="docs-note">
+      <strong>What sits outside the register, in full.</strong> The register covers the three
+      stylesheets that ship. Five width queries live outside it — one in <code>docs.css</code>,
+      three in per-page <code>&lt;style&gt;</code> blocks, one in a prototype — and three of the five
+      repeat a figure from the table above. None is a bug: each query is correct and out of scope
+      by design. But a scope boundary that lists some of its contents is the same failure as a
+      register that lists some of its thresholds, so here is all of it. (The two
+      <code>prefers-reduced-motion</code> queries in <code>prototypes/</code> are not thresholds
+      and are not listed.)
+    </div>
+    <table class="docs-table">
+      <thead><tr><th>Where</th><th>Query</th><th>Collides with</th></tr></thead>
+      <tbody>
+        <tr><td><code>docs.css</code></td><td><code>@media (max-width: 900px)</code> — collapses the sidebar</td><td>the <code>900px</code> viewport row, same type — but it has a consequence, see below</td></tr>
+        <tr><td><code>foundations/materials.html</code></td><td><code>@media (max-width:780px)</code></td><td>the <code>780px</code> viewport row, <strong>same type</strong></td></tr>
+        <tr><td><code>foundations/iconography.html</code></td><td><code>@media (max-width: 48rem)</code> — a <strong>viewport</strong> query</td><td>the <strong>container</strong> <code>48rem</code> row — different type</td></tr>
+        <tr><td><code>foundations/layout.html</code></td><td><code>@media (max-width:640px)</code> — the demo grid's gap</td><td>no other <em>query</em>; but see the crossovers below — 640 is not unused as a number</td></tr>
+        <tr><td><code>prototypes/werte-scroll.html</code></td><td><code>@media (max-width:820px)</code></td><td>nothing — but it lands <em>between</em> the <code>780</code> and <code>900</code> rows</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>Why <code>prototypes/</code> is out, and why the 820 still matters.</strong> The
+      README is explicit that the prototypes are not part of the system and carry their own
+      styling, unreconciled with the tokens — so excluding them is right, and reconciling that
+      820 would be wrong. It is listed because an unstated exclusion is the same failure as an
+      unlisted threshold, and because of where the number falls: <strong>820 sits between 780 and
+      900</strong>, the pair this page flags as an open question. Whoever eventually rules on the
+      two viewport tiers should know a third inherited number is already in play on a page the
+      sidebar links to.
+      <br><br>
+      Worth recording how this row was missed rather than just adding it. The sweep behind the
+      table was run on this branch, which was cut before the prototypes landed, so the enumeration
+      was complete against the tree it was measured on and short against the tree it will merge
+      into. That is the same failure as the stale count this page opens with, one level up:
+      <strong>enumerate against the merge target, not against your own branch.</strong>
+    </div>
+    <div class="docs-note">
+      <strong>No line numbers, on purpose.</strong> Each row cites the query text because that is
+      greppable, unique within its file, and cannot rot. Line numbers can: this table first
+      shipped citing <code>docs.css:343</code> and <code>materials.html:16</code>, and merging the
+      other work in flight at the time moved them to 453 and 32 while nothing rendered any
+      differently. A table whose whole argument is that drift is the enemy should not carry
+      citations that drift silently — and silence is the problem, because unlike a wrong
+      threshold, a wrong line number breaks nothing and so nobody finds out.
+    </div>
+    <div class="docs-note">
+      <strong>The same-type rows are the dangerous ones, not the striking one.</strong> The
+      <code>48rem</code> pair looks like the worst of these because the number matches exactly,
+      but it is the safest: container against viewport is a visible type mismatch, so anyone
+      comparing them sees two different kinds of query. <code>780</code> against <code>780</code>
+      is viewport against viewport, which nothing catches — someone retuning the viewport tier
+      would sweep a documentation page's sample grid along with it and have no reason to notice.
+      Same for <code>docs.css</code>'s 900.
+      <br><br>
+      The <code>640</code> earns its row for a different reason: it sits in this very file, the
+      page that hosts the register. It is <em>not</em> a number found nowhere else — see below.
+      <br><br>
+      In every case: unrelated queries that happen to share a figure. Do not read one as evidence
+      of the other, and do not "reconcile" them.
+    </div>
+    <div class="docs-note">
+      <strong>The register is complete about queries, not about behaviour.</strong> A
+      <code>min()</code> or <code>clamp()</code> against a viewport unit also changes layout at a
+      specific width — its arms swap — and none of those appear above, because none of them is a
+      query. That distinction is worth stating rather than leaving implicit: a register whose
+      argument is completeness has to say which kind it means. The three in shipping CSS:
+    </div>
+    <table class="docs-table">
+      <thead><tr><th>Declaration</th><th>Arms swap at</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-consent__dialog</code> — <code>width: min(38rem, calc(100vw - 2 * var(--space-4)))</code></td><td><strong>640 px</strong> wide (608 + 32)</td></tr>
+        <tr><td><code>.cf-consent__dialog</code> — <code>max-height: min(80vh, 46rem)</code></td><td><strong>920 px</strong> tall (736 ÷ 0.80)</td></tr>
+        <tr><td><code>min-height: min(92vh, 56rem)</code></td><td><strong>974 px</strong> tall (896 ÷ 0.92)</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      Two consequences worth carrying. The <code>640</code> row above says "no other query" rather
+      than "nowhere else in the system", because the consent dialog's width crosses over at exactly
+      640 — the same figure, reached by different machinery. And <strong>"the one height threshold
+      in the system" is true of queries and false of behaviour:</strong> the <code>560px</code>
+      query is the only height <em>query</em>, but layout also changes at 920 and 974 px tall.
+      <br><br>
+      These are deliberately out of the register. A crossover is a continuous function swapping
+      arms, not a rule switching on, and folding them in would make the list longer without making
+      it more useful. The token-level clamps are documented already — the gutter's floor and
+      ceiling under Container, <code>--section-gap</code>'s under Rhythm.
+    </div>
+    <div class="docs-note">
+      <strong>Out of scope is not the same as no consequence — and <code>docs.css</code>'s 900 has
+      one.</strong> Calling it "unrelated, do not reconcile" is right about the query and stops one
+      step short. Below 900 the sidebar goes static and a demo gets the whole viewport; at 901 the
+      272 px sidebar returns and the demo loses it. Measured on
+      <code>components/blog-grid.html</code>, with <code>.subdivide</code>'s content box against
+      its own 44rem (704 px) fold:
+      <table class="docs-table" style="margin-top:var(--space-4)">
+        <thead><tr><th>Viewport</th><th><code>.subdivide</code> content box</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td>900</td><td>851 px</td><td>five columns</td></tr>
+          <tr><td><strong>901</strong></td><td><strong>532 px</strong></td><td><strong>stacked</strong></td></tr>
+          <tr><td>1073</td><td>704 px</td><td>stacked — 44rem exactly, and the query is inclusive</td></tr>
+          <tr><td><strong>1074</strong></td><td><strong>705 px</strong></td><td>five columns again</td></tr>
+        </tbody>
+      </table>
+      So there is a <strong>173 px band, 901 to 1073, in which widening the browser collapses the
+      subdivision grid</strong> and widening further restores it. Both edges binary-searched. The
+      consequence worth writing down: <strong>no framed demo can show a 44rem component between
+      901 and 1073.</strong> It is documentation-only — <code>docs.css</code> does not ship, and no
+      pattern page behaves this way — but it is the one place where a query this register excludes
+      changes what the register's own subject looks like.
+      <br><br>
+      It also explains the 1073 edge rather than leaving it odd: the fold releases at a content box
+      of 705, not 704, because a size query measures the <em>content</em> box and
+      <code>max-width: 44rem</code> includes 704 exactly. Same rule as the ~1007 figure above.
+    </div>
+    <div class="docs-note">
+      <strong><code>60rem</code> is the one threshold nothing derives.</strong> The other three
+      container numbers each answer to something — 44rem is where the finest subdivision ranks
+      stop being readable, 48rem is the value row's icon cell, 56rem is the system's declared
+      two-column threshold. 60rem is a judgement call, and measuring it does not rescue it:
+      the article rail is a fixed 13rem with a 64 px gap, so at 56rem of container the prose
+      column would be <strong>624 px</strong> against a 66 ch measure of <strong>587 px</strong>,
+      and at 60rem it is <strong>688 px</strong>. Both clear the measure. 60rem buys the prose
+      1.17 × its measure instead of 1.06 ×, which is a defensible thing to want next to a sticky
+      rail — it is simply not a derived number, and the register should not imply that it is.
+      Measured in Chromium: the split fires at a viewport of <strong>1079 px</strong>.
+      <br><br>
+      <strong>One caveat, and it could invert that conclusion.</strong> The 587 px is the only
+      font-dependent number in the argument, and it was measured against the <em>fallback</em>:
+      <code>assets/fonts/</code> is still empty, so Geist never loads
+      (<code>document.fonts.check("16px Geist")</code> is <code>false</code>) and
+      <code>ch</code> resolves against Arial, whose digit advance is 0.556 em — narrow for a
+      grotesk. The tipping point is <strong>0.591 em</strong>: any face wider than that puts 66 ch
+      past the 624 px column, and then 56rem does <em>not</em> clear the measure and 60rem stops
+      being a free choice. So this is the one figure on the page that has to be re-measured the
+      day Geist lands. The direction of the risk favours keeping 60rem.
+      <br><br>
+      Whether to reconcile it down to 56rem and let the system carry three container thresholds
+      instead of four is a designer's call, for the same reason the 780 / 900 pair is: it changes
+      designed behaviour on <code>patterns/blog-artikel.html</code>. Left as it is, now on the
+      record.
+      <br><br>
+      <strong>One concrete cost, for whoever rules on it.</strong> 60rem is the only container
+      threshold that <em>its own documentation page cannot demonstrate at the reference frame.</em>
+      A demo frame on <code>components/article.html</code> gives 846 px of content at a 1280
+      viewport against the 960 it needs, so <code>.cf-article</code> shows only its stacked
+      fallback there and splits from 1440 up. At 56rem it would be reachable. That is not an
+      argument on its own — a sticky rail wanting 1.17 × its measure is a real want — but it is a
+      cost the threshold currently carries silently.
+    </div>
     <div class="docs-note">
       <strong>Two viewport tiers is an open question.</strong> 780 and 900 govern different
       objects and neither was measured off the mockups — they are inherited numbers. They may
@@ -205,27 +408,75 @@
     </p>
     <div class="docs-note">
       <strong>Every step is accounted for.</strong> A scale is only honest if you can say who
-      uses each rung, so here is the count, taken from the shipping CSS
-      (<code>tokens</code> + <code>base</code> + <code>components</code>):
+      uses each rung, so here is the count of <em>declarations</em> that reference each step in
+      the shipping CSS (<code>tokens</code> + <code>base</code> + <code>components</code>),
+      comments excluded. Stamped <code>8e29963b</code> — see below for what that is and how to
+      check it in one command:
     </div>
     <table class="docs-table">
-      <thead><tr><th>Step</th><th>px</th><th>Rules that use it</th><th>Where it earns its place</th></tr></thead>
+      <thead><tr><th>Step</th><th>px</th><th>Declarations</th><th>Where it earns its place</th></tr></thead>
       <tbody>
-        <tr><td><code>--space-1</code></td><td>4</td><td>3</td><td>the gap under a name, inside a tight cluster</td></tr>
-        <tr><td><code>--space-2</code></td><td>8</td><td>14</td><td>icon-to-label, chip padding</td></tr>
-        <tr><td><code>--space-3</code></td><td>12</td><td>13</td><td>button padding-block</td></tr>
-        <tr><td><code>--space-4</code></td><td>16</td><td>27</td><td>the default gap — the most used step in the system</td></tr>
+        <tr><td><code>--space-1</code></td><td>4</td><td>4</td><td>the gap under a name, inside a tight cluster</td></tr>
+        <tr><td><code>--space-2</code></td><td>8</td><td>16</td><td>icon-to-label, chip padding</td></tr>
+        <tr><td><code>--space-3</code></td><td>12</td><td>23</td><td>button padding-block</td></tr>
+        <tr><td><code>--space-4</code></td><td>16</td><td>31</td><td>the default gap — the most used step in the system</td></tr>
         <tr><td><code>--space-5</code></td><td>20</td><td>1</td><td>the nav bar's own padding — its only consumer</td></tr>
-        <tr><td><code>--space-6</code></td><td>24</td><td>19</td><td><code>--grid-gap</code>, panel padding</td></tr>
-        <tr><td><code>--space-8</code></td><td>32</td><td>12</td><td>the gap between an object and its copy</td></tr>
-        <tr><td><code>--space-12</code></td><td>48</td><td>7</td><td>panel padding at the wide breakpoint</td></tr>
-        <tr><td><code>--space-16</code></td><td>64</td><td>5</td><td>the <code>--section-gap</code> floor</td></tr>
+        <tr><td><code>--space-6</code></td><td>24</td><td>26</td><td><code>--grid-gap</code>, panel padding</td></tr>
+        <tr><td><code>--space-8</code></td><td>32</td><td>14</td><td>the gap between an object and its copy</td></tr>
+        <tr><td><code>--space-12</code></td><td>48</td><td>11</td><td>panel padding at the wide breakpoint</td></tr>
+        <tr><td><code>--space-16</code></td><td>64</td><td>8</td><td>the <code>--section-gap</code> floor</td></tr>
         <tr><td><code>--space-20</code></td><td>80</td><td>5</td><td><code>--section-header-gap</code>, the <code>-sm</code> ceiling, the accordion indent</td></tr>
         <tr><td><code>--space-24</code></td><td>96</td><td>3</td><td>page-header and footer padding-block</td></tr>
         <tr><td><code>--space-30</code></td><td>120</td><td><strong>0</strong></td><td>—</td></tr>
         <tr><td><code>--space-40</code></td><td>160</td><td>1</td><td>the <code>--section-gap</code> ceiling</td></tr>
       </tbody>
     </table>
+    <div class="docs-note">
+      <strong>Re-measure it rather than trusting it.</strong> The previous version of this table
+      was written by hand and six of its thirteen rows had drifted as components changed —
+      <code>--space-3</code> was listed at 13 against a real 23, <code>--space-6</code> at 19
+      against 26. A stale count is worse than none, because it is the one number here anybody
+      would act on. So the table now carries the commit it was measured at, and the measurement
+      is a command rather than a reading. It needs nothing the system does not already assume
+      (<code>python3</code>, the same thing that serves these pages):
+    </div>
+    <pre class="docs-code">cd design-system/assets/css &amp;&amp; python3 -c "
+import re, hashlib
+s=re.sub(r'/\*.*?\*/','',''.join(open(f).read() for f in ('tokens.css','base.css','components.css')),flags=re.S)
+counts=[sum('var(--space-%d)'%n in d for d in s.split(';')) for n in (1,2,3,4,5,6,8,12,16,20,24,30,40)]
+print('stamp', hashlib.sha256(repr(counts).encode()).hexdigest()[:8])
+print(counts)
+"</pre>
+    <div class="docs-note">
+      Comments are stripped first, which matters more than it sounds: <code>--space-30</code>
+      is named eight times across <code>tokens.css</code> and this page and used in exactly zero
+      declarations, so a naive <code>grep</code> would report it as a healthy rung.
+      <br><br>
+      The other thing a sceptical reader checks first: the match includes the closing paren, so
+      <code>var(--space-1)</code> cannot match <code>var(--space-12)</code>. The narrow steps are
+      not silently inflated by the wide ones.
+    </div>
+    <div class="docs-note">
+      <strong>The stamp is a digest of the counts themselves.</strong> It is the first eight hex
+      of a SHA-256 over the thirteen numbers, printed by the same command that prints them — so
+      if it still reads <code>8e29963b</code>, the table is current and there is nothing to
+      re-derive.
+      <br><br>
+      It took two wrong answers to get here, and both are worth keeping because both are the
+      obvious choice. <strong>A commit hash</strong> moves on a comment-only edit: the change
+      that first wrote this table also rewrote comments in <code>tokens.css</code>, so a
+      <code>git log</code> stamp would have declared the table stale on the very commit that
+      measured it. <strong>A digest of the stylesheet text</strong> fixes that and still
+      over-triggers, because it moves when <em>any</em> declaration changes — and almost no
+      declaration in this system touches a spacing token. Measured across four in-flight
+      branches at once, every one of them moved the text digest and not one moved a single
+      count. The first to land would have advertised a stale stamp for a table that was still
+      correct, which is the failure the stamp exists to prevent, one level up.
+      <br><br>
+      Digesting the output rather than the input is the version that holds: it changes if and
+      only if a number changes. The general lesson is worth more than the token — <strong>stamp
+      the claim, not the material the claim was made from.</strong>
+    </div>
     <div class="docs-note">
       <strong><code>--space-30</code> is the one step with no consumer</strong> — and the
       previous version of this note was wrong about it, claiming it and
@@ -266,15 +517,23 @@
     <table class="docs-table">
       <thead><tr><th>Viewport</th><th>Gutter</th><th>Content</th><th><code>--section-gap</code></th><th><code>-sm</code></th></tr></thead>
       <tbody>
-        <tr><td>375</td><td>20.6</td><td>334</td><td>64 <span class="t-muted">(floor)</span></td><td>32 <span class="t-muted">(floor)</span></td></tr>
-        <tr><td>576</td><td>31.7</td><td>513</td><td>64</td><td>32 <span class="t-muted">(crossover)</span></td></tr>
-        <tr><td>768</td><td>42.2</td><td>684</td><td>64 <span class="t-muted">(crossover)</span></td><td>42.7</td></tr>
+        <tr><td>375</td><td>20.6</td><td>334</td><td>64 <span class="t-secondary">(floor)</span></td><td>32 <span class="t-secondary">(floor)</span></td></tr>
+        <tr><td>576</td><td>31.7</td><td>513</td><td>64</td><td>32 <span class="t-secondary">(crossover)</span></td></tr>
+        <tr><td>768</td><td>42.2</td><td>684</td><td>64 <span class="t-secondary">(crossover)</span></td><td>42.7</td></tr>
         <tr><td>1024</td><td>56.3</td><td>911</td><td>85.3</td><td>56.9</td></tr>
         <tr><td>1280</td><td>70.4</td><td>1139</td><td>106.7</td><td>71.1</td></tr>
         <tr><td>1440</td><td>79.2</td><td><strong>1280</strong></td><td><strong>120</strong> = <code>--space-30</code></td><td><strong>80</strong> = <code>--space-20</code></td></tr>
         <tr><td>1920</td><td>80</td><td>1280</td><td><strong>160</strong> = <code>--space-40</code></td><td>80</td></tr>
       </tbody>
     </table>
+    <div class="docs-note">
+      <strong>These figures are the page, not the demo frames.</strong> Every row above is
+      monotonic and every one is right — but the <strong>1024</strong> row sits inside the 901–1073
+      band described under Breakpoints, where a documentation demo is <em>narrower</em> than it is
+      at 900. Nothing in this table is wrong; it is simply adjacent to the one place the monotonic
+      reading does not carry over. Read these as viewport-to-page relationships, which is what they
+      are.
+    </div>
     <div class="docs-note">
       <strong>The 2 : 3 ratio holds in the middle, not everywhere.</strong> The two tokens are
       1/18 and 1/12 of the frame, so where both are fluid they sit at exactly 1.50. Measured
@@ -304,6 +563,32 @@
       it currently lacks. That is a visible change to every viewport above 1500 — 240 px between
       sections instead of up to 320 — so it is left for a designer to rule on rather than taken
       here.
+    </div>
+    <div class="docs-note">
+      <strong>Four tokens stop growing at four different widths, and that is what the ratio drift
+      actually is.</strong> The note above is the visible corner of a wider fact:
+      <table class="docs-table" style="margin-top:var(--space-4)">
+        <thead><tr><th>Token</th><th>Stops growing at</th><th>Because</th></tr></thead>
+        <tbody>
+          <tr><td><code>--container-max</code></td><td><strong>1438.2</strong></td><td>content reaches 1280</td></tr>
+          <tr><td><code>--section-gap-sm</code></td><td><strong>1440.0</strong></td><td>100vw ÷ 18 = 80</td></tr>
+          <tr><td><code>--gutter</code></td><td><strong>1454.5</strong></td><td>5.5vw = 80</td></tr>
+          <tr><td><code>--section-gap</code></td><td><strong>1920.0</strong></td><td>100vw ÷ 12 = 160</td></tr>
+        </tbody>
+      </table>
+      Three land within <strong>16 px</strong> of each other and the fourth arrives
+      <strong>466 px</strong> later. So the ratio opening back out to 2.00 by 1920 is not the rhythm
+      doing something interesting — it is <code>--section-gap</code> climbing alone after every
+      horizontal measure has frozen. From 1454 to 1920 the page is a fixed 1280 column with 80 px
+      gutters whose vertical rhythm keeps loosening by a further 39 px.
+      <br><br>
+      Current fluid-scale practice is to coordinate the upper bound across the system so gutters,
+      padding and type top out together and the composition grows in proportion. This system has
+      them four places apart, and the widest governs vertical space. Whether that is wrong is a
+      designer's call — <code>clamp(var(--space-16), calc(100vw / 12), var(--space-30))</code> would
+      lock section rhythm to the frame at 1440 — and it is the same call as the note above, so it is
+      recorded here rather than taken. Named because a measured fact is worth more to whoever rules
+      on it than an inference.
     </div>
     <div class="docs-note">
       <strong>The token is padding, not the gap.</strong> <code>.section</code> applies
