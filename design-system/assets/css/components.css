@@ -177,11 +177,24 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
      rather than transitioning between them. Naming `background` here
      animates nothing and only tells the next reader that it does.
 
-     Read that narrowly. It is true of THIS button, whose only moving part is
-     a gradient. It is NOT a reason to strip `background` from the base
-     .cf-btn rule above, where it is load-bearing — `background-color`
-     interpolates perfectly well, and three modifiers depend on it. Measured
-     mid-transition, slowed to 2 s:
+     Two things follow that are easy to get wrong in opposite directions.
+
+     This is an OVERRIDE, not a subtraction. `transition` is declared whole
+     here, so it replaces the base list rather than editing it: computed
+     transition-property is `color, border-color, --cf-specular` on this
+     button against `background, color, border-color` on the others. The
+     omission is free only while the gradient is the button's sole background
+     change, which is true today. Give it a state that moves
+     background-color and that state will jump — demonstrated, not assumed:
+     a background-color set on this button reads its final value 60 ms in,
+     with no intermediate. Add `background` back to this list on the same day
+     you add such a state.
+
+     And read the gradient claim narrowly. It is true of THIS button, whose
+     only moving part is a gradient. It is NOT a reason to strip `background`
+     from the base .cf-btn rule above, where it is load-bearing —
+     background-color interpolates perfectly well and three modifiers depend
+     on it. Measured mid-transition, slowed to 2 s:
 
        --outline   rgba(0,0,0,0) -> rgba(0,0,0,0.88) -> rgb(0,0,0)
        --solid     rgb(27,32,34) -> rgb(3,4,4)       -> rgb(0,0,0)
