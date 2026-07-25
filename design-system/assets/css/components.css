@@ -80,6 +80,15 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   min-height: 3rem;
   padding: var(--space-3) var(--space-4);
   border: var(--stroke-1) solid transparent;
+  /* border-box, or a gradient variant grows a hairline of the wrong colour
+     down each side. background-origin defaults to padding-box while
+     background-clip defaults to border-box, so the image is sized to the
+     padding box but painted across the border too — and the default
+     background-repeat tiles it to cover the difference. On --primary that put
+     the ramp's lime end in the 1 px strip at the LEFT edge and its CF-Grau
+     start in the strip at the RIGHT, one full period out of place. Sizing the
+     image to the border box removes the strip to be filled. */
+  background-origin: border-box;
   border-radius: var(--radius-none);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
@@ -94,12 +103,14 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 }
 .cf-btn:hover .cf-arrow { transform: translateX(4px); }
 
+/* background-image, not the background shorthand: the shorthand resets
+   background-origin to padding-box and would undo the rule above. */
 .cf-btn--primary {
-  background: var(--gradient-light-90);
+  background-image: var(--gradient-light-90);
   color: var(--accent-ink);
   border-color: transparent;
 }
-.cf-btn--primary:hover { background: var(--cf-lime); }
+.cf-btn--primary:hover { background-image: none; background-color: var(--cf-lime); }
 
 /* On top of imagery or the hero. The one place glass and the light layer
    meet: a frosted plate with the light falling across it, lime at the lit
@@ -113,20 +124,26 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 .cf-btn--glass {
   position: relative;
   color: var(--accent-ink);
-  /* DELETE THIS LINE AND BROWSERS WITHOUT @property LOSE THE PLATE, NOT JUST
-     THE ANIMATION. The long version follows; that sentence is the whole of it.
+  /* DELETE THIS LINE AND BROWSERS WITHOUT @property LOSE THE LIGHT ON THE
+     PLATE. The long version follows; that sentence is the whole of it.
 
      The rest position is declared here rather than left to the initial-value
      in the @property block, because leaving it there makes --cf-specular
      unset wherever @property is unsupported — and an unresolvable var() is
-     *guaranteed invalid*, which takes the whole `background` shorthand with
-     it at computed-value time. Not only this layer: the linear-gradient and
-     --surface-glass go too, and the button computes to background-image: none
-     over a transparent background-color. backdrop-filter is a separate
-     declaration and survives, so what is left is a blur with no plate and a
-     pure-black label (--accent-ink) directly over the hero video, with
-     nothing holding the contrast floor. That is the load-bearing reason, it
-     is spec behaviour, and it does not expire.
+     *guaranteed invalid*, which takes the whole declaration it sits in with
+     it at computed-value time. Both gradient layers go, and the button
+     computes to background-image: none.
+
+     What that costs is now smaller than it was, and only because of the
+     split below. While this was one `background` shorthand it also took
+     --surface-glass down with it, leaving a blur over a transparent
+     background-color — a pure-black label (--accent-ink) directly over the
+     hero video with nothing holding the contrast floor. --surface-glass is
+     its own background-color declaration now, so it survives an invalid
+     background-image and the bearing tint still holds 4.5:1. The plate
+     degrades to flat glass rather than to nothing. Keep the declaration
+     anyway: losing the light layer is still a real loss, and the guarantee
+     costs one line.
 
      A var(--cf-specular, 150%) fallback would resolve the value too, and is
      not wrong — a registered property with an initial-value is never
@@ -143,7 +160,11 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 
      Keep this value equal to the initial-value in the @property block. */
   --cf-specular: 150%;
-  background:
+  /* background-image, not the `background` shorthand: the shorthand resets
+     background-origin to padding-box, and the 1 px transparent border then
+     gets filled by tiling the image — the far end of the ramp down the near
+     edge. See .cf-btn. */
+  background-image:
     radial-gradient(55% 300% at var(--cf-specular) 50%,
                     rgba(255, 255, 255, 0.42) 0%,
                     rgba(255, 255, 255, 0) 60%),
@@ -151,8 +172,8 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
                     rgba(197, 235, 226, 0)    30%,
                     rgba(197, 235, 226, 0.55) 62%,
                     rgba(225, 255, 0, 0.88)   87%,
-                    var(--cf-lime)           100%),
-    var(--surface-glass);
+                    var(--cf-lime)           100%);
+  background-color: var(--surface-glass);
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
   border-color: rgba(255, 255, 255, 0.55);
