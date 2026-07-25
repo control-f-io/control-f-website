@@ -253,6 +253,62 @@
                       var(--sky-300)     calc((var(--spectrum-cool-n) - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
                       var(--violett-300) 100%);
 
+  /* THE SHADOW HALF OF THE FOIL.
+     The foil above is light-on-dark and cannot be anything else: every stop
+     in it is above OKLab L 0.82, so on the page's own CF-Grau it lands
+     between 1.1:1 and 1.5:1. That left the two designed pages — which are a
+     CF-Grau-to-white wash almost end to end — with no gradient type at all,
+     and the only foil moment on either of them down in the anthracite
+     footer. This is the same material seen from the other side: not a
+     second gradient, the other half of the one that already exists.
+
+     It is built by the same rule the foil is, because iridescence is hue
+     travel inside a NARROW LUMINANCE BAND — so the band moves and the hue
+     travel does not. The ramps are white-mixes and black-mixes of one
+     palette, so the dark mirror falls straight out of them:
+
+                 light foil            ink foil          Δ
+       stop 1    Glas 500   L 0.910    Glas 800   0.426  h 179.4 / 180.0
+       stop 2    Sky  300   L 0.865    Sky  800   0.353  h 243.6 / 242.5
+       stop 3    Violett300 L 0.820    Violett800 0.311  h 283.9 / 282.2
+       band                   0.090                0.115
+       hue travel            104.5°               102.2°
+
+     Two decimal places of hue apart across three stops, and a band 0.025
+     wider. It reads as the same material because it is.
+
+     NO HOT SPOT, and that is the one place the mirror is not symmetric.
+     The foil's Weiss sits deliberately above its band as a specular. The
+     ink mirror of that would be a stop deliberately BELOW L 0.311, and
+     there is no room for its opposite either: the lightest ink that still
+     clears 4.5:1 on CF-Grau is about L 0.44, which is where Glas 800
+     already sits. So the ink foil is the falloff without the highlight —
+     which is what the shadow side of a foil actually looks like. Do not
+     "complete" it by adding Schwarz at 0 %: that puts a 0.426 span on a
+     ramp whose whole claim is a 0.115 one, and it reads as a fade to black.
+
+     DO NOT use the 700 tints instead. They are the obvious choice for a
+     lighter, prettier ink and they fail: Glas 700 is 1.5:1 on CF-Grau.
+     The 800s are the lightest rung of the ramp that clears AA on the
+     page's own grey, which is why the band sits exactly where it does.
+
+     Stops are the spectrum's own again, renormalised onto the band above
+     the near rake — the foil drops Weiss and rebases off the hot spot, so
+     the ink drops Weiss and the hot spot both and rebases off the rake:
+
+       Glas     ( 32 − 32) / (100 − 32) =   0 %
+       Sky      ( 64 − 32) / (100 − 32) =  47 %
+       Violett  (100 − 32) / (100 − 32) = 100 %
+
+     Same 116.57° shallow rake, for the same reason. Worst sample on
+     CF-Grau — Glas 800, the light end — is 5.24:1; on white it is 8.16:1.
+     AA at any size across the whole ramp, and the worst case is the top of
+     the page wash, not the bottom, because this ink darkens as it travels. */
+  --gradient-foil-ink: linear-gradient(116.57deg,
+                      var(--glas-800)    0%,
+                      var(--sky-800)     calc((var(--spectrum-cool-n) - var(--rake-near-n)) / (100 - var(--rake-near-n)) * 100%),
+                      var(--violett-800) 100%);
+
   /* Dither. 8-bit sRGB cannot resolve a 5,000 px ramp between two colours
      this close, so the page wash bands into visible steps. One tile of
      static, greyscale fractal noise breaks the step edges up. Pure SVG, no
@@ -734,6 +790,10 @@
                         var(--cf-glas)     calc((var(--rake-near-n)     - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
                         var(--sky-300)     calc((var(--spectrum-cool-n) - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
                         var(--violett-300) 100%);
+    --gradient-foil-ink: linear-gradient(116.57deg in oklab,
+                        var(--glas-800)    0%,
+                        var(--sky-800)     calc((var(--spectrum-cool-n) - var(--rake-near-n)) / (100 - var(--rake-near-n)) * 100%),
+                        var(--violett-800) 100%);
   }
 }
 
