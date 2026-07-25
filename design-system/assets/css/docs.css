@@ -188,12 +188,23 @@ body.docs {
    flat plates where the material should be.
 
    WHAT IT CANNOT FIX. A demo frame is narrower than the page it documents — at
-   1280 a framed demo is 846 px inside its padding against 1152 px of page. So
-   .cf-article, which splits at 60rem, is still stacked on
-   components/article.html at 1280 while patterns/blog-artikel.html shows it in
-   two columns; it matches from 1440 up. Any component whose breakpoint is above
-   roughly 850 px has a width band where its own page cannot show it wide. Say
-   so on that page — do not widen the frame to hide it. */
+   1280 a framed demo is 846 px inside its padding against 1139 px of page
+   content. (1139, not 1152: the gutter is 5.5vw a side, so the page's content
+   box is 0.89 of the viewport rather than the viewport less a fixed inset.) So
+   .cf-article, which splits at 60rem, is stacked on components/article.html at
+   1280 while patterns/blog-artikel.html shows two columns; it matches from
+   1440 up.
+
+   Nor does the frame widen monotonically, which is the part that catches
+   people. The sidebar arrives at 901 px and takes 319 px out of the docs column
+   in a single pixel of viewport — 786 px of frame at 900, 467 px at 901, not
+   back to 786 until about 1220. So "make the window wider" is not always sound
+   advice, and a container-queried demo can fold on the WIDE side of that edge:
+   .subdivide does exactly that on components/blog-grid.html, five columns at
+   900, stacked from 901 to 1073, five again at 1074. That is docs chrome rather
+   than the component, and not this declaration's to fix — but any note about
+   demo width has to survive it. Say the constraint on the page it affects; do
+   not widen the frame to hide it. */
 .docs-demo {
   container: layout / inline-size;
   padding: var(--space-8);
