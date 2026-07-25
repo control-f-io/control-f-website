@@ -214,13 +214,32 @@
       light happens to be.
     </p>
     <p>
-      <strong>The navigation sheet deliberately has none of this.</strong> A specular is a
-      property of a small plate you point at, not of a band running the full width of the
-      page: a highlight travelling across the whole viewport on hover would be a screen
-      effect, and the bar is not a thing you hover — it is a thing you scroll past. Its light
-      is the edge instead, <code>--glass-edge</code>, scrubbed by scroll position. So the
-      specular below is a rule for glass <em>buttons</em>, and its absence on the sheet is a
-      decision rather than an oversight.
+      <strong>The navigation sheet gets a specular too, and it is driven by the scroll rather
+      than by the pointer.</strong> That distinction is the whole rule, and it used to be
+      stated as the sheet having no specular at all. A highlight travelling across the full
+      width of the viewport <em>on hover</em> would be a screen effect, and the bar is not a
+      thing you point at — it is a thing you scroll past. So the sheet answers the only
+      gesture it actually receives: <code>--glass-rim-light</code>, a band 40&nbsp;% of the bar
+      wide, parked off the left edge and crossing the rim once over the length of the
+      document. The reader moving down the page is the reader moving past the material, which
+      is the one thing holographic stock does that a photograph of it cannot.
+    </p>
+    <p>
+      Two things about it are load-bearing. It is <strong>on the rim, not on the sheet</strong>
+      — see <em>Cost</em> below; and it is <strong>achromatic</strong>, because
+      <code>--glass-edge</code> already carries this material's hue travel and a specular is
+      the source reflected rather than the surface coloured. One lit edge with hue, one
+      specular without, on the sheet exactly as on the button. It is also
+      <em>additive</em>: parked off-canvas at rest, so a browser with no scroll timeline and a
+      reader who has asked for reduced motion both get <code>--glass-edge</code> drawn exactly
+      as it is designed, with nothing subtracted.
+    </p>
+    <p>
+      The rim carries a second, separate animation that is not a specular and should not be
+      confused with one: <code>--glass-edge</code> fades in over the first 5&nbsp;rem of
+      scroll. That is a <em>state</em> change — the bar ceasing to be part of the hero and
+      becoming a plane over the page — where the specular is not a state at all. Different
+      thing, different range, same one pixel.
     </p>
     <p>
       <strong>Animate the property, not the paint.</strong> A gradient
@@ -319,8 +338,12 @@
       that keep it affordable: never add a third blurred layer; keep the blur radius at 16 px,
       since more reads no better; use <code>position: sticky</code> rather than
       <code>fixed</code>, because a fixed blurred element repaints its whole region every
-      scroll frame in iOS Safari; and never animate the opacity of a blurred layer, which
-      re-rasterises the blur on every frame. A sheet may reach past its own edge by
+      scroll frame in iOS Safari; and never move <em>anything</em> on a blurred layer —
+      neither its opacity nor a gradient across it — because either re-rasterises the blur on
+      every frame. That last rule is why both of the navigation's animations live on its
+      one-pixel rim rather than on its sheet: an unblurred gradient is free, and a sheet that
+      wants to respond to the reader can always do it through the edge it ends at. A sheet may
+      reach past its own edge by
       <code>--glass-lookahead</code> so content arrives through the blur rather than popping
       into it, but no further — everything past one blur kernel is spend with nothing to show.
     </p>

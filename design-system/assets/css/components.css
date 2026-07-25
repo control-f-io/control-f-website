@@ -359,6 +359,26 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
    reason the other two gradients in this block spell their colour out. */
 .cf-btn--glass:hover,
 .cf-btn--glass:focus-visible { --cf-specular: 40%; }
+/* PRESS. The plate tilts away from the source under the finger and returns to
+   the hover position on release — the same gesture .cf-btn--primary makes,
+   and this button did not have it. The two light-bearing buttons in the
+   system had a hover each, a focus each, and a press between them, which left
+   them disagreeing about what a press is on a lit surface.
+
+   76 % is that button's own proportion, not a second guess at the same
+   number. --primary rests at 150 %, hovers to 64 % and gives 28 of that 86
+   back on press: 33 %. This plate has a longer throw — 150 % to 40 %, so 110
+   — and 33 % of it is 36, which lands at 76 %.
+
+   THE CONTOUR DOES NOT COME UP HERE, and that is the one place the two
+   buttons diverge rather than an omission. --primary inks its reserved 1 px
+   border on press because that border is transparent at rest and the ink is
+   free. This plate's border is already a lit rim at rgba(255,255,255,0.55),
+   which is the glass edge itself; inking it would trade the material's own
+   edge light for a black line drawn over the hero video. On glass the
+   specular moving IS the signal, which is the whole reason the material has
+   one. */
+.cf-btn--glass:active { --cf-specular: 76%; }
 
 /* The focus ring is the one part of this button the plate's contrast floor
    does NOT protect: at outline-offset it lands 2-4 px OUTSIDE the plate, on
@@ -682,26 +702,65 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   height: var(--stroke-1);
   z-index: -1;
   pointer-events: none;
-  background: var(--glass-edge);
+  /* TWO LAYERS ON ONE PIXEL: the specular, parked off the left edge, over the
+     designed rim. Written as background-image plus explicit repeat, size and
+     position rather than the `background` shorthand, so the parked position
+     is stated here instead of implied — and so a later reader can see that at
+     rest this rule paints --glass-edge and nothing else.
+
+     -70 % is off-canvas and not a guess. A background layer positioned at P
+     is offset by P x (container - image); at 40 % width that is 0.6W x P, so
+     the band's left edge sits at -0.42W and its right edge at -0.02W. Nothing
+     of it is on the bar. 170 % puts it fully off the other end the same way.
+     Change the 40 % and both endpoints move with it. */
+  background-image: var(--glass-rim-light), var(--glass-edge);
+  background-repeat: no-repeat, no-repeat;
+  background-size: 40% 100%, 100% 100%;
+  background-position: -70% 0, 0 0;
 }
 
-/* Light arriving as the bar separates from the page. Scrubbed by the scroll
-   position rather than a timer, so it tracks the reader's hand instead of
-   playing at them. No script; the un-enhanced state is the settled one.
+/* Light arriving as the bar separates from the page, and then light crossing
+   it for as long as the reader keeps going. Both scrubbed by scroll position
+   rather than a timer, so they track the reader's hand and run backwards on
+   the way up. No script; the un-enhanced state is the settled one.
 
-   Deliberately on the edge and not on the sheet: fading a backdrop-filtered
-   layer re-rasterises its blur every frame, which showed up as a doubling of
-   long frames during scroll. A one-pixel gradient costs nothing. */
+   The two ranges are different on purpose and say different things. The rim
+   FADES IN over the first 5rem, because that is the bar changing state —
+   part of the hero, then a plane over the page. The specular CROSSES over the
+   whole document, because that is not a state change at all: it is the sheet
+   being a material the reader is moving past. A bar that is still part of the
+   hero has not separated from anything, so at scroll 0 the rim is invisible
+   and the band has not started; by the time the rim is fully lit the band has
+   moved 80px worth of a document scroll, which is nothing.
+
+   One pass per document, which is as quiet as this can be made while still
+   being motion. It is proportional to the page rather than timed, so a long
+   page gets a slow drift and a short one a brisk pass, and neither is a
+   speed anybody chose.
+
+   DELIBERATELY ON THE EDGE AND NOT ON THE SHEET, and this is now the reason
+   for two things rather than one. Fading a backdrop-filtered layer
+   re-rasterises its blur every frame, which showed up as a doubling of long
+   frames during scroll; moving a gradient across one would do the same. The
+   rim is one pixel of unblurred gradient, so both the fade and the travel are
+   free. If a later run wants the sheet itself to respond to scroll, this is
+   the layer to do it on — not that one. */
 @supports (animation-timeline: scroll()) {
   @media (prefers-reduced-motion: no-preference) {
     .cf-nav::after {
-      animation: cf-nav-edge linear both;
-      animation-timeline: scroll(root block);
-      animation-range: 0 5rem;
+      animation: cf-nav-edge linear both, cf-nav-rim linear both;
+      animation-timeline: scroll(root block), scroll(root block);
+      animation-range: 0 5rem, normal;
     }
   }
 }
 @keyframes cf-nav-edge { from { opacity: 0; } to { opacity: 1; } }
+/* background-position is a list property, so both layers have to be restated
+   in each keyframe. The second pair is the designed rim and never moves. */
+@keyframes cf-nav-rim {
+  from { background-position: -70% 0, 0 0; }
+  to   { background-position: 170% 0, 0 0; }
+}
 
 .cf-nav__list {
   display: flex;
