@@ -190,11 +190,20 @@ These were judgement calls, each documented on the relevant page:
   one of the six material layers. → `components/process-card.html`
 - **The footer title is filled with the foil; the mockup paints it solid near-white.**
   Sampled off `mockups/landing-page.jpg`, "Jetzt Projekt starten!" is a flat `#EDF1F2`.
-  The system clips `--gradient-foil` into it instead — one gradient headline per page, on
-  the one surface where it clears AA comfortably. The fallback is the mockup's own value:
+  The system clips `--gradient-foil` into it instead — one foil moment per screen, on the
+  surface where it clears AA comfortably. The fallback is the mockup's own value:
   `.cf-footer__title` sets no colour and inherits white, so any browser that cannot clip a
   background into text renders exactly what the designer drew.
   → `components/footer.html`, `foundations/colors.html`
+- **The Über uns page title is filled with the foil's shadow half; the mockup paints it
+  solid black.** `--gradient-foil` is light-on-dark and cannot be otherwise — every stop is
+  above OKLab L 0.82, so on the page's own CF-Grau it lands at 1.1–1.5:1. That left both
+  designed pages, which are a CF-Grau-to-white wash almost end to end, with no gradient type
+  outside the anthracite footer. `--gradient-foil-ink` is the same three hues moved into the
+  800 band: 102.2° of hue travel across 0.115 of lightness, against the lit half's 104.5°
+  across 0.090. Worst sample on the shipped header is 5.45:1. As above, the fallback is the
+  designer's own value — the title inherits `--text-primary`.
+  → `foundations/colors.html`
 - **Inline SVG gradients carry an oklab waypoint the source vectors do not have.** Figma
   interpolates in sRGB, and SVG can only interpolate in sRGB or linearRGB, so the illustrations
   inherited the sRGB path. The CSS gradients interpolate in oklab. Same three colours, two
