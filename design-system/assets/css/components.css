@@ -274,6 +274,35 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 .cf-btn--glass:hover,
 .cf-btn--glass:focus-visible { --cf-specular: 40%; }
 
+/* The focus ring is the one part of this button the plate's contrast floor
+   does NOT protect: at outline-offset it lands 2-4 px OUTSIDE the plate, on
+   the hero artwork, which nobody controls and which is a video — so the
+   backdrop under the ring changes frame to frame. The global black ring is
+   fine on the documentation page's flat grey and is not guaranteed here.
+
+   Neither single colour can be: against a 3:1 requirement, black holds only
+   where the backdrop is lighter than L 0.100, and lime only where it is
+   darker than L 0.258. Sampling frames cannot fix that, the same way it
+   could not fix the bearing tint.
+
+   The two are complementary, though — those ranges OVERLAP, so between them
+   every possible backdrop is covered, and they contrast 18.5:1 with each
+   other. So the ring is two-tone: black inside, lime outside. Black sits
+   against the plate, whose floor IS guaranteed, giving a 13:1 inner edge
+   that no frame can take away; lime sits against the artwork and carries the
+   dark frames. Whatever the video does, at least two edges of this ring
+   remain visible.
+
+   Order matters. Lime inside would put it against the light plate at 1.4:1
+   and waste the one guaranteed edge. box-shadow is the inner ring because
+   outline cannot be doubled; it is dropped in forced-colors mode, where the
+   outline survives and the system takes over anyway. */
+.cf-btn--glass:focus-visible {
+  outline: var(--stroke-2) solid var(--cf-lime);
+  outline-offset: var(--stroke-2);
+  box-shadow: 0 0 0 var(--stroke-2) var(--cf-schwarz);
+}
+
 .cf-btn--outline {
   background: transparent;
   color: var(--text-primary);
