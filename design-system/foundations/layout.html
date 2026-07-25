@@ -60,10 +60,32 @@
     </table>
     <p>
       The gutter is proportional rather than stepped, and the proportion is not arbitrary:
-      (1440 − 1280) ÷ 2 ÷ 1440 = 5.56 %, so a ~5.5vw gutter is exactly what makes the content
-      column reach 1280 px at the frame the design was measured on. Above 1440 the container
-      caps and the outer margin grows instead of the content.
+      (1440 − 1280) ÷ 2 ÷ 1440 = <strong>5.5556 %</strong>, rounded down to the 5.5vw in the token.
+      Above 1440 the container caps and the outer margin grows instead of the content.
     </p>
+    <div class="docs-note">
+      <strong>The cap lands the 1280, not the gutter.</strong> An earlier version of this paragraph
+      said a ~5.5vw gutter "is exactly what makes the content column reach 1280 at the frame the
+      design was measured on." It is not. At 1440 the gutter computes to <strong>79.2 px</strong>,
+      so the gutter alone would leave 1440 − 158.4 = <strong>1281.6 px</strong> of content. What
+      pins it to exactly 1280 is <code>--container-max</code> — <code>.container</code>'s
+      <code>max-width</code> is <code>calc(1280 + 2 × gutter)</code>, so the cap binds and the
+      padding subtracts back to 1280 precisely. The gutter's job is to make the outer margin
+      proportional; the cap's job is the content width.
+      <br><br>
+      The two also decouple at the top, which is the tell: <strong>5.5vw does not reach 80 px until
+      a viewport of 1454.5</strong>, while the content column reaches 1280 at <strong>1438.2</strong>
+      (where <code>v = 1280 + 0.11v</code>). If the gutter were the mechanism those would be the
+      same number. The exact gutter for a 1440 / 80 / 1280 frame is <strong>5.5556vw</strong>; 5.5
+      is a deliberate rounding, and the tilde was doing honest work — the sentence around it was not.
+      <br><br>
+      Measured, so the correction does not overclaim in its turn: the cap starts binding between
+      1438 and 1439 (at 1438 the container is still the full viewport and content is 1279.82; at
+      1439 the container is 1438.28 and content is 1279.99). Content reaches a clean
+      <strong>1280.00</strong> only from 1454 up, where the gutter has finished rounding to 80. So
+      "exactly 1280 at the 1440 frame" is exact in the algebra and 1279.99 in device pixels — which
+      is invisible, and still worth writing down on a page that keeps four decimals elsewhere.
+    </div>
     <p>
       Every <code>.container</code> is also a <strong>query container</strong> named
       <code>layout</code>. Components that behave differently at different widths ask it how
