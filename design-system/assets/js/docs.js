@@ -25,6 +25,7 @@
       { href: 'components/navigation.html',     label: 'Navigation' },
       { href: 'components/section-header.html', label: 'Section Header' },
       { href: 'components/statement.html',      label: 'Statement & Value Table' },
+      { href: 'components/plot.html',           label: 'Plot' },
       { href: 'components/process-card.html',   label: 'Process Card' },
       { href: 'components/accordion.html',      label: 'Accordion / FAQ' },
       { href: 'components/blog-grid.html',      label: 'Blog Grid' },
