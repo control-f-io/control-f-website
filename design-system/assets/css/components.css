@@ -2320,6 +2320,16 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 
     /* every value occupies the same place; the timeline chooses which is lit */
     .cf-values__list { grid-column: 1 / -1; grid-row: 1; display: grid; }
+    /* The stacked state's separator has to be undone at its own specificity.
+       `border: 0` on .cf-values__item below loses to
+       .cf-values__item + .cf-values__item, so all five separators survived into
+       the pinned state — and because the items stack in one grid cell they land
+       on the same line, reading as one hairline straight through the mark. */
+    .cf-values__item + .cf-values__item {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
     .cf-values__item {
       grid-area: 1 / 1;
       display: grid;
@@ -2336,8 +2346,12 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
       animation-fill-mode: both;
       animation-timing-function: linear;
     }
-    .cf-values__title { grid-column: 1 / 5; text-align: right; }
-    .cf-values__body  { grid-column: 9 / 13; margin-top: 0; }
+    /* min-height on both is what keeps the row still while the copy types in:
+       without it the line count changes as characters land and the whole
+       composition shifts under the reader. Reserved from the longest value in
+       the set at the pinned breakpoint. */
+    .cf-values__title { grid-column: 1 / 5;  text-align: right; min-height: 2.5em; }
+    .cf-values__body  { grid-column: 9 / 13; margin-top: 0;     min-height: 7.5em; }
 
     .cf-values__item:nth-child(1) { animation-range: contain 0%      contain 16.667%; }
     .cf-values__item:nth-child(2) { animation-range: contain 16.667% contain 33.333%; }
@@ -2451,6 +2465,29 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
       animation-timing-function: linear;
     }
   }
+}
+
+/* The caret, and the box the streaming copy holds open.
+   min-height on both title and body is what keeps the composition still while
+   the text arrives: without it the line count changes as characters land and
+   the whole three-column row jumps. Reserved from the longest value in the
+   set, measured at the pinned breakpoint. */
+.cf-values__caret {
+  display: inline-block;
+  width: 0.45em;
+  height: 0.95em;
+  margin-left: 0.1em;
+  background: var(--text-primary);
+  vertical-align: text-bottom;
+  animation: cf-values-caret 0.9s steps(1) infinite;
+}
+.cf-values__caret.is-resting { opacity: 0; animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .cf-values__caret { animation: none; }
+}
+@keyframes cf-values-caret {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
 }
 
 @keyframes cf-values-item {
