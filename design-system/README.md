@@ -22,7 +22,7 @@ design-system/
 ├── index.html              overview + how to include the CSS
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
 │                           logo, photo, motion
-├── components/             buttons, nav, section header, statement + values,
+├── components/             buttons, nav, section header, statement + value table,
 │                           process card, accordion, blog grid, article + prose,
 │                           team, forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html,
