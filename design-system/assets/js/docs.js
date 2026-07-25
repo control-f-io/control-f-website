@@ -37,7 +37,8 @@
     { title: 'Patterns', items: [
       { href: 'patterns/landing-page.html', label: 'Landing Page' },
       { href: 'patterns/ueber-uns.html',    label: 'Über uns page' },
-      { href: 'patterns/blog-artikel.html', label: 'Blog article' }
+      { href: 'patterns/blog-artikel.html', label: 'Blog article' },
+      { href: 'patterns/kontakt.html',      label: 'Kontakt page' }
     ]},
     /* Full-page scroll studies, not components. They carry their own styling
        and their own scroll engine, so they sit outside the documentation
