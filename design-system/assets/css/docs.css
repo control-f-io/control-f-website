@@ -181,11 +181,17 @@ body.docs {
    interception is precisely what is wanted. It is a constraint on what is added
    next, not a defect in this.
 
-   DO NOT TIGHTEN THIS. `inline-size` brings layout, style and inline-size
-   containment, none of which forms a backdrop root. `contain: paint` does —
-   as do `content` and `strict`, which include it — and it would stop every
-   frosted demo in the documentation from blurring: no error, no warning, just
-   flat plates where the material should be.
+   DO NOT TIGHTEN THIS — and note what actually breaks glass, because it is not
+   containment. Measured: `contain: paint`, `content` and `strict` all leave
+   backdrop-filter working. Filter Effects 2 lists the real backdrop-root
+   triggers — filter, opacity < 1, mask, clip-path, backdrop-filter,
+   mix-blend-mode — so the way to flatten every frosted demo on a page is to
+   fade one in with opacity, not to tighten this line.
+
+   Tightening is still wrong, for a different reason: paint containment clips
+   descendants to the padding box (measured: a 200 px child in a 100 px box
+   paints 100), and the navigation demo's glass sheet deliberately reaches
+   --glass-lookahead past its own edge so content arrives already blurred.
 
    WHAT IT CANNOT FIX. A demo frame is narrower than the page it documents — at
    1280 a framed demo is 846 px inside its padding against 1139 px of page
