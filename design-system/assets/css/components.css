@@ -80,6 +80,15 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   min-height: 3rem;
   padding: var(--space-3) var(--space-4);
   border: var(--stroke-1) solid transparent;
+  /* border-box, or a gradient variant grows a hairline of the wrong colour
+     down each side. background-origin defaults to padding-box while
+     background-clip defaults to border-box, so the image is sized to the
+     padding box but painted across the border too — and the default
+     background-repeat tiles it to cover the difference. On --primary that put
+     the ramp's lime end in the 1 px strip at the LEFT edge and its CF-Grau
+     start in the strip at the RIGHT, one full period out of place. Sizing the
+     image to the border box removes the strip to be filled. */
+  background-origin: border-box;
   border-radius: var(--radius-none);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
@@ -94,12 +103,14 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 }
 .cf-btn:hover .cf-arrow { transform: translateX(4px); }
 
+/* background-image, not the background shorthand: the shorthand resets
+   background-origin to padding-box and would undo the rule above. */
 .cf-btn--primary {
-  background: var(--gradient-light-90);
+  background-image: var(--gradient-light-90);
   color: var(--accent-ink);
   border-color: transparent;
 }
-.cf-btn--primary:hover { background: var(--cf-lime); }
+.cf-btn--primary:hover { background-image: none; background-color: var(--cf-lime); }
 
 /* On top of imagery or the hero. The one place glass and the light layer
    meet: a frosted plate with the light falling across it, lime at the lit
@@ -113,7 +124,9 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 .cf-btn--glass {
   position: relative;
   color: var(--accent-ink);
-  background:
+  /* split out of the background shorthand for the same reason as --primary:
+     the shorthand would reset background-origin back to padding-box. */
+  background-image:
     radial-gradient(120% 210% at var(--cf-specular) -40%,
                     rgba(255, 255, 255, 0.5) 0%,
                     rgba(255, 255, 255, 0) 62%),
@@ -121,8 +134,8 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
                     rgba(197, 235, 226, 0)    30%,
                     rgba(197, 235, 226, 0.55) 62%,
                     rgba(225, 255, 0, 0.88)   87%,
-                    var(--cf-lime)           100%),
-    var(--surface-glass);
+                    var(--cf-lime)           100%);
+  background-color: var(--surface-glass);
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
   border-color: rgba(255, 255, 255, 0.55);
