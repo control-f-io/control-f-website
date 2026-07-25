@@ -176,19 +176,37 @@
       same commit.</strong>
     </div>
     <div class="docs-note">
-      <strong>Two numbers collide across the scope line.</strong> The register covers the three
-      stylesheets that ship. Two things sit outside it, and each happens to repeat a figure from
-      the table above — which is why the boundary is spelled out rather than left to be inferred.
+      <strong>What sits outside the register, in full.</strong> The register covers the three
+      stylesheets that ship. Four queries live outside it — one in <code>docs.css</code>, three
+      in per-page <code>&lt;style&gt;</code> blocks — and three of the four repeat a figure from
+      the table above. None is a bug: each query is correct and out of scope by design. But a
+      scope boundary that lists some of its contents is the same failure as a register that lists
+      some of its thresholds, so here is all of it.
+    </div>
+    <table class="docs-table">
+      <thead><tr><th>Where</th><th>Query</th><th>Collides with</th></tr></thead>
+      <tbody>
+        <tr><td><code>docs.css:343</code></td><td>viewport <code>900px</code> — collapses the sidebar</td><td>the <code>900px</code> viewport row, same type</td></tr>
+        <tr><td><code>foundations/materials.html:16</code></td><td>viewport <code>780px</code></td><td>the <code>780px</code> viewport row, <strong>same type</strong></td></tr>
+        <tr><td><code>foundations/iconography.html:85</code></td><td><strong>viewport</strong> <code>48rem</code></td><td>the <strong>container</strong> <code>48rem</code> row — different type</td></tr>
+        <tr><td><code>foundations/layout.html:15</code></td><td>viewport <code>640px</code> — the demo grid's gap</td><td>nothing; 640 is a threshold nowhere else in the system</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>The same-type rows are the dangerous ones, not the striking one.</strong> The
+      <code>48rem</code> pair looks like the worst of these because the number matches exactly,
+      but it is the safest: container against viewport is a visible type mismatch, so anyone
+      comparing them sees two different kinds of query. <code>780</code> against <code>780</code>
+      is viewport against viewport, which nothing catches — someone retuning the viewport tier
+      would sweep a documentation page's sample grid along with it and have no reason to notice.
+      Same for <code>docs.css</code>'s 900.
       <br><br>
-      <code>docs.css</code> is the documentation chrome and does not ship. It carries one query,
-      <code>@media (max-width: 900px)</code>, which collapses the sidebar — the same figure as
-      the <code>900px</code> viewport row. The per-page <code>&lt;style&gt;</code> blocks carry
-      demo styles; <code>foundations/iconography.html</code> asks a <strong>viewport</strong>
-      <code>48rem</code> where the table lists a <strong>container</strong> <code>48rem</code>.
+      The <code>640</code> earns its row for the opposite reason: it collides with nothing, and it
+      sits in this very file — a threshold unique in the system, on the page that hosts the
+      register.
       <br><br>
-      Same figures, unrelated queries, in both cases a coincidence. Do not read one as evidence
-      of the other, and do not "reconcile" them — the instinct on finding two 48rems is to make
-      them agree, and that would be the mistake.
+      In every case: unrelated queries that happen to share a figure. Do not read one as evidence
+      of the other, and do not "reconcile" them.
     </div>
     <div class="docs-note">
       <strong><code>60rem</code> is the one threshold nothing derives.</strong> The other three
@@ -206,6 +224,14 @@
       instead of four is a designer's call, for the same reason the 780 / 900 pair is: it changes
       designed behaviour on <code>patterns/blog-artikel.html</code>. Left as it is, now on the
       record.
+      <br><br>
+      <strong>One concrete cost, for whoever rules on it.</strong> 60rem is the only container
+      threshold that <em>its own documentation page cannot demonstrate at the reference frame.</em>
+      A demo frame on <code>components/article.html</code> gives 846 px of content at a 1280
+      viewport against the 960 it needs, so <code>.cf-article</code> shows only its stacked
+      fallback there and splits from 1440 up. At 56rem it would be reachable. That is not an
+      argument on its own — a sticky rail wanting 1.17 × its measure is a real want — but it is a
+      cost the threshold currently carries silently.
     </div>
     <div class="docs-note">
       <strong>Two viewport tiers is an open question.</strong> 780 and 900 govern different
