@@ -143,22 +143,43 @@ body.docs {
                                     .subdivide, so unlike the columns it had no
                                     container to ask. Now both fold together.
 
-   HAVING THE NAME. Not cosmetic, and not merely insurance. base.css sizes
-   .col-* with `@container layout (min-width: 56rem)` — the one named query in
-   the system — and a named query matches only an ancestor whose container-name
-   includes `layout`. An unnamed container in between is skipped, not
-   substituted, and a documentation page has no .container to fall back to, so
-   the rule could never fire here at any width. A .col-6 pair inside a framed
-   demo, before -> after:
+   HAVING THE NAME. base.css sizes .col-* with
+   `@container layout (min-width: 56rem)` — the one named query in the system —
+   and a named query matches only an ancestor whose container-name includes
+   `layout`. An unnamed container in between is skipped, not substituted, and a
+   documentation page has no .container to fall back to, so the rule could never
+   fire here at any width.
 
-     1280   frame  912 px   span 12 -> span 12   (correct — under 56rem)
-     1440   frame 1072 px   span 12 -> span 6
-     1920   frame 1120 px   span 12 -> span 6
+   Nothing exercises that today: .col-2 … .col-12 have zero consumers in the
+   repository, so the name moves no rendered pixel as things stand. The case
+   below is CONSTRUCTED — a .col-6 pair injected into a framed demo — and what
+   it buys is that the primitive becomes demonstrable at all, which is the
+   precondition for ever documenting it with a live example.
+
+   A container query measures the CONTENT box, so the figure that decides the
+   match is the frame minus 66 px of padding and border. Both are given here,
+   because the border-box number is the one a devtools ruler reports, and
+   comparing THAT to 56rem (896 px) predicts a split at 1280 which does not
+   happen:
+
+     viewport   border-box   content-box   vs 56rem   .col-6
+       1280        912 px        846 px      under    span 12  (unchanged)
+       1440       1072 px       1006 px      over     span 12 -> span 6
+       1920       1120 px       1054 px      over     span 12 -> span 6
 
    Both lists are snapshots, not closed sets: this reaches ANY container-queried
    component that ends up inside a demo frame, including through
    .docs-demo--plain, which resets padding, border and background but not the
-   container.
+   container — so a --plain demo queries the full 912 at 1280 and a framed one
+   queries 846.
+
+   ONE NAME, TWO IMPLEMENTERS. `layout` is now held by .container on the site
+   and by .docs-demo here. Named lookup takes the NEAREST matching ancestor, so
+   a future `@container layout (…)` written with the page container in mind gets
+   intercepted by the demo frame on any documentation page — and at a different
+   viewport, because the frame is always the narrower of the two. For .col-* that
+   interception is precisely what is wanted. It is a constraint on what is added
+   next, not a defect in this.
 
    WHAT IT CANNOT FIX. A demo frame is narrower than the page it documents — at
    1280 a framed demo is 846 px inside its padding against 1152 px of page. So
