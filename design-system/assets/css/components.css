@@ -127,10 +127,25 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
      is a blur with no plate and a pure-black label (--accent-ink) directly
      over the hero video, with nothing holding the contrast floor.
 
-     var(--cf-specular, 150%). Fixes that, and costs the whole effect:
-     Chromium stops interpolating the registered property and falls back to a
-     discrete flip at half the duration. Measured — the band stops travelling
-     and steps.
+     var(--cf-specular, 150%). Fixes that, and silently costs the whole
+     effect. The property still interpolates perfectly — that is the trap.
+     What stops is the REPAINT: with a fallback in the var(), the background
+     is not invalidated as the property changes, so the plate holds its rest
+     paint for the whole transition and snaps at the end.
+
+     Compared at identical property values rather than identical times, so
+     there is no timing jitter in it (Chromium 141, 4 s transition):
+
+       at --cf-specular = 109.67 %   bare var: band visible at the right end
+                                     fallback: zero change across all 16 columns
+       at --cf-specular =  79.88 %   bare var: a clear band, peak 14
+                                     fallback: still zero
+
+     Both settle to the same profile. Only the travel is lost.
+
+     Note for anyone re-checking this: getComputedStyle cannot see it. The
+     property reads as interpolating in both forms, to three decimal places.
+     It has to be measured in pixels.
 
      A plain declaration gets both. Registered, it is simply the from-value
      and the property interpolates as normal; unregistered, it keeps the
