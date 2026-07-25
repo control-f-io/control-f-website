@@ -204,6 +204,51 @@
       Card 04's tangent was also trued from 26.96° to exactly 26.57°, and Figma's inner-shadow
       bevel on card 03 was dropped: it is not one of the six material layers.
     </div>
+
+    <h3>A rotation that looks redundant and is not</h3>
+    <p>
+      Card 04's three orbits are dashed 1-4 ellipses stroked with a <em>gradient</em>, not a
+      flat black — each one is solid along part of its length and fades to nothing along the
+      rest, which is what stops three full rings reading as a wire ball. All three carry a
+      rotation in the source vector. Two of them are 2:1 ellipses, where the rotation is
+      obviously load-bearing. <strong>The third is a true circle, and its
+      <code>rotate(-90 403 513)</code> had been dropped as a no-op.</strong>
+    </p>
+    <p>
+      It is not a no-op. The gradient is <code>gradientUnits="userSpaceOnUse"</code>, and a
+      paint server is resolved in the user space in force <em>where it is referenced</em> —
+      which includes the element's own <code>transform</code>. Rotating the element rotates
+      its paint with it. The geometry of a circle is unchanged by a spin about its own centre;
+      the direction its stroke fades is not.
+    </p>
+    <p>
+      Measured on the landing page itself, at the shipped 352 px render: darkest stroke ink
+      found on a short arc at each cardinal point of the ring, 0 = nothing there, 255 = solid
+      black. The arc is scanned rather than a single pixel sampled because the ring is dashed
+      1-4, so most exact points fall in a gap.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th></th><th>left</th><th>top</th><th>bottom</th><th>right</th></tr></thead>
+      <tbody>
+        <tr><td>with <code>rotate(-90)</code>, as the source draws it</td><td>127</td><td>168</td><td>146</td><td><strong>7</strong></td></tr>
+        <tr><td>rotation dropped, as it had shipped</td><td>124</td><td>144</td><td><strong>7</strong></td><td>146</td></tr>
+      </tbody>
+    </table>
+    <p>
+      One quadrant is empty in each case, and it is a different quadrant: the fade axis was 90°
+      out. The designer's orbit is solid on the left and dissolves to the right, away from the
+      trace that arrives from the lower left. The shipped one dissolved downwards instead,
+      which spent its solid half across the top of the lime disc — the one place on the object
+      the eye is meant to land. Restored to the source verbatim, so a diff against
+      <code>assets/source/illustrations/</code> now shows no drift on this object.
+    </p>
+    <p>
+      <strong>The general rule: never drop a <code>transform</code> from an element that is
+      painted with a <code>userSpaceOnUse</code> gradient, however redundant it looks against
+      the geometry.</strong> The eight construction dots on the same object carry the identical
+      <code>rotate(-90)</code> and are flat-filled black — dropping it there was correct, and is
+      why the orbit's was dropped too. Same attribute, same shape, different consequence.
+    </p>
   </section>
 
   <section class="docs-section" id="behaviour">
