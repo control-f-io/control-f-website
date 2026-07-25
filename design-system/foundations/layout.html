@@ -130,14 +130,24 @@
       <strong>1007 px</strong>, not 896. Measured, not derived. Worth knowing before you reach
       for a viewport number to describe when something folds.
       <br><br>
-      <strong>That figure assumes <code>.container</code> is the nearest container named
-      <code>layout</code>.</strong> It is today: the only <code>container-name</code> in the system
-      is on <code>.container</code>, and the documentation frame is anonymous
-      (<code>container-type</code> only), which cannot satisfy a <em>named</em> query. But named
-      lookup takes the nearest matching ancestor, so naming any wrapper <code>layout</code> —
-      including a documentation-only one — would silently re-point every <code>.col-*</code> query
-      at that wrapper and move this 1007 without changing a single threshold. A docs-only container
-      can reach across the scope line that way. If you name one, come back to this number.
+      <strong>1007 is the figure for a page <code>.container</code>. There is a second one.</strong>
+      A named query matches the nearest ancestor whose <code>container-name</code> includes
+      <code>layout</code> — so <em>which</em> element answers <code>@container layout</code> depends
+      on what is named, and a documentation-only wrapper can take the answer without any threshold
+      changing. Both cases, measured:
+      <table class="docs-table" style="margin-top:var(--space-4)">
+        <thead><tr><th>Nearest <code>layout</code> container</th><th><code>.col-*</code> takes its span at</th></tr></thead>
+        <tbody>
+          <tr><td><code>.container</code> — the page column</td><td>viewport <strong>~1007</strong> (content box 896)</td></tr>
+          <tr><td>a framed <code>.docs-demo</code>, if it carries the name</td><td>viewport <strong>1330</strong> (content box 898)</td></tr>
+        </tbody>
+      </table>
+      Which one applies is not a fact about this page — it is whatever <code>container-name</code>
+      is set to in <code>docs.css</code>, so <strong>check there rather than trusting a sentence
+      here.</strong> An earlier version of this note asserted the frame was anonymous and therefore
+      could not answer; that was true when written and is exactly the kind of claim that goes false
+      on somebody else's merge, which is why it now gives both numbers instead of one plus an
+      assumption.
     </div>
     <div class="docs-note">
       <strong>Two 6 + 6s.</strong> A statement or a process card is a 6 + 6 split, but it is
@@ -553,6 +563,32 @@ print(counts)
       it currently lacks. That is a visible change to every viewport above 1500 — 240 px between
       sections instead of up to 320 — so it is left for a designer to rule on rather than taken
       here.
+    </div>
+    <div class="docs-note">
+      <strong>Four tokens stop growing at four different widths, and that is what the ratio drift
+      actually is.</strong> The note above is the visible corner of a wider fact:
+      <table class="docs-table" style="margin-top:var(--space-4)">
+        <thead><tr><th>Token</th><th>Stops growing at</th><th>Because</th></tr></thead>
+        <tbody>
+          <tr><td><code>--container-max</code></td><td><strong>1438.2</strong></td><td>content reaches 1280</td></tr>
+          <tr><td><code>--section-gap-sm</code></td><td><strong>1440.0</strong></td><td>100vw ÷ 18 = 80</td></tr>
+          <tr><td><code>--gutter</code></td><td><strong>1454.5</strong></td><td>5.5vw = 80</td></tr>
+          <tr><td><code>--section-gap</code></td><td><strong>1920.0</strong></td><td>100vw ÷ 12 = 160</td></tr>
+        </tbody>
+      </table>
+      Three land within <strong>16 px</strong> of each other and the fourth arrives
+      <strong>466 px</strong> later. So the ratio opening back out to 2.00 by 1920 is not the rhythm
+      doing something interesting — it is <code>--section-gap</code> climbing alone after every
+      horizontal measure has frozen. From 1454 to 1920 the page is a fixed 1280 column with 80 px
+      gutters whose vertical rhythm keeps loosening by a further 39 px.
+      <br><br>
+      Current fluid-scale practice is to coordinate the upper bound across the system so gutters,
+      padding and type top out together and the composition grows in proportion. This system has
+      them four places apart, and the widest governs vertical space. Whether that is wrong is a
+      designer's call — <code>clamp(var(--space-16), calc(100vw / 12), var(--space-30))</code> would
+      lock section rhythm to the frame at 1440 — and it is the same call as the note above, so it is
+      recorded here rather than taken. Named because a measured fact is worth more to whoever rules
+      on it than an inference.
     </div>
     <div class="docs-note">
       <strong>The token is padding, not the gap.</strong> <code>.section</code> applies
