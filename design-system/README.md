@@ -207,3 +207,18 @@ These were judgement calls, each documented on the relevant page:
   `non-scaling-stroke` the dash is measured in screen px while `pathLength` normalises
   against user space, which makes the line-drawing finish at 45 % of its range instead of
   100 %. Traces are stroked in user units at width 2 instead. → `foundations/motion.html`
+
+## Redrawing an illustration: two things that vanish quietly
+
+Both bite when an object is rebuilt or re-exported from `assets/source/illustrations/`, and
+neither announces itself — the drawing still renders, it is simply no longer what the
+designer drew.
+
+- **The oklab waypoint.** `#DBFC60` exists in no source vector, so a re-export drops it and
+  that lime→Glas leg reverts to the sRGB path. Every waypoint carries a comment at the stop.
+  See the bullet above.
+- **A `transform` on an element painted with a `userSpaceOnUse` gradient.** The paint server
+  is resolved in the user space where it is referenced, so the element's own transform
+  rotates its gradient too. On a circle the rotation looks like a no-op against the geometry
+  and is not: card 04's largest orbit had lost `rotate(-90)` and was fading 90° off the
+  designer's axis. Measured and fixed. → `components/process-card.html`
