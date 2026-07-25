@@ -21,7 +21,7 @@ Then open <http://localhost:8000/design-system/>. It also works by opening
 design-system/
 ├── index.html              overview + how to include the CSS
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
-│                           logo, photo, motion
+│                           illustration, logo, photo, motion
 ├── components/             buttons, nav, section header, statement + value table,
 │                           plot, process card, accordion, blog grid,
 │                           article + prose, team, forms, footer, consent
@@ -269,6 +269,28 @@ These were judgement calls, each documented on the relevant page:
   `non-scaling-stroke` the dash is measured in screen px while `pathLength` normalises
   against user space, which makes the line-drawing finish at 45 % of its range instead of
   100 %. Traces are stroked in user units at width 2 instead. → `foundations/motion.html`
+
+## Drawing an illustration
+
+`foundations/illustration.html` is the chapter for this, and it is the one to read before
+drawing anything isometric. It states the system the four process objects were built on —
+the lattice and its three steps, the five `.cf-iso__*` layers and the order they stack in,
+the one-light-per-object budget with the three rakes, the three face greys, the frame as a
+crop rather than a bounding box — and closes with a checklist and a specimen object drawn
+from nothing but those rules.
+
+Two things it settles that the source material does not:
+
+- **The light is per object, not per brand.** Laid out together, the four shipped gradient
+  axes disagree about which side the light comes from — card 01's lime end is up-left,
+  card 03's is up-right — and agree only that it is *up*. So a new object picks the end that
+  reads as its own high point rather than copying card 01's axis.
+- **Which side face is the darker one.** The four cards fill both side faces `#CFCFCF` and
+  duck it; `foundations/geometry.html` darkens the right face; the manual's *Isometrie-Raster*
+  plate darkens the left. The chapter ties it to the object — the shaded face is the one away
+  from that object's own lime end — because under a per-object light that is the only version
+  that cannot contradict itself. Flagged there for a designer; it is three fill values, not a
+  redraw.
 
 ## Redrawing an illustration: two things that vanish quietly
 

@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Illustration — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* This page only. The illustration system itself is .cf-iso in components.css —
+     nothing below is needed to draw one. */
+  .ill-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr)); gap:var(--space-4); }
+  .ill-strip figure { margin:0; }
+  .ill-frame { border:1px solid var(--border-subtle); background:var(--grey-000); }
+  .ill-frame svg { display:block; width:100%; }
+  .ill-cap { margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs);
+             letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--text-secondary); }
+  .ill-cap b { display:block; font-weight:var(--weight-medium); text-transform:none; letter-spacing:0;
+               font-family:var(--font-sans); font-size:var(--text-md); color:var(--text-primary); }
+  .ill-single { width:100%; max-width:26rem; margin-inline:auto; display:block; }
+  .ill-label { font-family:var(--font-mono); font-size:20px; fill:var(--text-secondary); }
+  .ill-swatch { display:flex; gap:var(--space-4); flex-wrap:wrap; }
+  .ill-swatch figure { margin:0; flex:1 1 12rem; }
+  .ill-swatch i { display:block; height:5rem; border:1px solid var(--border-strong); }
+  @media (max-width:640px){ .ill-strip { grid-template-columns:repeat(2,1fr); } }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 07</p>
+    <h1>Illustration</h1>
+    <p>
+      The brand's pictures are technical drawings of objects that do not exist. They are
+      built on the isometric lattice, bounded by 1 px contours, and lit exactly once. This
+      page is the chapter that says how — it composes
+      <a href="geometry.html">Geometry</a>, <a href="materials.html">Materials</a> and
+      <a href="colors.html">Colour</a> into one object, and it is the brief for drawing the
+      next one.
+    </p>
+    <div class="docs-note">
+      <strong>The rule in one line:</strong> an object is a lattice, a contour and one light.
+      Everything else on this page is a consequence of those three.
+    </div>
+  </header>
+
+  <section class="docs-section" id="source">
+    <h2>Where this comes from</h2>
+    <p>
+      Two plates in the brand manual, and four objects cut from the designer's own vectors.
+      The manual sets the vocabulary; the four process objects are the only place it was
+      carried to production by the designer rather than derived here, so where the two
+      disagree the plates are the intent and the vectors are the precedent. Everything else
+      that is drawn in this language — the statement figure, the plot, the specimen at the
+      bottom of this page — was built from the rules, which is the case this chapter has to
+      make.
+    </p>
+    <div class="docs-plates">
+      <a class="docs-plate" href="../assets/source/manual/shape-contour-illustrations.jpg">
+        <figure style="margin:0">
+          <img src="../assets/source/manual/shape-contour-illustrations.jpg" alt="Manual plate: contour illustrations — six framed isometric objects">
+          <figcaption><b>Kontur-Illustrationen</b>six objects, the whole vocabulary</figcaption>
+        </figure>
+      </a>
+      <a class="docs-plate" href="../assets/source/manual/shape-illustration-example.jpg">
+        <figure style="margin:0">
+          <img src="../assets/source/manual/shape-illustration-example.jpg" alt="Manual plate: illustration example with construction angles">
+          <figcaption><b>Illustration (Bsp.)</b>the same objects, with their construction showing</figcaption>
+        </figure>
+      </a>
+    </div>
+    <p>
+      Read the second plate first. It is the same drawing as the first one with the
+      scaffolding left in — the 26.57° and 63.43° rays through a single vanishing point, the
+      subdivision squares, the lattice under the diamond stack. <strong>Nothing in a
+      Control-F illustration is placed by eye.</strong> Every object on both plates can be
+      reconstructed from the angles, and that is the property this page exists to keep.
+    </p>
+
+    <h3>The four that ship</h3>
+    <table class="docs-table">
+      <thead><tr><th>#</th><th>Object</th><th>Form</th><th>Light</th></tr></thead>
+      <tbody>
+        <tr><td>01</td><td>Discovery</td><td>stacked cuboids telescoping out of frame</td><td>linear, near rake</td></tr>
+        <tr><td>02</td><td>Datenfundament</td><td>overlapping 63.43° plates, each finer than the last</td><td>radial, iso bloom on the rim</td></tr>
+        <tr><td>03</td><td>Weniger Ausfälle</td><td>a solid of revolution read on its axis</td><td>linear, mid rake</td></tr>
+        <tr><td>04</td><td>Mehr Leistung</td><td>a sphere cut by its equator, three orbits</td><td>radial, far rake</td></tr>
+      </tbody>
+    </table>
+    <p>
+      They are built from the designer's source vectors in
+      <code>assets/source/illustrations/</code> and documented, with their four deviations,
+      on <a href="../components/process-card.html">Process Card</a>. The
+      <a href="../reference.html#illustrations">source vectors</a> are the tie-breaker for
+      any number on this page.
+    </p>
+  </section>
+
+  <section class="docs-section" id="layers">
+    <h2>The five layers</h2>
+    <p>
+      Every object is made of the same five kinds of element, and they have had class names
+      since the first card shipped — <code>.cf-iso__*</code> in
+      <code>assets/css/components.css</code>. The names are not decoration: the scroll
+      assembly, the stroke handling and the reduced-motion fallback all key off them, so an
+      element drawn outside the five gets none of it.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Class</th><th>Is</th><th>Drawn as</th><th>Arrives at</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-iso__scene</code></td><td>the whole object</td><td>a group — the only thing that travels</td><td>cover 5–30 %</td></tr>
+        <tr><td><code>.cf-iso__ghost</code></td><td>reference geometry: the lattice, a construction axis, a state the object is not in yet</td><td>dashed contour, no fill</td><td>cover 20–40 %</td></tr>
+        <tr><td><code>.cf-iso__form</code></td><td>the body — anything with a surface</td><td>1 px solid contour, grey faces</td><td>with the scene</td></tr>
+        <tr><td><code>.cf-iso__light</code></td><td>the one lit element</td><td>the lime ramp, contoured like everything else</td><td>cover 30–48 %</td></tr>
+        <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object</td><td>2 px solid, round caps, <code>pathLength="1"</code></td><td>cover 18–45 %, drawing itself</td></tr>
+        <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>filled black dots, r = 3 / 2 / 1</td><td>cover 35–50 %</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Six rows for five layers: <code>__scene</code> is the container, not a layer. The
+      order of the other five <em>is</em> the material order from
+      <a href="materials.html">Materials</a> — reference geometry and contours (layer 04)
+      before light (layer 05) — with the trace and the nodes as the drawing's own
+      annotation, the illustration's version of the information layer.
+    </p>
+
+    <h3>One object, taken apart</h3>
+    <p>
+      The specimen from <a href="#specimen">§&nbsp;Drawing a new one</a>, with each layer
+      shown alone in the same frame. Every frame is the same 640-unit viewBox, so the parts
+      register against each other exactly as they do in the finished drawing.
+    </p>
+    <div class="docs-demo docs-demo--flat">
+      <div class="ill-strip">
+        <figure>
+          <div class="ill-frame">
+            <svg class="cf-iso" viewBox="0 0 640 640" fill="none" aria-hidden="true">
+              <defs><clipPath id="ill-a-frame"><rect width="640" height="640"/></clipPath></defs>
+              <g clip-path="url(#ill-a-frame)">
+                <path class="cf-iso__ghost" d="M260 190L620 370M200 220L560 400M140 250L500 430M80 280L440 460M20 310L380 490M380 190L20 370M440 220L80 400M500 250L140 430M560 280L200 460M620 310L260 490" stroke="#000" stroke-dasharray="1 4"/>
+                <path class="cf-iso__ghost" d="M320 160L320 520" stroke="#000" stroke-dasharray="2 4"/>
+                <path class="cf-iso__ghost" d="M560 130L620 160L560 190L500 160ZM560 280L620 310L560 340L500 310ZM620 160L620 310M560 190L560 340M500 160L500 310" stroke="#000" stroke-dasharray="1 4"/>
+              </g>
+            </svg>
+          </div>
+          <figcaption class="ill-cap"><b>Ghost</b>lattice · axis · next state</figcaption>
+        </figure>
+        <figure>
+          <div class="ill-frame">
+            <svg class="cf-iso" viewBox="0 0 640 640" fill="none" aria-hidden="true">
+              <defs><clipPath id="ill-form-frame"><rect width="640" height="640"/></clipPath></defs>
+              <g clip-path="url(#ill-form-frame)" stroke="#000" stroke-linejoin="round">
+                <path class="cf-iso__form" d="M320 160L680 340L320 520L-40 340Z"/>
+                <path class="cf-iso__form" d="M140 250L200 280L200 340L140 310Z" fill="#CFCFCF"/>
+                <path class="cf-iso__form" d="M260 250L200 280L200 340L260 310Z" fill="#C4C4C4"/>
+                <path class="cf-iso__form" d="M200 220L260 250L200 280L140 250Z" fill="#DADADA"/>
+                <path class="cf-iso__form" d="M260 220L320 250L320 340L260 310Z" fill="#CFCFCF"/>
+                <path class="cf-iso__form" d="M380 220L320 250L320 340L380 310Z" fill="#C4C4C4"/>
+                <path class="cf-iso__form" d="M320 190L380 220L320 250L260 220Z" fill="#DADADA"/>
+                <path class="cf-iso__form" d="M380 190L440 220L440 340L380 310Z" fill="#CFCFCF"/>
+                <path class="cf-iso__form" d="M500 190L440 220L440 340L500 310Z" fill="#C4C4C4"/>
+                <path class="cf-iso__form" d="M440 160L500 190L440 220L380 190Z"/>
+              </g>
+            </svg>
+          </div>
+          <figcaption class="ill-cap"><b>Form</b>plate · three columns</figcaption>
+        </figure>
+        <figure>
+          <div class="ill-frame">
+            <svg class="cf-iso" viewBox="0 0 640 640" fill="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="ill-b-light" x1="440" y1="160" x2="470" y2="220" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                </linearGradient>
+              </defs>
+              <path class="cf-iso__light" d="M440 160L500 190L440 220L380 190Z" fill="url(#ill-b-light)" stroke="#000" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <figcaption class="ill-cap"><b>Light</b>one face, near rake</figcaption>
+        </figure>
+        <figure>
+          <div class="ill-frame">
+            <svg class="cf-iso" viewBox="0 0 640 640" fill="none" aria-hidden="true">
+              <path class="cf-iso__trace" d="M200 340H-60M76 328L100 340L76 352M16 328L40 340L16 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
+            </svg>
+          </div>
+          <figcaption class="ill-cap"><b>Trace</b>the signal, on 26.57°</figcaption>
+        </figure>
+        <figure>
+          <div class="ill-frame">
+            <svg class="cf-iso" viewBox="0 0 640 640" fill="none" aria-hidden="true">
+              <g class="cf-iso__node" fill="#000">
+                <circle cx="440" cy="160" r="3"/><circle cx="500" cy="190" r="3"/>
+                <circle cx="440" cy="220" r="3"/><circle cx="380" cy="190" r="3"/>
+                <circle cx="320" cy="190" r="2"/><circle cx="200" cy="340" r="2"/>
+                <circle cx="200" cy="220" r="1"/><circle cx="80" cy="340" r="1"/>
+              </g>
+            </svg>
+          </div>
+          <figcaption class="ill-cap"><b>Node</b>r 3 / 2 / 1 by distance</figcaption>
+        </figure>
+        <figure>
+          <div class="ill-frame">
+            <svg class="cf-iso" viewBox="0 0 640 640" fill="none" aria-hidden="true">
+              <defs>
+                <clipPath id="ill-c-frame"><rect width="640" height="640"/></clipPath>
+                <linearGradient id="ill-c-light" x1="440" y1="160" x2="470" y2="220" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                </linearGradient>
+              </defs>
+              <g clip-path="url(#ill-c-frame)" stroke-linejoin="round">
+                <path class="cf-iso__ghost" d="M260 190L620 370M200 220L560 400M140 250L500 430M80 280L440 460M20 310L380 490M380 190L20 370M440 220L80 400M500 250L140 430M560 280L200 460M620 310L260 490" stroke="#000" stroke-dasharray="1 4"/>
+                <path class="cf-iso__ghost" d="M320 160L320 520" stroke="#000" stroke-dasharray="2 4"/>
+                <path class="cf-iso__ghost" d="M560 130L620 160L560 190L500 160ZM560 280L620 310L560 340L500 310ZM620 160L620 310M560 190L560 340M500 160L500 310" stroke="#000" stroke-dasharray="1 4"/>
+                <g stroke="#000">
+                  <path class="cf-iso__form" d="M320 160L680 340L320 520L-40 340Z"/>
+                  <path class="cf-iso__form" d="M140 250L200 280L200 340L140 310Z" fill="#CFCFCF"/>
+                  <path class="cf-iso__form" d="M260 250L200 280L200 340L260 310Z" fill="#C4C4C4"/>
+                  <path class="cf-iso__form" d="M200 220L260 250L200 280L140 250Z" fill="#DADADA"/>
+                  <path class="cf-iso__form" d="M260 220L320 250L320 340L260 310Z" fill="#CFCFCF"/>
+                  <path class="cf-iso__form" d="M380 220L320 250L320 340L380 310Z" fill="#C4C4C4"/>
+                  <path class="cf-iso__form" d="M320 190L380 220L320 250L260 220Z" fill="#DADADA"/>
+                  <path class="cf-iso__form" d="M380 190L440 220L440 340L380 310Z" fill="#CFCFCF"/>
+                  <path class="cf-iso__form" d="M500 190L440 220L440 340L500 310Z" fill="#C4C4C4"/>
+                  <path class="cf-iso__light" d="M440 160L500 190L440 220L380 190Z" fill="url(#ill-c-light)"/>
+                </g>
+                <path class="cf-iso__trace" d="M200 340H-60M76 328L100 340L76 352M16 328L40 340L16 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <g class="cf-iso__node" fill="#000">
+                  <circle cx="440" cy="160" r="3"/><circle cx="500" cy="190" r="3"/>
+                  <circle cx="440" cy="220" r="3"/><circle cx="380" cy="190" r="3"/>
+                  <circle cx="320" cy="190" r="2"/><circle cx="200" cy="340" r="2"/>
+                  <circle cx="200" cy="220" r="1"/><circle cx="80" cy="340" r="1"/>
+                </g>
+              </g>
+            </svg>
+          </div>
+          <figcaption class="ill-cap"><b>All five</b>in the material order</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="lattice">
+    <h2>Construction — the lattice</h2>
+    <p>
+      Objects are not drawn in a 2:1 <em>style</em>. They are drawn on a 2:1 <em>lattice</em>,
+      and every vertex of every object is a lattice point. The lattice has one free
+      parameter, the unit <b>u</b>; both ground steps are then fixed:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Step</th><th>On screen</th><th>Angle</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><td><code>e1</code></td><td>(+2u, +u)</td><td>26.57° down-right</td><td>one ground axis</td></tr>
+        <tr><td><code>e2</code></td><td>(−2u, +u)</td><td>26.57° down-left</td><td>the other ground axis</td></tr>
+        <tr><td><code>e1 − e2</code></td><td>(+4u, 0)</td><td>0°</td><td>the <b>level</b> step — the only way to move sideways without changing height</td></tr>
+        <tr><td><code>e1 + e2</code></td><td>(0, +2u)</td><td>90°</td><td>straight down the lattice, one cell</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The figure below is the lattice with one cell picked out and the three steps drawn on
+      it. The level step is the long one along the top, and it is the same distance as two
+      ground steps — it just does not descend.
+    </p>
+    <div class="docs-demo docs-demo--flat">
+      <svg class="cf-iso ill-single" viewBox="0 0 640 440" fill="none" aria-hidden="true">
+        <defs><clipPath id="ill-lattice-frame"><rect width="640" height="440"/></clipPath></defs>
+        <g clip-path="url(#ill-lattice-frame)">
+          <path d="M0 -300L640 20M0 -180L640 140M0 -60L640 260M0 60L640 380M0 180L640 500M0 300L640 620M0 420L640 740" stroke="#000" stroke-opacity="0.32" stroke-dasharray="1 4"/>
+          <path d="M0 20L640 -300M0 140L640 -180M0 260L640 -60M0 380L640 60M0 500L640 180M0 620L640 300M0 740L640 420" stroke="#000" stroke-opacity="0.32" stroke-dasharray="1 4"/>
+          <path d="M320 100L440 160L320 220L200 160Z" fill="#DADADA" stroke="#000" stroke-linejoin="round"/>
+          <path d="M320 100L440 160M320 100L200 160M320 100L560 100" stroke="#000" stroke-width="2"/>
+          <g fill="#000">
+            <circle cx="320" cy="100" r="3"/><circle cx="440" cy="160" r="3"/>
+            <circle cx="200" cy="160" r="3"/><circle cx="560" cy="100" r="3"/>
+          </g>
+          <g class="ill-label">
+            <text x="336" y="82">e1 − e2 · (+4u, 0)</text>
+            <text x="462" y="196">e1 · (+2u, +u)</text>
+            <text x="182" y="196" text-anchor="end">e2 · (−2u, +u)</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <h3>The level step is not optional</h3>
+    <p>
+      This is the trap the <a href="../components/plot.html">plot</a> fell into, and it is
+      worth repeating here because an illustration is far more likely to hit it. Both ground
+      axes slope 26.57° <em>on screen</em>. Marching a row of objects along either one
+      therefore subtracts a unit of drawn height from every object as it goes: on the plot's
+      five columns rising 31 → 100, the recession cancelled almost the whole climb and the
+      tallest column was drawn <em>lower</em> than the shortest.
+    </p>
+    <p>
+      A row that is meant to read as level moves on <code>e1 − e2</code>. It is still a
+      lattice move — (2u, +u) + (2u, −u) = (4u, 0) — so nothing is off-grid. The three
+      columns in the specimen are placed exactly this way, which is why their heights are
+      readable as heights.
+    </p>
+    <div class="docs-note">
+      <strong>Objects may leave the lattice; vertices may not.</strong> A sphere, a solid of
+      revolution and a bloom have no vertices to snap — cards 03 and 04 are both curves. What
+      is on the lattice there is the <em>axis</em>: the rotor's spin axis, the sphere's
+      equatorial plane, the ellipse's 2:1 ratio. If nothing in the object can be stated in
+      steps of u, it is not a Control-F object yet.
+    </div>
+  </section>
+
+  <section class="docs-section" id="light">
+    <h2>Light</h2>
+    <p>
+      <strong>One lit element per object.</strong> Not one per illustration and not one per
+      section — one per object, and it is the element the eye is meant to land on. This is
+      the same budget the rest of the system runs on (lime is a moment, not a surface), and
+      it is the single rule the source vectors broke: card 02 arrived with lime in two of its
+      three plates and the middle one was dropped to Glas.
+    </p>
+    <p>
+      Everything else in the drawing is grey. That is not a limitation — it is what makes the
+      lit face mean something.
+    </p>
+
+    <h3>Which ramp, and how steep</h3>
+    <p>
+      One ramp, lime → Glas → CF-Grau, at one of three rakes. The rake is where Glas sits in
+      the band, measured from the lime end, and all three are measured off the designer's
+      files rather than chosen. <a href="colors.html">Colour</a> has the full derivation; this
+      is the part an illustrator needs.
+    </p>
+    <div class="docs-demo docs-demo--flat">
+      <div class="ill-swatch">
+        <figure>
+          <i style="background:linear-gradient(90deg,var(--cf-grau) 0%,var(--cf-glas) calc(100% - var(--rake-near)),var(--cf-lime) 100%)"></i>
+          <figcaption class="ill-cap"><b>near · 32 %</b>a flat face, lit</figcaption>
+        </figure>
+        <figure>
+          <i style="background:linear-gradient(90deg,var(--cf-grau) 0%,var(--cf-glas) calc(100% - var(--rake-mid)),var(--cf-lime) 100%)"></i>
+          <figcaption class="ill-cap"><b>mid · 51 %</b>a curved body turning away</figcaption>
+        </figure>
+        <figure>
+          <i style="background:linear-gradient(90deg,var(--cf-grau) 0%,var(--cf-glas) calc(100% - var(--rake-far)),var(--cf-lime) 100%)"></i>
+          <figcaption class="ill-cap"><b>far · 64 %</b>a long grazing wash</figcaption>
+        </figure>
+      </div>
+    </div>
+    <p>
+      All three swatches are straightened onto one horizontal axis and built from
+      <code>--rake-near</code>, <code>--rake-mid</code> and <code>--rake-far</code>, so what
+      differs between them is only the rake. In the drawings they are not horizontal and two
+      of them are not linear: the shipping tokens carry these rakes on the designer's own
+      axes — <code>--gradient-light</code> at 132.36°, <code>--gradient-light-raking</code> at
+      239.25°, <code>--gradient-bloom</code> and <code>--gradient-bloom-top</code> as blooms.
+      Reach for the token, not for one of these three.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Object</th><th>Paint</th><th>Axis, as drawn</th><th>Rake</th></tr></thead>
+      <tbody>
+        <tr><td>01 stacked cuboids</td><td>linear</td><td>(349, 361) → (400, 454)</td><td>near · 0.32</td></tr>
+        <tr><td>02 layered plates</td><td>radial, 2:1</td><td>centre (407.5, 528), scale 120 × 59.88</td><td>lime on the rim</td></tr>
+        <tr><td>03 solid of revolution</td><td>linear</td><td>(503.75, 407) → (352.5, 587)</td><td>mid · 0.51</td></tr>
+        <tr><td>04 sphere</td><td>radial</td><td>centre (400, 528.33), scale 120 × 120</td><td>far · lime at 0.9–1.0</td></tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>The light comes from above. Which side it comes from is the object's to
+      decide.</strong> That is what the table says once the four axes are laid out together,
+      and it is worth stating because the obvious assumption — one light source for the whole
+      brand — is not what the designer drew. Card 01's lime end is up and to the left; card
+      03's is up and to the right. What every one of the four has in common is that the lime
+      end sits at the smaller <code>y</code>: on a flat face the ramp climbs, and on a body of
+      revolution the light is on the rim rather than on a side at all.
+    </p>
+    <p>
+      So: pick the end that reads as the object's own high point, and run the ramp down and
+      away from it along a brand angle. Do not import card 01's axis into a new drawing on the
+      grounds that it is the first one.
+    </p>
+
+    <h3>The waypoint that vanishes</h3>
+    <p>
+      Every lime → Glas leg inside an inline SVG carries one extra stop —
+      <code>#DBFC60</code>, at 19 % of that leg measured from lime — because Figma and SVG
+      interpolate in sRGB while the CSS gradients interpolate in oklab. The stop puts the SVG
+      leg back on the oklab path to within ΔE 0.0116.
+    </p>
+    <p>
+      It exists in none of the source vectors, so <strong>re-exporting a shipped illustration
+      silently drops it</strong> and reverts that leg to the sRGB path. Nothing breaks; the
+      stop is simply gone. Its position depends on the rake, because 19 % of the leg is 19 %
+      of a different distance each time:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Object</th><th>Lime at</th><th>Glas at</th><th>Waypoint</th></tr></thead>
+      <tbody>
+        <tr><td>01 · linear, near rake</td><td>0.0</td><td>0.32</td><td><code>0.061</code></td></tr>
+        <tr><td>03 · linear, mid rake</td><td>0.0</td><td>0.51</td><td><code>0.097</code></td></tr>
+        <tr><td>02 · radial, lime on the rim</td><td>1.0</td><td>0.5</td><td><code>0.905</code></td></tr>
+        <tr><td>04 · radial, lime on the rim</td><td>0.9</td><td>0.49</td><td><code>0.822</code></td></tr>
+      </tbody>
+    </table>
+    <p>
+      The rule behind all four is one sentence: <strong>the waypoint sits 19 % of the way from
+      the lime stop to the Glas stop, whichever end lime is on.</strong> On a bloom lime is the
+      last stop, so the offset counts backwards and lands high — which is why 0.905 looks
+      nothing like 0.061 and is the same number.
+    </p>
+    <p>
+      Every waypoint in the shipping markup carries a comment at the stop itself. Keep the
+      comment when you copy the gradient.
+    </p>
+
+    <h3>A transform is never a no-op on a gradient</h3>
+    <p>
+      A <code>userSpaceOnUse</code> paint server resolves in the user space in force where it
+      is referenced, which includes the element's own <code>transform</code>. Rotating a
+      circle rotates its gradient with it. Card 04's largest orbit lost a
+      <code>rotate(-90)</code> that looked redundant against a circle and was fading 90° off
+      the designer's axis until it was measured.
+      → <a href="../components/process-card.html#sequence">Process Card</a>
+    </p>
+  </section>
+
+  <section class="docs-section" id="contour">
+    <h2>Contour and fill</h2>
+    <p>
+      The contour is the drawing. A fill is what stops you seeing through the object, and it
+      does that in three greys — no more, because a face is either pointing at the sky, at
+      the light, or away from it.
+    </p>
+    <div class="docs-demo docs-demo--flat">
+      <div class="ill-swatch">
+        <figure>
+          <i style="background:#DADADA"></i>
+          <figcaption class="ill-cap"><b>#DADADA</b>top — facing the sky</figcaption>
+        </figure>
+        <figure>
+          <i style="background:#CFCFCF"></i>
+          <figcaption class="ill-cap"><b>#CFCFCF</b>lit side — CF-Grau itself</figcaption>
+        </figure>
+        <figure>
+          <i style="background:#C4C4C4"></i>
+          <figcaption class="ill-cap"><b>#C4C4C4</b>shaded side</figcaption>
+        </figure>
+      </div>
+    </div>
+    <p>
+      The middle value is CF-Grau, which is also the top of the page wash — so an unlit face
+      sits at exactly the page's own colour and the object would disappear entirely if the
+      contour were not carrying it. That is the shape language stated as a measurement rather
+      than as a slogan.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong>Which side is the dark one is not settled by the source.</strong> The four
+      shipped cards fill both side faces <code>#CFCFCF</code> and duck the question;
+      <a href="geometry.html#objects">Geometry</a>'s demo object darkens the right face; the
+      manual's <em>Isometrie-Raster</em> plate darkens the left. This page takes the
+      geometry page's convention and ties it to the object rather than to the brand: the
+      shaded face is the one <em>away from that object's own lime end</em>. Under the
+      per-object light rule above, that is the only version that cannot contradict itself. If
+      a designer rules otherwise, one convention has to move — and it is three fill values,
+      not a redraw.
+    </div>
+
+    <h3>Line types</h3>
+    <p>
+      The four sanctioned types from <a href="geometry.html#lines">Geometry</a>, and what each
+      one means inside an illustration. In SVG they are <code>stroke-dasharray</code>, in the
+      px values the tokens declare, which is why the dashes hold their ratio at any render
+      size (see <a href="#render">Rendering</a>).
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Type</th><th><code>stroke-dasharray</code></th><th>In an illustration</th></tr></thead>
+      <tbody>
+        <tr><td>solid</td><td>—</td><td>every edge of every real surface</td></tr>
+        <tr><td>2-1</td><td><code>4 2</code></td><td>a secondary axis — geometry that is real but not the subject</td></tr>
+        <tr><td>1-2</td><td><code>2 4</code></td><td>construction: centre lines, axes, the frame's own diagonals</td></tr>
+        <tr><td>1-4</td><td><code>1 4</code></td><td>the lattice, and any state the object is not in yet</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Stroke weight is 1 px for everything except the trace, which is 2. Within one object the
+      weight does not vary — depth is carried by node radius and by overlap, never by drawing
+      the near edges fatter.
+    </p>
+
+    <h3>Nodes</h3>
+    <p>
+      Construction points are filled black dots at r = 3, 2 or 1, and the radius steps down
+      with distance from the subject — card 01 puts r = 3 on the lit face, 2 on the stage below
+      it and 1 on the one below that. They are not decoration and not a scatter: a node marks a
+      point the construction actually depends on. Eight is a lot for one object; twelve is
+      too many.
+    </p>
+
+    <h3>Traces</h3>
+    <p>
+      A trace is the one element that is not part of the object: it is the signal arriving.
+      It runs on a brand angle — including 0°, which is the level step — carries chevron heads
+      whose arms are (2u, ±u), and ends at a node on the object it reaches. It is stroked 2 px
+      with round caps, and it carries <code>pathLength="1"</code> so the draw-on animation is
+      independent of how long the path happens to be.
+    </p>
+  </section>
+
+  <section class="docs-section" id="frame">
+    <h2>The frame</h2>
+    <p>
+      An object is authored in a <b>640 × 640</b> viewBox and clipped to it. It is normally
+      bigger than that and is positioned by a <code>transform</code> on an inner group — card
+      01 is drawn at true size and pushed <code>translate(-80 -192)</code> so its stack runs
+      out of the bottom of the frame. One drawing in the tree uses a different frame, for a
+      reason: see <a href="#specimen">Where illustrations go</a>.
+    </p>
+    <p>
+      <strong>The frame is a crop, not a bounding box.</strong> An object that fits neatly
+      inside its frame with air all round reads as a sticker; one that is cut by the frame
+      reads as a view into something larger, which is the whole intent of the manual's plates.
+      Cut deliberately, on a lattice line, and never through the lit element.
+    </p>
+    <pre class="docs-code">&lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-iso"</span> <span class="attr">viewBox</span>=<span class="val">"0 0 640 640"</span> <span class="attr">fill</span>=<span class="val">"none"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;
+  &lt;<span class="tag">defs</span>&gt;
+    &lt;<span class="tag">clipPath</span> <span class="attr">id</span>=<span class="val">"cf-05-frame"</span>&gt;&lt;<span class="tag">rect</span> <span class="attr">width</span>=<span class="val">"640"</span> <span class="attr">height</span>=<span class="val">"640"</span>/&gt;&lt;/<span class="tag">clipPath</span>&gt;
+    <span class="com">&lt;!-- one gradient, one rake, one waypoint --&gt;</span>
+  &lt;/<span class="tag">defs</span>&gt;
+  &lt;<span class="tag">g</span> <span class="attr">clip-path</span>=<span class="val">"url(#cf-05-frame)"</span>&gt;&lt;<span class="tag">g</span> <span class="attr">class</span>=<span class="val">"cf-iso__scene"</span>&gt;&lt;<span class="tag">g</span> <span class="attr">transform</span>=<span class="val">"translate(-80 -192)"</span>&gt;
+    <span class="com">&lt;!-- ghost → form → light → trace → node --&gt;</span>
+  &lt;/<span class="tag">g</span>&gt;&lt;/<span class="tag">g</span>&gt;&lt;/<span class="tag">g</span>&gt;
+&lt;/<span class="tag">svg</span>&gt;</pre>
+    <p>
+      Three nested groups and each one earns its place: the outer clips, the middle is the
+      only thing that travels on scroll, the inner positions the drawing inside its crop. The
+      <code>id</code>s are prefixed per object because several illustrations share a page and
+      SVG ids are document-global.
+    </p>
+
+    <h3 id="render">Rendering</h3>
+    <ul>
+      <li><strong>SVG, always.</strong> A 1 px contour is a 1 px contour at every size; a
+        raster of one is grey mush at any other size.</li>
+      <li><strong><code>vector-effect: non-scaling-stroke</code></strong> is applied by
+        <code>.cf-iso</code> to every shape inside it. Without it a 640-unit drawing shown at
+        352 px puts its contours on screen at 0.55 px. It also pins the dash patterns to
+        their px values, which is what keeps a 1-4 ghost a 1-4 ghost.</li>
+      <li><strong>The trace is the exception</strong> and has to be: under non-scaling-stroke
+        the dash is measured in screen px while <code>pathLength</code> normalises against
+        user space, so the line-drawing finishes at 45 % of its range instead of 100 %. It is
+        stroked in user units at width 2 instead.</li>
+      <li><strong>One size per set.</strong> <code>.cf-process__figure &gt; svg</code> caps at
+        22 rem / 352 px so the four objects read as a sequence rather than four drawings that
+        happen to be adjacent.</li>
+    </ul>
+  </section>
+
+  <section class="docs-section" id="motion">
+    <h2>Motion</h2>
+    <p>
+      An object assembles as it scrolls into view, with no script at all: a view timeline on
+      <code>.cf-iso</code> and one animation per layer. The order is the drawing's own logic —
+      the body arrives along 26.57°, the trace starts drawing itself, the reference geometry
+      resolves, the light comes up, and the construction points land last. Ranges are in the
+      table in
+      <a href="#layers">§&nbsp;The five layers</a>; the full account is in
+      <a href="motion.html#assembly">Motion</a>.
+    </p>
+    <p>
+      Two properties of that are load-bearing for anyone drawing a new object.
+      <strong>Only <code>transform</code>, <code>opacity</code>, <code>fill-opacity</code> and
+      <code>stroke-dashoffset</code> animate</strong> — nothing reflows and nothing scales.
+      And <strong>the finished state is the authored state</strong>: with no support for
+      scroll-driven animations, under <code>prefers-reduced-motion</code>, or on paper, the
+      object is simply drawn complete. If a drawing only makes sense once it has animated, it
+      is not finished.
+    </p>
+  </section>
+
+  <section class="docs-section" id="a11y">
+    <h2>Accessibility</h2>
+    <ul>
+      <li><strong>Decorative by default.</strong> The four process objects are
+        <code>aria-hidden="true"</code>, because the card's copy carries the meaning and a
+        description of an isometric stack helps nobody.</li>
+      <li><strong>If an illustration carries information the text does not, it is not
+        decorative</strong> — give the <code>&lt;svg&gt;</code> <code>role="img"</code> and a
+        <code>&lt;title&gt;</code>, and say what it shows rather than what it looks like.</li>
+      <li><strong>Never put text in an illustration.</strong> It will not scale with the
+        reader's type size, it will not translate, and it is not selectable. Labels belong in
+        the markup next to the drawing — this page's own figures use
+        <code>&lt;figcaption&gt;</code> for exactly that, and the three <code>&lt;text&gt;</code>
+        elements in the lattice figure are the documented exception: they name the steps
+        <em>on</em> the steps, which is a thing a caption cannot do. That figure is a diagram
+        about geometry, not an object — no shipping illustration has any text in it.</li>
+      <li><strong>Contrast is not a constraint here, and that is a consequence, not luck.</strong>
+        Nothing in an illustration is read, so nothing in one owes 4.5:1. The moment a drawing
+        does carry a label, the label owes the same contrast as any other text on the page wash
+        — which on CF-Grau means <code>--text-secondary</code>, never <code>--text-muted</code>.</li>
+    </ul>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Put every vertex on the lattice, and every diagonal on 26.57°, 63.43°, 45° or 90°.</li>
+          <li>Move a level row on <code>e1 − e2</code>.</li>
+          <li>Light exactly one element, and make it the one the eye should land on.</li>
+          <li>Bound with contours; fill only to occlude.</li>
+          <li>Let the frame cut the object.</li>
+          <li>Carry the oklab waypoint into every inline lime → Glas leg.</li>
+          <li>Ship the finished state; let the animation be extra.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>No second lit element, however small.</li>
+          <li>No colour outside grey + the one lime ramp — Sky and Violett belong to the foil, not to objects.</li>
+          <li>No true 30° isometry, no perspective, no vanishing point in the object itself.</li>
+          <li>No drop shadows, bevels or inner shadows — depth is overlap. Figma's bevel on card 03 was dropped for this reason.</li>
+          <li>No varying stroke weight to fake depth.</li>
+          <li>No text inside the drawing.</li>
+          <li>No raster export.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Three ways to get it wrong</h3>
+    <p>
+      The same cube, drawn correctly and then three times against the rules. The third one is
+      the one worth staring at: it is textbook 30° isometry, its top face is five units taller
+      than it should be, and next to the correct cube it barely looks different. That is
+      exactly why the projection is a rule and not a preference — nothing about a wrong angle
+      announces itself, it just stops registering with everything else on the page.
+    </p>
+    <div class="docs-demo docs-demo--flat">
+      <div class="ill-strip">
+        <figure>
+          <div class="ill-frame">
+            <svg class="cf-iso" viewBox="0 0 240 240" fill="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="ill-ok-light" x1="120" y1="60" x2="150" y2="120" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                </linearGradient>
+              </defs>
+              <g stroke="#000" stroke-linejoin="round">
+                <path d="M60 90L120 120L120 180L60 150Z" fill="#CFCFCF"/>
+                <path d="M180 90L120 120L120 180L180 150Z" fill="#C4C4C4"/>
+                <path d="M120 60L180 90L120 120L60 90Z" fill="url(#ill-ok-light)"/>
+              </g>
+            </svg>
+          </div>
+          <figcaption class="ill-cap"><b>Correct</b>2:1 · one light · contoured</figcaption>
+        </figure>
+        <figure>
+          <div class="ill-frame">
+            <svg class="cf-iso" viewBox="0 0 240 240" fill="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="ill-two-a" x1="120" y1="60" x2="150" y2="120" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                </linearGradient>
+                <linearGradient id="ill-two-b" x1="180" y1="90" x2="140" y2="170" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                </linearGradient>
+              </defs>
+              <g stroke="#000" stroke-linejoin="round">
+                <path d="M60 90L120 120L120 180L60 150Z" fill="#CFCFCF"/>
+                <path d="M180 90L120 120L120 180L180 150Z" fill="url(#ill-two-b)"/>
+                <path d="M120 60L180 90L120 120L60 90Z" fill="url(#ill-two-a)"/>
+              </g>
+            </svg>
+          </div>
+          <figcaption class="ill-cap"><b>Two lights</b>neither one is the subject now</figcaption>
+        </figure>
+        <figure>
+          <div class="ill-frame">
+            <svg class="cf-iso" viewBox="0 0 240 240" fill="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="ill-ang-light" x1="120" y1="55" x2="150" y2="115" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                </linearGradient>
+              </defs>
+              <g stroke="#000" stroke-linejoin="round">
+                <path d="M60 95L120 130L120 185L60 150Z" fill="#CFCFCF"/>
+                <path d="M180 95L120 130L120 185L180 150Z" fill="#C4C4C4"/>
+                <path d="M120 60L180 95L120 130L60 95Z" fill="url(#ill-ang-light)"/>
+              </g>
+            </svg>
+          </div>
+          <figcaption class="ill-cap"><b>30° isometry</b>true isometry, not the brand's 2:1</figcaption>
+        </figure>
+        <figure>
+          <div class="ill-frame">
+            <svg class="cf-iso" viewBox="0 0 240 240" fill="none" aria-hidden="true">
+              <g>
+                <path d="M60 90L120 120L120 180L60 150Z" fill="#1B2022"/>
+                <path d="M180 90L120 120L120 180L180 150Z" fill="#484848"/>
+                <path d="M120 60L180 90L120 120L60 90Z" fill="#E1FF00"/>
+              </g>
+            </svg>
+          </div>
+          <figcaption class="ill-cap"><b>Filled</b>no contour, flat lime, off-palette greys</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="specimen">
+    <h2>Drawing a new one</h2>
+    <p>
+      The object below exists only to be evidence: it was drawn from this page and nothing
+      else, after the four cards were already finished. Three columns rise on a plate, a
+      signal arrives along the plate's own axis, and the column that has not been built yet is
+      ghosted in on ground that is already there. The plate runs out of the frame on both
+      sides, which is the crop rule doing its job — the ground does not end, the view does.
+    </p>
+    <div class="docs-demo">
+      <svg class="cf-iso ill-single" viewBox="0 0 640 640" fill="none" aria-hidden="true">
+        <defs>
+          <clipPath id="ill-spec-frame"><rect width="640" height="640"/></clipPath>
+          <!-- near rake: Glas at 0.32 == --rake-near. 63.43°, lime at the high end of the face. -->
+          <linearGradient id="ill-spec-light" x1="440" y1="160" x2="470" y2="220" gradientUnits="userSpaceOnUse">
+            <!-- oklab waypoint — 19 % of the lime leg, measured from lime, see foundations/colors.html -->
+            <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+          </linearGradient>
+        </defs>
+        <g clip-path="url(#ill-spec-frame)"><g class="cf-iso__scene" stroke-linejoin="round">
+          <!-- ghost: the lattice, the plate's own axis, and the column not built yet -->
+          <path class="cf-iso__ghost" d="M260 190L620 370M200 220L560 400M140 250L500 430M80 280L440 460M20 310L380 490M380 190L20 370M440 220L80 400M500 250L140 430M560 280L200 460M620 310L260 490" stroke="#000" stroke-dasharray="1 4"/>
+          <path class="cf-iso__ghost" d="M320 160L320 520" stroke="#000" stroke-dasharray="2 4"/>
+          <path class="cf-iso__ghost" d="M560 130L620 160L560 190L500 160ZM560 280L620 310L560 340L500 310ZM620 160L620 310M560 190L560 340M500 160L500 310" stroke="#000" stroke-dasharray="1 4"/>
+          <!-- form: the plate, then three columns on the level step (4u, 0) -->
+          <g stroke="#000">
+            <path class="cf-iso__form" d="M320 160L680 340L320 520L-40 340Z"/>
+            <path class="cf-iso__form" d="M140 250L200 280L200 340L140 310Z" fill="#CFCFCF"/>
+            <path class="cf-iso__form" d="M260 250L200 280L200 340L260 310Z" fill="#C4C4C4"/>
+            <path class="cf-iso__form" d="M200 220L260 250L200 280L140 250Z" fill="#DADADA"/>
+            <path class="cf-iso__form" d="M260 220L320 250L320 340L260 310Z" fill="#CFCFCF"/>
+            <path class="cf-iso__form" d="M380 220L320 250L320 340L380 310Z" fill="#C4C4C4"/>
+            <path class="cf-iso__form" d="M320 190L380 220L320 250L260 220Z" fill="#DADADA"/>
+            <path class="cf-iso__form" d="M380 190L440 220L440 340L380 310Z" fill="#CFCFCF"/>
+            <path class="cf-iso__form" d="M500 190L440 220L440 340L500 310Z" fill="#C4C4C4"/>
+            <!-- light: the tallest top face, and nothing else -->
+            <path class="cf-iso__light" d="M440 160L500 190L440 220L380 190Z" fill="url(#ill-spec-light)"/>
+          </g>
+          <!-- trace: level, chevron arms on (2u, ±u) -->
+          <path class="cf-iso__trace" d="M200 340H-60M76 328L100 340L76 352M16 328L40 340L16 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
+          <!-- node: r 3 on the lit face, stepping down with distance -->
+          <g class="cf-iso__node" fill="#000">
+            <circle cx="440" cy="160" r="3"/><circle cx="500" cy="190" r="3"/>
+            <circle cx="440" cy="220" r="3"/><circle cx="380" cy="190" r="3"/>
+            <circle cx="320" cy="190" r="2"/><circle cx="200" cy="340" r="2"/>
+            <circle cx="200" cy="220" r="1"/><circle cx="80" cy="340" r="1"/>
+          </g>
+        </g></g>
+      </svg>
+    </div>
+    <p>
+      Every number in it is derived, and that is checkable rather than claimed. The lattice is
+      u = 30 centred on (320, 340); the plate is three cells out along each ground axis, so
+      its corners are (320, 160), (680, 340), (320, 520) and (−40, 340) — two of them outside
+      the frame. The three column footprints sit at (200, 280), (320, 280) and (440, 280): one
+      level step of (120, 0) apart, which is <code>e1 − e2</code> at u = 30. Their heights are
+      60, 90 and 120 — two, three and four units — and because the row is level, those three
+      numbers are what the eye reads off the drawing. Every column's front vertex lands on the
+      plate's own horizontal diagonal, which is also the line the trace arrives on. The
+      gradient axis runs (440, 160) → (470, 220): 63.43°, lime at the top.
+    </p>
+
+    <h3>The checklist</h3>
+    <p>Before an object is finished, in this order:</p>
+    <ol style="max-width:72ch;color:var(--text-secondary);padding-left:1.4rem">
+      <li>Every vertex is expressible in steps of u from one origin. Write the origin down.</li>
+      <li>Every straight line is on 0°, 26.57°, 45°, 63.43° or 90°. Measure them; 26.96° looks
+        identical and is not the same thing — card 04's source vector carried one, and it was
+        trued on the way in rather than on the way out.</li>
+      <li>Rows that must read as level move on <code>e1 − e2</code>.</li>
+      <li>Exactly one element carries the lime ramp, at one of the three rakes, and it is the
+        subject.</li>
+      <li>Each lime → Glas leg carries the oklab waypoint, with its comment.</li>
+      <li>Fills are only <code>#DADADA</code> / <code>#CFCFCF</code> / <code>#C4C4C4</code>;
+        every surface has a contour.</li>
+      <li>Dash patterns are one of the four sanctioned types.</li>
+      <li>The frame cuts the object somewhere, and not through the lit element.</li>
+      <li>Layers carry their <code>.cf-iso__*</code> classes, in the material order.</li>
+      <li>It reads correctly with animations off, at 352 px, and printed.</li>
+    </ol>
+
+    <h3>Where illustrations go</h3>
+    <p>
+      An object is expensive attention. One per section is the working limit, and the whole
+      shipping tree holds six of them:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Where</th><th>What</th><th>Frame</th></tr></thead>
+      <tbody>
+        <tr><td>Landing page · statement</td><td>an axis with its rays and a lit centre — a diagram, not a body</td><td>480</td></tr>
+        <tr><td>Landing page · process ×4</td><td>the four objects in the table at the top of this page</td><td>640</td></tr>
+        <tr><td>Blog article</td><td>the <a href="../components/plot.html">plot</a> — a number drawn in space</td><td>its own</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The statement figure is the one that does not use the 640 frame, and it is a fair
+      exception rather than drift: it is not an object in a crop, it is a construction with
+      its own centre, and it turns <code>--iso-travel</code> down to 12 so a diagram does not
+      fly in as far as a body would. The hero is outside this count entirely — it is video,
+      not vector, and it is the one place the brand's light moves on its own.
+    </p>
+    <p>
+      A page that wants a seventh object usually wants a <a href="../components/plot.html">plot</a>
+      or an <a href="iconography.html">icon</a> instead: the same language at two smaller
+      scales, one for a number and one for a label.
+    </p>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>
