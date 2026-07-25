@@ -19,7 +19,8 @@
       { href: 'foundations/illustration.html',label: 'Illustration' },
       { href: 'foundations/logo.html',        label: 'Logo' },
       { href: 'foundations/photography.html', label: 'Photography' },
-      { href: 'foundations/motion.html',      label: 'Motion' }
+      { href: 'foundations/motion.html',      label: 'Motion' },
+      { href: 'foundations/mobile.html',      label: 'Mobile' }
     ]},
     { title: 'Components', items: [
       { href: 'components/buttons.html',        label: 'Buttons' },
