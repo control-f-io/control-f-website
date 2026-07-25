@@ -12,6 +12,22 @@
   .mat { display:grid; grid-template-columns:14rem 1fr; gap:var(--space-6); align-items:center; }
   .mat + .mat { margin-top:var(--space-6); }
   .mat__sample { height:8rem; display:grid; place-items:center; font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label); text-transform:uppercase; }
+  /* Glass has to sit ON something complex, not carry it. Painting the gradient
+     onto the sample itself — which is what these two did — puts the artwork in
+     front of the material and demonstrates a gradient, not frosting. The field
+     itself comes from .docs-poster in docs.css, so the decision lives in one
+     place; this only sizes it.
+
+     The padding insets the two glass plates 16 px inside a column whose other
+     five samples run flush to its edge. That break is deliberate and not
+     removable: glass needs a visible field around it to be legible AS glass —
+     sharp outside, calmed inside — and painting the poster onto .mat__sample
+     would not work, since backdrop-filter blurs what is behind an element and
+     not its own background. The outer cell still holds the column at 224x128,
+     so the axis survives; it is the plate edge that steps in. Truthful demo
+     over a tidy column. */
+  .mat__art { height:8rem; padding:var(--space-4); }
+  .mat__art > .mat__sample { height:100%; }
   .mat__stack { position:relative; height:16rem; background:var(--surface-page-wash); border:1px solid var(--border-default); overflow:hidden; }
   @media (max-width:780px){ .mat { grid-template-columns:1fr; } }
 </style>
@@ -52,7 +68,7 @@
     </div>
 
     <div class="mat">
-      <div class="mat__sample material-glass" style="background-image:var(--gradient-light)">03</div>
+      <div class="mat__art docs-poster"><div class="mat__sample material-glass">03</div></div>
       <div>
         <h3 style="margin-top:0">Frosted glass</h3>
         <p>
@@ -66,7 +82,7 @@
     </div>
 
     <div class="mat">
-      <div class="mat__sample material-glass material-glass--veil" style="background-image:var(--gradient-light)">03b</div>
+      <div class="mat__art docs-poster"><div class="mat__sample material-glass material-glass--veil">03b</div></div>
       <div>
         <h3 style="margin-top:0">…and the same glass, almost clear</h3>
         <p>
@@ -180,16 +196,194 @@
       only gets one lime moment and the page has already spent it.
     </p>
 
+    <h3>How glass responds to the reader</h3>
+    <p>
+      Glass gets a different treatment from a flat panel, because a sheet of glass has a
+      specular. The hero button carries a soft band of light — <code>--cf-specular</code>,
+      a registered custom property so it interpolates rather than switches — parked off the
+      right edge at rest and travelling in across the plate on hover and on focus. It is a
+      band and not a blob: the gradient's vertical radius is 300&nbsp;% of the button, so
+      almost no falloff happens across a 48&nbsp;px plate and what crosses it is a column of
+      light, which is what a flat sheet does with a grazing source. Refraction hinted at,
+      never simulated.
+    </p>
+    <p>
+      <strong>Light only adds.</strong> Every layer above the bearing tint lightens, so the
+      darkest point on the button is the tint itself and the contrast floor is the same
+      whether the highlight is present or not — the guarantee never depends on where the
+      light happens to be.
+    </p>
+    <p>
+      <strong>The navigation sheet deliberately has none of this.</strong> A specular is a
+      property of a small plate you point at, not of a band running the full width of the
+      page: a highlight travelling across the whole viewport on hover would be a screen
+      effect, and the bar is not a thing you hover — it is a thing you scroll past. Its light
+      is the edge instead, <code>--glass-edge</code>, scrubbed by scroll position. So the
+      specular below is a rule for glass <em>buttons</em>, and its absence on the sheet is a
+      decision rather than an oversight.
+    </p>
+    <p>
+      <strong>Animate the property, not the paint.</strong> A gradient
+      <code>background-image</code> does not interpolate: given two gradients differing in a
+      single number, the browser jumps to the new one on the first frame. So a highlight that
+      is drawn as a gradient can only be moved by animating a registered custom property that
+      the gradient reads — which is what <code>@property</code> is for, and why naming
+      <code>background</code> in the transition would animate nothing.
+    </p>
+    <p>
+      <strong>Scope that narrowly.</strong> The rule is "a transition whose only moving part is
+      a gradient animates nothing" — <em>not</em> "<code>background</code> in a transition list
+      animates nothing". <code>background-color</code> interpolates perfectly well, and the
+      base <code>.cf-btn</code> rule depends on it: measured mid-transition,
+      <code>--outline</code> runs <code>rgba(0,0,0,0)</code> → <code>rgba(0,0,0,0.88)</code> →
+      black and <code>--solid</code> runs <code>rgb(27,32,34)</code> → <code>rgb(3,4,4)</code> →
+      black. <code>--primary</code> is the mixed case: its gradient snaps on frame one while
+      the colour fades in underneath. Stripping <code>background</code> from that base rule on
+      the strength of the paragraph above would silently kill two real transitions and half of
+      a third.
+    </p>
+    <p>
+      <strong>Always declare that property's rest value on the component, as a plain
+      declaration.</strong> This is the part worth carrying to the next component, because the
+      failure mode is not the one you would guess and neither is the fix. Leaving the rest
+      value to <code>@property</code>'s <code>initial-value</code> alone means that in a
+      browser without <code>@property</code> the variable is unset — and an unresolvable
+      <code>var()</code> is <em>guaranteed-invalid</em>, which makes the entire
+      <code>background</code> shorthand invalid at computed-value time. Every layer goes, not
+      just the highlight: measured with the registration stripped, the button computed to
+      <code>background-image: none</code> over a transparent <code>background-color</code>.
+      <code>backdrop-filter</code> is a separate declaration and survives, so what was left was
+      a blur with no plate — on the hero, a pure-black label directly over moving video with
+      no bearing tint holding the contrast floor. A missing highlight would be cosmetic; a
+      missing declaration is not.
+    </p>
+    <p>
+      A <code>var(--cf-specular, 150%)</code> fallback would resolve the value too, and in a
+      correct browser it should be indistinguishable — a registered property with an
+      <code>initial-value</code> is never guaranteed-invalid, so its fallback is never
+      consulted and the two forms are equivalent. Use the plain declaration because it states
+      the guarantee where the declaration is, rather than leaving it implied inside a
+      <code>var()</code> argument that a reader may take for decoration and remove.
+    </p>
+    <p>
+      <strong>A Chromium 141 repaint quirk was cited here as a second reason and has been
+      demoted, because it does not reproduce the way this page tells you to test.</strong>
+      Driven by pointer hover, the fallback form does not repaint while the property
+      interpolates — the plate holds its rest paint and snaps at the end, measured at identical
+      property values rather than identical times. Driven by <code>element.focus()</code>, both
+      forms travel identically. A reviewing lane could not reproduce it at all, for exactly that
+      reason. Recorded here so nobody re-derives it, and deliberately load-bearing on nothing:
+      if it were left as an argument, the first person to check it correctly would find nothing
+      and delete the sound reasoning next to it.
+    </p>
+    <p>
+      Two traps worth remembering on their own, because between them they rule out both
+      obvious ways of checking this by script. <strong><code>getComputedStyle</code> cannot see
+      the invalidation failure</strong> — the property reads as interpolating in both forms, to
+      three decimal places, so an animation verified only by sampling computed values looks
+      correct while painting nothing. And <strong>driving the property through
+      <code>element.style.setProperty()</code> does not repaint at all</strong> in Chromium 141:
+      sixteen columns sampled at 150 % and at 40 % come back byte-identical, while a real
+      <code>:hover</code> repaints correctly. That is a wider invalidation footprint than the
+      fallback case above, and it means the natural way to script this test returns a false
+      negative on a form that actually works. Drive it through the real selector — a
+      <code>:focus-visible</code> via <code>element.focus()</code> is the cleanest handle,
+      since it needs no pointer and cannot scroll the page — and read pixels, not values.
+    </p>
+    <p>
+      One catch to carry with the rule: the rest value now exists twice — as
+      <code>initial-value</code> in the <code>@property</code> block and as the declaration on
+      the component — and nothing but a comment holds the two equal. They must move together.
+      <code>initial-value</code> has to be a literal, so it cannot read the token, which means
+      there is no way to make the coupling structural; the next component using this technique
+      will inherit the same seam.
+    </p>
+    <p>
+      A plain declaration is the one option that gets both. Registered it is simply the
+      from-value and interpolation is unaffected; unregistered it keeps the <code>var()</code>
+      resolvable, so the plate survives and the highlight switches instead of travelling. The
+      state change still reads and the contrast floor is untouched.
+    </p>
+    <p>
+      Reduced motion needs no handling here, but only by inheritance:
+      <code>--cf-specular</code> is transitioned over <code>--duration-slow</code>, which
+      <code>tokens.css</code> collapses to 1&nbsp;ms under
+      <code>prefers-reduced-motion: reduce</code>. The next component animating a registered
+      property inherits that protection <em>only</em> if it also reaches for a duration token
+      rather than writing a literal.
+    </p>
+
     <h3>Cost</h3>
     <p>
       <code>backdrop-filter</code> is the most expensive thing in this stylesheet. The rules
-      that keep it affordable: never stack two blurred layers; keep the blur radius at 16 px,
+      that keep it affordable: never add a third blurred layer; keep the blur radius at 16 px,
       since more reads no better; use <code>position: sticky</code> rather than
       <code>fixed</code>, because a fixed blurred element repaints its whole region every
       scroll frame in iOS Safari; and never animate the opacity of a blurred layer, which
       re-rasterises the blur on every frame. A sheet may reach past its own edge by
       <code>--glass-lookahead</code> so content arrives through the blur rather than popping
       into it, but no further — everything past one blur kernel is spend with nothing to show.
+    </p>
+    <p>
+      The two blurred layers <em>do</em> overlap, and the system used to claim they never do.
+      The hero CTA is on the first screen and the bar is sticky, so the button passes under it
+      on the way out: measured at 1280&nbsp;&times;&nbsp;900, they intersect from
+      <code>scrollY</code> 628 to 776 and the button sits entirely inside the sheet from 672
+      to 732 — about 150&nbsp;px of scroll carrying two stacked <code>backdrop-filter</code>s.
+      It costs nothing measurable; sweeps through the overlap window and through clear page
+      give the same 16.7&nbsp;ms median and overlapping p95 ranges. The rule worth keeping is
+      therefore the one that pays — exactly two blurred layers on a <em>shipping</em> page,
+      never a third — not the stronger one the comment used to assert. The scope matters, and
+      this page is why: it carries three composited plates of its own, the two samples above
+      and the band in the layer stack below. A documentation page showing a material has to be
+      allowed more of it than a page selling something. Census of the shipping tree — landing
+      page 2, Über uns 1, and 1 each on the component pages that demo it.
+    </p>
+    <p>
+      <strong>Where the third layer would come from, so it does not.</strong> The budget is
+      spent; naming the likely spenders is worth more than a count somebody has to remember.
+      The process-card panel and its note block, the value-table rows, the blog-grid cells
+      and the footer CTA are the four surfaces that look like they want glass and must not
+      have it — every one sits on the page wash with nothing complex behind it, where frosting
+      has nothing to calm and becomes a grey box. If a genuine third case ever appears,
+      something else has to give up its blur first.
+    </p>
+    <p>
+      <strong>What those four get instead is not one answer, and this section used to say it
+      was.</strong> The paragraph above ended "They get <code>--sheen-panel</code> instead" —
+      of all four. Exactly one of them does. <code>--sheen-panel</code> is on the blog-grid
+      cells, and on the accordion rows, which that sentence did not name at all. It is on
+      nothing else in the system. The process panel and its note block, the value-table rows
+      and the footer CTA carry no sheen, and should not.
+    </p>
+    <p>
+      The rule the list was standing in for: <strong>sheen is a pointer response, not a
+      surface treatment.</strong> It is parked in its own transparent half and slid across on
+      <code>:hover</code> and <code>:focus-visible</code>, so it exists only as an answer to
+      someone arriving at the element. A blog cell and an accordion row are a link and a
+      control; light crossing them is feedback. The three that go without are static content —
+      a copy panel with its inset note, a value row, a footer block. A hover sheen there would
+      promise an affordance that is not present, which is a worse failure than the grey box the
+      paragraph above guards against, because it is legible and still wrong. They get the
+      1&nbsp;px contour and the page wash, which is the manual's order — contour before fill —
+      and that is a complete answer, not an omission.
+    </p>
+
+    <h3>The glass button is light contexts only</h3>
+    <p>
+      <code>.cf-btn--glass</code> must not be placed inside a
+      <code>data-theme="inverse"</code> scope. Its label is <code>--accent-ink</code>, which is
+      black, while the inverse theme flips <code>--surface-glass</code> to black 56&nbsp;% —
+      black type on a dark plate, near 1:1. Nothing reaches that today, since the button
+      appears only on the landing page and its own documentation page and neither is inverse,
+      but it is a real constraint rather than an oversight.
+    </p>
+    <p>
+      It cannot be fixed by flipping the label colour with the theme, which is the obvious
+      guard. The button's right-hand end is lime in both themes, and lime demands black type;
+      the plate under the left-hand end would demand white. One colour cannot serve both, so
+      an inverse glass button is a redesign — a different lit edge, or no lime — not a token
+      swap. Until someone draws one, this component belongs on light ground.
     </p>
 
     <h3>When there is no glass</h3>

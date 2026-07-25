@@ -10,7 +10,7 @@
 @property --cf-specular {
   syntax: "<percentage>";
   inherits: false;
-  initial-value: 112%;
+  initial-value: 150%;
 }
 
 /* --------------------------------------------------------------------------
@@ -124,12 +124,50 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 .cf-btn--glass {
   position: relative;
   color: var(--accent-ink);
-  /* split out of the background shorthand for the same reason as --primary:
-     the shorthand would reset background-origin back to padding-box. */
+  /* DELETE THIS LINE AND BROWSERS WITHOUT @property LOSE THE LIGHT ON THE
+     PLATE. The long version follows; that sentence is the whole of it.
+
+     The rest position is declared here rather than left to the initial-value
+     in the @property block, because leaving it there makes --cf-specular
+     unset wherever @property is unsupported — and an unresolvable var() is
+     *guaranteed invalid*, which takes the whole declaration it sits in with
+     it at computed-value time. Both gradient layers go, and the button
+     computes to background-image: none.
+
+     What that costs is now smaller than it was, and only because of the
+     split below. While this was one `background` shorthand it also took
+     --surface-glass down with it, leaving a blur over a transparent
+     background-color — a pure-black label (--accent-ink) directly over the
+     hero video with nothing holding the contrast floor. --surface-glass is
+     its own background-color declaration now, so it survives an invalid
+     background-image and the bearing tint still holds 4.5:1. The plate
+     degrades to flat glass rather than to nothing. Keep the declaration
+     anyway: losing the light layer is still a real loss, and the guarantee
+     costs one line.
+
+     A var(--cf-specular, 150%) fallback would resolve the value too, and is
+     not wrong — a registered property with an initial-value is never
+     guaranteed-invalid, so its fallback is never consulted and the two forms
+     are equivalent. Use the plain declaration because it says plainly what
+     the fallback only implies, and because the guarantee above is then
+     visible at the declaration rather than buried in a var() argument.
+
+     (A Chromium 141 repaint quirk was also cited here and has been demoted:
+     it reproduces only under pointer hover, not under focus, so a later run
+     checking it the way this system recommends would find nothing and delete
+     the surrounding argument with it. The condition is recorded once in
+     foundations/materials.html. Nothing in this rule depends on it.)
+
+     Keep this value equal to the initial-value in the @property block. */
+  --cf-specular: 150%;
+  /* background-image, not the `background` shorthand: the shorthand resets
+     background-origin to padding-box, and the 1 px transparent border then
+     gets filled by tiling the image — the far end of the ramp down the near
+     edge. See .cf-btn. */
   background-image:
-    radial-gradient(120% 210% at var(--cf-specular) -40%,
-                    rgba(255, 255, 255, 0.5) 0%,
-                    rgba(255, 255, 255, 0) 62%),
+    radial-gradient(55% 300% at var(--cf-specular) 50%,
+                    rgba(255, 255, 255, 0.42) 0%,
+                    rgba(255, 255, 255, 0) 60%),
     linear-gradient(var(--angle-square),
                     rgba(197, 235, 226, 0)    30%,
                     rgba(197, 235, 226, 0.55) 62%,
@@ -139,15 +177,181 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
   border-color: rgba(255, 255, 255, 0.55);
-  transition: background var(--duration-base) var(--ease-standard),
-              color var(--duration-base) var(--ease-standard),
+  /* `background` is not in this list, and never needed to be: a gradient
+     background-image does not interpolate. Given two gradients differing in
+     one number, Chromium jumps straight to the new value on the first frame
+     rather than transitioning between them. Naming `background` here
+     animates nothing and only tells the next reader that it does.
+
+     Two things follow that are easy to get wrong in opposite directions.
+
+     This is an OVERRIDE, not a subtraction. `transition` is declared whole
+     here, so it replaces the base list rather than editing it: computed
+     transition-property is `color, border-color, --cf-specular` on this
+     button against `background, color, border-color` on the others. The
+     omission is free only while the gradient is the button's sole background
+     change, which is true today. Give it a state that moves
+     background-color and that state will jump — demonstrated, not assumed:
+     a background-color set on this button reads its final value 60 ms in,
+     with no intermediate. Add `background` back to this list on the same day
+     you add such a state.
+
+     And read the gradient claim narrowly. It is true of THIS button, whose
+     only moving part is a gradient. It is NOT a reason to strip `background`
+     from the base .cf-btn rule above, where it is load-bearing —
+     background-color interpolates perfectly well and three modifiers depend
+     on it. Measured mid-transition, slowed to 2 s:
+
+       --outline   rgba(0,0,0,0) -> rgba(0,0,0,0.88) -> rgb(0,0,0)
+       --solid     rgb(27,32,34) -> rgb(3,4,4)       -> rgb(0,0,0)
+       --primary   gradient      -> image already none, colour at 0.88 -> lime
+
+     --primary is the mixed case: its image leg snaps on frame one while the
+     colour leg fades in underneath over --duration-base. The rule is "a
+     transition whose only moving part is a gradient animates nothing", not
+     "`background` in a transition list animates nothing".
+
+     --cf-specular, registered above, is the one thing that actually moves.
+     Which means a browser that does not support @property gets a switch
+     rather than a travel: an unregistered custom property does not
+     interpolate, and there is no background-image fade underneath it to
+     fall back on. Measured both ways, not assumed. The state change is still
+     communicated, which is the part that matters — but only because the rest
+     value is declared above. Without that declaration the same browser gets
+     no plate at all rather than a switch; see the note on it. */
+  /* Two speeds on one element, deliberately. The control responds at
+     --duration-base, which is the "UI moves short and fast" half of the
+     motion doctrine. The light crossing it takes --duration-slow, which
+     looks like a violation and is not: what travels is the light, not the
+     button, and light does not snap. At --duration-base a band crossing
+     most of the plate reads as a twitch rather than as a source moving past.
+
+     480 ms has four consumers, not three as this comment first claimed.
+     Three are light crossing a surface — this specular, plus the accordion
+     row and the blog cell sliding --sheen-panel by background-position. The
+     fourth is .cf-accordion__item::details-content, a panel opening, which
+     is a reveal rather than light. Both belong at 480 ms and the token's
+     stated purpose covers both; what does NOT belong there is the control's
+     own acknowledgement of a click, which is --duration-base. See
+     foundations/motion.html, whose table this comment used to contradict. */
+  transition: color var(--duration-base) var(--ease-standard),
               border-color var(--duration-base) var(--ease-standard),
               --cf-specular var(--duration-slow) var(--ease-standard);
 }
 /* The highlight travels in from off the right edge rather than sweeping
-   across. Refraction hinted at, not simulated. */
+   across. Refraction hinted at, not simulated.
+
+   It is a band, not a blob: the vertical radius is 300 % of the button, so
+   the falloff across a 48 px plate is almost nothing and what crosses it is
+   a soft column of light — which is what a flat sheet of glass does with a
+   grazing source. The old figure put the centre 40 % *above* the plate with
+   a 210 % radius, so its falloff expired about 5 px short of the bottom
+   edge — the 62 % stop lands at y 90.2 % on the centre column and 88.5 % at
+   the right edge, leaving the bottom tenth of a 48 px plate unlit. (An
+   earlier version of this comment said the bottom of the button was outside
+   the gradient entirely. It was not: the ellipse reaches y +170 %. The
+   band is real but it is a tenth, not a third.)
+
+   The win is shape and rest state, not amplitude. Measured on the same
+   surface — the hero poster, which is what the CTA actually sits on — the
+   old figure peaked at 15.6 levels of grey and the new one at 20.2, which
+   is a modest gain. What changed is the ends: the old profile is 2.0 levels
+   at the far left and -2.1 at the far right, meaning the highlight covered
+   the whole plate and merely slid its weight around, reading as a tint. The
+   new one returns to 0.0 at both ends and peaks at 38 %, so it is a band
+   with unlit plate either side of it, and the rest state is genuinely
+   unlit rather than washed. Tinted to lit.
+
+   (An earlier figure of "5 levels" for the old geometry was measured on the
+   documentation page's light backdrop, not on the poster, and understated
+   it. Same-surface numbers only.)
+
+   It clears the lime in both states — but only just, and the margin is
+   smaller than the stop positions suggest. 87 % is where the lime STOP is
+   declared, not where lime becomes visible: the leg ramps Glas 0.55 -> lime
+   0.88 from 62 % to 87 %, so the plate is already reading lime long before
+   the stop. Measured on the rendered button, label and arrow masked,
+   limeness = (R+G)/2 - B:
+
+     across      59 %   63 %   66 %   69 %   72 %   75 %
+     limeness    -4.3   13.9   41.3   68.6   95.8  123.0
+     band delta  +5.5   +3.6   +1.9   +0.6   -0.0    0.0
+
+   So lime is visible from about 63 %, and the band does not stop short of
+   it — the two overlap from roughly 63 % to 72 %. What saves it is that the
+   band is dying exactly where lime is starting: the most it ever adds to a
+   lime pixel is 3.6 levels, at the very foot of the ramp, and by the time
+   lime has any strength the band contributes nothing at all. Read the
+   margin as "the band expires as the lime arrives", not as the 14-point gap
+   the declared stops imply. Anyone nudging the hover endpoint rightward has
+   very little room.
+
+   The old figure — centre 64 %, x-radius 120 % — spanned roughly -10 % to
+   138 % and washed white straight over the lime, which shows in the profile
+   as a NEGATIVE delta at the right end on hover: light that was sitting on
+   the lime at rest and moving off it. So the new geometry still strengthens
+   the one-lime-moment rule rather than merely not breaking it.
+
+   Light only ever adds, so the darkest point on the button stays
+   --surface-glass and the contrast floor below is untouched.
+
+   The band is pure white end to end, which makes it the one achromatic
+   gradient in the light family — --glass-edge travels Weiss to Glas to Sky,
+   the foil goes further, and the brand's north star is hue travel inside a
+   narrow luminance band. This is a deliberate exception, not an oversight: a
+   specular is physically achromatic, because it is the source reflected
+   rather than the surface coloured. It is settled, not pending: the gradients
+   lane has ruled on it. A Glas tail would put the plate's chroma in two
+   places at once, since --glass-edge already carries the hue travel on this
+   same component — one lit edge with hue, one specular without, is the
+   division the family asks for. Do not "fix" it.
+
+   The transparent stop is rgba(255,255,255,0) and not `transparent`, which
+   is transparent BLACK and would drag a grey cast through the falloff. Same
+   reason the other two gradients in this block spell their colour out. */
 .cf-btn--glass:hover,
-.cf-btn--glass:focus-visible { --cf-specular: 64%; }
+.cf-btn--glass:focus-visible { --cf-specular: 40%; }
+
+/* The focus ring is the one part of this button the plate's contrast floor
+   does NOT protect: at outline-offset it lands 2-4 px OUTSIDE the plate, on
+   the hero artwork, which nobody controls and which is a video — so the
+   backdrop under the ring changes frame to frame. The global black ring is
+   fine on the documentation page's flat grey and is not guaranteed here.
+
+   Neither single colour can be: against a 3:1 requirement, black holds only
+   where the backdrop is lighter than L 0.100, and lime only where it is
+   darker than L 0.258. Sampling frames cannot fix that, the same way it
+   could not fix the bearing tint.
+
+   The two are complementary, though — those ranges OVERLAP, so between them
+   every possible backdrop is covered, and they contrast 18.5:1 with each
+   other. So the ring is two-tone: black inside, lime outside. Black sits
+   against the plate, whose floor IS guaranteed, giving a 13:1 inner edge
+   that no frame can take away; lime sits against the artwork and carries the
+   dark frames.
+
+   Be precise about which edges the artwork cannot touch, because it is two
+   and not three: the black/plate boundary and the black/lime boundary. Both
+   are internal to the ring and the plate, so no frame reaches them. The
+   third edge, lime against the artwork, is the one that varies — at the
+   crossover luminance where the two ranges meet (artwork L 0.246) lime
+   measures 2.96:1 there and the indicator is carried by its internal edges
+   alone. That is the design working, not a gap, but "two edges survive"
+   means these two specifically.
+
+   This is the one focus indicator in the system that does not read
+   --focus-ring, and it cannot: a single token cannot be two-tone. Anyone
+   retheming that token will not reach this button, so change it here too.
+
+   Order matters. Lime inside would put it against the light plate at 1.4:1
+   and waste the one guaranteed edge. box-shadow is the inner ring because
+   outline cannot be doubled; it is dropped in forced-colors mode, where the
+   outline survives and the system takes over anyway. */
+.cf-btn--glass:focus-visible {
+  outline: var(--stroke-2) solid var(--cf-lime);
+  outline-offset: var(--stroke-2);
+  box-shadow: 0 0 0 var(--stroke-2) var(--cf-schwarz);
+}
 
 .cf-btn--outline {
   background: transparent;
@@ -230,7 +434,15 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
    children resolve against it — the glass sheet, the edge, and the mobile
    menu — so overriding this to `static` sends all three to the viewport,
    and a viewport-sized backdrop-filter blurs the entire page. If a context
-   needs the bar not to stick, give it `position: relative`, never `static`. */
+   needs the bar not to stick, give it `position: relative`, never `static`.
+
+   It also has to stay OUT of a wrapper that sets both `overflow` and
+   `border-radius`. Firefox drops backdrop-filter on a sticky element whose
+   ancestor carries that pair, and it fails silently: the bar keeps its tint
+   and its edge and simply stops blurring, which is the one broken state
+   nobody notices in review. The bar is a body-level element on both pattern
+   pages today, so nothing hits this — it is written down because the fix
+   after the fact is to move the nav, and by then the wrapper is load-bearing. */
 .cf-nav {
   position: sticky;   /* not fixed: a fixed backdrop-filter repaints the
                          blurred region on every scroll frame in iOS Safari */
@@ -705,18 +917,23 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   cursor: pointer;
   font-size: var(--text-lg);
   font-weight: var(--weight-medium);
-  transition: background var(--duration-fast) var(--ease-standard);
-}
-.cf-accordion__summary::-webkit-details-marker { display: none; }
-/* Not glass: these rows sit on the page wash, and frosted glass over a flat
-   surface is only a grey box. Light crossing the row is the honest version. */
-.cf-accordion__summary {
+  /* Not glass: these rows sit on the page wash, and frosted glass over a flat
+     surface is only a grey box. Light crossing the row is the honest version.
+
+     Declared here rather than in a second .cf-accordion__summary block below.
+     That block set `transition: background-position`, and the shorthand reset
+     the `transition: background var(--duration-fast)` this rule used to carry
+     — so the row read as a 120 ms background fade in the stylesheet and moved
+     as a 480 ms travelling light on screen. Nothing rendered wrong; the two
+     halves of one component simply disagreed about what it does. One block,
+     one transition. */
   background-image: var(--sheen-panel);
   background-repeat: no-repeat;
   background-size: 200% 100%;
   background-position: 0 0;   /* parked in the gradient's transparent half */
   transition: background-position var(--duration-slow) var(--ease-standard);
 }
+.cf-accordion__summary::-webkit-details-marker { display: none; }
 .cf-accordion__summary:hover,
 .cf-accordion__summary:focus-visible { background-position: 100% 0; }
 .cf-accordion__item[open] .cf-accordion__summary .cf-arrow { transform: rotate(90deg); }
@@ -1319,6 +1536,15 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
    Icon cell + copy cell, hairline ruled. The Über uns "wer wir sind" block.
    -------------------------------------------------------------------------- */
 .cf-value-table {
+  /* The component owns its own list reset, like .cf-nav__list and
+     .cf-article__toc do. base.css zeroes ul[role="list"], but relying on that
+     would make an ARIA attribute load-bearing for layout: strip the role a
+     validator calls redundant and the UA's 40 px padding and 14 px margin come
+     back inside the hairline frame. role="list" is then free to do only its own
+     job — restoring the list semantics Safari drops when list-style is none. */
+  margin: 0;
+  padding: 0;
+  list-style: none;
   border: var(--stroke-1) solid var(--border-strong);
   container-type: inline-size;
 }
@@ -1442,8 +1668,22 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 /* --------------------------------------------------------------------------
    STAT
    Big mono number + label. For the "10 Mitarbeiter" style facts.
+
+   The number and its label are one fact, so they are one element — a single
+   block with two spans in it — rather than two loose paragraphs a page has
+   to space itself.
+
+   The number and the label reach the accessibility tree as two separate text
+   runs. Measured in Chromium: inline spans, a block label, and two block
+   elements all produce the same two StaticText leaves, so no arrangement of
+   this markup merges them, and the GOV.UK trick of stacking with a block
+   pseudo-element buys nothing here while costing the space between the two
+   in the flattened text. The label therefore has to read on its own — see
+   components/statement.html.
    -------------------------------------------------------------------------- */
+.cf-stat { display: block; }
 .cf-stat__value {
+  display: block;
   font-family: var(--font-mono);
   font-size: var(--text-h1);
   font-weight: var(--weight-medium);
@@ -1451,6 +1691,7 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   line-height: 1;
 }
 .cf-stat__label {
+  display: block;
   margin-top: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
