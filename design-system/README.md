@@ -38,6 +38,7 @@ design-system/
     ├── js/
     │   ├── cf-consent.js   the consent banner + settings dialog. Ships.
     │   ├── cf-icons.js     the icon set — the one place a glyph is drawn. Ships.
+    │   ├── cf-values.js    types the values copy. Ships, optional — see below.
     │   └── docs.js         sidebar, swatch copy, arrow sprite — documentation only
     ├── fonts/              (empty — see below)
     ├── img/                logo SVGs, icons, hero poster, team photos
@@ -68,16 +69,27 @@ paste its markup instead, see `foundations/iconography.html` — and build pages
 classes documented in `components/`.
 `patterns/landing-page.html` is a working reference for a whole page.
 
-One script ships, and only one:
+Two scripts ship. One is required, one is not:
 
 ```html
 <script src="/design-system/assets/js/cf-consent.js"></script>
+<script src="/design-system/assets/js/cf-values.js" defer></script>
 ```
 
-It drives the consent banner and the settings dialog, which the site cannot legally
-do without (TDDDG § 25). It is dependency-free, creates no markup of its own, and if
-it never runs, no non-essential script runs either. Everything else in the system is
-HTML and CSS. → `components/consent.html`
+`cf-consent.js` drives the consent banner and the settings dialog, which the site
+cannot legally do without (TDDDG § 25). It is dependency-free, creates no markup of
+its own, and if it never runs, no non-essential script runs either.
+→ `components/consent.html`
+
+`cf-values.js` is **optional and additive**. The values section is complete without it
+— the copy is real markup and a view timeline does the pinning, the scrubbing and the
+mark. All it adds is the copy arriving character by character rather than whole, which
+is the one thing a view timeline cannot do because there is no per-character unit to
+animate. It refuses to run unless the pinned layout is actually active, and it keeps
+the full sentence in a `.visually-hidden` twin so assistive technology never gets a
+half-written value. Delete the tag and the section still works.
+
+Everything else in the system is HTML and CSS.
 
 ## Animation prototypes
 
@@ -101,17 +113,19 @@ and reverses when they scroll back.
 | | prototype | shipped |
 |---|---|---|
 | engine | ~120 lines of JS | a view timeline, no script |
-| copy | typed char by char out of a JS array | six list items in the document |
+| copy | typed char by char out of a JS array | six list items, typed by an optional script |
 | reduced motion | the 660 vh track and the gating both survive | stacked, readable, mark finished |
-| no JS / no support / print | nothing to read | the same stacked state |
+| no JS / no support / print | nothing to read | every value readable, whole |
 | below 820 px | pinned | stacked, so a phone gets no seven-viewport hijack |
 
-The char-by-char typing did not survive, and that is the one thing the shipped version is
-missing. A view timeline cannot type, and doing it properly needs either a second shipping
-script or ~180 spans per paragraph. Each value now arrives as a whole instead. Worth
-revisiting if the typing turns out to be the point rather than the flourish.
+The typing does survive, but only as an enhancement on top: `assets/js/cf-values.js`,
+which follows the prototype's own timing — a 62 % reveal window per stage, the title in
+its first 28 %, the body starting at 14 % and spanning the rest, smoothstepped. Because
+it reads scroll position rather than running a timer, scrolling back up un-types the
+text exactly as the prototype does. Without the file the values arrive whole and
+everything else is unchanged.
 
-The prototype file stays where it is as the reference for that question.
+The prototype file stays where it is as the reference.
 
 `services-scroll.html` is still a prototype. Its reduced-motion path is already correct —
 the scrub script returns early, the pinned section goes `static` and auto-height, and the
