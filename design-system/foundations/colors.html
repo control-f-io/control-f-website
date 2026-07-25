@@ -334,7 +334,9 @@
         <tr><td><code>--foil-ink-stops</code></td><td>the shadow half's three stops, without an angle</td><td>the same, for the 800 band</td></tr>
         <tr><td><code>--spectrum-hot</code></td><td>18 % — the white hot spot</td><td>shared by both foil gradients; not used alone</td></tr>
         <tr><td><code>--spectrum-cool</code></td><td>64 % — where Sky takes over</td><td>shared by both foil gradients; not used alone</td></tr>
-        <tr><td><code>--grain</code></td><td>SVG fractal noise tile</td><td>dithering the page wash</td></tr>
+        <tr><td><code>--surface-page-wash</code></td><td>linear 180°, the foil reversed at chroma 0.005</td><td>the page itself — <code>.page-wash</code>. See <a href="#wash">The page wash</a></td></tr>
+        <tr><td><code>--wash-stops</code></td><td>the wash's four stops, without an angle</td><td>the same split as the two foils, so the oklab branch restates nothing</td></tr>
+        <tr><td><code>--grain</code></td><td>SVG fractal noise tile</td><td>the second half of the wash's dithering; see <a href="#wash">The page wash</a></td></tr>
       </tbody>
     </table>
   </section>
@@ -618,19 +620,106 @@
       5,800 px. It lets the content come into the light as you scroll, and it is why
       individual sections never need a background colour of their own.
     </p>
+    <h3>It is the foil, reversed, at the amplitude of atmosphere</h3>
     <p>
-      Over that height, 8-bit sRGB cannot resolve a ramp between two colours this close and
-      the wash bands into visible steps. <code>--grain</code> — one tile of static,
-      greyscale fractal noise generated inline in SVG — rides on top of the ramp inside the
-      same background and breaks the step edges up. It sits under the content, never over
-      it, so it cannot touch the text. Use the <code>.page-wash</code> utility and you get
-      both layers.
+      The wash used to be the one gradient in the system with no hue in it at all — two
+      neutral stops, zero chroma, a member of no family. It is now the foil's own ramp run
+      backwards, because the page descends from shadow into light: CF-Grau at the top,
+      Weiss at the bottom, so <strong>Violett → Sky → Glas → Weiss</strong>. The stop
+      positions are <code>--foil-stops</code>' own, subtracted from 100 % — that is what
+      “reversed” means arithmetically, and it is why nothing here is picked by hand. Weiss
+      lands at 100 % by construction, so the bottom of the page is the same
+      <code>#FFFFFF</code> it has always been.
+    </p>
+    <p>
+      <strong>The lightness path is unchanged, exactly and by construction.</strong> Each
+      chromatic stop is the neutral wash's own OKLab <var>L</var> at that position, so the
+      interpolated lightness of the four-stop ramp is identical to the two-stop one it
+      replaces. Only the hue moves. That is this brand's definition of iridescence taken to
+      its limit — hue travel inside a narrow luminance band, with the band held at zero
+      width relative to the ramp that was already there.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Stop</th><th>Position</th><th>L</th><th>C</th><th>h</th><th>Renders</th></tr></thead>
+      <tbody>
+        <tr><td>Violett</td><td>0.00 %</td><td>0.8545</td><td>0.005</td><td>283.86°</td><td><code>#CFCFD2</code></td></tr>
+        <tr><td>Sky</td><td>43.90 %</td><td>0.9184</td><td>0.005</td><td>243.65°</td><td><code>#E1E4E7</code></td></tr>
+        <tr><td>Glas</td><td>82.93 %</td><td>0.9752</td><td>0.005</td><td>179.38°</td><td><code>#F3F8F7</code></td></tr>
+        <tr><td>Weiss</td><td>100.00 %</td><td>1.0000</td><td>0</td><td>—</td><td><code>#FFFFFF</code></td></tr>
+      </tbody>
+    </table>
+    <p>
+      The three hues are <code>--foil-stops</code>' three, to the digit. Hue travel across
+      them is <strong>104.5°</strong>, which is the lit foil's own figure; the band they
+      span is <strong>0.120</strong>, against the foil's 0.090 and the ink foil's 0.115. By
+      the family's own defining metric this is a family member.
+    </p>
+    <p>
+      <strong>Chroma 0.005 is the whole budget</strong>, and the ceiling is set by something
+      already on this surface: no channel may move further from the neutral than the grain
+      does. Worst channel deviation over the whole ramp is <strong>4 of 255</strong>, inside
+      the roughly five levels of grain the wash already carries. Black text measures
+      13.51:1 at the top against 13.48:1 before, and <code>--text-secondary</code> 5.88:1
+      against 5.87:1 — both marginally better, because a stop nudged off the achromatic axis
+      at fixed <var>L</var> loses no luminance.
+    </p>
+
+    <h3>Banding — and why hue is the first half of the fix</h3>
+    <p>
+      Over 5,800 px, 8-bit sRGB cannot resolve a ramp between two colours this close and the
+      wash bands into visible steps. Two layers work on that, and they are not substitutes.
+    </p>
+    <p>
+      The first is the chroma above. <strong>A neutral ramp is quantization-bound:</strong>
+      <code>#CFCFCF</code> to <code>#FFFFFF</code> is 49 greys and there is no fiftieth,
+      because R, G and B are locked together and cross every 8-bit boundary in the same
+      place. That is also why greyscale ramps are the standard diagnostic for banding —
+      with no hue component, nothing masks the step. Put chroma on the ramp and the three
+      channels cross at different places, so it has more rungs to stand on.
+    </p>
+    <p>
+      Measured off rendered pixels in Chromium, 4,000 px tall, oklab interpolation, with
+      Skia's own gradient dither left on — what actually paints, rather than what the
+      arithmetic predicts:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th></th><th>Neutral wash</th><th>Iridescent wash</th></tr></thead>
+      <tbody>
+        <tr><td>distinct colours down the ramp</td><td>51</td><td><strong>130</strong></td></tr>
+        <tr><td>widest flat run</td><td>40 px</td><td><strong>36 px</strong></td></tr>
+        <tr><td>transitions moving all three channels</td><td>99.8 %</td><td><strong>23.6 %</strong></td></tr>
+      </tbody>
+    </table>
+    <p>
+      Two and a half times the levels, and three quarters of the steps are now one or two
+      channels moving instead of three — a partial contour rather than a full one. The
+      neutral ramp's 51 is not a shortcoming of the renderer. It is the ceiling: 49 greys
+      plus dither noise.
+    </p>
+    <p>
+      The second is <code>--grain</code> — one tile of static, greyscale fractal noise
+      generated inline in SVG — which rides on top of the ramp inside the same background and
+      hides the edges that are left. It sits under the content, never over it, so it cannot
+      touch the text. Decorrelation weakens each edge; grain hides what remains. Use the
+      <code>.page-wash</code> utility and you get both layers.
+    </p>
+    <p>
+      Nor is the first trick free to apply anywhere. It costs a hue budget, and the wash
+      could afford one only because it had the foil's own 104.5° of travel going spare.
     </p>
     <div class="docs-demo docs-demo--plain">
       <div class="page-wash" style="height:14rem;background-attachment:scroll;border:1px solid var(--border-default)"></div>
     </div>
     <pre class="docs-code"><span class="com">&lt;!-- on &lt;body&gt; or the outermost wrapper --&gt;</span>
 &lt;<span class="tag">body</span> <span class="attr">class</span>=<span class="val">"page-wash"</span>&gt;</pre>
+    <p>
+      <strong>The three hexes are re-derivable, not hand-tuned</strong> — recompute the ramp
+      and you get them back — and they carry the same trap the <code>#DBFC60</code> waypoint
+      does: they are literals, so they do not follow <code>--cf-grau</code>. Move CF-Grau and
+      they must be recomputed, or the wash quietly stops starting where the page starts. At
+      this chroma the 8-bit grid is coarser than the target, so each hex lands 2.5–4.2° off
+      its hue and within 0.001 of the chroma. That is the grid, not the arithmetic.
+    </p>
   </section>
 
   <section class="docs-section" id="lime-is-light">

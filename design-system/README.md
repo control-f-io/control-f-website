@@ -303,6 +303,18 @@ These were judgement calls, each documented on the relevant page:
   that leg to the sRGB path.** Nothing fails when this happens; the stop is simply gone. Every
   waypoint therefore carries a comment at the stop itself. Re-add it after any rebuild.
   → `foundations/colors.html`
+- **The page wash carries hue; the mockups paint it neutral.** Sampled off both mockup
+  JPGs the wash is a straight CF-Grau-to-white ramp with zero chroma, and it was the only
+  gradient in the system belonging to no family. It now runs `--foil-stops` backwards —
+  Violett, Sky, Glas, Weiss, positions subtracted from 100 % — at OKLab chroma 0.005, with
+  every stop sitting on the neutral ramp's own lightness so the luminance path is unchanged
+  by construction. Worst channel deviation is 4 of 255, under the grain already on the same
+  surface, and both text contrasts come out marginally better. The reason it is worth doing
+  at all is not decoration: a neutral ramp is quantization-bound — `#CFCFCF` to `#FFFFFF` is
+  49 greys and there is no fiftieth, because R, G and B cross every 8-bit boundary in the
+  same place. Sampled off rendered pixels in Chromium over 4,000 px, the wash goes from 51
+  distinct colours to 130, and transitions that move all three channels at once fall from
+  99.8 % to 23.6 %. → `foundations/colors.html`
 - **The plot is derived from the language, not measured off a plate.** The brand manual
   contains a statistics and diagram plate; the 22 plates in `assets/source/manual/` are not
   it. `.cf-plot` is therefore built only from parts that *are* documented — the lattice
