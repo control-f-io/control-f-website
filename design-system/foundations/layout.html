@@ -192,7 +192,7 @@
         <tr><td><code>docs.css</code></td><td><code>@media (max-width: 900px)</code> — collapses the sidebar</td><td>the <code>900px</code> viewport row, same type</td></tr>
         <tr><td><code>foundations/materials.html</code></td><td><code>@media (max-width:780px)</code></td><td>the <code>780px</code> viewport row, <strong>same type</strong></td></tr>
         <tr><td><code>foundations/iconography.html</code></td><td><code>@media (max-width: 48rem)</code> — a <strong>viewport</strong> query</td><td>the <strong>container</strong> <code>48rem</code> row — different type</td></tr>
-        <tr><td><code>foundations/layout.html</code></td><td><code>@media (max-width:640px)</code> — the demo grid's gap</td><td>nothing; 640 is a threshold nowhere else in the system</td></tr>
+        <tr><td><code>foundations/layout.html</code></td><td><code>@media (max-width:640px)</code> — the demo grid's gap</td><td>no other <em>query</em>; but see the crossovers below — 640 is not unused as a number</td></tr>
       </tbody>
     </table>
     <div class="docs-note">
@@ -213,12 +213,38 @@
       would sweep a documentation page's sample grid along with it and have no reason to notice.
       Same for <code>docs.css</code>'s 900.
       <br><br>
-      The <code>640</code> earns its row for the opposite reason: it collides with nothing, and it
-      sits in this very file — a threshold unique in the system, on the page that hosts the
-      register.
+      The <code>640</code> earns its row for a different reason: it sits in this very file, the
+      page that hosts the register. It is <em>not</em> a number found nowhere else — see below.
       <br><br>
       In every case: unrelated queries that happen to share a figure. Do not read one as evidence
       of the other, and do not "reconcile" them.
+    </div>
+    <div class="docs-note">
+      <strong>The register is complete about queries, not about behaviour.</strong> A
+      <code>min()</code> or <code>clamp()</code> against a viewport unit also changes layout at a
+      specific width — its arms swap — and none of those appear above, because none of them is a
+      query. That distinction is worth stating rather than leaving implicit: a register whose
+      argument is completeness has to say which kind it means. The three in shipping CSS:
+    </div>
+    <table class="docs-table">
+      <thead><tr><th>Declaration</th><th>Arms swap at</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-consent__dialog</code> — <code>width: min(38rem, calc(100vw - 2 * var(--space-4)))</code></td><td><strong>640 px</strong> wide (608 + 32)</td></tr>
+        <tr><td><code>.cf-consent__dialog</code> — <code>max-height: min(80vh, 46rem)</code></td><td><strong>920 px</strong> tall (736 ÷ 0.80)</td></tr>
+        <tr><td><code>min-height: min(92vh, 56rem)</code></td><td><strong>974 px</strong> tall (896 ÷ 0.92)</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      Two consequences worth carrying. The <code>640</code> row above says "no other query" rather
+      than "nowhere else in the system", because the consent dialog's width crosses over at exactly
+      640 — the same figure, reached by different machinery. And <strong>"the one height threshold
+      in the system" is true of queries and false of behaviour:</strong> the <code>560px</code>
+      query is the only height <em>query</em>, but layout also changes at 920 and 974 px tall.
+      <br><br>
+      These are deliberately out of the register. A crossover is a continuous function swapping
+      arms, not a rule switching on, and folding them in would make the list longer without making
+      it more useful. The token-level clamps are documented already — the gutter's floor and
+      ceiling under Container, <code>--section-gap</code>'s under Rhythm.
     </div>
     <div class="docs-note">
       <strong><code>60rem</code> is the one threshold nothing derives.</strong> The other three
