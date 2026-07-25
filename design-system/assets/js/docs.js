@@ -16,6 +16,7 @@
       { href: 'foundations/geometry.html',    label: 'Geometry & Lines' },
       { href: 'foundations/iconography.html', label: 'Iconography' },
       { href: 'foundations/materials.html',   label: 'Materials' },
+      { href: 'foundations/illustration.html',label: 'Illustration' },
       { href: 'foundations/logo.html',        label: 'Logo' },
       { href: 'foundations/photography.html', label: 'Photography' },
       { href: 'foundations/motion.html',      label: 'Motion' }
