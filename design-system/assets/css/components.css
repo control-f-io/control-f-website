@@ -126,13 +126,18 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
   border-color: rgba(255, 255, 255, 0.55);
-  /* `background` is deliberately NOT in this list. The background image is
-     derived from --cf-specular, so naming both makes the browser interpolate
-     the resolved gradients over --duration-base *and* the property over
-     --duration-slow. The shorter one lands first and flattens the sweep into
-     a step: measured in Chromium, the whole hover change completed within
-     120 ms and never moved again. Transitioning only the property leaves one
-     driver, and the highlight travels. */
+  /* `background` is not in this list, and never needed to be: a gradient
+     background-image does not interpolate. Given two gradients differing in
+     one number, Chromium jumps straight to the new value on the first frame
+     rather than transitioning between them. Naming `background` here
+     animates nothing and only tells the next reader that it does.
+
+     --cf-specular, registered above, is the one thing that actually moves.
+     Which means a browser that does not support @property gets a switch
+     rather than a travel: an unregistered custom property does not
+     interpolate, and there is no background-image fade underneath it to
+     fall back on. Measured both ways, not assumed. The state change is still
+     communicated, which is the part that matters. */
   transition: color var(--duration-base) var(--ease-standard),
               border-color var(--duration-base) var(--ease-standard),
               --cf-specular var(--duration-slow) var(--ease-standard);
@@ -147,7 +152,8 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
    a 210 % radius, so the bottom of the button sat outside the gradient
    entirely and the middle only ever caught the outskirt: peak measured
    delta over the whole hover was 5 levels of grey, under the threshold at
-   which anything is visible.
+   which anything is visible. The property was interpolating the whole time —
+   the geometry simply gave it nothing to show.
 
    At rest the plate is unlit — 150 % parks the band's near tail past the
    right edge, clear of the lime, which the screen has already spent its one
