@@ -293,6 +293,34 @@ hr {
    rather than four more classes: style="--subdivide-count:4". */
 .subdivide--even { --subdivide-cols: repeat(var(--subdivide-count, 5), minmax(0, 1fr)); }
 
+/* A full-width band inside the subdivision that adopts the parent's tracks.
+   The subdivision is rarely one object: the applied plate draws the ruled
+   grid and, under it, a mono axis whose ticks label the columns. Those are
+   two bands that must agree on the same track set forever, and they cannot
+   be one element because the ruled box's contour stops at the grid.
+
+   Before this existed the axis declared its own repeat(5, …) and the two
+   were wired independently — set --subdivide-count to anything but 5 and
+   the ticks silently stop standing under the columns they name. Now the
+   track set is declared once, on .subdivide, and every band reads it.
+
+   Two declarations on purpose: the second is the real one, and a browser
+   without subgrid drops it and keeps the first. They resolve identically
+   while .subdivide carries no column-gap — which it does not — and the
+   subgrid path is the one that stays correct if it ever does, because a
+   gap belongs to the track set and var(--subdivide-cols) does not carry it.
+
+   A band is a grid ITEM of .subdivide, so --rank does not apply to it and
+   .subdivide__col's fold rule does not reach it. Both are correct: a band
+   is one row of the subdivision, not a column of it. */
+.subdivide__row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: var(--subdivide-cols);
+  grid-template-columns: subgrid;
+  min-width: 0;
+}
+
 /* A column of the subdivision. --rank is the number of rows it carries;
    the manual doubles it from one column to the next: 1, 2, 4, 8, 16. */
 .subdivide__col {
