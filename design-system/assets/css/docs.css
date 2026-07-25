@@ -128,13 +128,91 @@ body.docs {
 .docs-note--warn { background: var(--grey-100); }
 
 /* ---------- live demo frame ---------- */
-/* The frame is a query container, because four components size themselves
-   against one (.cf-statement, .cf-process, .cf-value-row, .cf-article) and a
-   demo with no container ancestor never matches any of their queries. Without
-   this line every one of those pages documented only the stacked fallback,
-   which is not the layout the component ships in. */
+/* The frame is a query container, and it is a NAMED one. Those are two
+   separate fixes that landed in two steps, and they are worth keeping apart —
+   a blame that lands here should not credit this line with both.
+
+   BEING A CONTAINER. Documentation pages are built on .docs-main and never on
+   .container, so nothing in the docs was a container at all, and a component
+   that sizes itself against one could only ever show its fallback. Measured
+   when that landed:
+
+     components/process-card.html   stacked at every width  ->  two columns
+     components/blog-grid.html      at 375 the grid folded but the timeline
+                                    axis stayed — the axis is a SIBLING of
+                                    .subdivide, so unlike the columns it had no
+                                    container to ask. Now both fold together.
+
+   HAVING THE NAME. base.css sizes .col-* with
+   `@container layout (min-width: 56rem)` — the one named query in the system —
+   and a named query matches only an ancestor whose container-name includes
+   `layout`. An unnamed container in between is skipped, not substituted, and a
+   documentation page has no .container to fall back to, so the rule could never
+   fire here at any width.
+
+   Nothing exercises that today: .col-2 … .col-12 have zero consumers in the
+   repository, so the name moves no rendered pixel as things stand. The case
+   below is CONSTRUCTED — a .col-6 pair injected into a framed demo — and what
+   it buys is that the primitive becomes demonstrable at all, which is the
+   precondition for ever documenting it with a live example.
+
+   A container query measures the CONTENT box, so the figure that decides the
+   match is the frame minus 66 px of padding and border. Both are given here,
+   because the border-box number is the one a devtools ruler reports, and
+   comparing THAT to 56rem (896 px) predicts a split at 1280 which does not
+   happen:
+
+     viewport   border-box   content-box   vs 56rem   .col-6
+       1280        912 px        846 px      under    span 12  (unchanged)
+       1440       1072 px       1006 px      over     span 12 -> span 6
+       1920       1120 px       1054 px      over     span 12 -> span 6
+
+   Both lists are snapshots, not closed sets: this reaches ANY container-queried
+   component that ends up inside a demo frame, including through
+   .docs-demo--plain, which resets padding, border and background but not the
+   container — so a --plain demo queries the full 912 at 1280 and a framed one
+   queries 846.
+
+   ONE NAME, TWO IMPLEMENTERS. `layout` is now held by .container on the site
+   and by .docs-demo here. Named lookup takes the NEAREST matching ancestor, so
+   a future `@container layout (…)` written with the page container in mind gets
+   intercepted by the demo frame on any documentation page — and at a different
+   viewport, because the frame is always the narrower of the two. For .col-* that
+   interception is precisely what is wanted. It is a constraint on what is added
+   next, not a defect in this.
+
+   DO NOT TIGHTEN THIS — and note what actually breaks glass, because it is not
+   containment. Measured: `contain: paint`, `content` and `strict` all leave
+   backdrop-filter working. Filter Effects 2 lists the real backdrop-root
+   triggers — filter, opacity < 1, mask, clip-path, backdrop-filter,
+   mix-blend-mode — so the way to flatten every frosted demo on a page is to
+   fade one in with opacity, not to tighten this line.
+
+   Tightening is still wrong, for a different reason: paint containment clips
+   descendants to the padding box (measured: a 200 px child in a 100 px box
+   paints 100), and the navigation demo's glass sheet deliberately reaches
+   --glass-lookahead past its own edge so content arrives already blurred.
+
+   WHAT IT CANNOT FIX. A demo frame is narrower than the page it documents — at
+   1280 a framed demo is 846 px inside its padding against 1139 px of page
+   content. (1139, not 1152: the gutter is 5.5vw a side, so the page's content
+   box is 0.89 of the viewport rather than the viewport less a fixed inset.) So
+   .cf-article, which splits at 60rem, is stacked on components/article.html at
+   1280 while patterns/blog-artikel.html shows two columns; it matches from
+   1440 up.
+
+   Nor does the frame widen monotonically, which is the part that catches
+   people. The sidebar arrives at 901 px and takes 319 px out of the docs column
+   in a single pixel of viewport — 786 px of frame at 900, 467 px at 901, not
+   back to 786 until about 1220. So "make the window wider" is not always sound
+   advice, and a container-queried demo can fold on the WIDE side of that edge:
+   .subdivide does exactly that on components/blog-grid.html, five columns at
+   900, stacked from 901 to 1073, five again at 1074. That is docs chrome rather
+   than the component, and not this declaration's to fix — but any note about
+   demo width has to survive it. Say the constraint on the page it affects; do
+   not widen the frame to hide it. */
 .docs-demo {
-  container-type: inline-size;
+  container: layout / inline-size;
   padding: var(--space-8);
   border: 1px solid var(--border-default);
   background-color: var(--grey-050);
