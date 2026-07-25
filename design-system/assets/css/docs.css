@@ -41,7 +41,10 @@ body.docs {
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
+  /* 0.45 composites to rgb(130,132,133) on the anthracite sidebar — 4.38:1 at
+     11 px, under AA. 0.46 clears it by 0.05; 0.50 clears it with room to spare
+     and is still visibly quieter than the nav links below it. */
+  color: rgba(255, 255, 255, 0.50);
 }
 .docs-nav__group + .docs-nav__group { margin-top: var(--space-6); }
 .docs-nav__title {
@@ -109,10 +112,39 @@ body.docs {
   font-size: var(--text-h4);
   font-weight: var(--weight-semibold);
 }
-.docs-section p { max-width: 72ch; color: var(--text-secondary); }
-.docs-section p + p { margin-top: var(--space-3); }
-.docs-section ul { max-width: 72ch; color: var(--text-secondary); padding-left: 1.1rem; }
-.docs-section li + li { margin-top: var(--space-2); }
+/* These four style this page's own writing — the prose a documentation page is
+   made of. Everything inside .docs-demo is the component instead, and has to be
+   left exactly as it ships, so the demo frame is excluded at the source rather
+   than overridden further down.
+
+   Overriding does not work here, and the difference is the whole reason for the
+   :not(). A blanket reset inside .docs-demo has to pick one value, and there is
+   no single right one: a component that declares nothing (.cf-footer__links)
+   wants the browser default, while one that declares its own (.cf-prose li + li,
+   12 px) wants its value kept. Zeroing serves the first and silently flattens
+   the second. Not applying the rule at all serves both.
+
+   Measured leaks this closes, demo vs the same component on a pattern page:
+     .cf-footer__links   17.6 px indent + 72 ch cap it does not have on the site
+     .cf-prose li + li   8 px instead of its own 12 px
+     .cf-statement__body 72 ch instead of its own 46 ch
+     .cf-value-row__body grey + capped instead of black + uncapped
+
+   And one that is worse than the other four, because nothing was left unset for
+   the docs to fill — the page had already decided and was overruled:
+     .icon-bullets on foundations/iconography.html declares padding: 0 and
+     gap: var(--space-3) at (0,1,0). .docs-section ul is (0,1,1) and won, so the
+     list rendered with a 17.6 px indent it had explicitly zeroed and 20 px
+     between items where the page asked for 12.
+
+   The :not() sits on the element the declaration lands on, which for the two
+   adjacent-sibling rules is the second one. Siblings share a parent, so either
+   position behaves the same here; this is the one that stays correct if the
+   selectors are ever changed. */
+.docs-section p:not(:where(.docs-demo *)) { max-width: 72ch; color: var(--text-secondary); }
+.docs-section p + p:not(:where(.docs-demo *)) { margin-top: var(--space-3); }
+.docs-section ul:not(:where(.docs-demo *)) { max-width: 72ch; color: var(--text-secondary); padding-left: 1.1rem; }
+.docs-section li + li:not(:where(.docs-demo *)) { margin-top: var(--space-2); }
 
 /* A note the implementer must not skip. Contour + surface, no accent bar —
    the brand draws boxes with a 1 px line, not with a coloured stripe. */
@@ -276,7 +308,7 @@ body.docs {
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   letter-spacing: var(--tracking-label);
 }
 .docs-swatch__var { margin-top: var(--space-1); word-break: break-all; }
@@ -320,7 +352,11 @@ body.docs {
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  /* --text-muted (#919191) on --grey-050 is 2.97:1 at 11 px — below AA, and 11 px
+     is not large text. --text-secondary is 8.61:1. This is the same substitution
+     the README already documents for every mono label on the page wash; the
+     ramp has no step between #919191 and #484848 to land on instead. */
+  color: var(--text-secondary);
   border-bottom-color: var(--border-strong);
 }
 .docs-table code {
@@ -369,7 +405,7 @@ body.docs {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 .docs-card__title { margin-top: var(--space-2); font-size: var(--text-h4); font-weight: var(--weight-medium); }
 .docs-card__desc  { margin-top: var(--space-2); font-size: var(--text-md); color: var(--text-secondary); }
@@ -395,7 +431,7 @@ body.docs {
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 .docs-plate figcaption b {
   display: block;
