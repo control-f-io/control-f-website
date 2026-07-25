@@ -235,6 +235,20 @@ These were judgement calls, each documented on the relevant page:
   axis, benefit labels, stat labels, field hints — therefore uses `--text-secondary`
   (5.9:1 on CF-Grau), not `--text-muted`, even though the mockups paint them lighter.
   Decorative counters are also `aria-hidden`. → `foundations/colors.html`
+- **Lime is light, not ink: no lime letterforms on a dark surface.** Not a headline, not a
+  label, not a nav marker, not a syntax colour. Type on black is white at whatever ink
+  strength the hierarchy needs, or the foil — which exists precisely so that colour can
+  enter letterforms without spending the screen's one lime moment. Lime keeps every job it
+  had that is not type: the lit icon contour, the plot cap, the focus ring, the banner
+  edge. The rule is not a contrast failure — lime on black measures **18.5:1** and clears
+  AA at any size. It is that `#E1FF00` sits at 87.5 % of white's luminance while carrying
+  the palette's highest chroma, and near-white luminance at maximum chroma blooms on a
+  dark ground; the same reason dark-theme guidance desaturates accents rather than
+  carrying them over from the light theme. Desaturating lime is the one move not available
+  here, because a dark-mode-safe lime would be neither the brand's light nor the brand's
+  colour. The documentation sidebar was the loudest offender and now runs on three steps
+  of one white — title, link, current-page plate — the same marker the site nav already
+  used. → `foundations/colors.html`, `foundations/typography.html`
 - **Every dark surface is Schwarz; the mockups' anthracite `#1B2022` is dropped.** The
   footer, logo plate, nav bar and consent banner are painted a near-black anthracite in the
   mockups, and that used to be an eighth token — `--cf-anthrazit` — on the grounds that it
