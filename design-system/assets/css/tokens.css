@@ -789,10 +789,24 @@
    anyway, so that adding a token to the inverse block cannot silently punch
    a hole in a fallback again. */
 
-/* No backdrop-filter, no glass. Everything that would have been frosted
-   becomes an opaque plate instead — the veil layer has to carry the
-   separation on its own, so it stops being a veil. Redefining the tokens
-   here means no component needs its own fallback. */
+/* No backdrop-filter, no glass. Redefining the tokens here means no component
+   needs its own fallback.
+
+   The two tints do NOT land in the same place, and this comment used to say
+   they did — "everything that would have been frosted becomes an opaque plate
+   instead". Bearing glass does: it holds text, its 4.5:1 floor was the blur's
+   to keep, and with no blur the only way to keep it is an opaque plate. Veil
+   glass does not, and stays at white 72 %. It carries nothing but opaque
+   pills, so the page showing through it costs no contrast, and a fully opaque
+   band would put a solid grey bar across the top of every page over the one
+   thing the bar exists to sit lightly on.
+
+   That is deliberately NOT what the reduced-transparency block below does
+   with the same token, and the difference is the reason, not the mechanism.
+   Here the browser cannot blur; keeping some translucency is ours to choose.
+   There the reader has asked for less transparency, and a request is answered
+   in full or not at all. Same token, two floors, because the two blocks are
+   answering different questions. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   :root {
     --glass-blur:          none;
