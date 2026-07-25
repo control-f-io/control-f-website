@@ -128,20 +128,18 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
      nothing holding the contrast floor. That is the load-bearing reason, it
      is spec behaviour, and it does not expire.
 
-     A var(--cf-specular, 150%) fallback would resolve the value too, and in
-     a correct browser should be indistinguishable — a registered property
-     with an initial-value is never guaranteed-invalid, so its fallback is
-     never consulted. Prefer the plain declaration anyway: in Chromium 141
-     the fallback form breaks repaint invalidation and the band stops
-     travelling.
+     A var(--cf-specular, 150%) fallback would resolve the value too, and is
+     not wrong — a registered property with an initial-value is never
+     guaranteed-invalid, so its fallback is never consulted and the two forms
+     are equivalent. Use the plain declaration because it says plainly what
+     the fallback only implies, and because the guarantee above is then
+     visible at the declaration rather than buried in a var() argument.
 
-     That last part is a browser bug with an expiry date, not a rule. Its
-     measurements, the two ways of scripting the check that return false
-     negatives, and the instruction to cut it once it stops reproducing are
-     in foundations/materials.html — deliberately one copy, so there is one
-     thing to revise rather than two that have to expire together. The spec
-     argument above is the permanent half and stays here, next to the line it
-     protects.
+     (A Chromium 141 repaint quirk was also cited here and has been demoted:
+     it reproduces only under pointer hover, not under focus, so a later run
+     checking it the way this system recommends would find nothing and delete
+     the surrounding argument with it. The condition is recorded once in
+     foundations/materials.html. Nothing in this rule depends on it.)
 
      Keep this value equal to the initial-value in the @property block. */
   --cf-specular: 150%;
@@ -270,7 +268,16 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
    the one-lime-moment rule rather than merely not breaking it.
 
    Light only ever adds, so the darkest point on the button stays
-   --surface-glass and the contrast floor below is untouched. */
+   --surface-glass and the contrast floor below is untouched.
+
+   The band is pure white end to end, which makes it the one achromatic
+   gradient in the light family — --glass-edge travels Weiss to Glas to Sky,
+   the foil goes further, and the brand's north star is hue travel inside a
+   narrow luminance band. This is a deliberate exception, not an oversight: a
+   specular is physically achromatic, because it is the source reflected
+   rather than the surface coloured. Giving it a Glas tail would put it in
+   the family and make it a sheen instead. If that trade is ever wanted it is
+   a gradients-lane decision, not a tidy-up. */
 .cf-btn--glass:hover,
 .cf-btn--glass:focus-visible { --cf-specular: 40%; }
 
