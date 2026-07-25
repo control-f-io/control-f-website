@@ -404,10 +404,40 @@ hr {
 
 /* --------------------------------------------------------------------------
    FOIL TYPE
-   The one place a gradient is allowed inside letterforms. It is the cool half
-   of the spectrum — no lime — so a screen that has already spent its lime
-   moment can still carry it, and every sample of it clears 9.3:1 on
-   anthracite. Reserve it for one display headline per page.
+   The one place a gradient is allowed inside letterforms. It carries no lime,
+   so a screen that has already spent its lime moment can still take it.
+
+   Two variants, because a foil has two sides and the site has two surfaces:
+
+     .text-foil        light-on-dark. --gradient-foil, the lit half. Worst
+                       sample 9.3:1 on anthracite. Inverse surfaces only —
+                       on CF-Grau its stops land between 1.1:1 and 1.5:1.
+     .text-foil--ink   dark-on-light. --gradient-foil-ink, the shadow half.
+                       Worst sample 5.24:1 on CF-Grau, 8.16:1 on white.
+                       Light surfaces only.
+
+   ONE FOIL MOMENT PER SCREEN, which is the brand's own unit for the lime
+   rule and the right unit here too — the constraint is what the eye takes in
+   at once, not what an URL contains. A page whose light-surface headline and
+   whose footer are never on screen together may carry one of each; that is
+   the case on both designed pages. Two on one screen is one too many.
+
+   THE CLIP BOX IS SIZED TO THE TEXT, and this is load-bearing rather than
+   tidy. background-clip:text clips a background painted across the whole
+   element box, and a display headline in a block is as wide as its column
+   however short the words are. Measured on the footer title before this
+   line existed: at a 1920 viewport the box was 1000 px and the inked text
+   378 px, so the letterforms sampled the first 36.5 % of a four-stop ramp.
+   Weiss and Glas rendered; Sky arrived barely; VIOLETT NEVER APPEARED ON
+   THE PAGE AT ALL, at any viewport above about 400 px. The comment in
+   tokens.css claiming the shallow rake "spreads it across the whole line"
+   was describing the intent, not the paint.
+
+   fit-content and not max-content: it resolves to min(max-content,
+   available), so a short headline shrink-wraps and a long one still wraps
+   and fills its column exactly as before. It lives inside @supports because
+   outside it nothing is clipped and shrinking the box would be a layout
+   change for no reason.
 
    The unenhanced state is the fallback: the element keeps its inherited
    colour and nothing is clipped. Only inside @supports does the text go
@@ -415,12 +445,21 @@ hr {
    Windows high-contrast all get solid, legible type.
    -------------------------------------------------------------------------- */
 .text-foil {
+  /* Declared here and not only in the @supports block below, so the modifier
+     can swap the image without either rule having to know about the other's
+     nesting or source order. An unresolvable var() in background-image is
+     guaranteed-invalid and would take the whole declaration with it, so the
+     rest value belongs on the class rather than in a var() fallback — the
+     same reasoning as --cf-specular on .cf-btn--glass. */
+  --foil-image: var(--gradient-foil);
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
+.text-foil--ink { --foil-image: var(--gradient-foil-ink); }
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .text-foil {
-    background-image: var(--gradient-foil);
+    width: fit-content;
+    background-image: var(--foil-image);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
