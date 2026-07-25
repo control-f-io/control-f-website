@@ -202,7 +202,9 @@ These were judgement calls, each documented on the relevant page:
   (`26-farben-anwendung`): a black plate whose *mark* is filled with the light ramp while
   the plate stays black. A black button is that object at UI scale. It takes the foil and
   not the lime ramp because lime is a moment — one element per screen — and there can be
-  several black buttons on a page. Contrast floor 9.3:1 at rest, 11.9:1 on hover.
+  several black buttons on a page. Contrast floor 11.9:1 at rest, 9.3:1 on hover — the
+  plate is black, so hover lifts to `grey-800` rather than deepening; there is nothing
+  under black to go to.
   This also widens the foil's remit: `.text-foil` stays one headline per page, but the
   button's label is under no budget, because there the foil is the component's colour
   rather than an emphasis. → `components/buttons.html`, `foundations/colors.html`
@@ -218,9 +220,15 @@ These were judgement calls, each documented on the relevant page:
   axis, benefit labels, stat labels, field hints — therefore uses `--text-secondary`
   (5.9:1 on CF-Grau), not `--text-muted`, even though the mockups paint them lighter.
   Decorative counters are also `aria-hidden`. → `foundations/colors.html`
-- **Anthracite `#1B2022` exists as a token but is not a core colour.** It is the measured
-  footer and logo-plate fill from the mockups and cannot be mixed from the seven, so it is
-  declared once rather than hard-coded per component. → `foundations/colors.html`
+- **Every dark surface is Schwarz; the mockups' anthracite `#1B2022` is dropped.** The
+  footer, logo plate, nav bar and consent banner are painted a near-black anthracite in the
+  mockups, and that used to be an eighth token — `--cf-anthrazit` — on the grounds that it
+  could not be mixed from the seven. It differs from black by 1.2:1, which is not a colour
+  so much as an inconsistency waiting to be noticed: the solid button had anthracite at rest
+  and black on hover, a state change of 1.2:1. `--surface-inverse` is now `--cf-schwarz`,
+  the palette is exactly the seven the manual names, and a dark surface that needs a second
+  value takes it from the neutral ramp like every other surface does.
+  → `foundations/colors.html`
 - **The process illustrations correct four things in the Figma export:** the lime hex, three
   unsanctioned dash patterns, a second lime element on card 02, and a tangent that was
   0.4° off the brand angle. Figma's inner-shadow bevel on card 03 is dropped — it is not
@@ -236,7 +244,7 @@ These were judgement calls, each documented on the relevant page:
   solid black.** `--gradient-foil` is light-on-dark and cannot be otherwise — every stop is
   above OKLab L 0.82, so on the page's own CF-Grau it lands at 1.1–1.5:1. That left both
   designed pages, which are a CF-Grau-to-white wash almost end to end, with no gradient type
-  outside the anthracite footer. `--gradient-foil-ink` is the same three hues moved into the
+  outside the black footer. `--gradient-foil-ink` is the same three hues moved into the
   800 band: 102.2° of hue travel across 0.115 of lightness, against the lit half's 104.5°
   across 0.090. Worst sample on the shipped header is 5.45:1. As above, the fallback is the
   designer's own value — the title inherits `--text-primary`.
