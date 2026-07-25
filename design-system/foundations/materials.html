@@ -203,11 +203,32 @@
       single number, the browser jumps to the new one on the first frame. So a highlight that
       is drawn as a gradient can only be moved by animating a registered custom property that
       the gradient reads — which is what <code>@property</code> is for, and why naming
-      <code>background</code> in the transition would animate nothing. The corollary is worth
-      knowing before reaching for this technique again: where <code>@property</code> is not
-      supported the highlight switches instead of travelling, because an unregistered custom
-      property does not interpolate and there is no paint-level fade underneath it to fall
-      back on. The state change still reads; only the travel is lost.
+      <code>background</code> in the transition would animate nothing.
+    </p>
+    <p>
+      <strong>Always declare that property's rest value on the component, as a plain
+      declaration.</strong> This is the part worth carrying to the next component, because the
+      failure mode is not the one you would guess and neither is the fix. Leaving the rest
+      value to <code>@property</code>'s <code>initial-value</code> alone means that in a
+      browser without <code>@property</code> the variable is unset — and an unresolvable
+      <code>var()</code> is <em>guaranteed-invalid</em>, which makes the entire
+      <code>background</code> shorthand invalid at computed-value time. Every layer goes, not
+      just the highlight: measured with the registration stripped, the button computed to
+      <code>background-image: none</code> over a transparent <code>background-color</code>.
+      <code>backdrop-filter</code> is a separate declaration and survives, so what was left was
+      a blur with no plate — on the hero, a pure-black label directly over moving video with
+      no bearing tint holding the contrast floor. A missing highlight would be cosmetic; a
+      missing declaration is not.
+    </p>
+    <p>
+      The obvious repair, a <code>var(--cf-specular, 150%)</code> fallback, fixes that and
+      costs the whole effect: Chromium stops interpolating the registered property and falls
+      back to a discrete flip at half the duration, so the band steps instead of travelling.
+      Measured both ways. A plain declaration is the one option that gets both — registered it
+      is simply the from-value and interpolation is unaffected; unregistered it keeps the
+      <code>var()</code> resolvable, so the plate survives and the highlight switches instead
+      of travelling. The state change still reads and the contrast floor is untouched; only
+      the travel is lost.
     </p>
 
     <h3>Cost</h3>

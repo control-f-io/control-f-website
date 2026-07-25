@@ -113,6 +113,31 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 .cf-btn--glass {
   position: relative;
   color: var(--accent-ink);
+  /* The rest position, declared here and not left to the initial-value in the
+     @property block. It has to be a real declaration, and it must not be a
+     var() fallback either — both alternatives fail, in opposite directions:
+
+     Bare var() with no declaration. A browser that does not support @property
+     leaves --cf-specular unset, and an unresolvable var() is *guaranteed
+     invalid*, which makes the whole `background` shorthand invalid at
+     computed-value time. Not only this layer — the linear-gradient and
+     --surface-glass under it go with it, and the button computes to
+     background-image: none over a transparent background-color.
+     backdrop-filter is a separate declaration and survives, so what is left
+     is a blur with no plate and a pure-black label (--accent-ink) directly
+     over the hero video, with nothing holding the contrast floor.
+
+     var(--cf-specular, 150%). Fixes that, and costs the whole effect:
+     Chromium stops interpolating the registered property and falls back to a
+     discrete flip at half the duration. Measured — the band stops travelling
+     and steps.
+
+     A plain declaration gets both. Registered, it is simply the from-value
+     and the property interpolates as normal; unregistered, it keeps the
+     var() resolvable so the plate survives and the highlight switches
+     instead of travelling, which is the documented behaviour. Keep it equal
+     to the initial-value above. */
+  --cf-specular: 150%;
   background:
     radial-gradient(55% 300% at var(--cf-specular) 50%,
                     rgba(255, 255, 255, 0.42) 0%,
@@ -137,7 +162,9 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
      rather than a travel: an unregistered custom property does not
      interpolate, and there is no background-image fade underneath it to
      fall back on. Measured both ways, not assumed. The state change is still
-     communicated, which is the part that matters. */
+     communicated, which is the part that matters — but only because the
+     var() above carries a fallback. Without it that browser gets no plate
+     at all rather than a switch; see the note on the gradient. */
   transition: color var(--duration-base) var(--ease-standard),
               border-color var(--duration-base) var(--ease-standard),
               --cf-specular var(--duration-slow) var(--ease-standard);
