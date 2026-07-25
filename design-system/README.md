@@ -15,6 +15,21 @@ python3 -m http.server 8000
 Then open <http://localhost:8000/design-system/>. It also works by opening
 `index.html` directly from disk.
 
+## Check it
+
+```bash
+python3 scripts/check-spacing-scale.py         # from the repo root
+python3 scripts/check-spacing-scale.py --fix   # rewrite the table in foundations/layout.html
+```
+
+The one check the system enforces rather than documents, run by CI on every push and
+pull request. It holds the space scale to two rules: `foundations/layout.html`'s table of
+who uses each rung must match the shipping CSS, and spacing in the shipping CSS must be
+written as a token rather than as a length. Stdlib only — it does not give the system a
+build step.
+
+The table in that page is **generated**. Run `--fix` rather than editing a count by hand.
+
 ## Layout
 
 ```
