@@ -1182,7 +1182,19 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   align-items: center;
   justify-content: space-between;
   gap: var(--space-6);
-  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-20);
+  /* 12 px block, not 16. The row then measures 48 px — 12 + 12 + the 23.2 px
+     line box + the 1 px divider — which is what the mockup draws (six FAQ rows
+     at exactly 48 px, measured off landing-page.jpg) and what this component's
+     own Anatomy table has said all along. At 16 px it shipped 56.19 px: half a
+     rung off the 8-point grid every other fixed measure in the system lands on.
+
+     Right padding is 0 on purpose. The arrow is a mark on an axis, not text:
+     the mockup lands its right edge on the same x as the end of the row's
+     hairline, on every row. 16 px of padding held it 17 px short of that axis.
+     .cf-accordion__content keeps its right padding — that is prose, and prose
+     stopping at the container edge is a different question from a glyph
+     aligning to it. */
+  padding: var(--space-3) 0 var(--space-3) var(--space-20);
   list-style: none;
   cursor: pointer;
   font-size: var(--text-lg);
@@ -1939,8 +1951,16 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 .cf-team-strip__item {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4);
+  /* 32 px of padding and a 24 px gap, both read off the mockup and both
+     confirmed twice over. The card measures 120 px tall there — 32 + the
+     56 px avatar + 32 + the 1 px rule — and the portrait's left edge sits
+     32 px in, which is the same number arrived at from the other direction.
+     The name then starts at 32 + 56 + 24 = 112 px, which is where the mockup
+     puts it. At 16 px and 16 px the card came out 90 px tall: the avatar with
+     the light shaved off either side of it, and the one fixed measure in this
+     strip sitting off the 8-point grid. */
+  gap: var(--space-6);
+  padding: var(--space-8);
   border-right: var(--stroke-1) solid var(--border-strong);
   scroll-snap-align: start;
 }
@@ -2021,6 +2041,19 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
    Icon cell + copy cell, hairline ruled. The Über uns "wer wir sind" block.
    -------------------------------------------------------------------------- */
 .cf-value-table {
+  /* The icon cell is a SQUARE, and that is what sets the row height. In the
+     mockup the icon column is 240 px wide and all three rows are 240 px tall
+     to the pixel, though the three blocks of copy are nothing like equal —
+     so the cell is a fixed measure the copy grows past, not a box that
+     shrink-wraps it. Shipped content-height it gave 214 / 169 / 174 px: three
+     different heights, none of them on the 8-point grid, and a ruled table
+     whose rows disagree about how tall a row is.
+
+     One custom property because the width and the height are the same
+     decision. Split into two literals they drift, and the cell stops being
+     square the first time either one is touched. */
+  --value-figure: 15rem;   /* 240 — the icon cell, both ways */
+
   /* The component owns its own list reset, like .cf-nav__list and
      .cf-article__toc do. base.css zeroes ul[role="list"], but relying on that
      would make an ARIA attribute load-bearing for layout: strip the role a
@@ -2053,8 +2086,12 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 }
 .cf-value-row__body > * + * { margin-top: var(--space-4); }
 @container (min-width: 48rem) {
-  .cf-value-row { grid-template-columns: 15rem minmax(0, 1fr); }
+  .cf-value-row { grid-template-columns: var(--value-figure) minmax(0, 1fr); }
   .cf-value-row__figure {
+    /* Square, so the row is at least as tall as the icon column is wide.
+       Only inside the container query: below 48rem the figure is a full-width
+       band above the copy, not a column, and 240 px of it would be a wall. */
+    min-height: var(--value-figure);
     padding: var(--space-8);
     border-bottom: 0;
     border-right: var(--stroke-1) solid var(--border-strong);
