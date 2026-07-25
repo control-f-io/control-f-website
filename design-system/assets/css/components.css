@@ -1014,10 +1014,16 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   white-space: nowrap;
 }
 
-.cf-blog-axis {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
+/* The axis carries no tracks of its own — it is a .subdivide__row and adopts
+   the grid's. See base.css for why that is structural rather than a tidy-up:
+   a repeat(5, …) here was a second, independent declaration of the same track
+   set, and blog-artikel.html already runs the grid at three.
+
+   No compensation for the grid's 1 px left contour, deliberately. A subgrid
+   subtracts its own border from its FIRST track only; every line after that
+   still falls on the parent's. So ticks 2..n stand exactly on the rules they
+   name, and tick 1 stands on the grid's left edge rather than 1 px inside it —
+   which is the plate: the label sits against the rule, not against the cell. */
 .cf-blog-axis__tick {
   padding-top: var(--space-2);
   font-family: var(--font-mono);
@@ -1025,9 +1031,19 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   letter-spacing: var(--tracking-label);
   color: var(--text-secondary);
   writing-mode: vertical-rl;
+  /* A tick labels the column it starts, so it stands on that column's leading
+     rule — which is where the application plate draws every one of them.
+     Without this it stands on the TRAILING rule, and reads as labelling the
+     column to its right: "Aktuell" ends up over the 2026 boundary. The cause
+     is vertical-rl, not the grid. Block direction is right-to-left there, so a
+     stretched tick starts its text at the right edge of its own box, and a grid
+     item stretches by default. justify-self: start shrinks the box onto the
+     leading edge; the text still starts at that box's right edge, which is now
+     one glyph-height inside the column instead of a whole column away. */
+  justify-self: start;
 }
-/* The grid folds itself (see .subdivide in base.css); the axis is a separate
-   element, so it follows at the same threshold measured on the same width. */
+/* The grid folds itself (see .subdivide in base.css); the axis is one of its
+   rows, so it folds on the same element's width by construction. */
 @container (max-width: 44rem) {
   .cf-blog-axis { display: none; }
 }

@@ -645,6 +645,7 @@ print(counts)
         <tr><td><code>.subdivide--3</code>, <code>--5</code>, <code>--6</code></td><td>the same series at other depths</td></tr>
         <tr><td><code>.subdivide--even</code></td><td>equal columns — the applied form; count via <code>--subdivide-count</code></td></tr>
         <tr><td><code>.subdivide__col</code></td><td>one column; <code>--rank</code> sets how many rows it carries</td></tr>
+        <tr><td><code>.subdivide__row</code></td><td>a full-width band that adopts the parent's tracks — for a second object that has to line up with the columns</td></tr>
       </tbody>
     </table>
     <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"subdivide subdivide--even"</span>&gt;
@@ -660,6 +661,37 @@ print(counts)
       in 900 px of page and unreadable in 900 px of viewport with a 272 px sidebar in front
       of it.
     </p>
+    <div class="docs-note">
+      <strong>A subdivision is rarely one object.</strong> The application plate draws the ruled
+      grid and, under it, a mono axis whose ticks name the columns. Those cannot be one element —
+      the ruled box's contour stops at the grid — but they have to agree on the same track set
+      forever. <code>.subdivide__row</code> is that agreement: a band spanning
+      <code>1 / -1</code> whose own columns are <code>subgrid</code>, so it reads the parent's
+      tracks rather than restating them.
+      <br><br>
+      Before this the axis carried its own <code>repeat(5, minmax(0, 1fr))</code> as a sibling of
+      the grid. That held only because both happened to say five, and
+      <code>patterns/blog-artikel.html</code> already runs the same grid at
+      <code>--subdivide-count:3</code> — an axis there would have put five ticks under three
+      columns, silently. Measured after the change: ticks 2..n sit within
+      <strong>0.00 px</strong> of the column edges they name at 900 / 1024 / 1280 / 1440 / 1920,
+      against roughly 1 px of drift before.
+      <br><br>
+      Tick 1 sits <strong>1 px</strong> left of column 1's content, and that is correct rather
+      than tolerated: a subgrid subtracts its own border from its <em>first</em> track only, so
+      the grid's 1 px left contour narrows its own first column and every line after it still
+      falls on the parent's. The tick therefore stands on the rule, not 1 px inside the cell,
+      which is how the plate draws it.
+      <br><br>
+      <strong>Two <code>grid-template-columns</code> declarations, on purpose.</strong> The
+      second is the real one; a browser without <code>subgrid</code> drops it and keeps
+      <code>var(--subdivide-cols)</code>, which inherits from <code>.subdivide</code> and
+      resolves identically while the grid carries no column-gap — which it does not.
+      <code>subgrid</code> is the one that stays correct if a gap is ever added, because a gap
+      belongs to the track set and the custom property does not carry it. Subgrid reached
+      Baseline Widely Available in March 2026, so the fallback is for old installs rather than
+      for any shipping browser.
+    </div>
     <div class="docs-note">
       <strong>Which grid when.</strong> The 12-column grid orders <em>content</em> — text,
       forms, cards of equal rank. The subdivision grid orders <em>quantity</em> — article
