@@ -807,14 +807,79 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 /* The open menu already used --radius-sm while the closed bar was a pill, so
    the bar changed shape on the way to the small screen. One corner now. */
 @media (max-width: 780px) {
+  /* THE ONE PANEL IN THE SYSTEM THAT OPENS AND CLOSES, and until now the only
+     state change on the site that simply appeared: measured at 375 px, the
+     frame 60 ms after the click and the frame 560 ms after it were
+     byte-identical.
+
+     It is drawn out from under the bar rather than switched on — a clip edge
+     travelling down the panel, which is the same gesture --sheen-panel and
+     --glass-rim-light make, at the scale of a whole surface instead of one
+     pixel. Downward and from the bar's own bottom edge, because that is where
+     the panel comes from: it is the link bar unfolding, not a sheet arriving
+     from somewhere else.
+
+     A WIPE AND NOT A FADE, and that is a contrast decision rather than a taste
+     one. This panel is opaque black over the hero video, which is the only
+     backdrop on the site we do not control. Fading it in would put its labels
+     over a partly transparent plate for the length of the transition, and the
+     floor would then depend on which frame of the video was playing. Clipped,
+     the plate is fully opaque in every frame of the motion and the labels hold
+     16:1 from the first one — the same principle the glass button states as
+     "light only adds", applied to a reveal: the guarantee never depends on how
+     far the wipe has travelled.
+
+     --duration-slow, matching .cf-accordion__item::details-content. Both are a
+     panel opening, and foundations/motion.html already settles what that costs:
+     a reveal is content arriving, not the control answering a click. Ease is
+     --ease-standard for the same reason, and NOT --ease-in-out, whose entry in
+     that page's curve table ("states that toggle back and forth") describes
+     this panel almost exactly. It stays unused. Two panel reveals in one system
+     should not move on two different curves, and the accordion got there first.
+
+     Support is one lockstep pair — @starting-style and allow-discrete shipped
+     together — so the whole thing degrades as one. Without them the transition
+     shorthand is dropped at parse time, the open state's clip-path still
+     applies, and the panel snaps exactly as it does today. The un-enhanced
+     state is the settled one. */
   .cf-nav__list {
     display: none;
     position: absolute;
     inset: 100% var(--gutter) auto var(--gutter);
     flex-direction: column;
     align-items: stretch;
+    /* Closed is the panel wiped away upward, back under the bar.
+
+       THE THREE NEGATIVE SIDES ARE LOAD-BEARING AND THE OBVIOUS `inset(0)`
+       IS A BUG. A clip-path clips everything the element paints, and the
+       focus ring is painted outside the border box: measured at 375 px, the
+       first link's ring reaches 3 px above and 3 px left of the panel's own
+       box, so a clip sitting exactly on that box cuts the ring on the first
+       and last links and on both edges of every one of them. 4 px of slop on
+       every side that is not the travelling edge — 2 px of outline plus the
+       2 px offset base.css sets — puts the whole ring inside the region while
+       leaving the wipe visually unchanged.
+
+       Those two numbers live in base.css and this one does not read them, so
+       a heavier focus ring has to be answered here. */
+    clip-path: inset(-4px -4px 100% -4px);
+    transition: clip-path var(--duration-slow) var(--ease-standard),
+                display   var(--duration-slow) var(--ease-standard) allow-discrete;
   }
-  .cf-nav__list[data-open="true"] { display: flex; }
+  .cf-nav__list[data-open="true"] {
+    display: flex;
+    /* An inset and not `none`: `none` is not an interpolable clip-path, so the
+       wipe would have nothing to travel to. At rest every side is outside the
+       panel, so an open panel is clipped in no direction at all. */
+    clip-path: inset(-4px);
+  }
+  /* AFTER the rule it starts, never before. @starting-style adds no
+     specificity of its own, so an earlier placement is overwritten by the open
+     state and the entry wipe silently does not happen. */
+  @starting-style {
+    .cf-nav__list[data-open="true"] { clip-path: inset(-4px -4px 100% -4px); }
+  }
+
   .cf-nav__toggle {
     display: inline-flex;
     align-items: center;
@@ -828,6 +893,29 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-label);
     text-transform: uppercase;
+    transition: border-color var(--duration-fast) var(--ease-standard);
+  }
+  /* The control had no open state at all: aria-expanded flipped and the plate
+     was identical either way, so the visual state and the announced one had
+     drifted apart on the primary control of the whole mobile page.
+
+     THE CONTOUR AND NOT THE FILL, which is the system's first rule and here it
+     is also the only one that reads. The obvious move is the marker the link
+     bar uses for the current page — white 0.14 over black — but that works
+     there because it is a small plate inside a larger black field with unlit
+     siblings beside it to compare against. The toggle is itself the plate and
+     has nothing to be compared with, and white 0.14 over black composites to
+     rgb(36,36,36): 1.3:1 against the plate it is supposed to distinguish
+     itself from, which is the same near-invisible step the system already
+     threw out when it dropped anthracite.
+
+     So the contour lifts to --grey-000 instead. That is not a new value: it is
+     already this component's "on" — .cf-nav__link:hover and the current-page
+     link both take their ink to exactly it. One lit value in one component,
+     now on a contour as well as on a label. --duration-fast matches
+     .cf-nav__link too; the bar should not answer at two speeds. */
+  .cf-nav__toggle[aria-expanded="true"] {
+    border-color: var(--grey-000);
   }
 }
 

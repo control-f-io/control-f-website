@@ -72,8 +72,32 @@
         <tr><td>Current page</td><td><code>aria-current="page"</code> → white link on a white 14 % plate</td></tr>
         <tr><td>Sticky</td><td>stays at the top on scroll; over the first 80 px the edge light resolves and the bar becomes a separate plane</td></tr>
         <tr><td>Below 780 px</td><td>links fold under the bar, the toggle button appears — both opaque</td></tr>
+        <tr><td>Menu open</td><td>the panel is drawn out from under the bar by a clip edge travelling down it, 480 ms; the toggle's contour lifts to white, 120 ms</td></tr>
       </tbody>
     </table>
+    <div class="docs-note">
+      <strong>The menu is the one panel in the system that opens and closes, and it is a
+      wipe rather than a fade.</strong> That is a contrast decision, not a taste one: the
+      panel is an opaque plate over the hero video, the only backdrop on the site nobody
+      controls. Fading it in would put its labels over a partly transparent plate for the
+      length of the transition, and the floor would then depend on which frame happened to
+      be playing. Clipped, the plate is fully opaque in every frame of the motion and the
+      labels hold 16:1 from the first one — the glass button's <em>light only adds</em>,
+      applied to a reveal. 480 ms and <code>--ease-standard</code>, the same as the
+      accordion: both are a panel opening, and two panel reveals in one system should not
+      move on two different curves.
+      → <a href="../foundations/motion.html#durations">Motion</a>
+    </div>
+    <div class="docs-note">
+      <strong>The clip is inset <em>past</em> the panel on its three still sides, and the
+      obvious <code>inset(0)</code> is a bug.</strong> A clip-path clips everything the
+      element paints, and the focus ring is painted outside the border box. Measured at
+      375 px, the first link's ring reaches 3 px above and 3 px left of the panel's own box,
+      so a clip sitting exactly on that box removes it — 330 lit pixels on the ring's top
+      stroke against none. 4 px of slop on every side but the travelling edge (2 px of
+      outline plus the 2 px offset) keeps the whole ring inside the region and leaves the
+      wipe visually unchanged.
+    </div>
     <div class="docs-note">
       <strong>The bar is a rectangle, not a capsule.</strong> The nav plate is
       <code>417 × 41</code> at <code>rx="2"</code> in <code>landing-page-full.svg</code>,
@@ -111,7 +135,8 @@
     <ul>
       <li>The bar lives in a <code>&lt;nav&gt;</code>; with more than one navigation, each gets an <code>aria-label</code>.</li>
       <li>The current page is marked with <code>aria-current="page"</code>, not by colour alone.</li>
-      <li>The toggle carries <code>aria-controls</code> and <code>aria-expanded</code> and updates both.</li>
+      <li>The toggle carries <code>aria-controls</code> and <code>aria-expanded</code> and updates both — and now <em>looks</em> open too. The attribute flipped while the plate stayed identical, so the announced state and the visible one had drifted apart on the primary control of the whole mobile page. <code>[aria-expanded="true"]</code> takes the contour to white, which is already this component's "on": the hovered link and the current-page link both go to exactly that value.</li>
+      <li><strong>Not a fill.</strong> The link bar's current-page marker — white 14 % over black — reads there because it is a small plate inside a larger black field with unlit siblings to compare against. The toggle is itself the plate and has nothing beside it, and white 14 % over black composites to <code>rgb(36,36,36)</code>: 1.3:1 against what it is meant to distinguish itself from, the same near-invisible step the system threw out when it dropped anthracite. Contour before fill settles it.</li>
       <li>Every page starts with a <code>.skip-link</code> to <code>#inhalt</code>.</li>
       <li>Mono uppercase is read normally by screen readers — the casing happens in CSS, not in the markup.</li>
     </ul>
