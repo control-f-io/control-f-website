@@ -136,10 +136,11 @@ illustration renders in its authored, finished state, the same shape as the fix 
 The site sits on CF-Grau, not on white — a data space, not a sheet of paper, with a
 slow vertical wash from `#CFCFCF` to white across the full page height. Everything is
 drawn with 1 px contours rather than filled, and anything spatial is constructed in
-2:1 isometry (26.57°). Corners are square; the only exceptions are the logo pill, the
-nav pill and round avatars. Lime is light, not a surface: one element per screen.
-Publica Sans sets display headlines, Geist sets everything readable, Geist Mono sets
-labels and every number.
+2:1 isometry (26.57°). Structure is square and objects — controls, plates, photos —
+carry a 2 px corner; nothing is a pill, and avatars are the one circle. Lime is light,
+not a surface: one element per screen, which is why the black button's label is filled
+with the foil rather than the lime ramp. Publica Sans sets display headlines, Geist sets
+everything readable, Geist Mono sets labels and every number.
 
 ## Vertical rhythm
 
@@ -183,6 +184,28 @@ names for them.
 
 These were judgement calls, each documented on the relevant page:
 
+- **The nav bar and the logo lockup were pills and are now 2 px plates.** This one is a
+  correction, not a judgement call — the implementation was wrong. Counted off the Figma
+  exports: 170 `<rect>` elements across both pages, ten with a radius, every one of them
+  `rx="2"`. The nav bar is `417 × 41 rx="2"` where a pill would be `rx="20.5"`; the logo
+  lockup is `152.09 × 35.25 rx="2"` where a pill would be `rx="17.6"`. At that height a
+  2 px corner in a compressed mockup JPG is indistinguishable from a capsule, which is how
+  it got in. `--radius-pill` has been deleted rather than left unused. Buttons moved the
+  other way, from 0 to 2 px — all three CTAs are `rx="2"` too — as did team portraits.
+  → `foundations/geometry.html`
+- **The blog container is `rx="2"` in the export and square in the code.** It is drawn as
+  `border-top` + `border-left` on the container with the other two edges on the cells, so
+  its four corners belong to four different elements and there is no box to round.
+  → `foundations/geometry.html`
+- **The black button's label is the foil, not white.** The two page mockups have no black
+  button in them to copy, so the precedent is the manual's app icon
+  (`26-farben-anwendung`): a black plate whose *mark* is filled with the light ramp while
+  the plate stays black. A black button is that object at UI scale. It takes the foil and
+  not the lime ramp because lime is a moment — one element per screen — and there can be
+  several black buttons on a page. Contrast floor 9.3:1 at rest, 11.9:1 on hover.
+  This also widens the foil's remit: `.text-foil` stays one headline per page, but the
+  button's label is under no budget, because there the foil is the component's colour
+  rather than an emphasis. → `components/buttons.html`, `foundations/colors.html`
 - **Body copy is 14 px,** not the 11 px in the process-card Figma export. 11 px stays
   reserved for uppercase mono labels, where it is still legible.
   → `foundations/typography.html`
@@ -196,7 +219,7 @@ These were judgement calls, each documented on the relevant page:
   (5.9:1 on CF-Grau), not `--text-muted`, even though the mockups paint them lighter.
   Decorative counters are also `aria-hidden`. → `foundations/colors.html`
 - **Anthracite `#1B2022` exists as a token but is not a core colour.** It is the measured
-  footer and logo-pill fill from the mockups and cannot be mixed from the seven, so it is
+  footer and logo-plate fill from the mockups and cannot be mixed from the seven, so it is
   declared once rather than hard-coded per component. → `foundations/colors.html`
 - **The process illustrations correct four things in the Figma export:** the lime hex, three
   unsanctioned dash patterns, a second lime element on card 02, and a tangent that was
