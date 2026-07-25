@@ -265,7 +265,7 @@
         its <code>color-interpolation</code> attribute offers only sRGB and linearRGB, so an
         inline <code>&lt;linearGradient&gt;</code> is always sRGB. That split matters on one
         leg of the ramp and one only. Lime to Glas crosses a wide arc of hue, and the two
-        paths pull apart by <strong>ΔE 0.045</strong> in oklab — roughly twice the just-noticeable
+        paths pull apart by <strong>ΔE 0.044</strong> in oklab — roughly twice the just-noticeable
         threshold for a smooth ramp, with sRGB taking the darker, more saturated route through
         chartreuse. Glas to CF-Grau peaks at ΔE 0.00073 and the page wash at ΔE 0.00071 — both
         comfortably under a thousandth, so they stay on the sRGB path untouched. So the process-card
@@ -275,9 +275,9 @@
       <p>
         Every lime-to-Glas leg in an inline SVG therefore carries one waypoint,
         <code>#DBFC60</code> at <strong>19 %</strong> of the leg, which is the colour the oklab
-        path passes through there. One stop is enough: it takes the divergence to ΔE 0.0125,
+        path passes through there. One stop is enough: it takes the divergence to ΔE 0.0116,
         below the threshold. Evenly spaced stops do not work — the curve bends hardest near
-        the lime end, so three even stops still leave ΔE 0.0125 while one placed at 19 % matches
+        the lime end, so three even stops still leave ΔE 0.0119 while one placed at 19 % matches
         it. The waypoint is scaled into each gradient's own offset space:
         <code>0.061</code> on the near rake, <code>0.097</code> on the mid rake,
         <code>0.905</code> and <code>0.822</code> on the two radials that run Glas → lime.
@@ -285,15 +285,17 @@
       <p>
         Every ΔE above compares the two interpolation paths continuously, before the 8-bit
         quantization both are subject to. Rounding each path to 8 bits first adds a few
-        thousandths of noise — invisible against the 0.045 on the lime leg, but several times
+        thousandths of noise — invisible against the 0.044 on the lime leg, but several times
         larger than the real difference on the two near-neutral legs, where it makes 0.0007
         read as 0.0037. Measure continuously, or the noise floor is what you measure.
+        Sampled off rendered 8-bit pixels in Chromium the lime leg reads 0.045 and the
+        waypointed leg 0.0124, which is the same few thousandths arriving as a floor.
       </p>
       <p>
         <strong>The correction is not unconditional.</strong> The oklab gradients sit behind
         <code>@supports</code>; the base CSS declarations are sRGB. A browser that fails that query
         therefore takes the sRGB route in CSS while the SVGs carry the corrected path, which puts the
-        two back out of step by about the same ΔE 0.045 — in the opposite direction, where before
+        two back out of step by about the same ΔE 0.044 — in the opposite direction, where before
         they at least matched. That is the accepted cost: oklab gradient interpolation is supported
         across all mainline browsers, so the affected population is small and shrinking, and the
         alternative is holding the whole system to the worse curve for it.
