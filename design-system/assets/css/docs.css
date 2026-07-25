@@ -128,29 +128,45 @@ body.docs {
 .docs-note--warn { background: var(--grey-100); }
 
 /* ---------- live demo frame ---------- */
-/* The frame is a query container. Documentation pages are built on .docs-main
-   and never on .container, so nothing in the docs was a container at all, and
-   a component that sizes itself against one could only ever show its fallback
-   here. What that was worth, measured on the demos that existed when this
-   landed:
+/* The frame is a query container, and it is a NAMED one. Those are two
+   separate fixes that landed in two steps, and they are worth keeping apart —
+   a blame that lands here should not credit this line with both.
+
+   BEING A CONTAINER. Documentation pages are built on .docs-main and never on
+   .container, so nothing in the docs was a container at all, and a component
+   that sizes itself against one could only ever show its fallback. Measured
+   when that landed:
 
      components/process-card.html   stacked at every width  ->  two columns
-     components/article.html        the same, for .cf-article
      components/blog-grid.html      at 375 the grid folded but the timeline
                                     axis stayed — the axis is a SIBLING of
                                     .subdivide, so unlike the columns it had no
                                     container to ask. Now both fold together.
 
-   That list is a snapshot, not a closed set. This reaches ANY container-queried
+   HAVING THE NAME. Not cosmetic, and not merely insurance. base.css sizes
+   .col-* with `@container layout (min-width: 56rem)` — the one named query in
+   the system — and a named query matches only an ancestor whose container-name
+   includes `layout`. An unnamed container in between is skipped, not
+   substituted, and a documentation page has no .container to fall back to, so
+   the rule could never fire here at any width. A .col-6 pair inside a framed
+   demo, before -> after:
+
+     1280   frame  912 px   span 12 -> span 12   (correct — under 56rem)
+     1440   frame 1072 px   span 12 -> span 6
+     1920   frame 1120 px   span 12 -> span 6
+
+   Both lists are snapshots, not closed sets: this reaches ANY container-queried
    component that ends up inside a demo frame, including through
    .docs-demo--plain, which resets padding, border and background but not the
-   container. So a new documentation page gets the right layout without doing
-   anything, which is the point — do not read the three lines above as the
-   components this applies to.
+   container.
 
-   Named, not bare `container-type`, to match .container in base.css: a named
-   container still answers unnamed queries, so this satisfies both those and a
-   `@container layout (…)` query. */
+   WHAT IT CANNOT FIX. A demo frame is narrower than the page it documents — at
+   1280 a framed demo is 846 px inside its padding against 1152 px of page. So
+   .cf-article, which splits at 60rem, is still stacked on
+   components/article.html at 1280 while patterns/blog-artikel.html shows it in
+   two columns; it matches from 1440 up. Any component whose breakpoint is above
+   roughly 850 px has a width band where its own page cannot show it wide. Say
+   so on that page — do not widen the frame to hide it. */
 .docs-demo {
   container: layout / inline-size;
   padding: var(--space-8);
