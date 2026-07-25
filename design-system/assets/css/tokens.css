@@ -22,7 +22,7 @@
   --cf-schwarz:    #000000;
 
   /* Not one of the seven — a UI surface taken from the mockups. It is the
-     measured fill of the footer and the logo pill and cannot be mixed from
+     measured fill of the footer and the logo plate and cannot be mixed from
      the palette, so it is declared here rather than hard-coded per component. */
   --cf-anthrazit:  #1B2022;
 
@@ -458,7 +458,7 @@
   --container-max: 80rem;   /* 1280 */
   --gutter:        clamp(1.25rem, 5.5vw, 5rem);  /* 20 → 80 */
 
-  /* The floating nav's own height: 2 × --space-5 plus the 44 px logo pill.
+  /* The floating nav's own height: 2 × --space-5 plus the 44 px logo plate.
      The hero pulls itself up by exactly this so the bar overlays the artwork
      instead of sitting on a band above it. */
   --nav-height:    5.25rem; /* 84 */
@@ -583,10 +583,35 @@
   --dash-1-2:   2px 4px;
   --dash-1-4:   1px 4px;
 
-  /* Corners are square. The only rounded things are the nav pill and avatars. */
+  /* Two corners, and 2 px is the one you reach for. Counted off the Figma
+     export rather than eyeballed off the JPGs: 170 <rect> elements across
+     landing-page-full.svg and ueber-uns-full.svg, of which exactly ten carry
+     a radius, and every one of those ten is rx="2".
+
+       logo lockup      152.09 x 35.25   rx 2      (a pill would be 17.6)
+       nav bar          417 x 41         rx 2      (a pill would be 20.5)
+       hero CTA         189 x 48         rx 2
+       footer CTA       396 x 46         rx 2
+       ueber-uns CTA    228 x 46         rx 2
+       team photo       200 x 300        rx 2      (x5)
+       blog container   1277 x 524       rx 2
+
+     The other 160 are square. The split is not arbitrary: what carries the
+     2 px is an OBJECT — something with a body of its own, a control, a plate,
+     a photo. What stays square is STRUCTURE — the hairline frames, the
+     section rules, the grid cells that are drawn by their neighbours' borders
+     rather than by a box of their own.
+
+     Nothing in the source is a pill. --radius-pill used to exist here at
+     999px and was applied to the logo lockup and the nav bar, which was a
+     reading of the compressed mockup JPGs, not of the vectors. It is gone;
+     do not reintroduce it. If a rounded control is needed, it is 2 px.
+
+     2 px is small enough that it does not read as "rounded" at all — it reads
+     as a corner that has been cut rather than left raw, which is the whole
+     intent. Anything above --radius-sm on a control is a mistake. */
   --radius-none: 0;
   --radius-sm:   2px;
-  --radius-pill: 999px;
   --radius-full: 50%;
 
   /* ------------------------------------------------------------------
@@ -876,10 +901,11 @@
    they did — "everything that would have been frosted becomes an opaque plate
    instead". Bearing glass does: it holds text, its 4.5:1 floor was the blur's
    to keep, and with no blur the only way to keep it is an opaque plate. Veil
-   glass does not, and stays at white 72 %. It carries nothing but opaque
-   pills, so the page showing through it costs no contrast, and a fully opaque
-   band would put a solid grey bar across the top of every page over the one
-   thing the bar exists to sit lightly on.
+   glass does not, and stays at white 72 %. It carries nothing but the two
+   opaque plates — the logo lockup and the link bar — so the page showing
+   through it costs no contrast, and a fully opaque band would put a solid
+   grey bar across the top of every page over the one thing the bar exists
+   to sit lightly on.
 
    That is deliberately NOT what the reduced-transparency block below does
    with the same token, and the difference is the reason, not the mechanism.
