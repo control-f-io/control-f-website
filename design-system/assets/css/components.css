@@ -110,12 +110,55 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 
 /* background-image, not the background shorthand: the shorthand resets
    background-origin to padding-box and would undo the rule above. */
+/* Hover and press are LIGHT MOVING, not a change of colour. The plate keeps
+   --gradient-light-90 in every state — CF-Grau falling to Glas at the near
+   rake with lime at the lit edge — and what responds is a specular travelling
+   in from off the right edge, the same gesture .cf-btn--glass makes and the
+   same registered property driving it. Refraction hinted at, not simulated.
+
+   It used to swap the whole plate for flat --cf-lime on hover. That reads as
+   the button changing material rather than catching the light, it spends the
+   screen's one lime moment on a hover state, and it throws away the ramp the
+   brand spent its gradient family establishing.
+
+   Press is the one place the contour comes up. .cf-btn already reserves a
+   1 px transparent border, so inking it costs no layout and says "pressed" in
+   the brand's own primitive rather than in another colour. The specular eases
+   back at the same time: the surface tilts away from the source under the
+   finger, and returns to the hover position on release.
+
+   --cf-specular is declared here for the reason it is declared on --glass:
+   without it, a browser with no @property support has an unresolvable var()
+   in this declaration, which is guaranteed invalid and takes the whole
+   background-image with it. Keep it equal to the @property initial-value. */
 .cf-btn--primary {
-  background-image: var(--gradient-light-90);
+  --cf-specular: 150%;
+  background-image:
+    radial-gradient(55% 300% at var(--cf-specular) 50%,
+                    rgba(255, 255, 255, 0.5) 0%,
+                    rgba(255, 255, 255, 0) 60%),
+    var(--gradient-light-90);
   color: var(--accent-ink);
   border-color: transparent;
+  /* The two speeds the motion doctrine asks for, on one element: the control
+     acknowledges at --duration-base, the light crossing it takes
+     --duration-slow, because light does not snap.
+
+     This is an OVERRIDE, not a subtraction, exactly as on --glass. `background`
+     is absent because nothing about the background moves any more — both hover
+     and press move only --cf-specular, and a transition whose only moving part
+     is a gradient animates nothing. Give this button a state that moves
+     background-color and `background` goes back in this list on the same day. */
+  transition: color var(--duration-base) var(--ease-standard),
+              border-color var(--duration-base) var(--ease-standard),
+              --cf-specular var(--duration-slow) var(--ease-standard);
 }
-.cf-btn--primary:hover { background-image: none; background-color: var(--cf-lime); }
+.cf-btn--primary:hover,
+.cf-btn--primary:focus-visible { --cf-specular: 64%; }
+.cf-btn--primary:active {
+  --cf-specular: 92%;
+  border-color: var(--accent-ink);
+}
 
 /* On top of imagery or the hero. The one place glass and the light layer
    meet: a frosted plate with the light falling across it, lime at the lit
