@@ -376,10 +376,16 @@
      7. LAYOUT
      1440 frame, 80 px gutters, 1280 content. 12 columns, 24 px gap.
 
-     The gutter is proportional on purpose: (1440 − 1280) / 2 / 1440 = 5.56 %,
-     so a ~5.5vw gutter is what makes content reach exactly 1280 at the frame
-     the design was measured on. Above that the container caps and the outer
-     margin grows instead. Below 364 px the 20 px floor takes over.
+     The gutter is proportional on purpose: (1440 − 1280) / 2 / 1440 = 5.5556 %,
+     rounded down to the 5.5vw below. Above that the container caps and the
+     outer margin grows instead. Below 364 px the 20 px floor takes over.
+
+     What lands content on exactly 1280 is --container-max, NOT the gutter.
+     At 1440 the gutter is 79.2, so the gutter alone leaves 1281.6; the cap
+     binds because .container's max-width is calc(1280 + 2 * gutter), and the
+     padding subtracts back to 1280 precisely. The two decouple at the top,
+     which is the tell: 5.5vw does not reach 80 until a viewport of 1454.5,
+     while content reaches 1280 at 1438.2. See foundations/layout.html.
      ------------------------------------------------------------------ */
   --container-max: 80rem;   /* 1280 */
   --gutter:        clamp(1.25rem, 5.5vw, 5rem);  /* 20 → 80 */
@@ -411,6 +417,11 @@
                      .cf-process. Inside a .container this is reached at a
                      viewport of about 1007, because a size query measures
                      the CONTENT box and the gutter is 5.5vw.
+       60rem / 960   .cf-article splits into rail + body and the rail goes
+                     sticky. Reached at a viewport of about 1079. This is
+                     the system's FOURTH container threshold and the only
+                     one that is not derived from anything — see the note
+                     in foundations/layout.html before adding a fifth.
 
      VIEWPORT thresholds — page furniture only:
 
@@ -419,10 +430,62 @@
                      CTA folds
        900           the page-header figure is dropped; the consent banner
                      goes single column
+       560 (height)  the consent banner caps at 70vh and scrolls. The one
+                     height threshold in the system; it exists because a
+                     tall banner on a short screen hides the page it is
+                     asking about.
 
      Two viewport tiers rather than one is a live question — they govern
      different objects and neither was measured off the mockups. Flagged
      for a designer rather than reconciled here.
+
+     This register is only worth having if it is complete. 60rem and the
+     height threshold were both live in components.css while this list
+     claimed three container thresholds and two viewport ones — which is
+     precisely the drift the register exists to catch. If you add a
+     threshold to a shipping stylesheet, add it here in the same commit.
+
+     SCOPE: the three stylesheets that ship — this file, base.css and
+     components.css. Everything else is out, and "everything else" is
+     three distinct things, so none is safe to leave implicit:
+
+       docs.css            the documentation chrome. Does not ship to
+                           control-f.de. Carries one query,
+                           @media (max-width: 900px), which collapses
+                           the sidebar. Same figure as the 900 above and
+                           unrelated to it.
+       inline <style>      per-page demo styles. foundations/
+                           iconography.html asks a VIEWPORT 48rem where
+                           48rem above is a CONTAINER threshold.
+       prototypes/         declared not-yet-system by the README, with
+                           their own unreconciled styling. werte-scroll
+                           .html asks a viewport 820 — which collides
+                           with nothing, but sits between the 780 and
+                           900 above, the pair already flagged as an
+                           open question. Do not reconcile it; do know
+                           it is there.
+
+     Same figures, unrelated queries. Do not read one as evidence of the
+     other, and do not reconcile them.
+
+     Complete about QUERIES, not about behaviour. A min() or clamp()
+     against a viewport unit also changes layout at a specific width,
+     when its arms swap, and none of those are listed because none is a
+     query. Three exist in shipping CSS: the consent dialog's width
+     swaps at 640 wide, its max-height at 920 tall, and min(92vh, 56rem)
+     at 974 tall. So "the one height threshold" above is true of queries
+     and false of behaviour. They stay out because a crossover is a
+     continuous function swapping arms rather than a rule switching on —
+     but a register arguing completeness has to say which kind it means.
+     See foundations/layout.html.
+
+     This register accounts for THRESHOLDS only — the numbers. Which
+     elements are query containers, and what those containers are NAMED,
+     is a separate axis and is documented where the container is
+     declared, not here. Worth saying because the two interact: a named
+     container changes which element a threshold resolves against
+     without changing the threshold, so a complete register can still
+     leave you guessing if you came looking for the wrong axis.
      ------------------------------------------------------------------ */
 
   /* ------------------------------------------------------------------
@@ -470,6 +533,23 @@
                            rather than for the frames someone happened to
                            check. Measured against the hero poster's darkest
                            blurred patch it lands at 6.5:1.
+                           This value has almost no room to move. 46 % white
+                           over pure black is 4.58:1 unquantized, but what
+                           actually renders is rgb(117,117,117), and that is
+                           4.56:1 — clearing 4.5 by 1.3 %, not 1.7 %. Drop the
+                           tint to 0.45 and it renders rgb(115,115,115) and
+                           lands at 4.43:1, which fails. (Both figures
+                           quantized, which is the whole point: 0.45
+                           unquantized computes 4.41:1, and quoting that here
+                           would repeat the error this paragraph exists to
+                           correct.)
+                           Lowering it for a lighter, glassier look breaks AA
+                           on the worst backdrop while every backdrop anyone
+                           thinks to check still looks fine. Raise it or leave
+                           it. The blur cannot rescue or damage this either
+                           way: a blur of black is black and saturate(1.08) of
+                           black is black, so the worst-case frame is the
+                           whole story.
      --surface-glass-veil  VEIL glass. Carries nothing but opaque objects, so
                            it stays almost clear and lets the blur do the work.
                            Measured off the navigation band in both mockups:
@@ -477,11 +557,23 @@
      --surface-glass-solid The opaque stand-in when the browser cannot blur, or
                            when the reader has asked for less transparency.
 
-     Blur radius is 16 px. Larger reads no better and costs more. The system
-     never stacks glass on glass: the navigation band and the hero button are
-     the only two blurred layers any screen carries, and they do not overlap. */
+     Blur radius is 16 px. Larger reads no better and costs more.
+
+     Two blurred layers exist and no more: the navigation band and the hero
+     button. They DO overlap, unavoidably — the CTA is on the first screen
+     and the bar is sticky, so the button passes under it on the way out.
+     Measured at 1280x900 on the landing page: the sheet occupies 0..108 of
+     the viewport (84 px bar plus the 24 px lookahead) and the button
+     intersects it from scrollY 628 to 776, sitting entirely inside it from
+     672 to 732. About 150 px of scroll with two stacked backdrop-filters.
+
+     This is stated because an earlier version of this comment claimed they
+     never overlap, and a later run would have planned against a guarantee
+     the system does not have. It costs nothing measurable — sweeps through
+     the overlap window and through clear page produce the same median
+     (16.7 ms) and overlapping p95 ranges — so the rule to keep is the one
+     that pays: exactly two blurred layers on a page, never a third. */
   --glass-blur:       blur(16px) saturate(1.08);
-  --glass-blur-heavy: blur(28px) saturate(1.16);
   --glass-border:     1px solid rgba(255, 255, 255, 0.55);
 
   /* How far a glass sheet reaches past its own edge so that content
@@ -493,7 +585,35 @@
 
   /* The lit edge of a glass sheet — white at the rim, drifting through Glas
      into Sky as it runs out. This is the foil, at one pixel: hue travel
-     inside a narrow luminance band, not a shine. */
+     inside a narrow luminance band, not a shine.
+
+     It resembles the foil in hue travel only, NOT in interpolation error,
+     and the difference is worth a number because "it is the foil" invites a
+     later run to move it into the oklab @supports block with the rest of the
+     family. Max ΔEok between the sRGB and oklab paths, computed per leg:
+
+       lime  -> Glas     0.04430     the legs the family corrects for
+       Glas  -> Sky      0.00148     --glass-edge
+       Weiss -> Glas     0.00045     --sheen-panel
+       Glas  -> CF-Grau  0.00073     already left on sRGB deliberately
+
+     --sheen-panel diverges LESS than a leg the system has already decided
+     is not worth correcting, and --glass-edge is thirty times below the lime
+     legs. Neither carries lime, which is where the two paths actually part.
+     They belong in sRGB; leaving them here is a decision, not an oversight.
+     Composited at their real alphas the numbers are a third of that again —
+     --glass-edge peaks at 0.00049 over CF-Grau, --sheen-panel at 0.00019.
+
+     DO NOT "correct" the Sky stop below to sky-300 for consistency with the
+     foil. It looks like drift — the foil is built on sky-300 at OKLab L
+     0.865 to hold its 0.820-0.945 band, and this uses core Sky at L 0.735 —
+     but the comparison has to be made composited, because these stops carry
+     alpha and the foil's do not. At their declared alphas over CF-Grau these
+     three land at Weiss 0.916, Glas 0.878, Sky 0.819: a span of 0.098 inside
+     the foil's own 0.125, with 152 degrees of hue across it. A family member.
+     Swapping in sky-300 takes the composited Sky to 0.857 and collapses the
+     span to 0.059, which is where iridescence becomes a flat tint — the same
+     failure the foil's note describes for the 500s, running the other way. */
   --glass-edge: linear-gradient(90deg,
                   rgba(255, 255, 255, 0)    0%,
                   rgba(255, 255, 255, 0.42) 16%,
@@ -669,20 +789,32 @@
    anyway, so that adding a token to the inverse block cannot silently punch
    a hole in a fallback again. */
 
-/* No backdrop-filter, no glass. Everything that would have been frosted
-   becomes an opaque plate instead — the veil layer has to carry the
-   separation on its own, so it stops being a veil. Redefining the tokens
-   here means no component needs its own fallback. */
+/* No backdrop-filter, no glass. Redefining the tokens here means no component
+   needs its own fallback.
+
+   The two tints do NOT land in the same place, and this comment used to say
+   they did — "everything that would have been frosted becomes an opaque plate
+   instead". Bearing glass does: it holds text, its 4.5:1 floor was the blur's
+   to keep, and with no blur the only way to keep it is an opaque plate. Veil
+   glass does not, and stays at white 72 %. It carries nothing but opaque
+   pills, so the page showing through it costs no contrast, and a fully opaque
+   band would put a solid grey bar across the top of every page over the one
+   thing the bar exists to sit lightly on.
+
+   That is deliberately NOT what the reduced-transparency block below does
+   with the same token, and the difference is the reason, not the mechanism.
+   Here the browser cannot blur; keeping some translucency is ours to choose.
+   There the reader has asked for less transparency, and a request is answered
+   in full or not at all. Same token, two floors, because the two blocks are
+   answering different questions. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   :root {
     --glass-blur:          none;
-    --glass-blur-heavy:    none;
     --surface-glass:       var(--surface-glass-solid);
     --surface-glass-veil:  rgba(255, 255, 255, 0.72);
   }
   [data-theme="inverse"] {
     --glass-blur:          none;
-    --glass-blur-heavy:    none;
     --surface-glass:       var(--surface-glass-solid);
     --surface-glass-veil:  rgba(0, 0, 0, 0.72);
   }
@@ -696,13 +828,11 @@
 @media (prefers-reduced-transparency: reduce) {
   :root {
     --glass-blur:          none;
-    --glass-blur-heavy:    none;
     --surface-glass:       var(--surface-glass-solid);
     --surface-glass-veil:  var(--surface-glass-solid);
   }
   [data-theme="inverse"] {
     --glass-blur:          none;
-    --glass-blur-heavy:    none;
     --surface-glass:       var(--surface-glass-solid);
     --surface-glass-veil:  var(--surface-glass-solid);
   }

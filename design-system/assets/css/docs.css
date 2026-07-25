@@ -41,7 +41,10 @@ body.docs {
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
+  /* 0.45 composites to rgb(130,132,133) on the anthracite sidebar — 4.38:1 at
+     11 px, under AA. 0.46 clears it by 0.05; 0.50 clears it with room to spare
+     and is still visibly quieter than the nav links below it. */
+  color: rgba(255, 255, 255, 0.50);
 }
 .docs-nav__group + .docs-nav__group { margin-top: var(--space-6); }
 .docs-nav__title {
@@ -109,10 +112,39 @@ body.docs {
   font-size: var(--text-h4);
   font-weight: var(--weight-semibold);
 }
-.docs-section p { max-width: 72ch; color: var(--text-secondary); }
-.docs-section p + p { margin-top: var(--space-3); }
-.docs-section ul { max-width: 72ch; color: var(--text-secondary); padding-left: 1.1rem; }
-.docs-section li + li { margin-top: var(--space-2); }
+/* These four style this page's own writing — the prose a documentation page is
+   made of. Everything inside .docs-demo is the component instead, and has to be
+   left exactly as it ships, so the demo frame is excluded at the source rather
+   than overridden further down.
+
+   Overriding does not work here, and the difference is the whole reason for the
+   :not(). A blanket reset inside .docs-demo has to pick one value, and there is
+   no single right one: a component that declares nothing (.cf-footer__links)
+   wants the browser default, while one that declares its own (.cf-prose li + li,
+   12 px) wants its value kept. Zeroing serves the first and silently flattens
+   the second. Not applying the rule at all serves both.
+
+   Measured leaks this closes, demo vs the same component on a pattern page:
+     .cf-footer__links   17.6 px indent + 72 ch cap it does not have on the site
+     .cf-prose li + li   8 px instead of its own 12 px
+     .cf-statement__body 72 ch instead of its own 46 ch
+     .cf-value-row__body grey + capped instead of black + uncapped
+
+   And one that is worse than the other four, because nothing was left unset for
+   the docs to fill — the page had already decided and was overruled:
+     .icon-bullets on foundations/iconography.html declares padding: 0 and
+     gap: var(--space-3) at (0,1,0). .docs-section ul is (0,1,1) and won, so the
+     list rendered with a 17.6 px indent it had explicitly zeroed and 20 px
+     between items where the page asked for 12.
+
+   The :not() sits on the element the declaration lands on, which for the two
+   adjacent-sibling rules is the second one. Siblings share a parent, so either
+   position behaves the same here; this is the one that stays correct if the
+   selectors are ever changed. */
+.docs-section p:not(:where(.docs-demo *)) { max-width: 72ch; color: var(--text-secondary); }
+.docs-section p + p:not(:where(.docs-demo *)) { margin-top: var(--space-3); }
+.docs-section ul:not(:where(.docs-demo *)) { max-width: 72ch; color: var(--text-secondary); padding-left: 1.1rem; }
+.docs-section li + li:not(:where(.docs-demo *)) { margin-top: var(--space-2); }
 
 /* A note the implementer must not skip. Contour + surface, no accent bar —
    the brand draws boxes with a 1 px line, not with a coloured stripe. */
@@ -128,13 +160,91 @@ body.docs {
 .docs-note--warn { background: var(--grey-100); }
 
 /* ---------- live demo frame ---------- */
-/* The frame is a query container, because four components size themselves
-   against one (.cf-statement, .cf-process, .cf-value-row, .cf-article) and a
-   demo with no container ancestor never matches any of their queries. Without
-   this line every one of those pages documented only the stacked fallback,
-   which is not the layout the component ships in. */
+/* The frame is a query container, and it is a NAMED one. Those are two
+   separate fixes that landed in two steps, and they are worth keeping apart —
+   a blame that lands here should not credit this line with both.
+
+   BEING A CONTAINER. Documentation pages are built on .docs-main and never on
+   .container, so nothing in the docs was a container at all, and a component
+   that sizes itself against one could only ever show its fallback. Measured
+   when that landed:
+
+     components/process-card.html   stacked at every width  ->  two columns
+     components/blog-grid.html      at 375 the grid folded but the timeline
+                                    axis stayed — the axis is a SIBLING of
+                                    .subdivide, so unlike the columns it had no
+                                    container to ask. Now both fold together.
+
+   HAVING THE NAME. base.css sizes .col-* with
+   `@container layout (min-width: 56rem)` — the one named query in the system —
+   and a named query matches only an ancestor whose container-name includes
+   `layout`. An unnamed container in between is skipped, not substituted, and a
+   documentation page has no .container to fall back to, so the rule could never
+   fire here at any width.
+
+   Nothing exercises that today: .col-2 … .col-12 have zero consumers in the
+   repository, so the name moves no rendered pixel as things stand. The case
+   below is CONSTRUCTED — a .col-6 pair injected into a framed demo — and what
+   it buys is that the primitive becomes demonstrable at all, which is the
+   precondition for ever documenting it with a live example.
+
+   A container query measures the CONTENT box, so the figure that decides the
+   match is the frame minus 66 px of padding and border. Both are given here,
+   because the border-box number is the one a devtools ruler reports, and
+   comparing THAT to 56rem (896 px) predicts a split at 1280 which does not
+   happen:
+
+     viewport   border-box   content-box   vs 56rem   .col-6
+       1280        912 px        846 px      under    span 12  (unchanged)
+       1440       1072 px       1006 px      over     span 12 -> span 6
+       1920       1120 px       1054 px      over     span 12 -> span 6
+
+   Both lists are snapshots, not closed sets: this reaches ANY container-queried
+   component that ends up inside a demo frame, including through
+   .docs-demo--plain, which resets padding, border and background but not the
+   container — so a --plain demo queries the full 912 at 1280 and a framed one
+   queries 846.
+
+   ONE NAME, TWO IMPLEMENTERS. `layout` is now held by .container on the site
+   and by .docs-demo here. Named lookup takes the NEAREST matching ancestor, so
+   a future `@container layout (…)` written with the page container in mind gets
+   intercepted by the demo frame on any documentation page — and at a different
+   viewport, because the frame is always the narrower of the two. For .col-* that
+   interception is precisely what is wanted. It is a constraint on what is added
+   next, not a defect in this.
+
+   DO NOT TIGHTEN THIS — and note what actually breaks glass, because it is not
+   containment. Measured: `contain: paint`, `content` and `strict` all leave
+   backdrop-filter working. Filter Effects 2 lists the real backdrop-root
+   triggers — filter, opacity < 1, mask, clip-path, backdrop-filter,
+   mix-blend-mode — so the way to flatten every frosted demo on a page is to
+   fade one in with opacity, not to tighten this line.
+
+   Tightening is still wrong, for a different reason: paint containment clips
+   descendants to the padding box (measured: a 200 px child in a 100 px box
+   paints 100), and the navigation demo's glass sheet deliberately reaches
+   --glass-lookahead past its own edge so content arrives already blurred.
+
+   WHAT IT CANNOT FIX. A demo frame is narrower than the page it documents — at
+   1280 a framed demo is 846 px inside its padding against 1139 px of page
+   content. (1139, not 1152: the gutter is 5.5vw a side, so the page's content
+   box is 0.89 of the viewport rather than the viewport less a fixed inset.) So
+   .cf-article, which splits at 60rem, is stacked on components/article.html at
+   1280 while patterns/blog-artikel.html shows two columns; it matches from
+   1440 up.
+
+   Nor does the frame widen monotonically, which is the part that catches
+   people. The sidebar arrives at 901 px and takes 319 px out of the docs column
+   in a single pixel of viewport — 786 px of frame at 900, 467 px at 901, not
+   back to 786 until about 1220. So "make the window wider" is not always sound
+   advice, and a container-queried demo can fold on the WIDE side of that edge:
+   .subdivide does exactly that on components/blog-grid.html, five columns at
+   900, stacked from 901 to 1073, five again at 1074. That is docs chrome rather
+   than the component, and not this declaration's to fix — but any note about
+   demo width has to survive it. Say the constraint on the page it affects; do
+   not widen the frame to hide it. */
 .docs-demo {
-  container-type: inline-size;
+  container: layout / inline-size;
   padding: var(--space-8);
   border: 1px solid var(--border-default);
   background-color: var(--grey-050);
@@ -145,6 +255,19 @@ body.docs {
 .docs-demo--flat  { background: var(--grey-050); }
 .docs-demo--dark  { background: var(--cf-anthrazit); }
 .docs-demo--plain { padding: 0; border: 0; background: none; }
+/* A field of real artwork to demonstrate a material against. Frosted glass
+   over a flat fill has nothing to calm and documents a grey box rather than a
+   material, so anything blurred has to be shown over something complex. Held
+   here rather than inline on each page: it is one system-level decision, it
+   was already written two different ways across two pages, and the URL
+   resolves against this stylesheet rather than against whichever page is
+   using it — an inline page-relative path breaks the moment a demo is copied
+   to a page at another depth. */
+.docs-poster {
+  background-image: url(../img/hero-poster.jpg);
+  background-size: cover;
+  background-position: center;
+}
 .docs-demo + .docs-code { margin-top: 0; border-top: 0; }
 
 .docs-code {
@@ -185,7 +308,7 @@ body.docs {
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   letter-spacing: var(--tracking-label);
 }
 .docs-swatch__var { margin-top: var(--space-1); word-break: break-all; }
@@ -229,7 +352,11 @@ body.docs {
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  /* --text-muted (#919191) on --grey-050 is 2.97:1 at 11 px — below AA, and 11 px
+     is not large text. --text-secondary is 8.61:1. This is the same substitution
+     the README already documents for every mono label on the page wash; the
+     ramp has no step between #919191 and #484848 to land on instead. */
+  color: var(--text-secondary);
   border-bottom-color: var(--border-strong);
 }
 .docs-table code {
@@ -278,7 +405,7 @@ body.docs {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 .docs-card__title { margin-top: var(--space-2); font-size: var(--text-h4); font-weight: var(--weight-medium); }
 .docs-card__desc  { margin-top: var(--space-2); font-size: var(--text-md); color: var(--text-secondary); }
@@ -304,7 +431,7 @@ body.docs {
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 .docs-plate figcaption b {
   display: block;

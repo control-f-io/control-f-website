@@ -59,22 +59,37 @@
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Duration</th><th>Used for</th><th>In the CSS today</th></tr></thead>
       <tbody>
-        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change</td><td>6 rules</td></tr>
-        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>accordion, menu, arrow movement</td><td>5 rules</td></tr>
-        <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>a reveal long enough to read as motion</td><td><strong>none yet</strong></td></tr>
+        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change</td><td>8 rules</td></tr>
+        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>the control itself responding — arrow, button, menu</td><td>6 rules</td></tr>
+        <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>a reveal, or light crossing a surface</td><td>4 rules</td></tr>
         <tr><td><code>--duration-scene</code></td><td>1200 ms</td><td>a full object build, if one is ever driven by time</td><td><strong>none yet</strong></td></tr>
       </tbody>
     </table>
     <p>
-      The last column is the honest one. Two of these four tokens currently have no
-      consumer in <code>components.css</code>, and it is worth knowing why rather than
-      assuming they are being used: <strong>the isometric assembly is driven by scroll
-      range, not by a duration.</strong> Its <code>animation-duration</code> is
-      <code>auto</code>, and how long it takes depends entirely on how fast you scroll.
-      So <code>--duration-scene</code> describes the intent of that motion without being
-      the mechanism behind it. Both are kept because the two-speed rule is a design
-      decision, not an implementation detail — but neither should be cited as evidence
-      that something on the site takes 480 or 1200 ms.
+      The last column is the honest one, and it is counted by rule rather than by
+      <code>var()</code> occurrence — a rule naming a token twice is one consumer, not two.
+      Only <code>--duration-scene</code> has none.
+    </p>
+    <p>
+      <strong>480 ms carries two different kinds of motion, and the distinction is worth
+      keeping.</strong> Three of its four consumers are light crossing a surface — the glass
+      button's specular, and the accordion row and blog cell each sliding
+      <code>--sheen-panel</code> by <code>background-position</code>. The fourth,
+      <code>.cf-accordion__item::details-content</code>, is a panel opening. That looks like a
+      counterexample to "the control responds fast" and is not one: a reveal is not the control
+      answering a click, it is content arriving, and 480 ms is this token's stated purpose.
+      What belongs at <code>--duration-base</code> is the control's own acknowledgement — the
+      arrow stepping, the border changing. The glass button does both at once, which is why it
+      names two durations in one rule.
+    </p>
+    <p>
+      <code>--duration-scene</code> genuinely has no consumer, and it is worth knowing why
+      rather than assuming: <strong>the isometric assembly is driven by scroll range, not by a
+      duration.</strong> Its <code>animation-duration</code> is <code>auto</code>, and how long
+      it takes depends entirely on how fast you scroll. So <code>--duration-scene</code>
+      describes the intent of that motion without being the mechanism behind it. It is kept
+      because the two-speed rule is a design decision, not an implementation detail — but it
+      should not be cited as evidence that something on the site takes 1200 ms.
     </p>
   </section>
 
