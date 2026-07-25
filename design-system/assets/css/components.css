@@ -1429,8 +1429,22 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 /* --------------------------------------------------------------------------
    STAT
    Big mono number + label. For the "10 Mitarbeiter" style facts.
+
+   The number and its label are one fact, so they are one element — a single
+   block with two spans in it — rather than two loose paragraphs a page has
+   to space itself.
+
+   The number and the label reach the accessibility tree as two separate text
+   runs. Measured in Chromium: inline spans, a block label, and two block
+   elements all produce the same two StaticText leaves, so no arrangement of
+   this markup merges them, and the GOV.UK trick of stacking with a block
+   pseudo-element buys nothing here while costing the space between the two
+   in the flattened text. The label therefore has to read on its own — see
+   components/statement.html.
    -------------------------------------------------------------------------- */
+.cf-stat { display: block; }
 .cf-stat__value {
+  display: block;
   font-family: var(--font-mono);
   font-size: var(--text-h1);
   font-weight: var(--weight-medium);
@@ -1438,6 +1452,7 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   line-height: 1;
 }
 .cf-stat__label {
+  display: block;
   margin-top: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
