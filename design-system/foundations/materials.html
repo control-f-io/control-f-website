@@ -230,14 +230,27 @@
       missing declaration is not.
     </p>
     <p>
-      The obvious repair, a <code>var(--cf-specular, 150%)</code> fallback, fixes that and
-      costs the whole effect: Chromium stops interpolating the registered property and falls
-      back to a discrete flip at half the duration, so the band steps instead of travelling.
-      Measured both ways. A plain declaration is the one option that gets both — registered it
-      is simply the from-value and interpolation is unaffected; unregistered it keeps the
-      <code>var()</code> resolvable, so the plate survives and the highlight switches instead
-      of travelling. The state change still reads and the contrast floor is untouched; only
-      the travel is lost.
+      The obvious repair — a <code>var(--cf-specular, 150%)</code> fallback — fixes that and
+      silently costs the whole effect. The property still interpolates; what stops is the
+      <em>repaint</em>. With a fallback in the <code>var()</code>, the background is not
+      invalidated as the property changes, so the plate holds its rest paint for the entire
+      transition and snaps at the end. Compared at identical property values rather than
+      identical times: at <code>--cf-specular</code> = 109.67 % the bare form already shows a
+      band and the fallback form shows zero change across all sixteen sampled columns; at
+      79.88 % the bare form shows a clear band and the fallback form is still zero. Both
+      settle to the same profile, so only the travel is lost.
+    </p>
+    <p>
+      That trap is worth remembering on its own: <strong><code>getComputedStyle</code> cannot
+      see it.</strong> The property reads as interpolating in both forms, to three decimal
+      places — a custom-property animation verified only by sampling computed values will look
+      correct while painting nothing. It has to be checked in pixels.
+    </p>
+    <p>
+      A plain declaration is the one option that gets both. Registered it is simply the
+      from-value and interpolation is unaffected; unregistered it keeps the <code>var()</code>
+      resolvable, so the plate survives and the highlight switches instead of travelling. The
+      state change still reads and the contrast floor is untouched.
     </p>
 
     <h3>Cost</h3>
