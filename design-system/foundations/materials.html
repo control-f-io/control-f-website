@@ -12,6 +12,11 @@
   .mat { display:grid; grid-template-columns:14rem 1fr; gap:var(--space-6); align-items:center; }
   .mat + .mat { margin-top:var(--space-6); }
   .mat__sample { height:8rem; display:grid; place-items:center; font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label); text-transform:uppercase; }
+  /* Glass has to sit ON something complex, not carry it. Painting the gradient
+     onto the sample itself — which is what these two did — puts the artwork in
+     front of the material and demonstrates a gradient, not frosting. */
+  .mat__art { height:8rem; padding:var(--space-4); background:url(../assets/img/hero-poster.jpg) center/cover; }
+  .mat__art > .mat__sample { height:100%; }
   .mat__stack { position:relative; height:16rem; background:var(--surface-page-wash); border:1px solid var(--border-default); overflow:hidden; }
   @media (max-width:780px){ .mat { grid-template-columns:1fr; } }
 </style>
@@ -52,7 +57,7 @@
     </div>
 
     <div class="mat">
-      <div class="mat__sample material-glass" style="background-image:var(--gradient-light)">03</div>
+      <div class="mat__art"><div class="mat__sample material-glass">03</div></div>
       <div>
         <h3 style="margin-top:0">Frosted glass</h3>
         <p>
@@ -66,7 +71,7 @@
     </div>
 
     <div class="mat">
-      <div class="mat__sample material-glass material-glass--veil" style="background-image:var(--gradient-light)">03b</div>
+      <div class="mat__art"><div class="mat__sample material-glass material-glass--veil">03b</div></div>
       <div>
         <h3 style="margin-top:0">…and the same glass, almost clear</h3>
         <p>
@@ -245,6 +250,14 @@
       see it.</strong> The property reads as interpolating in both forms, to three decimal
       places — a custom-property animation verified only by sampling computed values will look
       correct while painting nothing. It has to be checked in pixels.
+    </p>
+    <p>
+      One catch to carry with the rule: the rest value now exists twice — as
+      <code>initial-value</code> in the <code>@property</code> block and as the declaration on
+      the component — and nothing but a comment holds the two equal. They must move together.
+      <code>initial-value</code> has to be a literal, so it cannot read the token, which means
+      there is no way to make the coupling structural; the next component using this technique
+      will inherit the same seam.
     </p>
     <p>
       A plain declaration is the one option that gets both. Registered it is simply the
