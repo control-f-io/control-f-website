@@ -2161,3 +2161,256 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   .cf-hero__media video { display: none; }
   .cf-hero__media img   { display: block; }
 }
+
+/* --------------------------------------------------------------------------
+   VALUES — the mark builds itself out of its own subdivision grid
+   The six values, one per stage of a pinned scroll. The mark is assembled in
+   the order the manual constructs it: contour first, then the isometric
+   subdivision at 1 / .5 / .25 / .125, then the solid form. Six construction
+   steps, six values — the count is not a coincidence and neither is the order.
+
+   NO SCRIPT. The whole thing is a view timeline over the track, which is what
+   foundations/motion.html already says every scroll-driven animation in this
+   system is. That buys the fallbacks rather than costing them:
+
+     no support         the finished mark, the six values stacked and readable
+     reduced motion     the same
+     print              the same, because the block is scoped to `screen`
+     no JavaScript      the same, because the copy is real markup
+
+   That last one is the point. The prototype this comes from built its copy
+   char by char out of a JS array, so with the script off there was nothing to
+   read and nothing for a screen reader to announce, and under reduced motion
+   it still gated six screens of copy behind six screens of scroll. Here the
+   values are six list items in the document; scrolling only chooses which one
+   is lit. Read the fallback below as the real state and the enhancement as
+   the decoration, because that is the order they are declared in.
+
+   The grid lines carry pathLength="1" and are deliberately NOT under .cf-iso:
+   non-scaling-stroke measures dashes in screen pixels while pathLength
+   normalises to user units, and the two disagree by the render scale — the
+   bug foundations/motion.html documents. These draw linearly instead.
+   -------------------------------------------------------------------------- */
+
+/* ---- the readable state, which is also the un-enhanced one ---- */
+.cf-values__track { position: relative; }
+.cf-values__frame {
+  display: grid;
+  gap: var(--space-8);
+  align-items: center;
+}
+.cf-values__mark { display: block; width: 100%; max-width: 18rem; margin-inline: auto; }
+.cf-values__mark line,
+.cf-values__contour { stroke: var(--cf-schwarz); }
+.cf-values__solid   { fill: var(--cf-schwarz); }
+
+.cf-values__list { list-style: none; margin: 0; padding: 0; }
+.cf-values__item + .cf-values__item {
+  margin-top: var(--space-8);
+  padding-top: var(--space-8);
+  border-top: var(--stroke-1) solid var(--border-subtle);
+}
+.cf-values__title {
+  font-size: var(--text-h4);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+}
+.cf-values__body {
+  margin-top: var(--space-3);
+  max-width: 46ch;
+  color: var(--text-secondary);
+}
+/* The live index belongs to the pinned state only — in the stacked state every
+   value is on screen at once, so counting to one of them says nothing. */
+.cf-values__index,
+.cf-values__progress { display: none; }
+
+/* ---- pinned and scrubbed, where the browser can and the reader wants it ----
+   Gated at 820 px on purpose. The track is seven viewports of scroll; on a
+   phone that is a long hijack for copy that reads perfectly well stacked, and
+   the three-column composition has nowhere to go at that width anyway. */
+@supports (animation-timeline: view()) {
+  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 820px) {
+    .cf-values__track {
+      --values-stages: 6;
+      height: calc((var(--values-stages) + 1) * 100vh);
+      view-timeline-name: --cf-values;
+      view-timeline-axis: block;
+    }
+    .cf-values__stage {
+      /* sticky is also `position`, so this is the containing block the index
+         and the progress bar resolve against. Without it they escape to the
+         page and land at its top corners. */
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: grid;
+      align-content: center;
+    }
+    .cf-values__frame {
+      position: relative;
+      grid-template-columns: 1fr minmax(12rem, 22vw) 1fr;
+      min-height: 60vh;
+    }
+    .cf-values__mark { grid-column: 2; grid-row: 1; max-width: none; }
+
+    /* every value occupies the same place; the timeline chooses which is lit */
+    .cf-values__list { position: absolute; inset: 0; }
+    .cf-values__item {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 1fr minmax(12rem, 22vw) 1fr;
+      gap: var(--space-8);
+      align-items: center;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      animation-name: cf-values-item;
+      animation-timeline: --cf-values;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+    }
+    .cf-values__title { grid-column: 1; text-align: right; }
+    .cf-values__body  { grid-column: 3; margin-top: 0; }
+
+    .cf-values__item:nth-child(1) { animation-range: contain 0%      contain 16.667%; }
+    .cf-values__item:nth-child(2) { animation-range: contain 16.667% contain 33.333%; }
+    .cf-values__item:nth-child(3) { animation-range: contain 33.333% contain 50%; }
+    .cf-values__item:nth-child(4) { animation-range: contain 50%     contain 66.667%; }
+    .cf-values__item:nth-child(5) { animation-range: contain 66.667% contain 83.333%; }
+    /* the last one holds: there is no seventh stage to hand over to */
+    .cf-values__item:nth-child(6) {
+      animation-name: cf-values-item-last;
+      animation-range: contain 83.333% contain 100%;
+    }
+
+    /* --- the mark, one construction step per stage ---
+       Each step draws over the first 62 % of its stage and then holds, so a
+       stage at rest always shows its own step finished rather than mid-draw. */
+    .cf-values__contour,
+    .cf-values__grid-layer,
+    .cf-values__solid {
+      animation-timeline: --cf-values;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: var(--ease-out);
+    }
+    .cf-values__contour,
+    .cf-values__grid-layer line {
+      stroke-dasharray: 1;
+    }
+    .cf-values__contour {
+      animation-name: cf-values-draw;
+      animation-range: contain 0% contain 10.33%;
+    }
+    .cf-values__grid-layer {
+      animation-name: cf-values-fade;
+    }
+    .cf-values__grid-layer line {
+      animation-name: cf-values-draw;
+      animation-timeline: --cf-values;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: var(--ease-out);
+    }
+    .cf-values__grid-layer:nth-of-type(1),
+    .cf-values__grid-layer:nth-of-type(1) line { animation-range: contain 16.667% contain 27%; }
+    .cf-values__grid-layer:nth-of-type(2),
+    .cf-values__grid-layer:nth-of-type(2) line { animation-range: contain 33.333% contain 43.667%; }
+    .cf-values__grid-layer:nth-of-type(3),
+    .cf-values__grid-layer:nth-of-type(3) line { animation-range: contain 50%     contain 60.333%; }
+    .cf-values__grid-layer:nth-of-type(4),
+    .cf-values__grid-layer:nth-of-type(4) line { animation-range: contain 66.667% contain 77%; }
+    .cf-values__solid {
+      animation-name: cf-values-fade;
+      animation-range: contain 83.333% contain 93.667%;
+    }
+
+    /* --- the chrome: which stage, and how far through --- */
+    .cf-values__index,
+    .cf-values__progress { display: block; }
+    .cf-values__index {
+      position: absolute;
+      left: var(--gutter);
+      bottom: var(--space-12);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-label);
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+    .cf-values__index-n {
+      position: absolute;
+      left: 0;
+      opacity: 0;
+      color: var(--text-primary);
+      font-weight: var(--weight-medium);
+      animation-name: cf-values-item;
+      animation-timeline: --cf-values;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+    }
+    .cf-values__index-n:nth-child(1) { animation-range: contain 0%      contain 16.667%; }
+    .cf-values__index-n:nth-child(2) { animation-range: contain 16.667% contain 33.333%; }
+    .cf-values__index-n:nth-child(3) { animation-range: contain 33.333% contain 50%; }
+    .cf-values__index-n:nth-child(4) { animation-range: contain 50%     contain 66.667%; }
+    .cf-values__index-n:nth-child(5) { animation-range: contain 66.667% contain 83.333%; }
+    .cf-values__index-n:nth-child(6) {
+      animation-name: cf-values-item-last;
+      animation-range: contain 83.333% contain 100%;
+    }
+    .cf-values__index-total { padding-left: 2.4em; }
+
+    .cf-values__progress {
+      position: absolute;
+      right: var(--gutter);
+      bottom: calc(var(--space-12) + 0.35em);
+      width: 7.5rem;
+      height: var(--stroke-1);
+      background: var(--border-strong);
+    }
+    .cf-values__progress::after {
+      content: "";
+      display: block;
+      height: 100%;
+      background: var(--cf-schwarz);
+      transform-origin: left;
+      transform: scaleX(0);
+      animation-name: cf-values-progress;
+      animation-timeline: --cf-values;
+      animation-range: contain 0% contain 100%;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+    }
+  }
+}
+
+@keyframes cf-values-item {
+  0%   { opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes cf-values-item-last {
+  0%   { opacity: 0; }
+  12%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+@keyframes cf-values-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes cf-values-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cf-values-progress {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
