@@ -204,11 +204,20 @@ These were judgement calls, each documented on the relevant page:
   one of the six material layers. → `components/process-card.html`
 - **The footer title is filled with the foil; the mockup paints it solid near-white.**
   Sampled off `mockups/landing-page.jpg`, "Jetzt Projekt starten!" is a flat `#EDF1F2`.
-  The system clips `--gradient-foil` into it instead — one gradient headline per page, on
-  the one surface where it clears AA comfortably. The fallback is the mockup's own value:
+  The system clips `--gradient-foil` into it instead — one foil moment per screen, on the
+  surface where it clears AA comfortably. The fallback is the mockup's own value:
   `.cf-footer__title` sets no colour and inherits white, so any browser that cannot clip a
   background into text renders exactly what the designer drew.
   → `components/footer.html`, `foundations/colors.html`
+- **The Über uns page title is filled with the foil's shadow half; the mockup paints it
+  solid black.** `--gradient-foil` is light-on-dark and cannot be otherwise — every stop is
+  above OKLab L 0.82, so on the page's own CF-Grau it lands at 1.1–1.5:1. That left both
+  designed pages, which are a CF-Grau-to-white wash almost end to end, with no gradient type
+  outside the anthracite footer. `--gradient-foil-ink` is the same three hues moved into the
+  800 band: 102.2° of hue travel across 0.115 of lightness, against the lit half's 104.5°
+  across 0.090. Worst sample on the shipped header is 5.45:1. As above, the fallback is the
+  designer's own value — the title inherits `--text-primary`.
+  → `foundations/colors.html`
 - **Inline SVG gradients carry an oklab waypoint the source vectors do not have.** Figma
   interpolates in sRGB, and SVG can only interpolate in sRGB or linearRGB, so the illustrations
   inherited the sRGB path. The CSS gradients interpolate in oklab. Same three colours, two
@@ -226,3 +235,18 @@ These were judgement calls, each documented on the relevant page:
   `non-scaling-stroke` the dash is measured in screen px while `pathLength` normalises
   against user space, which makes the line-drawing finish at 45 % of its range instead of
   100 %. Traces are stroked in user units at width 2 instead. → `foundations/motion.html`
+
+## Redrawing an illustration: two things that vanish quietly
+
+Both bite when an object is rebuilt or re-exported from `assets/source/illustrations/`, and
+neither announces itself — the drawing still renders, it is simply no longer what the
+designer drew.
+
+- **The oklab waypoint.** `#DBFC60` exists in no source vector, so a re-export drops it and
+  that lime→Glas leg reverts to the sRGB path. Every waypoint carries a comment at the stop.
+  See the bullet above.
+- **A `transform` on an element painted with a `userSpaceOnUse` gradient.** The paint server
+  is resolved in the user space where it is referenced, so the element's own transform
+  rotates its gradient too. On a circle the rotation looks like a no-op against the geometry
+  and is not: card 04's largest orbit had lost `rotate(-90)` and was fading 90° off the
+  designer's axis. Measured and fixed. → `components/process-card.html`
