@@ -83,8 +83,86 @@
   --surface-glass-veil:  rgba(255, 255, 255, 0.04);
   --surface-glass-solid: var(--grey-100);
 
-  /* The page itself is a slow vertical wash from CF-Grau to white. */
-  --surface-page-wash: linear-gradient(180deg, var(--grey-300) 0%, var(--grey-000) 100%);
+  /* THE PAGE ITSELF IS A SLOW VERTICAL WASH FROM CF-GRAU TO WHITE, and it is
+     the largest gradient in the system by two orders of magnitude — roughly
+     5,800 px on the original. It used to be the only one with no hue in it at
+     all: two neutral stops, zero chroma, a member of no family.
+
+     It is the foil, reversed, at the amplitude of atmosphere. The page
+     descends from shadow into light — CF-Grau at the top, Weiss at the
+     bottom — so it runs the foil's own ramp backwards: Violett, Sky, Glas,
+     Weiss. STOP POSITIONS ARE --foil-stops' OWN, SUBTRACTED FROM 100 %, which
+     is what "reversed" means arithmetically and why nothing here is picked by
+     hand. Weiss lands at 100 % by construction, so the bottom of the page is
+     the same #FFFFFF it has always been.
+
+     THE LIGHTNESS PATH IS UNCHANGED, exactly and by construction. Each
+     chromatic stop is the neutral wash's own OKLab L at that position —
+     0.8545 + t(1 − 0.8545) — so the interpolated lightness of the four-stop
+     ramp is identical to the two-stop one it replaces. Only the hue moves.
+     That is the brand's own definition of iridescence taken to its limit:
+     hue travel inside a narrow luminance band, with the band held at zero
+     width relative to the ramp that was already there.
+
+       stop          position    L        C       h          renders
+       Violett         0.00 %    0.8545   0.005   283.86°    #CFCFD2
+       Sky            43.90 %    0.9184   0.005   243.65°    #E1E4E7
+       Glas           82.93 %    0.9752   0.005   179.38°    #F3F8F7
+       Weiss         100.00 %    1.0000   0       —          #FFFFFF
+
+     The three hues are --foil-stops' three, to the digit. Hue travel across
+     them is 104.5°, which is the lit foil's own figure (see 3c); the band
+     they span is 0.120, against the foil's 0.090 and the ink foil's 0.115.
+     By the family's own defining metric this is a family member.
+
+     CHROMA 0.005 IS THE WHOLE BUDGET, and the ceiling is set by something
+     already on this surface: no channel may move further from the neutral
+     than the grain does. Worst channel deviation over the whole ramp is 4 of
+     255, inside the ~5 levels of grain the wash already carries. Black text
+     measures 13.51:1 at the top against 13.48:1 before, --text-secondary
+     5.88:1 against 5.87:1 — both marginally better, because a stop nudged off
+     the achromatic axis at fixed L loses no luminance.
+
+     IT IS ALSO WHAT FIXES THE BANDING, and that is the part worth keeping.
+     A NEUTRAL RAMP IS QUANTIZATION-BOUND: #CFCFCF to #FFFFFF is 49 greys and
+     there is no fiftieth, because R, G and B are locked together and cross
+     every 8-bit boundary at the same place. Put chroma on it and they cross
+     at different places, so the ramp has more rungs to stand on.
+
+     Measured off rendered pixels in Chromium — 4,000 px tall, oklab
+     interpolation, Skia's own gradient dither left on, which is what actually
+     paints rather than what the arithmetic predicts:
+
+                                        neutral        iridescent
+       distinct colours down the ramp      51              130
+       widest flat run                     40 px            36 px
+       transitions moving all 3 channels   99.8 %           23.6 %
+
+     Two and a half times the levels, and three quarters of the steps are now
+     one or two channels moving instead of three — a partial contour rather
+     than a full one. The neutral ramp's 51 is not a shortcoming of the
+     renderer; it is the ceiling, 49 greys plus dither noise. --grain still
+     rides on top: this is the layer under it.
+
+     THE THREE HEXES ARE RE-DERIVABLE, NOT HAND-TUNED — recompute the ramp and
+     you get them back — and they carry the same trap the #DBFC60 waypoint
+     does: they are literals, so they do not follow --cf-grau. Move CF-Grau and
+     these must be recomputed or the wash quietly stops starting where the page
+     starts. At this chroma the 8-bit grid is coarser than the target: each hex
+     lands 2.5–4.2° off its hue and within 0.001 of the chroma. That is the
+     grid, not the arithmetic.
+
+     The two calc()s below reference --spectrum-*-n and --rake-near-n, which
+     are declared in 3b and 3c, further down this file. That resolves fine —
+     custom properties are substituted at computed-value time, not in source
+     order — and it is deliberate: the wash borrows the foil's geometry rather
+     than restating it, so it has to point forwards at where the foil lives. */
+  --wash-stops: #CFCFD2 0%,
+                #E1E4E7 calc(100% - (var(--spectrum-cool-n) - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
+                #F3F8F7 calc(100% - (var(--rake-near-n)     - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
+                var(--grey-000) 100%;
+
+  --surface-page-wash: linear-gradient(180deg, var(--wash-stops));
 
   --text-primary:     var(--cf-schwarz);
   --text-secondary:   var(--grey-700);
@@ -340,6 +418,15 @@
      this close, so the page wash bands into visible steps. One tile of
      static, greyscale fractal noise breaks the step edges up. Pure SVG, no
      request, no build step, `stitchTiles` so the 140 px tile has no seam.
+
+     IT IS NO LONGER THE ONLY THING WORKING ON THAT PROBLEM. --wash-stops
+     decorrelates the three channels' step positions, taking the wash from 51
+     rendered levels to 130 and dropping full-strength band edges from 99.8 %
+     of transitions to 23.6 % — see the note on the wash above. That is the
+     ramp itself being given more rungs; this is grain laid over what is left,
+     and the two are not substitutes. Nor is the first trick free to apply
+     anywhere: it costs a hue budget, and the wash could afford one only
+     because it had 104.5° of the foil's own travel going spare.
 
      8 % is measured, not guessed: it puts about five 8-bit levels of grain
      on the wash — a band edge is one level, so that is plenty — while
@@ -835,8 +922,11 @@
    ========================================================================== */
 @supports (background: linear-gradient(in oklab, red, blue)) {
   :root {
-    --surface-page-wash: linear-gradient(180deg in oklab,
-                        var(--grey-300) 0%, var(--grey-000) 100%);
+    /* One line, for the reason the two foils are one line each: the stops are
+       a token, so only the path between them changes here. The wash's stops
+       were computed on the oklab path in the first place, which is why this
+       branch is the one they are exactly right on — see the table above. */
+    --surface-page-wash: linear-gradient(180deg in oklab, var(--wash-stops));
 
     --gradient-light: linear-gradient(132.36deg in oklab,
                         var(--cf-lime)  24.97%,
