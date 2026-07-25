@@ -413,7 +413,15 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
    children resolve against it — the glass sheet, the edge, and the mobile
    menu — so overriding this to `static` sends all three to the viewport,
    and a viewport-sized backdrop-filter blurs the entire page. If a context
-   needs the bar not to stick, give it `position: relative`, never `static`. */
+   needs the bar not to stick, give it `position: relative`, never `static`.
+
+   It also has to stay OUT of a wrapper that sets both `overflow` and
+   `border-radius`. Firefox drops backdrop-filter on a sticky element whose
+   ancestor carries that pair, and it fails silently: the bar keeps its tint
+   and its edge and simply stops blurring, which is the one broken state
+   nobody notices in review. The bar is a body-level element on both pattern
+   pages today, so nothing hits this — it is written down because the fix
+   after the fact is to move the nav, and by then the wrapper is load-bearing. */
 .cf-nav {
   position: sticky;   /* not fixed: a fixed backdrop-filter repaints the
                          blurred region on every scroll frame in iOS Safari */
@@ -888,18 +896,23 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   cursor: pointer;
   font-size: var(--text-lg);
   font-weight: var(--weight-medium);
-  transition: background var(--duration-fast) var(--ease-standard);
-}
-.cf-accordion__summary::-webkit-details-marker { display: none; }
-/* Not glass: these rows sit on the page wash, and frosted glass over a flat
-   surface is only a grey box. Light crossing the row is the honest version. */
-.cf-accordion__summary {
+  /* Not glass: these rows sit on the page wash, and frosted glass over a flat
+     surface is only a grey box. Light crossing the row is the honest version.
+
+     Declared here rather than in a second .cf-accordion__summary block below.
+     That block set `transition: background-position`, and the shorthand reset
+     the `transition: background var(--duration-fast)` this rule used to carry
+     — so the row read as a 120 ms background fade in the stylesheet and moved
+     as a 480 ms travelling light on screen. Nothing rendered wrong; the two
+     halves of one component simply disagreed about what it does. One block,
+     one transition. */
   background-image: var(--sheen-panel);
   background-repeat: no-repeat;
   background-size: 200% 100%;
   background-position: 0 0;   /* parked in the gradient's transparent half */
   transition: background-position var(--duration-slow) var(--ease-standard);
 }
+.cf-accordion__summary::-webkit-details-marker { display: none; }
 .cf-accordion__summary:hover,
 .cf-accordion__summary:focus-visible { background-position: 100% 0; }
 .cf-accordion__item[open] .cf-accordion__summary .cf-arrow { transform: rotate(90deg); }
