@@ -17,8 +17,10 @@
     <p class="docs-header__eyebrow">Components</p>
     <h1>Buttons</h1>
     <p>
-      Rectangular, mono uppercase, arrow on the right. The arrow is not decoration — it says
-      the action leads somewhere, and it moves 4 px in that direction on hover.
+      Rectangular with a 2 px corner, mono uppercase, arrow on the right. The arrow is not
+      decoration — it says the action leads somewhere, and it moves 4 px in that direction
+      on hover. On the black button the label is not white but the foil, clipped into the
+      letters.
     </p>
   </header>
 
@@ -81,17 +83,84 @@
       </button>
     </div>
 
-    <h3>Solid</h3>
-    <p>On light, busy surfaces where a contour would disappear.</p>
+    <h3>Solid — the black button</h3>
+    <p>
+      On light, busy surfaces where a contour would disappear. Its label is not white: the
+      foil is clipped into the letterforms, so light enters at the first character and
+      arrives, coloured, at the arrow.
+    </p>
     <div class="docs-demo">
       <button class="cf-btn cf-btn--solid cf-btn--wide">
         Whitepaper laden
         <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
       </button>
     </div>
+    <p>
+      Enlarged, so the travel is visible. This is the same button at 3×, not a separate
+      style — the 2 px corner is drawn at 6 px here for the same reason:
+    </p>
+    <div class="docs-demo">
+      <div style="zoom:3">
+        <button class="cf-btn cf-btn--solid cf-btn--wide" tabindex="-1" aria-hidden="true">
+          Whitepaper laden
+          <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+        </button>
+      </div>
+    </div>
+    <p>
+      It needs no extra class and no label span — <code>.cf-btn--solid</code> is the whole
+      API. Every black button on the site gets this, which is the point: it is what a black
+      button <em>is</em>, not a decoration applied to some of them.
+    </p>
+
+    <h4>Where it comes from</h4>
+    <p>
+      The manual's app icon (<em>Farben &gt; Anwendung</em>) is a black plate with the mark
+      filled by the light ramp — the plate stays black and the mark carries the colour. A
+      black button is the same object at UI scale, so the label carries the colour.
+    </p>
+    <p>
+      It is the <b>foil</b> and not <code>--gradient-light</code>, and that choice is
+      load-bearing. The light ramp starts at lime, and lime is a moment — one element per
+      screen. There can be several black buttons on a page, so a lime-tipped label would
+      spend the screen's one lime moment on a secondary download link. The foil is the cool
+      half of the same spectrum with the lime cut off, which is exactly why it exists.
+      → <a href="../foundations/colors.html#gradients">Colour</a>
+    </p>
+    <p>
+      The gradient box is the whole button, not the label. At 116.57° across a 352 × 48 slab
+      the ramp is 336 px long and runs left to right, so the label — which sits in the left
+      half — gets the Weiss → Glas → Sky leg, and the arrow at the far right gets Violett.
+      Scoped to a label span instead, every button would ramp the full spectrum inside ten
+      characters and read as a rainbow rather than as light crossing a plate.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Foil stop</th><th>Hex</th><th>On anthracite</th><th>On black (hover)</th></tr></thead>
+      <tbody>
+        <tr><td>Weiss</td><td><code>#FFFFFF</code></td><td>16.45:1</td><td>21.00:1</td></tr>
+        <tr><td>Glas</td><td><code>#C5EBE2</code></td><td>12.81:1</td><td>16.36:1</td></tr>
+        <tr><td>Sky 300</td><td><code>#B8D7F1</code></td><td>10.99:1</td><td>14.03:1</td></tr>
+        <tr><td>Violett 300</td><td><code>#BEBFF0</code></td><td><b>9.32:1</b> — the floor</td><td>11.90:1</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Against a 4.5:1 requirement there is no size at which this label is the weak part of
+      the page, which is why it can be the default here rather than an opt-in for large type.
+      Browsers without <code>background-clip: text</code>, print and Windows high-contrast
+      all fall back to a solid label on a solid plate — the state the button had before.
+    </p>
+    <div class="docs-note">
+      <strong>Outline buttons turn black on hover and do not do this.</strong> The rule is
+      about a button whose <em>resting</em> state is black. A hover tint is not a black
+      button, and a gradient that can only appear under a pointer is not something a
+      keyboard or a touch screen can see.
+    </div>
 
     <h3>Ghost</h3>
-    <p>An underlined inline link. For tertiary actions close to body copy.</p>
+    <p>
+      An underlined inline link. For tertiary actions close to body copy. The one button
+      that stays square: it has no plate, only a 1 px rule, and a rule is structure.
+    </p>
     <div class="docs-demo">
       <a class="cf-btn cf-btn--ghost" href="#">
         Alle Beiträge
@@ -123,10 +192,11 @@
         <tr><td>Padding</td><td><code>--space-3</code> / <code>--space-4</code></td></tr>
         <tr><td>Label ↔ arrow</td><td><code>--space-6</code>, pushed apart with <code>space-between</code></td></tr>
         <tr><td>Type</td><td>Geist Mono Medium, 12 px, +0.08em, uppercase</td></tr>
-        <tr><td>Corners</td><td>0 — without exception</td></tr>
-        <tr><td>Arrow</td><td>1.25em, <code>currentColor</code>, +4 px on hover</td></tr>
-        <tr><td>Hover</td><td>specular travels to 64 % over <code>--duration-slow</code> — light does not snap</td></tr>
-        <tr><td>Press</td><td>contour inked to <code>--accent-ink</code> at <code>--duration-base</code>, specular eases back to 92 %</td></tr>
+        <tr><td>Corners</td><td>2 px · <code>--radius-sm</code> — <code>rx="2"</code> on all three CTAs in the export</td></tr>
+        <tr><td>Label</td><td><code>--text-inverse</code>, except on <code>--solid</code>, where it is the foil</td></tr>
+        <tr><td>Arrow</td><td>1.25em, <code>currentColor</code>, +4 px on hover — <code>--violett-300</code> on <code>--solid</code></td></tr>
+        <tr><td>Hover</td><td>on <code>--primary</code>: specular travels to 64 % over <code>--duration-slow</code> — light does not snap</td></tr>
+        <tr><td>Press</td><td>on <code>--primary</code>: contour inked to <code>--accent-ink</code> at <code>--duration-base</code>, specular eases back to 92 %</td></tr>
       </tbody>
     </table>
     <p>
@@ -157,9 +227,10 @@
       <div class="docs-rule docs-rule--do">
         <h4>Do</h4>
         <ul>
-          <li>One primary per screen; everything else outline or ghost.</li>
+          <li>One primary per screen; everything else outline, solid or ghost.</li>
           <li>Use verbs in the label: “Kontakt aufnehmen”, not “Kontakt”.</li>
           <li><code>&lt;a&gt;</code> for navigation, <code>&lt;button&gt;</code> for actions.</li>
+          <li>Let the black button's foil label be — it is the variant, not an option on it.</li>
           <li>Disabled states via the <code>disabled</code> attribute plus a <code>--grey-200</code> surface.</li>
         </ul>
       </div>
@@ -167,8 +238,9 @@
         <h4>Don't</h4>
         <ul>
           <li>No icons other than the CF arrow.</li>
-          <li>No rounded corners, no shadows.</li>
+          <li>No corner other than <code>--radius-sm</code>, and no shadows. Never a pill.</li>
           <li>No primary button on a lime surface.</li>
+          <li>No lime in a button label — that is what the foil is for.</li>
           <li>No lowercase labels — the mono uppercase is part of the brand.</li>
         </ul>
       </div>
