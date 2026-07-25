@@ -26,21 +26,30 @@
     <h2>Contact form</h2>
     <div class="docs-demo">
       <form class="stack stack--8" style="max-width:38rem" novalidate>
+        <div hidden aria-hidden="true">
+          <label for="f-website">Website</label>
+          <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+
         <div class="cf-field">
           <label class="cf-field__label" for="f-name">Name</label>
-          <input class="cf-field__input" id="f-name" name="name" type="text" placeholder="Vor- und Nachname" required>
+          <input class="cf-field__input" id="f-name" name="name" type="text"
+                 autocomplete="name" placeholder="Vor- und Nachname" required>
         </div>
 
         <div class="cf-field">
           <label class="cf-field__label" for="f-mail">E-Mail</label>
           <input class="cf-field__input" id="f-mail" name="email" type="email" placeholder="name@unternehmen.de"
-                 required aria-describedby="f-mail-hint">
+                 autocomplete="email" required aria-describedby="f-mail-hint">
           <span class="cf-field__hint" id="f-mail-hint">Wir antworten in der Regel innerhalb eines Werktages.</span>
         </div>
 
         <div class="cf-field">
-          <label class="cf-field__label" for="f-topic">Thema</label>
+          <label class="cf-field__label" for="f-topic">
+            Thema <span class="cf-field__optional">(optional)</span>
+          </label>
           <select class="cf-field__select" id="f-topic" name="topic">
+            <option value="">Bitte wählen</option>
             <option>Discovery-Workshop</option>
             <option>Datenfundament</option>
             <option>Predictive Maintenance</option>
@@ -51,7 +60,7 @@
 
         <div class="cf-field">
           <label class="cf-field__label" for="f-msg">Nachricht</label>
-          <textarea class="cf-field__textarea" id="f-msg" name="message" placeholder="Worum geht es?"></textarea>
+          <textarea class="cf-field__textarea" id="f-msg" name="message" placeholder="Worum geht es?" required></textarea>
         </div>
 
         <div class="cf-field cf-field--invalid">
@@ -61,19 +70,81 @@
           <span class="cf-field__error" id="f-err-msg">Bitte geben Sie eine gültige E-Mail-Adresse an.</span>
         </div>
 
-        <button class="cf-btn cf-btn--primary" type="submit">
-          Nachricht senden
-          <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
-        </button>
+        <p class="cf-field__hint">
+          Wir verarbeiten Ihre Angaben ausschließlich, um Ihre Anfrage zu beantworten
+          (Art. 6 Abs. 1 lit. b DSGVO), und geben sie an niemanden weiter. Details in der
+          <a href="#a11y">Datenschutzerklärung</a>.
+        </p>
+
+        <div>
+          <button class="cf-btn cf-btn--primary" type="submit">
+            Nachricht senden
+            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+          </button>
+        </div>
       </form>
     </div>
 
     <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-field"</span>&gt;
   &lt;<span class="tag">label</span> <span class="attr">class</span>=<span class="val">"cf-field__label"</span> <span class="attr">for</span>=<span class="val">"f-mail"</span>&gt;E-Mail&lt;/<span class="tag">label</span>&gt;
   &lt;<span class="tag">input</span> <span class="attr">class</span>=<span class="val">"cf-field__input"</span> <span class="attr">id</span>=<span class="val">"f-mail"</span> <span class="attr">type</span>=<span class="val">"email"</span>
+         <span class="attr">autocomplete</span>=<span class="val">"email"</span>
          <span class="attr">aria-describedby</span>=<span class="val">"f-mail-hint"</span> <span class="attr">required</span>&gt;
   &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-field__hint"</span> <span class="attr">id</span>=<span class="val">"f-mail-hint"</span>&gt;Wir antworten …&lt;/<span class="tag">span</span>&gt;
-&lt;/<span class="tag">div</span>&gt;</pre>
+&lt;/<span class="tag">div</span>&gt;
+
+<span class="com">&lt;!-- optional field: mark the exception, not the rule --&gt;</span>
+&lt;<span class="tag">label</span> <span class="attr">class</span>=<span class="val">"cf-field__label"</span> <span class="attr">for</span>=<span class="val">"f-topic"</span>&gt;
+  Thema &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-field__optional"</span>&gt;(optional)&lt;/<span class="tag">span</span>&gt;
+&lt;/<span class="tag">label</span>&gt;</pre>
+
+    <div class="docs-note">
+      <strong>Required is the default, so the exception carries the mark.</strong>
+      On this form only <em>Thema</em> is optional, so marking it is one word instead of
+      four asterisks plus a legend explaining what an asterisk means. The mark is a real
+      word inside the <code>&lt;label&gt;</code>, so it reaches the accessibility tree as
+      part of the accessible name — <code>required</code> on the control still carries
+      the state itself.
+    </div>
+  </section>
+
+  <section class="docs-section" id="error-summary">
+    <h2>Error summary</h2>
+    <p>
+      When a submission comes back with errors, everything that is wrong is listed once at
+      the top of the form, and every item links to the field it belongs to. Each field also
+      keeps its own message: the summary is the index, not a replacement.
+    </p>
+    <div class="docs-demo">
+      <div class="cf-error-summary" role="alert" tabindex="-1" id="fehler">
+        <h3 class="cf-error-summary__title">Bitte prüfen Sie zwei Angaben</h3>
+        <ul class="cf-error-summary__list">
+          <li><a href="#f-mail">E-Mail: Bitte geben Sie eine gültige E-Mail-Adresse an.</a></li>
+          <li><a href="#f-msg">Nachricht: Bitte schreiben Sie uns, worum es geht.</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-error-summary"</span> <span class="attr">role</span>=<span class="val">"alert"</span> <span class="attr">tabindex</span>=<span class="val">"-1"</span> <span class="attr">id</span>=<span class="val">"fehler"</span>&gt;
+  &lt;<span class="tag">h3</span> <span class="attr">class</span>=<span class="val">"cf-error-summary__title"</span>&gt;Bitte prüfen Sie zwei Angaben&lt;/<span class="tag">h3</span>&gt;
+  &lt;<span class="tag">ul</span> <span class="attr">class</span>=<span class="val">"cf-error-summary__list"</span>&gt;
+    &lt;<span class="tag">li</span>&gt;&lt;<span class="tag">a</span> <span class="attr">href</span>=<span class="val">"#f-mail"</span>&gt;E-Mail: Bitte geben Sie eine gültige E-Mail-Adresse an.&lt;/<span class="tag">a</span>&gt;&lt;/<span class="tag">li</span>&gt;
+  &lt;/<span class="tag">ul</span>&gt;
+&lt;/<span class="tag">div</span>&gt;
+
+<span class="com">&lt;!-- the form posts to its own URL plus the fragment, so the browser
+     lands on the summary by itself when the response comes back --&gt;</span>
+&lt;<span class="tag">form</span> <span class="attr">method</span>=<span class="val">"post"</span> <span class="attr">action</span>=<span class="val">"/kontakt#fehler"</span> <span class="attr">novalidate</span>&gt;</pre>
+
+    <div class="docs-note">
+      <strong>It is rendered by the server, not by a script.</strong> The system ships one
+      script and it is the consent banner, so validation belongs on the server: the response
+      to a failed POST contains the summary, the per-field messages and the values the reader
+      already typed. <code>action</code> carries the <code>#fehler</code> fragment, so the
+      browser lands on the summary without anything running. <code>role="alert"</code> and
+      <code>tabindex="-1"</code> are there for the case where a script does inject it into a
+      page that is already loaded — then it announces itself and can be focused.
+    </div>
   </section>
 
   <section class="docs-section" id="anatomy">
@@ -86,7 +157,9 @@
         <tr><td>Line</td><td>1 px underneath; 2 px on focus, no colour change</td></tr>
         <tr><td>Placeholder</td><td><code>--text-muted</code> — it supplements the label, never replaces it</td></tr>
         <tr><td>Hint</td><td>12 px below the field, always visible</td></tr>
-        <tr><td>Error</td><td>line and text in <code>#B3261E</code>, plus a plain-language message</td></tr>
+        <tr><td>Optional marker</td><td>the word <em>(optional)</em> in the label, body face, 12 px</td></tr>
+        <tr><td>Error</td><td>line and text in <code>--feedback-error</code>, plus a plain-language message</td></tr>
+        <tr><td>Error summary</td><td>2 px contour in <code>--feedback-error</code>, <code>--space-6</code> inside, mono title</td></tr>
         <tr><td>Field spacing</td><td><code>--space-8</code> (32 px)</td></tr>
       </tbody>
     </table>
@@ -96,6 +169,16 @@
       appears nowhere else in the system. It never stands alone: there is always a message
       and <code>aria-invalid</code> alongside it.
     </div>
+    <div class="docs-note">
+      <strong>The red is <code>#A72019</code>, and it used to be <code>#B3261E</code>.</strong>
+      The field error is set at 12 px, which is body text and owes 4.5:1. <code>#B3261E</code>
+      measures <strong>4.20:1 on CF-Grau</strong> — the top of the page wash, which is where a
+      form on a short page actually sits — and cleared the bar only against the white end of
+      the wash. <code>#A72019</code> is the same hue two steps darker: 4.71:1 on CF-Grau,
+      7.33:1 on white. It is a token now rather than a literal in two rules, for the same
+      reason anthracite is one, and the inverse theme lightens it to <code>#F2B8B5</code>
+      because the dark red reads at 1.2:1 on the footer.
+    </div>
   </section>
 
   <section class="docs-section" id="a11y">
@@ -104,11 +187,69 @@
       <li>Every field has a visible <code>&lt;label&gt;</code> with <code>for</code>. Never placeholder-as-label.</li>
       <li>Errors via <code>aria-invalid="true"</code> and <code>aria-describedby</code> pointing at the message.</li>
       <li>Validate on blur, not on every keystroke.</li>
-      <li>After submit, move focus to the confirmation or to the first error.</li>
-      <li>Set <code>autocomplete</code> correctly (<code>name</code>, <code>email</code>, <code>organization</code>).</li>
-      <li>The privacy notice with its link sits above the submit button — no pre-ticked checkbox.</li>
+      <li>After submit, move focus to the confirmation or to the error summary.</li>
+      <li>
+        <code>autocomplete</code> on every field that asks for something about the reader —
+        <code>name</code>, <code>email</code>, <code>organization</code>, <code>tel</code>.
+        This is WCAG 1.3.5, an AA criterion, not a convenience.
+      </li>
+      <li>Only what is needed is a required field: name, mail, message. Everything else is marked optional and can stay empty.</li>
       <li>Spam protection by honeypot and timing; no third-party captcha service.</li>
     </ul>
+
+    <h3>The privacy notice, and why there is no checkbox</h3>
+    <p>
+      A short Art. 13 notice — purpose, legal basis, a link to the full statement — sits above
+      the submit button, so it is read before sending rather than after. There is deliberately
+      <strong>no consent checkbox</strong>: for a plain contact request the legal basis is
+      Art. 6 (1) (b) DSGVO, pre-contractual measures, and a tick box would stage a choice that
+      does not exist. It would also be the wrong thing to rely on, because consent can be
+      withdrawn and the answer to a question cannot be unsent. A checkbox belongs on the
+      newsletter, not here.
+    </p>
+    <p>
+      Two more things the form owes and the markup cannot show: it has to post over HTTPS
+      (Art. 32), and it may only ask for what answering actually requires (Art. 5 (1) (c)) —
+      which is why the phone number is not on it at all.
+    </p>
+
+    <h3>Honeypot</h3>
+    <p>
+      A field named the way a bot expects, hidden with the <code>hidden</code> attribute so no
+      screen reader announces it, no <kbd>Tab</kbd> reaches it and no autofill touches it. A
+      bot reading the HTML fills it anyway, and the server drops that submission without a
+      word. The alternative is a third-party captcha, which would mean an external request on
+      every visit and therefore a consent question — a worse trade for the reader and a worse
+      one legally.
+    </p>
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">hidden</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;
+  &lt;<span class="tag">label</span> <span class="attr">for</span>=<span class="val">"f-website"</span>&gt;Website&lt;/<span class="tag">label</span>&gt;
+  &lt;<span class="tag">input</span> <span class="attr">id</span>=<span class="val">"f-website"</span> <span class="attr">name</span>=<span class="val">"website"</span> <span class="attr">type</span>=<span class="val">"text"</span> <span class="attr">tabindex</span>=<span class="val">"-1"</span> <span class="attr">autocomplete</span>=<span class="val">"off"</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+  </section>
+
+  <section class="docs-section" id="usage">
+    <h2>Do &amp; don't</h2>
+    <div class="docs-rules">
+      <div class="docs-rule">
+        <h4>Do</h4>
+        <ul>
+          <li>List every error once at the top and again at its field.</li>
+          <li>Say what to do — „Bitte geben Sie eine gültige E-Mail-Adresse an“, not „ungültig“.</li>
+          <li>Return the reader's own values in the response to a failed submission.</li>
+          <li>Keep the hint visible. A hint that appears only on focus cannot be read by anyone still planning their answer.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Don't put the label in the placeholder. It disappears exactly when it is needed.</li>
+          <li>Don't mark an error with colour alone — the message and <code>aria-invalid</code> carry it.</li>
+          <li>Don't validate while the reader is still typing; wait for blur.</li>
+          <li>Don't ask for a phone number, a company or a salutation in order to answer a question.</li>
+        </ul>
+      </div>
+    </div>
   </section>
 </main>
 

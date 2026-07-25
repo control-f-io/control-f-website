@@ -26,7 +26,7 @@ design-system/
 │                           process card, accordion, blog grid, article + prose,
 │                           team, forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html,
-│                           blog-artikel.html
+│                           blog-artikel.html, kontakt.html
 ├── prototypes/             scroll-animation studies — standalone, not yet system
 ├── reference.html          the designer's source material, next to what implements it
 └── assets/
@@ -95,22 +95,27 @@ Both scrub from scroll position rather than playing on a timer, which is what th
 already commits to in `foundations/motion.html` — the animation tracks the reader's hand
 and reverses when they scroll back.
 
-**They do not agree on `prefers-reduced-motion`, and one of them fails it.** Measured, not
-assumed:
+**`werte-scroll.html` has shipped.** It is the *Unsere Werte* section of
+`patterns/ueber-uns.html` now, rebuilt as `.cf-values`. What changed on the way in:
 
-- `services-scroll.html` is correct. The scrub script returns early, the pinned section
-  goes `static` and auto-height, and the illustration renders in its authored, finished
-  state. Same shape as the fix in #11.
-- `werte-scroll.html` only removes the easing, the fade transition and the caret blink.
-  The 660 vh track and the scroll gating both survive, so at scroll 0 the mark is still
-  empty and its six values are still unreadable until the reader scrolls six screens.
-  A reader who asked for less motion still gets the whole scroll hijack, and the copy is
-  the thing behind it.
+| | prototype | shipped |
+|---|---|---|
+| engine | ~120 lines of JS | a view timeline, no script |
+| copy | typed char by char out of a JS array | six list items in the document |
+| reduced motion | the 660 vh track and the gating both survive | stacked, readable, mark finished |
+| no JS / no support / print | nothing to read | the same stacked state |
+| below 820 px | pinned | stacked, so a phone gets no seven-viewport hijack |
 
-That needs deciding before either goes near a shipping page: under `reduce`, the values
-should almost certainly be six readable blocks with the finished mark, and no track at
-all. Left as-is here rather than rewritten, because it is a prototype for review and the
-behaviour is the designer's call.
+The char-by-char typing did not survive, and that is the one thing the shipped version is
+missing. A view timeline cannot type, and doing it properly needs either a second shipping
+script or ~180 spans per paragraph. Each value now arrives as a whole instead. Worth
+revisiting if the typing turns out to be the point rather than the flourish.
+
+The prototype file stays where it is as the reference for that question.
+
+`services-scroll.html` is still a prototype. Its reduced-motion path is already correct —
+the scrub script returns early, the pinned section goes `static` and auto-height, and the
+illustration renders in its authored, finished state, the same shape as the fix in #11.
 
 ## The system in one paragraph
 
@@ -149,14 +154,17 @@ distance, change the token — not the page.
 | **Team photos** | Six placeholder portraits from the shoot. Real names, roles and the full set of ten still needed. |
 | **Consent copy** | The three categories, their retention periods and the entry counts on `components/consent.html` are placeholders. A lawyer signs off the wording, and the real cookie inventory replaces the numbers. |
 | **Consent record** | `localStorage` proves nothing to a supervisory authority. The decision needs logging server-side before launch. |
+| **Contact endpoint** | `patterns/kontakt.html` posts to `/kontakt` and expects the server to validate, re-render the form with the reader's values and an error summary, drop anything that filled the honeypot, and serve the whole thing over HTTPS. The phone number on the page is a placeholder. |
 | **Redirects** | The old topic pages (Maschinenbau, Energie, Dienstleistungen, Experten) are gone. They need 301s to the new structure. |
 
 ## Language
 
-The documentation is English. The two pattern pages carry the real German marketing copy
-from the Figma mockups, because that is the language the site ships in — translating it
-here would invent content that does not exist. Colour names (Glas, Violett, CF-Grau,
-Schwarz, Weiß) stay German everywhere: they are the brand's names for them.
+The documentation is English. The pattern pages carry German copy, because that is the
+language the site ships in — translating it here would invent content that does not exist.
+Landing Page and Über uns take theirs verbatim from the Figma mockups; Blog article and
+Kontakt have no mockup and their copy is written placeholder in the same voice. Colour
+names (Glas, Violett, CF-Grau, Schwarz, Weiß) stay German everywhere: they are the brand's
+names for them.
 
 ## Decisions that differ from the source material
 
@@ -205,11 +213,20 @@ These were judgement calls, each documented on the relevant page:
   one of the six material layers. → `components/process-card.html`
 - **The footer title is filled with the foil; the mockup paints it solid near-white.**
   Sampled off `mockups/landing-page.jpg`, "Jetzt Projekt starten!" is a flat `#EDF1F2`.
-  The system clips `--gradient-foil` into it instead — one gradient headline per page, on
-  the one surface where it clears AA comfortably. The fallback is the mockup's own value:
+  The system clips `--gradient-foil` into it instead — one foil moment per screen, on the
+  surface where it clears AA comfortably. The fallback is the mockup's own value:
   `.cf-footer__title` sets no colour and inherits white, so any browser that cannot clip a
   background into text renders exactly what the designer drew.
   → `components/footer.html`, `foundations/colors.html`
+- **The Über uns page title is filled with the foil's shadow half; the mockup paints it
+  solid black.** `--gradient-foil` is light-on-dark and cannot be otherwise — every stop is
+  above OKLab L 0.82, so on the page's own CF-Grau it lands at 1.1–1.5:1. That left both
+  designed pages, which are a CF-Grau-to-white wash almost end to end, with no gradient type
+  outside the anthracite footer. `--gradient-foil-ink` is the same three hues moved into the
+  800 band: 102.2° of hue travel across 0.115 of lightness, against the lit half's 104.5°
+  across 0.090. Worst sample on the shipped header is 5.45:1. As above, the fallback is the
+  designer's own value — the title inherits `--text-primary`.
+  → `foundations/colors.html`
 - **Inline SVG gradients carry an oklab waypoint the source vectors do not have.** Figma
   interpolates in sRGB, and SVG can only interpolate in sRGB or linearRGB, so the illustrations
   inherited the sRGB path. The CSS gradients interpolate in oklab. Same three colours, two
@@ -227,3 +244,18 @@ These were judgement calls, each documented on the relevant page:
   `non-scaling-stroke` the dash is measured in screen px while `pathLength` normalises
   against user space, which makes the line-drawing finish at 45 % of its range instead of
   100 %. Traces are stroked in user units at width 2 instead. → `foundations/motion.html`
+
+## Redrawing an illustration: two things that vanish quietly
+
+Both bite when an object is rebuilt or re-exported from `assets/source/illustrations/`, and
+neither announces itself — the drawing still renders, it is simply no longer what the
+designer drew.
+
+- **The oklab waypoint.** `#DBFC60` exists in no source vector, so a re-export drops it and
+  that lime→Glas leg reverts to the sRGB path. Every waypoint carries a comment at the stop.
+  See the bullet above.
+- **A `transform` on an element painted with a `userSpaceOnUse` gradient.** The paint server
+  is resolved in the user space where it is referenced, so the element's own transform
+  rotates its gradient too. On a circle the rotation looks like a no-op against the geometry
+  and is not: card 04's largest orbit had lost `rotate(-90)` and was fading 90° off the
+  designer's axis. Measured and fixed. → `components/process-card.html`
