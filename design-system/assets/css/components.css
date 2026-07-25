@@ -615,12 +615,20 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   text-transform: uppercase;
   color: var(--text-primary);
 }
+/* The other half of the same hairline row, so it is set the same way: mono,
+   11 px, +0.01em, uppercase. Only the colour differs, which is what makes the
+   label read as the heading and the counter as the annotation. Without the
+   uppercase the two ends of one rule were in two different cases — and every
+   counter the designer drew ("189 BEITRÄGE", "SEARCH") is uppercase on the
+   plates. The transform is CSS, not markup, so the accessibility tree still
+   carries "189 Beiträge". */
 .cf-section-header__count {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
   color: var(--text-secondary);
 }
 
@@ -1168,6 +1176,10 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   padding-bottom: var(--space-6);
   border-bottom: var(--stroke-1) solid var(--border-default);
 }
+/* The byline's rule owns the air under it, the same way a section header owns
+   the air under its own hairline. Both the pattern page and this component's
+   documentation page were setting it inline, in the same value, twice. */
+.cf-article__byline + .cf-prose { margin-top: var(--space-8); }
 .cf-article__avatar {
   flex: none;
   width: 3rem;
@@ -1512,9 +1524,23 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
    `subgrid`, so a two-line name grows that track for every card in the row at
    once. Without it, a single wrapped name pushes its own role label 21 px below
    its neighbours' and nothing else moves. */
+/* The track minimum is not free to move. Six people is the shipping count, and
+   a ruled field only looks right when the column count divides it — 6, 3, 2 or
+   1. In a full .container (1280 content) the count is floor(1280 / minimum), so
+   anything under 11.43rem buys a seventh column and anything over 13.33rem
+   loses the sixth: the usable window is 11.5rem to 13.3rem and this sits at the
+   bottom of it. That is deliberate. A minimum low in the window puts the
+   unavoidable 4-and-5-column band at roughly 830 to 1240 rather than 935 to
+   1400, which keeps 1280 — the reference content width, and one of the widths
+   this system is tested at — on a clean single row.
+
+   The band cannot be closed, only moved. Between 3 columns and 6 the count has
+   to pass through 4 and 5, and at those two counts six cards leave a gap in the
+   last row. Fixed column counts would avoid it, but jumping 3 to 6 halves the
+   card width at the breakpoint, which is worse than the gap. */
 .cf-team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
   border-top: var(--stroke-1) solid var(--border-strong);
   border-left: var(--stroke-1) solid var(--border-strong);
 }
@@ -1823,9 +1849,18 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
    padding of its own. Keeps the gap before the footer identical on every page
    instead of leaving it to a per-page margin. */
 .cf-footer--detached { margin-top: var(--section-gap); }
+/* Mark and copy are one centred lockup, which is how the footer is drawn on
+   both plates: on landing-page.jpg the pair runs 334-865 in a 1200 frame and
+   on ueber-uns.jpg 404-795 — both centred on 600 to within a pixel, not
+   aligned to the container's left edge.
+   `justify-content: center` was already here and did nothing, because a
+   minmax(0, 1fr) second track eats every spare pixel and leaves the grid
+   nothing to centre. Sizing both tracks to their content is what makes the
+   declaration true. minmax(0, auto) keeps the title free to wrap rather than
+   forcing the track to the width of the unbroken headline. */
 .cf-footer__cta {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, auto);
   align-items: center;
   gap: var(--space-20);
   justify-content: center;
@@ -1983,6 +2018,12 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-display);
 }
+/* The dialog's title owns the air beneath it, like every other header in the
+   system. All five pages that ship the dialog were setting this one gap
+   inline instead, and the markup documented on components/consent.html never
+   carried it — so the documented snippet rendered the title and its opening
+   sentence with no space at all between them. */
+.cf-consent__dialog-title + .cf-consent__body { margin-top: var(--space-4); }
 .cf-consent__group {
   display: grid;
   gap: var(--space-4);
@@ -2199,7 +2240,13 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   gap: var(--space-8);
   align-items: center;
 }
-.cf-values__mark { display: block; width: 100%; max-width: 18rem; margin-inline: auto; }
+/* 11.25rem is the prototype's 180px cap, and it is the mark's real size rather
+   than a limit it rarely reaches. The middle column is deliberately wider than
+   the mark: the prototype gives it minmax(240px, 30vw) and then draws a 180px
+   sign inside it, so the sign sits in air rather than filling its column. Drop
+   the cap and the mark takes the whole column — 317px at 1440, near twice the
+   drawn size — which is what made this read as the wrong scale. */
+.cf-values__mark { display: block; width: 100%; max-width: 11.25rem; margin-inline: auto; }
 .cf-values__mark line,
 .cf-values__contour { stroke: var(--cf-schwarz); }
 .cf-values__solid   { fill: var(--cf-schwarz); }
@@ -2248,30 +2295,46 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
       display: grid;
       align-content: center;
     }
+    /* The composition is 4 + 4 + 4 on the page's own 12 columns — title, mark,
+       body — not a bespoke three-track ruler. At 1440 that puts each band at
+       410px against the prototype's 432px middle column, so the proportions
+       come out where the prototype had them while every edge still lands on a
+       column line the rest of the page uses.
+
+       The items were previously `position: absolute; inset: 0` against this
+       frame. .cf-values__frame is also a .container, and an absolutely
+       positioned child resolves against the PADDING box, so each item's three
+       tracks were measured across 1438px while the frame's own were measured
+       across the 1280px content box: 528.8 / 316.8 / 528.8 against 449.6 /
+       316.8 / 449.6. The title and body were hanging one full gutter — 79px a
+       side at 1440 — outside the grid everything above them is aligned to.
+       Stacking them as grid items in a shared cell keeps the overlay without
+       leaving the content box. */
     .cf-values__frame {
       position: relative;
-      grid-template-columns: 1fr minmax(12rem, 22vw) 1fr;
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      gap: var(--grid-gap);
       min-height: 60vh;
     }
-    .cf-values__mark { grid-column: 2; grid-row: 1; max-width: none; }
+    .cf-values__mark { grid-column: 5 / 9; grid-row: 1; }
 
     /* every value occupies the same place; the timeline chooses which is lit */
-    .cf-values__list { position: absolute; inset: 0; }
+    .cf-values__list { grid-column: 1 / -1; grid-row: 1; display: grid; }
     /* The stacked state's separator has to be undone at its own specificity.
-       `border: 0` on .cf-values__item loses to .cf-values__item + .cf-values__item,
-       so all five rules survived into the pinned state — stacked on the same
-       line, which is why they read as one hairline straight through the mark. */
+       `border: 0` on .cf-values__item below loses to
+       .cf-values__item + .cf-values__item, so all five separators survived into
+       the pinned state — and because the items stack in one grid cell they land
+       on the same line, reading as one hairline straight through the mark. */
     .cf-values__item + .cf-values__item {
       margin-top: 0;
       padding-top: 0;
       border-top: 0;
     }
     .cf-values__item {
-      position: absolute;
-      inset: 0;
+      grid-area: 1 / 1;
       display: grid;
-      grid-template-columns: 1fr minmax(12rem, 22vw) 1fr;
-      gap: var(--space-8);
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      gap: var(--grid-gap);
       align-items: center;
       margin: 0;
       padding: 0;
@@ -2283,8 +2346,12 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
       animation-fill-mode: both;
       animation-timing-function: linear;
     }
-    .cf-values__title { grid-column: 1; text-align: right; min-height: 2.5em; }
-    .cf-values__body  { grid-column: 3; margin-top: 0; min-height: 7.5em; }
+    /* min-height on both is what keeps the row still while the copy types in:
+       without it the line count changes as characters land and the whole
+       composition shifts under the reader. Reserved from the longest value in
+       the set at the pinned breakpoint. */
+    .cf-values__title { grid-column: 1 / 5;  text-align: right; min-height: 2.5em; }
+    .cf-values__body  { grid-column: 9 / 13; margin-top: 0;     min-height: 7.5em; }
 
     .cf-values__item:nth-child(1) { animation-range: contain 0%      contain 16.667%; }
     .cf-values__item:nth-child(2) { animation-range: contain 16.667% contain 33.333%; }

@@ -316,7 +316,8 @@
         <tr><td><code>--gradient-bloom-iso</code></td><td>radial 2:1 ellipse, mid</td><td>the same bloom on an isometric plate</td></tr>
         <tr><td><code>--gradient-bloom-top</code></td><td>radial from above, far</td><td>light entering a surface from the top edge</td></tr>
         <tr><td><code>--gradient-spectrum</code></td><td>linear 132.36°, five stops</td><td><code>.material-foil</code> — surfaces only</td></tr>
-        <tr><td><code>--gradient-foil</code></td><td>linear 116.57°, the spectrum minus lime, renormalised</td><td><code>.text-foil</code> — one display headline per page</td></tr>
+        <tr><td><code>--gradient-foil</code></td><td>linear 116.57°, the spectrum minus lime, renormalised</td><td><code>.text-foil</code> — the lit half, inverse surfaces</td></tr>
+        <tr><td><code>--gradient-foil-ink</code></td><td>linear 116.57°, the same three hues in the 800 band</td><td><code>.text-foil--ink</code> — the shadow half, light surfaces</td></tr>
         <tr><td><code>--spectrum-hot</code></td><td>18 % — the white hot spot</td><td>shared by both foil gradients; not used alone</td></tr>
         <tr><td><code>--spectrum-cool</code></td><td>64 % — where Sky takes over</td><td>shared by both foil gradients; not used alone</td></tr>
         <tr><td><code>--grain</code></td><td>SVG fractal noise tile</td><td>dithering the page wash</td></tr>
@@ -355,7 +356,15 @@
       uses the cool half of the spectrum — no lime — so a screen that has already spent its
       one lime moment can still carry it. Every sample along it clears <strong>9.3:1</strong>
       on anthracite, which is past AA at any size; on a light surface it fails, so it is an
-      inverse-surface material only. One display headline per page.
+      inverse-surface material only. Its counterpart for light surfaces is
+      <code>.text-foil--ink</code>, below.
+    </p>
+    <p>
+      <strong>One foil moment per screen</strong> — the brand's own unit for the lime rule,
+      and the right unit here too, because the constraint is what the eye takes in at once
+      rather than what a URL contains. A page whose light-surface headline and whose footer
+      never share a screen may carry one of each, which is the case on both designed pages.
+      Two on one screen is one too many.
     </p>
     <p>
       Its stops are not chosen separately. They are the spectrum's own, with lime removed
@@ -385,6 +394,84 @@
       <p class="text-foil" style="font-family:var(--font-display);font-size:var(--text-display-2);font-weight:var(--weight-bold);letter-spacing:var(--tracking-display);margin:0">Jetzt Projekt starten!</p>
     </div>
     <pre class="docs-code">&lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-footer__title text-foil"</span>&gt;Jetzt Projekt starten!&lt;/<span class="tag">p</span>&gt;</pre>
+
+    <h3>The shadow half — <code>.text-foil--ink</code></h3>
+    <p>
+      Every stop in the foil above sits above OKLab L 0.82, so on the page's own CF-Grau it
+      lands between 1.1:1 and 1.5:1. That left the two designed pages — a CF-Grau-to-white
+      wash almost end to end — with no gradient type at all, and the only foil moment on
+      either of them down in the anthracite footer. <code>--gradient-foil-ink</code> is the
+      same material seen from the other side. Not a second gradient: the other half of the
+      one that already exists.
+    </p>
+    <p>
+      It is built by the rule the foil is built by. Iridescence is hue travel inside a
+      <em>narrow luminance band</em>, so the band moves and the hue travel does not. The
+      ramps are white-mixes and black-mixes of one palette, so the dark mirror falls
+      straight out of them:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Stop</th><th>Lit half</th><th>L</th><th>Shadow half</th><th>L</th><th>Hue</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Glas 500</td><td>0.910</td><td>Glas 800</td><td>0.426</td><td>179.4° / 180.0°</td></tr>
+        <tr><td>2</td><td>Sky 300</td><td>0.865</td><td>Sky 800</td><td>0.353</td><td>243.6° / 242.5°</td></tr>
+        <tr><td>3</td><td>Violett 300</td><td>0.820</td><td>Violett 800</td><td>0.311</td><td>283.9° / 282.2°</td></tr>
+        <tr><td colspan="2">band depth</td><td>0.090</td><td></td><td>0.115</td><td>104.5° / 102.2°</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Two decimal places of hue apart across three stops, and a band 0.025 wider. It reads
+      as the same material because it is. The stops are the spectrum's own once again — the
+      lit half drops Weiss and rebases off the hot spot, so the shadow half drops the hot
+      spot too and rebases off the near rake: Glas (32−32)/(100−32) = 0 %,
+      Sky (64−32)/(100−32) = 47 %, Violett 100 %. Same 116.57° rake, same reason.
+    </p>
+    <p>
+      <strong>It has no hot spot, and that is the one place the mirror is not symmetric.</strong>
+      The foil's Weiss sits deliberately above its band as a specular. The ink mirror of that
+      would be a stop below L 0.311, and there is no room for its opposite either — the
+      lightest ink that still clears 4.5:1 on CF-Grau is about L 0.44, which is where Glas
+      800 already sits. So the shadow half is the falloff without the highlight, which is
+      what the shadow side of a foil actually looks like. Completing it with Schwarz at 0 %
+      would put a 0.426 span on a ramp whose whole claim is a 0.115 one, and it would read
+      as a fade to black rather than as foil.
+    </p>
+    <p>
+      The 800s are not a taste choice. They are the lightest rung of the ramp that clears AA
+      on the page's own grey: Glas 700, the obvious pick for a lighter and prettier ink, is
+      <strong>1.5:1</strong> on CF-Grau. Measured on the shipped page header at 375 / 768 /
+      1280 / 1920, worst sample against the real backdrop:
+      <strong>5.45 / 5.51 / 5.56 / 5.56:1</strong>. Against flat CF-Grau it is 5.24:1 and
+      against white 8.16:1, so the worst case is the <em>top</em> of the page wash — this
+      ink darkens as it travels, so unlike the lit half it gets safer further down the page.
+    </p>
+    <div class="docs-demo">
+      <p class="text-foil text-foil--ink" style="font-family:var(--font-display);font-size:var(--text-display-2);font-weight:var(--weight-bold);letter-spacing:var(--tracking-display);margin:0">Über uns</p>
+    </div>
+    <pre class="docs-code">&lt;<span class="tag">h1</span> <span class="attr">class</span>=<span class="val">"cf-page-header__title text-foil text-foil--ink"</span>&gt;Über uns&lt;/<span class="tag">h1</span>&gt;</pre>
+
+    <div class="docs-note">
+      <strong>The clip box is sized to the text.</strong>
+      <p>
+        <code>background-clip: text</code> clips a background painted across the whole
+        element box, and a display headline in a block is as wide as its column however
+        short the words are. Measured on the footer title before this was fixed: at a 1920
+        viewport the box was 1000 px against 378 px of inked text, so the letterforms
+        sampled only the first <strong>36.5 %</strong> of a four-stop ramp. Weiss and Glas
+        rendered, Sky barely arrived, and <strong>Violett never appeared on the page at
+        all</strong> at any viewport above roughly 400 px. The claim above that the shallow
+        rake "spreads it across the whole line" was describing the intent rather than the
+        paint.
+      </p>
+      <p>
+        <code>.text-foil</code> now takes <code>width: fit-content</code> inside the same
+        <code>@supports</code> block. <code>fit-content</code> and not
+        <code>max-content</code>: it resolves to min(max-content, available), so a short
+        headline shrink-wraps and a long one still wraps and fills its column exactly as
+        before. It sits inside <code>@supports</code> because outside it nothing is clipped,
+        and shrinking the box there would be a layout change for no reason.
+      </p>
+    </div>
     <div class="docs-note">
       <strong>What it falls back to.</strong>
       <p>
@@ -392,7 +479,9 @@
         inherited solid colour — nothing is transparent until the browser has proved it can
         clip. Print and <code>forced-colors</code> both reset to solid type, and
         <code>::selection</code> gets an explicit fill because clipped text has no colour
-        left for the selection layer to invert.
+        left for the selection layer to invert. Both variants share every one of those
+        rules: <code>--ink</code> is a modifier that swaps one custom property,
+        <code>--foil-image</code>, so it cannot drift out of the safety net.
       </p>
     </div>
   </section>
