@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subdivision Field — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Components</p>
+    <h1>Subdivision Field</h1>
+    <p>
+      The manual's <em>Teilungsraster</em> plate makes a claim the web implementation had
+      never answered: the recursive subdivision “kann als Konzept für interaktive
+      UI-Elemente oder Menüstrukturen genutzt werden.” Until now the subdivision was a
+      layout — <code>.subdivide</code>, and the blog grid on top of it — where the
+      hierarchy is authored once and then fixed, because which article is largest is a fact
+      about the archive. A <strong>field</strong> is the same series with the hierarchy
+      handed to the reader. Point at a cell and it takes the half; everything else keeps
+      its place in the row and continues the series behind it.
+    </p>
+  </header>
+
+  <section class="docs-section" id="field">
+    <h2>The field</h2>
+    <p>
+      Five cells, resting. This is the pure plate drawn exactly — 1/2, 1/4, 1/8, 1/8 —
+      because the resting head is the first cell. Move across it, or tab into it.
+    </p>
+
+    <div class="docs-demo docs-demo--plain">
+      <nav class="cf-subdiv" aria-label="Prozess">
+        <a class="cf-subdiv__cell" href="#field">
+          <span class="cf-subdiv__tick">01 — Discovery</span>
+          <span class="cf-subdiv__body">
+            <span class="cf-subdiv__title">Wir hören zu, bevor wir messen</span>
+            <span class="cf-subdiv__meta">Workshop · 2 Wochen</span>
+          </span>
+        </a>
+        <a class="cf-subdiv__cell" href="#field">
+          <span class="cf-subdiv__tick">02 — Datenfundament</span>
+          <span class="cf-subdiv__body">
+            <span class="cf-subdiv__title">Ein Fundament, auf dem Zahlen halten</span>
+            <span class="cf-subdiv__meta">Integration · 6 Wochen</span>
+          </span>
+        </a>
+        <a class="cf-subdiv__cell" href="#field">
+          <span class="cf-subdiv__tick">03 — Weniger Ausfälle</span>
+          <span class="cf-subdiv__body">
+            <span class="cf-subdiv__title">Störungen, bevor sie Stillstand werden</span>
+            <span class="cf-subdiv__meta">Betrieb · laufend</span>
+          </span>
+        </a>
+        <a class="cf-subdiv__cell" href="#field">
+          <span class="cf-subdiv__tick">04 — Mehr Leistung</span>
+          <span class="cf-subdiv__body">
+            <span class="cf-subdiv__title">Dieselbe Anlage, mehr Durchsatz</span>
+            <span class="cf-subdiv__meta">Optimierung · laufend</span>
+          </span>
+        </a>
+        <a class="cf-subdiv__cell" href="#field">
+          <span class="cf-subdiv__tick">05 — Weitergabe</span>
+          <span class="cf-subdiv__body">
+            <span class="cf-subdiv__title">Am Ende kann es Ihr Team allein</span>
+            <span class="cf-subdiv__meta">Übergabe · 4 Wochen</span>
+          </span>
+        </a>
+      </nav>
+    </div>
+
+    <p style="margin-top:var(--space-6)">
+      The tick names its cell at every width, which is the only thing a 1/16 cell has room
+      for and is how the application plate labels a column too. The copy arrives in the same
+      series the widths do: the head carries all of it, the next rank keeps its title, and
+      from there down the tick <em>is</em> the cell.
+    </p>
+
+    <pre class="docs-code">&lt;<span class="tag">nav</span> <span class="attr">class</span>=<span class="val">"cf-subdiv"</span> <span class="attr">aria-label</span>=<span class="val">"Prozess"</span>&gt;
+  &lt;<span class="tag">a</span> <span class="attr">class</span>=<span class="val">"cf-subdiv__cell"</span> <span class="attr">href</span>=<span class="val">"/prozess/discovery"</span>&gt;
+    &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-subdiv__tick"</span>&gt;01 — Discovery&lt;/<span class="tag">span</span>&gt;
+    &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-subdiv__body"</span>&gt;
+      &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-subdiv__title"</span>&gt;Wir hören zu, bevor wir messen&lt;/<span class="tag">span</span>&gt;
+      &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-subdiv__meta"</span>&gt;Workshop · 2 Wochen&lt;/<span class="tag">span</span>&gt;
+    &lt;/<span class="tag">span</span>&gt;
+  &lt;/<span class="tag">a</span>&gt;
+  <span class="com">&lt;!-- three to six cells; nothing else is authored --&gt;</span>
+&lt;/<span class="tag">nav</span>&gt;</pre>
+
+    <div class="docs-note">
+      <strong>There are no custom properties in that markup, on purpose.</strong> Depth is
+      read off the DOM — <code>:has(&gt; .cf-subdiv__cell:nth-child(5):last-child)</code>
+      sets <code>--subdiv-n</code> — so the count cannot drift from the number of cells the
+      way a hand-written <code>--subdiv-count</code> can. Index comes from
+      <code>:nth-child</code>. The only number that moves is the head, and it is one
+      inherited value on the container. Add or delete a cell and the series re-forms
+      correctly with no other edit. Compare <code>.subdivide</code>, where
+      <code>--rank</code> and <code>--subdivide-count</code> are both hand-set: that is
+      right for a layout, where the ranks encode editorial fact, and wrong here.
+    </div>
+  </section>
+
+  <section class="docs-section" id="rule">
+    <h2>The rule, and why it is this rule</h2>
+    <p>
+      The halving series never changes: <code>1/2, 1/4, 1/8 …</code> with the last two ranks
+      tied, which is what makes the fractions sum to exactly one rather than to one minus
+      the tail. What changes is who stands at its head. The head takes rank&nbsp;0; every
+      other cell keeps its position in the row and takes the next rank in markup order.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Head</th><th>Widths, five cells</th><th>Where the rules stand</th></tr></thead>
+      <tbody>
+        <tr><td>cell 1 (rest)</td><td><code>16 · 8 · 4 · 2 · 2</code></td><td>the pure plate</td></tr>
+        <tr><td>cell 2</td><td><code>8 · 16 · 4 · 2 · 2</code></td><td>rules 3, 4, 5 unmoved</td></tr>
+        <tr><td>cell 3</td><td><code>8 · 4 · 16 · 2 · 2</code></td><td>rules 4, 5 unmoved</td></tr>
+        <tr><td>cell 4</td><td><code>8 · 4 · 2 · 16 · 2</code></td><td>rule 5 unmoved</td></tr>
+        <tr><td>cell 5</td><td><code>8 · 4 · 2 · 2 · 16</code></td><td>—</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Three properties fall out of that one rule, and together they are the argument for it
+      over the obvious alternative — rotating the series so the head always sits in the
+      widest slot.
+    </p>
+    <div class="docs-note">
+      <strong>1. The cells never reorder.</strong> Reading order is markup order at every
+      state. A menu whose items change places while you look at it is not a menu.
+      <br><br>
+      <strong>2. The head only ever grows around the pointer.</strong> Cell <em>k</em> at the
+      head takes <code>s1</code> while cells <code>1..k-1</code> take <code>s2..sk</code>;
+      the series is non-increasing, so <code>sum(s2..sk) ≤ sum(s1..sk-1)</code> and the
+      head's leading edge moves left and never right. Its box strictly contains the box it
+      had, so the pointer that summoned the cell is still inside it.
+      <strong>The rotation fails exactly here.</strong> Measured in Chromium at 1024 px:
+      hovering cell 4 under a rotating series moves that cell from
+      <code>[896, 960]</code> to <code>[256, 768]</code> — it leaves the pointer entirely,
+      the cursor lands on cell 5, and the field jumps a second time. Under this rule the same
+      cell goes from <code>[896, 960]</code> to <code>[448, 960]</code>. A layout that moves
+      out from under the pointer that summoned it is a trap; this one cannot be one.
+      <br><br>
+      <strong>3. The rules ahead of you do not move.</strong> Cells after the head keep their
+      resting weights exactly, so every hairline from the head rightwards stands where it
+      stood at rest. Only the rules behind your attention slide. That is what makes a field
+      of six moving columns legible rather than busy: at any moment at most half the drawing
+      is in motion, and it is the half you have already read.
+    </div>
+    <p>
+      Written in CSS the rank is four lines, because CSS has no conditional and
+      <code>clamp(0, x, 1)</code> is the sign of an integer:
+    </p>
+    <pre class="docs-code"><span class="attr">--subdiv-after</span>:  clamp(0, var(--subdiv-h) - var(--subdiv-i), 1);   <span class="com">/* 1 if this cell precedes the head */</span>
+<span class="attr">--subdiv-before</span>: clamp(0, var(--subdiv-i) - var(--subdiv-h), 1);
+<span class="attr">--subdiv-eq</span>:     calc(1 - var(--subdiv-after) - var(--subdiv-before));  <span class="com">/* 1 only at the head */</span>
+<span class="attr">--subdiv-r</span>:      calc((var(--subdiv-i) + var(--subdiv-after)) * (1 - var(--subdiv-eq)));
+
+<span class="attr">flex-grow</span>: pow(2, calc(var(--subdiv-n) - 1 - min(var(--subdiv-r), var(--subdiv-n) - 2)));</pre>
+    <p>
+      The <code>min()</code> is the tie between the last two ranks. Swept in Chromium against
+      the shipping CSS — every depth from three to six, every head at each depth, 18 states —
+      inside a 1024 px field: the cells divide the field's 1023 px content box (the missing
+      pixel is its right contour) into <code>511.5 / 255.75 / 127.875 / 63.938 / 31.969</code>,
+      exact halves at every rank, summing to the content box with no remainder in any state.
+      The containment property in point 2 was measured separately and holds for every cell at
+      every head.
+    </p>
+  </section>
+
+  <section class="docs-section" id="depth">
+    <h2>Depth</h2>
+    <p>
+      Three to six cells, the same range <code>.subdivide</code> covers. Below three there is
+      no series; above six the tail cell is 1/32 of the field and the tick stops fitting.
+      Nothing is set to choose the depth — the field counts its own children.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <nav class="cf-subdiv" style="--subdiv-height:9rem" aria-label="Archiv nach Jahr">
+        <a class="cf-subdiv__cell" href="#depth">
+          <span class="cf-subdiv__tick">Aktuell</span>
+          <span class="cf-subdiv__body">
+            <span class="cf-subdiv__title">Was diesen Monat erschienen ist</span>
+            <span class="cf-subdiv__meta">4 Beiträge</span>
+          </span>
+        </a>
+        <a class="cf-subdiv__cell" href="#depth">
+          <span class="cf-subdiv__tick">2026</span>
+          <span class="cf-subdiv__body">
+            <span class="cf-subdiv__title">Telemetrie, Netze, Nachtabsenkung</span>
+            <span class="cf-subdiv__meta">31 Beiträge</span>
+          </span>
+        </a>
+        <a class="cf-subdiv__cell" href="#depth">
+          <span class="cf-subdiv__tick">2025</span>
+          <span class="cf-subdiv__body">
+            <span class="cf-subdiv__title">Das Jahr der digitalen Zwillinge</span>
+            <span class="cf-subdiv__meta">48 Beiträge</span>
+          </span>
+        </a>
+        <a class="cf-subdiv__cell" href="#depth">
+          <span class="cf-subdiv__tick">2022 – 2024</span>
+          <span class="cf-subdiv__body">
+            <span class="cf-subdiv__title">Das Archiv</span>
+            <span class="cf-subdiv__meta">96 Beiträge</span>
+          </span>
+        </a>
+      </nav>
+    </div>
+    <p style="margin-top:var(--space-6)">
+      This is the application plate's own subject — a blog index divided by recency — with
+      the difference that the plate fixes the hierarchy and the field lets the reader move
+      it. Four cells here rather than five, and neither the CSS nor the markup was told.
+    </p>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>.cf-subdiv</code></td>
+          <td>The field. Carries top, right and bottom edges; the left edge belongs to the first cell. Sets <code>--subdiv-height</code> (14rem) and holds the head as <code>--subdiv-h</code>.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-subdiv__cell</code></td>
+          <td>One cell, and a real link. Draws its own leading rule as <code>::before</code>, so the rules are cell-owned and never doubled.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-subdiv__cell::after</code></td>
+          <td>The light. The head's contour drawn in <code>--gradient-foil-ink</code>, faded in and out by rank rather than switched by a selector.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-subdiv__tick</code></td>
+          <td>Geist Mono, vertical, standing on the leading rule. Visible at every rank — this is the cell's permanent name.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-subdiv__title</code></td>
+          <td>Visible at ranks 0 and 1.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-subdiv__meta</code></td>
+          <td>Mono, visible at rank 0 only.</td>
+        </tr>
+        <tr>
+          <td><code>--subdiv-height</code></td>
+          <td>The one thing worth overriding. 14rem by default; 9rem reads as a bar rather than a board.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="materials">
+    <h2>Where it sits in the six layers</h2>
+    <p>
+      Base wash, then contour, then light, then text — no opaque layer and no glass. The
+      field is drawn, not filled, which is the default for anything structural in this
+      system, and there is nothing complicated underneath it for glass to calm.
+    </p>
+    <div class="docs-note">
+      <strong>The light enters the contour rather than sitting on it.</strong> The head's
+      leading rule is painted with <code>--gradient-foil-ink</code> — the foil's shadow half
+      — instead of ink. This is the one place in the six-layer stack the light layer and the
+      contour layer are allowed to be the same pixel, and it is what makes the light appear
+      to travel along the field as attention moves. It is the ink half because the field sits
+      on the page wash, where the lit half of the foil measures 1.1–1.5:1.
+      <br><br>
+      <strong>It is never lime.</strong> <code>#E1FF00</code> on CF-Grau is 1.4:1 and a
+      contour has to clear 3:1 on its own. This is the same reasoning that put the foil
+      rather than the lime ramp in the black button's label: the foil exists precisely so
+      colour can enter a mark without spending the screen's one lime moment.
+    </div>
+  </section>
+
+  <section class="docs-section" id="behaviour">
+    <h2>Behaviour, support and the ways out</h2>
+    <table class="docs-table">
+      <thead><tr><th>Path</th><th>What the reader gets</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Pointer</td>
+          <td>Hover promotes the cell. The head's box always contains the box it had, so the pointer cannot fall out of the cell it opened.</td>
+        </tr>
+        <tr>
+          <td>Keyboard</td>
+          <td>Identical. <code>:focus-visible</code> is in the same <code>:is()</code> as <code>:hover</code>, so tabbing through the field opens each cell exactly as pointing at it does, and the focus ring is the system's own.</td>
+        </tr>
+        <tr>
+          <td>Touch</td>
+          <td>The resting field, and a tap follows the link. Every cell is named by its tick at rest, so nothing is reachable only by hovering.</td>
+        </tr>
+        <tr>
+          <td>Screen reader</td>
+          <td>A <code>&lt;nav&gt;</code> of links. Copy is faded with <code>opacity</code>, never <code>display</code>, so a cell's title is part of its link name at every rank — the accessible name does not depend on the visual state.</td>
+        </tr>
+        <tr>
+          <td>Reduced motion</td>
+          <td>Every state, no transition. The promotion still happens; it arrives instantly. Motion is opted into under <code>prefers-reduced-motion: no-preference</code>, the way the rest of the system does it.</td>
+        </tr>
+        <tr>
+          <td>No <code>:has()</code> or no <code>pow()</code></td>
+          <td>Equal cells, all copy visible — <em>the manual's other form</em>, <code>.subdivide--even</code>, rather than a degradation. The whole system is inside one <code>@supports selector(:has(*)) and (flex-grow: pow(2, 3))</code>.</td>
+        </tr>
+        <tr>
+          <td>Under 44rem <em>of its own width</em></td>
+          <td>The field folds to a stack: equal cells, every cell open, ticks horizontal, leading rules become top rules. A container query, not a media query — the same field is comfortable in 900 px of page and impossible in 900 px of viewport behind a 272 px sidebar.</td>
+        </tr>
+        <tr>
+          <td>Print, forced colours</td>
+          <td>Everything, unweighted and unfaded.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>Why <code>flex-grow</code> and not <code>grid-template-columns</code>.</strong>
+      A grid would put the whole track set on the container, which means one declaration per
+      head per depth — sixteen of them for depths three to six — where the flex form is one
+      declaration on the cell and a number that inherits. <code>flex-grow</code> is also a
+      plain number, so it interpolates: the field can transition where a track list cannot.
+      <br><br>
+      <strong>Why nothing animates to an intrinsic size.</strong>
+      <code>interpolate-size: allow-keywords</code> and <code>calc-size()</code> would be the
+      obvious modern way to open a cell to its content width, and they are still Chromium-only
+      — not Baseline in Firefox or Safari. A field whose proportions only resolve in one engine
+      is not a system. The series is unitless and needs neither.
+      <br><br>
+      <strong>What transitioning <code>flex-grow</code> actually costs.</strong> It reflows the
+      field every frame — <code>flex-grow</code> is not composited, and no amount of it is. It
+      is affordable here because the field is one flex line of at most six items and the copy
+      inside them is faded rather than re-wrapped, so the reflow is a handful of boxes and no
+      text layout. This is not a licence to transition <code>flex-grow</code> on a page-level
+      layout.
+    </div>
+  </section>
+
+  <section class="docs-section" id="dos">
+    <h2>Do and don't</h2>
+    <table class="docs-table">
+      <thead><tr><th>Do</th><th>Don't</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Use it where the items have a natural order and unequal weight — a process, an archive by recency, a set of chapters.</td>
+          <td>Use it for items of equal rank. A subdivision claims a hierarchy; four services that matter equally should be four equal cells, and that is <code>.subdivide--even</code>.</td>
+        </tr>
+        <tr>
+          <td>Give every cell a tick short enough to read vertically in a 1/16 cell — two or three words.</td>
+          <td>Let the tick wrap. It is <code>white-space: nowrap</code>, so a long one will overflow its cell rather than fold.</td>
+        </tr>
+        <tr>
+          <td>Let the resting head be the cell you would have made largest anyway. It is always the first one.</td>
+          <td>Reorder the markup to change what opens first. Markup order is reading order, and the reader will find the rest.</td>
+        </tr>
+        <tr>
+          <td>Keep it to one per page.</td>
+          <td>Put two fields in one section. Two of them re-proportioning near each other is the busiest thing this system can draw.</td>
+        </tr>
+        <tr>
+          <td>Let the cells be links or buttons — something focus lands on.</td>
+          <td>Make the cells <code>&lt;div&gt;</code>s and drive the field from hover alone. That is a menu no keyboard can open.</td>
+        </tr>
+        <tr>
+          <td>Nest it in nothing. It is a band, full width of its column.</td>
+          <td>Put it inside the 12-column grid alongside content. The subdivision orders quantity; the 12-column grid orders content; the two are never nested.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="open">
+    <h2>Still open</h2>
+    <ul>
+      <li>
+        <strong>It is not on a designed page yet.</strong> The two mockup-derived pages —
+        Landing Page and Über uns — are drawn from Figma frames that contain no field, and
+        putting one in would be inventing a section the designer did not draw. The honest
+        first application is <code>patterns/news.html</code>, whose archive is already
+        eleven pages deep and whose topic row is three flat tags today; the manual's own
+        application plate is a blog index divided exactly this way. That change needs the
+        real per-year counts, which the page does not have, so it is proposed here rather
+        than made.
+      </li>
+      <li>
+        <strong>The head does not persist.</strong> Releasing the pointer returns the field
+        to its resting state. A field used as a section switcher would want the chosen cell
+        to stay open, which is <code>:target</code> or a radio group and no new geometry —
+        but it is a different component's job, because a switcher owns a panel and this
+        one owns only itself.
+      </li>
+      <li>
+        <strong>Depth stops at six.</strong> Seven cells would need one more
+        <code>:nth-child</code> rule and a tail cell of 1/64. <code>sibling-index()</code>
+        and <code>sibling-count()</code> would collapse all twelve index and depth rules to
+        two declarations and remove the ceiling entirely; they are Chromium-only as of this
+        writing, so the rules stay written out.
+      </li>
+    </ul>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>

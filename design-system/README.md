@@ -38,8 +38,9 @@ design-system/
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
 │                           illustration, logo, photo, motion, mobile
 ├── components/             buttons, nav, section header, statement + value table,
-│                           plot, process card, accordion, blog grid, pagination,
-│                           article + prose, team, forms, footer, consent
+│                           plot, process card, accordion, blog grid, subdivision
+│                           field, pagination, article + prose, team, forms,
+│                           footer, consent
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html,
 │                           news.html, blog-artikel.html, kontakt.html
 ├── prototypes/             scroll-animation studies — standalone, not yet system
@@ -315,6 +316,20 @@ These were judgement calls, each documented on the relevant page:
   same place. Sampled off rendered pixels in Chromium over 4,000 px, the wash goes from 51
   distinct colours to 130, and transitions that move all three channels at once fall from
   99.8 % to 23.6 %. → `foundations/colors.html`
+- **The subdivision grid is two implementations of one system.** The manual's *Teilungsraster*
+  plate says the recursive system "kann als Konzept für interaktive UI-Elemente oder
+  Menüstrukturen genutzt werden" — a use no plate illustrates, because a book cannot draw a
+  layout that answers to a reader. `.subdivide` is the static half: a track set whose hierarchy
+  is authored once, because which article is newest is a fact about the archive. `.cf-subdiv`
+  is the moving half: the same halving series, with which cell stands at its head handed to
+  whoever is looking. It is built on `flex-grow` rather than on tracks because a track list
+  cannot interpolate and a unitless number can, and because the flex form is one declaration on
+  the cell where the grid form would be one track list per head per depth — sixteen of them.
+  Both draw the identical series at rest. The head rule is *the head takes rank 0 and everyone
+  else keeps their place and continues the series*, not a rotation: under a rotation the
+  hovered cell slides out from under the pointer that summoned it (measured, 1024 px, cell 4
+  goes `[896,960]` → `[256,768]`), and under this one its box always contains the box it had.
+  → `components/subdivision-field.html`
 - **The plot is derived from the language, not measured off a plate.** The brand manual
   contains a statistics and diagram plate; the 22 plates in `assets/source/manual/` are not
   it. `.cf-plot` is therefore built only from parts that *are* documented — the lattice
