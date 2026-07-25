@@ -23,8 +23,8 @@ design-system/
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
 │                           logo, photo, motion
 ├── components/             buttons, nav, section header, statement + value table,
-│                           process card, accordion, blog grid, article + prose,
-│                           team, forms, footer, consent
+│                           plot, process card, accordion, blog grid,
+│                           article + prose, team, forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html,
 │                           blog-artikel.html, kontakt.html
 ├── prototypes/             scroll-animation studies — standalone, not yet system
@@ -215,6 +215,17 @@ These were judgement calls, each documented on the relevant page:
   that leg to the sRGB path.** Nothing fails when this happens; the stop is simply gone. Every
   waypoint therefore carries a comment at the stop itself. Re-add it after any rebuild.
   → `foundations/colors.html`
+- **The plot is derived from the language, not measured off a plate.** The brand manual
+  contains a statistics and diagram plate; the 22 plates in `assets/source/manual/` are not
+  it. `.cf-plot` is therefore built only from parts that *are* documented — the lattice
+  rhombus, the four angles, the 1-4 ghost line type, the light layer, and the cube from the
+  icon set extruded past one unit. Check it against that plate when the full archive is to
+  hand; if the two disagree, the plate wins. One thing the plate cannot overrule: the row of
+  columns is **level**, not receding. Both isometric ground axes slope 26.57° on screen, and
+  marching columns along either one subtracts a unit of drawn height per column — on five
+  columns rising 31 → 100 the recession cancelled almost the whole climb and the tallest
+  column was drawn *lower* than the shortest. The level row is still a lattice step:
+  (2u, +u) + (2u, −u) = (4u, 0). → `components/plot.html`
 - **Isometric contours use `vector-effect: non-scaling-stroke`.** "1 px contour at every
   size" is a device pixel. A 640-unit drawing shown at 352 px would otherwise put its
   contours on screen at 0.55 px. The one exception is `.cf-iso__trace`: under

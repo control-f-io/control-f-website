@@ -1311,9 +1311,16 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
    square, an ordered one is a mono ordinal. Both hang outside the text
    column so the left edge of the copy stays straight.
    0.725em is half of --leading-relaxed, i.e. the centre of the first line. */
+
+   A .cf-plot is an <ol> whose items are columns rather than list items, and
+   these three rules would give each column a hanging ordinal, a 32 px indent
+   and a 12 px top margin that steps every column but the first out of the row.
+   Excluded here rather than fought with specificity inside the plot block, for
+   the same reason .cf-quote is excluded from the figure rule below: the
+   exception belongs where the general rule is written. */
 .cf-prose :is(ul, ol) { margin-left: 0; padding-left: 0; list-style: none; }
-.cf-prose li { position: relative; padding-left: var(--space-8); }
-.cf-prose li + li { margin-top: var(--space-3); }
+.cf-prose li:not(.cf-plot__col) { position: relative; padding-left: var(--space-8); }
+.cf-prose li + li:not(.cf-plot__col) { margin-top: var(--space-3); }
 .cf-prose ul > li::before {
   content: "";
   position: absolute;
@@ -1324,7 +1331,7 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   border: var(--stroke-1) solid var(--border-strong);
 }
 .cf-prose ol { counter-reset: cf-ol; }
-.cf-prose ol > li::before {
+.cf-prose ol > li:not(.cf-plot__col)::before {
   counter-increment: cf-ol;
   content: counter(cf-ol, decimal-leading-zero);
   position: absolute;
@@ -1339,9 +1346,14 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 
 /* Figures run the full width of the column. The plate carries the contour;
    the caption hangs under a lighter hairline so the two rules do not read as
-   the same line. */
+   the same line.
+
+   A plot is a figure whose drawings are not plates: .cf-plot holds one small
+   SVG per column, and framing each of them would put a boxed, filled panel
+   round every single column. The plot draws its own contour and stands on the
+   page wash, so it is excluded. */
 .cf-prose figure { margin-top: var(--space-12); }
-.cf-prose figure :is(img, svg, video) {
+.cf-prose figure :is(img, svg, video):not(.cf-plot__draw) {
   width: 100%;
   border: var(--stroke-1) solid var(--border-strong);
   background: var(--surface-raised);
@@ -2427,4 +2439,259 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 @keyframes cf-values-progress {
   from { transform: scaleX(0); }
   to   { transform: scaleX(1); }
+}
+
+/* --------------------------------------------------------------------------
+   PLOT — the isometric column diagram
+   The system could draw an object in space, and it could set a number in mono.
+   It could not put a number IN space, which is the one thing a brand about
+   turning sensor data into answers has to be able to do. This is that
+   vocabulary, and every part of it is borrowed rather than invented:
+
+     the cell      one 2:1 rhombus — the lattice tile the whole brand is built
+                   on — drawn 1-4 dashed, because the ground a column stands on
+                   is construction geometry and not something measured
+     the shaft     three verticals on the 90 deg axis. Contour, never fill
+     the cap       the same rhombus, lifted by the value. The cube from the
+                   icon set, extruded to an arbitrary height
+     the light     exactly one cap may be filled lime
+     the numbers   Geist Mono, tabular — the treatment .cf-stat already gives
+                   every number in the system
+
+   THE ROW IS LEVEL, AND THAT IS AN ISOMETRIC DECISION RATHER THAN A RETREAT
+   FROM ONE.
+   Every direction in the isometric ground plane slopes on screen: the two axes
+   run at +26.57 and -26.57 deg. Marching columns along either one costs a unit
+   of drawn height per column, and the first build of this component did exactly
+   that. On five columns rising 31 -> 100 the recession ate almost the entire
+   climb: the last column, three and a half times the first, was drawn a hair
+   LOWER on screen. A chart that reads flat when its data triples is not a
+   stylistic preference, it is a broken instrument.
+
+   The fix is still a lattice vector. One step forward on the first axis plus
+   one step back on the second is (2u, +u) + (2u, -u) = (4u, 0): exactly
+   horizontal on screen, and a point of the lattice like any other. So the
+   columns sit 4u apart on one level line, every one of them on a real cell,
+   and cap height is once again proportional to the value alone. It is also the
+   only spacing that works — lattice points sharing a screen y are 4u apart and
+   nothing closer qualifies, so the 2u of air between two columns is derived
+   rather than chosen.
+
+   WHY EACH COLUMN IS ITS OWN SVG.
+   Contour weight. A 1 px hairline drawn as a CSS border inside a scaled box is
+   scaled with it; SVG with vector-effect: non-scaling-stroke is not, which is
+   the answer this system already reached for the process illustrations. Mixing
+   the two would put visibly different line weights side by side in a brand
+   whose first rule is the contour.
+   -------------------------------------------------------------------------- */
+
+/* Registered, so the value is a NUMBER rather than a token that happens to
+   look like one. Two things follow, and both matter here:
+
+     type safety   --v is substituted into scaleY() and into a length
+                   calculation. Unregistered, "--v: 42%" or a stray unit makes
+                   both declarations invalid at computed-value time, and a
+                   column with no transform is drawn at FULL height — a chart
+                   that is confidently wrong. Registered, a bad value is simply
+                   the initial one and the column is drawn at zero.
+     animation     an unregistered custom property cannot be interpolated. With
+                   --plot-grow registered, one interpolated number drives the
+                   shaft, the cap and the number that rides it, instead of
+                   three animations that have to agree with each other.
+
+   @property reached Baseline in July 2024. It is the one modern CSS capability
+   this system had no use for until there was something to interpolate. */
+@property --v {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --plot-grow {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+.cf-plot {
+  /* u is the half-width of a cell: the rhombus is 2u x u, the unit cube's
+     vertical edge is u, and every other measure here is a multiple of it.
+     Fluid rather than queried — this is a crossover, not a threshold, so it is
+     deliberately absent from the breakpoint register. Five columns and the
+     four gaps between them come to 18u: 288 px at the floor, which fits
+     inside a 375 px viewport's 20 px gutters with 47 px to spare, and 576 px
+     at the cap. Five is therefore the practical ceiling for a figure that has
+     to survive a phone; a wider frame takes more. */
+  --plot-u: clamp(1rem, 3.4vw, 2rem);
+  --plot-rise: calc(var(--plot-u) * 6);
+  margin: 0;
+  /* Room for the tallest number to hang above its cap. */
+  padding-top: var(--space-8);
+}
+
+.cf-plot__set {
+  display: flex;
+  /* 4u pitch = 2u of column and 2u of air. See the header. */
+  gap: calc(var(--plot-u) * 2);
+  /* The keys hang below the row on absolute position, so the row's layout box
+     ends at the cells and anything after it prints across the labels. 32 px is
+     the 8 px drop plus an 11 px label at --leading-normal, plus air. */
+  margin: 0 0 var(--space-8);
+  padding: 0;
+  list-style: none;
+}
+
+.cf-plot__col {
+  position: relative;
+  flex: 0 0 auto;
+  width: calc(var(--plot-u) * 2);
+  height: calc(var(--plot-u) * 7);
+  /* The drawn height. clamp() is not decoration: --v is registered as a
+     number, which rejects a unit but not a 4 or a -1, and either would send a
+     column off the top of the figure or through the floor. */
+  --plot-h: clamp(0, calc(var(--v) * var(--plot-grow)), 1);
+}
+
+/* 40 x 140 user units = 2u x 7u, so one user unit is u/20 at every size. The
+   cell occupies the bottom 20; the remaining 120 are the rise. Six units of
+   rise on a one-unit footprint — the column is six of the icon set's cubes
+   stacked, which is as tall as an object gets before it stops reading as a
+   body in space and starts reading as a line. */
+.cf-plot__draw {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.cf-plot__draw path {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1;
+  fill: none;
+}
+
+/* The ground. Construction geometry, so the ghost line type and the ghost
+   weight: it says where the column stands, not what it measures. */
+.cf-plot__cell {
+  stroke: var(--border-default);
+  stroke-dasharray: var(--dash-1-4);
+}
+
+/* The three visible verticals, each scaled about the point it stands on. Two
+   origins rather than one, because the near edge starts half a cell lower than
+   the side edges do. That half cell is the rhombus; scaling all three about
+   one line would drag the near edge off it and shear the column. */
+.cf-plot__rise {
+  stroke: var(--border-strong);
+  transform-box: view-box;
+  transform-origin: 0 130px;
+  transform: scaleY(var(--plot-h));
+}
+.cf-plot__rise--near { transform-origin: 0 140px; }
+
+/* The cap only travels. Scaling it would squash the rhombus out of 2:1 and
+   thin its contour on one axis while leaving it on the other. */
+.cf-plot__cap {
+  stroke: var(--border-strong);
+  transform-box: view-box;
+  transform: translateY(calc(120px * (1 - var(--plot-h))));
+}
+
+/* One lit column, and only ever one. Lime is the light layer, so it fills the
+   cap — the face light would actually land on — and nothing else. The contour
+   stays black: contour before fill, including here. */
+.cf-plot__col--lit .cf-plot__cap {
+  fill: var(--cf-lime);
+  filter: drop-shadow(0 0 12px rgba(225, 255, 0, 0.5));
+}
+
+/* The number rides its own column: top is the cap's top vertex, 6u of rise
+   times the part of it not yet climbed, and the element hangs above that line
+   rather than starting at it.
+
+   Every column carries its own value, and that is not decoration. Direct
+   labelling is what lets a reader take a number off this figure at all, and it
+   is the reason the component needs no legend and no axis. */
+.cf-plot__val {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--plot-rise) * (1 - var(--plot-h)));
+  transform: translateY(-100%);
+  padding-bottom: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  /* Stated, not inherited. .cf-prose sets its running text in Light, and a
+     number that quietly changes weight with the block it was dropped into is
+     not a number the rest of the system can match. */
+  font-weight: var(--weight-regular);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-normal);
+  text-align: center;
+  color: var(--text-primary);
+}
+.cf-plot__col--lit .cf-plot__val { font-weight: var(--weight-medium); }
+
+/* The key sits under the cell's near vertex, which is the bottom of the box. */
+.cf-plot__key {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: var(--leading-normal);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+/* The caption carries the message in words, so it is the figure's accessible
+   summary as much as its label. Required — see the page. Its own hairline is
+   --border-default rather than the contour black, so the caption rule does not
+   read as one more edge of the drawing. */
+.cf-plot__caption {
+  /* Matches what .cf-prose gives its own figcaptions, so a plot sits the same
+     distance off its caption inside an article and outside one. The air under
+     the keys is the row's bottom margin, not this. */
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: var(--stroke-1) solid var(--border-default);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+/* The columns grow out of the plane as the figure arrives, on the reader's
+   scroll rather than on a timer — the same posture, and the same three
+   fallbacks, as .cf-iso. No support for view timelines, reduced motion, and
+   paper all leave --plot-grow at its registered 1, which is the finished
+   chart. A chart that stays empty until a timeline says otherwise is a chart
+   some readers never see. */
+@supports (animation-timeline: view()) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .cf-plot {
+      view-timeline-name: --cf-plot;
+      view-timeline-axis: block;
+    }
+    .cf-plot__set {
+      animation: cf-plot-grow linear both;
+      animation-timeline: --cf-plot;
+      /* Ends early, on purpose and for the same reason .cf-iso's does: a
+         figure near the bottom of a short document may never reach the far
+         end of its own cover range, and a growth that finishes at 90 % is a
+         chart that quietly understates every column. Finishing inside the
+         first third means the figure is complete long before the reader
+         could scroll past it. */
+      animation-range: cover 5% cover 35%;
+    }
+  }
+}
+@keyframes cf-plot-grow {
+  from { --plot-grow: 0; }
+  to   { --plot-grow: 1; }
 }
