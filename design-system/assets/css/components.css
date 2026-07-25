@@ -1930,14 +1930,24 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
    never the one thing happening on a screen. The tick is two borders on a
    45° rotation — 45° and 135° are both sanctioned angles.
    -------------------------------------------------------------------------- */
+/* One number, two scopes. The box is 20 px, and the meta line under a consent
+   row hangs off the label rather than off the row — so its indent is that box
+   plus the row's gap. Declared on a selector both can read, so the sum below is
+   composed rather than hand-added. It used to be a literal `2rem`, which was
+   correct only for as long as nobody resized the box: either half could move
+   and the meta would have gone quietly out of alignment with no failing check
+   and nothing visibly broken. A derived value cannot drift from what it derives
+   from — that is the whole reason it is written as arithmetic. */
+.cf-check, .cf-consent__row { --check-box: 1.25rem; }
+
 .cf-check { display: flex; align-items: flex-start; gap: var(--space-3); }
 .cf-check__box {
   appearance: none;
   -webkit-appearance: none;
   flex: none;
   position: relative;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: var(--check-box);
+  height: var(--check-box);
   margin: 0;
   background: transparent;
   border: var(--stroke-1) solid var(--border-strong);
@@ -2245,7 +2255,7 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 }
 .cf-consent__meta {
   margin-top: var(--space-2);
-  padding-left: 2rem;   /* box + gap, so the meta hangs off the label */
+  padding-left: calc(var(--check-box) + var(--space-3));  /* box + gap */
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);

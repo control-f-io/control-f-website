@@ -1,0 +1,25 @@
+name: Design system checks
+
+# The design system's self-checks, run rather than merely documented.
+#
+# foundations/layout.html publishes a table of who uses each rung of the space
+# scale, stamped with a digest so a reader can tell a current table from a stale
+# one. The stamp worked and the table drifted anyway, because nothing ran it.
+# This is the thing that runs it.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  spacing-scale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # No setup-python step and no dependencies on purpose. The script is
+      # stdlib only, and ubuntu-latest ships python3 — the system has no build
+      # step and this check does not give it one.
+      - name: Spacing scale
+        run: python3 scripts/check-spacing-scale.py
