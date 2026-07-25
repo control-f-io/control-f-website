@@ -376,10 +376,16 @@
      7. LAYOUT
      1440 frame, 80 px gutters, 1280 content. 12 columns, 24 px gap.
 
-     The gutter is proportional on purpose: (1440 − 1280) / 2 / 1440 = 5.56 %,
-     so a ~5.5vw gutter is what makes content reach exactly 1280 at the frame
-     the design was measured on. Above that the container caps and the outer
-     margin grows instead. Below 364 px the 20 px floor takes over.
+     The gutter is proportional on purpose: (1440 − 1280) / 2 / 1440 = 5.5556 %,
+     rounded down to the 5.5vw below. Above that the container caps and the
+     outer margin grows instead. Below 364 px the 20 px floor takes over.
+
+     What lands content on exactly 1280 is --container-max, NOT the gutter.
+     At 1440 the gutter is 79.2, so the gutter alone leaves 1281.6; the cap
+     binds because .container's max-width is calc(1280 + 2 * gutter), and the
+     padding subtracts back to 1280 precisely. The two decouple at the top,
+     which is the tell: 5.5vw does not reach 80 until a viewport of 1454.5,
+     while content reaches 1280 at 1438.2. See foundations/layout.html.
      ------------------------------------------------------------------ */
   --container-max: 80rem;   /* 1280 */
   --gutter:        clamp(1.25rem, 5.5vw, 5rem);  /* 20 → 80 */
@@ -411,6 +417,11 @@
                      .cf-process. Inside a .container this is reached at a
                      viewport of about 1007, because a size query measures
                      the CONTENT box and the gutter is 5.5vw.
+       60rem / 960   .cf-article splits into rail + body and the rail goes
+                     sticky. Reached at a viewport of about 1079. This is
+                     the system's FOURTH container threshold and the only
+                     one that is not derived from anything — see the note
+                     in foundations/layout.html before adding a fifth.
 
      VIEWPORT thresholds — page furniture only:
 
@@ -419,10 +430,62 @@
                      CTA folds
        900           the page-header figure is dropped; the consent banner
                      goes single column
+       560 (height)  the consent banner caps at 70vh and scrolls. The one
+                     height threshold in the system; it exists because a
+                     tall banner on a short screen hides the page it is
+                     asking about.
 
      Two viewport tiers rather than one is a live question — they govern
      different objects and neither was measured off the mockups. Flagged
      for a designer rather than reconciled here.
+
+     This register is only worth having if it is complete. 60rem and the
+     height threshold were both live in components.css while this list
+     claimed three container thresholds and two viewport ones — which is
+     precisely the drift the register exists to catch. If you add a
+     threshold to a shipping stylesheet, add it here in the same commit.
+
+     SCOPE: the three stylesheets that ship — this file, base.css and
+     components.css. Everything else is out, and "everything else" is
+     three distinct things, so none is safe to leave implicit:
+
+       docs.css            the documentation chrome. Does not ship to
+                           control-f.de. Carries one query,
+                           @media (max-width: 900px), which collapses
+                           the sidebar. Same figure as the 900 above and
+                           unrelated to it.
+       inline <style>      per-page demo styles. foundations/
+                           iconography.html asks a VIEWPORT 48rem where
+                           48rem above is a CONTAINER threshold.
+       prototypes/         declared not-yet-system by the README, with
+                           their own unreconciled styling. werte-scroll
+                           .html asks a viewport 820 — which collides
+                           with nothing, but sits between the 780 and
+                           900 above, the pair already flagged as an
+                           open question. Do not reconcile it; do know
+                           it is there.
+
+     Same figures, unrelated queries. Do not read one as evidence of the
+     other, and do not reconcile them.
+
+     Complete about QUERIES, not about behaviour. A min() or clamp()
+     against a viewport unit also changes layout at a specific width,
+     when its arms swap, and none of those are listed because none is a
+     query. Three exist in shipping CSS: the consent dialog's width
+     swaps at 640 wide, its max-height at 920 tall, and min(92vh, 56rem)
+     at 974 tall. So "the one height threshold" above is true of queries
+     and false of behaviour. They stay out because a crossover is a
+     continuous function swapping arms rather than a rule switching on —
+     but a register arguing completeness has to say which kind it means.
+     See foundations/layout.html.
+
+     This register accounts for THRESHOLDS only — the numbers. Which
+     elements are query containers, and what those containers are NAMED,
+     is a separate axis and is documented where the container is
+     declared, not here. Worth saying because the two interact: a named
+     container changes which element a threshold resolves against
+     without changing the threshold, so a complete register can still
+     leave you guessing if you came looking for the wrong axis.
      ------------------------------------------------------------------ */
 
   /* ------------------------------------------------------------------
