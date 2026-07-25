@@ -3291,3 +3291,264 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   from { --plot-grow: 0; }
   to   { --plot-grow: 1; }
 }
+
+/* --------------------------------------------------------------------------
+   SUBDIVISION FIELD — "Raster > Teilungsraster", made interactive
+   The manual's own claim for this system is the one part of it the web
+   implementation never built: "kann als Konzept für interaktive UI-Elemente
+   oder Menüstrukturen genutzt werden." Until now the subdivision was a
+   layout — .subdivide in base.css, the blog grid on top of it — and the
+   hierarchy in it was authored once and then fixed. Which article is
+   largest is a fact about the archive.
+
+   A field is the same series with the hierarchy handed to the reader. The
+   halving series never changes: 1/2, 1/4, 1/8 … with the last two equal, so
+   it sums to exactly one. What changes is who stands at its head. Point at
+   a cell, or tab to it, and it takes the half; every other cell keeps its
+   place in the row and continues the series behind it.
+
+   Three properties fall out of that rule, and all three are the reason it is
+   this rule and not a rotation of the series:
+
+   1. THE CELLS NEVER REORDER. Reading order is markup order, always.
+   2. THE HEAD ONLY EVER GROWS AROUND THE POINTER. Cell k at the head takes
+      s1 while cells 1..k-1 take s2..sk; since the series is non-increasing,
+      sum(s2..sk) <= sum(s1..sk-1), so the head's leading edge moves left and
+      never right. Its box strictly contains the box it had. A layout that
+      moves under the pointer that summoned it is a trap; this one cannot.
+   3. THE RULES AHEAD OF YOU DO NOT MOVE. Cells after the head keep their
+      resting weights exactly, so every rule from the head rightwards stands
+      where it stood. Only the rules behind your attention slide.
+
+   Nothing is authored per cell. Depth comes from the DOM via
+   :has(> .cf-subdiv__cell:nth-child(n):last-child), so --subdiv-n cannot
+   drift from the number of cells the way a hand-written count does; index
+   comes from :nth-child; the head is a single inherited number.
+   Supported depth is 3 to 6, the same range .subdivide covers.
+   -------------------------------------------------------------------------- */
+.cf-subdiv {
+  /* The resting head is the first cell — which makes the resting field the
+     manual's pure plate, drawn exactly: 1/2, 1/4, 1/8, 1/8. */
+  --subdiv-h: 0;
+  --subdiv-n: 5;
+  --subdiv-height: 14rem;
+  display: flex;
+  min-height: var(--subdiv-height);
+  container-type: inline-size;
+  /* Three edges here, the leading rule of every cell on the cell — the same
+     construction as .cf-blog-grid and .cf-team-grid, and for the same reason:
+     the fourth edge would lay a second hairline over the first cell's rule
+     and the field would read 2 px on one side and 1 px on the other three. */
+  border-top: var(--stroke-1) solid var(--border-strong);
+  border-right: var(--stroke-1) solid var(--border-strong);
+  border-bottom: var(--stroke-1) solid var(--border-strong);
+}
+
+.cf-subdiv__cell {
+  --subdiv-i: 0;
+  /* --subdiv-r is the cell's rank in the series: 0 at the head, then 1, 2, …
+     in markup order, skipping the head. Written without a conditional
+     because CSS has none — clamp(0, x, 1) is the sign of x for integers, so
+     --after is 1 when this cell precedes the head and --eq is 1 only when
+     this cell IS the head, which zeroes the rank. */
+  --subdiv-after:  clamp(0, var(--subdiv-h) - var(--subdiv-i), 1);
+  --subdiv-before: clamp(0, var(--subdiv-i) - var(--subdiv-h), 1);
+  --subdiv-eq:     calc(1 - var(--subdiv-after) - var(--subdiv-before));
+  --subdiv-r:      calc((var(--subdiv-i) + var(--subdiv-after)) * (1 - var(--subdiv-eq)));
+
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: var(--space-3);
+  /* The cell itself carries no padding, and that is arithmetic rather than
+     taste. Padding on a flex item is added OUTSIDE its flex-basis, so 12 px
+     of it on five cells takes 60 px off the top before the series divides
+     anything: measured at a 911 px field the ranks came out
+     437.5 / 224.8 / 118.4 / 65.2 / 65.2, where 437.5 is not twice 224.8 and
+     the rules do not fall on the halves the plate draws. The padding lives on
+     the tick and the body instead, inside the box, where the series cannot
+     see it. */
+  padding: 0;
+  /* The fallback, and it is the manual's other form rather than a
+     degradation: equal columns, hierarchy carried by the copy alone. Any
+     browser without :has() or without pow() lands here. */
+  flex: 1 1 0;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* The contour. Every cell draws its own leading rule, so the first cell's
+   rule is the field's left edge. */
+.cf-subdiv__cell::before,
+.cf-subdiv__cell::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: var(--stroke-1);
+}
+.cf-subdiv__cell::before { background-color: var(--border-strong); }
+
+/* The light. The head's contour is the foil rather than ink — the light
+   layer entering the contour layer instead of sitting on top of it, which
+   is the one place in the six-layer stack they are allowed to meet. It is
+   the foil's shadow half because the field sits on the page wash, where the
+   lit half measures 1.1–1.5:1; the ink half is the same three hues moved
+   into the 800 band and clears AA. Never lime: #E1FF00 on CF-Grau is 1.4:1
+   and a 1 px contour has to clear 3:1 on its own.
+
+   Opacity rather than a selector, so the light travels with the head and
+   arrives by transition instead of by repaint. */
+.cf-subdiv__cell::after {
+  background-image: var(--gradient-foil-ink);
+  opacity: calc(1 - clamp(0, var(--subdiv-r), 1));
+}
+
+/* The tick names its cell at every width — it is the one thing a 1/16 cell
+   still has room for, and it is how the application plate labels a column
+   too. justify-self: start for the reason written on .cf-blog-axis__tick:
+   under vertical-rl a stretched box starts its text at its own right edge,
+   which would set the label a whole cell away from the rule it belongs to. */
+.cf-subdiv__tick {
+  writing-mode: vertical-rl;
+  justify-self: start;
+  align-self: start;
+  padding: var(--space-3) 0 var(--space-3) var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Title at the head of the cell, meta at its foot — which is how the
+   application plate sets a column: headline against the top rule, author and
+   date against the bottom one. */
+.cf-subdiv__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-width: 0;
+  overflow: hidden;
+  padding: var(--space-3) var(--space-3) var(--space-3) 0;
+}
+/* Copy arrives in the same series the widths do. The head carries all of it;
+   rank 1 keeps its title; from rank 2 the tick is the whole cell. Opacity,
+   not display — the copy stays in the accessibility tree at every rank, so
+   the link's name is the headline whether or not the headline is drawn. */
+.cf-subdiv__title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+  opacity: calc(1 - clamp(0, var(--subdiv-r) - 1, 1));
+}
+.cf-subdiv__meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-secondary);
+  opacity: calc(1 - clamp(0, var(--subdiv-r), 1));
+}
+
+/* The system, gated on both capabilities it needs. Without either, every
+   rule above still applies and the field is the even form. */
+@supports selector(:has(*)) and (flex-grow: pow(2, 3)) {
+  /* Depth, read off the DOM rather than authored. */
+  .cf-subdiv:has(> .cf-subdiv__cell:nth-child(3):last-child) { --subdiv-n: 3; }
+  .cf-subdiv:has(> .cf-subdiv__cell:nth-child(4):last-child) { --subdiv-n: 4; }
+  .cf-subdiv:has(> .cf-subdiv__cell:nth-child(5):last-child) { --subdiv-n: 5; }
+  .cf-subdiv:has(> .cf-subdiv__cell:nth-child(6):last-child) { --subdiv-n: 6; }
+
+  .cf-subdiv__cell:nth-child(1) { --subdiv-i: 0; }
+  .cf-subdiv__cell:nth-child(2) { --subdiv-i: 1; }
+  .cf-subdiv__cell:nth-child(3) { --subdiv-i: 2; }
+  .cf-subdiv__cell:nth-child(4) { --subdiv-i: 3; }
+  .cf-subdiv__cell:nth-child(5) { --subdiv-i: 4; }
+  .cf-subdiv__cell:nth-child(6) { --subdiv-i: 5; }
+
+  /* The head. Pointer and keyboard reach it by the same rule, so tabbing
+     through the field opens each cell exactly as pointing at it does. */
+  .cf-subdiv:has(> .cf-subdiv__cell:nth-child(1):is(:hover, :focus-visible)) { --subdiv-h: 0; }
+  .cf-subdiv:has(> .cf-subdiv__cell:nth-child(2):is(:hover, :focus-visible)) { --subdiv-h: 1; }
+  .cf-subdiv:has(> .cf-subdiv__cell:nth-child(3):is(:hover, :focus-visible)) { --subdiv-h: 2; }
+  .cf-subdiv:has(> .cf-subdiv__cell:nth-child(4):is(:hover, :focus-visible)) { --subdiv-h: 3; }
+  .cf-subdiv:has(> .cf-subdiv__cell:nth-child(5):is(:hover, :focus-visible)) { --subdiv-h: 4; }
+  .cf-subdiv:has(> .cf-subdiv__cell:nth-child(6):is(:hover, :focus-visible)) { --subdiv-h: 5; }
+
+  /* The series itself. 2^(n-1-r), with the last two ranks tied by min() —
+     that tie is what makes the fractions sum to exactly one rather than to
+     one minus the tail. */
+  .cf-subdiv__cell {
+    flex-grow: pow(2, calc(var(--subdiv-n) - 1 - min(var(--subdiv-r), var(--subdiv-n) - 2)));
+  }
+}
+
+/* Motion is opted into, the way the rest of the system does it, rather than
+   switched off under a reduce query. flex-grow is a number and interpolates;
+   nothing here animates to or from an intrinsic size, which is deliberate —
+   interpolate-size and calc-size() are still Chromium-only and a field whose
+   proportions only work in one engine is not a system.
+
+   Transitioning flex-grow reflows the field each frame. It is affordable
+   because the field is one flex line of at most six items with no text
+   reflow inside them: the copy is faded, not re-wrapped. This is not a
+   licence to transition flex-grow on a page-level layout. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .cf-subdiv__cell { transition: flex-grow var(--duration-base) var(--ease-standard); }
+  .cf-subdiv__cell::after,
+  .cf-subdiv__title,
+  .cf-subdiv__meta { transition: opacity var(--duration-base) var(--ease-standard); }
+}
+
+/* Below the width where a 1/16 cell stops being a cell, the field folds the
+   way .subdivide does — and asks its own width, not the viewport's, because
+   the same field is comfortable in 900 px of page and impossible in 900 px
+   of viewport behind a 272 px sidebar. Stacked, every cell is equal, every
+   cell is open, and the leading rule becomes the top rule, so the first
+   cell's rule is still the field's own edge. */
+@container (max-width: 44rem) {
+  .cf-subdiv {
+    flex-direction: column;
+    min-height: 0;
+    border-top: 0;
+    border-left: var(--stroke-1) solid var(--border-strong);
+  }
+  .cf-subdiv__cell {
+    flex: 0 0 auto;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+    padding: var(--space-4);
+  }
+  .cf-subdiv__body { padding: 0; gap: var(--space-2); }
+  .cf-subdiv__cell::before,
+  .cf-subdiv__cell::after {
+    inset-inline: 0;
+    inset-block: 0 auto;
+    width: auto;
+    height: var(--stroke-1);
+  }
+  .cf-subdiv__tick {
+    writing-mode: horizontal-tb;
+    padding: 0;
+  }
+  .cf-subdiv__title,
+  .cf-subdiv__meta { opacity: 1; }
+}
+
+/* Paper and forced colours get the whole field: no weighting, no fading. */
+@media print {
+  .cf-subdiv { display: block; min-height: 0; }
+  .cf-subdiv__title,
+  .cf-subdiv__meta { opacity: 1; }
+}
+@media (forced-colors: active) {
+  .cf-subdiv__cell { flex: 1 1 0; }
+  .cf-subdiv__cell::after { display: none; }
+  .cf-subdiv__title,
+  .cf-subdiv__meta { opacity: 1; }
+}
