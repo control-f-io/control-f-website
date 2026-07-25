@@ -95,22 +95,27 @@ Both scrub from scroll position rather than playing on a timer, which is what th
 already commits to in `foundations/motion.html` — the animation tracks the reader's hand
 and reverses when they scroll back.
 
-**They do not agree on `prefers-reduced-motion`, and one of them fails it.** Measured, not
-assumed:
+**`werte-scroll.html` has shipped.** It is the *Unsere Werte* section of
+`patterns/ueber-uns.html` now, rebuilt as `.cf-values`. What changed on the way in:
 
-- `services-scroll.html` is correct. The scrub script returns early, the pinned section
-  goes `static` and auto-height, and the illustration renders in its authored, finished
-  state. Same shape as the fix in #11.
-- `werte-scroll.html` only removes the easing, the fade transition and the caret blink.
-  The 660 vh track and the scroll gating both survive, so at scroll 0 the mark is still
-  empty and its six values are still unreadable until the reader scrolls six screens.
-  A reader who asked for less motion still gets the whole scroll hijack, and the copy is
-  the thing behind it.
+| | prototype | shipped |
+|---|---|---|
+| engine | ~120 lines of JS | a view timeline, no script |
+| copy | typed char by char out of a JS array | six list items in the document |
+| reduced motion | the 660 vh track and the gating both survive | stacked, readable, mark finished |
+| no JS / no support / print | nothing to read | the same stacked state |
+| below 820 px | pinned | stacked, so a phone gets no seven-viewport hijack |
 
-That needs deciding before either goes near a shipping page: under `reduce`, the values
-should almost certainly be six readable blocks with the finished mark, and no track at
-all. Left as-is here rather than rewritten, because it is a prototype for review and the
-behaviour is the designer's call.
+The char-by-char typing did not survive, and that is the one thing the shipped version is
+missing. A view timeline cannot type, and doing it properly needs either a second shipping
+script or ~180 spans per paragraph. Each value now arrives as a whole instead. Worth
+revisiting if the typing turns out to be the point rather than the flourish.
+
+The prototype file stays where it is as the reference for that question.
+
+`services-scroll.html` is still a prototype. Its reduced-motion path is already correct —
+the scrub script returns early, the pinned section goes `static` and auto-height, and the
+illustration renders in its authored, finished state, the same shape as the fix in #11.
 
 ## The system in one paragraph
 
