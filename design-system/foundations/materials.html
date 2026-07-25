@@ -220,6 +220,18 @@
       <code>background</code> in the transition would animate nothing.
     </p>
     <p>
+      <strong>Scope that narrowly.</strong> The rule is "a transition whose only moving part is
+      a gradient animates nothing" — <em>not</em> "<code>background</code> in a transition list
+      animates nothing". <code>background-color</code> interpolates perfectly well, and the
+      base <code>.cf-btn</code> rule depends on it: measured mid-transition,
+      <code>--outline</code> runs <code>rgba(0,0,0,0)</code> → <code>rgba(0,0,0,0.88)</code> →
+      black and <code>--solid</code> runs <code>rgb(27,32,34)</code> → <code>rgb(3,4,4)</code> →
+      black. <code>--primary</code> is the mixed case: its gradient snaps on frame one while
+      the colour fades in underneath. Stripping <code>background</code> from that base rule on
+      the strength of the paragraph above would silently kill two real transitions and half of
+      a third.
+    </p>
+    <p>
       <strong>Always declare that property's rest value on the component, as a plain
       declaration.</strong> This is the part worth carrying to the next component, because the
       failure mode is not the one you would guess and neither is the fix. Leaving the rest

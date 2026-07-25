@@ -172,6 +172,21 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
      rather than transitioning between them. Naming `background` here
      animates nothing and only tells the next reader that it does.
 
+     Read that narrowly. It is true of THIS button, whose only moving part is
+     a gradient. It is NOT a reason to strip `background` from the base
+     .cf-btn rule above, where it is load-bearing — `background-color`
+     interpolates perfectly well, and three modifiers depend on it. Measured
+     mid-transition, slowed to 2 s:
+
+       --outline   rgba(0,0,0,0) -> rgba(0,0,0,0.88) -> rgb(0,0,0)
+       --solid     rgb(27,32,34) -> rgb(3,4,4)       -> rgb(0,0,0)
+       --primary   gradient      -> image already none, colour at 0.88 -> lime
+
+     --primary is the mixed case: its image leg snaps on frame one while the
+     colour leg fades in underneath over --duration-base. The rule is "a
+     transition whose only moving part is a gradient animates nothing", not
+     "`background` in a transition list animates nothing".
+
      --cf-specular, registered above, is the one thing that actually moves.
      Which means a browser that does not support @property gets a switch
      rather than a travel: an unregistered custom property does not
