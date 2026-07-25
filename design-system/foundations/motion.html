@@ -173,7 +173,7 @@
         <tr><td><code>.cf-iso__scene</code></td><td>the whole object</td><td>travels in on 26.57° — see below — and fades up. The only thing that moves.</td><td>cover 5–30 %</td></tr>
         <tr><td><code>.cf-iso__form</code></td><td>solid contoured body</td><td>nothing on its own; it rides the scene</td><td>—</td></tr>
         <tr><td><code>.cf-iso__ghost</code></td><td>dashed reference geometry</td><td>fades up after the body it belongs to</td><td>cover 20–40 %</td></tr>
-        <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object</td><td>draws itself, start to end</td><td>cover 18–45 %</td></tr>
+        <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object</td><td>draws itself, edge of the crop to edge of the crop — see below</td><td>cover 18–45 %</td></tr>
         <tr><td><code>.cf-iso__light</code></td><td>the single lime-gradient element</td><td>its fill comes up last. Light arrives; it does not fly in.</td><td>cover 30–48 %</td></tr>
         <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>fade up last of all</td><td>cover 35–50 %</td></tr>
       </tbody>
@@ -246,19 +246,109 @@
       finished object.</strong> Nothing starts at <code>opacity: 0</code> waiting to be
       rescued, so there is no way for the illustration to end up invisible. Only
       <code>transform</code>, <code>opacity</code>, <code>fill-opacity</code> and
-      <code>stroke-dashoffset</code> animate, so nothing reflows and nothing is painted off
-      the compositor.
+      <code>stroke-dashoffset</code> animate, so <strong>nothing reflows</strong> — no
+      layout property is touched and the page never shifts under the reader.
+    </p>
+    <p>
+      Half of that list is composited and half is not, which is worth being straight about.
+      <code>transform</code> and <code>opacity</code> on <code>.cf-iso__scene</code> are
+      handed to the compositor and cost nothing per frame.
+      <code>fill-opacity</code> and <code>stroke-dashoffset</code> are not compositable in
+      any engine: each frame repaints the element they are on. That is affordable here and
+      only here, because it is one gradient face and one hairline per object, inside a
+      drawing a few hundred pixels square — and because both animations are over by the time
+      the object reaches the middle of the viewport. It is not a licence to put a
+      <code>stroke-dashoffset</code> animation on a whole illustration.
     </p>
     <p>
       The line-drawing uses <code>pathLength="1"</code> in the markup, which normalises the
       path to a length of 1 and makes the dash maths the same for every path regardless of
       how long it actually is:
     </p>
-    <pre class="docs-code">.cf-iso__trace { <span class="attr">stroke-dasharray</span>: <span class="val">1</span>; }
+    <pre class="docs-code">.cf-iso__trace { <span class="attr">stroke-dasharray</span>: <span class="val">1</span>; <span class="attr">--trace-from</span>: <span class="val">1</span>; <span class="attr">--trace-to</span>: <span class="val">0</span>; }
 <span class="tag">@keyframes</span> cf-iso-draw {
-  <span class="tag">from</span> { <span class="attr">stroke-dashoffset</span>: <span class="val">1</span>; }  <span class="com">/* nothing drawn */</span>
-  <span class="tag">to</span>   { <span class="attr">stroke-dashoffset</span>: <span class="val">0</span>; }  <span class="com">/* fully drawn  */</span>
+  <span class="tag">from</span> { <span class="attr">stroke-dashoffset</span>: <span class="val">var(--trace-from)</span>; }  <span class="com">/* 1 = nothing drawn */</span>
+  <span class="tag">to</span>   { <span class="attr">stroke-dashoffset</span>: <span class="val">var(--trace-to)</span>; }    <span class="com">/* 0 = fully drawn  */</span>
 }</pre>
+
+    <h3>Why the two ends are authored</h3>
+    <p>
+      A trace is a signal arriving from somewhere off-stage, so its path usually runs past
+      the edge of the drawing — and <a href="illustration.html">the frame is a crop, not a
+      bounding box</a>. But <code>pathLength</code> normalises against the <em>drawn</em>
+      length, not the visible one, so every unit outside the crop spends scroll range on a
+      line nobody can see. The range is honest; the picture is not.
+    </p>
+    <p>
+      Measured on the landing page, at the settled object — the fraction of each trace that
+      is actually inside its crop, and what a plain 1&nbsp;→&nbsp;0 draw did with the range
+      it was given:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Trace</th><th>Inside the crop</th><th>Was</th><th>Now</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>card 02, outgoing (to the right)</td><td>54 %</td>
+          <td>finished by cover 24 % — the last 21 points of its range drew off-stage</td>
+          <td><code>--trace-to: .46</code></td>
+        </tr>
+        <tr>
+          <td>card 02, incoming (from the left)</td><td>49 %</td>
+          <td>nothing visible at all until cover 24 %, then half a line in one step</td>
+          <td><code>--trace-from: .49</code></td>
+        </tr>
+        <tr>
+          <td>card 04, outgoing (lower left)</td><td>88 %</td>
+          <td>finished at cover 41 %</td>
+          <td><code>--trace-to: .12</code></td>
+        </tr>
+        <tr>
+          <td>card 03, incoming</td><td>100 %</td>
+          <td>correct already</td>
+          <td>defaults</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      The two ends are therefore per-trace: a trace that leaves the crop stops drawing at the
+      edge, and one that enters from outside starts at the edge. Both now spend the whole of
+      <code>cover 18 % → 45 %</code> on the part of the line the reader can see, and the two
+      traces on card 02 — which are one continuous signal passing through the object — finally
+      advance together instead of one waiting for the other.
+    </p>
+    <p>
+      <strong>Only the endpoints count.</strong> A path that leaves the crop and comes back —
+      the specimen trace in <a href="illustration.html">Illustration</a> does exactly this,
+      with 16 % of its length outside — wastes no range at either end, so it is left alone.
+      The gap reads as the signal passing behind the crop, which is what it is.
+    </p>
+    <p>
+      Measure against the <em>settled</em> object. While the scene is still arriving it
+      carries the 26.57° offset, which moves the crop boundary by up to
+      <code>--iso-travel</code>: card 02's outgoing trace measures 54 % settled and 61 %
+      at the start of the travel.
+    </p>
+
+    <h3>A calc() in a keyframe does not interpolate</h3>
+    <p>
+      The obvious way to write this is a semantic pair — how much is off-frame before, how
+      much after — and to subtract in the keyframe: <code>calc(1 - var(--trace-lead))</code>.
+      <strong>It compiles, it renders, and it does not animate.</strong> Chromium steps
+      straight from the start value to the end value. Sampled across the range at cover
+      18 / 20 / 22 / 24 / 27 / 30 / 35 / 45 %, the drawn fraction went
+      <code>0 · 0 · 0 · 0.54 · 0.54 · 0.54 · 0.54 · 0.54</code> — five samples of nothing,
+      then the finished line.
+    </p>
+    <p>
+      Registering the two properties with <code>@property</code> as <code>&lt;number&gt;</code>
+      does not rescue it; that was tried and gave the identical step. The
+      <code>calc()</code> itself is what fails to interpolate on this property. So the
+      custom properties are the animated values themselves, not an expression over them —
+      which is why they are dash offsets rather than the friendlier "fraction off-frame",
+      and why <code>--trace-from</code> is written as <code>1 − the fraction already
+      behind it</code> by hand at the call site. <strong>Any future keyframe in this system
+      that wants a per-element value must take it whole.</strong>
+    </p>
 
     <h3>The one place the contour rule has to give way</h3>
     <p>
