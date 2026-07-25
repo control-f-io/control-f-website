@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kontakt — Control-F</title>
+<meta name="description" content="Schreiben Sie uns, oder rufen Sie an. Control-F GmbH, Am Seerhein 6, 78467 Konstanz.">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<style>
+  /* Preview only: link back to the documentation. Remove in production. */
+  .ds-back {
+    /* Under --z-overlay: preview chrome must never cover real UI, and the
+       consent banner sits in that layer along this edge. */
+    position: fixed; left: 0; bottom: 0; z-index: calc(var(--z-overlay) - 1);
+    padding: var(--space-2) var(--space-4);
+    background: var(--cf-anthrazit); color: var(--cf-lime);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label); text-transform: uppercase;
+  }
+</style>
+</head>
+<body class="page-wash">
+<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+
+<!-- Consent — first thing after the skip link, so it is first in reading and
+     tab order. `hidden` until cf-consent.js decides; with JS off it never
+     appears and no non-essential script is ever activated. -->
+<section class="cf-consent" data-cf-consent-banner hidden
+         role="dialog" aria-labelledby="cf-consent-title">
+  <div class="container cf-consent__inner">
+    <div>
+      <h2 class="cf-consent__title" id="cf-consent-title" tabindex="-1" data-cf-consent-title>Datenschutz-Einstellungen</h2>
+      <p class="cf-consent__body">
+        Notwendige Cookies brauchen wir, damit die Seite funktioniert. Statistik und Marketing
+        nur, wenn Sie zustimmen — Sie können das jederzeit im Footer ändern.
+        <a href="/datenschutz">Datenschutzerklärung</a> · <a href="/impressum">Impressum</a>
+      </p>
+    </div>
+    <div class="cf-consent__actions">
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="reject">Nur notwendige</button>
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="accept">Alle akzeptieren</button>
+      <button type="button" class="cf-btn cf-btn--ghost" data-cf-consent-action="open">Einstellungen</button>
+    </div>
+  </div>
+</section>
+
+<dialog class="cf-consent__dialog" data-cf-consent-dialog aria-labelledby="cf-consent-settings-title">
+  <div class="cf-consent__dialog-inner">
+    <h2 class="cf-consent__dialog-title" id="cf-consent-settings-title">Ihre Einstellungen</h2>
+    <p class="cf-consent__body">
+      Sie entscheiden pro Kategorie. Notwendige Cookies lassen sich nicht abwählen, weil ohne
+      sie nichts funktioniert.
+    </p>
+
+    <div class="cf-consent__group">
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" checked disabled>
+          <span class="cf-check__label"><strong>Notwendig</strong>Sitzung, Sprachwahl und die Speicherung dieser Entscheidung.</span>
+        </label>
+        <p class="cf-consent__meta">Immer aktiv · 1 Eintrag · 12 Monate</p>
+      </div>
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" data-cf-consent-category="statistik">
+          <span class="cf-check__label"><strong>Statistik</strong>Anonyme Reichweitenmessung, damit wir sehen, welche Inhalte gelesen werden.</span>
+        </label>
+        <p class="cf-consent__meta">Optional · 2 Einträge · 14 Monate</p>
+      </div>
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" data-cf-consent-category="marketing">
+          <span class="cf-check__label"><strong>Marketing</strong>Messung von Kampagnen und Einbindung externer Medien.</span>
+        </label>
+        <p class="cf-consent__meta">Optional · 3 Einträge · 12 Monate</p>
+      </div>
+    </div>
+
+    <div class="cf-consent__actions">
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="reject">Nur notwendige</button>
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="accept">Alle akzeptieren</button>
+      <button type="button" class="cf-btn cf-btn--ghost" data-cf-consent-action="save">Auswahl speichern</button>
+    </div>
+  </div>
+</dialog>
+
+<svg aria-hidden="true" style="display:none">
+  <symbol id="cf-arrow" viewBox="0 0 600 480"><g transform="translate(600,0) scale(-1,1)">
+    <path d="M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 327.317C183.155 328.422 183.155 331.578 185.367 332.683L476.422 478.211C478.675 479.337 481.325 479.337 483.578 478.211L594.633 422.683C596.845 421.578 596.845 418.422 594.633 417.317L425.367 332.683Z"/>
+    <path d="M116.422 298.211C118.675 299.337 121.325 299.337 123.578 298.211L594.633 62.6833C596.845 61.5777 596.845 58.4223 594.633 57.3167L483.578 1.78885C481.325 0.662745 478.675 0.662745 476.422 1.78885L5.36656 237.317C3.15542 238.422 3.15542 241.578 5.36656 242.683L116.422 298.211Z"/>
+  </g></symbol>
+</svg>
+
+<nav class="cf-nav" aria-label="Hauptnavigation">
+  <a class="cf-logo" href="/"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
+  <button class="cf-nav__toggle" aria-controls="hauptnav" aria-expanded="false">Menü</button>
+  <ul class="cf-nav__list" id="hauptnav" role="list">
+    <li><a class="cf-nav__link" href="/">Home</a></li>
+    <li><a class="cf-nav__link" href="/ueber-uns">Über uns</a></li>
+    <li><a class="cf-nav__link" href="/news">News</a></li>
+    <li><a class="cf-nav__link" href="/karriere">Karriere</a></li>
+    <li><a class="cf-nav__link" href="/kontakt" aria-current="page">Kontakt</a></li>
+  </ul>
+</nav>
+
+<main id="inhalt">
+
+  <!-- 01 · Seitenkopf. Dieselbe Komponente wie auf jeder Unterseite —
+       Titel, Haarlinie, eine Mono-Zeile links/rechts. Kein Iso-Objekt:
+       das Lime-Moment dieser Seite ist der Absenden-Button, und es gibt
+       nur eines pro Bildschirm. -->
+  <header class="cf-page-header">
+    <div class="container">
+      <div class="cf-page-header__body">
+        <h1 class="cf-page-header__title">Kontakt</h1>
+        <div class="cf-page-header__rule"></div>
+        <p class="cf-page-header__meta">
+          <span>Konstanz am Bodensee</span>
+          <span>Antwort in der Regel innerhalb eines Werktages</span>
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- 02 · Formular links, Kontaktdaten rechts. 7 + 5 der zwölf Spalten;
+       unter 56rem Containerbreite stapeln beide, wie jedes .col-* im
+       System. Das Formular steht zuerst im Quelltext, weil es der Grund
+       ist, aus dem die Seite aufgerufen wird. -->
+  <section class="section section--tight" aria-labelledby="schreiben">
+    <div class="container">
+      <!-- Row-Gap statt --grid-gap: gestapelt sind das zwei Abschnitte
+           untereinander, keine zwei Zellen nebeneinander, und 24 px sind
+           weniger Luft als jede Kopfzeile darüber für sich beansprucht.
+           Spaltenabstand bleibt --grid-gap. -->
+      <div class="grid" style="row-gap: var(--section-gap-sm)">
+
+        <div class="col-7">
+          <!-- Kein --flush: ein Formular ist kein umrandeter Container, sein
+               erstes Feld hat keine obere Linie. Also behält die Kopfzeile
+               ihre eigene Haarlinie und ihre 80 px darunter. -->
+          <div class="cf-section-header">
+            <h2 class="cf-section-header__label" id="schreiben">Schreiben Sie uns</h2>
+            <span class="cf-section-header__count" aria-hidden="true">01</span>
+          </div>
+
+          <!-- Fehlerübersicht. Serverseitig gerendert: sie existiert nur in
+               der Antwort auf ein fehlgeschlagenes Absenden und steht dann
+               hier, vor dem Formular. Im Normalfall — also hier — ist sie
+               nicht im Dokument. Markup und Verhalten: components/forms.html.
+
+               action trägt das Fragment #fehler, damit der Browser nach dem
+               POST von selbst auf der Übersicht landet, ohne Skript. -->
+
+          <form class="stack stack--8" method="post" action="/kontakt#fehler" novalidate>
+
+            <!-- Spamfalle. `hidden` heißt: kein Screenreader liest sie, keine
+                 Tastatur erreicht sie, kein Autofill füllt sie. Ein Bot, der
+                 das Formular aus dem HTML liest, füllt sie trotzdem — und der
+                 Server verwirft den Beitrag dann still. Kein Captcha, kein
+                 Drittanbieter, keine Einwilligung nötig. -->
+            <div hidden aria-hidden="true">
+              <label for="f-website">Website</label>
+              <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off">
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-field__label" for="f-name">Name</label>
+              <input class="cf-field__input" id="f-name" name="name" type="text"
+                     autocomplete="name" placeholder="Vor- und Nachname" required>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-field__label" for="f-mail">E-Mail</label>
+              <input class="cf-field__input" id="f-mail" name="email" type="email"
+                     autocomplete="email" placeholder="name@unternehmen.de" required>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-field__label" for="f-firma">
+                Unternehmen <span class="cf-field__optional">(optional)</span>
+              </label>
+              <input class="cf-field__input" id="f-firma" name="company" type="text"
+                     autocomplete="organization">
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-field__label" for="f-topic">
+                Thema <span class="cf-field__optional">(optional)</span>
+              </label>
+              <select class="cf-field__select" id="f-topic" name="topic">
+                <option value="">Bitte wählen</option>
+                <option>Discovery-Workshop</option>
+                <option>Datenfundament</option>
+                <option>Predictive Maintenance</option>
+                <option>Asset Performance</option>
+                <option>Etwas anderes</option>
+              </select>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-field__label" for="f-msg">Nachricht</label>
+              <textarea class="cf-field__textarea" id="f-msg" name="message" rows="6"
+                        placeholder="Worum geht es? Ein paar Sätze genügen." required></textarea>
+            </div>
+
+            <!-- Hinweis nach Art. 13 DSGVO: Zweck, Rechtsgrundlage, Verweis.
+                 Keine Einwilligungs-Checkbox — für eine reine Kontaktanfrage
+                 ist die Rechtsgrundlage Art. 6 Abs. 1 lit. b, und eine
+                 Checkbox würde eine Wahl vortäuschen, die es nicht gibt.
+                 Steht über dem Button, damit sie vor dem Absenden gelesen
+                 wird und nicht danach. -->
+            <p class="cf-field__hint measure">
+              Wir verarbeiten Ihre Angaben ausschließlich, um Ihre Anfrage zu beantworten
+              (Art. 6 Abs. 1 lit. b DSGVO), und geben sie an niemanden weiter. Details in der
+              <a href="/datenschutz">Datenschutzerklärung</a>.
+            </p>
+
+            <div>
+              <button class="cf-btn cf-btn--primary" type="submit">
+                Nachricht senden
+                <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Kontaktdaten. Eine Beschreibungsliste, keine Absätze: es sind
+             Paare aus Bezeichnung und Wert, und genau das sagt <dl>. -->
+        <div class="col-5">
+          <!-- Ebenfalls ohne --flush, und zwar aus einem Grund, den die Regel
+               allein nicht hergibt: --flush ist eine Eigenschaft des Inhalts
+               unter der Kopfzeile, hier stehen aber zwei verschiedene Inhalte
+               nebeneinander. Wäre diese Spalte flush und die linke nicht,
+               begänne die Liste 80 px über dem ersten Feld. Also verzichtet
+               die Liste auf eine eigene obere Linie — die Kopfzeile zieht sie
+               ohnehin — und beide Spalten starten auf derselben Höhe. -->
+          <div class="cf-section-header">
+            <h2 class="cf-section-header__label" id="direkt">Direkt</h2>
+            <span class="cf-section-header__count" aria-hidden="true">02</span>
+          </div>
+
+          <dl class="cf-contact">
+            <div class="cf-contact__row">
+              <dt class="cf-contact__term">Anschrift</dt>
+              <dd class="cf-contact__value">
+                <address>
+                  Control-F GmbH<br>
+                  Am Seerhein 6<br>
+                  78467 Konstanz<br>
+                  Deutschland
+                </address>
+              </dd>
+            </div>
+            <div class="cf-contact__row">
+              <dt class="cf-contact__term">E-Mail</dt>
+              <dd class="cf-contact__value"><a href="mailto:info@control-f.de">info@control-f.de</a></dd>
+            </div>
+            <div class="cf-contact__row">
+              <dt class="cf-contact__term">Telefon</dt>
+              <dd class="cf-contact__value"><a href="tel:+4975311234560">+49 7531 123456-0</a></dd>
+            </div>
+            <div class="cf-contact__row">
+              <dt class="cf-contact__term">Presse</dt>
+              <dd class="cf-contact__value"><a href="mailto:presse@control-f.de">presse@control-f.de</a></dd>
+            </div>
+          </dl>
+
+          <p class="t-body-sm t-secondary measure" style="margin-top:var(--space-8)">
+            Bewerbungen bitte über <a href="/karriere">Karriere</a> — dort steht, was wir für
+            eine Bewerbung brauchen und was nicht.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 · Was danach passiert. Dieselbe Akkordeon-Komponente wie die FAQ
+       auf der Startseite, nur drei Einträge: die drei Fragen, die man sich
+       stellt, bevor man auf Absenden drückt. -->
+  <section class="section" aria-labelledby="danach">
+    <div class="container">
+      <div class="cf-section-header cf-section-header--flush">
+        <h2 class="cf-section-header__label" id="danach">Was danach passiert</h2>
+        <span class="cf-section-header__count" aria-hidden="true">03</span>
+      </div>
+      <div class="cf-accordion">
+        <details class="cf-accordion__item">
+          <summary class="cf-accordion__summary">Wann bekomme ich eine Antwort?
+            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
+          <div class="cf-accordion__content">In der Regel innerhalb eines Werktages, und von einem Menschen aus dem Team — nicht von einer Eingangsbestätigung.</div>
+        </details>
+        <details class="cf-accordion__item">
+          <summary class="cf-accordion__summary">Was passiert mit meinen Angaben?
+            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
+          <div class="cf-accordion__content">Sie landen in unserem Postfach in der EU und werden ausschließlich zur Beantwortung Ihrer Anfrage verwendet. Kein Newsletter, kein Weiterverkauf, keine Übermittlung in Drittländer. Nach Abschluss der Korrespondenz werden sie gelöscht, soweit keine gesetzliche Aufbewahrungspflicht besteht.</div>
+        </details>
+        <details class="cf-accordion__item">
+          <summary class="cf-accordion__summary">Ich weiß noch nicht genau, was ich brauche.
+            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
+          <div class="cf-accordion__content">Das ist der Normalfall und kein Hindernis. Schreiben Sie, welche Anlage Sie betreiben und was Sie stört — die Einordnung ist unser Teil der Arbeit.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Der Footer trägt auf jeder anderen Seite den CTA „Jetzt Projekt starten“
+     mit dem Link hierher. Auf dieser Seite wäre das ein Link auf sich selbst,
+     also steht hier die andere Hälfte des Angebots: anrufen statt schreiben.
+     Struktur, Marke und Meta-Zeile bleiben unverändert. -->
+<footer class="cf-footer cf-footer--detached" data-theme="inverse">
+  <div class="container">
+    <div class="cf-footer__cta">
+      <img class="cf-footer__mark" src="../assets/img/icons/cf-footer-mark.svg" alt="">
+      <div>
+        <p class="cf-footer__title text-foil">Lieber direkt sprechen?</p>
+        <a class="cf-btn cf-btn--outline cf-btn--xwide" href="tel:+4975311234560">
+          +49 7531 123456-0
+          <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+        </a>
+      </div>
+    </div>
+    <div class="cf-footer__meta">
+      <a class="cf-logo cf-logo--bare" href="/"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
+      <ul class="cf-footer__links" role="list">
+        <li><a href="/ueber-uns">Über uns</a></li>
+        <li><a href="/news">News</a></li>
+        <li><a href="/karriere">Karriere</a></li>
+        <li><a href="/datenschutz">Datenschutz</a></li>
+        <li><a href="/impressum">Impressum</a></li>
+        <li><button type="button" class="cf-footer__linkbtn" data-cf-consent-action="open">Cookie-Einstellungen</button></li>
+      </ul>
+      <span>©2026 Control-F GmbH</span>
+      <span>Am Seerhein 6, 78467 Konstanz · <a href="mailto:info@control-f.de">info@control-f.de</a></span>
+    </div>
+  </div>
+</footer>
+
+<a class="ds-back" href="../index.html">← Design System</a>
+<script>
+  document.querySelector('.cf-nav__toggle').addEventListener('click', function () {
+    var list = document.getElementById('hauptnav');
+    var open = list.dataset.open === 'true';
+    list.dataset.open = String(!open);
+    this.setAttribute('aria-expanded', String(!open));
+  });
+</script>
+<script src="../assets/js/cf-consent.js"></script>
+</body>
+</html>

@@ -759,12 +759,20 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   text-transform: uppercase;
   color: var(--text-primary);
 }
+/* The other half of the same hairline row, so it is set the same way: mono,
+   11 px, +0.01em, uppercase. Only the colour differs, which is what makes the
+   label read as the heading and the counter as the annotation. Without the
+   uppercase the two ends of one rule were in two different cases — and every
+   counter the designer drew ("189 BEITRÄGE", "SEARCH") is uppercase on the
+   plates. The transform is CSS, not markup, so the accessibility tree still
+   carries "189 Beiträge". */
 .cf-section-header__count {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
   color: var(--text-secondary);
 }
 
@@ -1312,6 +1320,10 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   padding-bottom: var(--space-6);
   border-bottom: var(--stroke-1) solid var(--border-default);
 }
+/* The byline's rule owns the air under it, the same way a section header owns
+   the air under its own hairline. Both the pattern page and this component's
+   documentation page were setting it inline, in the same value, twice. */
+.cf-article__byline + .cf-prose { margin-top: var(--space-8); }
 .cf-article__avatar {
   flex: none;
   width: 3rem;
@@ -1656,9 +1668,23 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
    `subgrid`, so a two-line name grows that track for every card in the row at
    once. Without it, a single wrapped name pushes its own role label 21 px below
    its neighbours' and nothing else moves. */
+/* The track minimum is not free to move. Six people is the shipping count, and
+   a ruled field only looks right when the column count divides it — 6, 3, 2 or
+   1. In a full .container (1280 content) the count is floor(1280 / minimum), so
+   anything under 11.43rem buys a seventh column and anything over 13.33rem
+   loses the sixth: the usable window is 11.5rem to 13.3rem and this sits at the
+   bottom of it. That is deliberate. A minimum low in the window puts the
+   unavoidable 4-and-5-column band at roughly 830 to 1240 rather than 935 to
+   1400, which keeps 1280 — the reference content width, and one of the widths
+   this system is tested at — on a clean single row.
+
+   The band cannot be closed, only moved. Between 3 columns and 6 the count has
+   to pass through 4 and 5, and at those two counts six cards leave a gap in the
+   last row. Fixed column counts would avoid it, but jumping 3 to 6 halves the
+   card width at the breakpoint, which is worse than the gap. */
 .cf-team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
   border-top: var(--stroke-1) solid var(--border-strong);
   border-left: var(--stroke-1) solid var(--border-strong);
 }
@@ -1777,8 +1803,60 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   border-bottom-width: var(--stroke-2);
 }
 .cf-field__hint { font-size: var(--text-sm); color: var(--text-secondary); }
-.cf-field--invalid .cf-field__input { border-bottom-color: #B3261E; }
-.cf-field__error { font-size: var(--text-sm); color: #B3261E; }
+.cf-field--invalid :is(.cf-field__input, .cf-field__textarea, .cf-field__select) {
+  border-bottom-color: var(--feedback-error);
+}
+.cf-field__error { font-size: var(--text-sm); color: var(--feedback-error); }
+
+/* "(optional)" rather than an asterisk on everything else. Most fields on a
+   contact form are required, so marking the exception is the smaller mark —
+   and it needs no legend explaining what a symbol means. Lowercase and in the
+   body face so it reads as a word inside the label, not as a second label. */
+.cf-field__optional {
+  margin-left: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-light);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* --------------------------------------------------------------------------
+   ERROR SUMMARY
+   The list of everything wrong, above the form, each item linking to its
+   field. Server-rendered: it exists in the response to a failed POST, so it
+   needs no script — the browser lands on it because the form's action carries
+   the fragment, and role="alert" announces it when a script does inject it.
+
+   Drawn as a contour box like every other framed thing in the system, but in
+   the error colour and at 2 px. It is the one place the system raises a
+   contour above 1 px on screen: it has to be findable at a glance on a page
+   that is otherwise all hairlines, and colour alone cannot carry that.
+   -------------------------------------------------------------------------- */
+.cf-error-summary {
+  padding: var(--space-6);
+  border: var(--stroke-2) solid var(--feedback-error);
+  border-radius: var(--radius-none);
+}
+.cf-error-summary__title {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--feedback-error);
+}
+.cf-error-summary__list {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.cf-error-summary__list li + li { margin-top: var(--space-2); }
+.cf-error-summary__list a {
+  color: var(--feedback-error);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
 
 /* --------------------------------------------------------------------------
    CHECKBOX
@@ -1830,6 +1908,48 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 }
 
 /* --------------------------------------------------------------------------
+   CONTACT LIST
+   Address, mail, phone. A <dl>, because these are term/value pairs and that
+   is the element that says so — a stack of <p> throws the pairing away.
+
+   Term above value, not beside it, which is the same arrangement .cf-field
+   already uses for a mono label over its input. It also means the component
+   needs no width query: a two-column form of it would have to know how wide
+   its column is, and inside a .col-* the nearest query container is the whole
+   page container, which cannot tell.
+
+   No top border. The section header above it draws that hairline; giving the
+   list one of its own is what --flush exists to avoid.
+   -------------------------------------------------------------------------- */
+.cf-contact { margin: 0; }
+.cf-contact__row {
+  padding-block: var(--space-5);
+  border-bottom: var(--stroke-1) solid var(--border-strong);
+}
+.cf-contact__term {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.cf-contact__value {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-light);
+  line-height: var(--leading-relaxed);
+}
+.cf-contact__value address { font-style: normal; }
+.cf-contact__value a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: var(--stroke-1);
+  text-underline-offset: 0.25em;
+}
+.cf-contact__value a:hover { text-decoration-color: var(--border-default); }
+
+/* --------------------------------------------------------------------------
    STAT
    Big mono number + label. For the "10 Mitarbeiter" style facts.
 
@@ -1877,9 +1997,18 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
    padding of its own. Keeps the gap before the footer identical on every page
    instead of leaving it to a per-page margin. */
 .cf-footer--detached { margin-top: var(--section-gap); }
+/* Mark and copy are one centred lockup, which is how the footer is drawn on
+   both plates: on landing-page.jpg the pair runs 334-865 in a 1200 frame and
+   on ueber-uns.jpg 404-795 — both centred on 600 to within a pixel, not
+   aligned to the container's left edge.
+   `justify-content: center` was already here and did nothing, because a
+   minmax(0, 1fr) second track eats every spare pixel and leaves the grid
+   nothing to centre. Sizing both tracks to their content is what makes the
+   declaration true. minmax(0, auto) keeps the title free to wrap rather than
+   forcing the track to the width of the unbroken headline. */
 .cf-footer__cta {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, auto);
   align-items: center;
   gap: var(--space-20);
   justify-content: center;
@@ -2037,6 +2166,12 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-display);
 }
+/* The dialog's title owns the air beneath it, like every other header in the
+   system. All five pages that ship the dialog were setting this one gap
+   inline instead, and the markup documented on components/consent.html never
+   carried it — so the documented snippet rendered the title and its opening
+   sentence with no space at all between them. */
+.cf-consent__dialog-title + .cf-consent__body { margin-top: var(--space-4); }
 .cf-consent__group {
   display: grid;
   gap: var(--space-4);
@@ -2214,4 +2349,278 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 @media (prefers-reduced-motion: reduce) {
   .cf-hero__media video { display: none; }
   .cf-hero__media img   { display: block; }
+}
+
+/* --------------------------------------------------------------------------
+   VALUES — the mark builds itself out of its own subdivision grid
+   The six values, one per stage of a pinned scroll. The mark is assembled in
+   the order the manual constructs it: contour first, then the isometric
+   subdivision at 1 / .5 / .25 / .125, then the solid form. Six construction
+   steps, six values — the count is not a coincidence and neither is the order.
+
+   NO SCRIPT. The whole thing is a view timeline over the track, which is what
+   foundations/motion.html already says every scroll-driven animation in this
+   system is. That buys the fallbacks rather than costing them:
+
+     no support         the finished mark, the six values stacked and readable
+     reduced motion     the same
+     print              the same, because the block is scoped to `screen`
+     no JavaScript      the same, because the copy is real markup
+
+   That last one is the point. The prototype this comes from built its copy
+   char by char out of a JS array, so with the script off there was nothing to
+   read and nothing for a screen reader to announce, and under reduced motion
+   it still gated six screens of copy behind six screens of scroll. Here the
+   values are six list items in the document; scrolling only chooses which one
+   is lit. Read the fallback below as the real state and the enhancement as
+   the decoration, because that is the order they are declared in.
+
+   The grid lines carry pathLength="1" and are deliberately NOT under .cf-iso:
+   non-scaling-stroke measures dashes in screen pixels while pathLength
+   normalises to user units, and the two disagree by the render scale — the
+   bug foundations/motion.html documents. These draw linearly instead.
+   -------------------------------------------------------------------------- */
+
+/* ---- the readable state, which is also the un-enhanced one ---- */
+.cf-values__track { position: relative; }
+.cf-values__frame {
+  display: grid;
+  gap: var(--space-8);
+  align-items: center;
+}
+/* 11.25rem is the prototype's 180px cap, and it is the mark's real size rather
+   than a limit it rarely reaches. The middle column is deliberately wider than
+   the mark: the prototype gives it minmax(240px, 30vw) and then draws a 180px
+   sign inside it, so the sign sits in air rather than filling its column. Drop
+   the cap and the mark takes the whole column — 317px at 1440, near twice the
+   drawn size — which is what made this read as the wrong scale. */
+.cf-values__mark { display: block; width: 100%; max-width: 11.25rem; margin-inline: auto; }
+.cf-values__mark line,
+.cf-values__contour { stroke: var(--cf-schwarz); }
+.cf-values__solid   { fill: var(--cf-schwarz); }
+
+.cf-values__list { list-style: none; margin: 0; padding: 0; }
+.cf-values__item + .cf-values__item {
+  margin-top: var(--space-8);
+  padding-top: var(--space-8);
+  border-top: var(--stroke-1) solid var(--border-subtle);
+}
+.cf-values__title {
+  font-size: var(--text-h4);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+}
+.cf-values__body {
+  margin-top: var(--space-3);
+  max-width: 46ch;
+  color: var(--text-secondary);
+}
+/* The live index belongs to the pinned state only — in the stacked state every
+   value is on screen at once, so counting to one of them says nothing. */
+.cf-values__index,
+.cf-values__progress { display: none; }
+
+/* ---- pinned and scrubbed, where the browser can and the reader wants it ----
+   Gated at 820 px on purpose. The track is seven viewports of scroll; on a
+   phone that is a long hijack for copy that reads perfectly well stacked, and
+   the three-column composition has nowhere to go at that width anyway. */
+@supports (animation-timeline: view()) {
+  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 820px) {
+    .cf-values__track {
+      --values-stages: 6;
+      height: calc((var(--values-stages) + 1) * 100vh);
+      view-timeline-name: --cf-values;
+      view-timeline-axis: block;
+    }
+    .cf-values__stage {
+      /* sticky is also `position`, so this is the containing block the index
+         and the progress bar resolve against. Without it they escape to the
+         page and land at its top corners. */
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: grid;
+      align-content: center;
+    }
+    /* The composition is 4 + 4 + 4 on the page's own 12 columns — title, mark,
+       body — not a bespoke three-track ruler. At 1440 that puts each band at
+       410px against the prototype's 432px middle column, so the proportions
+       come out where the prototype had them while every edge still lands on a
+       column line the rest of the page uses.
+
+       The items were previously `position: absolute; inset: 0` against this
+       frame. .cf-values__frame is also a .container, and an absolutely
+       positioned child resolves against the PADDING box, so each item's three
+       tracks were measured across 1438px while the frame's own were measured
+       across the 1280px content box: 528.8 / 316.8 / 528.8 against 449.6 /
+       316.8 / 449.6. The title and body were hanging one full gutter — 79px a
+       side at 1440 — outside the grid everything above them is aligned to.
+       Stacking them as grid items in a shared cell keeps the overlay without
+       leaving the content box. */
+    .cf-values__frame {
+      position: relative;
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      gap: var(--grid-gap);
+      min-height: 60vh;
+    }
+    .cf-values__mark { grid-column: 5 / 9; grid-row: 1; }
+
+    /* every value occupies the same place; the timeline chooses which is lit */
+    .cf-values__list { grid-column: 1 / -1; grid-row: 1; display: grid; }
+    .cf-values__item {
+      grid-area: 1 / 1;
+      display: grid;
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      gap: var(--grid-gap);
+      align-items: center;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      animation-name: cf-values-item;
+      animation-timeline: --cf-values;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+    }
+    .cf-values__title { grid-column: 1 / 5; text-align: right; }
+    .cf-values__body  { grid-column: 9 / 13; margin-top: 0; }
+
+    .cf-values__item:nth-child(1) { animation-range: contain 0%      contain 16.667%; }
+    .cf-values__item:nth-child(2) { animation-range: contain 16.667% contain 33.333%; }
+    .cf-values__item:nth-child(3) { animation-range: contain 33.333% contain 50%; }
+    .cf-values__item:nth-child(4) { animation-range: contain 50%     contain 66.667%; }
+    .cf-values__item:nth-child(5) { animation-range: contain 66.667% contain 83.333%; }
+    /* the last one holds: there is no seventh stage to hand over to */
+    .cf-values__item:nth-child(6) {
+      animation-name: cf-values-item-last;
+      animation-range: contain 83.333% contain 100%;
+    }
+
+    /* --- the mark, one construction step per stage ---
+       Each step draws over the first 62 % of its stage and then holds, so a
+       stage at rest always shows its own step finished rather than mid-draw. */
+    .cf-values__contour,
+    .cf-values__grid-layer,
+    .cf-values__solid {
+      animation-timeline: --cf-values;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: var(--ease-out);
+    }
+    .cf-values__contour,
+    .cf-values__grid-layer line {
+      stroke-dasharray: 1;
+    }
+    .cf-values__contour {
+      animation-name: cf-values-draw;
+      animation-range: contain 0% contain 10.33%;
+    }
+    .cf-values__grid-layer {
+      animation-name: cf-values-fade;
+    }
+    .cf-values__grid-layer line {
+      animation-name: cf-values-draw;
+      animation-timeline: --cf-values;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: var(--ease-out);
+    }
+    .cf-values__grid-layer:nth-of-type(1),
+    .cf-values__grid-layer:nth-of-type(1) line { animation-range: contain 16.667% contain 27%; }
+    .cf-values__grid-layer:nth-of-type(2),
+    .cf-values__grid-layer:nth-of-type(2) line { animation-range: contain 33.333% contain 43.667%; }
+    .cf-values__grid-layer:nth-of-type(3),
+    .cf-values__grid-layer:nth-of-type(3) line { animation-range: contain 50%     contain 60.333%; }
+    .cf-values__grid-layer:nth-of-type(4),
+    .cf-values__grid-layer:nth-of-type(4) line { animation-range: contain 66.667% contain 77%; }
+    .cf-values__solid {
+      animation-name: cf-values-fade;
+      animation-range: contain 83.333% contain 93.667%;
+    }
+
+    /* --- the chrome: which stage, and how far through --- */
+    .cf-values__index,
+    .cf-values__progress { display: block; }
+    .cf-values__index {
+      position: absolute;
+      left: var(--gutter);
+      bottom: var(--space-12);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-label);
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+    .cf-values__index-n {
+      position: absolute;
+      left: 0;
+      opacity: 0;
+      color: var(--text-primary);
+      font-weight: var(--weight-medium);
+      animation-name: cf-values-item;
+      animation-timeline: --cf-values;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+    }
+    .cf-values__index-n:nth-child(1) { animation-range: contain 0%      contain 16.667%; }
+    .cf-values__index-n:nth-child(2) { animation-range: contain 16.667% contain 33.333%; }
+    .cf-values__index-n:nth-child(3) { animation-range: contain 33.333% contain 50%; }
+    .cf-values__index-n:nth-child(4) { animation-range: contain 50%     contain 66.667%; }
+    .cf-values__index-n:nth-child(5) { animation-range: contain 66.667% contain 83.333%; }
+    .cf-values__index-n:nth-child(6) {
+      animation-name: cf-values-item-last;
+      animation-range: contain 83.333% contain 100%;
+    }
+    .cf-values__index-total { padding-left: 2.4em; }
+
+    .cf-values__progress {
+      position: absolute;
+      right: var(--gutter);
+      bottom: calc(var(--space-12) + 0.35em);
+      width: 7.5rem;
+      height: var(--stroke-1);
+      background: var(--border-strong);
+    }
+    .cf-values__progress::after {
+      content: "";
+      display: block;
+      height: 100%;
+      background: var(--cf-schwarz);
+      transform-origin: left;
+      transform: scaleX(0);
+      animation-name: cf-values-progress;
+      animation-timeline: --cf-values;
+      animation-range: contain 0% contain 100%;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+    }
+  }
+}
+
+@keyframes cf-values-item {
+  0%   { opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes cf-values-item-last {
+  0%   { opacity: 0; }
+  12%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+@keyframes cf-values-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes cf-values-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cf-values-progress {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
 }
