@@ -31,6 +31,7 @@
       { href: 'components/process-card.html',   label: 'Process Card' },
       { href: 'components/accordion.html',      label: 'Accordion / FAQ' },
       { href: 'components/blog-grid.html',      label: 'Blog Grid' },
+      { href: 'components/subdivision-field.html', label: 'Subdivision Field' },
       { href: 'components/pagination.html',     label: 'Pagination' },
       { href: 'components/article.html',        label: 'Article & Prose' },
       { href: 'components/team.html',           label: 'Team' },
