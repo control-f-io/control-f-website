@@ -517,7 +517,22 @@
 
   /* The lit edge of a glass sheet — white at the rim, drifting through Glas
      into Sky as it runs out. This is the foil, at one pixel: hue travel
-     inside a narrow luminance band, not a shine. */
+     inside a narrow luminance band, not a shine.
+
+     It resembles the foil in hue travel only, NOT in interpolation error,
+     and the difference is worth a number because "it is the foil" invites a
+     later run to move it into the oklab @supports block with the rest of the
+     family. Max ΔEok between the sRGB and oklab paths, computed per leg:
+
+       lime  -> Glas     0.04430     the legs the family corrects for
+       Glas  -> Sky      0.00148     --glass-edge
+       Weiss -> Glas     0.00045     --sheen-panel
+       Glas  -> CF-Grau  0.00073     already left on sRGB deliberately
+
+     --sheen-panel diverges LESS than a leg the system has already decided
+     is not worth correcting, and --glass-edge is thirty times below the lime
+     legs. Neither carries lime, which is where the two paths actually part.
+     They belong in sRGB; leaving them here is a decision, not an oversight. */
   --glass-edge: linear-gradient(90deg,
                   rgba(255, 255, 255, 0)    0%,
                   rgba(255, 255, 255, 0.42) 16%,
