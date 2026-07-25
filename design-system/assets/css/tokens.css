@@ -260,12 +260,24 @@
      spreads it across the whole line.
 
      This is the type foil: on black its worst sample — Violett 300 — is
-     11.9:1, well past AA at any size. */
-  --gradient-foil: linear-gradient(116.57deg,
-                      var(--cf-weiss)    0%,
-                      var(--cf-glas)     calc((var(--rake-near-n)     - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
-                      var(--sky-300)     calc((var(--spectrum-cool-n) - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
-                      var(--violett-300) 100%);
+     11.9:1, well past AA at any size.
+
+     STOPS AND RAKE ARE DECLARED APART, and that split is what lets the foil
+     move. The stop list is the material — which colours, in which order, at
+     which positions — and the rake is the angle light happens to be crossing
+     it at. Written together, the material had to be restated in full every
+     time the angle changed, which is how it came to exist twice already (once
+     here and once in the oklab block at the foot of this file). Written apart,
+     the material exists once and anything that wants a different angle asks
+     for one: see base.css, THE RAKE SWINGS. */
+  --foil-rake: 116.57deg;
+
+  --foil-stops: var(--cf-weiss)    0%,
+                var(--cf-glas)     calc((var(--rake-near-n)     - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
+                var(--sky-300)     calc((var(--spectrum-cool-n) - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
+                var(--violett-300) 100%;
+
+  --gradient-foil: linear-gradient(var(--foil-rake), var(--foil-stops));
 
   /* THE SHADOW HALF OF THE FOIL.
      The foil above is light-on-dark and cannot be anything else: every stop
@@ -318,10 +330,11 @@
      CF-Grau — Glas 800, the light end — is 5.24:1; on white it is 8.16:1.
      AA at any size across the whole ramp, and the worst case is the top of
      the page wash, not the bottom, because this ink darkens as it travels. */
-  --gradient-foil-ink: linear-gradient(116.57deg,
-                      var(--glas-800)    0%,
-                      var(--sky-800)     calc((var(--spectrum-cool-n) - var(--rake-near-n)) / (100 - var(--rake-near-n)) * 100%),
-                      var(--violett-800) 100%);
+  --foil-ink-stops: var(--glas-800)    0%,
+                    var(--sky-800)     calc((var(--spectrum-cool-n) - var(--rake-near-n)) / (100 - var(--rake-near-n)) * 100%),
+                    var(--violett-800) 100%;
+
+  --gradient-foil-ink: linear-gradient(var(--foil-rake), var(--foil-ink-stops));
 
   /* Dither. 8-bit sRGB cannot resolve a 5,000 px ramp between two colours
      this close, so the page wash bands into visible steps. One tile of
@@ -824,15 +837,11 @@
                         var(--cf-glas)   var(--rake-near),
                         var(--sky-300)   var(--spectrum-cool),
                         var(--violett-300) 100%);
-    --gradient-foil: linear-gradient(116.57deg in oklab,
-                        var(--cf-weiss)    0%,
-                        var(--cf-glas)     calc((var(--rake-near-n)     - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
-                        var(--sky-300)     calc((var(--spectrum-cool-n) - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
-                        var(--violett-300) 100%);
-    --gradient-foil-ink: linear-gradient(116.57deg in oklab,
-                        var(--glas-800)    0%,
-                        var(--sky-800)     calc((var(--spectrum-cool-n) - var(--rake-near-n)) / (100 - var(--rake-near-n)) * 100%),
-                        var(--violett-800) 100%);
+    /* Two lines rather than nine, because the stops are a token now and only
+       the interpolation path changes here. Nothing about the ramp is restated,
+       so the two declarations cannot drift apart. */
+    --gradient-foil:     linear-gradient(var(--foil-rake) in oklab, var(--foil-stops));
+    --gradient-foil-ink: linear-gradient(var(--foil-rake) in oklab, var(--foil-ink-stops));
   }
 }
 
