@@ -470,6 +470,12 @@
                            rather than for the frames someone happened to
                            check. Measured against the hero poster's darkest
                            blurred patch it lands at 6.5:1.
+                           This value has almost no room to move: 46 % white
+                           over pure black computes to 4.58:1, which clears
+                           4.5 by 1.7 %. Lowering it for a lighter, more
+                           glassy look breaks AA on the worst backdrop even
+                           though every backdrop anyone is likely to check
+                           will still look fine. Raise it or leave it.
      --surface-glass-veil  VEIL glass. Carries nothing but opaque objects, so
                            it stays almost clear and lets the blur do the work.
                            Measured off the navigation band in both mockups:
@@ -477,9 +483,22 @@
      --surface-glass-solid The opaque stand-in when the browser cannot blur, or
                            when the reader has asked for less transparency.
 
-     Blur radius is 16 px. Larger reads no better and costs more. The system
-     never stacks glass on glass: the navigation band and the hero button are
-     the only two blurred layers any screen carries, and they do not overlap. */
+     Blur radius is 16 px. Larger reads no better and costs more.
+
+     Two blurred layers exist and no more: the navigation band and the hero
+     button. They DO overlap, unavoidably — the CTA is on the first screen
+     and the bar is sticky, so the button passes under it on the way out.
+     Measured at 1280x900 on the landing page: the sheet occupies 0..108 of
+     the viewport (84 px bar plus the 24 px lookahead) and the button
+     intersects it from scrollY 628 to 776, sitting entirely inside it from
+     672 to 732. About 150 px of scroll with two stacked backdrop-filters.
+
+     This is stated because an earlier version of this comment claimed they
+     never overlap, and a later run would have planned against a guarantee
+     the system does not have. It costs nothing measurable — sweeps through
+     the overlap window and through clear page produce the same median
+     (16.7 ms) and overlapping p95 ranges — so the rule to keep is the one
+     that pays: exactly two blurred layers on a page, never a third. */
   --glass-blur:       blur(16px) saturate(1.08);
   --glass-blur-heavy: blur(28px) saturate(1.16);
   --glass-border:     1px solid rgba(255, 255, 255, 0.55);

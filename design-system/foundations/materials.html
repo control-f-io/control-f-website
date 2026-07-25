@@ -234,13 +234,41 @@
     <h3>Cost</h3>
     <p>
       <code>backdrop-filter</code> is the most expensive thing in this stylesheet. The rules
-      that keep it affordable: never stack two blurred layers; keep the blur radius at 16 px,
+      that keep it affordable: never add a third blurred layer; keep the blur radius at 16 px,
       since more reads no better; use <code>position: sticky</code> rather than
       <code>fixed</code>, because a fixed blurred element repaints its whole region every
       scroll frame in iOS Safari; and never animate the opacity of a blurred layer, which
       re-rasterises the blur on every frame. A sheet may reach past its own edge by
       <code>--glass-lookahead</code> so content arrives through the blur rather than popping
       into it, but no further — everything past one blur kernel is spend with nothing to show.
+    </p>
+    <p>
+      The two blurred layers <em>do</em> overlap, and the system used to claim they never do.
+      The hero CTA is on the first screen and the bar is sticky, so the button passes under it
+      on the way out: measured at 1280&nbsp;&times;&nbsp;900, they intersect from
+      <code>scrollY</code> 628 to 776 and the button sits entirely inside the sheet from 672
+      to 732 — about 150&nbsp;px of scroll carrying two stacked <code>backdrop-filter</code>s.
+      It costs nothing measurable; sweeps through the overlap window and through clear page
+      give the same 16.7&nbsp;ms median and overlapping p95 ranges. The rule worth keeping is
+      therefore the one that pays — exactly two blurred layers on a page, never a third — not
+      the stronger one the comment used to assert.
+    </p>
+
+    <h3>The glass button is light contexts only</h3>
+    <p>
+      <code>.cf-btn--glass</code> must not be placed inside a
+      <code>data-theme="inverse"</code> scope. Its label is <code>--accent-ink</code>, which is
+      black, while the inverse theme flips <code>--surface-glass</code> to black 56&nbsp;% —
+      black type on a dark plate, near 1:1. Nothing reaches that today, since the button
+      appears only on the landing page and its own documentation page and neither is inverse,
+      but it is a real constraint rather than an oversight.
+    </p>
+    <p>
+      It cannot be fixed by flipping the label colour with the theme, which is the obvious
+      guard. The button's right-hand end is lime in both themes, and lime demands black type;
+      the plate under the left-hand end would demand white. One colour cannot serve both, so
+      an inverse glass button is a redesign — a different lit edge, or no lime — not a token
+      swap. Until someone draws one, this component belongs on light ground.
     </p>
 
     <h3>When there is no glass</h3>
