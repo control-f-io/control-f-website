@@ -128,38 +128,22 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
      nothing holding the contrast floor. That is the load-bearing reason, it
      is spec behaviour, and it does not expire.
 
-     A var(--cf-specular, 150%) fallback would also resolve the value, and in
-     a correct browser it should be indistinguishable from this declaration —
-     a registered property with an initial-value is never guaranteed-invalid,
-     so its fallback is never consulted. Prefer the plain declaration anyway,
-     for a second and weaker reason: in Chromium 141 the fallback form breaks
-     repaint invalidation. The property still interpolates, and the form
-     paints correctly when sampled statically at either endpoint, but the
-     background is not invalidated as the property changes, so the plate holds
-     its rest paint and snaps at the end. Measured at identical property
-     values rather than identical times, so no timing jitter is in it:
+     A var(--cf-specular, 150%) fallback would resolve the value too, and in
+     a correct browser should be indistinguishable — a registered property
+     with an initial-value is never guaranteed-invalid, so its fallback is
+     never consulted. Prefer the plain declaration anyway: in Chromium 141
+     the fallback form breaks repaint invalidation and the band stops
+     travelling.
 
-       at --cf-specular = 109.67 %   bare var: band visible at the right end
-                                     fallback: zero change across 16 columns
-       at --cf-specular =  79.88 %   bare var: a clear band, peak 14
-                                     fallback: still zero
+     That last part is a browser bug with an expiry date, not a rule. Its
+     measurements, the two ways of scripting the check that return false
+     negatives, and the instruction to cut it once it stops reproducing are
+     in foundations/materials.html — deliberately one copy, so there is one
+     thing to revise rather than two that have to expire together. The spec
+     argument above is the permanent half and stays here, next to the line it
+     protects.
 
-     Treat that as a browser bug and not as a rule — if it is fixed, this
-     paragraph stops being true while the declaration above stays correct and
-     still necessary. It has an expiry date: re-check it, and the moment the
-     fallback form paints correctly, CUT these three paragraphs rather than
-     leaving them standing as folklore. Only the spec argument above is
-     permanent.
-
-     Note for anyone re-checking this: getComputedStyle cannot see it. The
-     property reads as interpolating in both forms, to three decimal places.
-     It has to be measured in pixels.
-
-     A plain declaration gets both. Registered, it is simply the from-value
-     and the property interpolates as normal; unregistered, it keeps the
-     var() resolvable so the plate survives and the highlight switches
-     instead of travelling, which is the documented behaviour. Keep it equal
-     to the initial-value above. */
+     Keep this value equal to the initial-value in the @property block. */
   --cf-specular: 150%;
   background:
     radial-gradient(55% 300% at var(--cf-specular) 50%,
@@ -254,16 +238,31 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
    documentation page's light backdrop, not on the poster, and understated
    it. Same-surface numbers only.)
 
-   It clears the lime in BOTH states, which is the more interesting half.
-   --angle-square is 90deg, so the linear leg beneath puts lime at 87-100 %
-   across the plate. At rest the band's near tail sits at 150 - 0.6 x 55 =
-   117 %, off the plate entirely; at hover it spans 40 +/- 33, so 7-73 %,
-   stopping short of 87. The old figure — centre 64 %, x-radius 120 % —
-   spanned roughly -10 % to 138 % and washed white straight over the lime,
-   which is visible in the measured profile as a NEGATIVE delta at the right
-   end on hover: the light was sitting on the lime at rest and moving off it.
-   So the new geometry strengthens the one-lime-moment rule rather than
-   merely not breaking it.
+   It clears the lime in both states — but only just, and the margin is
+   smaller than the stop positions suggest. 87 % is where the lime STOP is
+   declared, not where lime becomes visible: the leg ramps Glas 0.55 -> lime
+   0.88 from 62 % to 87 %, so the plate is already reading lime long before
+   the stop. Measured on the rendered button, label and arrow masked,
+   limeness = (R+G)/2 - B:
+
+     across      59 %   63 %   66 %   69 %   72 %   75 %
+     limeness    -4.3   13.9   41.3   68.6   95.8  123.0
+     band delta  +5.5   +3.6   +1.9   +0.6   -0.0    0.0
+
+   So lime is visible from about 63 %, and the band does not stop short of
+   it — the two overlap from roughly 63 % to 72 %. What saves it is that the
+   band is dying exactly where lime is starting: the most it ever adds to a
+   lime pixel is 3.6 levels, at the very foot of the ramp, and by the time
+   lime has any strength the band contributes nothing at all. Read the
+   margin as "the band expires as the lime arrives", not as the 14-point gap
+   the declared stops imply. Anyone nudging the hover endpoint rightward has
+   very little room.
+
+   The old figure — centre 64 %, x-radius 120 % — spanned roughly -10 % to
+   138 % and washed white straight over the lime, which shows in the profile
+   as a NEGATIVE delta at the right end on hover: light that was sitting on
+   the lime at rest and moving off it. So the new geometry still strengthens
+   the one-lime-moment rule rather than merely not breaking it.
 
    Light only ever adds, so the darkest point on the button stays
    --surface-glass and the contrast floor below is untouched. */

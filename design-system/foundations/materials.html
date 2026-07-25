@@ -277,10 +277,18 @@
       arguments separate — the spec one is the load-bearing half.
     </p>
     <p>
-      One trap worth remembering on its own: <strong><code>getComputedStyle</code> cannot see
-      the invalidation failure.</strong> The property reads as interpolating in both forms, to
-      three decimal places — a custom-property animation verified only by sampling computed
-      values will look correct while painting nothing. It has to be checked in pixels.
+      Two traps worth remembering on their own, because between them they rule out both
+      obvious ways of checking this by script. <strong><code>getComputedStyle</code> cannot see
+      the invalidation failure</strong> — the property reads as interpolating in both forms, to
+      three decimal places, so an animation verified only by sampling computed values looks
+      correct while painting nothing. And <strong>driving the property through
+      <code>element.style.setProperty()</code> does not repaint at all</strong> in Chromium 141:
+      sixteen columns sampled at 150 % and at 40 % come back byte-identical, while a real
+      <code>:hover</code> repaints correctly. That is a wider invalidation footprint than the
+      fallback case above, and it means the natural way to script this test returns a false
+      negative on a form that actually works. Drive it through the real selector — a
+      <code>:focus-visible</code> via <code>element.focus()</code> is the cleanest handle,
+      since it needs no pointer and cannot scroll the page — and read pixels, not values.
     </p>
     <p>
       One catch to carry with the rule: the rest value now exists twice — as
