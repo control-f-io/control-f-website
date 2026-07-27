@@ -41,9 +41,12 @@ python3 scripts/check-job-posting.py           # the JobPosting block matches th
 python3 scripts/check-a11y.py                  # the accessibility facts that are arithmetic rather than judgement
 python3 scripts/check-class-provenance.py      # every class in the markup is declared by something
 python3 scripts/check-class-provenance.py --report  # the census: who declares what, and what is written twice
+python3 scripts/check-viewport-zoom.py         # no page revokes the reader's pinch zoom
+python3 scripts/check-local-thresholds.py      # every page-local threshold is registered, and in rem under patterns/
+python3 scripts/check-local-thresholds.py -v   # print the register
 ```
 
-The thirteen checks the system enforces rather than documents, run by CI on every push and
+The fifteen checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step.
 
@@ -280,6 +283,12 @@ diagram of a 24 px glyph. `.cf-iso__trace` is exempt from both: components.css t
 three tokens themselves, so a silent edit to a dash period fails here rather than in a
 screenshot nobody takes. → `foundations/geometry.html#lines`
 
+**The tenth, eleventh and twelfth are about the system as a site** rather than about a drawing
+in it: every link resolves on the host that actually serves the pages, the `JobPosting` block
+matches the page a reader sees, and the part of accessibility that is arithmetic rather than
+judgement. Their arguments are in `scripts/check-links.py`, `scripts/check-job-posting.py`,
+`scripts/check-a11y.py` and the header comment of `.github/workflows/design-system.yml`.
+
 **Every class in the markup is declared by something,** and this is the thirteenth check —
 the first one that reads the markup and the stylesheets as two halves of the same claim.
 The twelve above it all read CSS, JSON-LD or the document outline and ask whether a value
@@ -312,6 +321,63 @@ than one name**, which is how the pinned stage on `patterns/expertise.html` and 
 and `lp-proc-` prefixes — the report prints the five that are more than a single
 declaration. Neither table is a gate. A component the system has not named yet is a finding
 about the system, not a build failure.
+
+**The fourteenth is the one whose failure no measurement in this repository can see.** Every
+page must carry `width=device-width, initial-scale=1` and nothing that pins the scale, because
+pinch zoom is how a large share of people read on a phone at all — and a page that revokes it
+renders identically at every width, in every screenshot, on every machine a designer owns. Its
+argument is in `scripts/check-viewport-zoom.py` and the workflow header.
+
+**A threshold cannot be a token,** so every one is a literal and the only defence is a
+register — and this is the fifteenth check, for the thresholds the register in `tokens.css`
+names as the thing it leaves out:
+
+> `inline <style>` — per-page demo styles. `foundations/iconography.html` asks a **viewport**
+> 48rem where 48rem above is a **container** threshold.
+
+That exclusion is right. Governing documentation chrome from a shipping stylesheet's register
+would make it look like it governed the chrome, and `check-breakpoints.py` is correct to stop
+where it stops. But it left the page-local thresholds registered *nowhere*, and a threshold
+registered nowhere is a number the next person reasoning about where this system folds will
+not find. There are **eleven of them, in seven files**; four are px.
+
+**The gap had a live bug in it for as long as it existed.** `patterns/expertise.html` gated its
+pinned, scroll-scrubbed stage on `(min-width: 820px)` — the number
+`prototypes/expertise-scroll.html` asks, carried across into `patterns/` along with the
+mechanism — while `patterns/landing-page.html` runs *the same mechanism* on
+`(min-width: 64rem) and (min-height: 45rem)`, derived for its own card and documented in place.
+
+The 820 was wrong in both units and both dimensions, and the reason is a fact about the page
+rather than a taste about numbers: the stage is only habitable once `.ex-step` has its **two
+columns**, and that fold is a **container** query at `56rem`. A px gate cannot track a rem
+fold. So the pin arrived at a fixed 820 while the two-column form arrived wherever 56rem of
+container happened to land, and between the two the stage pinned a **stacked** step into
+`100vh` of `overflow: clip` and cropped it:
+
+| default font size | stage pins at | two columns at | cropped band | worst crop |
+|---|---|---|---|---|
+| 16 px | 820 | 1007 | 187 px | 84 px |
+| 20 px | 820 | 1259 | 439 px | 173 px |
+| 24 px | 820 | 1511 | 691 px | 297 px |
+
+The reader who asked for larger type lost the most, which is exactly the failure the rem rule
+exists to prevent — and none of it is visible at 375, 768 or 1280, the three widths anyone
+checks, because all three are outside the band. Both figures are the landing page's now,
+unchanged: one mechanism, one gate.
+
+`patterns/` is held to the rem rule outright — a pattern page stands in for a page of the real
+site, so a reader's font size is a reader's font size there. A px threshold in documentation
+chrome gets a row marked `PX DEBT` instead, naming its owner; the count prints on every run and
+cannot grow without a visible edit to the script. What this check deliberately does **not**
+touch is classes, literals and inline layout in a page-local block: `check-class-provenance.py`
+above owns all three. Two scripts carrying overlapping rules are two things that can disagree,
+which is the failure mode this whole family exists to prevent — so this one stops at
+thresholds, the part of that scope the other does not reach.
+
+The two checks were written in the same hour and found the same fork from opposite ends. The
+census reports that the pinned stage on `patterns/expertise.html` and the one on
+`patterns/landing-page.html` share **eleven identical rule bodies** under `ex-` and
+`lp-proc-` prefixes; this check reports that until now they did not share the **gate**.
 
 ## Layout
 
