@@ -37,7 +37,7 @@ design-system/
 ├── index.html              overview + how to include the CSS
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
 │                           illustration, logo, photo, motion, mobile,
-│                           page transitions, field, found state
+│                           page transitions, field, found state, line of sight
 ├── components/             buttons, nav, breadcrumb, section header, statement +
 │                           value table, plot, process card, accordion, blog grid,
 │                           subdivision field, pagination, error + empty state,
@@ -58,6 +58,7 @@ design-system/
     │   ├── cf-consent.js   the consent banner + settings dialog. Ships.
     │   ├── cf-icons.js     the icon set — the one place a glyph is drawn. Ships.
     │   ├── cf-values.js    types the values copy. Ships, optional — see below.
+    │   ├── cf-sight.js     the reader's position across the screen. Ships, optional.
     │   └── docs.js         sidebar, swatch copy, arrow sprite — documentation only
     ├── fonts/              (empty — see below)
     ├── img/                logo SVGs, icons, hero poster, team photos, wallpaper
@@ -88,11 +89,12 @@ paste its markup instead, see `foundations/iconography.html` — and build pages
 classes documented in `components/`.
 `patterns/landing-page.html` is a working reference for a whole page.
 
-Two scripts ship. One is required, one is not:
+Three scripts ship. One is required, two are not:
 
 ```html
 <script src="/design-system/assets/js/cf-consent.js"></script>
 <script src="/design-system/assets/js/cf-values.js" defer></script>
+<script src="/design-system/assets/js/cf-sight.js" defer></script>
 ```
 
 `cf-consent.js` drives the consent banner and the settings dialog, which the site
@@ -107,6 +109,13 @@ is the one thing a view timeline cannot do because there is no per-character uni
 animate. It refuses to run unless the pinned layout is actually active, and it keeps
 the full sentence in a `.visually-hidden` twin so assistive technology never gets a
 half-written value. Delete the tag and the section still works.
+
+`cf-sight.js` is **optional and additive** in the same sense, and answers the one question
+CSS cannot ask: where across the screen the reader is. It writes two custom properties —
+`--sight-h` on `.text-foil` and `--field-light-x` on `.cf-ground--lit` — and nothing else.
+Both rest at the identity value of the expression that consumes them, so deleting the tag
+renders every page exactly as it did before the file existed, to the digit.
+→ [The line of sight](#the-line-of-sight)
 
 Everything else in the system is HTML and CSS.
 
@@ -377,6 +386,57 @@ place the site collapses real prose is the accordion, which is `<details>` and a
 a find. The chapter documents it so the first thing that does need it does not reach for
 `display: none`.
 
+## The line of sight
+
+`foundations/sight.html` is the chapter for the half of the brand's own model that the
+implementation had never read. Two materials already answer to where the reader is — the
+foil turns its rake as type travels up the screen, the field slides its pool of light down
+a section as the reader passes — and both are built on the same claim: **you see the
+material as drawn when you are square to it.** 116.57° is head-on, and the rake flattens
+towards 90° as the sight line goes oblique.
+
+A `view()` timeline supplies that obliquity for free on one axis. But it measures the
+*element*, and the model is about the *reader*; vertically the two coincide, because an eye
+at the middle of the screen is the only assumption a stylesheet can make, and horizontally
+they come apart the moment a viewport is wider than a headline. On a 1920 frame a title at
+the vertical centre and hard against the left margin was drawn perfectly head-on while the
+reader sat a foot to its right. `assets/js/cf-sight.js` replaces that assumption with a
+measurement.
+
+**The two squarenesses multiply, and that is the whole safety argument.** Summing two
+swings could leave the band; a product of two numbers in `[0, 1]` cannot, so the rake stays
+inside 90°–116.57° by construction and every contrast figure the foil has been measured at
+holds unchanged and unre-measured. It is also the physically true composition — a foil is
+head-on only when you are square to it on *both* axes, and being level with a sheet you are
+standing beside does not let you see it face on.
+
+The swing is also now **derived rather than asserted**. The comment in `base.css` has always
+said the 26.57° between the endpoints is the isometric angle itself; the keyframes said
+`90deg` and `116.57deg` and left that a coincidence a later edit could break. It is written
+as `--angle-square + --angle-b` now, so moving the isometric angle moves the foil with it.
+
+**What may answer to sight is a closed list, and it is short.** The angle a gradient is
+drawn at, and the position of a mask or a light. Not colour, not ink strength, not opacity,
+not a composited specular, and not the position or size of anything — content that moves
+away from a pointer cannot be clicked. The rule behind the list is that *the reader's
+position must never be able to change how legible anything is*, which is what makes every
+measured floor in this system a floor under every frame of this by construction rather than
+by inspection. Interactive surfaces are excluded outright: `.cf-btn--solid` reads the static
+foil from `:root` and is left alone, the same way it is left out of the vertical swing.
+
+`--field-light-x` is the one property of the four declared `inherits: true`, and the
+asymmetry is forced rather than chosen — the pool is painted by `.cf-ground::before`, and a
+script cannot set a property on a pseudo-element. That is a subtree invalidation per write,
+which is why the pool is quantised to whole percent where the rake is quantised to 1/64 of
+its swing. Both are damped by `--duration-fast`, which is what turns a quantised value into
+a material with weight rather than one that teleports between stops.
+
+Every fallback lands on the designer's own still, and the script gates itself on
+`CSS.supports('animation-timeline', 'view()')` — the same test `base.css` puts on the swing —
+so the stylesheet and the file cannot disagree about whether the vertical half is running.
+Coarse pointers do not get it at all: a finger has no position between taps, and reading a
+touch as a light source makes the page flinch every time it is scrolled.
+
 ## Vertical rhythm
 
 Every section opens with a `cf-section-header`, and **the header owns the air beneath
@@ -588,8 +648,10 @@ These were judgement calls, each documented on the relevant page:
   are present, so the measured contrast floor holds at every frame without re-measuring —
   which is why this is an angle rather than a specular band or a sliding ramp. Neither foil
   moment on the two designed pages can reach the middle of the screen, so both read between
-  90° and 108°; that is documented rather than bent.
-  → `foundations/colors.html`, `foundations/motion.html`
+  90° and 108°; that is documented rather than bent. The swing has a second axis now — see
+  [the line of sight](#the-line-of-sight) — which multiplies into the same rake and can only
+  take it further from head-on, so those two figures stay the ceiling.
+  → `foundations/colors.html`, `foundations/motion.html`, `foundations/sight.html`
 - **Inline SVG gradients carry an oklab waypoint the source vectors do not have.** Figma
   interpolates in sRGB, and SVG can only interpolate in sRGB or linearRGB, so the illustrations
   inherited the sRGB path. The CSS gradients interpolate in oklab. Same three colours, two
