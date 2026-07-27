@@ -262,7 +262,8 @@ design-system/
 ├── patterns/               full page templates — landing-page.html, expertise.html,
 │                           ueber-uns.html,
 │                           news.html, blog-artikel.html, suche.html,
-│                           karriere.html, kontakt.html, 404.html
+│                           karriere.html, kontakt.html,
+│                           datenschutz.html, impressum.html, 404.html
 ├── prototypes/             motion studies — standalone, not yet system
 ├── reference.html          the designer's source material, next to what implements it
 └── assets/
@@ -706,6 +707,46 @@ every field in it has to match what the reader sees. That, the four placeholder 
 the `jobs@control-f.de` mailbox are recorded under
 [Before launch](#before-launch). → `components/vacancy.html`
 
+## The two routes the law requires
+
+`/datenschutz` and `/impressum` were the last two addresses in the system with no
+template behind them, and they are not ordinary gaps. Every nav bar links neither and
+every footer links both; between them the two were referenced 39 times, and the consent
+layer — the one thing on the site that exists because a statute says so — sent readers
+to `/datenschutz#cookies` nine times over. A banner that cannot legally be omitted was
+pointing at a page that did not exist.
+
+**Neither page needed a new drawing, and finding that out was most of the work.** A
+privacy policy is a long document read in sections, which is what `.cf-article` already
+is: the index rail, the sticky register, `.cf-prose` beside it. An Impressum is a set of
+named facts, which is what `.cf-contact` already is — `/kontakt`'s contact column, the
+same mono term over its value, only complete. The one decision either page makes on its
+own is whether to carry an index at all, and `components/article.html` had already
+written the rule: nothing under four sections, because a three-item index is furniture.
+The policy has twelve and carries one; the Impressum has three and does not.
+
+**The inventory moved rather than being copied.** `components/consent.html` used to
+render the six entries itself, with a note giving the reason — copy that will be replaced
+wholesale should exist once, and the page that should hold it did not exist. It does now,
+so the component page states the shape of the table and links to the address the dialog
+routes to, and there is still exactly one copy. The count in a caption and the count in
+`.cf-consent__meta` still have to move together; that is unchanged and is the one piece
+of arithmetic no script checks.
+
+Two things the pages take from what the law currently is rather than from what most
+German sites still say. **There is no ODR link.** The EU Commission's online dispute
+platform stopped accepting complaints in March 2025 and was switched off on 20 July 2025;
+the link that imprints have been required to carry since 2016 is now dead, and a dead
+link to a dispute body is worse than none — what stays is the § 36 VSBG declaration.
+And **there are no liability boilerplate paragraphs**. *Für die Inhalte externer Links
+sind ausschließlich deren Betreiber verantwortlich* restates § 8 DDG and changes nothing;
+the section says instead who owns the pictures and where to report a mistake.
+
+The consent banner is on both pages, and on the policy page it is load-bearing twice:
+`cf-consent.js` returns early when no banner element is in the document, so without that
+block both the footer button and the *Einstellungen ändern* button inside section 05
+would be dead controls — on the page the banner itself sends people to.
+
 ## Naming a part of a drawing
 
 `components/annotation.html` is the chapter for the thing that sat between the two the
@@ -885,7 +926,8 @@ which is what this site did before. → `foundations/transitions.html`
 | **Partner logos** | The logo wall renders text placeholders; drop in the real SVGs. |
 | **Team photos** | Six placeholder portraits from the shoot. Real names, roles and the full set of ten still needed. |
 | **Team layout on Über uns** | The mockup draws that block as a full-bleed strip of 294 px cells running past the right edge — 4.9 of them fit a 1440 frame — and the implementation renders a contained field that wraps instead. The wrapping grid is the better answer for ten people and it is what ships, but it is an improvement over the material rather than the material. A designer settles it. → `components/team.html#rules` |
-| **Consent copy** | The three categories, their retention periods and the six entries in the inventory on `components/consent.html` are placeholders. A lawyer signs off the wording, and a real cookie audit replaces the rows. The columns — name, kind of storage, purpose, recipient, retention — are what TDDDG § 25 and Art. 13 DSGVO ask for and should survive the replacement. The dialog links to `/datenschutz#cookies`; that anchor has to exist before launch, and the counts in `.cf-consent__meta` have to keep matching the list. |
+| **Consent copy** | The three categories, their retention periods and the six entries in the inventory are placeholders. A lawyer signs off the wording, and a real cookie audit replaces the rows. The columns — name, kind of storage, purpose, recipient, retention — are what TDDDG § 25 and Art. 13 DSGVO ask for and should survive the replacement. The anchor the dialog links to now exists — `patterns/datenschutz.html#cookies` — and the counts in `.cf-consent__meta` have to keep matching the list there. |
+| **Legal copy** | Every figure on `patterns/impressum.html` and `patterns/datenschutz.html` is a placeholder in a correct shape, and the shape is the deliverable — a lawyer replaces the values, not the structure. Specifically: `HRB 000000`, `DE000000000`, the Amtsgericht, the photography credit, the 7-day log retention, the hosting provider's name, and whether Matomo and the LinkedIn tags are what actually ships. `datenschutz@control-f.de` is a fourth placeholder mailbox alongside `info@`, `presse@` and `jobs@`. The § 38 BDSG argument for having no data protection officer holds at ten people and stops holding at twenty. |
 | **Consent record** | `localStorage` proves nothing to a supervisory authority. The decision needs logging server-side before launch. |
 | **Contact endpoint** | `patterns/kontakt.html` posts to `/kontakt` and expects the server to validate, re-render the form with the reader's values and an error summary, drop anything that filled the honeypot, and serve the whole thing over HTTPS. The phone number on the page is a placeholder. |
 | **Search index** | `patterns/suche.html` is one query rendered flat. The server owns the index and the whole answer: `?q=…` selects it, the matches are wrapped in `<mark class="cf-mark">` as the response is rendered, and every result link is minted with a `#:~:text=` fragment quoting its own excerpt — hyphens as `%2D`, the run unique on the target page. The query is reader-supplied text echoed into three places (the input's `value`, the `<title>` and the header meta) and has to be escaped in all three. Zero hits renders `.cf-error--inline` at `200`; the page is `noindex, follow`. → `components/search.html` |
@@ -899,8 +941,10 @@ which is what this site did before. → `foundations/transitions.html`
 The documentation is English. The pattern pages carry German copy, because that is the
 language the site ships in — translating it here would invent content that does not exist.
 Landing Page and Über uns take theirs verbatim from the Figma mockups; News overview,
-Blog article, Suche, Karriere and Kontakt have no mockup and their copy is written
-placeholder in the same voice. Colour
+Blog article, Suche, Karriere, Kontakt, Datenschutz and Impressum have no mockup and
+their copy is written placeholder in the same voice. On the two legal pages that
+placeholder is a stronger claim than elsewhere — the structure is meant to survive review
+and the values are not. Colour
 names (Glas, Violett, CF-Grau, Schwarz, Weiß) stay German everywhere: they are the brand's
 names for them.
 

@@ -60,6 +60,8 @@
       { href: 'patterns/blog-artikel.html', label: 'Blog article' },
       { href: 'patterns/karriere.html',     label: 'Karriere page' },
       { href: 'patterns/kontakt.html',      label: 'Kontakt page' },
+      { href: 'patterns/datenschutz.html',  label: 'Datenschutz page' },
+      { href: 'patterns/impressum.html',    label: 'Impressum page' },
       { href: 'patterns/404.html',          label: '404 page' }
     ]},
     /* Full-page scroll studies, not components. They carry their own styling
