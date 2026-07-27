@@ -23,9 +23,12 @@ python3 scripts/check-spacing-scale.py --fix   # rewrite the table in foundation
 python3 scripts/check-gradient-family.py       # the light family, in every shipped SVG
 python3 scripts/check-gradient-family.py -v    # list all 40 gradients, not only the failures
 python3 scripts/check-iso-motion.py            # the isometric assembly's invariants
+python3 scripts/check-glass-budget.py          # what backdrop-filter is allowed to cost
+python3 scripts/check-glass-budget.py --fix    # rewrite the census in foundations/materials.html
+python3 scripts/check-glass-budget.py -v       # list every page, not only the ones carrying glass
 ```
 
-The three checks the system enforces rather than documents, run by CI on every push and
+The four checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step.
 
@@ -57,9 +60,30 @@ prose and none of which anything ran:
 | `screen` | Every `animation-timeline` declaration sits inside a `@media` that names `screen`. |
 
 Every one of the six is invisible in a screenshot and countable in a file, which is the
-whole test for what belongs in any of these three — and the reason two of the four in
+whole test for what belongs in any of these four — and the reason two of the four in
 [Redrawing an illustration](#redrawing-an-illustration-four-things-that-vanish-quietly)
 are deliberately left out.
+
+**The glass budget** holds `backdrop-filter` — the most expensive thing in the stylesheet —
+to what `foundations/materials.html` states in prose and nothing ran. Three claims: at most
+two blurred layers on a shipping page, every `backdrop-filter` reading `var(--glass-blur)`
+rather than its own radius, and no `animation` or `animation-timeline` on a rule that
+declares one. All three pass the same test: a third blurred layer renders perfectly and
+simply costs more, on the hardware least able to afford it. The page's own census was a
+sentence naming its own problem two paragraphs later — *a count somebody has to remember* —
+and is a generated table now, with a stamp, the same way the space scale's is.
+
+**What counts as glass is read out of the stylesheet, not listed in the script.** It takes
+the selectors of every shipping rule declaring `backdrop-filter` as the definition, so a
+fourth frosted surface enters the budget by existing rather than by somebody remembering to
+add it — the same reason the light-family script recomputes its waypoint instead of
+comparing against a table of hexes. A selector it cannot count is a finding, never a silent
+skip. The one rule it deliberately does **not** enforce is a transition, and that is a
+correction to the chapter rather than a gap in the script: *Cost* had said **never move
+anything** on a blurred layer while `.cf-btn--glass` has always travelled its specular
+across its own blurred plate. Measured, that plate is indistinguishable from the same plate
+with no blur at all — so the line is how long a thing runs and what it runs against, not
+whether it moves, and a scroll-scrubbed animation is the half that pays.
 
 **The waypoint is the light family's, not the assembly's,** and it is checked once. The
 isometric script was written with a seventh rule of its own — no inline gradient runs lime
@@ -853,6 +877,35 @@ These were judgement calls, each documented on the relevant page:
   page rather than collapsing the middle into an overflow menu, because a menu needs a
   script and puts a second interactive thing in a component whose job is one line of
   orientation. → `components/breadcrumb.html`
+- **The radio's box is square, and the mark is what tells it from a checkbox.** No plate in
+  `assets/source/manual/` draws a form control and neither mockup carries a choice group, so
+  `.cf-choice` and `.cf-radio` are built only from parts the manual does establish — the mono
+  label, the 20 px square box the checkbox already is, the lattice rhombus, and the presence
+  ladder. Every other system draws a circle here and this one may not: corners are square and
+  the three exceptions the manual grants are the logo, the nav bar and a round avatar, none of
+  which is a control. So single choice and multiple choice are told apart by the mark *inside*
+  the box rather than by the shape of the box — a tick at 45° for *and*, the lattice rhombus
+  for *or*, the same cell every isometric object is cut from and the same mark `.cf-progress`
+  fills with light at its head. Both marks are drawn out of **border** rather than fill,
+  because forced-colours mode discards `background-color` and maps border colours into its own
+  palette: the rhombus is a zero-sized box with a border on all four sides, turned 45°.
+  Verified in forced colours — the foil fill goes and the mark stays.
+  An invalid **group** is marked once, on the legend, and not with the obvious 2 px rule down
+  the left of the list, which is the decoration [where a line may go](#where-a-line-may-go)
+  bans by name. → `components/forms.html#choice`
+- **The two states a field can be in without being wrong are two rungs of the presence
+  ladder.** `--presence-near` (2-1) is described on `components/arrival.html` as *held for a
+  state that is a claim about the object, not about the wait* — reserved, and never claimed by
+  anything. A **disabled** field is exactly that claim: not late, not available. It is drawn as
+  the same field one rung down, same box, same size, same place, with the line as a repeating
+  gradient because CSS gives no control over the dash-to-gap ratio of `border-style: dashed`
+  and the four types are ratios. **Read-only** is the opposite claim — the value is here and it
+  submits — so it is not a control at all any more and loses the line entirely, becoming the
+  mono-term-over-value drawing `.cf-contact` already is. It is the one field state that keeps
+  the global focus ring, because it has no line left to thicken. Both are written as
+  `[disabled]` / `[readonly]` rather than `:disabled` / `:read-only`: a disabled input matches
+  `:read-only`, and a `<select>` matches it *always*, so the pseudo-class would have stripped
+  the line off every select on the site. → `components/forms.html#states`
 - **The hero carries a switch the mockups do not draw.** The loop runs 12 s and repeats
   forever behind the headline, which is exactly the content WCAG 2.2.2 *Pause, Stop, Hide*
   (level A) requires a reader-operable mechanism over. `prefers-reduced-motion` is not that
