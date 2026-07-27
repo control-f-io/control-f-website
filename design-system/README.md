@@ -245,6 +245,19 @@ decide which token an edge gets. All three are documented on `foundations/layout
 | `.section--tight` | `--section-gap-sm` on both. The first section under a `.cf-page-header`. |
 | `.section--flush` | `--section-gap` top, nothing at the bottom. The last section on a page, paired with `.cf-footer--detached`, which supplies that bottom gap instead. |
 
+Horizontal rhythm has one rule of the same shape. Most things sit in a `.container` and
+inherit the content column for free; the few drawn against a full-bleed box — the hero's CTA
+and pause switch, the values section's counter and progress bar — have to name their own
+inset, and **that inset is `--column-inset`, never `--gutter`.** The gutter is the outer
+margin only while the container is still growing; past `--container-max` the container
+centres and the column moves inward while the gutter stays put. All four were on `--gutter`,
+which is right to within 0.8 px at the 1440 frame the mockups were measured on and wrong by
+160 px at 1920 and 480 at 2560 — the CTA walking away from the headline it belongs to, the
+counter and progress bar sliding out from under the rule they restate, in opposite
+directions. Where an element *can* be put in the container it should be, and the Über uns
+header object is that case; the token is for the ones that cannot.
+→ `foundations/layout.html#column-inset`
+
 The last pair is a biconditional and used not to be checked as one: `patterns/kontakt.html`
 carried `--detached` over a normal `.section` and stood its footer off at 240 px where every
 other page measures 120. Measured across all five pattern pages, the rhythm is now 240 between
