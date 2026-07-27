@@ -5414,6 +5414,58 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
       animation-range: contain 0% contain 100%;
     }
 
+    /* THE TRACK ENDS WITH THE LAST STEP STILL STANDING, and it did not.
+
+       THIS RULE IS NOT NEW HERE — it is the one part of the first pinned track
+       that did not come with the scaffolding when it moved. Unsere Werte has
+       carried it since it was written, in three lines a few hundred down this
+       file: cf-values-item ends at opacity 0, .cf-values__item:nth-child(6)
+       runs cf-values-item-last instead, and the comment over it says "the last
+       one holds: there is no seventh stage to hand over to". When Expertise and
+       the landing page's identical copies were folded into .cf-pin, the
+       quarters, the crossfade, the 62 % hold and the chrome all came across.
+       The sixth-stage exception did not, because there was nothing in either
+       page's copy to fold — neither had ever had it.
+
+       foundations/motion.html#hold states it a second time, about the glass
+       pane: "The last cycle has no exit, because the track ends with the pane
+       still standing." The pane obeys it too, because the pane is one element
+       with its cycle written out four times and somebody had to type the
+       fourth. The three animations above never did, because all three are
+       HANDOVER animations: each is written to come back to nothing at 100 % so
+       the next quarter can take the stage from it, and the fourth quarter has
+       no next quarter.
+
+       So the track dismantled itself and then made the reader scroll the
+       wreckage. Measured on the landing page at 1440 x 900, contain 0-100 %
+       spanning y 1664-7424:
+
+         copy 04    opacity 1 -> 0   contain 96.5 -> 99.3   (y 7224 - 7384)
+         mark 04    ink -> muted     contain 96.5 -> 100    (y 7224 - 7424)
+         step 04    opacity 1 -> 0   contain 100  -> 103.5  (y 7424 - 7624)
+
+       The copy goes 200 px before the stage has moved at all, so the last card
+       stands there wordless while its own index number greys out under it; the
+       drawing follows once the stage unpins; and from y 7624 the reader has
+       700 px — 600 of them with the frame still on screen — of an empty
+       lectern, four dead index numbers and a full progress bar to scroll past
+       before the section ends at 8324. Nothing in that stretch changes at all:
+       it is the longest dead zone on the page by a factor of two. Same shape at
+       every size the gate admits (1024 x 720: 560 px; 1280 x 800: 640 px) and
+       the same on Expertise, which shares these rules.
+
+       The last quarter therefore runs the same animations WITHOUT their exits:
+       the step still fades in, the mark still lights, and both hold; the copy,
+       which only ever left, has nothing to do at all. Binding is `:last-child`
+       rather than `:last-of-type` — on the landing page the lectern plate is
+       an <article> sibling of the four cards, so `:last-of-type` is right there
+       and wrong for the copy, whose panel is the last <div> in EVERY card.
+       scripts/check-pin-handover.py holds both the keyframe pairs and the
+       markup shape `:last-child` depends on. */
+    .cf-pin__step:last-child { animation-name: cf-pin-step-last; }
+    .cf-pin__step:last-child .cf-pin__copy { animation-name: none; }
+    .cf-pin__mark:last-child { animation-name: cf-pin-mark-last; }
+
     /* THE BUILD, RE-TIMED ONTO THE TRACK. A sticky object never travels
        through the viewport, so its own view() freezes at one value and the
        object simply stands there, finished. On the pinned stage every part
@@ -5497,6 +5549,24 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   14%, 86% { color: var(--text-primary); }
 }
 @keyframes cf-pin-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* The last quarter's pair, written to the shape cf-values-item-last already
+   uses: the same arrivals, with the handover cut off the end. Read them against
+   the two above — the arrival halves are identical literals (11 %, 14 %) so the
+   last step arrives exactly like the other three, and only the return to
+   nothing is gone. There is no cf-pin-copy-hold-last, because a keyframe set
+   that holds one value for a whole range is an animation that does nothing: the
+   last copy runs `animation-name: none` and is simply present, the same move
+   .cf-iso--build .cf-iso__scene makes.
+   → foundations/motion.html#hold */
+@keyframes cf-pin-step-last {
+  0%        { opacity: 0; }
+  11%, 100% { opacity: 1; }
+}
+@keyframes cf-pin-mark-last {
+  0%        { color: var(--text-muted); }
+  14%, 100% { color: var(--text-primary); }
+}
 
 /* --------------------------------------------------------------------------
    VALUES — the mark builds itself out of its own subdivision grid
