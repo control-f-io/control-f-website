@@ -40,8 +40,9 @@ design-system/
 │                           page transitions, field
 ├── components/             buttons, nav, section header, statement + value table,
 │                           plot, process card, accordion, blog grid, subdivision
-│                           field, pagination, error + empty state, article +
-│                           prose, table, team, forms, footer, consent
+│                           field, pagination, error + empty state, arrival +
+│                           progress, article + prose, table, team, forms,
+│                           footer, consent
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html,
 │                           news.html, blog-artikel.html, kontakt.html, 404.html
 ├── prototypes/             scroll-animation studies — standalone, not yet system
@@ -220,6 +221,43 @@ bottom-left corner for reasons the page states. No type in them, no raster, no d
 material wins over an improvement. It ships as available material with the wallpapers as
 its sanctioned application; putting it behind a section of the Landing Page is a designer's
 call, not a routine's.
+
+## The presence ladder
+
+The *Formsprache > Linien* plate is drawn twice and the system had only implemented the
+top half of it. Above: four line types side by side, equals, each with a use — which is
+what `foundations/geometry.html` catalogues. Below: **one** object, a rhombus with an
+ellipse in it, drawn four times along a single dotted axis, solid and small at the left
+and 1-4 and huge at the right. Four types, one figure. Read across, it is a thing coming
+into being.
+
+So the four types carry two registers, and they do not conflict. A line has a **use** —
+where it is allowed to appear — and, when the same object is drawn more than once, a
+**rank**. The second register is only ever legible in a state, which is why no static page
+had needed it: `--presence-present` (solid) is here, `--presence-absent` (1-4) is not here
+yet, and an object may move *along* the ladder but never across it. A thing that has not
+arrived is the same drawing as the thing that has, one rung down — same box, same size,
+same place.
+
+That is the whole argument against the grey slab every other system loads with: it is not
+a low-presence drawing of anything. `components/arrival.html` is the chapter —
+`.cf-arrive` is the pending end of the ladder (contour, no fill, one light crossing it at
+`--angle-b` above the contour, because the light layer is layer 5), and `.cf-progress` is
+the ladder traversed: solid behind the head, 1-4 ahead of it, and the head is the lattice
+cell filled with lime. One line changing type as it is crossed.
+
+The light is capped at `--arrive-light-peak`, 0.18. Light sits above the contour, so the
+band lightens the ghost, and that is the one thing here that could fail in frames too
+short to catch in a screenshot — so it was measured. Composited in sRGB, which is how CSS
+composites, the whitest stop over the blackest contour on CF-Grau gives 9.51:1 at 0.18 and
+does not reach the 3:1 floor until 0.52; sampled off rendered pixels across eight frames of
+one period, the worst inked pixel on the shipped ghost is 9.57:1. So contrast is not what
+chooses the number — restraint is, and 0.52 is the ceiling it must never cross.
+
+**Nothing dynamic ships here,** so no page carries one of these states today — the same
+way `patterns/news.html` renders page 1 of 11 flat and the server owns the paging. What
+the chapter fixes is the drawing and the contract; `components/arrival.html#who` lists the
+three places the behaviour will land.
 
 ## Vertical rhythm
 
