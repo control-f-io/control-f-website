@@ -585,6 +585,18 @@ These were judgement calls, each documented on the relevant page:
   that leg to the sRGB path.** Nothing fails when this happens; the stop is simply gone. Every
   waypoint therefore carries a comment at the stop itself. Re-add it after any rebuild.
   → `foundations/colors.html`
+- **The two foils and the spectrum carry a second kind of waypoint, and it is on the CSS
+  side.** oklab draws a straight line, and between two stops of similar chroma and different
+  hue that line is a **chord** — so chroma sags in the middle of every leg that turns: −17.9 %
+  on Glas → Sky, −13.6 % on Glas 800 → Sky 800. A ramp whose whole claim is hue travel greys
+  out exactly where it is turning. The right path is polar and `in oklch` is **not** used:
+  measured in Chromium, a stop below about C 0.018 has its hue discarded and the neighbour's
+  carried forward, and Glas 800 is C 0.0171 — so the ink foil would ship 39.7° of its 102.2°
+  of hue travel. The arc is put into the ramp instead, one waypoint per chromatic leg at that
+  leg's midpoint, which is the `#DBFC60` idiom one space out. Peak chroma is unchanged, the
+  lightness path is unchanged by construction, and the three contrast figures come back
+  identical to three decimals. A leg that ends in grey gets nothing — an achromatic stop has
+  no hue, so there is no arc for a chord to fall short of. → `foundations/colors.html#the-arc`
 - **The page wash carries hue; the mockups paint it neutral.** Sampled off both mockup
   JPGs the wash is a straight CF-Grau-to-white ramp with zero chroma, and it was the only
   gradient in the system belonging to no family. It now runs `--foil-stops` backwards —

@@ -463,6 +463,84 @@
         alternative is holding the whole system to the worse curve for it.
       </p>
     </div>
+
+    <div class="docs-note" id="the-arc">
+      <strong>The arc — why the two foils carry a waypoint of their own.</strong>
+      <p>
+        The waypoint above puts an sRGB leg back on the oklab path. This is the same move one
+        space further out, and it exists because <em>oklab is not the right path for a leg that
+        turns.</em> The foil's whole claim is hue travel inside a narrow luminance band. Two
+        stops of similar chroma and different hue sit at roughly the same distance from the
+        neutral axis, so the straight line oklab draws between them is a <strong>chord</strong>,
+        and the middle of a chord falls inside the circle. Chroma sags where no stop asked it to:
+      </p>
+      <table class="docs-table">
+        <thead><tr><th>Leg</th><th>chord</th><th>arc</th><th>midpoint</th><th>waypoint</th></tr></thead>
+        <tbody>
+          <tr><td>Glas → Sky</td><td>0.0383</td><td>0.0452</td><td><strong>+17.9 %</strong></td><td><code>#B9E3EB</code></td></tr>
+          <tr><td>Sky → Violett</td><td>0.0553</td><td>0.0588</td><td>+6.3 %</td><td><code>#B8CCF3</code></td></tr>
+          <tr><td>Glas 800 → Sky 800</td><td>0.0254</td><td>0.0289</td><td><strong>+13.6 %</strong></td><td><code>#33494E</code></td></tr>
+          <tr><td>Sky 800 → Violett 800</td><td>0.0484</td><td>0.0513</td><td>+6.0 %</td><td><code>#273650</code></td></tr>
+        </tbody>
+      </table>
+      <p>
+        A ramp that loses a sixth of its chroma halfway through its longest leg is greying out
+        exactly where it is supposed to be turning, which reads as a fade with a colour cast at
+        each end rather than as one material seen at an angle.
+        <strong>This is not an argument for more saturation</strong> — that is the one thing the
+        brand's definition of iridescence forbids, and this does not do it. Peak chroma on both
+        ramps is unchanged: 0.0686 lit and 0.0620 ink, both still the endpoints' own values, and
+        no point on either ramp is now more chromatic than the palette colour it is travelling
+        between. The sag is removed; nothing is added.
+      </p>
+      <p>
+        <strong>The correct path is polar — and <code>in oklch</code> is not used.</strong>
+        OKLCH interpolates L, C and h each linearly, so it holds chroma across the turn, and it
+        was the obvious answer. It fails on a measurement rather than on a principle:
+        <em>Chromium discards the hue of a low-chroma stop.</em> Rendered and sampled,
+        <code>linear-gradient(90deg in oklch shorter hue, #45524F, #283E4F)</code> — Glas 800 to
+        Sky 800, the ink foil's first leg — comes out with hue pinned flat at Sky's 242.5° for
+        its entire length. Glas 800's own 179.95° never appears, at t&nbsp;=&nbsp;0 or anywhere
+        else. Sweeping the start stop's chroma in steps of 0.004 at fixed hue puts the threshold
+        between 0.016 and 0.020: at or above about 0.018 the declared hue renders, below it the
+        neighbour's is carried forward. <strong>Glas 800 is C 0.0171.</strong> The one ramp with
+        the most to gain from a polar path is the one a polar path silently flattens — it would
+        ship 39.7° of its 102.2° of hue travel. Writing the stops as <code>oklch()</code>
+        literals renders correctly and was rejected for a different reason: it takes all three
+        ramps off the palette tokens.
+      </p>
+      <p>
+        So the arc goes <em>into</em> the ramp, as one waypoint per chromatic leg at that leg's
+        midpoint — exact where it sits, and engine-independent, which <code>in oklch</code> is
+        not. Max deviation from the true polar arc over 2,001 samples falls from
+        <strong>0.00722 to 0.00212</strong> on the lit foil's chromatic legs and from
+        <strong>0.00741 to 0.00257</strong> on the ink foil.
+      </p>
+      <p>
+        <strong>Every measured figure on this page survives, by construction rather than by
+        luck.</strong> Polar interpolation moves C and h and leaves L alone, so each waypoint's
+        lightness is the mean of its leg's endpoints and lands on the linear L path that was
+        already there — within 9.2 × 10<sup>−4</sup>, which is the 8-bit grid and not the
+        arithmetic. Band depths (0.090, 0.115, 0.180 counting the specular), hue travel
+        (104.5° / 102.2°) and every endpoint are untouched. Re-measured over the whole ramp
+        anyway: <strong>11.900:1</strong> on black, <strong>5.239:1</strong> on CF-Grau,
+        <strong>8.162:1</strong> on white — the same three numbers to three decimals.
+      </p>
+      <p>
+        <strong>No waypoint on a leg that ends in grey,</strong> and that is where this stops.
+        <code>--gradient-light</code>, <code>--gradient-light-90</code>, the rakes, the blooms
+        and the page wash all run into CF-Grau or out of Weiss, and the lit foil's own
+        Weiss → Glas leg is the same case. An achromatic stop has no hue, so there is no arc for
+        a chord to fall short of: oklab's straight line from the neutral axis to a chromatic stop
+        already <em>is</em> the constant-hue radial. Only a leg chromatic at both ends turns, and
+        only a leg that turns can cut a corner.
+      </p>
+      <p>
+        The four hexes are literals, like <code>#DBFC60</code>, and carry the same trap: they do
+        not follow the palette. Move any endpoint and recompute them, or the ramp quietly goes
+        back to the chord.
+      </p>
+    </div>
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Shape</th><th>Used for</th></tr></thead>
       <tbody>
@@ -470,12 +548,14 @@
         <tr><td><code>--gradient-light-90</code></td><td>linear 90°, near mirrored</td><td>primary button, horizontal edges</td></tr>
         <tr><td><code>.material-rake</code></td><td>linear, any rake, <code>--mirror</code>, <code>--grazing</code> (239.25°)</td><td>the linear half of the family, stated once — see <a href="#rakes-and-blooms">The two halves</a></td></tr>
         <tr><td><code>.material-bloom</code></td><td>radial circle, mid, mirrored; <code>--iso</code> 2:1; <code>--top</code> far, from above</td><td>the radial half, same ramp — same section</td></tr>
-        <tr><td><code>--gradient-spectrum</code></td><td>linear 132.36°, five stops</td><td><code>.material-foil</code> — surfaces only</td></tr>
+        <tr><td><code>--gradient-spectrum</code></td><td>linear 132.36°, five stops plus two arc waypoints</td><td><code>.material-foil</code> — surfaces only</td></tr>
+        <tr><td><code>--spectrum-stops</code></td><td>the spectrum's stops, without an angle</td><td>the same split the two foils make, so the oklab branch restates nothing</td></tr>
         <tr><td><code>--gradient-foil</code></td><td>linear <code>--foil-rake</code>, the spectrum minus lime, renormalised</td><td><code>.text-foil</code> — the lit half, inverse surfaces; and every <code>.cf-btn--solid</code> label</td></tr>
         <tr><td><code>--gradient-foil-ink</code></td><td>linear <code>--foil-rake</code>, the same three hues in the 800 band</td><td><code>.text-foil--ink</code> — the shadow half, light surfaces</td></tr>
         <tr><td><code>--foil-rake</code></td><td>116.57° = 90° + 26.57°</td><td>the angle both foils are drawn at head-on</td></tr>
-        <tr><td><code>--foil-stops</code></td><td>the lit half's four stops, without an angle</td><td>the material, so the rake can change without restating it</td></tr>
-        <tr><td><code>--foil-ink-stops</code></td><td>the shadow half's three stops, without an angle</td><td>the same, for the 800 band</td></tr>
+        <tr><td><code>--foil-stops</code></td><td>the lit half's four stops plus two arc waypoints, without an angle</td><td>the material, so the rake can change without restating it</td></tr>
+        <tr><td><code>--foil-ink-stops</code></td><td>the shadow half's three stops plus two arc waypoints, without an angle</td><td>the same, for the 800 band</td></tr>
+        <tr><td><code>--foil-glas-n</code>, <code>--foil-sky-n</code>, <code>--foil-ink-sky-n</code></td><td>the renormalised stop positions as bare numbers</td><td>so each waypoint's position is the average of its leg's ends rather than a third picked figure — see <a href="#the-arc">The arc</a></td></tr>
         <tr><td><code>--spectrum-hot</code></td><td>18 % — the white hot spot</td><td>shared by both foil gradients; not used alone</td></tr>
         <tr><td><code>--spectrum-cool</code></td><td>64 % — where Sky takes over</td><td>shared by both foil gradients; not used alone</td></tr>
         <tr><td><code>--surface-page-wash</code></td><td>linear 180°, the foil reversed at chroma 0.005</td><td>the page itself — <code>.page-wash</code>. See <a href="#wash">The page wash</a></td></tr>
