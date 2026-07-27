@@ -123,6 +123,27 @@ name: Design system checks
 # it will not move, and that person is not in the review. The accessibility
 # facts above are arithmetic about what the page says; this one is about a
 # control the reader owns, and the page taking it away.
+#
+# The page-local thresholds are the fifteenth, and the register in tokens.css
+# names their scope as the thing it leaves out: "inline <style> — per-page demo
+# styles". That exclusion is right, because governing documentation chrome from
+# a shipping stylesheet's register would make it look like it governed the
+# chrome. It also left those thresholds registered nowhere, and a threshold
+# registered nowhere is a number the next person reasoning about where this
+# system folds will not find.
+#
+# The gap had a live bug in it for as long as it existed. patterns/expertise
+# .html gated its pinned scroll stage on (min-width: 820px), the number
+# prototypes/expertise-scroll.html asks, carried into patterns/ with the
+# mechanism -- while patterns/landing-page.html runs the same mechanism on
+# (min-width: 64rem) and (min-height: 45rem), measured for it. The stage is only
+# habitable once .ex-step has its two columns, and that fold is a CONTAINER
+# query at 56rem, so a px gate cannot track it: the pin arrived at a fixed 820
+# while the columns arrived wherever 56rem of container landed, and between the
+# two the stage pinned a stacked step into 100vh of `overflow: clip` and cropped
+# it -- 84 px at a 16 px default font, 173 at 20, 297 at 24. The band grows with
+# the reader's type while the gate stands still, and none of it shows at 375,
+# 768 or 1280, which are the three widths anyone checks.
 
 on:
   push:
@@ -131,7 +152,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not fourteen. All fourteen checks are a few hundred milliseconds of
+  # One job, not fifteen. All fifteen checks are a few hundred milliseconds of
   # stdlib python; a second runner would cost more to start than any of them
   # takes to run, and a reader looking at a red tick wants every answer on one
   # page.
@@ -199,3 +220,7 @@ jobs:
       - name: Viewport zoom
         if: '!cancelled()'
         run: python3 scripts/check-viewport-zoom.py
+
+      - name: Local thresholds
+        if: '!cancelled()'
+        run: python3 scripts/check-local-thresholds.py

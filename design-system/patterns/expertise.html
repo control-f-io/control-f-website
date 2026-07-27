@@ -46,8 +46,41 @@
      finished, which is what the page did before.
 
      Everything is a progressive enhancement over a stacked, readable
-     column: no view timelines, reduced motion, print, or under 820 px and
-     the four fields are four blocks, each with its object above its copy.
+     column: no view timelines, reduced motion, print, or outside the gate
+     below and the four fields are four blocks, each with its object above
+     its copy.
+
+     THE GATE IS THE LANDING PAGE'S GATE, and it used to be `820px` — the
+     number prototypes/expertise-scroll.html asks, carried across into
+     patterns/ with the mechanism. It was wrong in both units and both
+     dimensions, and the reason is one line above this comment: the stage
+     is only habitable once .ex-step has its TWO columns, and that fold is
+     a CONTAINER query at 56rem. A px gate cannot track a rem fold. So the
+     pin arrived at a fixed 820 while the two-column form arrived wherever
+     56rem of container happened to land, and between the two the stage
+     pinned a stacked step into 100vh of `overflow: clip` and cropped it:
+
+       default font   pins at   two columns at   cropped band   worst crop
+         16 px          820          1007           187 px         84 px
+         20 px          820          1259           439 px        173 px
+         24 px          820          1511           691 px        297 px
+
+     The reader who asked for larger type lost the most, which is the exact
+     failure the register's rem rule exists to prevent. 64rem clears the
+     fold at every one of those sizes (1024 > 1007, 1280 > 1259, 1536 >
+     1511) because it is the same kind of number as the thing it is
+     gating. The height half is the same story with no crossover to hide
+     behind: at 1280 wide the stage cropped 19 px at 600 tall and 39 px at
+     560, and a stage that must also clear the nav band cannot hold a card
+     worth reading below it.
+
+     Both figures are the landing page's, unchanged, because that page runs
+     this mechanism and measured them for it. Adopting them rather than
+     deriving a third pair is the whole point: one mechanism, one gate. The
+     cost is stated — between 640 and 719 px of height the pinned form did
+     work and now falls back to the stacked column, which is a readable
+     page rather than a cropped one. See patterns/landing-page.html and
+     scripts/check-page-styles.py.
      ------------------------------------------------------------------ */
   /* The step is layout and timing only. Everything that used to be drawn
      here — the plate, the type scale, the ruled question, the chips — is
@@ -120,7 +153,7 @@
   }
 
   @supports (animation-timeline: view()) {
-    @media screen and (prefers-reduced-motion: no-preference) and (min-width: 820px) {
+    @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
       /* 1.6 SCREENS OF SCROLL PER STEP, not one. The track's contain range is
          its own height minus one viewport, so at (steps + 1) each step had a
          single screen to arrive, hold and leave in — every part of the build
