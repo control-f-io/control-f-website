@@ -293,16 +293,41 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      rather than assumed it — forced to `none`, the layer empties, the other
      two hold their positions in the three-item size list, and the label row
      renders byte-identical to the plate before this rim existed. */
+  /* THE FACE IS A RAMP AND AN ANGLE, DECLARED APART, for the reason
+     --foil-stops and --foil-rake are: written together, the material has to
+     be restated in full every time the path changes, and the path does change
+     one rule below.
+
+     It had to. This is the only lime leg in the system's CSS that was never
+     put on the oklab path — every other one is (--gradient-light,
+     --gradient-light-90, --gradient-spectrum, .material-rake, .material-bloom)
+     and lime -> Glas is precisely the leg where the two paths part: dEok
+     0.04430 declared, 0.03866 composited over CF-Grau at these stops' own
+     alphas. --glass-edge, one layer up, is left in sRGB deliberately at
+     0.00049 composited, and the table at that token says why. This was
+     seventy-nine times that, in the same declaration, by omission.
+
+     THE STOPS DO NOT MOVE. Only the path between them, which is the whole
+     claim of the INTERPOLATION block in tokens.css and the reason the rim's
+     62 % window — measured off where this face's lime becomes visible, about
+     63 % across — is unaffected. A ramp and its oklab twin sharing one stop
+     list is also what makes the pair legible to the family check.
+
+     --cf-face is an unconditional declaration on this rule with no @property
+     behind it, so it always resolves. That is the same safety --glass-edge
+     has and NOT the safety --cf-specular needs; should it ever move behind a
+     feature query, it needs a fallback or the whole plate goes with it. */
+  --cf-face-ramp: rgba(197, 235, 226, 0)    30%,
+                  rgba(197, 235, 226, 0.55) 62%,
+                  rgba(225, 255, 0, 0.88)   87%,
+                  var(--cf-lime)           100%;
+  --cf-face: linear-gradient(var(--angle-square), var(--cf-face-ramp));
   background-image:
     radial-gradient(55% 300% at var(--cf-specular) 50%,
                     rgba(255, 255, 255, 0.42) 0%,
                     rgba(255, 255, 255, 0) 60%),
     var(--glass-edge),
-    linear-gradient(var(--angle-square),
-                    rgba(197, 235, 226, 0)    30%,
-                    rgba(197, 235, 226, 0.55) 62%,
-                    rgba(225, 255, 0, 0.88)   87%,
-                    var(--cf-lime)           100%);
+    var(--cf-face);
   background-repeat: no-repeat;
   background-size: auto, 62% var(--stroke-1), auto;
   background-position: 0 0;
@@ -388,6 +413,20 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   transition: color var(--duration-base) var(--ease-standard),
               border-color var(--duration-base) var(--ease-standard),
               --cf-specular var(--duration-slow) var(--ease-standard);
+}
+/* The face on the oklab path, the same way every other lime leg in the system
+   takes it; browsers without it keep the sRGB ramp above. One line, because
+   the stops are a custom property and only the path changes here — the same
+   shape as the two foils in tokens.css and .cf-arrive__ghost below.
+
+   NOT --glass-edge, and that is the point of leaving it out. The layer above
+   this one runs Weiss -> Glas -> Sky and diverges by 0.00148, which the table
+   at that token measures and deliberately declines to correct. This leg
+   carries lime and diverges by thirty times as much. */
+@supports (background: linear-gradient(in oklab, red, blue)) {
+  .cf-btn--glass {
+    --cf-face: linear-gradient(var(--angle-square) in oklab, var(--cf-face-ramp));
+  }
 }
 /* The highlight travels in from off the right edge rather than sweeping
    across. Refraction hinted at, not simulated.
@@ -811,6 +850,37 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   border: 0;
   border-bottom: var(--stroke-1) solid var(--border-strong);
   border-radius: var(--radius-none);
+  /* An OVERRIDE of .cf-btn's list, not an addition to it, so the properties
+     that still move are restated: colour, because the consent banner's copy of
+     this button lifts its label to Weiss, and the line's weight, which is this
+     button's whole state. background and border-color never move here. */
+  transition: color var(--duration-base) var(--ease-standard),
+              border-bottom-width var(--duration-fast) var(--ease-standard);
+}
+/* THE ONE BUTTON WITH NO STATE, and it was the one that could not borrow the
+   others'. --primary and --glass move a specular, --outline and --solid move a
+   plate; this button has neither, so the three rules above it left it with the
+   arrow's 4 px nudge and nothing else. On the consent banner that never showed,
+   because the dark surface supplies its own hover further down this file — so
+   the gap was only ever visible on the two pages that use the button as page
+   furniture: the 404's "Defekten Link melden" and the article's way back to
+   News.
+
+   Its ink cannot answer, either: --border-strong on :root IS Schwarz and
+   --text-primary is already the strongest ink on the wash, so there is nothing
+   darker for either the line or the label to go to. What is left is the line's
+   WEIGHT, which is the indicator .cf-field__input already uses for the same
+   drawing — a label over a 1 px bottom rule — and the padding gives the pixel
+   back so nothing under the button moves. One idiom, two components.
+
+   :focus-visible is named alongside :hover the way every other variant names
+   it, and the global ring stays: unlike the field, this control has somewhere
+   for a ring to go, and the thickening is a second signal rather than the
+   only one. */
+.cf-btn--ghost:hover,
+.cf-btn--ghost:focus-visible {
+  border-bottom-width: var(--stroke-2);
+  padding-bottom: calc(var(--space-2) - var(--stroke-1));
 }
 
 .cf-btn--block { display: flex; width: 100%; }
@@ -1085,7 +1155,36 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 
 /* The open menu already used --radius-sm while the closed bar was a pill, so
    the bar changed shape on the way to the small screen. One corner now. */
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
+  /* WITHOUT THE SCRIPT THE LINKS ARE SHOWN AND THE DEAD CONTROL IS NOT.
+
+     A disclosure needs something to disclose it, so every rule that folds this
+     bar is gated on [data-cf-nav] — the attribute assets/js/cf-nav.js writes on
+     <html> before the body is parsed. Nothing below this comment can therefore
+     take the five links away from a reader whose scripting is off, whose
+     network dropped the file, or whose browser hit an error in it: they get the
+     bar with its list stacked underneath, which is the same plate drawn with
+     the same corner, and no button that does nothing.
+
+     Not sticky in that state, and that is the whole reason the fallback is a
+     stacked list rather than the open panel. The panel is out of flow, so it
+     costs the bar no height; six rows of it pinned to the top of a 375 px
+     screen would leave the page about a third of itself to be read in.
+
+     The gate is an attribute on <html> rather than on the bar because it has to
+     be true before the bar exists — see the file's own header for why that is
+     the load-bearing part. */
+  html:not([data-cf-nav]) .cf-nav {
+    position: relative;
+    flex-wrap: wrap;
+    row-gap: var(--space-4);
+  }
+  html:not([data-cf-nav]) .cf-nav__list {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   /* THE ONE PANEL IN THE SYSTEM THAT OPENS AND CLOSES, and until now the only
      state change on the site that simply appeared: measured at 375 px, the
      frame 60 ms after the click and the frame 560 ms after it were
@@ -1121,7 +1220,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      shorthand is dropped at parse time, the open state's clip-path still
      applies, and the panel snaps exactly as it does today. The un-enhanced
      state is the settled one. */
-  .cf-nav__list {
+  [data-cf-nav] .cf-nav__list {
     display: none;
     position: absolute;
     inset: 100% var(--gutter) auto var(--gutter);
@@ -1145,7 +1244,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
     transition: clip-path var(--duration-slow) var(--ease-standard),
                 display   var(--duration-slow) var(--ease-standard) allow-discrete;
   }
-  .cf-nav__list[data-open="true"] {
+  [data-cf-nav] .cf-nav__list[data-open="true"] {
     display: flex;
     /* An inset and not `none`: `none` is not an interpolable clip-path, so the
        wipe would have nothing to travel to. At rest every side is outside the
@@ -1156,10 +1255,10 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      specificity of its own, so an earlier placement is overwritten by the open
      state and the entry wipe silently does not happen. */
   @starting-style {
-    .cf-nav__list[data-open="true"] { clip-path: inset(-4px -4px 100% -4px); }
+    [data-cf-nav] .cf-nav__list[data-open="true"] { clip-path: inset(-4px -4px 100% -4px); }
   }
 
-  .cf-nav__toggle {
+  [data-cf-nav] .cf-nav__toggle {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
@@ -1193,7 +1292,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      link both take their ink to exactly it. One lit value in one component,
      now on a contour as well as on a label. --duration-fast matches
      .cf-nav__link too; the bar should not answer at two speeds. */
-  .cf-nav__toggle[aria-expanded="true"] {
+  [data-cf-nav] .cf-nav__toggle[aria-expanded="true"] {
     border-color: var(--grey-000);
   }
 }
@@ -1332,10 +1431,30 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   inset: 0;
   background: var(--hero-scrim);
 }
+/* THE COLUMN IS AS WIDE AS ITS OWN TYPE, and it used to be `max-width: 44ch`.
+   `ch` is font-relative and resolves against the element it is declared on —
+   this box is set at 14 px, so the clamp landed at 342.59 px, and then governed
+   a headline set at 64 px. The same trap .cf-prose already documents at the
+   prose track, one component further down, sprung here in the opposite
+   direction: there a 66ch on an h2 came out too wide, here a 44ch on a 14 px
+   wrapper came out far too narrow for the display face it was sizing.
+
+   What shipped: the headline's three authored <br> breaks were re-wrapped into
+   SIX lines at every width from 768 up, and the kicker, one line on the plate,
+   ran to two at every width including 375. The mockup draws three lines and one
+   kicker line. The markup already says exactly where the headline breaks; the
+   stylesheet was overruling it with a number that had nothing to do with the
+   type.
+
+   fit-content sizes the box to the longest line the type actually sets, so the
+   breaks the markup declares are the breaks that ship, at 64 px and at the
+   40.775 px the clamp scales down to on a phone. Nothing in here has to be kept
+   in sync with the copy. */
 .cf-hero__body {
   position: relative;
   z-index: 1;
-  max-width: 44ch;
+  width: fit-content;
+  max-width: 100%;
 }
 .cf-hero__title {
   font-family: var(--font-display);
@@ -1343,14 +1462,29 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-weight: var(--weight-bold);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-display);
+  /* Only reachable once the line no longer fits — the <br>s are the desktop
+     answer. Below about 700 px it is what keeps the fold from leaving one word
+     alone on the last line. */
   text-wrap: balance;
 }
-.cf-hero__rule {
-  height: var(--stroke-1);
-  margin-block: var(--space-8) var(--space-4);
-  background: var(--border-strong);
-}
+/* THE RULE IS THE KICKER'S TOP EDGE, not a box of its own, and the plate is
+   what settles it: measured off landing-page.jpg the rule and the mono line
+   below it start and end on the same two x — 42 → 463 in the 1200 px render —
+   while the headline above overhangs both by 141 px. A separate empty <div>
+   cannot know that. It fills whatever box it is given, so it ended with the
+   headline instead of with the line it belongs to, and it did so in a box that
+   was itself the wrong width. Drawn as the kicker's own border it is the
+   kicker's width by construction — at every viewport, and in a language whose
+   translation of that sentence is longer.
+
+   Same 32/16 rhythm the standalone rule carried, so this changes the line's
+   width and nothing about where it sits. */
 .cf-hero__kicker {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: var(--stroke-1) solid var(--border-strong);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
@@ -1370,7 +1504,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   bottom: var(--space-12);
   z-index: 1;
 }
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
   /* Dropped back into the flow it has to pick up the container's gutter, or it
      sits a gutter-width left of the headline it belongs to. */
   .cf-hero__action {
@@ -1639,7 +1773,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    viewport, 172.5 px of isometric drawing sitting behind the page title.
    Naming the parent puts the hide at (0,2,0), which wins wherever .cf-iso
    ends up in the file. → foundations/mobile.html */
-@media (max-width: 900px) {
+@media (max-width: 56.25rem) {
   .cf-page-header { padding-block: var(--space-16) var(--space-12); }
   .cf-page-header .cf-page-header__figure { display: none; }
   /* :has() matches on the element existing, not on it being painted, so both
@@ -1673,6 +1807,20 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-size: var(--text-md);
   color: var(--text-secondary);
 }
+/* --iso-travel is a transform, so it is in viewBox units — which makes it a
+   fact about the DRAWING's own coordinate window and not about the page the
+   drawing happens to be on. This figure is 480 units wide wherever it is used,
+   so it takes 480/40: the same 2.5 % of itself that the 640-unit process
+   objects get from the token's default 16.
+
+   The value lived in patterns/landing-page.html's own <style> block, keyed on
+   .lp-statement-figure — a hook that exists on exactly one page. The identical
+   drawing in components/statement.html therefore sat on the 640-unit default
+   and arrived from 3.33 % of its own width, a third further than the one that
+   ships, on the page whose whole job is to be the specimen. Keyed on the
+   component, both are right and neither can be forgotten again.
+   → foundations/motion.html#travel */
+.cf-statement .cf-iso { --iso-travel: 12; }
 /* Two columns once the component itself has room for them, not once the
    viewport does. Stacked is the default, so a browser without container
    query support gets the safe layout rather than a broken one. */
@@ -1688,11 +1836,29 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    The four-step "Was wir machen" sequence. Square illustration panel on
    the left, copy panel on the right, one hairline border around the pair.
    -------------------------------------------------------------------------- */
+/* CONTOUR ON THE WASH, WITH NO PLATE UNDER IT. This card carried
+   `background: var(--surface-card)` — grey-050, an opaque near-white plate —
+   and foundations/materials.html has said all along that the process card
+   "sits on the page wash with nothing complex behind it, so it is drawn with
+   a contour instead". The page was describing a card that did not exist.
+
+   The designer agrees with the page. Sampled off mockups/landing-page.jpg
+   down the whole Discovery plate, the card's interior and the page margin
+   beside it read 206.8 vs 207.0, 208.4 vs 208.0, 210.9 vs 211.0, 211.9 vs
+   212.0 — within 0.2 at every row, and the only rows that differ at all are
+   the ones the illustration's own light fill passes through. There is no
+   plate in the material.
+
+   It also could not hold still. The wash is viewport-fixed and runs the full
+   207 → 255 down every screen, so measured at 1280x900 the plate stood +37.6
+   off the page near the top of the viewport and +7.5 near the bottom — the
+   card separating from its own page five times as strongly at one scroll
+   position as at another, and dissolving into it entirely at the last. A
+   contour is ink; it is the same line wherever the card happens to be. */
 .cf-process {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   border: var(--stroke-1) solid var(--border-strong);
-  background: var(--surface-card);
 }
 .cf-process__figure {
   display: grid;
@@ -1730,12 +1896,36 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    air comes back, and nothing moves horizontally. Above 56rem the width cap is
    still the tighter one and this changes nothing at all. */
 .cf-process__figure > svg { width: 100%; max-width: 22rem; max-block-size: 100%; }
+/* The trace weight belongs to this rule, because this rule is what sets the
+   scale it is derived from — see --trace-weight in the isometric section.
+   640 / 352 wherever the 22 rem cap binds, which is every width from the phone
+   band up: 1.00 CSS px, on the contour weight exactly. */
+.cf-process__figure .cf-iso { --trace-weight: 1.82; }
+/* The band where the OTHER cap binds, and the one place a number cannot fix.
+   Between 256 and 554 px of card width the height cap above is the tighter one,
+   so the drawing is letterboxed into a box that grows with the card — measured
+   0.22 of scale at 320 px of viewport and 0.53 at 608. That is a 2.4x ramp
+   against a fixed multiplier, so no single weight lands on 1 px across it: the
+   value that fits one end misses the other by the same 2.4x. It keeps the
+   constant every object carried before this property existed, which puts the
+   band at 0.45 - 1.06 CSS px, and the ramp is stated here rather than papered
+   over. A weight that tracked it would have to be read off the rendered box,
+   and only the box knows. */
+@container (max-width: 34.625rem) {
+  .cf-process__figure .cf-iso { --trace-weight: 2; }
+}
+/* No fill of its own, and it never had one that could be seen: this declared
+   --surface-raised while the card behind it declared --surface-card, and both
+   tokens resolved to grey-050. One plate painted twice, half of it dead. With
+   the card's plate gone the honest reading of that pair is that the copy
+   column was never a second surface — the hairline between it and the figure
+   is what separates them, and that is an edge in the sense
+   foundations/geometry.html means it. */
 .cf-process__panel {
   display: flex;
   flex-direction: column;
   min-width: 0;
   padding: var(--space-6);
-  background: var(--surface-raised);
 }
 .cf-process__title {
   font-size: var(--text-h2);
@@ -1777,7 +1967,14 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-size: var(--text-md);
   color: var(--text-secondary);
 }
-/* Optional note block, pinned to the bottom of the panel. */
+/* Optional note block, pinned to the bottom of the panel. The one thing in
+   this card that still takes a surface, and the reason --surface-sunken had
+   to become a veil rather than a grey: with the card's plate gone this block
+   sits directly on the wash, and an absolute grey inside the wash's own range
+   inverts as the reader scrolls past it. Measured before the change, walking
+   this exact element down a 900 px viewport: +21 at the top of the screen,
+   0 at 65 %, -10 at the bottom. The veil is -12 to -15 at every position.
+   See tokens.css. */
 .cf-process__note {
   margin-top: auto;
   padding: var(--space-4);
@@ -1802,6 +1999,217 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
     border-right: var(--stroke-1) solid var(--border-strong);
   }
   .cf-process__panel { padding: var(--space-12); }
+}
+
+/* --------------------------------------------------------------------------
+   INFO CARD
+   A field of copy on a plate of glass: a count, a title, a subtitle, a
+   paragraph, the question the subject actually asks, and the facts under it.
+
+   THE MATERIAL IS A MODIFIER, AND THAT IS NOT A CONVENIENCE. The base card is
+   layout and type; --glass is what makes it a plate. The first version of this
+   component was glass unconditionally and Expertise turned the material off
+   again in its own stylesheet for the four cards that did not need it —
+   which check-glass-budget.py counted, correctly, as six blurred layers on a
+   two-layer page. That checker reads the HTML rather than resolving the
+   cascade, on purpose: a census with an unstated exception in it is worse than
+   no census. But it was right on the design too. A class that says "I am
+   glass" and a page-local rule that says "except here" is exactly the drift
+   these scripts exist to stop, and the budget should be legible from the
+   markup. Carry the modifier where the material is spent.
+
+   BEARING GLASS, NOT VEIL. Text sits directly on this, so --glass takes
+   --surface-glass and its 4.5:1 floor — see the measurement in tokens.css
+   section 9, which is the reason that tint has almost no room to move. The
+   no-blur and reduced-transparency fallbacks are already in the tokens, so
+   there is nothing to write here: the surface goes opaque and the card keeps
+   its contrast.
+
+   WHERE THE MODIFIER BELONGS. foundations/materials.html states the material's
+   rule in one line — Milchglas "exists to calm a complex graphic beneath it,
+   never to sit on a flat surface, where it is only a grey box". So --glass
+   goes on a card that stands on the ground, on an illustration, on anything a
+   reader can still see through it, and nowhere else. And a shipping page gets
+   two blurred layers with the navigation band always one of them, so it goes
+   on ONE card per page. The pinned Expertise stage is the case that came up
+   first: the material is on a single empty card under the copy column and the
+   four cards hand over on top of it, unfrosted. One lectern, changing copy —
+   which is also the better drawing, because a lectern does not change when the
+   page on it does.
+
+   THE TITLE TAKES THE FOIL, and does not take it from here either.
+   .text-foil--ink is authored on the element by the page, because the
+   one-foil-moment-per-screen budget is a fact about the SCREEN and a component
+   cannot know how many of itself are on one. Ink, never the lit half: this
+   surface is light.
+
+   The lit rim is the same one pixel of Weiss-Glas-Sky that .cf-nav::after and
+   .cf-btn--glass end at — glass in this brand is edged with light, never
+   outlined with ink. -------------------------------------------------------- */
+.cf-info-card {
+  position: relative;
+  isolation: isolate;
+  padding: var(--space-8);
+  /* Contour, no surface. --surface-card is retired — see the note in
+     tokens.css section 2 — and a panel that needs a boundary takes a contour.
+     Which is also why the modifier below is a swap and not an addition. */
+  border: var(--stroke-1) solid var(--border-strong);
+}
+/* The material, and it REPLACES the boundary rather than sitting inside it.
+   --info-card-tint so a page that can NAME what is behind the glass can reach
+   for the thinner pane; the default is the floor for a backdrop nobody
+   controls. Both tints go opaque together in the two fallbacks. */
+.cf-info-card--glass {
+  background-color: var(--info-card-tint, var(--surface-glass));
+  -webkit-backdrop-filter: var(--glass-blur);
+          backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+}
+/* The rim, and it belongs to the material rather than to the card. Above the
+   content rather than under it, so it survives a card whose first line starts
+   at the padding edge, and pointer-transparent so it cannot eat a click on
+   anything inside.
+
+   TWO LAYERS ON ONE PIXEL, the same construction .cf-nav::after carries: the
+   specular parked off the left edge, over the designed rim. -70 % and 170 %
+   are the off-canvas endpoints for a band 40 % of the container wide — a
+   layer positioned at P is offset by P x (container - image), so at 40 %
+   width the band's edges sit at -0.42W and -0.02W. Written as background-image
+   plus explicit repeat, size and position rather than the shorthand, so a
+   later reader can see that at rest this rule paints --glass-edge and nothing
+   else.
+
+   THIS IS THE THIRD GLASS SURFACE JOINING THE OTHER TWO. The nav's rim fades
+   in and its band crosses, both scrubbed by scroll; .cf-btn--glass answers the
+   pointer with --cf-specular. This one had a rim that never moved — and it is
+   the one surface in the system the reader is guaranteed to be moving past,
+   because its only shipping use is a pinned stage they scroll through. The
+   comment on cf-nav-rim asks a later run to put sheet response on the rim
+   layer and not on the sheet; this is that run, and this is that layer. */
+.cf-info-card--glass::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: var(--stroke-1);
+  background-image: var(--glass-rim-light), var(--glass-edge);
+  background-repeat: no-repeat, no-repeat;
+  background-size: 40% 100%, 100% 100%;
+  background-position: -70% 0, 0 0;   /* parked off the left edge */
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* The band crosses as the card passes the reader, once per pass, scrubbed by
+   position rather than by a timer — so it tracks their hand and runs backwards
+   on the way up. view() and not scroll(root), because this is a component: a
+   card halfway down a long document would have had its light cross while it
+   was still off screen. Each instance gets its own pass through its own
+   viewport crossing.
+
+   `screen and` is load-bearing, not decoration. foundations/motion.html states
+   that every scroll-driven animation must be scoped to screen, because a paged
+   medium has no scroll and a `both`-filled animation there holds its `from`
+   keyframe — which here would print the band frozen mid-crossing on a surface
+   that should be at rest. Print never applies it and the parked rest position
+   above is what draws.
+
+   ON THE RIM AND NOT ON THE SHEET, for the reason cf-nav-rim gives: fading or
+   sliding anything across a backdrop-filtered layer re-rasterises its blur
+   every frame. This is one pixel of unblurred gradient, so the travel is free.
+
+   The plate on patterns/expertise.html overrides the timeline — it sits inside
+   a sticky-pinned stage, so its own view progress stalls at the moment the
+   reader starts moving through it, which is exactly the wrong moment. */
+@supports (animation-timeline: view()) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .cf-info-card--glass::before {
+      animation: cf-info-card-rim linear both;
+      animation-timeline: view();
+    }
+  }
+}
+/* background-position is a list property, so both layers restate in each
+   keyframe. The second pair is the designed rim and never moves. */
+@keyframes cf-info-card-rim {
+  from { background-position: -70% 0, 0 0; }
+  to   { background-position: 170% 0, 0 0; }
+}
+/* Forced colours computes every gradient background-image to `none`, so this
+   element — which IS its background-image, 1 px tall with nothing else to
+   paint — loses the rim entirely. Redrawn as a border, the only paint the mode
+   keeps. Same idiom as .cf-nav::after and .material-glass-edge. */
+@media (forced-colors: active) {
+  .cf-info-card--glass::before { border-top: var(--stroke-1) solid CanvasText; }
+}
+
+/* --text-secondary and not --text-muted: colors.html says twice that muted
+   may not sit on the wash, and a pane of glass over the wash is still the
+   wash. Measured on the shipping plate at the thin tint, muted lands at
+   2.32:1 and secondary at 6.73:1. */
+.cf-info-card__count { color: var(--text-secondary); }
+.cf-info-card__title {
+  margin-top: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-display);
+}
+.cf-info-card__sub { margin-top: var(--space-2); color: var(--text-secondary); }
+.cf-info-card__body { margin-top: var(--space-5); max-width: 52ch; color: var(--text-secondary); }
+/* The question the subject actually asks, opened by a mono tag with the
+   hairline running out of it — the .cf-section-header device at card scale,
+   and the third place in the system to use it.
+
+   It was a 2 px rule down the left side, under the reasoning that a line is
+   how this system sets something apart and that a second box inside a card is
+   a card inside a card. The second half of that is right and the first half is
+   the exact move foundations/geometry.html bans by name: a bar beside a block
+   is not an edge (the other three sides are not drawn), not a division
+   (nothing is on its far side) and carries no label, so it says "different"
+   without saying how. .cf-prose__note was the same violation with the same
+   rationale in its own comment and was fixed this way; this was the last one
+   left. The tag also does what the bar could not — it says what the block IS.
+
+   The type step stays. It is the .cf-quote half of the same precedent: a
+   question set one size up is already marked as not being body copy, so the
+   tag ranks it rather than having to carry the whole distinction alone. */
+.cf-info-card__ask {
+  margin-top: var(--space-3);
+  font-size: var(--text-lg);
+  max-width: 44ch;
+}
+/* The tag's own air. Everything else about it is declared once, with
+   .cf-prose__note-tag, in the ARTICLE + PROSE section — see the note there. */
+.cf-info-card__ask-tag { margin-top: var(--space-6); }
+/* .tiles carries the recipe; this only sets the two numbers that are its own.
+   Needs the guard .tiles adds — a fact column with a 13rem floor overflows a
+   narrow phone otherwise. Markup: class="cf-info-card__facts tiles tiles--fit". */
+.cf-info-card__facts {
+  margin-top: var(--space-8);
+  --tile: 13rem;
+  --flow: var(--space-6);
+}
+.cf-info-card__label { color: var(--text-secondary); }
+/* The chips belong to the card rather than to the system: a global chip would
+   be a fifth way of drawing a small bordered label, and the four that exist
+   are all doing something this is not. */
+.cf-info-card__chips {
+  margin-top: var(--space-3);
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+.cf-info-card__chips li {
+  padding: var(--space-1) var(--space-3);
+  border: var(--stroke-1) solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
 }
 
 /* --------------------------------------------------------------------------
@@ -1903,7 +2311,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-size: var(--text-md);
   color: var(--text-secondary);
 }
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
   .cf-accordion__summary { padding-left: var(--space-4); font-size: var(--text-md); }
   .cf-accordion__content { padding-left: var(--space-4); }
 }
@@ -2003,6 +2411,21 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
+  /* The mono label in this system is four properties, not three, and this was
+     the one axis label keeping only the first three. Mono + 11 px +
+     --tracking-label is the recipe thirty-two selectors share and every one of
+     them that carries WORDS carries the uppercase too — the section header's
+     own label and counter six rules above this one included, which is why the
+     Blog section read "BLOG / 189 BEITRÄGE" over a tick reading "Aktuell".
+     The plate settles it as well as the family does: on
+     mockups/landing-page.jpg the first tick is drawn AKTUELL. The four ticks
+     beside it are years, so nothing about them could ever have shown the gap.
+
+     The three mono labels that legitimately stay mixed-case are the ones whose
+     content is not a label — .cf-blog-card__meta is a person's name,
+     .cf-result__path is a URL, .cf-consent__meta is a sentence. A year band is
+     none of those: it is the axis naming its own column. */
+  text-transform: uppercase;
   color: var(--text-secondary);
   writing-mode: vertical-rl;
   /* A tick labels the column it starts, so it stands on that column's leading
@@ -2409,6 +2832,190 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
 }
 
 /* --------------------------------------------------------------------------
+   SEARCH & RESULTS
+   The surface the brand is named after. foundations/found.html drew the four
+   registers a match can be marked in and shipped none of them on a page; this
+   is the page.
+
+   Two parts, and the second is the one with an argument in it:
+
+     .cf-search    the control. A <form role="search"> around one .cf-field
+                   and one button — no new field drawing, because a search box
+                   is a text input and the system already has one.
+     .cf-result    one answer. NOT a card: no box, no fill, no corner. It is a
+                   block of type standing on a rule, which is the same claim
+                   foundations/found.html makes about a marked word — an
+                   isometric object has no bounding box, what places it is the
+                   lattice edge under it. Every result carries its own bottom
+                   rule INCLUDING the last one, so the register closes; the
+                   interior rules are divisions and the closing one is an edge,
+                   which is both of the sanctioned uses in
+                   foundations/geometry.html#where-lines-go.
+
+   No lime anywhere in here, and that is the design rather than an omission.
+   A result set has no current match — the reader has not chosen one yet — so
+   .cf-mark--current has nothing to attach to and every hit on this page is
+   contour. The light is spent on the page the reader lands on, through the
+   #:~:text= fragment each result link carries and ::target-text in base.css.
+   Contour here, light there. → components/search.html#light
+   -------------------------------------------------------------------------- */
+.cf-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+/* Wrap rather than a container query. The row has exactly two parts and the
+   second one is a fixed width, so "does it still fit" is a question flex can
+   answer on its own — and the breakpoint register in tokens.css is a list to
+   add to deliberately, not one to grow every time two things sit in a row.
+   16rem is the basis at which the field still holds a readable query. */
+.cf-search__field { flex: 1 1 16rem; }
+.cf-search__submit { flex: 0 0 auto; }
+
+/* THE REGISTER HAS TWO CONSUMERS, AND IT IS DECLARED ONCE.
+   .cf-vacancy is the open-position list on patterns/karriere.html, and it is
+   not a second drawing — it is this one. A register is a stack of type blocks
+   standing on hairlines, and a job opening and a search hit are the same
+   object at that level: a mono line, a linked title, a couple of sentences.
+   So every rule below names both, the way .cf-prose table names itself
+   alongside .cf-table rather than being written out twice. One drawing, and
+   it cannot drift.
+
+   What the vacancy adds is the one part a result has no use for: a <dl> of
+   facts (Standort, Anstellung, Umfang, Start). That is declared on its own,
+   below, and nothing else is. → components/vacancy.html */
+.cf-results,
+.cf-vacancies {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* The top edge belongs to the section header's rule when the header carries
+     --flush, exactly as .cf-blog-grid takes it. Same weight, same ink. */
+  border-top: var(--stroke-1) solid var(--border-strong);
+}
+
+.cf-result,
+.cf-vacancy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-block: var(--space-6);
+  border-bottom: var(--stroke-1) solid var(--border-strong);
+  /* The same light-across-a-panel move the blog card and the accordion row
+     make. Contour on the page wash with nothing complex underneath, so glass
+     would be dishonest here and a sheen is what is left. */
+  background-image: var(--sheen-panel);
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+  background-position: 0 0;
+  transition: background-position var(--duration-slow) var(--ease-standard);
+}
+.cf-result:hover,
+.cf-result:focus-within,
+.cf-vacancy:hover,
+.cf-vacancy:focus-within { background-position: 100% 0; }
+
+.cf-result__meta,
+.cf-vacancy__meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  /* --text-secondary, not --text-muted: this label sits on the page wash and
+     #919191 there is 2.0:1. Same rule every mono label on the wash follows. */
+  color: var(--text-secondary);
+}
+
+.cf-result__title,
+.cf-vacancy__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h4);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-normal);
+}
+/* The link is the title and only the title. A stretched ::after over the whole
+   result would make the excerpt unselectable, and the excerpt is the part
+   carrying the marks the reader came to read. */
+.cf-result__link,
+.cf-vacancy__link {
+  color: inherit;
+  text-decoration: none;
+}
+.cf-result__link:hover,
+.cf-result__link:focus-visible,
+.cf-vacancy__link:hover,
+.cf-vacancy__link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: var(--stroke-1);
+}
+
+.cf-result__excerpt,
+.cf-vacancy__excerpt {
+  max-inline-size: var(--measure-prose);
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+}
+
+/* The address, stated rather than implied. A result list that hides where each
+   answer lives asks the reader to trust the ranking; this brand's whole claim
+   is that things can be located. Truncated at the end, never in the middle:
+   the host and the first segment are what the reader is checking. */
+.cf-result__path {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-secondary);
+}
+
+/* The one part the register's other consumer has no use for: the facts of an
+   opening. Standort, Anstellung, Umfang, Start — name/value pairs, which is
+   what <dl> is for and what nothing else in HTML is. It is the drawing
+   .cf-contact already makes, mono term over its value, laid along the row
+   instead of down a column, because four short facts read as a strip and a
+   four-row stack under every opening would be longer than the opening.
+
+   No rules between the pairs. A line there would be neither an edge nor a
+   division nor a label rule — it would be a separator between two things that
+   are already separated by 32 px — and that is the test in
+   foundations/geometry.html#where-lines-go. The register's own hairline is
+   the only line here. */
+.cf-vacancy__facts {
+  display: flex;
+  flex-wrap: wrap;
+  /* Column gap is the wide one: pairs must read as pairs before they read as
+     a row, so the air between two facts has to beat the air inside one. */
+  gap: var(--space-3) var(--space-8);
+  margin: var(--space-2) 0 0;
+}
+.cf-vacancy__fact { min-width: 0; }
+.cf-vacancy__term {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  /* --text-secondary, never --text-muted: this sits on the page wash, where
+     #919191 is 2.0:1. Same rule every mono label on the wash follows. */
+  color: var(--text-secondary);
+}
+.cf-vacancy__value {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+}
+
+/* --------------------------------------------------------------------------
    ARTICLE
    The reading page the blog grid has been linking to. Two parts, and they
    are deliberately separable:
@@ -2788,7 +3395,13 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   font-size: var(--text-md);
 }
 .cf-prose__note > * + * { margin-top: var(--space-3); }
-.cf-prose__note-tag {
+/* One rule, two components. .cf-info-card__ask opens with the same device for
+   the same reason — it was the other block in the system marked by a bar down
+   its left side — and the declaration is shared rather than copied so the two
+   cannot answer at two different label sizes. The info card supplies only the
+   tag's margin-top, next to the paragraph it opens. */
+.cf-prose__note-tag,
+.cf-info-card__ask-tag {
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -2799,7 +3412,8 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   text-transform: uppercase;
   color: var(--text-primary);
 }
-.cf-prose__note-tag::after {
+.cf-prose__note-tag::after,
+.cf-info-card__ask-tag::after {
   content: "";
   flex: 1;
   height: var(--stroke-1);
@@ -2871,6 +3485,20 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
      edge lands exactly on the box's at maximum scroll, no tail cut off. */
   scroll-snap-type: x mandatory;
 }
+/* TWO OF THE RING'S FOUR SIDES WERE OFF THE SCREEN. This is the only focusable
+   thing in the system that is genuinely full-bleed — measured at 375, 1280 and
+   1920, the box runs 0 to the viewport width exactly — so base.css's ring, at
+   its 2 px outward offset, drew its left and right edges at -2 and viewport+2.
+   A keyboard reader got two horizontal lines 2 px outside the strip's own two
+   hairlines, which reads as the rules having thickened rather than as a ring,
+   and there was nothing to close it at either end.
+   Turning the offset inward is the whole fix: the ring keeps its weight and
+   its colour, all four sides land inside the box, and the 1 px of wash between
+   it and the strip's own hairline is what tells the two apart. Nothing else in
+   the system needs this, because nothing else in it is focusable AND flush
+   with both edges of the screen — .cf-table__scroll, the other scroll box with
+   the same three attributes, sits inside a .container. */
+.cf-team-strip:focus-visible { outline-offset: calc(var(--stroke-2) * -1); }
 .cf-team-strip__list {
   display: grid;
   grid-auto-flow: column;
@@ -2926,13 +3554,31 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    last row. Fixed column counts would avoid it, but jumping 3 to 6 halves the
    card width at the breakpoint, which is worse than the gap. */
 .cf-team-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+  /* The cells are drawn by their own borders, so the tiles must touch. */
+  --tile: 11.5rem;
+  --flow: 0;
   border-top: var(--stroke-1) solid var(--border-strong);
   border-left: var(--stroke-1) solid var(--border-strong);
 }
+/* THE SAME 32 PX .cf-team-strip__item CARRIES, and for the same reason: both
+   are one person in one ruled cell, and two components drawing that cell with
+   different insets is the drift this file is meant not to have. It used to be
+   24 px block and 16 px inline — a three-value shorthand whose third value
+   repeated its first, which is what a padding looks like when nobody measured
+   it.
+
+   Measured on mockups/ueber-uns.jpg, where the cell is 294 px and the portrait
+   inside it is inset 48 px at the top and on both sides — 205 px of photo in a
+   294 px cell, 70 %. This grid's cells are not the mockup's 294 (the track
+   minimum below explains why it cannot be, and the README flags the wider
+   question for a designer), so the inset cannot be copied across literally.
+   32 px is the number that lands the RATIO where the designer put it: at the
+   1440 reference frame the cell is 213.2 px and the photo comes out 148.2,
+   which is 69.5 % against the plate's 69.7 %. At 16 px it was 84.5 % — a
+   portrait pressed against the rule on both sides with no cell left around
+   it. */
 .cf-team-grid__item {
-  padding: var(--space-6) var(--space-4) var(--space-6);
+  padding: var(--space-8);
   border-right: var(--stroke-1) solid var(--border-strong);
   border-bottom: var(--stroke-1) solid var(--border-strong);
 }
@@ -3121,6 +3767,13 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   padding: var(--space-6);
   border-bottom: var(--stroke-1) solid var(--border-strong);
 }
+/* --iso-travel is a transform, so it is in viewBox units and means something
+   different in every frame. The convention foundations/motion.html sets is
+   viewBox width / 40 — the same 5 % of the drawing's own width at 640, at 480
+   and here. These three figures are 160 units wide, so left at the 640-frame
+   default they would arrive from 32 units away: a fifth of their own width,
+   where every other object in the system travels a twentieth. */
+.cf-value-row__figure .cf-iso { --iso-travel: 4; }
 .cf-value-row__body {
   min-width: 0;
   padding: var(--space-6);
@@ -3147,7 +3800,12 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    Underlined fields, mono labels. No boxes — the hairline is the input.
    -------------------------------------------------------------------------- */
 .cf-field { display: flex; flex-direction: column; gap: var(--space-2); }
-.cf-field__label {
+/* The <legend> of a choice group is named here rather than given its own copy
+   of these six declarations: it is the same thing one level up — the name of
+   what is being asked — and two rules would let the face of a label and the
+   face of a legend drift apart. See CHOICE GROUP below. */
+.cf-field__label,
+.cf-choice__legend {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
@@ -3171,17 +3829,87 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-field__textarea { resize: vertical; min-height: 7rem; }
 .cf-field__input::placeholder,
 .cf-field__textarea::placeholder { color: var(--text-muted); }
+/* The line goes to 2 px and the padding gives the pixel back, so focusing a
+   field does not push everything under it down by one. The thickening is the
+   whole indicator here — see the note at the read-only rule for the one case
+   that has no line left to thicken and therefore keeps the global ring. */
 .cf-field__input:focus,
 .cf-field__textarea:focus,
 .cf-field__select:focus {
   outline: 0;
   border-bottom-width: var(--stroke-2);
+  padding-bottom: calc(var(--space-3) - var(--stroke-1));
 }
 .cf-field__hint { font-size: var(--text-sm); color: var(--text-secondary); }
 .cf-field--invalid :is(.cf-field__input, .cf-field__textarea, .cf-field__select) {
   border-bottom-color: var(--feedback-error);
 }
 .cf-field__error { font-size: var(--text-sm); color: var(--feedback-error); }
+
+/* --------------------------------------------------------------------------
+   NOT AVAILABLE, AND NOT EDITABLE — two states, two different claims
+
+   A field is a line. So the two states a field can be in without being
+   *wrong* are two things that can happen to a line, and the ladder in
+   components/arrival.html already has the rungs:
+
+     disabled   the field is here and is not available. That is rung 2,
+                --presence-near (2-1) — the rung the ladder reserved for
+                "a claim about the object, not about the wait" and which
+                nothing in the system had ever claimed. The drawing is the
+                same field one rung down: same box, same size, same place.
+     readonly   the value is here and is not yours to change. It is not a
+                control at all any more, so it loses the line entirely and
+                becomes what .cf-contact already is — a mono term with its
+                value under it. Nothing is drawn as a place to type, because
+                there is nowhere to type.
+
+   The two are never the same drawing and never the same markup, and the
+   difference is not cosmetic: a disabled control is skipped by assistive
+   technology and does not submit, a read-only one is announced, focusable,
+   copyable and submits. Reach for readonly whenever the value still matters
+   to whoever is reading the form.
+
+   Written as [disabled] / [readonly] rather than :disabled / :read-only on
+   purpose. :read-only matches every element that is not user-editable — a
+   disabled input is one, and a <select> is one *always*, since selects
+   cannot be read-only — so a :read-only rule here would silently strip the
+   line off every select on the site.
+
+   CSS gives no control over the dash-to-gap ratio of border-style: dashed
+   and the four line types are ratios, so 2-1 is a repeating gradient sized
+   to the border box — the same construction as .rule--dashed-2-1 in
+   base.css and .cf-arrive__plate below. Change one, change the others. */
+.cf-field__input[disabled],
+.cf-field__textarea[disabled],
+.cf-field__select[disabled] {
+  border-bottom-color: transparent;
+  background-image: repeating-linear-gradient(90deg,
+    var(--border-strong) 0 4px, transparent 4px 6px);
+  background-origin: border-box;
+  background-clip: border-box;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% var(--stroke-1);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+/* No line, so the focus indicator cannot be the line getting thicker: this is
+   the one field state that keeps the global :focus-visible ring from base.css,
+   which the rule above turns off for every field that still has one. */
+.cf-field__input[readonly],
+.cf-field__textarea[readonly] {
+  border-bottom-color: transparent;
+  cursor: default;
+}
+.cf-field__input[readonly]:focus-visible,
+.cf-field__textarea[readonly]:focus-visible {
+  outline: var(--stroke-2) solid var(--focus-ring);
+  outline-offset: 2px;
+  border-bottom-width: var(--stroke-1);
+  padding-bottom: var(--space-3);
+}
 
 /* "(optional)" rather than an asterisk on everything else. Most fields on a
    contact form are required, so marking the exception is the smaller mark —
@@ -3252,10 +3980,12 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    and the meta would have gone quietly out of alignment with no failing check
    and nothing visibly broken. A derived value cannot drift from what it derives
    from — that is the whole reason it is written as arithmetic. */
-.cf-check, .cf-consent__row { --check-box: 1.25rem; }
+.cf-check, .cf-radio, .cf-consent__row { --check-box: 1.25rem; }
 
-.cf-check { display: flex; align-items: flex-start; gap: var(--space-3); }
-.cf-check__box {
+.cf-check,
+.cf-radio { display: flex; align-items: flex-start; gap: var(--space-3); }
+.cf-check__box,
+.cf-radio__box {
   appearance: none;
   -webkit-appearance: none;
   flex: none;
@@ -3269,7 +3999,8 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   cursor: pointer;
   transition: background var(--duration-fast) var(--ease-standard);
 }
-.cf-check__box:checked { background: var(--gradient-foil); }
+.cf-check__box:checked,
+.cf-radio__box:checked { background: var(--gradient-foil); }
 .cf-check__box:checked::after {
   content: "";
   position: absolute;
@@ -3281,9 +4012,56 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   border-width: 0 var(--stroke-2) var(--stroke-2) 0;
   transform: rotate(45deg);
 }
-.cf-check__box:disabled { cursor: not-allowed; opacity: 0.72; }
-.cf-check__label { font-size: var(--text-md); line-height: var(--leading-relaxed); }
-.cf-check__label > strong {
+
+/* THE RADIO IS THE SAME BOX WITH A DIFFERENT MARK, and the box stays square.
+   Every other system draws a circle here, and this one may not: corners are
+   square and the three exceptions the manual grants are the logo, the nav bar
+   and a round avatar — none of which is a control. So single choice and
+   multiple choice are told apart by the mark inside the box rather than by the
+   shape of the box: a tick for "and", the lattice rhombus for "or". The
+   rhombus is the system's own unit — the cell every isometric object is cut
+   from, and the same mark .cf-progress fills with light at its head.
+
+   Drawn entirely out of border, like the tick above, and for the same reason:
+   forced-colors mode discards background-color and maps border colours into
+   its own palette, so a mark made of border survives Windows high contrast
+   and a mark made of fill does not. A zero-sized box with a border on all
+   four sides paints a filled square of twice the border width; turned 45° it
+   is the rhombus. 0.3125rem of border is a 10 px square, 14.1 px across the
+   diagonal, inside a 20 px box. */
+.cf-radio__box:checked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border: 0.3125rem solid var(--cf-schwarz);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* The box carries "not available" as ink where the field above carries it as
+   a line type, and the reason is that a box is four edges: a controlled dash
+   ratio has to be a gradient (see the field), and the checked state has
+   already spent this element's background on the foil. Composited, the
+   contour reads 7.30:1 on CF-Grau and 9.23:1 at the white end of the wash —
+   both well over the 3:1 a UI contour owes, and a disabled control is exempt
+   from that floor anyway. The cursor goes on the row, not on the input, so
+   the label reads as unavailable too.
+
+   The label keeps its full ink at every state. On a consent row the disabled
+   control is `Notwendig`, whose copy is the part a supervisory authority
+   would read; dimming legally required text to signal that its switch is
+   fixed would be trading the wrong thing away. */
+.cf-check__box:disabled,
+.cf-radio__box:disabled { cursor: not-allowed; opacity: 0.72; }
+.cf-check:has(:disabled),
+.cf-radio:has(:disabled) { cursor: not-allowed; }
+
+.cf-check__label,
+.cf-radio__label { font-size: var(--text-md); line-height: var(--leading-relaxed); }
+.cf-check__label > strong,
+.cf-radio__label > strong {
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -3291,6 +4069,58 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
+
+/* --------------------------------------------------------------------------
+   CHOICE GROUP
+   A set of radios or checkboxes that answer one question. <fieldset> and
+   <legend>, which is the whole reason this exists: a radio is labelled by its
+   own row and a screen reader reading the third row of five has no way to know
+   what the question was. The legend is announced with every control in the
+   group, so it supplies it. role="radiogroup" + aria-label is the fallback for
+   when the native element cannot be used, and it is not needed here — the
+   native pair is the recommended construction and it brings the arrow-key
+   model, the wrapping and the one-tab-stop-per-group behaviour for free.
+
+   The legend is the same mono label a .cf-field carries, because it is the
+   same thing one level up: the name of what is being asked. Its rules are
+   written as a selector list with .cf-field__label rather than copied, so a
+   change to the label's face reaches both.
+
+   Three UA resets. A <fieldset> ships a border, padding and a margin nothing
+   here wants; and `min-inline-size: 0` is the one that is not cosmetic —
+   fieldset resolves its min width to min-content, which stops its children
+   ever shrinking below their longest word and puts a horizontal scrollbar on
+   any group holding a long line on a phone. A <legend> is not an ordinary
+   box either, so its own padding is zeroed rather than assumed.
+   -------------------------------------------------------------------------- */
+.cf-choice {
+  margin-inline: 0;      /* the UA's 0 2px, and only that — a blanket `margin: 0`
+                            here would also beat .stack > * + * from base.css,
+                            since this file loads second, and every choice group
+                            in a stacked form would close up against the field
+                            above it. Reset what the UA sets, nothing more. */
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+.cf-choice__legend { padding: 0; }
+.cf-choice__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+.cf-choice > .cf-field__hint,
+.cf-choice > .cf-field__error { display: block; margin-top: var(--space-3); }
+
+/* An invalid group marks the group once, not five identical rows — the answer
+   is wrong, not any one of the options. A field carries that on its line and a
+   group has no line, so the legend carries it and the message states it. The
+   obvious drawing — a 2 px red rule down the left of the list — is the one
+   thing the system bans by name: it is not an edge, since the other three
+   sides are not drawn, and not a division, since nothing is on its far side.
+   See "Where a line may go" in foundations/geometry.html. */
+.cf-choice--invalid .cf-choice__legend { color: var(--feedback-error); }
 
 /* --------------------------------------------------------------------------
    CONTACT LIST
@@ -3428,7 +4258,55 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 }
 .cf-footer__links { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .cf-footer__meta a { text-decoration: none; }
-.cf-footer__links li + li::before { content: "• "; }
+/* THE SEPARATOR IS THE SYSTEM'S DOT, CENTRED, AND SILENT.
+   Three things were wrong with `content: "• "` and each is small enough to
+   have survived every review of this component.
+
+   THE MARK. U+2022 BULLET appeared in exactly one rule in the whole system —
+   this one. Every other separator the site sets is U+00B7 MIDDLE DOT: the blog
+   card's meta line, the page header's meta line, the address in the row
+   directly below this list. The plate agrees: sampled off
+   mockups/landing-page.jpg the footer row is drawn with the small mid-height
+   dot, not the heavy one. One glyph, and it was the only place the system
+   spoke with two voices about the same punctuation.
+
+   THE CENTRING. The dot was the first thing in the second <li>, so the list's
+   --space-3 gap sat in front of it and whatever the content string ended with
+   sat behind. A trailing space is one mono advance — 6.6 px at 11 px — so the
+   mark stood 12 px from the link on its left and 6.6 px from the one on its
+   right, leaning into the word it introduces. The space is a margin now, which
+   is the same 12 px on both sides: mathematically equal and, since the dot is
+   symmetric about its own centre, optically equal too.
+
+   THE SIDE. It is an ::after on every item but the last rather than a ::before
+   on every item but the first, and the two are only the same drawing while the
+   row fits on one line. This row does not: at 375 px it took three. A leading
+   separator wraps with the item it precedes, so both continuation lines opened
+   with a dot standing 12 px inside the margin with nothing on its far side.
+   That is the bar beside a block one mark down — not a division, because a
+   division has content on both sides of it, and there the left side is the end
+   of the line above. Bound to the item it follows, the mark can only ever
+   close a line, which is the ordinary reading: this list continues. The last
+   item gets none, so no line ends on a mark separating the list from whatever
+   comes after it. Six items pack into two lines at 375 px now rather than
+   three, because the dot travels with a word instead of needing room of its
+   own at the head of the next one. → foundations/geometry.html#where-lines-go
+
+   THE ANNOUNCEMENT. foundations/geometry.html and the breadcrumb both argue
+   against typed separators partly because screen readers speak generated
+   content, and a trail that reads "Über uns bullet News bullet Karriere" is
+   the failure named there. The breadcrumb's answer is to draw the mark instead
+   of typing it; that answer is not available here, because the designer drew a
+   dot and the material wins. The alt-text form of `content` is the other
+   answer: the glyph renders and the accessibility tree gets the empty string.
+   Declared twice on purpose — a browser without the `/ alt` syntax drops that
+   whole declaration, so the plain one underneath is what it keeps, and the
+   drawing degrades to the drawing rather than to nothing. */
+.cf-footer__links li:not(:last-child)::after {
+  content: "·";
+  content: "·" / "";
+  margin-inline-start: var(--space-3);
+}
 /* "Cookie-Einstellungen" opens a dialog rather than navigating, so it is a
    button. It is dressed as a link because it belongs to that row, but the
    element stays honest about what it does. */
@@ -3453,7 +4331,7 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   text-decoration: underline;
   text-underline-offset: 0.25em;
 }
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
   .cf-footer__cta { grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
 }
 
@@ -3599,13 +4477,13 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-consent__dialog .cf-check__label { color: var(--text-inverse); }
 .cf-consent__dialog .cf-check__box { border-color: var(--border-strong); }
 
-@media (max-width: 900px) {
+@media (max-width: 56.25rem) {
   .cf-consent__inner { grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
   .cf-consent__actions .cf-btn { flex: 1 1 100%; min-width: 0; }
   .cf-consent__actions .cf-btn--ghost { flex: 1 1 100%; justify-content: flex-start; }
 }
 /* A tall banner on a short screen must not eat the page it is asking about. */
-@media (max-height: 560px) {
+@media (max-height: 35rem) {
   .cf-consent { max-height: 70vh; overflow-y: auto; }
 }
 
@@ -3667,8 +4545,32 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    it at 184. Under a CSS pixel at the small end, which is the cost of a draw
    that is linear at every size — and it is the small end that has the device
    pixels to spend: no 375 px viewport is DPR 1, so 0.58 CSS px is 1.15 device
-   pixels at DPR 2 and 1.7 at DPR 3. Verified 25/50/75 % exact. */
-.cf-iso__trace { stroke-width: 2; }
+   pixels at DPR 2 and 1.7 at DPR 3. Verified 25/50/75 % exact.
+
+   SO THE WEIGHT IS A PER-OBJECT NUMBER, AND IT USED TO BE A CONSTANT. A user-
+   unit stroke lands on screen at `weight x render scale`, and scale is a
+   property of the drawing's own frame — viewBox width over the pixels it is
+   rendered into. One literal therefore cannot serve two objects at two scales,
+   and it was serving five families at four:
+
+     .cf-process__figure   scale 0.55            2 -> 1.10 CSS px
+     .ex-step__figure      scale 0.78 - 0.86     2 -> 1.55 - 1.71 CSS px
+     .ill-frame            scale 0.19 - 0.25     2 -> 0.38 - 0.50 CSS px
+
+   Measured across 375 / 768 / 1280 / 1920, the shipped trace ran from 0.38 to
+   1.71 CSS px — a 4.5x spread on the one line in an illustration that is meant
+   to read as the same hairline as the contours beside it. At the heavy end the
+   signal was 71 % thicker than the object it arrives at; at the light end it
+   was a grey line at 2.5:1 against CF-Grau, under the 3:1 the system holds its
+   contours to.
+
+   --trace-weight is that number, declared where the object's SIZE is declared
+   so the two cannot drift apart — the same reason --iso-travel is written next
+   to the viewBox it is derived from. Its value is viewBox width divided by the
+   width the frame actually renders at, and it is 2 by default, which is what
+   every object got before and is still right for nothing in particular. */
+.cf-iso { --trace-weight: 2; }
+.cf-iso__trace { stroke-width: var(--trace-weight); }
 
 /* The frame is a crop, not a bounding box, and a trace is a signal from
    off-stage — so its path routinely runs past the edge. pathLength normalises
@@ -3699,8 +4601,30 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    arriving it carries the 26.57° offset, which moves the crop boundary by up
    to --iso-travel. Only the endpoints count — a path that leaves the crop and
    re-enters wastes no range at either end, so a gap in the middle is left
-   alone. It reads as the signal passing behind the crop, which is what it is. */
-.cf-iso__trace { --trace-from: 1; --trace-to: 0; }
+   alone. It reads as the signal passing behind the crop, which is what it is.
+
+   THE CROP IS NOT THE ONLY THING THAT EATS THE RANGE. A dash pattern RESTARTS
+   at every subpath, while pathLength normalises the path as a WHOLE — so on a
+   path made of several strokes, each one draws its own first (1 − offset) of
+   the TOTAL, all at the same time, and the draw is over as soon as the LONGEST
+   subpath is finished. Card 03's incoming arrow is five strokes: shaft 112.50
+   units, two chevrons 77.37 each, two barbs 38.68 each, 344.61 in total. The
+   longest is 0.3265 of that, so the arrow was finished at dashoffset 0.6735 —
+   cover 26.8 % of a range running to 45 %, with 18.19 of its 27 points spent
+   on a picture that had stopped changing. It also drew all five strokes at
+   once, growing outward from five different points, which reads as a sketch
+   scribbling itself rather than as a signal arriving.
+
+   A trace is ONE stroke. Where the signal is drawn as several, each is its own
+   trace and they are led along the direction of travel:
+
+     --trace-lead  how far into the window this stroke starts drawing.
+     --trace-span  how much of the window it spends drawing.
+
+   Both are percentage points of `cover`, both default to the whole window, so
+   an unslotted trace runs cover 18 % → 45 % exactly as before. Keep
+   lead + span ≤ 27 % and the last stroke still lands on the light. */
+.cf-iso__trace { --trace-from: 1; --trace-to: 0; --trace-lead: 0%; --trace-span: 27%; }
 
 /* Scroll-driven assembly.
    Progressive enhancement in the honest direction: without support for
@@ -3743,11 +4667,16 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
       animation-range: cover 20% cover 40%;
     }
     /* The incoming signal draws itself. pathLength="1" in the markup makes the
-       dash maths independent of how long the path actually is. */
+       dash maths independent of how long the path actually is.
+       The window is authored per stroke — see --trace-lead / --trace-span above.
+       The defaults resolve to `cover 18% cover 45%`, which is what every trace
+       that is a single stroke still gets. */
     .cf-iso__trace {
       stroke-dasharray: 1;
       animation-name: cf-iso-draw;
-      animation-range: cover 18% cover 45%;
+      animation-range:
+        cover calc(18% + var(--trace-lead))
+        cover calc(18% + var(--trace-lead) + var(--trace-span));
     }
     /* Lime is light: it is the last thing to arrive, and it arrives as a fill
        coming up, not as an object moving. */
@@ -3825,13 +4754,13 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 
        VERIFY THIS UNDER REDUCED MOTION, NOT IN THE SETTLED ANIMATED STATE.
        Animating an element at all changes how Chromium rasterises its
-       contours by a sub-pixel, so the settled built object does not land on
-       the settled un-built one to the pixel — 14,092 / 6,200 / 33,606 /
-       10,929 of 495,616 across the four cards. That is not the build's cost:
-       the version that moved the whole scene already differed from its own
-       un-animated render by 25,379 / 36,524 / 34,948 / 25,551. Under
-       prefers-reduced-motion the four cards are identical to the pixel before
-       and after, which is the check that actually means something.
+       contours by a sub-pixel, so NO animated object lands on its own still
+       render to the pixel — the four cards diff 24,925 / 34,982 / 25,826 /
+       25,270 of 495,616 against themselves. That is not the build's cost: the
+       version that moved the whole scene paid 25,379 / 36,058 / 34,896 /
+       25,483 for the same thing, more on every card. Under
+       prefers-reduced-motion the four are identical to the pixel before and
+       after, which is the check that actually means something.
        ---------------------------------------------------------------------- */
     .cf-iso--build .cf-iso__form {
       animation-name: cf-iso-build;
@@ -4070,7 +4999,7 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   .cf-hero__still { display: none; }
 }
 
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
   /* The navigation is full-bleed at this width and the headline climbs, so the
      control tucks a rung closer under the bar. One custom property moves both
      the plate and the input that has to stay under it. */
@@ -4111,9 +5040,25 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-values__track { position: relative; }
 .cf-values__frame {
   display: grid;
+  /* Written out rather than left implicit, and the minmax(0, …) is the point.
+     Every explicit track in this file already carries it, because a grid track
+     sized `auto` or `1fr` will not go below its content's min-content width. An
+     IMPLICIT single-column grid gets exactly that auto track, so this frame was
+     the one grid in the system quietly exempt from the rule the rest of it
+     follows. → foundations/layout.html */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-8);
   align-items: center;
 }
+/* The track is only half of it. A grid ITEM has `min-width: auto`, which floors
+   it at its own min-content independently of how shrinkable its track is — so
+   the longest German compound in the list ("Technologie-Kompetenz") set the
+   width of the whole column. Measured at a 24 px browser default and a 320 px
+   viewport, that pushed the list to 303 px inside a 260 px column and scrolled
+   the page sideways. `min-width: 0` is the item-side counterpart to minmax(0, …)
+   and is already the idiom here — .cf-consent__actions .cf-btn carries it for
+   the same reason. */
+.cf-values__list { min-width: 0; }
 /* 11.25rem is the prototype's 180px cap, and it is the mark's real size rather
    than a limit it rarely reaches. The middle column is deliberately wider than
    the mark: the prototype gives it minmax(240px, 30vw) and then draws a 180px
@@ -4147,11 +5092,25 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-values__progress { display: none; }
 
 /* ---- pinned and scrubbed, where the browser can and the reader wants it ----
-   Gated at 820 px on purpose. The track is seven viewports of scroll; on a
-   phone that is a long hijack for copy that reads perfectly well stacked, and
-   the three-column composition has nowhere to go at that width anyway. */
+   Gated at 51.25rem — 820 px at a 16 px default — on purpose. The track is
+   seven viewports of scroll; on a phone that is a long hijack for copy that
+   reads perfectly well stacked, and the three-column composition has nowhere to
+   go at that width anyway.
+
+   THE SIXTH VIEWPORT THRESHOLD, AND THE REGISTER DID NOT HAVE IT. It was
+   `min-width: 820px` and lived in a shipping stylesheet while tokens.css listed
+   three viewport thresholds and named 820 only as a figure belonging to
+   prototypes/werte-scroll.html — which is out of scope and is a different query
+   that happens to share the number. That is the fourth time the register has
+   been caught short, and it is the first time the missing entry was hiding
+   behind a correct statement about a different file.
+
+   In rem with the rest of them: whether there is room for a pinned
+   three-column stage is a question about how big the type is, so at a 24 px
+   default this now waits for 1230 px rather than engaging at 820 with the
+   composition already too tight for it. → foundations/layout.html */
 @supports (animation-timeline: view()) {
-  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 820px) {
+  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 51.25rem) {
     .cf-values__track {
       --values-stages: 6;
       height: calc((var(--values-stages) + 1) * 100vh);
@@ -4186,7 +5145,7 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
        leaving the content box. */
     .cf-values__frame {
       position: relative;
-      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      grid-template-columns: var(--grid-tracks);
       gap: var(--grid-gap);
       min-height: 60vh;
     }
@@ -4207,7 +5166,7 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
     .cf-values__item {
       grid-area: 1 / 1;
       display: grid;
-      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      grid-template-columns: var(--grid-tracks);
       gap: var(--grid-gap);
       align-items: center;
       margin: 0;
@@ -4352,20 +5311,20 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    the text arrives: without it the line count changes as characters land and
    the whole three-column row jumps. Reserved from the longest value in the
    set, measured at the pinned breakpoint. */
-.cf-values__caret {
+.cf-stream__caret {
   display: inline-block;
   width: 0.45em;
   height: 0.95em;
   margin-left: 0.1em;
   background: var(--text-primary);
   vertical-align: text-bottom;
-  animation: cf-values-caret 0.9s steps(1) infinite;
+  animation: cf-stream-caret 0.9s steps(1) infinite;
 }
-.cf-values__caret.is-resting { opacity: 0; animation: none; }
+.cf-stream__caret.is-resting { opacity: 0; animation: none; }
 @media (prefers-reduced-motion: reduce) {
-  .cf-values__caret { animation: none; }
+  .cf-stream__caret { animation: none; }
 }
-@keyframes cf-values-caret {
+@keyframes cf-stream-caret {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0; }
 }
@@ -5117,9 +6076,21 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   initial-value: 0;
 }
 
+/* minmax(0, 1fr), not 1fr. This was the one fr track in the whole system with
+   no minimum of any kind — 32 of 33 already had one, 28 floored on the track
+   and 4 guarded by min-width: 0 on their items — and it is the failure .tiles
+   and .subdivide both warn about in prose, live in a shipping rule.
+   1fr is minmax(auto, 1fr) and auto floors at min-content, so the label
+   sets the track's width rather than the track setting the label's. Measured
+   with a 61-character German compound in .cf-progress__label: the document
+   went 320 -> 469 px at a 320 px viewport and 375 -> 469 at 375, and swapping
+   in the floor put both back on the nose. The reset's overflow-wrap:
+   break-word is already on the label and does not help — it breaks the word
+   when the track is drawn, and intrinsic track sizing happens first.
+   → foundations/layout.html#intrinsic-minimum */
 .cf-progress {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
   gap: var(--space-2) var(--space-4);
 }
@@ -5265,4 +6236,294 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   }
   .cf-progress__rail::after,
   .cf-arrive__ghost::after { display: none; }
+}
+
+/* ==========================================================================
+   ANNOTATION — naming a part of a drawing
+
+   The system could mark a found WORD (foundations/found.html) and it could
+   draw an OBJECT (foundations/illustration.html). It had nothing in between:
+   no way to say which part of a drawing you are looking at. Fifteen isometric
+   objects ship with construction nodes on them — .cf-iso__node, a black dot at
+   a vertex — and not one of those dots says anything. This is the layer that
+   gives them words.
+
+   It is the found state one scale up. Two rungs, the same two: every
+   annotation is drawn in CONTOUR, and the one the reader is on is LIT. A
+   drawing with six annotations has one lit and five contoured, which is how
+   the lime budget is satisfied by the drawing rather than waived for it.
+
+   THE LEADER IS A LATTICE STEP, and that is the whole geometry. Technical
+   drawing has required for a century that a leader run at neither horizontal
+   nor vertical, and this brand sanctions exactly four angles — so the leader
+   is declared as a step in lattice units, --annot-mx across by --annot-my
+   down, and its angle is READ OFF that step rather than typed in. (2, 1) is
+   26.57 deg and (1, 2) is 63.43 deg: the only two obliques the brand owns, and
+   the only two a leader can be. A leader that is off the lattice is not
+   expressible here.
+
+   The elbow at the note end — the level shoulder every drafting standard asks
+   for — is the label's OWN bottom rule. Line and word are one mark, which is
+   the third sanctioned use of a line in this system: the label rule. There is
+   no bar beside anything. → foundations/geometry.html#where-lines-go
+
+   Anatomy, from the anchor outward:
+
+     ::before   the anchor: the lattice cell itself, drawn with --iso-transform
+                so it is the same 2:1 rhombus every object in the system is cut
+                from. Contour, or filled with the light ramp when lit.
+     ::after    the leader: one lattice step, gapped off the anchor so it
+                starts at the cell's edge rather than through it.
+     __label    the note, in the mono label face, standing on its own rule.
+     __value    an optional measure after it, tabular.
+   ========================================================================== */
+
+/* 1 is the finished annotation, and it is what everything that cannot animate
+   gets: no @property support, no view timeline, reduced motion, print. */
+@property --annot-draw {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+/* The figure is the positioning context AND the container. It is queried
+   rather than the viewport because what decides whether a callout layer fits
+   is the width of the drawing, not the width of the screen — the same rule
+   the rest of the system holds to. */
+.cf-annot-fig {
+  position: relative;
+  /* margin-BLOCK only. The reset already zeroes a figure's margin, and writing
+     the shorthand here would beat a caller's own `margin-inline: auto` — which
+     is exactly how .cf-error__figure centres its drawing. */
+  margin-block: 0;
+  container-type: inline-size;
+  container-name: cf-annot-fig;
+}
+.cf-annot-fig > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* The layer sits exactly over the drawing's own box, so --annot-x / --annot-y
+   are fractions of the viewBox and nothing has to be converted. That only
+   holds while the SVG fills the figure — give the figure no padding and no
+   aspect ratio of its own. */
+.cf-annot-set {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+
+  /* u — the lattice unit the leader is measured in. Reads the container, not
+     the viewport: a drawing in a narrow column gets a shorter leader. */
+  --annot-u: clamp(0.875rem, 3.2cqi, 1.75rem);
+  --annot-node: 0.5rem;
+  /* How far the leader stands off the anchor cell. Half the cell's own width,
+     so the line starts at the edge of the mark rather than inside it. */
+  --annot-gap: 0.25rem;
+}
+
+.cf-annot {
+  position: absolute;
+  left: var(--annot-x, 50%);
+  top: var(--annot-y, 50%);
+  width: 0;
+  height: 0;
+
+  /* The step, in lattice units. (2, 1) is the shallow isometric. */
+  --annot-mx: 2;
+  --annot-my: 1;
+  /* Which way it runs: sx mirrors it left, sy turns it up. Both are signs,
+     never magnitudes — the magnitude is the step above, so a direction cannot
+     quietly become a different slope. */
+  --annot-sx: 1;
+  --annot-sy: -1;
+  --annot-align: 0;
+
+  /* sqrt(5) — the diagonal of both sanctioned steps, since (2,1) and (1,2)
+     have the same length. Derived below wherever the browser can do the
+     arithmetic itself. */
+  --annot-len: calc(var(--annot-u) * 2.2360679775);
+  --annot-turn: calc(var(--annot-sy) * 26.565deg);
+}
+.cf-annot--steep {
+  --annot-mx: 1;
+  --annot-my: 2;
+  --annot-turn: calc(var(--annot-sy) * 63.435deg);
+}
+
+/* THE ANGLE IS READ OFF THE STEP. 26.565deg and 63.435deg above are the same
+   two numbers to five places, and what this branch buys is that they cannot
+   drift from the step they are the slope of: change --annot-mx / --annot-my
+   and the leader follows. CSS trig has been Baseline since March 2023 and
+   sqrt() since December 2023, which makes this the first place the system can
+   state an isometric angle as the ratio it has always been rather than as a
+   rounded degree. The literals stay as the fallback, and they are identical
+   drawings — 26.57 against 26.565 is 0.005 deg. */
+@supports (rotate: atan2(1, 2)) and (width: calc(1px * sqrt(5))) {
+  .cf-annot,
+  .cf-annot--steep {
+    --annot-turn: calc(var(--annot-sy) * atan2(var(--annot-my), var(--annot-mx)));
+  }
+  .cf-annot {
+    --annot-len: calc(var(--annot-u) *
+      sqrt(var(--annot-mx) * var(--annot-mx) + var(--annot-my) * var(--annot-my)));
+  }
+}
+
+.cf-annot--ne { --annot-sx:  1; --annot-sy: -1; --annot-align:  0; }
+.cf-annot--se { --annot-sx:  1; --annot-sy:  1; --annot-align:  0; }
+.cf-annot--nw { --annot-sx: -1; --annot-sy: -1; --annot-align: -1; }
+.cf-annot--sw { --annot-sx: -1; --annot-sy:  1; --annot-align: -1; }
+
+/* The anchor: a lattice cell, not a dot. --iso-transform is the token every
+   spatial thing in the brand is built with, so this mark is the same rhombus
+   at 8 px that the ground is tiled with at 120. Drawn as a BORDER because
+   forced-colours mode discards background-color and maps border colours into
+   its own palette — the same reason the radio's mark is a border. */
+.cf-annot::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--annot-node);
+  height: var(--annot-node);
+  border: var(--stroke-1) solid var(--border-strong);
+  transform: translate(-50%, -50%) var(--iso-transform);
+}
+
+/* The lit rung. Lime is light and never a flat fill, so the cell carries the
+   ramp — the near rake, because a lattice cell is a flat face.
+   → foundations/colors.html#lime-is-never-flat */
+.cf-annot--lit::before {
+  background-image: var(--gradient-light);
+}
+
+/* The leader. A zero-height box with one border, turned onto its step:
+   scaleX(sx) mirrors the whole construction rather than naming a second
+   angle, so left and right cannot end up on different slopes. */
+.cf-annot::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--annot-len) - var(--annot-gap));
+  height: 0;
+  border-block-start: var(--stroke-1) solid var(--border-strong);
+  transform-origin: 0 0;
+  transform: scaleX(var(--annot-sx))
+             rotate(var(--annot-turn))
+             translateX(var(--annot-gap))
+             scaleX(var(--annot-draw));
+}
+
+/* The note stands on its own rule, and the leader runs into the end of that
+   rule. The label is placed by its BOTTOM edge, which is what keeps the two
+   marks one mark in all four directions — a leader arriving from below ends
+   at the shoulder, never at the cap line. */
+.cf-annot__label {
+  position: absolute;
+  left: calc(var(--annot-u) * var(--annot-mx) * var(--annot-sx));
+  bottom: calc(var(--annot-u) * var(--annot-my) * var(--annot-sy) * -1);
+  transform: translateX(calc(var(--annot-align) * 100%));
+  padding-block-end: var(--space-1);
+  border-block-end: var(--stroke-1) solid var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-primary);
+  white-space: nowrap;
+  opacity: var(--annot-draw);
+  pointer-events: auto;
+}
+.cf-annot__value {
+  margin-inline-start: var(--space-2);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* The leader draws itself out of the anchor as the figure settles. The range
+   opens at 45 % of the figure's cover — after .cf-iso has arrived (5-30 %) and
+   after its own nodes have faded up (35-50 %) — so the drawing is finished
+   before it is labelled, which is the order the two things happen in on paper.
+   Scrubbed from scroll position, so scrolling back un-draws it. */
+@keyframes cf-annot-draw {
+  from { --annot-draw: 0; }
+  to   { --annot-draw: 1; }
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .cf-annot-set {
+      animation: cf-annot-draw linear both;
+      animation-timeline: view();
+      animation-range: cover 45% cover 62%;
+    }
+  }
+}
+
+/* BELOW THE FOLD OF ITS OWN CONTAINER THE LAYER BECOMES A LEGEND. Callouts
+   need clear ground to point into, and a 320 px drawing has none; overlapping
+   two notes is worse than not drawing the leaders at all. So the set flows
+   under the figure as a row of marks and words. The rule under each label goes
+   with the leader, because a label rule with no line running into it is an
+   underline, and an underline that is not a link is decoration. */
+@container cf-annot-fig (max-width: 28rem) {
+  .cf-annot-set {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin-block-start: var(--space-4);
+    /* No leader to draw, so nothing to draw it with. Left running, the only
+       thing the timeline would still animate is the label's own opacity — a
+       word that is sometimes missing, timed against a 14 px strip.
+       THIS BLOCK HAS TO SIT AFTER THE ANIMATION IT CANCELS. Both rules are
+       .cf-annot-set, so the later one wins, and an animation cannot be
+       overridden by a custom property at all — killing the animation is the
+       only way to get --annot-draw back. Measured before the move: the label
+       was in the flow, in ink, at opacity 0. */
+    animation: none;
+    --annot-draw: 1;
+  }
+  .cf-annot {
+    position: static;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: auto;
+    height: auto;
+  }
+  .cf-annot::after { display: none; }
+  .cf-annot::before {
+    position: static;
+    flex: none;
+    transform: var(--iso-transform);
+  }
+  .cf-annot__label {
+    position: static;
+    transform: none;
+    padding-block-end: 0;
+    border-block-end: 0;
+  }
+}
+
+/* Forced colours exists to guarantee legibility, and an opacity ramp is the
+   one thing it cannot guarantee — the label is ink at 79 % of itself halfway
+   through the range. Measured, that is still 11:1 on white, so this is not a
+   contrast failure being fixed; it is a mode that has asked for certainty
+   being given the finished annotation instead of a frame of one. The lit rung
+   loses its ramp here too, which is correct: it is emphasis, and emphasis is
+   what this mode is allowed to drop. */
+@media (forced-colors: active) {
+  .cf-annot-set {
+    animation: none;
+    --annot-draw: 1;
+  }
 }

@@ -8,6 +8,10 @@
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/base.css">
 <link rel="stylesheet" href="../assets/css/components.css">
+<!-- In the head and before the body, because it writes the attribute that folds
+     the nav. Moved to the end of the body it still works and the panel flashes
+     open on every load below 780 px — see the file's own header. -->
+<script src="../assets/js/cf-nav.js"></script>
 <style>
   /* Page-specific — belongs in the landing-page stylesheet, not in the system. */
   .lp-logo-wall span {
@@ -16,12 +20,10 @@
     color: var(--text-muted); opacity: .55;
   }
   .lp-statement-figure { display: grid; place-items: center; }
-  /* --iso-travel is measured in viewBox units, so its meaning depends on how big
-     the drawing's own coordinate system is. The process objects are 640 units and
-     travel 16, which is 2.5 % of the drawing. This one is 480 units, so it needs
-     12 to travel the same fraction — 12/480 == 16/640. Without the override it
-     would cover 3.33 % and visibly out-run the four objects below it. */
-  .lp-statement-figure .cf-iso { --iso-travel: 12; }
+  /* --iso-travel used to be set here, keyed on .lp-statement-figure. It is a
+     fact about the drawing's 480-unit frame rather than about this page, so it
+     now lives with the component in components.css — see .cf-statement .cf-iso
+     and foundations/motion.html#travel. */
   /* Preview only: link back to the documentation. Remove in production. */
   .ds-back {
     /* Under --z-overlay: preview chrome must never cover real UI, and the
@@ -109,7 +111,7 @@
 
 <nav class="cf-nav" aria-label="Hauptnavigation">
   <a class="cf-logo" href="/"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
-  <button class="cf-nav__toggle" aria-controls="hauptnav" aria-expanded="false">Menü</button>
+  <button class="cf-nav__toggle" type="button" aria-controls="hauptnav" aria-expanded="false">Menü</button>
   <ul class="cf-nav__list" id="hauptnav" role="list">
     <li><a class="cf-nav__link" href="/" aria-current="page">Home</a></li>
     <li><a class="cf-nav__link" href="/expertise">Expertise</a></li>
@@ -156,7 +158,9 @@
     <div class="container">
       <div class="cf-hero__body">
         <h1 class="cf-hero__title">Find the answers.<br>Make the decisions.<br>Build the future.</h1>
-        <div class="cf-hero__rule"></div>
+        <!-- The hairline above the kicker is the kicker's own border-top, not an
+             element: on the plate it is exactly as wide as that one line of mono.
+             See .cf-hero__kicker in components.css. -->
         <p class="cf-hero__kicker">Daten- und KI-Lösungen, die komplexe Daten in messbare Ergebnisse verwandeln.</p>
       </div>
     </div>
@@ -410,7 +414,17 @@
                 <line class="cf-iso__form" style="--stage:3;--build-dx:25"  x1="387" y1="511.5" x2="362" y2="511.5" stroke="#000"/>
                 <line class="cf-iso__form" style="--stage:3;--build-dy:-50" x1="412.75" y1="612" x2="412.75" y2="562" stroke="#000"/>
                 <ellipse class="cf-iso__node" cx="413.25" cy="512" rx="2" ry="4" fill="#000"/>
-                <path class="cf-iso__trace" d="M412.5 511.5H300M228 494L262.5 511.5L228 529M193 494L227.5 511.5L193 529M300 511.5L265.5 494M300 511.5L265.5 529" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <!-- Five strokes, five traces, led along the direction of travel. As one
+                     path with five subpaths the dash restarted at each of them, so the
+                     arrow finished at cover 26.8 % of a range running to 45 % and grew
+                     out of five points at once. See foundations/motion.html. -->
+                <path class="cf-iso__trace" style="--trace-lead:0%;--trace-span:21%" d="M193 494L227.5 511.5L193 529" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <path class="cf-iso__trace" style="--trace-lead:3%;--trace-span:21%" d="M228 494L262.5 511.5L228 529" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <path class="cf-iso__trace" style="--trace-lead:6%;--trace-span:21%" d="M300 511.5L265.5 494" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <path class="cf-iso__trace" style="--trace-lead:6%;--trace-span:21%" d="M300 511.5L265.5 529" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <!-- Reversed from the source's M412.5 511.5H300 — the identical line, drawn
+                     from the head into the disc rather than out of it. -->
+                <path class="cf-iso__trace" style="--trace-lead:6%;--trace-span:21%" d="M300 511.5H412.5" stroke="#000" stroke-linecap="round" pathLength="1"/>
                 <ellipse class="cf-iso__node" cx="413.25" cy="511.5" rx="2" ry="1" fill="#000"/>
                 <circle class="cf-iso__node" cx="299.25" cy="511.5" r="3" fill="#000"/>
                 <circle class="cf-iso__node" cx="261.25" cy="511.5" r="2" fill="#000"/>
@@ -693,14 +707,7 @@
 </footer>
 
 <a class="ds-back" href="../index.html">← Design System</a>
-<script>
-  document.querySelector('.cf-nav__toggle').addEventListener('click', function () {
-    var list = document.getElementById('hauptnav');
-    var open = list.dataset.open === 'true';
-    list.dataset.open = String(!open);
-    this.setAttribute('aria-expanded', String(!open));
-  });
-</script>
 <script src="../assets/js/cf-consent.js"></script>
+<script src="../assets/js/cf-sight.js" defer></script>
 </body>
 </html>

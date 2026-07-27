@@ -6,6 +6,40 @@ name: Design system checks
 # scale, stamped with a digest so a reader can tell a current table from a stale
 # one. The stamp worked and the table drifted anyway, because nothing ran it.
 # This is the thing that runs it.
+#
+# The gradient check is here for the same reason and after the same failure.
+# tokens.css states the light family's one SVG convention — a waypoint at 19 %
+# of the lime leg — and twenty gradients kept it while four on one page did not.
+# It reads the three shipping stylesheets too, for the family's two CSS
+# conventions: the arc waypoints, recomputed from OKLCh rather than compared
+# against the four hexes that ship, and the rule that a ramp with a lime leg
+# exists somewhere on the oklab path. The second had already been broken, by
+# one declaration, silently, for as long as that declaration existed.
+#
+# The isometric-assembly check is the same shape one step out: foundations/
+# motion.html and the README both state the assembly's invariants, and the
+# README's own section on them is called "four things that vanish quietly". A
+# value that vanishes without anything rendering wrong is exactly what a
+# checker is for.
+#
+# The glass budget is the fourth and the same shape again. backdrop-filter is
+# the most expensive thing in the stylesheet, foundations/materials.html states
+# what keeps it affordable in prose, and every one of those rules is invisible
+# in a screenshot: a third blurred layer renders correctly and just costs.
+#
+# The grid tracks are the fifth, and the one whose failure is visible — just not
+# on a day anyone looks. base.css warns twice, in prose, that a bare `fr` floors
+# at min-content and lets one long word push the page sideways; thirty-two of
+# thirty-three fr track lists carried a minimum and .cf-progress did not. It renders
+# perfectly until a compound noun is long enough, and then it scrolls sideways
+# at 320 px on a page nobody re-tested.
+#
+# The breakpoint register is the sixth, and the one with the most evidence
+# behind it. A threshold cannot be a token — var() is not allowed in a query
+# prelude — so every one is a literal, and the register is the list. Kept by
+# hand it was caught short four separate times, and each fix ended by telling
+# the next person to grep the preludes and not trust the last sweep. They did,
+# and it was short again. Four times is enough evidence about the instruction.
 on:
   push:
     branches: [main]
@@ -13,13 +47,40 @@ on:
   workflow_dispatch:
 
 jobs:
-  spacing-scale:
+  # One job, not six. All six checks are a few hundred milliseconds of
+  # stdlib python; a second runner would cost more to start than any of them
+  # takes to run, and a reader looking at a red tick wants every answer on one
+  # page.
+  self-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # No setup-python step and no dependencies on purpose. The script is
+      # No setup-python step and no dependencies on purpose. The scripts are
       # stdlib only, and ubuntu-latest ships python3 — the system has no build
-      # step and this check does not give it one.
+      # step and these checks do not give it one.
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
+
+      # Each check runs even when an earlier one has already failed: six
+      # independent facts about the same commit are more useful than the first
+      # one.
+      - name: Gradient family
+        if: '!cancelled()'
+        run: python3 scripts/check-gradient-family.py
+
+      - name: Isometric assembly
+        if: '!cancelled()'
+        run: python3 scripts/check-iso-motion.py
+
+      - name: Glass budget
+        if: '!cancelled()'
+        run: python3 scripts/check-glass-budget.py
+
+      - name: Grid tracks
+        if: '!cancelled()'
+        run: python3 scripts/check-grid-tracks.py
+
+      - name: Breakpoint register
+        if: '!cancelled()'
+        run: python3 scripts/check-breakpoints.py

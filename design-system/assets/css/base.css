@@ -61,6 +61,34 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd { margin: 0; }
+
+/* THE PAGE COPY IS GERMAN, AND GERMAN BUILDS COMPOUNDS. "Technologie-Kompetenz"
+   and "Datenfundament" are one word each as far as line breaking is concerned,
+   and a word that does not fit does not wrap — it hangs out of its box and takes
+   the document's scroll width with it.
+
+   At the 16 px default nothing here fires: measured across 320–2000 px on both
+   designed pages, every line already fits and the rule changes nothing. It fires
+   when the READER has enlarged their browser's default font, which is the case
+   the whole reflow requirement is about — WCAG 1.4.10 asks for no sideways
+   scrolling at 320 px of viewport, and at a 24 px default `.cf-process__title`
+   was 252 px of unbreakable word inside a 196 px panel.
+
+   `break-word` and not `anywhere`: both break a word that has no other option,
+   but `anywhere` also shrinks the element's min-content size, which would let
+   every grid track in the system collapse to one character and quietly change
+   how columns are sized at widths where nothing was wrong. This one is inert
+   until a line genuinely cannot be set, which is exactly the last resort it is
+   meant to be.
+
+   It is a NET, not typography. The right answer for German is hyphenation at the
+   dictionary's break points rather than at the box's edge — `hyphens: auto`
+   against these pages' `lang="de"` — but that is a decision about how the type
+   reads, so it belongs to the typography lane and to a designer. Until then the
+   page does not scroll sideways. → foundations/layout.html */
+h1, h2, h3, h4, h5, h6, p, li, dt, dd, blockquote, figcaption, td, th, a, button, label {
+  overflow-wrap: break-word;
+}
 ul[role="list"], ol[role="list"] { list-style: none; margin: 0; padding: 0; }
 img, svg, video { display: block; max-width: 100%; }
 img, video { height: auto; }
@@ -415,7 +443,7 @@ hr {
    threshold — see the breakpoint register in tokens.css. */
 .grid {
   display: grid;
-  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  grid-template-columns: var(--grid-tracks);
   gap: var(--grid-gap);
 }
 .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-12 {
@@ -472,6 +500,54 @@ hr {
   .grid--early > .col-8 { grid-column: span 8; }
 }
 
+/* A ROW WHOSE CELLS ARE SECTIONS.
+
+   --grid-gap is the distance between two cells of one row. It is the wrong
+   distance the moment that row stacks and each cell opens with a section header
+   of its own: the header already claims more air above itself than 24 px, so
+   the two blocks run together and the second one reads as a continuation of the
+   first rather than as the next thing. --section-gap-sm is the distance the
+   rest of the system uses between a header and whatever came before it, which
+   is what these are once they are one under the other.
+
+   Only row-gap moves. Side by side there is one row, so this modifier is inert
+   above the split and the column rhythm is never touched.
+
+   It exists as a class for the reason .flow-8 does: patterns/kontakt.html had
+   this decision written as `style="row-gap: var(--section-gap-sm)"`, and
+   foundations/layout.html documents it as a rule of the system — a rule
+   reachable only by copying an attribute off one page is not one.
+   → foundations/layout.html#columns */
+.grid--sections { row-gap: var(--section-gap-sm); }
+
+/* THE CODA — what follows a register that has already closed.
+
+   A register in this system is a stack of type blocks standing on hairlines
+   and closing on one: .cf-vacancies, .cf-results, .cf-contact. Twice the site
+   puts a sentence after one of them inside the same section — the initiative
+   application under the open positions, the pointer to Karriere under the
+   contact list — and both times the distance was written as an inline
+   margin-top, at TWO DIFFERENT VALUES: --space-12 on patterns/karriere.html
+   and --space-8 on patterns/kontakt.html. One relationship, two numbers,
+   neither reachable from anywhere but the page it was typed on. That is the
+   third time this exact substitution has happened here, after .flow-8 and
+   .grid--sections, and it is the last one left in the pattern pages.
+
+   THE NUMBER IS NOT A NEW DECISION. .cf-pagination already answers this
+   question — it is the thing that follows a closed register, and it stands
+   --space-8 off it, for the reason written at that rule: the distance belongs
+   to the shape rather than to the page, so every page wants the same one. A
+   coda is the same shape without the controls. So kontakt was right and
+   karriere was 16 px generous, and the two now measure the same.
+
+   Not a .flow-* rung, deliberately. The rungs are resolved on the CHILD — the
+   margin is declared on `* + *` — so a child that carries a rung of its own
+   overrides the one its parent meant, and karriere's coda is a .stack .flow-6
+   of a sentence over a button. This is one element's distance from the thing
+   above it, which is what a margin says.
+   → foundations/layout.html#flow */
+.after-register { margin-top: var(--space-8); }
+
 /* FLOW PRIMITIVES — two ways of putting things in a line, one way of spacing
    them.
 
@@ -518,6 +594,69 @@ hr {
 .flow-6  { --flow: var(--space-6); }
 .flow-8  { --flow: var(--space-8); }
 .flow-12 { --flow: var(--space-12); }
+
+/* A ROW OF EQUAL TILES THAT FOLDS ON ITS OWN.
+
+   .grid divides a fixed twelve. This divides by however many fit: the count is
+   never declared, the browser derives it from one number — the smallest a tile
+   is allowed to be — and reflows without a query.
+
+   IT IS A PRIMITIVE BECAUSE THE SYSTEM ALREADY HAD IT TWENTY TIMES. The three
+   declarations below were written out by hand in components.css once, in
+   docs.css three times, and in sixteen page-local <style> blocks: the same
+   recipe with a different minimum and one of three gaps. Sixteen of those are
+   unreachable from the system — a rule you can only get at by copying it off
+   another page is not a rule, which is the argument that already brought back
+   .cluster--between and the .flow-* rungs.
+
+   AND BECAUSE EVERY ONE OF THEM COULD SCROLL THE PAGE SIDEWAYS. The minimum in
+   minmax(19rem, 1fr) is a floor the track will not go below, so a container
+   narrower than 19rem does not fold the row — it overflows, because the track
+   keeps its minimum and the grid keeps the track. Measured across the
+   documentation site: at a 320 px viewport five pages scrolled sideways, and at
+   320 px with the root font at 20 — where a reader who has enlarged their type
+   is — fourteen of forty-three did. min(--tile, 100%) is the whole fix. The
+   track's floor becomes the tile OR the container, whichever is smaller, so the
+   last column folds instead of pushing, and above the fold width the term is
+   inert: nothing that fits today lays out differently.
+
+   That guard is why this is a class and not a convention. It is one term, it is
+   easy to leave out, and leaving it out is invisible until somebody opens the
+   page at a width nobody tested.
+
+   --tile is a length, so it is a property rather than a family of classes —
+   the same call .subdivide makes with --subdivide-count. It is set in the
+   consumer's own rule rather than in the markup, because several of these
+   minima are measured numbers carrying a paragraph of reasoning
+   (.cf-team-grid's 11.5rem is chosen inside a 1.8rem window) and a measured
+   number belongs next to its measurement. The gap is --flow, so the .flow-*
+   rungs tune this exactly as they tune .stack and .cluster, and it defaults to
+   --space-4 for the same reason theirs does.
+
+   auto-fill is the base and auto-fit is the modifier. The two differ only when
+   the items do not fill the row: auto-fit collapses the empty tracks so the
+   survivors stretch, auto-fill keeps them so the survivors stay tile-sized.
+   Three cards in a row with room for five should stay three cards rather than
+   become three banners, so the default holds the size and .tiles--fit is how a
+   caller asks for the stretch. Both forms were already in use — eight of the
+   twenty were auto-fill and twelve auto-fit — so this is a distinction the
+   system had made and never named.
+
+   min-width: 0 on the items is load-bearing, not hygiene. 1fr is
+   minmax(auto, 1fr) and that auto floors at min-content, so without it a single
+   long German compound widens its own track past its share and the guard above
+   never gets to hold. The reset already sets overflow-wrap: break-word on
+   everything, so the word breaks inside the tile rather than escaping it.
+   → foundations/layout.html#tiles */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--tile, 16rem), 100%), 1fr));
+  gap: var(--flow, var(--space-4));
+}
+.tiles--fit {
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--tile, 16rem), 100%), 1fr));
+}
+.tiles > * { min-width: 0; }
 
 /* --------------------------------------------------------------------------
    SUBDIVISION GRID — "Raster > Teilungsraster"
@@ -691,6 +830,25 @@ hr {
    foundations/materials.html — turns the line off where it is used, next to
    the `border: 0` that already says the same thing about the rim. */
 .material-glass--veil { background: var(--surface-glass-veil); }
+
+/* Thin tint — bearing glass again, over a backdrop THE PAGE OWNS. The third of
+   the three tints tokens.css declares, and until now the only one with no class
+   behind it: the chapter described it, patterns/expertise.html reached for it
+   through --info-card-tint, and no page in the system rendered it. That is not
+   a tidiness gap. A tint nothing draws is a tint no screenshot contains, and
+   the fallback hole this run fixed in tokens.css — --surface-glass-thin left
+   translucent under forced colours while the other two went to Canvas — is
+   exactly what that costs.
+
+   THE MODIFIER CARRIES NO PERMISSION, and that is the whole reason it is worth
+   saying twice. 30 % is not a lighter look available on request; it is what one
+   measurement on one named backdrop came back with. Put it over the hero
+   poster, which is what the two samples above it stand on, and it is the 46 %
+   floor's premise being ignored rather than a thinner pane. So the sample on
+   foundations/materials.html stands on .cf-ground instead, which is the surface
+   the number was measured against — the demo teaches the rule by what it is
+   standing on rather than by the caption under it. */
+.material-glass--thin { background: var(--surface-glass-thin); }
 
 /* The lit edge of a glass sheet. Put it on the edge the sheet ends at. */
 .material-glass-edge {
@@ -916,6 +1074,26 @@ hr {
   initial-value: 50%;
 }
 
+/* THE OTHER AXIS. --field-light-y is where the pool is as the section travels
+   past an eye assumed to be at the middle of the screen. --field-light-x is
+   where the reader actually is across it, which nothing in CSS can ask —
+   see THE LINE OF SIGHT below. 50 % is the rest value and the designed still,
+   so a page with no pointer, no script, or a coarse pointer renders exactly
+   what it rendered before this property existed.
+
+   inherits: true, WHERE ITS TWIN IS FALSE, and the asymmetry is forced rather
+   than chosen: the light is painted by ::before and a script cannot set a
+   property on a pseudo-element, so the only way in is to declare it on the
+   originating element and let the pseudo inherit it. That is a subtree
+   invalidation on every write, which is why cf-sight.js quantises this one to
+   whole percent — one percent of a section is a few pixels under a 1152 px
+   pool, so most frames of a gesture write nothing at all. */
+@property --field-light-x {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
 /* .cf-ground, NOT .cf-field — the form component has owned .cf-field since it
    was written, with a whole __label / __input / __textarea / __select family
    under it and a --invalid modifier beside it. Declaring the ground under the
@@ -967,8 +1145,18 @@ hr {
           mask-repeat: no-repeat;
   -webkit-mask-size: var(--field-pool-w) var(--field-pool-h);
           mask-size: var(--field-pool-w) var(--field-pool-h);
-  -webkit-mask-position: 50% var(--field-light-y);
-          mask-position: 50% var(--field-light-y);
+  -webkit-mask-position: var(--field-light-x) var(--field-light-y);
+          mask-position: var(--field-light-x) var(--field-light-y);
+}
+
+/* The damping, on the element rather than the pseudo, because that is where
+   the property is written. A pointer emits far more moves than a hand makes
+   gestures; without this the pool teleports between quantised stops. 120 ms
+   is --duration-fast, the shortest step the system has, and it reads as the
+   weight of a light rather than as lag. Under reduced motion the tokens
+   collapse to 1 ms and cf-sight.js does not run in the first place. */
+.cf-ground--lit {
+  transition: --field-light-x var(--duration-fast) var(--ease-out);
 }
 
 @supports (animation-timeline: view()) {
@@ -1201,24 +1389,82 @@ hr {
    putting an animated inherited property on :root, which would restyle the
    whole document once per frame. The rest value is declared on .text-foil
    above as well as here, for the guaranteed-invalid reason written there.
+   Registration is also the safety net under the composition below: if that
+   calc ever fails to resolve, a registered property falls back to its
+   initial-value — the designer's 116.57° — instead of going
+   guaranteed-invalid and taking background-image, and with it the whole
+   clip, down with it.
    -------------------------------------------------------------------------- */
 @property --foil-angle {
   syntax: "<angle>";
   inherits: false;
   initial-value: 116.57deg;
 }
+
+/* --------------------------------------------------------------------------
+   THE LINE OF SIGHT
+   The swing above is built on a line-of-sight model and only ever read one of
+   its two axes. "116.57° is what you see head-on" assumes the reader's eye is
+   on the middle of the screen; a view() timeline then measures how far the
+   type is above or below that eye. Nothing measured how far it was to the
+   SIDE of it. On a 1920 frame a headline at the vertical centre and hard
+   against the left edge was drawn perfectly head-on, and it is not: the
+   reader is a metre to its right.
+
+   So the model gets its other axis. --sight-v is the vertical squareness the
+   keyframes already produced, now named: 0 at either edge of the viewport, 1
+   at the middle. --sight-h is the horizontal squareness, and it is the one
+   quantity on this page CSS cannot obtain — an element's own x is not the
+   reader's — so it is written by cf-sight.js, which is optional and additive
+   in the sense assets/js/cf-stream.js established. Both rest at 1.
+
+   THEY MULTIPLY, THEY DO NOT ADD, and that is the whole safety argument.
+   Summing two swings could leave the band; a product of two numbers in [0, 1]
+   cannot, so the rake stays inside 90°–116.57° by construction and every
+   contrast figure above holds unchanged and unre-measured. It is also the
+   physically true composition: a foil is head-on only when you are square to
+   it on BOTH axes, and oblique on either one flattens it. Being level with a
+   sheet you are standing beside does not let you see it face on.
+
+   THE SWING IS NOW WRITTEN AS A BRAND ANGLE INSTEAD OF ASSERTED AS ONE. The
+   prose above has always said the 26.57° between the endpoints is the
+   isometric angle itself; the keyframes said 90deg and 116.57deg and left
+   that a coincidence a later edit could break. --angle-square + --angle-b
+   times the two squarenesses is the same two endpoints, derived — move
+   --angle-b and the foil follows it.
+
+   WITHOUT THE SCRIPT NOTHING CHANGES, to the digit. --sight-h's initial-value
+   is 1, so the product collapses to --sight-v and the composition reduces to
+   the keyframes this block shipped before: 90° at the edges, 116.57° at the
+   middle. Coarse pointers, reduced motion, no script, script blocked by
+   consent, print and forced colours all land there.
+   -------------------------------------------------------------------------- */
+@property --sight-v {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+@property --sight-h {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
 @supports ((-webkit-background-clip: text) or (background-clip: text)) and (animation-timeline: view()) {
   @media screen and (prefers-reduced-motion: no-preference) {
     .text-foil {
+      --foil-angle: calc(var(--angle-square) + var(--angle-b) * var(--sight-v) * var(--sight-h));
       animation: cf-foil-swing linear both;
       animation-timeline: view();
+      /* Damping, for the reason .cf-ground--lit is damped: the hand is
+         continuous and the written value is quantised. */
+      transition: --sight-h var(--duration-fast) var(--ease-out);
     }
   }
 }
 @keyframes cf-foil-swing {
-  from { --foil-angle: var(--angle-square); }
-  50%  { --foil-angle: var(--foil-rake); }
-  to   { --foil-angle: var(--angle-square); }
+  from { --sight-v: 0; }
+  50%  { --sight-v: 1; }
+  to   { --sight-v: 0; }
 }
 
 @media print {

@@ -23,7 +23,8 @@
       { href: 'foundations/mobile.html',      label: 'Mobile' },
       { href: 'foundations/transitions.html', label: 'Page Transitions' },
       { href: 'foundations/field.html',       label: 'The Field' },
-      { href: 'foundations/found.html',       label: 'The Found State' }
+      { href: 'foundations/found.html',       label: 'The Found State' },
+      { href: 'foundations/sight.html',       label: 'The Line of Sight' }
     ]},
     { title: 'Components', items: [
       { href: 'components/buttons.html',        label: 'Buttons' },
@@ -32,10 +33,14 @@
       { href: 'components/section-header.html', label: 'Section Header' },
       { href: 'components/statement.html',      label: 'Statement & Value Table' },
       { href: 'components/plot.html',           label: 'Plot' },
+      { href: 'components/annotation.html',     label: 'Annotation' },
       { href: 'components/process-card.html',   label: 'Process Card' },
+      { href: 'components/info-card.html',      label: 'Info Card' },
       { href: 'components/accordion.html',      label: 'Accordion / FAQ' },
       { href: 'components/blog-grid.html',      label: 'Blog Grid' },
       { href: 'components/subdivision-field.html', label: 'Subdivision Field' },
+      { href: 'components/search.html',         label: 'Search & Results' },
+      { href: 'components/vacancy.html',        label: 'Vacancy' },
       { href: 'components/pagination.html',     label: 'Pagination' },
       { href: 'components/error-state.html',    label: 'Error & Empty State' },
       { href: 'components/arrival.html',        label: 'Arrival & Progress' },
@@ -51,7 +56,9 @@
       { href: 'patterns/expertise.html',    label: 'Expertise' },
       { href: 'patterns/ueber-uns.html',    label: 'Über uns page' },
       { href: 'patterns/news.html',         label: 'News overview' },
+      { href: 'patterns/suche.html',        label: 'Suche — results' },
       { href: 'patterns/blog-artikel.html', label: 'Blog article' },
+      { href: 'patterns/karriere.html',     label: 'Karriere page' },
       { href: 'patterns/kontakt.html',      label: 'Kontakt page' },
       { href: 'patterns/404.html',          label: '404 page' }
     ]},
@@ -142,18 +149,11 @@
     });
   }
 
-  /* Mobile nav toggle for the demo navigation component. */
-  function wireNavToggle() {
-    document.addEventListener('click', function (event) {
-      var toggle = event.target.closest ? event.target.closest('.cf-nav__toggle') : null;
-      if (!toggle) return;
-      var list = document.getElementById(toggle.getAttribute('aria-controls'));
-      if (!list) return;
-      var open = list.dataset.open === 'true';
-      list.dataset.open = String(!open);
-      toggle.setAttribute('aria-expanded', String(!open));
-    });
-  }
+  /* The mobile nav toggle used to be wired here too, which made this file the
+     eighth copy of one behaviour — seven inline scripts on the pattern pages
+     and this one, none of them shipping. It is assets/js/cf-nav.js now, and
+     components/navigation.html loads that file like any page built from the
+     system would. Documentation chrome does not implement components. */
 
   /* Inject the icon sprite so every page can `<use href="#cf-arrow">`.
      In production this block belongs in the page template, right after
@@ -180,6 +180,5 @@
     injectSprite();
     buildNav();
     wireSwatches();
-    wireNavToggle();
   });
 })();

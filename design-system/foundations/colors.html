@@ -14,7 +14,7 @@
      are transparent and they exist to pass over a contour, so a chip of the
      colour alone would be showing neither the colour that ships nor the thing
      it does. Same dash construction as .cf-arrive__line. */
-  .band-swatches { display:grid; grid-template-columns:repeat(auto-fit,minmax(11rem,1fr)); gap:var(--space-4); }
+  .band-swatches { --tile:11rem; }
   .band-swatches figure { margin:0; }
   .band-swatches i {
     --dash: repeating-linear-gradient(90deg, var(--border-strong) 0 1px, transparent 1px 5px);
@@ -31,7 +31,7 @@
   /* Flat lime against the same face taking the ramp. Both are the isometric
      rhombus, because the argument is about a lit FACE and a square would be
      making it about something else. */
-  .flat-vs-ramp { display:grid; grid-template-columns:repeat(auto-fit,minmax(13rem,1fr)); gap:var(--space-8); justify-items:center; }
+  .flat-vs-ramp { --tile:13rem; --flow:var(--space-8); justify-items:center; }
   .flat-vs-ramp figure { margin:0; display:grid; justify-items:center; gap:var(--space-4); }
   .flat-vs-ramp__face { display:block; width:9rem; height:9rem; transform:var(--iso-transform); border:var(--stroke-1) solid var(--border-strong); }
   .flat-vs-ramp figcaption { font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label);
@@ -55,7 +55,7 @@
   <section class="docs-section" id="core">
     <h2>Core palette</h2>
     <p>Click to copy the hex value.</p>
-    <div class="docs-swatches">
+    <div class="docs-swatches tiles">
       <button class="docs-swatch" data-hex="#E1FF00">
         <span class="docs-swatch__chip" style="background:#E1FF00"></span>
         <span class="docs-swatch__meta">
@@ -133,13 +133,68 @@
       the neutral ramp, which is where every other surface in the system already comes from.
     </p>
     <div class="docs-note">
-      <strong>Depth on black is built upward.</strong> Black is the floor of the neutral
-      scale — there is no rung below it — so both panel steps move away from the base
-      upward. That is what the light theme has always done anyway: base CF-Grau, sunken
-      grey-100, raised grey-050, all three climbing toward white. On an inverse surface
-      <code>--surface-raised</code> is <code>grey-800</code> and <code>--surface-sunken</code>
-      the half-step under it, which keeps their order and roughly their old separation from
-      the base — 1.12:1 and 1.27:1.
+      <strong>Depth on black is built upward, and it is the only theme that can be.</strong>
+      Black is the floor of the neutral scale — there is no rung below it — so on an inverse
+      surface the step moves away from the base upward: <code>--surface-raised</code> is
+      <code>grey-800</code> and <code>--surface-sunken</code> is a 6&nbsp;% white veil, which
+      renders <code>#0F0F0F</code> over Schwarz and keeps their old order and separation.
+      The light theme used to climb toward white as well, and no longer does. It cannot:
+      the wash it sits on <em>ends</em> at white, so a lighter step has nowhere left to go
+      and dies at the bottom of every screen. See
+      <a href="#a-step-is-a-ratio">A step away from the page is a ratio</a>.
+    </div>
+
+    <h3 id="a-step-is-a-ratio">A step away from the page is a ratio, not a grey</h3>
+    <p>
+      <code>--surface-sunken</code> was <code>grey-100</code>, <code>#E7E7E7</code>. That
+      number is only meaningful against <code>--surface-base</code>, CF-Grau — and
+      <strong>no page in this system is painted CF-Grau.</strong> Every page carries
+      <code>.page-wash</code>, and the wash is <code>background-attachment: fixed</code> at
+      <code>background-size: cover</code>. Fixed and cover together mean it spans the
+      <em>viewport</em> rather than the document, so it does not scroll with the page: what
+      is behind any element is a function of where that element currently sits on screen,
+      and it runs the full CF-Grau-to-white every single time. The panel steps were
+      calibrated against a colour that exists in the top row of pixels and nowhere else.
+    </p>
+    <p>
+      Measured on <code>patterns/landing-page.html</code> at 1280&nbsp;&times;&nbsp;900,
+      walking the process card's note block down the viewport and sampling the wash beside
+      it out of the same screenshot row:
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Note at</th><th>Wash beside it</th><th><code>#E7E7E7</code> reads</th><th>6&nbsp;% veil reads</th></tr></thead>
+      <tbody>
+        <tr><td>14 % of viewport height</td><td>210</td><td>+21 — raised</td><td>&minus;13</td></tr>
+        <tr><td>44 %</td><td>222</td><td>+9</td><td>&minus;13</td></tr>
+        <tr><td>65 %</td><td>231</td><td><strong>0 — invisible</strong></td><td>&minus;14</td></tr>
+        <tr><td>86 %</td><td>241</td><td>&minus;10 — sunken</td><td>&minus;14</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      An absolute grey inside the wash's own range is raised at the top of the screen,
+      gone at two thirds of it, and sunken below that: one block that changes which way it
+      steps as the reader scrolls past. Nothing renders wrong — the material simply is not
+      one. A veil is the same declaration made <em>relative</em>. Six per cent black removes
+      six per cent of whatever light is there, which is a constant 0.858 ratio in linear
+      light at both ends of the wash, so the step is the same step everywhere.
+    </p>
+    <p>
+      Contrast moves with the surface and the floor is the CF-Grau end:
+      <code>--text-secondary</code> measures <strong>5.19:1</strong> there, 6.48:1 in the
+      middle and 8.03:1 at the white end; <code>--text-primary</code> never drops below
+      11.91:1. <code>--text-muted</code> still may not sit on it, for exactly the reason it
+      may not sit on CF-Grau itself.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong><code>--surface-card</code> is retired.</strong> It was
+      <code>grey-050</code> — the same value as <code>--surface-raised</code>, so wherever
+      the two were stacked one of them painted nothing — and its only users were the process
+      card and the stacked form of the Expertise step. Both are contour on the wash now,
+      which is what <a href="materials.html#glass">Materials</a> already claimed they were.
+      A panel that needs a surface takes the veil; a panel that needs a boundary takes a
+      contour. There is no third thing to reintroduce.
     </div>
   </section>
 
@@ -204,7 +259,7 @@
     <p>The actual working palette. CF-Grau is step 300 — the anchor, not white.</p>
     <div class="docs-ramp">
       <span class="docs-ramp__name">Grey</span>
-      <div class="docs-ramp__steps" style="grid-template-columns:repeat(10,1fr)">
+      <div class="docs-ramp__steps" style="grid-template-columns:repeat(10,minmax(0,1fr))">
         <span class="docs-ramp__step" style="background:#FFFFFF">000</span>
         <span class="docs-ramp__step" style="background:#F8F8F8">050</span>
         <span class="docs-ramp__step" style="background:#F1F1F1">075</span>
@@ -246,8 +301,8 @@
       <thead><tr><th>Token</th><th>Value</th><th>Used for</th></tr></thead>
       <tbody>
         <tr><td><code>--surface-base</code></td><td>grey-300</td><td>the base surface of the page</td></tr>
-        <tr><td><code>--surface-sunken</code></td><td>grey-100</td><td>inset blocks, note panels</td></tr>
-        <tr><td><code>--surface-raised</code></td><td>grey-050</td><td>card panels, text areas</td></tr>
+        <tr><td><code>--surface-sunken</code></td><td>black 6 %</td><td>inset blocks, note panels — a veil, not a grey, so the step is the same step wherever the block sits on the wash</td></tr>
+        <tr><td><code>--surface-raised</code></td><td>grey-050</td><td>figure plates that already carry a contour, and the hero still, which sits on video rather than on the wash</td></tr>
         <tr><td><code>--surface-inverse</code></td><td>black</td><td>footer, logo plate, nav bar, dark sections</td></tr>
         <tr><td><code>--surface-glass</code></td><td>white 46 %</td><td>frosted layer that carries text — the tint at which black type clears 4.5:1 over any backdrop</td></tr>
         <tr><td><code>--surface-glass-veil</code></td><td>white 4 %</td><td>frosted layer that carries only opaque objects; the blur does the work</td></tr>
@@ -274,7 +329,7 @@
       chosen. Anything else is drift.
     </p>
     <div class="docs-demo docs-demo--plain">
-      <div class="docs-swatch-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;border:1px solid var(--border-default)">
+      <div class="docs-swatch-row" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border:1px solid var(--border-default)">
         <div class="material-rake" style="height:7rem"></div>
         <div class="material-rake material-rake--mid" style="height:7rem"></div>
         <div class="material-rake material-rake--far" style="height:7rem"></div>
@@ -329,7 +384,7 @@
       the ramp is written once and the rake, the angle and the shape are parameters.
     </p>
     <div class="docs-demo docs-demo--plain">
-      <div class="docs-swatch-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border:1px solid var(--border-default)">
+      <div class="docs-swatch-row" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;border:1px solid var(--border-default)">
         <div class="material-rake material-rake--mid material-rake--grazing" style="height:7rem"></div>
         <div class="material-bloom" style="height:7rem"></div>
         <div class="material-bloom material-bloom--iso" style="height:7rem"></div>
@@ -462,6 +517,137 @@
         across all mainline browsers, so the affected population is small and shrinking, and the
         alternative is holding the whole system to the worse curve for it.
       </p>
+      <p>
+        <strong>The convention is now run rather than read.</strong> It held across twenty
+        gradients and broke on the twenty-first: all four lights on
+        <a href="../patterns/expertise.html">Expertise</a> were drawn on the near rake, Glas at
+        <code>0.32</code>, and carried the <em>mid</em> rake's waypoint offset of
+        <code>0.097</code> — so the colour that belongs at 19&nbsp;% of the leg was painted at
+        30.3&nbsp;% of it. Nothing rendered wrong and no reference broke; the ramp simply held
+        lime-yellow half again as long as it should and then hurried into Glas, at
+        <strong>ΔE 0.0265</strong> against the family's 0.0116, which is 60&nbsp;% of the way
+        back to carrying no waypoint at all. <code>scripts/check-gradient-family.py</code> reads
+        every gradient the site ships and derives the answer instead of trusting the literal:
+        it recomputes both the waypoint's position, from the leg's own two ends, and its
+        colour, from the oklab path, so <code>#DBFC60</code> and <code>#E6FF66</code> are
+        re-derived on every run rather than checked against a list. It also catches the other
+        way this drifts — a stop that is <em>almost</em> a chromatic brand colour, which is what
+        <code>#E0FF02</code> is. It runs in CI on every pull request.
+      </p>
+    </div>
+
+    <div class="docs-note" id="the-arc">
+      <strong>The arc — why the two foils carry a waypoint of their own.</strong>
+      <p>
+        The waypoint above puts an sRGB leg back on the oklab path. This is the same move one
+        space further out, and it exists because <em>oklab is not the right path for a leg that
+        turns.</em> The foil's whole claim is hue travel inside a narrow luminance band. Two
+        stops of similar chroma and different hue sit at roughly the same distance from the
+        neutral axis, so the straight line oklab draws between them is a <strong>chord</strong>,
+        and the middle of a chord falls inside the circle. Chroma sags where no stop asked it to:
+      </p>
+      <table class="docs-table">
+        <thead><tr><th>Leg</th><th>chord</th><th>arc</th><th>midpoint</th><th>waypoint</th></tr></thead>
+        <tbody>
+          <tr><td>Glas → Sky</td><td>0.0383</td><td>0.0452</td><td><strong>+17.9 %</strong></td><td><code>#B9E3EB</code></td></tr>
+          <tr><td>Sky → Violett</td><td>0.0553</td><td>0.0588</td><td>+6.3 %</td><td><code>#B8CCF3</code></td></tr>
+          <tr><td>Glas 800 → Sky 800</td><td>0.0254</td><td>0.0289</td><td><strong>+13.6 %</strong></td><td><code>#33494E</code></td></tr>
+          <tr><td>Sky 800 → Violett 800</td><td>0.0484</td><td>0.0513</td><td>+6.0 %</td><td><code>#273650</code></td></tr>
+        </tbody>
+      </table>
+      <p>
+        A ramp that loses a sixth of its chroma halfway through its longest leg is greying out
+        exactly where it is supposed to be turning, which reads as a fade with a colour cast at
+        each end rather than as one material seen at an angle.
+        <strong>This is not an argument for more saturation</strong> — that is the one thing the
+        brand's definition of iridescence forbids, and this does not do it. Peak chroma on both
+        ramps is unchanged: 0.0686 lit and 0.0620 ink, both still the endpoints' own values, and
+        no point on either ramp is now more chromatic than the palette colour it is travelling
+        between. The sag is removed; nothing is added.
+      </p>
+      <p>
+        <strong>The correct path is polar — and <code>in oklch</code> is not used.</strong>
+        OKLCH interpolates L, C and h each linearly, so it holds chroma across the turn, and it
+        was the obvious answer. It fails on a measurement rather than on a principle:
+        <em>Chromium discards the hue of a low-chroma stop.</em> Rendered and sampled,
+        <code>linear-gradient(90deg in oklch shorter hue, #45524F, #283E4F)</code> — Glas 800 to
+        Sky 800, the ink foil's first leg — comes out with hue pinned flat at Sky's 242.5° for
+        its entire length. Glas 800's own 179.95° never appears, at t&nbsp;=&nbsp;0 or anywhere
+        else. Sweeping the start stop's chroma in steps of 0.004 at fixed hue puts the threshold
+        between 0.016 and 0.020: at or above about 0.018 the declared hue renders, below it the
+        neighbour's is carried forward. <strong>Glas 800 is C 0.0171.</strong> The one ramp with
+        the most to gain from a polar path is the one a polar path silently flattens — it would
+        ship 39.7° of its 102.2° of hue travel. Writing the stops as <code>oklch()</code>
+        literals renders correctly and was rejected for a different reason: it takes all three
+        ramps off the palette tokens.
+      </p>
+      <p>
+        So the arc goes <em>into</em> the ramp, as one waypoint per chromatic leg at that leg's
+        midpoint — exact where it sits, and engine-independent, which <code>in oklch</code> is
+        not. Max deviation from the true polar arc over 2,001 samples falls from
+        <strong>0.00722 to 0.00212</strong> on the lit foil's chromatic legs and from
+        <strong>0.00741 to 0.00257</strong> on the ink foil.
+      </p>
+      <p>
+        <strong>Every measured figure on this page survives, by construction rather than by
+        luck.</strong> Polar interpolation moves C and h and leaves L alone, so each waypoint's
+        lightness is the mean of its leg's endpoints and lands on the linear L path that was
+        already there — within 9.2 × 10<sup>−4</sup>, which is the 8-bit grid and not the
+        arithmetic. Band depths (0.090, 0.115, 0.180 counting the specular), hue travel
+        (104.5° / 102.2°) and every endpoint are untouched. Re-measured over the whole ramp
+        anyway: <strong>11.900:1</strong> on black, <strong>5.239:1</strong> on CF-Grau,
+        <strong>8.162:1</strong> on white — the same three numbers to three decimals.
+      </p>
+      <p>
+        <strong>No waypoint on a leg that ends in grey,</strong> and that is where this stops.
+        <code>--gradient-light</code>, <code>--gradient-light-90</code>, the rakes, the blooms
+        and the page wash all run into CF-Grau or out of Weiss, and the lit foil's own
+        Weiss → Glas leg is the same case. An achromatic stop has no hue, so there is no arc for
+        a chord to fall short of: oklab's straight line from the neutral axis to a chromatic stop
+        already <em>is</em> the constant-hue radial. Only a leg chromatic at both ends turns, and
+        only a leg that turns can cut a corner.
+      </p>
+      <p>
+        <strong>And no waypoint on a leg carrying lime,</strong> which is the second half of the
+        same sentence and was left unwritten because it is invisible on the four legs above —
+        every one of them sits inside the foil's narrow band. The chord argument has two premises,
+        not one: the two stops must differ in <em>hue</em> and sit at roughly the <em>same
+        distance</em> from the neutral axis. Lime is C&nbsp;0.2201 and Glas is C&nbsp;0.0414, so
+        the move between them is radial rather than tangential — the polar path through it bows
+        out to <code>#A8FFB6</code>, a green in no palette at C&nbsp;0.1310, three times the
+        chroma of the stop it is travelling to. That is the achromatic case again and it takes the
+        same answer: oklab's straight line is already correct. It is exactly why the light family
+        is corrected with <code>in oklab</code> and the SVG waypoint while the spectrum and the
+        two foils are corrected with an arc. Lime is the light source and CF-Grau and Weiss are
+        what it falls away to; a leg touching any of the three is a <em>falloff</em>, and only
+        what happens in the band between them <em>turns</em>.
+      </p>
+      <p>
+        <strong>The four hexes are literals, like <code>#DBFC60</code> — and they are now derived
+        on every run rather than trusted.</strong> They carried the same trap the SVG waypoint did
+        before it was checked: they do not follow the palette, so moving an endpoint left the ramp
+        quietly back on the chord.
+        <code>scripts/check-gradient-family.py</code> reads the shipping stylesheets as well as
+        the drawings now. It resolves each <code>var()</code> down to a colour, recognises a
+        waypoint by its <em>being</em> the polar midpoint of the two stops either side of it, and
+        then compares that value exactly — so <code>#B9E3EB</code>, <code>#B8CCF3</code>,
+        <code>#33494E</code> and <code>#273650</code> are recomputed from OKLCh on every run and
+        never checked against a list. A leg that turns and carries nothing is reported as a chord.
+      </p>
+      <p>
+        <strong>It checks one more thing, and that one had already slipped.</strong> A ramp
+        carrying a lime leg has to appear somewhere on the oklab path, because lime → Glas is the
+        single leg where the two paths actually part — ΔEok&nbsp;0.0443, against 0.0015 and below
+        for every other leg in the family, which is why <code>--glass-edge</code>
+        and <code>--sheen-panel</code> are left in sRGB by name. Every lime ramp in the system was
+        on that path except one: <code>.cf-btn--glass</code> drew Glas into lime with no
+        <code>@supports</code> branch at all, measuring <strong>ΔEok 0.03866</strong> composited
+        over CF-Grau at its own alphas — seventy-nine times the divergence of the layer one step
+        above it that the family deliberately leaves alone. Its stops are a custom property now
+        and only the path changes, the way <code>.material-rake</code> and <code>.text-foil</code>
+        already did it. Nothing about the drawing moved: the rim's 62&nbsp;% window is measured off
+        where this face's lime becomes visible and is unaffected by an interpolation path.
+      </p>
     </div>
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Shape</th><th>Used for</th></tr></thead>
@@ -470,17 +656,19 @@
         <tr><td><code>--gradient-light-90</code></td><td>linear 90°, near mirrored</td><td>primary button, horizontal edges</td></tr>
         <tr><td><code>.material-rake</code></td><td>linear, any rake, <code>--mirror</code>, <code>--grazing</code> (239.25°)</td><td>the linear half of the family, stated once — see <a href="#rakes-and-blooms">The two halves</a></td></tr>
         <tr><td><code>.material-bloom</code></td><td>radial circle, mid, mirrored; <code>--iso</code> 2:1; <code>--top</code> far, from above</td><td>the radial half, same ramp — same section</td></tr>
-        <tr><td><code>--gradient-spectrum</code></td><td>linear 132.36°, five stops</td><td><code>.material-foil</code> — surfaces only</td></tr>
+        <tr><td><code>--gradient-spectrum</code></td><td>linear 132.36°, five stops plus two arc waypoints</td><td><code>.material-foil</code> — surfaces only</td></tr>
+        <tr><td><code>--spectrum-stops</code></td><td>the spectrum's stops, without an angle</td><td>the same split the two foils make, so the oklab branch restates nothing</td></tr>
         <tr><td><code>--gradient-foil</code></td><td>linear <code>--foil-rake</code>, the spectrum minus lime, renormalised</td><td><code>.text-foil</code> — the lit half, inverse surfaces; and every <code>.cf-btn--solid</code> label</td></tr>
         <tr><td><code>--gradient-foil-ink</code></td><td>linear <code>--foil-rake</code>, the same three hues in the 800 band</td><td><code>.text-foil--ink</code> — the shadow half, light surfaces</td></tr>
         <tr><td><code>--foil-rake</code></td><td>116.57° = 90° + 26.57°</td><td>the angle both foils are drawn at head-on</td></tr>
-        <tr><td><code>--foil-stops</code></td><td>the lit half's four stops, without an angle</td><td>the material, so the rake can change without restating it</td></tr>
-        <tr><td><code>--foil-ink-stops</code></td><td>the shadow half's three stops, without an angle</td><td>the same, for the 800 band</td></tr>
+        <tr><td><code>--foil-stops</code></td><td>the lit half's four stops plus two arc waypoints, without an angle</td><td>the material, so the rake can change without restating it</td></tr>
+        <tr><td><code>--foil-ink-stops</code></td><td>the shadow half's three stops plus two arc waypoints, without an angle</td><td>the same, for the 800 band</td></tr>
+        <tr><td><code>--foil-glas-n</code>, <code>--foil-sky-n</code>, <code>--foil-ink-sky-n</code></td><td>the renormalised stop positions as bare numbers</td><td>so each waypoint's position is the average of its leg's ends rather than a third picked figure — see <a href="#the-arc">The arc</a></td></tr>
         <tr><td><code>--spectrum-hot</code></td><td>18 % — the white hot spot</td><td>shared by both foil gradients; not used alone</td></tr>
         <tr><td><code>--spectrum-cool</code></td><td>64 % — where Sky takes over</td><td>shared by both foil gradients; not used alone</td></tr>
         <tr><td><code>--surface-page-wash</code></td><td>linear 180°, the foil reversed at chroma 0.005</td><td>the page itself — <code>.page-wash</code>. See <a href="#wash">The page wash</a></td></tr>
         <tr><td><code>--wash-stops</code></td><td>the wash's four stops, without an angle</td><td>the same split as the two foils, so the oklab branch restates nothing</td></tr>
-        <tr><td><code>--grain</code></td><td>SVG fractal noise tile</td><td>the second half of the wash's dithering; see <a href="#wash">The page wash</a></td></tr>
+        <tr><td><code>--grain</code></td><td>SVG fractal noise tile</td><td>the second half of the wash's dithering, at 8 %; the same filter is inlined in all three <a href="field.html#wallpaper">wallpapers</a>, at 4 % on the two dark ones. See <a href="#wash">The page wash</a></td></tr>
         <tr><td><code>--hero-dissolve</code></td><td>mask, linear 180°, an <code>(1&nbsp;−&nbsp;t)^1.45</code> falloff over the last 25.6&nbsp;%</td><td>how full-bleed artwork ends — see <a href="#edges">Where artwork meets the page</a></td></tr>
         <tr><td><code>--hero-scrim</code></td><td>linear 63.43°, CF-Grau at 0.42 to nothing</td><td>the light layer under hero type; same section</td></tr>
         <tr><td><code>--scrim-reach</code></td><td><code>min(39rem, 62&nbsp;%)</code></td><td>how far the scrim holds full before falling off</td></tr>
@@ -817,6 +1005,14 @@
       when the swing cannot run: no <code>@property</code>, no scroll timeline, reduced
       motion, print, forced colours.
     </p>
+    <p>
+      <strong>That model has two axes and this is one of them.</strong> A
+      <code>view()</code> timeline can say how far the type is above or below the middle of
+      the screen; it cannot say how far to the side of the reader it is, because it measures
+      the element and the model is about the reader. The second axis is a second squareness,
+      multiplied into the same rake so the band cannot be left, and it is measured rather
+      than assumed. → <a href="sight.html">The Line of Sight</a>
+    </p>
     <div class="docs-note">
       <strong>Neither foil moment on the two designed pages reaches head-on.</strong>
       <p>
@@ -829,6 +1025,12 @@
         rather than a shortfall in it — a headline the reader cannot bring to the centre of
         the screen is a headline they never look at square on. A foil moment placed mid-page,
         such as a blog article title, gets the whole journey.
+      </p>
+      <p>
+        Those are the vertical figures. The horizontal axis multiplies into them and can only
+        take the rake further from head-on, never closer, so 108.2° remains the ceiling on
+        both pages and is now reached only by a reader standing in front of the type as well
+        as level with it.
       </p>
     </div>
     <p>
@@ -872,7 +1074,7 @@
       one element that is not even content yet.
     </p>
     <div class="docs-demo docs-demo--plain">
-      <div class="band-swatches">
+      <div class="band-swatches tiles tiles--fit">
         <figure>
           <i style="--band-c:color-mix(in oklab, var(--cf-weiss) 18%, transparent)"></i>
           <figcaption>Weiss · 18 %<span>the hot spot, still the hot spot</span></figcaption>
@@ -1052,6 +1254,20 @@
       <code>.page-wash</code> utility and you get both layers.
     </p>
     <p>
+      <strong>Grain is not the wash's alone, and its strength is not one number.</strong>
+      Any member of the light family painted across a whole screen has the wash's problem,
+      so all three <a href="field.html#wallpaper">wallpapers</a> carry the same filter
+      primitive for primitive — the two dark ones since the run that measured them, the
+      light one since it was drawn. What does not carry over is the 8 %. The grain's own
+      mean is a <em>floor lift</em> wherever it lands: on a ramp that ends at white that
+      costs nothing and the strength can be chosen for the grain, and on a near-black ground
+      it is the first thing anybody sees. So the rule is <em>the least grain that clears the
+      banding</em>, which is 8 % on the wash and 4 % on a dark ground. Measured over the
+      video-call frame, the share of it sitting in a flat plateau of eight pixels or more
+      goes 53.1 % → 0.6 % at 4 % and 0.4 % at 8 %, while mean luminance goes 9.49 → 12.84 →
+      16.31. The second four per cent buys two tenths of a point and doubles the lift.
+    </p>
+    <p>
       Nor is the first trick free to apply anywhere. It costs a hue budget, and the wash
       could afford one only because it had the foil's own 104.5° of travel going spare.
     </p>
@@ -1086,7 +1302,7 @@
       from, and it reads as the one thing the manual never draws: a coloured surface.
     </p>
     <div class="docs-demo docs-demo--plain">
-      <div class="flat-vs-ramp">
+      <div class="flat-vs-ramp tiles tiles--fit">
         <figure>
           <span class="flat-vs-ramp__face" style="background:var(--cf-lime)"></span>
           <figcaption>Don't · a lime plane. No source, no falloff.</figcaption>

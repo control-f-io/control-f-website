@@ -1,6 +1,6 @@
 /* Control-F — consent.
-   The one piece of JavaScript in the system that ships. No dependencies, no
-   build step, no network calls, ~5 kB unminified.
+   One of the two pieces of JavaScript the system requires — cf-nav.js is the
+   other. No dependencies, no build step, no network calls, ~5 kB unminified.
 
    It does not create any markup. The banner and the settings dialog live in
    the page as ordinary HTML with `hidden` on them, and this file only decides

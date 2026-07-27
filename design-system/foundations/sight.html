@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Line of Sight — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* The plan-view diagram. Every line in it is on a sanctioned angle: the
+     head-on sight line is 90°, the two oblique ones are 26.57°, and the
+     screen plane is horizontal. Nothing here is drawn by eye. */
+  .sight-plan { width: 100%; height: auto; display: block; }
+  .sight-plan text {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    fill: var(--text-secondary);
+  }
+  .sight-plan text.is-lit { fill: var(--text-primary); }
+
+  /* The readout. It is not a control — there is nothing to set. It is the two
+     numbers the materials on this page are being drawn with, so that what the
+     foil is doing can be read as well as seen. */
+  .sight-readout {
+    --tile: 9rem;
+    --flow: 0;
+    border-top: var(--stroke-1) solid var(--border-subtle);
+    border-left: var(--stroke-1) solid var(--border-subtle);
+    margin-top: var(--space-4);
+  }
+  .sight-readout div {
+    border-right: var(--stroke-1) solid var(--border-subtle);
+    border-bottom: var(--stroke-1) solid var(--border-subtle);
+    padding: var(--space-3) var(--space-4);
+    display: grid;
+    gap: var(--space-1);
+  }
+  .sight-readout dt,
+  .sight-readout dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+  }
+  .sight-readout dt { text-transform: uppercase; color: var(--text-secondary); }
+  .sight-readout dd { font-size: var(--text-sm); color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .sight-readout[data-state="resting"] dd { color: var(--text-secondary); }
+
+  .sight-stage { padding-block: var(--space-16); text-align: center; }
+  .sight-stage .text-foil { margin-inline: auto; font-size: clamp(1.75rem, 6vw, 3.5rem); }
+
+  .sight-ground { min-height: 20rem; display: grid; place-items: center; }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 15</p>
+    <h1>The Line of Sight</h1>
+    <p>
+      Two materials in this system already answer to where the reader is — the foil turns
+      its rake as type travels up the screen, and the field slides its pool of light down a
+      section as the reader passes it. Both were built on a line-of-sight model, and both
+      read only one of that model's two axes. This chapter is the other axis, the rule that
+      governs what may be allowed to move with it, and the one file in the system that
+      measures a reader rather than an element.
+    </p>
+  </header>
+
+  <section class="docs-section" id="model">
+    <h2>The model, and the half of it that was missing</h2>
+    <p>
+      Holographic stock is not a picture of a spectrum. It is a surface that hands you a
+      different part of one from every angle, which is why a foil catalogue is photographed
+      tilting and a printed one looks dead. The system's answer, stated in
+      <a href="colors.html#foil">Colour</a> and built in <code>base.css</code>, is that
+      <strong>you see the material as drawn when you are square to it</strong> — 116.57° is
+      the head-on rake, and the rake flattens towards 90° as the line of sight goes oblique.
+    </p>
+    <p>
+      A <code>view()</code> timeline supplies that obliquity for free on one axis: type at
+      the middle of the viewport is level with the reader's eye, type at either edge is not.
+      But a view timeline measures the <em>element</em>, and the model is about the
+      <em>reader</em>. Vertically the two coincide, because an eye at the middle of the
+      screen is the only assumption available to a stylesheet. Horizontally they come apart
+      the moment a viewport is wider than a headline: on a 1920 frame, a title at the
+      vertical centre and hard against the left margin was being drawn perfectly head-on
+      while the reader sat a foot to its right.
+    </p>
+
+    <figure style="margin:0">
+      <svg class="sight-plan" viewBox="0 0 640 260" role="img"
+           aria-label="Plan view: three reader positions above a screen plane. From directly in front the sight line is 90 degrees and the material is drawn head-on; from either side it is 26.57 degrees and the material flattens.">
+        <defs>
+          <!-- The lit face of the material. Lime to Glas with the oklab
+               waypoint at 19 % of the leg — see the note in tokens.css.
+               #DBFC60 exists in no source vector; do not drop it. -->
+          <linearGradient id="sight-lit" x1="280" y1="190" x2="360" y2="190" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#E1FF00"/>
+            <stop offset="0.19" stop-color="#DBFC60"/>
+            <stop offset="1" stop-color="#C5EBE2"/>
+          </linearGradient>
+        </defs>
+        <g fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke" opacity="0.55">
+          <!-- The plane of the screen. -->
+          <path d="M20 190 H620"/>
+          <!-- The two oblique sight lines, 26.57° — one rung down the presence
+               ladder, because an oblique view is a partial view. -->
+          <path d="M20 40 L320 190" stroke-dasharray="1 2"/>
+          <path d="M620 40 L320 190" stroke-dasharray="1 2"/>
+          <!-- The readers. Square corners, contour only. -->
+          <rect x="12" y="32" width="16" height="16"/>
+          <rect x="312" y="32" width="16" height="16"/>
+          <rect x="612" y="32" width="16" height="16"/>
+        </g>
+        <!-- Head-on: solid, 90°, the only one that is fully present. -->
+        <path d="M320 48 V182" fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
+        <!-- The material itself, lit. -->
+        <path d="M280 190 H360" stroke="url(#sight-lit)" stroke-width="4" vector-effect="non-scaling-stroke"/>
+        <g>
+          <text x="20" y="76" text-anchor="start">26.57°</text>
+          <text x="320" y="76" text-anchor="middle" class="is-lit">90°</text>
+          <text x="620" y="76" text-anchor="end">26.57°</text>
+          <text x="320" y="222" text-anchor="middle">the material</text>
+          <text x="20" y="240" text-anchor="start">rake 90°</text>
+          <text x="320" y="240" text-anchor="middle" class="is-lit">rake 116.57°</text>
+          <text x="620" y="240" text-anchor="end">rake 90°</text>
+        </g>
+      </svg>
+      <figcaption style="margin-top:var(--space-3);font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--text-secondary)">
+        Plan view — the reader's position sets the rake
+      </figcaption>
+    </figure>
+
+    <div class="docs-note">
+      <strong>The angles in the diagram are the answer, not an illustration of it.</strong>
+      A reader square to the material sees it at 90° to the screen plane and gets the
+      designed 116.57° rake. A reader far enough to the side that the sight line has fallen
+      to 26.57° — the isometric angle — gets the flat 90° rake. The system's own geometry
+      supplies both ends, which is why this needed no new angle and no new colour.
+    </div>
+  </section>
+
+  <section class="docs-section" id="demo">
+    <h2>Live</h2>
+    <p>
+      Move the pointer left and right across the panel. The type is not moving and no colour
+      is changing: the angle the light crosses the letterforms at opens as you come square
+      to them and flattens as you go oblique. Scroll instead of moving sideways and the
+      other axis does the same thing. The readout is the two numbers the foil is currently
+      being drawn with.
+    </p>
+    <div class="docs-demo docs-demo--dark">
+      <div class="sight-stage">
+        <p class="text-foil h1" id="sight-demo-foil">Jetzt Projekt starten!</p>
+      </div>
+    </div>
+    <dl class="sight-readout tiles tiles--fit" id="sight-readout" data-state="resting">
+      <div><dt>&#8209;&#8209;sight&#8209;v</dt><dd id="sight-out-v">1.000</dd></div>
+      <div><dt>&#8209;&#8209;sight&#8209;h</dt><dd id="sight-out-h">1.000</dd></div>
+      <div><dt>rake</dt><dd id="sight-out-rake">116.57°</dd></div>
+      <div><dt>state</dt><dd id="sight-out-state">resting</dd></div>
+    </dl>
+    <div class="docs-note">
+      <strong>If the readout says <code>resting</code> and stays there,</strong> this browser
+      or this reader is on one of the fallback paths — a coarse pointer, reduced motion, or
+      no support for scroll-driven animations. That is not a failure state. It is the
+      designed still, and it is what the two shipping pages render for everyone the script
+      declines to run for.
+    </div>
+
+    <h3>The field, on the same source</h3>
+    <p>
+      The pool of light on <a href="field.html">the ground</a> takes the same measurement as
+      a position rather than as an angle. Vertically it is already scrubbed off the section's
+      <code>view()</code> timeline; horizontally it now stands where the reader does.
+    </p>
+    <div class="docs-demo docs-demo--plain cf-ground cf-ground--lit sight-ground">
+      <p style="margin:0;font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--text-secondary)">
+        the floor lights where you stand
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="composition">
+    <h2>The composition</h2>
+    <p>
+      Two squarenesses, each a number in <code>[0, 1]</code>, and they <strong>multiply</strong>.
+    </p>
+    <pre class="docs-code"><span class="attr">--foil-angle</span>: <span class="val">calc(var(--angle-square) + var(--angle-b) * var(--sight-v) * var(--sight-h))</span>;</pre>
+    <p>
+      Summing two swings could leave the band; a product of two numbers in
+      <code>[0, 1]</code> cannot, so the rake stays inside 90°–116.57° <em>by
+      construction</em>. Every contrast figure the foil has ever been measured at therefore
+      holds unchanged and unre-measured — turning a linear gradient changes where each stop
+      lands, never which stops are present, and the whole ramp is still inside the clip box
+      at every frame.
+    </p>
+    <p>
+      The product is also the physically true composition. A foil is head-on only when you
+      are square to it on <em>both</em> axes; being level with a sheet you happen to be
+      standing beside does not let you see it face on. Two independent swings added together
+      would have said the opposite — that obliquity on one axis can be paid off by
+      squareness on the other.
+    </p>
+    <div class="docs-note">
+      <strong>The swing is now derived rather than asserted.</strong> The comment in
+      <code>base.css</code> has always said the 26.57° between the endpoints is the isometric
+      angle itself. The keyframes said <code>90deg</code> and <code>116.57deg</code> and left
+      that a coincidence a later edit could quietly break. It is now written as
+      <code>--angle-square + --angle-b</code>: move the isometric angle and the foil follows
+      it.
+    </div>
+  </section>
+
+  <section class="docs-section" id="rule">
+    <h2>What may answer to sight</h2>
+    <p>
+      This is the part that keeps the idea from becoming a toy. A pointer-reactive surface is
+      the easiest thing in the system to overspend, and the constraint is not taste — it is
+      that <strong>the reader's position must never be able to change how legible anything
+      is</strong>.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>May move with sight</th><th>Why it is safe</th></tr></thead>
+      <tbody>
+        <tr><td>The <strong>angle</strong> a gradient is drawn at</td><td>Turning a ramp moves its stops; it adds and removes none of them. The worst sample is unchanged.</td></tr>
+        <tr><td>The <strong>position</strong> of a mask or a light</td><td>A mask multiplies by an alpha at or below 1, so every frame is at or under the unmasked floor already measured.</td></tr>
+      </tbody>
+    </table>
+    <table class="docs-table">
+      <thead><tr><th>May not</th><th>Why not</th></tr></thead>
+      <tbody>
+        <tr><td>Colour, ink strength, opacity of text</td><td>Contrast becomes a function of where a mouse is. There is no frame to measure, and a keyboard reader has no way to reach the legible one.</td></tr>
+        <tr><td>A composited specular or bloom over type</td><td>Already rejected for the vertical axis, for the same reason: it lifts contrast on the lit half and drops it on the ink half.</td></tr>
+        <tr><td>Position, size or layout of anything</td><td>Content that moves away from the pointer cannot be clicked, and content that moves towards it is a trap. Sight moves light, never geometry.</td></tr>
+        <tr><td>Anything a reader must perceive to use the page</td><td>Half of all readers have no fine pointer at all. Sight is the last layer, never the carrier.</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note docs-note--warn">
+      <strong>One source, one page.</strong> There is a single reader and therefore a single
+      light. Two materials on one screen answering to the pointer with different falloffs, or
+      in opposite directions, is two light sources in one room — which is the thing the whole
+      illustration chapter forbids at object scale.
+    </div>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <table class="docs-table">
+      <thead><tr><th>Property</th><th>Written by</th><th>Range</th><th>Rest</th><th>Moves</th></tr></thead>
+      <tbody>
+        <tr><td><code>--sight-v</code></td><td><code>view()</code> keyframes</td><td>0 &rarr; 1 &rarr; 0</td><td><code>1</code></td><td>the foil's rake, vertically</td></tr>
+        <tr><td><code>--sight-h</code></td><td><code>cf-sight.js</code></td><td>0 &hellip; 1</td><td><code>1</code></td><td>the foil's rake, horizontally</td></tr>
+        <tr><td><code>--field-light-y</code></td><td><code>view()</code> keyframes</td><td>&minus;20% &hellip; 120%</td><td><code>50%</code></td><td>the pool, down the section</td></tr>
+        <tr><td><code>--field-light-x</code></td><td><code>cf-sight.js</code></td><td>0% &hellip; 100%</td><td><code>50%</code></td><td>the pool, across the section</td></tr>
+      </tbody>
+    </table>
+    <p>
+      <code>--field-light-x</code> is the only one of the four declared
+      <code>inherits: true</code>, and the asymmetry is forced rather than chosen: the pool is
+      painted by <code>.cf-ground::before</code>, a script cannot set a property on a
+      pseudo-element, so the only way in is to declare it on the originating element and let
+      the pseudo inherit it.
+    </p>
+
+    <h3>Markup</h3>
+    <p>
+      None. Nothing opts in with a class or an attribute — the script finds the two materials
+      that already exist. All a page does is load the file, last, after the stylesheets:
+    </p>
+    <pre class="docs-code"><span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="val">"/design-system/assets/js/cf-sight.js"</span> <span class="attr">defer</span><span class="tag">&gt;&lt;/script&gt;</span></pre>
+    <div class="docs-note">
+      <strong>It is optional in the sense <code>cf-stream.js</code> established.</strong>
+      Delete the tag and every page renders exactly as it did before the file existed — not
+      approximately, but to the digit, because <code>--sight-h</code> and
+      <code>--field-light-x</code> rest at the identity values of the expressions that consume
+      them.
+    </div>
+  </section>
+
+  <section class="docs-section" id="fallbacks">
+    <h2>Every path</h2>
+    <table class="docs-table">
+      <thead><tr><th>Condition</th><th>Vertical</th><th>Horizontal</th><th>What is rendered</th></tr></thead>
+      <tbody>
+        <tr><td>Fine pointer, motion allowed</td><td>runs</td><td>runs</td><td>both axes</td></tr>
+        <tr><td>Coarse pointer (phone, tablet)</td><td>runs</td><td>rests</td><td>the vertical swing, as before</td></tr>
+        <tr><td>Pointer has left the window</td><td>runs</td><td>eases back to rest</td><td>the vertical swing, as before</td></tr>
+        <tr><td><code>prefers-reduced-motion</code></td><td>rests</td><td>rests</td><td>the designer's 116.57° still</td></tr>
+        <tr><td>No scroll-driven animations</td><td>rests</td><td>rests</td><td>the designer's 116.57° still</td></tr>
+        <tr><td>Script blocked, deleted or failed</td><td>runs</td><td>rests</td><td>the vertical swing, as before</td></tr>
+        <tr><td>No <code>@property</code></td><td>rests</td><td>rests</td><td>solid type, no clip — the pre-foil fallback</td></tr>
+        <tr><td>Print</td><td colspan="2">neither</td><td>solid Schwarz type; the field is not printed</td></tr>
+        <tr><td>Forced colours</td><td colspan="2">neither</td><td><code>CanvasText</code>; the field is removed</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The script gates itself on <code>CSS.supports('animation-timeline', 'view()')</code> —
+      the same test <code>base.css</code> puts on the swing — so the stylesheet and the file
+      cannot disagree about whether the vertical half is running. It re-checks on every
+      media-query change and puts both materials back the moment a condition stops holding.
+    </p>
+  </section>
+
+  <section class="docs-section" id="cost">
+    <h2>What it costs</h2>
+    <ul>
+      <li><strong>One passive <code>pointermove</code> listener,</strong> coalesced into a
+        single <code>requestAnimationFrame</code>. A pointer emits far more moves than a
+        frame can use.</li>
+      <li><strong>Only what is on screen is tracked.</strong> One
+        <code>IntersectionObserver</code> holds the live set; a page with four foil moments
+        measures the one the reader can see.</li>
+      <li><strong>Both values are quantised,</strong> so most frames of a gesture write
+        nothing and a still pointer writes nothing at all. The rake takes 1/64 of its swing —
+        0.42°, under the width of the antialias on a stop boundary. The pool takes whole
+        percent, which is roughly 14 px of a section at 1920 and well inside the falloff of a
+        1152 px ellipse.</li>
+      <li><strong>The pool's quantisation is the coarser of the two on purpose.</strong> Its
+        property is inherited, so each write invalidates a subtree; the foil's is not, so each
+        write invalidates one element.</li>
+      <li><strong>Both are damped by a 120 ms transition</strong> (<code>--duration-fast</code>),
+        which is what turns a quantised value into a material with weight rather than a
+        value that teleports between stops.</li>
+    </ul>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <ul>
+      <li><strong>Sight is the last layer.</strong> Nothing may be legible only because of
+        where a pointer is, and nothing may become illegible because of it. The measured
+        contrast floors in this system are floors under every frame of this, by construction
+        rather than by inspection.</li>
+      <li><strong>Angle and position only.</strong> The two-row table above is the whole
+        permitted vocabulary. A third row needs a contrast argument of the same shape before
+        it is written.</li>
+      <li><strong>It never touches an interactive surface.</strong> A control whose light
+        shifts while the reader is aiming at it is a different thing from a headline catching
+        it. <code>.cf-btn--solid</code> reads the static foil from <code>:root</code> and is
+        deliberately excluded, the same way it is excluded from the vertical swing.</li>
+      <li><strong>Never a substitute for hover or focus.</strong> Sight is atmosphere. State
+        is state, and it is drawn by the contour and the ring, as it always was.</li>
+      <li><strong>Do not put the source on <code>:root</code>.</strong> An animated inherited
+        custom property on the document element restyles the whole document once per frame.
+        The measurement is taken per element, on the handful that are on screen.</li>
+    </ul>
+
+    <h3>Three ways to get it wrong</h3>
+    <ol>
+      <li><strong>Making it bigger so it reads.</strong> The correct amount of this is the
+        amount that is only noticed on the second look. If it cannot be seen at 26.57° of
+        rake, the answer is that the reader is looking at the type rather than at the effect,
+        which is the right outcome.</li>
+      <li><strong>Adding a tilt.</strong> A card that leans towards the pointer is the
+        default in every holographic demo on the web, and it is skeuomorphism: this brand
+        does not draw objects in perspective, it constructs them in 2:1 isometry, and an
+        element that rotates has left the lattice.</li>
+      <li><strong>Reading a touch as a position.</strong> A finger has no position between
+        taps. Driving light from touch coordinates makes the page flinch every time it is
+        scrolled, which is why <code>(pointer: fine)</code> is a gate and not a preference.</li>
+    </ol>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+<script src="../assets/js/cf-sight.js"></script>
+<script>
+  /* Documentation only. It reads the two numbers the foil above is being
+     drawn with and prints them; it sets nothing and the demo does not depend
+     on it. Same rAF discipline as the file it is reporting on. */
+  (function () {
+    'use strict';
+    var el = document.getElementById('sight-demo-foil');
+    var box = document.getElementById('sight-readout');
+    if (!el || !box) return;
+    var out = {
+      v: document.getElementById('sight-out-v'),
+      h: document.getElementById('sight-out-h'),
+      rake: document.getElementById('sight-out-rake'),
+      state: document.getElementById('sight-out-state')
+    };
+    var last = '';
+    function num(name, fallback) {
+      var raw = parseFloat(getComputedStyle(el).getPropertyValue(name));
+      return isNaN(raw) ? fallback : raw;
+    }
+    function tick() {
+      var v = num('--sight-v', 1);
+      var h = num('--sight-h', 1);
+      var key = v.toFixed(3) + '/' + h.toFixed(3);
+      if (key !== last) {
+        last = key;
+        var moving = v < 0.999 || h < 0.999;
+        out.v.textContent = v.toFixed(3);
+        out.h.textContent = h.toFixed(3);
+        out.rake.textContent = (90 + 26.57 * v * h).toFixed(2) + '°';
+        out.state.textContent = moving ? 'tracking' : 'resting';
+        box.setAttribute('data-state', moving ? 'tracking' : 'resting');
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }());
+</script>
+</body>
+</html>

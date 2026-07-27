@@ -20,15 +20,203 @@ Then open <http://localhost:8000/design-system/>. It also works by opening
 ```bash
 python3 scripts/check-spacing-scale.py         # from the repo root
 python3 scripts/check-spacing-scale.py --fix   # rewrite the table in foundations/layout.html
+python3 scripts/check-gradient-family.py       # the light family, in every shipped SVG and stylesheet
+python3 scripts/check-gradient-family.py -v    # list all 88 gradients, not only the failures
+python3 scripts/check-iso-motion.py            # the isometric assembly's invariants
+python3 scripts/check-glass-budget.py          # what backdrop-filter is allowed to cost
+python3 scripts/check-glass-budget.py --fix    # rewrite the census in foundations/materials.html
+python3 scripts/check-glass-budget.py -v       # list every page, not only the ones carrying glass
+python3 scripts/check-grid-tracks.py           # every fr track has a floor
+python3 scripts/check-grid-tracks.py -v        # list every track list, not only the failures
+python3 scripts/check-breakpoints.py           # every threshold is in the register, in rem
+python3 scripts/check-breakpoints.py -v        # list every threshold, not only the failures
 ```
 
-The one check the system enforces rather than documents, run by CI on every push and
-pull request. It holds the space scale to two rules: `foundations/layout.html`'s table of
-who uses each rung must match the shipping CSS, and spacing in the shipping CSS must be
-written as a token rather than as a length. Stdlib only — it does not give the system a
-build step.
+The six checks the system enforces rather than documents, run by CI on every push and
+pull request — one job, because each is a few hundred milliseconds of stdlib python.
+Stdlib only: they do not give the system a build step.
 
-The table in that page is **generated**. Run `--fix` rather than editing a count by hand.
+**The space scale** holds to two rules: `foundations/layout.html`'s table of who uses each
+rung must match the shipping CSS, and spacing in the shipping CSS must be written as a
+token rather than as a length. The table in that page is **generated** — run `--fix`
+rather than editing a count by hand.
+
+**The light family** holds every `<linearGradient>` and `<radialGradient>` the site ships
+to one ramp. SVG has no `in oklab`, so a drawing that carries the family's ramp carries
+the oklab path by hand: one waypoint at 19 % of the lime leg, coloured at the oklab path's
+value there. The script recomputes both — the offset from the leg's own two ends, the
+colour from the path — so `#DBFC60` and `#E6FF66` are re-derived rather than compared
+against a list, and it also catches a stop that is *almost* a chromatic brand colour, which
+is how `#E0FF02` gets in. `assets/source/` and `prototypes/` are out of scope: the first is
+the designer's own material and the second is unshipped, and both carry raw Figma exports
+on purpose.
+
+**The other half of the family is in CSS,** and it went unchecked for as long as the script
+existed. Two more conventions live in `tokens.css` as prose over literals nobody can
+recompute by eye, and both are checked now, in the three shipping stylesheets:
+
+| | |
+|---|---|
+| **the arc** | Every opaque leg that *turns* carries one waypoint at its own OKLCh midpoint. A waypoint is recognised by **being** that midpoint rather than by appearing on a list, so `#B9E3EB`, `#B8CCF3`, `#33494E` and `#273650` are re-derived on every run — the same standing `#DBFC60` has. A leg that turns and carries nothing is a chord and fails. |
+| **the path** | A ramp carrying a **lime** leg exists somewhere with `in oklab`. lime → Glas is ΔEok 0.0443 between the two paths where every other leg in the family is under 0.0015, which is why `--glass-edge` and `--sheen-panel` are left in sRGB by name and the lime legs are not. |
+
+What the arc does *not* govern is where the second rule gets its scope. A leg touching lime,
+CF-Grau or Weiss is a **falloff** — light's source and what it falls away to — and oklab's
+straight line is already its correct path. Only what happens in the band between them turns.
+The premise is not just "chromatic at both ends": lime at C 0.2201 against Glas at C 0.0414 is
+a radial move, and the polar path through it bows out to `#A8FFB6`, a green in no palette at
+three times the chroma of the stop it is travelling to.
+
+The second rule had already been broken. `.cf-btn--glass` drew Glas into lime on the sRGB path
+with no `@supports` branch — the only lime ramp in the system's CSS never put on the family's
+path, at ΔEok 0.03866 composited over CF-Grau, seventy-nine times the divergence of the
+`--glass-edge` layer directly above it that the family deliberately declines to correct. Its
+stops are a custom property now and only the path changes.
+
+**The isometric assembly** holds to six rules, all of which were already written down in
+prose and none of which anything ran:
+
+| | |
+|---|---|
+| `--iso-travel` | Every figure that assembles travels `viewBox width / 40` — 2.5 % of its own drawing — resolved the way the cascade does: inline styles, then the component-keyed rules in `components.css`, then the `:root` default. |
+| `--iso-orbit-travel` | A whole multiple of the `--dash-1-4` period, or every orbit settles off the phase the source vector drew. |
+| `pathLength="1"` | On every `.cf-iso__trace`, and `non-scaling-stroke` on none of them. |
+| `.cf-iso__orbit` | Always carries `.cf-iso__ghost` too — an orbit is a ghost that also turns, and the shared rule names the ghost. |
+| one light | At most one `.cf-iso__light` per object. |
+| `screen` | Every `animation-timeline` declaration sits inside a `@media` that names `screen`. |
+
+Every one of the six is invisible in a screenshot and countable in a file, which is the
+whole test for what belongs in any of these four — and the reason two of the four in
+[Redrawing an illustration](#redrawing-an-illustration-four-things-that-vanish-quietly)
+are deliberately left out.
+
+**The glass budget** holds `backdrop-filter` — the most expensive thing in the stylesheet —
+to what `foundations/materials.html` states in prose and nothing ran. Three claims: at most
+two blurred layers on a shipping page, every `backdrop-filter` reading `var(--glass-blur)`
+rather than its own radius, and no `animation` or `animation-timeline` on a rule that
+declares one. All three pass the same test: a third blurred layer renders perfectly and
+simply costs more, on the hardware least able to afford it. The page's own census was a
+sentence naming its own problem two paragraphs later — *a count somebody has to remember* —
+and is a generated table now, with a stamp, the same way the space scale's is.
+
+**A fourth claim is about the fallbacks, and it is the one that is not about cost.** The
+three blocks at the foot of `tokens.css` turn the material off — the browser cannot blur,
+the reader asked for less transparency, the reader chose the palette — and they do it by
+redefining tokens rather than by giving every component a branch of its own. That buys a
+great deal and has exactly one failure mode: a tint left out of one block keeps its live
+value there, and whatever reads it keeps a material the block was written to take away.
+Nothing renders wrong; it renders as though the reader had never asked, and with the blur
+already gone what comes through the surviving translucency is **sharp** — worse than either
+the material or a flat plate. The file's own comment already stated the invariant for one
+axis of this (*repeat every token the inverse block declares, not just the ones that
+differ*) and the other axis was broken: `--surface-glass-thin` sat out the forced-colours
+block entirely, so the Expertise lectern was the one glass surface in the system still
+translucent in that mode, measured at `rgba(255, 255, 255, 0.30)` with the blur already
+`none`. The check now asserts that every block turning the material off turns *all* of it
+off, in every selector it names, excusing only a token the block reads as its own answer —
+`--surface-glass-solid` is two blocks' answer and cannot be redefined in terms of itself.
+The family is a name shape rather than a roster, so a fourth tint is in scope the moment it
+is declared. The lit edge is deliberately outside it: an edge is a contour, not a
+translucency, and forced colours recovers it as a border next to the rule that draws it.
+
+**It survived because the tint was the one tint nothing drew.** `--surface-glass-thin` was
+declared, documented and reached for by `patterns/expertise.html`, and no page rendered it —
+so no screenshot of any fallback ever contained it. `.material-glass--thin` is that plate,
+and it stands on `.cf-ground` rather than on the poster the other two samples use, because
+the backdrop is the demo: 30 % is what one measurement on one **named** backdrop came back
+with, not a lighter look available on request.
+
+**What counts as glass is read out of the stylesheet, not listed in the script.** It takes
+the selectors of every shipping rule declaring `backdrop-filter` as the definition, so a
+fourth frosted surface enters the budget by existing rather than by somebody remembering to
+add it — the same reason the light-family script recomputes its waypoint instead of
+comparing against a table of hexes. A selector it cannot count is a finding, never a silent
+skip. The one rule it deliberately does **not** enforce is a transition, and that is a
+correction to the chapter rather than a gap in the script: *Cost* had said **never move
+anything** on a blurred layer while `.cf-btn--glass` has always travelled its specular
+across its own blurred plate. Measured, that plate is indistinguishable from the same plate
+with no blur at all — so the line is how long a thing runs and what it runs against, not
+whether it moves, and a scroll-scrubbed animation is the half that pays.
+
+**The waypoint is the light family's, not the assembly's,** and it is checked once. The
+isometric script was written with a seventh rule of its own — no inline gradient runs lime
+straight into Glas without `#DBFC60` between them — and it is gone: the light-family script
+recomputes that waypoint's offset *and* its colour from the oklab path, which is strictly
+the stronger claim. Two scripts asserting one invariant to two standards is the drift these
+scripts exist to stop.
+
+**Every grid track that carries an `fr` carries a floor,** and this is the fifth check
+for the same reason as the other four: `base.css` states the rule twice, in prose, on
+`.tiles` and on `.subdivide`, and nothing ran either. `1fr` is `minmax(auto, 1fr)`, and
+as a *minimum* `auto` is the item's min-content width — so a bare `fr` track distributes
+free space **or** the widest unbreakable word inside it, whichever is larger. One long
+German compound then sets the track and pushes the page sideways.
+
+Thirty-two of the system's thirty-three `fr` track lists already carried a minimum —
+twenty-eight floored on the track, four guarded by `min-width: 0` on their items.
+`.cf-progress` had neither, and measured with a 61-character compound in its label the
+document went **320 → 469 px** wide at a 320 px viewport. `overflow-wrap: break-word` is
+on it — the reset puts it on everything — and does not help: it breaks the word when the
+track is drawn, and intrinsic track sizing has already happened. That is the whole reason
+this belongs in a script rather than in a screenshot review: the page is correct until the
+content is long enough, and then it is broken at a width nobody re-opens.
+
+The check credits **both** fixes the system uses, because both are right. A floor on the
+track — `minmax(0, 1fr)` — is what most of them do. `min-width: 0` on the items is what
+`.subdivide` does, and it has to: its geometric sets are `4fr 2fr 2fr`, exact halves whose
+whole point is the ratio, and `minmax(0, 4fr)` would state that ratio twice. A deliberate
+*non-zero* floor passes too — `.tiles`' `min(--tile, 100%)`, `.cf-team-strip__list`'s
+`15rem` inside a scroll box — because the rule is that a floor was chosen, not that it is
+zero. → `foundations/layout.html#intrinsic-minimum`
+
+**The rule outlived its scope, and where it landed is the interesting part.** Swept across
+all 33 pages at eighteen widths from 320 to 2560, the system had exactly one horizontal
+overflow: `foundations/colors.html` took the document **320 → 368 px** at a 320 px viewport.
+The cause was not a stylesheet. It was `style="grid-template-columns:repeat(10,1fr)"`,
+written **inline in the markup** on the Grey ramp — ten mono step labels flooring a track set
+at 344 px inside a 272 px column.
+
+That is the one place `check-grid-tracks.py` can never reach, and not by an oversight in the
+script: its scope is the three stylesheets that ship, and an inline style on a documentation
+page is outside that boundary twice over. The boundary is right and is not moved — a check
+that governed the documentation chrome would be claiming the chrome is the product. What the
+finding actually says is narrower and worth keeping: **a rule enforced over stylesheets is
+not enforced over `style=` attributes**, and the system's own documentation pages are where
+those attributes live.
+
+Five bare `fr` track lists were floored, in `colors.html` (three, inline), `docs.css`
+(`.docs-ramp__steps`) and the per-page blocks in `transitions.html` and `illustration.html`.
+Only the ten-step ramp was overflowing today; the other four were the same defect at a cell
+count that happened to fit. The sweep now reports zero sideways scroll on every page at every
+width.
+
+**Every threshold is in the register,** and this is the sixth check for a reason the other
+five had to be argued and this one only has to be counted. A threshold cannot be a token —
+`var()` is not allowed in the prelude of `@media` or `@container`, and `@custom-media` needs
+a build step this system does not have — so every one of them is a literal typed into a
+stylesheet, and the only defence against them multiplying is a list added to on purpose.
+That list is written twice, as a comment in `tokens.css` and as a table on
+`foundations/layout.html`, and it says of itself that it is only worth having if it is
+complete.
+
+Kept by hand it was never complete for long. It was caught four times: `60rem` and the
+height threshold; then `34rem` with two consumers and a `62rem` media query with one; then
+`51.25rem`, hiding behind a true statement about a different file; then `28rem`, `30rem` and
+`34.625rem` — three live container queries, one of them added the same day the sweep that
+found them ran. Every one of those fixes ended with the same instruction to the next person:
+*grep the preludes, and do not trust the previous fix to have been exhaustive.* Four times is
+enough evidence about the instruction. Nothing ran.
+
+The script holds the three copies to each other **in both directions** — a query with no
+entry, an entry no query reaches, and the two copies disagreeing are each a finding — keeps
+the rule that a threshold is written in `rem` rather than `px` so it tracks the reader's own
+default font size, and re-derives each px gloss instead of comparing the number against
+itself. It reads the range syntax too, so adopting `(width >= 40rem)` later cannot quietly
+opt a threshold out of the check. What it deliberately does not read: non-dimensional
+features, which are modes rather than thresholds, and `min()`/`clamp()` crossovers, which
+change the layout at a width without being queries — the register says so in as many words,
+and a checker that widened the definition would be enforcing a different rule than the one
+written down. → `foundations/layout.html#breakpoints`
 
 ## Layout
 
@@ -37,15 +225,17 @@ design-system/
 ├── index.html              overview + how to include the CSS
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
 │                           illustration, logo, photo, motion, mobile,
-│                           page transitions, field, found state
+│                           page transitions, field, found state, line of sight
 ├── components/             buttons, nav, breadcrumb, section header, statement +
-│                           value table, plot, process card, accordion, blog grid,
-│                           subdivision field, pagination, error + empty state,
-│                           arrival + progress, article + prose, table, team,
-│                           forms, footer, consent
+│                           value table, plot, annotation, process card,
+│                           accordion, blog grid,
+│                           subdivision field, search + results, vacancy,
+│                           pagination, error + empty state, arrival + progress,
+│                           article + prose, table, team, forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, expertise.html,
 │                           ueber-uns.html,
-│                           news.html, blog-artikel.html, kontakt.html, 404.html
+│                           news.html, blog-artikel.html, suche.html,
+│                           karriere.html, kontakt.html, 404.html
 ├── prototypes/             motion studies — standalone, not yet system
 ├── reference.html          the designer's source material, next to what implements it
 └── assets/
@@ -56,8 +246,10 @@ design-system/
     │   └── docs.css        this documentation site only — does not ship
     ├── js/
     │   ├── cf-consent.js   the consent banner + settings dialog. Ships.
+    │   ├── cf-nav.js       the phone layout's menu disclosure. Ships.
     │   ├── cf-icons.js     the icon set — the one place a glyph is drawn. Ships.
-    │   ├── cf-values.js    types the values copy. Ships, optional — see below.
+    │   ├── cf-stream.js    types the copy on a pinned track. Ships, optional — see below.
+    │   ├── cf-sight.js     the reader's position across the screen. Ships, optional.
     │   └── docs.js         sidebar, swatch copy, arrow sprite — documentation only
     ├── fonts/              (empty — see below)
     ├── img/                logo SVGs, icons, hero poster, team photos, wallpaper
@@ -88,11 +280,16 @@ paste its markup instead, see `foundations/iconography.html` — and build pages
 classes documented in `components/`.
 `patterns/landing-page.html` is a working reference for a whole page.
 
-Two scripts ship. One is required, one is not:
+Four scripts ship. Two are required, two are not:
 
 ```html
+<!-- in the <head>, after the three stylesheets -->
+<script src="/design-system/assets/js/cf-nav.js"></script>
+
+<!-- at the foot of the body -->
 <script src="/design-system/assets/js/cf-consent.js"></script>
-<script src="/design-system/assets/js/cf-values.js" defer></script>
+<script src="/design-system/assets/js/cf-stream.js" defer></script>
+<script src="/design-system/assets/js/cf-sight.js" defer></script>
 ```
 
 `cf-consent.js` drives the consent banner and the settings dialog, which the site
@@ -100,13 +297,32 @@ cannot legally do without (TDDDG § 25). It is dependency-free, creates no marku
 its own, and if it never runs, no non-essential script runs either.
 → `components/consent.html`
 
-`cf-values.js` is **optional and additive**. The values section is complete without it
+`cf-nav.js` is the disclosure behind the menu button on the phone layout, and the only
+implementation of it — the behaviour used to live in seven identical inline scripts on
+the pattern pages plus an eighth in `docs.js`, which is documentation chrome and does
+not ship, so a page built from this system got a button that did nothing. It creates no
+markup either, and it follows the WAI-ARIA Authoring Practices disclosure navigation
+pattern: `Esc` closes and returns focus to the button, focus leaving the bar closes it,
+a pointer outside it closes it, and the open state is dropped on the way past 780 px.
+**The tag goes in the `<head>`,** because every rule that folds the bar is gated on the
+attribute this file writes: with no script the links are a stacked list and no dead
+control is drawn, and that fallback is only free if the attribute is there before the
+first paint. → `components/navigation.html#script`
+
+`cf-stream.js` is **optional and additive**. Every section that uses it is complete without it
 — the copy is real markup and a view timeline does the pinning, the scrubbing and the
 mark. All it adds is the copy arriving character by character rather than whole, which
 is the one thing a view timeline cannot do because there is no per-character unit to
 animate. It refuses to run unless the pinned layout is actually active, and it keeps
 the full sentence in a `.visually-hidden` twin so assistive technology never gets a
 half-written value. Delete the tag and the section still works.
+
+`cf-sight.js` is **optional and additive** in the same sense, and answers the one question
+CSS cannot ask: where across the screen the reader is. It writes two custom properties —
+`--sight-h` on `.text-foil` and `--field-light-x` on `.cf-ground--lit` — and nothing else.
+Both rest at the identity value of the expression that consumes them, so deleting the tag
+renders every page exactly as it did before the file existed, to the digit.
+→ [The line of sight](#the-line-of-sight)
 
 Everything else in the system is HTML and CSS.
 
@@ -151,7 +367,7 @@ page header, drawn from the same source vectors in the same coordinate system.
 | no JS / no support / print | nothing to read | every value readable, whole |
 | below 820 px | pinned | stacked, so a phone gets no seven-viewport hijack |
 
-The typing does survive, but only as an enhancement on top: `assets/js/cf-values.js`,
+The typing does survive, but only as an enhancement on top: `assets/js/cf-stream.js`,
 which follows the prototype's own timing — a 62 % reveal window per stage, the title in
 its first 28 %, the body starting at 14 % and spanning the rest, smoothstepped. Because
 it reads scroll position rather than running a timer, scrolling back up un-types the
@@ -255,6 +471,17 @@ that one row bounds every variant and every frame by construction.
 `assets/img/wallpaper/` holds three hand-drawn SVGs — 16:9 dark, 9:19.5 light, and a
 video-call background that gives up the middle of the frame, its brightness and the
 bottom-left corner for reasons the page states. No type in them, no raster, no dependency.
+
+All three carry the page wash's own grain, and two of them only since it was measured. A
+wallpaper is the worst case the wash already solved — a member of the light family across a
+whole screen with nothing over it — and the two **dark** files shipped without any dither at
+all: 53.1 % of the video-call frame sat in a flat plateau of eight pixels or more, one of them
+running its full 1080 px height. The strength does not carry over from the wash, because the
+grain's own mean is a **floor lift**: 8 % costs nothing on a ramp ending at white and is the
+first thing you see on a ground whose job is to stay black. So the rule is the least grain that
+clears the banding — 8 % on the wash, 4 % on a dark ground, where the second four per cent
+moves the banded area 0.6 % → 0.4 % and mean luminance 12.84 → 16.31.
+→ `foundations/field.html#wallpaper`
 
 **The field is not on either designed page.** Neither mockup draws a lattice, and the
 material wins over an improvement. It ships as available material with the wallpapers as
@@ -371,11 +598,185 @@ boundary against CF-Grau is the same 1.37:1 and that is documented rather than f
 transient, self-caused and under the reader's own hand, so the platform's convention wins over
 the system's consistency. Every mark the reader did *not* make carries the ground line.
 
-**Nothing dynamic ships here** — the same standing [the field](#the-field) and the arrival
-ladder have. `hidden="until-found"` has no application in the system today, because the one
-place the site collapses real prose is the accordion, which is `<details>` and already opens on
-a find. The chapter documents it so the first thing that does need it does not reach for
-`display: none`.
+`hidden="until-found"` has no application in the system today, because the one place the site
+collapses real prose is the accordion, which is `<details>` and already opens on a find. The
+chapter documents it so the first thing that does need it does not reach for `display: none`.
+
+**The chapter used to say nothing dynamic shipped here** — the same standing
+[the field](#the-field) and the arrival ladder still have. That is no longer true, and the
+next section is why.
+
+## Contour here, light there
+
+The found state settled what a match looks like and then had no page to be on: the system
+could draw an answer and had nowhere to answer anything. `components/search.html` and
+`patterns/suche.html` are that page — the surface the company is **named after**, and the last
+major one the site was missing.
+
+`.cf-result` is not a card. No box, no fill, no corner: a block of type standing on a rule,
+which is the claim the found state already makes about a marked word one scale down — an
+isometric object has no bounding box, what places it is the lattice edge under it. Every result
+draws its own bottom rule, the **last one included**, so the register closes; the interior rules
+are divisions and the closing one is an edge, which is both sanctioned uses in
+[where a line may go](#where-a-line-may-go). It is the one place the system deliberately
+does not follow `.cf-blog-card:last-child { border-bottom: 0 }` — that rule exists because the
+blog grid's container already draws the bottom edge, and this list has no container.
+
+**The decision the found chapter had left open is which match is lit.** Its two rungs are
+contour for every match and light for the one the reader is *on* — exactly one, ever. On a
+result page the reader is on none of them: they have not chosen, which is what the page is
+for. So a result set is drawn **entirely in contour**, and the page's one lime moment goes
+where it goes on every other listing, the call to action in the footer.
+
+The light is not withheld, it is **deferred**. Every result link carries a `#:~:text=` fragment
+quoting the phrase in its own excerpt, so following one lands on the destination page scrolled
+to that phrase with it drawn in the lit rung by `::target-text` — which `base.css` has styled
+since the found state shipped, and which the destination implements nothing at all for. The two
+rungs turn out not to be two treatments of a word on one page. They are **the question and the
+answer, one page apart**: the register of candidates is contour, and the thing you were looking
+for lights up when you get there. That is the brand's own argument — data can be found in a
+space rather than read off a sheet — running across a navigation rather than inside a paragraph.
+
+Two things about the fragment, because both fail silently. A literal hyphen inside the quoted
+phrase must be written `%2D`, since `-` is the delimiter of the `prefix-,start,end,-suffix`
+form and a browser that misreads the phrase simply matches nothing. And the fragment matches
+the **first** occurrence, so the quoted run has to be unique on the target page — four to six
+words is the working band, and `textStart,textEnd` pins both ends where it cannot be.
+
+**The main navigation does not carry the search, and that is a designer's call left standing.**
+Both Figma mockups draw a six-item nav bar measured to `417 × 41`; a seventh item is a change
+to the drawing, not to the code. `patterns/404.html` routes to it instead — first in the list,
+because it is the only route on that page that does not guess what the reader was after.
+
+## The last route with nowhere to go
+
+Every nav bar and every footer in the system links `/karriere`. `patterns/404.html` offers
+it as one of four ways out, and `patterns/kontakt.html` sends applicants there in body copy
+— *"Bewerbungen bitte über Karriere — dort steht, was wir für eine Bewerbung brauchen und
+was nicht."* It was the one item in the primary navigation with no template behind it, and
+the only promise on the site made to a page that did not exist. `patterns/karriere.html` is
+that page, and its fourth section is that sentence, answered.
+
+**The register it needed is not a new drawing.** `.cf-vacancy` is `.cf-result` — every rule
+for the row, the sheen, the mono line, the title, the link and the excerpt names both, the
+way `.cf-prose table` names itself alongside `.cf-table`. A job opening and a search hit are
+the same object at the level the drawing works on: a mono line, a linked title, a couple of
+sentences standing on a hairline. Writing that out twice would be two things to keep in step.
+
+One part is genuinely new and it is the only thing declared on its own: `.cf-vacancy__facts`,
+a `<dl>` of the four questions every candidate asks before reading a word of the description
+— Standort, Anstellung, Umfang, Start. It is `.cf-contact`'s drawing, a mono term over its
+value, turned along the row rather than down a column, because four facts stacked under every
+opening make the register three times as long as its content. The column gap beats the row gap
+by a factor of eight so a pair reads as a pair before the row reads as a row, and there are no
+rules between them — a line there would be neither an edge nor a division nor a label rule.
+
+**Structured data is the one thing this page deliberately does not carry.** Google's job
+posting documentation is explicit that `JobPosting` markup belongs on a page describing exactly
+one opening, one URL per opening, and that a careers page listing several must not carry it.
+So the register stays plain HTML and links out; the JSON-LD goes on `/karriere/<rolle>`, where
+every field in it has to match what the reader sees. That, the four placeholder postings and
+the `jobs@control-f.de` mailbox are recorded under
+[Before launch](#before-launch). → `components/vacancy.html`
+
+## Naming a part of a drawing
+
+`components/annotation.html` is the chapter for the thing that sat between the two the
+system already had. It could mark a found **word** — `foundations/found.html` — and it
+could draw an **object** — `foundations/illustration.html`. It had nothing in between: no
+way to say which *part* of an object you are looking at. Fifteen isometric objects ship
+carrying `.cf-iso__node`, a black dot at a vertex, and not one of those dots said anything.
+
+`.cf-annot` is the layer that gives them words, and it is the found state one scale up.
+Two rungs, the same two: every annotation is drawn in **contour**, the one the figure is
+about is **lit**. A drawing with six notes composes one lit anchor and five contoured ones,
+so the one-lime-moment budget is satisfied by the drawing rather than waived for it — the
+same argument the found state makes about a page with twelve matches.
+
+**The leader is a lattice step, and that is the whole geometry.** Technical drawing has
+required for a century that a leader run at neither horizontal nor vertical, so it can be
+told from the object it points at; this brand sanctions four angles, two of them oblique.
+The two rules land on the same drawing. So a leader is declared as a step — `--annot-mx`
+across by `--annot-my` down — and its slope is **read off that step** rather than typed in:
+
+| | |
+|---|---|
+| the angle | `atan2(--annot-my, --annot-mx)`. (2, 1) resolves to 26.565° and (1, 2) to 63.435°: the only two obliques the brand owns, and the only two a leader can be. A leader off the lattice is not expressible. |
+| the length | `sqrt(mx² + my²) × u`, which is why both steps are the same length — they are the same diagonal. |
+| left | a mirror, `scaleX(-1)` ahead of the rotation, not a second angle. Four directions cannot end up on three slopes. |
+| the shoulder | the label's **own bottom rule**. Line and word are one mark, which is the third sanctioned use of a line — the label rule. Drafting asks for a level elbow at the note end for its own reasons and gets the same drawing. |
+
+This is the first place the system states an isometric angle as the **ratio** it has always
+been rather than as a rounded degree, and it is worth being exact about what that buys.
+26.57° against 26.565° is 0.005° and no screenshot will ever show it. What it buys is that
+the two cannot come apart: change the step and the slope follows, where before a leader
+could be moved onto a different step and quietly keep the old angle. CSS trigonometry has
+been Baseline since March 2023 and `sqrt()` since December 2023; both literals stay in
+place as the fallback, because an angle is not a place to find out a browser is old.
+
+**Below 28 rem of its own container the layer stops being a callout and becomes a legend.**
+A note needs clear ground to point into and a 320 px drawing has none; overlapping two notes
+is worse than not drawing the leaders at all. The set flows under the figure as a row of
+marks and words, and the rule under each label goes with the leader — an underline with no
+line running into it is not a label rule, it is decoration, and at that size it would be
+taken for a link. The threshold is on the **figure**, never the viewport: what decides
+whether a callout fits is the width of the drawing.
+
+**Its first application is `patterns/404.html`,** which is the one page whose drawing is
+already about something not being there. The empty socket is the figure's lit element, so
+the note that names it — *Leerstelle* — is drawn in contour: the light is spent on the
+object and the note points at it rather than competing with it. → `components/annotation.html`
+
+## The line of sight
+
+`foundations/sight.html` is the chapter for the half of the brand's own model that the
+implementation had never read. Two materials already answer to where the reader is — the
+foil turns its rake as type travels up the screen, the field slides its pool of light down
+a section as the reader passes — and both are built on the same claim: **you see the
+material as drawn when you are square to it.** 116.57° is head-on, and the rake flattens
+towards 90° as the sight line goes oblique.
+
+A `view()` timeline supplies that obliquity for free on one axis. But it measures the
+*element*, and the model is about the *reader*; vertically the two coincide, because an eye
+at the middle of the screen is the only assumption a stylesheet can make, and horizontally
+they come apart the moment a viewport is wider than a headline. On a 1920 frame a title at
+the vertical centre and hard against the left margin was drawn perfectly head-on while the
+reader sat a foot to its right. `assets/js/cf-sight.js` replaces that assumption with a
+measurement.
+
+**The two squarenesses multiply, and that is the whole safety argument.** Summing two
+swings could leave the band; a product of two numbers in `[0, 1]` cannot, so the rake stays
+inside 90°–116.57° by construction and every contrast figure the foil has been measured at
+holds unchanged and unre-measured. It is also the physically true composition — a foil is
+head-on only when you are square to it on *both* axes, and being level with a sheet you are
+standing beside does not let you see it face on.
+
+The swing is also now **derived rather than asserted**. The comment in `base.css` has always
+said the 26.57° between the endpoints is the isometric angle itself; the keyframes said
+`90deg` and `116.57deg` and left that a coincidence a later edit could break. It is written
+as `--angle-square + --angle-b` now, so moving the isometric angle moves the foil with it.
+
+**What may answer to sight is a closed list, and it is short.** The angle a gradient is
+drawn at, and the position of a mask or a light. Not colour, not ink strength, not opacity,
+not a composited specular, and not the position or size of anything — content that moves
+away from a pointer cannot be clicked. The rule behind the list is that *the reader's
+position must never be able to change how legible anything is*, which is what makes every
+measured floor in this system a floor under every frame of this by construction rather than
+by inspection. Interactive surfaces are excluded outright: `.cf-btn--solid` reads the static
+foil from `:root` and is left alone, the same way it is left out of the vertical swing.
+
+`--field-light-x` is the one property of the four declared `inherits: true`, and the
+asymmetry is forced rather than chosen — the pool is painted by `.cf-ground::before`, and a
+script cannot set a property on a pseudo-element. That is a subtree invalidation per write,
+which is why the pool is quantised to whole percent where the rake is quantised to 1/64 of
+its swing. Both are damped by `--duration-fast`, which is what turns a quantised value into
+a material with weight rather than one that teleports between stops.
+
+Every fallback lands on the designer's own still, and the script gates itself on
+`CSS.supports('animation-timeline', 'view()')` — the same test `base.css` puts on the swing —
+so the stylesheet and the file cannot disagree about whether the vertical half is running.
+Coarse pointers do not get it at all: a finger has no position between taps, and reading a
+touch as a light source makes the page flinch every time it is scrolled.
 
 ## Vertical rhythm
 
@@ -414,11 +815,16 @@ directions. Where an element *can* be put in the container it should be, and the
 header object is that case; the token is for the ones that cannot.
 → `foundations/layout.html#column-inset`
 
-The last pair is a biconditional and used not to be checked as one: `patterns/kontakt.html`
-carried `--detached` over a normal `.section` and stood its footer off at 240 px where every
-other page measures 120. Measured across all five pattern pages, the rhythm is now 240 between
-normal sections, 200 after a `--tight` one, 120 above every footer, and 80 from every section
-header's hairline to its content.
+The last pair is a biconditional and used not to be checked as one, and it has now been broken
+from both ends. `patterns/kontakt.html` carried `--detached` over a normal `.section` and stood
+its footer off at 240 px where every other page measures 120. `patterns/expertise.html` broke
+the other half: `--flush` on a section with two more sections under it and an ordinary footer at
+the bottom, which is the class doing its job in the wrong place — the pinned Felder track gave
+up its bottom edge to a neighbour that was not the footer, and the one section boundary on that
+page measured 120 where every other boundary on the site measures 240. Nothing looked broken,
+which is the point: half a gap reads as a slightly tighter page rather than as a fault. Measured
+across all eight pattern pages, the rhythm is 240 between normal sections, 200 after a `--tight`
+one, 120 above every footer, and 80 from every section header's hairline to its content.
 
 ## Navigating the site
 
@@ -455,7 +861,9 @@ which is what this site did before. → `foundations/transitions.html`
 | **Consent copy** | The three categories, their retention periods and the six entries in the inventory on `components/consent.html` are placeholders. A lawyer signs off the wording, and a real cookie audit replaces the rows. The columns — name, kind of storage, purpose, recipient, retention — are what TDDDG § 25 and Art. 13 DSGVO ask for and should survive the replacement. The dialog links to `/datenschutz#cookies`; that anchor has to exist before launch, and the counts in `.cf-consent__meta` have to keep matching the list. |
 | **Consent record** | `localStorage` proves nothing to a supervisory authority. The decision needs logging server-side before launch. |
 | **Contact endpoint** | `patterns/kontakt.html` posts to `/kontakt` and expects the server to validate, re-render the form with the reader's values and an error summary, drop anything that filled the honeypot, and serve the whole thing over HTTPS. The phone number on the page is a placeholder. |
+| **Search index** | `patterns/suche.html` is one query rendered flat. The server owns the index and the whole answer: `?q=…` selects it, the matches are wrapped in `<mark class="cf-mark">` as the response is rendered, and every result link is minted with a `#:~:text=` fragment quoting its own excerpt — hyphens as `%2D`, the run unique on the target page. The query is reader-supplied text echoed into three places (the input's `value`, the `<title>` and the header meta) and has to be escaped in all three. Zero hits renders `.cf-error--inline` at `200`; the page is `noindex, follow`. → `components/search.html` |
 | **News listing** | `patterns/news.html` is page 1 of 11 rendered flat. The server owns the paging: `?seite=N` selects the slice, `?thema=…` filters it, and both are reflected in the counters, the status line and which slot carries `aria-current`. Out of range should 404 rather than render an empty grid; a `?thema=…` that matches nothing renders `.cf-error--inline` in place of the grid, at `200`, because an empty answer is not an error. → `components/error-state.html` |
+| **Open positions** | `patterns/karriere.html` renders four placeholder postings and prints their count in the page header; both are the server's, out of one query, the same standing the consent dialog's entry counts have. Each entry links `/karriere/<rolle>` and none of those pages exists yet — that is where the `JobPosting` JSON-LD goes, with a `validThrough` on every one of them, or a filled position stays live in search results. `jobs@control-f.de` is a placeholder and is written on the page three times, one of them the screen's only lime moment. When nothing is open the whole register is replaced by `.cf-error--inline` at `200`, not rendered empty. → `components/vacancy.html#launch` |
 | **Status codes** | `patterns/404.html` is the page; the response is the server's. A missing address answers `404`, one that is deliberately gone `410`, a failure `500`. Serving the template with `200 OK` is a soft 404 — the address stays indexed and keeps being crawled. |
 | **Redirects** | The old topic pages (Maschinenbau, Energie, Dienstleistungen, Experten) are gone. They need 301s to the new structure — a redirect that is available always beats an error page that is polite. |
 
@@ -464,8 +872,8 @@ which is what this site did before. → `foundations/transitions.html`
 The documentation is English. The pattern pages carry German copy, because that is the
 language the site ships in — translating it here would invent content that does not exist.
 Landing Page and Über uns take theirs verbatim from the Figma mockups; News overview,
-Blog article and Kontakt have no mockup and their copy is written placeholder in the
-same voice. Colour
+Blog article, Suche, Karriere and Kontakt have no mockup and their copy is written
+placeholder in the same voice. Colour
 names (Glas, Violett, CF-Grau, Schwarz, Weiß) stay German everywhere: they are the brand's
 names for them.
 
@@ -544,6 +952,20 @@ These were judgement calls, each documented on the relevant page:
   drift no diff against `assets/source/` could ever show, because it lives in the rendered
   phase and not in the markup. Verified: the settled object is pixel-identical to the build
   with no animation at all. → `foundations/motion.html`
+- **The Über uns value-table wheel keeps its six teeth, and six is off the sanctioned
+  angles.** Measured off `mockups/ueber-uns.jpg` by radial profile from the drawing's own
+  centre, the teeth sit at 30°, 90°, 150°, 210°, 270° and 330° — 60° apart, of which only
+  the vertical pair is one of the brand's four. Eight teeth at 45° would put every flank on
+  a sanctioned angle and is the obvious correction; it is not made, because the material is
+  the authority and the rule it bends is about *constructing space*. This wheel recedes
+  nowhere — it is a face-on glyph, and the only spatial thing in it is the globe, which is
+  one 2:1 ellipse drawn twice with the second turned 90°. What the same figure used to carry
+  *was* a real violation and is gone: two dashed rings at `rotate(±30)`, the exact drawing
+  `foundations/illustration.html` labels a *don't*, invented rather than drawn from anything.
+  The other two figures in that table were wrong in the ordinary way — bodies drawn as
+  circles where a disc on the ground plane is a 2:1 ellipse, and four chevrons leaning at
+  38.66°, 31.26°, 31.26° and 25.46° where the designer drew three at 2:1.
+  → `foundations/illustration.html#where`
 - **The process illustrations correct four things in the Figma export:** the lime hex, three
   unsanctioned dash patterns, a second lime element on card 02, and a tangent that was
   0.4° off the brand angle. Figma's inner-shadow bevel on card 03 is dropped — it is not
@@ -574,8 +996,10 @@ These were judgement calls, each documented on the relevant page:
   are present, so the measured contrast floor holds at every frame without re-measuring —
   which is why this is an angle rather than a specular band or a sliding ramp. Neither foil
   moment on the two designed pages can reach the middle of the screen, so both read between
-  90° and 108°; that is documented rather than bent.
-  → `foundations/colors.html`, `foundations/motion.html`
+  90° and 108°; that is documented rather than bent. The swing has a second axis now — see
+  [the line of sight](#the-line-of-sight) — which multiplies into the same rake and can only
+  take it further from head-on, so those two figures stay the ceiling.
+  → `foundations/colors.html`, `foundations/motion.html`, `foundations/sight.html`
 - **Inline SVG gradients carry an oklab waypoint the source vectors do not have.** Figma
   interpolates in sRGB, and SVG can only interpolate in sRGB or linearRGB, so the illustrations
   inherited the sRGB path. The CSS gradients interpolate in oklab. Same three colours, two
@@ -587,6 +1011,18 @@ These were judgement calls, each documented on the relevant page:
   that leg to the sRGB path.** Nothing fails when this happens; the stop is simply gone. Every
   waypoint therefore carries a comment at the stop itself. Re-add it after any rebuild.
   → `foundations/colors.html`
+- **The two foils and the spectrum carry a second kind of waypoint, and it is on the CSS
+  side.** oklab draws a straight line, and between two stops of similar chroma and different
+  hue that line is a **chord** — so chroma sags in the middle of every leg that turns: −17.9 %
+  on Glas → Sky, −13.6 % on Glas 800 → Sky 800. A ramp whose whole claim is hue travel greys
+  out exactly where it is turning. The right path is polar and `in oklch` is **not** used:
+  measured in Chromium, a stop below about C 0.018 has its hue discarded and the neighbour's
+  carried forward, and Glas 800 is C 0.0171 — so the ink foil would ship 39.7° of its 102.2°
+  of hue travel. The arc is put into the ramp instead, one waypoint per chromatic leg at that
+  leg's midpoint, which is the `#DBFC60` idiom one space out. Peak chroma is unchanged, the
+  lightness path is unchanged by construction, and the three contrast figures come back
+  identical to three decimals. A leg that ends in grey gets nothing — an achromatic stop has
+  no hue, so there is no arc for a chord to fall short of. → `foundations/colors.html#the-arc`
 - **The page wash carries hue; the mockups paint it neutral.** Sampled off both mockup
   JPGs the wash is a straight CF-Grau-to-white ramp with zero chroma, and it was the only
   gradient in the system belonging to no family. It now runs `--foil-stops` backwards —
@@ -664,6 +1100,35 @@ These were judgement calls, each documented on the relevant page:
   page rather than collapsing the middle into an overflow menu, because a menu needs a
   script and puts a second interactive thing in a component whose job is one line of
   orientation. → `components/breadcrumb.html`
+- **The radio's box is square, and the mark is what tells it from a checkbox.** No plate in
+  `assets/source/manual/` draws a form control and neither mockup carries a choice group, so
+  `.cf-choice` and `.cf-radio` are built only from parts the manual does establish — the mono
+  label, the 20 px square box the checkbox already is, the lattice rhombus, and the presence
+  ladder. Every other system draws a circle here and this one may not: corners are square and
+  the three exceptions the manual grants are the logo, the nav bar and a round avatar, none of
+  which is a control. So single choice and multiple choice are told apart by the mark *inside*
+  the box rather than by the shape of the box — a tick at 45° for *and*, the lattice rhombus
+  for *or*, the same cell every isometric object is cut from and the same mark `.cf-progress`
+  fills with light at its head. Both marks are drawn out of **border** rather than fill,
+  because forced-colours mode discards `background-color` and maps border colours into its own
+  palette: the rhombus is a zero-sized box with a border on all four sides, turned 45°.
+  Verified in forced colours — the foil fill goes and the mark stays.
+  An invalid **group** is marked once, on the legend, and not with the obvious 2 px rule down
+  the left of the list, which is the decoration [where a line may go](#where-a-line-may-go)
+  bans by name. → `components/forms.html#choice`
+- **The two states a field can be in without being wrong are two rungs of the presence
+  ladder.** `--presence-near` (2-1) is described on `components/arrival.html` as *held for a
+  state that is a claim about the object, not about the wait* — reserved, and never claimed by
+  anything. A **disabled** field is exactly that claim: not late, not available. It is drawn as
+  the same field one rung down, same box, same size, same place, with the line as a repeating
+  gradient because CSS gives no control over the dash-to-gap ratio of `border-style: dashed`
+  and the four types are ratios. **Read-only** is the opposite claim — the value is here and it
+  submits — so it is not a control at all any more and loses the line entirely, becoming the
+  mono-term-over-value drawing `.cf-contact` already is. It is the one field state that keeps
+  the global focus ring, because it has no line left to thicken. Both are written as
+  `[disabled]` / `[readonly]` rather than `:disabled` / `:read-only`: a disabled input matches
+  `:read-only`, and a `<select>` matches it *always*, so the pseudo-class would have stripped
+  the line off every select on the site. → `components/forms.html#states`
 - **The hero carries a switch the mockups do not draw.** The loop runs 12 s and repeats
   forever behind the headline, which is exactly the content WCAG 2.2.2 *Pause, Stop, Hide*
   (level A) requires a reader-operable mechanism over. `prefers-reduced-motion` is not that
@@ -675,12 +1140,81 @@ These were judgement calls, each documented on the relevant page:
   for exactly the readers most likely to need it. Under reduced motion the control is
   *removed*, not hidden: nothing is moving, so a switch that changes nothing is worse than
   none. → `foundations/motion.html#hero`
+- **The hero headline broke in six lines and the mockup draws three.** A correction rather
+  than a judgement call, and one the markup had been asking for the whole time: the `<h1>`
+  carries two explicit `<br>`s, and `.cf-hero__body` was overruling them with
+  `max-width: 44ch`. `ch` is font-relative to the element it is *declared on*, and that
+  element is the 14 px wrapper, not the 64 px headline it was sizing — so the clamp landed
+  at 342.59 px and stayed there at 768, 1024, 1280, 1440 and 1920 alike. Six headline lines
+  instead of three, and a kicker on two lines that the plate sets on one. The column is now
+  `width: fit-content`, which is the longest line the display face actually sets, so the
+  breaks the markup declares are the breaks that ship and nothing in the stylesheet has to
+  be kept in step with the copy. Swept the other six `ch` measures in `components.css`
+  while here: all of them sit on the element carrying the text, so this was the one
+  instance, not a pattern. The same trap is already written up at the prose track in
+  `components.css` — it was sprung here in the opposite direction.
+
+  Two consequences. **The rule under the headline is no longer an element.** On the plate
+  it starts and ends on the same two x as the mono line beneath it — 42 → 463 in the
+  1200 px render — while the headline overhangs both; an empty `<div>` fills whatever box
+  it is given and so ended with the headline instead. It is the kicker's `border-top` now,
+  which makes it the kicker's width by construction, at every viewport and in a language
+  whose translation of that sentence is longer. Measured 518 px against the plate's 505.
+  And **the hero scrim's derivation was re-measured**, because it was written against the
+  44 ch column: wider and shorter moves the text block's far corner outward along the
+  63.43° axis and downward off it at once, and on this artwork the second wins. Headline
+  4.08–6.26:1 at 375 / 768 / 1280 / 1920 against a 3:1 floor, kicker 8.99–15.33:1 against
+  4.5:1 — every figure equal to or better than the one it replaces. No token changed; the
+  comment in `tokens.css` now carries the numbers that were actually measured.
+- **The process card is contour on the wash; the code painted it an opaque plate.** This
+  one is a correction rather than a judgement call, and `foundations/materials.html` had
+  been describing the corrected version all along — it lists the process card among the
+  panels that "sit on the page wash with nothing complex behind it, so it is drawn with a
+  contour instead", while `.cf-process` declared `background: var(--surface-card)`, its copy
+  column declared a second plate in the same colour, and its note block a grey one. Sampled
+  down the Discovery plate in `mockups/landing-page.jpg`, the card's interior and the page
+  margin beside it read within **0.2** of each other at every row. There is no plate under
+  the figure. `--surface-card` is retired; it resolved to the same `grey-050` as
+  `--surface-raised`, so wherever the two were stacked one of them painted nothing.
+  **That sampling went down the figure half only, and the copy half disagrees with it.** The
+  plate is divided at x = 600 by the card's own interior hairline; right of it, over the full
+  interior height, every sampled pixel is a flat `#F8F8F8` while the margin beside it climbs
+  219 → 226 — **+22 to +29, constant**, which the wash cannot be because the wash moves. So
+  the designer drew a contour figure panel and an opaque light plate under the copy, and the
+  implementation draws neither. Left standing rather than half-restored: the same argument
+  that retired the card's plate applies to this one — an absolute grey inside the wash's range
+  inverts as the reader scrolls, and the honest form of a step *toward* the light is a veil of
+  white, which the materials family does not have a value for yet. A designer settles it.
+  → `foundations/materials.html#copy-panel-gap`
+- **A step away from the page is a ratio, not a grey — so `--surface-sunken` is a veil.**
+  The neutral steps were absolute values chosen against `--surface-base`, CF-Grau, and no
+  page in the system is painted CF-Grau: every page carries `.page-wash`, which is
+  `background-attachment: fixed` at `background-size: cover` and therefore spans the
+  **viewport**, running the full CF-Grau-to-white down every screen without scrolling. So
+  what is behind a panel depends on where that panel currently sits on screen. Measured on
+  the landing page at 1280×900, walking the process card's note down the viewport:
+  `#E7E7E7` reads **+21** at 14 % of viewport height, **0** at 65 % and **−10** at 86 % —
+  raised, then invisible, then sunken, all in one scroll. 6 % black removes 6 % of whatever
+  light is there, a constant 0.858 ratio in linear light, so the step is −12 to −15
+  everywhere. The direction had to flip: the light theme's steps used to climb toward white
+  and cannot, because the wash *ends* at white. Sunken now means sunken. Contrast floor is
+  the CF-Grau end — `--text-secondary` 5.19:1, `--text-primary` 11.91:1.
+  → `foundations/colors.html#a-step-is-a-ratio`
 - **Isometric contours use `vector-effect: non-scaling-stroke`.** "1 px contour at every
   size" is a device pixel. A 640-unit drawing shown at 352 px would otherwise put its
   contours on screen at 0.55 px. The one exception is `.cf-iso__trace`: under
   `non-scaling-stroke` the dash is measured in screen px while `pathLength` normalises
   against user space, which makes the line-drawing finish at 45 % of its range instead of
-  100 %. Traces are stroked in user units at width 2 instead. → `foundations/motion.html`
+  100 %. Traces are stroked in user units instead — **and a user-unit stroke lands on screen
+  at `weight × render scale`, so the weight is a property of the frame rather than of the
+  system.** One literal was serving five families at four scales, and measured across
+  375 / 768 / 1280 / 1920 the shipped trace ran 0.38 → 1.71 CSS px: 71 % heavier than the
+  object it arrives at on Expertise, and 2.5:1 against CF-Grau on the reference strip, under
+  the 3:1 a contour is held to. `--trace-weight` is `viewBox width / rendered width`, declared
+  beside the `max-width` or `calc()` it is the reciprocal of — the same reason `--iso-travel`
+  is written next to its viewBox. Every frame pinned to a cap is 1.00 px now; the fluid bands
+  keep the old constant and are stated as a band, because a 2.4× ramp has no constant.
+  → `foundations/motion.html`
 
 ## Drawing an illustration
 
@@ -725,11 +1259,24 @@ Two rules make it a system rather than four animations:
 Parts move with the `translate` property rather than `transform`, because half of them carry
 a `transform` attribute that *is* their shape. Full account in `foundations/motion.html#build`.
 
-## Redrawing an illustration: three things that vanish quietly
+## Redrawing an illustration: four things that vanish quietly
 
-All three bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
+All four bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
 and none of them announces itself — the drawing still renders, it is simply no longer what
 the designer drew.
+
+**Two of the four are now checked**, by one script each, both run by CI on every push and
+pull request — the travel by `scripts/check-iso-motion.py`, the waypoint by
+`scripts/check-gradient-family.py`, which owns it because it recomputes the offset and the
+colour from the oklab path rather than looking for a hex. See [Check it](#check-it).
+The other two are not, and the line between them is worth stating rather than leaving
+as an accident of what was easy. A missing waypoint and a travel that disagrees with its
+viewBox are **facts about the markup**, so a script can settle them. The other two are
+not: a `transform` on a `userSpaceOnUse` gradient is sometimes exactly right — card 04's
+largest orbit carries `rotate(-90)` on purpose — so the presence of one is a question, not
+a verdict; and whether a trace runs off the edge of its crop is a fact about rendered
+geometry, which needs a browser to answer. A checker that guessed at either would train
+people to ignore it.
 
 - **The oklab waypoint.** `#DBFC60` exists in no source vector, so a re-export drops it and
   that lime→Glas leg reverts to the sRGB path. Every waypoint carries a comment at the stop.
@@ -739,9 +1286,27 @@ the designer drew.
   rotates its gradient too. On a circle the rotation looks like a no-op against the geometry
   and is not: card 04's largest orbit had lost `rotate(-90)` and was fading 90° off the
   designer's axis. Measured and fixed. → `components/process-card.html`
-- **`--trace-from` / `--trace-to` on a trace the crop cuts.** They are inline custom
-  properties on the path, so a re-export drops them and the line-drawing goes back to being
-  timed against its full length — including the half of it that is outside the frame. The
-  drawing is not wrong, it just spends most of its scroll range invisible. Each one carries a
-  comment at the element, and there are three: two on card 02, one on card 04.
+- **`--trace-from` / `--trace-to` on a trace the crop cuts, and `--trace-lead` /
+  `--trace-span` on one of several.** All four are inline custom properties on the path, so a
+  re-export drops them and the line-drawing goes back to being timed against its full length —
+  including the half of it that is outside the frame, and including the four strokes that are
+  not this one. The drawing is not wrong, it just spends most of its scroll range invisible or
+  holding still. Each one carries a comment at the element. Three drawings are cut by their
+  crop — card 02 (both ends), card 04, and the trace specimen on
+  `foundations/illustration.html` — and two are drawn as several strokes and therefore led:
+  card 03's five-stroke arrow and that same specimen's three.
   → `foundations/motion.html`
+- **`--iso-travel` on a frame that has been recropped.** The arrival distance is a transform,
+  so it is in viewBox units, and the rule is `viewBox width / 40` — the same 5 % of the
+  drawing in every frame. Seven of the fifteen shipping objects are not on a 640 square and
+  carry their own value, four of them as inline custom properties on the `svg`. Nothing ties
+  those literals to the viewBox they were derived from, so **recropping a drawing leaves its
+  travel silently wrong.** It has already happened once: the four objects on
+  `patterns/expertise.html` were recropped from 695.2 / 612 / 552.4 / 714.24 to
+  732 / 776.8 / 732 / 790.24 within an hour of the values first being written, and nothing
+  failed — the objects simply arrived from the wrong distance. Re-measure after any recrop.
+  **`--trace-weight` is the same hazard read the other way round:** it is `viewBox width /
+  rendered width`, so a recrop breaks it from the viewBox end and a change to the frame's
+  `max-width` breaks it from the render end. Both leave a trace that still draws itself,
+  correctly and linearly, at the wrong weight.
+  → `foundations/motion.html#travel`

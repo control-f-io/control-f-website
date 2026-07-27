@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="../assets/css/components.css">
 <link rel="stylesheet" href="../assets/css/docs.css">
 <style>
-  .motion-demo { display:grid; grid-template-columns:repeat(auto-fit,minmax(12rem,1fr)); gap:var(--space-6); }
+  .motion-demo { --tile:12rem; --flow:var(--space-6); }
   .motion-box { height:8rem; display:grid; place-items:center; border:1px solid var(--border-strong); background:var(--grey-000); overflow:hidden; }
   .motion-box i { display:block; width:3rem; height:3rem; background:var(--gradient-light); border:1px solid var(--border-strong); }
   .motion-box i { transition:transform var(--duration-base) var(--ease-standard); }
@@ -37,7 +37,7 @@
     <h2>Durations</h2>
     <p>Hover the tiles — each object tips into the isometry, at a different duration.</p>
     <div class="docs-demo docs-demo--flat">
-      <div class="motion-demo">
+      <div class="motion-demo tiles tiles--fit">
         <figure style="margin:0">
           <div class="motion-box"><i class="d-fast"></i></div>
           <figcaption>120 ms · --duration-fast</figcaption>
@@ -59,7 +59,7 @@
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Duration</th><th>Used for</th><th>In the CSS today</th></tr></thead>
       <tbody>
-        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change</td><td>12 rules</td></tr>
+        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change, damping a measured value</td><td>15 rules</td></tr>
         <tr><td><code>--duration-base</code></td><td>240 ms</td><td>the control itself responding — arrow, button, menu</td><td>11 rules</td></tr>
         <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>a reveal, or light crossing a surface</td><td>8 rules</td></tr>
         <tr><td><code>--duration-scene</code></td><td>1200 ms</td><td>a full object build, if one is ever driven by time</td><td><strong>none yet</strong></td></tr>
@@ -78,7 +78,10 @@
       <code>--duration-fast</code> consumer — <code>--duration-base</code> published 8 against
       10 in the code. The third time was the command's own arrival: it landed publishing 10 and
       10 against 12 and 11, because several branches each adding a transition merged in the same
-      hour and the number was written before the last of them. That is the failure mode the
+      hour and the number was written before the last of them. The fourth was
+      <a href="sight.html">the line of sight</a> arriving: two of its three new
+      <code>--duration-fast</code> consumers were its own damping, and the third had merged
+      from another branch while it was being written. That is the failure mode the
       command exists for and cannot itself prevent — a number is only current as of the commit
       that wrote it. <strong>Run it, do not read it.</strong>
     </div>
@@ -196,19 +199,32 @@ for t in ['fast','base','slow','scene']:
       1 px contour at every width, and dash patterns pinned to the
       <code>--dash-*</code> px values instead of scaling with the drawing. The part classes
       on the children buy the assembly. A figure can take the first without the second, and
-      four of them do: the <em>Über uns</em> page-header figure is on screen the moment the
-      page loads and has nothing to reveal, and the three value-row marks are small
-      supporting glyphs where an entrance would be noise rather than meaning.
+      exactly one does: the <em>Über uns</em> page-header figure is on screen the moment the
+      page loads and has nothing to reveal.
     </p>
     <p>
       Every figure in the shipping tree, and which half each one takes — the eight objects
       <a href="illustration.html#where">Illustration &gt; Where illustrations go</a> counts,
       plus the three value-row marks, which are marks rather than objects and are counted
-      there as neither. <strong>Seven of the eight assemble; the one that does not is the
-      only one that is above the fold.</strong> That is the whole rule — an object the reader
-      scrolls to assembles, an object already on screen when the page loads has nothing to
-      reveal, and a mark small enough to be a glyph would only make noise trying.
+      there as neither. <strong>Seven of the eight objects assemble; the one that does not is
+      the only one that is above the fold.</strong> That is the whole rule — an object the
+      reader scrolls to assembles, and an object already on screen when the page loads has
+      nothing to reveal.
     </p>
+    <div class="docs-note">
+      <strong>This table said the three value-row marks do not assemble, and they have
+      assembled since the release that redrew them.</strong> The exemption it recorded was
+      real when it was written: the marks were three pairs of circles, and the argument was
+      that a mark small enough to be a glyph would only make noise trying to arrive. Then
+      they were rebuilt as constructed objects — bodies as 2:1 ground discs, chevron arms as
+      whole lattice steps, the wheel measured off the mockup by radial profile — and the
+      rebuild gave all three <code>.cf-iso__scene</code> and gave
+      <code>components.css</code> a deliberate <code>--iso-travel: 4</code> to go with it.
+      Nothing was wrong on screen; only this page was. <strong>The rebuilt marks are objects
+      the reader scrolls to, so the system's own rule covers them and the third clause was
+      deleted rather than re-argued.</strong> The travel it needed is the same rule the
+      section below states, which is what makes the two consistent: 160 / 40.
+    </div>
     <table class="docs-table">
       <thead><tr><th>Figure</th><th>Contour rules</th><th>Assembles</th></tr></thead>
       <tbody>
@@ -217,7 +233,7 @@ for t in ['fast','base','slow','scene']:
         <tr><td>404 page · the level row with its socket lit</td><td>yes</td><td>yes</td></tr>
         <tr><td>blog article · the plot</td><td>yes</td><td>yes — and it is the one that is not <code>aria-hidden</code>, so it carries <code>role="img"</code> and a <code>&lt;title&gt;</code></td></tr>
         <tr><td><em>Über uns</em> · page-header figure</td><td>yes</td><td>no — above the fold</td></tr>
-        <tr><td><em>Über uns</em> · value-row marks (×3)</td><td>yes</td><td>no — supporting glyphs</td></tr>
+        <tr><td><em>Über uns</em> · value-row marks (×3)</td><td>yes</td><td>yes — scene only; they carry no ghost, light, trace or node</td></tr>
       </tbody>
     </table>
     <table class="docs-table">
@@ -227,7 +243,7 @@ for t in ['fast','base','slow','scene']:
         <tr><td><code>.cf-iso__form</code></td><td>solid contoured body</td><td>nothing on its own; it rides the scene. Under <code>.cf-iso--build</code> it arrives on its own stage — see below.</td><td>— / cover 5–22 % + 7 % per stage</td></tr>
         <tr><td><code>.cf-iso__ghost</code></td><td>dashed reference geometry</td><td>fades up after the body it belongs to</td><td>cover 20–40 %</td></tr>
         <tr><td><code>.cf-iso__orbit</code></td><td>a ghost that circulates</td><td>fades up with the other ghosts, and keeps turning after them — see below</td><td>cover 20–40 % fading, 20–50 % turning</td></tr>
-        <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object</td><td>draws itself, edge of the crop to edge of the crop — see below</td><td>cover 18–45 %</td></tr>
+        <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object — <strong>one stroke</strong></td><td>draws itself, edge of the crop to edge of the crop — see below</td><td>cover 18–45 %, or a window inside it</td></tr>
         <tr><td><code>.cf-iso__light</code></td><td>the single lime-gradient element</td><td>its fill comes up last. Light arrives; it does not fly in.</td><td>cover 30–48 %</td></tr>
         <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>fade up last of all</td><td>cover 35–50 %</td></tr>
       </tbody>
@@ -338,25 +354,27 @@ for t in ['fast','base','slow','scene']:
       <code>prefers-reduced-motion: reduce</code>, the four built cards are pixel-identical
       to the same four before the build existed.
     </p>
+    <p>
+      <strong>Measure it there and not in the settled animated state</strong>, because
+      animating an element at all changes how Chromium rasterises its contours — a sub-pixel
+      shift along a hairline, and it means no animated object lands on its own still render
+      to the pixel. That cost is not the build's; the version that moved the whole scene paid
+      it too, and on every card the build pays less:
+    </p>
     <table class="docs-table">
-      <thead><tr><th>Card</th><th>Reduced motion, built vs. un-built</th><th>Settled and animated, built vs. un-built</th></tr></thead>
+      <thead><tr><th>Card, 1440×900 @2×</th><th>Reduced motion, built vs. un-built</th><th>Built: animated vs. still</th><th>Whole-scene arrival: animated vs. still</th></tr></thead>
       <tbody>
-        <tr><td>01 Discovery</td><td><strong>0</strong> of 495,616</td><td>14,092</td></tr>
-        <tr><td>02 Datenfundament</td><td><strong>0</strong> of 495,616</td><td>6,200</td></tr>
-        <tr><td>03 Weniger Ausfälle</td><td><strong>0</strong> of 495,616</td><td>33,606</td></tr>
-        <tr><td>04 Mehr Leistung</td><td><strong>0</strong> of 495,616</td><td>10,929</td></tr>
+        <tr><td>01 Discovery</td><td><strong>0</strong> of 495,616</td><td>24,925</td><td>25,379</td></tr>
+        <tr><td>02 Datenfundament</td><td><strong>0</strong> of 495,616</td><td>34,982</td><td>36,058</td></tr>
+        <tr><td>03 Weniger Ausfälle</td><td><strong>0</strong> of 495,616</td><td>25,826</td><td>34,896</td></tr>
+        <tr><td>04 Mehr Leistung</td><td><strong>0</strong> of 495,616</td><td>25,270</td><td>25,483</td></tr>
       </tbody>
     </table>
     <p>
-      The second column is not a regression, and the number that proves it is the same
-      measurement taken on the <em>old</em> build: settled and animated, it already differed
-      from its own un-animated render by 25,379 / 36,524 / 34,948 / 25,551 pixels.
-      <strong>Animating an element at all changes how Chromium rasterises its contours</strong>
-      — a sub-pixel shift along a hairline, nothing else, and the built version pays it on
-      three of four cards more cheaply than the version that moved the whole scene. What is
-      worth holding onto is the shape of the check: compare under reduced motion, where the
-      answer has to be zero, and read the animated figure only against the same figure taken
-      before the change.
+      The shape of that check is worth keeping: <strong>compare under reduced motion, where
+      the answer has to be zero</strong>, and read an animated figure only against the same
+      figure taken the same way before the change. A settled-state diff against a still
+      render will always be a five-figure number and will never mean what it looks like.
     </p>
 
     <h3>An orbit turns, and it turns by moving its dashes</h3>
@@ -447,7 +465,7 @@ for t in ['fast','base','slow','scene']:
       again. It causes no layout and no reflow.
     </div>
 
-    <h3>How far it travels</h3>
+    <h3 id="travel">How far it travels</h3>
     <p>
       The distance is one token, <code>--iso-travel</code>, and it is the <em>rise</em>.
       The run is always twice it, which is what makes the 26.57°; writing it once keeps the
@@ -480,17 +498,82 @@ for t in ['fast','base','slow','scene']:
     <p>
       The catch is the other half of that sentence: because the unit is the drawing's own,
       <strong>a drawing with a different viewBox travels a different fraction on the same
-      token.</strong> The statement figure on the landing page is 480 units, so the shipped
+      token.</strong> The statement figure is 480 units, so the shipped
       16 would have moved it 3.33 % — measured at 35.8 × 17.9 px against the process
       objects' 17.6 × 8.8 px, roughly twice as far while being only 1.5× the size. It
       therefore overrides the token to 12, because 12/480 is exactly 16/640.
     </p>
-    <pre class="docs-code">.lp-statement-figure .cf-iso { <span class="attr">--iso-travel</span>: <span class="val">12</span>; }</pre>
+    <pre class="docs-code">.cf-statement .cf-iso { <span class="attr">--iso-travel</span>: <span class="val">12</span>; }</pre>
     <p>
       <strong>The rule: 2.5 % of the viewBox.</strong> Any new illustration whose viewBox is
       not 640 units sets <code>--iso-travel</code> to <code>viewBox / 40</code> on itself. The
       ratio is what the system holds constant, not the number.
     </p>
+    <p>
+      <strong>And this one is now run rather than read.</strong> It has broken twice in the
+      life of this page — once when four objects were recropped within an hour of their
+      values being written, once when the statement figure's value was scoped to a single
+      page's stylesheet — and neither break rendered anything wrong. That is the same failure
+      mode as the duration table at the top of this page, and it gets the same treatment the
+      space scale got: a check, in CI, on every push.
+    </p>
+    <pre class="docs-code"><span class="com"># from the repo root</span>
+python3 scripts/check-iso-motion.py</pre>
+    <p>
+      It resolves each figure's travel the way the cascade does — inline style, then the
+      component-keyed rules in <code>components.css</code>, then the <code>:root</code>
+      default — and compares it against that drawing's own frame. It checks five more things
+      on the same principle, every one of them invisible in a screenshot and countable in a
+      file: the orbit's travel is a whole number of dashes, every trace is normalised and
+      none has <code>non-scaling-stroke</code> put back on it, every orbit is also a ghost,
+      no object carries two lights, and <strong>every <code>animation-timeline</code>
+      declaration sits in a <code>@media</code> that names <code>screen</code></strong> —
+      which is the rule the navigation rim broke while it was already written down two
+      sections below.
+    </p>
+    <p>
+      The oklab waypoint on every lime leg is the one invariant of this kind that this
+      script does <em>not</em> check, and the reason is worth stating:
+      <code>scripts/check-gradient-family.py</code> already recomputes that waypoint's
+      offset and its colour from the oklab path rather than comparing them against a
+      literal, which is strictly the stronger claim. Two scripts asserting one rule to two
+      standards is the drift these scripts exist to stop.
+      → <a href="colors.html">Colour</a>
+    </p>
+    <div class="docs-note">
+      <strong>A rule nobody had checked since it was written.</strong> Counted across the
+      shipping tree, seven of the fifteen objects have a frame that is not 640 and only the
+      statement figure was setting the token. The four on <code>patterns/expertise.html</code>
+      are cropped to their own objects — 732, 776.8, 732 and 790.24 units wide — so on the
+      default they arrived from between 4.05 % and 4.37 % of their own width — four objects
+      at three distances, because two of the four share a 732 crop. The three figures in the
+      Über uns value table are
+      160 units and are the sharp case: <code>16</code> there is a fifth of the drawing's own
+      width. All seven now carry their own value.
+    </div>
+    <p>
+      Where it lives depends on whether the number belongs to a <em>place</em> or to a
+      <em>drawing</em>. The statement figure and the value table have one frame per slot, so
+      the value is a rule in CSS keyed on the component. The four expertise objects have four
+      different frames in one component, so it is an inline custom property on the
+      <code>svg</code> — the same standing <code>--trace-from</code> has, and for the same
+      reason: the number is a fact about that one drawing's own coordinate window and there is
+      no class it could hang on that the other three would not inherit.
+    </p>
+    <pre class="docs-code">.cf-value-row__figure .cf-iso { <span class="attr">--iso-travel</span>: <span class="val">4</span>; }   <span class="tag">/* 160 / 40 */</span></pre>
+    <div class="docs-note">
+      <strong>“Keyed on the component” is doing work in that sentence, and the statement
+      figure is where it was not.</strong> Its 12 lived in
+      <code>patterns/landing-page.html</code>'s own <code>&lt;style&gt;</code> block, keyed on
+      <code>.lp-statement-figure</code> — a hook that exists on exactly one page. The
+      identical 480-unit drawing on <a href="../components/statement.html">the component's own
+      documentation page</a> matched no such selector, so it sat on the 640-frame default and
+      arrived from 3.33 % of its own width: <strong>the specimen showed the motion a third
+      further than the thing it is a specimen of.</strong> The rule moved into
+      <code>components.css</code> as <code>.cf-statement .cf-iso</code>, which both copies
+      match. A value that is a fact about a drawing cannot be scoped to a page — the same
+      drawing turns up on at least two.
+    </div>
 
     <h3>How it is driven</h3>
     <p>
@@ -577,8 +660,8 @@ for t in ['fast','base','slow','scene']:
         </tr>
         <tr>
           <td>card 03, incoming</td><td>100 %</td>
-          <td>correct already</td>
-          <td>defaults</td>
+          <td>finished by cover 26.8 % — for a different reason, see below</td>
+          <td>five traces, led</td>
         </tr>
       </tbody>
     </table>
@@ -590,16 +673,85 @@ for t in ['fast','base','slow','scene']:
       advance together instead of one waiting for the other.
     </p>
     <p>
-      <strong>Only the endpoints count.</strong> A path that leaves the crop and comes back —
-      the specimen trace in <a href="illustration.html">Illustration</a> does exactly this,
-      with 16 % of its length outside — wastes no range at either end, so it is left alone.
-      The gap reads as the signal passing behind the crop, which is what it is.
+      <strong>Only the endpoints count.</strong> A path that leaves the crop and comes back
+      wastes no range at either end, so it is left alone: the gap reads as the signal passing
+      behind the crop, which is what it is. The system had one apparent example of this — the
+      specimen trace in <a href="illustration.html">Illustration</a>, 16 % of its length
+      outside the frame — and it turned out not to be one. It was three strokes in a single
+      <code>&lt;path&gt;</code>, and the “gap in the middle” was the crop cutting the
+      <em>end</em> of one of them. Split into three traces it is an ordinary
+      <code>--trace-from</code>. Once a trace is one stroke, a genuine mid-path gap is a rare
+      thing rather than the common case it looked like.
     </p>
     <p>
       Measure against the <em>settled</em> object. While the scene is still arriving it
       carries the 26.57° offset, which moves the crop boundary by up to
       <code>--iso-travel</code>: card 02's outgoing trace measures 54 % settled and 61 %
       at the start of the travel.
+    </p>
+
+    <h3>A trace is one stroke</h3>
+    <p>
+      The crop is not the only thing that eats the range, and the second cause hid behind
+      the first for as long as the table above read “card 03: 100 % inside the crop, correct
+      already”. It was inside its crop and it was not correct. <strong>A dash pattern
+      restarts at every subpath, while <code>pathLength</code> normalises the path as a
+      whole</strong> — so on a path made of several strokes, every stroke draws its own
+      first <code>1 − offset</code> of the <em>total</em>, all at the same time, and the
+      whole thing is finished the moment the <em>longest</em> stroke is.
+    </p>
+    <p>
+      Card 03's incoming arrow is five strokes in one <code>&lt;path&gt;</code>:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Stroke</th><th>User units</th><th>Fraction of the path</th></tr></thead>
+      <tbody>
+        <tr><td>shaft</td><td>112.50</td><td>0.3265</td></tr>
+        <tr><td>chevron at x 228</td><td>77.37</td><td>0.2245</td></tr>
+        <tr><td>chevron at x 193</td><td>77.37</td><td>0.2245</td></tr>
+        <tr><td>upper barb</td><td>38.68</td><td>0.1123</td></tr>
+        <tr><td>lower barb</td><td>38.68</td><td>0.1123</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The longest is 0.3265 of 344.61 units, so the arrow was complete at
+      <code>stroke-dashoffset</code> 0.6735 — <strong>cover 26.8 % of a range running to
+      45 %, with 18.19 of its 27 points spent on a picture that had stopped
+      changing.</strong> Two thirds of the range, on the most-read illustration in the
+      system. And it drew all five strokes at once, growing outward from five different
+      points, which reads as a sketch scribbling itself rather than as a signal arriving.
+    </p>
+    <p>
+      So a trace is <strong>one stroke</strong>. Where the signal is drawn as several, each
+      is its own trace and they are <em>led</em> along the direction of travel:
+    </p>
+    <pre class="docs-code">.cf-iso__trace { <span class="attr">--trace-lead</span>: <span class="val">0%</span>; <span class="attr">--trace-span</span>: <span class="val">27%</span>; }   <span class="com">/* the whole window */</span>
+.cf-iso__trace {
+  <span class="attr">animation-range</span>:
+    <span class="val">cover calc(18% + var(--trace-lead))</span>
+    <span class="val">cover calc(18% + var(--trace-lead) + var(--trace-span))</span>;
+}</pre>
+    <p>
+      <code>--trace-lead</code> is how far into the window a stroke starts;
+      <code>--trace-span</code> is how much of it that stroke spends drawing. Both are
+      percentage points of <code>cover</code>, both default to the whole window, so
+      <strong>a trace that is a single stroke resolves to <code>cover 18 % → 45 %</code>
+      and nothing about the other three cards changed.</strong> Keep
+      <code>lead + span ≤ 27 %</code> and the last stroke still lands on the light.
+    </p>
+    <p>
+      Card 03 now carries five traces on three leads — the far chevron at 0, the near one at
+      3 %, and the arrowhead's two barbs together with the shaft at 6 %, all on an 18 % span.
+      Measured: <code>cover 18–39 / 21–42 / 24–45</code>, every stroke reaching offset 0 at
+      the end of its own window and none before it. The signal travels left to right into the
+      disc, which is the direction the designer drew it flying.
+    </p>
+    <p>
+      One change to the drawing came with it, and it is invisible at rest: the shaft is
+      written <code>M300 511.5H412.5</code> where the source vector has
+      <code>M412.5 511.5H300</code>. Same line, same round caps, drawn from the arrowhead
+      <em>into</em> the disc rather than out of it. A stroke's direction is not part of a
+      static drawing; it is entirely a fact about the draw.
     </p>
 
     <h3>A calc() in a keyframe does not interpolate</h3>
@@ -650,18 +802,58 @@ for t in ['fast','base','slow','scene']:
       The line was fully drawn by the time the offset reached 0.45, so the last 45 % of the
       trace's scroll range did nothing at all — and worse at small sizes, where the scale is
       lower and the dead stretch is longer. So <code>.cf-iso__trace</code> is excluded from
-      the <code>non-scaling-stroke</code> rule and given <code>stroke-width: 2</code>
-      instead, which puts it back on the contour weight: 1.1 CSS px where the object renders
-      at 352, and 0.58 at a 375 px viewport, where it renders at 184. Under a CSS pixel at
-      the small end is the price of a draw that is linear at every size, and it is the right
-      trade — a trace is a signal, not a structural contour. It is also the end with the
-      device pixels to spend: no 375 px viewport is DPR 1, so 0.58 CSS px is 1.15 device
-      pixels at DPR 2 and 1.7 at DPR 3, and the trace never actually thins below the hairline
-      it is imitating.
+      the <code>non-scaling-stroke</code> rule and stroked in user units instead.
+    </p>
+
+    <h4>The weight that pays for it is a per-object number, not a constant</h4>
+    <p>
+      A user-unit stroke lands on screen at <strong>weight &times; render scale</strong>, and
+      the scale belongs to the drawing's own frame — its viewBox width over the pixels it is
+      rendered into. So the number that puts a trace back on the contour weight is
+      <code>viewBox width / rendered width</code>, and it is different for every frame. It had
+      been one literal, <code>2</code>, serving five families at four scales:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Frame</th><th>Render scale</th><th>Was</th><th>Now</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-process__figure</code> — the four cards</td><td>0.55</td><td>1.10 px</td><td><strong>1.00 px</strong></td></tr>
+        <tr><td><code>.ex-step__figure</code> — Expertise</td><td>0.78 – 0.86</td><td>1.55 – 1.71 px</td><td><strong>0.95 – 1.00 px</strong></td></tr>
+        <tr><td><code>.ill-single</code> — the specimen on this system's illustration page</td><td>0.65</td><td>1.30 px</td><td><strong>1.00 px</strong></td></tr>
+        <tr><td><code>.ill-frame</code> — the reference strip</td><td>0.19 – 0.25</td><td>0.38 – 0.50 px</td><td><strong>0.97 – 1.13 px</strong></td></tr>
+      </tbody>
+    </table>
+    <p>
+      Measured across 375 / 768 / 1280 / 1920, the shipped trace ran from 0.38 to 1.71 CSS px.
+      At the heavy end the signal was 71 % thicker than the object it arrives at — a fifth line
+      type, in a system that sanctions four. At the light end it was 0.38 px, which composites
+      to about 2.5:1 against CF-Grau, under the 3:1 this system holds a contour to.
+      <code>--trace-weight</code> is that number, and it is declared <em>where the object's size
+      is declared</em> — beside the <code>max-width</code> or the <code>calc()</code> it is the
+      reciprocal of — for the same reason <code>--iso-travel</code> is written next to the
+      viewBox it comes from. A weight parked in the illustration would be a second place to
+      remember when a frame is resized.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong>Where a drawing is fluid rather than capped, no number is right, and that is
+      stated rather than papered over.</strong> A process card between 256 and 554 px of card
+      width is letterboxed by <code>max-block-size</code> into a box that grows with the card:
+      scale 0.22 at a 320 px viewport and 0.53 at 608. That is a 2.4&times; ramp against a fixed
+      multiplier, so the value that lands on 1 px at one end misses the other by the same
+      2.4&times;. Those bands keep the old constant — 0.45 to 1.06 CSS px on a phone — and the
+      three that are pinned to a cap are exact. Getting the fluid half right needs the rendered
+      box, and only the box knows how wide it is.
+    </div>
+    <p>
+      Under a CSS pixel at the small end is the price of a draw that is linear at every size,
+      and it is still the right trade — a trace is a signal, not a structural contour. It is
+      also the end with the device pixels to spend: no 375 px viewport is DPR 1, so 0.57 CSS px
+      is 1.15 device pixels at DPR 2 and 1.7 at DPR 3, and the trace never actually thins below
+      the hairline it is imitating.
     </p>
     <p>
       If you add an illustration with a trace of its own, give the path
-      <code>pathLength="1"</code> and the class, and leave the stroke alone. Do not put
+      <code>pathLength="1"</code> and the class, and set <code>--trace-weight</code> on the
+      frame to its viewBox width over the width it renders at. Do not put
       <code>non-scaling-stroke</code> back on it.
     </p>
   </section>
@@ -758,6 +950,15 @@ for t in ['fast','base','slow','scene']:
       → <a href="colors.html#foil">Colour &gt; The rake swings</a>
     </p>
     <p>
+      Scroll is only half of the angle you hold a sheet of foil at, and it is the half a
+      stylesheet can reach. The other half — how far to the side of the reader the type is —
+      is measured by <code>assets/js/cf-sight.js</code> and multiplied into the same rake,
+      which is the one thing in this system driven by a pointer rather than by a timeline.
+      It is optional, it rests at the designer's value, and it is the only motion here that
+      never runs on a touch device at all.
+      → <a href="sight.html">The Line of Sight</a>
+    </p>
+    <p>
       The two frosted surfaces make the third and fourth. The navigation rim runs on
       <code>scroll(root block)</code> rather than a view timeline — the bar is a plane the
       whole document moves under, so the document is its clock — while the hero glass button's
@@ -780,6 +981,132 @@ for t in ['fast','base','slow','scene']:
       rule that is enforced; when you add the fourth door, check the other three on everything
       already through them.
     </p>
+  </section>
+
+  <section class="docs-section" id="pinned">
+    <h2 id="hold">A pinned track: build, hold, hand over</h2>
+    <p>
+      Two sections pin a stage and scrub a sequence through it —
+      <a href="../patterns/ueber-uns.html">Unsere Werte</a> and
+      <a href="../patterns/expertise.html">Expertise</a> — and between them they settled three
+      rules that are not obvious and were each learned by getting them wrong first. They are
+      here rather than on either page because the next pinned track should not have to learn
+      them again.
+    </p>
+
+    <h3>The hold is the point</h3>
+    <p>
+      A stage divides into a <strong>reveal</strong> and a <strong>hold</strong>, and the
+      split is at <strong>62 %</strong>. Everything that moves — the object assembling, the
+      copy typing, the light coming up — finishes inside the first 62 % of the stage, and the
+      remaining 38 % is a still: nothing moving, the drawing complete, the sentence whole.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong>A stage whose reveal runs to its own edge cannot be read at all.</strong>
+      Expertise shipped that way and it is the failure this section exists to record: the last
+      node landed and the last character typed at the moment the step began to leave, so the
+      reader was chasing the end of the sentence with the wheel and there was never a frame
+      where the thing was simply finished and standing still. Range spent on a hold is not
+      range wasted. It is the only part of the sequence anybody actually reads.
+    </div>
+    <p>
+      62 % is one number in two places: <code>REVEAL</code> in
+      <code>assets/js/cf-stream.js</code>, and the point every CSS range on the Expertise
+      stage ends at. The type stops typing exactly where the drawing stops drawing, because
+      both are told the same fraction rather than tuned until they looked equal.
+    </p>
+
+    <h3>The copy is typed, not faded</h3>
+    <p>
+      <code>assets/js/cf-stream.js</code> types the copy character by character as the track
+      scrubs, which is the one thing a view timeline cannot do — there is no per-character
+      unit to animate. Scrolling back up un-types it, because it is driven by position and
+      not by a timer. It is <strong>optional and additive</strong> in the sense this system
+      keeps using: the copy is real markup, every stage is built by CSS, and without the
+      script every line is simply present.
+    </p>
+    <p>
+      It is one engine with two consumers. It was <code>cf-values.js</code>, named for the
+      only section that had it, until Expertise wanted the same behaviour — and a second copy
+      of a scrubbing typewriter is two timings that will not stay equal. Any pinned track can
+      ask for it now with three data attributes:
+    </p>
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"…-track"</span> <span class="attr">data-stream</span>&gt;
+  &lt;<span class="tag">article</span> <span class="attr">data-stream-stage</span>&gt;
+    &lt;<span class="tag">h3</span> <span class="attr">data-stream-line</span>=<span class="val">"0 0.24"</span>&gt;…&lt;/<span class="tag">h3</span>&gt;      <span class="attr">&lt;!-- from, span: fractions of the reveal --&gt;</span>
+    &lt;<span class="tag">p</span>  <span class="attr">data-stream-line</span>=<span class="val">"0.26 0.48"</span>&gt;…&lt;/<span class="tag">p</span>&gt;
+  &lt;/<span class="tag">article</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+    <div class="docs-note">
+      <strong>Reserve the height before you type into it.</strong> A line being typed is a
+      line with no height yet, and four of them growing under each other walk the whole card
+      down the page while the reader is trying to read it. Both sections declare
+      <code>min-height</code> in <code>em</code> on every streamed line — measured on the
+      settled copy — so the characters arrive into a box that is already the size it will end
+      at. Measured on Expertise, the card holds 540 px from the first character to the last.
+      <br><br>
+      <strong>And the caret follows the line being typed</strong>, not the last line in the
+      block. With two lines those are the same answer; with four it parks a blinking cursor
+      on an empty paragraph two lines below the one that is moving.
+    </div>
+    <p>
+      Accessibility: the streamed span is <code>aria-hidden</code> and a
+      <code>.visually-hidden</code> twin carries the whole sentence, so assistive technology
+      always gets the full line no matter where the scroll is. Nothing is ever announced
+      half-written. The script also refuses to run at all unless the pinned layout is active —
+      no scroll-timeline support, reduced motion, or under 820 px and every stage is on
+      screen at once, where typing one of them would be nonsense.
+    </p>
+
+    <h3>The two halves of a stage hand over differently</h3>
+    <p>
+      A stage with a drawing on one side and copy on the other cannot use one transition for
+      both, and this is the least obvious of the three.
+    </p>
+    <ul>
+      <li><strong>The drawing crossfades.</strong> Two line objects dissolving through each
+        other is legible, and the overlap is what stops the stage going blank at a boundary.
+        Expertise gives it three points of range at each end.</li>
+      <li><strong>The copy does not.</strong> Two blocks of text at half opacity in the same
+        column read as one title printed twice — at every ratio, and at every travel distance,
+        because the column is wider than anything you can move it by. Measured at the
+        handover with a four-point overlap: <em>Maschinenbau</em> leaving and
+        <em>Großanlagen</em> arriving, both half-lit and 48 px apart. So the copy owns exactly
+        its own quarter, snaps out and in across about a point of scroll each way, and the
+        object's dissolve is what the eye holds while it does.</li>
+    </ul>
+    <p>
+      <strong>And it is the surface that travels, not what is written on it.</strong> The
+      pane swipes in from off the right edge, lands empty, and only then does anything appear
+      on it — a sheet of glass being put in place, and then written on. The first version had
+      that the wrong way round: the plate stood still and the copy flew across it, which is a
+      caption sliding over a window rather than a window arriving. So the copy does not
+      translate at all. It fades in behind the typing once the pane is under it, and leaves
+      with the pane.
+    </p>
+    <p>
+      The pane leaves left and returns right rather than retreating the way it came, so four
+      stages read as four panes on a belt rather than as one pane hesitating. In and out on
+      the same side was tried first and it put the arriving and the leaving states head-on in
+      the same square of screen. The exit is short and mostly opacity, so the pane is gone
+      before it is over the drawing.
+    </p>
+    <div class="docs-note">
+      <strong>One element, four swipes.</strong> A shipping page gets two blurred layers and
+      the navigation band is the other, so the pane cannot be four panes taking turns — see
+      <a href="materials.html#glass">Materials</a> and
+      <code>scripts/check-glass-budget.py</code>. It is one element with one animation over
+      the whole track and the cycle written out four times; the jump back to the right happens
+      across a tenth of a point at each quarter boundary, while the pane is at opacity 0. The
+      last cycle has no exit, because the track ends with the pane still standing.
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>Every line has to be opaque before its own first character lands</strong>, and
+      an even stagger cannot do that — the lines do not start typing at even intervals.
+      Measured at 8 % of the Expertise track with a linear stagger: 60 characters of the body
+      written, none of them on screen, while the chips beneath were already lit. Give each
+      line a window that closes where its own stream opens.
+    </div>
   </section>
 
   <section class="docs-section" id="hero">

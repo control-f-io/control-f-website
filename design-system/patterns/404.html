@@ -11,6 +11,10 @@
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/base.css">
 <link rel="stylesheet" href="../assets/css/components.css">
+<!-- In the head and before the body, because it writes the attribute that folds
+     the nav. Moved to the end of the body it still works and the panel flashes
+     open on every load below 780 px — see the file's own header. -->
+<script src="../assets/js/cf-nav.js"></script>
 <style>
   /* Preview only: link back to the documentation. Remove in production. */
   .ds-back {
@@ -106,7 +110,7 @@
      der ersten. Kein aria-current: diese Seite steht in keinem Menüpunkt. -->
 <nav class="cf-nav" aria-label="Hauptnavigation">
   <a class="cf-logo" href="/"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
-  <button class="cf-nav__toggle" aria-controls="hauptnav" aria-expanded="false">Menü</button>
+  <button class="cf-nav__toggle" type="button" aria-controls="hauptnav" aria-expanded="false">Menü</button>
   <ul class="cf-nav__list" id="hauptnav" role="list">
     <li><a class="cf-nav__link" href="/">Home</a></li>
     <li><a class="cf-nav__link" href="/expertise">Expertise</a></li>
@@ -159,7 +163,8 @@
              auf 63,43 Grad im nahen Rake (Glas bei 32 %). Nur die Winkel 0,
              26,57, 63,43 und 90 Grad kommen vor.
              → foundations/illustration.html -->
-        <svg class="cf-error__figure cf-iso" viewBox="0 0 640 440" fill="none" aria-hidden="true">
+        <figure class="cf-error__figure cf-annot-fig">
+        <svg class="cf-iso" viewBox="0 0 640 440" fill="none" aria-hidden="true">
           <defs>
             <clipPath id="cf-404-frame"><rect width="640" height="440"/></clipPath>
             <!-- Naher Rake: Glas bei 0.32. Achse senkrecht zur oberen linken
@@ -205,11 +210,35 @@
           </g></g>
         </svg>
 
+        <!-- Die Beschriftung. Der Sockel ist die einzige belichtete Stelle im
+             Bild, also wird die Notiz in Kontur gezeichnet und nicht belichtet
+             — ein Lime-Moment pro Bildschirm, und das Objekt hat ihn schon.
+             Der Anker sitzt auf dem unteren Eckpunkt des Sockels (320, 400),
+             also x = 320/640 und y = 400/440; der Leader läuft nach unten
+             rechts in das leere Band unter der Reihe.
+             → components/annotation.html -->
+        <ul class="cf-annot-set">
+          <li class="cf-annot cf-annot--se" style="--annot-x:50%; --annot-y:90.909%">
+            <span class="cf-annot__label">Leerstelle</span>
+          </li>
+        </ul>
+        </figure>
+
         <!-- Die Wege von hier. Die Startseite fehlt in der Liste, weil sie
              schon die erste Schaltfläche ist — eine Sackgasse braucht Ausgänge,
              keine Wiederholungen. -->
         <nav class="cf-error__routes" aria-label="Wege von hier">
           <ul class="cf-error__routes-list" role="list">
+            <!-- Die Suche steht zuerst, weil sie als einzige Route nicht rät.
+                 Die vier darunter sind Vermutungen darüber, was gesucht war;
+                 dies ist die Zeile, in der der Leser es selbst sagen kann. -->
+            <li>
+              <a class="cf-error__route" href="/suche">
+                <span class="cf-error__route-label">Suche</span>
+                <span class="cf-error__route-desc">Den Begriff eingeben, den Sie erwartet haben — die Fundstelle wird auf der Zielseite markiert.</span>
+                <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+              </a>
+            </li>
             <li>
               <a class="cf-error__route" href="/ueber-uns">
                 <span class="cf-error__route-label">Über uns</span>
@@ -280,14 +309,7 @@
 </footer>
 
 <a class="ds-back" href="../index.html">← Design System</a>
-<script>
-  document.querySelector('.cf-nav__toggle').addEventListener('click', function () {
-    var list = document.getElementById('hauptnav');
-    var open = list.dataset.open === 'true';
-    list.dataset.open = String(!open);
-    this.setAttribute('aria-expanded', String(!open));
-  });
-</script>
 <script src="../assets/js/cf-consent.js"></script>
+<script src="../assets/js/cf-sight.js" defer></script>
 </body>
 </html>

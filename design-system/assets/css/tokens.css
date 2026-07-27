@@ -73,13 +73,67 @@
      ------------------------------------------------------------------ */
   --surface-page:     var(--grey-300);
   --surface-base:     var(--grey-300);
-  --surface-sunken:   var(--grey-100);
+
+  /* A STEP AWAY FROM THE PAGE IS A RATIO, NOT A GREY, and this token was the
+     grey until it was measured.
+
+     --surface-sunken was grey-100 (#E7E7E7). The number is only meaningful
+     against --surface-base, CF-Grau — and no page in the system is painted
+     CF-Grau. Every page carries .page-wash, which is --surface-page-wash:
+     CF-Grau to white, `background-attachment: fixed`, `background-size:
+     cover`. Fixed and cover together mean the wash spans the VIEWPORT, not
+     the document, so it does not scroll: the page under any element is a
+     function of where that element currently sits on screen, and it runs the
+     full 207 → 255 every time. The steps were calibrated against a colour
+     that only exists in the top row of pixels.
+
+     Measured on patterns/landing-page.html at 1280x900, walking .cf-process
+     __note down the viewport in 6 % steps and sampling the wash beside it in
+     the same screenshot row:
+
+       note at 14 % of viewport height   wash 210   #E7E7E7 reads  +21
+       note at 44 %                      wash 222   #E7E7E7 reads   +9
+       note at 65 %                      wash 231   #E7E7E7 reads    0   <-
+       note at 86 %                      wash 241   #E7E7E7 reads  -10
+
+     So an absolute grey inside the wash's own range is raised at the top of
+     the screen, INVISIBLE at 65 % of it, and sunken below that — one block
+     that changes which way it steps as the reader scrolls past it. Nothing
+     renders wrong; the material simply is not one.
+
+     A veil is the same declaration made relative. 6 % black removes 6 % of
+     whatever light is there, which is a constant 0.858 ratio in linear light
+     at both ends of the wash, so the step is the same step everywhere:
+
+       over the wash's CF-Grau end   197   -12   secondary 5.19:1  primary 11.91:1
+       over its middle               217   -14   secondary 6.48:1  primary 14.88:1
+       over its white end            240   -15   secondary 8.03:1  primary 18.43:1
+
+     THE DIRECTION HAD TO FLIP AND THAT IS THE ONE REAL CHANGE HERE. The old
+     light-theme steps both climbed toward white (see the [data-theme=
+     "inverse"] note below, which says so). Up is not available on this wash:
+     its far end IS white, so a lighter step has nowhere to go and dies at the
+     bottom of every screen. Down works at both ends. Sunken now means sunken.
+
+     Worst case is the CF-Grau end at 5.19:1, which clears AA for body text
+     with room; --text-muted still must not sit on it, for the same reason it
+     may not sit on CF-Grau itself.
+
+     --surface-card is RETIRED. It was grey-050, the same value as
+     --surface-raised, and its only two users were .cf-process and .ex-step on
+     patterns/expertise.html — both of which now draw as contour on the wash,
+     which is what foundations/materials.html already said they did and what
+     mockups/landing-page.jpg measures: the card's interior and the page
+     margin beside it read within 0.2 of each other at every row of the plate.
+     Do not reintroduce it; a panel that needs a surface takes the veil, and a
+     panel that needs a boundary takes a contour. */
+  --surface-sunken:   rgba(0, 0, 0, 0.06);
   --surface-raised:   var(--grey-050);
-  --surface-card:     var(--grey-050);
   --surface-inverse:  var(--cf-schwarz);
 
-  /* Milchglas has two jobs, so it has two tints. See section 9. */
+  /* Milchglas has three jobs, so it has three tints. See section 9. */
   --surface-glass:       rgba(255, 255, 255, 0.46);
+  --surface-glass-thin:  rgba(255, 255, 255, 0.30);
   --surface-glass-veil:  rgba(255, 255, 255, 0.04);
   --surface-glass-solid: var(--grey-100);
 
@@ -334,34 +388,49 @@
      the rendered page with the type hidden, at 375 / 768 / 1280 / 1920, the
      worst backdrop pixel anywhere inside each element's box:
 
-                     before        after       floor
-       headline      1.74:1     4.13–4.46:1    3:1    (display, large text)
-       kicker        2.26:1     8.50–14.81:1   4.5:1  (12 px mono, body)
-       rule          2.26:1     7.93–14.08:1   3:1    (UI contour)
+                     before      after (3 lines)   floor
+       headline      1.74:1      4.08–6.26:1       3:1    (display, large text)
+       kicker+rule   2.26:1      8.99–15.33:1      4.5:1  (11 px mono, body)
 
      The headline is the binding one, and it is deliberately carrying about
-     40 % over its floor rather than sitting on it. Every number above is
+     36 % over its floor rather than sitting on it. Every number above is
      one frame of a loop, and the next frame is not obliged to be as kind; a
      scrim tuned to exactly 3:1 on whichever frame happened to be decoded
      would be a measurement rather than a guarantee. Much past 0.42 and it
      starts taking the picture instead of the risk.
 
+     THE "after" COLUMN WAS RE-MEASURED when .cf-hero__body stopped clamping
+     itself to 44ch. That clamp resolved in the wrapper's own 14 px font, so
+     the column had been 342.59 px wide and four display lines tall; it is now
+     as wide as the longest line the display face sets and three lines tall,
+     which is what the markup and the plate both say. Wider and shorter moves
+     the far corner outward along the axis and downward off it at the same
+     time, and on this artwork the second wins: every figure above is equal to
+     or better than the one it replaces. The rule no longer has a row of its
+     own because it is no longer an element — it is the kicker's border-top,
+     so it is measured inside the kicker's box.
+
      THE STOPS ARE LENGTHS AND NOT PERCENTAGES, and that is the one thing
      here that had to be got right rather than merely chosen. A percentage
      stop is a percentage of the gradient LINE, and the line's length is
      0.894·W + 0.447·H — so the same 38 % is 587 px in a 1280 x 896 hero and
-     402 px in a 768 x 828 one. The scrim has to cover a text column, and a
-     text column is 44ch wide and four display lines tall whatever the
-     viewport is: a fixed object, so it wants a fixed reach.
+     402 px in a 768 x 828 one. The scrim has to cover a text column that does
+     not scale with the line: the column is anchored to the left gutter and
+     capped by the type, so it stays about the same size while the line grows
+     by 0.894 of every pixel of viewport. A fixed reach, then.
 
-     Projecting the corners of that column onto the 63.43° axis puts its far
-     corner — the top right of the headline, the point furthest from the
-     light — at 578 px at 768, 603 px at 1280 and 603 px at 1920. One
-     number, because the column is one size. 39rem = 624 px holds the
-     plateau past all three with a little over. Measured with the percentage
-     stops in place the headline read 4.46:1 at 1280 but only 3.58:1 at 768,
-     which is that arithmetic showing up as a contrast result: same column,
-     same artwork, a shorter gradient line.
+     Projecting the column's corners onto the 63.43° axis puts its far corner
+     — the top right of the headline, the point furthest from the light — at
+     485 px at 375, 693 px at 768, 720 px at 1280 and 943 px at 1920. The
+     plateau does NOT cover all four, and is not asked to: 39rem = 624 px is
+     where the scrim is still at full strength, and past it the falloff is
+     shallow enough that the corner still sits at 0.37 of full alpha at 768
+     and 0.21 at 1920 — which is the arithmetic behind the measured 4.08:1
+     and 6.26:1 above. It is the contrast column that is binding here, not the
+     projection; the projection only says which corner to go and sample.
+     Measured with percentage stops in place instead, the headline read
+     4.46:1 at 1280 but only 3.58:1 at 768 — the same column and the same
+     artwork, failed by a shorter gradient line.
 
      min(39rem, 62 %) rather than 39rem flat, because on a phone the line is
      623 px end to end and a 624 px plateau would lay a flat 42 % sheet over
@@ -414,12 +483,25 @@
   /* The band the foil renormalises onto: everything above the hot spot. */
   --spectrum-span-n: calc(100 - var(--spectrum-hot-n));
 
-  --gradient-spectrum: linear-gradient(132.36deg,
-                      var(--cf-lime)   0%,
-                      var(--cf-weiss)  var(--spectrum-hot),
-                      var(--cf-glas)   var(--rake-near),
-                      var(--sky-300)   var(--spectrum-cool),
-                      var(--violett-300) 100%);
+  /* THE ARC WAYPOINTS. #B9E3EB and #B8CCF3 are not new colours and not picked
+     by eye: each is the OKLCH midpoint of the leg it sits in the middle of,
+     and it is there because a straight line between two chromatic stops is
+     not the path this brand's own definition of iridescence asks for. The
+     full argument, the measurements and the reason the family is not simply
+     switched to `in oklch` are at THE ARC below --foil-stops. Recompute them
+     if either endpoint moves; they are literals, like the #DBFC60 waypoint,
+     and they do not follow the palette on their own. */
+  --spectrum-stops: var(--cf-lime)   0%,
+                    var(--cf-weiss)  var(--spectrum-hot),
+                    var(--cf-glas)   var(--rake-near),
+                    /* arc waypoint, Glas -> Sky */
+                    #B9E3EB          calc((var(--rake-near-n) + var(--spectrum-cool-n)) / 2 * 1%),
+                    var(--sky-300)   var(--spectrum-cool),
+                    /* arc waypoint, Sky -> Violett */
+                    #B8CCF3          calc((var(--spectrum-cool-n) + 100) / 2 * 1%),
+                    var(--violett-300) 100%;
+
+  --gradient-spectrum: linear-gradient(132.36deg, var(--spectrum-stops));
 
   /* The cool half — the spectrum with lime removed and the remaining band
      renormalised onto 0–100 %, so it can be used on a screen that has
@@ -460,12 +542,101 @@
      for one: see base.css, THE RAKE SWINGS. */
   --foil-rake: 116.57deg;
 
+  /* The two renormalised positions as bare numbers, so the midpoint between
+     them can be arithmetic rather than a third hand-picked figure. Same
+     number-plus-percentage pairing as the rakes and the spectrum's stops, and
+     for the same reason: calc() cannot average two percentages. */
+  --foil-glas-n: calc((var(--rake-near-n)     - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100);
+  --foil-sky-n:  calc((var(--spectrum-cool-n) - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100);
+
   --foil-stops: var(--cf-weiss)    0%,
-                var(--cf-glas)     calc((var(--rake-near-n)     - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
-                var(--sky-300)     calc((var(--spectrum-cool-n) - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
+                var(--cf-glas)     calc(var(--foil-glas-n) * 1%),
+                /* arc waypoint, Glas -> Sky. Recompute if either moves. */
+                #B9E3EB            calc((var(--foil-glas-n) + var(--foil-sky-n)) / 2 * 1%),
+                var(--sky-300)     calc(var(--foil-sky-n) * 1%),
+                /* arc waypoint, Sky -> Violett. Recompute if either moves. */
+                #B8CCF3            calc((var(--foil-sky-n) + 100) / 2 * 1%),
                 var(--violett-300) 100%;
 
   --gradient-foil: linear-gradient(var(--foil-rake), var(--foil-stops));
+
+  /* ------------------------------------------------------------------
+     THE ARC
+     The foil's whole claim is HUE TRAVEL INSIDE A NARROW LUMINANCE BAND.
+     Every stop above is a palette value and every stop is right. What was
+     wrong was the path between them.
+
+     Interpolating in oklab draws a STRAIGHT LINE across the a/b plane. Two
+     stops of similar chroma and different hue sit on roughly the same circle
+     about the neutral axis, so the straight line between them is a CHORD and
+     the middle of it falls INSIDE that circle. Chroma sags where no stop
+     asked it to:
+
+       leg                     chord    arc      midpoint
+       Glas    -> Sky          0.0383   0.0452   +17.9 %
+       Sky     -> Violett      0.0553   0.0588   + 6.3 %
+       Glas800 -> Sky800       0.0254   0.0289   +13.6 %
+       Sky800  -> Violett800   0.0484   0.0513   + 6.0 %
+
+     A ramp that loses a sixth of its chroma halfway through its longest leg
+     is greying out exactly where it is supposed to be turning, which reads as
+     a fade with a colour cast at each end rather than as one material seen at
+     an angle. THIS IS NOT AN ARGUMENT FOR MORE SATURATION — the brand's own
+     rule forbids that and this does not do it. Peak chroma on both ramps is
+     unchanged (0.0686 lit, 0.0620 ink); both peaks are still the endpoints'
+     own, and no point on either ramp is more chromatic than the palette value
+     it is travelling between. The sag is removed, nothing is added.
+
+     THE CORRECT PATH IS POLAR — oklch, shorter hue, which interpolates L, C
+     and h each linearly and therefore holds chroma across the turn. `in oklch`
+     IS NOT USED, and the reason is measured rather than cautious:
+
+     CHROMIUM DISCARDS THE HUE OF A LOW-CHROMA STOP. Rendered and sampled at
+     1x, a two-stop `linear-gradient(90deg in oklch shorter hue, #45524F,
+     #283E4F)` — Glas 800 to Sky 800, the ink foil's first leg — comes out with
+     hue pinned flat at Sky's 242.5 for its whole length. Glas 800's own 179.95
+     never appears, at t = 0 or anywhere else. Sweeping the start stop's chroma
+     in steps of 0.004 at fixed hue puts the threshold between 0.016 and 0.020:
+     at or above ~0.018 the declared hue renders, below it the neighbour's hue
+     is carried forward. Glas 800 is C 0.0171. So the one ramp with the most to
+     gain from a polar path is the one a polar path silently flattens — it
+     would ship 39.7 of its 102.2 degrees of hue travel. Writing the stops as
+     oklch() literals renders correctly and was rejected for a different
+     reason: it takes the three ramps off the palette tokens.
+
+     SO THE ARC IS PUT INTO THE RAMP INSTEAD, as one waypoint per chromatic
+     leg at that leg's midpoint. This is the system's own idiom one level up:
+     an inline SVG cannot interpolate in oklab, so each lime -> Glas leg there
+     carries #DBFC60 to put the sRGB path back on the oklab one. Same move,
+     same reason, one space further out — a waypoint puts the oklab path back
+     on the polar one. It is exact where it sits and it is engine-independent,
+     which `in oklch` is not.
+
+     Max deviation from the true polar arc, measured over 2,001 samples:
+
+                          before    after
+       lit, chromatic legs 0.00722   0.00212
+       ink                 0.00741   0.00257
+
+     EVERY MEASURED FIGURE IN THIS FILE SURVIVES, and by construction rather
+     than by luck. Polar interpolation moves C and h and leaves L alone, so
+     each waypoint's lightness is the mean of its leg's endpoints and sits on
+     the linear L path already there — within 9.2e-4, which is the 8-bit grid
+     rather than the arithmetic. The band depths (0.090 lit, 0.115 ink, 0.180
+     counting the specular), the hue travel (104.5 / 102.2 degrees) and the
+     endpoints are all untouched. Re-measured over the whole ramp anyway:
+     11.900:1 on black, 5.239:1 on CF-Grau, 8.162:1 on white — the same three
+     numbers to three decimals.
+
+     NO WAYPOINT ON A LEG THAT ENDS IN GREY, and that is the boundary this
+     stops at. --gradient-light, --gradient-light-90, the rakes, the blooms and
+     the page wash all run into CF-Grau or out of Weiss. An achromatic stop has
+     NO HUE, so there is no arc for the chord to be short of: oklab's straight
+     line from the neutral axis to a chromatic stop already is the constant-hue
+     radial, and it is the correct path. The lit foil's own Weiss -> Glas leg
+     is the same case and gets no waypoint for the same reason. Only a leg
+     chromatic at BOTH ends turns, and only a leg that turns can cut a corner.
+     ------------------------------------------------------------------ */
 
   /* THE SHADOW HALF OF THE FOIL.
      The foil above is light-on-dark and cannot be anything else: every stop
@@ -518,8 +689,14 @@
      CF-Grau — Glas 800, the light end — is 5.24:1; on white it is 8.16:1.
      AA at any size across the whole ramp, and the worst case is the top of
      the page wash, not the bottom, because this ink darkens as it travels. */
+  --foil-ink-sky-n: calc((var(--spectrum-cool-n) - var(--rake-near-n)) / (100 - var(--rake-near-n)) * 100);
+
   --foil-ink-stops: var(--glas-800)    0%,
-                    var(--sky-800)     calc((var(--spectrum-cool-n) - var(--rake-near-n)) / (100 - var(--rake-near-n)) * 100%),
+                    /* arc waypoint, Glas 800 -> Sky 800. See THE ARC above. */
+                    #33494E            calc(var(--foil-ink-sky-n) / 2 * 1%),
+                    var(--sky-800)     calc(var(--foil-ink-sky-n) * 1%),
+                    /* arc waypoint, Sky 800 -> Violett 800. See THE ARC above. */
+                    #273650            calc((var(--foil-ink-sky-n) + 100) / 2 * 1%),
                     var(--violett-800) 100%;
 
   --gradient-foil-ink: linear-gradient(var(--foil-rake), var(--foil-ink-stops));
@@ -720,6 +897,35 @@
   --grid-columns:  12;
   --grid-gap:      var(--space-6);
 
+  /* THE 12-COLUMN TRACK SET ITSELF, written once and read by everything that
+     lays out on it. --grid-columns is the COUNT and --grid-tracks is the track
+     list; the two are the same pair .subdivide already keeps as
+     --subdivide-count and --subdivide-cols, and for the same reason it gives:
+     a track set declared in more than one place is a track set two rules can
+     disagree about.
+
+     It had already been written three times. base.css's .grid is the primitive;
+     components.css declares the identical repeat() twice more for
+     .cf-values__frame and .cf-values__item, which are the pinned values
+     section's own 12-column frame and the five items stacked in it. Those two
+     are not a component reinventing the grid — they are the one place in the
+     system that genuinely needs the page's column set inside a component, and
+     they could not reach for .grid because they are set inside an @supports
+     block on markup that carries no utility class. So the fix is not to move
+     the markup; it is to give all three one declaration to read.
+
+     minmax(0, …) rather than a bare 1fr, and that is the load-bearing half of
+     this token. 1fr is minmax(auto, 1fr), and auto floors a track at its
+     content's MIN-CONTENT width — so one long German compound in any cell
+     widens its own track past its share and pushes the page sideways.
+     overflow-wrap: break-word does not save it: the reset sets it on
+     everything, and it does not enter intrinsic track sizing at all. Measured
+     on .cf-progress, the one grid in the system that carried a bare 1fr: a
+     61-character compound in its label took the document from 320 to 469 px
+     wide at a 320 px viewport, and from 375 to 469 at 375.
+     → foundations/layout.html#intrinsic-minimum */
+  --grid-tracks:   repeat(var(--grid-columns), minmax(0, 1fr));
+
   /* ------------------------------------------------------------------
      THE BREAKPOINT REGISTER
      A threshold cannot be a custom property: var() is not allowed in the
@@ -732,8 +938,59 @@
      genuinely pinned to the viewport — the nav bar, the hero, the footer,
      the consent banner — may ask the viewport.
 
+     EVERY THRESHOLD IS IN rem, AND THAT IS THE SECOND RULE. It used to be
+     true of the container thresholds and false of the viewport ones, which
+     were px — so half the register answered to the reader's default font
+     size and half did not. That is not a style preference; it is where the
+     page broke.
+
+     A media query's rem resolves against the BROWSER's default font size,
+     not against anything an author writes on :root — so a rem threshold is
+     the only kind that tracks the reader's own preference. Every query in
+     this register is a "does this still fit" decision, and what fits
+     depends on how big the type is. A px query answers that question at a
+     text size the reader may not be using.
+
+     Measured, before the conversion, on the two designed pages with the
+     browser default set to 24 px (150 %, a common low-vision setting and
+     well inside what WCAG 1.4.4 asks for):
+
+       browser default   viewport widths that scrolled sideways
+       16 px             0
+       24 px             12   — 320–380, and a band at 792–820
+
+     The 792–820 band was the nav: it collapses to a toggle below 780 px,
+     but at a 24 px default the expanded links need 823 px, so between the
+     threshold and the fit there were 43 px of horizontal scroll on every
+     page in the system. 48.75rem is 780 px at a 16 px default — the same
+     number, to the pixel — and 1170 px at a 24 px one, which is where the
+     nav actually needs to fold. The band is gone at every default font
+     size, and nothing moves at 16 px. The 320–380 band was a different
+     fault entirely; see the note on overflow-wrap in base.css.
+
+     The conversion is arithmetic, not a re-measurement: 780 / 16 = 48.75,
+     900 / 16 = 56.25, 560 / 16 = 35. Each renders identically at the
+     default. If you ever need to change one of these numbers, change it as
+     a rem figure — reverting one to px silently opts it out of the reader's
+     preference, which is the exact bug this paragraph exists to prevent.
+
      CONTAINER thresholds — the width of the component's own container:
 
+       28rem / 448   .cf-annot stops being a callout and becomes a legend:
+                     the notes flow under the figure as a row of marks and
+                     words, and the leaders go with the label rules. The
+                     threshold is on the FIGURE — cf-annot-fig, the system's
+                     one named container — because what decides whether a
+                     callout fits is the width of the drawing, never the
+                     viewport. → components/annotation.html
+       30rem / 480   .cf-breadcrumb keeps only the last two crumbs; whatever
+                     is now first drops its divider. Same shape as 34rem
+                     below — a row of parts that has stopped being one row —
+                     and 3 rem away from it. It is a SEPARATE number because
+                     a trail truncates from the head while a route folds in
+                     place, and they are measured on different containers;
+                     it is registered rather than merged so the adjacency is
+                     visible rather than hidden.
        34rem / 544   .cf-error__route folds — the 12 rem label drops above
                      its description and the arrow keeps the right edge.
                      .cf-pagination hides the page numerals and keeps the
@@ -745,6 +1002,20 @@
                      .cf-error__figure's max-width — one number the whole
                      component is built around, so it is a threshold with a
                      reason and not a fifth arbitrary one.
+       34.625rem / 554  .cf-process__figure's isometric drawing keeps the
+                     --trace-weight constant it carried before that property
+                     existed. 554 is not a chosen width: it is where the
+                     figure's height cap stops being the tighter constraint,
+                     so below it the drawing is letterboxed into a box that
+                     grows with the card and no fixed multiplier lands the
+                     trace on 1 px across the ramp. THE ONLY FRACTIONAL
+                     THRESHOLD IN THE SYSTEM, and it sits 10 px from 34rem
+                     above — the near-duplicate this register warns about,
+                     recorded rather than reconciled. The two never measure
+                     the same container, so nothing collides today; whether
+                     a derived geometric crossover should be a threshold at
+                     all is the illustration lane's question, not this
+                     register's. → components/process-card.html
        44rem / 704   .subdivide folds; the blog axis goes with it, and now
                      goes with it structurally — the axis is a .subdivide__row
                      of the same grid, so both queries measure one element.
@@ -762,30 +1033,58 @@
                      it, and a row that does not hold an illustration can
                      opt down to 44rem with .grid--early.
        60rem / 960   .cf-article splits into rail + body and the rail goes
-                     sticky. Reached at a viewport of about 1079. This is
-                     the system's FIFTH container threshold and the only
-                     one that is not derived from anything — see the note
-                     in foundations/layout.html before adding a sixth.
-                     It said FOURTH while 34rem was live in components.css
-                     with two consumers, which is the same drift this
-                     register caught once already and is recorded as such
-                     on that page rather than quietly renumbered.
+                     sticky. Reached at a viewport of about 1079. It is the
+                     only container threshold that is not derived from
+                     anything — see the note in foundations/layout.html
+                     before adding another.
+
+                     THIS ENTRY HAS BEEN RENUMBERED TWICE AND NOW CARRIES NO
+                     NUMBER AT ALL. It said FOURTH while 34rem was live with
+                     two consumers, then FIFTH while 28rem, 30rem and
+                     34.625rem were live with one each. An ordinal in a
+                     register kept by hand is a second thing to remember
+                     that says nothing the list above does not, and it went
+                     stale both times the list did. The count is whatever
+                     scripts/check-breakpoints.py prints.
 
      VIEWPORT thresholds — page furniture only:
 
-       780           nav collapses to a toggle; the hero action drops into
-                     the flow; the accordion loses its indent; the footer
-                     CTA folds
-       900           the page-header figure is dropped; the consent banner
-                     goes single column
-       560 (height)  the consent banner caps at 70vh and scrolls. The one
-                     height threshold in the system; it exists because a
-                     tall banner on a short screen hides the page it is
-                     asking about.
+       48.75rem / 780   nav collapses to a toggle; the hero action drops
+                        into the flow; the accordion loses its indent; the
+                        footer CTA folds
+       56.25rem / 900   the page-header figure is dropped; the consent
+                        banner goes single column
+       51.25rem / 820   the Über uns values section takes its pinned,
+                        scroll-scrubbed form. Below it the values stack and
+                        read straight through. THIS ENTRY IS THE FOURTH TIME
+                        THIS REGISTER HAS BEEN CAUGHT SHORT, and the first
+                        time the missing threshold was hiding behind a
+                        correct statement about a different file: the SCOPE
+                        list below has always named 820 as
+                        prototypes/werte-scroll.html's, which is true, out of
+                        scope, and a different query — so the figure looked
+                        accounted for while a live one in components.css was
+                        not. Reading "820 is listed" as "820 is registered"
+                        is the mistake; the register is a list of QUERIES,
+                        not of numbers.
+       35rem / 560      (height) the consent banner caps at 70vh and
+                        scrolls. The one height threshold in the system; it
+                        exists because a tall banner on a short screen hides
+                        the page it is asking about. In rem for the same
+                        reason as the widths, and it is the case where the
+                        unit matters most: enlarged type makes the banner
+                        taller while a px threshold holds the screen it is
+                        measured against still.
+
+     The px figure after each slash is what the threshold resolves to at a
+     16 px default and nothing more — the same convention the container
+     thresholds above use. It is not a second number to keep in sync.
 
      Two viewport tiers rather than one is a live question — they govern
      different objects and neither was measured off the mockups. Flagged
-     for a designer rather than reconciled here.
+     for a designer rather than reconciled here. 51.25rem now sits between
+     them, which does not settle the question but does mean any answer has
+     three widths to reconcile rather than two.
 
      There is no fourth viewport threshold. There was: .cf-error--page
      split its two columns at @media (min-width: 62rem), a figure that
@@ -794,15 +1093,32 @@
      onto 56rem — 62rem of viewport is 55.18rem of container, so the two
      were the same threshold wearing different units. See components.css.
 
-     This register is only worth having if it is complete, and it has now
-     been caught twice. First: 60rem and the height threshold were live in
-     components.css while this list claimed three container thresholds and
-     two viewport ones. Second: 34rem was live with two consumers, and the
-     62rem above with one, while the corrected list claimed four and three.
-     Both times the fix landed with the sweep that found it. If you add a
-     threshold to a shipping stylesheet, add it here in the same commit —
-     and if you are fixing this register, grep the preludes rather than
-     trusting the previous fix to have been exhaustive.
+     This register is only worth having if it is complete, and kept by hand it
+     was never complete for long. It was caught four times. First: 60rem and
+     the height threshold were live in components.css while this list claimed
+     three container thresholds and two viewport ones. Second: 34rem was live
+     with two consumers, and the 62rem above with one, while the corrected
+     list claimed four and three. Third: 51.25rem, hiding behind a true
+     statement about a different file. Fourth: 28rem, 30rem and 34.625rem —
+     three live container queries, one of them added the same day the sweep
+     that found them ran.
+
+     Every one of those fixes ended with the same instruction to the next
+     person: grep the preludes, and do not trust the previous fix to have been
+     exhaustive. Four times is enough evidence about that instruction. NOTHING
+     RAN — which is the same sentence the space scale, the light family, the
+     isometric assembly, the glass budget and the grid tracks each turned out
+     to be one script short of.
+
+     scripts/check-breakpoints.py is that script. It reads every prelude in the
+     three shipping stylesheets and holds the three copies of this rule to each
+     other in both directions: a query with no entry is a finding, an entry
+     with no query is a finding, and this comment disagreeing with the table on
+     foundations/layout.html is a finding. It keeps the rem rule above, and it
+     re-derives every px gloss rather than comparing it against itself.
+
+     So the instruction is shorter now. Add a threshold to a shipping
+     stylesheet and add it here in the same commit; CI says so if you do not.
 
      SCOPE: the three stylesheets that ship — this file, base.css and
      components.css. Everything else is out, and "everything else" is
@@ -811,8 +1127,14 @@
        docs.css            the documentation chrome. Does not ship to
                            control-f.de. Carries one query,
                            @media (max-width: 900px), which collapses
-                           the sidebar. Same figure as the 900 above and
-                           unrelated to it.
+                           the sidebar. It renders at the same width as
+                           the 56.25rem above at a 16 px default and is
+                           unrelated to it — and it is still px, which is
+                           now a visible difference rather than a hidden
+                           one. Left as it is deliberately: docs.css is out
+                           of scope by the rule at the head of this list,
+                           and converting it would make this register look
+                           like it governs the documentation chrome.
        inline <style>      per-page demo styles. foundations/
                            iconography.html asks a VIEWPORT 48rem where
                            48rem above is a CONTAINER threshold.
@@ -1225,6 +1547,23 @@
                            way: a blur of black is black and saturate(1.08) of
                            black is black, so the worst-case frame is the
                            whole story.
+     --surface-glass-thin  BEARING GLASS OVER A BACKDROP THE PAGE OWNS. The 46 %
+                           above is the floor for a backdrop we do NOT control:
+                           it is the tint at which black type still clears
+                           4.5:1 over a pure black video frame. That premise is
+                           not universal. Where the thing behind the glass is
+                           the page's own field -- a lattice on the wash, whose
+                           darkest pixel is a hairline -- the floor is whatever
+                           the measurement on THAT surface says, and 46 % is
+                           then a plate rather than a pane.
+                           30 % measured on the Expertise stage: the plate
+                           composites to rgb(228,229,230) at its darkest pixel,
+                           where --text-secondary reads 6.73:1, the ink foil's
+                           worst stop 6.01:1 and the ruled question 15.45:1.
+                           THE MEASUREMENT IS THE PERMISSION, not this number.
+                           Reach for this tint only over a backdrop you can
+                           name, and re-measure the type on it; over anything
+                           arbitrary the 46 % floor is the one that holds.
      --surface-glass-veil  VEIL glass. Carries nothing but opaque objects, so
                            it stays almost clear and lets the blur do the work.
                            Measured off the navigation band in both mockups:
@@ -1234,11 +1573,45 @@
 
      Blur radius is 16 px. Larger reads no better and costs more.
 
-     Two blurred layers exist and no more: the navigation band and the hero
-     button. They DO overlap, unavoidably — the CTA is on the first screen
-     and the bar is sticky, so the button passes under it on the way out.
-     Measured at 1280x900 on the landing page: the sheet occupies 0..108 of
-     the viewport (84 px bar plus the 24 px lookahead) and the button
+     THE BUDGET IS PER PAGE, AND IT IS TWO. Never a third — blurred area is
+     the whole cost of this material, and the count of simultaneously blurred
+     layers is the first thing to cut when scrolling stutters.
+
+     THREE SURFACES CARRY THE BLUR, which is not the same number and the
+     distinction is the point. This comment used to read "two blurred layers
+     exist and no more: the navigation band and the hero button", written when
+     that was a complete list. It stopped being one when .cf-info-card--glass
+     shipped, and a stale enumeration is worse than none, because the next run
+     in this lane reads it as permission to add the surface it thinks is
+     missing. The three, and where each is allowed:
+
+       .cf-nav::before          every page. Always one of the two.
+       .cf-btn--glass           the hero CTA. One per page.
+       .cf-info-card--glass     one card per page, and only a card standing on
+                                something the reader can still see through it.
+
+     So a shipping page spends the nav plus at most one of the other two, and
+     no shipping page spends more. DO NOT TAKE THAT ON TRUST AND DO NOT COUNT
+     IT BY HAND: scripts/check-glass-budget.py already enforces it, and it
+     derives what counts as glass by reading every backdrop-filter rule out of
+     these three stylesheets rather than from a list. A fourth frosted surface
+     therefore enters the budget by existing. The list above is prose for a
+     reader; the script is the thing that fails.
+
+       python3 scripts/check-glass-budget.py
+
+     It also holds the two rules underneath this one: every backdrop-filter
+     reads --glass-blur rather than writing its own radius, and nothing
+     scroll-driven moves ON a blurred layer. That second one is why all three
+     surfaces put their travelling light on an unblurred 1 px rim beside the
+     sheet instead of on the sheet — see .cf-nav::after, .cf-btn--glass::before
+     and .cf-info-card--glass::before, which are the same construction three
+     times.
+
+     THE NAV AND THE HERO BUTTON DO OVERLAP, unavoidably — the CTA is on the
+     first screen and the bar is sticky, so the button passes under it on the
+     way out. Measured at 1280x900 on the landing page: the sheet occupies
+     0..108 of the viewport (84 px bar plus the 24 px lookahead) and the button
      intersects it from scrollY 628 to 776, sitting entirely inside it from
      672 to 732. About 150 px of scroll with two stacked backdrop-filters.
 
@@ -1246,8 +1619,7 @@
      never overlap, and a later run would have planned against a guarantee
      the system does not have. It costs nothing measurable — sweeps through
      the overlap window and through clear page produce the same median
-     (16.7 ms) and overlapping p95 ranges — so the rule to keep is the one
-     that pays: exactly two blurred layers on a page, never a third. */
+     (16.7 ms) and overlapping p95 ranges. */
   --glass-blur:       blur(16px) saturate(1.08);
   --glass-border:     1px solid rgba(255, 255, 255, 0.55);
 
@@ -1543,6 +1915,17 @@
      lime -> Glas    #DBFC60 at 19 %   process cards, 404, illustration docs
      lime -> Weiss   #E6FF66 at 19 %   cf-wallpaper-feld-dark.svg
 
+   THIS PARAGRAPH IS NOW ENFORCED RATHER THAN MERELY WRITTEN. It held across
+   twenty gradients and broke on the twenty-first — patterns/expertise.html drew
+   four objects on the near rake and gave all four the mid rake's waypoint
+   offset, so 19 % of the leg was painted at 30.3 % of it and the ramp measured
+   dE 0.0265 instead of 0.0116. A convention applied by hand has a half-life.
+   scripts/check-gradient-family.py walks every gradient the site ships and
+   recomputes both numbers — the offset from the leg's own ends, the colour from
+   the oklab path — so the two hexes above are re-derived rather than trusted,
+   and CI runs it on every pull request. If you add a gradient, add it in this
+   family and the script will say so.
+
    19 % is a convention rather than an optimum, and the difference is small
    enough to be worth spending: on the lime-to-Weiss leg the best single
    waypoint sits at 21 % and buys 0.0013 of dE over the family's 19 %.
@@ -1584,12 +1967,10 @@
        They are classes now and carry their own @supports branch in base.css,
        next to the stop lists they belong to — see the note where they used to
        be declared, in section 3b. */
-    --gradient-spectrum: linear-gradient(132.36deg in oklab,
-                        var(--cf-lime)   0%,
-                        var(--cf-weiss)  var(--spectrum-hot),
-                        var(--cf-glas)   var(--rake-near),
-                        var(--sky-300)   var(--spectrum-cool),
-                        var(--violett-300) 100%);
+    /* One line for the same reason the two foils are one line each. The
+       spectrum's stops became a token when the arc waypoints went in, because
+       a waypoint written twice is a waypoint that can be recomputed once. */
+    --gradient-spectrum: linear-gradient(132.36deg in oklab, var(--spectrum-stops));
     /* Two lines rather than nine, because the stops are a token now and only
        the interpolation path changes here. Nothing about the ramp is restated,
        so the two declarations cannot drift apart. */
@@ -1604,22 +1985,29 @@
   --surface-page:   var(--cf-schwarz);
   --surface-base:   var(--cf-schwarz);
 
-  /* Black is the floor of the neutral scale — there is no rung below it —
-     so both steps move away from the base upward. That is what the light
-     theme already does: base CF-Grau, sunken grey-100, raised grey-050, all
-     three climbing toward white. Only the old anthracite base could afford a
-     sunken genuinely under it, and it bought 1.09:1 for the privilege.
-     Raised is the ramp's own darkest non-black step, sunken the half-step
-     under it, so the two keep their order and roughly their old separation
-     from the base — 1.12:1 and 1.27:1. */
-  --surface-sunken: #121212;
+  /* Black is the floor of the neutral scale — there is no rung below it — so
+     here the step has to move upward, and that is now the difference between
+     the two themes rather than something they share. The light theme's steps
+     used to climb toward white as well; they no longer can, because the wash
+     they sit on ends AT white (see --surface-sunken above). Black does not
+     have that problem from the other side: nothing composites below it, so a
+     white veil over it is the same constant ratio the light theme gets from a
+     black one.
+
+     6 % white over Schwarz renders #0F0F0F, within one step of the #121212
+     this used to be, and it keeps its order under --surface-raised. Written
+     as a veil rather than as that literal so the material is ONE idea in both
+     themes: a step away from the page is a proportion of the light already
+     there. Raised stays an absolute value — it is the ramp's own darkest
+     non-black step and there is no wash under it to track. */
+  --surface-sunken: rgba(255, 255, 255, 0.06);
   --surface-raised: var(--grey-800);
-  --surface-card:   var(--grey-800);
 
   /* Inverted glass darkens instead of lightening, and the floor flips with
      it: 56 % black is where white type still clears 4.5:1 composited over a
      pure white backdrop. */
   --surface-glass:       rgba(0, 0, 0, 0.56);
+  --surface-glass-thin:  rgba(0, 0, 0, 0.38);
   --surface-glass-veil:  rgba(0, 0, 0, 0.06);
   --surface-glass-solid: var(--surface-raised);
   --glass-border:        1px solid rgba(255, 255, 255, 0.18);
@@ -1709,11 +2097,13 @@
   :root {
     --glass-blur:          none;
     --surface-glass:       var(--surface-glass-solid);
+    --surface-glass-thin:  var(--surface-glass-solid);
     --surface-glass-veil:  rgba(255, 255, 255, 0.72);
   }
   [data-theme="inverse"] {
     --glass-blur:          none;
     --surface-glass:       var(--surface-glass-solid);
+    --surface-glass-thin:  var(--surface-glass-solid);
     --surface-glass-veil:  rgba(0, 0, 0, 0.72);
   }
 }
@@ -1727,11 +2117,13 @@
   :root {
     --glass-blur:          none;
     --surface-glass:       var(--surface-glass-solid);
+    --surface-glass-thin:  var(--surface-glass-solid);
     --surface-glass-veil:  var(--surface-glass-solid);
   }
   [data-theme="inverse"] {
     --glass-blur:          none;
     --surface-glass:       var(--surface-glass-solid);
+    --surface-glass-thin:  var(--surface-glass-solid);
     --surface-glass-veil:  var(--surface-glass-solid);
   }
 }
@@ -1784,17 +2176,40 @@
    than tinted: an edge drawn as a background-image is gone whatever this file
    says. They are redrawn as borders — the only paint forced colours keeps —
    next to the rules that draw them. See .cf-nav::after in components.css and
-   .material-glass-edge in base.css. */
+   .material-glass-edge in base.css.
+
+   AND IT MISSED A TINT. --surface-glass-thin was left out of this block for as
+   long as the block has existed, while the two above it both cover all three.
+   The tint is not unused: patterns/expertise.html sets --info-card-tint to it,
+   so the pinned stage's lectern is the one glass surface in the system that
+   stayed translucent under forced colours. Measured in Chromium with the mode
+   active at 1280, .cf-info-card--glass computed background-color
+   rgba(255, 255, 255, 0.30) with backdrop-filter already none — so it was worse
+   than the failure the paragraph above describes, not milder: thinner than the
+   button's 46 %, and with the blur switched off the section behind it came
+   through SHARP rather than calmed. What the reader saw was an author grey over
+   Canvas with the page legible through it, which is precisely the thing this
+   block's own argument says the mode exists to stop.
+
+   Why it survived three releases is worth writing down, because it is the same
+   shape as the hole in the inverse blocks: the thin tint is the one tint
+   foundations/materials.html could describe and not DRAW. There was no
+   .material-glass--thin, so no page rendered it, so no screenshot of any
+   fallback ever contained it. There is one now, and check-glass-budget.py's
+   fifth claim closes the general case — every tint neutralised in every block
+   that neutralises the material, for every selector that block names. */
 @media (forced-colors: active) {
   :root {
     --glass-blur:          none;
     --surface-glass:       Canvas;
+    --surface-glass-thin:  Canvas;
     --surface-glass-veil:  Canvas;
     --surface-glass-solid: Canvas;
   }
   [data-theme="inverse"] {
     --glass-blur:          none;
     --surface-glass:       Canvas;
+    --surface-glass-thin:  Canvas;
     --surface-glass-veil:  Canvas;
     --surface-glass-solid: Canvas;
   }

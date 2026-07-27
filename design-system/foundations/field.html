@@ -16,12 +16,12 @@
                   color: var(--text-secondary); }
   .field-demo--sm { min-height: 13rem; }
   .field-demo--dark { background: var(--surface-inverse); }
-  .field-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: var(--space-6); }
+  .field-pair { --tile: 18rem; --flow: var(--space-6); }
   .field-pair figcaption { margin-top: var(--space-3); font-family: var(--font-mono);
                            font-size: var(--text-xs); letter-spacing: var(--tracking-label);
                            text-transform: uppercase; color: var(--text-secondary); }
   .field-pair figure { margin: 0; }
-  .wallpapers { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--space-6); }
+  .wallpapers { --tile: 16rem; --flow: var(--space-6); }
   .wallpapers figure { margin: 0; }
   .wallpapers img { display: block; width: 100%; border: var(--stroke-1) solid var(--border-default); }
   .wallpapers figcaption { margin-top: var(--space-3); }
@@ -58,7 +58,7 @@
       icon set draws its keylines on it. The one thing the lattice had never been was
       <em>visible</em>.
     </p>
-    <div class="docs-plates">
+    <div class="docs-plates tiles">
       <a class="docs-plate" href="../assets/source/manual/grid-isometry.jpg">
         <figure>
           <img src="../assets/source/manual/grid-isometry.jpg" alt="Manual plate: the 2:1 isometric grid drawn as a ground with objects standing on it">
@@ -188,7 +188,7 @@
       are soft and the wrap from one period to the next happens in transparency, where there is
       nothing left to alias.
     </p>
-    <div class="field-pair">
+    <div class="field-pair tiles tiles--fit">
       <figure>
         <div class="docs-demo docs-demo--plain">
           <div class="cf-ground field-demo field-demo--sm" style="--field-unit: 3rem"></div>
@@ -263,8 +263,12 @@
           <td>Keeps the pool at the middle of the <em>viewport</em>. When a section first crosses the bottom of the screen the reader's eye is above its top; by the time it leaves, below its bottom.</td>
         </tr>
         <tr>
-          <td>At rest</td><td>50 %</td>
-          <td>The pool at the middle of the surface, the reader square to it. Every path that cannot run the animation lands here.</td>
+          <td>Across</td><td>0 % → 100 %</td>
+          <td>Where the reader is standing, not where the section is. The travel above is the vertical half of one model; this is the other half, and it is the only quantity here a stylesheet cannot obtain. → <a href="sight.html">The Line of Sight</a></td>
+        </tr>
+        <tr>
+          <td>At rest</td><td>50 % / 50 %</td>
+          <td>The pool at the middle of the surface, the reader square to it. Every path that cannot run the animation lands here — including every touch device, which never gets the horizontal half at all.</td>
         </tr>
       </tbody>
     </table>
@@ -276,6 +280,15 @@
       the reader sees a band of light crossing the floor rather than a pool sitting on it; that
       is what a light source further away than the room is wide actually does, and it is why
       the pool is not clamped to the viewport.
+    </p>
+    <p>
+      <strong>Sideways, there is nothing to scrub.</strong> A view timeline reports how far
+      the section has travelled past the reader, and a section does not travel sideways; the
+      pool's <code>x</code> is therefore the only value in this chapter that is measured
+      rather than derived, written by <code>assets/js/cf-sight.js</code> on the handful of lit
+      grounds that are on screen. It is optional and it rests at 50 %, so a page without the
+      script — or read on a phone, or under reduced motion — draws the pool exactly where this
+      chapter drew it before the file existed.
     </p>
     <div class="docs-note docs-note--warn">
       <strong>The field spends no colour.</strong> It is contour, and contour in this brand is
@@ -414,6 +427,42 @@
       the floor is legible at arm's length. The video-call file keeps 0.10, because something
       <em>is</em> in front of that one.
     </p>
+    <h3>All three are dithered, and not all three at the same strength</h3>
+    <p>
+      A wallpaper is the worst case the <a href="colors.html#wash">page wash</a> already
+      solved: a member of the light family painted across a whole screen with nothing over it
+      to hide what 8-bit sRGB cannot resolve. The light file was drawn with the system's grain
+      in it. <strong>The two dark files were not,</strong> and measured on the rendered frame
+      they were the two worst-banded surfaces the system ships — 53.1 % of the video-call
+      picture sat in a flat plateau of eight pixels or more, one of which ran the full 1080 px
+      height of the frame. Both carry the grain now, primitive for primitive with
+      <code>--grain</code>.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>File</th><th>Grain</th><th>Banded area before</th><th>after</th></tr></thead>
+      <tbody>
+        <tr><td>Feld, dark</td><td>4 %</td><td>42.9 %</td><td>9.5 %</td></tr>
+        <tr><td>Feld, light</td><td>8 %</td><td colspan="2">drawn with it; 0 plateaus across the ramp</td></tr>
+        <tr><td>Videocall</td><td>4 %</td><td>53.1 %</td><td>0.6 %</td></tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>Four per cent and not the wash's eight, because grain lifts the floor.</strong>
+      Its own mean is added light wherever it lands. On a ramp that ends at white that costs
+      nothing; on a ground whose whole job is to stay at the black end of the neutral ramp it
+      is the objection. So the strength is the least that clears the banding rather than the
+      wash's number: on the video-call frame 8 % takes the banded area from 0.6 % to 0.4 %,
+      which cannot be seen, and takes mean luminance from 12.84 to 16.31, which can.
+    </p>
+    <p>
+      <strong>Feld, dark keeps 9.5 % and that is deliberate.</strong> The residual does not
+      move at any grain strength because it is not on the ground — broken down by value it is
+      the white-to-Glas end of the spectrum ramp filling the <em>mark</em>, which is a large
+      enough object for its own legs to band. The mark is drawn above the grain layer, here
+      and in the light file, because grain is a property of the base wash and not of anything
+      standing on it. Dithering the mark too is a designer's call, not a routine's: it is also
+      this file's one light moment, and grain over lime dulls the one thing the picture is for.
+    </p>
     <p>
       The dark file fills its mark with the full spectrum rather than the foil, and that is the
       manual's own move: the app icon on <em>Farben &gt; Anwendung</em> is a black plate whose
@@ -422,7 +471,7 @@
       <a href="../components/buttons.html">the solid button</a>, whose label is filled rather
       than coloured.
     </p>
-    <div class="wallpapers">
+    <div class="wallpapers tiles tiles--fit">
       <figure>
         <img src="../assets/img/wallpaper/cf-wallpaper-feld-dark.svg" alt="Dark wallpaper: the isometric lattice lit from the left, with the Control-F mark filled with the foil">
         <figcaption>
@@ -488,5 +537,6 @@
 </main>
 
 <script src="../assets/js/docs.js"></script>
+<script src="../assets/js/cf-sight.js"></script>
 </body>
 </html>

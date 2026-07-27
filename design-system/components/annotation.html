@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Annotation — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Components</p>
+    <h1>Annotation</h1>
+    <p>
+      Naming a part of a drawing. The system could already mark a found
+      <em>word</em> and it could already draw an <em>object</em>; it had nothing in
+      between — no way to say which part of an object you are looking at. Fifteen
+      isometric objects ship with construction nodes on them, a black dot at a vertex,
+      and not one of those dots said anything. This is the layer that gives them words.
+    </p>
+  </header>
+
+  <section class="docs-section" id="annotation">
+    <h2>The callout</h2>
+    <p>
+      An anchor on the drawing, a leader that is one lattice step, and a note standing on
+      its own rule. Every annotation is drawn in contour; the one the reader is on is lit.
+    </p>
+
+    <div class="docs-demo docs-demo--plain">
+      <figure class="cf-annot-fig">
+        <!-- Specimen. u = 40, origin is the footprint's left vertex (120, 300);
+             the cell is (120,300) (200,260) (280,300) (200,340), the body is one
+             unit high (2u on screen), and the neighbouring cell is one e1 + e2
+             step away. The two ground lines run out of the frame on both sides —
+             the ground does not end, the view does.
+             → foundations/illustration.html -->
+        <svg class="cf-iso" viewBox="0 0 640 400" fill="none" aria-hidden="true">
+          <defs>
+            <clipPath id="an-spec-frame"><rect width="640" height="400"/></clipPath>
+            <!-- near rake: Glas at 0.32 == --rake-near. 63.43°, lime at the top vertex. -->
+            <linearGradient id="an-spec-light" x1="200" y1="180" x2="230" y2="240" gradientUnits="userSpaceOnUse">
+              <!-- oklab waypoint — 19 % of the lime leg, measured from lime, see foundations/colors.html -->
+              <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+            </linearGradient>
+          </defs>
+          <g clip-path="url(#an-spec-frame)"><g class="cf-iso__scene" stroke-linejoin="round">
+            <!-- ghost: the two ground lines the body stands on, and the next cell along -->
+            <path class="cf-iso__ghost" d="M0 240L320 400M80 400L640 120" stroke="#000" stroke-dasharray="1 4"/>
+            <path class="cf-iso__ghost" d="M280 300L360 260L440 300L360 340Z" stroke="#000" stroke-dasharray="1 4"/>
+            <!-- form: two side faces, contoured, then the lit top face -->
+            <g stroke="#000">
+              <path class="cf-iso__form" d="M120 220L200 260L200 340L120 300Z" fill="#CFCFCF"/>
+              <path class="cf-iso__form" d="M200 260L280 220L280 300L200 340Z" fill="#C4C4C4"/>
+              <path class="cf-iso__light" d="M200 180L280 220L200 260L120 220Z" fill="url(#an-spec-light)"/>
+            </g>
+            <!-- node: the four vertices of the top face, and the far cell corner -->
+            <g class="cf-iso__node" fill="#000">
+              <circle cx="200" cy="180" r="3"/><circle cx="280" cy="220" r="3"/>
+              <circle cx="200" cy="260" r="3"/><circle cx="120" cy="220" r="3"/>
+              <circle cx="440" cy="300" r="2"/>
+            </g>
+          </g></g>
+        </svg>
+
+        <ul class="cf-annot-set">
+          <li class="cf-annot cf-annot--ne cf-annot--lit" style="--annot-x:31.25%; --annot-y:45%">
+            <span class="cf-annot__label">Lit face</span>
+          </li>
+          <!-- (120, 300), the body's left vertex. Note the leader does NOT lie
+               along either ground line through that point: a leader that lands
+               on top of an edge the drawing already carries is invisible as a
+               line, which the first placement of this note was. -->
+          <li class="cf-annot cf-annot--sw" style="--annot-x:18.75%; --annot-y:75%">
+            <span class="cf-annot__label">Side face</span>
+          </li>
+          <li class="cf-annot cf-annot--se" style="--annot-x:68.75%; --annot-y:75%">
+            <span class="cf-annot__label">Lattice cell <span class="cf-annot__value">1 u</span></span>
+          </li>
+        </ul>
+      </figure>
+    </div>
+
+    <pre class="docs-code">&lt;<span class="tag">figure</span> <span class="attr">class</span>=<span class="val">"cf-annot-fig"</span>&gt;
+
+  &lt;!-- the drawing. It fills the figure, so --annot-x / --annot-y are
+       fractions of its own viewBox and nothing has to be converted --&gt;
+  &lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-iso"</span> <span class="attr">viewBox</span>=<span class="val">"0 0 640 400"</span> <span class="attr">fill</span>=<span class="val">"none"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;…&lt;/<span class="tag">svg</span>&gt;
+
+  &lt;<span class="tag">ul</span> <span class="attr">class</span>=<span class="val">"cf-annot-set"</span>&gt;
+
+    &lt;!-- x = 200 / 640, y = 180 / 400 — the vertex the note points at --&gt;
+    &lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-annot cf-annot--ne cf-annot--lit"</span> <span class="attr">style</span>=<span class="val">"--annot-x:31.25%; --annot-y:45%"</span>&gt;
+      &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-annot__label"</span>&gt;Lit face&lt;/<span class="tag">span</span>&gt;
+    &lt;/<span class="tag">li</span>&gt;
+
+    &lt;!-- with an optional measure after the note --&gt;
+    &lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-annot cf-annot--se"</span> <span class="attr">style</span>=<span class="val">"--annot-x:68.75%; --annot-y:75%"</span>&gt;
+      &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-annot__label"</span>&gt;Lattice cell &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-annot__value"</span>&gt;1 u&lt;/<span class="tag">span</span>&gt;&lt;/<span class="tag">span</span>&gt;
+    &lt;/<span class="tag">li</span>&gt;
+
+  &lt;/<span class="tag">ul</span>&gt;
+&lt;/<span class="tag">figure</span>&gt;</pre>
+
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>Required</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-annot-fig</code></td><td>yes</td><td>A <code>&lt;figure&gt;</code>. The positioning context and the container the layer is measured against. Give it no padding and no aspect ratio of its own — the drawing has to fill it exactly, or the percentages stop meaning viewBox fractions.</td></tr>
+        <tr><td><code>.cf-annot-set</code></td><td>yes</td><td>A <code>&lt;ul&gt;</code> laid over the drawing. Owns <code>--annot-u</code> and is the scroll subject the leaders are drawn against. <code>pointer-events: none</code>, so it never sits between the reader and anything below it.</td></tr>
+        <tr><td><code>.cf-annot</code></td><td>yes</td><td>One <code>&lt;li&gt;</code>, one note. Carries <code>--annot-x</code> and <code>--annot-y</code>: where on the drawing it points, as a percentage of the figure.</td></tr>
+        <tr><td><code>.cf-annot--ne</code> <code>--se</code> <code>--nw</code> <code>--sw</code></td><td>yes</td><td>Which way the leader runs. One of the four, always — the default is <code>--ne</code>.</td></tr>
+        <tr><td><code>.cf-annot--steep</code></td><td>no</td><td>Puts the leader on the steep isometric, 63.43°, instead of the shallow 26.57°. Composes with all four directions.</td></tr>
+        <tr><td><code>.cf-annot--lit</code></td><td>no</td><td>Fills the anchor cell with the light ramp. <strong>At most one per figure</strong>, and only when a figure has a subject.</td></tr>
+        <tr><td><code>.cf-annot__label</code></td><td>yes</td><td>The note. Mono, 11 px, uppercase, <code>--text-primary</code>, standing on its own rule — that rule is the shoulder the leader runs into.</td></tr>
+        <tr><td><code>.cf-annot__value</code></td><td>no</td><td>A measure after the note. Tabular figures, <code>--text-secondary</code>. Goes <em>inside</em> the label so both stand on the one rule.</td></tr>
+      </tbody>
+    </table>
+
+    <table class="docs-table">
+      <thead><tr><th>Property</th><th>Default</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>--annot-x</code> / <code>--annot-y</code></td><td><code>50%</code></td><td>Per annotation. Where the anchor sits, as a fraction of the figure — which is a fraction of the viewBox, so read the coordinate off the drawing and divide.</td></tr>
+        <tr><td><code>--annot-u</code></td><td><code>clamp(0.875rem, 3.2cqi, 1.75rem)</code></td><td>The lattice unit the leader is measured in. Reads the container, not the viewport: the same drawing in a narrow column gets a shorter leader.</td></tr>
+        <tr><td><code>--annot-mx</code> / <code>--annot-my</code></td><td><code>2</code> / <code>1</code></td><td>The step, in lattice units. The two sanctioned values are (2, 1) and (1, 2); the angle is read off them.</td></tr>
+        <tr><td><code>--annot-node</code></td><td><code>0.5rem</code></td><td>The anchor cell's width before the isometric transform squashes it.</td></tr>
+        <tr><td><code>--annot-draw</code></td><td><code>1</code></td><td>Set by the scroll animation, read by the leader and the label. 1 is the finished annotation, which is also what everything that cannot animate gets.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="directions">
+    <h2>Four directions, two slopes</h2>
+    <p>
+      A leader may run in eight ways and no others. Technical drawing has required for a
+      century that a leader be neither horizontal nor vertical, so the reader can tell it
+      from the object it points at; this brand sanctions four angles, two of which are
+      oblique. The two rules land on the same drawing.
+    </p>
+
+    <div class="docs-demo docs-demo--plain">
+      <figure class="cf-annot-fig">
+        <svg viewBox="0 0 640 260" fill="none" aria-hidden="true">
+          <path d="M240 130L320 90L400 130L320 170Z" stroke="#000" stroke-dasharray="1 4"/>
+        </svg>
+        <ul class="cf-annot-set">
+          <li class="cf-annot cf-annot--nw"><span class="cf-annot__label">nw</span></li>
+          <li class="cf-annot cf-annot--ne"><span class="cf-annot__label">ne</span></li>
+          <li class="cf-annot cf-annot--sw"><span class="cf-annot__label">sw</span></li>
+          <li class="cf-annot cf-annot--se"><span class="cf-annot__label">se</span></li>
+        </ul>
+      </figure>
+    </div>
+
+    <div class="docs-demo docs-demo--plain">
+      <figure class="cf-annot-fig">
+        <svg viewBox="0 0 640 260" fill="none" aria-hidden="true">
+          <path d="M240 130L320 90L400 130L320 170Z" stroke="#000" stroke-dasharray="1 4"/>
+        </svg>
+        <ul class="cf-annot-set">
+          <li class="cf-annot cf-annot--nw cf-annot--steep"><span class="cf-annot__label">nw steep</span></li>
+          <li class="cf-annot cf-annot--ne cf-annot--steep"><span class="cf-annot__label">ne steep</span></li>
+          <li class="cf-annot cf-annot--sw cf-annot--steep"><span class="cf-annot__label">sw steep</span></li>
+          <li class="cf-annot cf-annot--se cf-annot--steep"><span class="cf-annot__label">se steep</span></li>
+        </ul>
+      </figure>
+    </div>
+
+    <div class="docs-note">
+      <strong>The angle is read off the step, not typed in.</strong> A leader is declared
+      as <em>two across and one down</em> — a lattice step, the same vector every object in
+      this system is built from — and the stylesheet takes its slope from that step with
+      <code>atan2(--annot-my, --annot-mx)</code>. (2, 1) resolves to 26.565° and (1, 2) to
+      63.435°: the only two obliques the brand owns, and the only two a leader can be. A
+      leader that is off the lattice is not expressible.
+      <br><br>
+      This is the first place the system states an isometric angle as the <em>ratio</em> it
+      has always been rather than as a rounded degree. It is worth saying what that buys and
+      what it does not: 26.57° against 26.565° is 0.005° and no screenshot will ever show
+      it. What it buys is that the two numbers cannot come apart — change the step and the
+      slope follows, where before a leader could be moved onto a different step and keep the
+      old angle. Trigonometric functions have been Baseline since March 2023 and
+      <code>sqrt()</code> since December 2023; both literals stay in place as the fallback,
+      because an angle is not a place to find out a browser is old.
+    </div>
+
+    <div class="docs-note">
+      <strong>Left is a mirror, not a second angle.</strong> The leader carries
+      <code>scaleX(±1)</code> ahead of its rotation, so <code>--nw</code> is
+      <code>--ne</code> reflected rather than a separately stated −153.435°. Four
+      directions, one angle, and no arithmetic anywhere that could put the left pair on a
+      slope the right pair is not on.
+    </div>
+  </section>
+
+  <section class="docs-section" id="construction">
+    <h2>How it is constructed</h2>
+    <p>
+      Nothing here is a new shape. The anchor is the lattice cell, the leader is a lattice
+      step, the shoulder is the label rule the section header and the prose note already
+      use, and the light is the light layer doing the job the manual gives it.
+    </p>
+
+    <div class="docs-note">
+      <strong>The shoulder is the label's own rule, and that is what keeps this inside
+      <a href="../foundations/geometry.html#where-lines-go">where a line may go</a>.</strong>
+      Every line in this system is an edge, a division or a label rule. A leader is the
+      third: a mono label with the hairline running out of it, so the line and the word are
+      one mark. Drafting practice arrives at the same drawing from the other end — it asks
+      for a level elbow at the note end so the text is not read at an angle — and the label's
+      own underline <em>is</em> that elbow. What the component must never become is the bar
+      beside a block, which is the decoration that rule bans by name: a leader always has an
+      object at one end and a word at the other.
+    </div>
+
+    <div class="docs-note">
+      <strong>The label is placed by its bottom edge.</strong> Not by its top, and not by
+      its centre. A leader arriving from below has to end at the shoulder rather than at the
+      cap line, or the line stops in the middle of nothing and the two marks come apart. One
+      rule — <code>bottom: u × my × −sy</code> — puts the underline at the end of the leader
+      in all four directions, which is why the four directions need no separate label rules
+      between them.
+    </div>
+
+    <div class="docs-note">
+      <strong>The anchor is a cell, drawn as a border.</strong> It carries
+      <code>--iso-transform</code>, so the mark at 8 px is the same 2:1 rhombus the ground
+      is tiled with at 120 — not a dot, and not a 45° diamond, which is what a square turned
+      45° would give and what the isometry is not. It is drawn out of <code>border</code>
+      rather than a fill for the reason the radio's mark is: forced-colours mode discards
+      <code>background-color</code> and maps border colours into its own palette. In forced
+      colours the lit rung loses its ramp and every annotation is drawn identically, which
+      is correct — the lit rung is emphasis, and emphasis is exactly what that mode is
+      allowed to drop. That mode also gets the <em>finished</em> annotation rather than a
+      frame of one: it exists to guarantee legibility, and an opacity ramp is the one thing
+      it cannot guarantee.
+    </div>
+
+    <div class="docs-note">
+      <strong>The layer is measured against the drawing, never against the screen.</strong>
+      <code>--annot-u</code> reads <code>cqi</code> off the figure, so the leader is a
+      proportion of the object it points at. A 640-unit drawing in a 400 px column and the
+      same drawing full-bleed get leaders that look the same length relative to what they
+      are labelling, which a viewport unit cannot do.
+    </div>
+  </section>
+
+  <section class="docs-section" id="rungs">
+    <h2>Two rungs: contour, and the one you are on</h2>
+    <p>
+      This is <a href="../foundations/found.html">the found state</a> one scale up. There it
+      is a word: every match carries the ground line, the current one carries light behind
+      it. Here it is a part of an object: every annotation is drawn in contour, and the one
+      the figure is about carries the light in its anchor cell.
+    </p>
+    <p>
+      That settles the lime budget without an exception, the same way the found state does.
+      One lime moment per screen is a rule about composition, and a figure with six
+      annotations composes one lit anchor and five contoured ones. It also settles what the
+      lit rung may <em>mean</em>: it is the subject, never a category. Two lit anchors is a
+      legend carried by a colour, in a component that has no legend.
+    </p>
+    <div class="docs-note">
+      <strong>A figure that has no subject gets no lit annotation at all.</strong> The 404
+      page is the shipped case: its empty socket is already the one lit element in the
+      drawing, so the annotation that names it is drawn in contour. The light is spent on
+      the object, and the note points at the light rather than competing with it.
+    </div>
+  </section>
+
+  <section class="docs-section" id="accessibility">
+    <h2>What makes it readable</h2>
+    <table class="docs-table">
+      <thead><tr><th>Rule</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>The notes are a list, and the drawing is <code>aria-hidden</code></td>
+          <td>
+            Each annotation is real text in a real <code>&lt;li&gt;</code>, so the figure
+            reaches the accessibility tree as a list of the parts it names. There is no
+            second copy of that text to drift out of step with the picture — the same
+            posture as <a href="plot.html">the plot</a>.
+          </td>
+        </tr>
+        <tr>
+          <td>Below 28 rem of figure the layer becomes a legend</td>
+          <td>
+            A callout needs clear ground to point into and a 320 px drawing has none.
+            Rather than overlap two notes, the set flows under the figure as a row of marks
+            and words. The label rule goes with the leader: an underline with no line
+            running into it is not a label rule, it is decoration — and at that size it
+            would be mistaken for a link.
+          </td>
+        </tr>
+        <tr>
+          <td>Nothing is carried by the lit rung alone</td>
+          <td>
+            The lit anchor marks the subject the caption is already about in words. Never
+            use lit and unlit to mean two kinds of thing.
+          </td>
+        </tr>
+        <tr>
+          <td>Contrast is carried by the contour</td>
+          <td>
+            Labels are <code>--text-primary</code> (11.9:1 on the wash at its darkest end)
+            and the leader and anchor are <code>--border-strong</code>, black — well past
+            the 3:1 a UI contour owes. The lime in a lit anchor is a fill inside a black
+            contour, so it carries none of that figure.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="motion">
+    <h2>The leader draws itself</h2>
+    <p>
+      As the figure settles, each leader grows out of its anchor and its note fades up with
+      it. One registered number, <code>--annot-draw</code>, is animated on a view timeline
+      and read by both, so the line and the word cannot fall out of step.
+    </p>
+    <p>
+      The range opens at 45 % of the figure's cover — after <code>.cf-iso</code> has
+      arrived (5–30 %) and after its own construction nodes have faded up (35–50 %). The
+      drawing is finished before it is labelled, which is the order the two things happen in
+      on paper. It is scrubbed from scroll position rather than played on a timer, so
+      scrolling back up un-draws the leaders, and every path that cannot run it —
+      no <code>@property</code>, no view timeline, reduced motion, print — lands on the
+      finished annotation.
+    </p>
+  </section>
+
+  <section class="docs-section" id="dos">
+    <h2>Do and don't</h2>
+    <table class="docs-table">
+      <thead><tr><th>Do</th><th>Don't</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Point at a feature the drawing actually draws — a vertex, an edge, a face.</td>
+          <td>Point at empty space, or at a part the object does not distinguish. A leader
+            that terminates on nothing is a line that is neither an edge, a division nor a
+            label rule.</td>
+        </tr>
+        <tr>
+          <td>Keep it to two or three notes on one object.</td>
+          <td>Label every vertex. An annotated drawing that needs eight notes is a diagram
+            that has not been simplified yet.</td>
+        </tr>
+        <tr>
+          <td>Send the leader into clear ground.</td>
+          <td>Run a note across the object it is labelling, or across another leader. The
+            component places what it is told to place; where there is room is a drawing
+            decision.</td>
+        </tr>
+        <tr>
+          <td>Set the note in one or two words.</td>
+          <td>Write a sentence. The label is the mono face at 11 px uppercase; prose belongs
+            in the <code>&lt;figcaption&gt;</code>.</td>
+        </tr>
+        <tr>
+          <td>Light the anchor the figure is about, if the drawing has not already spent its
+            light.</td>
+          <td>Light two, or light one on a drawing that already carries a lit element.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="open">
+    <h2>Still open</h2>
+    <ul>
+      <li>
+        <strong>No plate in <code>assets/source/manual/</code> draws a callout.</strong>
+        The 22 plates in the curated slice cover the icon system, the line types, the
+        materials, the lattice and the colour system, and none of them annotates a drawing.
+        Everything here is therefore derived from parts the manual <em>does</em> establish —
+        the lattice cell, the two oblique angles, the label rule, the light layer, the
+        presence ladder — and from drafting convention where the manual is silent. If the
+        full archive holds a plate that annotates an object, that plate wins.
+      </li>
+      <li>
+        <strong>The pending rung is not drawn.</strong> The
+        <a href="arrival.html">presence ladder</a> would say a note that has not arrived is
+        the same note one rung down — the leader in 1-4 rather than solid. Nothing dynamic
+        needs it yet, and a state with no consumer is a drawing nobody has looked at.
+      </li>
+      <li>
+        <strong>No multi-segment leader.</strong> Drafting allows a leader to turn once on
+        its way to the note. Two lattice steps in series would stay inside the language, and
+        nothing has needed the reach yet.
+      </li>
+      <li>
+        <strong>Placement is authored, not solved.</strong> The component knows nothing
+        about what is under a note. A collision detector would need to measure rendered
+        geometry, which needs a browser — the same boundary
+        <a href="../README.md">the checkers</a> draw between what a script can settle and
+        what it cannot.
+      </li>
+    </ul>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>
