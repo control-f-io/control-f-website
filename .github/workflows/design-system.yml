@@ -403,6 +403,28 @@ name: Design system checks
 # check-local-thresholds.py draws around PX DEBT. patterns/ is clean today;
 # seven unfloored track lists live in the other two, printed every run so they
 # are a number somebody can act on rather than a hole nobody can see.
+#
+# The build arrival is the thirty-second, and the one this directory has now had
+# to be told three times. foundations/motion.html stated the rule backwards, in
+# as many words — "everything is finished by the time the object reaches the
+# middle of the viewport ... the last range ends at cover 50 %, which is exactly
+# that moment" — and every number in it was right. A cover range spans vh + h and
+# the element is centred at (h + vh) / 2 into it, so both heights cancel and the
+# centred moment is cover 50 % at every viewport: "ends by 50" and "is over
+# before anybody looks at it" are the same sentence. The designer met a finished
+# drawing twice and said so twice; the ranges were retimed twice, by hand, and
+# nothing held them.
+#
+# What makes it a check rather than a third retime is that neither retime could
+# have been trusted anyway. The state that matters is the RENDERED one — these
+# animations carry --ease-out, so a figure two thirds through its window reads
+# 78 % built — and the measure has to be INK, each stroke weighted by its own
+# length, because a mean over parts is a different quantity every time the
+# drawing is redrawn. The landing page's flow went from ten strokes to
+# thirty-seven in an ordinary correct change, and the envelope it inherited went
+# from 67 % of its ink at the centred moment to 78 % while its part mean barely
+# moved. The script resolves the cubic-bezier out of tokens.css and the lengths
+# out of the markup's own `d`, so both halves are computed rather than recorded.
 
 on:
   push:
@@ -547,3 +569,7 @@ jobs:
       - name: Page-local grid tracks
         if: '!cancelled()'
         run: python3 scripts/check-page-local-tracks.py
+
+      - name: Build arrival
+        if: '!cancelled()'
+        run: python3 scripts/check-build-arrival.py
