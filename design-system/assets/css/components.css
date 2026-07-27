@@ -2225,10 +2225,60 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  /* CENTRED IS THE DEFAULT, AND space-between IS THE EXCEPTION — which is the
+     opposite of how this rule was written, and the reason the wall was wrong at
+     every width a phone or a tablet has.
+
+     `justify-content: space-between` justifies EVERY line, and the last line of
+     a wrapped row is the one line that must never be justified: it holds the
+     remainder, and space-between spreads that remainder across the full measure.
+     Seven marks wrap to 6 + 1 at a 768 px viewport, and the one mark left over
+     sat flush left with 614.9 px of empty row beside it — 90 % of the wall. At
+     375 it was 3 + 3 + 1 and 265.1 px, at 320 2 + 2 + 2 + 1 and 211.4 px. None
+     of it is visible above 862, where the seven fit on one line and there is no
+     last line to strand, which is why a rule that is wrong at three of the four
+     widths this system tests looked right every time anybody opened it.
+
+     The same declaration also meant the gap token never governed. space-between
+     stretches each row to the measure, so the 48 px written here was only ever a
+     minimum that nothing hit: the marks actually sat 133–162 px apart at 320,
+     59–69 at 375 and 54 at 768 — a different rhythm on every row of every width.
+     Centred, --space-12 is the real distance between two marks everywhere.
+
+     THE THRESHOLD IS NOT A NEW ONE. Seven marks plus six gaps need 767.2 px of
+     wall; binary-searched, the wall wraps at a container of 767.2 and holds one
+     line at 768.1. 48rem — 768 px, already in the register for .cf-value-row —
+     lands inside that 0.9 px window, so the number the design needs is a number
+     the system had. Above it the wall is one line and justifying it to the
+     measure IS the design; below it there is always a remainder.
+
+     It asks the CONTAINER, per the rule in the register: .container is the query
+     container named `layout`, so the wall reads the room it is actually in. A
+     wall placed outside a .container matches nothing and stays centred, which is
+     the safe half of the pair.
+
+     RE-MEASURE THIS ONE WHEN THE TYPEFACES LAND, and it is the only threshold in
+     the register that needs saying of. assets/fonts/ is empty on purpose —
+     base.css says to drop the .woff2 files in — so every page in this repository
+     currently renders in fallback faces, and 767.2 px is the width of seven mono
+     words in a fallback mono. Nearly every other threshold here is a container
+     query whose trip point is a box, not a string, and does not move when the
+     fonts arrive. This one is a string. If Geist Mono sets wider than the
+     fallback, the one-line width climbs past 768 and this query justifies a row
+     that has already wrapped — which is exactly the bug above, confined to a
+     band.
+
+     THE ERROR IS ASYMMETRIC AND THAT IS WHY 48rem AND NOT LOWER. A threshold set
+     too high only centres a row that could have been justified, which costs some
+     air at the ends. Too low strands a mark. If the re-measurement is ambiguous,
+     round up. → foundations/mobile.html#logo-wall */
+  justify-content: center;
   gap: var(--space-12);
   /* The section header above owns the air; the section owns the air below. */
   padding-block: 0;
+}
+@container layout (min-width: 48rem) {
+  .cf-logo-wall { justify-content: space-between; }
 }
 .cf-logo-wall img {
   height: 1.75rem;
