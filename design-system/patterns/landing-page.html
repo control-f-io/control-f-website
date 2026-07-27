@@ -134,8 +134,17 @@
          at each edge, with 01 standing over empty wash. Written here it is
          inherited by all three rows of .cf-pin__inner — see the component's
          own note, which carries the measurements. The number is unchanged;
-         only who reads it is. */
-      .lp-proc-stage { --pin-measure: calc((100vh - 13rem) * 2); }
+         only who reads it is.
+
+         AND IT IS DECLARED ONCE, HERE, FOR EVERY BOX THAT HAS TO AGREE WITH
+         THE CARD — which turned out to be four boxes and not three. The three
+         rows of .cf-pin__inner read it through --pin-measure; .lp-flow, a
+         section above, reads --lp-measure directly, because the drops it draws
+         land on the frame that IS this card's border. See the flow's own note
+         for what missing that cost, and for the one thing the measure cannot
+         also buy. */
+      main { --lp-measure: calc((100vh - 13rem) * 2); }
+      .lp-proc-stage { --pin-measure: var(--lp-measure); }
       /* AND THE SAME FINDING ON THE OTHER AXIS. The note above is about the
          chrome running WIDER than the card; this is the chrome drifting AWAY
          from it as the viewport gets taller, and it is the larger of the two.
@@ -417,19 +426,92 @@
       /* THE FLOW: the data leaving the void and growing down into the frame, as
          a root rather than as a bus. Anchored to the figure rather than placed
          against it — top 50% is the void's own centre (its y is 210 of the
-         band's 420 units), the width is the figure's, and the height falls out
-         of the aspect ratio. Because this element and the statement band are
-         the same width on the same 1200-unit basis, a branch is plumb under the
-         lattice column it left; and because the plate is that width too, flow
-         x 0, 600 and 1200 land on frame x 0, 500 and 1000 with nothing in the
-         CSS asserting it.
+         band's 420 units) — and its WIDTH is the frame's, which is the whole of
+         the fix below and was the one thing this note used to get wrong.
+
+         WHAT IT SAID, AND WHERE IT STOPPED BEING TRUE. "Because this element
+         and the statement band are the same width on the same 1200-unit basis,
+         a branch is plumb under the lattice column it left; and because the
+         plate is that width too, flow x 0, 600 and 1200 land on frame x 0, 500
+         and 1000 with nothing in the CSS asserting it." The first clause holds.
+         The second stopped holding the day --pin-measure was written, and it
+         survived a rewrite of the drawing because it is a fact about the BOX,
+         not about the paths: the plate is no longer the container's width
+         wherever the height cap binds. It is the same finding as the note on
+         .lp-proc-stage, one section up the page and one element further out —
+         the card narrowed, and a thing drawn to meet it did not follow.
+         Measured, flow x 0 against frame x 0 (x 1200 / x 1000 is its mirror,
+         x 600 is centred and was always right):
+
+           1024 x 900     0     the height cap does not bind
+           1280 x 800     0     the crossover
+           1280 x 768    11
+           1366 x 768    49
+           1280 x 720    59
+           1440 x 720   129     every laptop, and the worst of them
+
+         129 px is not a seam. The root has three PINNED taproots and no free
+         end; two of the three are meant to land in the frame's top corners. At
+         1440 x 720 the left one landed 129 px outside the corner and carried on
+         past the rail, so the frame's left vertical grew down from a point
+         nothing had arrived at while a terminal hung beside the box with
+         nothing under it. The relay's whole premise — each vertical continues
+         the branch that lands on it, in the order they land, which is what --a
+         is — was false at every viewport in that band. Zero at 900 of height,
+         zero at 1080, zero above 800 at 1280: a composition that was right at
+         the three sizes anyone checks and wrong at the ones people own.
+
+         SO THE FLOW TAKES THE STAGE'S MEASURE. One declaration for both, up
+         with the derivation, and the three arrivals are exact at every size the
+         gate admits. check-flow-terminals.py is unaffected: it holds the
+         markup's 37 paths to the generator's units, and units are what this
+         leaves alone.
+
+         WHAT THE MEASURE CANNOT ALSO BUY, stated so it is not rediscovered as
+         a bug. Four points want to be right: the trunk at x 330 under the void,
+         and the three taproots at x 0, 600, 1200. A box has two degrees of
+         freedom — where it starts and how wide it is — and the three arrivals
+         use both of them exactly (start at the frame's left, span the frame).
+         The trunk is then over-determined, and it lands 0.225 x (container -
+         measure) right of the void's centre: 26 px at 1280 x 720, 58 px at
+         1440 x 720, under half a pixel everywhere the cap does not bind.
+
+         And the trunk still leaves the void, which is what makes the trade
+         payable. It starts at y 84 of a box whose y 0 is the void's own centre,
+         and the void is a disc of about 88 flow units — so at the full measure
+         it breaks the rim at the bottom, and at 1440 x 720 it breaks it at
+         sqrt(58^2 + 72^2) = 92 px from a 94 px radius: the same rim, 39 degrees
+         round it. Off-centre, not off the void.
+
+         Traded deliberately, and in this direction: a departure from another
+         point on the rim reads as the same drawing, and a taproot ending beside
+         the lectern does not. There is no third answer — the two constraints
+         are inconsistent, not merely untuned.
 
          It carries its own view timeline: the frame's is --cf-pin, which is
          scoped to that section's subtree and cannot be read from here. The two
-         are tuned to meet — measured, the last terminal lands within a few
-         pixels of scroll of the first vertical's ignition — and both are
-         scrubbed, so backing up ungrows the frame and then the flow, in that
-         order.
+         are tuned to meet — the last terminal lands within a few pixels of
+         scroll of the first vertical's ignition — and both are scrubbed, so
+         backing up ungrows the frame and then the flow, in that order.
+
+         THE MEASURE MOVES THAT MEETING, because the flow's own timeline is its
+         own height and its height falls out of its width. Sampled every 10 px
+         of scroll, first vertical minus last terminal, before and after:
+
+           1024 x 900    -40 / -40      unchanged, the cap does not bind
+           1280 x 900    -40 / -40      unchanged
+           1920 x 1080   +30 / +30      unchanged
+           1280 x 720    -20 / +20
+           1440 x 720    -20 / +70
+
+         So the handover is 90 px of scroll later at 1440 x 720, 40 later at
+         1280 x 720, and identical at every viewport where the cap does not
+         bind. Against an approach of some 2,000 px and a step of about 1,150,
+         ±70 is still inside "a few pixels of scroll" in the only sense that
+         phrase has ever meant here.
+
+         Recorded because a geometry fix that quietly retimes a handover is the
+         next lane's bug.
 
          GROWN BY SCALE, NOT BY DASH. See the .lp-frame path note: a dashed
          draw under non-scaling-stroke stops at the render scale and stays
@@ -441,8 +523,16 @@
         display: block;
         position: absolute;
         top: 50%;
-        left: 0;
-        width: 100%;
+        /* THE FRAME'S BOX, CENTRED THE WAY THE FRAME IS CENTRED. min() rather
+           than max-inline-size because the used width has to be readable by
+           the translate below, and translate rather than auto margins for the
+           reason .cf-pin__inner gives one property over: `margin-inline: auto`
+           is (0,1,0) and loses to any reset that sets `margin` on the element
+           it lands on. Nothing here animates transform, so the standalone
+           translate is nobody else's property. */
+        left: 50%;
+        width: min(100%, var(--lp-measure));
+        translate: -50% 0;
         aspect-ratio: 1200 / 620;
         pointer-events: none;
         view-timeline-name: --lp-flow;
