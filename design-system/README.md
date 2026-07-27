@@ -39,10 +39,10 @@ design-system/
 │                           illustration, logo, photo, motion, mobile
 ├── components/             buttons, nav, section header, statement + value table,
 │                           plot, process card, accordion, blog grid, subdivision
-│                           field, pagination, article + prose, team, forms,
-│                           footer, consent
+│                           field, pagination, error + empty state, article +
+│                           prose, team, forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html,
-│                           news.html, blog-artikel.html, kontakt.html
+│                           news.html, blog-artikel.html, kontakt.html, 404.html
 ├── prototypes/             scroll-animation studies — standalone, not yet system
 ├── reference.html          the designer's source material, next to what implements it
 └── assets/
@@ -226,8 +226,9 @@ header's hairline to its content.
 | **Consent copy** | The three categories, their retention periods and the entry counts on `components/consent.html` are placeholders. A lawyer signs off the wording, and the real cookie inventory replaces the numbers. |
 | **Consent record** | `localStorage` proves nothing to a supervisory authority. The decision needs logging server-side before launch. |
 | **Contact endpoint** | `patterns/kontakt.html` posts to `/kontakt` and expects the server to validate, re-render the form with the reader's values and an error summary, drop anything that filled the honeypot, and serve the whole thing over HTTPS. The phone number on the page is a placeholder. |
-| **News listing** | `patterns/news.html` is page 1 of 11 rendered flat. The server owns the paging: `?seite=N` selects the slice, `?thema=…` filters it, and both are reflected in the counters, the status line and which slot carries `aria-current`. Out of range should 404 rather than render an empty grid. |
-| **Redirects** | The old topic pages (Maschinenbau, Energie, Dienstleistungen, Experten) are gone. They need 301s to the new structure. |
+| **News listing** | `patterns/news.html` is page 1 of 11 rendered flat. The server owns the paging: `?seite=N` selects the slice, `?thema=…` filters it, and both are reflected in the counters, the status line and which slot carries `aria-current`. Out of range should 404 rather than render an empty grid; a `?thema=…` that matches nothing renders `.cf-error--inline` in place of the grid, at `200`, because an empty answer is not an error. → `components/error-state.html` |
+| **Status codes** | `patterns/404.html` is the page; the response is the server's. A missing address answers `404`, one that is deliberately gone `410`, a failure `500`. Serving the template with `200 OK` is a soft 404 — the address stays indexed and keeps being crawled. |
+| **Redirects** | The old topic pages (Maschinenbau, Energie, Dienstleistungen, Experten) are gone. They need 301s to the new structure — a redirect that is available always beats an error page that is polite. |
 
 ## Language
 
