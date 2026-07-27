@@ -1085,7 +1085,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 
 /* The open menu already used --radius-sm while the closed bar was a pill, so
    the bar changed shape on the way to the small screen. One corner now. */
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
   /* WITHOUT THE SCRIPT THE LINKS ARE SHOWN AND THE DEAD CONTROL IS NOT.
 
      A disclosure needs something to disclose it, so every rule that folds this
@@ -1399,7 +1399,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   bottom: var(--space-12);
   z-index: 1;
 }
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
   /* Dropped back into the flow it has to pick up the container's gutter, or it
      sits a gutter-width left of the headline it belongs to. */
   .cf-hero__action {
@@ -1668,7 +1668,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    viewport, 172.5 px of isometric drawing sitting behind the page title.
    Naming the parent puts the hide at (0,2,0), which wins wherever .cf-iso
    ends up in the file. → foundations/mobile.html */
-@media (max-width: 900px) {
+@media (max-width: 56.25rem) {
   .cf-page-header { padding-block: var(--space-16) var(--space-12); }
   .cf-page-header .cf-page-header__figure { display: none; }
   /* :has() matches on the element existing, not on it being painted, so both
@@ -1963,7 +1963,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-size: var(--text-md);
   color: var(--text-secondary);
 }
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
   .cf-accordion__summary { padding-left: var(--space-4); font-size: var(--text-md); }
   .cf-accordion__content { padding-left: var(--space-4); }
 }
@@ -3537,7 +3537,7 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   text-decoration: underline;
   text-underline-offset: 0.25em;
 }
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
   .cf-footer__cta { grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
 }
 
@@ -3683,13 +3683,13 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-consent__dialog .cf-check__label { color: var(--text-inverse); }
 .cf-consent__dialog .cf-check__box { border-color: var(--border-strong); }
 
-@media (max-width: 900px) {
+@media (max-width: 56.25rem) {
   .cf-consent__inner { grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
   .cf-consent__actions .cf-btn { flex: 1 1 100%; min-width: 0; }
   .cf-consent__actions .cf-btn--ghost { flex: 1 1 100%; justify-content: flex-start; }
 }
 /* A tall banner on a short screen must not eat the page it is asking about. */
-@media (max-height: 560px) {
+@media (max-height: 35rem) {
   .cf-consent { max-height: 70vh; overflow-y: auto; }
 }
 
@@ -4038,7 +4038,7 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   .cf-hero__still { display: none; }
 }
 
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
   /* The navigation is full-bleed at this width and the headline climbs, so the
      control tucks a rung closer under the bar. One custom property moves both
      the plate and the input that has to stay under it. */
@@ -4079,9 +4079,25 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-values__track { position: relative; }
 .cf-values__frame {
   display: grid;
+  /* Written out rather than left implicit, and the minmax(0, …) is the point.
+     Every explicit track in this file already carries it, because a grid track
+     sized `auto` or `1fr` will not go below its content's min-content width. An
+     IMPLICIT single-column grid gets exactly that auto track, so this frame was
+     the one grid in the system quietly exempt from the rule the rest of it
+     follows. → foundations/layout.html */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-8);
   align-items: center;
 }
+/* The track is only half of it. A grid ITEM has `min-width: auto`, which floors
+   it at its own min-content independently of how shrinkable its track is — so
+   the longest German compound in the list ("Technologie-Kompetenz") set the
+   width of the whole column. Measured at a 24 px browser default and a 320 px
+   viewport, that pushed the list to 303 px inside a 260 px column and scrolled
+   the page sideways. `min-width: 0` is the item-side counterpart to minmax(0, …)
+   and is already the idiom here — .cf-consent__actions .cf-btn carries it for
+   the same reason. */
+.cf-values__list { min-width: 0; }
 /* 11.25rem is the prototype's 180px cap, and it is the mark's real size rather
    than a limit it rarely reaches. The middle column is deliberately wider than
    the mark: the prototype gives it minmax(240px, 30vw) and then draws a 180px
@@ -4115,11 +4131,25 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-values__progress { display: none; }
 
 /* ---- pinned and scrubbed, where the browser can and the reader wants it ----
-   Gated at 820 px on purpose. The track is seven viewports of scroll; on a
-   phone that is a long hijack for copy that reads perfectly well stacked, and
-   the three-column composition has nowhere to go at that width anyway. */
+   Gated at 51.25rem — 820 px at a 16 px default — on purpose. The track is
+   seven viewports of scroll; on a phone that is a long hijack for copy that
+   reads perfectly well stacked, and the three-column composition has nowhere to
+   go at that width anyway.
+
+   THE SIXTH VIEWPORT THRESHOLD, AND THE REGISTER DID NOT HAVE IT. It was
+   `min-width: 820px` and lived in a shipping stylesheet while tokens.css listed
+   three viewport thresholds and named 820 only as a figure belonging to
+   prototypes/werte-scroll.html — which is out of scope and is a different query
+   that happens to share the number. That is the fourth time the register has
+   been caught short, and it is the first time the missing entry was hiding
+   behind a correct statement about a different file.
+
+   In rem with the rest of them: whether there is room for a pinned
+   three-column stage is a question about how big the type is, so at a 24 px
+   default this now waits for 1230 px rather than engaging at 820 with the
+   composition already too tight for it. → foundations/layout.html */
 @supports (animation-timeline: view()) {
-  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 820px) {
+  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 51.25rem) {
     .cf-values__track {
       --values-stages: 6;
       height: calc((var(--values-stages) + 1) * 100vh);

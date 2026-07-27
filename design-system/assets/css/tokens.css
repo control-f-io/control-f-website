@@ -893,6 +893,42 @@
      genuinely pinned to the viewport — the nav bar, the hero, the footer,
      the consent banner — may ask the viewport.
 
+     EVERY THRESHOLD IS IN rem, AND THAT IS THE SECOND RULE. It used to be
+     true of the container thresholds and false of the viewport ones, which
+     were px — so half the register answered to the reader's default font
+     size and half did not. That is not a style preference; it is where the
+     page broke.
+
+     A media query's rem resolves against the BROWSER's default font size,
+     not against anything an author writes on :root — so a rem threshold is
+     the only kind that tracks the reader's own preference. Every query in
+     this register is a "does this still fit" decision, and what fits
+     depends on how big the type is. A px query answers that question at a
+     text size the reader may not be using.
+
+     Measured, before the conversion, on the two designed pages with the
+     browser default set to 24 px (150 %, a common low-vision setting and
+     well inside what WCAG 1.4.4 asks for):
+
+       browser default   viewport widths that scrolled sideways
+       16 px             0
+       24 px             12   — 320–380, and a band at 792–820
+
+     The 792–820 band was the nav: it collapses to a toggle below 780 px,
+     but at a 24 px default the expanded links need 823 px, so between the
+     threshold and the fit there were 43 px of horizontal scroll on every
+     page in the system. 48.75rem is 780 px at a 16 px default — the same
+     number, to the pixel — and 1170 px at a 24 px one, which is where the
+     nav actually needs to fold. The band is gone at every default font
+     size, and nothing moves at 16 px. The 320–380 band was a different
+     fault entirely; see the note on overflow-wrap in base.css.
+
+     The conversion is arithmetic, not a re-measurement: 780 / 16 = 48.75,
+     900 / 16 = 56.25, 560 / 16 = 35. Each renders identically at the
+     default. If you ever need to change one of these numbers, change it as
+     a rem figure — reverting one to px silently opts it out of the reader's
+     preference, which is the exact bug this paragraph exists to prevent.
+
      CONTAINER thresholds — the width of the component's own container:
 
        34rem / 544   .cf-error__route folds — the 12 rem label drops above
@@ -934,19 +970,42 @@
 
      VIEWPORT thresholds — page furniture only:
 
-       780           nav collapses to a toggle; the hero action drops into
-                     the flow; the accordion loses its indent; the footer
-                     CTA folds
-       900           the page-header figure is dropped; the consent banner
-                     goes single column
-       560 (height)  the consent banner caps at 70vh and scrolls. The one
-                     height threshold in the system; it exists because a
-                     tall banner on a short screen hides the page it is
-                     asking about.
+       48.75rem / 780   nav collapses to a toggle; the hero action drops
+                        into the flow; the accordion loses its indent; the
+                        footer CTA folds
+       56.25rem / 900   the page-header figure is dropped; the consent
+                        banner goes single column
+       51.25rem / 820   the Über uns values section takes its pinned,
+                        scroll-scrubbed form. Below it the values stack and
+                        read straight through. THIS ENTRY IS THE FOURTH TIME
+                        THIS REGISTER HAS BEEN CAUGHT SHORT, and the first
+                        time the missing threshold was hiding behind a
+                        correct statement about a different file: the SCOPE
+                        list below has always named 820 as
+                        prototypes/werte-scroll.html's, which is true, out of
+                        scope, and a different query — so the figure looked
+                        accounted for while a live one in components.css was
+                        not. Reading "820 is listed" as "820 is registered"
+                        is the mistake; the register is a list of QUERIES,
+                        not of numbers.
+       35rem / 560      (height) the consent banner caps at 70vh and
+                        scrolls. The one height threshold in the system; it
+                        exists because a tall banner on a short screen hides
+                        the page it is asking about. In rem for the same
+                        reason as the widths, and it is the case where the
+                        unit matters most: enlarged type makes the banner
+                        taller while a px threshold holds the screen it is
+                        measured against still.
+
+     The px figure after each slash is what the threshold resolves to at a
+     16 px default and nothing more — the same convention the container
+     thresholds above use. It is not a second number to keep in sync.
 
      Two viewport tiers rather than one is a live question — they govern
      different objects and neither was measured off the mockups. Flagged
-     for a designer rather than reconciled here.
+     for a designer rather than reconciled here. 51.25rem now sits between
+     them, which does not settle the question but does mean any answer has
+     three widths to reconcile rather than two.
 
      There is no fourth viewport threshold. There was: .cf-error--page
      split its two columns at @media (min-width: 62rem), a figure that
@@ -972,8 +1031,14 @@
        docs.css            the documentation chrome. Does not ship to
                            control-f.de. Carries one query,
                            @media (max-width: 900px), which collapses
-                           the sidebar. Same figure as the 900 above and
-                           unrelated to it.
+                           the sidebar. It renders at the same width as
+                           the 56.25rem above at a 16 px default and is
+                           unrelated to it — and it is still px, which is
+                           now a visible difference rather than a hidden
+                           one. Left as it is deliberately: docs.css is out
+                           of scope by the rule at the head of this list,
+                           and converting it would make this register look
+                           like it governs the documentation chrome.
        inline <style>      per-page demo styles. foundations/
                            iconography.html asks a VIEWPORT 48rem where
                            48rem above is a CONTAINER threshold.
