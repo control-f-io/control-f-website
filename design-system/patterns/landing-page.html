@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Control-F — Find the answers. Make the decisions. Build the future.</title>
 <meta name="description" content="Daten- und KI-Lösungen, die komplexe Daten in messbare Ergebnisse verwandeln.">
+<!-- DECLARED BECAUSE THE BROWSER ASKS EITHER WAY. With no rel="icon" in the
+     head a browser falls back to GET /favicon.ico at the ORIGIN root, and this
+     site deploys to a subpath — so the request goes somewhere the repository
+     does not reach, 404s, and logs an error on every load at every width. It
+     was the only console message the page produced. The fix has to be the
+     declaration and not a file: nothing committed here is served at the origin
+     root, so only naming the icon stops the ask. Relative href, like every
+     other link on the page. -->
+<link rel="icon" href="../assets/img/logo/cf-favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/base.css">
 <link rel="stylesheet" href="../assets/css/components.css">
@@ -410,8 +419,27 @@
            checking the box hides the loop and shows the still, which is the
            third of the criterion's own three verbs. -->
       <input class="cf-hero__still-toggle" type="checkbox" id="cf-hero-still">
-      <video src="../assets/video/hero-abstract-art.mp4" poster="../assets/img/hero-poster.jpg"
-             autoplay muted loop playsinline aria-hidden="true"></video>
+      <!-- THE SOURCE IS GATED, AND THE GATE IS THE POINT. components.css sets
+           `.cf-hero__media video { display: none }` under prefers-reduced-motion
+           and shows the still instead — but `display: none` does not stop a
+           media element loading. With the file on the video's own src it was
+           fetched in full for a reader who by their own setting never sees a
+           frame of it: 995,398 bytes of 1,890,957 on the page, 53 %, measured
+           identical in both states. `preload="none"` does not help — autoplay
+           overrides it, measured too.
+
+           A <source> with a media attribute does, because it is the resource
+           selection algorithm and not a rendering hint: a candidate whose media
+           does not match the environment is skipped, so under reduced motion
+           currentSrc stays empty and nothing is requested. The poster is
+           already what that reader is shown, so the degraded state is
+           unchanged — it just stops paying for the loop it was never given.
+           → scripts/check-hero-video.py -->
+      <video poster="../assets/img/hero-poster.jpg"
+             autoplay muted loop playsinline aria-hidden="true">
+        <source src="../assets/video/hero-abstract-art.mp4" type="video/mp4"
+                media="(prefers-reduced-motion: no-preference)">
+      </video>
       <!-- Shown instead of the loop under prefers-reduced-motion, and whenever
            the switch above is checked. -->
       <img src="../assets/img/hero-poster.jpg" alt="" aria-hidden="true">

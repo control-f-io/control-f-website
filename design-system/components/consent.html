@@ -395,9 +395,22 @@
         must stay usable — a banner that blocks the site until you answer is a cookie wall.
       </li>
       <li>
-        It sits immediately after the skip link, so it is first in reading and tab order, and
-        focus moves to its heading once on appearance. The heading and not the accept button: nothing should be
-        pre-selected when the question is which button to press.
+        It sits immediately after the skip link, so it is the second stop in reading and tab
+        order and <strong>nothing moves focus to it</strong>. The banner used to focus its own
+        heading on appearance, which cost the stop in front of it: the skip link is earlier in
+        the document, so every forward <kbd>Tab</kbd> from inside the banner went further down
+        the page and never back. Measured on the landing page, first visit, the skip link was
+        47 <kbd>Tab</kbd> presses away at 375 px and 52 at 1280 — the whole page — against 1 on
+        a return visit with the decision stored. It is 1 again in both.
+      </li>
+      <li>
+        Nothing is lost by not moving focus. The banner is a fixed layer, so it is on screen at
+        whatever scroll position the page opens at; it is <code>role="dialog"</code> and second
+        in the document, so a screen reader arrives at it immediately after the skip link rather
+        than instead of it; and this runs at <code>DOMContentLoaded</code> on a fresh
+        navigation, where focus is at the start of the document and nobody has begun reading
+        further down. Nothing is pre-selected either, which was the other half of the old
+        reasoning and is still true: the reader arrives at the question, not at an answer.
       </li>
       <li>
         <kbd>Esc</kbd> does nothing on layer 1, deliberately. Dismissal is not an answer, and a
