@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" role="img" aria-label="Control-F wallpaper: the isometric lattice lit from the left, with the mark cropped by the right edge and filled with the light ramp">
+<title>Control-F — Feld, dark</title>
+<!--
+  16:9. Resolution-independent: the file is authored at 1920 x 1080 and
+  renders at any size, so one file covers 1080p through 5K.
+
+  Built from nothing but the system's own parts, in the order the six
+  material layers stack: opaque ground, contour (the lattice), light (the
+  ramp in the mark). There is no photograph in it and no shape that is not
+  on the lattice.
+
+  Unlike the CSS field, the contour here SCALES with the picture. A
+  wallpaper is an image, not a UI surface, so a hairline pinned to one
+  device pixel would vanish on a 5K screen instead of holding its weight.
+-->
+<defs>
+  <!-- The ground. Light arriving from the left at the height of the
+       horizon, exactly as the manual's Farben > Anwendung plate lights its
+       wallpaper panel. Schwarz to grey-800 and back; no hue, because the
+       hue in this picture is all in the mark. -->
+  <radialGradient id="ground" gradientUnits="userSpaceOnUse"
+                  cx="420" cy="560" r="1560" gradientTransform="matrix(1 0 0 .5 0 280)">
+    <stop offset="0" stop-color="#1F1F1F"/>
+    <stop offset=".55" stop-color="#0B0B0B"/>
+    <stop offset="1" stop-color="#000000"/>
+  </radialGradient>
+
+  <!-- The pool of light. A 2:1 ellipse, the isometric circle, centred on
+       the same source as the ground, so the floor is drawn only where it is
+       lit and dissolves into the black everywhere else. Same shape and same
+       0.45-at-46% plateau as field-bloom in tokens.css.
+
+       White stops with stop-opacity rather than greys: a mask's value is
+       luminance times alpha, and the luminance of white is 1, so the alpha
+       IS the mask. Grey stops would have to be linearised first. -->
+  <radialGradient id="pool" gradientUnits="userSpaceOnUse"
+                  cx="420" cy="560" r="1180" gradientTransform="matrix(1 0 0 .5 0 280)">
+    <stop offset="0" stop-color="#FFFFFF" stop-opacity="1"/>
+    <stop offset=".46" stop-color="#FFFFFF" stop-opacity=".45"/>
+    <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+  </radialGradient>
+  <mask id="lit"><rect width="1920" height="1080" fill="url(#pool)"/></mask>
+
+  <!-- One rhombus, 120 x 60, tiled. The X in the cell is the whole lattice:
+       both diagonals run on unbroken across the tile seams, which is what
+       makes this two families of 26.57 deg lines rather than a row of
+       crosses.
+
+       0.16 AND NOT THE CSS FIELD'S 0.10. That ceiling is set by the worst
+       text that has to stay readable across a lattice line. Nothing is read
+       over a wallpaper, so the ceiling does not apply, and the number that
+       does is the one where the floor is legible on a screen at arm's
+       length. The video-call file keeps 0.10, because something IS in front
+       of that one. -->
+  <pattern id="lattice" width="120" height="60" patternUnits="userSpaceOnUse">
+    <path d="M0 0 L120 60 M0 60 L120 0" fill="none"
+          stroke="#FFFFFF" stroke-opacity=".16" stroke-width="1"/>
+  </pattern>
+
+  <!-- The light ramp, at the shallow rake, so it crosses the mark along the
+       same axis foil-rake gives it in CSS. Stops and positions are the
+       spectrum's own.
+
+       THE SPECTRUM AND NOT THE FOIL, and that is where this file spends its
+       one lime moment. The precedent is the manual's app icon on the Farben
+       > Anwendung plate: a black plate whose MARK is filled with the light
+       ramp while the plate stays black. A wallpaper is that object at the
+       size of a screen, and the system already reads the plate that way for
+       the solid button, whose label is filled rather than coloured.
+
+       Because the lime is in the mark, there is no lit cell on the floor of
+       this one. One light moment per screen, and a wallpaper is a screen.
+
+       No oklab waypoint, and none is missing. #DBFC60 corrects the lime-to-
+       Glas leg, where the sRGB and oklab paths diverge by dE 0.044. This
+       ramp has no such leg: its lime runs to Weiss and Weiss runs to Glas,
+       which is the leg the system already leaves in sRGB on purpose.
+
+       COORDINATES ARE THE MARK'S OWN, not the canvas's, and that is the trap
+       the README calls out under "three things that vanish quietly": a
+       userSpaceOnUse paint server is resolved in the user space where it is
+       REFERENCED, so the group's own transform moves the gradient with it.
+       Written in canvas coordinates this ramp landed entirely off the mark
+       and every glyph clamped to the first stop. 0,0 to 600,300 is dx 2 /
+       dy 1 in the mark's 600 x 480 space, and the group's scale is uniform,
+       so it is still 26.57 deg on screen.
+
+       THE RAMP SPANS THE GLYPH, NOT ITS BOX. Projected on the 2:1 axis the
+       drawn mark runs from t 0.165 at the upper chevron's left tip to t
+       1.073 at the lower one's far corner; a ramp laid across 0 to 1 spends
+       its first sixth and its last twelfth on empty space, which on this
+       ramp means the lime end never lands on the mark at all. 100,50 to
+       644,322 is those two projections, and dx 544 / dy 272 is still 2:1. -->
+  <linearGradient id="light" gradientUnits="userSpaceOnUse"
+                  x1="100" y1="50" x2="644" y2="322">
+    <stop offset="0" stop-color="#E1FF00"/>
+    <stop offset=".18" stop-color="#FFFFFF"/>
+    <stop offset=".32" stop-color="#C5EBE2"/>
+    <stop offset=".64" stop-color="#B8D7F1"/>
+    <stop offset="1" stop-color="#BEBFF0"/>
+  </linearGradient>
+</defs>
+
+<rect width="1920" height="1080" fill="url(#ground)"/>
+<rect width="1920" height="1080" fill="url(#lattice)" mask="url(#lit)"/>
+
+<!-- The mark, 1.9x its native 600 x 480, running off the right edge. The
+     manual's own wallpaper panel crops the mark rather than centring it,
+     and cropping is what tells you the object is larger than the frame
+     instead of merely large inside it. -->
+<g transform="translate(900 120) scale(1.9)">
+  <path fill="url(#light)" d="M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 327.317C183.155 328.422 183.155 331.578 185.367 332.683L476.422 478.211C478.675 479.337 481.325 479.337 483.578 478.211L594.633 422.683C596.845 421.578 596.845 418.422 594.633 417.317L425.367 332.683Z"/>
+  <path fill="url(#light)" d="M116.422 298.211C118.675 299.337 121.325 299.337 123.578 298.211L594.633 62.6833C596.845 61.5777 596.845 58.4223 594.633 57.3167L483.578 1.78885C481.325 0.662745 478.675 0.662745 476.422 1.78885L5.36656 237.317C3.15542 238.422 3.15542 241.578 5.36656 242.683L116.422 298.211Z"/>
+</g>
+</svg>
