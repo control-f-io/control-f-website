@@ -158,6 +158,16 @@
       });
     }
 
+    /* The dialog's own name, resolved the way an assistive technology resolves
+       it: through aria-labelledby, which every page carrying this dialog
+       already sets. So there is no new contract and no markup to add — the
+       element that names the dialog is the element focus lands on. */
+    function dialogTitle() {
+      if (!dialog) return null;
+      var id = dialog.getAttribute('aria-labelledby');
+      return id ? document.getElementById(id) : null;
+    }
+
     function openDialog(trigger) {
       if (!dialog) return;
       opener = trigger || null;
@@ -169,6 +179,26 @@
         if (!dialog.open) dialog.showModal();
       } else {
         dialog.setAttribute('open', '');
+      }
+      /* AND THEN THE HEADING, for the same reason showBanner focuses the
+         banner's: nothing is pre-selected, and the reader meets the question
+         before the answers. showModal's own rule is the first tabbable
+         descendant, and in this dialog that is the "Alle Einträge im Detail"
+         link in the explanation — so opening the settings put a keyboard or
+         screen-reader user PAST the dialog's name and past the sentence saying
+         what it decides, on a link that leaves the page. Measured: on open,
+         document.activeElement was a[href="datenschutz.html#cookies"], and
+         Enter — the key that had just opened the dialog — navigated away from
+         the decision.
+         The banner has done this since it was written; its own comment gives
+         the reason. This is the second half of that rule, in the layer where
+         the choice actually gets made. tabindex is set here rather than in the
+         markup so no page has to be edited to gain it, and -1 keeps the
+         heading out of the tab sequence it is now the head of. */
+      var title = dialogTitle();
+      if (title) {
+        if (!title.hasAttribute('tabindex')) title.setAttribute('tabindex', '-1');
+        title.focus();
       }
     }
 
