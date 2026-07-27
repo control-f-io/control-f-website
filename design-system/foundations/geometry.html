@@ -49,14 +49,46 @@
         </figure>
         <figure style="margin:0;display:grid;place-items:center">
           <div class="square-demo iso"></div>
-          <figcaption>+ scaleY(.5) = 2:1</figcaption>
+          <figcaption>+ scaleY(.5) = the tile</figcaption>
         </figure>
       </div>
     </div>
-    <pre class="docs-code"><span class="attr">--iso-transform</span>: <span class="val">rotate(45deg) scaleY(0.5)</span>;
+    <p>
+      The 2:1 is the tile's <strong>width to height</strong>, not the ratio of its edges.
+      All four edges stay equal — a rhombus, not a slab — and each of them lands on
+      <strong>26.57°</strong>, which is where the brand angles in the next section come
+      from. On a 200 px square: four edges of 158.11 px, a bounding box of 200 × 100.
+    </p>
+    <pre class="docs-code"><span class="attr">--iso-transform</span>: <span class="val">scaleY(0.5) rotate(45deg)</span>;
 
 <span class="com">/* as a utility */</span>
 .iso { <span class="attr">transform</span>: <span class="val">var(--iso-transform)</span>; <span class="attr">transform-origin</span>: <span class="val">center</span>; }</pre>
+    <div class="docs-note docs-note--warn">
+      <strong>The order is the whole transform, and it was the wrong way round.</strong>
+      <p>
+        A CSS transform list composes right to left in the element's own axes, so
+        <code>rotate(45deg) scaleY(0.5)</code> squashes <em>first</em> — along the
+        square's own vertical, turning it into a 2:1 rectangle — and then tilts that
+        rectangle 45°. What came out was a slab with two long edges and two short ones,
+        which is what this demo used to show. An isometric projection squashes along the
+        <em>screen's</em> vertical, so the rotation has to happen first.
+      </p>
+      <div class="docs-table-scroll">
+      <table class="docs-table">
+        <thead><tr><th>Order</th><th>Edges</th><th>Edge angles</th><th>Bounding box</th></tr></thead>
+        <tbody>
+          <tr><td><code>rotate() scaleY()</code></td><td>200 / 100 / 200 / 100</td><td>±45°</td><td>1:1</td></tr>
+          <tr><td><code>scaleY() rotate()</code></td><td>158.11 × 4</td><td>±26.57° / 63.43°</td><td><strong>2:1</strong></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>
+        The giveaway is the third column of the first row. The old value produced no
+        26.57° anywhere on the shape, while the section below it says the 2:1 ratio is
+        exactly where that angle comes from — a token contradicting its own
+        documentation two headings later.
+      </p>
+    </div>
   </section>
 
   <section class="docs-section" id="angles">
