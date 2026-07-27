@@ -2045,15 +2045,78 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 /* The rim, and it belongs to the material rather than to the card. Above the
    content rather than under it, so it survives a card whose first line starts
    at the padding edge, and pointer-transparent so it cannot eat a click on
-   anything inside. */
+   anything inside.
+
+   TWO LAYERS ON ONE PIXEL, the same construction .cf-nav::after carries: the
+   specular parked off the left edge, over the designed rim. -70 % and 170 %
+   are the off-canvas endpoints for a band 40 % of the container wide — a
+   layer positioned at P is offset by P x (container - image), so at 40 %
+   width the band's edges sit at -0.42W and -0.02W. Written as background-image
+   plus explicit repeat, size and position rather than the shorthand, so a
+   later reader can see that at rest this rule paints --glass-edge and nothing
+   else.
+
+   THIS IS THE THIRD GLASS SURFACE JOINING THE OTHER TWO. The nav's rim fades
+   in and its band crosses, both scrubbed by scroll; .cf-btn--glass answers the
+   pointer with --cf-specular. This one had a rim that never moved — and it is
+   the one surface in the system the reader is guaranteed to be moving past,
+   because its only shipping use is a pinned stage they scroll through. The
+   comment on cf-nav-rim asks a later run to put sheet response on the rim
+   layer and not on the sheet; this is that run, and this is that layer. */
 .cf-info-card--glass::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
   height: var(--stroke-1);
-  background-image: var(--glass-edge);
+  background-image: var(--glass-rim-light), var(--glass-edge);
+  background-repeat: no-repeat, no-repeat;
+  background-size: 40% 100%, 100% 100%;
+  background-position: -70% 0, 0 0;   /* parked off the left edge */
   pointer-events: none;
   z-index: 1;
+}
+
+/* The band crosses as the card passes the reader, once per pass, scrubbed by
+   position rather than by a timer — so it tracks their hand and runs backwards
+   on the way up. view() and not scroll(root), because this is a component: a
+   card halfway down a long document would have had its light cross while it
+   was still off screen. Each instance gets its own pass through its own
+   viewport crossing.
+
+   `screen and` is load-bearing, not decoration. foundations/motion.html states
+   that every scroll-driven animation must be scoped to screen, because a paged
+   medium has no scroll and a `both`-filled animation there holds its `from`
+   keyframe — which here would print the band frozen mid-crossing on a surface
+   that should be at rest. Print never applies it and the parked rest position
+   above is what draws.
+
+   ON THE RIM AND NOT ON THE SHEET, for the reason cf-nav-rim gives: fading or
+   sliding anything across a backdrop-filtered layer re-rasterises its blur
+   every frame. This is one pixel of unblurred gradient, so the travel is free.
+
+   The plate on patterns/expertise.html overrides the timeline — it sits inside
+   a sticky-pinned stage, so its own view progress stalls at the moment the
+   reader starts moving through it, which is exactly the wrong moment. */
+@supports (animation-timeline: view()) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .cf-info-card--glass::before {
+      animation: cf-info-card-rim linear both;
+      animation-timeline: view();
+    }
+  }
+}
+/* background-position is a list property, so both layers restate in each
+   keyframe. The second pair is the designed rim and never moves. */
+@keyframes cf-info-card-rim {
+  from { background-position: -70% 0, 0 0; }
+  to   { background-position: 170% 0, 0 0; }
+}
+/* Forced colours computes every gradient background-image to `none`, so this
+   element — which IS its background-image, 1 px tall with nothing else to
+   paint — loses the rim entirely. Redrawn as a border, the only paint the mode
+   keeps. Same idiom as .cf-nav::after and .material-glass-edge. */
+@media (forced-colors: active) {
+  .cf-info-card--glass::before { border-top: var(--stroke-1) solid CanvasText; }
 }
 
 .cf-info-card__count { color: var(--text-muted); }

@@ -1475,11 +1475,45 @@
 
      Blur radius is 16 px. Larger reads no better and costs more.
 
-     Two blurred layers exist and no more: the navigation band and the hero
-     button. They DO overlap, unavoidably — the CTA is on the first screen
-     and the bar is sticky, so the button passes under it on the way out.
-     Measured at 1280x900 on the landing page: the sheet occupies 0..108 of
-     the viewport (84 px bar plus the 24 px lookahead) and the button
+     THE BUDGET IS PER PAGE, AND IT IS TWO. Never a third — blurred area is
+     the whole cost of this material, and the count of simultaneously blurred
+     layers is the first thing to cut when scrolling stutters.
+
+     THREE SURFACES CARRY THE BLUR, which is not the same number and the
+     distinction is the point. This comment used to read "two blurred layers
+     exist and no more: the navigation band and the hero button", written when
+     that was a complete list. It stopped being one when .cf-info-card--glass
+     shipped, and a stale enumeration is worse than none, because the next run
+     in this lane reads it as permission to add the surface it thinks is
+     missing. The three, and where each is allowed:
+
+       .cf-nav::before          every page. Always one of the two.
+       .cf-btn--glass           the hero CTA. One per page.
+       .cf-info-card--glass     one card per page, and only a card standing on
+                                something the reader can still see through it.
+
+     So a shipping page spends the nav plus at most one of the other two, and
+     no shipping page spends more. DO NOT TAKE THAT ON TRUST AND DO NOT COUNT
+     IT BY HAND: scripts/check-glass-budget.py already enforces it, and it
+     derives what counts as glass by reading every backdrop-filter rule out of
+     these three stylesheets rather than from a list. A fourth frosted surface
+     therefore enters the budget by existing. The list above is prose for a
+     reader; the script is the thing that fails.
+
+       python3 scripts/check-glass-budget.py
+
+     It also holds the two rules underneath this one: every backdrop-filter
+     reads --glass-blur rather than writing its own radius, and nothing
+     scroll-driven moves ON a blurred layer. That second one is why all three
+     surfaces put their travelling light on an unblurred 1 px rim beside the
+     sheet instead of on the sheet — see .cf-nav::after, .cf-btn--glass::before
+     and .cf-info-card--glass::before, which are the same construction three
+     times.
+
+     THE NAV AND THE HERO BUTTON DO OVERLAP, unavoidably — the CTA is on the
+     first screen and the bar is sticky, so the button passes under it on the
+     way out. Measured at 1280x900 on the landing page: the sheet occupies
+     0..108 of the viewport (84 px bar plus the 24 px lookahead) and the button
      intersects it from scrollY 628 to 776, sitting entirely inside it from
      672 to 732. About 150 px of scroll with two stacked backdrop-filters.
 
@@ -1487,8 +1521,7 @@
      never overlap, and a later run would have planned against a guarantee
      the system does not have. It costs nothing measurable — sweeps through
      the overlap window and through clear page produce the same median
-     (16.7 ms) and overlapping p95 ranges — so the rule to keep is the one
-     that pays: exactly two blurred layers on a page, never a third. */
+     (16.7 ms) and overlapping p95 ranges. */
   --glass-blur:       blur(16px) saturate(1.08);
   --glass-border:     1px solid rgba(255, 255, 255, 0.55);
 
