@@ -1361,10 +1361,30 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   inset: 0;
   background: var(--hero-scrim);
 }
+/* THE COLUMN IS AS WIDE AS ITS OWN TYPE, and it used to be `max-width: 44ch`.
+   `ch` is font-relative and resolves against the element it is declared on —
+   this box is set at 14 px, so the clamp landed at 342.59 px, and then governed
+   a headline set at 64 px. The same trap .cf-prose already documents at the
+   prose track, one component further down, sprung here in the opposite
+   direction: there a 66ch on an h2 came out too wide, here a 44ch on a 14 px
+   wrapper came out far too narrow for the display face it was sizing.
+
+   What shipped: the headline's three authored <br> breaks were re-wrapped into
+   SIX lines at every width from 768 up, and the kicker, one line on the plate,
+   ran to two at every width including 375. The mockup draws three lines and one
+   kicker line. The markup already says exactly where the headline breaks; the
+   stylesheet was overruling it with a number that had nothing to do with the
+   type.
+
+   fit-content sizes the box to the longest line the type actually sets, so the
+   breaks the markup declares are the breaks that ship, at 64 px and at the
+   40.775 px the clamp scales down to on a phone. Nothing in here has to be kept
+   in sync with the copy. */
 .cf-hero__body {
   position: relative;
   z-index: 1;
-  max-width: 44ch;
+  width: fit-content;
+  max-width: 100%;
 }
 .cf-hero__title {
   font-family: var(--font-display);
@@ -1372,14 +1392,29 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-weight: var(--weight-bold);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-display);
+  /* Only reachable once the line no longer fits — the <br>s are the desktop
+     answer. Below about 700 px it is what keeps the fold from leaving one word
+     alone on the last line. */
   text-wrap: balance;
 }
-.cf-hero__rule {
-  height: var(--stroke-1);
-  margin-block: var(--space-8) var(--space-4);
-  background: var(--border-strong);
-}
+/* THE RULE IS THE KICKER'S TOP EDGE, not a box of its own, and the plate is
+   what settles it: measured off landing-page.jpg the rule and the mono line
+   below it start and end on the same two x — 42 → 463 in the 1200 px render —
+   while the headline above overhangs both by 141 px. A separate empty <div>
+   cannot know that. It fills whatever box it is given, so it ended with the
+   headline instead of with the line it belongs to, and it did so in a box that
+   was itself the wrong width. Drawn as the kicker's own border it is the
+   kicker's width by construction — at every viewport, and in a language whose
+   translation of that sentence is longer.
+
+   Same 32/16 rhythm the standalone rule carried, so this changes the line's
+   width and nothing about where it sits. */
 .cf-hero__kicker {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: var(--stroke-1) solid var(--border-strong);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
