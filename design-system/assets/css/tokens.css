@@ -1301,6 +1301,30 @@
      16 on a 640 viewBox is 2.5 % of the drawing down, 5 % across. */
   --iso-travel:     16;
 
+  /* HOW FAR AN ORBIT TURNS BEFORE IT SETTLES.
+     Unlike --iso-travel this one is in SCREEN pixels, not viewBox units, and
+     that is not an inconsistency — it is forced. An orbit turns by moving its
+     dash pattern along its own path, and under the non-scaling-stroke that
+     .cf-iso puts on every contour, BOTH stroke-dasharray and stroke-dashoffset
+     are measured in screen pixels. Measured on the shipped card 04 at a 352 px
+     render: dashoffset 0 and 5 are pixel-identical, as are 2.5 and 12.5. The
+     period is exactly 1 + 4 = 5 px, the --dash-1-4 the orbits are drawn in.
+
+     SO THE TRAVEL MUST BE A WHOLE MULTIPLE OF 5, and that is the whole reason
+     this is a token rather than a number in a keyframe. A dashed ring is
+     periodic: it settles on the phase the designer drew only if it stops an
+     exact number of dashes away from where it started. 60 px is 12 dashes.
+     Any multiple of 5 is safe; 63 would leave every orbit three fifths of a
+     dash off the source vector, which nothing would report and a diff against
+     assets/source/illustrations/ could never show, because the drift is in the
+     rendered phase and not in the markup.
+
+     One value for all three rings, so they share a linear speed and therefore
+     NOT an angular one — the inner ring turns through more of itself than the
+     outer one in the same scroll. That is what stops three concentric rings
+     reading as one rigid body being spun. */
+  --iso-orbit-travel: 60px;
+
   /* THE WAIT.
      A pending object is drawn at --presence-absent and one light crosses it.
      The period is deliberately far slower than any UI duration above: this is

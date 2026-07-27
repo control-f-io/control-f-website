@@ -224,6 +224,7 @@ for t in ['fast','base','slow','scene']:
         <tr><td><code>.cf-iso__scene</code></td><td>the whole object</td><td>travels in on 26.57° — see below — and fades up. The only thing that moves.</td><td>cover 5–30 %</td></tr>
         <tr><td><code>.cf-iso__form</code></td><td>solid contoured body</td><td>nothing on its own; it rides the scene</td><td>—</td></tr>
         <tr><td><code>.cf-iso__ghost</code></td><td>dashed reference geometry</td><td>fades up after the body it belongs to</td><td>cover 20–40 %</td></tr>
+        <tr><td><code>.cf-iso__orbit</code></td><td>a ghost that circulates</td><td>fades up with the other ghosts, and keeps turning after them — see below</td><td>cover 20–40 % fading, 20–50 % turning</td></tr>
         <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object</td><td>draws itself, edge of the crop to edge of the crop — see below</td><td>cover 18–45 %</td></tr>
         <tr><td><code>.cf-iso__light</code></td><td>the single lime-gradient element</td><td>its fill comes up last. Light arrives; it does not fly in.</td><td>cover 30–48 %</td></tr>
         <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>fade up last of all</td><td>cover 35–50 %</td></tr>
@@ -234,6 +235,94 @@ for t in ['fast','base','slow','scene']:
       the illustration is never caught half-built while it is being read. The last range
       ends at cover 50 %, which is exactly that moment.
     </p>
+
+    <h3>An orbit turns, and it turns by moving its dashes</h3>
+    <p>
+      Card 04 carries three dashed rings around its sphere. They are the only geometry in the
+      system that is <em>drawn as motion</em>, and until now they were also the only thing on
+      the page that said “this is circulating” and then held perfectly still. They now turn as
+      the object assembles and settle when everything else does — the brand's rule for anything
+      spatial, which is that it turns slowly and then stops.
+    </p>
+    <p>
+      <strong>The obvious way to turn a ring is to rotate it, and that is the wrong way here.</strong>
+      All three orbits are stroked with <code>userSpaceOnUse</code> gradients, and a paint server
+      is resolved in the user space in force where it is referenced — which includes the element's
+      own <code>transform</code>. Rotating the ring rotates its fade with it, so the designer's
+      “solid on the left, dissolving to the right” would sweep round the object and spend its
+      solid half across the top of the lime disc, which is the one place the eye is meant to land.
+      That is not a hypothetical: it is the failure
+      <a href="../components/process-card.html#sequence">Process Card</a> already measures, from
+      the release in which a <code>rotate(-90)</code> was dropped as a no-op.
+    </p>
+    <p>
+      <code>stroke-dashoffset</code> touches no paint server at all, so the fade axis stays where
+      the source vector put it and only the dashes move — which is what an orbit looks like
+      anyway. The ring does not swing; the things on it go round.
+    </p>
+    <pre class="docs-code"><span class="tag">@keyframes</span> cf-iso-orbit {
+  <span class="tag">from</span> { <span class="attr">stroke-dashoffset</span>: <span class="val">var(--iso-orbit-travel)</span>; }
+  <span class="tag">to</span>   { <span class="attr">stroke-dashoffset</span>: <span class="val">0</span>; }
+}</pre>
+
+    <h4>The travel is in screen pixels, and it must be a whole number of dashes</h4>
+    <p>
+      <code>--iso-travel</code> is in viewBox units because it is a transform. This one is in
+      <strong>screen pixels</strong>, and that is forced rather than inconsistent: under the
+      <code>non-scaling-stroke</code> that <code>.cf-iso</code> puts on every contour, both
+      <code>stroke-dasharray</code> and <code>stroke-dashoffset</code> are measured in device
+      space. Measured on the shipped card 04 at its 352 px render, the rendered ring is
+      pixel-identical at these offsets:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th><code>stroke-dashoffset</code></th><th>renders as</th></tr></thead>
+      <tbody>
+        <tr><td>0 px</td><td rowspan="2">identical</td></tr>
+        <tr><td>5 px</td></tr>
+        <tr><td>2.5 px</td><td rowspan="2">identical</td></tr>
+        <tr><td>12.5 px</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The period is exactly 1 + 4 = 5 px — the <code>--dash-1-4</code> the orbits are drawn in.
+      <strong>So the travel has to be a whole multiple of 5, and that is the whole reason it is a
+      token rather than a number in a keyframe.</strong> A dashed ring is periodic: it settles on
+      the phase the designer drew only if it stops an exact number of dashes from where it
+      started. The shipped 60 px is twelve dashes. 63 would leave every orbit three fifths of a
+      dash off the source vector for good — a drift nothing reports, and one a diff against
+      <code>assets/source/illustrations/</code> could never show, because it lives in the
+      rendered phase and not in the markup.
+    </p>
+    <p>
+      Because both ends of the animation sit on that phase, so does the <code>both</code> fill held
+      before the range opens. Measured against the same page built without the animation at all:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>State</th><th>Pixels differing from the un-animated build</th></tr></thead>
+      <tbody>
+        <tr><td>settled, past cover 50 %</td><td><strong>0</strong> of 323,761</td></tr>
+        <tr><td>mid-turn, around cover 25 %</td><td>4,317 of 238,980 (1.81 %)</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The object a reader actually reads is byte-for-byte the one the designer drew; the turn
+      exists only on the way in. And the ink on the ring is conserved while it turns — left-to-right
+      ink balance mid-turn moves from 0.863 to 0.864 — which is the fade axis staying put,
+      measured rather than asserted.
+    </p>
+    <p>
+      One value drives all three rings, so they share a linear speed and therefore <em>not</em> an
+      angular one: the inner ring turns through more of itself than the outer one over the same
+      scroll. That is what stops three concentric rings reading as one rigid body being spun.
+    </p>
+    <div class="docs-note">
+      <strong>This is a paint-only animation, not a composited one.</strong> Transform and opacity
+      are the cheap pair; <code>stroke-dashoffset</code> repaints the stroke each frame. It is
+      admitted here because it is not a new class of expense — <code>.cf-iso__trace</code> has
+      animated the same property on every card since the assembly was written, and three dashed
+      hairlines running only while their object crosses the viewport is the same order of work
+      again. It causes no layout and no reflow.
+    </div>
 
     <h3>How far it travels</h3>
     <p>

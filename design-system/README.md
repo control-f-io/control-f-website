@@ -427,6 +427,18 @@ These were judgement calls, each documented on the relevant page:
   the palette is exactly the seven the manual names, and a dark surface that needs a second
   value takes it from the neutral ramp like every other surface does.
   → `foundations/colors.html`
+- **Card 04's orbits turn, and they turn by moving their dashes rather than by rotating.**
+  They are the only geometry in the system drawn as motion, and they were the only thing on
+  the page asserting circulation while holding perfectly still. A rotation would have been the
+  obvious mechanic and is the wrong one: the three rings are stroked with `userSpaceOnUse`
+  gradients, so rotating a ring rotates its fade with it and sweeps the solid half across the
+  lime disc — the failure `components/process-card.html` already measures from the release in
+  which that rotation was dropped as a no-op. `stroke-dashoffset` touches no paint server.
+  Under `non-scaling-stroke` it is measured in screen pixels, so **the travel must be a whole
+  multiple of the 5 px dash period or the ring settles off the phase the designer drew** — a
+  drift no diff against `assets/source/` could ever show, because it lives in the rendered
+  phase and not in the markup. Verified: the settled object is pixel-identical to the build
+  with no animation at all. → `foundations/motion.html`
 - **The process illustrations correct four things in the Figma export:** the lime hex, three
   unsanctioned dash patterns, a second lime element on card 02, and a tangent that was
   0.4° off the brand angle. Figma's inner-shadow bevel on card 03 is dropped — it is not
