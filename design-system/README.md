@@ -36,7 +36,8 @@ The table in that page is **generated**. Run `--fix` rather than editing a count
 design-system/
 ├── index.html              overview + how to include the CSS
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
-│                           illustration, logo, photo, motion, mobile
+│                           illustration, logo, photo, motion, mobile,
+│                           page transitions
 ├── components/             buttons, nav, section header, statement + value table,
 │                           plot, process card, accordion, blog grid, subdivision
 │                           field, pagination, error + empty state, article +
@@ -213,6 +214,28 @@ carried `--detached` over a normal `.section` and stood its footer off at 240 px
 other page measures 120. Measured across all five pattern pages, the rhythm is now 240 between
 normal sections, 200 after a `--tight` one, 120 above every footer, and 80 from every section
 header's hairline to its content.
+
+## Navigating the site
+
+A static site normally navigates the way paper does: the sheet is thrown away and another
+one is put down. That is the one thing this brand is not, so **navigation is drawn rather
+than swapped.** One edge at `--angle-a` crosses the viewport, the arriving page appears
+behind it, and `--gradient-foil` shows through a `--stroke-2` gap between the two pages —
+a lit contour, drawn before the surface it encloses. The foil is one gradient across the
+whole viewport and only two pixels of it are visible at a time, so the line changes hue as
+it travels. That is the brand's north star obtained the only way a real foil ever gives it
+up: by moving past it.
+
+The nav bar, the footer and the documentation sidebar carry a `view-transition-name`, which
+lifts them out of the page snapshot and leaves them standing perfectly still. The page wash
+is `background-attachment: fixed`, so it is pixel-identical between any two pages at any
+scroll position and the edge cannot be seen crossing it. The room holds; the contents of the
+room change.
+
+No markup, no attribute, no script — it is `@view-transition` plus four rules in `base.css`,
+inside `prefers-reduced-motion: no-preference`. Where the browser has no cross-document view
+transitions (Firefox today) or the reader has asked for less motion, navigation is instant,
+which is what this site did before. → `foundations/transitions.html`
 
 ## Before launch
 
