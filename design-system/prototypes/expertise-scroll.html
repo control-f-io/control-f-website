@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expertise — Scroll-Studie</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<style>
+  /* ------------------------------------------------------------------
+     Expertise — vier Felder, eine Spur.
+
+     This study proposes NO SCRIPT AT ALL. The values section shipped a
+     scroll-scrubbed sequence on a view timeline after its prototype had
+     proved the idea with 120 lines of JavaScript; this one starts where
+     that ended, so the thing being proposed here is the composition and
+     the pacing, not an engine.
+
+     One track of five viewports, one sticky stage, four steps that hand
+     over to each other. Every step reads the same timeline and differs
+     only in --i, so adding a fifth field is one more block of markup and
+     one number in --steps.
+     ------------------------------------------------------------------ */
+  .ex-intro { padding-block: var(--space-24) var(--space-16); }
+  .ex-intro h1 {
+    font-family: var(--font-display); font-size: var(--text-display-1);
+    font-weight: var(--weight-bold); line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-display); max-width: 18ch;
+  }
+  .ex-intro p { margin-top: var(--space-6); max-width: 56ch; color: var(--text-secondary); }
+  .ex-rule { height: var(--stroke-1); background: var(--border-strong); margin-top: var(--space-8); }
+
+  .ex-stage { display: grid; gap: var(--space-8); align-content: center; }
+  .ex-scene { display: grid; place-items: center; min-height: 18rem; }
+  .ex-scene > * { grid-area: 1 / 1; }
+  .ex-fig { margin: 0; width: min(100%, 30rem); }
+  .ex-fig svg { width: 100%; height: auto; }
+  .ex-copyset { display: grid; }
+  .ex-copyset > * { grid-area: 1 / 1; }
+  .ex-copy__count { color: var(--text-muted); }
+  .ex-copy__title {
+    margin-top: var(--space-2);
+    font-family: var(--font-display); font-size: var(--text-display-2);
+    font-weight: var(--weight-bold); letter-spacing: var(--tracking-display);
+  }
+  .ex-copy__sub { margin-top: var(--space-2); color: var(--text-secondary); }
+  .ex-copy__list {
+    margin-top: var(--space-6); padding: 0; list-style: none;
+    display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6);
+    font-family: var(--font-mono); font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+  .ex-copy__list li { position: relative; }
+  .ex-copy__list li + li::before {
+    content: ""; position: absolute; left: calc(var(--space-6) / -2);
+    top: 50%; width: 3px; height: 3px; background: var(--border-strong);
+  }
+
+  .ex-index { display: flex; gap: var(--space-4); padding: 0; list-style: none;
+               font-family: var(--font-mono); font-size: var(--text-xs);
+               letter-spacing: var(--tracking-label); color: var(--text-muted); }
+  .ex-progress { position: relative; height: var(--stroke-1); background: var(--border-default); }
+  .ex-progress::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 100%;
+                         background: var(--border-strong); transform-origin: left; transform: scaleX(0); }
+
+  /* ---- stacked and readable wherever the scrubbing cannot run ---- */
+  .ex-track { display: grid; gap: var(--space-16); }
+  .ex-scene, .ex-copyset { gap: var(--space-12); }
+  .ex-scene, .ex-copyset { grid-auto-flow: row; }
+  .ex-index, .ex-progress { display: none; }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) and (min-width: 820px) {
+      .ex-track {
+        --steps: 4;
+        display: block;
+        height: calc((var(--steps) + 1) * 100vh);
+        view-timeline-name: --ex;
+        view-timeline-axis: block;
+      }
+      .ex-stage {
+        position: sticky; top: 0; height: 100vh; overflow: hidden;
+        grid-template-rows: auto 1fr auto;
+        padding-block: var(--space-16);
+      }
+      .ex-scene, .ex-copyset { display: grid; grid-auto-flow: initial; gap: 0; }
+      .ex-scene > *, .ex-copyset > * { grid-area: 1 / 1; }
+      .ex-index, .ex-progress { display: flex; }
+      .ex-progress { display: block; }
+
+      /* One animation, four windows. A step's window is its quarter of the
+         contain range; it arrives on the rake and leaves on it, so the
+         sequence reads as one object being replaced rather than four
+         objects taking turns. */
+      .ex-step {
+        animation: ex-step linear both;
+        animation-timeline: --ex;
+        animation-range: contain calc(var(--i) * 25%) contain calc((var(--i) + 1) * 25%);
+      }
+      .ex-index__item { animation-name: ex-mark; }
+      .ex-progress::after {
+        animation: ex-bar linear both;
+        animation-timeline: --ex;
+        animation-range: contain 0% contain 100%;
+      }
+    }
+  }
+
+  @keyframes ex-step {
+    0%   { opacity: 0; translate: var(--space-8) calc(var(--space-8) / 2); }
+    16%  { opacity: 1; translate: 0 0; }
+    84%  { opacity: 1; translate: 0 0; }
+    100% { opacity: 0; translate: calc(var(--space-8) * -1) calc(var(--space-8) / -2); }
+  }
+  @keyframes ex-mark {
+    0%, 100% { color: var(--text-muted); }
+    16%, 84% { color: var(--text-primary); }
+  }
+  @keyframes ex-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+  /* Preview only: link back to the documentation. */
+  .ds-back {
+    position: fixed; left: 0; bottom: 0; z-index: calc(var(--z-overlay) - 1);
+    padding: var(--space-2) var(--space-4);
+    background: var(--cf-schwarz); color: var(--grey-000);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label); text-transform: uppercase;
+  }
+</style>
+</head>
+<body class="page-wash">
+
+<main>
+  <section class="section section--flush">
+    <div class="container ex-intro">
+      <h1>Vier Felder, eine Spur.</h1>
+      <p>
+        Maschinenbau, Großanlagen, Erneuerbare, Flotten. Die Physik ist jedes Mal eine
+        andere, die Aufgabe jedes Mal dieselbe — und die Objekte stehen alle auf demselben
+        Raster. Scrollen Sie.
+      </p>
+      <div class="ex-rule"></div>
+    </div>
+  </section>
+
+  <section class="ex-track" aria-label="Unsere Felder">
+    <div class="ex-stage container cf-ground">
+      <ol class="ex-index" role="list">
+          <li class="ex-index__item ex-step" style="--i:0">01</li>
+          <li class="ex-index__item ex-step" style="--i:1">02</li>
+          <li class="ex-index__item ex-step" style="--i:2">03</li>
+          <li class="ex-index__item ex-step" style="--i:3">04</li>
+      </ol>
+
+      <div class="ex-scene">
+        <figure class="ex-fig ex-step" style="--i:0">
+<svg class="cf-iso" viewBox="-5.2 220.4 695.2 297.6" fill="none" aria-hidden="true">
+            <defs><linearGradient id="cf-ex-01" x1="537.28" y1="256.64" x2="617.92" y2="417.92" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.097" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
+            <g class="cf-iso__scene">
+              <g class="cf-iso__ghost" stroke="#000" stroke-dasharray="1 4">
+                <path d="M320 260 96 372"/>
+                <path d="M376 288 152 400"/>
+                <path d="M432 316 208 428"/>
+                <path d="M488 344 264 456"/>
+                <path d="M544 372 320 484"/>
+                <path d="M320 260 544 372"/>
+                <path d="M264 288 488 400"/>
+                <path d="M208 316 432 428"/>
+                <path d="M152 344 376 456"/>
+                <path d="M96 372 320 484"/>
+              </g>
+              <g class="cf-iso__form" stroke="#000">
+                <path d="M320 254.4 443.2 316 320 377.6 196.8 316Z"/>
+                <path d="M196.8 316 320 377.6 320 433.6 196.8 372Z"/>
+                <path d="M443.2 316 320 377.6 320 433.6 443.2 372Z"/>
+                <path d="M28.8 337.28 196.8 337.28"/>
+                <path d="M443.2 337.28 656 337.28"/>
+                <ellipse cx="96" cy="337.28" rx="28" ry="56" transform="rotate(26.57 96 337.28)"/>
+              </g>
+              <ellipse class="cf-iso__light" cx="577.6" cy="337.28" rx="40.32" ry="80.64" transform="rotate(26.57 577.6 337.28)" fill="url(#cf-ex-01)" stroke="#000"/>
+              <line class="cf-iso__trace" x1="28.8" y1="337.28" x2="-172.8" y2="337.28" stroke="#000" pathLength="1"/>
+              <circle class="cf-iso__node" cx="96" cy="337.28" r="3" fill="#000" stroke="none"/>
+              <circle class="cf-iso__node" cx="577.6" cy="337.28" r="4" fill="#000" stroke="none"/>
+            </g>
+          </svg>
+        </figure>
+        <figure class="ex-fig ex-step" style="--i:1">
+<svg class="cf-iso" viewBox="-34 -34 612 552" fill="none" aria-hidden="true">
+            <defs><linearGradient id="cf-ex-02" x1="320" y1="167.04" x2="320" y2="234.24" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.097" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
+            <g class="cf-iso__scene">
+              <g class="cf-iso__ghost" stroke="#000" stroke-dasharray="1 4">
+                <path d="M320 260 96 372"/>
+                <path d="M376 288 152 400"/>
+                <path d="M432 316 208 428"/>
+                <path d="M488 344 264 456"/>
+                <path d="M544 372 320 484"/>
+                <path d="M320 260 544 372"/>
+                <path d="M264 288 488 400"/>
+                <path d="M208 316 432 428"/>
+                <path d="M152 344 376 456"/>
+                <path d="M96 372 320 484"/>
+                <path d="M252.8 309.84A67.2 33.6 0 0 1 387.2 309.84"/>
+                <path d="M368.16 363.04A47.04 23.52 0 0 1 462.24 363.04"/>
+                <path d="M227.6 400.84A56 28 0 0 1 339.6 400.84"/>
+              </g>
+              <g class="cf-iso__form" stroke="#000">
+                <path d="M320 262.24 521.6 363.04 320 463.84 118.4 363.04Z"/>
+                <path d="M118.4 363.04 320 463.84 320 472.8 118.4 372Z"/>
+                <path d="M521.6 363.04 320 463.84 320 472.8 521.6 372Z"/>
+                <path d="M320 190 415.2 243.2"/>
+                <path d="M415.2 243.2 415.2 301.44"/>
+                <path d="M320 190 283.6 281"/>
+                <path d="M283.6 281 283.6 319.64"/>
+                <path d="M252.8 200.64 252.8 309.84M387.2 200.64 387.2 309.84"/>
+                <path d="M252.8 309.84A67.2 33.6 0 0 0 387.2 309.84"/>
+                <path d="M368.16 301.44 368.16 363.04M462.24 301.44 462.24 363.04"/>
+                <path d="M368.16 363.04A47.04 23.52 0 0 0 462.24 363.04"/>
+                <ellipse cx="415.2" cy="301.44" rx="47.04" ry="23.52"/>
+                <path d="M227.6 319.64 227.6 400.84M339.6 319.64 339.6 400.84"/>
+                <path d="M227.6 400.84A56 28 0 0 0 339.6 400.84"/>
+                <ellipse cx="283.6" cy="319.64" rx="56" ry="28"/>
+              </g>
+              <ellipse cx="320" cy="200.64" rx="67.2" ry="33.6" class="cf-iso__light" fill="url(#cf-ex-02)" stroke="#000"/>
+              <line class="cf-iso__trace" x1="118.4" y1="363.04" x2="-128" y2="363.04" stroke="#000" pathLength="1"/>
+              <circle class="cf-iso__node" cx="320" cy="200.64" r="3" fill="#000" stroke="none"/>
+              <circle class="cf-iso__node" cx="415.2" cy="301.44" r="3" fill="#000" stroke="none"/>
+              <circle class="cf-iso__node" cx="283.6" cy="319.64" r="3" fill="#000" stroke="none"/>
+            </g>
+          </svg>
+        </figure>
+        <figure class="ex-fig ex-step" style="--i:2">
+<svg class="cf-iso" viewBox="62 205.84 552.4 312.16" fill="none" aria-hidden="true">
+            <defs><linearGradient id="cf-ex-03" x1="320" y1="239.84" x2="320" y2="307.04" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.097" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
+            <g class="cf-iso__scene">
+              <g class="cf-iso__ghost" stroke="#000" stroke-dasharray="1 4">
+                <path d="M320 260 96 372"/>
+                <path d="M376 288 152 400"/>
+                <path d="M432 316 208 428"/>
+                <path d="M488 344 264 456"/>
+                <path d="M544 372 320 484"/>
+                <path d="M320 260 544 372"/>
+                <path d="M264 288 488 400"/>
+                <path d="M208 316 432 428"/>
+                <path d="M152 344 376 456"/>
+                <path d="M96 372 320 484"/>
+              </g>
+              <g class="cf-iso__form" stroke="#000">
+                <path d="M320 276.24 493.6 363.04 320 449.84 146.4 363.04Z"/>
+                <path d="M146.4 363.04 320 449.84 320 458.8 146.4 372Z"/>
+                <path d="M493.6 363.04 320 449.84 320 458.8 493.6 372Z"/>
+                <path d="M236 301.44 303.2 335.04 236 368.64 168.8 335.04Z"/>
+                <path d="M168.8 335.04 236 368.64 236 396.64 168.8 363.04Z"/>
+                <path d="M303.2 335.04 236 368.64 236 396.64 303.2 363.04Z"/>
+                <path d="M404 301.44 471.2 335.04 404 368.64 336.8 335.04Z"/>
+                <path d="M336.8 335.04 404 368.64 404 396.64 336.8 363.04Z"/>
+                <path d="M471.2 335.04 404 368.64 404 396.64 471.2 363.04Z"/>
+                <path d="M320 343.44 387.2 377.04 320 410.64 252.8 377.04Z"/>
+                <path d="M252.8 377.04 320 410.64 320 438.64 252.8 405.04Z"/>
+                <path d="M387.2 377.04 320 410.64 320 438.64 387.2 405.04Z"/>
+                <path d="M541.2 277.64 580.4 297.24 541.2 316.84 502 297.24Z"/>
+                <path d="M502 297.24 541.2 316.84 541.2 406.44 502 386.84Z"/>
+                <path d="M580.4 297.24 541.2 316.84 541.2 406.44 580.4 386.84Z"/>
+                <path d="M541.2 297.24 541.2 272.04"/>
+              </g>
+              <g class="cf-iso__light" stroke="#000"><path d="M320 239.84 387.2 273.44 320 307.04 252.8 273.44Z" fill="url(#cf-ex-03)"/><path d="M252.8 273.44 320 307.04 320 354.64 252.8 321.04Z"/><path d="M387.2 273.44 320 307.04 320 354.64 387.2 321.04Z"/></g>
+              <line class="cf-iso__trace" x1="488" y1="363.04" x2="734.4" y2="363.04" stroke="#000" pathLength="1"/>
+              <circle class="cf-iso__node" cx="541.2" cy="272.04" r="3" fill="#000" stroke="none"/>
+              <circle class="cf-iso__node" cx="320" cy="273.44" r="4" fill="#000" stroke="none"/>
+            </g>
+          </svg>
+        </figure>
+        <figure class="ex-fig ex-step" style="--i:3">
+<svg class="cf-iso" viewBox="-5.2 226 714.24 292" fill="none" aria-hidden="true">
+            <defs><linearGradient id="cf-ex-04" x1="258.4" y1="294.72" x2="258.4" y2="341.76" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.097" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
+            <g class="cf-iso__scene">
+              <g class="cf-iso__ghost" stroke="#000" stroke-dasharray="1 4">
+                <path d="M320 260 96 372"/>
+                <path d="M376 288 152 400"/>
+                <path d="M432 316 208 428"/>
+                <path d="M488 344 264 456"/>
+                <path d="M544 372 320 484"/>
+                <path d="M320 260 544 372"/>
+                <path d="M264 288 488 400"/>
+                <path d="M208 316 432 428"/>
+                <path d="M152 344 376 456"/>
+                <path d="M96 372 320 484"/>
+                <path d="M628 294.72 675.04 318.24 628 341.76 580.96 318.24Z"/>
+                <path d="M580.96 318.24 628 341.76 628 376.48 580.96 352.96Z"/>
+                <path d="M675.04 318.24 628 341.76 628 376.48 675.04 352.96Z"/>
+              </g>
+              <g class="cf-iso__form" stroke="#000">
+                <path d="M28.8 372 611.2 372"/>
+                <path d="M135.2 294.72 182.24 318.24 135.2 341.76 88.16 318.24Z"/>
+                <path d="M88.16 318.24 135.2 341.76 135.2 376.48 88.16 352.96Z"/>
+                <path d="M182.24 318.24 135.2 341.76 135.2 376.48 182.24 352.96Z"/>
+                <path d="M135.2 352.96 135.2 372"/>
+                <path d="M381.6 294.72 428.64 318.24 381.6 341.76 334.56 318.24Z"/>
+                <path d="M334.56 318.24 381.6 341.76 381.6 376.48 334.56 352.96Z"/>
+                <path d="M428.64 318.24 381.6 341.76 381.6 376.48 428.64 352.96Z"/>
+                <path d="M381.6 352.96 381.6 372"/>
+                <path d="M504.8 294.72 551.84 318.24 504.8 341.76 457.76 318.24Z"/>
+                <path d="M457.76 318.24 504.8 341.76 504.8 376.48 457.76 352.96Z"/>
+                <path d="M551.84 318.24 504.8 341.76 504.8 376.48 551.84 352.96Z"/>
+                <path d="M504.8 352.96 504.8 372"/>
+                <path d="M258.4 352.96 258.4 372"/>
+              </g>
+              <g class="cf-iso__light" stroke="#000"><path d="M258.4 294.72 305.44 318.24 258.4 341.76 211.36 318.24Z" fill="url(#cf-ex-04)"/><path d="M211.36 318.24 258.4 341.76 258.4 376.48 211.36 352.96Z"/><path d="M305.44 318.24 258.4 341.76 258.4 376.48 305.44 352.96Z"/></g>
+              <line class="cf-iso__trace" x1="611.2" y1="372" x2="835.2" y2="372" stroke="#000" pathLength="1"/>
+              <circle class="cf-iso__node" cx="135.2" cy="372" r="3" fill="#000" stroke="none"/>
+              <circle class="cf-iso__node" cx="381.6" cy="372" r="3" fill="#000" stroke="none"/>
+              <circle class="cf-iso__node" cx="504.8" cy="372" r="3" fill="#000" stroke="none"/>
+              <circle class="cf-iso__node" cx="258.4" cy="372" r="3" fill="#000" stroke="none"/>
+            </g>
+          </svg>
+        </figure>
+      </div>
+
+      <div class="ex-copyset">
+        <div class="ex-copy ex-step" style="--i:0">
+          <p class="ex-copy__count t-label">01 / 04</p>
+          <h2 class="ex-copy__title">Maschinenbau</h2>
+          <p class="ex-copy__sub t-label">Rotierende Assets</p>
+          <ul class="ex-copy__list" role="list">
+            <li>Motoren</li>
+            <li>Gasturbinen</li>
+            <li>Benzinmotoren</li>
+            <li>Generatoren</li>
+            <li>Pumpensysteme</li>
+          </ul>
+        </div>
+        <div class="ex-copy ex-step" style="--i:1">
+          <p class="ex-copy__count t-label">02 / 04</p>
+          <h2 class="ex-copy__title">Großanlagen</h2>
+          <p class="ex-copy__sub t-label">Prozess und Verfügbarkeit</p>
+          <ul class="ex-copy__list" role="list">
+            <li>Bohrinseln</li>
+            <li>Gaspipelines</li>
+            <li>Kraftwerke</li>
+            <li>Chemieanlagen</li>
+            <li>Industrielle Produktion</li>
+            <li>Raffinerien</li>
+          </ul>
+        </div>
+        <div class="ex-copy ex-step" style="--i:2">
+          <p class="ex-copy__count t-label">03 / 04</p>
+          <h2 class="ex-copy__title">Erneuerbare</h2>
+          <p class="ex-copy__sub t-label">Speicher und Wandlung</p>
+          <ul class="ex-copy__list" role="list">
+            <li>Batteriespeicher</li>
+            <li>Wasserstoff-Elektrolyseure</li>
+            <li>Windparks</li>
+            <li>Solarparks</li>
+          </ul>
+        </div>
+        <div class="ex-copy ex-step" style="--i:3">
+          <p class="ex-copy__count t-label">04 / 04</p>
+          <h2 class="ex-copy__title">Flotten</h2>
+          <p class="ex-copy__sub t-label">Viele gleiche Assets</p>
+          <ul class="ex-copy__list" role="list">
+            <li>Flugzeuge</li>
+            <li>Minenausrüstung</li>
+            <li>Schiffe</li>
+            <li>Züge</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="ex-progress" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="ex-rule"></div>
+      <p class="t-label" style="margin-top:var(--space-4);color:var(--text-secondary)">
+        Ende der Spur
+      </p>
+    </div>
+  </section>
+</main>
+
+<a class="ds-back" href="../index.html">← Design System</a>
+</body>
+</html>
