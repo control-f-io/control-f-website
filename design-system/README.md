@@ -303,7 +303,7 @@ which is why counting them is the only way to see them.
 It also closes the gap every other check leaves open by name. `check-spacing-scale.py` says
 it in its own header — the shipping stylesheets are in scope and "page-local `<style>`
 blocks are deliberately out of scope" — and so does every check after it, which made those
-31 blocks the one place in the tree where a hex could sit unchallenged. They are checked
+blocks the one place in the tree where a hex could sit unchallenged. They are checked
 here for the two literal classes the system has tokens for: a colour a token already names
 exactly, and a length in a spacing property. Inline `style=` is held to a narrower rule and
 only under `patterns/`, where a page stands in for a page of the real site: it may carry
@@ -313,9 +313,10 @@ custom properties, which are per-instance data the markup genuinely owns — `--
 to that.
 
 The census is the part to read. `--report` resolves every class use against who declares
-it, inventories all 31 page-local blocks, and prints the two tables a name-based census
-needs to be honest: **the same name on more than one page**, which is how `.ds-back` turns
-out to ship in 14 copies already forked into two versions, and **the same rule under more
+it, inventories every page-local block, and prints the two tables a name-based census
+needs to be honest: **the same name on more than one page**, which is how `.ds-back` turned
+out to ship in 14 copies already forked into two versions — folded into `preview.css` now,
+with a rule that fails the build if a page-local copy comes back — and **the same rule under more
 than one name**, which is how the pinned stage on `patterns/expertise.html` and the one on
 `patterns/landing-page.html` turn out to share **eleven identical rule bodies** under `ex-`
 and `lp-proc-` prefixes — the report prints the five that are more than a single
