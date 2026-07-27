@@ -57,6 +57,14 @@ name: Design system checks
 # and the CURRENT MATCH — the rung this brand is named after — rendered as an
 # empty lime block inside every foil headline and every solid button on the
 # site. Two copies of a workaround is the shape of a rule that wants a script.
+#
+# The line types are the ninth, and the one that had been broken on a designed
+# page the whole time. The CSS side of this rule has always reached the tokens;
+# the markup side cannot, because a dasharray in an inline SVG is a literal
+# typed next to the path data and usually carried over from an export. Counted,
+# the tree shipped eight distinct dash patterns for a rule that has three -- and
+# a 3 px dash period and a 5 px dash period are the same picture at a glance.
+
 on:
   push:
     branches: [main]
@@ -64,7 +72,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not eight. All eight checks are a few hundred milliseconds of
+  # One job, not nine. All nine checks are a few hundred milliseconds of
   # stdlib python; a second runner would cost more to start than any of them
   # takes to run, and a reader looking at a red tick wants every answer on one
   # page.
@@ -79,7 +87,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: eight
+      # Each check runs even when an earlier one has already failed: nine
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -108,3 +116,7 @@ jobs:
       - name: Highlight fill
         if: '!cancelled()'
         run: python3 scripts/check-highlight-fill.py
+
+      - name: Line types
+        if: '!cancelled()'
+        run: python3 scripts/check-line-types.py

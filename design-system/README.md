@@ -34,9 +34,11 @@ python3 scripts/check-overflow-clip.py         # a crop is a crop, not a scroll 
 python3 scripts/check-overflow-clip.py -v      # list every overflow declaration, not only the failures
 python3 scripts/check-highlight-fill.py        # every highlight states its ink as a fill, so a clip cannot erase it
 python3 scripts/check-highlight-fill.py -v     # list every highlight rule, not only the failures
+python3 scripts/check-line-types.py            # every dash pattern is one of the four line types
+python3 scripts/check-line-types.py -v         # list every dash pattern, not only the strays
 ```
 
-The seven checks the system enforces rather than documents, run by CI on every push and
+The nine checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step.
 
@@ -91,7 +93,7 @@ prose and none of which anything ran:
 
 Every one of the six is invisible in a screenshot and countable in a file, which is the
 whole test for what belongs in any of these four — and the reason two of the four in
-[Redrawing an illustration](#redrawing-an-illustration-four-things-that-vanish-quietly)
+[Redrawing an illustration](#redrawing-an-illustration-five-things-that-vanish-quietly)
 are deliberately left out.
 
 **The glass budget** holds `backdrop-filter` — the most expensive thing in the stylesheet —
@@ -246,6 +248,32 @@ browser with it never makes the scrollport. Two exemptions, both because the blo
 cropping a composed layer at all — a block that also declares `text-overflow` is
 truncating one line of text, and `.visually-hidden` is the standard clip-rect idiom quoted
 from the practice it comes from. → `foundations/materials.html`
+
+**A dash pattern is one of four,** and this is the ninth check — the one that had been
+broken on a designed page the whole time. `tokens.css` realises the manual's three dashed
+line types as px pairs, `.cf-iso` puts `non-scaling-stroke` on every contour so a dasharray
+is measured in **device pixels**, and components.css says in as many words that this is what
+"keeps a ghost's 1-4 dash a 1-4 dash at any size". The CSS side has honoured that from the
+beginning: every `stroke-dasharray` declaration in the shipping stylesheets is a `var()`.
+The **markup** side never has and cannot — a dasharray in an inline SVG is a presentation
+attribute, a literal typed next to the path data and usually carried over from an export,
+and a literal resolves no token. Counted, the tree shipped **eight distinct dash patterns
+for a rule that has three**: the 1-2 ratio at units of 0.5, 1 and 2, the 2-1 ratio at units
+of 0.5, 1.5 and 2, and one `4 1`, which is not a line type at all. Six of the strays were on
+`patterns/ueber-uns.html`, under a comment claiming its dashes were "pinned to `--dash-*`".
+Nothing about a screenshot says otherwise: a 3 px dash period and a 5 px dash period are the
+same picture at a glance.
+
+Two contexts, two standards, and the distinction is the whole of it. Where the stroke is
+**non-scaling** the dasharray is device pixels, so it must be exactly a token value. Where
+it is in **user units** the numbers belong to the frame rather than to the rule, and only
+the ratio is checked — `foundations/iconography.html` blows a 24-unit icon box up 13× and
+draws its keylines at 0.25 units, and holding those to `4 2` would put a 53 px dash on a
+diagram of a 24 px glyph. `.cf-iso__trace` is exempt from both: components.css takes
+`non-scaling-stroke` off it on purpose so `pathLength="1"` works, and its
+`stroke-dasharray: 1` is a draw mechanism, not a line type. The script also re-reads the
+three tokens themselves, so a silent edit to a dash period fails here rather than in a
+screenshot nobody takes. → `foundations/geometry.html#lines`
 
 ## Layout
 
@@ -1043,6 +1071,23 @@ These were judgement calls, each documented on the relevant page:
   unsanctioned dash patterns, a second lime element on card 02, and a tangent that was
   0.4° off the brand angle. Figma's inner-shadow bevel on card 03 is dropped — it is not
   one of the six material layers. → `components/process-card.html`
+- **The Über uns header object's dashes are mapped onto the four line types, and the source
+  vector's are not one of them.** Every path in that drawing is the designer's vector
+  verbatim — the viewBox is the source file's own coordinate window precisely so that
+  nothing has to be retyped — and the dasharrays came over with the geometry: four shells
+  and the axis at `1 2`, two tangent arcs at `3 1.5`. Those are the 1-2 and 2-1 **ratios**
+  at units of 1 and 1.5, where the four types are realised at `4 2`, `2 4` and `1 4`. Under
+  `.cf-iso`'s non-scaling stroke a dasharray is device pixels, so the drawing shipped three
+  dash periods the system does not have, on one of the two designed pages, under a comment
+  claiming the opposite. Same correction and the same precedent as the process cards, and
+  the mapping is read off the presence ladder rather than snapped to the nearest value:
+  shells and axis `--presence-absent` (1-4, reference geometry), tangent arcs
+  `--presence-near` (2-1, a real intersection), the dome's back half `--presence-faint`
+  (1-2, behind the body), everything else solid. The figure now uses all four types and
+  they run down the ladder in the order the drawing reads. The mockup cannot settle it
+  either way: at 1200 px for a 1440 frame those contours are sub-pixel, and measured off the
+  JPG the axis reads a 1:4 dash and the shell crown a period of about 3.6 — a disagreement
+  wider than the thing in dispute. → `patterns/ueber-uns.html`, `foundations/geometry.html#lines`
 - **The footer title is filled with the foil; the mockup paints it solid near-white.**
   Sampled off `mockups/landing-page.jpg`, "Jetzt Projekt starten!" is a flat `#EDF1F2`.
   The system clips `--gradient-foil` into it instead — one foil moment per screen, on the
@@ -1332,20 +1377,21 @@ Two rules make it a system rather than four animations:
 Parts move with the `translate` property rather than `transform`, because half of them carry
 a `transform` attribute that *is* their shape. Full account in `foundations/motion.html#build`.
 
-## Redrawing an illustration: four things that vanish quietly
+## Redrawing an illustration: five things that vanish quietly
 
-All four bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
+All five bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
 and none of them announces itself — the drawing still renders, it is simply no longer what
 the designer drew.
 
-**Two of the four are now checked**, by one script each, both run by CI on every push and
+**Three of the five are now checked**, by one script each, all run by CI on every push and
 pull request — the travel by `scripts/check-iso-motion.py`, the waypoint by
 `scripts/check-gradient-family.py`, which owns it because it recomputes the offset and the
-colour from the oklab path rather than looking for a hex. See [Check it](#check-it).
+colour from the oklab path rather than looking for a hex, and the dash pattern by
+`scripts/check-line-types.py`. See [Check it](#check-it).
 The other two are not, and the line between them is worth stating rather than leaving
-as an accident of what was easy. A missing waypoint and a travel that disagrees with its
-viewBox are **facts about the markup**, so a script can settle them. The other two are
-not: a `transform` on a `userSpaceOnUse` gradient is sometimes exactly right — card 04's
+as an accident of what was easy. A missing waypoint, a travel that disagrees with its
+viewBox and a dash period that is on no rung are **facts about the markup**, so a script
+can settle them. The other two are not: a `transform` on a `userSpaceOnUse` gradient is sometimes exactly right — card 04's
 largest orbit carries `rotate(-90)` on purpose — so the presence of one is a question, not
 a verdict; and whether a trace runs off the edge of its crop is a fact about rendered
 geometry, which needs a browser to answer. A checker that guessed at either would train
@@ -1354,6 +1400,14 @@ people to ignore it.
 - **The oklab waypoint.** `#DBFC60` exists in no source vector, so a re-export drops it and
   that lime→Glas leg reverts to the sRGB path. Every waypoint carries a comment at the stop.
   See the bullet above.
+- **The dash pattern the export brought with it.** A `stroke-dasharray` is a presentation
+  attribute sitting next to the path data, so it comes over with the geometry and looks
+  exactly as authored — and the designer's vectors are drawn at whatever unit the file was
+  built at. `8 2`, `2 8`, `2 2`, `1 2` and `3 1.5` have all arrived that way. Under
+  `.cf-iso`'s non-scaling stroke the number is device pixels, so a right ratio at a wrong
+  unit is a dash period the system does not have, and it is invisible: 3 px and 5 px are the
+  same picture at a glance. Map it onto the rung it means before the drawing lands.
+  → `scripts/check-line-types.py`, `foundations/geometry.html#lines`
 - **A `transform` on an element painted with a `userSpaceOnUse` gradient.** The paint server
   is resolved in the user space where it is referenced, so the element's own transform
   rotates its gradient too. On a circle the rotation looks like a no-op against the geometry
