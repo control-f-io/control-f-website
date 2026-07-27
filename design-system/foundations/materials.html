@@ -81,13 +81,14 @@
           something complex behind it, or it is just a grey box.
         </p>
         <p>
-          Its edge is two lines and not one: a lit rim outside and a dark refraction line one
-          pixel in, which is how the edge of a real sheet of glass reads and the only way a
-          glass perimeter has a boundary that survives what is behind it. See
-          <em>The edge is two lines</em> below.
+          Its edge is one line: the lit rim, <code>--glass-border</code>. <strong>The material
+          is never outlined in black.</strong> A dark refraction line was added to it and has
+          been taken back off — it belongs to a control that has to stay identifiable over a
+          backdrop nobody controls, not to a surface, and at the size a material is actually
+          used it stops reading as the dark side of an edge and reads as a box with a border
+          round it. The control case is <em>A control's edge is two lines</em> below.
         </p>
-        <p><code>.material-glass</code> · <code>--glass-blur</code> · <code>--glass-border</code> ·
-           <code>--glass-refraction</code></p>
+        <p><code>.material-glass</code> · <code>--glass-blur</code> · <code>--glass-border</code></p>
       </div>
     </div>
 
@@ -154,10 +155,11 @@
         <!-- 04 contour -->
         <div class="iso" style="position:absolute;left:34%;top:34%;width:11rem;height:11rem;border:1px solid var(--border-strong)"></div>
         <!-- 03 frosted glass — the band, running the full width. It ends at one
-             edge rather than closing a perimeter, so it gives up both halves of
-             the rim: no border, and no refraction line. The lit edge below is
-             the edge it actually ends at. -->
-        <div class="material-glass material-glass--veil" style="position:absolute;inset:0 0 auto 0;height:4.5rem;border:0;box-shadow:none"></div>
+             edge rather than closing a perimeter, so it gives up its rim; the
+             lit edge below is the edge it actually ends at. It carries no dark
+             line either, and no longer has to say so: the material stopped
+             drawing one at all. -->
+        <div class="material-glass material-glass--veil" style="position:absolute;inset:0 0 auto 0;height:4.5rem;border:0"></div>
         <div class="material-glass-edge" style="position:absolute;inset:4.5rem 0 auto 0"></div>
         <!-- 02 opaque + 06 text — the plates, on the glass, not made of it -->
         <div class="material-solid" style="position:absolute;left:1.5rem;top:1.5rem;padding:var(--space-2) var(--space-4);border-radius:var(--radius-sm)">
@@ -238,11 +240,19 @@
       on where the highlight is.
     </p>
 
-    <h3>The edge is two lines</h3>
+    <h3 id="two-lines">A control's edge is two lines</h3>
+    <div class="docs-note docs-note--warn">
+      <strong>This is about the glass button, not about glass.</strong> The line below was
+      briefly on <code>.material-glass</code> too and is not any more. The material's edge is
+      the lit rim and nothing else — a black perimeter round a sheet of frosted glass reads as
+      an outlined box, which is exactly what this brand does not do to it, and it is most
+      obviously wrong at the size a material sample is drawn. What follows is the argument for
+      one <em>control</em>, and it does not generalise to a surface.
+    </div>
     <p>
       A lit rim outside — <code>--glass-border</code>, white 55&nbsp;% — and a dark
       refraction line one pixel inside it — <code>--glass-refraction</code>, black 55&nbsp;%.
-      Until recently there was only the rim, and the rim alone does not give a sheet of glass a
+      Until recently there was only the rim, and the rim alone does not give the hero CTA a
       boundary. Every layer on this material adds light, so a glass plate approaches its
       backdrop as its backdrop approaches white, and the whole perimeter goes with it. Measured
       on the hero CTA against the shipping artwork, worst pixel per edge, consent banner
@@ -302,12 +312,21 @@
       the line and without it, to the tenth of a millisecond.
     </p>
     <p>
-      <strong>Scope: surfaces that close a perimeter.</strong> That is
-      <code>.material-glass</code> and <code>.cf-btn--glass</code>. Not the navigation sheet,
-      and not the band in the layer stack above — those end at a single edge and already draw
-      <code>--glass-edge</code> along it, so a refraction line there would be a rule across the
-      top of every page rather than the edge of anything. Both turn it off where they are used,
-      next to the <code>border: 0</code> that says the same thing about the rim.
+      <strong>Scope: one control.</strong> <code>.cf-btn--glass</code>, and nothing else. It
+      was on <code>.material-glass</code> as well for one release, and the correction is worth
+      more than the line: <em>closing a perimeter is necessary for this line and not
+      sufficient.</em> What makes the button need it is not that it is glass and not that it is
+      a rectangle — it is that it is a <strong>control</strong>, which owes 3:1, standing on a
+      backdrop that changes 25 times a second. A material owes nothing of the kind, and the
+      same 1 px at poster scale is not a subtle dark side to an edge, it is a box with a border
+      round it.
+    </p>
+    <p>
+      Nor the navigation sheet, and nor the band in the layer stack above — those end at a
+      single edge and already draw <code>--glass-edge</code> along it, so a refraction line
+      there would be a rule across the top of every page rather than the edge of anything. Add
+      it to a second control only after that control's own boundary has been measured and
+      fails; never to a surface.
     </p>
     <p>
       Implemented as <code>box-shadow: inset 0 0 0 1px</code> rather than a second element or a
