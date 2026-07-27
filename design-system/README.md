@@ -20,15 +20,27 @@ Then open <http://localhost:8000/design-system/>. It also works by opening
 ```bash
 python3 scripts/check-spacing-scale.py         # from the repo root
 python3 scripts/check-spacing-scale.py --fix   # rewrite the table in foundations/layout.html
+python3 scripts/check-gradient-family.py       # the light family, in every shipped SVG
+python3 scripts/check-gradient-family.py -v    # list all 40 gradients, not only the failures
 ```
 
-The one check the system enforces rather than documents, run by CI on every push and
-pull request. It holds the space scale to two rules: `foundations/layout.html`'s table of
-who uses each rung must match the shipping CSS, and spacing in the shipping CSS must be
-written as a token rather than as a length. Stdlib only — it does not give the system a
-build step.
+The two checks the system enforces rather than documents, run by CI on every push and
+pull request. Stdlib only — they do not give the system a build step.
 
-The table in that page is **generated**. Run `--fix` rather than editing a count by hand.
+**The space scale** holds to two rules: `foundations/layout.html`'s table of who uses each
+rung must match the shipping CSS, and spacing in the shipping CSS must be written as a
+token rather than as a length. The table in that page is **generated** — run `--fix`
+rather than editing a count by hand.
+
+**The light family** holds every `<linearGradient>` and `<radialGradient>` the site ships
+to one ramp. SVG has no `in oklab`, so a drawing that carries the family's ramp carries
+the oklab path by hand: one waypoint at 19 % of the lime leg, coloured at the oklab path's
+value there. The script recomputes both — the offset from the leg's own two ends, the
+colour from the path — so `#DBFC60` and `#E6FF66` are re-derived rather than compared
+against a list, and it also catches a stop that is *almost* a chromatic brand colour, which
+is how `#E0FF02` gets in. `assets/source/` and `prototypes/` are out of scope: the first is
+the designer's own material and the second is unshipped, and both carry raw Figma exports
+on purpose.
 
 ## Layout
 
