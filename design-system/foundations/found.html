@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Found State — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* Demo chrome only. Nothing here is part of the system. */
+  .find-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+    /* No rule under this bar: .cf-field__input already draws one, and two
+       parallel hairlines two rungs apart is the doubled seam the system
+       spends a whole README section banning. */
+  }
+  .find-bar .cf-field { flex: 1 1 16rem; }
+  .find-bar__steps { display: flex; gap: var(--space-2); }
+  .find-bar__count {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    padding-bottom: 0.85rem;
+  }
+  .find-step {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: var(--stroke-1) solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+  }
+  .find-step:hover:not(:disabled) { background: var(--surface-raised); }
+  .find-step:disabled { color: var(--text-muted); border-color: var(--border-subtle); cursor: default; }
+  .find-prose p { max-width: var(--measure-prose); }
+  /* data-theme swaps the tokens; colour is inherited, so something has to
+     read the token again. */
+  .docs-demo--dark .find-prose { color: var(--text-primary); }
+  .find-prose p + p { margin-top: var(--space-4); }
+  .found-legend { display: grid; gap: var(--space-3); }
+  .found-legend p { margin: 0; }
+  .reveal-demo p { margin: 0; max-width: var(--measure-prose); }
+  .reveal-demo > * + * { margin-top: var(--space-4); }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 14</p>
+    <h1>The Found State</h1>
+    <p>
+      The brand is named after a keyboard shortcut, and the system had no drawing for what
+      that shortcut returns. A match is one object with two rungs: a word standing on a
+      lattice edge, and — for the one match the reader is standing on — the same word with
+      the light layer switched on behind it.
+    </p>
+  </header>
+
+  <section class="docs-section" id="where">
+    <h2>Where this comes from</h2>
+    <p>
+      No plate in <code>assets/source/manual/</code> draws a highlight, and neither mockup
+      carries one, so this chapter is derived from the language the way
+      <a href="../components/plot.html">Plot</a> and <a href="../components/table.html">Table</a>
+      are: built only out of parts the manual does establish — the hairline, the light layer,
+      the lattice cell, the presence ladder. What makes it worth deriving is the name over the
+      door. <strong>Control-F <em>is</em> find-in-page.</strong> A brand whose whole argument
+      is that data can be found in a space rather than read off a sheet cannot leave the
+      drawing of a found thing to the browser's default yellow.
+    </p>
+    <p>
+      And that is what it had been leaving it to. The platform gives an author four registers
+      for <em>this is the thing you were looking for</em>, and until this chapter one of them
+      was styled:
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Register</th><th>Who causes it</th><th>Before</th></tr></thead>
+      <tbody>
+        <tr><td><code>::selection</code></td><td>the reader, dragging</td><td>lime fill, black ink — the one that was drawn</td></tr>
+        <tr><td><code>&lt;mark&gt;</code></td><td>the server, rendering an answer</td><td>UA yellow</td></tr>
+        <tr><td><code>::target-text</code></td><td>the URL, arriving with a text fragment</td><td>UA yellow</td></tr>
+        <tr><td><code>::highlight()</code></td><td>the page, searching itself</td><td>nothing registered</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note">
+      <strong>All three of the missing ones became Baseline inside the window this system
+      was built in.</strong>
+      <p>
+        Scroll-to-text-fragment reached Baseline in March 2025, the CSS Custom Highlight API
+        in June 2025, and <code>hidden="until-found"</code> in December 2025. Finding used to
+        be something a browser did <em>to</em> a page; it is now something a page can take
+        part in. That is a capability the system was not exploiting, and it is the one
+        capability that belongs to this brand more than to any other.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="means">
+    <h2>What a highlight may be made of</h2>
+    <p>
+      This is the constraint that shaped the drawing, and it is worth stating before the
+      drawing itself. A highlight moves — the reader drags, steps, scrolls — so the browser
+      has to be able to repaint it without laying the page out again. Highlight
+      pseudo-elements therefore take a <strong>closed property list</strong>, and everything
+      that would change geometry is off it:
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Property</th><th>Applies</th><th>What that costs this brand</th></tr></thead>
+      <tbody>
+        <tr><td><code>color</code></td><td>yes</td><td>—</td></tr>
+        <tr><td><code>background-color</code></td><td>yes</td><td>one flat layer, behind the glyphs</td></tr>
+        <tr><td><code>text-decoration-*</code></td><td>yes</td><td>the only line a highlight can draw</td></tr>
+        <tr><td><code>text-shadow</code></td><td>yes</td><td>not used — a shadow is not one of the six materials</td></tr>
+        <tr><td><code>-webkit-text-stroke-*</code></td><td>yes</td><td>not used — it thickens letterforms, it does not contour a box</td></tr>
+        <tr><td><code>border</code>, <code>outline</code></td><td><strong>no</strong></td><td>a match cannot have a box</td></tr>
+        <tr><td><code>padding</code>, <code>margin</code></td><td><strong>no</strong></td><td>a match cannot have air inside it</td></tr>
+        <tr><td><code>background-image</code></td><td><strong>no</strong></td><td><strong>no foil, no light ramp, no gradient at all</strong></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      That last row is the interesting one. <code>background-image</code> is ignored on a
+      highlight pseudo-element, which makes the found state <strong>the one surface in this
+      system that may not carry a gradient</strong> — no <code>--gradient-foil</code>, no
+      <code>--gradient-light</code>, no member of the family. Every other lit thing here is a
+      ramp. This one has to be made of a flat light and a line.
+    </p>
+    <div class="docs-note">
+      <strong>Which is the brand's own order, arrived at from outside.</strong>
+      <p>
+        Contour before fill, always. Told it may have exactly one line and exactly one flat
+        colour, this system draws the line first and treats the colour as light — which is
+        what it says on every other page. The constraint did not bend the language; it
+        selected for it.
+      </p>
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>It is also the whole of
+        <a href="colors.html#lime-is-never-flat">Lime is never flat</a>'s second
+        exception, and this page is where that exception ends.</strong>
+      <p>
+        Wherever lime fills an <em>area</em> in this system it fills it with a gradient —
+        a rake, the bloom, the foil. A plane painted <code>#E1FF00</code> edge to edge is
+        not the light layer, because light here is a source and a falloff and a plane has
+        neither. The found state is flat lime, and the reason is the row above:
+        <code>background-image</code> is ignored on a highlight pseudo-element, so there is
+        no gradient form of the declaration to reach for. That rule listed
+        <code>::selection</code>; the exception is really every highlight register, for
+        one reason, and there is no fourth.
+      </p>
+      <p>
+        <code>.cf-mark--current</code> is the interesting case, because it is an element
+        and <em>could</em> take a ramp. It does not, for the same reason it takes no border:
+        a match must be one drawing whether the server marked it, a script registered it or
+        the URL arrived carrying it. The element is held to the pseudo-element's means.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="ladder">
+    <h2>Two rungs</h2>
+    <p>
+      Find-in-page has drawn two states since the day it existed — every match, and the one
+      you are standing on — and no system here had named the difference. It is the
+      <a href="geometry.html#lines">presence ladder</a>, read as attention rather than as
+      arrival: same object, one rung apart, and an object may move along the ladder but never
+      across it.
+    </p>
+    <div class="docs-demo">
+      <div class="find-prose">
+        <p>
+          Every match is the <mark class="cf-mark">ground line</mark> alone: one 2 px rule in
+          ink, the lattice edge the word stands on. Present, but not where the reader is. The
+          one match the reader is standing on is
+          <mark class="cf-mark--current">the same word with the light on</mark> — the fill is
+          the light layer, in its correct place under the text and above the contour.
+        </p>
+      </div>
+    </div>
+    <pre class="docs-code"><span class="tag">&lt;mark</span> <span class="attr">class</span>=<span class="val">"cf-mark"</span><span class="tag">&gt;</span>ground line<span class="tag">&lt;/mark&gt;</span>
+<span class="tag">&lt;mark</span> <span class="attr">class</span>=<span class="val">"cf-mark--current"</span><span class="tag">&gt;</span>the same word with the light on<span class="tag">&lt;/mark&gt;</span></pre>
+    <p>
+      The rule is a <strong>ground line</strong> and not a box, and that was a decision rather
+      than a shortcut. Two rules — underline and overline — are the obvious answer: the top and
+      bottom edge of a cell, the only box a highlight is allowed to have. It was built that way
+      first and then looked at. There is no <code>text-overline-offset</code> in CSS: the
+      underline can be pushed clear of the descenders and the overline cannot be pulled down at
+      all, so it lands on the font's ascent, well above cap height, and reads as a detached
+      rule floating over the word instead of its opposite edge. An asymmetric band is worse
+      than no band. One line at twice the weight draws what it means — and it is what the rest
+      of this system already does, because an isometric object has no bounding box either. It
+      has a lattice edge under it.
+    </p>
+    <p>
+      <strong>2 px, not the 1 px hairline</strong>, and that is a collision rather than a
+      preference: an unclassed link in this system is a 1 px underline at 0.2em, one notch
+      inside the mark's own 0.22em. At the hairline weight a match and a link would be the
+      same drawing. Both weights are sanctioned screen strokes, so the mark takes the second
+      one.
+    </p>
+    <div class="docs-note">
+      <strong>This is also how the lime budget survives a page with twelve matches on it.</strong>
+      <p>
+        One lime moment per screen is a rule about composition — what the designer puts on the
+        page. A search result set is not composed, it is answered, and if every match were lit
+        a busy page would spend its whole light budget on the reader's query. It does not have
+        to: <strong>exactly one match is ever lit</strong>, because only one can be current.
+        Eleven contours and one light. The budget is satisfied by the drawing rather than
+        waived for it.
+      </p>
+    </div>
+    <p>
+      On a dark surface the rule inverts and the light does not, because the light <em>is</em>
+      the light — there is nothing for lime to become on black. <code>--found-rule</code>
+      resolves through <code>--border-strong</code>, so it follows the inverse theme without
+      the found state knowing the theme exists.
+    </p>
+    <div class="docs-demo docs-demo--dark" data-theme="inverse">
+      <div class="find-prose">
+        <p>
+          A <mark class="cf-mark">match in the footer</mark> is drawn in light instead of ink,
+          and <mark class="cf-mark--current">the current one</mark> is the same lime with the
+          same black ink on it.
+        </p>
+      </div>
+    </div>
+    <p>
+      <code>&lt;mark&gt;</code> is an element, so <code>.cf-mark</code> <em>could</em> have a
+      real 1 px border, 2 px of padding and a <code>--radius-sm</code> corner like every other
+      object in the system. <code>::target-text</code> cannot, ever. Two drawings for one
+      meaning is worse than one constrained drawing, so <strong>the element is held to the
+      pseudo-element's means</strong> — a match looks the same whether the server marked it, a
+      script registered it, or the URL arrived carrying it.
+    </p>
+  </section>
+
+  <section class="docs-section" id="find">
+    <h2>A page that searches itself</h2>
+    <p>
+      The Custom Highlight API is the register that had nothing registered against it. It
+      takes <code>Range</code> objects and paints them through
+      <code>::highlight(<em>name</em>)</code> without touching the DOM — no wrapper elements,
+      no re-parse, nothing for a screen reader to trip over. The system ships the two names
+      and their styling; a page supplies the ranges.
+    </p>
+    <div class="docs-demo">
+      <div class="find-bar">
+        <div class="cf-field">
+          <label class="cf-field__label" for="find-q">Find in this section</label>
+          <input class="cf-field__input" type="search" id="find-q" autocomplete="off"
+                 placeholder="try: contour" spellcheck="false">
+        </div>
+        <p class="find-bar__count" id="find-count" role="status">no query</p>
+        <div class="find-bar__steps">
+          <button class="find-step" type="button" id="find-prev" disabled aria-label="Previous match">
+            <svg class="cf-icon cf-icon--sm" aria-hidden="true"><use href="#cf-chevron-up"></use></svg>
+          </button>
+          <button class="find-step" type="button" id="find-next" disabled aria-label="Next match">
+            <svg class="cf-icon cf-icon--sm" aria-hidden="true"><use href="#cf-chevron-down"></use></svg>
+          </button>
+        </div>
+      </div>
+      <div class="find-prose" id="find-scope">
+        <p>
+          Everything in this brand is drawn with a contour rather than filled. A contour is one
+          device pixel wide at every size, which is why an isometric contour is stroked with
+          <code>vector-effect: non-scaling-stroke</code> instead of being scaled with the
+          drawing it belongs to.
+        </p>
+        <p>
+          Anything spatial is constructed in 2:1 isometry, so a circle is an ellipse at 2:1 and
+          a cube is three rhombi sharing a vertex. The only sanctioned angles are 26.57, 45,
+          63.43 and 90 degrees, and a rotation of a sanctioned angle is sanctioned.
+        </p>
+        <p>
+          Lime is light, not a surface. It appears once per screen: the lit contour, the plot
+          cap, the focus ring, the banner edge — and, here, the one match the reader is
+          standing on. Every other match on this page is a contour with no light in it at all.
+        </p>
+      </div>
+      <p class="find-bar__count" id="find-support" hidden>
+        This browser has no Custom Highlight API. The section above is unchanged and still
+        findable with the browser's own Ctrl-F.
+      </p>
+    </div>
+    <pre class="docs-code"><span class="com">// The whole feature. The styling is already in base.css.</span>
+<span class="attr">const</span> found = <span class="attr">new</span> Highlight();
+<span class="attr">const</span> current = <span class="attr">new</span> Highlight();
+current.priority = <span class="val">1</span>;               <span class="com">// the lit rung wins the overlap</span>
+CSS.highlights.set(<span class="val">'cf-found'</span>, found);
+CSS.highlights.set(<span class="val">'cf-found-current'</span>, current);
+
+<span class="com">// …for each hit, a Range over the text node, then:</span>
+found.add(range);
+current.clear(); current.add(ranges[i]);</pre>
+    <div class="docs-note docs-note--warn">
+      <strong>The system does not intercept <kbd>Ctrl</kbd>+<kbd>F</kbd>. Ever.</strong>
+      <p>
+        It is the obvious joke for a company called Control-F and it is the wrong thing to
+        build. The browser's own find is faster, works before any script has run, reads the
+        whole page rather than one container, is wired into assistive technology, and is the
+        one keystroke a reader can rely on across every site they will ever visit. A site
+        search field is an <em>addition</em> to it — a control the reader chooses, drawn in the
+        system's own field and icon set. Taking the keystroke away to show off the brand would
+        spend the reader's trust on a pun.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="fragment">
+    <h2>Arriving on a match</h2>
+    <p>
+      A URL can carry the phrase it means rather than an anchor somebody remembered to add:
+      <code>#:~:text=…</code>. Search engines mint these, readers share them from the browser's
+      own <em>Copy link to highlight</em>, and the destination page implements nothing at all —
+      it only has to have <em>drawn</em> the state, which is what <code>::target-text</code>
+      is. This is the register with the widest reach and the least code.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <p style="margin:0">
+        <a class="cf-btn cf-btn--outline"
+           href="../patterns/blog-artikel.html#:~:text=Bevor%20irgendetwas%20simuliert%20wird">
+          Open the blog article on one sentence
+          <svg class="cf-icon cf-icon--sm cf-icon--motion" aria-hidden="true"><use href="#cf-chevron-right"></use></svg>
+        </a>
+      </p>
+    </div>
+    <p>
+      The article scrolls to <em>Bevor irgendetwas simuliert wird</em> and lights that clause
+      in the found state — the lit rung, because a reader who arrives on a phrase is standing
+      on it by definition. Nothing on that page knows this happened.
+    </p>
+    <div class="docs-note">
+      <strong>A text fragment is a cross-document navigation.</strong>
+      <p>
+        Clicking one from the page it points into does nothing in most browsers, which is why
+        the demo above points at another page rather than at a paragraph below it. It also
+        means the fragment travels through the system's
+        <a href="transitions.html">page transition</a> like any other navigation: the raked
+        edge crosses, the article arrives behind it, and the lit clause is already lit when it
+        gets there.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="until-found">
+    <h2>Findable while hidden</h2>
+    <p>
+      The last piece is the one that is not a drawing. Content collapsed with
+      <code>display: none</code> is invisible to find-in-page, to a text fragment and to a
+      search engine — so a reader searching for a word that is genuinely on the page is told
+      it is not. <code>hidden="until-found"</code> is the fix: the browser applies
+      <code>content-visibility: hidden</code> instead, keeps the text searchable, and reveals
+      the block when a match lands inside it.
+    </p>
+    <div class="docs-demo">
+      <div class="reveal-demo">
+        <p>
+          Press <kbd>Ctrl</kbd>+<kbd>F</kbd> — <kbd>Cmd</kbd>+<kbd>F</kbd> on a Mac — and
+          search for <strong>Rhombendodekaeder</strong>. The word is not on screen. Your
+          browser will find it anyway and open the block it sits in.
+        </p>
+        <div hidden="until-found" id="reveal-target">
+          <p>
+            <strong>Rhombendodekaeder.</strong> Twelve rhombic faces, every one of them the
+            2:1 cell this brand builds with, which is the only reason it is the word hidden
+            here. Nothing revealed this block but the search itself.
+          </p>
+        </div>
+        <p>
+          <button class="cf-btn cf-btn--ghost" type="button" id="reveal-btn">
+            Or reveal it without searching
+          </button>
+        </p>
+      </div>
+    </div>
+    <pre class="docs-code"><span class="tag">&lt;div</span> <span class="attr">hidden</span>=<span class="val">"until-found"</span> <span class="attr">id</span>=<span class="val">"answer-7"</span><span class="tag">&gt;</span>
+  <span class="com">&lt;!-- no border, no padding, no background on THIS element --&gt;</span>
+  <span class="tag">&lt;p&gt;</span>…<span class="tag">&lt;/p&gt;</span>
+<span class="tag">&lt;/div&gt;</span></pre>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Pair it with a visible control. Content that only find-in-page can reach is content most readers cannot.</li>
+          <li>Keep the element carrying the attribute bare — a hidden box still lays out, so a border or a padding on it draws an empty sliver where the content will appear. Style a child.</li>
+          <li>Reach for <code>&lt;details&gt;</code> first. Browsers already open a closed <code>&lt;details&gt;</code> on a find, so the <a href="../components/accordion.html">accordion</a> needs none of this.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Never use it to hide content from sighted readers that assistive technology can still reach — it hides from both, which is the point. <code>.visually-hidden</code> is the other tool.</li>
+          <li>No animation on the reveal. The browser scrolls the reader onto a match; a block that then grows moves the match out from under them.</li>
+          <li>Not for navigation. A collapsed menu holds links, not content, and a reader searching for a page name wants the page.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>Nothing in the system uses this yet, and that is deliberate.</strong>
+      <p>
+        The one place the site collapses real prose is the accordion, which is
+        <code>&lt;details&gt;</code> and already findable. The attribute is documented here as
+        available material — the same standing <a href="field.html">the field</a> and
+        <a href="../components/arrival.html">the arrival ladder</a> have — so that the first
+        thing which does need it gets it right instead of reaching for
+        <code>display: none</code>.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="contrast">
+    <h2>Measured</h2>
+    <p>
+      A custom highlight owes two figures, not one: <strong>4.5:1</strong> for the text against
+      the highlight, and <strong>3:1</strong> for the highlight against the surface around it.
+      The second is the one that decides this drawing.
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Pair</th><th>Ratio</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>Schwarz on Lime — text on the lit rung</td><td>18.51:1</td><td>clears 4.5:1</td></tr>
+        <tr><td>Lime against CF-Grau — fill against the top of the wash</td><td>1.37:1</td><td><strong>fails 3:1</strong></td></tr>
+        <tr><td>Lime against Weiss — fill against the bottom of the wash</td><td>1.13:1</td><td><strong>fails 3:1</strong></td></tr>
+        <tr><td>Schwarz against CF-Grau — the ground line, top of the wash</td><td>13.48:1</td><td>clears 3:1</td></tr>
+        <tr><td>Schwarz against Weiss — the ground line, bottom of the wash</td><td>21:1</td><td>clears 3:1</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      Lime cannot hold the boundary at either end of the page — it sits at 87.5 % of white's
+      luminance, which is what makes it light and what makes it useless as an edge. So
+      <strong>the ink holds it and the light ranks it.</strong> The ground line is not decoration
+      and cannot be dropped: remove it and the found state fails 1.4.11 on every surface the
+      site has. It is also, in the same stroke, the answer to <em>never carry a state by
+      colour alone</em> — the rules are what makes the mark, and the fill is what says which
+      one is current.
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Path</th><th>What the reader gets</th></tr></thead>
+      <tbody>
+        <tr><td>forced colours</td><td><code>Mark</code> / <code>MarkText</code>, the system pair for exactly this meaning, with the rules kept</td></tr>
+        <tr><td>print</td><td>every match prints as the contour — there is no reader on paper to be standing on one, and lime prints as a wash over the ink</td></tr>
+        <tr><td>no <code>::highlight()</code></td><td>the page-search demo says so and the section stays findable with the browser's own find</td></tr>
+        <tr><td>no <code>::target-text</code></td><td>the browser paints its own highlight; the reader still lands on the phrase</td></tr>
+        <tr><td>no <code>hidden="until-found"</code></td><td>the attribute falls back to plain <code>hidden</code>, so the block is collapsed and the visible control is the way in</td></tr>
+        <tr><td>no script</td><td>every register except the page-search demo is markup or CSS</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note">
+      <strong><code>::selection</code> keeps its solid lime and is the one exception on this
+      page.</strong>
+      <p>
+        Its boundary against CF-Grau is the same 1.37:1, and it is documented rather than
+        fixed. A drag is transient, self-caused and under the reader's own hand — the reader
+        knows what they just selected because they just selected it — and the criterion the
+        fill actually has to clear there is the text on it, at 18.51:1. A selection that reads
+        as anything other than a selection is a selection nobody can trust, so the platform's
+        convention wins over the system's consistency. Every mark the reader did <em>not</em>
+        make carries the contour.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Selector</th><th>Rung</th><th>When</th></tr></thead>
+      <tbody>
+        <tr><td><code>&lt;mark&gt;</code></td><td>contour</td><td>the bare element, styled so an unclassed <code>&lt;mark&gt;</code> in prose is never UA yellow</td></tr>
+        <tr><td><code>.cf-mark</code></td><td>contour</td><td>a match the server rendered; every hit in a result list but one</td></tr>
+        <tr><td><code>.cf-mark--current</code></td><td>light</td><td>the one hit the reader is on. One per page, never two</td></tr>
+        <tr><td><code>::target-text</code></td><td>light</td><td>automatic — a URL arrived carrying <code>#:~:text=</code></td></tr>
+        <tr><td><code>::highlight(cf-found)</code></td><td>contour</td><td>ranges a script registered under that name</td></tr>
+        <tr><td><code>::highlight(cf-found-current)</code></td><td>light</td><td>the active range. Set <code>priority</code> above <code>cf-found</code> so the overlap resolves to the light</td></tr>
+        <tr><td><code>::selection</code></td><td>light, no contour</td><td>the reader's own drag. Not part of the found set — see above</td></tr>
+        <tr><td><code>&lt;kbd&gt;</code></td><td>—</td><td>a keycap: contour, 2 px corner, mono. Added here because the brand is a shortcut and could not draw a key</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Token</th><th>Value</th><th>Job</th></tr></thead>
+      <tbody>
+        <tr><td><code>--found-rule</code></td><td><code>--border-strong</code></td><td>the ground line. Follows the inverse theme, so a match in the footer is drawn in light instead of ink</td></tr>
+        <tr><td><code>--found-rule-weight</code></td><td><code>--stroke-2</code></td><td>2 px. The hairline is what an unclassed link already draws</td></tr>
+        <tr><td><code>--found-offset</code></td><td><code>0.22em</code></td><td>pushes the rule clear of the descenders. The extra notch over a link's 0.2em is what a 2 px rule needs to sit at the same optical distance</td></tr>
+        <tr><td><code>--found-light</code></td><td><code>--cf-lime</code></td><td>material layer 5, flat, behind the glyphs</td></tr>
+        <tr><td><code>--found-ink</code></td><td><code>--cf-schwarz</code></td><td>text on the light. Black in both themes, because the light is the same in both</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>The ground line on every match. It is what holds the 3:1 boundary and what keeps the state off colour alone.</li>
+          <li>Exactly one lit match per page. If two are lit, one of them is lying about where the reader is.</li>
+          <li>Style a match through <code>--found-*</code>, never with a fresh colour — the four registers must stay one drawing.</li>
+          <li>Give a page-search control a live count. <code>role="status"</code> on the counter, and step buttons with real labels.</li>
+          <li>Move the reader to a match with <code>scrollIntoView</code>, and honour <code>prefers-reduced-motion</code> when you do.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Never intercept <kbd>Ctrl</kbd>+<kbd>F</kbd>. The browser's find belongs to the reader.</li>
+          <li>No gradient in a match. It is not a taste call — <code>background-image</code> is ignored on a highlight pseudo-element, so the element version would be the only one that had it.</li>
+          <li>No border, padding or radius on <code>.cf-mark</code>, even though an element could carry all three.</li>
+          <li>Do not wrap search hits in <code>&lt;span&gt;</code>s a script injects. Use the highlight registry: it paints ranges without touching the DOM, so the text a screen reader reads is the text the author wrote.</li>
+          <li>Do not use <code>&lt;mark&gt;</code> for emphasis. It means <em>relevant to why you are here</em>; <code>&lt;strong&gt;</code> and <code>&lt;em&gt;</code> mean the other things.</li>
+          <li>Never <code>display: none</code> on prose a reader might search for. That is what <code>hidden="until-found"</code> is for.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../assets/js/cf-icons.js"></script>
+<script src="../assets/js/docs.js"></script>
+<script>
+/* The page-search demo. This is documentation, not system code — but it is
+   deliberately the whole feature rather than a sketch of one, because the
+   twenty lines that matter are the ones a site would ship, and the CSS they
+   rely on is already in base.css. Nothing here styles a match. */
+(function () {
+  'use strict';
+
+  var scope = document.getElementById('find-scope');
+  var input = document.getElementById('find-q');
+  var count = document.getElementById('find-count');
+  var prev  = document.getElementById('find-prev');
+  var next  = document.getElementById('find-next');
+  var note  = document.getElementById('find-support');
+  if (!scope || !input) return;
+
+  /* Feature detection, and the honest fallback: leave the prose alone. The
+     browser's own find still works on it, which is the whole argument for
+     painting ranges instead of injecting wrappers. */
+  if (!('highlights' in CSS) || typeof Highlight === 'undefined') {
+    note.hidden = false;
+    input.disabled = true;
+    count.textContent = 'unsupported';
+    return;
+  }
+
+  var found = new Highlight();
+  var current = new Highlight();
+  current.priority = 1;              /* the lit rung wins the overlap */
+  CSS.highlights.set('cf-found', found);
+  CSS.highlights.set('cf-found-current', current);
+
+  var ranges = [];
+  var index = 0;
+
+  function textNodes(root) {
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    var out = [], node;
+    while ((node = walker.nextNode())) { if (node.nodeValue.trim()) out.push(node); }
+    return out;
+  }
+
+  function search(query) {
+    found.clear();
+    current.clear();
+    ranges = [];
+    index = 0;
+    var needle = query.trim().toLowerCase();
+    if (needle.length < 2) return;
+
+    textNodes(scope).forEach(function (node) {
+      var hay = node.nodeValue.toLowerCase();
+      var at = hay.indexOf(needle);
+      while (at > -1) {
+        var range = document.createRange();
+        range.setStart(node, at);
+        range.setEnd(node, at + needle.length);
+        ranges.push(range);
+        found.add(range);
+        at = hay.indexOf(needle, at + needle.length);
+      }
+    });
+  }
+
+  function mark(scroll) {
+    current.clear();
+    if (ranges.length) {
+      current.add(ranges[index]);
+      if (scroll) {
+        var target = ranges[index].startContainer.parentElement;
+        if (target) {
+          target.scrollIntoView({
+            block: 'nearest',
+            behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+          });
+        }
+      }
+    }
+    count.textContent = ranges.length
+      ? (index + 1) + ' / ' + ranges.length
+      : (input.value.trim().length < 2 ? 'no query' : 'no match');
+    prev.disabled = next.disabled = ranges.length < 2;
+  }
+
+  function step(by) {
+    if (!ranges.length) return;
+    index = (index + by + ranges.length) % ranges.length;
+    mark(true);
+  }
+
+  input.addEventListener('input', function () { search(input.value); mark(false); });
+  next.addEventListener('click', function () { step(1); });
+  prev.addEventListener('click', function () { step(-1); });
+  input.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') { event.preventDefault(); step(event.shiftKey ? -1 : 1); }
+  });
+})();
+
+/* The visible way into the hidden-until-found block. Required, not a nicety:
+   content only find-in-page can reach is content most readers cannot. */
+(function () {
+  'use strict';
+  var btn = document.getElementById('reveal-btn');
+  var box = document.getElementById('reveal-target');
+  if (!btn || !box) return;
+  btn.addEventListener('click', function () {
+    box.removeAttribute('hidden');
+    btn.disabled = true;
+    btn.textContent = 'Revealed';
+  });
+})();
+</script>
+</body>
+</html>

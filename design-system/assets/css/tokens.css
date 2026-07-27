@@ -1090,6 +1090,109 @@
                    transparent        100%);
 
   /* ------------------------------------------------------------------
+     8c. THE FOUND STATE — the presence ladder applied to attention
+
+     THE BRAND IS NAMED AFTER A KEYBOARD SHORTCUT and the system had no
+     drawing for a match. Control-F is find-in-page; the site's whole
+     argument is that data can be found in a space rather than read off a
+     sheet. Every register the platform gives an author for "this is the
+     thing you were looking for" was either unstyled here or styled by the
+     browser: <mark> was UA yellow, ::target-text was UA yellow, and
+     ::highlight() had no names registered at all. One line of the system —
+     ::selection — was doing the whole job.
+
+     WHAT THE DRAWING MAY BE MADE OF IS DECIDED FOR US, and that is the
+     useful part. Highlight pseudo-elements take a closed property list, so
+     that the browser can repaint a moving highlight without relayout: per
+     css-pseudo-4 § 3 it is color, background-color, text-decoration and its
+     longhands, text-shadow, and the text stroke/fill properties. No border.
+     No outline. No padding. NO BACKGROUND-IMAGE — which means no --gradient-
+     foil, no --gradient-light, no member of the light family can enter a
+     highlight at all. The one place in this system where a surface may not
+     carry a gradient.
+
+     So the found state is drawn from the two things that are left, and they
+     happen to be the two the brand puts first anyway:
+
+       contour   text-decoration-line: underline, --stroke-2, in ink. THE
+                 GROUND LINE. In an isometry an object does not have a
+                 bounding box; what says where it stands is the lattice edge
+                 under it, which is how every object on foundations/
+                 illustration.html is placed. A match is a word standing on
+                 one.
+       light     background-color: --cf-lime, flat, behind the glyphs.
+                 Material layer 5 sits under layer 6, so a lime fill behind
+                 text is the light layer in its correct place. Lime as a
+                 SURFACE is what the manual bans — a plate, a card, a band
+                 of chrome — and a word's worth of it is not that.
+
+     UNDERLINE + OVERLINE WAS TRIED FIRST AND IS THE OBVIOUS ANSWER: two
+     rules, the top and bottom edge of the cell, the only box a highlight is
+     allowed. It was dropped after looking at it. There is no
+     text-overline-offset — the underline can be pushed off the descenders
+     and the overline cannot be pulled down at all, so it lands on the font's
+     ascent, well clear of cap height, and reads as a detached rule floating
+     over the word rather than as its opposite edge. An asymmetric band is
+     worse than no band. One line, at twice the weight, is the version that
+     draws what it means.
+
+     2 px, NOT THE 1 px HAIRLINE, and the reason is a collision rather than a
+     preference: a:not([class]) is already a 1 px underline at 0.22em's
+     neighbour, 0.2em. A hairline mark and a link would be the same drawing.
+     Doubling the weight is the brand's own way out — 1 and 2 px are both
+     sanctioned screen strokes — and it is what lets the contour hold the
+     boundary on its own (see below).
+
+     TWO RUNGS, WHICH IS WHERE THE LADDER COMES IN. Find-in-page has always
+     drawn two states and no system here had named the difference: every
+     match, and the one you are standing on.
+
+       every match      contour only. Present, not current. --cf-mark,
+                        ::highlight(cf-found).
+       the current one  contour + light. --cf-mark--current,
+                        ::highlight(cf-found-current), ::target-text.
+
+     Same drawing, one rung apart, which is the ladder's own hard rule (8a):
+     an object moves ALONG it and never across it. It also settles the lime
+     budget without an exception. One lime moment per screen is a rule about
+     composition, and a page with twelve matches on it has ONE lit match and
+     eleven contoured ones — so the budget is satisfied by the drawing rather
+     than waived for it. The reader's own torch, not a fixture.
+
+     CONTRAST IS CARRIED BY THE INK, NOT BY THE FILL, and this is the reason
+     the contour is not optional. The floor a custom highlight owes is two
+     figures: 4.5:1 text against the highlight, and 3:1 highlight against the
+     surrounding surface. Black on lime is 18.51:1, comfortably clear. Lime
+     on CF-Grau is 1.37:1 and on the white end of the wash 1.13:1 — the fill
+     CANNOT hold that boundary, at either end of the page. The ground line
+     holds it instead: --cf-schwarz measures 13.48:1 on CF-Grau and 21:1 on
+     Weiss. That is also the "never colour alone" requirement discharged by
+     construction rather than by a second decision, because the rule is what
+     makes the mark and the fill is what ranks it.
+
+     THE ELEMENT COULD CARRY A REAL BOX AND DOES NOT. <mark> is an element,
+     so .cf-mark could have a 1 px border, 2 px of padding and a --radius-sm
+     corner like every other object in the system. ::target-text cannot, ever.
+     Two drawings for one meaning is worse than one constrained drawing, so
+     the element is held to the pseudo-element's means. A match looks the same
+     wherever the match came from — the server rendering search results, the
+     Custom Highlight API scanning the DOM, or the URL arriving with a text
+     fragment on it.
+
+     --found-offset pushes the rule clear of the descenders, with
+     text-decoration-skip-ink: none holding it unbroken underneath them, so it
+     reads as a line the word stands on rather than as a line drawn through
+     the bottom of it. 0.22em against a:not([class])'s 0.2em: the extra notch
+     is what a 2 px rule needs to sit at the same optical distance a 1 px one
+     does at 0.2em.
+     ------------------------------------------------------------------ */
+  --found-rule:        var(--border-strong);
+  --found-rule-weight: var(--stroke-2);
+  --found-offset:      0.22em;
+  --found-light:       var(--cf-lime);
+  --found-ink:         var(--cf-schwarz);
+
+  /* ------------------------------------------------------------------
      9. MATERIALS — "Formsprache > Materialien"
      ------------------------------------------------------------------ */
   /* Milchglas — frosted glass. It exists to calm a complex graphic beneath
@@ -1529,6 +1632,19 @@
      instead of in ink: white 0.10 on Schwarz puts --text-secondary at
      9.46:1 across the line, so the dark side is the comfortable one. */
   --field-ink: rgba(255, 255, 255, 0.10);
+
+  /* The ground line under a match follows the ink and has to be RESTATED here,
+     not just aliased in :root. --found-rule: var(--border-strong) is resolved
+     where the DECLARATION lives — on :root, where --border-strong is Schwarz —
+     and the substituted value is what inherits down, so an element inside an
+     inverse section would draw a black rule on a black surface. Measured
+     before this line existed: rgb(0, 0, 0) on --surface-inverse. Composited,
+     the value here is #B8B8B8, 10.6:1 on Schwarz.
+     Only the rule inverts. --found-light stays lime, because the light IS the
+     light and there is nothing for it to become on black — and on a dark
+     surface it is the one place the fill holds the 3:1 boundary on its own
+     (lime against Schwarz is 18.51:1, against CF-Grau 1.37:1). */
+  --found-rule: var(--border-strong);
 
   /* The dark red is unreadable on black (2.9:1). Same hue, lightened
      until it clears the floor: 12.3:1 on --surface-base here. */

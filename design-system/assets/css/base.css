@@ -79,11 +79,182 @@ a:not([class]) {
   outline-offset: 2px;
 }
 
-/* The one flat lime area in the system, and it is flat because CSS gives no
-   other option: a selection highlight cannot take a gradient. Everywhere else
-   lime fills an area it fills it with a ramp — foundations/colors.html,
-   "Lime is never flat". Do not read this line as a precedent. */
+/* A BARE <strong> WAS NOT BOLD, and it took a page about marked text to notice.
+   Body copy is --weight-light, 300. The UA default for strong is `bolder`,
+   which is RELATIVE: against 300 it resolves to 400, one step on a variable
+   axis and no visible emphasis at all. Every component that thought about it
+   set its own value and was therefore fine — .cf-prose strong and .docs-note
+   strong at 600, .cf-check__label strong at 500, .cf-process__note strong —
+   and both designed pages happen to put every <strong> they have inside one of
+   those. So this was latent rather than visible, and it would have shipped the
+   first time a page emphasised a word outside a component.
+   600 is what the components that set it chose. :where() so every one of them
+   still wins. */
+:where(strong, b) { font-weight: var(--weight-semibold); }
+
+/* FLAT LIME, AND IT IS FLAT BECAUSE CSS GIVES NO OTHER OPTION: background-image
+   is ignored on a highlight pseudo-element, so no ramp of the light family can
+   be painted into one. Everywhere lime fills an AREA it fills it with a
+   gradient — foundations/colors.html, "Lime is never flat". Do not read this
+   line as a precedent; read it as the general case, which the found state below
+   states in full and measures. Every highlight register in this system is the
+   same exception, for the same reason, and there is no fourth one.
+
+   This one is also the only highlight here that is a GESTURE rather than an
+   answer, which is why it keeps the platform's convention and takes no contour:
+   a selection that reads as anything other than a selection is a selection you
+   cannot trust. Its boundary against CF-Grau is 1.37:1 and that is documented
+   rather than fixed — a drag is transient, self-caused and under the reader's
+   own hand, and the criterion the fill has to clear is the text on it, at
+   18.51:1. Everything below is the other half of the story: a mark the reader
+   did NOT make, and therefore has to be able to trust at a glance.
+   → foundations/found.html */
 ::selection { background: var(--cf-lime); color: var(--cf-schwarz); }
+
+/* A brand named after a keyboard shortcut could not draw a key. A keycap is an
+   OBJECT in this system's own taxonomy — a body of its own, like a control or a
+   plate — so it takes the 2 px corner and a contour rather than a fill, which
+   is the one thing that separates it from the code span it would otherwise be
+   mistaken for. Zero specificity, so .cf-prose's own code/kbd/samp rule still
+   wins inside an article. → foundations/found.html */
+:where(kbd) {
+  display: inline-block;
+  padding: 0.1em 0.4em;
+  border: var(--stroke-1) solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   THE FOUND STATE
+   Control-F is find-in-page. The brand is named after the gesture and the
+   system had no drawing for its result, so every match on this site was
+   whatever the browser painted — UA yellow, in three different registers.
+
+   ONE DRAWING, TWO RUNGS. A match is a word standing on a lattice edge — a
+   2 px ground line in ink, the way every object in this system is placed. The
+   match the reader is standing on is the same word with the light layer
+   switched on behind it. Contour before fill, and the presence ladder read as
+   attention rather than as arrival.
+
+   The ground line is not decoration and cannot be dropped: it is what holds
+   the 3:1 boundary the fill cannot (lime is 1.37:1 on CF-Grau, 1.13:1 on
+   Weiss), and it is what keeps the mark off colour alone. It is 2 px rather
+   than the system hairline because a 1 px underline at this offset is already
+   what a:not([class]) draws, and a mark must not read as a link. See
+   tokens.css § 8c for the measurements and the property list this drawing
+   had to be built inside.
+   -------------------------------------------------------------------------- */
+/* EVERY PSEUDO-ELEMENT BELOW GETS ITS OWN RULE, and the repetition is load-
+   bearing. A selector list is not forgiving: one pseudo-element the browser
+   has never heard of drops the WHOLE rule, every other selector in it
+   included. ::target-text has been Baseline since December 2024 and
+   ::highlight() only since June 2025, so a list naming both would have taken
+   the older, better-supported half down with the newer one in exactly the
+   browsers that still needed the fallback. :is() would not help — it is
+   forgiving for selectors, not for pseudo-elements, which cannot appear in it
+   at all. So: one rule each, and --found-* is what keeps them one drawing. */
+:where(mark), .cf-mark {
+  background-color: transparent;
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: var(--found-rule);
+  text-decoration-thickness: var(--found-rule-weight);
+  text-decoration-skip-ink: none;
+  text-underline-offset: var(--found-offset);
+}
+
+/* The current match, as an element. */
+.cf-mark--current {
+  background-color: var(--found-light);
+  color: var(--found-ink);
+  text-decoration-line: underline;
+  text-decoration-color: var(--found-rule);
+  text-decoration-thickness: var(--found-rule-weight);
+  text-decoration-skip-ink: none;
+  text-underline-offset: var(--found-offset);
+}
+
+/* The current match, as a URL. A text fragment (#:~:text=…) is a reader
+   arriving from a search engine or a shared link straight onto the phrase
+   they were promised, and it is the one register here nothing on the page
+   has to implement. ::target-text is also the reason this whole drawing
+   avoids border and padding: it is a highlight pseudo-element and can have
+   neither, so nothing else may either. */
+::target-text {
+  background-color: var(--found-light);
+  color: var(--found-ink);
+  text-decoration-line: underline;
+  text-decoration-color: var(--found-rule);
+  text-decoration-thickness: var(--found-rule-weight);
+  text-decoration-skip-ink: none;
+  text-underline-offset: var(--found-offset);
+}
+
+/* The Custom Highlight API half: a page that finds its own matches registers
+   its ranges under these two names and the styling comes from here, so a
+   search feature ships no CSS of its own and cannot draw a match differently
+   from the way the server or the URL draws one.
+   → foundations/found.html */
+::highlight(cf-found) {
+  background-color: transparent;
+  text-decoration-line: underline;
+  text-decoration-color: var(--found-rule);
+  text-decoration-thickness: var(--found-rule-weight);
+  text-decoration-skip-ink: none;
+  text-underline-offset: var(--found-offset);
+}
+::highlight(cf-found-current) {
+  background-color: var(--found-light);
+  color: var(--found-ink);
+  text-decoration-line: underline;
+  text-decoration-color: var(--found-rule);
+  text-decoration-thickness: var(--found-rule-weight);
+  text-decoration-skip-ink: none;
+  text-underline-offset: var(--found-offset);
+}
+
+/* Forced colours already has an answer for this and it is better than ours:
+   Mark / MarkText are the system pair for precisely this meaning. Take them,
+   and keep the two rules, so the mark survives a palette with no lime in it.
+   ::selection has its own system pair and the UA applies it unasked. */
+@media (forced-colors: active) {
+  :where(mark), .cf-mark {
+    text-decoration-color: MarkText;
+  }
+  .cf-mark--current {
+    background-color: Mark;
+    color: MarkText;
+    text-decoration-color: MarkText;
+  }
+  ::target-text {
+    background-color: Mark;
+    color: MarkText;
+    text-decoration-color: MarkText;
+  }
+  ::highlight(cf-found) {
+    text-decoration-color: MarkText;
+  }
+  ::highlight(cf-found-current) {
+    background-color: Mark;
+    color: MarkText;
+    text-decoration-color: MarkText;
+  }
+}
+
+/* On paper there is no reader to stand on a match, so the current rung has
+   nothing to be current against, and lime prints as a pale wash that hides
+   the ink under it. Every match prints as the contour, which is the rung that
+   was carrying the meaning anyway. */
+@media print {
+  :where(mark), .cf-mark, .cf-mark--current {
+    background-color: transparent;
+    color: inherit;
+  }
+}
 
 hr {
   border: 0;
