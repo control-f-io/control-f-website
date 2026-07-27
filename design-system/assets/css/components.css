@@ -1015,6 +1015,31 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   to   { background-position: 170% 0, 0 0; }
 }
 
+/* THE SAME LOSS PRINT HAD, IN A SECOND MEDIUM. The rim above is two gradient
+   layers on a 1 px pseudo-element with no border and a transparent
+   background-color, and forced colours computes every gradient
+   background-image to `none` — measured on the landing page at 1280,
+   .cf-nav::after resolves to `none, none`. So the bar shipped with no bottom
+   edge at all in that mode: the one hairline that says the sheet is a plane
+   with the page moving under it, gone, on every page, exactly as it was gone
+   on paper until the `screen and` scope was added above.
+
+   Redrawn as a border, which is the only paint the mode keeps — the idiom
+   .cf-arrive__line and .cf-progress__rail already use, and the same reason
+   .material-glass-edge takes it in base.css.
+
+   THE OPACITY ANIMATION IS LEFT ALONE ON PURPOSE. It still runs, so the edge
+   still arrives over the first 5rem as the bar separates from the hero, and
+   that reads correctly here rather than in spite of the mode: the sheet is an
+   opaque Canvas plate under forced colours (see tokens.css), so a bar at
+   scroll 0 is already legible as a bar and the hairline is still doing the job
+   it does everywhere else — marking the moment content starts passing beneath
+   it. What does NOT survive is the specular, and it should not: cf-nav-rim
+   moves a background-position that now has no image to move. */
+@media (forced-colors: active) {
+  .cf-nav::after { border-top: var(--stroke-1) solid CanvasText; }
+}
+
 .cf-nav__list {
   display: flex;
   align-items: center;
