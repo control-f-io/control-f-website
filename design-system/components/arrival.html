@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arrival &amp; Progress — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Components</p>
+    <h1>Arrival &amp; Progress</h1>
+    <p>
+      The sibling of the <a href="error-state.html">error and empty state</a>: that one
+      stands in for content there will never be, this one for content that is on its way.
+      A thing that has not arrived is drawn as <em>itself</em>, one rung down the presence
+      ladder — its own contour at the 1-4 line, with one light crossing it. No grey slabs,
+      no spinner, no script.
+    </p>
+  </header>
+
+  <section class="docs-section" id="ladder">
+    <h2>The plate reads twice</h2>
+    <p>
+      <a href="../foundations/geometry.html#lines">Line types</a> catalogues the four lines
+      the way the top half of the <em>Formsprache &gt; Linien</em> plate does: four
+      specimens side by side, equals, each with a job. The bottom half of the same plate is
+      a different drawing and nothing here had implemented it. One object — a rhombus with
+      an ellipse inside it — appears four times on one dotted axis, solid and small at the
+      left, 1-4 and huge at the right.
+    </p>
+    <p>
+      Four line types, one figure. Read left to right it is not a specimen sheet at all: it
+      is a thing coming into being, or going out of it. That is the second register the four
+      types carry, and it only ever becomes legible when the <em>same</em> object is drawn
+      more than once — which is why no static page has needed it and every state does.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <figure style="margin:0">
+        <img src="../assets/source/manual/shape-line-types.jpg"
+             alt="Manual plate Formsprache > Linien: four line types above, and below them one rhombus drawn four times on a dotted axis, from solid at the left to 1-4 at the right."
+             style="width:100%;height:auto;display:block;border:var(--stroke-1) solid var(--border-default)">
+        <figcaption style="margin-top:var(--space-3);font-size:var(--text-sm);color:var(--text-secondary)">
+          <code>assets/source/manual/shape-line-types.jpg</code> — the register in the lower
+          half is the one this component implements.
+        </figcaption>
+      </figure>
+    </div>
+    <table class="docs-table">
+      <thead><tr><th>Rung</th><th>Token</th><th>Line</th><th>Means</th></tr></thead>
+      <tbody>
+        <tr><td>3</td><td><code>--presence-present</code></td><td>solid</td><td>here. The object, drawn.</td></tr>
+        <tr><td>2</td><td><code>--presence-near</code></td><td>2-1</td><td>all but here — held for a state that is a claim about the object, not about the wait.</td></tr>
+        <tr><td>1</td><td><code>--presence-faint</code></td><td>1-2</td><td>construction: a line that explains the drawing rather than being it.</td></tr>
+        <tr><td>0</td><td><code>--presence-absent</code></td><td>1-4</td><td>not here yet. Every placeholder on this page.</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>An object may move along the ladder, never across it.</strong> A thing that is
+      not here yet is the same drawing as the thing that is, one rung down — same box, same
+      size, same place. The moment a pending state is drawn as a different shape, the reader
+      is being shown an object that will never arrive, and the fill has beaten the contour.
+      This is also the whole argument against the grey slab: it is not a low-presence
+      drawing of anything.
+    </div>
+    <div class="docs-note">
+      <strong>Two registers, no conflict.</strong> A line type has a <em>use</em> — where it
+      is allowed to appear, which is what
+      <a href="../foundations/geometry.html#lines">Geometry</a> lists — and, when one object
+      is drawn twice, a <em>rank</em>. <code>--presence-absent</code> was already doing this
+      job under another name: <code>.cf-plot__cell</code>, the ghost footprint that says
+      where a column stands rather than what it measures. → <code>tokens.css</code> 8a
+    </div>
+  </section>
+
+  <section class="docs-section" id="ghost">
+    <h2>The ghost</h2>
+    <p>
+      A placeholder is the arriving thing's contour and nothing above it in the material
+      stack: no fill, no light of its own, no text. A line of copy that is not here yet is
+      an empty box the height of its own line — not a filled bar, which is a line of type
+      that has arrived and is unreadable.
+    </p>
+    <div class="docs-demo">
+      <div class="cf-arrive">
+        <div class="cf-arrive__ghost" aria-hidden="true">
+          <span class="cf-arrive__plate" style="--arrive-h:9rem"></span>
+          <span class="cf-arrive__line" style="--arrive-w:.94"></span>
+          <span class="cf-arrive__line" style="--arrive-w:.88"></span>
+          <span class="cf-arrive__line" style="--arrive-w:.52"></span>
+        </div>
+        <p class="cf-arrive__status" role="status">Beiträge werden geladen</p>
+      </div>
+    </div>
+
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-arrive"</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-arrive__ghost"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;
+    &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-arrive__plate"</span> <span class="attr">style</span>=<span class="val">"--arrive-h:9rem"</span>&gt;&lt;/<span class="tag">span</span>&gt;
+    &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-arrive__line"</span> <span class="attr">style</span>=<span class="val">"--arrive-w:.94"</span>&gt;&lt;/<span class="tag">span</span>&gt;
+    &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-arrive__line"</span> <span class="attr">style</span>=<span class="val">"--arrive-w:.88"</span>&gt;&lt;/<span class="tag">span</span>&gt;
+    &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-arrive__line"</span> <span class="attr">style</span>=<span class="val">"--arrive-w:.52"</span>&gt;&lt;/<span class="tag">span</span>&gt;
+  &lt;/<span class="tag">div</span>&gt;
+  &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-arrive__status"</span> <span class="attr">role</span>=<span class="val">"status"</span>&gt;Beiträge werden geladen&lt;/<span class="tag">p</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+
+    <h3>Anatomy</h3>
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>Is</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>.cf-arrive</code></td>
+          <td>the block</td>
+          <td>Column, <code>--space-3</code> between the drawing and the word.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-arrive__ghost</code></td>
+          <td>the drawn half</td>
+          <td>Carries <code>aria-hidden="true"</code> and the travelling light. The status line is its sibling, not its child, for both reasons.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-arrive__line</code></td>
+          <td>one line of type</td>
+          <td>Height is <code>1em × --leading-relaxed</code>, so it tracks whatever type it stands in for. <code>--arrive-w</code> (0–1) gives copy its ragged right edge.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-arrive__plate</code></td>
+          <td>a card, a photo, a figure</td>
+          <td><code>--arrive-h</code> is the height the arriving thing will have. Give it the real one — a placeholder of the wrong size is a layout shift with extra steps.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-arrive__object</code></td>
+          <td>an isometric object</td>
+          <td>The lattice's own 96 × 48 rhombus: the ghost of an illustration is the ground it will stand on. SVG, because a transform on a bordered box scales its contour.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-arrive__status</code></td>
+          <td>the word</td>
+          <td>Mono label, <code>role="status"</code>. Not optional — see below.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>The object</h3>
+    <p>
+      Where an illustration or a figure is arriving rather than a block of copy, the
+      placeholder is the lattice cell itself.
+    </p>
+    <div class="docs-demo">
+      <div class="cf-arrive">
+        <div class="cf-arrive__ghost" aria-hidden="true">
+          <svg class="cf-arrive__object" viewBox="0 0 96 48"><path d="M48 0 96 24 48 48 0 24Z"/></svg>
+        </div>
+        <p class="cf-arrive__status" role="status">Diagramm wird berechnet</p>
+      </div>
+    </div>
+    <pre class="docs-code">&lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-arrive__object"</span> <span class="attr">viewBox</span>=<span class="val">"0 0 96 48"</span>&gt;&lt;<span class="tag">path</span> <span class="attr">d</span>=<span class="val">"M48 0 96 24 48 48 0 24Z"</span>/&gt;&lt;/<span class="tag">svg</span>&gt;</pre>
+
+    <h3>The light</h3>
+    <p>
+      One band crosses the ghost at <code>--angle-b</code>, above the contour — the light
+      layer is layer 5 and the contour is layer 4, so this is the manual's own stacking
+      order and not a glow bolted on top. It is the one place in the system a continuous
+      loop is honest: something genuinely is still happening. The period is
+      <code>--arrive-period</code>, 2.4 s, twice the slowest duration the system otherwise
+      animates, because a fast loop reads as impatience.
+    </p>
+    <div class="docs-note">
+      <strong>The cap on the light is 0.18, and contrast is not what chooses it.</strong>
+      The band lightens the contour it crosses, which is the one thing here that could fail
+      in frames too short to catch in a screenshot — so it was measured rather than assumed.
+      Composited the way CSS actually composites, in sRGB, the whitest stop over the
+      blackest contour on CF-Grau gives 9.51:1 at 0.18 and 6.76:1 at 0.28; the 3:1 floor is
+      not reached until 0.52. Sampled off rendered pixels across eight frames of one period
+      in Chromium, the worst inked pixel on the shipped ghost measures 9.57:1.
+      <code>--arrive-light-peak</code> is therefore a decision about restraint — light stays
+      a moment and does not become a surface — with 0.52 as the ceiling it must never cross.
+      → <code>tokens.css</code> 10
+    </div>
+    <div class="docs-note">
+      <strong>Under <code>prefers-reduced-motion</code> the band stops at 50 %</strong> — the
+      middle of the object, which is the same designed still the swinging foil and the
+      field's pool of light fall back to. The ghost stays: nothing is moving, and the thing
+      is still not here yet. In print the light goes and the ghost prints, because the ghost
+      is where the thing will be. In forced colours every background image is dropped, so
+      the placeholders are redrawn as borders — the only paint that survives.
+    </div>
+  </section>
+
+  <section class="docs-section" id="progress">
+    <h2>Progress — the ladder, traversed</h2>
+    <p>
+      A wait with a known end is one line changing type as it is crossed: solid behind the
+      head, 1-4 ahead of it, and the head itself the lattice cell filled with light. Nothing
+      here is invented for the component — it is the <a href="plot.html">plot</a>'s lit cap
+      standing on the rail the ladder already describes.
+    </p>
+    <div class="docs-demo">
+      <div class="cf-progress" style="--progress:.42">
+        <p class="cf-progress__label" id="prog-import">Telemetriedaten werden importiert</p>
+        <p class="cf-progress__value">42 %</p>
+        <div class="cf-progress__rail" role="progressbar" aria-labelledby="prog-import"
+             aria-valuemin="0" aria-valuemax="100" aria-valuenow="42"></div>
+      </div>
+    </div>
+
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-progress"</span> <span class="attr">style</span>=<span class="val">"--progress:.42"</span>&gt;
+  &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-progress__label"</span> <span class="attr">id</span>=<span class="val">"prog-import"</span>&gt;Telemetriedaten werden importiert&lt;/<span class="tag">p</span>&gt;
+  &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-progress__value"</span>&gt;42 %&lt;/<span class="tag">p</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-progress__rail"</span> <span class="attr">role</span>=<span class="val">"progressbar"</span> <span class="attr">aria-labelledby</span>=<span class="val">"prog-import"</span>
+       <span class="attr">aria-valuemin</span>=<span class="val">"0"</span> <span class="attr">aria-valuemax</span>=<span class="val">"100"</span> <span class="attr">aria-valuenow</span>=<span class="val">"42"</span>&gt;&lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>Is</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>--progress</code></td>
+          <td>the value, 0–1</td>
+          <td>Registered with <code>@property</code> as a number, so a stray unit is the initial value rather than a rail drawn at full width. <code>clamp()</code> catches a 2 or a −1.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-progress__rail</code></td>
+          <td>the line</td>
+          <td>Two background tiles, no overlay: the traversed run solid and pinned left, the untraversed run 1-4 and pinned right. The box is 8 px so the head has room; the line in it is 1 px.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-progress__rail::after</code></td>
+          <td>the head</td>
+          <td>An 8 × 4 rhombus — the lattice cell at UI scale — filled lime with the plot's own glow.</td>
+        </tr>
+        <tr>
+          <td><code>role="progressbar"</code></td>
+          <td>on the rail, not the block</td>
+          <td>A progressbar's children are presentational: put the role on the block and the label and the value stop being readable. The rail is named by <code>aria-labelledby</code> pointing at the label.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>The head is the screen's lime moment while it runs</strong>, and there is only
+      ever one. Two progress bars on one screen is two lights; the second thing waiting is a
+      list, not a second bar. Everything else in the component is black on the wash.
+    </div>
+
+    <h3>When the end is not known</h3>
+    <p>
+      A head that travels and resets is a claim about how far along the work is, made by
+      something that does not know. So the indeterminate rail has no head: it is 1-4 end to
+      end, and one <em>segment of lit line</em> passes along it — anchored at neither end,
+      entering off the left and leaving off the right, never growing from zero, so there is
+      no reading of it under which it is measuring anything. Drop <code>aria-valuenow</code>
+      with the head: the two say the same thing and only one of them is visible.
+    </p>
+    <div class="docs-note">
+      <strong>The segment is drawn in <code>--gradient-foil-ink</code></strong>, the shadow
+      half of the foil — the one member of the family that is legible on this surface, since
+      every stop of the lit half is above OKLab L 0.82 and lands at about 1.1:1 on CF-Grau.
+      The band that crosses the ghost was tried here first and is wrong: spread at
+      <code>--angle-b</code> over an 8 px box it puts almost no ink on the one pixel that is
+      the line, and a wait indicator nobody can see is not one. Ghost line against lit line
+      is a difference in line <em>type</em>, which is the difference this whole component is
+      built on.
+    </div>
+    <div class="docs-demo">
+      <div class="cf-progress cf-progress--indeterminate">
+        <p class="cf-progress__label" id="prog-export">Bericht wird erzeugt</p>
+        <div class="cf-progress__rail" role="progressbar" aria-labelledby="prog-export"></div>
+      </div>
+    </div>
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-progress cf-progress--indeterminate"</span>&gt;
+  &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-progress__label"</span> <span class="attr">id</span>=<span class="val">"prog-export"</span>&gt;Bericht wird erzeugt&lt;/<span class="tag">p</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-progress__rail"</span> <span class="attr">role</span>=<span class="val">"progressbar"</span> <span class="attr">aria-labelledby</span>=<span class="val">"prog-export"</span>&gt;&lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+  </section>
+
+  <section class="docs-section" id="which">
+    <h2>Which one, and when</h2>
+    <table class="docs-table">
+      <thead><tr><th>Wait</th><th>Draw</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>under ~1 s</td>
+          <td>nothing</td>
+          <td>A placeholder that appears and leaves inside a second is a flash, and the announcement arrives after the content it announces. Leave the space empty and let the thing land.</td>
+        </tr>
+        <tr>
+          <td>1–10 s, shape known</td>
+          <td><code>.cf-arrive</code></td>
+          <td>The reader can see what is coming and where it will sit, which is the whole benefit a placeholder has over a spinner.</td>
+        </tr>
+        <tr>
+          <td>1–10 s, shape not known</td>
+          <td><code>.cf-progress--indeterminate</code></td>
+          <td>One line and a word. Do not guess a shape — a ghost of the wrong thing is worse than no ghost.</td>
+        </tr>
+        <tr>
+          <td>over ~10 s</td>
+          <td><code>.cf-progress</code></td>
+          <td>Past about ten seconds a reader stops waiting and starts wondering, and wants a gauge rather than a rhythm.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="a11y">
+    <h2>What assistive technology gets</h2>
+    <ul>
+      <li>
+        <strong>The ghost is decorative and is hidden.</strong> <code>aria-hidden="true"</code>
+        on <code>.cf-arrive__ghost</code>. Screen-reader support for <code>aria-busy</code> is
+        thin enough that it cannot be the only signal, so the system does not lean on it.
+      </li>
+      <li>
+        <strong>The word is the state.</strong> <code>role="status"</code> — a polite live
+        region — announces the wait without interrupting, and the same element carries the
+        finished message when the content lands. A shape nobody can see is not a loading state.
+      </li>
+      <li>
+        <strong>Nothing here is focusable</strong> and nothing here is a control. A
+        placeholder must never take a tab stop; it stands where content will be, and content
+        is not yet there to be reached.
+      </li>
+      <li>
+        <strong>The contour clears 3:1 at every frame</strong>, including the frames the light
+        is crossing it. See the cap above.
+      </li>
+      <li>
+        <strong>Reduced motion keeps the state and drops the loop.</strong> The ghost, the
+        rail and the status line all survive; only the band stops.
+      </li>
+    </ul>
+  </section>
+
+  <section class="docs-section" id="dodont">
+    <h2>Do / don't</h2>
+    <table class="docs-table">
+      <thead><tr><th>Do</th><th>Don't</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Draw the placeholder at the size and position of the thing that is coming.</td>
+          <td>Draw a generic stack of bars. It is not a low-presence drawing of anything, and it moves the layout when the real content lands.</td>
+        </tr>
+        <tr>
+          <td>Fill the placeholder with nothing. Contour before fill.</td>
+          <td>Fill it grey and slide a lighter grey band over it. That is the loading state's version of the bar beside a block — it says "waiting" without saying anything about the object.</td>
+        </tr>
+        <tr>
+          <td>Give the block one <code>role="status"</code> line.</td>
+          <td>Ship the drawing alone, or put the status inside the <code>aria-hidden</code> half.</td>
+        </tr>
+        <tr>
+          <td>Let the head of a determinate rail be the screen's lime moment.</td>
+          <td>Put lime anywhere else in the block — not in the ghost, not in the label, not in the rail.</td>
+        </tr>
+        <tr>
+          <td>Use the indeterminate rail when the end is unknown.</td>
+          <td>Animate <code>--progress</code> on a timer to look busy. The value is a claim; only the thing doing the work may make it.</td>
+        </tr>
+        <tr>
+          <td>Replace the ghost with the object at the solid line.</td>
+          <td>Cross-fade the two, or leave the ghost under the arrived content. The ladder is a move between rungs, not a dissolve.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="who">
+    <h2>Who sets it</h2>
+    <p>
+      Nothing in this system is dynamic, so no shipping page carries a state from this file
+      today — the same way <code>patterns/news.html</code> renders page 1 of 11 flat and the
+      server owns the paging. What the component fixes is the drawing and the contract, so
+      that whoever adds the behaviour has nothing left to decide:
+    </p>
+    <ul>
+      <li>
+        <strong>The theme filter on the news overview.</strong> Swap the grid for
+        <code>.cf-arrive</code> with one <code>.cf-arrive__plate</code> per card at the card's
+        own height, and update <code>.cf-arrive__status</code> when the answer lands. A filter
+        that matches nothing is the other component — <a href="error-state.html">the inline
+        error</a> — at <code>200</code>.
+      </li>
+      <li>
+        <strong>The contact form.</strong> A native POST navigates and needs none of this. A
+        form submitted in the background does: <code>.cf-progress--indeterminate</code> under
+        the actions, and the submit button disabled while it runs.
+      </li>
+      <li>
+        <strong>Anything with a byte count</strong> — an upload, an export, an import — takes
+        the determinate rail. Set <code>--progress</code> and <code>aria-valuenow</code> in the
+        same write, or the drawing and the announcement disagree.
+      </li>
+    </ul>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>
