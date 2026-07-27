@@ -199,11 +199,31 @@ hr {
   container: layout / inline-size;
 }
 
+/* Section rhythm. The token is padding on BOTH edges, so the air between two
+   adjacent sections is twice it — 240 at the reference frame. Two modifiers
+   move it, and both are documented on foundations/layout.html rather than left
+   to be inferred from a pattern page.
+
+   --tight   the whole section takes --section-gap-sm instead. For a section
+             that opens a page directly under the page header, where the
+             header has already spent air of its own.
+   --flush   the TRAILING edge only. For the last section on a page, whose
+             bottom air belongs to .cf-footer--detached instead — one page can
+             then not disagree with another about how far the footer stands off.
+
+   --flush USED TO ZERO BOTH EDGES, and that was wrong twice over. Neither of
+   its two users wanted a zero top edge: patterns/ueber-uns.html's team section
+   came out with 120 px of air above it where every other section on the site
+   has 240, and patterns/blog-artikel.html's with 80 where its siblings have
+   200. And it broke the system's own idiom — every other --flush drops exactly
+   the ONE edge that meets a neighbour drawing it (.cf-section-header--flush its
+   bottom border and gap, .cf-pagination--flush its top margin and border).
+   Dropping both was the odd one out in a family of three. */
 .section {
   padding-block: var(--section-gap);
 }
 .section--tight { padding-block: var(--section-gap-sm); }
-.section--flush { padding-block: 0; }
+.section--flush { padding-block: var(--section-gap) 0; }
 
 /* 12-column content grid.
 
