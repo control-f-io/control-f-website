@@ -958,11 +958,41 @@
       <p>
         The clip lives inside <code>@supports</code>, so the unenhanced state is simply the
         inherited solid colour — nothing is transparent until the browser has proved it can
-        clip. Print and <code>forced-colors</code> both reset to solid type, and
-        <code>::selection</code> gets an explicit fill because clipped text has no colour
-        left for the selection layer to invert. Both variants share every one of those
-        rules: <code>--ink</code> is a modifier that swaps one custom property,
-        <code>--foil-ramp</code>, so it cannot drift out of the safety net.
+        clip. Print and <code>forced-colors</code> both reset to solid type. Both variants
+        share every one of those rules: <code>--ink</code> is a modifier that swaps one
+        custom property, <code>--foil-ramp</code>, so it cannot drift out of the safety net.
+      </p>
+    </div>
+    <div class="docs-note">
+      <strong>A highlight painted over a foil has to state its own fill.</strong>
+      <p>
+        <code>-webkit-text-fill-color</code> is what draws the clip, and it is
+        <strong>inherited</strong> — where it is set it beats the <code>color</code> of
+        every descendant. So text under a foil headline or inside a
+        <code>.cf-btn--solid</code> label arrives at any highlight already filled
+        <code>transparent</code>, and a highlight that sets only <code>color</code> paints
+        its plate and no word.
+      </p>
+      <p>
+        Measured before this was fixed: <code>.cf-mark--current</code> — the current match,
+        the rung this brand is named after — rendered as an <strong>empty lime block</strong>
+        inside every foil headline and every solid button on the site, at every size, on
+        both designed pages. <code>::selection</code> had been caught earlier and answered
+        the expensive way, with <code>.text-foil</code> and <code>.cf-btn--solid</code> each
+        carrying a private <code>::selection</code> rule restating the global one plus the
+        missing property. Two clipping contexts, two copies, and the found state never got
+        its own.
+      </p>
+      <p>
+        The rule is now stated once on the highlight rather than once per clipping context:
+        <code>::selection</code>, <code>.cf-mark--current</code>, <code>::target-text</code>
+        and <code>::highlight(cf-found-current)</code> each restate their ink as a fill, and
+        both private copies are gone. The non-current rung deliberately does not:
+        <code>:where(mark)</code> takes <code>color: inherit</code> because a match the
+        reader has not arrived at is the running text with a ground line under it — inside a
+        foil, the running text <em>is</em> the foil. Only a rung that supplies its own ink
+        has an ink to lose. Held by
+        <code>scripts/check-highlight-fill.py</code>.
       </p>
     </div>
 

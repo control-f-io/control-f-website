@@ -489,6 +489,38 @@ current.clear(); current.add(ranges[i]);</pre>
         make carries the contour.
       </p>
     </div>
+    <div class="docs-note">
+      <strong>A match inside gradient type: the light rungs restate their ink as a fill.</strong>
+      <p>
+        <code>background-clip: text</code> is drawn with
+        <code>-webkit-text-fill-color: transparent</code>, and that property is
+        <strong>inherited</strong> — where it is set it beats the <code>color</code> of every
+        descendant. A match landing inside a <code>.text-foil</code> headline or a
+        <code>.cf-btn--solid</code> label therefore arrives already filled transparent.
+        Measured before this was fixed: <code>.cf-mark--current</code> rendered as an
+        <strong>empty lime block</strong> there — the plate, the ground line, and no word —
+        on both designed pages, at every size. A reader who searched for a term got a lime
+        slab where the term should be, which is the one failure this drawing exists to
+        prevent.
+      </p>
+      <p>
+        The three light rungs — <code>.cf-mark--current</code>, <code>::target-text</code>
+        and <code>::highlight(cf-found-current)</code> — now state
+        <code>-webkit-text-fill-color: var(--found-ink)</code> beside their
+        <code>color</code>, in <code>forced-colors</code> too, where the value has to be
+        <code>MarkText</code> rather than the <code>CanvasText</code> a foil hands its
+        descendants. <code>::selection</code> states its own for the same reason.
+      </p>
+      <p>
+        <strong>The two contour rungs deliberately do not.</strong>
+        <code>:where(mark)</code>/<code>.cf-mark</code> takes <code>color: inherit</code> and
+        <code>::highlight(cf-found)</code> supplies no ink at all, because a match the reader
+        has not arrived at is the running text with a ground line under it — and inside a
+        foil, the running text <em>is</em> the foil. Inheriting the clip is the correct
+        drawing there rather than a bug it got away with. Only a rung that supplies its own
+        ink has an ink to lose. Held by <code>scripts/check-highlight-fill.py</code>.
+      </p>
+    </div>
   </section>
 
   <section class="docs-section" id="anatomy">
