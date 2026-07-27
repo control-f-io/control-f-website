@@ -311,6 +311,76 @@
         unrelated gradients are the same ramp at two rakes.
       </p>
     </div>
+
+    <h3 id="rakes-and-blooms">The two halves — sweep and bloom</h3>
+    <p>
+      Four of the six gradients in the Figma dump are radial. The ramp is the same one; what
+      changes is whether the light arrives as a <strong>sweep</strong> across a face or as a
+      <strong>bloom</strong> out of a point. Both halves are classes for the same reason —
+      the ramp is written once and the rake, the angle and the shape are parameters.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <div class="docs-swatch-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border:1px solid var(--border-default)">
+        <div class="material-rake material-rake--mid material-rake--grazing" style="height:7rem"></div>
+        <div class="material-bloom" style="height:7rem"></div>
+        <div class="material-bloom material-bloom--iso" style="height:7rem"></div>
+        <div class="material-bloom material-bloom--top" style="height:7rem"></div>
+      </div>
+    </div>
+    <table class="docs-table">
+      <thead><tr><th>Class</th><th>Shape</th><th>Rake</th><th>The light is</th></tr></thead>
+      <tbody>
+        <tr><td><code>.material-rake--grazing</code></td><td>linear 239.25°</td><td>any; the dump's own is <code>--mid</code></td><td>grazing a long surface</td></tr>
+        <tr><td><code>.material-bloom</code></td><td>radial circle</td><td><code>--mid</code>, mirrored</td><td>on the rim, surface at the centre</td></tr>
+        <tr><td><code>.material-bloom--iso</code></td><td>radial 2:1 ellipse</td><td><code>--mid</code>, mirrored</td><td>the same, on an isometric plate</td></tr>
+        <tr><td><code>.material-bloom--top</code></td><td>radial 45.72 % × 95 % from 50 % 0 %</td><td><code>--far</code>, inset 26.66 %</td><td>entering a surface from its top edge</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>A bloom is clipped to an object. The swatches above are not, and that is why
+      they read lime.</strong>
+      <p>
+        The two mirrored blooms put lime at the rim, so painted edge to edge on a rectangle
+        the outer half of the box is lime and the thing spends the screen's one lime moment
+        on a swatch. In use it is clipped — to a rhombus, a plate, a body of revolution —
+        and what the reader sees is the lit edge of an object with CF-Grau in the middle of
+        it. Both of the designer's own live inside a <code>&lt;path&gt;</code>. These four
+        are drawn full-bleed because this is the page that shows the ramp, the same licence
+        the three rakes above take. Do not copy the swatch; clip the bloom.
+      </p>
+    </div>
+    <div class="docs-note">
+      <strong>The bloom from above is the far rake, and that is arithmetic.</strong>
+      <p>
+        Its stops are lime 26.66 %, Glas 73.62 %, CF-Grau 100 %, so the band runs 26.66 → 100
+        and Glas sits at 26.66 + (100 − 26.66) × 0.64 = <strong>73.60 %</strong> against the
+        designer's 73.62. Two hundredths of a point — his exporter rounding 64.03 to the
+        sanctioned 64. The inset is kept verbatim, because a lime core in the middle of a
+        light source is part of the drawing; the rake under it is derived like every other.
+      </p>
+    </div>
+    <div class="docs-note">
+      <strong>The isometric bloom is 2:1 wide, and the source does not say so.</strong>
+      <p>
+        The retired <code>--gradient-bloom-iso</code> cited
+        <code>02-datenfundament.svg</code>, <code>scale(120 59.88)</code>, as its authority
+        for a 2:1 wide ellipse. The full transform is
+        <code>translate(…) rotate(90) scale(120 59.88)</code>, and the rotate swaps the axes:
+        <strong>59.88 wide by 120 tall</strong>. The designer's ellipse is 1:2 tall, and so is
+        the Figma dump's (<code>50 % 100 %</code>).
+      </p>
+      <p>
+        It is tall because the thing it lights is. The rhombus under it in card 02 is
+        120 × 240 and the bloom is exactly half of it on both axes — a light fitted to an
+        object, not a projection rule. A bloom fitted to its object needs no token, because it
+        is drawn with the object in SVG, which is where both of the designer's live. What the
+        system needs a token for is the other thing: the circle seen in 2:1 isometry, which is
+        2:1 <em>wide</em> — the shape <code>--field-bloom</code>'s pool of light already is.
+        So the shape is right and the citation was wrong, and the two were never in contact
+        until someone read the transform.
+      </p>
+    </div>
+
     <div class="docs-note">
       <strong>One ramp, two colour spaces.</strong>
       <p>
@@ -389,10 +459,8 @@
       <tbody>
         <tr><td><code>--gradient-light</code></td><td>linear 132.36°, near</td><td>the signature — isometric surfaces, <code>.material-light</code></td></tr>
         <tr><td><code>--gradient-light-90</code></td><td>linear 90°, near mirrored</td><td>primary button, horizontal edges</td></tr>
-        <tr><td><code>--gradient-light-raking</code></td><td>linear 239.25°, mid</td><td>grazing light on a long surface</td></tr>
-        <tr><td><code>--gradient-bloom</code></td><td>radial circle, mid</td><td>light on the rim of an object, surface at the centre</td></tr>
-        <tr><td><code>--gradient-bloom-iso</code></td><td>radial 2:1 ellipse, mid</td><td>the same bloom on an isometric plate</td></tr>
-        <tr><td><code>--gradient-bloom-top</code></td><td>radial from above, far</td><td>light entering a surface from the top edge</td></tr>
+        <tr><td><code>.material-rake</code></td><td>linear, any rake, <code>--mirror</code>, <code>--grazing</code> (239.25°)</td><td>the linear half of the family, stated once — see <a href="#rakes-and-blooms">The two halves</a></td></tr>
+        <tr><td><code>.material-bloom</code></td><td>radial circle, mid, mirrored; <code>--iso</code> 2:1; <code>--top</code> far, from above</td><td>the radial half, same ramp — same section</td></tr>
         <tr><td><code>--gradient-spectrum</code></td><td>linear 132.36°, five stops</td><td><code>.material-foil</code> — surfaces only</td></tr>
         <tr><td><code>--gradient-foil</code></td><td>linear <code>--foil-rake</code>, the spectrum minus lime, renormalised</td><td><code>.text-foil</code> — the lit half, inverse surfaces; and every <code>.cf-btn--solid</code> label</td></tr>
         <tr><td><code>--gradient-foil-ink</code></td><td>linear <code>--foil-rake</code>, the same three hues in the 800 band</td><td><code>.text-foil--ink</code> — the shadow half, light surfaces</td></tr>
