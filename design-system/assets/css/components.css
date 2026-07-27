@@ -951,9 +951,25 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
    frames during scroll; moving a gradient across one would do the same. The
    rim is one pixel of unblurred gradient, so both the fade and the travel are
    free. If a later run wants the sheet itself to respond to scroll, this is
-   the layer to do it on — not that one. */
+   the layer to do it on — not that one. .cf-btn--glass::before is that run:
+   the other frosted surface took the same band onto the same kind of layer,
+   for the same reason.
+
+   `screen and` IS NOT DECORATION HERE, and its absence was a real defect for
+   as long as this rule has existed. foundations/motion.html states the rule —
+   any scroll-driven animation must be scoped to screen — after a paged medium
+   printed whichever isometric object happened to be at the current scroll
+   position. This rule was the one scroll-driven animation in the system that
+   did not obey it, and the failure is the sharper one: print has no scroll, so
+   a `both`-filled animation holds its `from` keyframe, and cf-nav-edge's from
+   is opacity 0. Measured under print emulation before the fix — the rim
+   computed to opacity 0, meaning every printed page lost the hairline that
+   separates the bar from the content under it. With the scope, print never
+   applies the animation at all and .cf-nav::after falls back to the rest
+   declaration above, which draws the edge. Same disposition as everything
+   else here: the un-enhanced state is the designed one. */
 @supports (animation-timeline: scroll()) {
-  @media (prefers-reduced-motion: no-preference) {
+  @media screen and (prefers-reduced-motion: no-preference) {
     .cf-nav::after {
       animation: cf-nav-edge linear both, cf-nav-rim linear both;
       animation-timeline: scroll(root block), scroll(root block);
