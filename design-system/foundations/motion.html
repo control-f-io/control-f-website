@@ -820,6 +820,108 @@ python3 scripts/check-iso-motion.py</pre>
     </p>
   </section>
 
+  <section class="docs-section" id="pinned">
+    <h2 id="hold">A pinned track: build, hold, hand over</h2>
+    <p>
+      Two sections pin a stage and scrub a sequence through it —
+      <a href="../patterns/ueber-uns.html">Unsere Werte</a> and
+      <a href="../patterns/expertise.html">Expertise</a> — and between them they settled three
+      rules that are not obvious and were each learned by getting them wrong first. They are
+      here rather than on either page because the next pinned track should not have to learn
+      them again.
+    </p>
+
+    <h3>The hold is the point</h3>
+    <p>
+      A stage divides into a <strong>reveal</strong> and a <strong>hold</strong>, and the
+      split is at <strong>62 %</strong>. Everything that moves — the object assembling, the
+      copy typing, the light coming up — finishes inside the first 62 % of the stage, and the
+      remaining 38 % is a still: nothing moving, the drawing complete, the sentence whole.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong>A stage whose reveal runs to its own edge cannot be read at all.</strong>
+      Expertise shipped that way and it is the failure this section exists to record: the last
+      node landed and the last character typed at the moment the step began to leave, so the
+      reader was chasing the end of the sentence with the wheel and there was never a frame
+      where the thing was simply finished and standing still. Range spent on a hold is not
+      range wasted. It is the only part of the sequence anybody actually reads.
+    </div>
+    <p>
+      62 % is one number in two places: <code>REVEAL</code> in
+      <code>assets/js/cf-stream.js</code>, and the point every CSS range on the Expertise
+      stage ends at. The type stops typing exactly where the drawing stops drawing, because
+      both are told the same fraction rather than tuned until they looked equal.
+    </p>
+
+    <h3>The copy is typed, not faded</h3>
+    <p>
+      <code>assets/js/cf-stream.js</code> types the copy character by character as the track
+      scrubs, which is the one thing a view timeline cannot do — there is no per-character
+      unit to animate. Scrolling back up un-types it, because it is driven by position and
+      not by a timer. It is <strong>optional and additive</strong> in the sense this system
+      keeps using: the copy is real markup, every stage is built by CSS, and without the
+      script every line is simply present.
+    </p>
+    <p>
+      It is one engine with two consumers. It was <code>cf-values.js</code>, named for the
+      only section that had it, until Expertise wanted the same behaviour — and a second copy
+      of a scrubbing typewriter is two timings that will not stay equal. Any pinned track can
+      ask for it now with three data attributes:
+    </p>
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"…-track"</span> <span class="attr">data-stream</span>&gt;
+  &lt;<span class="tag">article</span> <span class="attr">data-stream-stage</span>&gt;
+    &lt;<span class="tag">h3</span> <span class="attr">data-stream-line</span>=<span class="val">"0 0.24"</span>&gt;…&lt;/<span class="tag">h3</span>&gt;      <span class="attr">&lt;!-- from, span: fractions of the reveal --&gt;</span>
+    &lt;<span class="tag">p</span>  <span class="attr">data-stream-line</span>=<span class="val">"0.26 0.48"</span>&gt;…&lt;/<span class="tag">p</span>&gt;
+  &lt;/<span class="tag">article</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+    <div class="docs-note">
+      <strong>Reserve the height before you type into it.</strong> A line being typed is a
+      line with no height yet, and four of them growing under each other walk the whole card
+      down the page while the reader is trying to read it. Both sections declare
+      <code>min-height</code> in <code>em</code> on every streamed line — measured on the
+      settled copy — so the characters arrive into a box that is already the size it will end
+      at. Measured on Expertise, the card holds 540 px from the first character to the last.
+      <br><br>
+      <strong>And the caret follows the line being typed</strong>, not the last line in the
+      block. With two lines those are the same answer; with four it parks a blinking cursor
+      on an empty paragraph two lines below the one that is moving.
+    </div>
+    <p>
+      Accessibility: the streamed span is <code>aria-hidden</code> and a
+      <code>.visually-hidden</code> twin carries the whole sentence, so assistive technology
+      always gets the full line no matter where the scroll is. Nothing is ever announced
+      half-written. The script also refuses to run at all unless the pinned layout is active —
+      no scroll-timeline support, reduced motion, or under 820 px and every stage is on
+      screen at once, where typing one of them would be nonsense.
+    </p>
+
+    <h3>The two halves of a stage hand over differently</h3>
+    <p>
+      A stage with a drawing on one side and copy on the other cannot use one transition for
+      both, and this is the least obvious of the three.
+    </p>
+    <ul>
+      <li><strong>The drawing crossfades.</strong> Two line objects dissolving through each
+        other is legible, and the overlap is what stops the stage going blank at a boundary.
+        Expertise gives it three points of range at each end.</li>
+      <li><strong>The copy does not.</strong> Two blocks of text at half opacity in the same
+        column read as one title printed twice — at every ratio, and at every travel distance,
+        because the column is wider than anything you can move it by. Measured at the
+        handover with a four-point overlap: <em>Maschinenbau</em> leaving and
+        <em>Großanlagen</em> arriving, both half-lit and 48 px apart. So the copy owns exactly
+        its own quarter, snaps out and in across about a point of scroll each way, and the
+        object's dissolve is what the eye holds while it does.</li>
+    </ul>
+    <p>
+      The copy travels rather than fading in place: in from the top right, out at the bottom
+      left, on the rake — two across, one down — so the four cards move one way like a
+      conveyor instead of meeting each other. In and out on the same side was the first
+      version, and it put two cards head-on in the same square of screen at every handover.
+      The plate underneath does not move at all: a lectern does not travel with the page on
+      it.
+    </p>
+  </section>
+
   <section class="docs-section" id="hero">
     <h2>Hero artwork</h2>
     <p>

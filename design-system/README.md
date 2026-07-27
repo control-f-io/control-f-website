@@ -170,7 +170,7 @@ design-system/
     │   ├── cf-consent.js   the consent banner + settings dialog. Ships.
     │   ├── cf-nav.js       the phone layout's menu disclosure. Ships.
     │   ├── cf-icons.js     the icon set — the one place a glyph is drawn. Ships.
-    │   ├── cf-values.js    types the values copy. Ships, optional — see below.
+    │   ├── cf-stream.js    types the copy on a pinned track. Ships, optional — see below.
     │   ├── cf-sight.js     the reader's position across the screen. Ships, optional.
     │   └── docs.js         sidebar, swatch copy, arrow sprite — documentation only
     ├── fonts/              (empty — see below)
@@ -210,7 +210,7 @@ Four scripts ship. Two are required, two are not:
 
 <!-- at the foot of the body -->
 <script src="/design-system/assets/js/cf-consent.js"></script>
-<script src="/design-system/assets/js/cf-values.js" defer></script>
+<script src="/design-system/assets/js/cf-stream.js" defer></script>
 <script src="/design-system/assets/js/cf-sight.js" defer></script>
 ```
 
@@ -231,7 +231,7 @@ attribute this file writes: with no script the links are a stacked list and no d
 control is drawn, and that fallback is only free if the attribute is there before the
 first paint. → `components/navigation.html#script`
 
-`cf-values.js` is **optional and additive**. The values section is complete without it
+`cf-stream.js` is **optional and additive**. Every section that uses it is complete without it
 — the copy is real markup and a view timeline does the pinning, the scrubbing and the
 mark. All it adds is the copy arriving character by character rather than whole, which
 is the one thing a view timeline cannot do because there is no per-character unit to
@@ -289,7 +289,7 @@ page header, drawn from the same source vectors in the same coordinate system.
 | no JS / no support / print | nothing to read | every value readable, whole |
 | below 820 px | pinned | stacked, so a phone gets no seven-viewport hijack |
 
-The typing does survive, but only as an enhancement on top: `assets/js/cf-values.js`,
+The typing does survive, but only as an enhancement on top: `assets/js/cf-stream.js`,
 which follows the prototype's own timing — a 62 % reveal window per stage, the title in
 its first 28 %, the body starting at 14 % and spanning the rest, smoothstepped. Because
 it reads scroll position rather than running a timer, scrolling back up un-types the

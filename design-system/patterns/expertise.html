@@ -139,7 +139,19 @@
         align-content: center; align-items: center;
       }
       .ex-steps > .ex-step { grid-area: 1 / 1 / 2 / 3; }
-      .ex-plate { display: block; grid-area: 1 / 2 / 2 / 3; align-self: stretch; }
+      /* THE THINNER PANE. --surface-glass's 46 % is the floor for a backdrop
+         nobody controls — a video frame that might be pure black. This one is
+         the page's own field: a lattice on the wash, whose darkest pixel is a
+         hairline. So the plate can take --surface-glass-thin and let more of
+         the lattice through, and the permission is the measurement rather than
+         the token: at 30 % the plate's darkest pixel is rgb(220,221,223),
+         where the body copy reads 6.73:1 and the ink foil's worst stop 6.01:1.
+         Both tints go opaque together in the no-blur and reduced-transparency
+         fallbacks, so nothing here needs a second answer. */
+      .ex-plate {
+        display: block; grid-area: 1 / 2 / 2 / 3; align-self: stretch;
+        --info-card-tint: var(--surface-glass-thin);
+      }
       .ex-step { opacity: 0; }
       /* The cards give up their own surface to the plate. Not the material —
          they never had it — the plain card back, which would otherwise sit on
@@ -148,16 +160,49 @@
       .ex-index, .ex-bar { display: block; }
       .ex-index { display: flex; }
 
-      /* THE WINDOWS OVERLAP BY FOUR POINTS AT EACH END. A step used to own
-         exactly its quarter, so the last frame of one and the first frame of
-         the next were the same frame and the change of subject happened in
-         nothing at all. Widened, each step is still gone before its successor
-         is legible — the dead zones at both ends of ex-step see to that — but
-         there is now a handover to look at rather than a join. */
+      /* THE HOLD IS THE POINT, and it is the thing this sequence did not have.
+         Every part of the build used to run right up to the moment the step
+         began leaving, so the reader was chasing the last of it with the
+         wheel. The reveal now ends at 62 % of a step and the remaining 38 %
+         is a still — object built, sentence whole, nothing moving. 62 % is
+         not a new number: it is the werte-scroll's, and cf-stream.js reads
+         the same one, so the type stops typing exactly where the drawing
+         stops drawing. → foundations/motion.html#hold
+
+         THE WINDOWS ABUT, THEY NO LONGER OVERLAP, and that is what the fly is
+         for. Two blocks of copy crossfading in the same square of screen is
+         muddy at every ratio — measured at the handover with a four-point
+         overlap, "Maschinenbau" and "Großanlagen" were both half-lit and
+         forty-eight pixels apart, which reads as one title printed twice. A
+         step now owns exactly its quarter, ending at zero where the next
+         begins at zero, and the relay is carried by travel instead: one card
+         slides out of the frame as the next slides in. Same quarter the stage
+         boundaries in cf-stream.js use, so the type starts as the card lands.
+
+         THE TWO HALVES HAND OVER DIFFERENTLY, and they have to. The step as a
+         whole — which is the OBJECT — crossfades over a three-point overlap at
+         each end: two line drawings dissolving through each other is legible,
+         and without it the stage goes blank at every boundary. The CARD
+         cannot: two blocks of copy at half opacity in the same column read as
+         one title printed twice, at every ratio and every travel distance. So
+         the copy carries its own opacity on the abutting quarter, snapping out
+         and in across about a point of scroll each way, and the object's
+         dissolve is what the eye holds while it does. */
       .ex-step {
         animation: ex-step linear both;
         animation-timeline: --ex;
-        animation-range: contain calc(var(--i) * 25% - 4%) contain calc((var(--i) + 1) * 25% + 4%);
+        animation-range: contain calc(var(--i) * 25% - 3%) contain calc((var(--i) + 1) * 25% + 3%);
+      }
+      /* THE CARD FLIES IN FROM THE SIDE, on the rake like everything else in
+         this system: two across, one down, arriving out of the top right and
+         leaving at the bottom left, so the four travel one way rather than
+         meeting each other. The plate does not move — a lectern does not
+         travel with the page on it — so what flies is the copy, onto and off
+         a surface that stays. */
+      .ex-step__copy {
+        animation: ex-fly linear both;
+        animation-timeline: --ex;
+        animation-range: contain calc(var(--i) * 25%) contain calc((var(--i) + 1) * 25%);
       }
 
       /* THE OBJECT COMES UP IN FOUR PASSES, BACK TO FRONT.
@@ -183,8 +228,8 @@
       .ex-step .cf-iso__form {
         --s: 0;
         animation-name: ex-part;
-        animation-range: contain calc(var(--i) * 25% + 1%  + var(--s) * 2.4%)
-                         contain calc(var(--i) * 25% + 10% + var(--s) * 2.4%);
+        animation-range: contain calc(var(--i) * 25% + 0.5% + var(--s) * 2.2%)
+                         contain calc(var(--i) * 25% + 7.5% + var(--s) * 2.2%);
       }
       .ex-step .cf-iso__form[data-stage="1"] { --s: 1; }
       .ex-step .cf-iso__form[data-stage="2"] { --s: 2; }
@@ -192,38 +237,42 @@
 
       /* Then the same order components.css uses for a .cf-iso arriving on its
          own timeline — ghost, trace, light, nodes — only the timeline and the
-         ranges change. */
+         ranges change. All of it inside the reveal, so the last node lands on
+         the same point the last character does. */
       .ex-step .cf-iso__ghost {
         animation-name: cf-iso-fade;
-        animation-range: contain calc(var(--i) * 25% + 11%) contain calc(var(--i) * 25% + 18%);
+        animation-range: contain calc(var(--i) * 25% + 8%) contain calc(var(--i) * 25% + 13%);
       }
       .ex-step .cf-iso__orbit {
         animation-name: cf-iso-fade, cf-iso-orbit;
         animation-timeline: --ex, --ex;
-        animation-range: contain calc(var(--i) * 25% + 11%) contain calc(var(--i) * 25% + 18%),
-                         contain calc(var(--i) * 25% + 11%) contain calc(var(--i) * 25% + 24%);
+        animation-range: contain calc(var(--i) * 25% + 8%) contain calc(var(--i) * 25% + 13%),
+                         contain calc(var(--i) * 25% + 8%) contain calc(var(--i) * 25% + 15.5%);
       }
       .ex-step .cf-iso__trace {
         stroke-dasharray: 1;
         animation-name: cf-iso-draw;
-        animation-range: contain calc(var(--i) * 25% + 9%) contain calc(var(--i) * 25% + 19%);
+        animation-range: contain calc(var(--i) * 25% + 5%) contain calc(var(--i) * 25% + 13%);
       }
       .ex-step .cf-iso__light {
         animation-name: cf-iso-light;
-        animation-range: contain calc(var(--i) * 25% + 16%) contain calc(var(--i) * 25% + 23%);
+        animation-range: contain calc(var(--i) * 25% + 11.5%) contain calc(var(--i) * 25% + 15%);
       }
       .ex-step .cf-iso__node {
         animation-name: cf-iso-fade;
-        animation-range: contain calc(var(--i) * 25% + 18%) contain calc(var(--i) * 25% + 24%);
+        animation-range: contain calc(var(--i) * 25% + 13%) contain calc(var(--i) * 25% + 15.5%);
       }
-      /* The copy follows the object rather than arriving with it, and its own
-         lines follow each other: --n is the line's place in the block, so the
-         label, the title and the chips land in the order they are read. */
+
+      /* THE COPY IS TYPED, NOT FADED, so this fade only opens the box the
+         characters arrive into — cf-stream.js does the arriving, on the same
+         62 % reveal. --n is the line's place in the block, so the lines open
+         in the order they are read. Without the script every line is simply
+         present, which is the state this fade lands on anyway. */
       .ex-step__copy > * {
         animation: ex-copy linear both;
         animation-timeline: --ex;
-        animation-range: contain calc(var(--i) * 25% + 6% + var(--n, 0) * 0.8%)
-                         contain calc(var(--i) * 25% + 16% + var(--n, 0) * 0.8%);
+        animation-range: contain calc(var(--i) * 25% + var(--n, 0) * 1.6%)
+                         contain calc(var(--i) * 25% + 4% + var(--n, 0) * 1.6%);
       }
       .ex-step__copy > *:nth-child(1) { --n: 0; }
       .ex-step__copy > *:nth-child(2) { --n: 1; }
@@ -231,10 +280,23 @@
       .ex-step__copy > *:nth-child(4) { --n: 3; }
       .ex-step__copy > *:nth-child(5) { --n: 4; }
       .ex-step__copy > *:nth-child(6) { --n: 5; }
+
+      /* A LINE BEING TYPED IS A LINE WITH NO HEIGHT YET, and four of them
+         growing under each other walks the whole card down the plate. These
+         are the settled heights, reserved up front, so the copy types into a
+         box that is already the size it will end at. Measured on the shipping
+         card at 1440x900; em, so they follow the type rather than the
+         viewport. Only inside the enhancement, because only here is anything
+         ever empty. */
+      .ex-step .cf-info-card__title { min-height: 1.2em; }
+      .ex-step .cf-info-card__sub   { min-height: 1.5em; }
+      .ex-step .cf-info-card__body  { min-height: 9.6em; }
+      .ex-step .cf-info-card__ask   { min-height: 3.2em; }
+
       .ex-mark {
         animation: ex-mark linear both;
         animation-timeline: --ex;
-        animation-range: contain calc(var(--i) * 25% - 4%) contain calc((var(--i) + 1) * 25% + 4%);
+        animation-range: contain calc(var(--i) * 25%) contain calc((var(--i) + 1) * 25%);
       }
       .ex-bar::after {
         animation: ex-bar linear both;
@@ -273,13 +335,29 @@
     background: var(--border-strong); transform-origin: left; transform: scaleX(0);
   }
 
-  /* Dead at both ends, so a widened window buys a handover and not a dissolve
-     of one object into another. It leaves along the rake it was built on. */
+  /* In over the first sixteenth, out over the last tenth, and between them a
+     stretch of nothing happening. The reveal ends at 62 % of the step, so the
+     still runs from there to 90 % — at 1.6 screens per step, about four fifths
+     of a screen of scroll with the object built, the sentence whole and
+     nothing moving. That is the part anybody actually reads. */
   @keyframes ex-step {
-    0%, 10%   { opacity: 0; translate: 0 0; }
-    24%       { opacity: 1; translate: 0 0; }
-    76%       { opacity: 1; translate: 0 0; }
-    92%, 100% { opacity: 0; translate: calc(var(--space-10) * 2) var(--space-10); }
+    0%        { opacity: 0; }
+    11%, 89%  { opacity: 1; }
+    100%      { opacity: 0; }
+  }
+  /* A CONVEYOR, NOT A REVOLVING DOOR. In from the top right, out to the bottom
+     left, both on the rake — two across, one down — so every card travels the
+     same way and the leaving one is simply further along the path than the
+     arriving one. In and out on the SAME side was the first version and it
+     put two cards head-on in the same square of screen at every handover:
+     "Maschinenbau" leaving up-right through "Großanlagen" arriving down-left,
+     which reads as a collision rather than as a relay. */
+  @keyframes ex-fly {
+    0%       { opacity: 0; translate: calc(var(--space-12) * 2) calc(var(--space-12) * -1); }
+    4%       { opacity: 1; }
+    6%, 90%  { translate: 0 0; }
+    96%      { opacity: 1; }
+    100%     { opacity: 0; translate: calc(var(--space-12) * -2) var(--space-12); }
   }
   /* The parts arrive on the 26.57° the whole system arrives on — half the
      distance a whole object travels, because they are assembling, not landing. */
@@ -444,7 +522,7 @@
       </div>
     </div>
 
-    <div class="ex-track">
+    <div class="ex-track" data-stream>
       <!-- The ground is the stage itself, so the lattice runs to both edges of
            the screen while the copy stays in the content column. Unlit on
            purpose — see THE GROUND UNDER THE BUILD above. -->
@@ -460,7 +538,7 @@
           <div class="ex-steps">
             <!-- ONE plate, not four. See THE LECTERN below. -->
             <div class="ex-plate cf-info-card cf-info-card--glass" aria-hidden="true"></div>
-            <article class="ex-step" style="--i:0" aria-labelledby="feld-01">
+            <article class="ex-step" style="--i:0" aria-labelledby="feld-01" data-stream-stage>
               <div class="ex-step__figure">
 <svg class="cf-iso" style="--vb-w:620; --iso-travel: 15.5" viewBox="-9.6 108.26 620 423.94" fill="none" aria-hidden="true">
                   <defs><linearGradient id="cf-ex-01" x1="476.8" y1="322.72" x2="331.2" y2="541.12" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
@@ -574,11 +652,11 @@
               </div>
               <div class="cf-info-card ex-step__copy">
                 <p class="cf-info-card__count t-label">01 / 04</p>
-                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-01">Maschinenbau</h3>
-                <p class="cf-info-card__sub t-label">Rotierende Assets</p>
-                <p class="cf-info-card__body">Drehzahl, Schwingung, Temperatur, Druck: rotierende Maschinen erzeugen die dichtesten Telemetriedaten im ganzen Portfolio, oft im Millisekundentakt und über Jahre hinweg. Der Wert steckt nicht im einzelnen Messwert, sondern in der Kurve davor — und die ist nur zu sehen, wenn die Historie vollständig und zeitlich sauber ist.</p>
+                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-01" data-stream-line="0 0.24">Maschinenbau</h3>
+                <p class="cf-info-card__sub t-label" data-stream-line="0.18 0.14">Rotierende Assets</p>
+                <p class="cf-info-card__body" data-stream-line="0.26 0.48">Drehzahl, Schwingung, Temperatur, Druck: rotierende Maschinen erzeugen die dichtesten Telemetriedaten im ganzen Portfolio, oft im Millisekundentakt und über Jahre hinweg. Der Wert steckt nicht im einzelnen Messwert, sondern in der Kurve davor — und die ist nur zu sehen, wenn die Historie vollständig und zeitlich sauber ist.</p>
                 <p class="cf-info-card__ask-tag">Frage</p>
-                <p class="cf-info-card__ask">Welche Einheit läuft aus dem Muster — und seit wann?</p>
+                <p class="cf-info-card__ask" data-stream-line="0.70 0.28">Welche Einheit läuft aus dem Muster — und seit wann?</p>
                 <div class="cf-info-card__facts tiles tiles--fit">
                   <div>
                     <p class="cf-info-card__label t-label">Signale</p>
@@ -603,7 +681,7 @@
                 </div>
               </div>
             </article>
-            <article class="ex-step" style="--i:1" aria-labelledby="feld-02">
+            <article class="ex-step" style="--i:1" aria-labelledby="feld-02" data-stream-stage>
               <div class="ex-step__figure">
 <svg class="cf-iso" style="--vb-w:642.4; --iso-travel: 16.06" viewBox="-1.2 30.05 642.4 517.55" fill="none" aria-hidden="true">
                   <defs><linearGradient id="cf-ex-02" x1="289.2" y1="56.44" x2="289.2" y2="120.5" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
@@ -767,11 +845,11 @@
               </div>
               <div class="cf-info-card ex-step__copy">
                 <p class="cf-info-card__count t-label">02 / 04</p>
-                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-02">Großanlagen</h3>
-                <p class="cf-info-card__sub t-label">Prozess und Verfügbarkeit</p>
-                <p class="cf-info-card__body">Eine Anlage ist kein Asset, sondern ein Netz aus tausenden. Wir modellieren sie als das, was sie ist: verbundene Ströme, deren Zustände sich gegenseitig erklären. Erst dann lässt sich eine Abweichung einem Teil zuordnen statt einer Schicht.</p>
+                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-02" data-stream-line="0 0.24">Großanlagen</h3>
+                <p class="cf-info-card__sub t-label" data-stream-line="0.18 0.14">Prozess und Verfügbarkeit</p>
+                <p class="cf-info-card__body" data-stream-line="0.26 0.48">Eine Anlage ist kein Asset, sondern ein Netz aus tausenden. Wir modellieren sie als das, was sie ist: verbundene Ströme, deren Zustände sich gegenseitig erklären. Erst dann lässt sich eine Abweichung einem Teil zuordnen statt einer Schicht.</p>
                 <p class="cf-info-card__ask-tag">Frage</p>
-                <p class="cf-info-card__ask">Welcher Teil der Kette begrenzt gerade den Durchsatz?</p>
+                <p class="cf-info-card__ask" data-stream-line="0.70 0.28">Welcher Teil der Kette begrenzt gerade den Durchsatz?</p>
                 <div class="cf-info-card__facts tiles tiles--fit">
                   <div>
                     <p class="cf-info-card__label t-label">Signale</p>
@@ -797,7 +875,7 @@
                 </div>
               </div>
             </article>
-            <article class="ex-step" style="--i:2" aria-labelledby="feld-03">
+            <article class="ex-step" style="--i:2" aria-labelledby="feld-03" data-stream-stage>
               <div class="ex-step__figure">
 <svg class="cf-iso" style="--vb-w:653.6; --iso-travel: 16.34" viewBox="-6.8 12.78 653.6 537.62" fill="none" aria-hidden="true">
                   <defs><linearGradient id="cf-ex-03" x1="111.68" y1="319.92" x2="169.92" y2="439.31" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
@@ -936,11 +1014,11 @@
               </div>
               <div class="cf-info-card ex-step__copy">
                 <p class="cf-info-card__count t-label">03 / 04</p>
-                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-03">Erneuerbare</h3>
-                <p class="cf-info-card__sub t-label">Speicher und Wandlung</p>
-                <p class="cf-info-card__body">Erzeugung schwankt, Speicher altern, Elektrolyse hat ihren eigenen Wirkungsgrad. Wer hier mit Tagesmitteln rechnet, verliert genau die Auflösung, in der Degradation und Verfügbarkeit sichtbar werden. Wir rechnen auf Zellebene und behalten den Zeitbezug.</p>
+                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-03" data-stream-line="0 0.24">Erneuerbare</h3>
+                <p class="cf-info-card__sub t-label" data-stream-line="0.18 0.14">Speicher und Wandlung</p>
+                <p class="cf-info-card__body" data-stream-line="0.26 0.48">Erzeugung schwankt, Speicher altern, Elektrolyse hat ihren eigenen Wirkungsgrad. Wer hier mit Tagesmitteln rechnet, verliert genau die Auflösung, in der Degradation und Verfügbarkeit sichtbar werden. Wir rechnen auf Zellebene und behalten den Zeitbezug.</p>
                 <p class="cf-info-card__ask-tag">Frage</p>
-                <p class="cf-info-card__ask">Wie viel Kapazität ist nach drei Jahren wirklich noch da?</p>
+                <p class="cf-info-card__ask" data-stream-line="0.70 0.28">Wie viel Kapazität ist nach drei Jahren wirklich noch da?</p>
                 <div class="cf-info-card__facts tiles tiles--fit">
                   <div>
                     <p class="cf-info-card__label t-label">Signale</p>
@@ -964,7 +1042,7 @@
                 </div>
               </div>
             </article>
-            <article class="ex-step" style="--i:3" aria-labelledby="feld-04">
+            <article class="ex-step" style="--i:3" aria-labelledby="feld-04" data-stream-stage>
               <div class="ex-step__figure">
 <svg class="cf-iso" style="--vb-w:625.6; --iso-travel: 15.64" viewBox="7.2 132.56 625.6 410.84" fill="none" aria-hidden="true">
                   <defs><linearGradient id="cf-ex-04" x1="355.84" y1="292.48" x2="395.26" y2="386.11" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
@@ -1121,11 +1199,11 @@
               </div>
               <div class="cf-info-card ex-step__copy">
                 <p class="cf-info-card__count t-label">04 / 04</p>
-                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-04">Flotten</h3>
-                <p class="cf-info-card__sub t-label">Viele gleiche Assets</p>
-                <p class="cf-info-card__body">Eine Flotte ist eine Wiederholung, und damit die beste Datenlage, die es gibt: was an einer Einheit auffällt, lässt sich sofort an allen anderen prüfen. Der schwierige Teil ist nicht das Modell, sondern die Verbindung — bewegte Assets liefern unvollständig, verspätet und in Schüben.</p>
+                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-04" data-stream-line="0 0.24">Flotten</h3>
+                <p class="cf-info-card__sub t-label" data-stream-line="0.18 0.14">Viele gleiche Assets</p>
+                <p class="cf-info-card__body" data-stream-line="0.26 0.48">Eine Flotte ist eine Wiederholung, und damit die beste Datenlage, die es gibt: was an einer Einheit auffällt, lässt sich sofort an allen anderen prüfen. Der schwierige Teil ist nicht das Modell, sondern die Verbindung — bewegte Assets liefern unvollständig, verspätet und in Schüben.</p>
                 <p class="cf-info-card__ask-tag">Frage</p>
-                <p class="cf-info-card__ask">Einzelfall oder Serienfehler?</p>
+                <p class="cf-info-card__ask" data-stream-line="0.70 0.28">Einzelfall oder Serienfehler?</p>
                 <div class="cf-info-card__facts tiles tiles--fit">
                   <div>
                     <p class="cf-info-card__label t-label">Signale</p>
@@ -1236,5 +1314,6 @@
 <script src="../assets/js/cf-icons.js"></script>
 <script src="../assets/js/cf-consent.js"></script>
 <script src="../assets/js/cf-sight.js" defer></script>
+<script src="../assets/js/cf-stream.js" defer></script>
 </body>
 </html>
