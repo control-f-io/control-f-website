@@ -158,6 +158,32 @@ not a surface: one element per screen, which is why the black button's label is 
 with the foil rather than the lime ramp. Publica Sans sets display headlines, Geist sets
 everything readable, Geist Mono sets labels and every number.
 
+## Where a line may go
+
+The system runs on hairlines, so the one rule that keeps it from reading as generic is
+about **where** they are, not what they look like. Every line is an **edge** (it closes a
+surface), a **division** (content on both sides of it), or a **label rule** (a mono label
+with the hairline running out of it, so the line and the word are one mark). A line that
+is none of the three is decoration.
+
+The decoration this bans by name is **the bar beside a block** — a rule down the left
+side of a quote or a callout. It is not an edge, since the other three sides are not
+drawn; not a division, since nothing is on the far side of it; and it carries no label,
+so it says "different" without saying how. It is also the default in every generated
+interface, which is why a page carrying one reads as generic however carefully the rest
+is drawn. The same test applies to a lone object parked at one side — an icon in a
+callout's gutter, a glyph beside a heading.
+
+Two components used to break it and no longer do: `.cf-prose__note` opens with a label
+rule instead of a 2 px bar, and `.cf-quote` has no rule of its own at all — the type goes
+one step up and the attribution closes the block under a hairline, the same way every
+other caption in an article does. → `foundations/geometry.html#where-lines-go`
+
+Grids are the exception that proves the test: `.cf-blog-grid`, `.cf-team-grid` and
+`.cf-subdiv` each put two borders on the container and two on the cells, which *looks*
+like the banned declaration and is the opposite of it — the finished field carries one
+hairline everywhere instead of a doubled seam. Judge the drawing, not the declaration.
+
 ## Vertical rhythm
 
 Every section opens with a `cf-section-header`, and **the header owns the air beneath
