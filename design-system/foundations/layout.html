@@ -224,6 +224,21 @@
       than lengthening the register.
     </div>
     <div class="docs-note">
+      <strong>…and when the cells are sections, not cells: <code>.grid--sections</code>.</strong>
+      <code>--grid-gap</code> is the distance between two cells of one row. It is the wrong
+      distance the moment the row stacks and each half opens with a
+      <code>cf-section-header</code> of its own: the header claims more air above itself than
+      24 px, so the two halves run together and the second reads as a continuation of the first.
+      <code>.grid--sections</code> puts <code>--section-gap-sm</code> on the row gap — the
+      distance the rest of the system already uses above a section header — and touches nothing
+      else. Side by side there is one row, so it is inert above the split and the column rhythm
+      is never affected.
+      <br><br>
+      It is a class rather than an inline <code>row-gap</code> for the reason
+      <code>.flow-8</code> is: a rule this page describes as a rule of the system, but which
+      only exists as an attribute on one page, is reachable only by copying that page.
+    </div>
+    <div class="docs-note">
       <strong>The threshold is the container, not the viewport.</strong> A size query measures
       the container's <em>content</em> box, and the gutter is 5.5vw — so inside a
       <code>.container</code>, 56rem of container is reached at a viewport of about
@@ -260,11 +275,13 @@
       <strong>One page uses this grid, and it is not one of the two designed ones.</strong>
       This note used to read "nothing on the site uses this grid yet … documented here as a
       promise, not as a description of the two pages that exist," and it was true when it was
-      written. There are five pattern pages now, and <code>patterns/kontakt.html</code> composes
+      written. There are seven pattern pages now, and <code>patterns/kontakt.html</code> composes
       its whole body with <code>.grid</code>: a <strong>7 + 5</strong> split, form left and
-      contact list right, carrying <code>.grid--early</code> so it splits at 44rem, with
-      <code>row-gap</code> overridden to <code>--section-gap-sm</code> because stacked they are
-      two sections rather than two cells.
+      contact list right, carrying <code>.grid--early</code> so it splits at 44rem and
+      <code>.grid--sections</code> so the row gap is <code>--section-gap-sm</code>, because
+      stacked they are two sections rather than two cells. That second modifier used to be an
+      inline <code>row-gap</code> on the page itself, which made this paragraph the only place
+      the rule was written down.
       <br><br>
       The rest still holds. The two designed pages do express their splits at component level —
       the two 6 + 6s above, and the 4 + 4 + 4 card rows as <code>auto-fill</code> tracks that
@@ -577,7 +594,7 @@
       <strong>Every step is accounted for.</strong> A scale is only honest if you can say who
       uses each rung, so here is the count of <em>declarations</em> that reference each step in
       the shipping CSS (<code>tokens</code> + <code>base</code> + <code>components</code>),
-      comments excluded. Stamped <code>fff51d96</code> — see below for what that is and how to
+      comments excluded. Stamped <code>92add6b6</code> — see below for what that is and how to
       check it in one command:
     </div>
     <table class="docs-table" id="space-scale">
@@ -586,10 +603,10 @@
         <tr><td><code>--space-1</code></td><td>4</td><td>7</td><td>the gap under a name, inside a tight cluster</td></tr>
         <tr><td><code>--space-2</code></td><td>8</td><td>30</td><td>icon-to-label, chip padding</td></tr>
         <tr><td><code>--space-3</code></td><td>12</td><td>41</td><td>button <code>padding-block</code> — the most used step in the system</td></tr>
-        <tr><td><code>--space-4</code></td><td>16</td><td>37</td><td>the default gap: what <code>.stack</code> and <code>.cluster</code> do unaided</td></tr>
+        <tr><td><code>--space-4</code></td><td>16</td><td>36</td><td>the default gap: what <code>.stack</code> and <code>.cluster</code> do unaided</td></tr>
         <tr><td><code>--space-5</code></td><td>20</td><td>4</td><td>the nav bar's padding, the contact list's and the error routes' row padding — the thinnest-used rung</td></tr>
-        <tr><td><code>--space-6</code></td><td>24</td><td>31</td><td><code>--grid-gap</code>, panel padding</td></tr>
-        <tr><td><code>--space-8</code></td><td>32</td><td>23</td><td>the gap between an object and its copy</td></tr>
+        <tr><td><code>--space-6</code></td><td>24</td><td>30</td><td><code>--grid-gap</code>, panel padding</td></tr>
+        <tr><td><code>--space-8</code></td><td>32</td><td>24</td><td>the gap between an object and its copy</td></tr>
         <tr><td><code>--space-12</code></td><td>48</td><td>17</td><td>panel padding at the wide breakpoint</td></tr>
         <tr><td><code>--space-16</code></td><td>64</td><td>9</td><td>the <code>--section-gap</code> floor</td></tr>
         <tr><td><code>--space-20</code></td><td>80</td><td>5</td><td><code>--section-header-gap</code>, the <code>-sm</code> ceiling, the accordion indent</td></tr>
@@ -669,7 +686,7 @@ print(counts)
     <div class="docs-note">
       <strong>The stamp is a digest of the counts themselves.</strong> It is the first eight hex
       of a SHA-256 over the thirteen numbers, printed by the same command that prints them — so
-      if it still reads <code>fff51d96</code>, the table is current and there is nothing to
+      if it still reads <code>92add6b6</code>, the table is current and there is nothing to
       re-derive.
       <br><br>
       It took two wrong answers to get here, and both are worth keeping because both are the
