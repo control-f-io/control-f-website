@@ -635,8 +635,16 @@
        --section-gap     100vw / 12   64 at 768 · 120 at 1440 · 160 at 1920
        --section-gap-sm  100vw / 18   32 at 576 ·  80 at 1440 (capped)
 
-     One twelfth of the frame is one column of the 12-column grid, which is why
-     the reference frame resolves it to exactly --space-30 (120).
+     One twelfth of the FRAME is what 100vw / 12 is, and that is why the
+     reference frame resolves it to exactly --space-30 (120). It is NOT one
+     column of the 12-column grid, which this comment used to claim: measured
+     at 1440, a real column is 84.67 (content 1280, less 11 gaps of 24, over
+     12) and a column pitch — column plus gap — is 108.67. Neither is 120.
+     The unit is the frame divided by the column count, which is a coarser
+     thing than a column because it still carries both 80 px gutters. That is
+     a sound unit and the designer's own frame is the thing it divides; it
+     just is not the grid. See foundations/layout.html, where the claim was
+     load-bearing for a note about what changes above 1438.
 
      The 2:3 ratio between them (1/18 : 1/12) holds exactly where BOTH are
      fluid — 768 to 1440 — and nowhere else. Measured: 2.00 below 576 where
@@ -705,11 +713,17 @@
                      of the same grid, so both queries measure one element.
                      Reached at a viewport of 792 inside a .container;
                      binary-searched, folded at 791 and open at 792.
+                     Also .grid--early, the row that takes its spans here
+                     instead of at 56rem — see base.css. A second consumer
+                     for an existing number, not a second number.
        48rem / 768   .cf-value-row splits into icon + copy
        56rem / 896   the two-column threshold: .col-*, .cf-statement,
                      .cf-process. Inside a .container this is reached at a
                      viewport of about 1007, because a size query measures
-                     the CONTENT box and the gutter is 5.5vw.
+                     the CONTENT box and the gutter is 5.5vw. It was measured
+                     for the two illustration components; .col-* inherited
+                     it, and a row that does not hold an illustration can
+                     opt down to 44rem with .grid--early.
        60rem / 960   .cf-article splits into rail + body and the rail goes
                      sticky. Reached at a viewport of about 1079. This is
                      the system's FOURTH container threshold and the only

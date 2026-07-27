@@ -124,6 +124,45 @@
       <code>.cf-process</code> and <code>.cf-value-row</code> already use.
     </div>
     <div class="docs-note">
+      <strong>…unless the row says otherwise: <code>.grid--early</code>.</strong> 56rem was
+      measured for <code>.cf-statement</code> and <code>.cf-process</code> — an illustration
+      beside its copy, which genuinely wants that much room before splitting is worth it.
+      <code>.col-*</code> inherited the number because it is the same shape, and for a row of
+      independent text blocks it is too high. Add <code>.grid--early</code> to the
+      <code>.grid</code> and its children take their spans at <strong>44rem</strong> instead.
+      <br><br>
+      <strong>The cost of not having it was measurable, not theoretical.</strong> On the one
+      page that uses this grid, the 7 + 5 stacked at every width below a viewport of ~1007 —
+      drawing form fields <strong>801 px</strong> wide at 900 and 895 at 1006, well past any
+      line length a form wants, then snapping to 522 + 366 at 1024. 238 px of viewport where
+      the split would have been comfortable: at 900 the row is 457 + 320.
+      <br><br>
+      <strong>The threshold belongs to the row because no geometry can derive it.</strong> One
+      number cannot serve twelve spans — at 44rem of container these are the widths on offer,
+      and only the author knows which of them their content survives:
+      <table class="docs-table" style="margin-top:var(--space-4)">
+        <thead><tr><th>Span</th><th>at 44rem container</th><th>at the 1440 frame</th></tr></thead>
+        <tbody>
+          <tr><td><code>.col-2</code></td><td>97</td><td>193</td></tr>
+          <tr><td><code>.col-3</code></td><td>158</td><td>302</td></tr>
+          <tr><td><code>.col-4</code></td><td>219</td><td>411</td></tr>
+          <tr><td><code>.col-5</code></td><td>279</td><td>519</td></tr>
+          <tr><td><code>.col-6</code></td><td>340</td><td>628</td></tr>
+          <tr><td><code>.col-7</code></td><td>401</td><td>737</td></tr>
+          <tr><td><code>.col-8</code></td><td>461</td><td>845</td></tr>
+        </tbody>
+      </table>
+      A <code>.col-6</code> at 340 is comfortable; a <code>.col-3</code> at 158 is not. So the
+      modifier is opt-in per row rather than a new default, and it moves <em>every</em> span in
+      the row together. <strong>Tiering by span was the other candidate and is wrong:</strong> a
+      7 + 5 whose halves promote at different widths draws the 7 beside a 12 and breaks the row.
+      Pairs have to switch together.
+      <br><br>
+      44rem is not a new threshold — it is already in the register as the width where
+      <code>.subdivide</code> folds — so this gives an existing number a second consumer rather
+      than lengthening the register.
+    </div>
+    <div class="docs-note">
       <strong>The threshold is the container, not the viewport.</strong> A size query measures
       the container's <em>content</em> box, and the gutter is 5.5vw — so inside a
       <code>.container</code>, 56rem of container is reached at a viewport of about
@@ -162,8 +201,9 @@
       promise, not as a description of the two pages that exist," and it was true when it was
       written. There are five pattern pages now, and <code>patterns/kontakt.html</code> composes
       its whole body with <code>.grid</code>: a <strong>7 + 5</strong> split, form left and
-      contact list right, with <code>row-gap</code> overridden to
-      <code>--section-gap-sm</code> because stacked they are two sections rather than two cells.
+      contact list right, carrying <code>.grid--early</code> so it splits at 44rem, with
+      <code>row-gap</code> overridden to <code>--section-gap-sm</code> because stacked they are
+      two sections rather than two cells.
       <br><br>
       The rest still holds. The two designed pages do express their splits at component level —
       the two 6 + 6s above, and the 4 + 4 + 4 card rows as <code>auto-fill</code> tracks that
@@ -200,7 +240,8 @@
       three across to full width in one step; there is no 3 → 2 → 1 ladder, because that would
       need a second container threshold and the register below is deliberately short. If a
       three-card row ever needs an intermediate state, add the threshold to the register rather
-      than to the component.
+      than to the component. <code>.grid--early</code> does not change this: it moves the single
+      step earlier, from 56rem to 44rem, and does not add a rung between three and one.
     </div>
     <div class="docs-note">
       <strong>Never a bare <code>1fr</code>.</strong> <code>1fr</code> is shorthand for
@@ -571,7 +612,7 @@ print(counts)
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Fluid part</th><th>Floor</th><th>Ceiling</th></tr></thead>
       <tbody>
-        <tr><td><code>--section-gap</code></td><td><code>100vw / 12</code> — one column of the 12-column grid</td><td>64 below 768</td><td>160 from 1920</td></tr>
+        <tr><td><code>--section-gap</code></td><td><code>100vw / 12</code> — one twelfth of the frame</td><td>64 below 768</td><td>160 from 1920</td></tr>
         <tr><td><code>--section-gap-sm</code></td><td><code>100vw / 18</code></td><td>32 below 576</td><td>80 from 1440</td></tr>
       </tbody>
     </table>
@@ -605,8 +646,10 @@ print(counts)
       <strong>The 2 : 3 ratio holds in the middle, not everywhere.</strong> The two tokens are
       1/18 and 1/12 of the frame, so where both are fluid they sit at exactly 1.50. Measured
       across the range that is <strong>768 to 1440 and nowhere else</strong>: 2.00 below 576
-      where both rest on their floors, sliding 1.80 → 1.50 across 576–768 as
-      <code>-sm</code> leaves its floor first, flat at 1.50 through the middle, then opening
+      where both rest on their floors, sliding 2.00 → 1.50 across 576–768 as
+      <code>-sm</code> leaves its floor first — it passes 1.80 at 640 and 1.65 at 700, and an
+      earlier version of this note named the 640 figure as the start of the slide — flat at
+      1.50 through the middle, then opening
       back out to 2.00 by 1920 as <code>-sm</code> caps and <code>--section-gap</code> climbs
       on alone. This is the failure mode <code>clamp()</code> is known for — two ramps that
       agree at the ends and drift in between — and it is checked here rather than assumed.
@@ -615,11 +658,21 @@ print(counts)
     </div>
     <div class="docs-note">
       <strong>Where the rationale stops being literally true.</strong>
-      <code>--section-gap</code> is justified as "one column of the 12-column grid", and
-      100vw ÷ 12 is exactly that — until about <strong>1438 px</strong>, where the container
-      caps. Above it a real column stops growing and 100vw ÷ 12 does not, so section rhythm
-      keeps opening while the content column stays frozen at 1280: measured as a share of
-      content width, the air per section goes 9.4 % flat from 768 to 1440, then climbs to
+      <code>--section-gap</code> used to be justified here as "one column of the 12-column
+      grid". It is not one, at any width. Measured at the reference frame: content is 1280,
+      eleven gaps of 24 take 264, so a column is <strong>84.67</strong> and a column pitch —
+      column plus gap — is <strong>108.67</strong>. <code>100vw ÷ 12</code> is
+      <strong>120</strong>. The unit is one twelfth of the <em>frame</em>, which still carries
+      both 80 px gutters, and that is a coarser thing than a column. It is a sound unit — the
+      frame is the designer's own measured object and 12 is the grid's own column count — and
+      it is why the number lands exactly on <code>--space-30</code> at 1440. It is simply not
+      the grid.
+      <br><br>
+      The correction sharpens the question below rather than dissolving it. What changes at
+      about <strong>1438 px</strong> is that the container caps, so the <em>frame</em> stops
+      governing the page: content freezes at 1280 while 100vw ÷ 12 keeps climbing. Section
+      rhythm therefore keeps opening against a column that no longer grows — measured as a
+      share of content width, the air per section goes 9.4 % flat from 768 to 1440, then climbs to
       12.5 % at 1920. At the other end it reaches 19.2 % at 375 and 22.9 % at 320, because the
       64 px floor is held while the column keeps narrowing.
       <br><br>
