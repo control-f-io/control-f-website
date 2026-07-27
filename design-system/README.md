@@ -1122,10 +1122,19 @@ These were judgement calls, each documented on the relevant page:
   contour instead", while `.cf-process` declared `background: var(--surface-card)`, its copy
   column declared a second plate in the same colour, and its note block a grey one. Sampled
   down the Discovery plate in `mockups/landing-page.jpg`, the card's interior and the page
-  margin beside it read within **0.2** of each other at every row. There is no plate in the
-  drawing. `--surface-card` is retired; it resolved to the same `grey-050` as
+  margin beside it read within **0.2** of each other at every row. There is no plate under
+  the figure. `--surface-card` is retired; it resolved to the same `grey-050` as
   `--surface-raised`, so wherever the two were stacked one of them painted nothing.
-  → `foundations/materials.html#panel-verdicts`
+  **That sampling went down the figure half only, and the copy half disagrees with it.** The
+  plate is divided at x = 600 by the card's own interior hairline; right of it, over the full
+  interior height, every sampled pixel is a flat `#F8F8F8` while the margin beside it climbs
+  219 → 226 — **+22 to +29, constant**, which the wash cannot be because the wash moves. So
+  the designer drew a contour figure panel and an opaque light plate under the copy, and the
+  implementation draws neither. Left standing rather than half-restored: the same argument
+  that retired the card's plate applies to this one — an absolute grey inside the wash's range
+  inverts as the reader scrolls, and the honest form of a step *toward* the light is a veil of
+  white, which the materials family does not have a value for yet. A designer settles it.
+  → `foundations/materials.html#copy-panel-gap`
 - **A step away from the page is a ratio, not a grey — so `--surface-sunken` is a veil.**
   The neutral steps were absolute values chosen against `--surface-base`, CF-Grau, and no
   page in the system is painted CF-Grau: every page carries `.page-wash`, which is
