@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Search &amp; Results — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Components</p>
+    <h1>Search &amp; Results</h1>
+    <p>
+      The surface the company is named after.
+      <a href="../foundations/found.html">The found state</a> settled what a match looks like
+      in all four registers the platform offers and then shipped none of them on a page,
+      because the system had no page that answers a question. This is that page: a control,
+      a register of answers, and one decision about where the light goes that the rest of the
+      chapter had left open.
+    </p>
+  </header>
+
+  <section class="docs-section" id="control">
+    <h2>The control</h2>
+    <p>
+      A <code>&lt;form role="search"&gt;</code> around one <code>.cf-field</code> and one
+      button. No new field drawing: a search box is a text input, and the system already has
+      one — underlined, no box, mono label. Adding a second input style so this one could
+      carry a magnifier would be two drawings for one thing.
+    </p>
+    <div class="docs-demo">
+      <form class="cf-search" role="search" action="#results" method="get">
+        <div class="cf-field cf-search__field">
+          <label class="cf-field__label" for="demo-q">Suchbegriff</label>
+          <input class="cf-field__input" type="search" id="demo-q" name="q" value="Telemetrie"
+                 autocomplete="off" spellcheck="false" enterkeyhint="search">
+        </div>
+        <button class="cf-btn cf-btn--solid cf-search__submit" type="submit">
+          Suchen
+          <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+        </button>
+      </form>
+    </div>
+    <pre class="docs-code"><code>&lt;form class="cf-search" role="search" action="/suche" method="get"&gt;
+  &lt;div class="cf-field cf-search__field"&gt;
+    &lt;label class="cf-field__label" for="q"&gt;Suchbegriff&lt;/label&gt;
+    &lt;input class="cf-field__input" type="search" id="q" name="q" value="Telemetrie"
+           autocomplete="off" spellcheck="false" enterkeyhint="search"&gt;
+  &lt;/div&gt;
+  &lt;button class="cf-btn cf-btn--solid cf-search__submit" type="submit"&gt;
+    Suchen
+    &lt;svg class="cf-arrow" aria-hidden="true"&gt;&lt;use href="#cf-arrow"&gt;&lt;/use&gt;&lt;/svg&gt;
+  &lt;/button&gt;
+&lt;/form&gt;</code></pre>
+    <div class="docs-note">
+      <strong><code>method="get"</code>, and it is not a preference.</strong> The query has to
+      end up in the address, because a result set that cannot be linked, bookmarked or reached
+      with the back button is not a page — it is a state that happened once. Every listing in
+      this system already works this way: <code>?seite=N</code> on News,
+      <code>?thema=…</code> on the topic filter. <em>The filter is the URL</em> is the rule,
+      and a query is a filter.
+    </div>
+    <div class="docs-note">
+      <strong>It wraps; it does not fold at a threshold.</strong> The row has two parts and
+      the second is a fixed width, so <code>flex-wrap</code> answers “does it still fit”
+      without adding a consumer to the
+      <a href="../foundations/layout.html#breakpoints">breakpoint register</a>. That register
+      is a list to be added to deliberately, and two things in a row is not a reason.
+    </div>
+  </section>
+
+  <section class="docs-section" id="results">
+    <h2>The register of answers</h2>
+    <p>
+      An <code>&lt;ol&gt;</code>, because the order is a claim. Each result is a block of type
+      standing on a rule — no box, no fill, no corner, nothing that would make it a card. That
+      is the same claim <a href="../foundations/found.html">the found state</a> makes about a
+      marked word one scale down: an isometric object has no bounding box, what places it is
+      the lattice edge under it. A result is a paragraph standing on one.
+    </p>
+    <div class="docs-demo">
+      <div class="cf-section-header cf-section-header--flush">
+        <h3 class="cf-section-header__label">Treffer</h3>
+        <span class="cf-section-header__count">2 von 6</span>
+      </div>
+      <ol class="cf-results" role="list">
+        <li class="cf-result">
+          <p class="cf-result__meta">
+            <span aria-hidden="true">01</span>
+            <span>Seite</span>
+          </p>
+          <h4 class="cf-result__title">
+            <a class="cf-result__link" href="../patterns/expertise.html#:~:text=Telemetrie%2DAnalytik%20und%20Datenintegration">
+              Expertise — <mark class="cf-mark">Telemetrie</mark>-Analytik und Datenintegration
+            </a>
+          </h4>
+          <p class="cf-result__excerpt">
+            Vier Felder, ein Problem: die Daten liegen an, nur nicht zusammen. Der Weg dahin
+            ist in allen vier derselbe — vom Sensor bis zur Auswertung, ohne Bruchstelle in
+            der Mitte.
+          </p>
+          <p class="cf-result__path">control-f.de/expertise</p>
+        </li>
+        <li class="cf-result">
+          <p class="cf-result__meta">
+            <span aria-hidden="true">02</span>
+            <span>Beitrag · 01.01.2025</span>
+          </p>
+          <h4 class="cf-result__title">
+            <a class="cf-result__link" href="../patterns/blog-artikel.html#:~:text=muss%20die%20Telemetrie%20stimmen">
+              Digitale Zwillinge im Energiesektor: Simulation trifft Realität
+            </a>
+          </h4>
+          <p class="cf-result__excerpt">
+            Das Datenfundament: Bevor irgendetwas simuliert wird, muss die
+            <mark class="cf-mark">Telemetrie</mark> stimmen. In den Projekten, die wir seit
+            2022 begleitet haben, lagen die Probleme fast immer davor.
+          </p>
+          <p class="cf-result__path">control-f.de/news/digitale-zwillinge-im-energiesektor</p>
+        </li>
+      </ol>
+    </div>
+    <p>
+      Both links above are live. Follow either one and the destination page opens
+      <em>scrolled to the quoted phrase with that phrase lit</em> — which is the whole point
+      of the next section.
+    </p>
+    <pre class="docs-code"><code>&lt;ol class="cf-results" role="list"&gt;
+  &lt;li class="cf-result"&gt;
+    &lt;p class="cf-result__meta"&gt;
+      &lt;span aria-hidden="true"&gt;01&lt;/span&gt;
+      &lt;span&gt;Seite&lt;/span&gt;
+    &lt;/p&gt;
+    &lt;h3 class="cf-result__title"&gt;
+      &lt;a class="cf-result__link" href="/expertise#:~:text=Telemetrie%2DAnalytik"&gt;
+        Expertise — &lt;mark class="cf-mark"&gt;Telemetrie&lt;/mark&gt;-Analytik
+      &lt;/a&gt;
+    &lt;/h3&gt;
+    &lt;p class="cf-result__excerpt"&gt;
+      Vier Felder, ein Problem: die Daten liegen an, nur nicht zusammen.
+    &lt;/p&gt;
+    &lt;p class="cf-result__path"&gt;control-f.de/expertise&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;</code></pre>
+    <div class="docs-note">
+      <strong>Every result draws its own bottom rule, the last one included.</strong> The
+      interior rules are <em>divisions</em> — content on both sides — and the closing one is
+      an <em>edge</em>, which closes the register. Both are sanctioned uses in
+      <a href="../foundations/geometry.html#where-lines-go">where a line may go</a>. This is
+      the one place the system deliberately does <em>not</em> follow
+      <code>.cf-blog-card:last-child { border-bottom: 0 }</code>: that rule exists because the
+      grid container already draws the bottom edge, and this list has no container.
+    </div>
+  </section>
+
+  <section class="docs-section" id="light">
+    <h2>Contour here, light there</h2>
+    <p>
+      <a href="../foundations/found.html#anatomy">The found state</a> has two rungs. Every
+      match is <strong>contour</strong> — the ground line alone. One match is
+      <strong>light</strong> — the same word with lime behind it — and the chapter is explicit
+      that there is exactly one, ever, because it means <em>the hit the reader is on</em>.
+    </p>
+    <p>
+      On a result page the reader is on none of them. They have not chosen yet; that is what
+      the page is for. So <code>.cf-mark--current</code> has nothing to attach to and
+      <strong>a result set is drawn entirely in contour</strong> — six matches, six ground
+      lines, no light. The page's one lime moment goes where it goes on every other listing in
+      the system: the call to action in the footer.
+    </p>
+    <div class="docs-note">
+      <strong>The light is not withheld, it is deferred.</strong> Every result link carries a
+      <code>#:~:text=</code> fragment quoting the phrase in its own excerpt. Click one and the
+      destination page arrives scrolled to that phrase with it drawn in the lit rung — by
+      <code>::target-text</code>, which <code>base.css</code> has styled since the found state
+      shipped. The destination implements nothing. It only has to have drawn the state.
+      <br><br>
+      So the found state's two rungs are not two treatments of a word on one page. They are
+      <em>the question and the answer</em>, one page apart: the register of candidates is
+      contour, and the thing you were looking for lights up when you get there. That is the
+      brand's own argument — data can be found in a space rather than read off a sheet —
+      running across a navigation rather than inside a paragraph.
+    </div>
+    <p>
+      Encoding the fragment is the only fussy part, and it has one trap.
+      <code>-</code> is the delimiter for the <code>prefix-,start,end,-suffix</code> form, so a
+      literal hyphen inside the quoted phrase must be written <code>%2D</code> or the browser
+      reads half the phrase as a prefix and matches nothing —
+      <em>silently</em>, because a fragment that does not match simply does nothing. Space is
+      <code>%20</code>, and non-ASCII is UTF-8 percent-encoded as usual
+      (<code>ü</code> → <code>%C3%BC</code>).
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Phrase in the excerpt</th><th>Fragment</th></tr></thead>
+      <tbody>
+        <tr><td>muss die Telemetrie stimmen</td><td><code>#:~:text=muss%20die%20Telemetrie%20stimmen</code></td></tr>
+        <tr><td>Telemetrie-Analytik und Datenintegration</td><td><code>#:~:text=Telemetrie%2DAnalytik%20und%20Datenintegration</code></td></tr>
+        <tr><td>Big Data-Plattformen für Telemetriedaten</td><td><code>#:~:text=Big%20Data%2DPlattformen%20f%C3%BCr%20Telemetriedaten</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      Keep the quoted phrase to the shortest run that is unique on the target page. The
+      fragment matches the <em>first</em> occurrence, so a phrase that repeats sends the
+      reader to the wrong one, and a phrase long enough to span an element boundary the editor
+      later changes will stop matching. Four to six words is the working band. Where a phrase
+      cannot be made unique, the <code>textStart,textEnd</code> form
+      (<code>#:~:text=Bevor%20irgendetwas,stimmen</code>) pins both ends instead.
+    </p>
+  </section>
+
+  <section class="docs-section" id="empty">
+    <h2>No answer</h2>
+    <p>
+      Zero results is not an error and must not be drawn as one: the search worked, the answer
+      is empty. It takes <code>.cf-error--inline</code>, the same component the News overview
+      renders when <code>?thema=…</code> narrows to nothing, served at <code>200</code>.
+    </p>
+    <div class="docs-demo">
+      <div class="cf-error cf-error--inline">
+        <p class="cf-error__code">0 Treffer</p>
+        <h3 class="cf-error__title">Dazu steht hier nichts.</h3>
+        <p class="cf-error__body">
+          Für <strong>Rhombendodekaeder</strong> gibt es auf control-f.de keine Fundstelle.
+          Ein kürzerer Begriff oder ein anderer Bereich führt weiter — die Suche schneidet
+          nicht an Wortgrenzen ab, <em>Telemetrie</em> findet also auch
+          <em>Telemetriedaten</em>.
+        </p>
+        <div class="cf-error__actions">
+          <a class="cf-btn cf-btn--outline" href="../patterns/news.html">
+            Alle Beiträge zeigen
+            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="docs-note">
+      <strong>Name the term that failed and say what would work.</strong> “Keine Ergebnisse”
+      tells the reader something they already know. The two things they do not know are
+      whether the site understood the query and what to try instead — so the empty state
+      quotes the term back and states one property of the index (substring matching, which is
+      the property that matters in a language that compounds).
+    </div>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-search</code></td><td>flex row, <code>--space-4</code> gap, aligned on the field's baseline rule; wraps below its own content width</td></tr>
+        <tr><td><code>.cf-search__field</code></td><td><code>flex: 1 1 16rem</code> — grows, and 16 rem is the basis at which a query is still readable</td></tr>
+        <tr><td><code>.cf-search__submit</code></td><td><code>.cf-btn--solid</code>. The one filled control on the page; its label is the foil, not lime</td></tr>
+        <tr><td><code>.cf-results</code></td><td>1 px top rule in full ink — or none, when the section header above carries <code>--flush</code> and supplies it</td></tr>
+        <tr><td><code>.cf-result</code></td><td><code>--space-6</code> (24 px) above and below, 1 px bottom rule in full ink, no box</td></tr>
+        <tr><td>Result on hover or focus</td><td><code>--sheen-panel</code> travels across, 480 ms — the same move the blog card and the accordion row make</td></tr>
+        <tr><td><code>.cf-result__meta</code></td><td>Geist Mono, 11 px, uppercase, tabular, <code>--text-secondary</code></td></tr>
+        <tr><td>Ordinal</td><td>two digits, <code>aria-hidden</code> — the <code>&lt;ol&gt;</code> already carries the position</td></tr>
+        <tr><td><code>.cf-result__title</code></td><td>Publica Sans, <code>--text-h4</code> (20 px), regular, <code>--leading-normal</code></td></tr>
+        <tr><td><code>.cf-result__link</code></td><td>no underline at rest; 1 px underline at 0.2em on hover and <code>:focus-visible</code></td></tr>
+        <tr><td><code>.cf-result__excerpt</code></td><td>14 px, <code>--leading-relaxed</code>, capped at <code>--measure-prose</code> (66 ch), <code>--text-secondary</code></td></tr>
+        <tr><td><code>.cf-result__path</code></td><td>Geist Mono, 11 px, <code>--text-secondary</code>, truncated at the end with an ellipsis</td></tr>
+        <tr><td>Matches</td><td><code>.cf-mark</code> throughout — contour rung, 2 px ground line. Never <code>.cf-mark--current</code></td></tr>
+        <tr><td>Lime on the page</td><td>none in this component. It is spent on the footer CTA</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note">
+      <strong>Why the link underline is 1 px and the match's ground line is 2 px.</strong>
+      They are different marks and have to stay distinguishable inside the same sentence: an
+      underline says <em>this goes somewhere</em>, a ground line says <em>this is what you
+      searched for</em>. The found state took the heavier weight precisely so that a link and
+      a match are never the same drawing —
+      <a href="../foundations/found.html">the found state</a> measures the collision.
+    </div>
+  </section>
+
+  <section class="docs-section" id="behaviour">
+    <h2>Behaviour</h2>
+    <ul>
+      <li>
+        <strong>No script.</strong> The form is a GET, the server renders the answer, and the
+        page is a page. Nothing here needs the Custom Highlight API — the server knows where
+        the matches are and can wrap them in <code>&lt;mark&gt;</code> as it renders. The
+        registry is for a page searching <em>itself</em>, which is a different job.
+      </li>
+      <li>
+        <strong>The server marks the matches, not a script.</strong> Wrapping hits after the
+        fact means walking the DOM and injecting <code>&lt;span&gt;</code>s into text a
+        screen reader is already reading. <code>&lt;mark&gt;</code> in the response is the
+        same drawing with none of that — and it is the semantically correct element, which
+        means <em>relevant to why you are here</em>.
+      </li>
+      <li>
+        <strong>Escape the query before echoing it.</strong> It appears in three places — the
+        input's <code>value</code>, the page <code>&lt;title&gt;</code> and the header meta —
+        and every one of them is reader-supplied text going back into markup. This is the
+        one component in the system where that is true.
+      </li>
+      <li>
+        <strong>Pagination joins above about four screens.</strong>
+        <a href="pagination.html">Pagination</a>'s own rule. When it does, the step links carry
+        the query as well as the page: <code>?q=…&amp;seite=N</code>, or the term is lost on
+        the first step.
+      </li>
+      <li>
+        <strong>Nothing animates but the sheen.</strong> 480 ms across the result, which drops
+        to 1 ms under <code>prefers-reduced-motion</code> through the duration token, with no
+        rule of its own. → <a href="../foundations/motion.html">Motion</a>
+      </li>
+    </ul>
+  </section>
+
+  <section class="docs-section" id="a11y">
+    <h2>Accessibility</h2>
+    <ul>
+      <li><code>role="search"</code> on the form. It is the landmark for this, and it is the only landmark a search form should carry.</li>
+      <li>A real <code>&lt;label&gt;</code>, not a placeholder. A placeholder disappears the moment the reader types — which on this page is always, because the query is already in the field.</li>
+      <li><code>type="search"</code>: the correct role in the accessibility tree, the browser's own clear control, and a magnifier on the soft keyboard. <code>enterkeyhint="search"</code> relabels the return key.</li>
+      <li>An <code>&lt;ol&gt;</code> with <code>role="list"</code> — <code>list-style: none</code> drops the role in Safari, and the count on entry is the fastest way to hear how big the answer is.</li>
+      <li>Each result's heading is inside the list item, so heading navigation walks the answers. The ordinal is <code>aria-hidden</code>: the list already carries position, and a decorative counter read aloud is noise.</li>
+      <li><strong>No live region on the count</strong>, and that is measured against SC 4.1.3 rather than skipped. The criterion covers status messages that appear <em>without</em> a change of context; this page is a fresh server response, its <code>&lt;title&gt;</code> carries the number, and a live region already in the DOM at load is not announced anyway. A variant that swaps results in without navigating <em>does</em> need one — rendered empty first, then filled.</li>
+      <li>Contrast: <code>--text-secondary</code> on the page wash is 5.9:1, result titles are full ink, and the match's ground line is <code>--border-strong</code>. No text on this page sits on lime, because no match here is lit.</li>
+      <li>The sheen is a background travel behind type that never changes colour, so every figure above holds at every frame of it.</li>
+    </ul>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Put the query in the URL and echo it back in the field, the title and the header.</li>
+          <li>Mark hits with <code>&lt;mark class="cf-mark"&gt;</code>, server-rendered, in the title and the excerpt both.</li>
+          <li>Give every result a <code>#:~:text=</code> fragment quoting its own excerpt, four to six words, hyphens as <code>%2D</code>.</li>
+          <li>State the address of each answer. A ranking the reader cannot check is a ranking they have to trust.</li>
+          <li>Draw zero results with <code>.cf-error--inline</code> at <code>200</code>, quoting the term that failed.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Never light a match on a result page. There is no current hit until the reader chooses one, and a lit candidate is a page pretending to have decided.</li>
+          <li>Don't make a result a card. No box, no fill, no corner — it stands on a rule like everything else in this system.</li>
+          <li>Don't intercept <kbd>Ctrl</kbd>+<kbd>F</kbd> to open this form. The browser's find belongs to the reader; this is an addition to it. → <a href="../foundations/found.html">The found state</a></li>
+          <li>Don't let the search page be indexed. <code>noindex, follow</code> — the content lives on the pages it points at.</li>
+          <li>Don't quote a phrase in the fragment that repeats on the target page. It matches the first occurrence and fails silently.</li>
+          <li>Don't add a second input style for search. The system has one field drawing.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="who">
+    <h2>Where it lands</h2>
+    <p>
+      <a href="../patterns/suche.html">The Suche pattern</a> is the whole page — header,
+      control, six results, no pagination, the footer taking the page's one light.
+      <a href="../patterns/404.html">404</a> routes to it, because a reader who has arrived at
+      a page that does not exist is exactly the reader with a query.
+    </p>
+    <div class="docs-note">
+      <strong>The main navigation does not carry it, and that is a designer's call rather
+      than an oversight.</strong> Both Figma mockups draw a six-item nav bar, the bar is
+      measured to <code>417 × 41</code>, and a seventh item is a change to the drawing rather
+      than to the code. The pattern ships, the 404 links to it, and where a search control
+      belongs in the site chrome — nav, footer, or neither — is settled with the material in
+      front of you.
+    </div>
+  </section>
+</main>
+
+<script src="../assets/js/cf-icons.js"></script>
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>
