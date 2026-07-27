@@ -4,6 +4,12 @@
 
 To run a local webserver to develop the site run `uv run -m http.server` in the repo root.
 
+## Automation
+
+Most commits on `main` are written by scheduled cloud agents that merge their own
+pull requests, with no human review gate. What they are, what they have been told,
+and the standing orders that outrank their briefs: [.github/ROUTINES.md](.github/ROUTINES.md).
+
 ## Deployment
 
 Every merge to `main` publishes the repo root to GitHub Pages via
