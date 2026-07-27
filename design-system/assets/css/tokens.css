@@ -274,6 +274,125 @@
                       var(--cf-grau)  100%);
 
   /* ------------------------------------------------------------------
+     3b-ii. WHERE ARTWORK MEETS THE PAGE
+     Two gradients that carry no colour of their own. Both are the light
+     family doing the two jobs a wash has to do when a full-bleed image is
+     dropped into a page made of CF-Grau: end, and be read over.
+
+     THE DISSOLVE. The landing-page hero was cut off with a knife. Measured
+     on the rendered page at 1280 x 1400, the last row of artwork is
+     rgb(42,41,55) at the left and rgb(198,237,167) at the middle, and the
+     next row down is the page wash at rgb(233,237,238) — a step of about
+     190 levels, in three channels at once, across one pixel.
+
+     The designer's mockup does not do that. It has no edge at all: the
+     artwork decays continuously into CF-Grau and the page simply carries
+     on. Measured off assets/source/mockups/landing-page.jpg as the mean
+     absolute channel deviation from #CFCFCF over each full row — which is
+     what alpha is, when the thing composites onto CF-Grau:
+
+         y   604    647    701    755    804
+         a  1.000  0.712  0.386  0.132  0.000
+
+     The hero ends at y 804 and the decay is already running at 642, so
+     extrapolating the top of it back to a = 1 puts the band at 598 → 804:
+     the last 25.6 % of an 804 px hero. Fitting a = (1 − t)^k over the band
+     gives k = 1.31, 1.43, 1.46, 1.46 at the four quartiles — call it 1.45,
+     which is a plain ease-out and not a curve anybody would have to
+     justify. The four stops below are that power law sampled at the
+     quartiles of the band; between them the mask interpolates linearly,
+     which departs from the curve by at most 0.018 of alpha.
+
+     It is a MASK and not an overlay, and that is the whole reason it can be
+     one token. An overlay has to be painted the colour of whatever is
+     behind it, so it would have to know that the hero sits on the page wash
+     and at what point of the ramp. A mask hands the question back to the
+     page: the artwork stops being there, and whatever the page is at that
+     height is what you see. Move the hero, restyle the wash, put this on a
+     dark page — the dissolve still lands.
+
+     THE READING SCRIM. The hero sets black display type, a black hairline
+     and a 12 px mono line over a loop nobody controls the frames of.
+     Sampled off the rendered page in the text column, the artwork behind
+     the headline reaches rgb(48,55,59) — 1.74:1 against black — and behind
+     the kicker rgb(70,70,81), 2.26:1. The floors are 3:1 for the display
+     line and the rule and 4.5:1 for the kicker, so the hero was failing
+     both, on the page as shipped.
+
+     The still frame the designer composed does not fail, because in the
+     mockup the left column is pale grey-blue the whole way down and the
+     colour is all on the right. The loop drifts a dark violet plane under
+     the type instead. So the scrim is not a correction applied over the
+     designer's composition — it restores it, and the amount of it is set by
+     what the mockup already looks like rather than by the contrast target.
+
+     CF-Grau and nothing else. The page's own surface, bleeding up into the
+     artwork exactly where the type sits: the light layer of the material
+     stack, doing the one thing it is for. White would frost it and black
+     would bruise it; both would read as a plate laid on top, which is the
+     failure mode this has to avoid.
+
+     63.43° — --angle-a, the steep isometric — so it rises from the
+     bottom-left corner where the text block is and is gone by the top
+     right, where the artwork is at its best and the glass button needs
+     something complicated behind it to be worth being glass. A horizontal
+     ramp would have taken the button's backdrop with it; a vertical one
+     would have greyed the top of the picture for no reader.
+
+     0.42 at the corner is a measured floor, not a chosen weight. Sampled on
+     the rendered page with the type hidden, at 375 / 768 / 1280 / 1920, the
+     worst backdrop pixel anywhere inside each element's box:
+
+                     before        after       floor
+       headline      1.74:1     4.13–4.46:1    3:1    (display, large text)
+       kicker        2.26:1     8.50–14.81:1   4.5:1  (12 px mono, body)
+       rule          2.26:1     7.93–14.08:1   3:1    (UI contour)
+
+     The headline is the binding one, and it is deliberately carrying about
+     40 % over its floor rather than sitting on it. Every number above is
+     one frame of a loop, and the next frame is not obliged to be as kind; a
+     scrim tuned to exactly 3:1 on whichever frame happened to be decoded
+     would be a measurement rather than a guarantee. Much past 0.42 and it
+     starts taking the picture instead of the risk.
+
+     THE STOPS ARE LENGTHS AND NOT PERCENTAGES, and that is the one thing
+     here that had to be got right rather than merely chosen. A percentage
+     stop is a percentage of the gradient LINE, and the line's length is
+     0.894·W + 0.447·H — so the same 38 % is 587 px in a 1280 x 896 hero and
+     402 px in a 768 x 828 one. The scrim has to cover a text column, and a
+     text column is 44ch wide and four display lines tall whatever the
+     viewport is: a fixed object, so it wants a fixed reach.
+
+     Projecting the corners of that column onto the 63.43° axis puts its far
+     corner — the top right of the headline, the point furthest from the
+     light — at 578 px at 768, 603 px at 1280 and 603 px at 1920. One
+     number, because the column is one size. 39rem = 624 px holds the
+     plateau past all three with a little over. Measured with the percentage
+     stops in place the headline read 4.46:1 at 1280 but only 3.58:1 at 768,
+     which is that arithmetic showing up as a contrast result: same column,
+     same artwork, a shorter gradient line.
+
+     min(39rem, 62 %) rather than 39rem flat, because on a phone the line is
+     623 px end to end and a 624 px plateau would lay a flat 42 % sheet over
+     the entire picture. Below about 1000 px of gradient line the percentage
+     wins and the artwork keeps its top corner. The falloff is the plateau
+     again, doubled — the scrim is out at twice the distance it is full.
+     ------------------------------------------------------------------ */
+  --dissolve-start: 74.4%;
+  --hero-dissolve: linear-gradient(180deg,
+                      #000                    0 var(--dissolve-start),
+                      rgba(0, 0, 0, 0.659)    80.8%,
+                      rgba(0, 0, 0, 0.366)    87.2%,
+                      rgba(0, 0, 0, 0.134)    93.6%,
+                      transparent            100%);
+
+  --scrim-reach: min(39rem, 62%);
+  --hero-scrim: linear-gradient(var(--angle-a),
+                      rgba(207, 207, 207, 0.42) 0,
+                      rgba(207, 207, 207, 0.42) var(--scrim-reach),
+                      rgba(207, 207, 207, 0)    calc(var(--scrim-reach) * 2));
+
+  /* ------------------------------------------------------------------
      3c. THE FOIL
      The same light, carried far enough to split. Lime → Weiss → Glas →
      Sky → Violett is the brand's own spectrum: it is the order of the
