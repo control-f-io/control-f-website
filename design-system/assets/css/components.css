@@ -1109,7 +1109,15 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   .cf-nav::after { border-top: var(--stroke-1) solid CanvasText; }
 }
 
-.cf-nav__list {
+/* QUALIFIED BY ITS TAG, and the padding below is why. base.css:150 resets
+   `ul[role="list"] { padding: 0 }` at (0,1,1); this rule was (0,1,0), so the
+   plate's 8 px inset computed to 0 px on every page in the tree and the pills
+   sat flush against its border. Same reset, same weight, third occurrence —
+   see .cf-pin__inner's note and scripts/check-reset-shadow.py, which runs it
+   now. The class is only ever on a <ul>, and every other rule that touches it
+   is a descendant or attribute selector at (0,2,0) or heavier, so the tie is
+   with base.css alone and source order settles it. */
+ul.cf-nav__list {
   display: flex;
   align-items: center;
   gap: var(--space-1);
@@ -2340,7 +2348,10 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 /* The chips belong to the card rather than to the system: a global chip would
    be a fifth way of drawing a small bordered label, and the four that exist
    are all doing something this is not. */
-.cf-info-card__chips {
+/* Tag-qualified for the margin-top, which base.css:150's `margin: 0` outweighed
+   at (0,1,1) against this rule's (0,1,0): the chips sat flush under the label
+   instead of a rung below it. → scripts/check-reset-shadow.py */
+ul.cf-info-card__chips {
   margin-top: var(--space-3);
   padding: 0;
   list-style: none;
@@ -2751,8 +2762,17 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 
 /* margin-inline-start: auto rather than relying on the parent's
    space-between — without a status line there is only one flex child, and
-   space-between would park it on the left. */
-.cf-pagination__list {
+   space-between would park it on the left.
+
+   And it never once did that, because base.css:150's `margin: 0` is (0,1,1)
+   and this rule was (0,1,0): the auto margin computed to 0 px, so the case
+   this comment exists for — a pagination with no status line — parked on the
+   left exactly as if the declaration had not been written. The two-child case
+   looked right the whole time on the parent's space-between, which is why the
+   comment describing the fallback outlived the fix. It is the same reset
+   winning against `margin-inline: auto` that .cf-pin__inner's note records,
+   one component over. → scripts/check-reset-shadow.py */
+ul.cf-pagination__list {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
