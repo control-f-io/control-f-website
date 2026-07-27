@@ -3957,10 +3957,19 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   height: 100%;
   overflow: visible;
 }
-.cf-plot__draw path {
+/* :not(.cf-plot__cap) is load-bearing and cost an hour once. Author CSS beats a
+   presentation attribute, so `fill: none` here silently overrode the
+   fill="url(#…)" the lit cap carries in its own markup — the cap kept its glow,
+   lost its ramp, and rendered as an empty rhombus that looked almost right.
+   Unlit caps are still unfilled: they inherit fill="none" from the <svg>. */
+.cf-plot__draw path:not(.cf-plot__cap) {
   vector-effect: non-scaling-stroke;
   stroke-width: 1;
   fill: none;
+}
+.cf-plot__cap {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1;
 }
 
 /* The ground. Construction geometry, so the ghost line type and the ghost
@@ -3990,11 +3999,21 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   transform: translateY(calc(120px * (1 - var(--plot-h))));
 }
 
-/* One lit column, and only ever one. Lime is the light layer, so it fills the
+/* One lit column, and only ever one. Lime is the light layer, so it lights the
    cap — the face light would actually land on — and nothing else. The contour
-   stays black: contour before fill, including here. */
+   stays black: contour before fill, including here.
+
+   THE FILL IS NOT DECLARED HERE, and that is the change this rule carries.
+   It used to be `fill: var(--cf-lime)`, a flat lime plane, which is the one
+   thing the palette does not do: light in this brand is a source and a
+   falloff, and a face painted lime edge to edge has neither. See
+   foundations/colors.html, "Lime is never flat".
+
+   A CSS gradient cannot be an SVG fill, so the ramp is a paint server and it
+   travels with the lit column's own markup — the same way every lit face in an
+   illustration carries its own <linearGradient>, waypoint and all. This rule
+   keeps the glow, which is the part that IS a filter. */
 .cf-plot__col--lit .cf-plot__cap {
-  fill: var(--cf-lime);
   filter: drop-shadow(0 0 12px rgba(225, 255, 0, 0.5));
 }
 
@@ -4595,7 +4614,12 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   width: 8px;
   height: 4px;
   transform: translate(-50%, -50%);
-  background: var(--cf-lime);
+  /* The ramp mirrored onto a level run, lime at the leading edge: the head is
+     lit where it is going and falls off behind it. Flat lime is not available
+     to this mark or to any other — foundations/colors.html, "Lime is never
+     flat" — and on a head that travels the ramp is the better drawing anyway,
+     because a mark that is brightest at its front reads as moving. */
+  background: var(--gradient-light-90);
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
   filter: drop-shadow(0 0 8px rgba(225, 255, 0, 0.5));
 }
