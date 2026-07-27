@@ -36,6 +36,7 @@
       { href: 'components/subdivision-field.html', label: 'Subdivision Field' },
       { href: 'components/pagination.html',     label: 'Pagination' },
       { href: 'components/error-state.html',    label: 'Error & Empty State' },
+      { href: 'components/arrival.html',        label: 'Arrival & Progress' },
       { href: 'components/article.html',        label: 'Article & Prose' },
       { href: 'components/table.html',          label: 'Table' },
       { href: 'components/team.html',           label: 'Team' },

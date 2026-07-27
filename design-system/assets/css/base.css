@@ -464,13 +464,13 @@ hr {
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
   border: var(--glass-border);
-  /* The rim is only half of a glass edge; --glass-refraction is the other
-     half, one pixel further in. An inset box-shadow rather than a second
-     element or a second border, because inset shadows are clipped to the
-     padding box — which puts the line exactly against the inside of the rim
-     with nothing to position. See the token for why a perimeter of glass has
-     no guaranteed boundary without it. */
-  box-shadow: inset 0 0 0 var(--stroke-1) var(--glass-refraction);
+  /* ONE LINE, AND IT IS THE LIT ONE. A dark 1 px ring ran inside this rim for
+     one release — on the material first, then only on .cf-btn--glass — to
+     carry a boundary the rim cannot hold against a backdrop nobody controls.
+     Both are gone: this brand does not outline glass, at any size and on any
+     surface. The measurement that motivated the ring, and the two ways to get
+     a boundary back without ink, are in tokens.css where the token used to be
+     and on foundations/materials.html. Do not add it back here. */
 }
 /* There is no --heavy variant. A 28 px blur was declared here and never used
    by anything, and the cost rule in tokens.css rules it out anyway: 16 px is
@@ -1036,7 +1036,28 @@ hr {
   @view-transition { navigation: auto; }
 }
 
-body > .cf-nav    { view-transition-name: cf-nav; }
+/* THE BAR ITSELF CANNOT CARRY THE NAME, and this cost a working material to
+   learn. A view-transition-name makes its element a BACKDROP ROOT, and a
+   backdrop-filter only samples what is painted below it inside its own
+   backdrop root — so naming .cf-nav left .cf-nav::before with an empty
+   backdrop and the navigation's glass stopped blurring anything, on every
+   page, at all times. Measured on the landing page with a 6 px stripe behind
+   the bar: 15.99 mean gradient inside the bar against 16.07 on the bare
+   artwork, i.e. no blur at all; with the name removed, 4.83. A transient
+   benefit for a permanent one is the wrong trade.
+
+   The two plates carry it instead. They are what the eye tracks as the bar
+   holds still — black rectangles with hard edges — and they contain no
+   frosted surface, so naming them costs nothing. The sheet stays in the root
+   snapshot, where its backdrop is the page and its blur is live. The toggle
+   is named for the same reason on the phone layout, where it is the chrome
+   that survives.
+
+   The footer is opaque and has no backdrop-filter anywhere in it, so it
+   keeps the name on the component itself. */
+body > .cf-nav .cf-logo     { view-transition-name: cf-nav-logo; }
+body > .cf-nav .cf-nav__list { view-transition-name: cf-nav-links; }
+body > .cf-nav .cf-nav__toggle { view-transition-name: cf-nav-toggle; }
 body > .cf-footer { view-transition-name: cf-footer; }
 
 @media (prefers-reduced-motion: no-preference) {

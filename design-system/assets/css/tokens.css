@@ -687,6 +687,29 @@
   --container-max: 80rem;   /* 1280 */
   --gutter:        clamp(1.25rem, 5.5vw, 5rem);  /* 20 → 80 */
 
+  /* THE DISTANCE FROM THE VIEWPORT EDGE TO THE CONTENT COLUMN'S EDGE.
+     --gutter is not that distance, and the difference is the whole point of
+     this token. While the container is still growing the two are equal; once
+     it has hit --container-max the container stops and centres, so the column
+     moves inward while --gutter stays put. Past that crossover an element
+     positioned at --gutter is no longer on the column — it is on the window,
+     and the gap between them opens without limit: 80 px at the 1440 frame,
+     240 at 1920, 560 at 2560.
+
+     Anything full-bleed that has to line up with the column takes this
+     instead: the hero's CTA and its pause switch, the Über uns header object,
+     the values section's counter and progress bar. All five were on --gutter
+     and all five are drawn on the column in the mockups.
+
+     The crossover is exact rather than approximate, because .container's own
+     max-width is calc(--container-max + 2 * --gutter): at that width the
+     centring margin is exactly --gutter and the two arms of the max() meet.
+
+     The percentage resolves against the USER's containing block, so this only
+     means what it says on an element whose containing block spans the page.
+     That is the same condition under which --gutter was ever correct here. */
+  --column-inset:  max(var(--gutter), (100% - var(--container-max)) / 2);
+
   /* The floating nav's own height: 2 × --space-5 plus the 44 px logo plate.
      The hero pulls itself up by exactly this so the bar overlays the artwork
      instead of sitting on a band above it. */
@@ -849,6 +872,43 @@
   --dash-2-1:   4px 2px;
   --dash-1-2:   2px 4px;
   --dash-1-4:   1px 4px;
+
+  /* ------------------------------------------------------------------
+     8a. THE PRESENCE LADDER — the four line types read as one axis
+
+     The Linien plate is drawn twice. Its top half is the reference strip
+     every system copies: four types, four weights, side by side, equals.
+     Its BOTTOM half is the part nothing here had implemented — the same
+     object, a rhombus with an ellipse in it, drawn four times across the
+     plate on one dotted axis, solid and small at the left and 1-4 and huge
+     at the right. Four line types, but one figure. Read left to right it
+     is not a specimen sheet at all: it is a thing coming into being, or
+     going out of it.
+
+     So the four types carry TWO registers, and they do not conflict:
+
+       use    where a line appears — a divider, an axis, a construction
+              line. This is what foundations/geometry.html catalogues, and
+              it is a property of the line.
+       rank   how present the thing it draws is. Only ever legible when
+              the SAME object is drawn more than once, which is why no
+              static page has needed it and every state does.
+
+     The ladder is the second register, named. It has one hard rule: an
+     object may only move ALONG it, never across it — a thing that is not
+     here yet is the same drawing as the thing that is, one rung down. The
+     moment a pending state is drawn as a different shape (the grey slab
+     every other system reaches for) the reader is being shown an object
+     that will never arrive, and the fill has beaten the contour.
+
+     --presence-absent is the ghost line: construction geometry, a footprint,
+     a cell that says where a thing stands rather than what it measures. It
+     was already doing exactly this job on .cf-plot__cell before it had a
+     name. ------------------------------------------------------------ */
+  --presence-absent:  var(--dash-1-4);
+  --presence-faint:   var(--dash-1-2);
+  --presence-near:    var(--dash-2-1);
+  --presence-present: var(--dash-solid);
 
   /* Two corners, and 2 px is the one you reach for. Counted off the Figma
      export rather than eyeballed off the JPGs: 170 <rect> elements across
@@ -1059,82 +1119,37 @@
   --glass-blur:       blur(16px) saturate(1.08);
   --glass-border:     1px solid rgba(255, 255, 255, 0.55);
 
-  /* THE REFRACTION LINE — the dark core of a glass edge, drawn one pixel
-     inside the lit rim. It is the second half of the rim, not decoration,
-     and without it a glass perimeter has no guaranteed boundary at all.
+  /* THE REFRACTION LINE IS GONE, and this is the record of it rather than the
+     token. A 1 px dark ring — black 55 %, drawn one pixel inside the lit rim —
+     was added to .cf-btn--glass and .material-glass to give a glass perimeter
+     a boundary the rim alone cannot hold. It came off the material first and
+     the button second, both by design ruling: THIS BRAND DOES NOT OUTLINE
+     GLASS. A black line round a lime-gradient plate is the first thing anybody
+     sees, and no contrast argument survives being the ugliest mark on the
+     page.
 
-     WHY IT EXISTS. The lit rim is white 55 %, and every layer on this
-     material only adds light, so a glass plate's whole perimeter approaches
-     the backdrop as the backdrop approaches white. Measured on the landing
-     page's hero CTA against the shipping artwork, worst pixel per edge,
-     consent banner dismissed:
+     What the line was answering is real and is still open. .cf-btn--glass is
+     the primary call to action, it stands on the hero video, and its plate
+     measured 1.07-1.31:1 against that artwork on every edge at every desktop
+     width, against a 3:1 requirement for a control boundary. The label was
+     never in question — 16.8:1 — so what is lost is the plate's claim to a
+     measured boundary, not the button's legibility.
 
-       width   top    bottom   left   right (lime end)
-       1280    1.25    1.08    1.15    1.11
-       1440    1.31    1.07    1.14    1.11
-       1920    1.10    1.08    1.16    1.09
+     KEEP THE PART THAT GENERALISES. Nothing painted against a video can be
+     guaranteed: black holds only where the backdrop is light, white only
+     where it is dark, and a frame can be either. So a control on artwork has
+     exactly two honest boundaries, and neither is a line —
 
-     Every edge of the primary call to action on the site, at every desktop
-     width, against a 3:1 requirement. The label was never in question and
-     still is not — it measures 16.8:1 — but a control whose boundary is
-     invisible is identified by its text alone.
+       an opaque plate, which holds 16:1 against every frame and is what the
+       mobile navigation menu already does for the same reason; or
 
-     WHY IT IS NOT A DARKER RIM. Nothing painted against the artwork can be
-     guaranteed, because the artwork is a video: black holds only where the
-     backdrop is light, white only where it is dark, and a frame can be
-     either. This is the same wall .cf-btn--glass:focus-visible hit, and the
-     answer is the one that component already ruled correct — make the
-     guaranteed edge INTERNAL. The reader is given a lit line and a dark line
-     side by side; whichever one the artwork swallows, the other still reads,
-     and the edge between the two belongs to the button rather than to the
-     frame.
+       no claim at all, which is where this button now sits, identified by
+       its label, its arrow, its lime end and its specular rather than by
+       its perimeter.
 
-     THE GUARANTEE, computed rather than sampled, because a sampled worst
-     case is only the worst frame anybody happened to look at. Both lines sit
-     on the same composited colour U — the bearing tint plus whatever the
-     light layers have added over it — so U is the only variable, and "light
-     only adds" is what bounds it: U is never darker than the bearing tint
-     over pure black (117.3) and never lighter than white. Rim is
-     140.25 + 0.45·U, this line is 0.45·U:
-
-       U = 117  (tint over a black backdrop)   6.84:1
-       U = 186  (mid)                          5.76:1
-       U = 255  (the hot spot, or the lime)    4.76:1
-
-     4.76:1 is therefore a floor over every backdrop that can exist, not a
-     reading off one frame. Lowering the alpha to 0.45 puts that floor at
-     3.35:1, which still passes and leaves nothing; 0.55 is chosen for the
-     margin, not for the weight.
-
-     ONE EDGE IS LOWER, AND IT IS THE ONE --glass-edge IS PAINTED ON.
-     .cf-btn--glass runs --glass-edge along its top border pixel, windowed to
-     the left 62 %, so the rim there is white 55 % over THE EDGE over U rather
-     than over U alone. The edge's Sky leg — rgba(114,176,226,0.28) at 80 % —
-     is the one stop darker than the white it is standing in for, and it pulls
-     that pixel down. Recomputed through the gradient per channel, the floor
-     on that edge is 4.33:1, worst at the Sky stop over a near-white backdrop.
-     The other three edges keep 4.76:1. Measured on the page: 4.59-4.62 top,
-     4.82-4.86 on the rest.
-
-     What generalises is not either number. It is that the rim's own
-     composition has to go into the arithmetic, because "the rim is white
-     55 %" stopped being true the moment something was painted underneath it —
-     and the two changes landed a day apart without either one knowing about
-     the other.
-
-     "LIGHT ONLY ADDS" IS UNCHANGED, and the distinction is worth stating
-     because this looks like the exception. That rule is about the type: the
-     darkest point UNDER THE LABEL stays --surface-glass, so the label's
-     4.5:1 floor holds no matter where the highlight is. This line is a
-     1 px ring at the padding edge, further from the label than any padding
-     token in the system. It darkens the material's edge, which is where a
-     real sheet of glass is dark, and it darkens nothing the reader reads.
-
-     SCOPE: surfaces with a full glass PERIMETER — .material-glass and
-     .cf-btn--glass. Not the navigation sheet, which ends at one edge and
-     already draws --glass-edge along it; a dark line there would be a rule
-     across the top of every page. */
-  --glass-refraction: rgba(0, 0, 0, 0.55);
+     Whoever picks one of those is making a design decision, not restoring a
+     token. Do not reintroduce the ring. See foundations/materials.html,
+     "A control's edge", which carries the measurements. */
 
   /* How far a glass sheet reaches past its own edge so that content
      arriving from outside is already inside the blur. backdrop-filter only
@@ -1263,6 +1278,39 @@
      instead of leaving two hand-written numbers that merely happen to agree.
      16 on a 640 viewBox is 2.5 % of the drawing down, 5 % across. */
   --iso-travel:     16;
+
+  /* THE WAIT.
+     A pending object is drawn at --presence-absent and one light crosses it.
+     The period is deliberately far slower than any UI duration above: this is
+     not a transition between two states, it is the one thing on screen that is
+     honestly still happening, and a fast loop reads as impatience. 2.4 s is
+     twice --duration-scene, the slowest thing the system otherwise animates.
+
+     THE LIGHT IS CAPPED AT 0.18 FOR RESTRAINT, and it is worth being exact
+     about what that cap is and is not doing, because the obvious worry here
+     turns out not to bind. The light layer sits ABOVE the contour layer —
+     the manual's own stacking order — so the band passes over the ghost
+     contour and lightens it, and a lightened contour is the one thing here
+     that could lose contrast in frames too short to catch in a screenshot.
+     Worst case is the whitest stop of the band over the blackest contour on
+     the page's own CF-Grau, composited the way CSS actually composites it,
+     in sRGB and not in linear light:
+
+       alpha   contour        CF-Grau        contrast
+       0.18    46 -> 0.0272   216 -> 0.684   9.51:1
+       0.28    71 -> 0.0637   241 -> 0.874   6.76:1
+       0.50    128 -> 0.2140  231 -> 0.799   3.22:1
+       0.52                                  3.03:1   <- the 3:1 floor
+
+     Measured off rendered pixels over eight frames of one period in Chromium,
+     the worst inked pixel on the shipped ghost comes out at 9.57:1, which is
+     the 0.18 row plus the page wash. So contrast does not choose this number:
+     anything under 0.52 clears the floor for a non-text contour, and 0.18 is
+     chosen because lime is not the only light in this system that has to stay
+     a moment rather than become a surface. What the arithmetic gives is the
+     CEILING — raise the token past 0.52 and the ghost fails, quietly. */
+  --arrive-period:     2400ms;
+  --arrive-light-peak: 0.18;
 
   /* 11. Z-INDEX */
   --z-base: 0;
@@ -1396,33 +1444,6 @@
   --surface-glass-solid: var(--surface-raised);
   --glass-border:        1px solid rgba(255, 255, 255, 0.18);
 
-  /* The refraction line inverts with the material: a dark plate is delimited
-     by a LIGHT core, not a darker one. Same alpha, opposite colour.
-
-     IT DOES NOT INHERIT THE LIGHT THEME'S GUARANTEE, and saying so is the
-     point of this comment. There the guarantee is internal — rim against
-     line, 4.76:1 whatever the backdrop does. Here it cannot be: the inverse
-     rim is white 18 %, so rim and line are both light and converge instead of
-     opposing. What the line buys is direct rather than internal. The dark
-     plate already carries a light backdrop on its own (4.94:1 over white);
-     what it cannot carry is a dark one, where it composites to the backdrop
-     exactly, and that is what the light line answers (6.27:1 over black).
-
-     Taking "the boundary reads if either the plate or the line clears 3:1
-     against the artwork", the worst backdrop that exists goes from 1.31:1
-     today to 2.32:1 with the line, bottoming out around sRGB 98 where the
-     plate is not yet dark enough and the line not yet bright enough. Better,
-     and still short of 3:1. Closing it means lifting the inverse rim, which
-     is a redesign of the material and not a token swap — the same conclusion
-     .cf-btn--glass reached about being placed in an inverse scope, for the
-     same reason.
-
-     Nothing ships here: .material-glass is documentation-only and its page is
-     not inverse, and the glass button is already forbidden inverse ground.
-     The value is declared so that a future inverse glass panel starts from
-     the better number and from a written-down bound rather than from
-     silence. */
-  --glass-refraction:    rgba(255, 255, 255, 0.55);
   --glass-edge: linear-gradient(90deg,
                   rgba(255, 255, 255, 0)    0%,
                   rgba(255, 255, 255, 0.26) 16%,
