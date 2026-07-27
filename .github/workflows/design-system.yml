@@ -381,6 +381,28 @@ name: Design system checks
 # hand-kept list, and holds the ring to the token as well as the list to the
 # tags — a list that covers everything and paints a literal is the same failure
 # one step along.
+#
+# The page-local grid tracks are the thirty-first, and the whole of it is a scope
+# line in the twelfth. check-grid-tracks.py opens by naming what it reads —
+# "the three stylesheets that ship to control-f.de. docs.css, per-page <style>
+# blocks and prototypes/ are out of scope" — which is the right boundary for
+# that file and a hole in the tree. patterns/ are not documentation; they are
+# the compositions, and a bare fr in one of their <style> blocks widens a track
+# to the longest German compound inside it and takes the page sideways at a
+# viewport nobody tested. The system already knew, in the landing page's own
+# words: "the floor the pages' own copies never had: page-local blocks are
+# outside check-grid-tracks.py's scope, so the bare 1fr shipped twice
+# unchallenged. Folding it here is what surfaced it." Folding surfaced that
+# one. Nothing was watching for the next.
+#
+# So the new file reads the blocks the old one cannot and applies the identical
+# rule, by importing floored(), block_of() and guarded_blocks() from it rather
+# than restating them — two definitions of one floor being the shape of bug
+# this directory exists to catch. It fails on patterns/ and counts foundations/
+# and prototypes/, the boundary tokens.css draws around its register and
+# check-local-thresholds.py draws around PX DEBT. patterns/ is clean today;
+# seven unfloored track lists live in the other two, printed every run so they
+# are a number somebody can act on rather than a hole nobody can see.
 
 on:
   push:
@@ -389,7 +411,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not twenty-eight. All twenty-eight checks are a few hundred
+  # One job, not thirty-one. All thirty-one checks are a few hundred
   # milliseconds of stdlib python; a second runner would cost more to start
   # than any of them takes to run, and a reader looking at a red tick wants
   # every answer on one page.
@@ -404,7 +426,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: twenty-eight
+      # Each check runs even when an earlier one has already failed: thirty-one
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -521,3 +543,7 @@ jobs:
       - name: Flow terminals
         if: '!cancelled()'
         run: python3 scripts/check-flow-terminals.py
+
+      - name: Page-local grid tracks
+        if: '!cancelled()'
+        run: python3 scripts/check-page-local-tracks.py
