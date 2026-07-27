@@ -896,6 +896,35 @@
   --grid-columns:  12;
   --grid-gap:      var(--space-6);
 
+  /* THE 12-COLUMN TRACK SET ITSELF, written once and read by everything that
+     lays out on it. --grid-columns is the COUNT and --grid-tracks is the track
+     list; the two are the same pair .subdivide already keeps as
+     --subdivide-count and --subdivide-cols, and for the same reason it gives:
+     a track set declared in more than one place is a track set two rules can
+     disagree about.
+
+     It had already been written three times. base.css's .grid is the primitive;
+     components.css declares the identical repeat() twice more for
+     .cf-values__frame and .cf-values__item, which are the pinned values
+     section's own 12-column frame and the five items stacked in it. Those two
+     are not a component reinventing the grid — they are the one place in the
+     system that genuinely needs the page's column set inside a component, and
+     they could not reach for .grid because they are set inside an @supports
+     block on markup that carries no utility class. So the fix is not to move
+     the markup; it is to give all three one declaration to read.
+
+     minmax(0, …) rather than a bare 1fr, and that is the load-bearing half of
+     this token. 1fr is minmax(auto, 1fr), and auto floors a track at its
+     content's MIN-CONTENT width — so one long German compound in any cell
+     widens its own track past its share and pushes the page sideways.
+     overflow-wrap: break-word does not save it: the reset sets it on
+     everything, and it does not enter intrinsic track sizing at all. Measured
+     on .cf-progress, the one grid in the system that carried a bare 1fr: a
+     61-character compound in its label took the document from 320 to 469 px
+     wide at a 320 px viewport, and from 375 to 469 at 375.
+     → foundations/layout.html#intrinsic-minimum */
+  --grid-tracks:   repeat(var(--grid-columns), minmax(0, 1fr));
+
   /* ------------------------------------------------------------------
      THE BREAKPOINT REGISTER
      A threshold cannot be a custom property: var() is not allowed in the

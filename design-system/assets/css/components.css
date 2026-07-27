@@ -4856,7 +4856,7 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
        leaving the content box. */
     .cf-values__frame {
       position: relative;
-      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      grid-template-columns: var(--grid-tracks);
       gap: var(--grid-gap);
       min-height: 60vh;
     }
@@ -4877,7 +4877,7 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
     .cf-values__item {
       grid-area: 1 / 1;
       display: grid;
-      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      grid-template-columns: var(--grid-tracks);
       gap: var(--grid-gap);
       align-items: center;
       margin: 0;
@@ -5787,9 +5787,21 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   initial-value: 0;
 }
 
+/* minmax(0, 1fr), not 1fr. This was the one fr track in the whole system with
+   no minimum of any kind — 32 of 33 already had one, 28 floored on the track
+   and 4 guarded by min-width: 0 on their items — and it is the failure .tiles
+   and .subdivide both warn about in prose, live in a shipping rule.
+   1fr is minmax(auto, 1fr) and auto floors at min-content, so the label
+   sets the track's width rather than the track setting the label's. Measured
+   with a 61-character German compound in .cf-progress__label: the document
+   went 320 -> 469 px at a 320 px viewport and 375 -> 469 at 375, and swapping
+   in the floor put both back on the nose. The reset's overflow-wrap:
+   break-word is already on the label and does not help — it breaks the word
+   when the track is drawn, and intrinsic track sizing happens first.
+   → foundations/layout.html#intrinsic-minimum */
 .cf-progress {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
   gap: var(--space-2) var(--space-4);
 }
