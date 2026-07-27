@@ -219,6 +219,249 @@ def scroll_blocks_missing_screen():
     return out
 
 
+# --------------------------------------------------------------------------
+# pathLength normalisation and non-scaling-stroke may not govern one stroke.
+#
+# This file already says it, once, about one class:
+#
+#     "It is the one stroke in an illustration that may not have it: the dash
+#      would then be measured in screen pixels while pathLength normalises in
+#      user space, and the draw finishes at 45 % of its range."
+#
+# components.css says it a second time about the Werte grid lines — "carry
+# pathLength='1' and are deliberately NOT under .cf-iso" — and motion.html a
+# third. Three statements of one rule, and the only thing enforcing any of
+# them was a substring search of the .cf-iso__trace TAG, which reads the
+# markup's own attribute and nothing else.
+#
+# The landing page's process frame then broke it from the other side: five
+# hairlines carrying pathLength="1", non-scaling-stroke arriving from a CSS
+# rule, and no .cf-iso__trace anywhere near it. Measured at 1440 x 900, a
+# 1000 x 500 viewBox stretched to 1278 x 639, every stroke stopped at 78.2 %
+# of itself and stayed there — the frame the whole pinned stage rests on was
+# never a closed rectangle. Nothing in the tree noticed for as long as it
+# shipped, because nothing was looking anywhere but at trace tags.
+#
+# So the rule is checked where it is true — on every normalised stroke in the
+# tree, against every route non-scaling-stroke can reach it by: the presentation
+# attribute, a style attribute, the shipping stylesheets, and the page's own
+# <style> block.
+# --------------------------------------------------------------------------
+
+NSS = "non-scaling-stroke"
+
+# Selector shapes this check models. Anything else is reported rather than
+# skipped — the same standard travel_overrides() sets: a checker that half
+# understands the cascade is worse than one that says it does not.
+_COMPOUND = re.compile(
+    r"^(?P<tag>[A-Za-z][\w-]*)?"
+    r"(?P<rest>(?:\.[\w-]+|:is\([^()]*\)|:not\([^()]*\))*)$"
+)
+_PIECE = re.compile(r"\.([\w-]+)|:is\(([^()]*)\)|:not\(([^()]*)\)")
+
+
+def parse_compound(text):
+    """One compound selector as (tags, classes, excluded_classes), or None.
+
+    `tags` is the set the element's tag must be in — from a bare tag or from
+    an :is() of bare tags — or None for "any". Only the shapes the shipping
+    stylesheets and the page blocks actually use are modelled.
+    """
+    m = _COMPOUND.match(text)
+    if not m:
+        return None
+    tags = {m.group("tag").lower()} if m.group("tag") else None
+    classes, excluded, pos = set(), set(), 0
+    for piece in _PIECE.finditer(m.group("rest")):
+        if piece.start() != pos:
+            return None
+        pos = piece.end()
+        cls, is_args, not_args = piece.groups()
+        if cls:
+            classes.add(cls)
+        elif is_args is not None:
+            args = [a.strip() for a in is_args.split(",")]
+            if not args or not all(re.fullmatch(r"[A-Za-z][\w-]*", a) for a in args):
+                return None          # :is() of anything but bare tags
+            args = {a.lower() for a in args}
+            tags = args if tags is None else (tags & args)
+        else:
+            args = [a.strip() for a in not_args.split(",")]
+            if not all(a.startswith(".") and re.fullmatch(r"[\w-]+", a[1:]) for a in args):
+                return None          # :not() of anything but classes
+            excluded.update(a[1:] for a in args)
+    if pos != len(m.group("rest")):
+        return None
+    return tags, classes, excluded
+
+
+def parse_selector(sel):
+    """A descendant-only selector as a list of compounds, or None."""
+    sel = sel.strip()
+    if not sel or any(c in sel for c in ">+~[]") or "::" in sel:
+        return None
+    # Split on descendant combinators only — whitespace INSIDE :is(a, b) is
+    # not one. Same lesson as the comma split above, one nesting level in.
+    parts, depth, start = [], 0, 0
+    for i, ch in enumerate(sel):
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        elif ch.isspace() and depth == 0:
+            parts.append(sel[start:i])
+            start = i + 1
+    parts.append(sel[start:])
+    compounds = []
+    for part in [p for p in parts if p.strip()]:
+        c = parse_compound(part)
+        if c is None:
+            return None
+        compounds.append(c)
+    return compounds
+
+
+def compound_matches(compound, node):
+    tags, classes, excluded = compound
+    tag, cls = node
+    if tags is not None and tag not in tags:
+        return False
+    return classes <= cls and not (excluded & cls)
+
+
+def selector_matches(compounds, chain):
+    """chain is [(tag, classes)] from the root down to the element itself."""
+    if not compound_matches(compounds[-1], chain[-1]):
+        return False
+    i = len(compounds) - 2
+    for node in reversed(chain[:-1]):
+        if i < 0:
+            break
+        if compound_matches(compounds[i], node):
+            i -= 1
+    return i < 0
+
+
+def split_selector_list(text):
+    """Split on commas that are not inside parentheses. `.cf-iso :is(path,
+    line, rect)` is ONE selector, and splitting it naively produced two
+    unmodellable halves and a bare `line` that matched every line in the
+    tree — this function is the whole reason the first run of this check
+    reported 137 findings against a tree with none."""
+    out, depth, start = [], 0, 0
+    for i, ch in enumerate(text):
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        elif ch == "," and depth == 0:
+            out.append(text[start:i])
+            start = i + 1
+    out.append(text[start:])
+    return [s.strip() for s in out if s.strip()]
+
+
+def nss_rules(text):
+    """(selector, compounds_or_None) for every rule declaring non-scaling-stroke.
+
+    The regex matches innermost blocks only — `[^{}]+` cannot cross a brace —
+    so an @media or @supports prelude is never mistaken for a selector.
+    """
+    out = []
+    for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", strip_comments(text)):
+        if not re.search(r"vector-effect\s*:\s*" + NSS, m.group(2)):
+            continue
+        for sel in split_selector_list(m.group(1)):
+            if not sel.startswith("@"):
+                out.append((sel, parse_selector(sel)))
+    return out
+
+
+class NormalisedFinder(HTMLParser):
+    """Every element carrying pathLength, with its ancestor chain."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.stack = []
+        self.hits = []
+
+    def _enter(self, tag, attrs):
+        a = dict(attrs)
+        node = (tag.lower(), set((a.get("class") or "").split()))
+        if a.get("pathLength") or a.get("pathlength"):
+            self.hits.append({
+                "line": self.getpos()[0],
+                "chain": self.stack + [node],
+                "inline": NSS in (a.get("vector-effect") or "") + (a.get("style") or ""),
+                "cls": " ".join(sorted(node[1])),
+            })
+        return node
+
+    def handle_starttag(self, tag, attrs):
+        node = self._enter(tag, attrs)
+        if tag not in VOID:
+            self.stack.append(node)
+
+    def handle_startendtag(self, tag, attrs):
+        self._enter(tag, attrs)
+
+    def handle_endtag(self, tag):
+        for i in range(len(self.stack) - 1, -1, -1):
+            if self.stack[i][0] == tag:
+                del self.stack[i:]
+                break
+
+
+def normalised_strokes_under_non_scaling():
+    findings, checked = [], 0
+    shipping = [
+        (name, nss_rules((CSS / name).read_text()))
+        for name in ("tokens.css", "base.css", "components.css")
+    ]
+    for page in PAGES:
+        text = page.read_text()
+        rel = page.relative_to(ROOT)
+        parser = NormalisedFinder()
+        parser.feed(text)
+        if not parser.hits:
+            continue
+        rules = list(shipping)
+        for block in re.findall(r"<style[^>]*>(.*?)</style>", text, re.S):
+            rules.append((str(rel), nss_rules(block)))
+        for hit in parser.hits:
+            checked += 1
+            sources = []
+            if hit["inline"]:
+                sources.append("its own attribute")
+            for origin, rs in rules:
+                for sel, compounds in rs:
+                    if compounds is None:
+                        findings.append(
+                            "%s declares vector-effect: %s on `%s`, a selector shape this\n"
+                            "    check cannot model. Teach parse_selector() the shape or\n"
+                            "    rewrite the rule — an unmodelled selector is an unchecked one."
+                            % (origin, NSS, sel)
+                        )
+                        rs.remove((sel, compounds))
+                        continue
+                    if selector_matches(compounds, hit["chain"]):
+                        sources.append("`%s` in %s" % (sel, origin))
+            if sources:
+                findings.append(
+                    "%s:%d normalises its length with pathLength and is given %s by %s.\n"
+                    "    The two cannot both govern one stroke: the dash is measured in SCREEN\n"
+                    "    pixels and pathLength normalises in USER units, so the draw comes up\n"
+                    "    short by exactly the render scale and stops there — for good, at every\n"
+                    "    viewport. The landing page's process frame stopped at 78.2 %% of every\n"
+                    "    stroke and its rectangle never closed. Drop one of the two: draw with a\n"
+                    "    transform if the weight has to hold, or stroke in user units if the\n"
+                    "    dash does. (%s)\n"
+                    "    -> design-system/foundations/motion.html"
+                    % (rel, hit["line"], NSS, " and ".join(sources),
+                       hit["cls"] or "no class")
+                )
+    return findings, checked
+
 
 def main():
     findings = []
@@ -329,7 +572,18 @@ def main():
                 )
 
 
-    # --- 6. scroll-driven animation is scoped to `screen` -------------------
+    # --- 6. a normalised stroke is not under non-scaling-stroke -------------
+    # The rule the trace check above states for one class, checked on every
+    # normalised stroke in the tree and against every route the property can
+    # arrive by. Deduped against that check by line, so the trace tags it
+    # already names keep their own, more specific advice.
+    trace_lines = {f.split(" ", 1)[0] for f in findings}
+    nss_findings, normalised = normalised_strokes_under_non_scaling()
+    for f in nss_findings:
+        if f.split(" ", 1)[0] not in trace_lines:
+            findings.append(f)
+
+    # --- 7. scroll-driven animation is scoped to `screen` -------------------
     for name, line, media in scroll_blocks_missing_screen():
         findings.append(
             "%s:%d puts an animation-timeline in a block that is not scoped to `screen`:\n"
@@ -349,8 +603,9 @@ def main():
     print(
         "isometric assembly: %d assembling figures on the 2.5 %% rule, orbit travel a whole\n"
         "number of dashes, every trace normalised, every orbit a ghost, one light per object,\n"
-        "every animation-timeline scoped to screen."
-        % assembling
+        "%d normalised strokes clear of non-scaling-stroke, every animation-timeline scoped\n"
+        "to screen."
+        % (assembling, normalised)
     )
     return 0
 
