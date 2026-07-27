@@ -17,8 +17,16 @@ body.docs {
 }
 
 /* ---------- sidebar ---------- */
+/* The documentation is the first thing in the system to navigate itself, so
+   it is also the first place the page transition can be seen working: the
+   sidebar is named, which lifts it out of the root snapshot and leaves it
+   standing perfectly still while the chapter behind it is raked in. Old and
+   new differ in one thing — which entry carries the current-page plate — so
+   the default cross-fade of the two snapshots is exactly the right animation
+   for it, and it is left alone. → foundations/transitions.html */
 .docs-sidebar {
   position: sticky;
+  view-transition-name: docs-sidebar;
   top: 0;
   align-self: start;
   height: 100vh;
@@ -522,7 +530,13 @@ body.docs {
      long line in a <pre> pushes the whole documentation page sideways on a
      phone instead of scrolling inside its own box. */
   body.docs { grid-template-columns: minmax(0, 1fr); }
-  .docs-sidebar { position: static; height: auto; }
+  /* And it gives up its view-transition-name with its column. Beside the
+     content the sidebar is furniture and holding still is the whole point;
+     stacked above it, it is the first screenful — a named element that fills
+     the viewport would hold the entire page still for the length of the wipe
+     and the reader would see nothing answer their tap. Furniture is a
+     position, not a component. */
+  .docs-sidebar { position: static; height: auto; view-transition-name: none; }
   .docs-main { padding: var(--space-8) var(--space-6) var(--space-16); }
   .docs-rules { grid-template-columns: 1fr; }
   .docs-ramp { grid-template-columns: 1fr; }

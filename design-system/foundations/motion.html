@@ -59,9 +59,9 @@
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Duration</th><th>Used for</th><th>In the CSS today</th></tr></thead>
       <tbody>
-        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change</td><td>10 rules</td></tr>
-        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>the control itself responding — arrow, button, menu</td><td>10 rules</td></tr>
-        <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>a reveal, or light crossing a surface</td><td>6 rules</td></tr>
+        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change</td><td>12 rules</td></tr>
+        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>the control itself responding — arrow, button, menu</td><td>11 rules</td></tr>
+        <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>a reveal, or light crossing a surface</td><td>8 rules</td></tr>
         <tr><td><code>--duration-scene</code></td><td>1200 ms</td><td>a full object build, if one is ever driven by time</td><td><strong>none yet</strong></td></tr>
       </tbody>
     </table>
@@ -71,14 +71,16 @@
       Only <code>--duration-scene</code> has none.
     </p>
     <div class="docs-note">
-      <strong>That column has now gone stale twice, and it is still the only part of this page
-      that can rot without anything rendering wrong.</strong> The first time, three of the four
-      read 8, 6 and 4 against stylesheets holding 8, 8 and 5. The second time — found while the
-      hero's still switch was being added, which is itself a new
+      <strong>That column has now gone stale three times, and it is still the only part of this
+      page that can rot without anything rendering wrong.</strong> The first time, three of the
+      four read 8, 6 and 4 against stylesheets holding 8, 8 and 5. The second time — found while
+      the hero's still switch was being added, which is itself a new
       <code>--duration-fast</code> consumer — <code>--duration-base</code> published 8 against
-      10 in the code. Asking a human to remember is what failed, twice. So the count is no
-      longer a claim you have to trust: it is one command, and it prints the same four numbers
-      this table publishes.
+      10 in the code. The third time was the command's own arrival: it landed publishing 10 and
+      10 against 12 and 11, because several branches each adding a transition merged in the same
+      hour and the number was written before the last of them. That is the failure mode the
+      command exists for and cannot itself prevent — a number is only current as of the commit
+      that wrote it. <strong>Run it, do not read it.</strong>
     </div>
     <pre class="docs-code"><span class="com"># from design-system/ — counts RULES, not var() occurrences</span>
 python3 -c "
@@ -98,9 +100,12 @@ for t in ['fast','base','slow','scene']:
     </p>
     <p>
       <strong>480 ms carries two different kinds of motion, and the distinction is worth
-      keeping.</strong> Four of its six consumers are light crossing a surface — the specular
-      on each of the two lit buttons, and the accordion row and blog cell each sliding
-      <code>--sheen-panel</code> by <code>background-position</code>. The other two are a panel
+      keeping.</strong> Six of its eight consumers are light crossing a surface — the specular
+      on each of the two lit buttons, the accordion row and blog cell each sliding
+      <code>--sheen-panel</code> by <code>background-position</code>, and the two clip
+      animations of the <a href="transitions.html">page transition</a>, which are the same
+      gesture at the scale of a whole page: one raked edge, one foil-lit contour, crossing the
+      viewport. The other two are a panel
       opening: <code>.cf-accordion__item::details-content</code>, and the mobile navigation
       menu, whose clip edge travels down the panel to draw it out from under the bar. That
       looks like a counterexample to "the control responds fast" and is not one: a reveal is
