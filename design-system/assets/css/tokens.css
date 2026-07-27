@@ -789,7 +789,29 @@
   --angle-b:        26.57deg;
   --angle-neutral:  45deg;
   --angle-square:   90deg;
-  --iso-transform:  rotate(45deg) scaleY(0.5);
+
+  /* THE ORDER IS THE WHOLE TRANSFORM, and it used to be the other way round.
+     A CSS transform list composes right to left in the element's own axes:
+     `rotate(45deg) scaleY(0.5)` squashes FIRST, along the square's own
+     vertical, turning it into a 2:1 rectangle — and then tilts that rectangle
+     45°. What came out was a slab with two long edges and two short ones,
+     sitting at 45°, whose bounding box was still 1:1. An isometric projection
+     squashes along the SCREEN's vertical, which means the rotation has to
+     happen first.
+
+     Measured on a 200 px square, both orders:
+
+                                 edges                     angles      box
+       rotate() scaleY()   200 / 100 / 200 / 100      ±45°             1:1
+       scaleY() rotate()   158.11 × 4, all equal      ±26.57° / 63.43° 2:1
+
+     The second line is the tile this brand is built on: four equal edges, the
+     2:1 in the width-to-height rather than in the edges, and every edge landing
+     on --angle-b. The first produces no 26.57° anywhere on the shape, which is
+     the tell — the section header two lines up says the 2:1 ratio is where the
+     brand angles come from, and the old value could not produce them.
+     → foundations/geometry.html */
+  --iso-transform:  scaleY(0.5) rotate(45deg);
   --iso-ratio:      2 / 1;
 
   /* Stroke weights — 1 pt / 2 pt / 4 pt / 8 pt. Screen work uses 1–2 px. */
