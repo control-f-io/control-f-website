@@ -257,6 +257,46 @@ hr {
   .col-8 { grid-column: span 8; }
 }
 
+/* A ROW THAT SPLITS SOONER.
+
+   56rem is the system's two-column threshold and it was measured for
+   .cf-statement and .cf-process — an illustration beside its copy, which
+   genuinely needs that much room before splitting is worth it. .col-*
+   inherited the number because it is the same shape. For a row of
+   independent text blocks it is too high, and the cost is measurable rather
+   than theoretical.
+
+   Measured on the one page that uses this grid. patterns/kontakt.html's
+   7 + 5 is stacked at every width below a viewport of ~1007, which draws its
+   form fields 801 px wide at a 900 px viewport and 895 at 1006 — well past
+   any line length a form wants — and then snaps to 522 + 366 at 1024. That
+   is 238 px of viewport where the split would have been comfortable: at 900
+   the row is 457 + 320.
+
+   So the threshold belongs to the ROW, not to the system, and it cannot be
+   derived from geometry. Only the author knows whether a column holds an
+   illustration or a phone number, and one number cannot serve twelve spans:
+   at 44rem of container a .col-6 is 340 px and comfortable while a .col-3 is
+   158 px and is not. A modifier hands that call to the person who knows.
+
+   44rem is not a new number — it is already in the register as the width
+   where .subdivide folds — so this gains the register a consumer rather than
+   a threshold. Tiering by SPAN rather than by row was the other candidate
+   and is wrong: a 7 + 5 whose two halves promote at different widths draws
+   the 7 beside a 12 and breaks the row. Pairs have to switch together.
+
+   Additive by construction. A .grid without the modifier is unchanged, and
+   the two rules never disagree — above 56rem both say the same span. */
+@container layout (min-width: 44rem) {
+  .grid--early > .col-2 { grid-column: span 2; }
+  .grid--early > .col-3 { grid-column: span 3; }
+  .grid--early > .col-4 { grid-column: span 4; }
+  .grid--early > .col-5 { grid-column: span 5; }
+  .grid--early > .col-6 { grid-column: span 6; }
+  .grid--early > .col-7 { grid-column: span 7; }
+  .grid--early > .col-8 { grid-column: span 8; }
+}
+
 .stack { display: flex; flex-direction: column; }
 .stack > * + * { margin-top: var(--flow, var(--space-4)); }
 .stack--2  { --flow: var(--space-2); }
