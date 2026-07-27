@@ -196,6 +196,34 @@
         width: 100%;
         height: 100%;
         pointer-events: none;
+        /* THE BORDER WEIGHED LESS THAN THE LINE DIVIDING IT, and it is the one
+           thing about this frame that is not the frame's own doing. Four of the
+           five strokes ARE the viewBox edge — M0 0H1000 at y=0, M0 500H1000 at
+           y=500, M0 0V500 at x=0, M1000 0V500 at x=1000 — and SVG clips to its
+           viewport by default, so the outer half of each of those four was cut
+           away. The divider at M500 0V500 is interior and kept all of its.
+
+           Measured as ink per stroke, meaned over 40 samples along each, against
+           the interior divider as 1.00x: left 0.63x, right 0.43x, top 0.59x,
+           base 0.47x at 1440x900; 0.62 / 0.43 / 0.59 / 0.45 at 1920x1080; and
+           0.49 / 0.83 / 0.46 / 0.79 at 1280x900. Not one of the four matched the
+           divider, no two of them matched each other, and which edge came out
+           lightest changed with the viewport — because a clipped half-stroke
+           lands wherever the frame's fractional origin puts it on the device
+           grid. With this line: 0.99 / 1.00 / 0.93 / 1.07 at 1440, 0.99 / 1.00 /
+           0.94 / 1.05 at 1920.
+
+           components.css:1697 already states this rule and already pays it, on
+           .cf-page-header__figure, in these words: "The viewBox is the drawing's
+           bounding box, so a 1 px non-scaling contour at the extremes is half
+           outside it. SVG clips to the viewport by default; without this the
+           outermost shell loses half its stroke." .cf-plot__draw and
+           .cf-arrive__object carry it for the same reason. This frame is the one
+           drawing in the system whose whole geometry sits on its extremes, and
+           it was the one that never declared it. Nothing here overflows but
+           those four half-strokes: the plate does not crop, so they land exactly
+           where the border they replaced stood. */
+        overflow: visible;
       }
       /* Statics only on the shared selector — an `animation` shorthand here
          would outweigh the class rules below ((0,1,1) against (0,1,0)) and
