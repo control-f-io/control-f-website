@@ -2045,11 +2045,13 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-size: var(--text-lg);
   max-width: 44ch;
 }
+/* .tiles carries the recipe; this only sets the two numbers that are its own.
+   Needs the guard .tiles adds — a fact column with a 13rem floor overflows a
+   narrow phone otherwise. Markup: class="cf-info-card__facts tiles tiles--fit". */
 .cf-info-card__facts {
   margin-top: var(--space-8);
-  display: grid;
-  gap: var(--space-6);
-  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  --tile: 13rem;
+  --flow: var(--space-6);
 }
 .cf-info-card__label { color: var(--text-muted); }
 /* The chips belong to the card rather than to the system: a global chip would
@@ -3321,8 +3323,9 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    last row. Fixed column counts would avoid it, but jumping 3 to 6 halves the
    card width at the breakpoint, which is worse than the gap. */
 .cf-team-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+  /* The cells are drawn by their own borders, so the tiles must touch. */
+  --tile: 11.5rem;
+  --flow: 0;
   border-top: var(--stroke-1) solid var(--border-strong);
   border-left: var(--stroke-1) solid var(--border-strong);
 }

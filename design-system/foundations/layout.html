@@ -671,6 +671,65 @@
       Recorded rather than fixed, so that the next person to sweep this knows the floor was
       measured and not assumed.
     </div>
+    <p>
+      <strong>Swept again, and the largest single cause was not the type.</strong> Across all
+      43 documentation and pattern pages at four combinations of viewport and root font, the
+      count of pages whose body scrolls sideways is:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Viewport</th><th>Root font</th><th>Before <code>.tiles</code></th><th>After</th></tr></thead>
+      <tbody>
+        <tr><td>320</td><td>16 px</td><td>5 of 43</td><td>1 of 43</td></tr>
+        <tr><td>320</td><td>20 px</td><td>14 of 43</td><td>9 of 43</td></tr>
+        <tr><td>375</td><td>20 px</td><td>7 of 43</td><td>3 of 43</td></tr>
+        <tr><td>768</td><td>24 px</td><td>0 of 43</td><td>0 of 43</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Everything from 375 to 1920 px at a 16 px root is clean and was clean before. What the
+      table measures is the corner where a narrow viewport meets an enlarged root font, and
+      four fifths of what it found there was one missing term in one repeated recipe —
+      <a href="#tiles-guard">the tiles guard</a>. The nine that remain are four separate
+      causes, none of them that one, and all of them recorded here rather than fixed because
+      each is a different lane's call:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Where</th><th>Cause</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>patterns/kontakt.html</code></td>
+          <td><code>.grid</code>'s own twelve tracks</td>
+          <td>
+            <code>--grid-gap</code> is <code>--space-6</code>, which is a rem, so at a 20 px
+            root it is 30 px. Eleven internal gaps are then 330 px inside a 270 px container —
+            <strong>the gaps alone overflow, before any content</strong>. Every
+            <code>.col-*</code> is already stacked to <code>span 12</code> at that width, so
+            all twelve tracks are pure overhead. Declaring one track below the split, and
+            twelve only above it, would fix it; that changes the primitive every page is built
+            on, so it is measured here and left for a run that can verify it properly.
+          </td>
+        </tr>
+        <tr>
+          <td><code>patterns/blog-artikel.html</code></td>
+          <td><code>.cf-prose</code>'s two tracks</td>
+          <td>Same shape, two tracks instead of twelve. 65 px at 320, 10 px at 375.</td>
+        </tr>
+        <tr>
+          <td><code>components/team.html</code></td>
+          <td><code>.cf-team-strip__list</code>'s four tracks</td>
+          <td>A fixed count that does not fold. The strip is a component decision, not a layout one.</td>
+        </tr>
+        <tr>
+          <td><code>foundations/colors.html</code></td>
+          <td><code>.docs-ramp__steps</code>, <code>repeat(10, 1fr)</code></td>
+          <td>
+            The only page failing at a plain 16 px root. Documentation-only, and a ten-step
+            colour ramp genuinely wants ten cells in a row — it needs a scroll container, the
+            way <code>.docs-table-scroll</code> already handles wide tables.
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </section>
 
   <section class="docs-section" id="space">
@@ -706,7 +765,7 @@
       <strong>Every step is accounted for.</strong> A scale is only honest if you can say who
       uses each rung, so here is the count of <em>declarations</em> that reference each step in
       the shipping CSS (<code>tokens</code> + <code>base</code> + <code>components</code>),
-      comments excluded. Stamped <code>c495cc10</code> — see below for what that is and how to
+      comments excluded. Stamped <code>7cbe5b59</code> — see below for what that is and how to
       check it in one command:
     </div>
     <table class="docs-table" id="space-scale">
@@ -715,7 +774,7 @@
         <tr><td><code>--space-1</code></td><td>4</td><td>8</td><td>the gap under a name, inside a tight cluster</td></tr>
         <tr><td><code>--space-2</code></td><td>8</td><td>34</td><td>icon-to-label, chip padding</td></tr>
         <tr><td><code>--space-3</code></td><td>12</td><td>47</td><td>button <code>padding-block</code> — the most used step in the system</td></tr>
-        <tr><td><code>--space-4</code></td><td>16</td><td>40</td><td>the default gap: what <code>.stack</code> and <code>.cluster</code> do unaided</td></tr>
+        <tr><td><code>--space-4</code></td><td>16</td><td>41</td><td>the default gap: what <code>.stack</code> and <code>.cluster</code> do unaided</td></tr>
         <tr><td><code>--space-5</code></td><td>20</td><td>6</td><td>the nav bar's padding, the contact list's and the error routes' row padding — the thinnest-used rung</td></tr>
         <tr><td><code>--space-6</code></td><td>24</td><td>33</td><td><code>--grid-gap</code>, panel padding</td></tr>
         <tr><td><code>--space-8</code></td><td>32</td><td>26</td><td>the gap between an object and its copy</td></tr>
@@ -798,7 +857,7 @@ print(counts)
     <div class="docs-note">
       <strong>The stamp is a digest of the counts themselves.</strong> It is the first eight hex
       of a SHA-256 over the thirteen numbers, printed by the same command that prints them — so
-      if it still reads <code>c495cc10</code>, the table is current and there is nothing to
+      if it still reads <code>7cbe5b59</code>, the table is current and there is nothing to
       re-derive.
       <br><br>
       It took two wrong answers to get here, and both are worth keeping because both are the
@@ -1237,6 +1296,81 @@ print(counts)
       was simply never wanted in markup. It returns as <code>.cluster--between</code>, two lines
       instead of five, inheriting the rungs it previously could not use.
     </div>
+  </section>
+
+  <section class="docs-section" id="tiles">
+    <h2>Tiles</h2>
+    <p>
+      <code>.grid</code> divides a fixed twelve. <code>.tiles</code> divides by however many
+      fit: the column count is never declared, the browser derives it from one number — the
+      smallest a tile is allowed to be — and the row reflows without a query. It is the shape
+      behind every card strip, swatch band, plate wall and icon wall in the system.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Name</th><th>What it is</th><th>Default</th></tr></thead>
+      <tbody>
+        <tr><td><code>.tiles</code></td><td>as many equal columns as fit, empty tracks kept</td><td>—</td></tr>
+        <tr><td><code>.tiles--fit</code></td><td>empty tracks collapse, the survivors stretch</td><td>—</td></tr>
+        <tr><td><code>--tile</code></td><td>the smallest a tile may be</td><td><code>16rem</code></td></tr>
+        <tr><td><code>--flow</code></td><td>the gap, shared with <code>.stack</code> and <code>.cluster</code></td><td><code>--space-4</code></td></tr>
+      </tbody>
+    </table>
+    <p>
+      <code>--tile</code> is a length, so it is a property rather than a family of classes —
+      the same call <a href="#subdivision">the subdivision grid</a> makes with
+      <code>--subdivide-count</code>. Set it in the consumer's own rule rather than in the
+      markup: several of these minima are measured numbers carrying a paragraph of reasoning
+      behind them, and a measured number belongs next to its measurement.
+      <code>.cf-team-grid</code>'s <code>11.5rem</code> is chosen inside a window only
+      1.8rem wide, and that argument lives in <code>components.css</code> where it can be
+      read.
+    </p>
+    <h3 id="tiles-guard" style="margin-top:var(--space-8)">The guard is the whole point</h3>
+    <p>
+      The recipe underneath is <code>repeat(auto-fill, minmax(min(var(--tile), 100%), 1fr))</code>,
+      and the term that matters is <code>min(…, 100%)</code>. Without it the minimum in
+      <code>minmax()</code> is a floor the track will not go below, so a container narrower
+      than the tile does not fold the row — <strong>it overflows</strong>, because the track
+      keeps its minimum and the grid keeps the track. With it the floor becomes the tile
+      <em>or</em> the container, whichever is smaller, so the last column folds instead of
+      pushing. Above the fold width the term is inert: nothing that fits today lays out
+      differently.
+    </p>
+    <div class="docs-note">
+      <strong>This was written out by hand twenty times, and every copy could scroll the page
+      sideways.</strong> The same three declarations appeared once in
+      <code>components.css</code>, three times in <code>docs.css</code> and sixteen times in
+      page-local <code>&lt;style&gt;</code> blocks, each with its own minimum and one of three
+      gaps — and not one of them carried the guard. Measured across the 43 documentation and
+      pattern pages: at a 320 px viewport <strong>five</strong> scrolled sideways, and at
+      320 px with the root font at 20 px — where a reader who has enlarged their type is —
+      <strong>fourteen</strong> did. Folding the recipe into one class took the first number to
+      one and the second to nine, and the nine that remain have other causes, listed under
+      <a href="#reflow">Reflow</a>. Sixteen of the twenty copies were also unreachable from the
+      system: a rule you can only get at by copying it off another page is not a rule, which is
+      the argument that already brought back <code>.cluster--between</code> and the
+      <code>.flow-*</code> rungs.
+    </div>
+    <p>
+      <strong><code>auto-fill</code> is the base and <code>auto-fit</code> is the modifier.</strong>
+      The two differ only when the items do not fill the row: <code>auto-fit</code> collapses the
+      empty tracks so the survivors stretch, <code>auto-fill</code> keeps them so the survivors
+      stay tile-sized. Three cards in a row with room for five should stay three cards rather
+      than become three banners, so the default holds the size and <code>.tiles--fit</code> is
+      how a caller asks for the stretch. Both forms were already in use — eight of the twenty
+      copies were <code>auto-fill</code> and twelve <code>auto-fit</code> — so this is a
+      distinction the system had been making without ever naming.
+    </p>
+    <p>
+      <code>min-width: 0</code> on the items is load-bearing rather than hygiene.
+      <code>1fr</code> is <code>minmax(auto, 1fr)</code> and that <code>auto</code> floors at
+      min-content, so without it a single long German compound widens its own track past its
+      share and the guard above never gets to hold — the same failure
+      <a href="#reflow">Reflow and the long German word</a> describes, arriving through the
+      track sizing rather than through the text. The reset already sets
+      <code>overflow-wrap: break-word</code> on everything, so the word breaks inside the tile
+      rather than escaping it.
+    </p>
   </section>
 
   <section class="docs-section" id="sections">

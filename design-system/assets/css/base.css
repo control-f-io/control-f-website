@@ -567,6 +567,69 @@ hr {
 .flow-8  { --flow: var(--space-8); }
 .flow-12 { --flow: var(--space-12); }
 
+/* A ROW OF EQUAL TILES THAT FOLDS ON ITS OWN.
+
+   .grid divides a fixed twelve. This divides by however many fit: the count is
+   never declared, the browser derives it from one number — the smallest a tile
+   is allowed to be — and reflows without a query.
+
+   IT IS A PRIMITIVE BECAUSE THE SYSTEM ALREADY HAD IT TWENTY TIMES. The three
+   declarations below were written out by hand in components.css once, in
+   docs.css three times, and in sixteen page-local <style> blocks: the same
+   recipe with a different minimum and one of three gaps. Sixteen of those are
+   unreachable from the system — a rule you can only get at by copying it off
+   another page is not a rule, which is the argument that already brought back
+   .cluster--between and the .flow-* rungs.
+
+   AND BECAUSE EVERY ONE OF THEM COULD SCROLL THE PAGE SIDEWAYS. The minimum in
+   minmax(19rem, 1fr) is a floor the track will not go below, so a container
+   narrower than 19rem does not fold the row — it overflows, because the track
+   keeps its minimum and the grid keeps the track. Measured across the
+   documentation site: at a 320 px viewport five pages scrolled sideways, and at
+   320 px with the root font at 20 — where a reader who has enlarged their type
+   is — fourteen of forty-three did. min(--tile, 100%) is the whole fix. The
+   track's floor becomes the tile OR the container, whichever is smaller, so the
+   last column folds instead of pushing, and above the fold width the term is
+   inert: nothing that fits today lays out differently.
+
+   That guard is why this is a class and not a convention. It is one term, it is
+   easy to leave out, and leaving it out is invisible until somebody opens the
+   page at a width nobody tested.
+
+   --tile is a length, so it is a property rather than a family of classes —
+   the same call .subdivide makes with --subdivide-count. It is set in the
+   consumer's own rule rather than in the markup, because several of these
+   minima are measured numbers carrying a paragraph of reasoning
+   (.cf-team-grid's 11.5rem is chosen inside a 1.8rem window) and a measured
+   number belongs next to its measurement. The gap is --flow, so the .flow-*
+   rungs tune this exactly as they tune .stack and .cluster, and it defaults to
+   --space-4 for the same reason theirs does.
+
+   auto-fill is the base and auto-fit is the modifier. The two differ only when
+   the items do not fill the row: auto-fit collapses the empty tracks so the
+   survivors stretch, auto-fill keeps them so the survivors stay tile-sized.
+   Three cards in a row with room for five should stay three cards rather than
+   become three banners, so the default holds the size and .tiles--fit is how a
+   caller asks for the stretch. Both forms were already in use — eight of the
+   twenty were auto-fill and twelve auto-fit — so this is a distinction the
+   system had made and never named.
+
+   min-width: 0 on the items is load-bearing, not hygiene. 1fr is
+   minmax(auto, 1fr) and that auto floors at min-content, so without it a single
+   long German compound widens its own track past its share and the guard above
+   never gets to hold. The reset already sets overflow-wrap: break-word on
+   everything, so the word breaks inside the tile rather than escaping it.
+   → foundations/layout.html#tiles */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--tile, 16rem), 100%), 1fr));
+  gap: var(--flow, var(--space-4));
+}
+.tiles--fit {
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--tile, 16rem), 100%), 1fr));
+}
+.tiles > * { min-width: 0; }
+
 /* --------------------------------------------------------------------------
    SUBDIVISION GRID — "Raster > Teilungsraster"
    The manual's recursive square-subdivision system. Halve a surface, halve
