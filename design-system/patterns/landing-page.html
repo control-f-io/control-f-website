@@ -127,7 +127,25 @@
          traces, the light, the nodes. The reveal ends at 15.5 of 25 —
          62 % of the step, the system's hold rule — and the rest of the
          quarter is a still. → foundations/motion.html#build, #hold */
-      .lp-proc-steps .cf-iso__ghost {
+      /* NAMED THE WAY components.css NAMES IT, and that is the whole rule.
+         `.lp-proc-steps .cf-iso__ghost` weighs (0,2,0) and the component's
+         `.cf-iso--build .cf-iso__ghost:not(.cf-iso__orbit)` weighs (0,3,0) —
+         the :not() is a class — so the page lost every time and cards 02 and
+         03 kept the component's `cover 2% cover 14%`. On a
+         pinned track that is not a small error: `cover` on --cf-pin is the
+         track's whole 7,560 px sweep, so both plans finished fading up at
+         contain 2.7 %, while card 01 was still building and 22 points of
+         scroll before their own card crossed in. Measured at 1440 x 900: card
+         02's ghosts sat at opacity 1 from y = 1822 to the end of the track.
+         The plan did not come first on those two cards — it was simply always
+         there, and the quarter opened with solids arriving onto nothing that
+         had been drawn. Every other part of the build reads `contain` because
+         its page rule and its component rule weigh the same and this block is
+         later; only the ghost's carries the extra class. So this one is
+         written to the same shape, one class heavier, with the same :not() for
+         the same reason components.css gives: without it this selector takes
+         the orbit's turn away with it. */
+      .lp-proc-steps .cf-iso--build .cf-iso__ghost:not(.cf-iso__orbit) {
         animation-name: cf-iso-fade;
         animation-range: contain calc(var(--i) * 25% + 0.5%) contain calc(var(--i) * 25% + 4%);
       }
@@ -184,12 +202,41 @@
          its implicit `animation-range: normal` would stretch every draw
          across the whole timeline. It did, until this was measured: five
          hairlines creeping in lockstep from one end of the section to the
-         other, and no relay at all. */
+         other, and no relay at all.
+
+         THE DRAW IS A SCALE, NOT A DASH, and the line above it is why.
+         A dashed draw was the first version — stroke-dasharray: 1 over
+         pathLength="1", the same maths every .cf-iso__trace uses — and under
+         `vector-effect: non-scaling-stroke` it cannot work: the dash is
+         measured in SCREEN pixels while pathLength normalises in USER units,
+         so the two disagree by exactly the render scale. This frame is a
+         1000 x 500 viewBox stretched to the plate — 1278 x 639 measured at
+         1440 x 900 — so every stroke stopped at 1000 / 1278 = 78.2 % of
+         itself and STAYED there: the top and base rails ended 278 px short of
+         the right vertical, the verticals 139 px above the base, and the
+         lectern the whole pinned stage rests on was never once a closed
+         rectangle, at any scroll position or any viewport. It is the failure
+         components.css records twice — on .cf-iso__trace ("the one stroke in
+         an illustration that may not have it") and on the Werte grid lines
+         ("deliberately NOT under .cf-iso") — reintroduced by the one drawing
+         that is under neither. check-iso-motion.py enforces it generally now.
+
+         A straight stroke grown from one end is a scale about that end, and
+         `transform-box: fill-box` puts the origin exactly at each stroke's own
+         junction: the top and left at (0,0), the divider at (500,0), the right
+         vertical at (1000,0), the base at (0,500) — the relay's --a order read
+         off the geometry rather than authored twice. Scaling the axis a stroke
+         has no extent on is a no-op, so one `scale: 0 -> 1` serves all five and
+         the markup says nothing new. Under non-scaling-stroke the weight
+         ignores the transform, so 2 px and 1 px stay 2 px and 1 px throughout,
+         which the dash version also promised and is the reason it is kept. And
+         it is composited rather than paint-only — the cost components.css
+         charges .cf-iso__trace for, off the biggest element on the stage. */
       .lp-frame path {
         fill: none;
-        stroke-dasharray: 1;
-        stroke-dashoffset: 1;
         vector-effect: non-scaling-stroke;
+        transform-box: fill-box;
+        transform-origin: 0 0;
       }
       /* The relay is per stroke, not per bucket: --a is where this stroke's
          parent junction is reached, so consecutive strokes chain instead of
@@ -223,7 +270,10 @@
       }
     }
   }
-  @keyframes lp-frame-draw { to { stroke-dashoffset: 0; } }
+  /* Both ends written out: the from-state is the whole animation here, and a
+     one-sided keyframe over an implied `scale: 1` would have nothing to grow
+     from. → the .lp-frame path note above for why this is a scale at all. */
+  @keyframes lp-frame-draw { from { scale: 0; } to { scale: 1; } }
   @keyframes lp-frame-out { to { opacity: 0; } }
   @keyframes lp-frame-in { from { opacity: 0; } }
 
@@ -666,16 +716,16 @@
                     <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
                   </linearGradient>
                 </defs>
-                <path class="lp-frame__light" style="--a:26" stroke="url(#lp-frame-light-x)" d="M0 0H1000" pathLength="1"/>
-                <path class="lp-frame__light" style="--a:30" stroke="url(#lp-frame-light-y)" d="M0 0V500" pathLength="1"/>
-                <path class="lp-frame__light" style="--a:37" stroke="url(#lp-frame-light-y)" d="M500 0V500" pathLength="1"/>
-                <path class="lp-frame__light" style="--a:48" stroke="url(#lp-frame-light-y)" d="M1000 0V500" pathLength="1"/>
-                <path class="lp-frame__light" style="--a:52" stroke="url(#lp-frame-light-x)" d="M0 500H1000" pathLength="1"/>
-                <path class="lp-frame__line" style="--a:26" d="M0 0H1000" pathLength="1"/>
-                <path class="lp-frame__line" style="--a:30" d="M0 0V500" pathLength="1"/>
-                <path class="lp-frame__line" style="--a:37" d="M500 0V500" pathLength="1"/>
-                <path class="lp-frame__line" style="--a:48" d="M1000 0V500" pathLength="1"/>
-                <path class="lp-frame__line" style="--a:52" d="M0 500H1000" pathLength="1"/>
+                <path class="lp-frame__light" style="--a:26" stroke="url(#lp-frame-light-x)" d="M0 0H1000"/>
+                <path class="lp-frame__light" style="--a:30" stroke="url(#lp-frame-light-y)" d="M0 0V500"/>
+                <path class="lp-frame__light" style="--a:37" stroke="url(#lp-frame-light-y)" d="M500 0V500"/>
+                <path class="lp-frame__light" style="--a:48" stroke="url(#lp-frame-light-y)" d="M1000 0V500"/>
+                <path class="lp-frame__light" style="--a:52" stroke="url(#lp-frame-light-x)" d="M0 500H1000"/>
+                <path class="lp-frame__line" style="--a:26" d="M0 0H1000"/>
+                <path class="lp-frame__line" style="--a:30" d="M0 0V500"/>
+                <path class="lp-frame__line" style="--a:37" d="M500 0V500"/>
+                <path class="lp-frame__line" style="--a:48" d="M1000 0V500"/>
+                <path class="lp-frame__line" style="--a:52" d="M0 500H1000"/>
               </svg>
             </article>
             <article class="cf-process cf-pin__step" style="--i:0">
