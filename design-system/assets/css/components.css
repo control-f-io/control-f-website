@@ -5283,6 +5283,43 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
          has to start below it or the index reads through the bar. */
       padding-block: calc(var(--nav-height) + var(--space-4)) var(--space-8);
     }
+    /* ONE MEASURE FOR THE WHOLE STAGE, and it is the CARD's. The index names
+       the card and the bar runs under it: the three are one column, and the
+       index's 01 has to stand over the card's left edge or it is annotating
+       nothing. The stage's three rows are therefore sized together, off
+       --pin-measure, which a page sets when its card is narrower than the
+       container — and inherits down to all three, so there is no way to
+       narrow one without narrowing the others.
+
+       IT WAS POSSIBLE, AND THE LANDING PAGE DID IT. Its card is bound to the
+       viewport HEIGHT (max-inline-size: calc((100vh - 13rem) * 2), derived in
+       place), and that cap was written on the card alone. So the card
+       narrowed and centred while the index and bar stayed the full container:
+
+         viewport     container   card    chrome wider by
+         1024 x 900        911     911      0
+         1280 x 900       1139    1139      0
+         1280 x 720       1139    1024    115
+         1366 x 768       1216    1120     96
+         1512 x 782       1280    1148    132
+         1440 x 720       1280    1024    256
+
+       Every zero is a viewport where the height cap does not bind — which is
+       every size anyone checks at, because 900 and 1080 are tall. Every
+       non-zero is a laptop. `none` is the default, so a stage that does not
+       set --pin-measure is exactly what it was.
+
+       CENTRED BY justify-self AND NOT BY AUTO MARGINS, which is not a taste.
+       `margin-inline: auto` here is (0,1,0) and base.css writes
+       `ol[role="list"] { margin: 0 }` at (0,1,1) — so the two cards centred,
+       the bar centred, and the index alone stayed flush to the container,
+       which is the same bug one element narrower. justify-self is nobody
+       else's property. */
+    .cf-pin__inner > * {
+      width: 100%;
+      max-inline-size: var(--pin-measure, none);
+      justify-self: center;
+    }
     .cf-pin__index { display: flex; }
     .cf-pin__bar { display: block; }
 
