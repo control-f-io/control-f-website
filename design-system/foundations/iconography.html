@@ -83,6 +83,11 @@
 
   .icon-anatomy { display: grid; grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: var(--space-8); align-items: center; }
   @media (max-width: 48rem) { .icon-anatomy { grid-template-columns: 1fr; } }
+
+  .icon-weights { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: var(--space-8); justify-items: center; }
+  .icon-weights figure { margin: 0; display: grid; justify-items: center; gap: var(--space-3); }
+  .icon-weights__row { display: flex; align-items: center; gap: var(--space-4); height: 5rem; }
+  .icon-weights figcaption { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-label); line-height: var(--leading-normal); text-align: center; color: var(--text-secondary); }
 </style>
 </head>
 <body class="docs" data-root="../">
@@ -103,15 +108,93 @@
   <section class="docs-section" id="set">
     <h2>The set</h2>
     <p>
-      Twenty-two glyphs in four families: direction, operators, primitives, objects. Hover
-      a tile to see the construction grid it was built on, or turn the keylines on for all
-      of them. Click any tile to copy its markup.
+      Forty-three glyphs in six families: direction, operators, primitives, the solid
+      weight, objects and instruments. Hover a tile to see the construction grid it was
+      built on, or turn the keylines on for all of them. Click any tile to copy its markup.
     </p>
     <div class="icon-toolbar">
       <button class="icon-toggle" type="button" id="keyline-toggle" aria-pressed="false">Keylines</button>
       <span class="icon-count" id="icon-count"></span>
     </div>
     <div class="icon-grid" id="icon-grid" data-keylines="false"></div>
+  </section>
+
+  <section class="docs-section" id="plate">
+    <h2>Against the plate</h2>
+    <p>
+      The set is the manual's <em>Icon System</em> plate, and it is worth being able to check
+      that claim rather than take it. The plate is four rows; this is what each one is and
+      where it went.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Plate row</th><th>Is</th><th>In the set</th></tr></thead>
+      <tbody>
+        <tr><td>01 — nine solid marks</td><td>the second weight: four chevrons, the X, the rhombus, the nested rhombus, the dot, the ring</td><td><code>*-solid</code> ×7 plus <code>cf-dot</code>, which was already solid</td></tr>
+        <tr><td>02 — ten line marks</td><td>the same marks drawn, plus the cylinder; the chevrons are doubled here</td><td>the four doubles, <code>cf-converge</code>, and the primitives</td></tr>
+        <tr><td>03 — eight objects</td><td>globe, coin, cut sphere, node, triangle, pyramid, house, wedge</td><td>all eight</td></tr>
+        <tr><td>04 — nine instruments</td><td>signal, X, cube, plane, layers, pin, hourglass, overlap, expand</td><td>all nine</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note docs-note--warn">
+      <strong>This set used to have twenty-two of them.</strong> The four families that
+      shipped first covered the plate's line weight and about half its objects, and the gap
+      was not visible from inside the set — every glyph in it was correct, so nothing looked
+      wrong. Twenty-one were added: the solid weight, the three missing double chevrons and
+      <code>cf-converge</code>, and the objects and instruments the plate draws and the set
+      did not — globe, cut sphere, coin, triangle, wedge, house, overlap, signal, expand.
+    </div>
+    <p>
+      Two glyphs in the set are <em>not</em> on the plate and are deliberate:
+      <code>cf-plus</code> and <code>cf-minus</code>. An accordion needs them, they are 90°
+      axes and nothing else, and inventing them is cheaper than borrowing a foreign icon set
+      for two marks. Everything else here is drawn from the plate.
+    </p>
+  </section>
+
+  <section class="docs-section" id="weights">
+    <h2>Two weights</h2>
+    <p>
+      The plate's first two rows are the same nine marks twice — once solid, once drawn. That
+      is not a style choice to pick between: they do different jobs. <strong>The line weight
+      is the working set</strong>, and it is what an interface uses at 16 px and up.
+      <strong>The solid weight is the mark at label scale</strong>, where a 1 px contour
+      inside a 12 px glyph stops resolving and a drawn rhombus turns into a grey smudge.
+    </p>
+    <p>
+      The solid marks are not redrawn — they are one construction: <strong>the isometric
+      rhombus with a rhombus notch cut out of one of its four vertices.</strong> Cut the
+      bottom vertex and the rhombus becomes a chevron pointing up; cut the left one and it
+      points right. The ends stay pointed because they are the rhombus's own vertices, which
+      is exactly what the plate draws and what a stroked-and-capped band could not give you.
+    </p>
+    <div class="docs-demo docs-demo--flat">
+      <div class="icon-weights">
+        <figure>
+          <svg class="cf-icon cf-icon--xl" aria-hidden="true"><use href="#cf-chevron-up"></use></svg>
+          <figcaption>line · a contour, 1 px at every size</figcaption>
+        </figure>
+        <figure>
+          <svg class="cf-icon cf-icon--xl" aria-hidden="true"><use href="#cf-chevron-up-solid"></use></svg>
+          <figcaption>solid · the rhombus, notched</figcaption>
+        </figure>
+        <figure>
+          <span class="icon-weights__row">
+            <svg class="cf-icon" aria-hidden="true"><use href="#cf-chevron-up"></use></svg>
+            <svg class="cf-icon" aria-hidden="true"><use href="#cf-chevron-up-solid"></use></svg>
+          </span>
+          <figcaption>both at 16 px — where the second weight earns its place</figcaption>
+        </figure>
+      </div>
+    </div>
+    <div class="docs-note">
+      <strong>The holes are cut by <code>fill-rule</code>, not painted.</strong>
+      <code>cf-ring-solid</code> and <code>cf-diamond-nested-solid</code> have a hole in the
+      middle, and the obvious way to get one — a second shape in the page colour — does not
+      work here: the page is a vertical wash from CF-Grau to white, so a patch matching it at
+      one scroll position matches nothing at any other. Both are a single path with two
+      subpaths and <code>fill-rule="evenodd"</code>, so the hole is genuinely a hole and
+      whatever is behind the icon shows through it.
+    </div>
   </section>
 
   <section class="docs-section" id="construction">
