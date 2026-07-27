@@ -23,7 +23,8 @@
       { href: 'foundations/mobile.html',      label: 'Mobile' },
       { href: 'foundations/transitions.html', label: 'Page Transitions' },
       { href: 'foundations/field.html',       label: 'The Field' },
-      { href: 'foundations/found.html',       label: 'The Found State' }
+      { href: 'foundations/found.html',       label: 'The Found State' },
+      { href: 'foundations/sight.html',       label: 'The Line of Sight' }
     ]},
     { title: 'Components', items: [
       { href: 'components/buttons.html',        label: 'Buttons' },
