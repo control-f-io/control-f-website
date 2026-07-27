@@ -179,6 +179,19 @@ name: Design system checks
 # the way the browser paints them, and holds the four documented users of
 # --text-muted to a register so the color that measures 2.0:1 on the page
 # wash cannot quietly gain a fifth.
+#
+# The section counts are the nineteenth, and the only one whose subject a
+# reader could check by looking — if anything ever told them to look.
+# components/section-header.html calls the header "the smallest and most
+# important element in the system" and publishes four forms for the number on
+# its right; the landing page shipped five counters and four were false. "10"
+# stood over four faces, "189 Beiträge" over eighteen cards, "03 / 06" over
+# seven logo marks, and "01 / 04" over the one section that carries its own
+# LIVE position in .cf-pin__index — wrong for three of the four quarters the
+# reader scrubs through. Every one of them renders exactly like a true one:
+# 11 px of mono at the far end of a hairline, which no screenshot, no contrast
+# check and no validator has an opinion about. This one counts what stands
+# under the header and holds the counter to it.
 
 on:
   push:
@@ -187,7 +200,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not eighteen. All eighteen checks are a few hundred milliseconds of
+  # One job, not nineteen. All nineteen checks are a few hundred milliseconds of
   # stdlib python; a second runner would cost more to start than any of them
   # takes to run, and a reader looking at a red tick wants every answer on one
   # page.
@@ -202,7 +215,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: eighteen
+      # Each check runs even when an earlier one has already failed: nineteen
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -271,3 +284,7 @@ jobs:
       - name: Contrast register
         if: '!cancelled()'
         run: python3 scripts/check-contrast.py
+
+      - name: Section counts
+        if: '!cancelled()'
+        run: python3 scripts/check-section-counts.py
