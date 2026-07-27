@@ -2112,7 +2112,29 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
 .cf-error--page .cf-error__title  { font-size: var(--text-display-1); }
 .cf-error--page .cf-error__routes { margin-top: 0; }
 
-@media (min-width: 62rem) {
+/* THE ONLY SHIPPING COMPONENT THAT ASKED THE VIEWPORT, and the comment above
+   already said it should not: "a grid that folds on its own" is the container
+   claim, written over a `@media (min-width: 62rem)`. The register's rule is
+   that only page furniture pinned to the viewport — nav, hero, footer, consent
+   — may ask the viewport, and an error block is none of those. It also went
+   unregistered: 62rem appeared exactly once in the whole repository and in
+   neither copy of the breakpoint register.
+
+   Folding it onto 56rem REMOVES a threshold rather than converting one,
+   because the two are 0.82rem apart. A size query measures the CONTENT box,
+   so at the viewport 992 where 62rem fired, a .container inside it is
+   992 − 2 × 5.5vw = 882.9 px = 55.18rem. That is the two-column threshold in
+   all but name, reached 15 px of viewport earlier. Snapping to the real one
+   moves the split from a viewport of 992 to about 1007 — later, so the
+   two-column state is 13 px roomier when it arrives, never tighter.
+
+   Unnamed on purpose, matching .cf-statement and .cf-process, the other two
+   members of the 56rem family: it measures the nearest ancestor container, so
+   the same block folded into a column folds at the width the column gives it.
+   It cannot resolve against .cf-error's own container-type — an element is
+   never its own query container — so this asks the .container it sits in,
+   which is what the media query was reaching for the long way round. */
+@container (min-width: 56rem) {
   .cf-error--page {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     column-gap: var(--grid-gap);
