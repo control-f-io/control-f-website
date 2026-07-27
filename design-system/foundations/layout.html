@@ -55,11 +55,32 @@
       <tbody>
         <tr><td><code>--container-max</code></td><td>1280 px</td><td>maximum content width</td></tr>
         <tr><td><code>--gutter</code></td><td>20 → 80 px</td><td>outer margin, <code>clamp(1.25rem, 5.5vw, 5rem)</code></td></tr>
-        <tr><td><code>--grid-columns</code></td><td>12</td><td>columns</td></tr>
+        <tr><td><code>--grid-columns</code></td><td>12</td><td>columns — the count</td></tr>
+        <tr><td><code>--grid-tracks</code></td><td><code>repeat(var(--grid-columns), minmax(0, 1fr))</code></td><td>columns — the track list</td></tr>
         <tr><td><code>--grid-gap</code></td><td>24 px</td><td>column gap</td></tr>
         <tr><td><code>--section-gap</code></td><td>64 → 160 px</td><td><em>padding</em> on each edge of a section — see Rhythm</td></tr>
       </tbody>
     </table>
+    <p>
+    <div class="docs-note">
+      <strong>The count and the track list are two tokens because they are two decisions.</strong>
+      <code>--grid-columns</code> is <em>how many</em>; <code>--grid-tracks</code> is the
+      <code>grid-template-columns</code> value built from it, with the floor that
+      <a href="#intrinsic-minimum">the intrinsic minimum</a> requires. It is the same pair
+      <a href="#subdivision">the subdivision grid</a> keeps as <code>--subdivide-count</code>
+      and <code>--subdivide-cols</code>, and it exists for the reason that one gives: a track
+      set written in more than one place is a track set two rules can disagree about.
+      <br><br>
+      It had been written three times. <code>.grid</code> is the primitive, and
+      <code>components.css</code> declared the identical <code>repeat()</code> twice more for
+      <code>.cf-values__frame</code> and <code>.cf-values__item</code> — the pinned values
+      section's own 12-column frame and the five items stacked inside it. Those two are not a
+      component reinventing the page grid; they are the one place in the system that genuinely
+      needs the page's column set <em>inside</em> a component, and they could not reach for
+      <code>.grid</code> because they are set in an <code>@supports</code> block against markup
+      that carries no utility class. The fix is not to move the markup. It is to give all three
+      one declaration to read.
+    </div>
     <p>
       The gutter is proportional rather than stepped, and the proportion is not arbitrary:
       (1440 − 1280) ÷ 2 ÷ 1440 = <strong>5.5556 %</strong>, rounded down to the 5.5vw in the token.
@@ -1370,7 +1391,97 @@ print(counts)
       track sizing rather than through the text. The reset already sets
       <code>overflow-wrap: break-word</code> on everything, so the word breaks inside the tile
       rather than escaping it.
+      This is not a rule about <code>.tiles</code>; it is
+      <a href="#intrinsic-minimum">the intrinsic minimum</a>, and every grid in the system
+      answers to it.
     </p>
+  </section>
+
+  <section class="docs-section" id="intrinsic-minimum">
+    <h2>The intrinsic minimum</h2>
+    <p>
+      <strong>Every track that carries an <code>fr</code> carries a floor.</strong>
+      <code>1fr</code> is shorthand for <code>minmax(auto, 1fr)</code>, and in the
+      <em>minimum</em> slot <code>auto</code> is not zero — it is the item's automatic minimum
+      size, which for anything holding text is its <strong>min-content</strong> width. So a bare
+      <code>fr</code> track does not distribute free space. It distributes free space
+      <em>or the widest unbreakable word inside it, whichever is larger</em>, and the second
+      case is how a single German compound sets the width of a column, then of the grid, then
+      of the page.
+    </p>
+    <p>
+      The system had been stating this in prose and keeping it almost everywhere: thirty-two of
+      its thirty-three <code>fr</code> track lists carried a minimum — twenty-eight floored on
+      the track, four guarded by <code>min-width: 0</code> on their items.
+      <code>.cf-progress</code> was the thirty-third and had neither, at
+      <code>grid-template-columns: 1fr auto</code>. Measured with a 61-character compound in
+      <code>.cf-progress__label</code>:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Viewport</th><th>Document width, bare <code>1fr</code></th><th>With <code>minmax(0, 1fr)</code></th></tr></thead>
+      <tbody>
+        <tr><td>320</td><td><strong>469</strong> — 149 px of sideways scroll</td><td>320</td></tr>
+        <tr><td>375</td><td><strong>469</strong> — 94 px</td><td>375</td></tr>
+        <tr><td>480</td><td>480</td><td>480</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong><code>overflow-wrap: break-word</code> does not save you, and it is the reason
+      this is easy to get wrong.</strong> The reset sets it on everything, so the word visibly
+      breaks inside its box on every page — which makes the whole failure mode look already
+      handled. It is not: <code>overflow-wrap</code> decides how a line is broken once the
+      track has a width, and intrinsic track sizing runs before that. The property that
+      <em>would</em> enter the calculation is <code>overflow-wrap: anywhere</code>, and the
+      system does not use it, because it breaks words mid-line even when there is room.
+      The floor is the fix; the wrap is what makes the result read well afterwards.
+    </div>
+    <h3 id="intrinsic-two-fixes" style="margin-top:var(--space-8)">Two correct fixes, and the system uses both</h3>
+    <table class="docs-table">
+      <thead><tr><th>Where</th><th>What</th><th>Who</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>on the track</td>
+          <td><code>minmax(0, 1fr)</code> — the floor is zero, so the track is pure proportion</td>
+          <td><code>.grid</code>, <code>.cf-process</code>, <code>.cf-article</code> and twenty-four more</td>
+        </tr>
+        <tr>
+          <td>on the item</td>
+          <td><code>min-width: 0</code> on the grid items, which sets the automatic minimum size to zero and leaves <code>auto</code> nothing to floor at</td>
+          <td><code>.subdivide</code>, <code>.tiles</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      <code>.subdivide</code> has to take the second one. Its geometric sets are
+      <code>4fr 2fr 2fr</code> — exact halves whose entire content is the ratio — and
+      <code>minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr)</code> states that ratio twice while
+      saying nothing the first form did not. The guard goes on
+      <code>.subdivide__col</code> instead, once, for every depth.
+    </p>
+    <p>
+      A deliberate <strong>non-zero</strong> floor passes as well, because the rule is that a
+      floor was <em>chosen</em> and not that it is zero: <code>.tiles</code> floors at
+      <code>min(var(--tile), 100%)</code>, which is <a href="#tiles-guard">the guard</a>, and
+      <code>.cf-team-strip__list</code> floors at <code>15rem</code> because it is a row that
+      scrolls horizontally on purpose and a card narrower than that is not worth drawing.
+    </p>
+    <div class="docs-note">
+      <strong>This is the fifth thing the system checks rather than documents.</strong>
+      <code>scripts/check-grid-tracks.py</code> reads every track-list declaration in the three
+      shipping stylesheets — including the custom properties that feed them,
+      <code>--grid-tracks</code> and <code>--subdivide-cols</code>, since in this system the
+      track set is as likely to be decided in a property as written inline — and asks each
+      <code>fr</code> whether it sits in the max slot of a <code>minmax()</code> or whether its
+      component declares <code>min-width: 0</code> anywhere. It passes on both, and it fails on
+      neither. It was written against the state of the tree that had
+      <code>.cf-progress</code> unfloored, and it found exactly that one declaration.
+      <br><br>
+      It belongs in a script for the same reason the other four do: <strong>the failure is
+      invisible until the content is long enough.</strong> A grid with a bare <code>fr</code>
+      renders perfectly with short labels, in every screenshot anyone takes, and starts
+      scrolling the page sideways the day a real German noun lands in it — on a page that was
+      signed off months earlier.
+    </div>
   </section>
 
   <section class="docs-section" id="sections">

@@ -26,6 +26,13 @@ name: Design system checks
 # the most expensive thing in the stylesheet, foundations/materials.html states
 # what keeps it affordable in prose, and every one of those rules is invisible
 # in a screenshot: a third blurred layer renders correctly and just costs.
+#
+# The grid tracks are the fifth, and the one whose failure is visible — just not
+# on a day anyone looks. base.css warns twice, in prose, that a bare `fr` floors
+# at min-content and lets one long word push the page sideways; thirty-two of
+# thirty-three fr track lists carried a minimum and .cf-progress did not. It renders
+# perfectly until a compound noun is long enough, and then it scrolls sideways
+# at 320 px on a page nobody re-tested.
 on:
   push:
     branches: [main]
@@ -33,7 +40,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not four. All four checks are a few hundred milliseconds of
+  # One job, not five. All five checks are a few hundred milliseconds of
   # stdlib python; a second runner would cost more to start than any of them
   # takes to run, and a reader looking at a red tick wants every answer on one
   # page.
@@ -48,7 +55,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: four
+      # Each check runs even when an earlier one has already failed: five
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -62,3 +69,7 @@ jobs:
       - name: Glass budget
         if: '!cancelled()'
         run: python3 scripts/check-glass-budget.py
+
+      - name: Grid tracks
+        if: '!cancelled()'
+        run: python3 scripts/check-grid-tracks.py

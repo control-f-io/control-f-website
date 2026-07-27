@@ -26,9 +26,11 @@ python3 scripts/check-iso-motion.py            # the isometric assembly's invari
 python3 scripts/check-glass-budget.py          # what backdrop-filter is allowed to cost
 python3 scripts/check-glass-budget.py --fix    # rewrite the census in foundations/materials.html
 python3 scripts/check-glass-budget.py -v       # list every page, not only the ones carrying glass
+python3 scripts/check-grid-tracks.py           # every fr track has a floor
+python3 scripts/check-grid-tracks.py -v        # list every track list, not only the failures
 ```
 
-The four checks the system enforces rather than documents, run by CI on every push and
+The five checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step.
 
@@ -113,6 +115,30 @@ straight into Glas without `#DBFC60` between them — and it is gone: the light-
 recomputes that waypoint's offset *and* its colour from the oklab path, which is strictly
 the stronger claim. Two scripts asserting one invariant to two standards is the drift these
 scripts exist to stop.
+
+**Every grid track that carries an `fr` carries a floor,** and this is the fifth check
+for the same reason as the other four: `base.css` states the rule twice, in prose, on
+`.tiles` and on `.subdivide`, and nothing ran either. `1fr` is `minmax(auto, 1fr)`, and
+as a *minimum* `auto` is the item's min-content width — so a bare `fr` track distributes
+free space **or** the widest unbreakable word inside it, whichever is larger. One long
+German compound then sets the track and pushes the page sideways.
+
+Thirty-two of the system's thirty-three `fr` track lists already carried a minimum —
+twenty-eight floored on the track, four guarded by `min-width: 0` on their items.
+`.cf-progress` had neither, and measured with a 61-character compound in its label the
+document went **320 → 469 px** wide at a 320 px viewport. `overflow-wrap: break-word` is
+on it — the reset puts it on everything — and does not help: it breaks the word when the
+track is drawn, and intrinsic track sizing has already happened. That is the whole reason
+this belongs in a script rather than in a screenshot review: the page is correct until the
+content is long enough, and then it is broken at a width nobody re-opens.
+
+The check credits **both** fixes the system uses, because both are right. A floor on the
+track — `minmax(0, 1fr)` — is what most of them do. `min-width: 0` on the items is what
+`.subdivide` does, and it has to: its geometric sets are `4fr 2fr 2fr`, exact halves whose
+whole point is the ratio, and `minmax(0, 4fr)` would state that ratio twice. A deliberate
+*non-zero* floor passes too — `.tiles`' `min(--tile, 100%)`, `.cf-team-strip__list`'s
+`15rem` inside a scroll box — because the rule is that a floor was chosen, not that it is
+zero. → `foundations/layout.html#intrinsic-minimum`
 
 ## Layout
 
