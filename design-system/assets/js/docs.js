@@ -40,6 +40,7 @@
       { href: 'components/blog-grid.html',      label: 'Blog Grid' },
       { href: 'components/subdivision-field.html', label: 'Subdivision Field' },
       { href: 'components/search.html',         label: 'Search & Results' },
+      { href: 'components/vacancy.html',        label: 'Vacancy' },
       { href: 'components/pagination.html',     label: 'Pagination' },
       { href: 'components/error-state.html',    label: 'Error & Empty State' },
       { href: 'components/arrival.html',        label: 'Arrival & Progress' },
@@ -57,6 +58,7 @@
       { href: 'patterns/news.html',         label: 'News overview' },
       { href: 'patterns/suche.html',        label: 'Suche — results' },
       { href: 'patterns/blog-artikel.html', label: 'Blog article' },
+      { href: 'patterns/karriere.html',     label: 'Karriere page' },
       { href: 'patterns/kontakt.html',      label: 'Kontakt page' },
       { href: 'patterns/404.html',          label: '404 page' }
     ]},

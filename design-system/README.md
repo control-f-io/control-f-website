@@ -125,13 +125,13 @@ design-system/
 ├── components/             buttons, nav, breadcrumb, section header, statement +
 │                           value table, plot, annotation, process card,
 │                           accordion, blog grid,
-│                           subdivision field, search + results, pagination,
-│                           error + empty state, arrival + progress,
+│                           subdivision field, search + results, vacancy,
+│                           pagination, error + empty state, arrival + progress,
 │                           article + prose, table, team, forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, expertise.html,
 │                           ueber-uns.html,
 │                           news.html, blog-artikel.html, suche.html,
-│                           kontakt.html, 404.html
+│                           karriere.html, kontakt.html, 404.html
 ├── prototypes/             motion studies — standalone, not yet system
 ├── reference.html          the designer's source material, next to what implements it
 └── assets/
@@ -533,6 +533,37 @@ Both Figma mockups draw a six-item nav bar measured to `417 × 41`; a seventh it
 to the drawing, not to the code. `patterns/404.html` routes to it instead — first in the list,
 because it is the only route on that page that does not guess what the reader was after.
 
+## The last route with nowhere to go
+
+Every nav bar and every footer in the system links `/karriere`. `patterns/404.html` offers
+it as one of four ways out, and `patterns/kontakt.html` sends applicants there in body copy
+— *"Bewerbungen bitte über Karriere — dort steht, was wir für eine Bewerbung brauchen und
+was nicht."* It was the one item in the primary navigation with no template behind it, and
+the only promise on the site made to a page that did not exist. `patterns/karriere.html` is
+that page, and its fourth section is that sentence, answered.
+
+**The register it needed is not a new drawing.** `.cf-vacancy` is `.cf-result` — every rule
+for the row, the sheen, the mono line, the title, the link and the excerpt names both, the
+way `.cf-prose table` names itself alongside `.cf-table`. A job opening and a search hit are
+the same object at the level the drawing works on: a mono line, a linked title, a couple of
+sentences standing on a hairline. Writing that out twice would be two things to keep in step.
+
+One part is genuinely new and it is the only thing declared on its own: `.cf-vacancy__facts`,
+a `<dl>` of the four questions every candidate asks before reading a word of the description
+— Standort, Anstellung, Umfang, Start. It is `.cf-contact`'s drawing, a mono term over its
+value, turned along the row rather than down a column, because four facts stacked under every
+opening make the register three times as long as its content. The column gap beats the row gap
+by a factor of eight so a pair reads as a pair before the row reads as a row, and there are no
+rules between them — a line there would be neither an edge nor a division nor a label rule.
+
+**Structured data is the one thing this page deliberately does not carry.** Google's job
+posting documentation is explicit that `JobPosting` markup belongs on a page describing exactly
+one opening, one URL per opening, and that a careers page listing several must not carry it.
+So the register stays plain HTML and links out; the JSON-LD goes on `/karriere/<rolle>`, where
+every field in it has to match what the reader sees. That, the four placeholder postings and
+the `jobs@control-f.de` mailbox are recorded under
+[Before launch](#before-launch). → `components/vacancy.html`
+
 ## Naming a part of a drawing
 
 `components/annotation.html` is the chapter for the thing that sat between the two the
@@ -717,6 +748,7 @@ which is what this site did before. → `foundations/transitions.html`
 | **Contact endpoint** | `patterns/kontakt.html` posts to `/kontakt` and expects the server to validate, re-render the form with the reader's values and an error summary, drop anything that filled the honeypot, and serve the whole thing over HTTPS. The phone number on the page is a placeholder. |
 | **Search index** | `patterns/suche.html` is one query rendered flat. The server owns the index and the whole answer: `?q=…` selects it, the matches are wrapped in `<mark class="cf-mark">` as the response is rendered, and every result link is minted with a `#:~:text=` fragment quoting its own excerpt — hyphens as `%2D`, the run unique on the target page. The query is reader-supplied text echoed into three places (the input's `value`, the `<title>` and the header meta) and has to be escaped in all three. Zero hits renders `.cf-error--inline` at `200`; the page is `noindex, follow`. → `components/search.html` |
 | **News listing** | `patterns/news.html` is page 1 of 11 rendered flat. The server owns the paging: `?seite=N` selects the slice, `?thema=…` filters it, and both are reflected in the counters, the status line and which slot carries `aria-current`. Out of range should 404 rather than render an empty grid; a `?thema=…` that matches nothing renders `.cf-error--inline` in place of the grid, at `200`, because an empty answer is not an error. → `components/error-state.html` |
+| **Open positions** | `patterns/karriere.html` renders four placeholder postings and prints their count in the page header; both are the server's, out of one query, the same standing the consent dialog's entry counts have. Each entry links `/karriere/<rolle>` and none of those pages exists yet — that is where the `JobPosting` JSON-LD goes, with a `validThrough` on every one of them, or a filled position stays live in search results. `jobs@control-f.de` is a placeholder and is written on the page three times, one of them the screen's only lime moment. When nothing is open the whole register is replaced by `.cf-error--inline` at `200`, not rendered empty. → `components/vacancy.html#launch` |
 | **Status codes** | `patterns/404.html` is the page; the response is the server's. A missing address answers `404`, one that is deliberately gone `410`, a failure `500`. Serving the template with `200 OK` is a soft 404 — the address stays indexed and keeps being crawled. |
 | **Redirects** | The old topic pages (Maschinenbau, Energie, Dienstleistungen, Experten) are gone. They need 301s to the new structure — a redirect that is available always beats an error page that is polite. |
 
@@ -725,8 +757,8 @@ which is what this site did before. → `foundations/transitions.html`
 The documentation is English. The pattern pages carry German copy, because that is the
 language the site ships in — translating it here would invent content that does not exist.
 Landing Page and Über uns take theirs verbatim from the Figma mockups; News overview,
-Blog article, Suche and Kontakt have no mockup and their copy is written placeholder in the
-same voice. Colour
+Blog article, Suche, Karriere and Kontakt have no mockup and their copy is written
+placeholder in the same voice. Colour
 names (Glas, Violett, CF-Grau, Schwarz, Weiß) stay German everywhere: they are the brand's
 names for them.
 
