@@ -32,9 +32,13 @@ python3 scripts/check-breakpoints.py           # every threshold is in the regis
 python3 scripts/check-breakpoints.py -v        # list every threshold, not only the failures
 python3 scripts/check-overflow-clip.py         # a crop is a crop, not a scroll container
 python3 scripts/check-overflow-clip.py -v      # list every overflow declaration, not only the failures
+python3 scripts/check-highlight-fill.py        # every highlight states its ink as a fill, so a clip cannot erase it
+python3 scripts/check-highlight-fill.py -v     # list every highlight rule, not only the failures
+python3 scripts/check-line-types.py            # every dash pattern is one of the four line types
+python3 scripts/check-line-types.py -v         # list every dash pattern, not only the strays
 ```
 
-The seven checks the system enforces rather than documents, run by CI on every push and
+The nine checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step.
 
@@ -89,7 +93,7 @@ prose and none of which anything ran:
 
 Every one of the six is invisible in a screenshot and countable in a file, which is the
 whole test for what belongs in any of these four — and the reason two of the four in
-[Redrawing an illustration](#redrawing-an-illustration-four-things-that-vanish-quietly)
+[Redrawing an illustration](#redrawing-an-illustration-five-things-that-vanish-quietly)
 are deliberately left out.
 
 **The glass budget** holds `backdrop-filter` — the most expensive thing in the stylesheet —
@@ -245,6 +249,32 @@ cropping a composed layer at all — a block that also declares `text-overflow` 
 truncating one line of text, and `.visually-hidden` is the standard clip-rect idiom quoted
 from the practice it comes from. → `foundations/materials.html`
 
+**A dash pattern is one of four,** and this is the ninth check — the one that had been
+broken on a designed page the whole time. `tokens.css` realises the manual's three dashed
+line types as px pairs, `.cf-iso` puts `non-scaling-stroke` on every contour so a dasharray
+is measured in **device pixels**, and components.css says in as many words that this is what
+"keeps a ghost's 1-4 dash a 1-4 dash at any size". The CSS side has honoured that from the
+beginning: every `stroke-dasharray` declaration in the shipping stylesheets is a `var()`.
+The **markup** side never has and cannot — a dasharray in an inline SVG is a presentation
+attribute, a literal typed next to the path data and usually carried over from an export,
+and a literal resolves no token. Counted, the tree shipped **eight distinct dash patterns
+for a rule that has three**: the 1-2 ratio at units of 0.5, 1 and 2, the 2-1 ratio at units
+of 0.5, 1.5 and 2, and one `4 1`, which is not a line type at all. Six of the strays were on
+`patterns/ueber-uns.html`, under a comment claiming its dashes were "pinned to `--dash-*`".
+Nothing about a screenshot says otherwise: a 3 px dash period and a 5 px dash period are the
+same picture at a glance.
+
+Two contexts, two standards, and the distinction is the whole of it. Where the stroke is
+**non-scaling** the dasharray is device pixels, so it must be exactly a token value. Where
+it is in **user units** the numbers belong to the frame rather than to the rule, and only
+the ratio is checked — `foundations/iconography.html` blows a 24-unit icon box up 13× and
+draws its keylines at 0.25 units, and holding those to `4 2` would put a 53 px dash on a
+diagram of a 24 px glyph. `.cf-iso__trace` is exempt from both: components.css takes
+`non-scaling-stroke` off it on purpose so `pathLength="1"` works, and its
+`stroke-dasharray: 1` is a draw mechanism, not a line type. The script also re-reads the
+three tokens themselves, so a silent edit to a dash period fails here rather than in a
+screenshot nobody takes. → `foundations/geometry.html#lines`
+
 ## Layout
 
 ```
@@ -262,7 +292,8 @@ design-system/
 ├── patterns/               full page templates — landing-page.html, expertise.html,
 │                           ueber-uns.html,
 │                           news.html, blog-artikel.html, suche.html,
-│                           karriere.html, kontakt.html, 404.html
+│                           karriere.html, kontakt.html,
+│                           datenschutz.html, impressum.html, 404.html
 ├── prototypes/             motion studies — standalone, not yet system
 ├── reference.html          the designer's source material, next to what implements it
 └── assets/
@@ -706,6 +737,46 @@ every field in it has to match what the reader sees. That, the four placeholder 
 the `jobs@control-f.de` mailbox are recorded under
 [Before launch](#before-launch). → `components/vacancy.html`
 
+## The two routes the law requires
+
+`/datenschutz` and `/impressum` were the last two addresses in the system with no
+template behind them, and they are not ordinary gaps. Every nav bar links neither and
+every footer links both; between them the two were referenced 39 times, and the consent
+layer — the one thing on the site that exists because a statute says so — sent readers
+to `/datenschutz#cookies` nine times over. A banner that cannot legally be omitted was
+pointing at a page that did not exist.
+
+**Neither page needed a new drawing, and finding that out was most of the work.** A
+privacy policy is a long document read in sections, which is what `.cf-article` already
+is: the index rail, the sticky register, `.cf-prose` beside it. An Impressum is a set of
+named facts, which is what `.cf-contact` already is — `/kontakt`'s contact column, the
+same mono term over its value, only complete. The one decision either page makes on its
+own is whether to carry an index at all, and `components/article.html` had already
+written the rule: nothing under four sections, because a three-item index is furniture.
+The policy has twelve and carries one; the Impressum has three and does not.
+
+**The inventory moved rather than being copied.** `components/consent.html` used to
+render the six entries itself, with a note giving the reason — copy that will be replaced
+wholesale should exist once, and the page that should hold it did not exist. It does now,
+so the component page states the shape of the table and links to the address the dialog
+routes to, and there is still exactly one copy. The count in a caption and the count in
+`.cf-consent__meta` still have to move together; that is unchanged and is the one piece
+of arithmetic no script checks.
+
+Two things the pages take from what the law currently is rather than from what most
+German sites still say. **There is no ODR link.** The EU Commission's online dispute
+platform stopped accepting complaints in March 2025 and was switched off on 20 July 2025;
+the link that imprints have been required to carry since 2016 is now dead, and a dead
+link to a dispute body is worse than none — what stays is the § 36 VSBG declaration.
+And **there are no liability boilerplate paragraphs**. *Für die Inhalte externer Links
+sind ausschließlich deren Betreiber verantwortlich* restates § 8 DDG and changes nothing;
+the section says instead who owns the pictures and where to report a mistake.
+
+The consent banner is on both pages, and on the policy page it is load-bearing twice:
+`cf-consent.js` returns early when no banner element is in the document, so without that
+block both the footer button and the *Einstellungen ändern* button inside section 05
+would be dead controls — on the page the banner itself sends people to.
+
 ## Naming a part of a drawing
 
 `components/annotation.html` is the chapter for the thing that sat between the two the
@@ -885,7 +956,8 @@ which is what this site did before. → `foundations/transitions.html`
 | **Partner logos** | The logo wall renders text placeholders; drop in the real SVGs. |
 | **Team photos** | Six placeholder portraits from the shoot. Real names, roles and the full set of ten still needed. |
 | **Team layout on Über uns** | The mockup draws that block as a full-bleed strip of 294 px cells running past the right edge — 4.9 of them fit a 1440 frame — and the implementation renders a contained field that wraps instead. The wrapping grid is the better answer for ten people and it is what ships, but it is an improvement over the material rather than the material. A designer settles it. → `components/team.html#rules` |
-| **Consent copy** | The three categories, their retention periods and the six entries in the inventory on `components/consent.html` are placeholders. A lawyer signs off the wording, and a real cookie audit replaces the rows. The columns — name, kind of storage, purpose, recipient, retention — are what TDDDG § 25 and Art. 13 DSGVO ask for and should survive the replacement. The dialog links to `/datenschutz#cookies`; that anchor has to exist before launch, and the counts in `.cf-consent__meta` have to keep matching the list. |
+| **Consent copy** | The three categories, their retention periods and the six entries in the inventory are placeholders. A lawyer signs off the wording, and a real cookie audit replaces the rows. The columns — name, kind of storage, purpose, recipient, retention — are what TDDDG § 25 and Art. 13 DSGVO ask for and should survive the replacement. The anchor the dialog links to now exists — `patterns/datenschutz.html#cookies` — and the counts in `.cf-consent__meta` have to keep matching the list there. |
+| **Legal copy** | Every figure on `patterns/impressum.html` and `patterns/datenschutz.html` is a placeholder in a correct shape, and the shape is the deliverable — a lawyer replaces the values, not the structure. Specifically: `HRB 000000`, `DE000000000`, the Amtsgericht, the photography credit, the 7-day log retention, the hosting provider's name, and whether Matomo and the LinkedIn tags are what actually ships. `datenschutz@control-f.de` is a fourth placeholder mailbox alongside `info@`, `presse@` and `jobs@`. The § 38 BDSG argument for having no data protection officer holds at ten people and stops holding at twenty. |
 | **Consent record** | `localStorage` proves nothing to a supervisory authority. The decision needs logging server-side before launch. |
 | **Contact endpoint** | `patterns/kontakt.html` posts to `/kontakt` and expects the server to validate, re-render the form with the reader's values and an error summary, drop anything that filled the honeypot, and serve the whole thing over HTTPS. The phone number on the page is a placeholder. |
 | **Search index** | `patterns/suche.html` is one query rendered flat. The server owns the index and the whole answer: `?q=…` selects it, the matches are wrapped in `<mark class="cf-mark">` as the response is rendered, and every result link is minted with a `#:~:text=` fragment quoting its own excerpt — hyphens as `%2D`, the run unique on the target page. The query is reader-supplied text echoed into three places (the input's `value`, the `<title>` and the header meta) and has to be escaped in all three. Zero hits renders `.cf-error--inline` at `200`; the page is `noindex, follow`. → `components/search.html` |
@@ -899,8 +971,10 @@ which is what this site did before. → `foundations/transitions.html`
 The documentation is English. The pattern pages carry German copy, because that is the
 language the site ships in — translating it here would invent content that does not exist.
 Landing Page and Über uns take theirs verbatim from the Figma mockups; News overview,
-Blog article, Suche, Karriere and Kontakt have no mockup and their copy is written
-placeholder in the same voice. Colour
+Blog article, Suche, Karriere, Kontakt, Datenschutz and Impressum have no mockup and
+their copy is written placeholder in the same voice. On the two legal pages that
+placeholder is a stronger claim than elsewhere — the structure is meant to survive review
+and the values are not. Colour
 names (Glas, Violett, CF-Grau, Schwarz, Weiß) stay German everywhere: they are the brand's
 names for them.
 
@@ -997,6 +1071,23 @@ These were judgement calls, each documented on the relevant page:
   unsanctioned dash patterns, a second lime element on card 02, and a tangent that was
   0.4° off the brand angle. Figma's inner-shadow bevel on card 03 is dropped — it is not
   one of the six material layers. → `components/process-card.html`
+- **The Über uns header object's dashes are mapped onto the four line types, and the source
+  vector's are not one of them.** Every path in that drawing is the designer's vector
+  verbatim — the viewBox is the source file's own coordinate window precisely so that
+  nothing has to be retyped — and the dasharrays came over with the geometry: four shells
+  and the axis at `1 2`, two tangent arcs at `3 1.5`. Those are the 1-2 and 2-1 **ratios**
+  at units of 1 and 1.5, where the four types are realised at `4 2`, `2 4` and `1 4`. Under
+  `.cf-iso`'s non-scaling stroke a dasharray is device pixels, so the drawing shipped three
+  dash periods the system does not have, on one of the two designed pages, under a comment
+  claiming the opposite. Same correction and the same precedent as the process cards, and
+  the mapping is read off the presence ladder rather than snapped to the nearest value:
+  shells and axis `--presence-absent` (1-4, reference geometry), tangent arcs
+  `--presence-near` (2-1, a real intersection), the dome's back half `--presence-faint`
+  (1-2, behind the body), everything else solid. The figure now uses all four types and
+  they run down the ladder in the order the drawing reads. The mockup cannot settle it
+  either way: at 1200 px for a 1440 frame those contours are sub-pixel, and measured off the
+  JPG the axis reads a 1:4 dash and the shell crown a period of about 3.6 — a disagreement
+  wider than the thing in dispute. → `patterns/ueber-uns.html`, `foundations/geometry.html#lines`
 - **The footer title is filled with the foil; the mockup paints it solid near-white.**
   Sampled off `mockups/landing-page.jpg`, "Jetzt Projekt starten!" is a flat `#EDF1F2`.
   The system clips `--gradient-foil` into it instead — one foil moment per screen, on the
@@ -1290,20 +1381,21 @@ On a wide screen the landing page pins the whole section and scrubs the same bui
 track's timeline — the third pinned track, and the one to copy when the copy is prose rather
 than typed. See `foundations/motion.html#pinned`.
 
-## Redrawing an illustration: four things that vanish quietly
+## Redrawing an illustration: five things that vanish quietly
 
-All four bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
+All five bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
 and none of them announces itself — the drawing still renders, it is simply no longer what
 the designer drew.
 
-**Two of the four are now checked**, by one script each, both run by CI on every push and
+**Three of the five are now checked**, by one script each, all run by CI on every push and
 pull request — the travel by `scripts/check-iso-motion.py`, the waypoint by
 `scripts/check-gradient-family.py`, which owns it because it recomputes the offset and the
-colour from the oklab path rather than looking for a hex. See [Check it](#check-it).
+colour from the oklab path rather than looking for a hex, and the dash pattern by
+`scripts/check-line-types.py`. See [Check it](#check-it).
 The other two are not, and the line between them is worth stating rather than leaving
-as an accident of what was easy. A missing waypoint and a travel that disagrees with its
-viewBox are **facts about the markup**, so a script can settle them. The other two are
-not: a `transform` on a `userSpaceOnUse` gradient is sometimes exactly right — card 04's
+as an accident of what was easy. A missing waypoint, a travel that disagrees with its
+viewBox and a dash period that is on no rung are **facts about the markup**, so a script
+can settle them. The other two are not: a `transform` on a `userSpaceOnUse` gradient is sometimes exactly right — card 04's
 largest orbit carries `rotate(-90)` on purpose — so the presence of one is a question, not
 a verdict; and whether a trace runs off the edge of its crop is a fact about rendered
 geometry, which needs a browser to answer. A checker that guessed at either would train
@@ -1312,6 +1404,14 @@ people to ignore it.
 - **The oklab waypoint.** `#DBFC60` exists in no source vector, so a re-export drops it and
   that lime→Glas leg reverts to the sRGB path. Every waypoint carries a comment at the stop.
   See the bullet above.
+- **The dash pattern the export brought with it.** A `stroke-dasharray` is a presentation
+  attribute sitting next to the path data, so it comes over with the geometry and looks
+  exactly as authored — and the designer's vectors are drawn at whatever unit the file was
+  built at. `8 2`, `2 8`, `2 2`, `1 2` and `3 1.5` have all arrived that way. Under
+  `.cf-iso`'s non-scaling stroke the number is device pixels, so a right ratio at a wrong
+  unit is a dash period the system does not have, and it is invisible: 3 px and 5 px are the
+  same picture at a glance. Map it onto the rung it means before the drawing lands.
+  → `scripts/check-line-types.py`, `foundations/geometry.html#lines`
 - **A `transform` on an element painted with a `userSpaceOnUse` gradient.** The paint server
   is resolved in the user space where it is referenced, so the element's own transform
   rotates its gradient too. On a circle the rotation looks like a no-op against the geometry

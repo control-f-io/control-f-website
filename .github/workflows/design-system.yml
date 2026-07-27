@@ -48,6 +48,23 @@ name: Design system checks
 # reported live and never moved, and a prototype that sat 128 px scrollable
 # sideways behind a declaration that had never cropped anything. `clip` crops
 # without the scrollport; the rule is that a crop says so.
+#
+# The highlight fill is the eighth, and its failure was visible all along.
+# -webkit-text-fill-color is inherited and beats a descendant's color, so under
+# background-clip:text a highlight that states only a colour paints its plate
+# and no word. .text-foil and .cf-btn--solid each carried a hand-written
+# ::selection rule working around exactly that; the found state never got one,
+# and the CURRENT MATCH — the rung this brand is named after — rendered as an
+# empty lime block inside every foil headline and every solid button on the
+# site. Two copies of a workaround is the shape of a rule that wants a script.
+#
+# The line types are the ninth, and the one that had been broken on a designed
+# page the whole time. The CSS side of this rule has always reached the tokens;
+# the markup side cannot, because a dasharray in an inline SVG is a literal
+# typed next to the path data and usually carried over from an export. Counted,
+# the tree shipped eight distinct dash patterns for a rule that has three -- and
+# a 3 px dash period and a 5 px dash period are the same picture at a glance.
+
 on:
   push:
     branches: [main]
@@ -55,7 +72,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not seven. All seven checks are a few hundred milliseconds of
+  # One job, not nine. All nine checks are a few hundred milliseconds of
   # stdlib python; a second runner would cost more to start than any of them
   # takes to run, and a reader looking at a red tick wants every answer on one
   # page.
@@ -70,7 +87,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: seven
+      # Each check runs even when an earlier one has already failed: nine
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -95,3 +112,11 @@ jobs:
       - name: Overflow crops
         if: '!cancelled()'
         run: python3 scripts/check-overflow-clip.py
+
+      - name: Highlight fill
+        if: '!cancelled()'
+        run: python3 scripts/check-highlight-fill.py
+
+      - name: Line types
+        if: '!cancelled()'
+        run: python3 scripts/check-line-types.py
