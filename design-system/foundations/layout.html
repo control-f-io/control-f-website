@@ -759,9 +759,8 @@
       Everything from 375 to 1920 px at a 16 px root is clean and was clean before. What the
       table measures is the corner where a narrow viewport meets an enlarged root font, and
       four fifths of what it found there was one missing term in one repeated recipe —
-      <a href="#tiles-guard">the tiles guard</a>. The nine that remain are four separate
-      causes, none of them that one, and all of them recorded here rather than fixed because
-      each is a different lane's call:
+      <a href="#tiles-guard">the tiles guard</a>. The nine that remained were four separate
+      causes, none of them that one, each recorded here for the lane whose call it is:
     </p>
     <table class="docs-table">
       <thead><tr><th>Where</th><th>Cause</th><th>Note</th></tr></thead>
@@ -774,15 +773,34 @@
             root it is 30 px. Eleven internal gaps are then 330 px inside a 270 px container —
             <strong>the gaps alone overflow, before any content</strong>. Every
             <code>.col-*</code> is already stacked to <code>span 12</code> at that width, so
-            all twelve tracks are pure overhead. Declaring one track below the split, and
-            twelve only above it, would fix it; that changes the primitive every page is built
-            on, so it is measured here and left for a run that can verify it properly.
+            all twelve tracks are pure overhead.
+            <br><br>
+            <strong>Fixed, the way this row proposed, and verified before it shipped.</strong>
+            The stacked state now declares one <code>minmax(0, 1fr)</code> track, and the
+            twelve come only with the spans, inside the same 56rem and 44rem queries. By the
+            time the run that could verify it arrived, the one page had become five —
+            <code>karriere</code>, <code>karriere-stelle</code>, <code>kontakt-danke</code>
+            and <code>impressum</code> compose the same 7 + 5 — and each measured 35 px of
+            document overflow at 320 / 20 px, each 0 after. The other half of the verification
+            is that the change is invisible where nothing was wrong: full-page screenshots of
+            all five pages at 320, 375, 768, 900, 1280 and 1920 at a 16 px root,
+            byte-identical before and after, because twelve <code>minmax(0, 1fr)</code>
+            tracks under a full-span item and one track are the same picture until the gaps
+            outgrow the box.
           </td>
         </tr>
         <tr>
           <td><code>patterns/blog-artikel.html</code></td>
-          <td><code>.cf-prose</code>'s two tracks</td>
-          <td>Same shape, two tracks instead of twelve. 65 px at 320, 10 px at 375.</td>
+          <td><code>.cf-plot</code>'s rem floor, not <code>.cf-prose</code>'s tracks</td>
+          <td>
+            65 px at 320, 10 px at 375 — the figures were right and the cause was not. This
+            row blamed the prose's two tracks; the element walk puts every overflowing box
+            inside the plot, whose unit is <code>clamp(1rem, 3.4vw, 2rem)</code> — a rem
+            floor, so the five columns and four gaps that the plot's own comment prices at
+            288 px "fitting a 375 px viewport" are priced at a 16 px root and come to 360 px
+            at a 20 px one. The plot is the isometric drawing system's object, so the fix is
+            its lane's; the record here is corrected so the right lane finds it.
+          </td>
         </tr>
         <tr>
           <td><code>components/team.html</code></td>
