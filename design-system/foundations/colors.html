@@ -311,10 +311,49 @@
         <tr><td><code>--text-secondary</code></td><td>grey-700</td><td>descriptions, secondary text</td></tr>
         <tr><td><code>--text-muted</code></td><td>grey-400</td><td>mono labels, counters, meta</td></tr>
         <tr><td><code>--border-strong</code></td><td>black</td><td>the 1 px contour — the default frame</td></tr>
-        <tr><td><code>--accent</code></td><td>lime</td><td>exactly one element per screen</td></tr>
+        <tr><td><code>--accent</code></td><td>lime</td><td>one lit element per object, and — where objects are sequential — one per screen. See <a href="#one-per-screen">below</a>.</td></tr>
         <tr><td><code>--gradient-light</code></td><td>lime → glas → grey, 132.36°</td><td>isometric surfaces, primary button</td></tr>
       </tbody>
     </table>
+    </div>
+
+    <div class="docs-note" id="one-per-screen">
+      <strong>"Exactly one element per screen" is not what this system does, and the
+      wording is the thing that has never been tested.</strong> Counted against a scroll
+      position rather than against a document — sweeping each page and counting
+      <code>.cf-iso__light</code> elements that are both inside the viewport and above
+      <code>fill-opacity</code> 0.15 — three pages carry four at once, by construction:
+    </div>
+    <table class="docs-table">
+      <thead><tr><th>Page</th><th>Lights</th><th>Most on one screen</th></tr></thead>
+      <tbody>
+        <tr><td><code>patterns/landing-page.html</code> at 1440 × 900</td><td>4</td><td><strong>4</strong> — the pinned stage assembles all four cards in place</td></tr>
+        <tr><td>the same page at 768 and 375</td><td>4</td><td>1 — stacked, so they pass one at a time</td></tr>
+        <tr><td><code>patterns/expertise.html</code></td><td>4</td><td><strong>4</strong> — four fields sharing a row</td></tr>
+        <tr><td><code>prototypes/expertise-scroll.html</code></td><td>4</td><td><strong>4</strong></td></tr>
+        <tr><td><code>foundations/illustration.html</code></td><td>3</td><td>2 — showing the vocabulary, not using it</td></tr>
+        <tr><td><code>patterns/404.html</code>, <code>blog-artikel.html</code></td><td>1</td><td>1</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Every one of those fours is a <strong>layout</strong> fact rather than a timing one:
+      objects that share a row, or a pinned stage, enter and leave together and no animation
+      range can separate them. So either three pages are wrong or the sentence is, and the
+      practice the system actually follows — everywhere, without exception — is
+      <strong>one light per object</strong>. The per-screen reading is a consequence of that
+      wherever objects are <em>sequential</em>, and only there.
+    </p>
+    <div class="docs-note">
+      <strong>This was nearly fixed as a timing bug, and the measurement is why it was not.</strong>
+      Before the pinned stage landed, the landing page put two lights on one screen at
+      1440 × 900 and one at the other two sizes, because every light came up on entry and
+      then stayed up under <code>animation-fill-mode: both</code> — so a screen held every
+      light it had ever passed. Dimming each light on the <code>exit</code> phase of the
+      timeline that raised it took that 2 back to 1. Then <code>.cf-pin</code> arrived and
+      made the four cards simultaneous instead of sequential, the 2 became a 4, and the same
+      mechanism measured 4 before and 4 after — no change on any page in the tree. It was
+      removed rather than shipped. A mechanism whose justification you cannot measure is
+      one more thing for the next person to explain.
     </div>
   </section>
 
