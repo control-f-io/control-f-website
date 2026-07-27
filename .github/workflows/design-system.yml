@@ -192,6 +192,21 @@ name: Design system checks
 # 11 px of mono at the far end of a hairline, which no screenshot, no contrast
 # check and no validator has an opinion about. This one counts what stands
 # under the header and holds the counter to it.
+#
+# The pinned measure is the twentieth, and the one that was wrong only on the
+# shapes nobody screenshots. .cf-pin's stage is three rows — an index that
+# names the card, the card, a bar that runs under it — and they are one column
+# or the index is annotating the wash beside it. The landing page binds its
+# card's WIDTH to the viewport HEIGHT, correctly and with the derivation in
+# place, because the card is half its width high and that is what makes it fit
+# one screen; and it wrote that cap on the card alone. So the chrome ran wider
+# than the card by 115 px at 1280 x 720, 96 at 1366 x 768, 132 at 1512 x 782
+# and 256 at 1440 x 720 — and by exactly 0 at 1024 x 900, 1280 x 900, 1440 x 900
+# and 1920 x 1080, because the cap only binds on a viewport that is wide for its
+# height. Every number in the first list is a laptop and every one in the second
+# is a height a person checks at, including both edges of the stage's own gate.
+# The fix moves the cap to a custom property on the stage, inherited by all
+# three rows, so a page cannot narrow one of them; this runs that.
 
 on:
   push:
@@ -200,7 +215,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not nineteen. All nineteen checks are a few hundred milliseconds of
+  # One job, not twenty. All twenty checks are a few hundred milliseconds of
   # stdlib python; a second runner would cost more to start than any of them
   # takes to run, and a reader looking at a red tick wants every answer on one
   # page.
@@ -215,7 +230,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: nineteen
+      # Each check runs even when an earlier one has already failed: twenty
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -288,3 +303,7 @@ jobs:
       - name: Section counts
         if: '!cancelled()'
         run: python3 scripts/check-section-counts.py
+
+      - name: Pinned measure
+        if: '!cancelled()'
+        run: python3 scripts/check-pin-measure.py
