@@ -224,6 +224,33 @@ name: Design system checks
 # word through a 280 px row. Both halves ship here, and the check keeps the
 # hand-written half from being caught short again.
 
+# The arrival is the twenty-second, and the first whose subject is the scroll
+# rather than anything drawn on it. components/article.html states in prose
+# that headings carry scroll-margin-top for the sticky navigation, "without it
+# an anchor lands underneath the bar", and one rule kept it: .cf-prose
+# :is(h2, h3, h4), written for the prose track. The other 38 addressable
+# headings in the tree had nothing, and 33 of those are the section header's
+# label — the <h2> of every section of every designed page. The bar is 84 px
+# and that label's box is 16, so the heading a reader asked for did not land
+# low, it landed entirely inside the band: on the landing page, loading the
+# address with the fragment already in it, #prozess, #partner, #faq and #blog
+# each put 16 px of 16 behind the navigation. Nothing renders wrong
+# afterwards. The page is merely somewhere else, and the reader assumes they
+# mis-remembered the anchor.
+#
+# The same check holds the one motion on this site that never asked. Every
+# animation in the three stylesheets is gated on prefers-reduced-motion:
+# no-preference — every view timeline, every keyframe, every transition — and
+# `html { scroll-behavior: smooth }` in base.css sat outside all of it. It is
+# also the largest: the smooth scroll from the top of the landing page to the
+# team strip travels 6030 px, measured. And it fires far more often than the
+# anchors it was written for, because Chromium scrolls a focused element into
+# view — on a page this tall every Tab to an off-screen control is one of these
+# journeys. Reading the focused element 45 ms after each Tab, 34 of the landing
+# page's 47 stops were still in flight under the default and 0 of 46 are under
+# `reduce`. Which handed the largest dose of the one unasked motion to the
+# readers navigating by keyboard, the population the preference exists for.
+
 on:
   push:
     branches: [main]
@@ -231,7 +258,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not twenty-one. All twenty-one checks are a few hundred
+  # One job, not twenty-two. All twenty-two checks are a few hundred
   # milliseconds of stdlib python; a second runner would cost more to start
   # than any of them takes to run, and a reader looking at a red tick wants
   # every answer on one page.
@@ -246,7 +273,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: twenty-one
+      # Each check runs even when an earlier one has already failed: twenty-two
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -327,3 +354,7 @@ jobs:
       - name: Overflow-wrap net
         if: '!cancelled()'
         run: python3 scripts/check-wrap-net.py
+
+      - name: Arrival
+        if: '!cancelled()'
+        run: python3 scripts/check-arrival.py
