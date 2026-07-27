@@ -1265,6 +1265,27 @@ Two things it settles that the source material does not:
   that cannot contradict itself. Flagged there for a designer; it is three fill values, not a
   redraw.
 
+### An object made of parts is assembled, not delivered
+
+`.cf-iso--build` on the `<svg>` stops the scene travelling and lets the parts arrive
+instead: each `.cf-iso__form` on a `--stage` you index, out of a direction you author as
+`--build-dx` / `--build-dy` in viewBox units. The four objects in *Was wir machen* all use
+it — the telescope telescopes, the plates slide down their rack, the sphere's meridians
+swell out of its axis.
+
+Two rules make it a system rather than four animations:
+
+- **A part travels only along an axis the object already contains, and only as far as the
+  drawing says.** The 98 and 238 on card 01 are the two extensions measured off the source
+  vector, not a motion decision. Both properties default to `0`, so a part with nowhere to
+  come from resolves in place — which is most parts of most objects.
+- **`--stage` is construction order, not paint order.** Nothing is reordered to animate it,
+  so occlusion, paint servers and the diff against `assets/source/illustrations/` are
+  untouched. Nodes are never staged: construction points belong to a finished object.
+
+Parts move with the `translate` property rather than `transform`, because half of them carry
+a `transform` attribute that *is* their shape. Full account in `foundations/motion.html#build`.
+
 ## Redrawing an illustration: four things that vanish quietly
 
 All four bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
