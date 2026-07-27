@@ -730,9 +730,9 @@ Two things it settles that the source material does not:
   that cannot contradict itself. Flagged there for a designer; it is three fill values, not a
   redraw.
 
-## Redrawing an illustration: three things that vanish quietly
+## Redrawing an illustration: four things that vanish quietly
 
-All three bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
+All four bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
 and none of them announces itself — the drawing still renders, it is simply no longer what
 the designer drew.
 
@@ -750,3 +750,13 @@ the designer drew.
   drawing is not wrong, it just spends most of its scroll range invisible. Each one carries a
   comment at the element, and there are three: two on card 02, one on card 04.
   → `foundations/motion.html`
+- **`--iso-travel` on a frame that has been recropped.** The arrival distance is a transform,
+  so it is in viewBox units, and the rule is `viewBox width / 40` — the same 5 % of the
+  drawing in every frame. Seven of the fifteen shipping objects are not on a 640 square and
+  carry their own value, four of them as inline custom properties on the `svg`. Nothing ties
+  those literals to the viewBox they were derived from, so **recropping a drawing leaves its
+  travel silently wrong.** It has already happened once: the four objects on
+  `patterns/expertise.html` were recropped from 695.2 / 612 / 552.4 / 714.24 to
+  732 / 776.8 / 732 / 790.24 within an hour of the values first being written, and nothing
+  failed — the objects simply arrived from the wrong distance. Re-measure after any recrop.
+  → `foundations/motion.html#travel`
