@@ -394,6 +394,17 @@ that one row bounds every variant and every frame by construction.
 video-call background that gives up the middle of the frame, its brightness and the
 bottom-left corner for reasons the page states. No type in them, no raster, no dependency.
 
+All three carry the page wash's own grain, and two of them only since it was measured. A
+wallpaper is the worst case the wash already solved — a member of the light family across a
+whole screen with nothing over it — and the two **dark** files shipped without any dither at
+all: 53.1 % of the video-call frame sat in a flat plateau of eight pixels or more, one of them
+running its full 1080 px height. The strength does not carry over from the wash, because the
+grain's own mean is a **floor lift**: 8 % costs nothing on a ramp ending at white and is the
+first thing you see on a ground whose job is to stay black. So the rule is the least grain that
+clears the banding — 8 % on the wash, 4 % on a dark ground, where the second four per cent
+moves the banded area 0.6 % → 0.4 % and mean luminance 12.84 → 16.31.
+→ `foundations/field.html#wallpaper`
+
 **The field is not on either designed page.** Neither mockup draws a lattice, and the
 material wins over an improvement. It ships as available material with the wallpapers as
 its sanctioned application; putting it behind a section of the Landing Page is a designer's
