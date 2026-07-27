@@ -850,6 +850,43 @@
   --dash-1-2:   2px 4px;
   --dash-1-4:   1px 4px;
 
+  /* ------------------------------------------------------------------
+     8a. THE PRESENCE LADDER — the four line types read as one axis
+
+     The Linien plate is drawn twice. Its top half is the reference strip
+     every system copies: four types, four weights, side by side, equals.
+     Its BOTTOM half is the part nothing here had implemented — the same
+     object, a rhombus with an ellipse in it, drawn four times across the
+     plate on one dotted axis, solid and small at the left and 1-4 and huge
+     at the right. Four line types, but one figure. Read left to right it
+     is not a specimen sheet at all: it is a thing coming into being, or
+     going out of it.
+
+     So the four types carry TWO registers, and they do not conflict:
+
+       use    where a line appears — a divider, an axis, a construction
+              line. This is what foundations/geometry.html catalogues, and
+              it is a property of the line.
+       rank   how present the thing it draws is. Only ever legible when
+              the SAME object is drawn more than once, which is why no
+              static page has needed it and every state does.
+
+     The ladder is the second register, named. It has one hard rule: an
+     object may only move ALONG it, never across it — a thing that is not
+     here yet is the same drawing as the thing that is, one rung down. The
+     moment a pending state is drawn as a different shape (the grey slab
+     every other system reaches for) the reader is being shown an object
+     that will never arrive, and the fill has beaten the contour.
+
+     --presence-absent is the ghost line: construction geometry, a footprint,
+     a cell that says where a thing stands rather than what it measures. It
+     was already doing exactly this job on .cf-plot__cell before it had a
+     name. ------------------------------------------------------------ */
+  --presence-absent:  var(--dash-1-4);
+  --presence-faint:   var(--dash-1-2);
+  --presence-near:    var(--dash-2-1);
+  --presence-present: var(--dash-solid);
+
   /* Two corners, and 2 px is the one you reach for. Counted off the Figma
      export rather than eyeballed off the JPGs: 170 <rect> elements across
      landing-page-full.svg and ueber-uns-full.svg, of which exactly ten carry
@@ -1263,6 +1300,39 @@
      instead of leaving two hand-written numbers that merely happen to agree.
      16 on a 640 viewBox is 2.5 % of the drawing down, 5 % across. */
   --iso-travel:     16;
+
+  /* THE WAIT.
+     A pending object is drawn at --presence-absent and one light crosses it.
+     The period is deliberately far slower than any UI duration above: this is
+     not a transition between two states, it is the one thing on screen that is
+     honestly still happening, and a fast loop reads as impatience. 2.4 s is
+     twice --duration-scene, the slowest thing the system otherwise animates.
+
+     THE LIGHT IS CAPPED AT 0.18 FOR RESTRAINT, and it is worth being exact
+     about what that cap is and is not doing, because the obvious worry here
+     turns out not to bind. The light layer sits ABOVE the contour layer —
+     the manual's own stacking order — so the band passes over the ghost
+     contour and lightens it, and a lightened contour is the one thing here
+     that could lose contrast in frames too short to catch in a screenshot.
+     Worst case is the whitest stop of the band over the blackest contour on
+     the page's own CF-Grau, composited the way CSS actually composites it,
+     in sRGB and not in linear light:
+
+       alpha   contour        CF-Grau        contrast
+       0.18    46 -> 0.0272   216 -> 0.684   9.51:1
+       0.28    71 -> 0.0637   241 -> 0.874   6.76:1
+       0.50    128 -> 0.2140  231 -> 0.799   3.22:1
+       0.52                                  3.03:1   <- the 3:1 floor
+
+     Measured off rendered pixels over eight frames of one period in Chromium,
+     the worst inked pixel on the shipped ghost comes out at 9.57:1, which is
+     the 0.18 row plus the page wash. So contrast does not choose this number:
+     anything under 0.52 clears the floor for a non-text contour, and 0.18 is
+     chosen because lime is not the only light in this system that has to stay
+     a moment rather than become a surface. What the arithmetic gives is the
+     CEILING — raise the token past 0.52 and the ghost fails, quietly. */
+  --arrive-period:     2400ms;
+  --arrive-light-peak: 0.18;
 
   /* 11. Z-INDEX */
   --z-base: 0;

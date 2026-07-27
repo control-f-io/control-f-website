@@ -4247,3 +4247,334 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   .cf-subdiv__title,
   .cf-subdiv__meta { opacity: 1; }
 }
+
+/* --------------------------------------------------------------------------
+   ARRIVAL — the state a thing is in before it is here
+
+   Every other state in this system is a fact about content: an error, an
+   empty filter, a page that does not exist. This one is a fact about TIME,
+   and the brand's first rule is already a statement about time — contour
+   before fill is the order a drawing appears in, not merely the order it is
+   painted in. A thing that has not arrived is therefore the thing itself,
+   drawn and unfilled, one rung down the presence ladder. It is not a grey
+   slab. A grey slab is an object that will never arrive.
+
+   Three parts, and the third is the one that carries the brand:
+
+     the ladder   the placeholder is the object's own contour at
+                  --presence-absent (1-4). When the content lands it does
+                  not fade in over the ghost — the ghost is replaced by the
+                  object at --presence-present, which is the same drawing
+                  one rung up. See tokens.css 8a.
+     the light    one band crossing the ghost at --angle-b, above the
+                  contour, because the light layer is layer 5 and the
+                  contour is layer 4. This is the one place in the system a
+                  continuous loop is honest: something genuinely is still
+                  happening. Capped at --arrive-light-peak; the arithmetic
+                  is in tokens.css.
+     the word     a role="status" line beside it. The ghost is decorative
+                  and hidden from assistive technology; a shape nobody can
+                  see is not a loading state on its own.
+   -------------------------------------------------------------------------- */
+
+/* Registered so the band can travel. Unregistered it would jump between
+   computed values or, more likely, invalidate the gradient outright — the
+   same reasoning as --v on the plot. */
+@property --arrive-sweep {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+.cf-arrive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* The drawn half. Everything under here is aria-hidden in the markup, which
+   is why the status line is its sibling and not its child. */
+.cf-arrive__ghost {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* THE LIGHT. Above the contours it crosses (z-index 1), never under type —
+   the status line sits outside this box for that reason. -30 % to 130 %
+   keeps the band fully off the object at both ends of the loop, so the
+   period reads as one pass and a rest rather than as a strobe. */
+.cf-arrive__ghost::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: linear-gradient(var(--angle-b),
+      transparent          calc(var(--arrive-sweep) - 22%),
+      var(--arrive-glas)   calc(var(--arrive-sweep) - 8%),
+      var(--arrive-weiss)  var(--arrive-sweep),
+      var(--arrive-sky)    calc(var(--arrive-sweep) + 8%),
+      transparent          calc(var(--arrive-sweep) + 22%));
+  animation: cf-arrive-sweep var(--arrive-period) linear infinite;
+}
+
+/* The band's three colours are the foil's own three, at the measured cap.
+   Composed here rather than in tokens.css because color-mix() resolves on the
+   element that declares it and these have to sit next to the gradient that
+   uses them. A browser that cannot mix loses the light and keeps the ghost,
+   which is the correct thing to lose. */
+.cf-arrive__ghost {
+  --arrive-weiss: color-mix(in oklab, var(--cf-weiss)    calc(var(--arrive-light-peak) * 100%), transparent);
+  --arrive-glas:  color-mix(in oklab, var(--cf-glas)     calc(var(--arrive-light-peak) * 100%), transparent);
+  --arrive-sky:   color-mix(in oklab, var(--sky-300)     calc(var(--arrive-light-peak) * 100%), transparent);
+}
+
+@keyframes cf-arrive-sweep {
+  from { --arrive-sweep: -30%; }
+  to   { --arrive-sweep: 130%; }
+}
+
+/* A LINE OF TYPE THAT IS NOT HERE YET is an empty box the height of its own
+   line, not a filled bar. Height in em so it tracks whatever type it stands
+   in for; --arrive-w is the ragged right edge real copy has.
+
+   Four gradients, one per edge, because CSS gives no control over the
+   dash-to-gap ratio of border-style: dashed and the four types are ratios.
+   Same construction as .rule--dashed-1-4 in base.css; 1 px on, 4 px off is
+   --presence-absent written as a gradient, which is the only form a border
+   can take. Change one and change the other. */
+.cf-arrive__line,
+.cf-arrive__plate {
+  --ghost-x: repeating-linear-gradient(90deg, var(--border-strong) 0 1px, transparent 1px 5px);
+  --ghost-y: repeating-linear-gradient(0deg,  var(--border-strong) 0 1px, transparent 1px 5px);
+  display: block;
+  background-image: var(--ghost-x), var(--ghost-x), var(--ghost-y), var(--ghost-y);
+  background-size:
+    100% var(--stroke-1), 100% var(--stroke-1),
+    var(--stroke-1) 100%, var(--stroke-1) 100%;
+  background-position: 0 0, 0 100%, 0 0, 100% 0;
+  background-repeat: no-repeat;
+}
+
+.cf-arrive__line {
+  width: calc(var(--arrive-w, 1) * 100%);
+  height: calc(1em * var(--leading-relaxed));
+}
+
+/* A plate — a card, a photo, a figure. --arrive-h is the height the arriving
+   thing will have; give it the real one, because a placeholder of the wrong
+   size is a layout shift with extra steps. */
+.cf-arrive__plate {
+  width: 100%;
+  height: var(--arrive-h, 12rem);
+  border-radius: var(--radius-sm);
+}
+
+/* An isometric object. The cell is the lattice's own 96 x 48 rhombus, which
+   is what every spatial object in the system is cut from — so the ghost of an
+   illustration is the ground it will stand on. Stroked in SVG for the same
+   reason the plot is: a transform on a bordered box scales its contour, and
+   1 px means 1 px at every size. */
+.cf-arrive__object {
+  display: block;
+  width: 100%;
+  max-width: var(--field-unit);
+  height: auto;
+  overflow: visible;
+}
+.cf-arrive__object path {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  stroke-dasharray: var(--presence-absent);
+  vector-effect: non-scaling-stroke;
+}
+
+/* The word. A mono label, and --text-secondary rather than --text-muted
+   because it sits on the page wash. */
+.cf-arrive__status {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   PROGRESS — the ladder, traversed
+
+   A wait with a known end is drawn as one line changing type as it is
+   crossed: solid behind the head, --presence-absent ahead of it, and the head
+   itself the lattice cell filled with light. Nothing here is invented for the
+   component — it is the plot's lit cap put on the rail the ladder already
+   describes. The rail is a division in the sense of geometry.html: done on
+   one side of the head, not done on the other.
+   -------------------------------------------------------------------------- */
+/* INHERITS, and that is the whole authoring story: the value is written once on
+   the block, where the label and the number that quote it already live, and the
+   rail two levels down reads it. Registered non-inheriting — the safer-looking
+   default — the rail silently falls back to the initial value and draws an
+   empty bar under a label that says 42 %. */
+/* The travelling segment's position. Registered so it interpolates; without
+   it the segment would jump between two computed values, and the left
+   declaration falls back to the 36 % still. */
+@property --run-x {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 36%;
+}
+
+@property --progress {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.cf-progress {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-4);
+}
+
+.cf-progress__label {
+  margin: 0;
+  font-size: var(--text-md);
+  color: var(--text-primary);
+}
+
+.cf-progress__value {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+/* The rail spans both columns. Its box is 8 px tall so the cap has room; the
+   line itself is 1 px and sits at the middle of it.
+
+   Two layers, no overlay: the traversed run is one solid tile sized to the
+   value and pinned left, the untraversed run is a 1-4 tile sized to the
+   remainder and pinned right. clamp() because --progress is a number, which
+   rejects a unit but not a 2 or a -1, and either would draw a rail longer
+   than the rail. */
+.cf-progress__rail {
+  --p: clamp(0, var(--progress), 1);
+  position: relative;
+  grid-column: 1 / -1;
+  height: var(--space-2);
+  background-image:
+    linear-gradient(90deg, var(--border-strong) 0 100%),
+    repeating-linear-gradient(90deg, var(--border-strong) 0 1px, transparent 1px 5px);
+  background-size:
+    calc(var(--p) * 100%) var(--stroke-1),
+    calc((1 - var(--p)) * 100%) var(--stroke-1);
+  background-position: left center, right center;
+  background-repeat: no-repeat;
+}
+
+/* THE HEAD IS THE SCREEN'S LIME MOMENT while it runs, and there is only ever
+   one — two progress bars on one screen is two lights, which is why the
+   second one is a list and not a second bar. 8 x 4 is the lattice cell at UI
+   scale: the same 2:1 rhombus, small enough to read as a mark on a line. */
+.cf-progress__rail::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: calc(var(--p) * 100%);
+  width: 8px;
+  height: 4px;
+  transform: translate(-50%, -50%);
+  background: var(--cf-lime);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  filter: drop-shadow(0 0 8px rgba(225, 255, 0, 0.5));
+}
+
+/* A WAIT WITH NO KNOWN END DOES NOT GET A HEAD. A cap that travels and resets
+   is a claim about how far along the thing is, made by something that does not
+   know — so the rail is 1-4 end to end and the head is replaced by a SEGMENT
+   OF LIT LINE that passes along it. It is anchored at neither end: it enters
+   off the left, leaves off the right, and never grows from zero, so there is
+   no reading of it under which it is measuring anything.
+
+   Drawn in --gradient-foil-ink, which is the one gradient in the family that
+   is legible on this surface — the lit half is above OKLab L 0.82 and lands at
+   1.1:1 on CF-Grau. The band that crosses .cf-arrive is wrong here and was
+   tried first: spread at --angle-b over an 8 px box it puts almost no ink on
+   the one pixel that is the line, and a wait indicator nobody can see is not
+   one. A ghost line and a lit line is a difference in line TYPE, which is the
+   difference this whole component is built on. */
+.cf-progress--indeterminate .cf-progress__rail {
+  --progress: 0;
+  overflow: hidden;
+}
+.cf-progress--indeterminate .cf-progress__rail::after {
+  top: 50%;
+  left: var(--run-x, 36%);
+  width: 28%;
+  height: var(--stroke-1);
+  transform: translateY(-50%);
+  clip-path: none;
+  filter: none;
+  background: var(--gradient-foil-ink);
+  animation: cf-progress-run var(--arrive-period) var(--ease-in-out) infinite;
+}
+@keyframes cf-progress-run {
+  from { --run-x: -28%; }
+  to   { --run-x: 100%; }
+}
+
+/* The ghost's band on the oklab path, the same way every other gradient in the
+   system takes it; browsers without it keep the sRGB band above. */
+@supports (background: linear-gradient(in oklab, red, blue)) {
+  .cf-arrive__ghost::after {
+    background-image: linear-gradient(var(--angle-b) in oklab,
+        transparent          calc(var(--arrive-sweep) - 22%),
+        var(--arrive-glas)   calc(var(--arrive-sweep) - 8%),
+        var(--arrive-weiss)  var(--arrive-sweep),
+        var(--arrive-sky)    calc(var(--arrive-sweep) + 8%),
+        transparent          calc(var(--arrive-sweep) + 22%));
+  }
+}
+
+/* 50 % IS THE DESIGNED STILL — the band at the middle of the object, which is
+   the same rest value the swinging foil and the field's pool land on. Every
+   path that cannot run the loop arrives here rather than at an edge case. The
+   ghost stays: nothing is moving, and the thing is still not here yet. */
+@media (prefers-reduced-motion: reduce) {
+  .cf-arrive__ghost::after,
+  .cf-progress--indeterminate .cf-progress__rail::after {
+    animation: none;
+    --arrive-sweep: 50%;
+  }
+}
+
+/* Paper has no waits in it. The ghost prints — it is where the thing will be —
+   and the light does not. */
+@media print {
+  .cf-arrive__ghost::after,
+  .cf-progress--indeterminate .cf-progress__rail::after { display: none; }
+}
+
+/* Forced colours drop every background image, ghost included, so the rail and
+   the head are redrawn as borders — the only paint that survives. */
+@media (forced-colors: active) {
+  .cf-arrive__line,
+  .cf-arrive__plate {
+    border: var(--stroke-1) dashed CanvasText;
+  }
+  .cf-progress__rail {
+    border-bottom: var(--stroke-1) solid CanvasText;
+    height: 0;
+  }
+  .cf-progress__rail::after,
+  .cf-arrive__ghost::after { display: none; }
+}
