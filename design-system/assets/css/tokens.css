@@ -414,12 +414,25 @@
   /* The band the foil renormalises onto: everything above the hot spot. */
   --spectrum-span-n: calc(100 - var(--spectrum-hot-n));
 
-  --gradient-spectrum: linear-gradient(132.36deg,
-                      var(--cf-lime)   0%,
-                      var(--cf-weiss)  var(--spectrum-hot),
-                      var(--cf-glas)   var(--rake-near),
-                      var(--sky-300)   var(--spectrum-cool),
-                      var(--violett-300) 100%);
+  /* THE ARC WAYPOINTS. #B9E3EB and #B8CCF3 are not new colours and not picked
+     by eye: each is the OKLCH midpoint of the leg it sits in the middle of,
+     and it is there because a straight line between two chromatic stops is
+     not the path this brand's own definition of iridescence asks for. The
+     full argument, the measurements and the reason the family is not simply
+     switched to `in oklch` are at THE ARC below --foil-stops. Recompute them
+     if either endpoint moves; they are literals, like the #DBFC60 waypoint,
+     and they do not follow the palette on their own. */
+  --spectrum-stops: var(--cf-lime)   0%,
+                    var(--cf-weiss)  var(--spectrum-hot),
+                    var(--cf-glas)   var(--rake-near),
+                    /* arc waypoint, Glas -> Sky */
+                    #B9E3EB          calc((var(--rake-near-n) + var(--spectrum-cool-n)) / 2 * 1%),
+                    var(--sky-300)   var(--spectrum-cool),
+                    /* arc waypoint, Sky -> Violett */
+                    #B8CCF3          calc((var(--spectrum-cool-n) + 100) / 2 * 1%),
+                    var(--violett-300) 100%;
+
+  --gradient-spectrum: linear-gradient(132.36deg, var(--spectrum-stops));
 
   /* The cool half — the spectrum with lime removed and the remaining band
      renormalised onto 0–100 %, so it can be used on a screen that has
@@ -460,12 +473,101 @@
      for one: see base.css, THE RAKE SWINGS. */
   --foil-rake: 116.57deg;
 
+  /* The two renormalised positions as bare numbers, so the midpoint between
+     them can be arithmetic rather than a third hand-picked figure. Same
+     number-plus-percentage pairing as the rakes and the spectrum's stops, and
+     for the same reason: calc() cannot average two percentages. */
+  --foil-glas-n: calc((var(--rake-near-n)     - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100);
+  --foil-sky-n:  calc((var(--spectrum-cool-n) - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100);
+
   --foil-stops: var(--cf-weiss)    0%,
-                var(--cf-glas)     calc((var(--rake-near-n)     - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
-                var(--sky-300)     calc((var(--spectrum-cool-n) - var(--spectrum-hot-n)) / var(--spectrum-span-n) * 100%),
+                var(--cf-glas)     calc(var(--foil-glas-n) * 1%),
+                /* arc waypoint, Glas -> Sky. Recompute if either moves. */
+                #B9E3EB            calc((var(--foil-glas-n) + var(--foil-sky-n)) / 2 * 1%),
+                var(--sky-300)     calc(var(--foil-sky-n) * 1%),
+                /* arc waypoint, Sky -> Violett. Recompute if either moves. */
+                #B8CCF3            calc((var(--foil-sky-n) + 100) / 2 * 1%),
                 var(--violett-300) 100%;
 
   --gradient-foil: linear-gradient(var(--foil-rake), var(--foil-stops));
+
+  /* ------------------------------------------------------------------
+     THE ARC
+     The foil's whole claim is HUE TRAVEL INSIDE A NARROW LUMINANCE BAND.
+     Every stop above is a palette value and every stop is right. What was
+     wrong was the path between them.
+
+     Interpolating in oklab draws a STRAIGHT LINE across the a/b plane. Two
+     stops of similar chroma and different hue sit on roughly the same circle
+     about the neutral axis, so the straight line between them is a CHORD and
+     the middle of it falls INSIDE that circle. Chroma sags where no stop
+     asked it to:
+
+       leg                     chord    arc      midpoint
+       Glas    -> Sky          0.0383   0.0452   +17.9 %
+       Sky     -> Violett      0.0553   0.0588   + 6.3 %
+       Glas800 -> Sky800       0.0254   0.0289   +13.6 %
+       Sky800  -> Violett800   0.0484   0.0513   + 6.0 %
+
+     A ramp that loses a sixth of its chroma halfway through its longest leg
+     is greying out exactly where it is supposed to be turning, which reads as
+     a fade with a colour cast at each end rather than as one material seen at
+     an angle. THIS IS NOT AN ARGUMENT FOR MORE SATURATION — the brand's own
+     rule forbids that and this does not do it. Peak chroma on both ramps is
+     unchanged (0.0686 lit, 0.0620 ink); both peaks are still the endpoints'
+     own, and no point on either ramp is more chromatic than the palette value
+     it is travelling between. The sag is removed, nothing is added.
+
+     THE CORRECT PATH IS POLAR — oklch, shorter hue, which interpolates L, C
+     and h each linearly and therefore holds chroma across the turn. `in oklch`
+     IS NOT USED, and the reason is measured rather than cautious:
+
+     CHROMIUM DISCARDS THE HUE OF A LOW-CHROMA STOP. Rendered and sampled at
+     1x, a two-stop `linear-gradient(90deg in oklch shorter hue, #45524F,
+     #283E4F)` — Glas 800 to Sky 800, the ink foil's first leg — comes out with
+     hue pinned flat at Sky's 242.5 for its whole length. Glas 800's own 179.95
+     never appears, at t = 0 or anywhere else. Sweeping the start stop's chroma
+     in steps of 0.004 at fixed hue puts the threshold between 0.016 and 0.020:
+     at or above ~0.018 the declared hue renders, below it the neighbour's hue
+     is carried forward. Glas 800 is C 0.0171. So the one ramp with the most to
+     gain from a polar path is the one a polar path silently flattens — it
+     would ship 39.7 of its 102.2 degrees of hue travel. Writing the stops as
+     oklch() literals renders correctly and was rejected for a different
+     reason: it takes the three ramps off the palette tokens.
+
+     SO THE ARC IS PUT INTO THE RAMP INSTEAD, as one waypoint per chromatic
+     leg at that leg's midpoint. This is the system's own idiom one level up:
+     an inline SVG cannot interpolate in oklab, so each lime -> Glas leg there
+     carries #DBFC60 to put the sRGB path back on the oklab one. Same move,
+     same reason, one space further out — a waypoint puts the oklab path back
+     on the polar one. It is exact where it sits and it is engine-independent,
+     which `in oklch` is not.
+
+     Max deviation from the true polar arc, measured over 2,001 samples:
+
+                          before    after
+       lit, chromatic legs 0.00722   0.00212
+       ink                 0.00741   0.00257
+
+     EVERY MEASURED FIGURE IN THIS FILE SURVIVES, and by construction rather
+     than by luck. Polar interpolation moves C and h and leaves L alone, so
+     each waypoint's lightness is the mean of its leg's endpoints and sits on
+     the linear L path already there — within 9.2e-4, which is the 8-bit grid
+     rather than the arithmetic. The band depths (0.090 lit, 0.115 ink, 0.180
+     counting the specular), the hue travel (104.5 / 102.2 degrees) and the
+     endpoints are all untouched. Re-measured over the whole ramp anyway:
+     11.900:1 on black, 5.239:1 on CF-Grau, 8.162:1 on white — the same three
+     numbers to three decimals.
+
+     NO WAYPOINT ON A LEG THAT ENDS IN GREY, and that is the boundary this
+     stops at. --gradient-light, --gradient-light-90, the rakes, the blooms and
+     the page wash all run into CF-Grau or out of Weiss. An achromatic stop has
+     NO HUE, so there is no arc for the chord to be short of: oklab's straight
+     line from the neutral axis to a chromatic stop already is the constant-hue
+     radial, and it is the correct path. The lit foil's own Weiss -> Glas leg
+     is the same case and gets no waypoint for the same reason. Only a leg
+     chromatic at BOTH ends turns, and only a leg that turns can cut a corner.
+     ------------------------------------------------------------------ */
 
   /* THE SHADOW HALF OF THE FOIL.
      The foil above is light-on-dark and cannot be anything else: every stop
@@ -518,8 +620,14 @@
      CF-Grau — Glas 800, the light end — is 5.24:1; on white it is 8.16:1.
      AA at any size across the whole ramp, and the worst case is the top of
      the page wash, not the bottom, because this ink darkens as it travels. */
+  --foil-ink-sky-n: calc((var(--spectrum-cool-n) - var(--rake-near-n)) / (100 - var(--rake-near-n)) * 100);
+
   --foil-ink-stops: var(--glas-800)    0%,
-                    var(--sky-800)     calc((var(--spectrum-cool-n) - var(--rake-near-n)) / (100 - var(--rake-near-n)) * 100%),
+                    /* arc waypoint, Glas 800 -> Sky 800. See THE ARC above. */
+                    #33494E            calc(var(--foil-ink-sky-n) / 2 * 1%),
+                    var(--sky-800)     calc(var(--foil-ink-sky-n) * 1%),
+                    /* arc waypoint, Sky 800 -> Violett 800. See THE ARC above. */
+                    #273650            calc((var(--foil-ink-sky-n) + 100) / 2 * 1%),
                     var(--violett-800) 100%;
 
   --gradient-foil-ink: linear-gradient(var(--foil-rake), var(--foil-ink-stops));
@@ -1584,12 +1692,10 @@
        They are classes now and carry their own @supports branch in base.css,
        next to the stop lists they belong to — see the note where they used to
        be declared, in section 3b. */
-    --gradient-spectrum: linear-gradient(132.36deg in oklab,
-                        var(--cf-lime)   0%,
-                        var(--cf-weiss)  var(--spectrum-hot),
-                        var(--cf-glas)   var(--rake-near),
-                        var(--sky-300)   var(--spectrum-cool),
-                        var(--violett-300) 100%);
+    /* One line for the same reason the two foils are one line each. The
+       spectrum's stops became a token when the arc waypoints went in, because
+       a waypoint written twice is a waypoint that can be recomputed once. */
+    --gradient-spectrum: linear-gradient(132.36deg in oklab, var(--spectrum-stops));
     /* Two lines rather than nine, because the stops are a token now and only
        the interpolation path changes here. Nothing about the ramp is restated,
        so the two declarations cannot drift apart. */
