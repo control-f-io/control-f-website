@@ -33,7 +33,19 @@ titles on karriere.html and of the one on karriere-stelle.html — that last one
 in its h1 and in its breadcrumb. Twenty-five marks, not one of them visible in
 a screenshot.
 
-THE RULES. Seven, in two scopes.
+WHAT FOUND THE EIGHTH RULE. Twelve pattern pages close with the same six
+footer links. Six of those pages are themselves among the six links, and
+exactly one of them — karriere.html — told a screen reader "you are here";
+the other five said nothing. Meanwhile the two subpages, blog-artikel.html
+under News and karriere-stelle.html under Karriere, marked their parent
+section aria-current="page": the one token that is a claim about the FILE,
+announced on a link that leads away from it. "Current page" on a link you can
+follow somewhere else is not orientation, it is misdirection — WAI-ARIA gives
+"true" for exactly this case, the current item that is not the current page.
+The nav marker in components.css draws both tokens identically, because the
+ink means "where you are", not "which file".
+
+THE RULES. Eight, in two scopes.
 
 Everywhere in design-system/, because every one of these is wrong on any page
 in any language:
@@ -57,6 +69,11 @@ in any language:
                   decision — this image is decoration — and passes. A missing
                   attribute is the absence of a decision, and a screen reader
                   falls back to reading the file name.
+  CURRENT (i)     an aria-current whose value is not one of the seven tokens
+                  the specification has (page, step, location, date, time,
+                  true, false). An unknown token is treated as "true" by some
+                  browsers and dropped by none, so a typo here changes what is
+                  announced rather than failing.
 
 In design-system/patterns/ only, because those files are the only ones in the
 tree that are *a page a visitor is given* rather than documentation
@@ -72,6 +89,18 @@ correct for what they are, and not this check's business:
   FOREIGN         the register below. A text run that IS one of these phrases,
                   entirely, must sit inside an element carrying a non-German
                   lang.
+  CURRENT (ii)    three facts about aria-current on links, all arithmetic
+                  against the page's own filename. An <a aria-current="page">
+                  must point at the file it is on — "current page" on a link
+                  that leads elsewhere announces a place the reader is not.
+                  An <a aria-current="true"> pointing at its own file has the
+                  stronger claim available and must make it. And inside
+                  .cf-nav__list and .cf-footer__links — the two lists every
+                  page repeats — a link to the page itself must carry
+                  aria-current="page", because five siblings saying it and one
+                  staying silent is the consistency bug this rule exists for.
+                  Links elsewhere on the page are not required to self-mark:
+                  a logo, a TOC fragment or a demo may link home unannotated.
 
 WHY THE FOREIGN RULE IS A REGISTER AND NOT A DETECTOR. Language identification
 of a two-word run is guesswork, and this system already knows what a guess in a
@@ -120,6 +149,14 @@ ARIA_IDREF = ("aria-labelledby", "aria-describedby", "aria-controls",
               "aria-owns", "aria-details", "aria-errormessage",
               "aria-activedescendant")
 
+# The seven values aria-current has. Anything else is a typo that still
+# announces — unknown tokens fall back to "true" rather than to nothing.
+CURRENT_TOKENS = {"page", "step", "location", "date", "time", "true", "false"}
+
+# The two lists every pattern page repeats, and the only places a link to the
+# page itself is REQUIRED to say so. See CURRENT (ii) in the module docstring.
+SELF_MARK_LISTS = {"cf-nav__list", "cf-footer__links"}
+
 # The FOREIGN register. Each entry is a complete text run, normalised for
 # whitespace, that is not German. Add to it when a foreign phrase is added to a
 # pattern page and marked; the entry is what stops it arriving unmarked next
@@ -155,7 +192,7 @@ VIEWPORT_BLOCKS_ZOOM = re.compile(
 
 
 class Page(html.parser.HTMLParser):
-    """One pass over one file, collecting what the seven rules need.
+    """One pass over one file, collecting what the eight rules need.
 
     convert_charrefs is on, so `&amp;` in a text run arrives as `&` and the
     register can be written the way the page reads rather than the way it is
@@ -176,6 +213,8 @@ class Page(html.parser.HTMLParser):
         self.viewports = []          # [content, ...]
         self.html_lang = None
         self.foreign = []            # (line, run, lang_in_scope)
+        self.currents = []           # (line, tag, value) — every aria-current
+        self.links = []              # (line, href, aria-current, in_self_list)
         self._in_title = False
         self._title = []
         self._heading = None
@@ -192,6 +231,13 @@ class Page(html.parser.HTMLParser):
     def _inside(self, *tags):
         return any(tag in tags for tag, _ in self.stack)
 
+    def _in_self_list(self):
+        """Is an ancestor one of the two lists that must self-mark?"""
+        for _, attrs in self.stack:
+            if SELF_MARK_LISTS & set((attrs.get("class") or "").split()):
+                return True
+        return False
+
     # -- parser callbacks -------------------------------------------------
     def handle_starttag(self, tag, attrlist):
         attrs = {k.lower(): (v if v is not None else "") for k, v in attrlist}
@@ -205,6 +251,11 @@ class Page(html.parser.HTMLParser):
             if attrs.get(attr):
                 for ref in attrs[attr].split():
                     self.aria_refs.append((line, tag, attr, ref))
+        if "aria-current" in attrs:
+            self.currents.append((line, tag, attrs["aria-current"]))
+        if tag == "a" and "href" in attrs:
+            self.links.append((line, attrs["href"],
+                               attrs.get("aria-current"), self._in_self_list()))
         if tag == "label" and "for" in attrs:
             self.label_for.append((line, attrs["for"]))
             self.labelled.add(attrs["for"])
@@ -316,8 +367,39 @@ def audit_page(path, page, injected, strict):
                     "<img> with no alt attribute. Write alt=\"\" if it is "
                     "decoration — that is a decision; a missing attribute is not."))
 
+    for line, tag, value in page.currents:
+        if value not in CURRENT_TOKENS:
+            out.append((line, "CURRENT",
+                        "<%s aria-current=%r>: not one of the specification's "
+                        "seven tokens. Browsers announce an unknown token as "
+                        "\"true\" rather than dropping it." % (tag, value)))
+
     if not strict:
         return out
+
+    # The three link facts of CURRENT (ii), all against this page's own name.
+    # A href is "this page" when, stripped of query and fragment, it is empty
+    # or the filename itself — "suche.html?q=x" is still suche.html.
+    def is_self(href):
+        return href.split("#")[0].split("?")[0] in ("", path.name)
+
+    for line, href, current, in_list in page.links:
+        if current == "page" and not is_self(href):
+            out.append((line, "CURRENT",
+                        "<a href=%r aria-current=\"page\"> on %s: \"current "
+                        "page\" announced on a link that leads to another "
+                        "page. The token for a current section is \"true\"."
+                        % (href, path.name)))
+        elif current == "true" and is_self(href):
+            out.append((line, "CURRENT",
+                        "<a href=%r aria-current=\"true\"> IS the current "
+                        "page; the stronger claim exists and must be made — "
+                        "aria-current=\"page\"." % href))
+        elif current is None and in_list and is_self(href):
+            out.append((line, "CURRENT",
+                        "<a href=%r> links the page it is on from a list "
+                        "every page repeats, and does not say so. Its five "
+                        "siblings mark theirs: aria-current=\"page\"." % href))
 
     h1s = [h for h in page.headings if h[1] == 1]
     if len(h1s) != 1:
@@ -406,7 +488,7 @@ def main():
         return 1
 
     pages = sum(1 for _, strict, *_ in seen if strict)
-    print("a11y: %d files read (%d pattern pages under the full seven rules), "
+    print("a11y: %d files read (%d pattern pages under the full eight rules), "
           "%d ids, %d aria references, %d form controls, %d headings, "
           "%d marked foreign runs on the pattern pages."
           % (len(seen), pages,
