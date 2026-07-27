@@ -509,15 +509,15 @@ hr {
    instead of letting it hunt for a stacking context up the tree.
 
    Nothing about the box changes: no size, no spacing, no border. Drop
-   .cf-field on a section that is already laid out and it acquires a floor.
+   .cf-ground on a section that is already laid out and it acquires a floor.
 
    TWO VARIANTS, AND THE DIFFERENCE IS HOW MUCH SURFACE IS ASKING FOR IT.
 
-     .cf-field        the ground, edge to edge. For a bounded object — a
+     .cf-ground       the ground, edge to edge. For a bounded object — a
                       figure, a plate, a demo frame — where the lattice is
                       the subject and the box is small enough to be read
                       as one drawing.
-     .cf-field--lit   the ground under a travelling light. For a whole
+     .cf-ground--lit  the ground under a travelling light. For a whole
                       section, where an unbroken lattice across 900 px of
                       page stops being a data space and becomes graph
                       paper. The pool is the difference between a floor
@@ -555,11 +555,20 @@ hr {
   initial-value: 50%;
 }
 
-.cf-field {
+/* .cf-ground, NOT .cf-field — the form component has owned .cf-field since it
+   was written, with a whole __label / __input / __textarea / __select family
+   under it and a --invalid modifier beside it. Declaring the ground under the
+   same name put this ::before behind every row of the contact form: the
+   lattice ran under the placeholder of every input, which is the one place in
+   the system a busy ground is unreadable rather than atmospheric. The material
+   keeps its name — the tokens are all --field-* and the foundation page is
+   still "The Field" — because the material IS the field. What changed is the
+   class, which says what it does to an element: it puts it on the ground. */
+.cf-ground {
   position: relative;
   isolation: isolate;
 }
-.cf-field::before {
+.cf-ground::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -569,7 +578,7 @@ hr {
   /* Composed here rather than at :root, because --field-ink is theme
      dependent and a custom property is substituted on the element that
      declares it. See the note in tokens.css section 8b. The pseudo-element
-     inherits --field-ink from its originating element, so a .cf-field
+     inherits --field-ink from its originating element, so a .cf-ground
      inside an inverse section draws in white without either rule knowing
      about the other.
 
@@ -589,7 +598,7 @@ hr {
   background-image: var(--field);
 }
 
-.cf-field--lit::before {
+.cf-ground--lit::before {
   --field-light-y: 50%;
   -webkit-mask-image: var(--field-bloom);
           mask-image: var(--field-bloom);
@@ -603,7 +612,7 @@ hr {
 
 @supports (animation-timeline: view()) {
   @media screen and (prefers-reduced-motion: no-preference) {
-    .cf-field--lit::before {
+    .cf-ground--lit::before {
       animation: cf-field-light linear both;
       animation-timeline: view();
     }
@@ -618,10 +627,10 @@ hr {
    the copy and a forced-colours palette has no value to give it that is not
    either invisible or a second border. */
 @media print {
-  .cf-field::before { display: none; }
+  .cf-ground::before { display: none; }
 }
 @media (forced-colors: active) {
-  .cf-field::before { display: none; }
+  .cf-ground::before { display: none; }
 }
 
 /* --------------------------------------------------------------------------

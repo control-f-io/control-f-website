@@ -191,7 +191,7 @@ hairline everywhere instead of a doubled seam. Judge the drawing, not the declar
 first line and never drawn: the space. The manual's *Isometrie-Raster* plate is a **ground**
 — a rhombic lattice running to all four edges with the cube and the cylinder standing on it
 — and every spatial object in the system is cut from that lattice while the lattice itself
-was invisible. `.cf-field` is it, as a surface.
+was invisible. `.cf-ground` is it, as a surface.
 
 It does not break the rule above, and it is worth saying why, because it is a page full of
 hairlines that are none of the three. A lattice line is not a line **in the layout** — it
@@ -202,7 +202,7 @@ that section is about lines that carry meaning; this one carries surface.
 Two gradients drawn along `--angle-b` and its mirror, one shared stop list, a step of
 `--field-unit / √5` because two families of lines that miss the lattice point are a moiré
 rather than an isometry, and 1 px of contour at every cell size — which is the reason it is
-a gradient and not a tiled SVG, since scaling a tile scales its stroke. `.cf-field--lit`
+a gradient and not a tiled SVG, since scaling a tile scales its stroke. `.cf-ground--lit`
 masks it with a 2:1 pool of light that travels down the surface on a `view()` timeline, so
 the floor materialises ahead of the reader and dissolves behind them.
 
