@@ -296,8 +296,36 @@ hr {
    custom property: --rank. Track counts use minmax(0, …) throughout; a bare
    1fr floors at min-content, which is how a single long headline pushes an
    entire page sideways.
+
+   THE APPLIED FORM IS THE DEFAULT, and it is the base class that says so.
+   Until now --subdivide-cols was written only by the five modifiers, so a
+   .subdivide with no modifier read a property nothing had defined: the var()
+   was unresolvable, grid-template-columns became invalid at computed-value
+   time and fell back to `none`, and the whole field collapsed to one implicit
+   track with every column stacked on top of every other. Not a degraded
+   layout — an unreadable one, and silent, because a grid with one track is
+   still a grid. components/pagination.html shipped in exactly that state:
+   `class="subdivide"` with `--subdivide-count:3`, three columns drawn 1071 px
+   wide inside a 1072 px track, all three on the same pixels.
+
+   Defaulting to the even form is not a guess about what the author meant. It
+   is the manual's own applied plate — Teilungsraster (Anwendungsbeispiel) —
+   and it is the form every shipping use of this primitive takes. A missing
+   modifier now yields the shape the system uses most, and --subdivide-count
+   works on the base class, which is what the pagination markup assumed.
+
+   Audited across base.css and components.css: --subdivide-cols was the only
+   custom property in the layout primitives read by a base rule and written by
+   nothing but modifiers. --rank, --subdivide-count and --btn-w all carry a
+   fallback or are read only by the same selectors that set them, and
+   --cf-specular is registered with @property. So this is one bug, not a
+   pattern — but the check is worth re-running before adding a sixth modifier.
    -------------------------------------------------------------------------- */
 .subdivide {
+  /* Written once, read twice: here as the default and below as the modifier,
+     so the two can never disagree about what "even" means. */
+  --subdivide-even: repeat(var(--subdivide-count, 5), minmax(0, 1fr));
+  --subdivide-cols: var(--subdivide-even);
   display: grid;
   grid-template-columns: var(--subdivide-cols);
   container-type: inline-size;
@@ -310,8 +338,14 @@ hr {
 .subdivide--6 { --subdivide-cols: 32fr 16fr 8fr 4fr 2fr 2fr; }
 
 /* The applied form. Column count is a plain number, so it is a property
-   rather than four more classes: style="--subdivide-count:4". */
-.subdivide--even { --subdivide-cols: repeat(var(--subdivide-count, 5), minmax(0, 1fr)); }
+   rather than four more classes: style="--subdivide-count:4".
+
+   Now that the base class defaults to this, the modifier is no longer what
+   turns the even form on — it is what names it at the call site, and the way
+   back to it from a depth class. It stays a real declaration rather than a
+   comment for the second reason: .subdivide--4.subdivide--even has to be
+   even, and it is, because this rule is the later one. */
+.subdivide--even { --subdivide-cols: var(--subdivide-even); }
 
 /* A full-width band inside the subdivision that adopts the parent's tracks.
    The subdivision is rarely one object: the applied plate draws the ruled
