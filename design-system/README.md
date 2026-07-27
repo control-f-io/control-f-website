@@ -620,11 +620,16 @@ directions. Where an element *can* be put in the container it should be, and the
 header object is that case; the token is for the ones that cannot.
 → `foundations/layout.html#column-inset`
 
-The last pair is a biconditional and used not to be checked as one: `patterns/kontakt.html`
-carried `--detached` over a normal `.section` and stood its footer off at 240 px where every
-other page measures 120. Measured across all five pattern pages, the rhythm is now 240 between
-normal sections, 200 after a `--tight` one, 120 above every footer, and 80 from every section
-header's hairline to its content.
+The last pair is a biconditional and used not to be checked as one, and it has now been broken
+from both ends. `patterns/kontakt.html` carried `--detached` over a normal `.section` and stood
+its footer off at 240 px where every other page measures 120. `patterns/expertise.html` broke
+the other half: `--flush` on a section with two more sections under it and an ordinary footer at
+the bottom, which is the class doing its job in the wrong place — the pinned Felder track gave
+up its bottom edge to a neighbour that was not the footer, and the one section boundary on that
+page measured 120 where every other boundary on the site measures 240. Nothing looked broken,
+which is the point: half a gap reads as a slightly tighter page rather than as a fault. Measured
+across all eight pattern pages, the rhythm is 240 between normal sections, 200 after a `--tight`
+one, 120 above every footer, and 80 from every section header's hairline to its content.
 
 ## Navigating the site
 

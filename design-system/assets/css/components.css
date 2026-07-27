@@ -850,6 +850,37 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   border: 0;
   border-bottom: var(--stroke-1) solid var(--border-strong);
   border-radius: var(--radius-none);
+  /* An OVERRIDE of .cf-btn's list, not an addition to it, so the properties
+     that still move are restated: colour, because the consent banner's copy of
+     this button lifts its label to Weiss, and the line's weight, which is this
+     button's whole state. background and border-color never move here. */
+  transition: color var(--duration-base) var(--ease-standard),
+              border-bottom-width var(--duration-fast) var(--ease-standard);
+}
+/* THE ONE BUTTON WITH NO STATE, and it was the one that could not borrow the
+   others'. --primary and --glass move a specular, --outline and --solid move a
+   plate; this button has neither, so the three rules above it left it with the
+   arrow's 4 px nudge and nothing else. On the consent banner that never showed,
+   because the dark surface supplies its own hover further down this file — so
+   the gap was only ever visible on the two pages that use the button as page
+   furniture: the 404's "Defekten Link melden" and the article's way back to
+   News.
+
+   Its ink cannot answer, either: --border-strong on :root IS Schwarz and
+   --text-primary is already the strongest ink on the wash, so there is nothing
+   darker for either the line or the label to go to. What is left is the line's
+   WEIGHT, which is the indicator .cf-field__input already uses for the same
+   drawing — a label over a 1 px bottom rule — and the padding gives the pixel
+   back so nothing under the button moves. One idiom, two components.
+
+   :focus-visible is named alongside :hover the way every other variant names
+   it, and the global ring stays: unlike the field, this control has somewhere
+   for a ring to go, and the thickening is a second signal rather than the
+   only one. */
+.cf-btn--ghost:hover,
+.cf-btn--ghost:focus-visible {
+  border-bottom-width: var(--stroke-2);
+  padding-bottom: calc(var(--space-2) - var(--stroke-1));
 }
 
 .cf-btn--block { display: flex; width: 100%; }
@@ -2035,16 +2066,31 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 }
 .cf-info-card__sub { margin-top: var(--space-2); color: var(--text-secondary); }
 .cf-info-card__body { margin-top: var(--space-5); max-width: 52ch; color: var(--text-secondary); }
-/* The question the subject actually asks. Ruled rather than boxed — a line is
-   the system's own way of setting something apart, and a second box inside a
-   card is a card inside a card. */
+/* The question the subject actually asks, opened by a mono tag with the
+   hairline running out of it — the .cf-section-header device at card scale,
+   and the third place in the system to use it.
+
+   It was a 2 px rule down the left side, under the reasoning that a line is
+   how this system sets something apart and that a second box inside a card is
+   a card inside a card. The second half of that is right and the first half is
+   the exact move foundations/geometry.html bans by name: a bar beside a block
+   is not an edge (the other three sides are not drawn), not a division
+   (nothing is on its far side) and carries no label, so it says "different"
+   without saying how. .cf-prose__note was the same violation with the same
+   rationale in its own comment and was fixed this way; this was the last one
+   left. The tag also does what the bar could not — it says what the block IS.
+
+   The type step stays. It is the .cf-quote half of the same precedent: a
+   question set one size up is already marked as not being body copy, so the
+   tag ranks it rather than having to carry the whole distinction alone. */
 .cf-info-card__ask {
-  margin-top: var(--space-6);
-  padding-left: var(--space-5);
-  border-left: var(--stroke-2) solid var(--border-strong);
+  margin-top: var(--space-3);
   font-size: var(--text-lg);
   max-width: 44ch;
 }
+/* The tag's own air. Everything else about it is declared once, with
+   .cf-prose__note-tag, in the ARTICLE + PROSE section — see the note there. */
+.cf-info-card__ask-tag { margin-top: var(--space-6); }
 /* .tiles carries the recipe; this only sets the two numbers that are its own.
    Needs the guard .tiles adds — a fact column with a 13rem floor overflows a
    narrow phone otherwise. Markup: class="cf-info-card__facts tiles tiles--fit". */
@@ -3185,7 +3231,13 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   font-size: var(--text-md);
 }
 .cf-prose__note > * + * { margin-top: var(--space-3); }
-.cf-prose__note-tag {
+/* One rule, two components. .cf-info-card__ask opens with the same device for
+   the same reason — it was the other block in the system marked by a bar down
+   its left side — and the declaration is shared rather than copied so the two
+   cannot answer at two different label sizes. The info card supplies only the
+   tag's margin-top, next to the paragraph it opens. */
+.cf-prose__note-tag,
+.cf-info-card__ask-tag {
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -3196,7 +3248,8 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   text-transform: uppercase;
   color: var(--text-primary);
 }
-.cf-prose__note-tag::after {
+.cf-prose__note-tag::after,
+.cf-info-card__ask-tag::after {
   content: "";
   flex: 1;
   height: var(--stroke-1);
@@ -3268,6 +3321,20 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
      edge lands exactly on the box's at maximum scroll, no tail cut off. */
   scroll-snap-type: x mandatory;
 }
+/* TWO OF THE RING'S FOUR SIDES WERE OFF THE SCREEN. This is the only focusable
+   thing in the system that is genuinely full-bleed — measured at 375, 1280 and
+   1920, the box runs 0 to the viewport width exactly — so base.css's ring, at
+   its 2 px outward offset, drew its left and right edges at -2 and viewport+2.
+   A keyboard reader got two horizontal lines 2 px outside the strip's own two
+   hairlines, which reads as the rules having thickened rather than as a ring,
+   and there was nothing to close it at either end.
+   Turning the offset inward is the whole fix: the ring keeps its weight and
+   its colour, all four sides land inside the box, and the 1 px of wash between
+   it and the strip's own hairline is what tells the two apart. Nothing else in
+   the system needs this, because nothing else in it is focusable AND flush
+   with both edges of the screen — .cf-table__scroll, the other scroll box with
+   the same three attributes, sits inside a .container. */
+.cf-team-strip:focus-visible { outline-offset: calc(var(--stroke-2) * -1); }
 .cf-team-strip__list {
   display: grid;
   grid-auto-flow: column;
