@@ -8,6 +8,9 @@
 <link rel="stylesheet" href="../assets/css/base.css">
 <link rel="stylesheet" href="../assets/css/components.css">
 <link rel="stylesheet" href="../assets/css/docs.css">
+<!-- In the head and before the body, because it writes the attribute that folds
+     the nav. See #script below. -->
+<script src="../assets/js/cf-nav.js"></script>
 </head>
 <body class="docs" data-root="../">
 <aside class="docs-sidebar" data-docs-nav></aside>
@@ -38,7 +41,7 @@
           <a class="cf-logo" href="#">
             <img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F">
           </a>
-          <button class="cf-nav__toggle" aria-controls="demo-nav" aria-expanded="false">Menü</button>
+          <button class="cf-nav__toggle" type="button" aria-controls="demo-nav" aria-expanded="false">Menü</button>
           <ul class="cf-nav__list" id="demo-nav" role="list">
             <li><a class="cf-nav__link" href="#" aria-current="page">Home</a></li>
             <li><a class="cf-nav__link" href="#">Über uns</a></li>
@@ -50,11 +53,14 @@
       </div>
     </div>
 
-    <pre class="docs-code">&lt;<span class="tag">nav</span> <span class="attr">class</span>=<span class="val">"cf-nav"</span>&gt;
+    <pre class="docs-code"><span class="com">&lt;!-- in the &lt;head&gt;, after the three stylesheets --&gt;</span>
+&lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="val">"/design-system/assets/js/cf-nav.js"</span>&gt;&lt;/<span class="tag">script</span>&gt;
+
+&lt;<span class="tag">nav</span> <span class="attr">class</span>=<span class="val">"cf-nav"</span> <span class="attr">aria-label</span>=<span class="val">"Hauptnavigation"</span>&gt;
   &lt;<span class="tag">a</span> <span class="attr">class</span>=<span class="val">"cf-logo"</span> <span class="attr">href</span>=<span class="val">"/"</span>&gt;
     &lt;<span class="tag">img</span> <span class="attr">src</span>=<span class="val">"/assets/img/logo/cf-logo-horizontal-white.svg"</span> <span class="attr">alt</span>=<span class="val">"Control-F"</span>&gt;
   &lt;/<span class="tag">a</span>&gt;
-  &lt;<span class="tag">button</span> <span class="attr">class</span>=<span class="val">"cf-nav__toggle"</span> <span class="attr">aria-controls</span>=<span class="val">"hauptnav"</span> <span class="attr">aria-expanded</span>=<span class="val">"false"</span>&gt;Menü&lt;/<span class="tag">button</span>&gt;
+  &lt;<span class="tag">button</span> <span class="attr">class</span>=<span class="val">"cf-nav__toggle"</span> <span class="attr">type</span>=<span class="val">"button"</span> <span class="attr">aria-controls</span>=<span class="val">"hauptnav"</span> <span class="attr">aria-expanded</span>=<span class="val">"false"</span>&gt;Menü&lt;/<span class="tag">button</span>&gt;
   &lt;<span class="tag">ul</span> <span class="attr">class</span>=<span class="val">"cf-nav__list"</span> <span class="attr">id</span>=<span class="val">"hauptnav"</span> <span class="attr">role</span>=<span class="val">"list"</span>&gt;
     &lt;<span class="tag">li</span>&gt;&lt;<span class="tag">a</span> <span class="attr">class</span>=<span class="val">"cf-nav__link"</span> <span class="attr">href</span>=<span class="val">"/"</span> <span class="attr">aria-current</span>=<span class="val">"page"</span>&gt;Home&lt;/<span class="tag">a</span>&gt;&lt;/<span class="tag">li</span>&gt;
     …
@@ -73,6 +79,12 @@
         <tr><td>Sticky</td><td>stays at the top on scroll; over the first 80 px the edge light resolves and the bar becomes a separate plane</td></tr>
         <tr><td>Below 780 px</td><td>links fold under the bar, the toggle button appears — both opaque</td></tr>
         <tr><td>Menu open</td><td>the panel is drawn out from under the bar by a clip edge travelling down it, 480 ms; the toggle's contour lifts to white, 120 ms</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>closes the panel and puts focus back on the toggle</td></tr>
+        <tr><td>Focus leaves the bar</td><td>closes the panel. Focus leaving the <em>document</em> does not — that is the reader going to the browser, not away from the menu</td></tr>
+        <tr><td>Pointer outside the bar</td><td>closes the panel</td></tr>
+        <tr><td>A link in the panel</td><td>closes the panel. Every link here leaves the page, except one to a fragment on the current page — and a menu left standing over what it has just scrolled to is the failure that costs</td></tr>
+        <tr><td>Widened past 780 px</td><td>the open state is dropped, so narrowing again does not drop open a menu nobody asked for</td></tr>
+        <tr><td>No script</td><td>the links are a stacked list under a bar that does not stick, and the toggle is not drawn — see <a href="#script">The script</a></td></tr>
       </tbody>
     </table>
     <div class="docs-note">
@@ -130,6 +142,66 @@
     </div>
   </section>
 
+  <section class="docs-section" id="script">
+    <h2>The script</h2>
+    <p>
+      <code>assets/js/cf-nav.js</code> is the fourth file in the system that ships, and
+      like <code>cf-consent.js</code> it creates no markup of its own: the bar, the button
+      and the panel are ordinary HTML in the page and the file only decides when the panel
+      is shown. It is ~2 kB, has no dependencies and no build step, and it is the
+      <em>only</em> implementation of this behaviour.
+    </p>
+    <div class="docs-note">
+      <strong>It used to be eight implementations, and none of them shipped.</strong> The
+      toggle was wired by an inline <code>&lt;script&gt;</code> at the foot of each of the
+      seven pattern pages — seven byte-identical copies — and an eighth in
+      <code>assets/js/docs.js</code>, which is documentation chrome and explicitly does not
+      ship. So the one interactive component every page carries had its behaviour written
+      down everywhere except in the system: anyone building a page from
+      <a href="../index.html">the overview's</a> three stylesheets got a menu button that
+      did nothing, and any fix to the behaviour had to be made eight times.
+    </div>
+    <table class="docs-table">
+      <thead><tr><th>Writes</th><th>Where</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>data-cf-nav="ready"</code></td><td><code>&lt;html&gt;</code></td><td>the stylesheet may fold the bar</td></tr>
+        <tr><td><code>aria-expanded</code></td><td><code>.cf-nav__toggle</code></td><td>the announced state</td></tr>
+        <tr><td><code>data-open</code></td><td><code>.cf-nav__list</code></td><td>the drawn state</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The last two describe one fact and are written by one function, which is the point:
+      they were set in two places on seven pages, and that is how an announced state and a
+      drawn one drift apart.
+    </p>
+    <div class="docs-note">
+      <strong>The tag goes in the <code>&lt;head&gt;</code>, and the placement is
+      load-bearing rather than a habit.</strong> Every rule that folds this bar is gated on
+      <code>[data-cf-nav]</code>, so with scripting off — or the file lost to a dropped
+      connection, or an error inside it — the five links are a stacked list and the control
+      that would do nothing is not drawn at all. That fallback is only free if the attribute
+      is there before the first paint. Written any later, every load below 780 px would show
+      the open list and then collapse it, and the panel would spend that window in the
+      layout with its links focusable. A script element in the head runs before the body
+      exists, which is the whole of the trick.
+    </div>
+    <div class="docs-note">
+      <strong>The fallback is a stacked list, not the open panel.</strong> The panel is out
+      of flow, so it costs the bar no height; six rows of it pinned to the top of a 375 px
+      screen would leave the page about a third of itself to be read in. In the fallback the
+      bar is <code>relative</code> rather than <code>sticky</code> for exactly that reason —
+      it is a header at the top of the page, not a plane over it.
+    </div>
+    <div class="docs-note">
+      <strong>The 780 is not repeated in the script.</strong>
+      <code>tokens.css</code> keeps the register of every threshold in the shipping CSS and
+      states that the register is only worth having if it is complete; a copy in a script is
+      one the register cannot see. The question the file actually has is not how wide the
+      viewport is but whether the button is on screen, and the stylesheet already answers
+      that — so it asks <code>getComputedStyle</code> instead of restating the number.
+    </div>
+  </section>
+
   <section class="docs-section" id="a11y">
     <h2>Accessibility</h2>
     <ul>
@@ -137,6 +209,23 @@
       <li>The current page is marked with <code>aria-current="page"</code>, not by colour alone.</li>
       <li>The toggle carries <code>aria-controls</code> and <code>aria-expanded</code> and updates both — and now <em>looks</em> open too. The attribute flipped while the plate stayed identical, so the announced state and the visible one had drifted apart on the primary control of the whole mobile page. <code>[aria-expanded="true"]</code> takes the contour to white, which is already this component's "on": the hovered link and the current-page link both go to exactly that value.</li>
       <li><strong>Not a fill.</strong> The link bar's current-page marker — white 14 % over black — reads there because it is a small plate inside a larger black field with unlit siblings to compare against. The toggle is itself the plate and has nothing beside it, and white 14 % over black composites to <code>rgb(36,36,36)</code>: 1.3:1 against what it is meant to distinguish itself from, the same near-invisible step the system threw out when it dropped anthracite. Contour before fill settles it.</li>
+      <li><strong>A disclosure, not a menu.</strong> The panel is a <code>&lt;ul&gt;</code> of
+        links inside a <code>&lt;nav&gt;</code> and carries no <code>menu</code>,
+        <code>menubar</code> or <code>menuitem</code> role. Those roles turn the links into
+        an application widget with its own arrow-key model and take the ordinary reading of
+        the list away; the WAI-ARIA Authoring Practices set navigation of this shape as a
+        <em>disclosure</em>, and so does this component.</li>
+      <li><strong>No focus trap, and that is the pattern rather than an omission.</strong>
+        The panel is not a dialog: it does not make the page inert and it does not lock
+        scrolling, so <kbd>Tab</kbd> walks out of the open panel into the page the way it
+        walks out of any list of links. A trap is for content that must be dealt with before
+        anything else, which a menu the reader opened and can close with <kbd>Esc</kbd> is
+        not. Focus never lands <em>inside</em> a closed panel: closed is
+        <code>display: none</code>, not a clipped or transparent panel still in the tab
+        order.</li>
+      <li>The toggle is <code>type="button"</code>. A <code>&lt;button&gt;</code> with no type
+        is a submit button, which is inert here today and is one <code>&lt;form&gt;</code>
+        wrapped around a header away from submitting it.</li>
       <li>Every page starts with a <code>.skip-link</code> to <code>#inhalt</code>.</li>
       <li>Mono uppercase is read normally by screen readers — the casing happens in CSS, not in the markup.</li>
     </ul>
