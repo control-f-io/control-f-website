@@ -22,9 +22,10 @@ python3 scripts/check-spacing-scale.py         # from the repo root
 python3 scripts/check-spacing-scale.py --fix   # rewrite the table in foundations/layout.html
 python3 scripts/check-gradient-family.py       # the light family, in every shipped SVG
 python3 scripts/check-gradient-family.py -v    # list all 40 gradients, not only the failures
+python3 scripts/check-iso-motion.py            # the isometric assembly's seven invariants
 ```
 
-The two checks the system enforces rather than documents, run by CI on every push and
+The three checks the system enforces rather than documents, run by CI on every push and
 pull request. Stdlib only — they do not give the system a build step.
 
 **The space scale** holds to two rules: `foundations/layout.html`'s table of who uses each
@@ -41,6 +42,24 @@ against a list, and it also catches a stop that is *almost* a chromatic brand co
 is how `#E0FF02` gets in. `assets/source/` and `prototypes/` are out of scope: the first is
 the designer's own material and the second is unshipped, and both carry raw Figma exports
 on purpose.
+
+**The isometric assembly** holds to seven rules, all of which were
+already written down in prose and none of which anything ran:
+
+| | |
+|---|---|
+| `--iso-travel` | Every figure that assembles travels `viewBox width / 40` — 2.5 % of its own drawing — resolved through inline styles, the component-keyed rules in `components.css`, and the `:root` default, in that order. |
+| `--iso-orbit-travel` | A whole multiple of the `--dash-1-4` period, or every orbit settles off the phase the source vector drew. |
+| `pathLength="1"` | On every `.cf-iso__trace`, and `non-scaling-stroke` on none of them. |
+| `.cf-iso__orbit` | Always carries `.cf-iso__ghost` too — an orbit is a ghost that also turns, and the shared rule names the ghost. |
+| one light | At most one `.cf-iso__light` per object. |
+| `#DBFC60` | No inline gradient runs lime straight into Glas without the oklab waypoint between them. |
+| `screen` | Every `animation-timeline` declaration sits inside a `@media` that names `screen`. |
+
+Every one of the seven is invisible in a screenshot and countable in a file, which is the
+whole test for what belongs in here — and the reason two of the four in
+[Redrawing an illustration](#redrawing-an-illustration-four-things-that-vanish-quietly)
+are deliberately left out of it.
 
 ## Layout
 
@@ -851,6 +870,17 @@ Two things it settles that the source material does not:
 All four bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
 and none of them announces itself — the drawing still renders, it is simply no longer what
 the designer drew.
+
+**Two of the four are now checked** by `scripts/check-iso-motion.py`, which CI runs on
+every push and pull request — the waypoint and the travel. See [Check it](#check-it).
+The other two are not, and the line between them is worth stating rather than leaving
+as an accident of what was easy. A missing waypoint and a travel that disagrees with its
+viewBox are **facts about the markup**, so a script can settle them. The other two are
+not: a `transform` on a `userSpaceOnUse` gradient is sometimes exactly right — card 04's
+largest orbit carries `rotate(-90)` on purpose — so the presence of one is a question, not
+a verdict; and whether a trace runs off the edge of its crop is a fact about rendered
+geometry, which needs a browser to answer. A checker that guessed at either would train
+people to ignore it.
 
 - **The oklab waypoint.** `#DBFC60` exists in no source vector, so a re-export drops it and
   that lime→Glas leg reverts to the sRGB path. Every waypoint carries a comment at the stop.

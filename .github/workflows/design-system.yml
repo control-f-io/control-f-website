@@ -10,6 +10,12 @@ name: Design system checks
 # The gradient check is here for the same reason and after the same failure.
 # tokens.css states the light family's one SVG convention — a waypoint at 19 %
 # of the lime leg — and twenty gradients kept it while four on one page did not.
+#
+# The isometric-assembly check is the same shape one step out: foundations/
+# motion.html and the README both state the assembly's invariants, and the
+# README's own section on them is called "four things that vanish quietly". A
+# value that vanishes without anything rendering wrong is exactly what a
+# checker is for.
 on:
   push:
     branches: [main]
@@ -17,9 +23,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not two. Both checks are a few hundred milliseconds of stdlib
-  # python; a second runner would cost more to start than either takes to run,
-  # and a reader looking at a red tick wants both answers on one page.
+  # One job, not three. All three checks are a few hundred milliseconds of
+  # stdlib python; a second runner would cost more to start than any of them
+  # takes to run, and a reader looking at a red tick wants every answer on one
+  # page.
   self-checks:
     runs-on: ubuntu-latest
     steps:
@@ -31,8 +38,13 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Runs even when the spacing check has already failed: two independent
-      # facts about the same commit are more useful than the first one.
+      # Each check runs even when an earlier one has already failed: three
+      # independent facts about the same commit are more useful than the first
+      # one.
       - name: Gradient family
         if: '!cancelled()'
         run: python3 scripts/check-gradient-family.py
+
+      - name: Isometric assembly
+        if: '!cancelled()'
+        run: python3 scripts/check-iso-motion.py
