@@ -33,6 +33,13 @@ name: Design system checks
 # thirty-three fr track lists carried a minimum and .cf-progress did not. It renders
 # perfectly until a compound noun is long enough, and then it scrolls sideways
 # at 320 px on a page nobody re-tested.
+#
+# The breakpoint register is the sixth, and the one with the most evidence
+# behind it. A threshold cannot be a token — var() is not allowed in a query
+# prelude — so every one is a literal, and the register is the list. Kept by
+# hand it was caught short four separate times, and each fix ended by telling
+# the next person to grep the preludes and not trust the last sweep. They did,
+# and it was short again. Four times is enough evidence about the instruction.
 on:
   push:
     branches: [main]
@@ -40,7 +47,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not five. All five checks are a few hundred milliseconds of
+  # One job, not six. All six checks are a few hundred milliseconds of
   # stdlib python; a second runner would cost more to start than any of them
   # takes to run, and a reader looking at a red tick wants every answer on one
   # page.
@@ -55,7 +62,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: five
+      # Each check runs even when an earlier one has already failed: six
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -73,3 +80,7 @@ jobs:
       - name: Grid tracks
         if: '!cancelled()'
         run: python3 scripts/check-grid-tracks.py
+
+      - name: Breakpoint register
+        if: '!cancelled()'
+        run: python3 scripts/check-breakpoints.py
