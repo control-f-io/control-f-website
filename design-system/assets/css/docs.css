@@ -258,8 +258,19 @@ body.docs {
    containment. Measured: `contain: paint`, `content` and `strict` all leave
    backdrop-filter working. Filter Effects 2 lists the real backdrop-root
    triggers — filter, opacity < 1, mask, clip-path, backdrop-filter,
-   mix-blend-mode — so the way to flatten every frosted demo on a page is to
-   fade one in with opacity, not to tighten this line.
+   mix-blend-mode, and `will-change` naming any of those — so the way to
+   flatten every frosted demo on a page is to fade one in with opacity, not to
+   tighten this line.
+
+   TWO THINGS THAT LOOK LIKE TRIGGERS AND ARE NOT, because both are one
+   declaration away from the shipping bar and a later run will wonder.
+   `isolation: isolate` is not one: it makes a stacking context, and a stacking
+   context is not a backdrop root — there is a web-platform test asserting
+   exactly that (`backdrop-filter-isolation-isolate.html`, both boxes behind an
+   isolated parent must still be filtered). .cf-nav carries it and blurs
+   correctly; leave it. Neither are z-index, transform, or sticky positioning.
+   What DID break the bar's glass, and is on the list above, was
+   `view-transition-name` behaving as one — see the note in base.css.
 
    Tightening is still wrong, for a different reason: paint containment clips
    descendants to the padding box (measured: a 200 px child in a 100 px box
