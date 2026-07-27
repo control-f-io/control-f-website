@@ -2795,6 +2795,26 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
   color: var(--text-primary);
 }
 .cf-error__route-desc {
+  /* The description sits in the row's minmax(0, 1fr) track, and a 1fr track
+     has no opinion about how long a line should be — it takes whatever the
+     column has. On this page that is the full 1280 content column, so the
+     track grew with the window and the copy grew with it:
+
+         viewport   375     768    1024    1280    1920
+         before    37.6    54.8    84.0   113.3   131.4   characters per line
+         after     37.6    54.8    56.0    56.0    56.0
+
+     The longest of the five descriptions is 94 characters, so above 1024 they
+     stopped wrapping altogether and each route read as one 94-character line —
+     the failure is not that the line is ugly, it is that there is no second
+     line for the eye to return to. Below 1024 nothing changes: 54.8 is already
+     inside the band, so the phone and the tablet render exactly as before.
+
+     The cap is on the copy, not on the track. The arrow stays pinned to the
+     right edge of the row, because the row is the target and the arrow marks
+     where it ends — that is the same full-bleed row .cf-blog-card--compact
+     and .cf-vacancy draw, and it is not the measure's business. */
+  max-inline-size: var(--measure);
   font-size: var(--text-md);
   line-height: var(--leading-relaxed);
   color: var(--text-secondary);
@@ -3779,6 +3799,27 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   line-height: var(--leading-relaxed);
 }
 .cf-value-row__body > * + * { margin-top: var(--space-4); }
+/* The line stops before the cell does. --measure is 56ch and tokens.css says
+   what it is for in as many words: "right for a block of copy that sits beside
+   something else", which is this row's whole shape — an icon and a paragraph.
+   The cap is on the children rather than on .cf-value-row__body because the
+   body carries --space-6/-8 of padding, and a max-inline-size on the box would
+   spend the measure on that padding instead of on the line.
+
+   Without it the copy has no measure at any width above a phone, and the
+   tablet is the worst point rather than the widest one. Measured on
+   patterns/expertise.html, characters per line:
+
+       viewport   375     768    1024    1280    1920
+       before    36.5    81.4    68.1    93.7   109.6
+       after     36.5    56.0    56.0    56.0    56.0
+
+   768 is worse than 1024 because the two move against each other: the 48rem
+   container query has not fired yet, so the copy is still a full-width band —
+   and it is still at --text-md, where the split steps it up to --text-lg. The
+   widest column and the smallest type land on the same width, and it is the
+   one width nobody opens. */
+.cf-value-row__body > * { max-inline-size: var(--measure); }
 @container (min-width: 48rem) {
   .cf-value-row { grid-template-columns: var(--value-figure) minmax(0, 1fr); }
   .cf-value-row__figure {
