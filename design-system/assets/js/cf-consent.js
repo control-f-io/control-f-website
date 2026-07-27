@@ -108,9 +108,53 @@
       : [];
     var opener = null;   /* what to give focus back to when the dialog closes */
 
+    /* THE BANNER PUBLISHES ITS OWN HEIGHT, because something on the page has
+       to reserve it and nothing could. The banner is `position: fixed` at the
+       viewport's bottom edge; the landing page's hero is `min(92vh, 56rem)`
+       tall and hangs its kicker and its one call to action off its OWN bottom
+       edge. 92vh + the banner's height exceeds the viewport at every height
+       under about 1800 px, so on a first visit — the only visit the banner is
+       shown on — the banner lands on the hero's bottom row.
+
+       Measured before this line existed, first load, nothing dismissed:
+
+         viewport      banner h   CTA buried   kicker buried   hit test at the CTA's centre
+         375 x 812        333.5      48 / 48      48.8 / 48.9   the banner's "Nur notwendige"
+         768 x 1024       232.9      48 / 48         —          the banner's own heading
+         1024 x 768       144.4    34.9 / 48      32.9 / 32.9   the banner's plate
+         1280 x 900       144.4    24.4 / 48      24.4 / 32.9   the banner's plate
+         1440 x 900       144.4    24.4 / 48      24.4 / 32.9   the banner's plate
+         1920 x 1080      144.4         —            —          the button itself
+
+       Five of the six sizes, and the two narrowest bury the control whole. It
+       is not only a paint fault: elementFromPoint at the middle of
+       "Kennenlernen" returns the BANNER on five of six, so the page's primary
+       call to action is a dead target for as long as the notice is up.
+
+       The height cannot be a constant. It is 144.4, 232.9 and 333.5 px at the
+       three breakpoints the copy wraps at, and it moves again with a reader's
+       type size or a translation — which is the kind of hand-computed number
+       this repository keeps finding in its own history. So it is measured, by
+       the one script that already owns the banner's lifecycle, and read back
+       in CSS as --cf-consent-height. Unset, `var(--cf-consent-height, 0px)`
+       resolves to 0 and every consumer is exactly what it was: the property
+       exists only while the banner does. → components.css, .cf-hero;
+       scripts/check-consent-clearance.py */
+    function publishHeight() {
+      var root = document.documentElement;
+      if (banner.hidden) { root.style.removeProperty('--cf-consent-height'); return; }
+      root.style.setProperty('--cf-consent-height', banner.offsetHeight + 'px');
+    }
+    /* Observed rather than measured once: the plate re-wraps on rotation and on
+       a zoom change, and a height taken at DOMContentLoaded would go stale
+       there. Where there is no ResizeObserver the one-shot calls below still
+       run, so the fix degrades to the first measurement instead of to nothing. */
+    if (window.ResizeObserver) new window.ResizeObserver(publishHeight).observe(banner);
+
     function showBanner() {
       banner.dataset.enter = 'true';
       banner.hidden = false;
+      publishHeight();
       /* Two frames: one for the browser to lay the banner out in its entry
          state, one for the transition to have something to run from. */
       requestAnimationFrame(function () {
@@ -159,7 +203,7 @@
     function hideBanner() {
       if (banner.hidden) return;
       banner.dataset.enter = 'true';
-      window.setTimeout(function () { banner.hidden = true; }, exitDuration());
+      window.setTimeout(function () { banner.hidden = true; publishHeight(); }, exitDuration());
     }
 
     function decide(granted, opts) {
