@@ -544,6 +544,20 @@ These were judgement calls, each documented on the relevant page:
   drift no diff against `assets/source/` could ever show, because it lives in the rendered
   phase and not in the markup. Verified: the settled object is pixel-identical to the build
   with no animation at all. → `foundations/motion.html`
+- **The Über uns value-table wheel keeps its six teeth, and six is off the sanctioned
+  angles.** Measured off `mockups/ueber-uns.jpg` by radial profile from the drawing's own
+  centre, the teeth sit at 30°, 90°, 150°, 210°, 270° and 330° — 60° apart, of which only
+  the vertical pair is one of the brand's four. Eight teeth at 45° would put every flank on
+  a sanctioned angle and is the obvious correction; it is not made, because the material is
+  the authority and the rule it bends is about *constructing space*. This wheel recedes
+  nowhere — it is a face-on glyph, and the only spatial thing in it is the globe, which is
+  one 2:1 ellipse drawn twice with the second turned 90°. What the same figure used to carry
+  *was* a real violation and is gone: two dashed rings at `rotate(±30)`, the exact drawing
+  `foundations/illustration.html` labels a *don't*, invented rather than drawn from anything.
+  The other two figures in that table were wrong in the ordinary way — bodies drawn as
+  circles where a disc on the ground plane is a 2:1 ellipse, and four chevrons leaning at
+  38.66°, 31.26°, 31.26° and 25.46° where the designer drew three at 2:1.
+  → `foundations/illustration.html#where`
 - **The process illustrations correct four things in the Figma export:** the lime hex, three
   unsanctioned dash patterns, a second lime element on card 02, and a tangent that was
   0.4° off the brand angle. Figma's inner-shadow bevel on card 03 is dropped — it is not
