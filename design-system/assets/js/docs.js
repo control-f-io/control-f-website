@@ -56,7 +56,8 @@
        chrome like the patterns do. */
     { title: 'Animation Prototypes', items: [
       { href: 'prototypes/werte-scroll.html',    label: 'Werte — logo build' },
-      { href: 'prototypes/services-scroll.html', label: 'Services — assembly' }
+      { href: 'prototypes/services-scroll.html', label: 'Services — assembly' },
+      { href: 'prototypes/demon-core.html',      label: 'Demon core — easter egg' }
     ]},
     { title: 'Reference', items: [
       { href: 'reference.html', label: 'Source Material' }
