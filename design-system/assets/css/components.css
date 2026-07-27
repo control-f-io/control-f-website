@@ -62,10 +62,22 @@
   filter: drop-shadow(0 0 6px rgba(225, 255, 0, 0.55));
 }
 
-/* An icon inside a button or link tracks the label's motion, nothing more. */
+/* An icon inside a button or link tracks the label's motion, nothing more.
+
+   HOVER AND FOCUS ARE ONE STATE HERE, and everywhere else in this file. The
+   system had settled that twice already — .cf-subdiv puts :focus-visible in
+   the same :is() as :hover so tabbing opens a cell exactly as pointing at it
+   does, and --cf-specular travels on both — and then declared the affordance
+   hover-only in nine other places. A reader arriving by keyboard got the ring
+   and none of the movement the same control gives a pointer, so the two ways
+   of reaching a control answered differently. The ring is not the answer to
+   this: it says *where you are*, and these declarations say *what this does*.
+   → foundations/motion.html#principles */
 .cf-icon--motion { transition: transform var(--duration-base) var(--ease-standard); }
 a:hover > .cf-icon--motion,
-button:hover > .cf-icon--motion { transform: translateX(4px); }
+a:focus-visible > .cf-icon--motion,
+button:hover > .cf-icon--motion,
+button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 
 /* --------------------------------------------------------------------------
    BUTTON
@@ -106,7 +118,10 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
               color   var(--duration-base) var(--ease-standard),
               border-color var(--duration-base) var(--ease-standard);
 }
-.cf-btn:hover .cf-arrow { transform: translateX(4px); }
+/* The specular already answered :focus-visible and the arrow did not, so a
+   keyboard reader got the light and not the gesture — half a state. */
+.cf-btn:hover .cf-arrow,
+.cf-btn:focus-visible .cf-arrow { transform: translateX(4px); }
 
 /* background-image, not the background shorthand: the shorthand resets
    background-origin to padding-box and would undo the rule above. */
@@ -638,7 +653,8 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   color: var(--text-primary);
   border-color: var(--border-strong);
 }
-.cf-btn--outline:hover { background: var(--cf-schwarz); color: var(--grey-000); }
+.cf-btn--outline:hover,
+.cf-btn--outline:focus-visible { background: var(--cf-schwarz); color: var(--grey-000); }
 
 /* The black button. Its label is not white — it is the foil, clipped into the
    letterforms, and the arrow is the colour the ramp has arrived at by the time
@@ -677,7 +693,8 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   background: var(--surface-inverse);
   color: var(--text-inverse);
 }
-.cf-btn--solid:hover { background: var(--grey-800); }
+.cf-btn--solid:hover,
+.cf-btn--solid:focus-visible { background: var(--grey-800); }
 
 /* The gradient box is the WHOLE button, not the label, and that is what makes
    the effect read. At 116.57° across a 352 x 48 slab the ramp is 336 px long
@@ -733,7 +750,15 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
      Restating is the fix rather than removing the shorthand above, because
      that shorthand is the fallback path's hover and has to stay intact for
      browsers that never enter this block. */
-  .cf-btn--solid:hover {
+  /* :focus-visible is here because it is on the shorthand above. The two
+     selector lists have to stay identical: the shorthand sets
+     background-image: none and background-clip: border-box for every state it
+     names, so a state named there and not here loses the foil and the label —
+     still -webkit-text-fill-color: transparent — vanishes. That is the bug the
+     comment above records, and adding a state to only one of the two rules is
+     how it comes back. */
+  .cf-btn--solid:hover,
+  .cf-btn--solid:focus-visible {
     background-image: var(--gradient-foil), none;
     -webkit-background-clip: text, border-box;
     background-clip: text, border-box;
@@ -1638,7 +1663,8 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   opacity: 0.38;
   transition: opacity var(--duration-base) var(--ease-standard);
 }
-.cf-logo-wall a:hover img { opacity: 0.75; }
+.cf-logo-wall a:hover img,
+.cf-logo-wall a:focus-visible img { opacity: 0.75; }
 
 /* --------------------------------------------------------------------------
    ACCORDION (FAQ)
@@ -1955,8 +1981,12 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
    the glyph, and aria-hidden in the markup. */
 .cf-pagination__gap  { min-width: 1.5rem; border: 0; }
 
+/* The `a.` prefix is what keeps the current page out of this: it is a <span>,
+   so neither state can ever land on the slot that already carries the plate. */
 a.cf-pagination__page:hover,
-a.cf-pagination__step:hover {
+a.cf-pagination__page:focus-visible,
+a.cf-pagination__step:hover,
+a.cf-pagination__step:focus-visible {
   border-color: var(--border-strong);
   color: var(--text-primary);
 }
@@ -1972,8 +2002,10 @@ a.cf-pagination__step:hover {
 .cf-pagination__step .cf-icon {
   transition: transform var(--duration-base) var(--ease-standard);
 }
-a.cf-pagination__step--prev:hover .cf-icon { transform: translateX(-3px); }
-a.cf-pagination__step--next:hover .cf-icon { transform: translateX(3px); }
+a.cf-pagination__step--prev:hover .cf-icon,
+a.cf-pagination__step--prev:focus-visible .cf-icon { transform: translateX(-3px); }
+a.cf-pagination__step--next:hover .cf-icon,
+a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px); }
 
 @container (max-width: 34rem) {
   .cf-pagination__page:not([aria-current]),
@@ -2146,7 +2178,8 @@ a.cf-pagination__step--next:hover .cf-icon { transform: translateX(3px); }
   text-decoration: none;
   transition: border-color var(--duration-fast) var(--ease-standard);
 }
-.cf-error__route:hover { border-bottom-color: var(--border-strong); }
+.cf-error__route:hover,
+.cf-error__route:focus-visible { border-bottom-color: var(--border-strong); }
 
 .cf-error__route-label {
   font-family: var(--font-mono);
@@ -2171,7 +2204,8 @@ a.cf-pagination__step--next:hover .cf-icon { transform: translateX(3px); }
   transition: transform var(--duration-base) var(--ease-standard),
               color var(--duration-fast) var(--ease-standard);
 }
-.cf-error__route:hover .cf-arrow {
+.cf-error__route:hover .cf-arrow,
+.cf-error__route:focus-visible .cf-arrow {
   transform: translateX(4px);
   color: var(--text-primary);
 }
@@ -2265,7 +2299,9 @@ a.cf-pagination__step--next:hover .cf-icon { transform: translateX(3px); }
   color: var(--text-secondary);
 }
 .cf-article__toc a:hover,
-.cf-article__toc a:hover::before { color: var(--text-primary); }
+.cf-article__toc a:focus-visible,
+.cf-article__toc a:hover::before,
+.cf-article__toc a:focus-visible::before { color: var(--text-primary); }
 
 /* Byline. The round avatar is the system's one true curve: everything else
    that is not square is 2 px, and a circle cannot be expressed as 2 px. */
@@ -2324,7 +2360,8 @@ a.cf-pagination__step--next:hover .cf-icon { transform: translateX(3px); }
   transition: background var(--duration-fast) var(--ease-standard),
               color var(--duration-fast) var(--ease-standard);
 }
-a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000); }
+a.cf-article__tag:hover,
+a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--grey-000); }
 /* A tag row used as a filter needs a selected state, and the selected chip is
    a <span>, not a link — same reasoning as the current page in .cf-pagination.
    It lands on the same inverted plate that hover lands on, which is safe here
@@ -2425,7 +2462,8 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   text-decoration-color: var(--border-default);
   transition: text-decoration-color var(--duration-fast) var(--ease-standard);
 }
-.cf-prose a:hover { text-decoration-color: var(--border-strong); }
+.cf-prose a:hover,
+.cf-prose a:focus-visible { text-decoration-color: var(--border-strong); }
 
 /* Lists are drawn, not bulleted: an unordered marker is a 6 px contour
    square, an ordered one is a mono ordinal. Both hang outside the text
@@ -3110,7 +3148,8 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   text-decoration-thickness: var(--stroke-1);
   text-underline-offset: 0.25em;
 }
-.cf-contact__value a:hover { text-decoration-color: var(--border-default); }
+.cf-contact__value a:hover,
+.cf-contact__value a:focus-visible { text-decoration-color: var(--border-default); }
 
 /* --------------------------------------------------------------------------
    STAT
@@ -3223,7 +3262,9 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
    same way, and the declaration was written out twice — identical, and one
    edit away from the row answering at two different underline offsets. */
 .cf-footer__meta a:hover,
-.cf-footer__linkbtn:hover {
+.cf-footer__meta a:focus-visible,
+.cf-footer__linkbtn:hover,
+.cf-footer__linkbtn:focus-visible {
   color: var(--grey-000);
   text-decoration: underline;
   text-underline-offset: 0.25em;
@@ -3324,11 +3365,11 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 .cf-consent__actions .cf-btn--ghost { flex: 0 0 auto; min-width: 0; }
 /* --outline inverts on a dark surface: its default hover paints black on
    black, which is no change at all. */
-.cf-consent :is(.cf-btn--outline, .cf-btn--ghost):hover {
+.cf-consent :is(.cf-btn--outline, .cf-btn--ghost):is(:hover, :focus-visible) {
   background: var(--grey-000);
   color: var(--cf-schwarz);
 }
-.cf-consent .cf-btn--ghost:hover { background: none; color: var(--grey-000); }
+.cf-consent .cf-btn--ghost:is(:hover, :focus-visible) { background: none; color: var(--grey-000); }
 
 .cf-consent__dialog {
   width: min(38rem, calc(100vw - 2 * var(--space-4)));
@@ -3690,8 +3731,10 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 }
 /* The plate is already black, so hover lifts rather than deepens — there is
    nothing under black to go to. Same move as .cf-btn--solid. */
-.cf-hero__still:hover { background: var(--surface-raised); }
-/* The input carries the focus, the label carries the ring. */
+/* The input carries the focus, the label carries both the ring and the lift —
+   the ring says where the reader is, the lift says the plate is a control. */
+.cf-hero__still:hover,
+.cf-hero__still-toggle:focus-visible ~ .cf-hero__still { background: var(--surface-raised); }
 .cf-hero__still-toggle:focus-visible ~ .cf-hero__still {
   outline: var(--stroke-2) solid var(--focus-ring);
   outline-offset: 2px;
