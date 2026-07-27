@@ -86,6 +86,18 @@ name: Design system checks
 # JSON-LD looks exactly like one that was extended in both. The consumer is a
 # search engine, the failure mode is a manual action against the site, and
 # nobody finds out by looking.
+#
+# The accessibility facts are the twelfth, and the second about the system as a
+# site rather than about a drawing in it. Most of accessibility needs a browser
+# or a person; some of it is arithmetic — an id is on the page or it is not, a
+# heading level is one more than the last or it is two more, an <img> carries
+# alt or it carries nothing — and arithmetic has the same failure shape as the
+# eleven above: the page renders identically either way. The pattern pages
+# declare lang="de" and the landing page's h1 is three English sentences, so
+# the site's tagline, the first line a screen reader announces, was spoken in
+# German phonemes — not an accent, a word the listener cannot resolve. Two
+# dozen more English runs were on five other pages. Twenty-five marks, not one
+# of them visible in a screenshot, and nothing in the tree could see them.
 
 on:
   push:
@@ -94,7 +106,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not eleven. All eleven checks are a few hundred milliseconds of
+  # One job, not twelve. All twelve checks are a few hundred milliseconds of
   # stdlib python; a second runner would cost more to start than any of them
   # takes to run, and a reader looking at a red tick wants every answer on one
   # page.
@@ -109,7 +121,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: eleven
+      # Each check runs even when an earlier one has already failed: twelve
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -150,3 +162,7 @@ jobs:
       - name: Job postings
         if: '!cancelled()'
         run: python3 scripts/check-job-posting.py
+
+      - name: Accessibility facts
+        if: '!cancelled()'
+        run: python3 scripts/check-a11y.py
