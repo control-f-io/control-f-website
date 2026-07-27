@@ -147,8 +147,64 @@
                          contain calc(var(--i) * 25% + 1.5% + var(--stage, 0) * 2.2%)
                          contain calc(var(--i) * 25% + 8% + var(--stage, 0) * 2.2%);
       }
+
+      /* THE FRAME ASSEMBLES ON ENTRY, out of the same scroll that takes the
+         statement apart above it. The plate gives up its border the way the
+         steps gave up theirs — the frame is the .lp-frame hairlines from here
+         on, drawn during the section's entry phase and standing for the whole
+         pinned run, 1 px under non-scaling-stroke exactly where the border
+         stood. Entry is the one viewport of travel before the stage pins, so
+         the relay — top across, verticals down, base — finishes as it pins
+         and the build takes over at contain 0.
+
+         The LIGHT pass draws first at 2 px (a signal's weight), carrying the
+         near rake; the 1 px contour follows six points behind and is what
+         remains. The light is gone by contain 3 — card 01's lime does not
+         arrive until 11.5 — so at no scroll position does the screen hold two
+         lit things. The whole relay is scrubbed: back up, and the frame
+         un-draws before the statement reassembles. */
+      .lp-proc-plate { position: relative; border-color: transparent; }
+      .lp-proc-plate .cf-process__figure { border-color: transparent; }
+      .lp-frame {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+      /* Statics only on the shared selector — an `animation` shorthand here
+         would outweigh the class rules below ((0,1,1) against (0,1,0)) and
+         its implicit `animation-range: normal` would stretch every draw
+         across the whole timeline. It did, until this was measured: five
+         hairlines creeping in lockstep from one end of the section to the
+         other, and no relay at all. */
+      .lp-frame path {
+        fill: none;
+        stroke-dasharray: 1;
+        stroke-dashoffset: 1;
+        vector-effect: non-scaling-stroke;
+      }
+      .lp-frame__light {
+        stroke: url(#lp-frame-light);
+        stroke-width: 2;
+        animation: lp-frame-draw linear, lp-frame-out linear;
+        animation-timeline: --cf-pin, --cf-pin;
+        animation-range: entry calc(34% + var(--fi) * 20%) entry calc(54% + var(--fi) * 20%),
+                         contain 0.5% contain 3%;
+        /* forwards on the fade, not both: under `both` it would hold its
+           from-state through entry and the light would never appear at all. */
+        animation-fill-mode: both, forwards;
+      }
+      .lp-frame__line {
+        stroke: var(--border-strong);
+        animation: lp-frame-draw linear both;
+        animation-timeline: --cf-pin;
+        animation-range: entry calc(40% + var(--fi) * 20%) entry calc(60% + var(--fi) * 20%);
+      }
     }
   }
+  @keyframes lp-frame-draw { to { stroke-dashoffset: 0; } }
+  @keyframes lp-frame-out { to { opacity: 0; } }
 
   /* Over .cf-pin's chrome: this stage spaces its index and bar a rung
      further from the card than the Expertise page does. */
@@ -332,18 +388,29 @@
             </defs>
             <!-- Both masks sit outside .cf-iso__scene on purpose: the scene travels in
                  on arrival, and a vignette that travelled with it would be a window
-                 sliding across the page. -->
+                 sliding across the page.
+
+                 DISASSEMBLY. Every part below carries --sx/--sy and --scat-in: where
+                 it goes when the figure takes itself apart on the way out, and when.
+                 One rule at every scale — a piece leaves along a 2:1 diagonal by
+                 twice-across-once-down of its own size, a signal retreats along its
+                 own angle by half its own length — which is what makes the scatter
+                 read as the same drawing coming apart rather than debris. The masks
+                 stay put, so the pieces dissolve into the same fades that bound the
+                 field. → components.css, "the statement takes itself apart" -->
             <g mask="url(#cf-stmt-field)"><g mask="url(#cf-stmt-extent)">
             <g class="cf-iso__scene">
-              <!-- THE LATTICE. Both 2:1 families and the level step, which is the whole
-                   of the angle vocabulary this drawing is allowed — geometry.html: every
-                   diagonal on the site is 0, 26.57, 45 or 63.43 degrees. 1-4 is the line
-                   type the manual assigns to a lattice, in as many words.
+              <!-- THE LATTICE. Both 2:1 families and the level step, the whole of the
+                   angle vocabulary this drawing is allowed — geometry.html: every
+                   diagonal on the site is 0, 26.57, 45 or 63.43 degrees. 1-4 is the
+                   line type the manual assigns to a lattice, in as many words.
 
-                   It is cut by the void and nothing is drawn inside it. The absence has
-                   to be legible or the figure has no argument: run the lattice through
-                   and the one idea in the drawing disappears into its own ground. -->
-              <g class="cf-iso__ghost" opacity=".26" stroke="#000" stroke-width="1" stroke-dasharray="1 4">
+                   It is cut by the void and nothing is drawn inside it. The absence
+                   has to be legible or the figure has no argument: run the lattice
+                   through and the one idea in the drawing disappears into its own
+                   ground. On exit it does not travel — ground does not scatter, it
+                   goes dark last. -->
+              <g class="cf-iso__ghost" style="--sx:0;--sy:0;--scat-in:38%" opacity=".26" stroke="#000" stroke-width="1" stroke-dasharray="1 4">
                 <line x1="1136" y1="0" x2="1200" y2="32"/>
                 <line x1="1072" y1="0" x2="1200" y2="64"/>
                 <line x1="1008" y1="0" x2="1200" y2="96"/>
@@ -419,51 +486,66 @@
                 <line x1="0" y1="368" x2="1200" y2="368"/>
                 <line x1="0" y1="400" x2="1200" y2="400"/>
               </g>
-              <!-- THE SIGNALS. A trace is the system's word for exactly this — "the one
-                   element that is not part of the object: it is the signal arriving" —
-                   so the sensors are traces and not decoration. Five, each on a brand
-                   angle, each with the chevron head the manual specifies (arms 2u by u,
-                   which puts the head on a brand angle too), each drawing itself three
-                   per cent after the last so they arrive as a sequence.
+              <!-- THE SIGNALS. A trace is the system's word for exactly this — "the
+                   one element that is not part of the object: it is the signal
+                   arriving" — so the sensors are traces and not decoration. Five,
+                   each on a brand angle, each with the chevron head the manual
+                   specifies (arms 2u by u, which puts the head on a brand angle
+                   too), each drawing itself three per cent after the last so they
+                   arrive as a sequence.
 
-                   And every one of them ends in mid-air. The manual says a trace "ends
-                   at a node on the object it reaches"; these reach nothing, which is the
-                   one deliberate deviation in this figure and the entire argument of the
-                   sentence beside it. Same precedent as components/process-card.html,
-                   which documents its own deviation rather than hiding it. -->
+                   And every one of them ends in mid-air. The manual says a trace
+                   "ends at a node on the object it reaches"; these reach nothing,
+                   which is the one deliberate deviation in this figure and the
+                   entire argument of the sentence beside it. On exit each retreats
+                   the way it came — the signals give up first. -->
               <g opacity=".58">
-                <line class="cf-iso__trace" style="--trace-lead:0%;--trace-span:20%" x1="34" y1="210" x2="236" y2="210" stroke="#000" pathLength="1"/>
-                <line class="cf-iso__trace" style="--trace-lead:3%;--trace-span:20%" x1="102.82" y1="96.41" x2="245.92" y2="167.96" stroke="#000" pathLength="1"/>
-                <line class="cf-iso__trace" style="--trace-lead:6%;--trace-span:20%" x1="197.06" y1="77.06" x2="263.53" y2="143.53" stroke="#000" pathLength="1"/>
-                <line class="cf-iso__trace" style="--trace-lead:9%;--trace-span:20%" x1="77.77" y1="336.11" x2="245.92" y2="252.04" stroke="#000" pathLength="1"/>
-                <line class="cf-iso__trace" style="--trace-lead:12%;--trace-span:20%" x1="255.76" y1="358.47" x2="287.96" y2="294.08" stroke="#000" pathLength="1"/>
-                <path class="cf-iso__trace" style="--trace-lead:2%;--trace-span:20%" d="M218 219L236 210L218 201" stroke="#000" stroke-linecap="round" pathLength="1"/>
-                <path class="cf-iso__trace" style="--trace-lead:5%;--trace-span:20%" d="M225.8 167.96L245.92 167.96L233.85 151.86" stroke="#000" stroke-linecap="round" pathLength="1"/>
-                <path class="cf-iso__trace" style="--trace-lead:8%;--trace-span:20%" d="M244.44 137.17L263.53 143.53L257.17 124.44" stroke="#000" stroke-linecap="round" pathLength="1"/>
-                <path class="cf-iso__trace" style="--trace-lead:11%;--trace-span:20%" d="M233.85 268.14L245.92 252.04L225.8 252.04" stroke="#000" stroke-linecap="round" pathLength="1"/>
-                <path class="cf-iso__trace" style="--trace-lead:14%;--trace-span:20%" d="M287.96 314.2L287.96 294.08L271.86 306.15" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <line class="cf-iso__trace" style="--trace-lead:0%;--trace-span:20%;--sx:-148;--sy:-0;--scat-in:8%" x1="34" y1="210" x2="236" y2="210" stroke="#000" pathLength="1"/>
+                <line class="cf-iso__trace" style="--trace-lead:3%;--trace-span:20%;--sx:-113.59;--sy:-56.8;--scat-in:10%" x1="102.82" y1="96.41" x2="245.92" y2="167.96" stroke="#000" pathLength="1"/>
+                <line class="cf-iso__trace" style="--trace-lead:6%;--trace-span:20%;--sx:-66.47;--sy:-66.47;--scat-in:12%" x1="197.06" y1="77.06" x2="263.53" y2="143.53" stroke="#000" pathLength="1"/>
+                <line class="cf-iso__trace" style="--trace-lead:9%;--trace-span:20%;--sx:-126.11;--sy:63.06;--scat-in:14%" x1="77.77" y1="336.11" x2="245.92" y2="252.04" stroke="#000" pathLength="1"/>
+                <line class="cf-iso__trace" style="--trace-lead:12%;--trace-span:20%;--sx:-37.12;--sy:74.24;--scat-in:16%" x1="255.76" y1="358.47" x2="287.96" y2="294.08" stroke="#000" pathLength="1"/>
+                <path class="cf-iso__trace" style="--trace-lead:2%;--trace-span:20%;--sx:-148;--sy:-0;--scat-in:4%" d="M218 219L236 210L218 201" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <path class="cf-iso__trace" style="--trace-lead:5%;--trace-span:20%;--sx:-113.59;--sy:-56.8;--scat-in:6%" d="M225.8 167.96L245.92 167.96L233.85 151.86" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <path class="cf-iso__trace" style="--trace-lead:8%;--trace-span:20%;--sx:-66.47;--sy:-66.47;--scat-in:8%" d="M244.44 137.17L263.53 143.53L257.17 124.44" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <path class="cf-iso__trace" style="--trace-lead:11%;--trace-span:20%;--sx:-126.11;--sy:63.06;--scat-in:10%" d="M233.85 268.14L245.92 252.04L225.8 252.04" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <path class="cf-iso__trace" style="--trace-lead:14%;--trace-span:20%;--sx:-37.12;--sy:74.24;--scat-in:12%" d="M287.96 314.2L287.96 294.08L271.86 306.15" stroke="#000" stroke-linecap="round" pathLength="1"/>
               </g>
               <!-- THE SOURCES. Five — "eight is a lot for one object; twelve is too
                    many" — at r = 3, 2 and 1, stepping down with distance from the
-                   subject exactly as card 01 does. Not a scatter: each one is the origin
-                   of a trace, which is a point the construction depends on. -->
-              <g class="cf-iso__node" opacity=".8" fill="#000">
-                <circle cx="34" cy="210" r="1"/>
-                <circle cx="102.82" cy="96.41" r="2"/>
-                <circle cx="197.06" cy="77.06" r="2"/>
-                <circle cx="77.77" cy="336.11" r="1"/>
-                <circle cx="255.76" cy="358.47" r="3"/>
+                   subject exactly as card 01 does. Not a scatter: each one is the
+                   origin of a trace, which is a point the construction depends on.
+                   Each follows its own signal out. -->
+              <g opacity=".8" fill="#000">
+                <circle class="cf-iso__node" style="--sx:-148;--sy:-0;--scat-in:0%" cx="34" cy="210" r="1"/>
+                <circle class="cf-iso__node" style="--sx:-113.59;--sy:-56.8;--scat-in:2%" cx="102.82" cy="96.41" r="2"/>
+                <circle class="cf-iso__node" style="--sx:-66.47;--sy:-66.47;--scat-in:4%" cx="197.06" cy="77.06" r="2"/>
+                <circle class="cf-iso__node" style="--sx:-126.11;--sy:63.06;--scat-in:6%" cx="77.77" cy="336.11" r="1"/>
+                <circle class="cf-iso__node" style="--sx:-37.12;--sy:74.24;--scat-in:8%" cx="255.76" cy="358.47" r="3"/>
               </g>
-              <!-- THE ABSENCE. The nucleus is still drawn, at the centre, one rung down
-                   the presence ladder: 1-4 is the manual's line type for "any state the
-                   object is not in yet", and tokens.css states the rule this whole figure
-                   turns on — a thing that is not here yet is the same drawing as the
-                   thing that is, one rung down. No fill and no light. The lime is
-                   withheld on purpose; it belongs to "Was wir machen" below, which is the
-                   section where the answer actually gets built. -->
-              <g class="cf-iso__ghost" opacity=".8" stroke="#000" stroke-width="1" stroke-dasharray="1 4">
-                <circle cx="330" cy="210" r="84"/>
-                <circle cx="330" cy="210" r="11"/>
+              <!-- THE ABSENCE. The nucleus is still drawn, at the centre, one rung
+                   down the presence ladder: 1-4 is the manual's line type for "any
+                   state the object is not in yet", and tokens.css states the rule
+                   this whole figure turns on — a thing that is not here yet is the
+                   same drawing as the thing that is, one rung down. No fill and no
+                   light; the lime belongs to "Was wir machen" below, which is where
+                   the answer actually gets built.
+
+                   Both rings are drawn as four quarter-arcs split on the diagonals,
+                   so that on exit they can come apart: the quarters leave on the two
+                   downward 2:1 diagonals, by twice-across-once-down of their own
+                   radius — the ring at 84 and the nucleus at 11 disassemble under
+                   the same rule at their own scales, and fall toward the frame that
+                   is assembling below. -->
+              <g opacity=".8" stroke="#000" stroke-width="1">
+                <path class="cf-iso__ghost" style="--sx:-117.6;--sy:58.8;--scat-in:16%" stroke-dasharray="1 4" d="M270.6 150.6A84 84 0 0 1 389.4 150.6"/>
+                <path class="cf-iso__ghost" style="--sx:-168;--sy:84;--scat-in:20%" stroke-dasharray="1 4" d="M270.6 269.4A84 84 0 0 1 270.6 150.6"/>
+                <path class="cf-iso__ghost" style="--sx:168;--sy:84;--scat-in:20%" stroke-dasharray="1 4" d="M389.4 150.6A84 84 0 0 1 389.4 269.4"/>
+                <path class="cf-iso__ghost" style="--sx:218.4;--sy:109.2;--scat-in:24%" stroke-dasharray="1 4" d="M389.4 269.4A84 84 0 0 1 270.6 269.4"/>
+                <path class="cf-iso__ghost" style="--sx:-15.4;--sy:7.7;--scat-in:26%" stroke-dasharray="1 4" d="M322.22 202.22A11 11 0 0 1 337.78 202.22"/>
+                <path class="cf-iso__ghost" style="--sx:-22;--sy:11;--scat-in:30%" stroke-dasharray="1 4" d="M322.22 217.78A11 11 0 0 1 322.22 202.22"/>
+                <path class="cf-iso__ghost" style="--sx:22;--sy:11;--scat-in:30%" stroke-dasharray="1 4" d="M337.78 202.22A11 11 0 0 1 337.78 217.78"/>
+                <path class="cf-iso__ghost" style="--sx:28.6;--sy:14.3;--scat-in:34%" stroke-dasharray="1 4" d="M337.78 217.78A11 11 0 0 1 322.22 217.78"/>
               </g>
             </g>
             </g></g>
@@ -516,6 +598,41 @@
             <article class="cf-process lp-proc-plate" aria-hidden="true">
               <div class="cf-process__figure"></div>
               <div class="cf-process__panel"></div>
+              <!-- THE LECTERN DRAWS ITSELF IN. Five hairlines — the four edges and
+                   the divider — drawn in the order the reader meets them: the top
+                   edge across, the three verticals down, the base. Each line is
+                   drawn twice: first as LIGHT, a 2 px stroke carrying the near
+                   rake's ramp (the signal — the same weight as every trace in the
+                   system), then as the 1 px contour the light leaves behind. The
+                   light fades the moment the stage pins, well before card 01's own
+                   lime arrives at 11.5 % of the first quarter, so the one-light
+                   rule holds through the handoff.
+
+                   preserveAspectRatio="none" stretches the 1000 x 500 box to the
+                   plate, so these coordinates are fractions of the frame, not
+                   pixels; non-scaling-stroke is what keeps the weights honest
+                   under that stretch. The gradient axis is the box diagonal —
+                   2:1, the brand's own angle, in the drawing's own units. -->
+              <svg class="lp-frame" viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <!-- near rake, stop for stop off cf-01-light: oklab waypoint at
+                       19 % of the lime leg, measured from lime — see
+                       foundations/colors.html, "One ramp, two colour spaces". -->
+                  <linearGradient id="lp-frame-light" x1="0" y1="0" x2="1000" y2="500" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                  </linearGradient>
+                </defs>
+                <path class="lp-frame__light" style="--fi:0" d="M0 0H1000" pathLength="1"/>
+                <path class="lp-frame__light" style="--fi:1" d="M0 0V500" pathLength="1"/>
+                <path class="lp-frame__light" style="--fi:1" d="M500 0V500" pathLength="1"/>
+                <path class="lp-frame__light" style="--fi:1" d="M1000 0V500" pathLength="1"/>
+                <path class="lp-frame__light" style="--fi:2" d="M0 500H1000" pathLength="1"/>
+                <path class="lp-frame__line" style="--fi:0" d="M0 0H1000" pathLength="1"/>
+                <path class="lp-frame__line" style="--fi:1" d="M0 0V500" pathLength="1"/>
+                <path class="lp-frame__line" style="--fi:1" d="M500 0V500" pathLength="1"/>
+                <path class="lp-frame__line" style="--fi:1" d="M1000 0V500" pathLength="1"/>
+                <path class="lp-frame__line" style="--fi:2" d="M0 500H1000" pathLength="1"/>
+              </svg>
             </article>
             <article class="cf-process cf-pin__step" style="--i:0">
           <div class="cf-process__figure">
