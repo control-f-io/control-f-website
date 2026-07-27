@@ -67,6 +67,19 @@ What it deliberately does not read:
     in a demo takes them off the project page to a 404 on another host. That is
     the distinction, and it is why components/footer.html's demo still fails.
 
+HTML is not the only place a reference lives. The stylesheets name files too
+— @font-face src, background-image — and a url() that resolves to nothing is
+the same dead reference at a slower reveal: the page renders, the fallback
+stack catches the text, and every load still carries a 404 nobody sees in the
+markup. That is how three @font-face rules pointed at an assets/fonts/ that
+did not exist, on every page of the system, for the whole life of a checker
+that read only HTML. So this also walks every .css under design-system/ and
+every url() inside it — comments stripped first, since components.css quotes
+`fill="url(#…)"` in prose — plus url() in inline style="" attributes, under
+the same ABSOLUTE and MISSING rules as an href. Fragment-only url(#f) targets
+the current document, whichever document that is, and off-site schemes stay
+out of scope as ever.
+
 One id source is not in the markup at all. Two scripts inject ids at load:
 cf-icons.js is the single place an icon is drawn and injects the whole sprite,
 and docs.js injects the one `cf-arrow` symbol so documentation pages get the
@@ -366,6 +379,71 @@ def check_current(path, failures):
                              "not say so"))
 
 
+CSS_URL = re.compile(r"""url\(\s*(?:"([^"]*)"|'([^']*)'|([^)"']*))\s*\)""",
+                     re.I)
+
+
+def css_urls(text):
+    """(value, line) for every url() in a stylesheet, comments stripped."""
+    text = re.sub(r"/\*.*?\*/",
+                  lambda m: re.sub(r"[^\n]", " ", m.group(0)),
+                  text, flags=re.S)
+    for m in CSS_URL.finditer(text):
+        value = (m.group(1) or m.group(2) or m.group(3) or "").strip()
+        yield value, line_of(text, m.start())
+
+
+def check_css(path, failures, counter):
+    """Every url() in a stylesheet lands on a file, by the stylesheet's own
+    reckoning — a url resolves relative to the css file, not the page."""
+    rel = os.path.relpath(path, ROOT)
+    here = os.path.dirname(path)
+    with open(path, encoding="utf-8") as fh:
+        text = fh.read()
+
+    for value, line in css_urls(text):
+        if not value or value.startswith("#") or OFFSITE.match(value):
+            continue
+        counter[0] += 1
+        if value.startswith("//"):
+            failures.append((rel, line, "ABSOLUTE", "url", value,
+                             "protocol-relative URL leaves the site"))
+            continue
+        if value.startswith("/"):
+            failures.append((rel, line, "ABSOLUTE", "url", value,
+                             "leading / resolves against the domain root, not "
+                             "the project page"))
+            continue
+        dest = os.path.normpath(os.path.join(here, value.split("?")[0]))
+        if not os.path.exists(dest):
+            failures.append((rel, line, "MISSING", "url", value,
+                             "no file at %s" % os.path.relpath(dest, ROOT)))
+
+
+def check_inline_css(path, failures, counter):
+    """The same rule for url() written into a style="" attribute, which the
+    masked read keeps (only <style> bodies are blanked)."""
+    rel = os.path.relpath(path, ROOT)
+    here = os.path.dirname(path)
+    text = readable(path)
+    for m in re.finditer(r'\bstyle\s*=\s*"([^"]*)"', text):
+        line = line_of(text, m.start())
+        for value, _ in css_urls(unescape(m.group(1))):
+            if not value or value.startswith("#") or OFFSITE.match(value):
+                continue
+            counter[0] += 1
+            if value.startswith("/"):
+                failures.append((rel, line, "ABSOLUTE", "style", value,
+                                 "leading / resolves against the domain "
+                                 "root, not the project page"))
+                continue
+            dest = os.path.normpath(os.path.join(here, value.split("?")[0]))
+            if not os.path.exists(dest):
+                failures.append((rel, line, "MISSING", "style", value,
+                                 "no file at %s"
+                                 % os.path.relpath(dest, ROOT)))
+
+
 def check_blank_targets(path, failures):
     """target="_blank" without rel=noopener hands the opener a window handle."""
     rel = os.path.relpath(path, ROOT)
@@ -389,15 +467,27 @@ def main():
                 pages.append(os.path.join(dirpath, name))
     pages.sort()
 
+    sheets = []
+    for dirpath, _, filenames in os.walk(TREE):
+        for name in sorted(filenames):
+            if name.endswith(".css"):
+                sheets.append(os.path.join(dirpath, name))
+    sheets.sort()
+
     failures = []
+    css_refs = [0]
     for page in pages:
         check(page, failures)
         check_current(page, failures)
         check_blank_targets(page, failures)
+        check_inline_css(page, failures, css_refs)
+    for sheet in sheets:
+        check_css(sheet, failures, css_refs)
 
     total = sum(1 for p in pages for _ in references(p, readable(p)))
-    print("check-links: %d references across %d pages in design-system/"
-          % (total, len(pages)))
+    print("check-links: %d references across %d pages, %d url() across "
+          "%d stylesheets in design-system/"
+          % (total, len(pages), css_refs[0], len(sheets)))
 
     if not failures:
         print("check-links: every reference resolves")
