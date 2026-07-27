@@ -976,6 +976,21 @@
 
      CONTAINER thresholds — the width of the component's own container:
 
+       28rem / 448   .cf-annot stops being a callout and becomes a legend:
+                     the notes flow under the figure as a row of marks and
+                     words, and the leaders go with the label rules. The
+                     threshold is on the FIGURE — cf-annot-fig, the system's
+                     one named container — because what decides whether a
+                     callout fits is the width of the drawing, never the
+                     viewport. → components/annotation.html
+       30rem / 480   .cf-breadcrumb keeps only the last two crumbs; whatever
+                     is now first drops its divider. Same shape as 34rem
+                     below — a row of parts that has stopped being one row —
+                     and 3 rem away from it. It is a SEPARATE number because
+                     a trail truncates from the head while a route folds in
+                     place, and they are measured on different containers;
+                     it is registered rather than merged so the adjacency is
+                     visible rather than hidden.
        34rem / 544   .cf-error__route folds — the 12 rem label drops above
                      its description and the arrow keeps the right edge.
                      .cf-pagination hides the page numerals and keeps the
@@ -987,6 +1002,20 @@
                      .cf-error__figure's max-width — one number the whole
                      component is built around, so it is a threshold with a
                      reason and not a fifth arbitrary one.
+       34.625rem / 554  .cf-process__figure's isometric drawing keeps the
+                     --trace-weight constant it carried before that property
+                     existed. 554 is not a chosen width: it is where the
+                     figure's height cap stops being the tighter constraint,
+                     so below it the drawing is letterboxed into a box that
+                     grows with the card and no fixed multiplier lands the
+                     trace on 1 px across the ramp. THE ONLY FRACTIONAL
+                     THRESHOLD IN THE SYSTEM, and it sits 10 px from 34rem
+                     above — the near-duplicate this register warns about,
+                     recorded rather than reconciled. The two never measure
+                     the same container, so nothing collides today; whether
+                     a derived geometric crossover should be a threshold at
+                     all is the illustration lane's question, not this
+                     register's. → components/process-card.html
        44rem / 704   .subdivide folds; the blog axis goes with it, and now
                      goes with it structurally — the axis is a .subdivide__row
                      of the same grid, so both queries measure one element.
@@ -1004,14 +1033,19 @@
                      it, and a row that does not hold an illustration can
                      opt down to 44rem with .grid--early.
        60rem / 960   .cf-article splits into rail + body and the rail goes
-                     sticky. Reached at a viewport of about 1079. This is
-                     the system's FIFTH container threshold and the only
-                     one that is not derived from anything — see the note
-                     in foundations/layout.html before adding a sixth.
-                     It said FOURTH while 34rem was live in components.css
-                     with two consumers, which is the same drift this
-                     register caught once already and is recorded as such
-                     on that page rather than quietly renumbered.
+                     sticky. Reached at a viewport of about 1079. It is the
+                     only container threshold that is not derived from
+                     anything — see the note in foundations/layout.html
+                     before adding another.
+
+                     THIS ENTRY HAS BEEN RENUMBERED TWICE AND NOW CARRIES NO
+                     NUMBER AT ALL. It said FOURTH while 34rem was live with
+                     two consumers, then FIFTH while 28rem, 30rem and
+                     34.625rem were live with one each. An ordinal in a
+                     register kept by hand is a second thing to remember
+                     that says nothing the list above does not, and it went
+                     stale both times the list did. The count is whatever
+                     scripts/check-breakpoints.py prints.
 
      VIEWPORT thresholds — page furniture only:
 
@@ -1059,15 +1093,32 @@
      onto 56rem — 62rem of viewport is 55.18rem of container, so the two
      were the same threshold wearing different units. See components.css.
 
-     This register is only worth having if it is complete, and it has now
-     been caught twice. First: 60rem and the height threshold were live in
-     components.css while this list claimed three container thresholds and
-     two viewport ones. Second: 34rem was live with two consumers, and the
-     62rem above with one, while the corrected list claimed four and three.
-     Both times the fix landed with the sweep that found it. If you add a
-     threshold to a shipping stylesheet, add it here in the same commit —
-     and if you are fixing this register, grep the preludes rather than
-     trusting the previous fix to have been exhaustive.
+     This register is only worth having if it is complete, and kept by hand it
+     was never complete for long. It was caught four times. First: 60rem and
+     the height threshold were live in components.css while this list claimed
+     three container thresholds and two viewport ones. Second: 34rem was live
+     with two consumers, and the 62rem above with one, while the corrected
+     list claimed four and three. Third: 51.25rem, hiding behind a true
+     statement about a different file. Fourth: 28rem, 30rem and 34.625rem —
+     three live container queries, one of them added the same day the sweep
+     that found them ran.
+
+     Every one of those fixes ended with the same instruction to the next
+     person: grep the preludes, and do not trust the previous fix to have been
+     exhaustive. Four times is enough evidence about that instruction. NOTHING
+     RAN — which is the same sentence the space scale, the light family, the
+     isometric assembly, the glass budget and the grid tracks each turned out
+     to be one script short of.
+
+     scripts/check-breakpoints.py is that script. It reads every prelude in the
+     three shipping stylesheets and holds the three copies of this rule to each
+     other in both directions: a query with no entry is a finding, an entry
+     with no query is a finding, and this comment disagreeing with the table on
+     foundations/layout.html is a finding. It keeps the rem rule above, and it
+     re-derives every px gloss rather than comparing it against itself.
+
+     So the instruction is shorter now. Add a threshold to a shipping
+     stylesheet and add it here in the same commit; CI says so if you do not.
 
      SCOPE: the three stylesheets that ship — this file, base.css and
      components.css. Everything else is out, and "everything else" is

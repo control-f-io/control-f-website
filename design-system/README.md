@@ -28,9 +28,11 @@ python3 scripts/check-glass-budget.py --fix    # rewrite the census in foundatio
 python3 scripts/check-glass-budget.py -v       # list every page, not only the ones carrying glass
 python3 scripts/check-grid-tracks.py           # every fr track has a floor
 python3 scripts/check-grid-tracks.py -v        # list every track list, not only the failures
+python3 scripts/check-breakpoints.py           # every threshold is in the register, in rem
+python3 scripts/check-breakpoints.py -v        # list every threshold, not only the failures
 ```
 
-The five checks the system enforces rather than documents, run by CI on every push and
+The six checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step.
 
@@ -139,6 +141,55 @@ whole point is the ratio, and `minmax(0, 4fr)` would state that ratio twice. A d
 *non-zero* floor passes too — `.tiles`' `min(--tile, 100%)`, `.cf-team-strip__list`'s
 `15rem` inside a scroll box — because the rule is that a floor was chosen, not that it is
 zero. → `foundations/layout.html#intrinsic-minimum`
+
+**The rule outlived its scope, and where it landed is the interesting part.** Swept across
+all 33 pages at eighteen widths from 320 to 2560, the system had exactly one horizontal
+overflow: `foundations/colors.html` took the document **320 → 368 px** at a 320 px viewport.
+The cause was not a stylesheet. It was `style="grid-template-columns:repeat(10,1fr)"`,
+written **inline in the markup** on the Grey ramp — ten mono step labels flooring a track set
+at 344 px inside a 272 px column.
+
+That is the one place `check-grid-tracks.py` can never reach, and not by an oversight in the
+script: its scope is the three stylesheets that ship, and an inline style on a documentation
+page is outside that boundary twice over. The boundary is right and is not moved — a check
+that governed the documentation chrome would be claiming the chrome is the product. What the
+finding actually says is narrower and worth keeping: **a rule enforced over stylesheets is
+not enforced over `style=` attributes**, and the system's own documentation pages are where
+those attributes live.
+
+Five bare `fr` track lists were floored, in `colors.html` (three, inline), `docs.css`
+(`.docs-ramp__steps`) and the per-page blocks in `transitions.html` and `illustration.html`.
+Only the ten-step ramp was overflowing today; the other four were the same defect at a cell
+count that happened to fit. The sweep now reports zero sideways scroll on every page at every
+width.
+
+**Every threshold is in the register,** and this is the sixth check for a reason the other
+five had to be argued and this one only has to be counted. A threshold cannot be a token —
+`var()` is not allowed in the prelude of `@media` or `@container`, and `@custom-media` needs
+a build step this system does not have — so every one of them is a literal typed into a
+stylesheet, and the only defence against them multiplying is a list added to on purpose.
+That list is written twice, as a comment in `tokens.css` and as a table on
+`foundations/layout.html`, and it says of itself that it is only worth having if it is
+complete.
+
+Kept by hand it was never complete for long. It was caught four times: `60rem` and the
+height threshold; then `34rem` with two consumers and a `62rem` media query with one; then
+`51.25rem`, hiding behind a true statement about a different file; then `28rem`, `30rem` and
+`34.625rem` — three live container queries, one of them added the same day the sweep that
+found them ran. Every one of those fixes ended with the same instruction to the next person:
+*grep the preludes, and do not trust the previous fix to have been exhaustive.* Four times is
+enough evidence about the instruction. Nothing ran.
+
+The script holds the three copies to each other **in both directions** — a query with no
+entry, an entry no query reaches, and the two copies disagreeing are each a finding — keeps
+the rule that a threshold is written in `rem` rather than `px` so it tracks the reader's own
+default font size, and re-derives each px gloss instead of comparing the number against
+itself. It reads the range syntax too, so adopting `(width >= 40rem)` later cannot quietly
+opt a threshold out of the check. What it deliberately does not read: non-dimensional
+features, which are modes rather than thresholds, and `min()`/`clamp()` crossovers, which
+change the layout at a width without being queries — the register says so in as many words,
+and a checker that widened the definition would be enforcing a different rule than the one
+written down. → `foundations/layout.html#breakpoints`
 
 ## Layout
 
