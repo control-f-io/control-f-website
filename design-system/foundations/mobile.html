@@ -268,6 +268,7 @@
         <tr><td>Forms</td><td>fields already full width; nothing changes</td></tr>
         <tr><td>Consent</td><td>single column, and the three controls go full width in a stack</td></tr>
         <tr><td>Footer</td><td>CTA stacks over the button; meta rows wrap</td></tr>
+        <tr id="logo-wall"><td>Logo wall</td><td>marks wrap and <strong>centre</strong>, a true 48 px apart on every row. Above a container of <code>48rem</code> the seven fit on one line and are justified to the measure instead — see below</td></tr>
         <tr><td>Tables and code blocks</td><td>scroll inside their own box, never widen the page</td></tr>
       </tbody>
     </table>
@@ -308,6 +309,32 @@
       is a count worth re-running, and the honest form of this note is the figure plus
       what it was measured on, never the figure alone.
     </div>
+    <div class="docs-note">
+      <strong>A row that wraps must not be justified, and the logo wall was.</strong>
+      <code>justify-content: space-between</code> justifies <em>every</em> line, and the
+      last line of a wrapped row is the one line that must never be justified: it holds
+      the remainder. Seven marks wrap to 6 + 1 at a 768 px viewport, and the leftover mark
+      sat flush left with <strong>614.9 px of empty row</strong> beside it — 90 % of the
+      wall. At 375 it was 3 + 3 + 1 and 265.1 px; at 320, 2 + 2 + 2 + 1 and 211.4 px. The
+      same declaration also meant the <code>gap</code> token never governed: the marks
+      actually sat 133–162 px apart at 320, 59–69 at 375 and 54 at 768, a different rhythm
+      on every row of every width. None of it shows above 862, where the seven fit on one
+      line and there is no last line to strand — which is why a rule that was wrong at
+      three of the four widths this page tests looked right every time anyone opened it.
+      Centred below <code>48rem</code> and justified at or above it, the rhythm is 48 px
+      everywhere and the desktop line is unchanged to the pixel.
+      <br><br>
+      <strong>This is the one threshold in the register measured against a string rather
+      than a box, and it will move when the typefaces land.</strong>
+      <code>assets/fonts/</code> is empty on purpose — <code>base.css</code> says to drop
+      the <code>.woff2</code> files in — so every measurement on this page is taken in
+      fallback faces. That does not matter for a container query whose trip point is a
+      box, which is nearly all of them; it matters here, because 767.2 px is the width of
+      seven mono words. If Geist Mono sets wider than the fallback, the one-line width
+      climbs past 768 and the query justifies a row that has already wrapped. The error is
+      asymmetric — too high only centres a row that could have been justified and costs a
+      little air; too low strands a mark — so if the re-measurement is ambiguous, round up.
+    </div>
   </section>
 
   <section class="docs-section" id="touch">
@@ -327,13 +354,17 @@
     </p>
     <h3>Target sizes, measured</h3>
     <p>
-      Every interactive element on four of the seven pattern pages, at a 375 × 812 touch
-      viewport. <strong>The other three — <code>ueber-uns</code>, <code>expertise</code> and
-      <code>404</code> — have not been through this count</strong>, and the gap is stated
-      rather than closed with an estimate: the figures below are element-by-element
-      measurements and a fifth row invented to match them would be worth less than an
-      admission. They compose from the same components, so the conclusion is expected to
-      hold; expected is not measured.
+      Every interactive element on four of the <strong>twelve</strong> pattern pages, at a
+      375 × 812 touch viewport. <strong>The other eight have not been through this
+      count</strong> — <code>ueber-uns</code>, <code>expertise</code> and <code>404</code>,
+      which this paragraph has always said, and <code>suche</code>, <code>karriere</code>,
+      <code>karriere-stelle</code>, <code>datenschutz</code> and <code>impressum</code>,
+      which arrived after it was written. The gap is stated rather than closed with an
+      estimate: the figures below are element-by-element measurements and eight rows
+      invented to match them would be worth less than an admission. They compose from the
+      same components, so the conclusion is expected to hold; expected is not measured.
+      The <em>circle test</em> half has been run on all twelve — that is the note below the
+      table, and it is a narrower claim than these four rows make.
     </p>
     <div class="docs-table-scroll">
     <table class="docs-table">
@@ -354,12 +385,39 @@
       of them clears the circle test, checked pairwise against every other control on the
       page. Nothing relies on the inline exception to pass.
       <br><br>
-      <strong>The circle test alone has since been re-run across all seven pattern pages</strong>
-      — every focusable element at 375 × 812, each under-24 px target checked pairwise against
-      every other target's 24 px circle — and no page produces a single overlap. That is the
-      criterion's pass/fail half only, not the element counts above, which is why it is written
-      here rather than as three more rows in the table.
+      <strong>The circle test alone has since been re-run across all twelve pattern pages</strong>
+      — every focusable element, each under-24 px target checked pairwise against
+      every other target's 24 px circle, at 320 and 768 as well as 375, because a wrap point
+      moves targets past each other and a single width cannot see that. Documentation chrome
+      is excluded: <code>.ds-back</code> is <code>position: fixed</code> and drifts over the
+      page as it scrolls, so it manufactures overlaps that no reader of the shipping page can
+      have. That is the criterion's pass/fail half only, not the element counts above, which is
+      why it is written here rather than as eight more rows in the table.
     </p>
+    <div class="docs-note">
+      <strong>Thirty-five of the thirty-six page-widths clear it, and the one that does not
+      is <code>impressum</code> at 375.</strong> Two links in a single sentence —
+      <em>Datenschutzerklärung</em> and <em>Kontaktformular</em> — wrap onto consecutive
+      lines and both start at the left margin, which puts their centres
+      <strong>23.87 px</strong> apart against a requirement of 24. It clears at 320 and at
+      768, where the sentence wraps somewhere else; only 375 stacks them.
+      <br><br>
+      <strong>It still passes SC 2.5.8, and it passes by the exception this page claimed
+      nothing used.</strong> The criterion exempts a target that is "in a sentence or whose
+      size is otherwise constrained by the line-height of non-target text", which is exactly
+      what these two are. So the sentence above — <em>nothing relies on the inline exception
+      to pass</em> — was true of the seven pages it was written about and is false of the
+      twelve that exist.
+      <br><br>
+      <strong>It is recorded rather than fixed, because the arithmetic says it cannot be
+      fixed here.</strong> <code>.t-body-sm</code> is 12 px on a 17.4 px line box — a leading
+      of 1.45, which is healthy. Two links on consecutive lines are 17.4 px apart vertically
+      whatever else is done to them, and clearing 24 px centre-to-centre would need a leading
+      of about 1.9 on every small paragraph in the system to buy 0.13 px on one. That is a
+      typography change made to satisfy a test the criterion already exempts, and the
+      exception exists precisely because prose is not a toolbar. The honest repair is to the
+      claim, not to the leading.
+    </div>
     <p>
       Every plate-shaped control clears <strong>48 px</strong>, because
       <code>.cf-btn</code> carries <code>min-height: 3rem</code> and the accordion row
@@ -402,6 +460,23 @@
       landscape, which would otherwise resize some blocks and not others and quietly
       break every measured line length on this site. Reader-initiated zoom is untouched.
     </p>
+    <div class="docs-note">
+      <strong>Both paragraphs above are now run rather than stated.</strong>
+      <code>scripts/check-viewport-zoom.py</code> reads every page under
+      <code>design-system/</code> and every <code>text-size-adjust</code> declaration in the
+      three shipping stylesheets, and fails on a missing viewport tag, a width that is not
+      <code>device-width</code>, an <code>initial-scale</code> that is not 1,
+      <code>user-scalable=no</code>, a <code>maximum-scale</code> under 5, or a
+      <code>text-size-adjust</code> that is neither <code>100%</code> nor <code>auto</code>.
+      Fifty-six pages pass today, which is the point: this is the one rule in the system
+      whose breach <em>cannot be seen</em>. A page that revokes pinch zoom renders
+      identically at every width, in every screenshot, and in this page's own overflow
+      numbers — a desktop browser ignores the directive outright. It is visible only to
+      someone holding a phone who needs the text bigger and finds it will not move, and
+      that person is not in the review. The checker reads prose the way this page writes
+      it, so the forbidden values quoted in the paragraph above — inside
+      <code>&lt;code&gt;</code> — are masked and do not fail the page that bans them.
+    </div>
     <h3>Viewport units, and where they bite</h3>
     <div class="docs-table-scroll">
     <table class="docs-table">
