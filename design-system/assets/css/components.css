@@ -1180,9 +1180,24 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   position: relative;
   padding-block: var(--space-24) var(--space-16);
 }
+/* THE OBJECT BELONGS TO THE CONTENT COLUMN, NOT TO THE PAGE BLEED, and it
+   used to belong to neither. It was positioned against .cf-page-header,
+   which is full-bleed, with right: 0 — so at a 2000 px viewport it ran from
+   1456 to 2000: 280 px of it outside the column every other element on the
+   page lines up with, hard against the viewport edge, and lying across the
+   meta row. The figure now sits inside .container, so it is measured from
+   the same edge the title and the rule are.
+
+   TWO COLUMNS SHORT OF THAT EDGE, which is where the mockup puts it — right
+   edge at 83.5 % of the content column, measured off assets/source/mockups/
+   ueber-uns.jpg — and which is what leaves the last two columns to the meta
+   label the object used to sit on top of. The expression is the gutter (back
+   to the content edge) plus two twelfths of the content width, so it tracks
+   the grid rather than a viewport fraction. */
+.cf-page-header > .container { position: relative; }
 .cf-page-header__figure {
   position: absolute;
-  right: 0;
+  right: calc(var(--gutter) + (100% - 2 * var(--gutter)) / 6);
   top: 50%;
   translate: 0 -50%;
   width: min(46%, 34rem);
