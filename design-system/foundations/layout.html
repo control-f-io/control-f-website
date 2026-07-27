@@ -541,16 +541,16 @@
       <strong>Every step is accounted for.</strong> A scale is only honest if you can say who
       uses each rung, so here is the count of <em>declarations</em> that reference each step in
       the shipping CSS (<code>tokens</code> + <code>base</code> + <code>components</code>),
-      comments excluded. Stamped <code>7e3f07b5</code> — see below for what that is and how to
+      comments excluded. Stamped <code>08ba5880</code> — see below for what that is and how to
       check it in one command:
     </div>
-    <table class="docs-table">
+    <table class="docs-table" id="space-scale">
       <thead><tr><th>Step</th><th>px</th><th>Declarations</th><th>Where it earns its place</th></tr></thead>
       <tbody>
         <tr><td><code>--space-1</code></td><td>4</td><td>7</td><td>the gap under a name, inside a tight cluster</td></tr>
         <tr><td><code>--space-2</code></td><td>8</td><td>28</td><td>icon-to-label, chip padding</td></tr>
-        <tr><td><code>--space-3</code></td><td>12</td><td>40</td><td>button padding-block</td></tr>
-        <tr><td><code>--space-4</code></td><td>16</td><td>37</td><td>the default gap — the most used step in the system</td></tr>
+        <tr><td><code>--space-3</code></td><td>12</td><td>40</td><td>button <code>padding-block</code> — the most used step in the system</td></tr>
+        <tr><td><code>--space-4</code></td><td>16</td><td>36</td><td>the default gap: what <code>.stack</code> and <code>.cluster</code> do unaided</td></tr>
         <tr><td><code>--space-5</code></td><td>20</td><td>4</td><td>the nav bar's padding, the contact list's and the error routes' row padding — the thinnest-used rung</td></tr>
         <tr><td><code>--space-6</code></td><td>24</td><td>31</td><td><code>--grid-gap</code>, panel padding</td></tr>
         <tr><td><code>--space-8</code></td><td>32</td><td>23</td><td>the gap between an object and its copy</td></tr>
@@ -601,6 +601,13 @@ print(counts)
       and <code>--fix</code> rewrites the table and the stamp rather than leaving a human to
       transcribe thirteen numbers. <strong>The table is now generated; the fourth column is not.</strong>
       Editing a count by hand is a mistake — re-run the script.
+      <br><br>
+      <strong>And the ungenerated column drifted, exactly as the generated one had.</strong>
+      <code>--space-4</code>'s cell called it "the most used step in the system" while the column
+      beside it read 37 against <code>--space-3</code>'s 40 — a claim contradicted by the generated
+      number on the same row. It is the failure this whole apparatus was built to stop, surviving
+      in the one column the apparatus does not reach. A generator does not make a table true; it
+      makes the part it writes true, and the rest is still prose somebody has to mean.
     </div>
     <div class="docs-note">
       <strong>The scale is enforced from both ends.</strong> Counting who uses each rung answers
@@ -626,7 +633,7 @@ print(counts)
     <div class="docs-note">
       <strong>The stamp is a digest of the counts themselves.</strong> It is the first eight hex
       of a SHA-256 over the thirteen numbers, printed by the same command that prints them — so
-      if it still reads <code>7e3f07b5</code>, the table is current and there is nothing to
+      if it still reads <code>08ba5880</code>, the table is current and there is nothing to
       re-derive.
       <br><br>
       It took two wrong answers to get here, and both are worth keeping because both are the
@@ -768,6 +775,40 @@ print(counts)
       lock section rhythm to the frame at 1440 — and it is the same call as the note above, so it is
       recorded here rather than taken. Named because a measured fact is worth more to whoever rules
       on it than an inference.
+    </div>
+    <div class="docs-note">
+      <strong>The fluid middle does not answer to the user's font size, and the ends do.</strong>
+      Every fluid token in this system is a <code>clamp()</code> whose floor and ceiling are
+      <code>rem</code> and whose preferred value is pure viewport. That makes the two ends scale
+      with the root font size and the middle ignore it. Measured on the landing page at a 1440
+      viewport, with the browser's base font at 16, 20 and 24 px:
+      <table class="docs-table" style="margin-top:var(--space-4)">
+        <thead><tr><th>Token</th><th>root 16 px</th><th>root 20 px</th><th>root 24 px</th></tr></thead>
+        <tbody>
+          <tr><td><code>--space-8</code></td><td>32 px</td><td>40 px</td><td>48 px</td></tr>
+          <tr><td><code>--text-display-1</code></td><td>64 px</td><td>80 px</td><td>96 px</td></tr>
+          <tr><td><code>--gutter</code></td><td>79.2 px</td><td><strong>79.2 px</strong></td><td><strong>79.2 px</strong></td></tr>
+          <tr><td><code>--section-gap</code></td><td>120 px</td><td><strong>120 px</strong></td><td><strong>120 px</strong></td></tr>
+          <tr><td><code>--section-gap-sm</code></td><td>80 px</td><td><strong>80 px</strong></td><td><strong>80 px</strong></td></tr>
+        </tbody>
+      </table>
+      At 24 px the display line is <strong>96 px</strong> tall against <strong>120 px</strong> of
+      section rhythm — a ratio of 1.25 where the design has 1.88 — so a reader who has enlarged
+      their type gets the type and loses the air that separated it. The type scale does not have
+      this problem: it is written <code>1.4rem + 4.9vw</code>, and the <code>rem</code> term is
+      what carries the root size through the middle of the range.
+      <br><br>
+      <strong>The rhythm cannot be given the same term without giving up a designed value.</strong>
+      Refitting <code>A·rem + B·vw</code> needs two points, and the two this token is built on —
+      64 at 768 and 120 at 1440 — define a line through the origin: the slope is 56 ÷ 672 = 1&#8202;⁄&#8202;12
+      exactly, and the intercept is 0. <code>100vw ÷ 12</code> <em>is</em> the correct fit, and the
+      zero intercept is precisely why it is blind. Any non-zero <code>rem</code> term moves one of
+      the two endpoints: holding 120 at 1440 and 64 at 375 instead gives
+      <code>2.77rem + 5.26vw</code>, which buys back only 18 % of the root-size response and costs
+      <strong>33 %</strong> more section rhythm at 768 — a visible change to the designed tablet
+      rhythm, paid for a partial fix. So this is recorded, not traded away. The horizontal case is
+      different and is arguably already right: growing <code>--gutter</code> with the root size
+      would take content width away from exactly the reader who most needs it.
     </div>
     <div class="docs-note">
       <strong>The token is padding, not the gap.</strong> <code>.section</code> applies
@@ -980,6 +1021,56 @@ print(counts)
       the same rank, so the finest subdivision never appears. That is a content decision rather
       than a layout one, so the primitive supports any rank and the markup has been left as it
       is.
+    </div>
+  </section>
+
+  <section class="docs-section" id="flow">
+    <h2>Flow primitives</h2>
+    <p>
+      Two primitives put things in a line, and one set of rungs spaces either of them.
+      <code>.stack</code> runs down the block axis and spends its spacing as
+      <code>margin</code> between siblings; <code>.cluster</code> runs along the inline axis,
+      wraps, and spends it as <code>gap</code>. Both read <code>--flow</code> and both default
+      to <code>--space-4</code>, so the rung classes are shared rather than owned.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Class</th><th>Does</th><th>Spacing</th></tr></thead>
+      <tbody>
+        <tr><td><code>.stack</code></td><td>column, spacing between siblings</td><td><code>margin-top</code> on <code>* + *</code></td></tr>
+        <tr><td><code>.cluster</code></td><td>wrapping row, vertically centred</td><td><code>gap</code></td></tr>
+        <tr><td><code>.cluster--between</code></td><td>pushes the row's ends apart, no wrap</td><td><code>gap</code></td></tr>
+        <tr><td><code>.flow-2 / -3 / -6 / -8 / -12</code></td><td>sets <code>--flow</code> on either primitive</td><td>the matching <code>--space-*</code></td></tr>
+      </tbody>
+    </table>
+    <p>
+      The rung number is the scale's step number, the same convention the space scale uses:
+      <code>.flow-8</code> is <code>--space-8</code> is 32 px. There is no <code>.flow-4</code>
+      because 16 px is what both primitives already do unaided.
+    </p>
+    <div class="docs-note">
+      <strong>The rungs used to belong to <code>.stack</code> alone, and the asymmetry cost the
+      system its only inline spacing override.</strong> <code>.stack</code> carried five
+      <code>--flow</code> modifiers while <code>.cluster</code>'s gap was hard-coded, so the
+      first author who wanted a wider cluster had no class to reach for and wrote
+      <code>style="gap:var(--space-8)"</code> on it, in
+      <a href="logo.html">Iconography's arrow demo</a>. A rung the family was missing turned
+      into a length in the markup — the exact substitution the space scale and
+      <code>scripts/check-spacing-scale.py</code> exist to prevent, arriving through a door
+      neither of them watches, because the checker reads the three stylesheets and this was in
+      an HTML attribute. Naming the rungs <code>.flow-*</code> rather than
+      <code>.stack--*</code> is what lets one set serve both: a modifier that says
+      <em>stack</em> on a cluster would have to be read as a lie or duplicated under a second
+      name.
+    </div>
+    <div class="docs-note">
+      <strong><code>.split</code> is gone.</strong> It was <code>.cluster</code> plus
+      <code>justify-content: space-between</code> and minus the wrap, and it shipped in
+      <code>base.css</code> with <strong>zero consumers</strong> — no pattern page, no component
+      page, no foundation. Twelve rules in <code>components.css</code> do write those same
+      declarations, but each writes them on its own class name, which a markup utility cannot
+      reach without a build step this system does not have. So it was never being bypassed; it
+      was simply never wanted in markup. It returns as <code>.cluster--between</code>, two lines
+      instead of five, inheriting the rungs it previously could not use.
     </div>
   </section>
 

@@ -117,6 +117,31 @@ def off_scale():
     return hits
 
 
+SCALE_TABLE = re.compile(r'<table[^>]*\bid="space-scale"[^>]*>.*?</table>', re.S)
+
+
+def scale_table(html):
+    """Just the generated table, which is the only part of the page this script
+    may read or rewrite.
+
+    It used to work on the whole document, and the row pattern is loose enough
+    that any OTHER table starting `--space-N | number | number` was read as a
+    competing claim about the scale — and, under --fix, silently rewritten to
+    the measured count. That is not hypothetical: the note on root-font-size
+    behaviour under Vertical rhythm opens exactly that way, listing --space-8 at
+    three root sizes, and the checker read its `40` as a claim that 40
+    declarations use the rung. A generator that cannot say which table it owns
+    will eventually corrupt one it does not."""
+    m = SCALE_TABLE.search(html)
+    if not m:
+        sys.exit(
+            "foundations/layout.html has no <table id=\"space-scale\">. That id is how this\n"
+            "script finds the generated table; without it the script cannot tell the scale\n"
+            "table from any other table on the page. Restore the id."
+        )
+    return m.start(), m.end(), m.group(0)
+
+
 def doc_claims():
     """The stamp and the thirteen Declarations cells currently in layout.html."""
     html = LAYOUT_DOC.read_text()
@@ -124,20 +149,25 @@ def doc_claims():
     stamp = next(g for g in stamp.groups() if g) if stamp else None
     rows = re.findall(
         r"<tr><td><code>--space-(\d+)</code></td><td>\d+</td><td>(?:<strong>)?(\d+)(?:</strong>)?</td>",
-        html,
+        scale_table(html)[2],
     )
     return stamp, {int(a): int(b) for a, b in rows}
 
 
 def fix(counts, stamp):
     html = LAYOUT_DOC.read_text()
+    start, end, table = scale_table(html)
     for step, n in zip(STEPS, counts):
         strong = "<strong>%d</strong>" % n if n == 0 else str(n)
-        html = re.sub(
+        table = re.sub(
             r"(<tr><td><code>--space-%d</code></td><td>\d+</td><td>)(?:<strong>)?\d+(?:</strong>)?(</td>)" % step,
             lambda m: m.group(1) + strong + m.group(2),
-            html,
+            table,
         )
+    html = html[:start] + table + html[end:]
+    # The stamp is prose rather than table, so it stays a whole-document
+    # substitution — but it is anchored to an 8-hex-digit <code>, which nothing
+    # else on the page is.
     html = re.sub(r"<code>[0-9a-f]{8}</code>", "<code>%s</code>" % stamp, html)
     LAYOUT_DOC.write_text(html)
 
