@@ -248,11 +248,54 @@ for t in ['fast','base','slow','scene']:
         <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>fade up last of all</td><td>cover 35–50 %</td></tr>
       </tbody>
     </table>
+    <h3 id="arrival">A build happens where the eye is</h3>
     <p>
-      Everything is finished by the time the object reaches the middle of the viewport, so
-      the illustration is never caught half-built while it is being read. The last range
-      ends at cover 50 %, which is exactly that moment.
+      <strong>This page used to state the opposite of the rule, and the ranges above are
+      still the ones it stated.</strong> The sentence here read: <em>"Everything is finished
+      by the time the object reaches the middle of the viewport, so the illustration is never
+      caught half-built while it is being read. The last range ends at cover 50 %, which is
+      exactly that moment."</em> Both halves are accurate about the numbers and the
+      conclusion is backwards. A reader who scrolls at reading pace meets a finished drawing:
+      the build ran, in full, in the strip of viewport below where anyone looks.
     </p>
+    <p>
+      A <code>cover</code> range opens the instant the element's first pixel crosses the
+      viewport bottom and closes when its last pixel leaves the top, so it spans
+      <code>vh + h</code>; the element is centred at <code>(h + vh) / 2</code> into that
+      span. <strong>Both the element's height and the viewport's cancel: the moment a figure
+      sits centred is cover 50 %, exactly, at every viewport.</strong> That is arithmetic and
+      not a measurement — confirmed at 1440 × 900, 1280 × 800 and 1920 × 1080 — and it is why
+      "ends by cover 50 %" and "is over before it is looked at" are the same sentence.
+    </p>
+    <p>
+      <strong>The rule is therefore the other way round: an assembly must still be visibly
+      running when its figure sits in the middle third of the viewport.</strong> The
+      acceptance test is one position and one number — scroll so the figure's centre is at
+      the viewport's centre, sample the <em>rendered</em> state, and require it to read no
+      more than about 60 % complete. Measure the rendered state and not the fraction of the
+      range spent: these animations carry <code>--ease-out</code>, so the visual state runs
+      ahead of the linear range position, and a first retime that put a figure two thirds
+      through its window still read 78 % built at the centred position.
+    </p>
+    <p>
+      Measure it as <strong>ink</strong> where the assembly is a drawing — the sum of each
+      stroke's drawn length, against the same sum finished — rather than as a mean over
+      parts. A mean over parts is a different quantity every time the drawing is redrawn: the
+      landing page's flow was ten strokes and became thirty-seven, and the same envelope that
+      read 67 % of its ink at the centred position under the first geometry read 78 % under
+      the second while its unweighted part mean barely moved.
+      <code>scripts/check-build-arrival.py</code> counts ink and holds the ceiling, so this
+      rule is enforced rather than merely written here.
+    </p>
+    <div class="docs-note">
+      <strong>Held so far: the landing page's two entry-phase assemblies — the statement
+      figure and the flow — and both pass.</strong> The default <code>.cf-iso</code> ranges
+      in the table above are the open tranche: <code>cover 5–30 / 20–40 / 18–45 / 30–48 /
+      35–50</code> all close at or before cover 50 %, so every figure that runs them is
+      finished at the moment it is centred. They are shared by every pattern page and
+      retiming them is a change to the whole system rather than to one page, so it is stated
+      here rather than done quietly on the way past.
+    </div>
 
     <h3 id="build">An object that is assembled, not delivered</h3>
     <p>
