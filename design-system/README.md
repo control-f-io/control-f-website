@@ -32,6 +32,8 @@ python3 scripts/check-breakpoints.py           # every threshold is in the regis
 python3 scripts/check-breakpoints.py -v        # list every threshold, not only the failures
 python3 scripts/check-overflow-clip.py         # a crop is a crop, not a scroll container
 python3 scripts/check-overflow-clip.py -v      # list every overflow declaration, not only the failures
+python3 scripts/check-highlight-fill.py        # every highlight states its ink as a fill, so a clip cannot erase it
+python3 scripts/check-highlight-fill.py -v     # list every highlight rule, not only the failures
 ```
 
 The seven checks the system enforces rather than documents, run by CI on every push and
