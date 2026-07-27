@@ -20,11 +20,29 @@ serves them, all of them were dead. The section that exists to prove the
 system can be walked was the one section of the tree you could not walk.
 
 So the rule this script keeps is: inside design-system/, a reference is
-relative and it lands on a file. Three failing classes, no severities:
+relative and it lands on a file. Five failing classes, no severities:
 
-  ABSOLUTE  a leading `/`. Always wrong here, whatever it points at.
-  MISSING   a relative path that resolves to nothing on disk.
-  FRAGMENT  a `#name` with no element carrying that id on the target page.
+  ABSOLUTE     a leading `/`. Always wrong here, whatever it points at.
+  MISSING      a relative path that resolves to nothing on disk.
+  FRAGMENT     a `#name` with no element carrying that id on the target page.
+  OPENER       target="_blank" without rel="noopener".
+  PLACEHOLDER  a bare `#` outside a demo. Inside a demo it is a specimen's
+               stand-in route, same as the fragment-only exemption below.
+               Outside one it is a decision nobody made: the link renders,
+               focuses, and goes nowhere. patterns/blog-artikel.html shipped
+               three of these under "Weiterlesen" while news.html pointed
+               twenty cards of the same component at the article specimen.
+               A route is either written or removed, never parked.
+  CURRENT      aria-current that lies. Two ways: `aria-current="page"` on a
+               link that leaves the page, and a list-item link to the page
+               it stands on with no aria-current at all. The second is the
+               class behind "of six pages standing in their own footer only
+               one said so" — hand-fixed once, and nothing kept it fixed.
+               Only links inside <li> owe the marker: a logo pointing home
+               and a prose link to the page it happens to sit on are not
+               items in a set, and ARIA asks it only of sets. Ancestor
+               markers (`aria-current="true"` on a section parent, the way
+               blog-artikel.html marks News) are correct and stay quiet.
 
 What it deliberately does not read:
 
@@ -114,12 +132,14 @@ def line_of(text, index):
     return text.count("\n", 0, index) + 1
 
 
-class DemoFinder(HTMLParser):
-    """Line spans covered by a .docs-demo element.
+class SpanFinder(HTMLParser):
+    """Line spans covered by a .docs-demo element, and by <li> elements.
 
     Depth-counted rather than regex-matched, because demos nest divs freely and
     a non-greedy </div> would close the block at the first inner one. Void and
     self-closing tags never open a span, so they cannot unbalance the count.
+    An <li> left unclosed still gets its span when the parent list closes,
+    because the pop walks everything above the matching tag.
     """
 
     VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input",
@@ -127,9 +147,9 @@ class DemoFinder(HTMLParser):
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
-        self.spans = []
+        self.demo_spans = []
+        self.li_spans = []
         self.stack = []      # (tag, is_demo, start_line) per open element
-        self.open_demos = 0
 
     def handle_starttag(self, tag, attrs):
         if tag in self.VOID:
@@ -137,8 +157,6 @@ class DemoFinder(HTMLParser):
         classes = dict(attrs).get("class") or ""
         is_demo = "docs-demo" in classes.split()
         self.stack.append((tag, is_demo, self.getpos()[0]))
-        if is_demo:
-            self.open_demos += 1
 
     def handle_startendtag(self, tag, attrs):
         pass
@@ -146,28 +164,41 @@ class DemoFinder(HTMLParser):
     def handle_endtag(self, tag):
         for i in range(len(self.stack) - 1, -1, -1):
             if self.stack[i][0] == tag:
-                for _, is_demo, start in self.stack[i:]:
+                end = self.getpos()[0]
+                for t, is_demo, start in self.stack[i:]:
                     if is_demo:
-                        self.open_demos -= 1
-                        self.spans.append((start, self.getpos()[0]))
+                        self.demo_spans.append((start, end))
+                    if t == "li":
+                        self.li_spans.append((start, end))
                 del self.stack[i:]
                 return
 
 
-def demo_lines(text, _cache={}):
-    """The set of line numbers sitting inside a .docs-demo block."""
-    key = id(text)
-    if key not in _cache:
-        finder = DemoFinder()
+def spans_in(path, text, _cache={}):
+    """(demo lines, li lines) for the page at `path`.
+
+    Keyed by path, never by id(text): id() names a memory address, CPython
+    reuses addresses the moment a string is freed, and this walk frees each
+    page's text before reading the next. Keyed by id, twenty-three of the
+    fifty-six pages inherited a previous page's spans — patterns/404.html
+    was credited fifty-two demo lines it does not have, and pagination.html
+    kept forty-five of its real hundred-and-thirty-eight. An exemption
+    ledger that misattributes is worse than none: it exempts lines nobody
+    wrote a demo on."""
+    if path not in _cache:
+        finder = SpanFinder()
         try:
             finder.feed(text)
         except Exception:
-            finder.spans = []
-        lines = set()
-        for start, end in finder.spans:
-            lines.update(range(start, end + 1))
-        _cache[key] = lines
-    return _cache[key]
+            finder.demo_spans = []
+            finder.li_spans = []
+        demo, li = set(), set()
+        for start, end in finder.demo_spans:
+            demo.update(range(start, end + 1))
+        for start, end in finder.li_spans:
+            li.update(range(start, end + 1))
+        _cache[path] = (demo, li)
+    return _cache[path]
 
 
 def script_ids(name, _cache={}):
@@ -230,7 +261,14 @@ def check(path, failures):
     text = readable(path)
     here = os.path.dirname(path)
 
+    demo_lines, _ = spans_in(path, text)
+
     for attr, value, line in references(path, text):
+        if re.match(r"^#\s*$", value) and line not in demo_lines:
+            failures.append((rel, line, "PLACEHOLDER", attr, value,
+                             "bare '#' outside a demo is a route nobody "
+                             "decided; write it or remove the link"))
+            continue
         if not value or OFFSITE.match(value):
             continue
 
@@ -270,7 +308,7 @@ def check(path, failures):
         if attr == "action":
             continue
         # A fragment-only href inside a demo is a specimen's placeholder route.
-        if not target and line in demo_lines(text):
+        if not target and line in demo_lines:
             continue
 
         known = ids_in(dest)
@@ -278,6 +316,54 @@ def check(path, failures):
             failures.append((rel, line, "FRAGMENT", attr, value,
                              "no id=\"%s\" in %s" % (fragment,
                                                      os.path.relpath(dest, ROOT))))
+
+
+def check_current(path, failures):
+    """aria-current tells the truth, both ways.
+
+    A link claiming `aria-current="page"` must resolve to the document it
+    stands in — a same-page fragment counts, a link to another file is a
+    claim about a page the reader is not on. And a link inside an <li> that
+    resolves to its own document, plainly — no query string turning it into
+    another logical page, no fragment turning it into a place on this one —
+    must carry the marker, because it is an item in a set and the set is
+    lying about where the reader is without it. Demos are exempt as ever:
+    a nav specimen marks a pretend current page, and that is its job."""
+    rel = os.path.relpath(path, ROOT)
+    text = readable(path)
+    here = os.path.dirname(path)
+    demo_lines, li_lines = spans_in(path, text)
+
+    for m in re.finditer(r"<a\b[^>]*>", text, re.I):
+        tag = m.group(0)
+        line = line_of(text, m.start())
+        if line in demo_lines:
+            continue
+        href = re.search(r'\bhref\s*=\s*"([^"]*)"', tag)
+        if not href:
+            continue
+        value = unescape(href.group(1).strip())
+        if not value or value.startswith("/") or OFFSITE.match(value):
+            continue
+        cur = re.search(r'\baria-current\s*=\s*"([^"]*)"', tag)
+        target, _, fragment = value.partition("#")
+        target = target.split("?")[0]
+        selfdoc = (not target
+                   or os.path.normpath(os.path.join(here, target)) == path)
+        plain = target and "?" not in value and not fragment
+
+        if cur and cur.group(1) == "page" and not selfdoc:
+            failures.append((rel, line, "CURRENT", "href", value,
+                             'aria-current="page" on a link that leaves '
+                             "the page"))
+        elif cur and cur.group(1) == "true" and selfdoc and plain:
+            failures.append((rel, line, "CURRENT", "href", value,
+                             'aria-current="true" on the page itself; '
+                             'ancestors say true, the page says page'))
+        elif not cur and selfdoc and plain and line in li_lines:
+            failures.append((rel, line, "CURRENT", "href", value,
+                             "the page stands in its own list and does "
+                             "not say so"))
 
 
 def check_blank_targets(path, failures):
@@ -306,6 +392,7 @@ def main():
     failures = []
     for page in pages:
         check(page, failures)
+        check_current(page, failures)
         check_blank_targets(page, failures)
 
     total = sum(1 for p in pages for _ in references(p, readable(p)))
@@ -320,7 +407,8 @@ def main():
     for f in failures:
         by_kind.setdefault(f[2], []).append(f)
 
-    for kind in ("ABSOLUTE", "MISSING", "FRAGMENT", "OPENER"):
+    for kind in ("ABSOLUTE", "MISSING", "FRAGMENT", "PLACEHOLDER", "CURRENT",
+                 "OPENER"):
         group = by_kind.get(kind)
         if not group:
             continue
