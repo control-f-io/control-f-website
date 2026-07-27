@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breadcrumb — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Components</p>
+    <h1>Breadcrumb</h1>
+    <p>
+      One line above a subpage title saying where the page sits. A list of links, the page
+      you are on as a <code>&lt;span&gt;</code>, and a separator that is drawn rather than
+      typed — a 1 px hairline on the steep isometric angle. No script, no glyph, no
+      character to hide from a screen reader.
+    </p>
+  </header>
+
+  <section class="docs-section" id="demo">
+    <h2>Default</h2>
+    <p>
+      Three levels, which is what a blog article on this site actually has. The last crumb
+      is the page you are on: not a link, and set in full ink so the one thing that has to
+      be distinguishable — which crumb is <em>not</em> a target — is distinguishable without
+      hovering anything.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <nav class="cf-breadcrumb" aria-label="Sie sind hier">
+        <ol class="cf-breadcrumb__list" role="list">
+          <li class="cf-breadcrumb__item"><a class="cf-breadcrumb__link" href="#home">Home</a></li>
+          <li class="cf-breadcrumb__item"><a class="cf-breadcrumb__link" href="#news">News</a></li>
+          <li class="cf-breadcrumb__item">
+            <span class="cf-breadcrumb__current" aria-current="page">Digitale Zwillinge im Energiesektor</span>
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </section>
+
+  <section class="docs-section" id="depth">
+    <h2>Two levels and four</h2>
+    <p>
+      Two is the floor at which the component says anything at all, and four is the ceiling.
+      Past four the trail is telling you the information architecture is too deep, and the
+      answer is the architecture rather than an ellipsis.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <nav class="cf-breadcrumb" aria-label="Sie sind hier — zwei Ebenen">
+        <ol class="cf-breadcrumb__list" role="list">
+          <li class="cf-breadcrumb__item"><a class="cf-breadcrumb__link" href="#home">Home</a></li>
+          <li class="cf-breadcrumb__item">
+            <span class="cf-breadcrumb__current" aria-current="page">Karriere</span>
+          </li>
+        </ol>
+      </nav>
+    </div>
+    <div class="docs-demo docs-demo--plain">
+      <nav class="cf-breadcrumb" aria-label="Sie sind hier — vier Ebenen">
+        <ol class="cf-breadcrumb__list" role="list">
+          <li class="cf-breadcrumb__item"><a class="cf-breadcrumb__link" href="#home">Home</a></li>
+          <li class="cf-breadcrumb__item"><a class="cf-breadcrumb__link" href="#karriere">Karriere</a></li>
+          <li class="cf-breadcrumb__item"><a class="cf-breadcrumb__link" href="#stellen">Offene Stellen</a></li>
+          <li class="cf-breadcrumb__item">
+            <span class="cf-breadcrumb__current" aria-current="page">Data Engineer (m/w/d)</span>
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </section>
+
+  <section class="docs-section" id="fold">
+    <h2>The fold</h2>
+    <p>
+      Below <strong>30 rem of container</strong> the trail keeps the parent and the current
+      page and removes everything above them. It is a container query, not a media query, so
+      the component folds on its own width — the same contract
+      <a href="pagination.html">Pagination</a> folds under. The box below is 22 rem wide at
+      any viewport, so this is the folded state whatever you are reading it on.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <div style="max-width:22rem">
+        <nav class="cf-breadcrumb" aria-label="Sie sind hier — gefaltet">
+          <ol class="cf-breadcrumb__list" role="list">
+            <li class="cf-breadcrumb__item"><a class="cf-breadcrumb__link" href="#home">Home</a></li>
+            <li class="cf-breadcrumb__item"><a class="cf-breadcrumb__link" href="#news">News</a></li>
+            <li class="cf-breadcrumb__item">
+              <span class="cf-breadcrumb__current" aria-current="page">Digitale Zwillinge im Energiesektor</span>
+            </li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+    <p>
+      The current crumb is also the only item allowed to shrink, so a long title truncates
+      with an ellipsis rather than pushing the trail sideways. An <em>ancestor</em> never
+      truncates: a link whose destination you can no longer read is worse than a link that
+      is not there.
+    </p>
+    <div class="docs-note">
+      <strong>Why not an overflow menu.</strong> Carbon collapses the middle of a long trail
+      into a menu and Fluent does something close to it. Both need a script and both put a
+      second interactive thing inside a component whose entire job is one line of
+      orientation — and the crumb a reader on a phone actually uses is the parent, because
+      it is the way back up. Everything above the parent is one tap further away, not gone.
+      USWDS reaches the same place from the other direction: “mobile-friendly designs might
+      show only direct parents.”
+    </div>
+  </section>
+
+  <section class="docs-section" id="separator">
+    <h2>The separator</h2>
+    <p>
+      Every other system reaches for a character — <code>/</code>, <code>›</code>,
+      <code>»</code> — set in a <code>::before</code>. Three things are wrong with that here.
+    </p>
+    <ul>
+      <li>
+        It is a glyph from the body face standing in a row of mono labels: the only mark on
+        the line drawn by somebody else.
+      </li>
+      <li>
+        Its angle is whatever the typeface felt like. A solidus leans about 70°, which is
+        none of the four angles the brand sanctions.
+      </li>
+      <li>
+        CSS <code>content</code> with text in it is announced by some screen readers, so the
+        trail reads “News slash Analyse slash”. Every system that uses one then has to work
+        out how to hide it again.
+      </li>
+    </ul>
+    <p>
+      <code>content: ""</code> on a 1 px box rotated to a brand angle has none of those
+      problems. There is no text, so there is nothing to announce and nothing to suppress.
+      It is a hairline, which is what this system draws everything with. And it lands on
+      <code>--angle-a</code>, 63.43° — the steep isometric, the same line the lattice runs.
+      The rotation is written as <code>--angle-b</code> because the box starts vertical and
+      the two angles are complements: 90 − 26.57 = 63.43. Move <code>--angle-b</code> and
+      every separator on the site follows it.
+    </p>
+    <div class="docs-note">
+      <strong>It passes the line test.</strong>
+      <a href="../foundations/geometry.html#where-lines-go">Where a line may go</a> bans a
+      line that is neither an edge, a division nor a label rule, and a separator looks
+      exactly like the decoration that rule is aimed at. It is not one: there is a crumb on
+      each side of it, which is the definition of a division. The banned shape is the bar
+      with nothing on its far side.
+    </div>
+  </section>
+
+  <section class="docs-section" id="markup">
+    <h2>Markup</h2>
+    <pre class="docs-code">&lt;<span class="tag">nav</span> <span class="attr">class</span>=<span class="val">"cf-breadcrumb"</span> <span class="attr">aria-label</span>=<span class="val">"Sie sind hier"</span>&gt;
+  &lt;<span class="tag">ol</span> <span class="attr">class</span>=<span class="val">"cf-breadcrumb__list"</span> <span class="attr">role</span>=<span class="val">"list"</span>&gt;
+    &lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-breadcrumb__item"</span>&gt;&lt;<span class="tag">a</span> <span class="attr">class</span>=<span class="val">"cf-breadcrumb__link"</span> <span class="attr">href</span>=<span class="val">"/"</span>&gt;Home&lt;/<span class="tag">a</span>&gt;&lt;/<span class="tag">li</span>&gt;
+    &lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-breadcrumb__item"</span>&gt;&lt;<span class="tag">a</span> <span class="attr">class</span>=<span class="val">"cf-breadcrumb__link"</span> <span class="attr">href</span>=<span class="val">"/news"</span>&gt;News&lt;/<span class="tag">a</span>&gt;&lt;/<span class="tag">li</span>&gt;
+
+    <span class="com">&lt;!-- the current page is a span, never a link --&gt;</span>
+    &lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-breadcrumb__item"</span>&gt;
+      &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-breadcrumb__current"</span> <span class="attr">aria-current</span>=<span class="val">"page"</span>&gt;Digitale Zwillinge im Energiesektor&lt;/<span class="tag">span</span>&gt;
+    &lt;/<span class="tag">li</span>&gt;
+  &lt;/<span class="tag">ol</span>&gt;
+&lt;/<span class="tag">nav</span>&gt;</pre>
+    <p>
+      It goes inside <code>.cf-page-header__body</code>, immediately above the title, and it
+      brings its own bottom margin — the component owns that distance the way
+      <code>.cf-pagination</code> owns the air above itself, because it belongs to the shape
+      and every page wants the same one. Nothing else on the page sets it.
+    </p>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Row</td><td>Geist Mono, 11 px, uppercase, <code>--tracking-label</code>, one line, never wraps</td></tr>
+        <tr><td>Crumb at rest</td><td><code>--text-secondary</code>, no underline, no contour</td></tr>
+        <tr><td>Crumb on hover or focus</td><td><code>--text-primary</code> plus an underline at <code>0.25em</code> offset, 120 ms</td></tr>
+        <tr><td>Current crumb</td><td><code>--text-primary</code>, a <code>&lt;span&gt;</code>, truncates with an ellipsis</td></tr>
+        <tr><td>Separator</td><td>a 12 px <code>border-inline-start</code> in <code>currentColor</code>, rotated to <code>--angle-a</code> (63.43°)</td></tr>
+        <tr><td>Separator margins</td><td><code>--space-3</code> (12 px) each side — about 9 px of visible air after the lean</td></tr>
+        <tr><td>Target</td><td>28 px tall (<code>--space-2</code> above and below the 11 px line), ~29 px apart</td></tr>
+        <tr><td>Air below the trail</td><td><code>--space-4</code> (16 px), the component's own margin</td></tr>
+        <tr><td>Fold</td><td>30 rem of container — parent and current page kept, everything above removed</td></tr>
+        <tr><td>Maximum depth</td><td>four crumbs, counting the current page</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>Why there is no lime, no plate and no contour.</strong> A breadcrumb is the
+      quietest thing on a subpage — it is read once, by someone who arrived from a search
+      result and wants to know where they landed. The current crumb takes an ink step and
+      nothing else. Pagination spends a black plate on “this is the one” because there the
+      current page is one of eleven identical slots; here it is the last word on a line that
+      reads left to right, and position already says it.
+    </div>
+  </section>
+
+  <section class="docs-section" id="where">
+    <h2>Where it goes</h2>
+    <ul>
+      <li>
+        <strong>On a page that has a parent worth naming.</strong> Today that is the blog
+        article — <code>Home › News › Artikel</code>. It ships on
+        <a href="../patterns/blog-artikel.html">patterns/blog-artikel.html</a> and nowhere
+        else yet.
+      </li>
+      <li>
+        <strong>Not on a top-level page.</strong> News, Kontakt, Über uns and Karriere hang
+        directly off the home page, and <code>Home › Kontakt</code> tells a reader something
+        the nav bar already has highlighted. USWDS names the same exclusions: landing pages,
+        home pages, and simple sites.
+      </li>
+      <li>
+        <strong>Not on 404.</strong> There is no hierarchy above an address that does not
+        exist, and a trail that claims one is a guess.
+      </li>
+      <li>
+        <strong>Not for a step-by-step process.</strong> A trail says where you are in a
+        structure, not how far through a sequence — that is
+        <a href="arrival.html">Arrival &amp; Progress</a>.
+      </li>
+      <li>
+        <strong>A filter is not a level.</strong> <code>/news?thema=energie</code> is a
+        filtered view of the listing, not a page above the article, so it never appears in
+        the trail. The trail is the hierarchy, not the route the reader took to get here.
+      </li>
+    </ul>
+    <div class="docs-note">
+      <strong>Structured data is the server's, not the template's.</strong> USWDS ships an
+      RDFa variant, and a schema.org <code>BreadcrumbList</code> in JSON-LD does the same
+      job with no markup in the trail at all — one <code>itemListElement</code> per crumb,
+      in order. It is worth having, and it is deliberately not hard-coded into the pattern
+      page: a machine-readable trail that
+      drifts from the visible one is worse than none, so it has to be generated from the
+      same data the crumbs are. Whatever renders the trail renders the JSON-LD.
+    </div>
+  </section>
+
+  <section class="docs-section" id="a11y">
+    <h2>Accessibility</h2>
+    <ul>
+      <li>
+        A <code>&lt;nav&gt;</code> landmark with an <code>aria-label</code>. The label is
+        <em>Sie sind hier</em>, the German phrase for exactly this trail — not
+        “Navigation”, which the role already says, and not “Breadcrumb”, which names the
+        mechanism rather than what it tells you.
+      </li>
+      <li>
+        An <code>&lt;ol&gt;</code>, because the order is the meaning. <code>role="list"</code>
+        is on it because <code>list-style: none</code> removes the role in Safari.
+      </li>
+      <li>
+        <code>aria-current="page"</code> on the last crumb, and that crumb is a
+        <code>&lt;span&gt;</code>. The APG allows either a link or plain text there; this
+        system already settled it on <a href="pagination.html">Pagination</a> — a link to
+        where you already are is a stop in the tab order that answers nothing.
+      </li>
+      <li>
+        <strong>The separator is announced by nothing,</strong> because it contains nothing.
+        No <code>aria-hidden</code> is needed and none is used.
+      </li>
+      <li>
+        Targets are 28 px tall and ~29 px apart, past the 24 px floor WCAG 2.2 SC 2.5.8
+        sets. The inline exception is not being relied on: a nav list is not a sentence.
+      </li>
+      <li>
+        Contrast: <code>--text-secondary</code> on the page wash is 5.9:1 and the current
+        crumb is full ink. The separator takes <code>currentColor</code>, so it is the same
+        5.9:1 as the row it divides — separators are held to the same AA floor as text.
+      </li>
+      <li>
+        The focus ring is the system's, unchanged, and the underline arrives on
+        <code>:focus-visible</code> exactly as it does on hover.
+      </li>
+      <li>
+        <strong>Under forced colours the separator is a border, not a background.</strong>
+        Both draw the identical 1 px line, and the first version used a background — which
+        forced colours overrides to <code>Canvas</code>, so in Windows high contrast the
+        trail lost every separator and read as three labels with gaps between them. Border
+        colours are mapped into the forced palette rather than erased. Measured in
+        Chromium's forced-colors emulation, before and after.
+      </li>
+      <li>
+        <strong>The fold removes crumbs from the accessibility tree,</strong> not just from
+        view — <code>display: none</code> is the whole mechanism. That is the intent: on a
+        narrow screen the trail is the parent and the current page, for a pointer and a
+        screen reader alike. What is removed is reachable from the parent.
+      </li>
+    </ul>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Put it above the page title, inside the page header, on pages two or more levels deep.</li>
+          <li>Name the crumbs the way the destination names itself — the nav's word, the listing's word.</li>
+          <li>Shorten the current crumb if the title is long. It restates the H1; it does not have to repeat it.</li>
+          <li>Keep it to four crumbs. If you need five, the problem is the hierarchy.</li>
+          <li>Generate the JSON-LD from the same data as the trail, or ship neither.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Don't link the current page, and don't leave it out — it is what carries <code>aria-current</code>.</li>
+          <li>Don't put a filter, a search or a tag in the trail. Hierarchy only.</li>
+          <li>Don't use a character as the separator, and don't put an icon between crumbs.</li>
+          <li>Don't let it wrap to a second line — two rows of labels stop reading as one path.</li>
+          <li>Don't add it to a top-level page, to 404, or to a linear process.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>

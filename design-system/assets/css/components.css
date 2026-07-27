@@ -1381,6 +1381,142 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 }
 
 /* --------------------------------------------------------------------------
+   BREADCRUMB
+   The line above a subpage title that says where the page sits. Mono uppercase
+   like every other label in the system, a list of links, and the page you are
+   on as a <span> — the same decision .cf-pagination already made one section
+   down, for the same reason: a link to where you already are is a target that
+   answers nothing.
+
+   THE SEPARATOR IS DRAWN, NOT TYPED, and that is the one decision here worth
+   the paragraph.
+
+   Every other system reaches for a character — "/", "›", "»" — set in a
+   ::before. Three things are wrong with that here. It is a glyph from the
+   body face standing in a row of mono labels, so it is the only mark on the
+   line drawn by somebody else. Its angle is whatever the typeface felt like:
+   a solidus leans about 70°, which is none of the four the brand sanctions.
+   And CSS `content` with text in it is announced by some screen readers, so
+   the trail reads "News slash Analyse slash" — which is why every system that
+   uses one then has to work out how to hide it again.
+
+   `content: ""` on a 1 px box rotated to a brand angle has none of those
+   problems. There is no text, so there is nothing to announce and nothing to
+   suppress. It is a hairline, which is what this system draws everything
+   with. And it lands on --angle-a, 63.43°, the steep isometric — the same
+   line the lattice runs. The rotation is written as --angle-b because the box
+   starts vertical and the two angles are complements: 90 − 26.57 = 63.43.
+   Turn --angle-b and the separator follows it, which is the point of naming
+   it.
+
+   IT PASSES THE LINE TEST. `README.md` > Where a line may go bans a line that
+   is neither an edge, a division, nor a label rule — and a separator looks
+   exactly like the decoration that rule is aimed at. It is not: there is a
+   crumb on each side of it, which is the definition of a division. The banned
+   shape is the bar with nothing on its far side. Judge the drawing.
+
+   THE FOLD KEEPS THE LAST TWO. Below 30rem of container every crumb but the
+   parent and the current page is removed. Not an ellipsis and not an overflow
+   menu: the first needs a control to expand it and the second needs a script,
+   and both put a second interactive thing in a component whose whole job is
+   one line of orientation. The parent is the crumb a reader on a phone
+   actually uses — it is the way back up — and the current page has to stay
+   because it is the only thing carrying aria-current. Everything above the
+   parent is reachable from the parent.
+   -------------------------------------------------------------------------- */
+.cf-breadcrumb {
+  container-type: inline-size;
+  /* The component owns the air under it, the way .cf-pagination owns the air
+     above it: the distance belongs to the shape and every page wants the same
+     one. */
+  margin-bottom: var(--space-4);
+}
+.cf-breadcrumb__list {
+  display: flex;
+  align-items: center;
+  /* No wrap. A trail that wraps to a second line stops reading as one path
+     and starts reading as two rows of labels; the fold below is the answer
+     instead. */
+  flex-wrap: nowrap;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.cf-breadcrumb__item {
+  display: flex;
+  align-items: center;
+  /* Ancestors keep their full width; only the current page may shrink, and it
+     is the last child. A truncated ancestor is a link whose destination you
+     can no longer read. */
+  flex: none;
+  min-width: 0;
+  white-space: nowrap;
+}
+.cf-breadcrumb__item:last-child { flex: 0 1 auto; }
+
+.cf-breadcrumb__item + .cf-breadcrumb__item::before {
+  content: "";
+  flex: none;
+  height: 0.75rem;
+  margin-inline: var(--space-3);
+  /* A BORDER, NOT A BACKGROUND, and that is a forced-colours fix rather than a
+     style. Both draw the identical 1 px line, but forced colours overrides
+     background-color to Canvas — so the background version rendered a hairline
+     everywhere and nothing at all in Windows high contrast, where the trail
+     lost its separators and read as three labels with gaps between them.
+     Border colours are mapped to the forced palette instead of erased, so the
+     line survives. currentColor keeps it the same ink as the row it divides. */
+  width: 0;
+  border-inline-start: var(--stroke-1) solid currentColor;
+  rotate: var(--angle-b);
+}
+
+.cf-breadcrumb__link {
+  display: block;
+  /* 11 px type in a nav list is not the "inline" exception to WCAG 2.2
+     SC 2.5.8 — that covers a link inside a sentence. Padding takes the target
+     to 28 px tall, and the separator's own margins hold the row's targets
+     ~29 px apart. */
+  padding-block: var(--space-2);
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+/* Hover and focus are one state, as everywhere else in this file. The
+   underline arrives with them rather than sitting at rest: at rest the row is
+   uniform mono ink and the one thing that has to be distinguishable is which
+   crumb is NOT a link, which the ink step below does. */
+.cf-breadcrumb__link:is(:hover, :focus-visible) {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.cf-breadcrumb__current {
+  display: block;
+  padding-block: var(--space-2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary);
+}
+
+@container (max-width: 30rem) {
+  .cf-breadcrumb__item { display: none; }
+  .cf-breadcrumb__item:nth-last-child(-n + 2) { display: flex; }
+  /* Whatever is now first has no crumb to its left, so it has nothing to
+     divide. */
+  .cf-breadcrumb__item:nth-last-child(2)::before { content: none; }
+}
+
+/* --------------------------------------------------------------------------
    PAGE HEADER
    The opening of every subpage: display title, a rule that runs to the page
    edge, and a mono line split left/right underneath. An isometric object may

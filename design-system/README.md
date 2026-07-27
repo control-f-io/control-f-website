@@ -38,11 +38,11 @@ design-system/
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
 │                           illustration, logo, photo, motion, mobile,
 │                           page transitions, field, found state
-├── components/             buttons, nav, section header, statement + value table,
-│                           plot, process card, accordion, blog grid, subdivision
-│                           field, pagination, error + empty state, arrival +
-│                           progress, article + prose, table, team, forms,
-│                           footer, consent
+├── components/             buttons, nav, breadcrumb, section header, statement +
+│                           value table, plot, process card, accordion, blog grid,
+│                           subdivision field, pagination, error + empty state,
+│                           arrival + progress, article + prose, table, team,
+│                           forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, expertise.html,
 │                           ueber-uns.html,
 │                           news.html, blog-artikel.html, kontakt.html, 404.html
@@ -646,6 +646,24 @@ These were judgement calls, each documented on the relevant page:
   than as a mono label, because a row header is the row's subject — content — and the mono
   face in this system marks the things that are not prose.
   → `components/table.html`
+- **The breadcrumb's separator is drawn, not typed.** No plate in `assets/source/manual/`
+  shows a breadcrumb and neither mockup carries one, so `.cf-breadcrumb` is built only from
+  parts the manual does establish: the mono uppercase label, the hairline, and the four
+  angles. The separator is where that pays: every other system sets a character — `/`, `›`,
+  `»` — which is a glyph from the body face standing in a row of mono labels, leaning at
+  whatever angle the typeface felt like (a solidus is about 70°, none of the sanctioned
+  four), and which some screen readers announce, so the trail reads "News slash Analyse
+  slash". `content: ""` on a box rotated to `--angle-a`, its 1 px drawn as a
+  `border-inline-start`, has none of those problems: nothing to announce, nothing to
+  suppress, and the line lands on the steep isometric. It is a border rather than a
+  background because forced colours overrides `background-color` to `Canvas` and the first
+  version lost every separator in Windows high contrast; border colours are mapped into the
+  forced palette instead of erased. It is
+  a **division** under *Where a line may go* — a crumb on each side of it — not the banned
+  bar with nothing on its far side. The fold below 30 rem keeps the parent and the current
+  page rather than collapsing the middle into an overflow menu, because a menu needs a
+  script and puts a second interactive thing in a component whose job is one line of
+  orientation. → `components/breadcrumb.html`
 - **The hero carries a switch the mockups do not draw.** The loop runs 12 s and repeats
   forever behind the headline, which is exactly the content WCAG 2.2.2 *Pause, Stop, Hide*
   (level A) requires a reader-operable mechanism over. `prefers-reduced-motion` is not that
