@@ -341,6 +341,17 @@ These were judgement calls, each documented on the relevant page:
   columns rising 31 → 100 the recession cancelled almost the whole climb and the tallest
   column was drawn *lower* than the shortest. The level row is still a lattice step:
   (2u, +u) + (2u, −u) = (4u, 0). → `components/plot.html`
+- **The hero carries a switch the mockups do not draw.** The loop runs 12 s and repeats
+  forever behind the headline, which is exactly the content WCAG 2.2.2 *Pause, Stop, Hide*
+  (level A) requires a reader-operable mechanism over. `prefers-reduced-motion` is not that
+  mechanism — it is a sufficient technique for 2.3.3, a different criterion, and 2.2.2 does
+  not mention it. The system had the preference and not the mechanism, so this was a level A
+  failure on the one page carrying video. The fix is a checkbox and two sibling selectors:
+  checked hides the loop and shows the still, which is the third of the criterion's own three
+  verbs and the only one CSS can reach alone. **No script** — a scripted control is absent
+  for exactly the readers most likely to need it. Under reduced motion the control is
+  *removed*, not hidden: nothing is moving, so a switch that changes nothing is worse than
+  none. → `foundations/motion.html#hero`
 - **Isometric contours use `vector-effect: non-scaling-stroke`.** "1 px contour at every
   size" is a device pixel. A 640-unit drawing shown at 352 px would otherwise put its
   contours on screen at 0.55 px. The one exception is `.cf-iso__trace`: under

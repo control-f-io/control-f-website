@@ -2833,14 +2833,129 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 }
 
 /* --------------------------------------------------------------------------
-   HERO — reduced motion
+   HERO — the still switch, and reduced motion
    The loop is the one infinite animation in the system, so it is also the one
-   that has to be switched off by hand. The poster carries the hero instead.
+   that has to be switched off by hand. There are two doors to the same room,
+   and they are not interchangeable:
+
+     prefers-reduced-motion   the OS preference. A default, applied silently.
+     .cf-hero__still-toggle   the reader's own switch, on the page.
+
+   The second is not a nicety on top of the first. WCAG 2.2.2 (level A) asks
+   for a MECHANISM over content that moves automatically for more than five
+   seconds alongside other content; this loop is 12 s and repeats forever, and
+   prefers-reduced-motion is named nowhere in that criterion — it is sufficient
+   for 2.3.3, which is a different question. So the switch is the conformance
+   and the media query is the courtesy.
+
+   Both doors do the identical thing: hide the loop, show the still. "Hide" is
+   the third of the criterion's own three verbs, and it is the only one CSS can
+   reach — display: none removes the video from the presentation but does not
+   pause the element, so decoding continues in the background. That is an honest
+   cost and it is worth naming: what the reader gets back is that nothing moves,
+   without a line of script, and with JS off. A scripted video.pause() would also
+   stop the decode; it would also make the mechanism disappear exactly for the
+   readers most likely to have scripting turned off.
+
+   The switch reads FIRST in the markup so these sibling selectors can reach
+   both media elements. Keep it there.
    -------------------------------------------------------------------------- */
 .cf-hero__media img { display: none; }
+.cf-hero__still-toggle:checked ~ video { display: none; }
+.cf-hero__still-toggle:checked ~ img   { display: block; }
+
+.cf-hero__media { --hero-still-top: calc(var(--nav-height) + var(--space-4)); }
+
+/* The input is not `.visually-hidden`, and that is a fix rather than a style.
+   The hero is pulled up by the nav's height, so its media box starts ABOVE the
+   top of the document — and a 1 px clipped input pinned to that box's origin is
+   off-screen. Chromium scrolls a focused element into view, so tabbing to the
+   switch yanked the page upward before the plate the reader is aiming at had
+   been drawn. The input therefore occupies exactly the plate's box, transparent
+   and not hit-testable: focus lands where the control is, the label takes every
+   click, and the accessible checkbox is still a real checkbox. */
+.cf-hero__still-toggle {
+  position: absolute;
+  z-index: 1;
+  top: var(--hero-still-top);
+  right: var(--gutter);
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+/* An opaque plate, not glass. The token file allows exactly two blurred layers
+   on a page and both are already spent here — the navigation band and the hero
+   button — so this control takes the opaque material layer instead. Black also
+   holds its own contrast against whatever frame of the artwork is underneath it,
+   which a translucent plate over a moving image cannot promise. */
+.cf-hero__still {
+  position: absolute;
+  z-index: 1;
+  top: var(--hero-still-top);
+  right: var(--gutter);
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: var(--stroke-1) solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  /* Both resolve against data-theme="inverse" on the label itself: black plate,
+     white contour, white marks, lime focus ring — the same flip the footer and
+     the dark button already take. */
+  background: var(--surface-base);
+  color: var(--text-primary);
+  cursor: pointer;
+  /* The control acknowledging a pointer, which is --duration-fast by doctrine.
+     Nothing here is light crossing a surface. */
+  transition: background var(--duration-fast) var(--ease-standard),
+              border-color var(--duration-fast) var(--ease-standard);
+}
+/* The plate is already black, so hover lifts rather than deepens — there is
+   nothing under black to go to. Same move as .cf-btn--solid. */
+.cf-hero__still:hover { background: var(--surface-raised); }
+/* The input carries the focus, the label carries the ring. */
+.cf-hero__still-toggle:focus-visible ~ .cf-hero__still {
+  outline: var(--stroke-2) solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.cf-hero__still-mark {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: currentColor;
+  stroke-width: var(--stroke-1);
+  /* Contour before fill: both marks are drawn, not filled — the same rule the
+     icon set and the illustrations hold to. */
+  fill: none;
+}
+/* Each mark names the NEXT action, so the pair swaps with the state: bars while
+   the loop runs, the triangle once it has stopped. */
+.cf-hero__still-mark--play { display: none; }
+.cf-hero__still-toggle:checked ~ .cf-hero__still .cf-hero__still-mark--pause { display: none; }
+.cf-hero__still-toggle:checked ~ .cf-hero__still .cf-hero__still-mark--play  { display: block; }
+
+/* LAST, and that is the whole reason it is down here rather than up with the
+   two ~ rules it belongs to. `display: none` on .cf-hero__still has to beat the
+   `display: grid` above it, and both selectors weigh (0,1,0) — a media query
+   adds nothing to specificity, so above the plate's own rule this block lost
+   silently and the control stayed on screen with nothing left for it to switch.
+   Caught in the browser, not read off the cascade. */
 @media (prefers-reduced-motion: reduce) {
   .cf-hero__media video { display: none; }
   .cf-hero__media img   { display: block; }
+  /* Nothing is moving, so there is nothing to switch off. The control is not
+     merely hidden — it is removed, because a switch whose state cannot change
+     what the reader sees is worse than no switch at all. */
+  .cf-hero__still-toggle,
+  .cf-hero__still { display: none; }
+}
+
+@media (max-width: 780px) {
+  /* The navigation is full-bleed at this width and the headline climbs, so the
+     control tucks a rung closer under the bar. One custom property moves both
+     the plate and the input that has to stay under it. */
+  .cf-hero__media { --hero-still-top: calc(var(--nav-height) + var(--space-3)); }
 }
 
 /* --------------------------------------------------------------------------
