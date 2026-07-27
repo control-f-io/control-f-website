@@ -184,6 +184,20 @@
       object at the same time. It is not wrong, but it is not designed either.
     </div>
     <div class="docs-note">
+      <strong>A tablet is the widest measure this site draws, not the desktop.</strong>
+      Every threshold in the table above is at 612 or over 780, so a 768 viewport sits in
+      the gap: one column, full width, and — this is the part that surprises — still at
+      the <em>narrow</em> type size, because the queries that step the type up are the
+      same ones that split the column. The two move against each other, and 768 is where
+      they are both at their worst. Measured on
+      <a href="../patterns/expertise.html">expertise</a>, characters per line in
+      <code>.cf-value-row__body</code> before this was capped:
+      <strong>36.5 at 375, 81.4 at 768, 68.1 at 1024, 93.7 at 1280</strong> — the tablet
+      reading longer than the laptop. The fix is not a threshold. It is
+      <code>--measure</code>, which the system already had and which that component
+      read nowhere; it now caps at 56ch from 768 up and leaves 375 untouched.
+    </div>
+    <div class="docs-note">
       <strong>One height threshold.</strong> At a viewport <em>height</em> of 560 or less
       — a phone in landscape — the consent banner caps at 70vh and scrolls inside itself,
       so it cannot swallow the page it is asking about. It is the only height query in the
@@ -267,11 +281,32 @@
     </div>
     <div class="docs-note">
       <strong>Measured: no page overflows sideways at any width down to 320.</strong> All
-      seven pattern pages, at 320 / 375 / 390 / 768, have
-      <code>scrollWidth === clientWidth</code> to the pixel. That is not luck — it is
+      <strong>twelve</strong> pattern pages, at 320 / 375 / 390 / 768 / 1280 / 1920, have
+      <code>scrollWidth === clientWidth</code> to the pixel — 72 measurements, none of
+      them off by a subpixel. That is not luck — it is
       <code>minmax(0, 1fr)</code> on every grid track that holds text and
       <code>overflow-x: auto</code> on the three things that genuinely cannot shrink:
       tables, <code>&lt;pre&gt;</code>, and the documentation's own table wrapper.
+    </div>
+    <div class="docs-note">
+      <strong>This note said "seven pattern pages" until there were twelve.</strong> It
+      was true when it was written and it went false without anybody touching it, which
+      is the failure mode a measured claim has that a rule does not: the rule still
+      holds, the count behind it quietly stopped covering the section. The five pages
+      added since — <code>suche</code>, <code>karriere</code>, <code>datenschutz</code>,
+      <code>impressum</code>, <code>karriere-stelle</code> — have now been through the
+      same measurement, and the two widths above the phone were added at the same time
+      because a claim about <code>scrollWidth</code> that stops at 768 is not a claim
+      about the site.
+    </div>
+    <div class="docs-note">
+      <strong>It went stale again while this was being written.</strong> The count above
+      read <em>eleven</em> when it was measured and <em>twelve</em> by the time it was
+      committed — <code>karriere-stelle</code> landed in between, and it was re-measured
+      rather than assumed to compose safely from the same components. That is the
+      argument for the number being here at all: a count that can go false in one hour
+      is a count worth re-running, and the honest form of this note is the figure plus
+      what it was measured on, never the figure alone.
     </div>
   </section>
 
