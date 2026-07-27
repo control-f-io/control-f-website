@@ -116,13 +116,37 @@
       requestAnimationFrame(function () {
         requestAnimationFrame(function () { delete banner.dataset.enter; });
       });
-      /* The banner sits immediately after the skip link, so it is already first
-         in reading and tab order. Focus moves to its heading too, because a visitor who
-         has begun reading further down would otherwise never meet the thing
-         asking them a question. The heading is the target rather than the
-         accept button, so nothing is pre-selected. */
-      var title = banner.querySelector('[data-cf-consent-title]');
-      if (title) title.focus();
+      /* NO FOCUS MOVE, and the sentence that used to be here says why it was
+         never needed. It read: "The banner sits immediately after the skip
+         link, so it is already first in reading and tab order" — and then
+         moved focus to the heading anyway. Both halves cannot be true. If the
+         banner is already the second stop, the focus move buys one Tab press;
+         what it costs is the first stop, because the skip link is BEFORE the
+         banner in the document and every forward Tab from inside the banner
+         goes further down the page, never back to it.
+
+         Measured on the landing page, first visit, banner shown: the skip
+         link was 47 Tab presses away at 375 px and 52 at 1280 — the whole
+         page, chrome and all — against 1 press on a return visit with the
+         decision stored. It is one Shift+Tab backwards, which is not how
+         anybody looks for a skip link. A bypass block reachable only after
+         the thing it exists to bypass is not a bypass block.
+
+         The reason the old comment gave for moving focus — "a visitor who has
+         begun reading further down would otherwise never meet the thing asking
+         them a question" — does not describe this moment. This runs at
+         DOMContentLoaded on a fresh navigation, where focus is at the start of
+         the document and nobody has begun reading anything; and the banner is
+         a fixed layer, so it is on screen at whatever scroll position a
+         restored page opens at. It is met either way, and it is announced
+         either way: it is role="dialog", non-modal, and second in the
+         document, so a screen reader arrives at it immediately after the skip
+         link rather than instead of it.
+
+         The settings dialog is the other half of this and keeps its focus
+         handling exactly: it is opened BY the reader, it is a real
+         <dialog>.showModal(), and openDialog/the close listener below still
+         move focus in and hand it back to whatever opened it. */
     }
 
     /* Matches --duration-base, and its reduced-motion override, so the banner
