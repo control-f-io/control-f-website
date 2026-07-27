@@ -49,14 +49,13 @@
      column: no view timelines, reduced motion, print, or under 820 px and
      the four fields are four blocks, each with its object above its copy.
      ------------------------------------------------------------------ */
+  /* The step is layout and timing only. Everything that used to be drawn
+     here — the plate, the type scale, the ruled question, the chips — is
+     .cf-info-card now, because a second page wanted it. That is the line
+     this block's own preamble draws, and this is the first time it moved. */
   .ex-steps { display: grid; gap: var(--space-12); }
-  .ex-step {
-    display: grid;
-    gap: var(--space-8);
-    border: var(--stroke-1) solid var(--border-strong);
-    background: var(--surface-card);
-    padding: var(--space-8);
-  }
+  .ex-step { display: grid; gap: var(--space-8); }
+  .ex-plate { display: none; }
   .ex-step__figure { display: grid; place-items: center; }
   /* ON THE SAME GRID AS THE FLOOR, not merely near it. The object is drawn on
      a lattice whose cell is 112 viewBox units wide (2 x the generator's U), so
@@ -66,42 +65,6 @@
      column and the two lattices would be at unrelated scales, which is what
      made the first pass read as two grids fighting. */
   .ex-step__figure svg { width: calc(var(--vb-w) / 112 * var(--field-unit)); max-width: 100%; height: auto; }
-  .ex-step__count { color: var(--text-muted); }
-  .ex-step__title {
-    margin-top: var(--space-2);
-    font-family: var(--font-display); font-size: var(--text-h1);
-    font-weight: var(--weight-bold); letter-spacing: var(--tracking-display);
-  }
-  .ex-step__sub { margin-top: var(--space-2); color: var(--text-secondary); }
-  .ex-step__body { margin-top: var(--space-5); max-width: 52ch; color: var(--text-secondary); }
-  /* The question the field actually asks. Ruled rather than boxed — a line
-     is the system's own way of setting something apart. */
-  .ex-step__ask {
-    margin-top: var(--space-6);
-    padding-left: var(--space-5);
-    border-left: var(--stroke-2) solid var(--border-strong);
-    font-size: var(--text-lg);
-    max-width: 44ch;
-  }
-  .ex-step__facts {
-    margin-top: var(--space-8);
-    display: grid; gap: var(--space-6);
-    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-  }
-  .ex-step__label { color: var(--text-muted); }
-  .ex-chips {
-    margin-top: var(--space-3); padding: 0; list-style: none;
-    display: flex; flex-wrap: wrap; gap: var(--space-2);
-    font-family: var(--font-mono); font-size: var(--text-xs);
-    letter-spacing: var(--tracking-label); text-transform: uppercase;
-  }
-  .ex-chips li {
-    padding: var(--space-1) var(--space-3);
-    border: var(--stroke-1) solid var(--border-default);
-    border-radius: var(--radius-sm);
-    color: var(--text-secondary);
-  }
-
   .ex-index, .ex-bar { display: none; }
 
   /* THE GROUND UNDER THE BUILD.
@@ -154,9 +117,38 @@
            has to start below it or the index reads through the bar. */
         padding-block: calc(var(--nav-height) + var(--space-4)) var(--space-12);
       }
-      .ex-steps { display: grid; gap: 0; align-items: center; }
-      .ex-steps > * { grid-area: 1 / 1; }
-      .ex-step { border: 0; background: none; padding: 0; opacity: 0; }
+      /* THE LECTERN. One plate of glass under the copy column, and the four
+         cards hand over on top of it — rather than four plates taking turns,
+         which is what four .cf-info-cards stacked in one grid area would be.
+         The reason is in the component's own comment and it is a hard number:
+         tokens.css allows exactly two blurred layers on a page and the
+         navigation band is one of them. It is also the better drawing. A
+         lectern does not change when the page on it does.
+
+         .ex-steps takes the step's own two columns so the plate can sit in
+         the second of them; a step spans both, and since the templates and
+         the gap are identical the two grids' column edges coincide exactly.
+         align-content rather than a stretched row, so the implicit row is
+         content-sized and the plate can stretch to the tallest card instead
+         of to the whole stage. */
+      .ex-steps {
+        display: grid; gap: 0;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+        column-gap: var(--space-12);
+        align-content: center; align-items: center;
+      }
+      .ex-steps > .ex-step { grid-area: 1 / 1 / 2 / 3; }
+      .ex-plate { display: block; grid-area: 1 / 2 / 2 / 3; align-self: stretch; }
+      .ex-step { opacity: 0; }
+      .ex-step .cf-info-card {
+        background-color: transparent;
+        -webkit-backdrop-filter: none;
+                backdrop-filter: none;
+        border-color: transparent;
+      }
+      /* The rim belongs to the plate, so the cards give theirs up with the
+         material. Padding stays: it is what insets the copy on the plate. */
+      .ex-step .cf-info-card::before { content: none; }
       .ex-index, .ex-bar { display: block; }
       .ex-index { display: flex; }
 
@@ -444,6 +436,8 @@
           </ol>
 
           <div class="ex-steps">
+            <!-- ONE plate, not four. See THE LECTERN below. -->
+            <div class="ex-plate cf-info-card" aria-hidden="true"></div>
             <article class="ex-step" style="--i:0" aria-labelledby="feld-01">
               <div class="ex-step__figure">
 <svg class="cf-iso" style="--vb-w:620; --iso-travel: 15.5" viewBox="-9.6 108.26 620 423.94" fill="none" aria-hidden="true">
@@ -556,16 +550,16 @@
                   </g>
                 </svg>
               </div>
-              <div class="ex-step__copy">
-                <p class="ex-step__count t-label">01 / 04</p>
-                <h3 class="ex-step__title" id="feld-01">Maschinenbau</h3>
-                <p class="ex-step__sub t-label">Rotierende Assets</p>
-                <p class="ex-step__body">Drehzahl, Schwingung, Temperatur, Druck: rotierende Maschinen erzeugen die dichtesten Telemetriedaten im ganzen Portfolio, oft im Millisekundentakt und über Jahre hinweg. Der Wert steckt nicht im einzelnen Messwert, sondern in der Kurve davor — und die ist nur zu sehen, wenn die Historie vollständig und zeitlich sauber ist.</p>
-                <p class="ex-step__ask">Welche Einheit läuft aus dem Muster — und seit wann?</p>
-                <div class="ex-step__facts">
+              <div class="cf-info-card ex-step__copy">
+                <p class="cf-info-card__count t-label">01 / 04</p>
+                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-01">Maschinenbau</h3>
+                <p class="cf-info-card__sub t-label">Rotierende Assets</p>
+                <p class="cf-info-card__body">Drehzahl, Schwingung, Temperatur, Druck: rotierende Maschinen erzeugen die dichtesten Telemetriedaten im ganzen Portfolio, oft im Millisekundentakt und über Jahre hinweg. Der Wert steckt nicht im einzelnen Messwert, sondern in der Kurve davor — und die ist nur zu sehen, wenn die Historie vollständig und zeitlich sauber ist.</p>
+                <p class="cf-info-card__ask">Welche Einheit läuft aus dem Muster — und seit wann?</p>
+                <div class="cf-info-card__facts">
                   <div>
-                    <p class="ex-step__label t-label">Signale</p>
-                    <ul class="ex-chips" role="list">
+                    <p class="cf-info-card__label t-label">Signale</p>
+                    <ul class="cf-info-card__chips" role="list">
                       <li>Drehzahl</li>
                       <li>Schwingung</li>
                       <li>Lagertemperatur</li>
@@ -574,8 +568,8 @@
                     </ul>
                   </div>
                   <div>
-                    <p class="ex-step__label t-label">Assets</p>
-                    <ul class="ex-chips" role="list">
+                    <p class="cf-info-card__label t-label">Assets</p>
+                    <ul class="cf-info-card__chips" role="list">
                       <li>Motoren</li>
                       <li>Gasturbinen</li>
                       <li>Benzinmotoren</li>
@@ -748,16 +742,16 @@
                   </g>
                 </svg>
               </div>
-              <div class="ex-step__copy">
-                <p class="ex-step__count t-label">02 / 04</p>
-                <h3 class="ex-step__title" id="feld-02">Großanlagen</h3>
-                <p class="ex-step__sub t-label">Prozess und Verfügbarkeit</p>
-                <p class="ex-step__body">Eine Anlage ist kein Asset, sondern ein Netz aus tausenden. Wir modellieren sie als das, was sie ist: verbundene Ströme, deren Zustände sich gegenseitig erklären. Erst dann lässt sich eine Abweichung einem Teil zuordnen statt einer Schicht.</p>
-                <p class="ex-step__ask">Welcher Teil der Kette begrenzt gerade den Durchsatz?</p>
-                <div class="ex-step__facts">
+              <div class="cf-info-card ex-step__copy">
+                <p class="cf-info-card__count t-label">02 / 04</p>
+                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-02">Großanlagen</h3>
+                <p class="cf-info-card__sub t-label">Prozess und Verfügbarkeit</p>
+                <p class="cf-info-card__body">Eine Anlage ist kein Asset, sondern ein Netz aus tausenden. Wir modellieren sie als das, was sie ist: verbundene Ströme, deren Zustände sich gegenseitig erklären. Erst dann lässt sich eine Abweichung einem Teil zuordnen statt einer Schicht.</p>
+                <p class="cf-info-card__ask">Welcher Teil der Kette begrenzt gerade den Durchsatz?</p>
+                <div class="cf-info-card__facts">
                   <div>
-                    <p class="ex-step__label t-label">Signale</p>
-                    <ul class="ex-chips" role="list">
+                    <p class="cf-info-card__label t-label">Signale</p>
+                    <ul class="cf-info-card__chips" role="list">
                       <li>Durchfluss</li>
                       <li>Druck</li>
                       <li>Füllstand</li>
@@ -766,8 +760,8 @@
                     </ul>
                   </div>
                   <div>
-                    <p class="ex-step__label t-label">Assets</p>
-                    <ul class="ex-chips" role="list">
+                    <p class="cf-info-card__label t-label">Assets</p>
+                    <ul class="cf-info-card__chips" role="list">
                       <li>Bohrinseln</li>
                       <li>Gaspipelines</li>
                       <li>Kraftwerke</li>
@@ -916,16 +910,16 @@
                   </g>
                 </svg>
               </div>
-              <div class="ex-step__copy">
-                <p class="ex-step__count t-label">03 / 04</p>
-                <h3 class="ex-step__title" id="feld-03">Erneuerbare</h3>
-                <p class="ex-step__sub t-label">Speicher und Wandlung</p>
-                <p class="ex-step__body">Erzeugung schwankt, Speicher altern, Elektrolyse hat ihren eigenen Wirkungsgrad. Wer hier mit Tagesmitteln rechnet, verliert genau die Auflösung, in der Degradation und Verfügbarkeit sichtbar werden. Wir rechnen auf Zellebene und behalten den Zeitbezug.</p>
-                <p class="ex-step__ask">Wie viel Kapazität ist nach drei Jahren wirklich noch da?</p>
-                <div class="ex-step__facts">
+              <div class="cf-info-card ex-step__copy">
+                <p class="cf-info-card__count t-label">03 / 04</p>
+                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-03">Erneuerbare</h3>
+                <p class="cf-info-card__sub t-label">Speicher und Wandlung</p>
+                <p class="cf-info-card__body">Erzeugung schwankt, Speicher altern, Elektrolyse hat ihren eigenen Wirkungsgrad. Wer hier mit Tagesmitteln rechnet, verliert genau die Auflösung, in der Degradation und Verfügbarkeit sichtbar werden. Wir rechnen auf Zellebene und behalten den Zeitbezug.</p>
+                <p class="cf-info-card__ask">Wie viel Kapazität ist nach drei Jahren wirklich noch da?</p>
+                <div class="cf-info-card__facts">
                   <div>
-                    <p class="ex-step__label t-label">Signale</p>
-                    <ul class="ex-chips" role="list">
+                    <p class="cf-info-card__label t-label">Signale</p>
+                    <ul class="cf-info-card__chips" role="list">
                       <li>Zellspannung</li>
                       <li>Ladezustand</li>
                       <li>Stackstrom</li>
@@ -934,8 +928,8 @@
                     </ul>
                   </div>
                   <div>
-                    <p class="ex-step__label t-label">Assets</p>
-                    <ul class="ex-chips" role="list">
+                    <p class="cf-info-card__label t-label">Assets</p>
+                    <ul class="cf-info-card__chips" role="list">
                       <li>Batteriespeicher, klein und groß</li>
                       <li>Wasserstoff-Elektrolyseure</li>
                       <li>Windparks</li>
@@ -1100,16 +1094,16 @@
                   </g>
                 </svg>
               </div>
-              <div class="ex-step__copy">
-                <p class="ex-step__count t-label">04 / 04</p>
-                <h3 class="ex-step__title" id="feld-04">Flotten</h3>
-                <p class="ex-step__sub t-label">Viele gleiche Assets</p>
-                <p class="ex-step__body">Eine Flotte ist eine Wiederholung, und damit die beste Datenlage, die es gibt: was an einer Einheit auffällt, lässt sich sofort an allen anderen prüfen. Der schwierige Teil ist nicht das Modell, sondern die Verbindung — bewegte Assets liefern unvollständig, verspätet und in Schüben.</p>
-                <p class="ex-step__ask">Einzelfall oder Serienfehler?</p>
-                <div class="ex-step__facts">
+              <div class="cf-info-card ex-step__copy">
+                <p class="cf-info-card__count t-label">04 / 04</p>
+                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-04">Flotten</h3>
+                <p class="cf-info-card__sub t-label">Viele gleiche Assets</p>
+                <p class="cf-info-card__body">Eine Flotte ist eine Wiederholung, und damit die beste Datenlage, die es gibt: was an einer Einheit auffällt, lässt sich sofort an allen anderen prüfen. Der schwierige Teil ist nicht das Modell, sondern die Verbindung — bewegte Assets liefern unvollständig, verspätet und in Schüben.</p>
+                <p class="cf-info-card__ask">Einzelfall oder Serienfehler?</p>
+                <div class="cf-info-card__facts">
                   <div>
-                    <p class="ex-step__label t-label">Signale</p>
-                    <ul class="ex-chips" role="list">
+                    <p class="cf-info-card__label t-label">Signale</p>
+                    <ul class="cf-info-card__chips" role="list">
                       <li>Position</li>
                       <li>Last</li>
                       <li>Betriebsstunden</li>
@@ -1118,8 +1112,8 @@
                     </ul>
                   </div>
                   <div>
-                    <p class="ex-step__label t-label">Assets</p>
-                    <ul class="ex-chips" role="list">
+                    <p class="cf-info-card__label t-label">Assets</p>
+                    <ul class="cf-info-card__chips" role="list">
                       <li>Flugzeuge</li>
                       <li>Minenausrüstung</li>
                       <li>Schiffe</li>
