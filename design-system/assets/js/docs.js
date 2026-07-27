@@ -34,6 +34,7 @@
       { href: 'components/statement.html',      label: 'Statement & Value Table' },
       { href: 'components/plot.html',           label: 'Plot' },
       { href: 'components/process-card.html',   label: 'Process Card' },
+      { href: 'components/info-card.html',      label: 'Info Card' },
       { href: 'components/accordion.html',      label: 'Accordion / FAQ' },
       { href: 'components/blog-grid.html',      label: 'Blog Grid' },
       { href: 'components/subdivision-field.html', label: 'Subdivision Field' },

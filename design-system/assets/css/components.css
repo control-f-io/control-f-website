@@ -1914,6 +1914,128 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 }
 
 /* --------------------------------------------------------------------------
+   INFO CARD
+   A field of copy on a plate of glass: a count, a title, a subtitle, a
+   paragraph, the question the subject actually asks, and the facts under it.
+
+   THE MATERIAL IS A MODIFIER, AND THAT IS NOT A CONVENIENCE. The base card is
+   layout and type; --glass is what makes it a plate. The first version of this
+   component was glass unconditionally and Expertise turned the material off
+   again in its own stylesheet for the four cards that did not need it —
+   which check-glass-budget.py counted, correctly, as six blurred layers on a
+   two-layer page. That checker reads the HTML rather than resolving the
+   cascade, on purpose: a census with an unstated exception in it is worse than
+   no census. But it was right on the design too. A class that says "I am
+   glass" and a page-local rule that says "except here" is exactly the drift
+   these scripts exist to stop, and the budget should be legible from the
+   markup. Carry the modifier where the material is spent.
+
+   BEARING GLASS, NOT VEIL. Text sits directly on this, so --glass takes
+   --surface-glass and its 4.5:1 floor — see the measurement in tokens.css
+   section 9, which is the reason that tint has almost no room to move. The
+   no-blur and reduced-transparency fallbacks are already in the tokens, so
+   there is nothing to write here: the surface goes opaque and the card keeps
+   its contrast.
+
+   WHERE THE MODIFIER BELONGS. foundations/materials.html states the material's
+   rule in one line — Milchglas "exists to calm a complex graphic beneath it,
+   never to sit on a flat surface, where it is only a grey box". So --glass
+   goes on a card that stands on the ground, on an illustration, on anything a
+   reader can still see through it, and nowhere else. And a shipping page gets
+   two blurred layers with the navigation band always one of them, so it goes
+   on ONE card per page. The pinned Expertise stage is the case that came up
+   first: the material is on a single empty card under the copy column and the
+   four cards hand over on top of it, unfrosted. One lectern, changing copy —
+   which is also the better drawing, because a lectern does not change when the
+   page on it does.
+
+   THE TITLE TAKES THE FOIL, and does not take it from here either.
+   .text-foil--ink is authored on the element by the page, because the
+   one-foil-moment-per-screen budget is a fact about the SCREEN and a component
+   cannot know how many of itself are on one. Ink, never the lit half: this
+   surface is light.
+
+   The lit rim is the same one pixel of Weiss-Glas-Sky that .cf-nav::after and
+   .cf-btn--glass end at — glass in this brand is edged with light, never
+   outlined with ink. -------------------------------------------------------- */
+.cf-info-card {
+  position: relative;
+  isolation: isolate;
+  padding: var(--space-8);
+  background: var(--surface-card);
+  border: var(--stroke-1) solid var(--border-strong);
+}
+/* The material, and it REPLACES the surface rather than sitting on it. */
+.cf-info-card--glass {
+  background-color: var(--surface-glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+          backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+}
+/* The rim, and it belongs to the material rather than to the card. Above the
+   content rather than under it, so it survives a card whose first line starts
+   at the padding edge, and pointer-transparent so it cannot eat a click on
+   anything inside. */
+.cf-info-card--glass::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: var(--stroke-1);
+  background-image: var(--glass-edge);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cf-info-card__count { color: var(--text-muted); }
+.cf-info-card__title {
+  margin-top: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-display);
+}
+.cf-info-card__sub { margin-top: var(--space-2); color: var(--text-secondary); }
+.cf-info-card__body { margin-top: var(--space-5); max-width: 52ch; color: var(--text-secondary); }
+/* The question the subject actually asks. Ruled rather than boxed — a line is
+   the system's own way of setting something apart, and a second box inside a
+   card is a card inside a card. */
+.cf-info-card__ask {
+  margin-top: var(--space-6);
+  padding-left: var(--space-5);
+  border-left: var(--stroke-2) solid var(--border-strong);
+  font-size: var(--text-lg);
+  max-width: 44ch;
+}
+.cf-info-card__facts {
+  margin-top: var(--space-8);
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+.cf-info-card__label { color: var(--text-muted); }
+/* The chips belong to the card rather than to the system: a global chip would
+   be a fifth way of drawing a small bordered label, and the four that exist
+   are all doing something this is not. */
+.cf-info-card__chips {
+  margin-top: var(--space-3);
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+.cf-info-card__chips li {
+  padding: var(--space-1) var(--space-3);
+  border: var(--stroke-1) solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+/* --------------------------------------------------------------------------
    LOGO WALL
    Partner + technology marks, desaturated into the background so they read
    as texture rather than as claims.
