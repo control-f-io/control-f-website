@@ -78,12 +78,13 @@ design-system/
 │                           page transitions, field, found state, line of sight
 ├── components/             buttons, nav, breadcrumb, section header, statement +
 │                           value table, plot, process card, accordion, blog grid,
-│                           subdivision field, pagination, error + empty state,
-│                           arrival + progress, article + prose, table, team,
-│                           forms, footer, consent
+│                           subdivision field, search + results, pagination,
+│                           error + empty state, arrival + progress,
+│                           article + prose, table, team, forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, expertise.html,
 │                           ueber-uns.html,
-│                           news.html, blog-artikel.html, kontakt.html, 404.html
+│                           news.html, blog-artikel.html, suche.html,
+│                           kontakt.html, 404.html
 ├── prototypes/             motion studies — standalone, not yet system
 ├── reference.html          the designer's source material, next to what implements it
 └── assets/
@@ -435,11 +436,55 @@ boundary against CF-Grau is the same 1.37:1 and that is documented rather than f
 transient, self-caused and under the reader's own hand, so the platform's convention wins over
 the system's consistency. Every mark the reader did *not* make carries the ground line.
 
-**Nothing dynamic ships here** — the same standing [the field](#the-field) and the arrival
-ladder have. `hidden="until-found"` has no application in the system today, because the one
-place the site collapses real prose is the accordion, which is `<details>` and already opens on
-a find. The chapter documents it so the first thing that does need it does not reach for
-`display: none`.
+`hidden="until-found"` has no application in the system today, because the one place the site
+collapses real prose is the accordion, which is `<details>` and already opens on a find. The
+chapter documents it so the first thing that does need it does not reach for `display: none`.
+
+**The chapter used to say nothing dynamic shipped here** — the same standing
+[the field](#the-field) and the arrival ladder still have. That is no longer true, and the
+next section is why.
+
+## Contour here, light there
+
+The found state settled what a match looks like and then had no page to be on: the system
+could draw an answer and had nowhere to answer anything. `components/search.html` and
+`patterns/suche.html` are that page — the surface the company is **named after**, and the last
+major one the site was missing.
+
+`.cf-result` is not a card. No box, no fill, no corner: a block of type standing on a rule,
+which is the claim the found state already makes about a marked word one scale down — an
+isometric object has no bounding box, what places it is the lattice edge under it. Every result
+draws its own bottom rule, the **last one included**, so the register closes; the interior rules
+are divisions and the closing one is an edge, which is both sanctioned uses in
+[where a line may go](#where-a-line-may-go). It is the one place the system deliberately
+does not follow `.cf-blog-card:last-child { border-bottom: 0 }` — that rule exists because the
+blog grid's container already draws the bottom edge, and this list has no container.
+
+**The decision the found chapter had left open is which match is lit.** Its two rungs are
+contour for every match and light for the one the reader is *on* — exactly one, ever. On a
+result page the reader is on none of them: they have not chosen, which is what the page is
+for. So a result set is drawn **entirely in contour**, and the page's one lime moment goes
+where it goes on every other listing, the call to action in the footer.
+
+The light is not withheld, it is **deferred**. Every result link carries a `#:~:text=` fragment
+quoting the phrase in its own excerpt, so following one lands on the destination page scrolled
+to that phrase with it drawn in the lit rung by `::target-text` — which `base.css` has styled
+since the found state shipped, and which the destination implements nothing at all for. The two
+rungs turn out not to be two treatments of a word on one page. They are **the question and the
+answer, one page apart**: the register of candidates is contour, and the thing you were looking
+for lights up when you get there. That is the brand's own argument — data can be found in a
+space rather than read off a sheet — running across a navigation rather than inside a paragraph.
+
+Two things about the fragment, because both fail silently. A literal hyphen inside the quoted
+phrase must be written `%2D`, since `-` is the delimiter of the `prefix-,start,end,-suffix`
+form and a browser that misreads the phrase simply matches nothing. And the fragment matches
+the **first** occurrence, so the quoted run has to be unique on the target page — four to six
+words is the working band, and `textStart,textEnd` pins both ends where it cannot be.
+
+**The main navigation does not carry the search, and that is a designer's call left standing.**
+Both Figma mockups draw a six-item nav bar measured to `417 × 41`; a seventh item is a change
+to the drawing, not to the code. `patterns/404.html` routes to it instead — first in the list,
+because it is the only route on that page that does not guess what the reader was after.
 
 ## The line of sight
 
@@ -570,6 +615,7 @@ which is what this site did before. → `foundations/transitions.html`
 | **Consent copy** | The three categories, their retention periods and the six entries in the inventory on `components/consent.html` are placeholders. A lawyer signs off the wording, and a real cookie audit replaces the rows. The columns — name, kind of storage, purpose, recipient, retention — are what TDDDG § 25 and Art. 13 DSGVO ask for and should survive the replacement. The dialog links to `/datenschutz#cookies`; that anchor has to exist before launch, and the counts in `.cf-consent__meta` have to keep matching the list. |
 | **Consent record** | `localStorage` proves nothing to a supervisory authority. The decision needs logging server-side before launch. |
 | **Contact endpoint** | `patterns/kontakt.html` posts to `/kontakt` and expects the server to validate, re-render the form with the reader's values and an error summary, drop anything that filled the honeypot, and serve the whole thing over HTTPS. The phone number on the page is a placeholder. |
+| **Search index** | `patterns/suche.html` is one query rendered flat. The server owns the index and the whole answer: `?q=…` selects it, the matches are wrapped in `<mark class="cf-mark">` as the response is rendered, and every result link is minted with a `#:~:text=` fragment quoting its own excerpt — hyphens as `%2D`, the run unique on the target page. The query is reader-supplied text echoed into three places (the input's `value`, the `<title>` and the header meta) and has to be escaped in all three. Zero hits renders `.cf-error--inline` at `200`; the page is `noindex, follow`. → `components/search.html` |
 | **News listing** | `patterns/news.html` is page 1 of 11 rendered flat. The server owns the paging: `?seite=N` selects the slice, `?thema=…` filters it, and both are reflected in the counters, the status line and which slot carries `aria-current`. Out of range should 404 rather than render an empty grid; a `?thema=…` that matches nothing renders `.cf-error--inline` in place of the grid, at `200`, because an empty answer is not an error. → `components/error-state.html` |
 | **Status codes** | `patterns/404.html` is the page; the response is the server's. A missing address answers `404`, one that is deliberately gone `410`, a failure `500`. Serving the template with `200 OK` is a soft 404 — the address stays indexed and keeps being crawled. |
 | **Redirects** | The old topic pages (Maschinenbau, Energie, Dienstleistungen, Experten) are gone. They need 301s to the new structure — a redirect that is available always beats an error page that is polite. |
@@ -579,7 +625,7 @@ which is what this site did before. → `foundations/transitions.html`
 The documentation is English. The pattern pages carry German copy, because that is the
 language the site ships in — translating it here would invent content that does not exist.
 Landing Page and Über uns take theirs verbatim from the Figma mockups; News overview,
-Blog article and Kontakt have no mockup and their copy is written placeholder in the
+Blog article, Suche and Kontakt have no mockup and their copy is written placeholder in the
 same voice. Colour
 names (Glas, Violett, CF-Grau, Schwarz, Weiß) stay German everywhere: they are the brand's
 names for them.
