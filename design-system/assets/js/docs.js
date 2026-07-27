@@ -28,6 +28,7 @@
     { title: 'Components', items: [
       { href: 'components/buttons.html',        label: 'Buttons' },
       { href: 'components/navigation.html',     label: 'Navigation' },
+      { href: 'components/breadcrumb.html',     label: 'Breadcrumb' },
       { href: 'components/section-header.html', label: 'Section Header' },
       { href: 'components/statement.html',      label: 'Statement & Value Table' },
       { href: 'components/plot.html',           label: 'Plot' },
