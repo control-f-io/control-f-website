@@ -41,7 +41,7 @@ design-system/
 ├── components/             buttons, nav, section header, statement + value table,
 │                           plot, process card, accordion, blog grid, subdivision
 │                           field, pagination, error + empty state, article +
-│                           prose, team, forms, footer, consent
+│                           prose, table, team, forms, footer, consent
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html,
 │                           news.html, blog-artikel.html, kontakt.html, 404.html
 ├── prototypes/             scroll-animation studies — standalone, not yet system
@@ -246,7 +246,7 @@ which is what this site did before. → `foundations/transitions.html`
 | **Process illustrations** | Done. Built from the designer's source vectors in `assets/source/illustrations/`. The four documented deviations are listed on `components/process-card.html`. |
 | **Partner logos** | The logo wall renders text placeholders; drop in the real SVGs. |
 | **Team photos** | Six placeholder portraits from the shoot. Real names, roles and the full set of ten still needed. |
-| **Consent copy** | The three categories, their retention periods and the entry counts on `components/consent.html` are placeholders. A lawyer signs off the wording, and the real cookie inventory replaces the numbers. |
+| **Consent copy** | The three categories, their retention periods and the six entries in the inventory on `components/consent.html` are placeholders. A lawyer signs off the wording, and a real cookie audit replaces the rows. The columns — name, kind of storage, purpose, recipient, retention — are what TDDDG § 25 and Art. 13 DSGVO ask for and should survive the replacement. The dialog links to `/datenschutz#cookies`; that anchor has to exist before launch, and the counts in `.cf-consent__meta` have to keep matching the list. |
 | **Consent record** | `localStorage` proves nothing to a supervisory authority. The decision needs logging server-side before launch. |
 | **Contact endpoint** | `patterns/kontakt.html` posts to `/kontakt` and expects the server to validate, re-render the form with the reader's values and an error summary, drop anything that filled the honeypot, and serve the whole thing over HTTPS. The phone number on the page is a placeholder. |
 | **News listing** | `patterns/news.html` is page 1 of 11 rendered flat. The server owns the paging: `?seite=N` selects the slice, `?thema=…` filters it, and both are reflected in the counters, the status line and which slot carries `aria-current`. Out of range should 404 rather than render an empty grid; a `?thema=…` that matches nothing renders `.cf-error--inline` in place of the grid, at `200`, because an empty answer is not an error. → `components/error-state.html` |
@@ -406,6 +406,17 @@ These were judgement calls, each documented on the relevant page:
   columns rising 31 → 100 the recession cancelled almost the whole climb and the tallest
   column was drawn *lower* than the shortest. The level row is still a lattice step:
   (2u, +u) + (2u, −u) = (4u, 0). → `components/plot.html`
+- **The table is derived from the language, not measured off a plate.** No plate in
+  `assets/source/manual/` shows a table and neither mockup carries one, so `.cf-table` is
+  built only from parts the manual does establish: the hairline for the row rule, the mono
+  uppercase label the section header already uses for the column head, tabular figures, and
+  no vertical rules at all — a line between two columns would be neither an edge nor a
+  division, which is the test in *Where a line may go*. Two consequences worth knowing.
+  `.cf-prose table` is not a second drawing: every selector names both, so an article's
+  tables and a standalone one cannot drift. And a row header is set in the body face rather
+  than as a mono label, because a row header is the row's subject — content — and the mono
+  face in this system marks the things that are not prose.
+  → `components/table.html`
 - **The hero carries a switch the mockups do not draw.** The loop runs 12 s and repeats
   forever behind the headline, which is exactly the content WCAG 2.2.2 *Pause, Stop, Hide*
   (level A) requires a reader-operable mechanism over. `prefers-reduced-motion` is not that

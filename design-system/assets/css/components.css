@@ -2248,36 +2248,11 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 }
 .cf-prose pre code { padding: 0; background: none; font-size: inherit; }
 
-/* Tables are ruled rows, never a boxed grid: one hairline under the head,
-   one under each row, nothing vertical. Numbers are tabular. */
-.cf-prose__table-scroll { overflow-x: auto; }
-.cf-prose table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--text-md);
-  font-variant-numeric: tabular-nums;
-}
-.cf-prose :is(th, td) {
-  padding: var(--space-3) var(--space-4) var(--space-3) 0;
-  text-align: left;
-  vertical-align: top;
-  border-bottom: var(--stroke-1) solid var(--border-subtle);
-}
-.cf-prose th {
-  border-bottom-color: var(--border-strong);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-}
-.cf-prose caption {
-  margin-bottom: var(--space-3);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  text-align: left;
-  color: var(--text-secondary);
-}
+/* Tables in an article are the TABLE component below, not a second drawing of
+   it — `.cf-prose table` is named in every one of its selectors. The one thing
+   that belongs here is where the block sits in the prose grid, which is the
+   rule at the top of this section.
+   → the TABLE section */
 
 /* --------------------------------------------------------------------------
    TEAM
@@ -2394,6 +2369,121 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
     row-gap: 0;
   }
 }
+
+/* --------------------------------------------------------------------------
+   TABLE
+   Ruled rows, never a boxed grid: one hairline under the head, one under each
+   row, nothing vertical. The manual has no table plate — the 22 plates in
+   assets/source/manual/ do not include one and neither mockup carries a table —
+   so this is derived from the language rather than measured, the same way
+   .cf-plot is: the row rule is the system's hairline, the column head is the
+   mono label the section header already uses, and the figures are tabular
+   because every number in this system is.
+
+   Vertical rules are the thing deliberately not drawn. A grid of boxes says
+   "spreadsheet"; a stack of rules says "reading order", and reading order is
+   what a row is. The columns are already held apart by the space between
+   them — a line there would be neither an edge nor a division but decoration,
+   which foundations/geometry.html bans by name.
+
+   Every colour here is a semantic token, so the same table inverts by being
+   put on a dark surface — [data-theme="inverse"], or the consent dialog, which
+   rebinds the same four. There is no --inverse modifier and there should not
+   be one.
+   -------------------------------------------------------------------------- */
+
+/* A table is the one block that legitimately outgrows its column, so it gets a
+   scroll container instead of being allowed to widen the page. That container
+   is scrollable content with no focusable child, which without a tabindex is
+   unreachable by keyboard: mouse users drag it, everyone else never sees the
+   last column. WCAG 2.1.1. The markup carries tabindex="0" and takes its
+   accessible name from the caption — see components/table.html.
+
+   The focus ring comes from base.css, which already rings :focus-visible on
+   anything carrying [tabindex]. Nothing to declare here. */
+.cf-table__scroll,
+.cf-prose__table-scroll { overflow-x: auto; }
+
+.cf-table,
+.cf-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-md);
+  font-variant-numeric: tabular-nums;
+  /* The table claims its own ink rather than inheriting whatever surrounds it.
+     That is what makes the inverse case work without a modifier: dropped on a
+     dark surface it takes the ink of that surface's theme, not the ink of the
+     page the surface is sitting on. Inheriting instead left the head row and
+     every ordinary cell black on black — the row headers survived only because
+     they set a colour of their own. */
+  color: var(--text-primary);
+}
+.cf-table :is(th, td),
+.cf-prose :is(th, td) {
+  padding: var(--space-3) var(--space-4) var(--space-3) 0;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: var(--stroke-1) solid var(--border-subtle);
+}
+/* The last cell drops its right padding so the row's content ends on the same
+   axis as the rule under it, the way the accordion's arrow sits flush right.
+   A ruled row that stops 16 px short of its own hairline reads as unfinished. */
+.cf-table :is(th, td):last-child,
+.cf-prose :is(th, td):last-child { padding-right: 0; }
+
+/* A column head is a label — mono, uppercase, on the strong hairline.
+
+   It does not wrap, and that carries the table's minimum width. Two reasons,
+   and the second is the one that matters. A label broken over two lines is a
+   label read as two words, which is why nothing else in this system wraps one
+   either. And a table with no floor to its width does not overflow, it
+   compresses: every cell wraps to three lines and the scroll box it is sitting
+   in never engages, so the mechanism that makes a wide table readable on a
+   phone is present and never used. The heads are the floor. Which is also why
+   the do/don't asks for four or five columns and short labels — a long label
+   here is a scroll bar everywhere. */
+.cf-table thead th,
+.cf-table th[scope="col"],
+.cf-prose thead th,
+.cf-prose th[scope="col"] {
+  border-bottom-color: var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+/* A row head is not a label, it is the row's subject — content, set in the
+   body face at body size. Uppercasing it would shout a cookie's name at the
+   reader and cost the mono face its one job, which is marking the things that
+   are not prose. */
+.cf-table th[scope="row"],
+.cf-prose th[scope="row"] {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: var(--weight-medium);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--text-primary);
+}
+
+/* The caption is the table's accessible name and its visible title at once,
+   which is why it is a caption and not a heading above the block. */
+.cf-table caption,
+.cf-prose caption {
+  margin-bottom: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  text-align: left;
+  color: var(--text-secondary);
+}
+
+/* A numeric column aligns on its right edge so the digits stack, which is the
+   whole reason the figures are tabular. Set on the head as well as the cells —
+   a right-aligned column under a left-aligned label is a misaligned column. */
+.cf-table :is(th, td).cf-table__num,
+.cf-prose :is(th, td).cf-table__num { text-align: right; }
 
 /* --------------------------------------------------------------------------
    VALUE TABLE
@@ -2797,6 +2887,11 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   --text-secondary: rgba(255, 255, 255, 0.72);
   --border-strong:  rgba(255, 255, 255, 0.72);
   --border-default: rgba(255, 255, 255, 0.18);
+  /* The fourth border rung was missing from this list while the theme block it
+     copies has always carried it, so anything ruled at --border-subtle inside
+     the dialog was drawn in 12 % BLACK on black — invisible. Nothing used it
+     until the inventory table did. */
+  --border-subtle:  rgba(255, 255, 255, 0.10);
   --focus-ring:     var(--cf-lime);
 }
 .cf-consent {

@@ -36,6 +36,7 @@
       { href: 'components/pagination.html',     label: 'Pagination' },
       { href: 'components/error-state.html',    label: 'Error & Empty State' },
       { href: 'components/article.html',        label: 'Article & Prose' },
+      { href: 'components/table.html',          label: 'Table' },
       { href: 'components/team.html',           label: 'Team' },
       { href: 'components/forms.html',          label: 'Forms' },
       { href: 'components/footer.html',         label: 'Footer' },
