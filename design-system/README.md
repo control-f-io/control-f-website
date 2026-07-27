@@ -763,6 +763,31 @@ These were judgement calls, each documented on the relevant page:
   for exactly the readers most likely to need it. Under reduced motion the control is
   *removed*, not hidden: nothing is moving, so a switch that changes nothing is worse than
   none. → `foundations/motion.html#hero`
+- **The process card is contour on the wash; the code painted it an opaque plate.** This
+  one is a correction rather than a judgement call, and `foundations/materials.html` had
+  been describing the corrected version all along — it lists the process card among the
+  panels that "sit on the page wash with nothing complex behind it, so it is drawn with a
+  contour instead", while `.cf-process` declared `background: var(--surface-card)`, its copy
+  column declared a second plate in the same colour, and its note block a grey one. Sampled
+  down the Discovery plate in `mockups/landing-page.jpg`, the card's interior and the page
+  margin beside it read within **0.2** of each other at every row. There is no plate in the
+  drawing. `--surface-card` is retired; it resolved to the same `grey-050` as
+  `--surface-raised`, so wherever the two were stacked one of them painted nothing.
+  → `foundations/materials.html#panel-verdicts`
+- **A step away from the page is a ratio, not a grey — so `--surface-sunken` is a veil.**
+  The neutral steps were absolute values chosen against `--surface-base`, CF-Grau, and no
+  page in the system is painted CF-Grau: every page carries `.page-wash`, which is
+  `background-attachment: fixed` at `background-size: cover` and therefore spans the
+  **viewport**, running the full CF-Grau-to-white down every screen without scrolling. So
+  what is behind a panel depends on where that panel currently sits on screen. Measured on
+  the landing page at 1280×900, walking the process card's note down the viewport:
+  `#E7E7E7` reads **+21** at 14 % of viewport height, **0** at 65 % and **−10** at 86 % —
+  raised, then invisible, then sunken, all in one scroll. 6 % black removes 6 % of whatever
+  light is there, a constant 0.858 ratio in linear light, so the step is −12 to −15
+  everywhere. The direction had to flip: the light theme's steps used to climb toward white
+  and cannot, because the wash *ends* at white. Sunken now means sunken. Contrast floor is
+  the CF-Grau end — `--text-secondary` 5.19:1, `--text-primary` 11.91:1.
+  → `foundations/colors.html#a-step-is-a-ratio`
 - **Isometric contours use `vector-effect: non-scaling-stroke`.** "1 px contour at every
   size" is a device pixel. A 640-unit drawing shown at 352 px would otherwise put its
   contours on screen at 0.55 px. The one exception is `.cf-iso__trace`: under

@@ -73,9 +73,62 @@
      ------------------------------------------------------------------ */
   --surface-page:     var(--grey-300);
   --surface-base:     var(--grey-300);
-  --surface-sunken:   var(--grey-100);
+
+  /* A STEP AWAY FROM THE PAGE IS A RATIO, NOT A GREY, and this token was the
+     grey until it was measured.
+
+     --surface-sunken was grey-100 (#E7E7E7). The number is only meaningful
+     against --surface-base, CF-Grau — and no page in the system is painted
+     CF-Grau. Every page carries .page-wash, which is --surface-page-wash:
+     CF-Grau to white, `background-attachment: fixed`, `background-size:
+     cover`. Fixed and cover together mean the wash spans the VIEWPORT, not
+     the document, so it does not scroll: the page under any element is a
+     function of where that element currently sits on screen, and it runs the
+     full 207 → 255 every time. The steps were calibrated against a colour
+     that only exists in the top row of pixels.
+
+     Measured on patterns/landing-page.html at 1280x900, walking .cf-process
+     __note down the viewport in 6 % steps and sampling the wash beside it in
+     the same screenshot row:
+
+       note at 14 % of viewport height   wash 210   #E7E7E7 reads  +21
+       note at 44 %                      wash 222   #E7E7E7 reads   +9
+       note at 65 %                      wash 231   #E7E7E7 reads    0   <-
+       note at 86 %                      wash 241   #E7E7E7 reads  -10
+
+     So an absolute grey inside the wash's own range is raised at the top of
+     the screen, INVISIBLE at 65 % of it, and sunken below that — one block
+     that changes which way it steps as the reader scrolls past it. Nothing
+     renders wrong; the material simply is not one.
+
+     A veil is the same declaration made relative. 6 % black removes 6 % of
+     whatever light is there, which is a constant 0.858 ratio in linear light
+     at both ends of the wash, so the step is the same step everywhere:
+
+       over the wash's CF-Grau end   197   -12   secondary 5.19:1  primary 11.91:1
+       over its middle               217   -14   secondary 6.48:1  primary 14.88:1
+       over its white end            240   -15   secondary 8.03:1  primary 18.43:1
+
+     THE DIRECTION HAD TO FLIP AND THAT IS THE ONE REAL CHANGE HERE. The old
+     light-theme steps both climbed toward white (see the [data-theme=
+     "inverse"] note below, which says so). Up is not available on this wash:
+     its far end IS white, so a lighter step has nowhere to go and dies at the
+     bottom of every screen. Down works at both ends. Sunken now means sunken.
+
+     Worst case is the CF-Grau end at 5.19:1, which clears AA for body text
+     with room; --text-muted still must not sit on it, for the same reason it
+     may not sit on CF-Grau itself.
+
+     --surface-card is RETIRED. It was grey-050, the same value as
+     --surface-raised, and its only two users were .cf-process and .ex-step on
+     patterns/expertise.html — both of which now draw as contour on the wash,
+     which is what foundations/materials.html already said they did and what
+     mockups/landing-page.jpg measures: the card's interior and the page
+     margin beside it read within 0.2 of each other at every row of the plate.
+     Do not reintroduce it; a panel that needs a surface takes the veil, and a
+     panel that needs a boundary takes a contour. */
+  --surface-sunken:   rgba(0, 0, 0, 0.06);
   --surface-raised:   var(--grey-050);
-  --surface-card:     var(--grey-050);
   --surface-inverse:  var(--cf-schwarz);
 
   /* Milchglas has two jobs, so it has two tints. See section 9. */
@@ -1710,17 +1763,23 @@
   --surface-page:   var(--cf-schwarz);
   --surface-base:   var(--cf-schwarz);
 
-  /* Black is the floor of the neutral scale — there is no rung below it —
-     so both steps move away from the base upward. That is what the light
-     theme already does: base CF-Grau, sunken grey-100, raised grey-050, all
-     three climbing toward white. Only the old anthracite base could afford a
-     sunken genuinely under it, and it bought 1.09:1 for the privilege.
-     Raised is the ramp's own darkest non-black step, sunken the half-step
-     under it, so the two keep their order and roughly their old separation
-     from the base — 1.12:1 and 1.27:1. */
-  --surface-sunken: #121212;
+  /* Black is the floor of the neutral scale — there is no rung below it — so
+     here the step has to move upward, and that is now the difference between
+     the two themes rather than something they share. The light theme's steps
+     used to climb toward white as well; they no longer can, because the wash
+     they sit on ends AT white (see --surface-sunken above). Black does not
+     have that problem from the other side: nothing composites below it, so a
+     white veil over it is the same constant ratio the light theme gets from a
+     black one.
+
+     6 % white over Schwarz renders #0F0F0F, within one step of the #121212
+     this used to be, and it keeps its order under --surface-raised. Written
+     as a veil rather than as that literal so the material is ONE idea in both
+     themes: a step away from the page is a proportion of the light already
+     there. Raised stays an absolute value — it is the ramp's own darkest
+     non-black step and there is no wash under it to track. */
+  --surface-sunken: rgba(255, 255, 255, 0.06);
   --surface-raised: var(--grey-800);
-  --surface-card:   var(--grey-800);
 
   /* Inverted glass darkens instead of lightening, and the floor flips with
      it: 56 % black is where white type still clears 4.5:1 composited over a
