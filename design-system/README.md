@@ -37,7 +37,7 @@ design-system/
 ├── index.html              overview + how to include the CSS
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
 │                           illustration, logo, photo, motion, mobile,
-│                           page transitions, field
+│                           page transitions, field, found state
 ├── components/             buttons, nav, section header, statement + value table,
 │                           plot, process card, accordion, blog grid, subdivision
 │                           field, pagination, error + empty state, arrival +
@@ -189,9 +189,10 @@ falling off. In SVG the ramp is a paint server and carries the `#DBFC60` oklab w
 because a CSS gradient cannot be an SVG `fill`.
 
 Three exceptions, each technical rather than aesthetic: the palette swatch on
-`foundations/colors.html` (a swatch of a colour has to be the colour), `::selection` (CSS
-cannot paint a gradient into a selection highlight), and any **stroke, outline or focus
-ring** (not a fill — the rule is about area). The flat lime cube on
+`foundations/colors.html` (a swatch of a colour has to be the colour), the **found state**
+(`background-image` is ignored on a highlight pseudo-element, so no ramp of this family can
+be painted into `::selection`, `::target-text` or `::highlight()` — see below), and any
+**stroke, outline or focus ring** (not a fill — the rule is about area). The flat lime cube on
 `foundations/illustration.html` is a labelled *don't*, drawn wrong on purpose.
 
 → `foundations/colors.html#lime-is-never-flat`
@@ -294,6 +295,85 @@ chooses the number — restraint is, and 0.52 is the ceiling it must never cross
 way `patterns/news.html` renders page 1 of 11 flat and the server owns the paging. What
 the chapter fixes is the drawing and the contract; `components/arrival.html#who` lists the
 three places the behaviour will land.
+
+## The found state
+
+`foundations/found.html` is the chapter for the thing the brand is **named after**. Control-F
+is find-in-page, the site's whole argument is that data can be found in a space rather than
+read off a sheet, and until this chapter the system had no drawing for a match. The platform
+gives an author four registers for *this is the thing you were looking for* and exactly one of
+them was styled here: `::selection`. `<mark>` was UA yellow, `::target-text` was UA yellow, and
+`::highlight()` had no names registered against it at all.
+
+All three of the missing ones became Baseline inside the window this system was built in —
+scroll-to-text-fragment March 2025, the Custom Highlight API June 2025, `hidden="until-found"`
+December 2025. Finding used to be something a browser did *to* a page. It is now something a
+page takes part in.
+
+**What the drawing may be made of was decided from outside, and it selected for the language
+rather than bending it.** Highlight pseudo-elements take a closed property list so the browser
+can repaint a moving highlight without relayout: colour, background-colour, `text-decoration`
+and its longhands, `text-shadow`, the text stroke properties. No border, no outline, no
+padding, and **no `background-image`** — which makes the found state the one surface in the
+system that may not carry a gradient. No foil, no light ramp, no member of the family. Told it
+may have one line and one flat colour, this system draws the line first and treats the colour
+as light, which is what every other page already says.
+
+| | |
+|---|---|
+| **every match** | The **ground line** alone: `text-decoration: underline`, `--stroke-2`, in ink. An isometric object has no bounding box — what places it is the lattice edge under it, which is how every object in `foundations/illustration.html` stands. A match is a word standing on one. |
+| **the current one** | The same word with `--found-light` behind it. Material layer 5 sits under layer 6, so a lime fill behind text is the light layer in its correct place. |
+
+Two rungs, one drawing, which is the [presence ladder](#the-presence-ladder) read as attention
+rather than as arrival — and it settles the lime budget without an exception. One lime moment
+per screen is a rule about *composition*; a result set is answered, not composed. A page with
+twelve matches has one lit match and eleven contoured ones, so the budget is satisfied by the
+drawing rather than waived for it.
+
+**Contrast is carried by the ink, not by the fill,** and that is why the ground line is not
+optional. A custom highlight owes two figures — 4.5:1 for text on the highlight, 3:1 for the
+highlight against the surface around it. Black on lime is 18.51:1. Lime on CF-Grau is 1.37:1
+and on the white end of the wash 1.13:1: the fill cannot hold that boundary at either end of
+the page, at any opacity, because lime sits at 87.5 % of white's luminance, which is what makes
+it light and what makes it useless as an edge. Schwarz measures 13.48:1 and 21:1 across the same
+two ends. In the same stroke that discharges *never carry a state by colour alone* — the rule
+makes the mark, the fill ranks it.
+
+Underline **plus overline** was built first and is the obvious answer: two rules, the cell's top
+and bottom edge, the only box a highlight is allowed. It was dropped after looking at it. There
+is no `text-overline-offset`, so the underline can be pushed clear of the descenders and the
+overline lands on the font's ascent well above cap height, reading as a detached rule floating
+over the word. An asymmetric band is worse than no band. The weight is 2 px rather than the
+system hairline for a different reason: `a:not([class])` is already a 1 px underline at 0.2em,
+one notch inside the mark's 0.22em, so at the hairline a match and a link would be the same
+drawing.
+
+Three more things the chapter settles:
+
+- **`<mark>` is held to the pseudo-element's means.** It is an element, so `.cf-mark` *could*
+  carry a real border, padding and a 2 px corner. `::target-text` cannot, ever, and two drawings
+  for one meaning is worse than one constrained drawing. A match looks the same whether the
+  server marked it, a script registered it or the URL arrived carrying it.
+- **Every pseudo-element gets its own rule, and the repetition is load-bearing.** A selector
+  list is not forgiving: one pseudo-element the browser has never heard of drops the whole rule.
+  `::target-text` is nine months older than `::highlight()`, so a list naming both would have
+  taken the better-supported half down with the newer one in exactly the browsers that needed
+  the fallback. `:is()` does not help — pseudo-elements cannot appear in it.
+- **The system never intercepts `Ctrl`+`F`.** It is the obvious joke for a company called
+  Control-F and it is the wrong thing to build: the browser's find is faster, works before any
+  script has run, reads the whole page rather than one container, and is the one keystroke a
+  reader can rely on everywhere. A site search field is an addition to it, not a replacement.
+
+`::selection` is the one exception on the page and keeps its solid lime with no contour. Its
+boundary against CF-Grau is the same 1.37:1 and that is documented rather than fixed: a drag is
+transient, self-caused and under the reader's own hand, so the platform's convention wins over
+the system's consistency. Every mark the reader did *not* make carries the ground line.
+
+**Nothing dynamic ships here** — the same standing [the field](#the-field) and the arrival
+ladder have. `hidden="until-found"` has no application in the system today, because the one
+place the site collapses real prose is the accordion, which is `<details>` and already opens on
+a find. The chapter documents it so the first thing that does need it does not reach for
+`display: none`.
 
 ## Vertical rhythm
 
@@ -542,6 +622,17 @@ These were judgement calls, each documented on the relevant page:
   columns rising 31 → 100 the recession cancelled almost the whole climb and the tallest
   column was drawn *lower* than the shortest. The level row is still a lattice step:
   (2u, +u) + (2u, −u) = (4u, 0). → `components/plot.html`
+- **The found state is derived from the language, not measured off a plate.** No plate in
+  `assets/source/manual/` draws a highlight and neither mockup carries one, so `.cf-mark`,
+  `::target-text` and the two `::highlight()` names are built only from parts the manual does
+  establish — the hairline, the lattice edge an object stands on, the light layer, the presence
+  ladder. Two consequences the plate could not have ruled on either way. The fill is lime even
+  though *lime is light, not a surface*: material layer 5 sits under layer 6, so a lime fill
+  behind text is the light layer in its correct place, and a word's worth of it is not a plate.
+  And a bare `<strong>` now sets its own weight — the UA default `bolder` against the body's
+  300 resolves to 400, one step on a variable axis and no visible emphasis, which no component
+  had noticed because every component that thought about emphasis set 500 or 600 itself.
+  → `foundations/found.html`
 - **The table is derived from the language, not measured off a plate.** No plate in
   `assets/source/manual/` shows a table and neither mockup carries one, so `.cf-table` is
   built only from parts the manual does establish: the hairline for the row rule, the mono
