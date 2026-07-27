@@ -250,6 +250,26 @@ name: Design system checks
 # page's 47 stops were still in flight under the default and 0 of 46 are under
 # `reduce`. Which handed the largest dose of the one unasked motion to the
 # readers navigating by keyboard, the population the preference exists for.
+#
+# The edge strokes are the twenty-third, and the one whose subject is half of
+# a line that was never painted. A stroke is centred on its path and an <svg>
+# clips at its own viewport, so a rail written ON the boundary of its viewBox
+# loses its outer half — silently, because what remains is a hairline in the
+# right place in the right colour, just thin. components.css has answered this
+# three times, on .cf-page-header__figure, .cf-plot__draw and
+# .cf-arrive__object, and exactly one of the three says why: "The viewBox is
+# the drawing's bounding box, so a 1 px non-scaling contour at the extremes is
+# half outside it." One comment, three hand-kept copies — and the fourth
+# drawing to need it did not have it. .lp-frame, whose whole geometry sits on
+# its extremes, shipped four rails at 0.48 - 0.52 px against an interior
+# divider at 1.00, redistributed on every resize because the clip snaps to the
+# device grid, and at both T-junctions a whole divider met a half rail. That
+# fix landed an hour before this check; what did not land was anything to stop
+# the fifth. The rule counted here is the narrow, provable half: a straight
+# stroked segment with BOTH endpoints on the SAME viewBox edge is coincident
+# with the boundary rather than merely touching it, and loses exactly half of
+# itself by construction. Merely touching stays out — a drawing running out of
+# its frame is a deliberate crop, and this system is full of them.
 
 on:
   push:
@@ -258,7 +278,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not twenty-two. All twenty-two checks are a few hundred
+  # One job, not twenty-three. All twenty-three checks are a few hundred
   # milliseconds of stdlib python; a second runner would cost more to start
   # than any of them takes to run, and a reader looking at a red tick wants
   # every answer on one page.
@@ -273,7 +293,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: twenty-two
+      # Each check runs even when an earlier one has already failed: twenty-three
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -358,3 +378,7 @@ jobs:
       - name: Arrival
         if: '!cancelled()'
         run: python3 scripts/check-arrival.py
+
+      - name: Edge strokes
+        if: '!cancelled()'
+        run: python3 scripts/check-edge-stroke-clip.py
