@@ -464,6 +464,13 @@ hr {
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
   border: var(--glass-border);
+  /* The rim is only half of a glass edge; --glass-refraction is the other
+     half, one pixel further in. An inset box-shadow rather than a second
+     element or a second border, because inset shadows are clipped to the
+     padding box — which puts the line exactly against the inside of the rim
+     with nothing to position. See the token for why a perimeter of glass has
+     no guaranteed boundary without it. */
+  box-shadow: inset 0 0 0 var(--stroke-1) var(--glass-refraction);
 }
 /* There is no --heavy variant. A 28 px blur was declared here and never used
    by anything, and the cost rule in tokens.css rules it out anyway: 16 px is
@@ -474,7 +481,14 @@ hr {
    in this lane to rediscover as dead. */
 
 /* Veil tint — for a sheet that carries nothing but opaque objects. Almost
-   clear, so the blur is what you see rather than a wash of white. */
+   clear, so the blur is what you see rather than a wash of white.
+
+   It keeps the refraction line: the tint is the thing that changes, not the
+   edge, and a nearly clear plate needs its boundary drawn MORE than a bearing
+   one does, not less. A sheet that ends at a single edge rather than closing
+   a perimeter — the navigation band, or the band in the layer stack on
+   foundations/materials.html — turns the line off where it is used, next to
+   the `border: 0` that already says the same thing about the rim. */
 .material-glass--veil { background: var(--surface-glass-veil); }
 
 /* The lit edge of a glass sheet. Put it on the edge the sheet ends at. */
