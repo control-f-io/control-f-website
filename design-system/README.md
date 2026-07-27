@@ -21,7 +21,7 @@ Then open <http://localhost:8000/design-system/>. It also works by opening
 python3 scripts/check-spacing-scale.py         # from the repo root
 python3 scripts/check-spacing-scale.py --fix   # rewrite the table in foundations/layout.html
 python3 scripts/check-gradient-family.py       # the light family, in every shipped SVG and stylesheet
-python3 scripts/check-gradient-family.py -v    # list all 86 gradients, not only the failures
+python3 scripts/check-gradient-family.py -v    # list all 88 gradients, not only the failures
 python3 scripts/check-iso-motion.py            # the isometric assembly's invariants
 python3 scripts/check-glass-budget.py          # what backdrop-filter is allowed to cost
 python3 scripts/check-glass-budget.py --fix    # rewrite the census in foundations/materials.html
@@ -1051,11 +1051,15 @@ people to ignore it.
   rotates its gradient too. On a circle the rotation looks like a no-op against the geometry
   and is not: card 04's largest orbit had lost `rotate(-90)` and was fading 90° off the
   designer's axis. Measured and fixed. → `components/process-card.html`
-- **`--trace-from` / `--trace-to` on a trace the crop cuts.** They are inline custom
-  properties on the path, so a re-export drops them and the line-drawing goes back to being
-  timed against its full length — including the half of it that is outside the frame. The
-  drawing is not wrong, it just spends most of its scroll range invisible. Each one carries a
-  comment at the element, and there are three: two on card 02, one on card 04.
+- **`--trace-from` / `--trace-to` on a trace the crop cuts, and `--trace-lead` /
+  `--trace-span` on one of several.** All four are inline custom properties on the path, so a
+  re-export drops them and the line-drawing goes back to being timed against its full length —
+  including the half of it that is outside the frame, and including the four strokes that are
+  not this one. The drawing is not wrong, it just spends most of its scroll range invisible or
+  holding still. Each one carries a comment at the element. Three drawings are cut by their
+  crop — card 02 (both ends), card 04, and the trace specimen on
+  `foundations/illustration.html` — and two are drawn as several strokes and therefore led:
+  card 03's five-stroke arrow and that same specimen's three.
   → `foundations/motion.html`
 - **`--iso-travel` on a frame that has been recropped.** The arrival distance is a transform,
   so it is in viewBox units, and the rule is `viewBox width / 40` — the same 5 % of the
