@@ -166,6 +166,19 @@ name: Design system checks
 # duplicated exit is still an exit. The clauses were kept by the one page that
 # rendered the block; the moment a second page rendered it, they were kept by
 # two, by hand.
+#
+# The contrast register is the eighteenth, and the one whose subject already
+# shows its work. tokens.css derives that 46 % white glass over a pure black
+# video frame renders rgb(117,117,117) and clears WCAG AA by 1.3 %, warns that
+# 0.45 renders two integers lower and fails at 4.43:1, and closes "raise it or
+# leave it" — and then nothing ran the derivation again. Thirteen ratios the
+# shipping pages rest on were each computed by a person once, on the day the
+# value was chosen, and the difference between the tightest of them holding
+# and failing is below what any reviewer can see in a screenshot. The check
+# recomputes all of them from the live token values, composited and quantized
+# the way the browser paints them, and holds the four documented users of
+# --text-muted to a register so the color that measures 2.0:1 on the page
+# wash cannot quietly gain a fifth.
 
 on:
   push:
@@ -174,7 +187,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not seventeen. All seventeen checks are a few hundred milliseconds of
+  # One job, not eighteen. All eighteen checks are a few hundred milliseconds of
   # stdlib python; a second runner would cost more to start than any of them
   # takes to run, and a reader looking at a red tick wants every answer on one
   # page.
@@ -189,7 +202,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: seventeen
+      # Each check runs even when an earlier one has already failed: eighteen
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -254,3 +267,7 @@ jobs:
       - name: Error contract
         if: '!cancelled()'
         run: python3 scripts/check-error-contract.py
+
+      - name: Contrast register
+        if: '!cancelled()'
+        run: python3 scripts/check-contrast.py
