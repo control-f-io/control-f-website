@@ -28,11 +28,13 @@ python3 scripts/check-glass-budget.py --fix    # rewrite the census in foundatio
 python3 scripts/check-glass-budget.py -v       # list every page, not only the ones carrying glass
 python3 scripts/check-grid-tracks.py           # every fr track has a floor
 python3 scripts/check-grid-tracks.py -v        # list every track list, not only the failures
+python3 scripts/check-breakpoints.py           # every threshold is in the register, in rem
+python3 scripts/check-breakpoints.py -v        # list every threshold, not only the failures
 python3 scripts/check-overflow-clip.py         # a crop is a crop, not a scroll container
 python3 scripts/check-overflow-clip.py -v      # list every overflow declaration, not only the failures
 ```
 
-The six checks the system enforces rather than documents, run by CI on every push and
+The seven checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step.
 
@@ -99,6 +101,33 @@ simply costs more, on the hardware least able to afford it. The page's own censu
 sentence naming its own problem two paragraphs later — *a count somebody has to remember* —
 and is a generated table now, with a stamp, the same way the space scale's is.
 
+**A fourth claim is about the fallbacks, and it is the one that is not about cost.** The
+three blocks at the foot of `tokens.css` turn the material off — the browser cannot blur,
+the reader asked for less transparency, the reader chose the palette — and they do it by
+redefining tokens rather than by giving every component a branch of its own. That buys a
+great deal and has exactly one failure mode: a tint left out of one block keeps its live
+value there, and whatever reads it keeps a material the block was written to take away.
+Nothing renders wrong; it renders as though the reader had never asked, and with the blur
+already gone what comes through the surviving translucency is **sharp** — worse than either
+the material or a flat plate. The file's own comment already stated the invariant for one
+axis of this (*repeat every token the inverse block declares, not just the ones that
+differ*) and the other axis was broken: `--surface-glass-thin` sat out the forced-colours
+block entirely, so the Expertise lectern was the one glass surface in the system still
+translucent in that mode, measured at `rgba(255, 255, 255, 0.30)` with the blur already
+`none`. The check now asserts that every block turning the material off turns *all* of it
+off, in every selector it names, excusing only a token the block reads as its own answer —
+`--surface-glass-solid` is two blocks' answer and cannot be redefined in terms of itself.
+The family is a name shape rather than a roster, so a fourth tint is in scope the moment it
+is declared. The lit edge is deliberately outside it: an edge is a contour, not a
+translucency, and forced colours recovers it as a border next to the rule that draws it.
+
+**It survived because the tint was the one tint nothing drew.** `--surface-glass-thin` was
+declared, documented and reached for by `patterns/expertise.html`, and no page rendered it —
+so no screenshot of any fallback ever contained it. `.material-glass--thin` is that plate,
+and it stands on `.cf-ground` rather than on the poster the other two samples use, because
+the backdrop is the demo: 30 % is what one measurement on one **named** backdrop came back
+with, not a lighter look available on request.
+
 **What counts as glass is read out of the stylesheet, not listed in the script.** It takes
 the selectors of every shipping rule declaring `backdrop-filter` as the definition, so a
 fourth frosted surface enters the budget by existing rather than by somebody remembering to
@@ -142,7 +171,55 @@ whole point is the ratio, and `minmax(0, 4fr)` would state that ratio twice. A d
 `15rem` inside a scroll box — because the rule is that a floor was chosen, not that it is
 zero. → `foundations/layout.html#intrinsic-minimum`
 
-**A crop says so,** and this is the sixth check, for the same reason as the other five.
+**The rule outlived its scope, and where it landed is the interesting part.** Swept across
+all 33 pages at eighteen widths from 320 to 2560, the system had exactly one horizontal
+overflow: `foundations/colors.html` took the document **320 → 368 px** at a 320 px viewport.
+The cause was not a stylesheet. It was `style="grid-template-columns:repeat(10,1fr)"`,
+written **inline in the markup** on the Grey ramp — ten mono step labels flooring a track set
+at 344 px inside a 272 px column.
+
+That is the one place `check-grid-tracks.py` can never reach, and not by an oversight in the
+script: its scope is the three stylesheets that ship, and an inline style on a documentation
+page is outside that boundary twice over. The boundary is right and is not moved — a check
+that governed the documentation chrome would be claiming the chrome is the product. What the
+finding actually says is narrower and worth keeping: **a rule enforced over stylesheets is
+not enforced over `style=` attributes**, and the system's own documentation pages are where
+those attributes live.
+
+Five bare `fr` track lists were floored, in `colors.html` (three, inline), `docs.css`
+(`.docs-ramp__steps`) and the per-page blocks in `transitions.html` and `illustration.html`.
+Only the ten-step ramp was overflowing today; the other four were the same defect at a cell
+count that happened to fit. The sweep now reports zero sideways scroll on every page at every
+width.
+
+**Every threshold is in the register,** and this is the sixth check for a reason the other
+five had to be argued and this one only has to be counted. A threshold cannot be a token —
+`var()` is not allowed in the prelude of `@media` or `@container`, and `@custom-media` needs
+a build step this system does not have — so every one of them is a literal typed into a
+stylesheet, and the only defence against them multiplying is a list added to on purpose.
+That list is written twice, as a comment in `tokens.css` and as a table on
+`foundations/layout.html`, and it says of itself that it is only worth having if it is
+complete.
+
+Kept by hand it was never complete for long. It was caught four times: `60rem` and the
+height threshold; then `34rem` with two consumers and a `62rem` media query with one; then
+`51.25rem`, hiding behind a true statement about a different file; then `28rem`, `30rem` and
+`34.625rem` — three live container queries, one of them added the same day the sweep that
+found them ran. Every one of those fixes ended with the same instruction to the next person:
+*grep the preludes, and do not trust the previous fix to have been exhaustive.* Four times is
+enough evidence about the instruction. Nothing ran.
+
+The script holds the three copies to each other **in both directions** — a query with no
+entry, an entry no query reaches, and the two copies disagreeing are each a finding — keeps
+the rule that a threshold is written in `rem` rather than `px` so it tracks the reader's own
+default font size, and re-derives each px gloss instead of comparing the number against
+itself. It reads the range syntax too, so adopting `(width >= 40rem)` later cannot quietly
+opt a threshold out of the check. What it deliberately does not read: non-dimensional
+features, which are modes rather than thresholds, and `min()`/`clamp()` crossovers, which
+change the layout at a width without being queries — the register says so in as many words,
+and a checker that widened the definition would be enforcing a different rule than the one
+written down. → `foundations/layout.html#breakpoints`
+**A crop says so,** and this is the seventh check, for the same reason as the other six.
 `overflow: hidden` does two things: it crops, which is what anyone writing it wants, and
 it makes the element a **scroll container**, which almost nobody does — and the second
 half renders identically to the first, so nothing about a screenshot can tell them apart.
@@ -1123,10 +1200,19 @@ These were judgement calls, each documented on the relevant page:
   contour instead", while `.cf-process` declared `background: var(--surface-card)`, its copy
   column declared a second plate in the same colour, and its note block a grey one. Sampled
   down the Discovery plate in `mockups/landing-page.jpg`, the card's interior and the page
-  margin beside it read within **0.2** of each other at every row. There is no plate in the
-  drawing. `--surface-card` is retired; it resolved to the same `grey-050` as
+  margin beside it read within **0.2** of each other at every row. There is no plate under
+  the figure. `--surface-card` is retired; it resolved to the same `grey-050` as
   `--surface-raised`, so wherever the two were stacked one of them painted nothing.
-  → `foundations/materials.html#panel-verdicts`
+  **That sampling went down the figure half only, and the copy half disagrees with it.** The
+  plate is divided at x = 600 by the card's own interior hairline; right of it, over the full
+  interior height, every sampled pixel is a flat `#F8F8F8` while the margin beside it climbs
+  219 → 226 — **+22 to +29, constant**, which the wash cannot be because the wash moves. So
+  the designer drew a contour figure panel and an opaque light plate under the copy, and the
+  implementation draws neither. Left standing rather than half-restored: the same argument
+  that retired the card's plate applies to this one — an absolute grey inside the wash's range
+  inverts as the reader scrolls, and the honest form of a step *toward* the light is a veil of
+  white, which the materials family does not have a value for yet. A designer settles it.
+  → `foundations/materials.html#copy-panel-gap`
 - **A step away from the page is a ratio, not a grey — so `--surface-sunken` is a veil.**
   The neutral steps were absolute values chosen against `--surface-base`, CF-Grau, and no
   page in the system is painted CF-Grau: every page carries `.page-wash`, which is

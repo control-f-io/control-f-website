@@ -87,6 +87,34 @@ SIMPLE_SELECTOR = re.compile(r"^\.([A-Za-z0-9_-]+)(::[a-z-]+)?$")
 # has to re-read its backdrop when it moves over it.
 REPAINTS_BLUR = ("opacity", "background", "transform", "filter", "clip-path", "mask")
 
+# THE MATERIAL'S SWITCHABLE HALF: the blur, and every tint it composites under.
+# tokens.css carries three blocks whose job is to turn the material off — the
+# browser cannot blur, the reader asked for less transparency, the reader chose
+# the palette — and its own comment already states the invariant for one axis of
+# them: "repeat every token the inverse block declares, not just the ones that
+# differ". The other axis went unstated and was broken. --surface-glass-thin sat
+# out the forced-colours block entirely, so the one surface using it stayed
+# translucent in a mode where nothing else was.
+#
+# A PREFIX AND NOT A LIST, for the reason SIMPLE_SELECTOR is a shape and not a
+# roster: a fourth tint enters this claim by being named like a tint, rather than
+# by somebody remembering this file exists.
+#
+# --glass-edge, --glass-rim-light, --glass-border and --glass-lookahead are
+# deliberately NOT in the family, and the boundary is the chapter's own, not a
+# convenience. The three blocks neutralise TRANSLUCENCY. An edge is a contour:
+# foundations/materials.html says in as many words that the edge light stays,
+# and forced colours recovers it as a border next to the rule that draws it. A
+# token that is out of scope for the fallbacks has no business being demanded by
+# a checker that enforces them.
+GLASS_TINT = re.compile(r"^--surface-glass(-[a-z]+)?$")
+GLASS_SWITCH = "--glass-blur"
+
+# What makes a block one that neutralises the material — derived, so a fourth
+# fallback answering a fourth question is held to the same standard on the day
+# it is written. There is nothing else --glass-blur: none could mean.
+NEUTRALISED = re.compile(r"^\s*%s\s*:\s*none\s*$" % GLASS_SWITCH)
+
 
 def blank_comments(text):
     """Comments replaced by spaces IN PLACE, so every offset and every line
@@ -133,6 +161,94 @@ def rules(text):
                     out.append((head, text[body_start:i], line))
             start = i + 1
     return out
+
+
+def scoped_rules(text):
+    """rules(), but each rule carries the at-rule condition enclosing it.
+
+    The other four claims are about a declaration wherever it happens to be, so
+    rules() can throw the @-heads away. This one is about a BLOCK — which
+    selectors sit together under one condition, and what the set of them
+    declares — so the condition has to survive the walk. Nested conditions join
+    with " and ", which is what they mean and what makes the message readable.
+    """
+    text = blank_comments(text)
+    out, stack, at, start = [], [], [], 0
+    for i, ch in enumerate(text):
+        if ch == "{":
+            raw = text[start:i]
+            sel_at = start + (len(raw) - len(raw.lstrip()))
+            head = raw.strip()
+            stack.append((head, i + 1, text.count("\n", 0, sel_at) + 1))
+            if head.startswith("@"):
+                at.append(head)
+            start = i + 1
+        elif ch == "}":
+            if stack:
+                head, body_start, line = stack.pop()
+                if head.startswith("@"):
+                    at.pop()
+                else:
+                    out.append((" and ".join(at), head, text[body_start:i], line))
+            start = i + 1
+    return out
+
+
+def declared(body):
+    """Custom properties this block declares, and every one it reads."""
+    sets, reads = {}, set()
+    for decl in (d.strip() for d in body.split(";") if d.strip()):
+        prop, sep, value = decl.partition(":")
+        if sep and prop.strip().startswith("--"):
+            sets[prop.strip()] = value.strip()
+        reads |= set(re.findall(r"var\(\s*(--[A-Za-z0-9_-]+)", decl))
+    return sets, reads
+
+
+def fallback_holes():
+    """Claim 5: every block that switches the material off switches ALL of it off.
+
+    The glass fallbacks work by redefining tokens rather than by giving each
+    component its own branch — "Redefining the tokens here means no component
+    needs its own fallback", as tokens.css puts it. That architecture buys a
+    great deal and has exactly one failure mode, which is silent: a tint left
+    out of one block keeps its live value there, and the component reading it
+    keeps a material the block was written to take away. Nothing renders wrong.
+    It renders as though the reader had never asked.
+
+    A token is excused from a block if the block READS it — --surface-glass-solid
+    is the answer two of the three blocks give, and demanding that an answer
+    also be redefined in terms of itself would be asking for a circle.
+    """
+    text = (CSS / "tokens.css").read_text()
+    scoped = scoped_rules(text)
+
+    # The family, taken from the base cascade: every tint declared outside any
+    # block that turns the material off. Derived, so a fourth tint is in scope
+    # the moment it is declared.
+    switching = {
+        at
+        for at, _, body, _ in scoped
+        if at and any(NEUTRALISED.match(d) for d in body.split(";"))
+    }
+    family = {
+        name
+        for at, _, body, _ in scoped
+        if at not in switching
+        for name in declared(body)[0]
+        if GLASS_TINT.match(name)
+    }
+
+    holes = []
+    for at in sorted(switching):
+        for _, head, body, line in [r for r in scoped if r[0] == at]:
+            sets, reads = declared(body)
+            if not (GLASS_SWITCH in sets or set(sets) & family):
+                continue    # a rule that is in the block for some other reason
+            missing = sorted(family - set(sets) - reads)
+            if missing:
+                holes.append((at, head, line, missing))
+    return sorted(family), holes
 
 
 def glass_rules():
@@ -391,6 +507,29 @@ def main():
                 "    something else on the page has to give up its blur first."
                 % (rel, n, SHIPPING_BUDGET, ", ".join(hits))
             )
+
+    # 5. Every block that turns the material off turns all of it off, in every
+    #    selector it names. The one claim here that is about a fallback rather
+    #    than about a cost, and it is in this script because it is about the
+    #    same tokens: a tint left live in one block is a blurred surface's twin
+    #    still asserting a material the reader has switched off.
+    family, holes = fallback_holes()
+    for at, head, line, missing in holes:
+        failures.append(
+            "tokens.css:%d — %s\n"
+            "    %s neutralises the material and leaves %s live:\n"
+            "        %s\n"
+            "    The tint keeps its translucency there while the blur is gone, so whatever\n"
+            "    reads it shows its backdrop SHARP — the one state worse than either the\n"
+            "    material or a flat plate. Redeclare it in this rule, or read it as the\n"
+            "    answer the way --surface-glass-solid is read." % (
+                line,
+                head,
+                at,
+                "a tint" if len(missing) == 1 else "%d tints" % len(missing),
+                ", ".join(missing),
+            )
+        )
 
     doc_stamp, published = doc_rows()
     measured = {rel: n for rel, n, _, _ in rows if n}

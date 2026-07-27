@@ -2411,6 +2411,21 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
+  /* The mono label in this system is four properties, not three, and this was
+     the one axis label keeping only the first three. Mono + 11 px +
+     --tracking-label is the recipe thirty-two selectors share and every one of
+     them that carries WORDS carries the uppercase too — the section header's
+     own label and counter six rules above this one included, which is why the
+     Blog section read "BLOG / 189 BEITRÄGE" over a tick reading "Aktuell".
+     The plate settles it as well as the family does: on
+     mockups/landing-page.jpg the first tick is drawn AKTUELL. The four ticks
+     beside it are years, so nothing about them could ever have shown the gap.
+
+     The three mono labels that legitimately stay mixed-case are the ones whose
+     content is not a label — .cf-blog-card__meta is a person's name,
+     .cf-result__path is a URL, .cf-consent__meta is a sentence. A year band is
+     none of those: it is the axis naming its own column. */
+  text-transform: uppercase;
   color: var(--text-secondary);
   writing-mode: vertical-rl;
   /* A tick labels the column it starts, so it stands on that column's leading
@@ -4243,7 +4258,55 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 }
 .cf-footer__links { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .cf-footer__meta a { text-decoration: none; }
-.cf-footer__links li + li::before { content: "• "; }
+/* THE SEPARATOR IS THE SYSTEM'S DOT, CENTRED, AND SILENT.
+   Three things were wrong with `content: "• "` and each is small enough to
+   have survived every review of this component.
+
+   THE MARK. U+2022 BULLET appeared in exactly one rule in the whole system —
+   this one. Every other separator the site sets is U+00B7 MIDDLE DOT: the blog
+   card's meta line, the page header's meta line, the address in the row
+   directly below this list. The plate agrees: sampled off
+   mockups/landing-page.jpg the footer row is drawn with the small mid-height
+   dot, not the heavy one. One glyph, and it was the only place the system
+   spoke with two voices about the same punctuation.
+
+   THE CENTRING. The dot was the first thing in the second <li>, so the list's
+   --space-3 gap sat in front of it and whatever the content string ended with
+   sat behind. A trailing space is one mono advance — 6.6 px at 11 px — so the
+   mark stood 12 px from the link on its left and 6.6 px from the one on its
+   right, leaning into the word it introduces. The space is a margin now, which
+   is the same 12 px on both sides: mathematically equal and, since the dot is
+   symmetric about its own centre, optically equal too.
+
+   THE SIDE. It is an ::after on every item but the last rather than a ::before
+   on every item but the first, and the two are only the same drawing while the
+   row fits on one line. This row does not: at 375 px it took three. A leading
+   separator wraps with the item it precedes, so both continuation lines opened
+   with a dot standing 12 px inside the margin with nothing on its far side.
+   That is the bar beside a block one mark down — not a division, because a
+   division has content on both sides of it, and there the left side is the end
+   of the line above. Bound to the item it follows, the mark can only ever
+   close a line, which is the ordinary reading: this list continues. The last
+   item gets none, so no line ends on a mark separating the list from whatever
+   comes after it. Six items pack into two lines at 375 px now rather than
+   three, because the dot travels with a word instead of needing room of its
+   own at the head of the next one. → foundations/geometry.html#where-lines-go
+
+   THE ANNOUNCEMENT. foundations/geometry.html and the breadcrumb both argue
+   against typed separators partly because screen readers speak generated
+   content, and a trail that reads "Über uns bullet News bullet Karriere" is
+   the failure named there. The breadcrumb's answer is to draw the mark instead
+   of typing it; that answer is not available here, because the designer drew a
+   dot and the material wins. The alt-text form of `content` is the other
+   answer: the glyph renders and the accessibility tree gets the empty string.
+   Declared twice on purpose — a browser without the `/ alt` syntax drops that
+   whole declaration, so the plain one underneath is what it keeps, and the
+   drawing degrades to the drawing rather than to nothing. */
+.cf-footer__links li:not(:last-child)::after {
+  content: "·";
+  content: "·" / "";
+  margin-inline-start: var(--space-3);
+}
 /* "Cookie-Einstellungen" opens a dialog rather than navigating, so it is a
    button. It is dressed as a link because it belongs to that row, but the
    element stays honest about what it does. */

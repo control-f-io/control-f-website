@@ -18,14 +18,22 @@
      itself comes from .docs-poster in docs.css, so the decision lives in one
      place; this only sizes it.
 
-     The padding insets the two glass plates 16 px inside a column whose other
+     The padding insets the three glass plates 16 px inside a column whose other
      five samples run flush to its edge. That break is deliberate and not
      removable: glass needs a visible field around it to be legible AS glass —
      sharp outside, calmed inside — and painting the poster onto .mat__sample
      would not work, since backdrop-filter blurs what is behind an element and
      not its own background. The outer cell still holds the column at 224x128,
      so the axis survives; it is the plate edge that steps in. Truthful demo
-     over a tidy column. */
+     over a tidy column.
+
+     .mat__art IS THE BACKDROP SLOT AND NOT THE POSTER, which is why the class
+     doing the painting is on the same element three times over and is not the
+     same class three times. Two plates stand on .docs-poster — a backdrop
+     nobody controls, which is the premise the 46 % and the 4 % floors are
+     derived from — and the thin one stands on .cf-ground, which is the surface
+     its 30 % was actually measured against. Swapping either would make the
+     sample a lie about the tint on it. */
   .mat__art { height:8rem; padding:var(--space-4); }
   .mat__art > .mat__sample { height:100%; }
   .mat__stack { position:relative; height:16rem; background:var(--surface-page-wash); border:1px solid var(--border-default); overflow:hidden; overflow:clip; }
@@ -105,19 +113,44 @@
           <strong>Veil</strong> glass carries nothing but opaque objects, so it stays at
           white 4 % and lets the blur be the whole effect.
         </p>
+        <p>The third is below, and it is the one that has to stand somewhere else.</p>
+        <p><code>.material-glass--veil</code> · <code>--surface-glass</code> · <code>--surface-glass-veil</code></p>
+      </div>
+    </div>
+
+    <div class="mat">
+      <div class="mat__art cf-ground"><div class="mat__sample material-glass material-glass--thin">03c</div></div>
+      <div>
+        <h3 style="margin-top:0">…and the same glass over a backdrop the page owns</h3>
         <p>
-          The third is bearing glass again, over a backdrop <em>the page owns</em>. That
-          46 % floor is derived from a premise — that anything at all could be behind the
-          pane — and the premise is not universal: where the thing behind the glass is the
-          system's own field, a lattice on the wash whose darkest pixel is a hairline, the
-          floor is whatever the measurement on that surface says.
-          <code>--surface-glass-thin</code> is white 30 %, measured on the Expertise stage,
-          where the plate's darkest pixel is <code>rgb(220, 221, 223)</code> and the body
-          copy reads 6.73:1. <strong>The measurement is the permission, not the number.</strong>
-          Reach for it only over a backdrop you can name, and re-measure the type on it;
-          over anything arbitrary the 46 % floor is the one that holds.
+          <strong>This one is standing on the field, not on the poster</strong>, and that is
+          the demo rather than a change of scenery. The 46 % floor above is derived from a
+          premise — that anything at all could be behind the pane — and the premise is not
+          universal: where the thing behind the glass is the system's own field, a lattice on
+          the wash whose darkest pixel is a hairline, the floor is whatever the measurement on
+          <em>that</em> surface says. <code>--surface-glass-thin</code> is white 30 %, measured
+          on the Expertise stage, where the plate's darkest pixel is
+          <code>rgb(220, 221, 223)</code> and the body copy reads 6.73:1. Re-measured off this
+          plate, which stands on the same field higher up a lighter part of the wash: darkest
+          pixel <code>rgb(235, 235, 235)</code>, black label 17.62:1. The number moves with the
+          backdrop, which is the whole reason it has to be taken on the backdrop.
         </p>
-        <p><code>.material-glass--veil</code> · <code>--surface-glass</code> · <code>--surface-glass-thin</code> · <code>--surface-glass-veil</code></p>
+        <p>
+          <strong>The measurement is the permission, not the number.</strong> Reach for it only
+          over a backdrop you can name, and re-measure the type on it; over anything arbitrary
+          the 46 % floor is the one that holds. Put this plate over the poster the two samples
+          above stand on and it is not a thinner pane, it is the floor's premise being ignored.
+        </p>
+        <p>
+          The class is new and the tint is not. It was declared, documented and reached for by
+          <code>patterns/expertise.html</code> through <code>--info-card-tint</code>, and no
+          page in the system drew it — so no screenshot of any fallback ever contained it, and
+          it sat out the forced-colours block below for three releases while the other two
+          tints went to <code>Canvas</code>. A tint nothing draws is a tint nothing checks.
+          <a href="#fallbacks">The fifth claim</a> is the general fix; this plate is why it
+          was missing.
+        </p>
+        <p><code>.material-glass--thin</code> · <code>--surface-glass-thin</code></p>
       </div>
     </div>
 
@@ -245,7 +278,30 @@
       interior and the page margin beside it read 206.8 against 207.0, 208.4 against 208.0,
       210.9 against 211.0 and 211.9 against 212.0 — within 0.2 at every row, and the only
       rows that differ at all are the ones the illustration's own light passes through.
-      There is no plate in the drawing. There is no longer one in the card.
+      There is no plate under the figure. There is no longer one in the card.
+    </div>
+    <div class="docs-note docs-note--warn" id="copy-panel-gap">
+      <strong>That sampling went down the figure half, and the drawing's other half does not
+      agree with it.</strong> The card is divided at <code>x&nbsp;=&nbsp;600</code> in the
+      1200&nbsp;px plate by its own interior hairline. Left of it the numbers above hold. Right
+      of it — the copy column, <code>x&nbsp;620…1120</code>, over the card's full interior height
+      <code>y&nbsp;2125…2655</code> — every sampled pixel reads a flat
+      <strong>248,&nbsp;248,&nbsp;248</strong> while the page margin beside it climbs
+      219&nbsp;→&nbsp;226 across the same rows. That is <strong>+22 to +29</strong>, constant,
+      and it cannot be the wash: the wash moves and this does not. The designer drew the process
+      card as a contour figure panel on the page and an opaque light plate under the copy. The
+      implementation draws neither, so half the card is faithful and half of it lost a material
+      layer.
+      <p>
+        It is left standing this run rather than half-restored, because the paragraph below is
+        the reason and it applies here too: a constant grey inside the wash's own range inverts
+        as the reader scrolls, and the honest form of a step <em>toward</em> the light is a veil
+        of white — which fades to nothing at the white end of the wash, exactly where the note
+        block's veil is at its strongest. That is a value the materials family does not have yet
+        and a designer's call to make, not a measurement's. What is settled is that the gap is
+        real and the sentence above it was too broad. → <code>--surface-sunken</code> in
+        <code>tokens.css</code>, and the note block's row in the table below.
+      </p>
     </div>
     <p>
       The plate could not hold still either, which is the part that generalises. The wash is
@@ -272,7 +328,8 @@
         <tr><td>hero button</td><td>the hero video</td><td>bearing glass + lit rim</td><td>specular on hover, focus, press and on its own passage up the viewport</td></tr>
         <tr><td>info-card plate</td><td>the isometric ground lattice</td><td>bearing glass + lit rim</td><td>the band crosses once as the card passes the reader; on the pinned Expertise stage, once across the whole pin</td></tr>
         <tr><td>mobile menu</td><td>the hero video</td><td><strong>opaque plate</strong> — see above</td><td>a clip edge travels down it</td></tr>
-        <tr><td>process card</td><td>the page wash</td><td>contour</td><td>nothing — it is not interactive, and a hover response on a panel that does not answer is a lie</td></tr>
+        <tr><td>process card — figure half</td><td>the page wash</td><td>contour</td><td>nothing — it is not interactive, and a hover response on a panel that does not answer is a lie</td></tr>
+        <tr><td>&nbsp;&nbsp;· its copy half</td><td>the page wash</td><td>contour — <a href="#copy-panel-gap">the plate is drawn and not implemented</a></td><td>nothing</td></tr>
         <tr><td>&nbsp;&nbsp;· its note block</td><td>the card, which is now the wash</td><td><code>--surface-sunken</code>, a veil</td><td>nothing</td></tr>
         <tr><td>value-table cells</td><td>the page wash</td><td>contour</td><td>nothing</td></tr>
         <tr><td>blog-grid cells</td><td>the page wash</td><td>contour</td><td><code>--sheen-panel</code> travels across on hover — these are links</td></tr>
@@ -746,9 +803,12 @@
       give the same 16.7&nbsp;ms median and overlapping p95 ranges. The rule worth keeping is
       therefore the one that pays — exactly two blurred layers on a <em>shipping</em> page,
       never a third — not the stronger one the comment used to assert. The scope matters, and
-      this page is why: it carries three composited plates of its own, the two samples above
-      and the band in the layer stack below. A documentation page showing a material has to be
-      allowed more of it than a page selling something.
+      this page is why: it carries four composited plates of its own, the three tint samples
+      above and the band in the layer stack below. A documentation page showing a material has
+      to be allowed more of it than a page selling something. Four rather than three since the
+      thin tint got a plate — all four are 8&nbsp;rem boxes in a column, they never overlap,
+      and only the one nearest the viewport is composited while the reader is anywhere on the
+      page. The cap that matters is on the pages that sell, and it has not moved.
     </p>
     <p>
       <strong>The census is measured rather than remembered</strong>, and it used to be a
@@ -757,7 +817,7 @@
       less than naming the spenders. <code>scripts/check-glass-budget.py</code> counts the
       blurred layers on every page in the tree and rewrites the table below, so the number
       here is generated the same way <a href="layout.html#space-scale">the space scale's</a>
-      is. Stamp <code>6f64b817</code> &mdash; a digest of the rows, so a reader can tell a
+      is. Stamp <code>eff64b45</code> &mdash; a digest of the rows, so a reader can tell a
       current census from a stale one without reading it.
     </p>
     <table class="docs-table" id="glass-census">
@@ -768,7 +828,7 @@
         <tr><td><code>components/buttons.html</code></td><td>documentation</td><td>1</td></tr>
         <tr><td><code>components/info-card.html</code></td><td>documentation</td><td>3</td></tr>
         <tr><td><code>components/navigation.html</code></td><td>documentation</td><td>1</td></tr>
-        <tr><td><code>foundations/materials.html</code></td><td>documentation</td><td>3</td></tr>
+        <tr><td><code>foundations/materials.html</code></td><td>documentation</td><td>4</td></tr>
         <tr><td><code>patterns/404.html</code></td><td>shipping</td><td>1</td></tr>
         <tr><td><code>patterns/blog-artikel.html</code></td><td>shipping</td><td>1</td></tr>
         <tr><td><code>patterns/expertise.html</code></td><td>shipping</td><td>2</td></tr>
@@ -788,6 +848,21 @@
       <code>animation-timeline</code> touching a property that repaints its backdrop. It also
       reads <em>what counts as glass</em> out of the stylesheet instead of holding a list, so
       a fourth frosted surface enters the budget by existing.
+    </p>
+    <p id="fallbacks">
+      <strong>The fifth claim is about the fallbacks, and it is the one claim here that is
+      not about cost.</strong> The three blocks in <em>When there is no glass</em> below work
+      by redefining tokens rather than by giving every component its own branch, which buys a
+      great deal and has exactly one failure mode: a tint left out of one block keeps its live
+      value there, and whatever reads it keeps a material the block was written to take away.
+      Nothing renders wrong. It renders as though the reader had never asked — and with the
+      blur already gone, what comes through the surviving translucency is <em>sharp</em>,
+      which is worse than either the material or a flat plate. So the script asserts that
+      every block turning the material off turns <em>all</em> of it off, in every selector
+      that block names, excusing only a token the block reads as its own answer. The family
+      is a name shape rather than a roster, so a fourth tint is in scope the moment it is
+      declared; the lit edge is deliberately outside it, because an edge is a contour and not
+      a translucency — the paragraph below is what happens to it instead.
     </p>
     <p>
       <strong>Where the third layer would come from, so it does not.</strong> The budget is
@@ -901,6 +976,27 @@
       <code>[data-theme="inverse"]</code> declarations are identical rather than merely
       parallel. <code>Canvas</code> and <code>CanvasText</code> already <em>are</em> the theme.
     </p>
+    <div class="docs-note docs-note--warn">
+      <strong>And it covered two tints out of three.</strong>
+      <code>--surface-glass-thin</code> was left out of this block for as long as the block
+      has existed, while both fallbacks above it cover all three. The tint is not spare:
+      <code>patterns/expertise.html</code> sets <code>--info-card-tint</code> to it, so the
+      pinned stage's lectern was the one glass surface in the system that stayed translucent
+      under forced colours. Measured in Chromium with the mode active at 1280 px,
+      <code>.cf-info-card--glass</code> computed <code>background-color</code>
+      <code>rgba(255, 255, 255, 0.30)</code> with <code>backdrop-filter</code> already
+      <code>none</code> — thinner than the 46 % the paragraph above is about, and with the
+      blur off the section behind it came through sharp rather than calmed. An author grey
+      over <code>Canvas</code> with the page legible through it, which is exactly what this
+      block's own argument says the mode exists to stop.
+      <br><br>
+      Why it survived is the part worth keeping: the thin tint was the one tint this page
+      could describe and not <em>draw</em>. There was no <code>.material-glass--thin</code>,
+      so no page rendered it, so no screenshot of any fallback ever contained it. There is one
+      now — <a href="#layers">03c</a> — and <a href="#fallbacks">the fifth claim</a> closes
+      the general case, on both selectors of all three blocks, so the next tint cannot sit one
+      of them out.
+    </div>
     <p>
       What the mode ends up with is the answer this page argues for everywhere else: the
       navigation is an opaque plate with a hairline under it, and the hero CTA is an opaque

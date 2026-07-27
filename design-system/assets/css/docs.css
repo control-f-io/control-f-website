@@ -386,7 +386,20 @@ body.docs {
 .docs-ramp { display: grid; grid-template-columns: 7rem 1fr; gap: var(--space-4); align-items: center; }
 .docs-ramp + .docs-ramp { margin-top: var(--space-3); }
 .docs-ramp__name { font-size: var(--text-md); font-weight: var(--weight-medium); }
-.docs-ramp__steps { display: grid; grid-template-columns: repeat(7, 1fr); }
+/* minmax(0, 1fr), not a bare 1fr. A bare fr floors at the item's min-content
+   width, so the mono step labels and their padding set a minimum no narrower
+   viewport can honour, and the page scrolls sideways instead.
+
+   base.css states this rule twice in prose and scripts/check-grid-tracks.py
+   enforces it — over the three stylesheets that SHIP. docs.css is out of that
+   scope on purpose and stays out: the documentation chrome is not the product,
+   and a check that governed it would be claiming otherwise. But the rule it
+   breaks is about the page scrolling sideways, and a documentation page is
+   still a page somebody reads at 320 px. This declaration was correct at seven
+   steps and wrong in principle; the one that was wrong in fact is inline on
+   the Grey ramp in foundations/colors.html, which overrides this rule with ten
+   columns and had to be floored there too. */
+.docs-ramp__steps { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .docs-ramp__step {
   padding: var(--space-4) var(--space-2);
   font-family: var(--font-mono);
