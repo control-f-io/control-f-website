@@ -59,8 +59,8 @@
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Duration</th><th>Used for</th><th>In the CSS today</th></tr></thead>
       <tbody>
-        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change</td><td>9 rules</td></tr>
-        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>the control itself responding — arrow, button, menu</td><td>8 rules</td></tr>
+        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change</td><td>10 rules</td></tr>
+        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>the control itself responding — arrow, button, menu</td><td>10 rules</td></tr>
         <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>a reveal, or light crossing a surface</td><td>6 rules</td></tr>
         <tr><td><code>--duration-scene</code></td><td>1200 ms</td><td>a full object build, if one is ever driven by time</td><td><strong>none yet</strong></td></tr>
       </tbody>
@@ -71,14 +71,31 @@
       Only <code>--duration-scene</code> has none.
     </p>
     <div class="docs-note">
-      <strong>Three of those four counts were stale, and the count is the only part of this
-      page that can go stale silently.</strong> Measured against the shipping CSS they read 8,
-      6 and 4 while the stylesheets held 8, 8 and 5; the mobile menu below then took two of
-      them up again. Nothing rendered wrong — a table simply stopped describing the code, in
-      the one column that exists to be checked. It is counted by hand, so the next rule that
-      names a duration has to come back here. Treat a number in that column as a claim, not
-      as a fact, and re-count before citing it.
+      <strong>That column has now gone stale twice, and it is still the only part of this page
+      that can rot without anything rendering wrong.</strong> The first time, three of the four
+      read 8, 6 and 4 against stylesheets holding 8, 8 and 5. The second time — found while the
+      hero's still switch was being added, which is itself a new
+      <code>--duration-fast</code> consumer — <code>--duration-base</code> published 8 against
+      10 in the code. Asking a human to remember is what failed, twice. So the count is no
+      longer a claim you have to trust: it is one command, and it prints the same four numbers
+      this table publishes.
     </div>
+    <pre class="docs-code"><span class="com"># from design-system/ — counts RULES, not var() occurrences</span>
+python3 -c "
+import re
+css = ''.join(open('assets/css/'+f).read() for f in ['tokens.css','base.css','components.css'])
+blocks = re.findall(r'\{([^{}]*)\}', re.sub(r'/\*.*?\*/', '', css, flags=re.S))
+for t in ['fast','base','slow','scene']:
+    print('--duration-'+t, sum(1 for b in blocks if 'var(--duration-'+t+')' in b))
+"</pre>
+    <p>
+      Comments are stripped first, because this page and the stylesheets both discuss these
+      tokens in prose and a naive grep counts the discussion. Blocks are matched rather than
+      lines, because <strong>a rule naming a token twice is one consumer, not two</strong> —
+      <code>.cf-btn--glass</code> names <code>--duration-base</code> in two of its three
+      transition legs and is one rule. The declaration in <code>tokens.css</code> that
+      <em>defines</em> each token is not a <code>var()</code> and never enters the count.
+    </p>
     <p>
       <strong>480 ms carries two different kinds of motion, and the distinction is worth
       keeping.</strong> Four of its six consumers are light crossing a surface — the specular
@@ -423,6 +440,13 @@
       <code>@media screen and (prefers-reduced-motion: no-preference)</code>.
       The hero swaps its loop for the poster:
     </p>
+    <div class="docs-note">
+      <strong>The preference is a default, not the mechanism.</strong> Everything on this
+      page that respects <code>prefers-reduced-motion</code> is doing the right thing and
+      none of it is a substitute for a control the reader can reach. See
+      <a href="#hero">Hero artwork</a> for the one place in this system where that
+      distinction is a conformance requirement rather than a nicety.
+    </div>
     <pre class="docs-code">.cf-hero__media img { <span class="attr">display</span>: <span class="val">none</span>; }
 <span class="tag">@media</span> (<span class="attr">prefers-reduced-motion</span>: <span class="val">reduce</span>) {
   .cf-hero__media video { <span class="attr">display</span>: <span class="val">none</span>; }
@@ -483,9 +507,83 @@
     <ul>
       <li><code>muted</code>, <code>loop</code>, <code>playsinline</code>, <code>autoplay</code> — never with sound.</li>
       <li>A <code>poster</code> with the first frame, so the hero is there immediately.</li>
-      <li>Under reduced motion, only the poster is shown.</li>
+      <li>An <code>&lt;img&gt;</code> of the same frame in the markup, because <code>poster</code>
+        disappears with the video.</li>
+      <li>Under reduced motion, only the still is shown.</li>
+      <li><strong>A switch on the page that stops it</strong> — see below.</li>
       <li>The headline sits <em>on top</em> of the video and needs at least 4.5:1 there — if in doubt, darken the lower half.</li>
     </ul>
+
+    <h3>The still switch</h3>
+    <p>
+      The loop runs <strong>12 seconds and repeats forever</strong>, behind the headline.
+      That is the exact shape of content <strong>WCAG 2.2.2 Pause, Stop, Hide</strong>
+      (level&nbsp;A) governs: moving, starting automatically, lasting more than five
+      seconds, presented in parallel with other content. The criterion asks for a
+      <em>mechanism</em> the reader can operate. <code>prefers-reduced-motion</code> is not
+      one — it is a sufficient technique for 2.3.3 <em>Animation from Interactions</em>, a
+      different criterion, and it appears nowhere in 2.2.2. <strong>The system had the
+      preference and not the mechanism, so this was a level&nbsp;A failure on the one page
+      that carries video.</strong>
+    </p>
+    <p>
+      The mechanism is a checkbox and two sibling selectors. <strong>No script.</strong>
+      That is not minimalism for its own sake: a scripted control is absent for readers with
+      scripting off, who are disproportionately the readers relying on the mechanism.
+    </p>
+    <pre class="docs-code"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"cf-hero__media"</span><span class="tag">&gt;</span>
+  <span class="com">&lt;!-- first, so the two ~ selectors can reach both media elements --&gt;</span>
+  <span class="tag">&lt;input</span> <span class="attr">class</span>=<span class="val">"cf-hero__still-toggle"</span> <span class="attr">type</span>=<span class="val">"checkbox"</span> <span class="attr">id</span>=<span class="val">"cf-hero-still"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;video</span> … <span class="attr">autoplay muted loop playsinline</span><span class="tag">&gt;&lt;/video&gt;</span>
+  <span class="tag">&lt;img</span> <span class="attr">src</span>=<span class="val">"…/hero-poster.jpg"</span> <span class="attr">alt</span>=<span class="val">""</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;label</span> <span class="attr">class</span>=<span class="val">"cf-hero__still"</span> <span class="attr">for</span>=<span class="val">"cf-hero-still"</span> <span class="attr">data-theme</span>=<span class="val">"inverse"</span><span class="tag">&gt;</span>…<span class="tag">&lt;/label&gt;</span>
+<span class="tag">&lt;/div&gt;</span></pre>
+    <pre class="docs-code">.cf-hero__still-toggle:checked ~ video { <span class="attr">display</span>: <span class="val">none</span>; }
+.cf-hero__still-toggle:checked ~ img   { <span class="attr">display</span>: <span class="val">block</span>; }</pre>
+    <p>
+      <strong>Which of the criterion's three verbs this is, stated plainly: hide.</strong>
+      <code>display: none</code> removes the video from the presentation; it does not pause
+      the element, so the decode continues in the background. Hiding is what 2.2.2 asks for
+      and it is the only one of the three CSS can reach on its own. The cost is real and
+      worth naming rather than glossing: the switch buys stillness, not battery. If a future
+      version accepts a script here, <code>video.pause()</code> buys both — but it must be an
+      <em>addition</em> to this, never a replacement for it.
+    </p>
+    <p>
+      A second honest edge: the poster is the video's <em>first</em> frame, so stopping the
+      loop mid-cycle cuts to that frame rather than freezing on the current one. It is a cut,
+      not a layout shift — nothing moves and nothing reflows — and it is exactly what a
+      reduced-motion reader has always seen.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Condition</th><th>Loop</th><th>Still</th><th>Switch</th></tr></thead>
+      <tbody>
+        <tr><td>default</td><td>runs</td><td>hidden</td><td>shown, bars</td></tr>
+        <tr><td>switch checked</td><td>hidden</td><td>shown</td><td>shown, triangle</td></tr>
+        <tr><td>reduced motion</td><td>hidden</td><td>shown</td><td><strong>removed</strong></td></tr>
+        <tr><td>no CSS / no JS</td><td>runs</td><td>hidden</td><td>shown and working</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Row three is deliberate: under reduced motion nothing is moving, so a switch that
+      cannot change what the reader sees would be worse than none. <strong>Two rules in that
+      table caught real bugs and both are recorded at the CSS.</strong> The removal has to
+      come <em>after</em> <code>.cf-hero__still</code>'s own <code>display: grid</code> —
+      both selectors weigh (0,1,0) and a media query adds no specificity, so above it the
+      block lost silently. And the checkbox is not <code>.visually-hidden</code>: the hero is
+      pulled up by the nav's height, so a 1&nbsp;px clipped input at the media box's origin
+      sits above the top of the document, and focusing it scrolled the page away from the
+      plate the reader was aiming at. It occupies the plate's own box instead, transparent
+      and not hit-testable.
+    </p>
+    <p>
+      The two marks are drawn, not filled, like everything else in the system — and both sit
+      on sanctioned angles. The bars are 90°. <strong>The play triangle is 13 across by 13
+      tall about its apex, which puts both of its edges at dx&nbsp;2 / dy&nbsp;1 — 26.57°,
+      the isometric angle</strong>, rather than the 30° a generic play glyph carries. It is
+      a flatter triangle than the one most interfaces use, and that is the point: it is the
+      same edge as the rhombus the whole icon set is built from.
+    </p>
   </section>
 </main>
 
