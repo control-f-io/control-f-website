@@ -46,6 +46,7 @@
     ]},
     { title: 'Patterns', items: [
       { href: 'patterns/landing-page.html', label: 'Landing Page' },
+      { href: 'patterns/expertise.html',    label: 'Expertise' },
       { href: 'patterns/ueber-uns.html',    label: 'Über uns page' },
       { href: 'patterns/news.html',         label: 'News overview' },
       { href: 'patterns/blog-artikel.html', label: 'Blog article' },
@@ -58,6 +59,7 @@
     { title: 'Animation Prototypes', items: [
       { href: 'prototypes/werte-scroll.html',    label: 'Werte — logo build' },
       { href: 'prototypes/services-scroll.html', label: 'Services — assembly' },
+      { href: 'prototypes/expertise-scroll.html', label: 'Expertise — vier Felder' },
       { href: 'prototypes/demon-core.html',      label: 'Demon core — easter egg' }
     ]},
     { title: 'Reference', items: [

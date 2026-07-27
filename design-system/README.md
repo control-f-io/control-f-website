@@ -43,7 +43,8 @@ design-system/
 │                           field, pagination, error + empty state, arrival +
 │                           progress, article + prose, table, team, forms,
 │                           footer, consent
-├── patterns/               full page templates — landing-page.html, ueber-uns.html,
+├── patterns/               full page templates — landing-page.html, expertise.html,
+│                           ueber-uns.html,
 │                           news.html, blog-artikel.html, kontakt.html, 404.html
 ├── prototypes/             motion studies — standalone, not yet system
 ├── reference.html          the designer's source material, next to what implements it
@@ -120,6 +121,7 @@ be reviewed against the pages it would land on.
 |---|---|
 | `werte-scroll.html` | The mark builds itself from its own isometric subdivision grid across six value stages, with the copy streaming in char by char. Scroll-scrubbed, so it un-builds on the way back up. |
 | `services-scroll.html` | The four process cards assemble inside a pinned section — cubes telescoping up, layers sliding in, contours drawing themselves. 1.4 MB, almost all of it one inline Figma export. |
+| `expertise-scroll.html` | The four fields of expertise on one track — Maschinenbau, Großanlagen, Erneuerbare, Flotten. No script at all: one view timeline, four windows over it, and a step that hands over to the next on the rake. Stacked and readable below 820 px and under reduced motion. |
 | `demon-core.html` | The Über-uns header object, made live. Click the core: the reflector travels down the axis, holds, snaps shut, and the assembly goes critical in the full palette. |
 
 The first two scrub from scroll position rather than playing on a timer, which is what the
