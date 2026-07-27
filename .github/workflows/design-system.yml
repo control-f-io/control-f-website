@@ -144,6 +144,17 @@ name: Design system checks
 # it -- 84 px at a 16 px default font, 173 at 20, 297 at 24. The band grows with
 # the reader's type while the gate stands still, and none of it shows at 375,
 # 768 or 1280, which are the three widths anyone checks.
+#
+# The registration is the sixteenth, and the third about the system as a site.
+# design-system/index.html is the only enumeration of the Patterns section —
+# no build step generates a listing, no page in the section links all of its
+# siblings — so a pattern page whose .docs-card is missing is not late
+# documentation, it is unreachable: it ships, renders perfectly at its
+# address, and nobody who does not already know the address can arrive at it.
+# The build lane's rule says "a page nothing links to is not shipped";
+# check-links.py guards the opposite direction (a card pointing at a missing
+# file), and until this check the direction that decides whether a page exists
+# for a reader had no guard, because an absent card photographs as nothing.
 
 on:
   push:
@@ -152,7 +163,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not fifteen. All fifteen checks are a few hundred milliseconds of
+  # One job, not sixteen. All sixteen checks are a few hundred milliseconds of
   # stdlib python; a second runner would cost more to start than any of them
   # takes to run, and a reader looking at a red tick wants every answer on one
   # page.
@@ -167,7 +178,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: fourteen
+      # Each check runs even when an earlier one has already failed: sixteen
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -224,3 +235,7 @@ jobs:
       - name: Local thresholds
         if: '!cancelled()'
         run: python3 scripts/check-local-thresholds.py
+
+      - name: Pattern registration
+        if: '!cancelled()'
+        run: python3 scripts/check-registered.py
