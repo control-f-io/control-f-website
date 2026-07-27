@@ -173,6 +173,21 @@ Before this rule the same relationship was set six different ways across the two
 (24, 32, 48, 64 px, plus two container paddings). If a section needs a different
 distance, change the token — not the page.
 
+Between sections the air comes from `.section`'s own `padding-block`, and three classes
+decide which token an edge gets. All three are documented on `foundations/layout.html`:
+
+| | |
+|---|---|
+| `.section` | `--section-gap` on both edges — so 240 px *between* two sections at the reference frame. |
+| `.section--tight` | `--section-gap-sm` on both. The first section under a `.cf-page-header`. |
+| `.section--flush` | `--section-gap` top, nothing at the bottom. The last section on a page, paired with `.cf-footer--detached`, which supplies that bottom gap instead. |
+
+The last pair is a biconditional and used not to be checked as one: `patterns/kontakt.html`
+carried `--detached` over a normal `.section` and stood its footer off at 240 px where every
+other page measures 120. Measured across all five pattern pages, the rhythm is now 240 between
+normal sections, 200 after a `--tight` one, 120 above every footer, and 80 from every section
+header's hairline to its content.
+
 ## Before launch
 
 | | |
