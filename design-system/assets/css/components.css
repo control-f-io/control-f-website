@@ -1325,6 +1325,23 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   padding-bottom: var(--space-3);
   border-bottom: var(--stroke-1) solid var(--border-strong);
 }
+/* The intrinsic minimum, on the item — the second of the two fixes
+   foundations/layout.html#intrinsic-two-fixes tabulates, and the one .tiles
+   and .subdivide already take. Both halves of this row are flex items with
+   min-width: auto, so each floored at its own min-content and a German
+   compound in either took the whole document with it. Measured at a 16 px
+   default, one real compound, no enlarged type needed:
+
+     .cf-section-header__count   "6 Fragen" -> 42 chars   320 -> 384 px
+     .cf-section-header__label   "FAQ"      -> 42 chars   320 -> 356 px
+
+   The count is the half that is written to change — "189 Beiträge",
+   "01 / 04", "6 Fragen" — so it is the half a copy edit reaches. Not a track
+   floor here: this row stays flex because the two parts are set on a baseline
+   and the right one is sized by its own text, which is what space-between
+   between two auto-width items says and what a two-track grid would have to
+   restate. → base.css, .tiles > * */
+.cf-section-header > * { min-width: 0; }
 .cf-section-header--flush {
   margin-bottom: 0;
   border-bottom: 0;
@@ -2400,10 +2417,29 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    -------------------------------------------------------------------------- */
 .cf-accordion { border-top: var(--stroke-1) solid var(--border-strong); }
 .cf-accordion__item { border-bottom: var(--stroke-1) solid var(--border-strong); }
+/* GRID AND NOT FLEX, FOR THE FLOOR AND FOR NOTHING ELSE. Two children, the
+   question and the arrow, one pushed to each end — flex with space-between
+   drew exactly that, and drew it with an UNFLOORED intrinsic minimum: the
+   question is a bare text node, so it is an ANONYMOUS flex item, and an
+   anonymous item is the one kind nothing can put min-width: 0 on. Its
+   automatic minimum is its min-content width, which for German is the longest
+   compound in the question, and that width becomes the flex line's, and the
+   line's becomes the document's. Measured at a 16 px default with one real
+   compound in the first FAQ question: 320 -> 384 px, 375 -> 384 px.
+
+   overflow-wrap does not reach this. Intrinsic sizing runs before line
+   breaking, so the reset breaks the word inside a box that is already too
+   wide — the trap foundations/layout.html#intrinsic-minimum spells out in a
+   note of its own.
+
+   As a grid the same two children take the same two ends, and the question's
+   track carries the floor the system has written twenty-eight times:
+   minmax(0, 1fr). Same picture, one declaration different, and the component
+   is now inside scripts/check-grid-tracks.py's reach instead of beside it. */
 .cf-accordion__summary {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-6);
   /* 12 px block, not 16. The row then measures 48 px — 12 + 12 + the 23.2 px
      line box + the 1 px divider — which is what the mockup draws (six FAQ rows
@@ -2462,11 +2498,18 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
     .cf-accordion__item[open]::details-content { block-size: auto; }
   }
 }
+/* The one <div> in the tree that holds its own copy, so it is the one that
+   carries base.css's net itself. The net is a list of elements that hold text
+   and deliberately does not include div — see the note there for why a single
+   inherited declaration on div or body would have been the worse fix — which
+   makes this the other half of that decision rather than a stray property.
+   → base.css, "THE LIST IS THE WHOLE NET"; scripts/check-wrap-net.py */
 .cf-accordion__content {
   padding: 0 var(--space-4) var(--space-6) var(--space-20);
   max-width: 76ch;
   font-size: var(--text-md);
   color: var(--text-secondary);
+  overflow-wrap: break-word;
 }
 @media (max-width: 48.75rem) {
   .cf-accordion__summary { padding-left: var(--space-4); font-size: var(--text-md); }
