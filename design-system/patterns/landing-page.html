@@ -24,6 +24,224 @@
      fact about the drawing's 480-unit frame rather than about this page, so it
      now lives with the component in components.css — see .cf-statement .cf-iso
      and foundations/motion.html#travel. */
+  /* ------------------------------------------------------------------
+     Was wir machen — the four steps, built in place.
+
+     PAGE-LOCAL, the same line expertise.html draws for its own track: a
+     composition made of shipped components, not a component, and nothing
+     here moves to components.css until a second page wants this exact
+     stage. The mechanism is the one the Expertise page ships and
+     prototypes/services-scroll.html was approved on — a pinned stage, a
+     track of scroll behind it, and the build scrubbed by scroll position,
+     forwards and back.
+
+     WHY THE BUILD IS RE-TIMED AT ALL: .cf-iso--build already assembles
+     these objects, but off each object's OWN view timeline — and a sticky
+     object never travels through the viewport, so its own view() would
+     freeze at one value and the object would simply stand there,
+     finished. Same fact expertise.html documents. So on the pinned stage
+     every part reads the TRACK's timeline instead, quarter by quarter,
+     while the staging itself — --stage, --build-dx, --build-dy, and the
+     cf-iso-build keyframe with its per-part directions — is exactly the
+     one components.css ships. The telescope still telescopes; it just
+     telescopes on the reader's scroll.
+
+     Everything is a progressive enhancement over the stacked column: no
+     view timelines, reduced motion, print, or a viewport under 64rem x
+     45rem, and the section is four cards in a column, each assembling on
+     its own view timeline as before. The height gate is not decoration:
+     the card's height is half its width plus the copy, and under 45rem
+     of viewport a stage that must also clear the nav band cannot hold a
+     card worth reading.
+     ------------------------------------------------------------------ */
+  .lp-proc-index, .lp-proc-bar, .lp-proc-plate { display: none; }
+  /* The stacked fallback keeps the rhythm the section always had — this
+     gap is .flow-12, restated as a gap because the pinned mode needs the
+     same element to be a grid. */
+  .lp-proc-steps { display: grid; gap: var(--space-12); }
+
+  @supports (animation-timeline: view()) {
+    @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
+      /* 1.6 SCREENS OF SCROLL PER STEP — the number the Expertise track
+         settled on, for the reason it documents: at one screen per step
+         every build was over in a flick of the wheel. */
+      .lp-proc-track { --steps: 4; height: calc((var(--steps) * 1.6 + 1) * 100vh); }
+      .lp-proc-track { view-timeline-name: --lpp; view-timeline-axis: block; }
+      .lp-proc-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; overflow: clip; }
+      .lp-proc-stage__inner {
+        height: 100%;
+        display: grid; grid-template-rows: auto 1fr auto;
+        /* The nav floats over the page, so a stage pinned to the viewport
+           top has to start below it or the index reads through the bar. */
+        padding-block: calc(var(--nav-height) + var(--space-4)) var(--space-8);
+      }
+      .lp-proc-index { display: flex; }
+      .lp-proc-bar { display: block; }
+
+      /* THE CARD IS SIZED BY THE STAGE, NOT THE COLUMN. Its height is its
+         width over two — two equal columns, and the figure is square — so
+         binding the width to the viewport height is what guarantees the
+         card, the index and the bar all fit one screen at any size the
+         gate admits. 13rem is the stage's own chrome: the nav clearance,
+         the index, the bar and the paddings, measured. */
+      .lp-proc-steps {
+        gap: 0;
+        align-content: center;
+        width: 100%;
+        max-inline-size: calc((100vh - 13rem) * 2);
+        margin-inline: auto;
+      }
+      /* All five in one grid area — the plate and the four cards — so the
+         frames coincide exactly and every card stretches to the same
+         height, which is what lets the plate's hairline serve them all. */
+      .lp-proc-steps > .cf-process { grid-area: 1 / 1; }
+      .lp-proc-plate { display: grid; }
+      /* The cards give up their chrome to the plate. Not the content —
+         the border and the hairline, which would otherwise dim to
+         three-quarter strength at every handover as two copies crossfade. */
+      .lp-proc-steps > .cf-process:not(.lp-proc-plate) { border-color: transparent; }
+      .lp-proc-steps > .cf-process:not(.lp-proc-plate) .cf-process__figure { border-color: transparent; }
+
+      /* THE OBJECT CROSSFADES, THE COPY SNAPS — the two halves hand over
+         differently, and the Expertise page documents why they have to:
+         two line drawings dissolving through each other are legible, two
+         blocks of copy at half opacity in one column read as one title
+         printed twice. So the step as a whole overlaps its neighbours by
+         three points and dissolves, and the panel's own window abuts the
+         next at zero. */
+      .lp-proc-steps > .cf-process:not(.lp-proc-plate) {
+        opacity: 0;
+        animation: lpp-step linear both;
+        animation-timeline: --lpp;
+        animation-range: contain calc(var(--i) * 25% - 3%) contain calc((var(--i) + 1) * 25% + 3%);
+      }
+      .lp-proc-steps .cf-process__panel {
+        animation: lpp-copy-hold linear both;
+        animation-timeline: --lpp;
+        animation-range: contain calc(var(--i) * 25%) contain calc((var(--i) + 1) * 25%);
+      }
+      /* The copy arrives line by line, top to bottom, all of it inside
+         the reveal — the last line is up by 10.2 points of the quarter,
+         well before the build finishes at 15.5. */
+      .lp-proc-steps .cf-process__panel > * {
+        animation: lpp-copy linear both;
+        animation-timeline: --lpp;
+        animation-range: contain calc(var(--i) * 25% + 2% + var(--k, 0) * 1.1%)
+                         contain calc(var(--i) * 25% + 3.6% + var(--k, 0) * 1.1%);
+      }
+      .lp-proc-steps .cf-process__panel > :nth-child(2) { --k: 1; }
+      .lp-proc-steps .cf-process__panel > :nth-child(3) { --k: 2; }
+      .lp-proc-steps .cf-process__panel > :nth-child(4) { --k: 3; }
+      .lp-proc-steps .cf-process__panel > :nth-child(5) { --k: 4; }
+      .lp-proc-steps .cf-process__panel > :nth-child(6) { --k: 5; }
+      .lp-proc-steps .cf-process__panel > :nth-child(7) { --k: 6; }
+
+      /* THE BUILD, RE-TIMED ONTO THE TRACK. Same parts, same stages, same
+         keyframes — cf-iso-build still reads each part's --build-dx/-dy,
+         so every direction authored in the markup survives. Only the
+         timeline and the windows change, and the order is the build's
+         own: ghosts first (the parts arrive out of where the ghosts are),
+         then the forms by stage, the traces, the light, the nodes. The
+         reveal ends at 15.5 of 25 — 62 % of the step, the system's hold
+         rule — and the rest of the quarter is a still.
+         → foundations/motion.html#build, #hold */
+      .lp-proc-steps .cf-iso__scene { animation-name: none; }
+      .lp-proc-steps .cf-iso__form,
+      .lp-proc-steps .cf-iso__ghost,
+      .lp-proc-steps .cf-iso__orbit,
+      .lp-proc-steps .cf-iso__trace,
+      .lp-proc-steps .cf-iso__light,
+      .lp-proc-steps .cf-iso__node {
+        animation-timeline: --lpp;
+        animation-duration: auto;
+        animation-fill-mode: both;
+        animation-timing-function: var(--ease-out);
+      }
+      .lp-proc-steps .cf-iso__ghost {
+        animation-name: cf-iso-fade;
+        animation-range: contain calc(var(--i) * 25% + 0.5%) contain calc(var(--i) * 25% + 4%);
+      }
+      /* The orbits keep their two animations — fade with the ghosts, turn
+         for longer — excluded from the ghost window above exactly as
+         components.css excludes them from its own. */
+      .lp-proc-steps .cf-iso__orbit {
+        animation-name: cf-iso-fade, cf-iso-orbit;
+        animation-timeline: --lpp, --lpp;
+        animation-range: contain calc(var(--i) * 25% + 0.5%) contain calc(var(--i) * 25% + 4%),
+                         contain calc(var(--i) * 25% + 0.5%) contain calc(var(--i) * 25% + 12%);
+      }
+      .lp-proc-steps .cf-iso__form {
+        animation-name: cf-iso-build;
+        animation-range: contain calc(var(--i) * 25% + 1.5% + var(--stage, 0) * 2.2%)
+                         contain calc(var(--i) * 25% + 8% + var(--stage, 0) * 2.2%);
+      }
+      .lp-proc-steps .cf-iso__trace {
+        stroke-dasharray: 1;
+        animation-name: cf-iso-draw;
+        animation-range: contain calc(var(--i) * 25% + 5%) contain calc(var(--i) * 25% + 13%);
+      }
+      /* Two animations, like the build mode it re-times: the arrival on
+         the part's own stage, the fill last of all. */
+      .lp-proc-steps .cf-iso__light {
+        animation-name: cf-iso-light, cf-iso-build;
+        animation-timeline: --lpp, --lpp;
+        animation-range: contain calc(var(--i) * 25% + 11.5%) contain calc(var(--i) * 25% + 15%),
+                         contain calc(var(--i) * 25% + 1.5% + var(--stage, 0) * 2.2%)
+                         contain calc(var(--i) * 25% + 8% + var(--stage, 0) * 2.2%);
+      }
+      .lp-proc-steps .cf-iso__node {
+        animation-name: cf-iso-fade;
+        animation-range: contain calc(var(--i) * 25% + 13%) contain calc(var(--i) * 25% + 15.5%);
+      }
+
+      .lp-proc-mark {
+        animation: lpp-mark linear both;
+        animation-timeline: --lpp;
+        animation-range: contain calc(var(--i) * 25%) contain calc((var(--i) + 1) * 25%);
+      }
+      .lp-proc-bar::after {
+        animation: lpp-bar linear both;
+        animation-timeline: --lpp;
+        animation-range: contain 0% contain 100%;
+      }
+    }
+  }
+
+  .lp-proc-index {
+    gap: var(--space-4); padding: 0 0 var(--space-4); list-style: none;
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label); color: var(--text-muted);
+  }
+  .lp-proc-bar { position: relative; height: var(--stroke-1); background: var(--border-default); margin-top: var(--space-4); }
+  .lp-proc-bar::after {
+    content: ""; position: absolute; inset: 0 auto 0 0; width: 100%;
+    background: var(--border-strong); transform-origin: left; transform: scaleX(0);
+  }
+
+  /* In over the first tenth, out over the last — between them, the still
+     that is the point of the hold. */
+  @keyframes lpp-step {
+    0%       { opacity: 0; }
+    11%, 89% { opacity: 1; }
+    100%     { opacity: 0; }
+  }
+  /* The panel holds its quarter and snaps out at the end of it, while the
+     eye is on the object's dissolve. Its arrival is carried by the
+     children below, so this one only ever leaves. */
+  @keyframes lpp-copy-hold {
+    0%, 88%   { opacity: 1; }
+    96%, 100% { opacity: 0; }
+  }
+  @keyframes lpp-copy {
+    from { opacity: 0; translate: 0 var(--space-4); }
+    to   { opacity: 1; translate: 0 0; }
+  }
+  @keyframes lpp-mark {
+    0%, 100% { color: var(--text-muted); }
+    14%, 86% { color: var(--text-primary); }
+  }
+  @keyframes lpp-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
   /* Preview only: link back to the documentation. Remove in production. */
   .ds-back {
     /* Under --z-overlay: preview chrome must never cover real UI, and the
@@ -226,9 +444,37 @@
         <h2 class="cf-section-header__label" id="prozess">Was wir machen</h2>
         <span class="cf-section-header__count" aria-hidden="true">01 / 04</span>
       </div>
+    </div>
 
-      <div class="stack flow-12">
-        <article class="cf-process">
+    <!-- The four steps, built in place while the reader scrolls — the same
+         pinned scrub the Expertise page ships and prototypes/services-scroll
+         proposed: one sticky stage, a track of scroll behind it, and each
+         card's object assembled off the TRACK's timeline rather than its own.
+         Everything below is a progressive enhancement over the stacked column:
+         no view timelines, reduced motion, print, a narrow or short viewport,
+         and the four cards are simply four cards, each building on its own
+         view timeline as before. -->
+    <div class="lp-proc-track">
+      <div class="lp-proc-stage">
+        <div class="container lp-proc-stage__inner">
+          <ol class="lp-proc-index" role="list" aria-hidden="true">
+            <li class="lp-proc-mark" style="--i:0">01</li>
+            <li class="lp-proc-mark" style="--i:1">02</li>
+            <li class="lp-proc-mark" style="--i:2">03</li>
+            <li class="lp-proc-mark" style="--i:3">04</li>
+          </ol>
+
+          <div class="lp-proc-steps">
+            <!-- THE LECTERN, the expertise page's move: one constant frame,
+                 not four crossfading ones. The cards above it give up their
+                 border and hairline so the chrome never dissolves — a lectern
+                 does not change when the page on it does. Hidden entirely in
+                 the stacked fallback. -->
+            <article class="cf-process lp-proc-plate" aria-hidden="true">
+              <div class="cf-process__figure"></div>
+              <div class="cf-process__panel"></div>
+            </article>
+            <article class="cf-process" style="--i:0">
           <div class="cf-process__figure">
             <svg class="cf-iso cf-iso--build" viewBox="0 0 640 640" fill="none" aria-hidden="true">
               <defs>
@@ -302,7 +548,7 @@
           </div>
         </article>
 
-        <article class="cf-process">
+            <article class="cf-process" style="--i:1">
           <div class="cf-process__figure">
             <svg class="cf-iso cf-iso--build" viewBox="0 0 640 640" fill="none" aria-hidden="true">
               <defs>
@@ -387,7 +633,7 @@
           </div>
         </article>
 
-        <article class="cf-process">
+            <article class="cf-process" style="--i:2">
           <div class="cf-process__figure">
             <svg class="cf-iso cf-iso--build" viewBox="0 0 640 640" fill="none" aria-hidden="true">
               <defs>
@@ -453,7 +699,7 @@
           </div>
         </article>
 
-        <article class="cf-process">
+            <article class="cf-process" style="--i:3">
           <div class="cf-process__figure">
             <svg class="cf-iso cf-iso--build" viewBox="0 0 640 640" fill="none" aria-hidden="true">
               <defs>
@@ -528,7 +774,11 @@
               sondern schaffen Mehrwert im laufenden Betrieb.
             </p>
           </div>
-        </article>
+            </article>
+          </div>
+
+          <div class="lp-proc-bar" aria-hidden="true"></div>
+        </div>
       </div>
     </div>
   </section>
