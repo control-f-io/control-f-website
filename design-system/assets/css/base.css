@@ -160,7 +160,35 @@ a:not([class]) {
   text-decoration-thickness: 1px;
 }
 
-:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+/* THIS LIST WAS WRITTEN BY HAND TOO, and it was caught short in exactly the
+   way the overflow-wrap net above it was, by exactly the same element. It is
+   the system's ONE focus indicator — every ring on every page is this
+   declaration — and it names five tags plus [tabindex], which is a list of the
+   things a person thinks of as controls rather than of the things the browser
+   gives focus to. <summary> is natively focusable, is none of those five, and
+   carries no tabindex, so it has never once received this ring: 21 of them in
+   six files, including the landing page's six FAQ rows.
+
+   WHAT THE READER GOT INSTEAD was the user agent's own outline, and the
+   component's sheen is not a second opinion about that. Measured on the
+   landing page's first FAQ row at 1440 x 900, unfocused against focused:
+
+     the sheen sweep alone (:focus-visible background-position)   1.23:1
+     the browser's fallback outline alone                        13.61:1
+     this ring, once summary is in the list                      14.91:1
+
+   WCAG 2.4.11 asks a focus indicator for 3:1 against its unfocused state, so
+   the 1.23 is not an indicator and the whole job was being done by a ring
+   nothing in this repository asked for, at 1 px where the system draws 2, at
+   offset 0 where the system draws 2, in the UA's near-black rather than in
+   --focus-ring — which is the token that flips to lime under
+   data-theme="inverse" and therefore the only one that survives a dark
+   surface. Nothing renders wrong on the day you look at it in Chromium; it is
+   simply not this system's ring, on the one component that discloses content.
+
+   Held by scripts/check-focus-ring.py, which reads this selector and the
+   markup rather than trusting the next hand-kept list. */
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
   outline: var(--stroke-2) solid var(--focus-ring);
   outline-offset: 2px;
 }
