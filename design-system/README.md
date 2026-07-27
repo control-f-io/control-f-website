@@ -123,7 +123,8 @@ design-system/
 │                           illustration, logo, photo, motion, mobile,
 │                           page transitions, field, found state, line of sight
 ├── components/             buttons, nav, breadcrumb, section header, statement +
-│                           value table, plot, process card, accordion, blog grid,
+│                           value table, plot, annotation, process card,
+│                           accordion, blog grid,
 │                           subdivision field, search + results, pagination,
 │                           error + empty state, arrival + progress,
 │                           article + prose, table, team, forms, footer, consent
@@ -531,6 +532,54 @@ words is the working band, and `textStart,textEnd` pins both ends where it canno
 Both Figma mockups draw a six-item nav bar measured to `417 × 41`; a seventh item is a change
 to the drawing, not to the code. `patterns/404.html` routes to it instead — first in the list,
 because it is the only route on that page that does not guess what the reader was after.
+
+## Naming a part of a drawing
+
+`components/annotation.html` is the chapter for the thing that sat between the two the
+system already had. It could mark a found **word** — `foundations/found.html` — and it
+could draw an **object** — `foundations/illustration.html`. It had nothing in between: no
+way to say which *part* of an object you are looking at. Fifteen isometric objects ship
+carrying `.cf-iso__node`, a black dot at a vertex, and not one of those dots said anything.
+
+`.cf-annot` is the layer that gives them words, and it is the found state one scale up.
+Two rungs, the same two: every annotation is drawn in **contour**, the one the figure is
+about is **lit**. A drawing with six notes composes one lit anchor and five contoured ones,
+so the one-lime-moment budget is satisfied by the drawing rather than waived for it — the
+same argument the found state makes about a page with twelve matches.
+
+**The leader is a lattice step, and that is the whole geometry.** Technical drawing has
+required for a century that a leader run at neither horizontal nor vertical, so it can be
+told from the object it points at; this brand sanctions four angles, two of them oblique.
+The two rules land on the same drawing. So a leader is declared as a step — `--annot-mx`
+across by `--annot-my` down — and its slope is **read off that step** rather than typed in:
+
+| | |
+|---|---|
+| the angle | `atan2(--annot-my, --annot-mx)`. (2, 1) resolves to 26.565° and (1, 2) to 63.435°: the only two obliques the brand owns, and the only two a leader can be. A leader off the lattice is not expressible. |
+| the length | `sqrt(mx² + my²) × u`, which is why both steps are the same length — they are the same diagonal. |
+| left | a mirror, `scaleX(-1)` ahead of the rotation, not a second angle. Four directions cannot end up on three slopes. |
+| the shoulder | the label's **own bottom rule**. Line and word are one mark, which is the third sanctioned use of a line — the label rule. Drafting asks for a level elbow at the note end for its own reasons and gets the same drawing. |
+
+This is the first place the system states an isometric angle as the **ratio** it has always
+been rather than as a rounded degree, and it is worth being exact about what that buys.
+26.57° against 26.565° is 0.005° and no screenshot will ever show it. What it buys is that
+the two cannot come apart: change the step and the slope follows, where before a leader
+could be moved onto a different step and quietly keep the old angle. CSS trigonometry has
+been Baseline since March 2023 and `sqrt()` since December 2023; both literals stay in
+place as the fallback, because an angle is not a place to find out a browser is old.
+
+**Below 28 rem of its own container the layer stops being a callout and becomes a legend.**
+A note needs clear ground to point into and a 320 px drawing has none; overlapping two notes
+is worse than not drawing the leaders at all. The set flows under the figure as a row of
+marks and words, and the rule under each label goes with the leader — an underline with no
+line running into it is not a label rule, it is decoration, and at that size it would be
+taken for a link. The threshold is on the **figure**, never the viewport: what decides
+whether a callout fits is the width of the drawing.
+
+**Its first application is `patterns/404.html`,** which is the one page whose drawing is
+already about something not being there. The empty socket is the figure's lit element, so
+the note that names it — *Leerstelle* — is drawn in contour: the light is spent on the
+object and the note points at it rather than competing with it. → `components/annotation.html`
 
 ## The line of sight
 
