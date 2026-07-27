@@ -329,6 +329,30 @@ name: Design system checks
 # hairline directly above it, so the section's loudest type was the part of it
 # nobody is meant to read — and no check in this directory reads a font size at
 # all, so nothing in the tree could say so.
+#
+# The reset shadow is the twenty-seventh, and the only one whose subject is a
+# declaration that was never applied at all. base.css resets
+# `ul[role="list"], ol[role="list"]` — (0,1,1), because an attribute selector
+# weighs what a class weighs — so every single-class rule that sets margin,
+# padding or list-style on one of those lists loses, in every stylesheet, at
+# every source position, forever. Nothing shows: the property is spelled
+# correctly, the class is on the element, the rule is the last one written, and
+# it computes to the reset's value as though the line were not there.
+# components.css's .cf-pin__inner note already records one occurrence and draws
+# the lesson from it in as many words — "margin-inline: auto here is (0,1,0) and
+# base.css writes ol[role='list'] { margin: 0 } at (0,1,1)" — and then the
+# landing page shipped the same bug one property over on the same <ol>, and
+# .cf-pagination__list shipped it one component over on the property the note
+# names. A comment on one selector cannot see the next selector. Counted, the
+# tree carried 33 shadowed declarations: 30 restate the reset and are harmless,
+# and the three that contradict it were all live. The nav plate's 8 px inset
+# computed to 0 px on every page in the system, with the pills flush against its
+# border; the pagination's auto margin — the one its own comment exists to
+# justify, "without a status line there is only one flex child, and
+# space-between would park it on the left" — computed to 0 px and parked it on
+# the left; the info card's chips sat flush under their label. This one weighs
+# every rule in the tree against every attribute-bearing reset in base.css and
+# fails only on the ones asking for something the reset denies.
 
 on:
   push:
@@ -337,7 +361,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not twenty-six. All twenty-six checks are a few hundred
+  # One job, not twenty-seven. All twenty-seven checks are a few hundred
   # milliseconds of stdlib python; a second runner would cost more to start
   # than any of them takes to run, and a reader looking at a red tick wants
   # every answer on one page.
@@ -352,7 +376,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: twenty-six
+      # Each check runs even when an earlier one has already failed: twenty-seven
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -453,3 +477,7 @@ jobs:
       - name: Label ramp
         if: '!cancelled()'
         run: python3 scripts/check-label-ramp.py
+
+      - name: Reset shadow
+        if: '!cancelled()'
+        run: python3 scripts/check-reset-shadow.py
