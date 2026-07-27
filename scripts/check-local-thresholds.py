@@ -134,11 +134,14 @@ THRESHOLDS = {
     ("patterns/expertise.html", "(min-width: 64rem) and (min-height: 45rem)"):
         "the pinned, scroll-scrubbed stage. THE LANDING PAGE'S GATE, adopted rather "
         "than re-derived: one mechanism, one gate. Was `820px`, which is where the "
-        "crop band came from.",
+        "crop band came from. The mechanism is .cf-pin in components.css now and the "
+        "gate is registered in tokens.css; this copy of the prelude only scopes what "
+        "stays page-local.",
     ("patterns/landing-page.html", "(min-width: 64rem) and (min-height: 45rem)"):
         "the pinned, scroll-scrubbed stage for the four process objects. The origin of "
         "the pair above; measured for this page's card, which is width/2 high plus its "
-        "copy, and stated in place.",
+        "copy, and stated in place. Same note as above: the mechanism and its gate "
+        "ship in components.css now, and this copy only scopes what stays page-local.",
 
     # -- foundations/ — documentation chrome ---------------------------------
     # Four of these six are px. They are counted rather than failed because
