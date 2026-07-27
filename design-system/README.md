@@ -97,6 +97,33 @@ simply costs more, on the hardware least able to afford it. The page's own censu
 sentence naming its own problem two paragraphs later — *a count somebody has to remember* —
 and is a generated table now, with a stamp, the same way the space scale's is.
 
+**A fourth claim is about the fallbacks, and it is the one that is not about cost.** The
+three blocks at the foot of `tokens.css` turn the material off — the browser cannot blur,
+the reader asked for less transparency, the reader chose the palette — and they do it by
+redefining tokens rather than by giving every component a branch of its own. That buys a
+great deal and has exactly one failure mode: a tint left out of one block keeps its live
+value there, and whatever reads it keeps a material the block was written to take away.
+Nothing renders wrong; it renders as though the reader had never asked, and with the blur
+already gone what comes through the surviving translucency is **sharp** — worse than either
+the material or a flat plate. The file's own comment already stated the invariant for one
+axis of this (*repeat every token the inverse block declares, not just the ones that
+differ*) and the other axis was broken: `--surface-glass-thin` sat out the forced-colours
+block entirely, so the Expertise lectern was the one glass surface in the system still
+translucent in that mode, measured at `rgba(255, 255, 255, 0.30)` with the blur already
+`none`. The check now asserts that every block turning the material off turns *all* of it
+off, in every selector it names, excusing only a token the block reads as its own answer —
+`--surface-glass-solid` is two blocks' answer and cannot be redefined in terms of itself.
+The family is a name shape rather than a roster, so a fourth tint is in scope the moment it
+is declared. The lit edge is deliberately outside it: an edge is a contour, not a
+translucency, and forced colours recovers it as a border next to the rule that draws it.
+
+**It survived because the tint was the one tint nothing drew.** `--surface-glass-thin` was
+declared, documented and reached for by `patterns/expertise.html`, and no page rendered it —
+so no screenshot of any fallback ever contained it. `.material-glass--thin` is that plate,
+and it stands on `.cf-ground` rather than on the poster the other two samples use, because
+the backdrop is the demo: 30 % is what one measurement on one **named** backdrop came back
+with, not a lighter look available on request.
+
 **What counts as glass is read out of the stylesheet, not listed in the script.** It takes
 the selectors of every shipping rule declaring `backdrop-filter` as the definition, so a
 fourth frosted surface enters the budget by existing rather than by somebody remembering to
