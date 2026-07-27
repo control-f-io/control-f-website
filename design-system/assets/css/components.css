@@ -5112,6 +5112,179 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 }
 
 /* --------------------------------------------------------------------------
+   PINNED TRACK — the stage the big pages scrub their builds on
+   A track of (steps × 1.6 + 1) viewports with one sticky stage: an index of
+   marks at the top, a progress hairline at the bottom, and each step owning
+   a quarter of the range — the object crossfading over a three-point overlap
+   at each end, the copy holding its own quarter and snapping out at the end
+   of it while the eye is on the object's dissolve.
+
+   Expertise and the landing page each carried a private copy of this
+   scaffolding, byte for byte the same, and each stated in place that nothing
+   moved here until a second page wanted this exact stage. The census found
+   the second page: ten identical rules and five identical keyframe sets
+   under two names. So the scaffolding moved, on the line both preambles
+   drew. What stays on the page is the page's — what the stage holds, how
+   its copy arrives, which windows its build reads — because there the two
+   genuinely differ, and folding those here would be widening a component to
+   cover a one-off.
+
+   The quarter in every range below is 100% over the default four steps,
+   written as the literal both pages agreed on. A page that changes
+   --pin-steps owns its own ranges.
+
+   Everything is a progressive enhancement over the stacked column the pages
+   lay out for themselves: no view timelines, reduced motion, print, or a
+   viewport under 64rem × 45rem and none of this applies — the chrome stays
+   hidden and nothing pins. The gate is in the register, with the derivation
+   on the landing page that measured it. → foundations/layout.html
+   -------------------------------------------------------------------------- */
+
+/* ---- the readable state: no chrome, nothing pinned ---- */
+.cf-pin__index,
+.cf-pin__bar { display: none; }
+
+@supports (animation-timeline: view()) {
+  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
+    /* 1.6 SCREENS OF SCROLL PER STEP, not one. The track's contain range is
+       its own height minus one viewport, so at (steps + 1) each step had a
+       single screen to arrive, hold and leave in — every part of the build
+       was over in a flick of the wheel and the handovers read as cuts. */
+    .cf-pin {
+      --pin-steps: 4;
+      height: calc((var(--pin-steps) * 1.6 + 1) * 100vh);
+      view-timeline-name: --cf-pin;
+      view-timeline-axis: block;
+    }
+    .cf-pin__stage {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      /* clip, not hidden — a crop must not become a scrollport. */
+      overflow: hidden;
+      overflow: clip;
+    }
+    .cf-pin__inner {
+      height: 100%;
+      display: grid;
+      /* The floor the pages' own copies never had: page-local blocks are
+         outside check-grid-tracks.py's scope, so the bare 1fr shipped twice
+         unchallenged. Folding it here is what surfaced it. */
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      /* The nav floats over the page, so a stage pinned to the viewport top
+         has to start below it or the index reads through the bar. */
+      padding-block: calc(var(--nav-height) + var(--space-4)) var(--space-8);
+    }
+    .cf-pin__index { display: flex; }
+    .cf-pin__bar { display: block; }
+
+    .cf-pin__step {
+      opacity: 0;
+      animation: cf-pin-step linear both;
+      animation-timeline: --cf-pin;
+      animation-range: contain calc(var(--i) * 25% - 3%) contain calc((var(--i) + 1) * 25% + 3%);
+    }
+    .cf-pin__copy {
+      animation: cf-pin-copy-hold linear both;
+      animation-timeline: --cf-pin;
+      animation-range: contain calc(var(--i) * 25%) contain calc((var(--i) + 1) * 25%);
+    }
+    .cf-pin__mark {
+      animation: cf-pin-mark linear both;
+      animation-timeline: --cf-pin;
+      animation-range: contain calc(var(--i) * 25%) contain calc((var(--i) + 1) * 25%);
+    }
+    .cf-pin__bar::after {
+      animation: cf-pin-bar linear both;
+      animation-timeline: --cf-pin;
+      animation-range: contain 0% contain 100%;
+    }
+
+    /* THE BUILD, RE-TIMED ONTO THE TRACK. A sticky object never travels
+       through the viewport, so its own view() freezes at one value and the
+       object simply stands there, finished. On the pinned stage every part
+       reads the track's timeline instead. The scene stops travelling — it
+       would add its translate to each part's and the object would come in
+       twice. WHICH keyframes the parts run, and in which windows, stays on
+       the page — except the trace and the nodes, whose windows both pages
+       agreed on to the half point: the trace draws 5 to 13 of the quarter,
+       the nodes land 13 to 15.5, the reveal's 62 % hold.
+       → foundations/motion.html#hold */
+    .cf-pin .cf-iso__scene { animation-name: none; }
+    .cf-pin .cf-iso__form,
+    .cf-pin .cf-iso__ghost,
+    .cf-pin .cf-iso__orbit,
+    .cf-pin .cf-iso__trace,
+    .cf-pin .cf-iso__light,
+    .cf-pin .cf-iso__node {
+      animation-timeline: --cf-pin;
+      animation-duration: auto;
+      animation-fill-mode: both;
+      animation-timing-function: var(--ease-out);
+    }
+    .cf-pin .cf-iso__trace {
+      stroke-dasharray: 1;
+      animation-name: cf-iso-draw;
+      animation-range: contain calc(var(--i) * 25% + 5%) contain calc(var(--i) * 25% + 13%);
+    }
+    .cf-pin .cf-iso__node {
+      animation-name: cf-iso-fade;
+      animation-range: contain calc(var(--i) * 25% + 13%) contain calc(var(--i) * 25% + 15.5%);
+    }
+  }
+}
+
+/* The chrome's own type and hairline, unconditional — outside the gate both
+   elements are display: none above, so these cost the stacked state nothing. */
+.cf-pin__index {
+  gap: var(--space-4);
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-muted);
+}
+.cf-pin__bar {
+  position: relative;
+  height: var(--stroke-1);
+  background: var(--border-default);
+}
+.cf-pin__bar::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  background: var(--border-strong);
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+/* In over the first tenth or so, out over the last — between them, the still
+   that is the point of the hold. */
+@keyframes cf-pin-step {
+  0%       { opacity: 0; }
+  11%, 89% { opacity: 1; }
+  100%     { opacity: 0; }
+}
+/* The copy holds its quarter and snaps out at the end of it. Its ARRIVAL is
+   the page's — staggered, typed, flown — so this one only ever leaves. */
+@keyframes cf-pin-copy-hold {
+  0%, 88%   { opacity: 1; }
+  96%, 100% { opacity: 0; }
+}
+/* One line arriving from a rung down; the pages stagger the windows. */
+@keyframes cf-pin-copy {
+  from { opacity: 0; translate: 0 var(--space-4); }
+  to   { opacity: 1; translate: 0 0; }
+}
+@keyframes cf-pin-mark {
+  0%, 100% { color: var(--text-muted); }
+  14%, 86% { color: var(--text-primary); }
+}
+@keyframes cf-pin-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* --------------------------------------------------------------------------
    VALUES — the mark builds itself out of its own subdivision grid
    The six values, one per stage of a pinned scroll. The mark is assembled in
    the order the manual constructs it: contour first, then the isometric
