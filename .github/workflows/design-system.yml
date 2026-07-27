@@ -314,6 +314,21 @@ name: Design system checks
 # hint to it. Every symptom is on the wrong machine — the still appears either
 # way, no console message, no failed request — so the only thing that shows it
 # is a byte count, which is what a checker can hold and a screenshot cannot.
+#
+# The label ramp is the twenty-sixth, and the first whose subject is type size.
+# base.css calls .t-label "the single most recognisable text style in the
+# brand" and tokens.css writes 11 px into the token itself — "mono labels only,
+# never prose". Counted, 55 rules in the tree set mono AND uppercase and 54 of
+# them take that ramp: 50 at --text-xs and three at --text-sm, which is the one
+# deliberate step above it and has a NAME (.t-label-lg). The fifty-fifth was
+# the landing page's partner wall, whose own <style> block restated four of
+# .t-label's five declarations by hand and set the fifth to --text-lg. That is
+# how a hand-copied utility fails: not all at once, and never visibly on its
+# own line. It made the one ghosted placeholder on the page the largest mono
+# uppercase run in the system — 45 % larger than the <h2> standing on the
+# hairline directly above it, so the section's loudest type was the part of it
+# nobody is meant to read — and no check in this directory reads a font size at
+# all, so nothing in the tree could say so.
 
 on:
   push:
@@ -322,7 +337,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not twenty-five. All twenty-five checks are a few hundred
+  # One job, not twenty-six. All twenty-six checks are a few hundred
   # milliseconds of stdlib python; a second runner would cost more to start
   # than any of them takes to run, and a reader looking at a red tick wants
   # every answer on one page.
@@ -337,7 +352,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: twenty-five
+      # Each check runs even when an earlier one has already failed: twenty-six
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -434,3 +449,7 @@ jobs:
       - name: Hero video weight
         if: '!cancelled()'
         run: python3 scripts/check-hero-video.py
+
+      - name: Label ramp
+        if: '!cancelled()'
+        run: python3 scripts/check-label-ramp.py

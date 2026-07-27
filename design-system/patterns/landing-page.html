@@ -26,9 +26,49 @@
 <script src="../assets/js/cf-nav.js"></script>
 <style>
   /* Page-specific — belongs in the landing-page stylesheet, not in the system. */
-  .lp-logo-wall span {
-    font-family: var(--font-mono); font-size: var(--text-lg); font-weight: var(--weight-medium);
-    letter-spacing: var(--tracking-label); text-transform: uppercase;
+  /* THE STAND-IN MARKS in the partner wall, and what is left here is only what
+     the system has no answer for.
+
+     It used to restate .t-label by hand and get one of the five declarations
+     wrong. base.css calls that class "the single most recognisable text style
+     in the brand" — mono, --text-xs, medium, --leading-normal, +0.01em,
+     uppercase — and four of those five were copied here verbatim. The fifth
+     was --text-lg. Counted across the shipping stylesheets and every page in
+     design-system/, 55 rules set mono AND uppercase: 50 at --text-xs, three at
+     --text-sm (.t-label-lg, .cf-btn, .cf-prose h4 — each a NAMED larger label
+     form), one at 13 px inside foundations/sight.html's SVG plan, and this
+     one. It was the only mono uppercase run in the system above 13 px, and it
+     stood 45 % larger than the <h2> on the hairline directly above it: the
+     ghosted placeholder was the loudest type in its own section. The class
+     now carries all five and scripts/check-label-ramp.py holds the ramp.
+
+     THE BOX IS THE COMPONENT'S. .cf-logo-wall sizes a mark by its image —
+     `img { height: 1.75rem }` — so the stand-in occupies that same 28 px
+     rather than whatever line box its text happens to make. The wall measures
+     28 px a row today and 28 px the day the SVGs land; before this it
+     measured 23.19 and every pixel below this section would have moved on the
+     day of the swap.
+
+     THE INK IS THE REGISTER'S, unchanged. --text-muted at .55 is the single
+     entry scripts/check-contrast.py carries for this page — a ghosted wordmark
+     wall, which is the convention WCAG 1.4.3's logo exemption exists for — and
+     nothing here relitigates it.
+
+     IT IS KEYED ON .t-label, WHICH IS THE STAND-IN'S OWN MARK, and not on the
+     bare <li>, because opacity does not replace — it multiplies. The component
+     rests a real logo at .38; an <li> holding .55 of its own would composite
+     the two and paint it at .209, and the hover the component lifts to .75
+     would arrive at .41. Every mark in the wall would have been a fifth of the
+     ink the component asks for, on the day the files land and not before, with
+     nothing in the diff that produced it. So the ghost leaves with the text
+     that needs it: swap an <li>'s content for the anchor, drop t-label, and
+     the component's own numbers are the only ones left. Measured after the
+     swap: 28 px tall, grayscale(1), .38 at rest, .75 on hover and on
+     focus-visible. */
+  .lp-logo-wall > li.t-label {
+    display: flex;
+    align-items: center;
+    height: 1.75rem;
     color: var(--text-muted); opacity: .55;
   }
   /* .lp-statement-figure is gone with the square figure it placed: the
@@ -1104,11 +1144,35 @@
              same one Das Team uses, and it is information, so it is announced. -->
         <span class="cf-section-header__count">7</span>
       </div>
-      <!-- Placeholder: the real brand SVGs replace these text marks 1:1. -->
-      <div class="cf-logo-wall lp-logo-wall">
-        <span>Databricks</span><span>Kafka</span><span>STACKIT</span><span>Spark</span>
-        <span>Kubernetes</span><span>Azure</span><span>Hetzner</span>
-      </div>
+      <!-- SEVEN MARKS, AND THE HEADER ABOVE SAYS 7 — so they are a list, and a
+           reader who never sees the wall is told there are seven of them. They
+           were seven bare text nodes in a <div>: seven unrelated runs of text
+           with no boundary between them and no count, under a heading that
+           announces a count. The other two repeated sets on this page, the
+           footer's links and the team strip, are already <ul role="list">, and
+           base.css resets exactly that selector — no list styling to undo.
+
+           PLACEHOLDER, and this is the swap it is waiting for: each <li> drops
+           t-label and takes <a href="…"><img src="…" alt="…"></a> in place of
+           its text, and the whole of the component's mark contract turns on at
+           once —
+           .cf-logo-wall img sizes the file to the same 1.75 rem the stand-in
+           reserves, greyscales it and rests it at .38, and
+           .cf-logo-wall a:hover / a:focus-visible img lift it to .75. Those
+           two rules are the component's ONLY states and both are keyed on the
+           anchor, so until the anchor arrives the wall has no hover and no
+           focus at all. The note that used to stand here promised the SVGs
+           would replace the text "1:1", which would have swapped <span> for
+           <img> and left the wall exactly as stateless as it is now. -->
+      <ul class="cf-logo-wall lp-logo-wall" role="list">
+        <li class="t-label">Databricks</li>
+        <li class="t-label">Kafka</li>
+        <li class="t-label">STACKIT</li>
+        <li class="t-label">Spark</li>
+        <li class="t-label">Kubernetes</li>
+        <li class="t-label">Azure</li>
+        <li class="t-label">Hetzner</li>
+      </ul>
     </div>
   </section>
 
