@@ -166,9 +166,20 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
    gradient, which is a GPU cost with nothing to show for it — the blur was
    never visible. The plate is genuinely translucent now.
 
-   Every layer above the veil only adds light, so the darkest point on the
-   button is --surface-glass itself. That is the bearing tint, which holds
-   black type at 4.5:1 over an arbitrarily dark backdrop. */
+   Every layer BEHIND THE LABEL only adds light, so the darkest point the
+   label ever sits on is --surface-glass itself. That is the bearing tint,
+   which holds black type at 4.5:1 over an arbitrarily dark backdrop.
+
+   "Behind the label" and not "on the button" — the qualifier is new and it
+   is there because the lit rim below is the one layer that is not strictly
+   additive. Measured on the rendered plate at 1280 px: over a WHITE backdrop
+   the rim's Sky stop reads rgb(232,243,249) against a plate of
+   rgb(235,248,245), which is relative luminance 0.881 against 0.914 — the
+   rim is 3.6 % darker. Over a BLACK backdrop the same point reads
+   rgb(202,213,219) against rgb(144,157,154) and is far lighter. That is a
+   real edge taking the colour of the light rather than always brightening,
+   and it is confined to the top pixel, above the label rather than behind
+   it, so the sentence above holds exactly where it is load-bearing. */
 .cf-btn--glass {
   position: relative;
   color: var(--accent-ink);
@@ -212,19 +223,83 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
      background-origin to padding-box, and the 1 px transparent border then
      gets filled by tiling the image — the far end of the ramp down the near
      edge. See .cf-btn. */
+  /* THREE LAYERS: the specular on top, the lit rim on the top pixel, the
+     plate's own face underneath. The middle one is new and it is the token,
+     not a copy of it — --glass-edge, the same one pixel of Weiss-Glas-Sky
+     the navigation sheet ends at.
+
+     Until now this component's own comments claimed that edge in three
+     places — here, in tokens.css on --glass-rim-light, and in
+     foundations/materials.html ("on the sheet exactly as on the button") —
+     and it was on the sheet only. What the button actually had was a flat
+     white 55 % border and a face gradient carrying Glas into lime, which is
+     a lit FACE, not a lit edge. The claim was the right design; the code
+     had not caught up. Now the two glass surfaces in the system end at the
+     same edge, drawn from the same token, and the division the family asks
+     for — one lit edge with hue, one specular without — is literally true
+     on both rather than true on one and asserted on the other.
+
+     WHY IT IS WINDOWED TO 62 %. --glass-edge is authored for a full-bleed
+     sheet with no lime anywhere on it. This plate has lime at its right
+     end, and running the edge's Sky tail into that end would put the
+     material's chroma in two places at once — the same failure the specular
+     comment above rules out for a Glas tail. So the layer is sized to 62 %
+     of the plate and the gradient's whole 0-100 % is rendered inside that
+     window: Weiss peaks at 9.9 % of the plate, Glas at 33.5 %, Sky at
+     49.6 %, and the ramp is back to fully transparent at 62 %.
+
+     62 % is not a taste figure. The specular comment below measures where
+     the face's lime actually becomes visible — about 63 % across, well
+     before its declared 87 % stop — and the rim expires one point before
+     that. Same relationship the band already has: the edge dies exactly
+     where the lime arrives, so the one-lime-moment rule is strengthened
+     rather than merely not broken. Move the face's stops and this number
+     moves with them.
+
+     It is painted on the border box (background-origin is border-box, from
+     .cf-btn) so it lands ON the 1 px rim rather than inside it, under the
+     semi-transparent border colour — two layers on one pixel, exactly the
+     idiom .cf-nav::after uses. It is decorative and sits above the label
+     rather than behind it, so it touches no text contrast; and the plate's
+     floor is background-color, which is beneath all three image layers and
+     covers the whole box either way.
+
+     background-repeat is now load-bearing. It was absent while every layer
+     sized to `auto` and filled the box; a 1 px layer with the initial
+     `repeat` would tile the rim down all 48 px of the plate.
+
+     The var() above is a THIRD reference in a declaration that the note on
+     --cf-specular says can be killed by one unresolvable one. It is safe for
+     a different reason than that note gives: --glass-edge is an unconditional
+     :root declaration in tokens.css with no @property behind it, so it always
+     resolves. Should it ever move behind a feature query, this layer must get
+     a fallback or the whole plate goes with it. Verified the degraded shape
+     rather than assumed it — forced to `none`, the layer empties, the other
+     two hold their positions in the three-item size list, and the label row
+     renders byte-identical to the plate before this rim existed. */
   background-image:
     radial-gradient(55% 300% at var(--cf-specular) 50%,
                     rgba(255, 255, 255, 0.42) 0%,
                     rgba(255, 255, 255, 0) 60%),
+    var(--glass-edge),
     linear-gradient(var(--angle-square),
                     rgba(197, 235, 226, 0)    30%,
                     rgba(197, 235, 226, 0.55) 62%,
                     rgba(225, 255, 0, 0.88)   87%,
                     var(--cf-lime)           100%);
+  background-repeat: no-repeat;
+  background-size: auto, 62% var(--stroke-1), auto;
+  background-position: 0 0;
   background-color: var(--surface-glass);
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
-  border-color: rgba(255, 255, 255, 0.55);
+  /* The token, not the literal it used to repeat. --glass-border held this
+     exact value and was read by one rule in the whole system — the
+     .material-glass documentation utility — while the only shipping glass
+     surface with a border wrote it out by hand. The two could not be
+     changed together, and the inverse theme's redeclaration of the token
+     reached the documentation swatch and never the button. */
+  border: var(--glass-border);
   /* `background` is not in this list, and never needed to be: a gradient
      background-image does not interpolate. Given two gradients differing in
      one number, Chromium jumps straight to the new value on the first frame
@@ -340,8 +415,10 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
    the lime at rest and moving off it. So the new geometry still strengthens
    the one-lime-moment rule rather than merely not breaking it.
 
-   Light only ever adds, so the darkest point on the button stays
-   --surface-glass and the contrast floor below is untouched.
+   This band only ever adds, so the darkest point behind the label stays
+   --surface-glass and the contrast floor below is untouched. See the note
+   at the top of the rule for the one layer on this plate that is not
+   strictly additive — the rim, which is above the label, not behind it.
 
    The band is pure white end to end, which makes it the one achromatic
    gradient in the light family — --glass-edge travels Weiss to Glas to Sky,
