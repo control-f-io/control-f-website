@@ -1292,6 +1292,37 @@
 
    Browsers without `in oklab` (roughly 7 %) keep the sRGB declarations
    above unchanged. Nothing degrades; the ramp is only slightly duller.
+
+   SVG CANNOT DO THIS, AND EVERY SVG IN THE SYSTEM STILL HAS TO. There is no
+   `in oklab` on a <linearGradient>, so a drawing that carries the family's
+   ramp carries the oklab path by hand instead: ONE EXTRA STOP AT 19 % OF THE
+   LIME LEG, measured from lime, coloured at the oklab path's value there.
+   That is the convention, and it is the same 19 % everywhere so the drawings
+   cannot drift apart from each other:
+
+     lime -> Glas    #DBFC60 at 19 %   process cards, 404, illustration docs
+     lime -> Weiss   #E6FF66 at 19 %   cf-wallpaper-feld-dark.svg
+
+   19 % is a convention rather than an optimum, and the difference is small
+   enough to be worth spending: on the lime-to-Weiss leg the best single
+   waypoint sits at 21 % and buys 0.0013 of dE over the family's 19 %.
+
+   ONE STOP AND NOT TWO. A single waypoint takes the lime legs from dE 0.045
+   and 0.047 down to 0.012 — about three quarters of the error. A second
+   waypoint reaches 0.009 and no further, because what is left is the short
+   first segment either side of the first stop, which no stop placed after it
+   can straighten. Not worth a stop.
+
+   AN INLINE STYLE ATTRIBUTE IS THE SAME PROBLEM WEARING CSS. @supports cannot
+   reach one, so a gradient written into a style="" is on the sRGB path
+   whatever this block says. Compose it on a class instead — .material-rake is
+   the worked example, and it exists because two documentation pages had done
+   exactly this.
+
+   Legs the family deliberately leaves in sRGB are listed with their measured
+   divergence at --glass-edge above. Weiss -> Glas is one of them, at 0.00045;
+   LIME -> WEISS IS NOT, at 0.04651, and one file spent a while confusing the
+   two. See the comment in cf-wallpaper-feld-dark.svg.
    ========================================================================== */
 @supports (background: linear-gradient(in oklab, red, blue)) {
   :root {
