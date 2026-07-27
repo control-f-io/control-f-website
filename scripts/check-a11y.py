@@ -45,7 +45,20 @@ follow somewhere else is not orientation, it is misdirection — WAI-ARIA gives
 The nav marker in components.css draws both tokens identically, because the
 ink means "where you are", not "which file".
 
-THE RULES. Eight, in two scopes.
+WHAT FOUND THE NINTH AND TENTH RULES. The landing page's team section was a
+region landmark named by its own heading — and the scroll box inside it is
+also a region, named by the same heading, because that is the scroll-box
+contract components/team.html states. Two landmarks, one role, one name,
+one inside the other: a landmark list offered "Das Team" twice and nothing
+to say which of the two is the content. The section's name was the
+redundant claim (the component's own demo keeps its surrounding section
+unnamed), so the section gave it up. And on all thirteen pages the preview
+chrome — the fixed "← Design System" link before </body> — was the one
+focusable element on the page that no landmark contained: a reader walking
+the page by landmarks would simply never be offered it. It lives in a
+labelled <nav> now. Both facts are arithmetic on a file, so both are rules.
+
+THE RULES. Ten, in two scopes.
 
 Everywhere in design-system/, because every one of these is wrong on any page
 in any language:
@@ -101,6 +114,24 @@ correct for what they are, and not this check's business:
                   staying silent is the consistency bug this rule exists for.
                   Links elsewhere on the page are not required to self-mark:
                   a logo, a TOC fragment or a demo may link home unannotated.
+  LANDMARK        two landmarks on one page sharing one role and one
+                  accessible name — the same aria-labelledby target or the
+                  same aria-label text. Landmarks are a table of contents a
+                  reader jumps by; two entries that read identically are one
+                  destination advertised twice, and the reader finds out
+                  which is which by going there. Names here are compared by
+                  their source rather than by resolved text: two landmarks
+                  naming the same id ARE the same name, and two ids whose
+                  text happens to coincide would already be two headings
+                  saying the same thing — a different bug, not this one.
+  ORPHAN          a focusable element — a link, a button, a control, a
+                  tabindex — sitting outside every landmark. Tab reaches
+                  it; a reader walking the page by landmarks is never
+                  offered it, so the two journeys through one page disagree
+                  about what is on it. The skip link is the one deliberate
+                  exception: it is the first thing on the page precisely so
+                  that it comes before all structure, and it is exempt by
+                  its class.
 
 WHY THE FOREIGN RULE IS A REGISTER AND NOT A DETECTOR. Language identification
 of a two-word run is guesswork, and this system already knows what a guess in a
@@ -156,6 +187,23 @@ CURRENT_TOKENS = {"page", "step", "location", "date", "time", "true", "false"}
 # The two lists every pattern page repeats, and the only places a link to the
 # page itself is REQUIRED to say so. See CURRENT (ii) in the module docstring.
 SELF_MARK_LISTS = {"cf-nav__list", "cf-footer__links"}
+
+# The eight ARIA landmark roles. A <dialog> (or role="dialog") is not a
+# landmark but it does contain its content the way one does — the consent
+# layer lives in dialogs — so for the ORPHAN rule it counts as shelter.
+LANDMARK_ROLES = {"banner", "complementary", "contentinfo", "form", "main",
+                  "navigation", "region", "search"}
+
+# Elements whose implicit role is a landmark wherever they stand.
+IMPLICIT_LANDMARK = {"nav": "navigation", "main": "main",
+                     "aside": "complementary"}
+
+# header/footer are banner/contentinfo ONLY at the top of the document —
+# scoped inside any of these they are plain grouping content (HTML AAM).
+SCOPES_HEADER_FOOTER = {"article", "aside", "main", "nav", "section"}
+
+# What the ORPHAN rule counts as focusable. tabindex is handled separately.
+FOCUSABLE = {"button", "input", "select", "textarea"}
 
 # The FOREIGN register. Each entry is a complete text run, normalised for
 # whitespace, that is not German. Add to it when a foreign phrase is added to a
@@ -215,6 +263,8 @@ class Page(html.parser.HTMLParser):
         self.foreign = []            # (line, run, lang_in_scope)
         self.currents = []           # (line, tag, value) — every aria-current
         self.links = []              # (line, href, aria-current, in_self_list)
+        self.landmarks = []          # (line, tag, role, namekey)
+        self.orphans = []            # (line, tag, classes) — focusable, no landmark
         self._in_title = False
         self._title = []
         self._heading = None
@@ -237,6 +287,42 @@ class Page(html.parser.HTMLParser):
             if SELF_MARK_LISTS & set((attrs.get("class") or "").split()):
                 return True
         return False
+
+    def _shelter(self, tag, attrs, ancestors):
+        """The landmark role of one element, or "dialog", or None.
+
+        `ancestors` is the open-element stack BELOW this element — needed
+        because header/footer are only landmarks at the top of the document,
+        and because the caller asks this question both about the element
+        itself and about each of its ancestors.
+        """
+        role = (attrs.get("role") or "").strip().lower()
+        if role:
+            if role in LANDMARK_ROLES or role == "dialog":
+                return role
+            return None                     # an explicit role overrides the tag
+        if tag == "dialog":
+            return "dialog"
+        if tag in IMPLICIT_LANDMARK:
+            return IMPLICIT_LANDMARK[tag]
+        if tag in ("header", "footer"):
+            if any(t in SCOPES_HEADER_FOOTER for t, _ in ancestors):
+                return None
+            return "banner" if tag == "header" else "contentinfo"
+        # section and form are landmarks only once they have a name — an
+        # unnamed section is generic, which is most sections and correct.
+        if tag in ("section", "form"):
+            if attrs.get("aria-label") or attrs.get("aria-labelledby"):
+                return "region" if tag == "section" else "form"
+        return None
+
+    def _namekey(self, attrs):
+        """The name of a landmark, by its source. See LANDMARK in the header."""
+        if attrs.get("aria-labelledby"):
+            return "labelledby:" + " ".join(attrs["aria-labelledby"].split())
+        if attrs.get("aria-label"):
+            return "label:" + " ".join(attrs["aria-label"].split())
+        return ""
 
     # -- parser callbacks -------------------------------------------------
     def handle_starttag(self, tag, attrlist):
@@ -265,6 +351,22 @@ class Page(html.parser.HTMLParser):
             self.imgs_no_alt.append(line)
         if tag == "meta" and attrs.get("name", "").lower() == "viewport":
             self.viewports.append(attrs.get("content", ""))
+
+        shelter = self._shelter(tag, attrs, self.stack)
+        if shelter and shelter != "dialog":
+            self.landmarks.append((line, tag, shelter, self._namekey(attrs)))
+        focusable = ((tag == "a" and "href" in attrs)
+                     or (tag in FOCUSABLE
+                         and attrs.get("type", "").lower() != "hidden")
+                     or attrs.get("tabindex", "-1") not in ("", "-1"))
+        if focusable and not shelter:
+            depth = 0
+            for t, a in self.stack:
+                if self._shelter(t, a, self.stack[:depth]):
+                    break
+                depth += 1
+            else:
+                self.orphans.append((line, tag, attrs.get("class", "")))
         if tag == "title" and self._inside("head"):
             self._in_title, self._title = True, []
         if re.fullmatch(r"h[1-6]", tag):
@@ -326,7 +428,7 @@ def js_ids():
 
 
 def audit_page(path, page, injected, strict):
-    """Findings for one file. `strict` turns on the patterns-only three."""
+    """Findings for one file. `strict` turns on the patterns-only rules."""
     rel = path.relative_to(ROOT)
     out = []
 
@@ -400,6 +502,26 @@ def audit_page(path, page, injected, strict):
                         "<a href=%r> links the page it is on from a list "
                         "every page repeats, and does not say so. Its five "
                         "siblings mark theirs: aria-current=\"page\"." % href))
+
+    groups = {}
+    for line, tag, role, name in page.landmarks:
+        groups.setdefault((role, name), []).append((line, tag))
+    for (role, name), where in sorted(groups.items()):
+        if len(where) > 1:
+            out.append((where[1][0], "LANDMARK",
+                        "%d %r landmarks named by %s (lines %s). Two entries "
+                        "in the landmark list that read identically are one "
+                        "destination advertised twice."
+                        % (len(where), role, name or "nothing",
+                           ", ".join(str(l) for l, _ in where))))
+
+    for line, tag, classes in page.orphans:
+        if "skip-link" in classes.split():
+            continue
+        out.append((line, "ORPHAN",
+                    "<%s class=%r> is focusable and outside every landmark. "
+                    "Tab reaches it; landmark navigation never offers it. "
+                    "Give it a landmark to live in." % (tag, classes)))
 
     h1s = [h for h in page.headings if h[1] == 1]
     if len(h1s) != 1:
@@ -488,7 +610,7 @@ def main():
         return 1
 
     pages = sum(1 for _, strict, *_ in seen if strict)
-    print("a11y: %d files read (%d pattern pages under the full eight rules), "
+    print("a11y: %d files read (%d pattern pages under the full ten rules), "
           "%d ids, %d aria references, %d form controls, %d headings, "
           "%d marked foreign runs on the pattern pages."
           % (len(seen), pages,
