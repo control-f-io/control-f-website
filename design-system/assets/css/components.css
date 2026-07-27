@@ -1286,8 +1286,32 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   background: transparent;
 }
 /* One size for every isometric object in a card, so the four steps read as a
-   set rather than four drawings that happen to sit next to each other. */
-.cf-process__figure > svg { width: 100%; max-width: 22rem; }
+   set rather than four drawings that happen to sit next to each other.
+
+   THE HEIGHT CAP IS THE HALF THAT WAS MISSING, and it is a bug fix rather than
+   a symmetry. The four objects are square drawings (viewBox 640 × 640) and this
+   panel is 4:3 until the card goes two-column — so below a certain card width
+   the object is taller than the box it is centred in, and a grid item is not
+   shrunk to fit its area. Measured on the landing page: at a 375 px viewport
+   the card is 332 wide, the panel 249 tall with --space-8 of padding on every
+   side, and the drawing rendered 268 × 268. That is 83 px more than the air the
+   padding declares and 19 px more than the panel's own border box — so the
+   object spilled about 10 px past each end, over the card's top edge and down
+   through the hairline into the copy panel. That hairline is an edge in the
+   sense foundations/geometry.html means it: it closes a surface. Drawn through.
+
+   The window is card width 256 → 554 px for the padding and 256 → 469 px for
+   the border: below 256 the 4:3 box is tall enough, and above 554 the 22 rem
+   width cap binds first and the height never can. Both intervals sit squarely
+   in the phone range, which is why every phone had it and no desktop did.
+
+   max-block-size: 100% resolves against the grid area — the panel's content
+   box — so the drawing is bound by whichever of the two caps is tighter. The
+   svg's own box stays as wide as the row allows and the drawing letterboxes
+   inside it at preserveAspectRatio's default, centred: the object shrinks, the
+   air comes back, and nothing moves horizontally. Above 56rem the width cap is
+   still the tighter one and this changes nothing at all. */
+.cf-process__figure > svg { width: 100%; max-width: 22rem; max-block-size: 100%; }
 .cf-process__panel {
   display: flex;
   flex-direction: column;
@@ -3162,9 +3186,12 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
    25 / 50 / 75 % those offsets are supposed to mean.
 
    So the trace is stroked in user units, where pathLength works, and carries
-   stroke-width 2 to land back on the contour weight: 1.1 px at 352 px, 0.84 px
-   at a 375 px viewport. Slightly under a device pixel at the small end, which is
-   the cost of a draw that is linear at every size. Verified 25/50/75 % exact. */
+   stroke-width 2 to land back on the contour weight: 1.1 CSS px where the object
+   renders at 352, and 0.58 at a 375 px viewport, where the height cap above puts
+   it at 184. Under a CSS pixel at the small end, which is the cost of a draw
+   that is linear at every size — and it is the small end that has the device
+   pixels to spend: no 375 px viewport is DPR 1, so 0.58 CSS px is 1.15 device
+   pixels at DPR 2 and 1.7 at DPR 3. Verified 25/50/75 % exact. */
 .cf-iso__trace { stroke-width: 2; }
 
 /* The frame is a crop, not a bounding box, and a trace is a signal from
