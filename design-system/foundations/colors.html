@@ -337,8 +337,93 @@
         <tr><td><code>--surface-page-wash</code></td><td>linear 180°, the foil reversed at chroma 0.005</td><td>the page itself — <code>.page-wash</code>. See <a href="#wash">The page wash</a></td></tr>
         <tr><td><code>--wash-stops</code></td><td>the wash's four stops, without an angle</td><td>the same split as the two foils, so the oklab branch restates nothing</td></tr>
         <tr><td><code>--grain</code></td><td>SVG fractal noise tile</td><td>the second half of the wash's dithering; see <a href="#wash">The page wash</a></td></tr>
+        <tr><td><code>--hero-dissolve</code></td><td>mask, linear 180°, an <code>(1&nbsp;−&nbsp;t)^1.45</code> falloff over the last 25.6&nbsp;%</td><td>how full-bleed artwork ends — see <a href="#edges">Where artwork meets the page</a></td></tr>
+        <tr><td><code>--hero-scrim</code></td><td>linear 63.43°, CF-Grau at 0.42 to nothing</td><td>the light layer under hero type; same section</td></tr>
+        <tr><td><code>--scrim-reach</code></td><td><code>min(39rem, 62&nbsp;%)</code></td><td>how far the scrim holds full before falling off</td></tr>
       </tbody>
     </table>
+  </section>
+
+  <section class="docs-section" id="edges">
+    <h2>Where artwork meets the page</h2>
+    <p>
+      Two gradients that carry no colour of their own. Both are the light family doing the two
+      jobs a wash has to do when a full-bleed image is dropped into a page made of CF-Grau:
+      <em>end</em>, and <em>be read over</em>.
+    </p>
+
+    <h3>The dissolve</h3>
+    <p>
+      The landing-page hero was cut off with a knife. Measured on the rendered page at
+      1280&nbsp;×&nbsp;1400, the last row of artwork is <code>rgb(42,41,55)</code> at the left and
+      <code>rgb(198,237,167)</code> at the middle, and the next row down is the page wash at
+      <code>rgb(233,237,238)</code> — a step of about 190 levels, in three channels at once,
+      across one pixel.
+    </p>
+    <p>
+      The designer's mockup has no edge at all. The artwork decays continuously into CF-Grau and
+      the page simply carries on. Measured off
+      <code>assets/source/mockups/landing-page.jpg</code> as the mean absolute channel deviation
+      from <code>#CFCFCF</code> over each full row — which is what alpha is, when the thing
+      composites onto CF-Grau — the decay runs from y&nbsp;598 to y&nbsp;804 in an 804&nbsp;px
+      hero: the last <strong>25.6&nbsp;%</strong>. Fitting <code>a = (1 − t)^k</code> across the
+      band gives k = 1.31, 1.43, 1.46, 1.46 at the four quartiles, so the token is that power law
+      at k&nbsp;=&nbsp;1.45, sampled at the quartiles.
+    </p>
+    <p>
+      <strong>It is a mask, not an overlay</strong>, and that is why it can be one token. An
+      overlay has to be painted the colour of whatever is behind it, so it would have to know
+      that the hero sits on the page wash and at what point of the ramp. A mask hands the
+      question back to the page: the artwork stops being there, and whatever the page is at that
+      height is what you see. <code>.cf-hero</code> therefore carries no background of its own —
+      an opaque one would only have swapped the artwork's seam for a second, flatter one, since
+      the wash is fixed-attachment and no colour declared on the hero can match it at that height.
+    </p>
+
+    <h3>The reading scrim</h3>
+    <p>
+      The hero sets black display type, a black hairline and a 12&nbsp;px mono line over a loop
+      nobody controls the frames of. Sampled off the rendered page in the text column, the
+      artwork behind the headline reached <code>rgb(48,55,59)</code> and behind the kicker
+      <code>rgb(70,70,81)</code>. Both failed their floors, on the page as shipped.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Element</th><th>Floor</th><th>Before</th><th>After</th></tr></thead>
+      <tbody>
+        <tr><td>Headline — display, large text</td><td>3:1</td><td>1.74:1</td><td>4.13 – 4.46:1</td></tr>
+        <tr><td>Kicker — 12 px mono, body</td><td>4.5:1</td><td>2.26:1</td><td>8.50 – 14.81:1</td></tr>
+        <tr><td>Rule — UI contour</td><td>3:1</td><td>2.26:1</td><td>7.93 – 14.08:1</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Worst backdrop pixel anywhere inside each element's box, with the type hidden, at 375 /
+      768 / 1280 / 1920. The still frame the designer composed does not fail: in the mockup the
+      left column is pale grey-blue the whole way down and the colour is all on the right. The
+      loop drifts a dark violet plane under the type instead. <strong>The scrim restores the
+      composition rather than correcting it</strong>, and how much of it there is was set by what
+      the mockup already looks like, not by the contrast target.
+    </p>
+    <p>
+      CF-Grau and nothing else — the page's own surface, bleeding up into the artwork exactly
+      where the type sits. White would frost it and black would bruise it; both would read as a
+      plate laid on top, which is the failure mode this has to avoid. It runs at
+      <strong>63.43°</strong>, <code>--angle-a</code>, so it rises from the bottom-left corner
+      where the text block is and is gone by the top right, where the artwork is at its best and
+      the glass button needs something complicated behind it to be worth being glass.
+    </p>
+    <p>
+      <strong>Its stops are lengths, not percentages</strong>, and that is the one thing here
+      that had to be got right rather than merely chosen. A percentage stop is a percentage of
+      the gradient <em>line</em>, whose length is 0.894·W&nbsp;+&nbsp;0.447·H — so the same
+      38&nbsp;% is 587&nbsp;px in a 1280&nbsp;×&nbsp;896 hero and 402&nbsp;px in a
+      768&nbsp;×&nbsp;828 one. But the scrim has to cover a text column, and a text column is
+      44ch wide and four display lines tall whatever the viewport is. Projecting its far corner
+      onto the 63.43° axis puts it at 578&nbsp;px at 768, 603&nbsp;px at 1280 and 603&nbsp;px at
+      1920 — one number, because the column is one size. With percentage stops the headline read
+      4.46:1 at 1280 but only 3.58:1 at 768; with <code>39rem</code> it reads 4.13 – 4.46:1 at
+      every width. The <code>min(39rem, 62 %)</code> is for phones, where the whole gradient line
+      is 623&nbsp;px and a flat 39rem plateau would sheet the entire picture.
+    </p>
   </section>
 
   <section class="docs-section" id="foil">
