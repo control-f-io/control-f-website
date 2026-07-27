@@ -1408,8 +1408,49 @@ ul.cf-nav__list {
   /* The nav floats over the artwork, so the hero starts where the page starts —
      pulled up by exactly the nav's height, never by a rounded-off guess. */
   margin-top: calc(var(--nav-height) * -1);
-  min-height: min(92vh, 56rem);
-  padding-block: var(--space-16) var(--space-12);
+  /* AND IT ENDS WHERE THE OTHER FLOATING LAYER BEGINS, which is the same rule
+     as the line above it, paid to the second layer instead of the first. The
+     nav floats over the artwork and the hero reserves --nav-height for it. The
+     consent banner floats over the artwork too — `position: fixed` on the
+     viewport's bottom edge — and nothing reserved anything, so the hero's
+     bottom row went under it: the kicker, and the one call to action on the
+     page. 92vh + the banner's height is more than the viewport at every height
+     below ~1800 px, so this was every reader's first screen. The numbers, and
+     why the banner's height is measured rather than written down, are in
+     cf-consent.js over publishHeight().
+
+     THE THIRD TERM SHRINKS THE HERO, IT NEVER GROWS IT, and that is why it is
+     a third term in the min() rather than bottom padding. Padding would push
+     the same content down into the same banner on a short viewport; a cap
+     moves the hero's own bottom edge up to the banner's top edge and the
+     absolutely-positioned .cf-hero__action, which hangs off that edge, comes
+     with it. The hero's content is ~400 px at its tallest, so the cap never
+     binds against it: 375 x 812 leaves 478.5 px for ~400.
+
+     UNSET IT AND THIS DECLARATION IS THE OLD ONE, exactly. --cf-consent-height
+     exists only while the banner does; `var(…, 0px)` makes the third term
+     100vh, which can never be the smallest of the three. So a page with no
+     banner, a reader with a stored decision, and a browser with no JS all get
+     min(92vh, 56rem) — the same box, from the same line. */
+  min-height: min(92vh, 56rem, calc(100vh - var(--cf-consent-height, 0px)));
+  /* THE TOP PAD RESERVES THE NAV IT IS PULLED UP BY, whichever of the two is
+     larger. The line above pulls this box up by --nav-height (84 px) so the
+     artwork starts at the page's top; --space-16 is 64, so for as long as the
+     top pad was that rung alone the hero's first line began 20 px INSIDE the
+     nav — at every width, on every page with a hero.
+
+     It never showed, because the hero is a flex column justified to flex-end
+     and 92vh tall: the content sits against the BOTTOM pad and the top one is
+     slack that nothing ever takes up. It shows the moment the box is short
+     enough for the content to reach the top of it, which is what the min-height
+     term above does at 375 x 812 — 478.5 px of hero for 473 px of content, and
+     the title's first line went back under the nav plate, 20 px of it, hit test
+     returning nav.cf-nav. Trading the banner's overlap for the nav's is not a
+     fix, so the slack is spent here instead: max() takes the rung while the
+     rung is the larger, and the nav's real height when it is not. Measured, the
+     only box on any page whose height this changes is that one — everywhere
+     else the min-height binds first and the top pad is still slack. */
+  padding-block: max(var(--space-16), var(--nav-height)) var(--space-12);
   /* CLIP, NOT HIDDEN, AND THE DIFFERENCE IS NOT COSMETIC. What this line is
      for is cropping the artwork to the hero's box — a paint decision. But
      `overflow: hidden` also makes the element a SCROLL CONTAINER, and a
