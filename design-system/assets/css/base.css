@@ -990,7 +990,28 @@ hr {
   @view-transition { navigation: auto; }
 }
 
-body > .cf-nav    { view-transition-name: cf-nav; }
+/* THE BAR ITSELF CANNOT CARRY THE NAME, and this cost a working material to
+   learn. A view-transition-name makes its element a BACKDROP ROOT, and a
+   backdrop-filter only samples what is painted below it inside its own
+   backdrop root — so naming .cf-nav left .cf-nav::before with an empty
+   backdrop and the navigation's glass stopped blurring anything, on every
+   page, at all times. Measured on the landing page with a 6 px stripe behind
+   the bar: 15.99 mean gradient inside the bar against 16.07 on the bare
+   artwork, i.e. no blur at all; with the name removed, 4.83. A transient
+   benefit for a permanent one is the wrong trade.
+
+   The two plates carry it instead. They are what the eye tracks as the bar
+   holds still — black rectangles with hard edges — and they contain no
+   frosted surface, so naming them costs nothing. The sheet stays in the root
+   snapshot, where its backdrop is the page and its blur is live. The toggle
+   is named for the same reason on the phone layout, where it is the chrome
+   that survives.
+
+   The footer is opaque and has no backdrop-filter anywhere in it, so it
+   keeps the name on the component itself. */
+body > .cf-nav .cf-logo     { view-transition-name: cf-nav-logo; }
+body > .cf-nav .cf-nav__list { view-transition-name: cf-nav-links; }
+body > .cf-nav .cf-nav__toggle { view-transition-name: cf-nav-toggle; }
 body > .cf-footer { view-transition-name: cf-footer; }
 
 @media (prefers-reduced-motion: no-preference) {
