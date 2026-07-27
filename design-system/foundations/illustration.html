@@ -117,7 +117,7 @@
         <tr><td><code>.cf-iso__orbit</code></td><td>a ghost that <em>circulates</em> — a path something travels, not a state. Carried in addition to <code>.cf-iso__ghost</code>, never instead of it</td><td>dashed contour, closed</td><td>cover 20–50 %, turning as it fades up — see <a href="motion.html">Motion</a></td></tr>
         <tr><td><code>.cf-iso__form</code></td><td>the body — anything with a surface</td><td>1 px solid contour, grey faces</td><td>with the scene</td></tr>
         <tr><td><code>.cf-iso__light</code></td><td>the one lit element</td><td>the lime ramp, contoured like everything else</td><td>cover 30–48 %</td></tr>
-        <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object</td><td>2 px solid, round caps, <code>pathLength="1"</code>, plus <code>--trace-from</code> / <code>--trace-to</code> if the crop cuts it</td><td>cover 18–45 %, drawing itself</td></tr>
+        <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object. <strong>One stroke</strong> — a signal drawn as several strokes is several traces</td><td>2 px solid, round caps, <code>pathLength="1"</code>, plus <code>--trace-from</code> / <code>--trace-to</code> if the crop cuts it and <code>--trace-lead</code> / <code>--trace-span</code> if it is one of several</td><td>cover 18–45 %, drawing itself</td></tr>
         <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>filled black dots, r = 3 / 2 / 1</td><td>cover 35–50 %</td></tr>
       </tbody>
     </table>
@@ -190,7 +190,15 @@
         <figure>
           <div class="ill-frame">
             <svg class="cf-iso" viewBox="0 0 640 640" fill="none" aria-hidden="true">
-              <path class="cf-iso__trace" d="M200 340H-60M76 328L100 340L76 352M16 328L40 340L16 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
+              <!-- Three strokes, three traces, led along the direction of travel — a dash
+                   restarts at every subpath, so as ONE path the visible drawing was over at
+                   cover 33 % of a range running to 45 %. The shaft is reversed from
+                   M200 340H-60 so the signal arrives at the object instead of leaving it,
+                   which moves its 23 % of off-crop length to the START and makes it a
+                   --trace-from. See foundations/motion.html. -->
+              <path class="cf-iso__trace" style="--trace-lead:0%;--trace-span:21%" d="M16 328L40 340L16 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
+              <path class="cf-iso__trace" style="--trace-lead:3%;--trace-span:21%" d="M76 328L100 340L76 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
+              <path class="cf-iso__trace" style="--trace-lead:6%;--trace-span:21%;--trace-from:.77" d="M-60 340H200" stroke="#000" stroke-linecap="round" pathLength="1"/>
             </svg>
           </div>
           <figcaption class="ill-cap"><b>Trace</b>the signal, on 26.57°</figcaption>
@@ -233,7 +241,15 @@
                   <path class="cf-iso__form" d="M500 190L440 220L440 340L500 310Z" fill="#C4C4C4"/>
                   <path class="cf-iso__light" d="M440 160L500 190L440 220L380 190Z" fill="url(#ill-c-light)"/>
                 </g>
-                <path class="cf-iso__trace" d="M200 340H-60M76 328L100 340L76 352M16 328L40 340L16 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <!-- Three strokes, three traces, led along the direction of travel — a dash
+                     restarts at every subpath, so as ONE path the visible drawing was over at
+                     cover 33 % of a range running to 45 %. The shaft is reversed from
+                     M200 340H-60 so the signal arrives at the object instead of leaving it,
+                     which moves its 23 % of off-crop length to the START and makes it a
+                     --trace-from. See foundations/motion.html. -->
+                <path class="cf-iso__trace" style="--trace-lead:0%;--trace-span:21%" d="M16 328L40 340L16 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <path class="cf-iso__trace" style="--trace-lead:3%;--trace-span:21%" d="M76 328L100 340L76 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
+                <path class="cf-iso__trace" style="--trace-lead:6%;--trace-span:21%;--trace-from:.77" d="M-60 340H200" stroke="#000" stroke-linecap="round" pathLength="1"/>
                 <g class="cf-iso__node" fill="#000">
                   <circle cx="440" cy="160" r="3"/><circle cx="500" cy="190" r="3"/>
                   <circle cx="440" cy="220" r="3"/><circle cx="380" cy="190" r="3"/>
@@ -575,6 +591,21 @@
       with round caps, and it carries <code>pathLength="1"</code> so the draw-on animation is
       independent of how long the path happens to be.
     </p>
+    <p>
+      <strong>A trace is one stroke.</strong> Where a signal is drawn as several — a shaft plus
+      an arrowhead plus a pair of speed chevrons — each stroke is its own trace, and they are
+      given <code>--trace-lead</code> so they draw in the order the signal travels. This is not
+      tidiness: a dash pattern restarts at every subpath while <code>pathLength</code>
+      normalises the path as a whole, so a five-stroke path finishes as soon as its
+      <em>longest</em> stroke does and spends the rest of its range holding still. Card 03 was
+      losing two thirds of its range to exactly this.
+      → <a href="motion.html#assembly">Motion &gt; A trace is one stroke</a>
+    </p>
+    <p>
+      Write each stroke in the direction the signal moves. A stroke's direction is invisible in
+      the finished drawing and is the whole of the draw, so it is the one place a trace may
+      depart from the source vector without departing from it.
+    </p>
   </section>
 
   <section class="docs-section" id="frame">
@@ -848,7 +879,15 @@
             <path class="cf-iso__light" d="M440 160L500 190L440 220L380 190Z" fill="url(#ill-spec-light)"/>
           </g>
           <!-- trace: level, chevron arms on (2u, ±u) -->
-          <path class="cf-iso__trace" d="M200 340H-60M76 328L100 340L76 352M16 328L40 340L16 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
+          <!-- Three strokes, three traces, led along the direction of travel — a dash
+               restarts at every subpath, so as ONE path the visible drawing was over at
+               cover 33 % of a range running to 45 %. The shaft is reversed from
+               M200 340H-60 so the signal arrives at the object instead of leaving it,
+               which moves its 23 % of off-crop length to the START and makes it a
+               --trace-from. See foundations/motion.html. -->
+          <path class="cf-iso__trace" style="--trace-lead:0%;--trace-span:21%" d="M16 328L40 340L16 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
+          <path class="cf-iso__trace" style="--trace-lead:3%;--trace-span:21%" d="M76 328L100 340L76 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
+          <path class="cf-iso__trace" style="--trace-lead:6%;--trace-span:21%;--trace-from:.77" d="M-60 340H200" stroke="#000" stroke-linecap="round" pathLength="1"/>
           <!-- node: r 3 on the lit face, stepping down with distance -->
           <g class="cf-iso__node" fill="#000">
             <circle cx="440" cy="160" r="3"/><circle cx="500" cy="190" r="3"/>
@@ -887,6 +926,8 @@
       <li>Dash patterns are one of the four sanctioned types.</li>
       <li>The frame cuts the object somewhere, and not through the lit element.</li>
       <li>Layers carry their <code>.cf-iso__*</code> classes, in the material order.</li>
+      <li>Each trace is one stroke, written in the direction the signal travels, and led with
+        <code>--trace-lead</code> if there are several.</li>
       <li>It reads correctly with animations off, at 352 px, and printed.</li>
     </ol>
 

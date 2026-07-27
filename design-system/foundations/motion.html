@@ -243,7 +243,7 @@ for t in ['fast','base','slow','scene']:
         <tr><td><code>.cf-iso__form</code></td><td>solid contoured body</td><td>nothing on its own; it rides the scene</td><td>—</td></tr>
         <tr><td><code>.cf-iso__ghost</code></td><td>dashed reference geometry</td><td>fades up after the body it belongs to</td><td>cover 20–40 %</td></tr>
         <tr><td><code>.cf-iso__orbit</code></td><td>a ghost that circulates</td><td>fades up with the other ghosts, and keeps turning after them — see below</td><td>cover 20–40 % fading, 20–50 % turning</td></tr>
-        <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object</td><td>draws itself, edge of the crop to edge of the crop — see below</td><td>cover 18–45 %</td></tr>
+        <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object — <strong>one stroke</strong></td><td>draws itself, edge of the crop to edge of the crop — see below</td><td>cover 18–45 %, or a window inside it</td></tr>
         <tr><td><code>.cf-iso__light</code></td><td>the single lime-gradient element</td><td>its fill comes up last. Light arrives; it does not fly in.</td><td>cover 30–48 %</td></tr>
         <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>fade up last of all</td><td>cover 35–50 %</td></tr>
       </tbody>
@@ -537,8 +537,8 @@ python3 scripts/check-iso-motion.py</pre>
         </tr>
         <tr>
           <td>card 03, incoming</td><td>100 %</td>
-          <td>correct already</td>
-          <td>defaults</td>
+          <td>finished by cover 26.8 % — for a different reason, see below</td>
+          <td>five traces, led</td>
         </tr>
       </tbody>
     </table>
@@ -550,16 +550,85 @@ python3 scripts/check-iso-motion.py</pre>
       advance together instead of one waiting for the other.
     </p>
     <p>
-      <strong>Only the endpoints count.</strong> A path that leaves the crop and comes back —
-      the specimen trace in <a href="illustration.html">Illustration</a> does exactly this,
-      with 16 % of its length outside — wastes no range at either end, so it is left alone.
-      The gap reads as the signal passing behind the crop, which is what it is.
+      <strong>Only the endpoints count.</strong> A path that leaves the crop and comes back
+      wastes no range at either end, so it is left alone: the gap reads as the signal passing
+      behind the crop, which is what it is. The system had one apparent example of this — the
+      specimen trace in <a href="illustration.html">Illustration</a>, 16 % of its length
+      outside the frame — and it turned out not to be one. It was three strokes in a single
+      <code>&lt;path&gt;</code>, and the “gap in the middle” was the crop cutting the
+      <em>end</em> of one of them. Split into three traces it is an ordinary
+      <code>--trace-from</code>. Once a trace is one stroke, a genuine mid-path gap is a rare
+      thing rather than the common case it looked like.
     </p>
     <p>
       Measure against the <em>settled</em> object. While the scene is still arriving it
       carries the 26.57° offset, which moves the crop boundary by up to
       <code>--iso-travel</code>: card 02's outgoing trace measures 54 % settled and 61 %
       at the start of the travel.
+    </p>
+
+    <h3>A trace is one stroke</h3>
+    <p>
+      The crop is not the only thing that eats the range, and the second cause hid behind
+      the first for as long as the table above read “card 03: 100 % inside the crop, correct
+      already”. It was inside its crop and it was not correct. <strong>A dash pattern
+      restarts at every subpath, while <code>pathLength</code> normalises the path as a
+      whole</strong> — so on a path made of several strokes, every stroke draws its own
+      first <code>1 − offset</code> of the <em>total</em>, all at the same time, and the
+      whole thing is finished the moment the <em>longest</em> stroke is.
+    </p>
+    <p>
+      Card 03's incoming arrow is five strokes in one <code>&lt;path&gt;</code>:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Stroke</th><th>User units</th><th>Fraction of the path</th></tr></thead>
+      <tbody>
+        <tr><td>shaft</td><td>112.50</td><td>0.3265</td></tr>
+        <tr><td>chevron at x 228</td><td>77.37</td><td>0.2245</td></tr>
+        <tr><td>chevron at x 193</td><td>77.37</td><td>0.2245</td></tr>
+        <tr><td>upper barb</td><td>38.68</td><td>0.1123</td></tr>
+        <tr><td>lower barb</td><td>38.68</td><td>0.1123</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The longest is 0.3265 of 344.61 units, so the arrow was complete at
+      <code>stroke-dashoffset</code> 0.6735 — <strong>cover 26.8 % of a range running to
+      45 %, with 18.19 of its 27 points spent on a picture that had stopped
+      changing.</strong> Two thirds of the range, on the most-read illustration in the
+      system. And it drew all five strokes at once, growing outward from five different
+      points, which reads as a sketch scribbling itself rather than as a signal arriving.
+    </p>
+    <p>
+      So a trace is <strong>one stroke</strong>. Where the signal is drawn as several, each
+      is its own trace and they are <em>led</em> along the direction of travel:
+    </p>
+    <pre class="docs-code">.cf-iso__trace { <span class="attr">--trace-lead</span>: <span class="val">0%</span>; <span class="attr">--trace-span</span>: <span class="val">27%</span>; }   <span class="com">/* the whole window */</span>
+.cf-iso__trace {
+  <span class="attr">animation-range</span>:
+    <span class="val">cover calc(18% + var(--trace-lead))</span>
+    <span class="val">cover calc(18% + var(--trace-lead) + var(--trace-span))</span>;
+}</pre>
+    <p>
+      <code>--trace-lead</code> is how far into the window a stroke starts;
+      <code>--trace-span</code> is how much of it that stroke spends drawing. Both are
+      percentage points of <code>cover</code>, both default to the whole window, so
+      <strong>a trace that is a single stroke resolves to <code>cover 18 % → 45 %</code>
+      and nothing about the other three cards changed.</strong> Keep
+      <code>lead + span ≤ 27 %</code> and the last stroke still lands on the light.
+    </p>
+    <p>
+      Card 03 now carries five traces on three leads — the far chevron at 0, the near one at
+      3 %, and the arrowhead's two barbs together with the shaft at 6 %, all on an 18 % span.
+      Measured: <code>cover 18–39 / 21–42 / 24–45</code>, every stroke reaching offset 0 at
+      the end of its own window and none before it. The signal travels left to right into the
+      disc, which is the direction the designer drew it flying.
+    </p>
+    <p>
+      One change to the drawing came with it, and it is invisible at rest: the shaft is
+      written <code>M300 511.5H412.5</code> where the source vector has
+      <code>M412.5 511.5H300</code>. Same line, same round caps, drawn from the arrowhead
+      <em>into</em> the disc rather than out of it. A stroke's direction is not part of a
+      static drawing; it is entirely a fact about the draw.
     </p>
 
     <h3>A calc() in a keyframe does not interpolate</h3>
