@@ -60,6 +60,10 @@
      card worth reading.
      ------------------------------------------------------------------ */
   .lp-proc-plate { display: none; }
+  /* The flow exists to hand the data to the pinned frame, so it lives and dies
+     with it: below the gate the section is a stacked column of four cards and
+     there is nothing to arrive at. Hidden here, shown inside the gate. */
+  .lp-flow { display: none; }
   /* The stacked fallback keeps the rhythm the section always had — this
      gap is .flow-12, restated as a gap because the pinned mode needs the
      same element to be a grid. */
@@ -266,26 +270,85 @@
         transform-box: fill-box;
         transform-origin: 0 0;
       }
-      /* The relay is per stroke, not per bucket: --a is where this stroke's
-         parent junction is reached, so consecutive strokes chain instead of
-         running three abreast. The stroke's own gradient is set in the
-         markup, one def per axis, lime at its origin. */
-      .lp-frame__light {
-        stroke-width: 2;
-        animation: lp-frame-draw linear, lp-frame-out linear;
-        animation-timeline: --cf-pin, --cf-pin;
-        animation-range: entry calc(var(--a) * 1%) entry calc((var(--a) + 22) * 1%),
-                         contain 0.5% contain 3%;
-        /* forwards on the fade, not both: under `both` it would hold its
-           from-state through entry and the light would never appear at all. */
-        animation-fill-mode: both, forwards;
-      }
+      /* The relay is per stroke: --a is where this stroke's parent junction is
+         reached, so consecutive strokes chain instead of running abreast, and
+         --o is the end it grows FROM. The three verticals grow down from the
+         points the flow's drops land on, in the order the flow reaches them;
+         the top rail then spreads outward from the middle vertical the way the
+         flow spread from its own split; the base closes it last.
+
+         One stroke weight, one colour. The light pass that used to lead each
+         stroke in the near rake is gone: a border is a contour, and colour on
+         it read as a stray tint on the one element that frames everything
+         else. → foundations/colors.html#one-per-screen for where lime does
+         belong on this page. */
       .lp-frame__line {
         stroke: var(--border-strong);
+        transform-origin: var(--o, 0 0);
         animation: lp-frame-draw linear both;
         animation-timeline: --cf-pin;
-        animation-range: entry calc((var(--a) + 5) * 1%) entry calc((var(--a) + 27) * 1%);
+        animation-range: entry calc(var(--a) * 1%) entry calc((var(--a) + 12) * 1%);
       }
+      /* THE FLOW: the data leaving the void and growing down into the frame.
+         Anchored to the figure rather than placed against it — top 50% is the
+         void's own centre (its y is 210 of the band's 420 units), the width is
+         the figure's, and the height falls out of the aspect ratio. Because
+         this element and the statement band are the same width on the same
+         1200-unit basis, a drop is plumb under the lattice column it left; and
+         because the plate is that width too, flow x 0, 600 and 1200 land on
+         frame x 0, 500 and 1000 with nothing in the CSS asserting it.
+
+         It carries its own view timeline: the frame's is --cf-pin, which is
+         scoped to that section's subtree and cannot be read from here. The two
+         are tuned to meet — measured, the last drop lands within a few pixels
+         of scroll of the first vertical's ignition — and both are scrubbed, so
+         backing up ungrows the frame and then the flow, in that order.
+
+         GROWN BY SCALE, NOT BY DASH. See the .lp-frame path note: a dashed
+         draw under non-scaling-stroke stops at the render scale and stays
+         there. A straight stroke grown from one end is a scale about that end,
+         and --o is that end: a run heading down-left grows from its box's top
+         right, everything else from its top left. */
+      .cf-statement__figure { position: relative; }
+      .lp-flow {
+        display: block;
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        aspect-ratio: 1200 / 620;
+        pointer-events: none;
+        opacity: .62;
+        view-timeline-name: --lp-flow;
+        view-timeline-axis: block;
+        /* the drops end on the frame's rail, so the last unit of each is a
+           half-stroke over the edge of the box — the same rule .lp-frame pays
+           above, and for the same reason. */
+        overflow: visible;
+      }
+      .lp-flow :is(path, circle) { vector-effect: non-scaling-stroke; }
+      .lp-flow__seg {
+        stroke: var(--border-strong);
+        transform-box: fill-box;
+        transform-origin: var(--o, 0 0);
+        animation: lp-frame-draw linear both;
+        animation-timeline: --lp-flow;
+        animation-range: cover calc((24 + var(--l) * 8) * 1%)
+                         cover calc((42 + var(--l) * 8) * 1%);
+      }
+      /* A junction is a point the construction depends on, which is exactly
+         what .cf-iso__node means elsewhere; these are that, in this page's own
+         namespace because the flow is not a .cf-iso drawing. Six, inside the
+         manual's budget of twelve, and each lands just after the drop that
+         leaves it. */
+      .lp-flow__node {
+        fill: var(--border-strong);
+        animation: lp-frame-in linear both;
+        animation-timeline: --lp-flow;
+        animation-range: cover calc((30 + var(--l) * 8) * 1%)
+                         cover calc((37 + var(--l) * 8) * 1%);
+      }
+
       /* The chrome arrives last, once the frame it annotates exists — the
          index numbers standing on an empty wash before any line had been
          drawn was the tell that this stage was assembled rather than
@@ -294,7 +357,7 @@
       .lp-proc-bar {
         animation: lp-frame-in linear both;
         animation-timeline: --cf-pin;
-        animation-range: entry 80% entry 94%;
+        animation-range: entry 92% entry 100%;
       }
     }
   }
@@ -302,7 +365,6 @@
      one-sided keyframe over an implied `scale: 1` would have nothing to grow
      from. → the .lp-frame path note above for why this is a scale at all. */
   @keyframes lp-frame-draw { from { scale: 0; } to { scale: 1; } }
-  @keyframes lp-frame-out { to { opacity: 0; } }
   @keyframes lp-frame-in { from { opacity: 0; } }
 
   /* Over .cf-pin's chrome: this stage spaces its index and bar a rung
@@ -585,45 +647,16 @@
                 <line x1="0" y1="368" x2="1200" y2="368"/>
                 <line x1="0" y1="400" x2="1200" y2="400"/>
               </g>
-              <!-- THE SIGNALS. A trace is the system's word for exactly this — "the
-                   one element that is not part of the object: it is the signal
-                   arriving" — so the sensors are traces and not decoration. Five,
-                   each on a brand angle, each with the chevron head the manual
-                   specifies (arms 2u by u, which puts the head on a brand angle
-                   too), each drawing itself three per cent after the last so they
-                   arrive as a sequence.
+              <!-- THE ABSENCE, and where the data goes instead. The five arriving
+                   signals that used to be drawn here are gone: they ended in mid-air
+                   by design, and a reader met five arrowheads pointing at nothing.
+                   What the sentence needs is not more arrival but departure — the
+                   data leaves, downward, and builds the frame the answer gets made
+                   in. That is .lp-flow, below this figure and plumb under it.
 
-                   And every one of them ends in mid-air. The manual says a trace
-                   "ends at a node on the object it reaches"; these reach nothing,
-                   which is the one deliberate deviation in this figure and the
-                   entire argument of the sentence beside it. On exit each retreats
-                   the way it came — the signals give up first. -->
-              <g opacity=".58">
-                <line class="cf-iso__trace" style="--trace-lead:0%;--trace-span:20%;--sx:-148;--sy:-0;--scat-in:16%" x1="34" y1="210" x2="236" y2="210" stroke="#000" pathLength="1"/>
-                <line class="cf-iso__trace" style="--trace-lead:3%;--trace-span:20%;--sx:-113.59;--sy:-56.8;--scat-in:19%" x1="102.82" y1="96.41" x2="245.92" y2="167.96" stroke="#000" pathLength="1"/>
-                <line class="cf-iso__trace" style="--trace-lead:6%;--trace-span:20%;--sx:-66.47;--sy:-66.47;--scat-in:22%" x1="197.06" y1="77.06" x2="263.53" y2="143.53" stroke="#000" pathLength="1"/>
-                <line class="cf-iso__trace" style="--trace-lead:9%;--trace-span:20%;--sx:-126.11;--sy:63.06;--scat-in:25%" x1="77.77" y1="336.11" x2="245.92" y2="252.04" stroke="#000" pathLength="1"/>
-                <line class="cf-iso__trace" style="--trace-lead:12%;--trace-span:20%;--sx:-37.12;--sy:74.24;--scat-in:28%" x1="255.76" y1="358.47" x2="287.96" y2="294.08" stroke="#000" pathLength="1"/>
-                <path class="cf-iso__trace" style="--trace-lead:2%;--trace-span:20%;--sx:-148;--sy:-0;--scat-in:16%" d="M218 219L236 210L218 201" stroke="#000" stroke-linecap="round" pathLength="1"/>
-                <path class="cf-iso__trace" style="--trace-lead:5%;--trace-span:20%;--sx:-113.59;--sy:-56.8;--scat-in:19%" d="M225.8 167.96L245.92 167.96L233.85 151.86" stroke="#000" stroke-linecap="round" pathLength="1"/>
-                <path class="cf-iso__trace" style="--trace-lead:8%;--trace-span:20%;--sx:-66.47;--sy:-66.47;--scat-in:22%" d="M244.44 137.17L263.53 143.53L257.17 124.44" stroke="#000" stroke-linecap="round" pathLength="1"/>
-                <path class="cf-iso__trace" style="--trace-lead:11%;--trace-span:20%;--sx:-126.11;--sy:63.06;--scat-in:25%" d="M233.85 268.14L245.92 252.04L225.8 252.04" stroke="#000" stroke-linecap="round" pathLength="1"/>
-                <path class="cf-iso__trace" style="--trace-lead:14%;--trace-span:20%;--sx:-37.12;--sy:74.24;--scat-in:28%" d="M287.96 314.2L287.96 294.08L271.86 306.15" stroke="#000" stroke-linecap="round" pathLength="1"/>
-              </g>
-              <!-- THE SOURCES. Five — "eight is a lot for one object; twelve is too
-                   many" — at r = 3, 2 and 1, stepping down with distance from the
-                   subject exactly as card 01 does. Not a scatter: each one is the
-                   origin of a trace, which is a point the construction depends on.
-                   Each follows its own signal out. -->
-              <g opacity=".8" fill="#000">
-                <circle class="cf-iso__node" style="--sx:-148;--sy:-0;--scat-in:0%" cx="34" cy="210" r="1"/>
-                <circle class="cf-iso__node" style="--sx:-113.59;--sy:-56.8;--scat-in:2%" cx="102.82" cy="96.41" r="2"/>
-                <circle class="cf-iso__node" style="--sx:-66.47;--sy:-66.47;--scat-in:4%" cx="197.06" cy="77.06" r="2"/>
-                <circle class="cf-iso__node" style="--sx:-126.11;--sy:63.06;--scat-in:6%" cx="77.77" cy="336.11" r="1"/>
-                <circle class="cf-iso__node" style="--sx:-37.12;--sy:74.24;--scat-in:8%" cx="255.76" cy="358.47" r="3"/>
-              </g>
-              <!-- THE ABSENCE. The nucleus is still drawn, at the centre, one rung
-                   down the presence ladder: 1-4 is the manual's line type for "any
+                   The nucleus is still drawn, at the centre, one rung down the
+                   presence ladder: The nucleus is still drawn, at the centre, one rung
+                   down the 1-4 is the manual's line type for "any
                    state the object is not in yet", and tokens.css states the rule
                    this whole figure turns on — a thing that is not here yet is the
                    same drawing as the thing that is, one rung down. No fill and no
@@ -648,6 +681,44 @@
               </g>
             </g>
             </g></g>
+          </svg>
+
+          <!-- THE FLOW. The data leaves the void and grows downward until it is the
+               frame the next section is built in. A bus-and-drop diagram on the
+               brand's own angles: the trunk leaves the void at 90, splits into two
+               2:1 runs, and every drop leaves the run it is on as a vertical. Three
+               of the seven land exactly on the frame's three verticals — this
+               element and the frame are both the container's width and both count
+               in 1200 units, so flow x 0, 600 and 1200 ARE frame x 0, 500 and 1000
+               — which is why the drops do not point at the frame, they become it.
+
+               Anchored rather than placed: top 50% is the void's own centre (its y
+               is 210 of the band's 420), the width is the figure's, and the height
+               follows from the aspect ratio. Measured, the last row of the flow
+               lands within 5 px of the frame's top edge at 1440x900 and within 2 px
+               at 1280x800, with no number in the CSS that says so.
+
+               It grows by SCALE, not by dash — see the .lp-frame path note: a dashed
+               draw under non-scaling-stroke stops at the render scale and stays
+               there. transform-origin per segment is the end it grows FROM, which
+               for a 2:1 run down-left is its box's top right. -->
+          <svg class="lp-flow" viewBox="0 0 1200 620" fill="none" aria-hidden="true">
+            <path class="lp-flow__seg" style="--o:0 0;--l:0" d="M330 84V150"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:1" d="M330 150L0 315"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1" d="M330 150L1200 585"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.4" d="M0 315V620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.2" d="M165 232.5V620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2" d="M330 150V620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.3" d="M600 285V620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.6" d="M840 405V620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.8" d="M1020 495V620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:3" d="M1200 585V620"/>
+            <circle class="lp-flow__node" style="--l:2.4" cx="0" cy="315" r="2"/>
+            <circle class="lp-flow__node" style="--l:2.2" cx="165" cy="232.5" r="2"/>
+            <circle class="lp-flow__node" style="--l:2.3" cx="600" cy="285" r="2"/>
+            <circle class="lp-flow__node" style="--l:2.6" cx="840" cy="405" r="2"/>
+            <circle class="lp-flow__node" style="--l:2.8" cx="1020" cy="495" r="2"/>
+            <circle class="lp-flow__node" style="--l:3" cx="1200" cy="585" r="2"/>
           </svg>
         </div>
         <div class="cf-statement__text">
@@ -704,56 +775,30 @@
             <article class="cf-process lp-proc-plate" aria-hidden="true">
               <div class="cf-process__figure"></div>
               <div class="cf-process__panel"></div>
-              <!-- THE LECTERN DRAWS ITSELF IN, as one connected act. Five
-                   hairlines, and every one of them starts at a junction another
-                   stroke has already reached: the top edge ignites at the left
-                   corner where the statement's falling pieces land, the left
-                   vertical leaves the same corner a beat later, the divider
-                   leaves the top edge as it passes the midpoint, the right
-                   vertical leaves it as it arrives at the far corner, the base
-                   leaves the left vertical's foot. Nothing floats — a stroke
-                   with no parent junction was the first version's visible
-                   fault. --a is the stroke's start in entry points; the light
-                   draws for 22, the 1 px contour follows 5 behind.
+              <!-- THE LECTERN IS WHAT THE FLOW ARRIVES AS. Each vertical continues
+                   the drop that lands on it — flow x 0, 600 and 1200 are these
+                   x 0, 500 and 1000 — so the three verticals are drawn downward
+                   from the points the data reached, in the order it reached them:
+                   the middle drop lands first (it is nearest the split), then the
+                   left, then the far right. The top rail then spreads outward from
+                   the middle vertical the way the flow itself spread from its split,
+                   and the base closes the shape last.
 
-                   Each stroke is drawn twice: first as LIGHT — 2 px, carrying
-                   the near rake with LIME AT THE STROKE'S OWN ORIGIN, falling
-                   away along its length, so the ignition point is the hot end
-                   and the far end is covered by the trailing contour before
-                   the eye lingers on it. Two gradients, one per axis, both on
-                   sanctioned angles; stops stop for stop off cf-01-light. The
-                   light fades once the stage pins, well before card 01's lime
-                   at 11.5 % of the first quarter, so the one-light rule holds
-                   through the handoff.
+                   Six strokes, all --border-strong, no light pass and no gradient:
+                   the frame is a border and a border is a contour. Colour on it was
+                   tried and removed.
 
-                   preserveAspectRatio="none" stretches the 1000 x 500 box to
-                   the plate, so coordinates are fractions of the frame;
-                   non-scaling-stroke keeps the weights honest under that
-                   stretch. -->
+                   preserveAspectRatio="none" stretches the 1000 x 500 box to the
+                   plate, so coordinates are fractions of the frame; every stroke is
+                   axis-aligned, so nothing distorts. --a is the stroke's start in
+                   entry points. -->
               <svg class="lp-frame" viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true">
-                <defs>
-                  <!-- near rake, stop for stop off cf-01-light: oklab waypoint
-                       at 19 % of the lime leg, measured from lime — see
-                       foundations/colors.html, "One ramp, two colour spaces".
-                       One def per axis, lime at the origin each stroke is
-                       ignited from. -->
-                  <linearGradient id="lp-frame-light-x" x1="0" y1="0" x2="1000" y2="0" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
-                  </linearGradient>
-                  <linearGradient id="lp-frame-light-y" x1="0" y1="0" x2="0" y2="500" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
-                  </linearGradient>
-                </defs>
-                <path class="lp-frame__light" style="--a:26" stroke="url(#lp-frame-light-x)" d="M0 0H1000"/>
-                <path class="lp-frame__light" style="--a:30" stroke="url(#lp-frame-light-y)" d="M0 0V500"/>
-                <path class="lp-frame__light" style="--a:37" stroke="url(#lp-frame-light-y)" d="M500 0V500"/>
-                <path class="lp-frame__light" style="--a:48" stroke="url(#lp-frame-light-y)" d="M1000 0V500"/>
-                <path class="lp-frame__light" style="--a:52" stroke="url(#lp-frame-light-x)" d="M0 500H1000"/>
-                <path class="lp-frame__line" style="--a:26" d="M0 0H1000"/>
-                <path class="lp-frame__line" style="--a:30" d="M0 0V500"/>
-                <path class="lp-frame__line" style="--a:37" d="M500 0V500"/>
-                <path class="lp-frame__line" style="--a:48" d="M1000 0V500"/>
-                <path class="lp-frame__line" style="--a:52" d="M0 500H1000"/>
+                <path class="lp-frame__line" style="--a:56;--o:0 0"    d="M500 0V500"/>
+                <path class="lp-frame__line" style="--a:60;--o:0 0"    d="M0 0V500"/>
+                <path class="lp-frame__line" style="--a:68;--o:0 0"    d="M1000 0V500"/>
+                <path class="lp-frame__line" style="--a:72;--o:100% 0" d="M0 0H500"/>
+                <path class="lp-frame__line" style="--a:74;--o:0 0"    d="M500 0H1000"/>
+                <path class="lp-frame__line" style="--a:80;--o:0 0"    d="M0 500H1000"/>
               </svg>
             </article>
             <article class="cf-process cf-pin__step" style="--i:0">
