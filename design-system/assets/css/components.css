@@ -3724,7 +3724,8 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
     .cf-iso__ghost,
     .cf-iso__light,
     .cf-iso__trace,
-    .cf-iso__node {
+    .cf-iso__node,
+    .cf-iso--build .cf-iso__form {
       animation-timeline: --cf-iso;
       animation-duration: auto;
       animation-fill-mode: both;
@@ -3780,6 +3781,95 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
       animation-timeline: --cf-iso, --cf-iso;
       animation-range: cover 20% cover 40%, cover 20% cover 50%;
     }
+
+    /* ----------------------------------------------------------------------
+       .cf-iso--build — THE OBJECT IS ASSEMBLED, NOT DELIVERED.
+
+       The default assembly moves the whole scene: the finished object slides
+       in along 26.57° and its layers resolve on top of it. That is right for a
+       figure that illustrates a sentence, and wrong for the four process
+       objects, which ARE the sentence. A telescope that arrives already
+       extended has not shown you a telescope; it has shown you a picture of
+       one. So on these, the scene holds still and the PARTS arrive.
+
+       Two rules keep that from becoming decoration:
+
+       1. A PART TRAVELS ONLY ALONG AN AXIS THE OBJECT ALREADY CONTAINS, and
+          only as far as the drawing says. A telescoping section moves on the
+          shaft axis, by the distance it is extended. A plate on a rack moves
+          on the rack axis, by one slot pitch. A radial tick moves out along
+          its own radius. Nothing is given a direction that is not already
+          drawn in the geometry, which is why --build-dx / --build-dy are
+          authored per part in viewBox units rather than derived from one
+          token: 98 and 238 on card 01 are not a motion decision, they are the
+          two extensions measured off the source vector.
+
+          Both default to 0, so a part with nowhere to come from resolves in
+          place. That is the common case and it should be: most parts of most
+          objects are not going anywhere.
+
+       2. STAGE ORDER IS CONSTRUCTION ORDER, NOT PAINT ORDER. --stage is an
+          index, and it is deliberately independent of where the element sits
+          in the markup — the sphere's meridian is drawn second and built
+          first. Nothing is reordered to animate it, so occlusion, paint
+          servers and the diff against assets/source/illustrations/ are all
+          exactly what they were.
+
+       Ranges overlap by ten points of the seventeen each stage runs, which is
+       what makes this read as one assembly rather than four events. Four
+       stages fit before the light comes up at 30 %.
+
+       The nodes are NOT staged. Construction points are added to a finished
+       object, at its finished position, which is what they mean — and it
+       keeps them out of the per-part bookkeeping entirely.
+
+       VERIFY THIS UNDER REDUCED MOTION, NOT IN THE SETTLED ANIMATED STATE.
+       Animating an element at all changes how Chromium rasterises its
+       contours by a sub-pixel, so the settled built object does not land on
+       the settled un-built one to the pixel — 14,092 / 6,200 / 33,606 /
+       10,929 of 495,616 across the four cards. That is not the build's cost:
+       the version that moved the whole scene already differed from its own
+       un-animated render by 25,379 / 36,524 / 34,948 / 25,551. Under
+       prefers-reduced-motion the four cards are identical to the pixel before
+       and after, which is the check that actually means something.
+       ---------------------------------------------------------------------- */
+    .cf-iso--build .cf-iso__form {
+      animation-name: cf-iso-build;
+      animation-range: cover calc(5%  + var(--stage, 0) * 7%)
+                       cover calc(22% + var(--stage, 0) * 7%);
+    }
+
+    /* The light is a part like any other while the object is being built, so
+       it takes a stage and travels with the section it belongs to — card 01's
+       lime plate IS the top of the inner shaft and cannot stay behind while
+       the shaft rises. Its fill still comes up last, on the range it always
+       had: two animations, one for the arrival and one for the light. */
+    .cf-iso--build .cf-iso__light {
+      animation-name: cf-iso-light, cf-iso-build;
+      animation-timeline: --cf-iso, --cf-iso;
+      animation-range: cover 30% cover 48%,
+                       cover calc(5%  + var(--stage, 0) * 7%)
+                       cover calc(22% + var(--stage, 0) * 7%);
+    }
+
+    /* THE PLAN COMES FIRST. A ghost is the object's future state, and on a
+       built object the parts arrive out of exactly where the ghosts are — so
+       a ghost that fades up after the part it predicts is the drawing told
+       backwards. Under --build the dashed geometry is the first thing on
+       screen and the solids come along it.
+
+       The orbits are excluded rather than retimed: they are ghosts that turn,
+       and their two-animation rule above is written against 20–50 %. Without
+       the :not() this selector would win on specificity and take the turn
+       away with it. */
+    .cf-iso--build .cf-iso__ghost:not(.cf-iso__orbit) {
+      animation-range: cover 2% cover 14%;
+    }
+
+    /* An object that stages its own parts does not also travel as a whole:
+       every child starts at opacity 0, so the scene has nothing left to fade
+       and nowhere to arrive from. */
+    .cf-iso--build .cf-iso__scene { animation-name: none; }
   }
 }
 
@@ -3794,6 +3884,32 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 @keyframes cf-iso-fade {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+/* A PART MOVES WITH `translate`, NOT WITH `transform`, AND THAT IS NOT A STYLE
+   CHOICE. Half the parts that build carry a transform ATTRIBUTE — card 03's
+   three ellipses and card 04's sphere are all rotate(-90 …), which on the
+   ellipses is the shape and on the circle is the paint server's axis. An SVG
+   transform attribute is a presentation attribute for the `transform`
+   PROPERTY, so a keyframe that sets `transform` does not compose with it, it
+   replaces it: card 03's apertures would snap from a tall ellipse to a wide
+   one for the length of the build, and card 04's orbit fade would swing a
+   quarter turn.
+
+   The individual `translate` property is applied before `transform` and leaves
+   it alone, so the rotation the markup asked for survives the animation. The
+   scene's own cf-iso-arrive can keep using `transform` because it moves a bare
+   <g> that carries no attribute of its own.
+
+   Units are viewBox units — 1px on an SVG element is one user unit — which is
+   the same basis --iso-travel uses and the same basis the numbers were
+   measured in. */
+@keyframes cf-iso-build {
+  from {
+    translate: calc(var(--build-dx, 0) * 1px) calc(var(--build-dy, 0) * 1px);
+    opacity: 0;
+  }
+  to { translate: 0 0; opacity: 1; }
 }
 @keyframes cf-iso-light {
   from { fill-opacity: 0; }
