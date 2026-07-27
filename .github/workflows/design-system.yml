@@ -155,6 +155,17 @@ name: Design system checks
 # check-links.py guards the opposite direction (a card pointing at a missing
 # file), and until this check the direction that decides whether a page exists
 # for a reader had no guard, because an absent card photographs as nothing.
+#
+# The error contract is the seventeenth, and the first whose subject is a
+# component's own stated rules rather than a stylesheet's. components/
+# error-state.html writes three countable clauses in prose — the inline
+# variant's title is never an <h1>, a routes list is three to five rows, and
+# the list does not repeat what the primary button already offers — and every
+# one of them breaks without changing a pixel, because the title's size comes
+# from the class and not the tag, a two-row list is still a list, and a
+# duplicated exit is still an exit. The clauses were kept by the one page that
+# rendered the block; the moment a second page rendered it, they were kept by
+# two, by hand.
 
 on:
   push:
@@ -163,7 +174,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not sixteen. All sixteen checks are a few hundred milliseconds of
+  # One job, not seventeen. All seventeen checks are a few hundred milliseconds of
   # stdlib python; a second runner would cost more to start than any of them
   # takes to run, and a reader looking at a red tick wants every answer on one
   # page.
@@ -178,7 +189,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: sixteen
+      # Each check runs even when an earlier one has already failed: seventeen
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -239,3 +250,7 @@ jobs:
       - name: Pattern registration
         if: '!cancelled()'
         run: python3 scripts/check-registered.py
+
+      - name: Error contract
+        if: '!cancelled()'
+        run: python3 scripts/check-error-contract.py
