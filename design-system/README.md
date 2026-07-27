@@ -36,9 +36,14 @@ python3 scripts/check-highlight-fill.py        # every highlight states its ink 
 python3 scripts/check-highlight-fill.py -v     # list every highlight rule, not only the failures
 python3 scripts/check-line-types.py            # every dash pattern is one of the four line types
 python3 scripts/check-line-types.py -v         # list every dash pattern, not only the strays
+python3 scripts/check-links.py                 # every reference resolves on the host that serves it
+python3 scripts/check-job-posting.py           # the JobPosting block matches the posting the reader sees
+python3 scripts/check-a11y.py                  # the accessibility facts that are arithmetic rather than judgement
+python3 scripts/check-class-provenance.py      # every class in the markup is declared by something
+python3 scripts/check-class-provenance.py --report  # the census: who declares what, and what is written twice
 ```
 
-The nine checks the system enforces rather than documents, run by CI on every push and
+The thirteen checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step.
 
@@ -274,6 +279,39 @@ diagram of a 24 px glyph. `.cf-iso__trace` is exempt from both: components.css t
 `stroke-dasharray: 1` is a draw mechanism, not a line type. The script also re-reads the
 three tokens themselves, so a silent edit to a dash period fails here rather than in a
 screenshot nobody takes. → `foundations/geometry.html#lines`
+
+**Every class in the markup is declared by something,** and this is the thirteenth check —
+the first one that reads the markup and the stylesheets as two halves of the same claim.
+The twelve above it all read CSS, JSON-LD or the document outline and ask whether a value
+is right. None asks the prior question: when a page writes `class="cf-blog-card"`, is there
+a `.cf-blog-card`. Counted across the 56 pages, **27 class uses resolve to nobody at all** — `.docs-rule--do`, which
+docs.css never styles because the "do" half *is* the base; `.cf-error__lead`, a real grid
+child of `.cf-error--page` that components.css declares no rule for; `.h1` on
+`foundations/sight.html`, which exists in no file in this repository, so the foil demo asks
+for a display size it never gets. Each of those renders exactly like a class that works,
+which is why counting them is the only way to see them.
+
+It also closes the gap every other check leaves open by name. `check-spacing-scale.py` says
+it in its own header — the shipping stylesheets are in scope and "page-local `<style>`
+blocks are deliberately out of scope" — and so does every check after it, which made those
+31 blocks the one place in the tree where a hex could sit unchallenged. They are checked
+here for the two literal classes the system has tokens for: a colour a token already names
+exactly, and a length in a spacing property. Inline `style=` is held to a narrower rule and
+only under `patterns/`, where a page stands in for a page of the real site: it may carry
+custom properties, which are per-instance data the markup genuinely owns — `--i`,
+`--stage`, `--build-dx`, 110 of them — and nothing else. A documentation page under
+`foundations/` frequently writes CSS as the specimen it is demonstrating, and is not held
+to that.
+
+The census is the part to read. `--report` resolves every class use against who declares
+it, inventories all 31 page-local blocks, and prints the two tables a name-based census
+needs to be honest: **the same name on more than one page**, which is how `.ds-back` turns
+out to ship in 14 copies already forked into two versions, and **the same rule under more
+than one name**, which is how the pinned stage on `patterns/expertise.html` and the one on
+`patterns/landing-page.html` turn out to share **eleven identical rule bodies** under `ex-`
+and `lp-proc-` prefixes — the report prints the five that are more than a single
+declaration. Neither table is a gate. A component the system has not named yet is a finding
+about the system, not a build failure.
 
 ## Layout
 

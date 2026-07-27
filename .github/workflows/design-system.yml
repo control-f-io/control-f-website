@@ -98,6 +98,18 @@ name: Design system checks
 # German phonemes — not an accent, a word the listener cannot resolve. Two
 # dozen more English runs were on five other pages. Twenty-five marks, not one
 # of them visible in a screenshot, and nothing in the tree could see them.
+#
+# The class provenance is the thirteenth, and the one that asks the question the
+# other twelve assume an answer to: who declares this class. Every check above
+# reads the stylesheets; none of them checks that the markup and the
+# stylesheets are talking about the same thing. Counted, 27 class uses in the
+# tree resolve to nobody at all — a name for a rule that was deleted out from
+# under it, a modifier that was always inert, a .h1 that exists in no file in
+# this repository — and each one renders exactly like a class that works. It
+# also closes the last gap in the spacing and colour rules: every check in
+# this directory reads tokens.css, base.css and components.css, and every one
+# of them says page-local <style> blocks are out of scope, which made those
+# blocks the one place in the tree a hex could sit unchallenged.
 
 on:
   push:
@@ -106,7 +118,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not twelve. All twelve checks are a few hundred milliseconds of
+  # One job, not thirteen. All thirteen checks are a few hundred milliseconds of
   # stdlib python; a second runner would cost more to start than any of them
   # takes to run, and a reader looking at a red tick wants every answer on one
   # page.
@@ -121,7 +133,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: twelve
+      # Each check runs even when an earlier one has already failed: thirteen
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -166,3 +178,7 @@ jobs:
       - name: Accessibility facts
         if: '!cancelled()'
         run: python3 scripts/check-a11y.py
+
+      - name: Class provenance
+        if: '!cancelled()'
+        run: python3 scripts/check-class-provenance.py
