@@ -792,6 +792,32 @@ These were judgement calls, each documented on the relevant page:
   for exactly the readers most likely to need it. Under reduced motion the control is
   *removed*, not hidden: nothing is moving, so a switch that changes nothing is worse than
   none. → `foundations/motion.html#hero`
+- **The hero headline broke in six lines and the mockup draws three.** A correction rather
+  than a judgement call, and one the markup had been asking for the whole time: the `<h1>`
+  carries two explicit `<br>`s, and `.cf-hero__body` was overruling them with
+  `max-width: 44ch`. `ch` is font-relative to the element it is *declared on*, and that
+  element is the 14 px wrapper, not the 64 px headline it was sizing — so the clamp landed
+  at 342.59 px and stayed there at 768, 1024, 1280, 1440 and 1920 alike. Six headline lines
+  instead of three, and a kicker on two lines that the plate sets on one. The column is now
+  `width: fit-content`, which is the longest line the display face actually sets, so the
+  breaks the markup declares are the breaks that ship and nothing in the stylesheet has to
+  be kept in step with the copy. Swept the other six `ch` measures in `components.css`
+  while here: all of them sit on the element carrying the text, so this was the one
+  instance, not a pattern. The same trap is already written up at the prose track in
+  `components.css` — it was sprung here in the opposite direction.
+
+  Two consequences. **The rule under the headline is no longer an element.** On the plate
+  it starts and ends on the same two x as the mono line beneath it — 42 → 463 in the
+  1200 px render — while the headline overhangs both; an empty `<div>` fills whatever box
+  it is given and so ended with the headline instead. It is the kicker's `border-top` now,
+  which makes it the kicker's width by construction, at every viewport and in a language
+  whose translation of that sentence is longer. Measured 518 px against the plate's 505.
+  And **the hero scrim's derivation was re-measured**, because it was written against the
+  44 ch column: wider and shorter moves the text block's far corner outward along the
+  63.43° axis and downward off it at once, and on this artwork the second wins. Headline
+  4.08–6.26:1 at 375 / 768 / 1280 / 1920 against a 3:1 floor, kicker 8.99–15.33:1 against
+  4.5:1 — every figure equal to or better than the one it replaces. No token changed; the
+  comment in `tokens.css` now carries the numbers that were actually measured.
 - **The process card is contour on the wash; the code painted it an opaque plate.** This
   one is a correction rather than a judgement call, and `foundations/materials.html` had
   been describing the corrected version all along — it lists the process card among the
