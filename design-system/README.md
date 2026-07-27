@@ -22,11 +22,12 @@ python3 scripts/check-spacing-scale.py         # from the repo root
 python3 scripts/check-spacing-scale.py --fix   # rewrite the table in foundations/layout.html
 python3 scripts/check-gradient-family.py       # the light family, in every shipped SVG
 python3 scripts/check-gradient-family.py -v    # list all 40 gradients, not only the failures
-python3 scripts/check-iso-motion.py            # the isometric assembly's seven invariants
+python3 scripts/check-iso-motion.py            # the isometric assembly's invariants
 ```
 
 The three checks the system enforces rather than documents, run by CI on every push and
-pull request. Stdlib only — they do not give the system a build step.
+pull request — one job, because each is a few hundred milliseconds of stdlib python.
+Stdlib only: they do not give the system a build step.
 
 **The space scale** holds to two rules: `foundations/layout.html`'s table of who uses each
 rung must match the shipping CSS, and spacing in the shipping CSS must be written as a
@@ -43,23 +44,29 @@ is how `#E0FF02` gets in. `assets/source/` and `prototypes/` are out of scope: t
 the designer's own material and the second is unshipped, and both carry raw Figma exports
 on purpose.
 
-**The isometric assembly** holds to seven rules, all of which were
-already written down in prose and none of which anything ran:
+**The isometric assembly** holds to six rules, all of which were already written down in
+prose and none of which anything ran:
 
 | | |
 |---|---|
-| `--iso-travel` | Every figure that assembles travels `viewBox width / 40` — 2.5 % of its own drawing — resolved through inline styles, the component-keyed rules in `components.css`, and the `:root` default, in that order. |
+| `--iso-travel` | Every figure that assembles travels `viewBox width / 40` — 2.5 % of its own drawing — resolved the way the cascade does: inline styles, then the component-keyed rules in `components.css`, then the `:root` default. |
 | `--iso-orbit-travel` | A whole multiple of the `--dash-1-4` period, or every orbit settles off the phase the source vector drew. |
 | `pathLength="1"` | On every `.cf-iso__trace`, and `non-scaling-stroke` on none of them. |
 | `.cf-iso__orbit` | Always carries `.cf-iso__ghost` too — an orbit is a ghost that also turns, and the shared rule names the ghost. |
 | one light | At most one `.cf-iso__light` per object. |
-| `#DBFC60` | No inline gradient runs lime straight into Glas without the oklab waypoint between them. |
 | `screen` | Every `animation-timeline` declaration sits inside a `@media` that names `screen`. |
 
-Every one of the seven is invisible in a screenshot and countable in a file, which is the
-whole test for what belongs in here — and the reason two of the four in
+Every one of the six is invisible in a screenshot and countable in a file, which is the
+whole test for what belongs in any of these three — and the reason two of the four in
 [Redrawing an illustration](#redrawing-an-illustration-four-things-that-vanish-quietly)
-are deliberately left out of it.
+are deliberately left out.
+
+**The waypoint is the light family's, not the assembly's,** and it is checked once. The
+isometric script was written with a seventh rule of its own — no inline gradient runs lime
+straight into Glas without `#DBFC60` between them — and it is gone: the light-family script
+recomputes that waypoint's offset *and* its colour from the oklab path, which is strictly
+the stronger claim. Two scripts asserting one invariant to two standards is the drift these
+scripts exist to stop.
 
 ## Layout
 
@@ -871,8 +878,10 @@ All four bite when an object is rebuilt or re-exported from `assets/source/illus
 and none of them announces itself — the drawing still renders, it is simply no longer what
 the designer drew.
 
-**Two of the four are now checked** by `scripts/check-iso-motion.py`, which CI runs on
-every push and pull request — the waypoint and the travel. See [Check it](#check-it).
+**Two of the four are now checked**, by one script each, both run by CI on every push and
+pull request — the travel by `scripts/check-iso-motion.py`, the waypoint by
+`scripts/check-gradient-family.py`, which owns it because it recomputes the offset and the
+colour from the oklab path rather than looking for a hex. See [Check it](#check-it).
 The other two are not, and the line between them is worth stating rather than leaving
 as an accident of what was easy. A missing waypoint and a travel that disagrees with its
 viewBox are **facts about the markup**, so a script can settle them. The other two are

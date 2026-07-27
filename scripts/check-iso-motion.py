@@ -20,14 +20,19 @@ that is enforced, and each of these has already broken at least once:
                    settles off the phase the source vector drew.
   pathLength="1"   is what makes the line-drawing linear. Without it the dash
                    maths is in path units and the draw finishes early.
-  #DBFC60          is the oklab waypoint on every lime -> Glas leg. It exists
-                   in none of the source vectors, so a re-export drops it and
-                   that leg silently reverts to Figma's sRGB path.
 
-Plus two structural rules the same pages state: an orbit is a ghost that also
-turns, so it must carry both classes; and every scroll-driven block must be
-scoped to `screen`, because a paged medium has no scroll and a `both`-filled
-animation then holds its `from` keyframe onto the paper.
+The fourth of the README's four is the oklab waypoint, and it is deliberately
+NOT here: scripts/check-gradient-family.py already recomputes that waypoint's
+offset and its colour from the oklab path, which is strictly the stronger
+claim. Two scripts asserting one invariant to two standards is the drift these
+scripts exist to stop.
+
+Plus three structural rules the same pages state: an orbit is a ghost that also
+turns, so it must carry both classes; an object carries one lime-gradient
+element, because lime is light and a second source says the object is lit from
+two places; and every scroll-driven block must be scoped to `screen`, because a
+paged medium has no scroll and a `both`-filled animation then holds its `from`
+keyframe onto the paper.
 
 None of these can be seen in a screenshot. All of them can be counted.
 
@@ -71,9 +76,6 @@ VOID = {
     "link", "meta", "param", "source", "track", "wbr",
 }
 
-LIME = "#E1FF00"
-GLAS = "#C5EBE2"
-WAYPOINT = "#DBFC60"
 
 
 class IsoFinder(HTMLParser):
@@ -217,22 +219,6 @@ def scroll_blocks_missing_screen():
     return out
 
 
-def gradient_legs_missing_waypoint(text):
-    """Adjacent lime <-> Glas stops with no #DBFC60 between them."""
-    bad = []
-    for g in re.finditer(
-        r"<(linear|radial)Gradient\b[^>]*\bid=\"([^\"]+)\"[^>]*>(.*?)</\1Gradient>",
-        text,
-        re.S,
-    ):
-        stops = re.findall(r"stop-color=\"(#[0-9A-Fa-f]{6})\"", g.group(3))
-        pairs = zip(stops, stops[1:])
-        for a, b in pairs:
-            if {a.upper(), b.upper()} == {LIME, GLAS}:
-                bad.append(g.group(2))
-                break
-    return bad
-
 
 def main():
     findings = []
@@ -297,7 +283,7 @@ def main():
                 )
             )
 
-    # --- 3, 4, 5, 6. per-page drawing rules --------------------------------
+    # --- 3, 4, 5. per-page drawing rules --------------------------------
     for page in PAGES:
         text = page.read_text()
         rel = page.relative_to(ROOT)
@@ -342,18 +328,8 @@ def main():
                     % (rel, text.count("\n", 0, m.start()) + 1, lights)
                 )
 
-        for gid in gradient_legs_missing_waypoint(text):
-            findings.append(
-                "%s: gradient #%s runs lime straight into Glas with no %s between them.\n"
-                "    Figma interpolates that leg in sRGB and the CSS gradients interpolate in\n"
-                "    oklab; the waypoint at 19 %% of the leg is what puts the SVG back on the\n"
-                "    oklab path. It exists in none of the source vectors, so a re-export drops\n"
-                "    it silently. Re-add it after any rebuild.\n"
-                "    -> design-system/foundations/colors.html"
-                % (rel, gid, WAYPOINT)
-            )
 
-    # --- 7. scroll-driven animation is scoped to `screen` -------------------
+    # --- 6. scroll-driven animation is scoped to `screen` -------------------
     for name, line, media in scroll_blocks_missing_screen():
         findings.append(
             "%s:%d puts an animation-timeline in a block that is not scoped to `screen`:\n"
@@ -372,7 +348,8 @@ def main():
 
     print(
         "isometric assembly: %d assembling figures on the 2.5 %% rule, orbit travel a whole\n"
-        "number of dashes, every trace normalised, every lime leg on the oklab path."
+        "number of dashes, every trace normalised, every orbit a ghost, one light per object,\n"
+        "every animation-timeline scoped to screen."
         % assembling
     )
     return 0
