@@ -49,3 +49,20 @@ the frame's three verticals, two of them in its top corners.
 `scripts/check-flow-terminals.py` holds the result — every terminal on the rail, the void
 or another branch; every segment on a brand angle; every node on a junction — against the
 *markup*, which is where a hand edit would land.
+
+It also prints the six **values** that ride the routes, and those are generated for a
+second reason: they have to add up. At any labelled point the value equals the sum of the
+labelled values immediately downstream of it — 3 840 + 3 200 + 5 440 is the 12 480 that
+left the void, and 1 360 + 4 080 is the 5 440 the right taproot carried. A point with
+nothing labelled below it asserts nothing; unquantified is not the same as wrong.
+`scripts/check-flow-values.py` holds that on the markup, together with the two facts a
+number in a drawing cannot be trusted for on inspection: that its point lies exactly *on*
+a segment, and that it carries `.t-label` rather than a page-local restatement of the mono
+ramp. A number is the one kind of content that looks equally right whatever it says.
+
+Which side of its own line a value sits on is computed, not chosen. A numeral is a
+horizontal box on a sloped line, so eight pixels of clearance *at the point* is none at
+all across the label: on the 26.57° runs the line drops 34 px over six digits and walks
+back through them. A value on a line heading down-right therefore sits above it, one
+heading down-left below it — the side the line is leaving — and the clearance grows across
+the label instead of closing.

@@ -293,3 +293,105 @@ for nx, ny, r in NODES:
     assert (nx, ny) in DIST, f"node at ({nx}, {ny}) is not a junction"
     print(f'<circle class="lp-flow__node" style="--l:{level(DIST[(nx, ny)])}" '
           f'cx="{num(nx)}" cy="{num(ny)}" r="{r}"/>')
+
+# ------------------------------------------------------------------ the values
+#
+# WHAT THE ROOT IS CARRYING. The drawing said data moves; it did not say how
+# much, and a route with no quantity on it is a pipe rather than a stream. Six
+# values ride the routes -- the source on the trunk, one on each of the three
+# taproots where it leaves the crown, and the two the right taproot divides
+# into where the drawing is emptiest.
+#
+# THEY CONSERVE, and that is the whole reason they are generated rather than
+# typed. At any labelled point the value equals the sum of the labelled values
+# immediately downstream of it: 12 480 leaves the void and 3 840 + 3 200 +
+# 5 440 leave the crown; 5 440 divides into 1 360 + 4 080. A number that does
+# not balance is a drawing telling the reader something untrue about itself,
+# which is the one thing an illustration of data flow cannot afford. Asserted
+# here and again on the shipped markup by scripts/check-flow-values.py.
+#
+# A value is a POINT ON A SEGMENT, never a free coordinate: it rides the route
+# it belongs to. The assertion below finds the segment it lies on and takes its
+# --l from the run to that point, so a value lights exactly as the data reaches
+# it -- one window, the node's, which the motion lane owns.
+#
+# The offset is in PIXELS, not units. The numerals are real HTML at the label
+# ramp's 11 px, so they do not scale with the box; a clearance from the stroke
+# expressed in units would close up as the drawing shrinks. dx/dy carry the
+# anchoring too -- "-100%" is right-aligned to the point, "-50%" centred.
+
+# WHICH SIDE OF ITS OWN LINE A VALUE SITS ON IS NOT A TASTE. A numeral is a
+# horizontal box on a sloped line, so "8 px below the point" is only 8 px of
+# clearance at the point: on the 26.57deg runs the line drops 34 px across the
+# width of a six-digit label and walks straight back through it. Measured at
+# 1440x900 on the first paste -- 4 080 sat at flow y 422-436, x 871-903, and
+# its own taproot crossed that box from 420.5 to 436.5. So a value on a line
+# heading DOWN-RIGHT sits ABOVE it and one heading DOWN-LEFT sits BELOW it,
+# which is the side the line is walking away from; clearance then grows across
+# the label instead of closing.
+#
+# AND THE CROWN SITS IN THE STATEMENT'S GHOST FIELD. The lattice the statement
+# figure scatters overlaps the top of this box: its rules land on flow y 96,
+# 128 and 160 (its own 32-unit rows, offset 240 -- measured, not declared).
+# The source value is 14 units tall, so it goes in the 32-unit band between 96
+# and 128 rather than on a rule. It was on 128 and read as "12.480".
+
+VALUES = [
+    # x, y, value, dx, dy -- dx/dy are CSS, applied after the % placement
+    (F(330), F(112), 12480, "12px",                "-50%"),
+    (F(250), F(190),  3840, "12px",                "8px"),
+    (F(450), F(225),  3200, "calc(-100% - 12px)",  "8px"),
+    (F(500), F(235),  5440, "12px",                "calc(-100% - 8px)"),
+    (F(690), F(405),  1360, "calc(-100% - 12px)",  "-50%"),
+    (F(860), F(415),  4080, "12px",                "calc(-100% - 8px)"),
+]
+
+
+def run_to(px, py):
+    """The run from the void to a point, via the segment it lies on."""
+    for x1, y1, x2, y2, d in segments:
+        if on_segment(px, py, (x1, y1, x2, y2)):
+            return d + max(abs(px - x1), abs(py - y1))
+    raise AssertionError(f"the value at ({px}, {py}) rides no route")
+
+
+def downstream_labelled(px, py, labelled):
+    """The labelled points reachable from here without passing another.
+
+    Every step of this drawing descends, so downstream is simply larger y and
+    the walk cannot loop. A labelled point STOPS its branch -- that is what
+    makes the sum below a statement about one generation rather than about the
+    whole subtree.
+    """
+    found, seen, stack = set(), set(), [(px, py)]
+    while stack:
+        p = stack.pop()
+        for x1, y1, x2, y2, _ in segments:
+            seg = (x1, y1, x2, y2)
+            if (x2, y2) == p or not on_segment(p[0], p[1], seg):
+                continue
+            below = sorted(l for l in labelled
+                           if l[1] > p[1] and on_segment(l[0], l[1], seg))
+            q = min(below, key=lambda l: l[1]) if below else (x2, y2)
+            if q in labelled:
+                found.add(q)
+            elif q not in seen:
+                seen.add(q)
+                stack.append(q)
+    return found
+
+
+LABELLED = {(x, y): v for x, y, v, *_ in VALUES}
+for (px, py), v in LABELLED.items():
+    kids = downstream_labelled(px, py, set(LABELLED))
+    if kids:
+        total = sum(LABELLED[k] for k in kids)
+        assert total == v, (f"the value at ({px}, {py}) is {v} and the "
+                            f"{len(kids)} below it total {total}")
+
+print()
+NBSP = " "
+for x, y, v, dx, dy in VALUES:
+    text = f"{v // 1000}{NBSP}{v % 1000:03d}" if v >= 1000 else str(v)
+    print(f'<span class="t-label lp-flow__val" style="--x:{num(x)};--y:{num(y)};'
+          f'--tx:{dx};--ty:{dy};--l:{level(run_to(x, y))}">{text}</span>')

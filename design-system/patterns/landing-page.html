@@ -111,8 +111,18 @@
   .lp-proc-plate { display: none; }
   /* The flow exists to hand the data to the pinned frame, so it lives and dies
      with it: below the gate the section is a stacked column of four cards and
-     there is nothing to arrive at. Hidden here, shown inside the gate. */
-  .lp-flow { display: none; }
+     there is nothing to arrive at. Hidden here, shown inside the gate.
+
+     AND THE VALUES GO WITH IT, which the drawing's own hide does not do for
+     them: .lp-flow-data is a sibling, not a child, and everything that places
+     it is inside the gate. Left out of this rule it fell back to a static
+     block and rendered "12 480 3 840 3 200 5 440 1 360 4 080" as one 20 px
+     line of loose text in the statement's figure — measured under
+     prefers-reduced-motion: reduce at 1440x900, and true below the gate on
+     both axes as well. A quantity with no route under it is not a quieter
+     version of this drawing; it is six numbers with nothing to belong to. */
+  .lp-flow,
+  .lp-flow-data { display: none; }
   /* The stacked fallback keeps the rhythm the section always had — this
      gap is .flow-12, restated as a gap because the pinned mode needs the
      same element to be a grid. */
@@ -518,32 +528,103 @@
          there. A straight stroke grown from one end is a scale about that end,
          and --o is that end: a run heading down-left grows from its box's top
          right, everything else from its top left. */
-      .cf-statement__figure { position: relative; }
-      .lp-flow {
+      /* THE TIMELINE HAS TO BE LIFTED TO THE PARENT, and this is measured, not
+         read off a spec. --lp-flow is named on the <svg>, and the values are
+         its FOLLOWING SIBLING because they cannot be its children — they are
+         HTML and it is an SVG. Chromium resolves a view-timeline name for the
+         element and its DESCENDANTS only: with the name in the sibling's
+         `animation-timeline`, getAnimations() reported the numeral's
+         lp-frame-in with timeline null, playState "finished", and the six
+         values sat at opacity 1 from the top of the document — visible a
+         screen and a half before the data that carries them. The nodes, being
+         descendants, resolved a ViewTimeline in the same frame, which is what
+         made the difference legible. timeline-scope names the timeline on the
+         common parent and both branches see it; nothing about what --lp-flow
+         MEASURES changes, because the <svg> still declares it. */
+      .cf-statement__figure { position: relative; timeline-scope: --lp-flow; }
+      /* ONE BOX, DECLARED ONCE, FOR THE DRAWING AND FOR WHAT IT CARRIES. The
+         values are real HTML over the figure rather than <text> inside it —
+         foundations/illustration.html#a11y, "never put text in an
+         illustration: it will not scale with the reader's type size" — so
+         they need the drawing's box to the unit, or a numeral's percentage
+         coordinates would not be the same point the stroke is at. Sharing the
+         rule is the only way that stays true through a later edit; two copies
+         of six declarations is the drift this system keeps finding.
+
+         THE FRAME'S BOX, CENTRED THE WAY THE FRAME IS CENTRED. min() rather
+         than max-inline-size because the used width has to be readable by
+         the translate below, and translate rather than auto margins for the
+         reason .cf-pin__inner gives one property over: `margin-inline: auto`
+         is (0,1,0) and loses to any reset that sets `margin` on the element
+         it lands on. Nothing here animates transform, so the standalone
+         translate is nobody else's property. */
+      .lp-flow,
+      .lp-flow-data {
         display: block;
         position: absolute;
         top: 50%;
-        /* THE FRAME'S BOX, CENTRED THE WAY THE FRAME IS CENTRED. min() rather
-           than max-inline-size because the used width has to be readable by
-           the translate below, and translate rather than auto margins for the
-           reason .cf-pin__inner gives one property over: `margin-inline: auto`
-           is (0,1,0) and loses to any reset that sets `margin` on the element
-           it lands on. Nothing here animates transform, so the standalone
-           translate is nobody else's property. */
         left: 50%;
         width: min(100%, var(--lp-measure));
         translate: -50% 0;
         aspect-ratio: 1200 / 620;
         pointer-events: none;
-        view-timeline-name: --lp-flow;
-        view-timeline-axis: block;
         /* every terminal ends ON the frame's rail, so the last unit of each is
            a half-stroke over the edge of the box — the same rule .lp-frame pays
            above, and for the same reason. Two of them end on the box's left and
-           right edges as well, for the frame's two top corners. */
+           right edges as well, for the frame's two top corners. And a numeral
+           sits OUTSIDE its own point by design, so this carries it too. */
         overflow: visible;
       }
+      .lp-flow {
+        view-timeline-name: --lp-flow;
+        view-timeline-axis: block;
+      }
       .lp-flow :is(path, circle) { vector-effect: non-scaling-stroke; }
+      /* WHAT THE ROOT IS CARRYING, and why it is text and not a drawing.
+         Six values ride the routes: the source on the trunk, one on each
+         taproot where it leaves the crown, and the two the right taproot
+         divides into. They CONSERVE — 12 480 leaves the void, 3 840 + 3 200 +
+         5 440 leave the crown, and 5 440 divides into 1 360 + 4 080 — which is
+         the difference between a drawing of data moving and a drawing with
+         decoration on it. Generated with the geometry by
+         scripts/expertise-objects/gen-flow-root.py, which asserts both the
+         balance and that every value sits ON a segment; held on the shipped
+         markup by scripts/check-flow-values.py.
+
+         --text-secondary, NOT --text-muted, and this is the one place the
+         brief and the system disagreed. foundations/illustration.html#a11y:
+         "Nothing in an illustration is read, so nothing in one owes 4.5:1. The
+         moment a drawing does carry a label, the label owes the same contrast
+         as any other text on the page wash — which on CF-Grau means
+         --text-secondary, never --text-muted." These are read. #919191 on the
+         wash is 2.0:1, and check-contrast.py fails the build on it.
+
+         .t-label CARRIES THE TYPE, unrestated: mono, --text-xs, medium,
+         --tracking-label. Uppercase is a no-op on digits, which is why these
+         can take the brand's label style whole instead of copying four of its
+         five declarations and getting the fifth wrong — the exact failure
+         check-label-ramp.py exists for.
+
+         The offsets are PIXELS, not units. A clearance from the stroke stated
+         in the drawing's units would close up as the box shrinks; these hold
+         12 px off the line at every viewport the gate admits, and --tx also
+         carries the anchoring (-100% right-aligns to the point).
+
+         They light on the NODE'S window, 41 + 5l -> 47 + 5l, so a value
+         arrives exactly as the data reaches its point and no new envelope
+         enters the flow's timing — which the motion lane owns. */
+      .lp-flow__val {
+        position: absolute;
+        left: calc(var(--x) * 100% / 1200);
+        top: calc(var(--y) * 100% / 620);
+        translate: var(--tx) var(--ty);
+        color: var(--text-secondary);
+        white-space: nowrap;
+        animation: lp-frame-in linear both;
+        animation-timeline: --lp-flow;
+        animation-range: cover calc((41 + var(--l) * 5) * 1%)
+                         cover calc((47 + var(--l) * 5) * 1%);
+      }
       /* THE ENVELOPE IS 34 + 5l, AND THE 5 IS THE FINDING. Every window below
          is `a + c·l` — a is where the route nearest the void starts, c is how
          far each further run is staggered behind it — and c was 8 for as long
@@ -1254,6 +1335,43 @@
             <circle class="lp-flow__node" style="--l:2.32" cx="970" cy="470" r="1"/>
             <circle class="lp-flow__node" style="--l:1.5" cx="600" cy="495" r="1"/>
           </svg>
+
+          <!-- WHAT THE ROOT IS CARRYING. The drawing said data moves; it did
+               not say how much, and a route with no quantity on it is a pipe
+               rather than a stream. Six values, each ON the route it belongs
+               to and each the value AT that point: 12 480 leaves the void,
+               3 840 / 3 200 / 5 440 leave the crown on the three taproots, and
+               the right taproot divides into 1 360 and 4 080 where the drawing
+               is emptiest. They BALANCE at every labelled junction, which is
+               the difference between a drawing of data flowing and a drawing
+               with numerals on it, and it is why they are generated with the
+               geometry rather than typed — gen-flow-root.py asserts both the
+               balance and that each value rides a segment, and
+               scripts/check-flow-values.py asserts it again here, where a hand
+               edit can actually land.
+
+               REAL HTML, A FOLLOWING SIBLING OF THE DRAWING, for the rule
+               foundations/illustration.html#a11y states and the flow could not
+               otherwise keep: never put text in an illustration, because it
+               will not scale with the reader's type size. As markup these are
+               11 px of the reader's own root size over a box that is a
+               fraction of the viewport, which is the whole point — the drawing
+               shrinks, the numerals stay readable. A sibling and not a child so
+               it can still read --lp-flow, the view timeline named on the svg,
+               which is in scope for an element's following siblings.
+
+               aria-hidden, and pointer-events: none from the shared box rule.
+               The values are illustration — an order of magnitude for a
+               sensor stream, not a claim about a customer — so they are the
+               drawing's, and the drawing is decorative. -->
+          <div class="lp-flow-data" aria-hidden="true">
+            <span class="t-label lp-flow__val" style="--x:330;--y:112;--tx:12px;--ty:-50%;--l:0.09">12 480</span>
+            <span class="t-label lp-flow__val" style="--x:250;--y:190;--tx:12px;--ty:8px;--l:0.48">3 840</span>
+            <span class="t-label lp-flow__val" style="--x:450;--y:225;--tx:calc(-100% - 12px);--ty:8px;--l:0.61">3 200</span>
+            <span class="t-label lp-flow__val" style="--x:500;--y:235;--tx:12px;--ty:calc(-100% - 8px);--l:0.78">5 440</span>
+            <span class="t-label lp-flow__val" style="--x:690;--y:405;--tx:calc(-100% - 12px);--ty:-50%;--l:1.7">1 360</span>
+            <span class="t-label lp-flow__val" style="--x:860;--y:415;--tx:12px;--ty:calc(-100% - 8px);--l:1.96">4 080</span>
+          </div>
         </div>
         <div class="cf-statement__text">
           <h2 class="cf-statement__title">Tausende Sensoren erzeugen Daten, aber daraus keine Antworten.</h2>
