@@ -354,6 +354,34 @@ name: Design system checks
 # every rule in the tree against every attribute-bearing reset in base.css and
 # fails only on the ones asking for something the reset denies.
 
+#
+# The focus ring is the twenty-eighth, and the second whose subject is a
+# hand-written list in base.css that was caught short by the same element as
+# the first. The overflow-wrap net (the twenty-first, above) was a list of the
+# elements that MEAN text rather than of the elements that HOLD it; eleven
+# lines further down the same file, the focus rule named a list of the things a
+# person thinks of as controls rather than of the things the browser gives
+# focus to. <summary> is focusable in every engine, is none of the five tags
+# named, and carries no tabindex — so the system's ONE focus indicator, the
+# declaration behind every ring on every page, had never once reached a
+# disclosure. Twenty-one of them in six files, six of them the landing page's
+# FAQ rows.
+#
+# It is invisible in the way this directory keeps finding things invisible: the
+# user agent draws its own ring, so a focused row photographs as a focused row.
+# Measured on the landing page's first FAQ row at 1440 x 900, unfocused against
+# focused — the component's sheen sweep alone changes contrast by 1.23:1, under
+# the 3:1 WCAG 2.4.11 asks of an indicator; the browser's fallback outline
+# alone by 13.61:1; this system's ring, once summary is in the list, by 14.91:1.
+# So the whole job was being done by a ring nothing here asked for, at 1 px
+# where the system draws 2, at offset 0 where it draws 2, and in the UA's
+# near-black rather than in --focus-ring, the token that flips to lime under
+# data-theme="inverse" and is therefore the only one that survives a dark
+# surface. The check reads the rule and the markup instead of the next
+# hand-kept list, and holds the ring to the token as well as the list to the
+# tags — a list that covers everything and paints a literal is the same failure
+# one step along.
+
 on:
   push:
     branches: [main]
@@ -361,7 +389,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not twenty-seven. All twenty-seven checks are a few hundred
+  # One job, not twenty-eight. All twenty-eight checks are a few hundred
   # milliseconds of stdlib python; a second runner would cost more to start
   # than any of them takes to run, and a reader looking at a red tick wants
   # every answer on one page.
@@ -376,7 +404,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: twenty-seven
+      # Each check runs even when an earlier one has already failed: twenty-eight
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -481,3 +509,7 @@ jobs:
       - name: Reset shadow
         if: '!cancelled()'
         run: python3 scripts/check-reset-shadow.py
+
+      - name: Focus ring
+        if: '!cancelled()'
+        run: python3 scripts/check-focus-ring.py
