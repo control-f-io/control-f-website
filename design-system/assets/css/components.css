@@ -4428,8 +4428,30 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    arriving it carries the 26.57° offset, which moves the crop boundary by up
    to --iso-travel. Only the endpoints count — a path that leaves the crop and
    re-enters wastes no range at either end, so a gap in the middle is left
-   alone. It reads as the signal passing behind the crop, which is what it is. */
-.cf-iso__trace { --trace-from: 1; --trace-to: 0; }
+   alone. It reads as the signal passing behind the crop, which is what it is.
+
+   THE CROP IS NOT THE ONLY THING THAT EATS THE RANGE. A dash pattern RESTARTS
+   at every subpath, while pathLength normalises the path as a WHOLE — so on a
+   path made of several strokes, each one draws its own first (1 − offset) of
+   the TOTAL, all at the same time, and the draw is over as soon as the LONGEST
+   subpath is finished. Card 03's incoming arrow is five strokes: shaft 112.50
+   units, two chevrons 77.37 each, two barbs 38.68 each, 344.61 in total. The
+   longest is 0.3265 of that, so the arrow was finished at dashoffset 0.6735 —
+   cover 26.8 % of a range running to 45 %, with 18.19 of its 27 points spent
+   on a picture that had stopped changing. It also drew all five strokes at
+   once, growing outward from five different points, which reads as a sketch
+   scribbling itself rather than as a signal arriving.
+
+   A trace is ONE stroke. Where the signal is drawn as several, each is its own
+   trace and they are led along the direction of travel:
+
+     --trace-lead  how far into the window this stroke starts drawing.
+     --trace-span  how much of the window it spends drawing.
+
+   Both are percentage points of `cover`, both default to the whole window, so
+   an unslotted trace runs cover 18 % → 45 % exactly as before. Keep
+   lead + span ≤ 27 % and the last stroke still lands on the light. */
+.cf-iso__trace { --trace-from: 1; --trace-to: 0; --trace-lead: 0%; --trace-span: 27%; }
 
 /* Scroll-driven assembly.
    Progressive enhancement in the honest direction: without support for
@@ -4471,11 +4493,16 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
       animation-range: cover 20% cover 40%;
     }
     /* The incoming signal draws itself. pathLength="1" in the markup makes the
-       dash maths independent of how long the path actually is. */
+       dash maths independent of how long the path actually is.
+       The window is authored per stroke — see --trace-lead / --trace-span above.
+       The defaults resolve to `cover 18% cover 45%`, which is what every trace
+       that is a single stroke still gets. */
     .cf-iso__trace {
       stroke-dasharray: 1;
       animation-name: cf-iso-draw;
-      animation-range: cover 18% cover 45%;
+      animation-range:
+        cover calc(18% + var(--trace-lead))
+        cover calc(18% + var(--trace-lead) + var(--trace-span));
     }
     /* Lime is light: it is the last thing to arrive, and it arrives as a fill
        coming up, not as an object moving. */
