@@ -757,3 +757,93 @@ hr {
   transition: transform var(--duration-fast) var(--ease-standard);
 }
 .skip-link:focus { transform: translateY(0); }
+
+/* --------------------------------------------------------------------------
+   PAGE TRANSITIONS — Kontur vor Fläche, spent on time instead of on a box
+
+   A static site normally navigates the way paper does: the sheet is thrown
+   away and another one is put down. That is the one thing this brand is not.
+   The site sits on a data space, and a space you move through does not blink.
+
+   So navigation is drawn rather than swapped. One edge at --angle-a crosses
+   the viewport left to right; the arriving page appears behind it; and the
+   light layer rides the edge itself — a 2 px contour filled with the foil,
+   drawn before the surface it encloses. That is the founding rule of the
+   shape language, applied to a moment rather than to an object.
+
+   The foil is a gradient across the whole viewport box and only 2 px of it
+   is ever visible at once, so the line changes hue as it travels — lime at
+   the left edge of the screen, Violett by the right. It is the one place in
+   the system where you see the foil the way you see a real foil: by moving
+   past it.
+
+   Everything here is progressive enhancement, in three layers:
+     · no support (Firefox today, Safari < 18.2) — the at-rule and the
+       pseudo-element rules are both unknown, so navigation stays instant.
+     · prefers-reduced-motion: reduce — the opt-in never applies, so there is
+       no transition to shorten. A wipe has no useful 1 ms version.
+     · a slow response — the browser abandons the transition after 4 s from
+       navigation start and navigates plainly. Nothing to handle.
+
+   Named elements are lifted out of the root snapshot and animate on their
+   own, which for identical chrome means they hold perfectly still. They are
+   named with a `body >` combinator on purpose: a view-transition-name has to
+   be unique in the document, and components/navigation.html and
+   components/footer.html each show a specimen of one. The combinator is the
+   line between the page's own chrome and a specimen of it — the specimen
+   sits inside .docs-demo and travels with the page like any other content.
+   → foundations/transitions.html
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+
+body > .cf-nav    { view-transition-name: cf-nav; }
+body > .cf-footer { view-transition-name: cf-footer; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The UA default is mix-blend-mode: plus-lighter, which is correct for the
+     cross-fade it ships with and wrong for a wipe: under a cross-fade the two
+     snapshots are complementary at every pixel, under a wipe they are both
+     fully opaque wherever they overlap, and plus-lighter adds two opaque
+     pages to white. Reset it before touching anything else. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    mix-blend-mode: normal;
+    animation: none;
+  }
+
+  /* The light layer, seen through the gap. The group is an ancestor box of
+     both snapshots and paints behind them, so it shows only in the 2 px band
+     where the outgoing page has already been cut away and the incoming one
+     has not yet arrived. */
+  ::view-transition-group(root) { background: var(--gradient-foil); }
+
+  ::view-transition-old(root) {
+    animation: cf-rake-out var(--duration-slow) var(--ease-out) both;
+  }
+  ::view-transition-new(root) {
+    animation: cf-rake-in var(--duration-slow) var(--ease-out) both;
+  }
+}
+
+/* Both keyframes describe the same parallelogram — an edge at --angle-a, so
+   --angle-a-run of horizontal travel across the viewport's height — sliding
+   from one side to the other. The incoming page keeps what is behind the
+   edge; the outgoing page keeps what is ahead of it, --stroke-2 further on,
+   and that offset is the contour. */
+@keyframes cf-rake-in {
+  from { clip-path: polygon(0 0, 0 0, calc(-1 * var(--angle-a-run)) 100%, 0 100%); }
+  to   { clip-path: polygon(0 0, calc(100% + var(--angle-a-run)) 0, 100% 100%, 0 100%); }
+}
+@keyframes cf-rake-out {
+  from {
+    clip-path: polygon(var(--stroke-2) 0, 100% 0, 100% 100%,
+                       calc(var(--stroke-2) - var(--angle-a-run)) 100%);
+  }
+  to {
+    clip-path: polygon(calc(100% + var(--stroke-2) + var(--angle-a-run)) 0, 100% 0, 100% 100%,
+                       calc(100% + var(--stroke-2)) 100%);
+  }
+}

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page Transitions — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* The posed diagram below is the shipping mechanism held still. It is built
+     the same way — a foil-filled box with two clipped layers over it, the
+     outgoing one offset by --stroke-2 so the foil shows through the gap — so
+     what you see here is what the browser draws, at three positions instead
+     of sixty per second. It exists because the transition itself cannot be
+     photographed, and because a browser that does not support the transition
+     should still be able to read what it would have looked like.
+
+     The frames are 2:1, which makes the arithmetic visible: an --angle-a edge
+     runs half the frame's height sideways over its full height, and at 2:1
+     half the height is a quarter of the width. Hence --run: 25%.
+
+     --gap is the one honest lie. It ships at --stroke-2, which in a frame this
+     size is a hairline you cannot read a colour off, so the diagram opens it
+     to 6 px and says so in the caption. Everything else is the real value. */
+  .vt-stages { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); }
+  .vt-stage {
+    --run: 25%;
+    --gap: 6px;
+    position: relative;
+    aspect-ratio: 2 / 1;
+    background: var(--gradient-foil);
+    border: var(--stroke-1) solid var(--border-strong);
+    overflow: hidden;
+  }
+  .vt-stage__layer { position: absolute; inset: 0; padding: var(--space-4); }
+  /* Incoming keeps everything behind the edge. */
+  .vt-stage__in {
+    background: var(--grey-000);
+    clip-path: polygon(0 0, calc(var(--p) + var(--run)) 0, var(--p) 100%, 0 100%);
+  }
+  /* Outgoing keeps everything ahead of it, --gap further on. That offset is
+     the contour: two pages, neither of them in it, the light layer behind. */
+  .vt-stage__out {
+    background: var(--grey-100);
+    clip-path: polygon(calc(var(--p) + var(--run) + var(--gap)) 0, 100% 0, 100% 100%,
+                       calc(var(--p) + var(--gap)) 100%);
+  }
+  /* Stand-in content. The two halves have to be legibly two different pages
+     rather than two greys, or the edge has nothing to be an edge between — so
+     the outgoing one sets its block lower and carries an extra rule. Contours
+     and one solid mark, which is how the rest of the system draws a page. */
+  .vt-stage__rule { height: var(--stroke-1); background: var(--border-strong); }
+  .vt-stage__mark { height: var(--space-4); background: var(--cf-schwarz); }
+  .vt-stage__in  > * + *, .vt-stage__out > * + * { margin-top: var(--space-3); }
+  .vt-stage__in  .vt-stage__mark { width: 62%; }
+  .vt-stage__out { padding-top: var(--space-10); }
+  .vt-stage__out .vt-stage__mark { width: 88%; }
+  .vt-stages figcaption {
+    margin-top: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .vt-jump { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+  @media (max-width: 900px) {
+    .vt-stages { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 12</p>
+    <h1>Page Transitions</h1>
+    <p>
+      A static site normally navigates the way paper does: the sheet is thrown away and
+      another one is put down. This one does not. Navigation is <em>drawn</em> — one edge at
+      the brand angle crosses the screen, the arriving page appears behind it, and the light
+      layer rides the edge. Contour before fill, spent on a moment instead of on a box.
+    </p>
+  </header>
+
+  <section class="docs-section" id="demo">
+    <h2>You are looking at it</h2>
+    <p>
+      There is no isolated demo on this page, because the documentation is the demo: every
+      link in the sidebar is a cross-document navigation between two pages that both opt in.
+      Click one of these and watch the left edge of the content.
+    </p>
+    <div class="docs-demo docs-demo--flat">
+      <div class="vt-jump">
+        <a class="cf-btn cf-btn--ghost" href="motion.html">Motion</a>
+        <a class="cf-btn cf-btn--ghost" href="geometry.html">Geometry &amp; Lines</a>
+        <a class="cf-btn cf-btn--ghost" href="colors.html">Colour</a>
+        <a class="cf-btn cf-btn--ghost" href="../patterns/landing-page.html">Landing Page</a>
+      </div>
+    </div>
+    <p>
+      The last one is worth taking twice. Going from the documentation to a pattern page, the
+      nav bar and the footer arrive on their own rather than with the page, because they are
+      named elements and the documentation has neither of them to hand over. Going from one
+      pattern page to another — which is what a reader of the real site does — they do not
+      move at all.
+    </p>
+    <div class="docs-note">
+      <strong>If nothing happens, nothing is wrong.</strong> Cross-document view transitions
+      are in Chromium 126+ and Safari 18.2+; Firefox does not have them yet. Where they are
+      missing, both the at-rule and the pseudo-element rules are unknown CSS and are dropped,
+      and navigation is instant — which is exactly what this site did before. The same is true
+      if you have asked for reduced motion: the opt-in is inside
+      <code>prefers-reduced-motion: no-preference</code>, so it never applies.
+    </div>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>The edge, posed</h2>
+    <p>
+      Three positions of the same edge, built the same way the shipping transition is and
+      held still. The pale half is the page arriving, the grey half is the page leaving, and
+      the line between them is not a border on either of them — it is
+      <code>--gradient-foil</code>, showing through a gap where the outgoing page has already
+      been cut away and the incoming one has not yet reached. One value is enlarged: the gap
+      is 6 px here and <code>--stroke-2</code> in the real thing, because at a sixth of
+      viewport width two pixels is a hairline you cannot read a colour off. The angle, the
+      run and the clip arithmetic are the shipping values.
+    </p>
+    <div class="docs-demo docs-demo--flat">
+      <div class="vt-stages">
+        <figure style="margin:0">
+          <div class="vt-stage" style="--p: 8%" role="img" aria-label="The wipe near its start: a narrow sliver of the incoming page at the left, the foil-lit edge just inside the frame.">
+            <div class="vt-stage__layer vt-stage__out"><div class="vt-stage__mark"></div><div class="vt-stage__rule"></div><div class="vt-stage__rule"></div></div>
+            <div class="vt-stage__layer vt-stage__in"><div class="vt-stage__mark"></div><div class="vt-stage__rule"></div></div>
+          </div>
+          <figcaption>t 0.1</figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="vt-stage" style="--p: 42%" role="img" aria-label="The wipe at the middle: the edge crosses the frame diagonally, incoming page on the left, outgoing on the right.">
+            <div class="vt-stage__layer vt-stage__out"><div class="vt-stage__mark"></div><div class="vt-stage__rule"></div><div class="vt-stage__rule"></div></div>
+            <div class="vt-stage__layer vt-stage__in"><div class="vt-stage__mark"></div><div class="vt-stage__rule"></div></div>
+          </div>
+          <figcaption>t 0.5</figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="vt-stage" style="--p: 76%" role="img" aria-label="The wipe near its end: only a narrow wedge of the outgoing page is left at the right.">
+            <div class="vt-stage__layer vt-stage__out"><div class="vt-stage__mark"></div><div class="vt-stage__rule"></div><div class="vt-stage__rule"></div></div>
+            <div class="vt-stage__layer vt-stage__in"><div class="vt-stage__mark"></div><div class="vt-stage__rule"></div></div>
+          </div>
+          <figcaption>t 0.9</figcaption>
+        </figure>
+      </div>
+    </div>
+    <p>
+      The hue is the whole point of drawing it this way rather than picking a colour. The foil
+      is one gradient across the entire viewport and only two pixels of it are ever visible at
+      once, so the line changes as it travels — lime for the first instant, Glas and Sky
+      through the middle, Violett as it leaves, which is exactly the order of the three
+      frames above. That is the north star of the brand — iridescent, light-reactive,
+      shifting as you move past it — obtained by moving past it, which is the only way a real
+      foil ever gives it up. Nothing here is a second gradient; it is
+      <code>--gradient-foil</code> sampled by an aperture.
+    </p>
+
+    <h3>Why 63.43°</h3>
+    <svg viewBox="0 0 420 200" style="width:100%;max-width:32rem;margin-inline:auto;display:block" fill="none" stroke="currentColor" aria-label="A viewport rectangle with an edge at 63.43 degrees crossing it. The edge's horizontal run across the full height is half the height.">
+      <!-- The viewport -->
+      <rect x="40" y="30" width="340" height="140" stroke="var(--border-strong)" stroke-width="1"/>
+      <!-- The edge, at --angle-a: over 140 of height it runs 70 sideways -->
+      <path d="M250 30 L180 170" stroke="var(--cf-schwarz)" stroke-width="2"/>
+      <!-- Construction: the height and the run -->
+      <path d="M180 170 L250 170" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="2 4"/>
+      <path d="M250 170 L250 30" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="2 4"/>
+      <g font-family="var(--font-mono)" font-size="10" fill="var(--text-secondary)" stroke="none" letter-spacing="0.06em">
+        <text x="196" y="187">RUN = H / 2</text>
+        <text x="258" y="104">H</text>
+        <text x="256" y="26">63.43° · --angle-a</text>
+      </g>
+    </svg>
+    <p>
+      Both isometric angles were available and only one of them sweeps. An edge at
+      <code>--angle-b</code> (26.57°) is nearly horizontal, and a nearly horizontal edge
+      travelling sideways reads as a page sliding rather than as light crossing it. So the
+      edge is <code>--angle-a</code>, the steep isometric — which is the same rhombus edge
+      read off the other axis, not a fifth angle. Its horizontal run over one viewport height
+      is <code>tan(90° − 63.43°) = 0.5</code>, and that half-height is the token
+      <code>--angle-a-run</code>. Change <code>--angle-a</code> and the token has to move with
+      it; it is the one place in the system where the isometry is resolved against the
+      viewport instead of against an object, because a page-wide edge has no bounding box of
+      its own to be built on.
+    </p>
+    <p>
+      The duration is <code>--duration-slow</code>, 480 ms, and it is not a new speed. That
+      token's stated job is <em>a reveal, or light crossing a surface</em>, and this is both at
+      once: it is the same gesture as the specular sliding across a lit button and
+      <code>--sheen-panel</code> crossing an accordion row, at the scale of a whole page. The
+      curve is <code>--ease-out</code> — the edge enters fast and settles, like every other
+      object in the system that flies in and stays.
+    </p>
+  </section>
+
+  <section class="docs-section" id="furniture">
+    <h2>What holds still</h2>
+    <p>
+      A <code>view-transition-name</code> lifts an element out of the page snapshot and gives
+      it a transition of its own. For chrome that is identical on both pages, that means it
+      holds perfectly still while everything behind it is raked across — so the nav bar does
+      not blink, the footer does not blink, and the reader is left with the impression of one
+      continuous space rather than a sequence of sheets. This is the brand's opening claim
+      (<em>a data space, not a sheet of paper</em>) made literal at the one moment a static
+      site normally contradicts it.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Selector</th><th>Name</th><th>Behaviour</th><th>Declared in</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>body &gt; .cf-nav</code></td>
+          <td><code>cf-nav</code></td>
+          <td>Identical on every page, so it holds still.</td>
+          <td><code>base.css</code> — ships</td>
+        </tr>
+        <tr>
+          <td><code>body &gt; .cf-footer</code></td>
+          <td><code>cf-footer</code></td>
+          <td>Same. Also below the fold on most pages, so mostly invisible work.</td>
+          <td><code>base.css</code> — ships</td>
+        </tr>
+        <tr>
+          <td><code>.docs-sidebar</code></td>
+          <td><code>docs-sidebar</code></td>
+          <td>Old and new differ in one thing — which entry carries the current-page plate — so the UA's default cross-fade is exactly right and is left alone. Dropped below 900 px, where the sidebar stacks above the content and stops being furniture.</td>
+          <td><code>docs.css</code> — does not ship</td>
+        </tr>
+        <tr>
+          <td><code>root</code></td>
+          <td><code>root</code></td>
+          <td>Everything else: the page wash and the content. This is what the edge crosses.</td>
+          <td>UA</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>The <code>body &gt;</code> combinator is load-bearing, not tidiness.</strong> A
+      <code>view-transition-name</code> has to be unique in the document, and if two elements
+      claim the same one the browser abandons the entire transition and logs an error.
+      <code>components/navigation.html</code> and <code>components/footer.html</code> each
+      show a specimen of the chrome, inside a <code>.docs-demo</code> — so the combinator is
+      the line between the page's own furniture and a drawing of it. The specimen keeps no
+      name and travels with the page like any other content. Any new page that needs a second
+      nav or a second footer in the same document has to solve the uniqueness problem, not
+      inherit it.
+    </div>
+    <p>
+      One consequence is free and worth knowing: the page wash is
+      <code>background-attachment: fixed</code>, so it is painted against the viewport rather
+      than against the document. Two pages of different lengths, at different scroll
+      positions, therefore have <em>pixel-identical</em> wash. The edge crosses it and you
+      cannot see the edge in it. The wipe is visible only where the two pages actually differ,
+      which is the content — so the room holds and the contents of the room change, without
+      that having to be arranged.
+    </p>
+  </section>
+
+  <section class="docs-section" id="markup">
+    <h2>Adding it to a page</h2>
+    <p>
+      Nothing. It is in <code>base.css</code>, both pages of any navigation already have it,
+      and there is no markup, no attribute and no script. What follows is the whole
+      implementation, for reading rather than for pasting.
+    </p>
+    <pre class="docs-code"><span class="com">/* Opt in. Both documents must; a page that does not is navigated to plainly. */</span>
+<span class="tag">@media</span> (prefers-reduced-motion: no-preference) {
+  <span class="tag">@view-transition</span> { <span class="attr">navigation</span>: <span class="val">auto</span>; }
+}
+
+<span class="com">/* Furniture. Named = lifted out of the page snapshot = holds still. */</span>
+body &gt; .cf-nav    { <span class="attr">view-transition-name</span>: <span class="val">cf-nav</span>; }
+body &gt; .cf-footer { <span class="attr">view-transition-name</span>: <span class="val">cf-footer</span>; }
+
+<span class="tag">@media</span> (prefers-reduced-motion: no-preference) {
+  <span class="com">/* The UA default is plus-lighter, correct for a cross-fade and wrong for a
+     wipe: under a wipe both snapshots are opaque wherever they overlap, and
+     plus-lighter adds two opaque pages to white. */</span>
+  <span class="tag">::view-transition-old</span>(root),
+  <span class="tag">::view-transition-new</span>(root) { <span class="attr">mix-blend-mode</span>: <span class="val">normal</span>; <span class="attr">animation</span>: <span class="val">none</span>; }
+
+  <span class="com">/* The light layer, seen through the gap. The group paints behind both
+     snapshots, so it shows only in the 2 px band that belongs to neither. */</span>
+  <span class="tag">::view-transition-group</span>(root) { <span class="attr">background</span>: <span class="val">var(--gradient-foil)</span>; }
+
+  <span class="tag">::view-transition-old</span>(root) { <span class="attr">animation</span>: cf-rake-out <span class="val">var(--duration-slow)</span> <span class="val">var(--ease-out)</span> both; }
+  <span class="tag">::view-transition-new</span>(root) { <span class="attr">animation</span>: cf-rake-in  <span class="val">var(--duration-slow)</span> <span class="val">var(--ease-out)</span> both; }
+}
+
+<span class="com">/* One parallelogram, slid from one side to the other. The incoming page keeps
+   what is behind the edge; the outgoing page keeps what is ahead of it,
+   --stroke-2 further on, and that offset is the contour. */</span>
+<span class="tag">@keyframes</span> cf-rake-in {
+  <span class="tag">from</span> { <span class="attr">clip-path</span>: polygon(0 0, 0 0, calc(-1 * <span class="val">var(--angle-a-run)</span>) 100%, 0 100%); }
+  <span class="tag">to</span>   { <span class="attr">clip-path</span>: polygon(0 0, calc(100% + <span class="val">var(--angle-a-run)</span>) 0, 100% 100%, 0 100%); }
+}
+<span class="tag">@keyframes</span> cf-rake-out {
+  <span class="tag">from</span> { <span class="attr">clip-path</span>: polygon(<span class="val">var(--stroke-2)</span> 0, 100% 0, 100% 100%,
+                       calc(<span class="val">var(--stroke-2)</span> - <span class="val">var(--angle-a-run)</span>) 100%); }
+  <span class="tag">to</span>   { <span class="attr">clip-path</span>: polygon(calc(100% + <span class="val">var(--stroke-2)</span> + <span class="val">var(--angle-a-run)</span>) 0, 100% 0, 100% 100%,
+                       calc(100% + <span class="val">var(--stroke-2)</span>) 100%); }
+}</pre>
+    <p>
+      Two <code>polygon()</code>s with the same vertex count interpolate vertex by vertex, so
+      the edge stays straight and stays at 63.43° at every frame — the shape is translated, not
+      morphed. This is also why the gap stays exactly <code>--stroke-2</code> wide the whole
+      way across: both clips carry the same offset in the same units, so it cannot drift.
+    </p>
+  </section>
+
+  <section class="docs-section" id="failure">
+    <h2>Every way out</h2>
+    <p>
+      This is a decoration on top of a navigation that already worked, and it is written so
+      that every path away from it lands on the plain navigation rather than on a broken one.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Condition</th><th>What happens</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>No support (Firefox, Safari &lt; 18.2)</td>
+          <td><code>@view-transition</code> and the <code>::view-transition-*</code> rules are unknown CSS and are dropped. Instant navigation.</td>
+        </tr>
+        <tr>
+          <td><code>prefers-reduced-motion: reduce</code></td>
+          <td>The opt-in never applies. There is no 1 ms version of a wipe worth having, so there is no transition at all — the reader gets the instant navigation they effectively asked for.</td>
+        </tr>
+        <tr>
+          <td>Cross-origin, or a POST, or a scripted <code>location</code> assignment</td>
+          <td>The browser does not start a transition. Deliberate, and outside our control.</td>
+        </tr>
+        <tr>
+          <td>A slow response</td>
+          <td>The browser abandons the transition if the new document is not renderable within 4 s of the navigation starting, and navigates plainly. Nothing to handle; nothing half-drawn is left behind.</td>
+        </tr>
+        <tr>
+          <td>A same-page fragment link</td>
+          <td>Not a navigation the opt-in covers. Anchors inside a page behave exactly as before.</td>
+        </tr>
+        <tr>
+          <td>JavaScript off</td>
+          <td>Irrelevant. There is no script involved, on either page.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="docs-note docs-note--warn">
+      <strong>The one thing that can break it is a duplicate name.</strong> Not a partial
+      failure — the browser abandons the whole transition and reports it. If a page ever
+      renders two elements matching <code>body &gt; .cf-nav</code>, or a future component
+      claims a name that already exists, the symptom is that the transition silently stops
+      happening on that page while continuing to work everywhere else. Check the console
+      before assuming the CSS moved.
+    </div>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Name chrome that is identical across pages, so it holds still.</li>
+          <li>Keep the edge on <code>--angle-a</code> and the run on <code>--angle-a-run</code>.</li>
+          <li>Let the light come from <code>--gradient-foil</code> through a gap, not from a coloured border.</li>
+          <li>Put the opt-in inside <code>prefers-reduced-motion: no-preference</code>, always.</li>
+          <li>Reset <code>mix-blend-mode</code> before replacing the default cross-fade with anything opaque.</li>
+          <li>Check that a name is unique in every document that can carry the element.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Add a second transition for a second kind of link. One site, one gesture.</li>
+          <li>Name a component instance inside <code>.docs-demo</code> — a specimen is content.</li>
+          <li>Name something that fills the viewport: the reader taps and nothing answers.</li>
+          <li>Reach for a duration outside the two speeds. This is 480 ms because it is light crossing a surface.</li>
+          <li>Introduce a fifth angle. Both isometric angles were available; the shallow one does not sweep.</li>
+          <li>Add a script to make it work in Firefox. It is a decoration, and it will arrive.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="next">
+    <h2>What this does not do yet</h2>
+    <p>
+      The obvious next move is the one this system deliberately has not made: morphing a
+      <em>specific</em> element into the page it opens — a blog cell into the article's header,
+      a team portrait into a profile. Cross-document, that needs the clicked element to be
+      given a name on the way out and the matching element to be given the same name on the
+      way in, which is a <code>pageswap</code> and a <code>pagereveal</code> listener, which is
+      a third shipping script. The system currently ships two, one of which is legally
+      required and one of which is optional and additive, and that ratio is worth protecting.
+      When it is done it should be one small file that refuses to run unless the pair actually
+      matches — the same shape as <code>cf-values.js</code>.
+    </p>
+    <p>
+      Also unclaimed: nothing yet uses <code>view-transition-class</code>, which would let a
+      family of named elements share one animation without each one repeating it. There is no
+      family yet — three names, three behaviours. Worth remembering when there is a fourth.
+    </p>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>
