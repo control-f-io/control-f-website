@@ -1881,6 +1881,63 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   .cf-statement__figure .cf-iso { aspect-ratio: 1200 / 420; --trace-weight: 0.94; }
 }
 
+/* THE STATEMENT TAKES ITSELF APART ON THE WAY OUT. The assembly runs on the
+   figure's entry — scene, ghosts, signals, sources, in that order — and until
+   now leaving was nothing: the finished drawing simply slid off the top. Now
+   the same timeline's exit phase runs the assembly's mirror, in reverse order
+   of arrival: the sources go first, then each signal retreats the way it came,
+   then the two rings break on their diagonals and fall toward the section
+   below — where the process frame is drawing itself in as this leaves — and
+   the lattice, which is ground and does not scatter, goes dark last.
+
+   Geometry lives in the markup: each part carries --sx/--sy (its exit vector,
+   on a brand angle, sized by one rule at every scale) and --scat-in (its slot
+   in the sequence). This file only says THAT parts scatter, the same division
+   of labour as the assembly above.
+
+   Scrubbed, not played: scroll back up and the figure reassembles, which is
+   what makes it a state of the drawing rather than an effect on it.
+
+   The second fill-mode is `forwards`, not `both`, and it matters: under
+   `both` the scatter would hold its from-state through the whole entry phase
+   and pin every part's translate before the assembly had run. Same lesson,
+   same wording, as the removed dim recorded on foundations/colors.html.
+
+   Second animation, so every list is restated in full — animation-name is a
+   replacement, not an addition, and a shorter list here would cycle wrong. */
+@supports (animation-timeline: view()) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .cf-statement .cf-iso__ghost {
+      animation-name: cf-iso-fade, cf-stmt-scatter;
+      animation-range: cover 20% cover 40%,
+                       exit var(--scat-in, 30%) exit calc(var(--scat-in, 30%) + 26%);
+      animation-fill-mode: both, forwards;
+    }
+    .cf-statement .cf-iso__trace {
+      animation-name: cf-iso-draw, cf-stmt-scatter;
+      animation-range:
+        cover calc(18% + var(--trace-lead)) cover calc(18% + var(--trace-lead) + var(--trace-span)),
+        exit var(--scat-in, 8%) exit calc(var(--scat-in, 8%) + 26%);
+      animation-fill-mode: both, forwards;
+    }
+    .cf-statement .cf-iso__node {
+      animation-name: cf-iso-fade, cf-stmt-scatter;
+      animation-range: cover 35% cover 50%,
+                       exit var(--scat-in, 0%) exit calc(var(--scat-in, 0%) + 20%);
+      animation-fill-mode: both, forwards;
+    }
+  }
+}
+/* A part moves with `translate`, not `transform` — see the build's own note:
+   half the parts in this system carry a transform ATTRIBUTE, and a keyframe
+   that sets the property replaces the attribute instead of composing with it. */
+@keyframes cf-stmt-scatter {
+  to {
+    translate: calc(var(--sx, 0) * 1px) calc(var(--sy, 0) * 1px);
+    opacity: 0;
+  }
+}
+
 /* --------------------------------------------------------------------------
    PROCESS CARD
    The four-step "Was wir machen" sequence. Square illustration panel on
