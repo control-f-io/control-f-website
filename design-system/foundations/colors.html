@@ -8,6 +8,26 @@
 <link rel="stylesheet" href="../assets/css/base.css">
 <link rel="stylesheet" href="../assets/css/components.css">
 <link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* This page only. The three composed band colours, shown over the page wash
+     and over the ghost's own 1-4 contour rather than over a flat plate. They
+     are transparent and they exist to pass over a contour, so a chip of the
+     colour alone would be showing neither the colour that ships nor the thing
+     it does. Same dash construction as .cf-arrive__line. */
+  .band-swatches { display:grid; grid-template-columns:repeat(auto-fit,minmax(11rem,1fr)); gap:var(--space-4); }
+  .band-swatches figure { margin:0; }
+  .band-swatches i {
+    --dash: repeating-linear-gradient(90deg, var(--border-strong) 0 1px, transparent 1px 5px);
+    display:block; height:5rem; border:1px solid var(--border-default);
+    background-image: linear-gradient(var(--band-c), var(--band-c)), var(--dash), var(--dash), var(--dash);
+    background-size: 100% 100%, 100% 1px, 100% 1px, 100% 1px;
+    background-position: 0 0, 0 25%, 0 50%, 0 75%;
+    background-repeat: no-repeat;
+  }
+  .band-swatches figcaption { margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs);
+                              letter-spacing:var(--tracking-label); color:var(--text-primary); }
+  .band-swatches figcaption span { display:block; margin-top:var(--space-1); color:var(--text-secondary); }
+</style>
 </head>
 <body class="docs" data-root="../">
 <aside class="docs-sidebar" data-docs-nav></aside>
@@ -562,7 +582,6 @@
       every button ramps the full spectrum inside ten characters, which reads as a rainbow
       rather than as light crossing a plate. Do not propagate the headline's fix to it.
     </div>
-    </p>
     <p>
       Its stops are not chosen separately. They are the spectrum's own, with lime removed
       and the remaining band renormalised onto 0–100 %:
@@ -741,6 +760,126 @@
       label whose light shifts while the reader is aiming at it is a different thing from a
       headline catching it. It reads <code>--gradient-foil</code> from <code>:root</code>,
       which is static, so it is untouched.
+    </p>
+  </section>
+
+  <section class="docs-section" id="arrival-band">
+    <h2>The foil, moving</h2>
+    <p>
+      Everything above is light that has settled. There is one member of the family that has
+      not: the band that crosses a placeholder while the thing it stands for is still on its
+      way. It is the same three chromatic stops as <a href="#foil">the foil</a>, taken down to
+      18&nbsp;% alpha and swept across the object at 26.57° on a 2.4-second loop, and it is
+      documented here rather than only on its component because <strong>every decision in it
+      is a colour decision.</strong>
+    </p>
+    <div class="docs-demo">
+      <div class="cf-arrive" style="max-width:34rem;margin-inline:auto">
+        <div class="cf-arrive__ghost" aria-hidden="true">
+          <span class="cf-arrive__plate" style="--arrive-h:7rem"></span>
+          <span class="cf-arrive__line" style="--arrive-w:.94"></span>
+          <span class="cf-arrive__line" style="--arrive-w:.88"></span>
+          <span class="cf-arrive__line" style="--arrive-w:.52"></span>
+        </div>
+        <p class="cf-arrive__status" role="status">Beiträge werden geladen</p>
+      </div>
+    </div>
+
+    <h3>Three stops, and they are the cool half on purpose</h3>
+    <p>
+      Weiss, Glas and Sky&nbsp;300 — the foil's own chromatic run with lime removed. That is
+      not a shortening for convenience, it is the same reason <code>--gradient-foil</code>
+      drops lime: <strong>this band loops for as long as the wait lasts, and lime is a moment.</strong>
+      A lit stop that returns every 2.4&nbsp;seconds until the network answers is the one thing
+      the dosage rule cannot survive — it would be the longest-running lime on the site, on the
+      one element that is not even content yet.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <div class="band-swatches">
+        <figure>
+          <i style="--band-c:color-mix(in oklab, var(--cf-weiss) 18%, transparent)"></i>
+          <figcaption>Weiss · 18 %<span>the hot spot, still the hot spot</span></figcaption>
+        </figure>
+        <figure>
+          <i style="--band-c:color-mix(in oklab, var(--cf-glas) 18%, transparent)"></i>
+          <figcaption>Glas 500 · 18 %<span>the leading edge of the band</span></figcaption>
+        </figure>
+        <figure>
+          <i style="--band-c:color-mix(in oklab, var(--sky-300) 18%, transparent)"></i>
+          <figcaption>Sky 300 · 18 %<span>the trailing edge</span></figcaption>
+        </figure>
+      </div>
+    </div>
+    <p>
+      The three are mixed with <code>transparent</code> in <strong>oklab</strong>, and the band
+      itself interpolates in oklab behind an <code>@supports</code> test, the same way every
+      other gradient in the family does. This is also the only member of the family that is
+      <em>transparent</em> rather than opaque: the foil, the wash and the three rakes all paint
+      a surface, and this one passes over one. That is what puts it above the contour it
+      crosses — light is layer 5 and a contour is layer 4 — and it is why the alpha is the
+      parameter that had to be argued.
+    </p>
+
+    <h3>18 %, and why the ceiling is 52 %</h3>
+    <p>
+      A band that lightens a contour can only take contrast away from it, so the cap is worth
+      being exact about. Worst case is the whitest stop over the blackest contour on the page's
+      own CF-Grau, composited the way CSS actually composites it — in sRGB, not in linear
+      light:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Alpha</th><th>Contour composites to</th><th>Ground composites to</th><th>Contrast</th></tr></thead>
+      <tbody>
+        <tr><td><strong>0.18</strong> — shipped</td><td>46</td><td>216</td><td><strong>9.51:1</strong></td></tr>
+        <tr><td>0.28</td><td>71</td><td>241</td><td>6.76:1</td></tr>
+        <tr><td>0.50</td><td>128</td><td>231</td><td>3.22:1</td></tr>
+        <tr><td>0.52</td><td>—</td><td>—</td><td>3.03:1 — the floor for a non-text contour</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Measured off rendered pixels across eight frames of one period, the worst inked pixel on
+      the shipped ghost is <strong>9.57:1</strong>. So contrast did not choose 18&nbsp;%:
+      anything under 52&nbsp;% clears the floor. <strong>What the arithmetic gives is the
+      ceiling, not the value</strong> — 18&nbsp;% is chosen for restraint, because lime is not
+      the only light in this system that has to stay a moment rather than become a surface.
+      Raise the token past 0.52 and the ghost fails quietly, which is exactly the kind of
+      failure a written-down ceiling exists to prevent.
+    </p>
+
+    <h3>The movement is part of the colour</h3>
+    <p>
+      A holographic surface hands you a different part of the spectrum from every angle, and
+      the foil's <a href="#foil">rake swing</a> is that tilt scrubbed from the reader's scroll.
+      This band is the other way a foil moves: the surface holds still and the light travels
+      across it. Three numbers carry it, and each is a decision:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Value</th><th>Is</th><th>Because</th></tr></thead>
+      <tbody>
+        <tr><td>26.57°</td><td>the angle the band crosses at</td><td><code>--angle-b</code>, the isometric rake. The light on a placeholder arrives on the same axis as the light on everything else in the brand.</td></tr>
+        <tr><td>−30 % → 130 %</td><td>the travel</td><td>the band leaves the object completely at both ends, so a period reads as <em>one pass and a rest</em> rather than as a strobe.</td></tr>
+        <tr><td>2400 ms, linear</td><td>the period</td><td>twice <code>--duration-scene</code>, the slowest thing the system otherwise animates. A fast loop reads as impatience, and easing would imply the wait has a shape.</td></tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>This is the one place in the system where a continuous loop is honest.</strong>
+      Everything else that moves here is answering the reader — a hover, a scroll, a page
+      changing. A loop with no input behind it is usually decoration pretending to be feedback.
+      Here something genuinely is still happening, and it stops when it stops being true.
+    </p>
+    <div class="docs-note">
+      <strong>50 % is the designed still.</strong> The band at the middle of the object is
+      where every path that cannot run the loop arrives: no <code>@property</code>, reduced
+      motion, print, forced colours. It is the same rest value the swinging foil and the
+      field's pool land on — a system that agrees with itself about where light sits when
+      nothing is moving. The ghost itself stays in all of them, because the thing is still not
+      here yet. A browser with no <code>color-mix()</code> loses the light and keeps the ghost,
+      which is the correct half to lose.
+    </div>
+    <p>
+      The component, its markup and the rest of the presence ladder are on
+      <a href="../components/arrival.html">Arrival</a>. Everything above is the part that
+      belongs to colour.
     </p>
   </section>
 
