@@ -544,6 +544,20 @@ These were judgement calls, each documented on the relevant page:
   drift no diff against `assets/source/` could ever show, because it lives in the rendered
   phase and not in the markup. Verified: the settled object is pixel-identical to the build
   with no animation at all. → `foundations/motion.html`
+- **The Über uns value-table wheel keeps its six teeth, and six is off the sanctioned
+  angles.** Measured off `mockups/ueber-uns.jpg` by radial profile from the drawing's own
+  centre, the teeth sit at 30°, 90°, 150°, 210°, 270° and 330° — 60° apart, of which only
+  the vertical pair is one of the brand's four. Eight teeth at 45° would put every flank on
+  a sanctioned angle and is the obvious correction; it is not made, because the material is
+  the authority and the rule it bends is about *constructing space*. This wheel recedes
+  nowhere — it is a face-on glyph, and the only spatial thing in it is the globe, which is
+  one 2:1 ellipse drawn twice with the second turned 90°. What the same figure used to carry
+  *was* a real violation and is gone: two dashed rings at `rotate(±30)`, the exact drawing
+  `foundations/illustration.html` labels a *don't*, invented rather than drawn from anything.
+  The other two figures in that table were wrong in the ordinary way — bodies drawn as
+  circles where a disc on the ground plane is a 2:1 ellipse, and four chevrons leaning at
+  38.66°, 31.26°, 31.26° and 25.46° where the designer drew three at 2:1.
+  → `foundations/illustration.html#where`
 - **The process illustrations correct four things in the Figma export:** the lime hex, three
   unsanctioned dash patterns, a second lime element on card 02, and a tangent that was
   0.4° off the brand angle. Figma's inner-shadow bevel on card 03 is dropped — it is not
@@ -587,6 +601,18 @@ These were judgement calls, each documented on the relevant page:
   that leg to the sRGB path.** Nothing fails when this happens; the stop is simply gone. Every
   waypoint therefore carries a comment at the stop itself. Re-add it after any rebuild.
   → `foundations/colors.html`
+- **The two foils and the spectrum carry a second kind of waypoint, and it is on the CSS
+  side.** oklab draws a straight line, and between two stops of similar chroma and different
+  hue that line is a **chord** — so chroma sags in the middle of every leg that turns: −17.9 %
+  on Glas → Sky, −13.6 % on Glas 800 → Sky 800. A ramp whose whole claim is hue travel greys
+  out exactly where it is turning. The right path is polar and `in oklch` is **not** used:
+  measured in Chromium, a stop below about C 0.018 has its hue discarded and the neighbour's
+  carried forward, and Glas 800 is C 0.0171 — so the ink foil would ship 39.7° of its 102.2°
+  of hue travel. The arc is put into the ramp instead, one waypoint per chromatic leg at that
+  leg's midpoint, which is the `#DBFC60` idiom one space out. Peak chroma is unchanged, the
+  lightness path is unchanged by construction, and the three contrast figures come back
+  identical to three decimals. A leg that ends in grey gets nothing — an achromatic stop has
+  no hue, so there is no arc for a chord to fall short of. → `foundations/colors.html#the-arc`
 - **The page wash carries hue; the mockups paint it neutral.** Sampled off both mockup
   JPGs the wash is a straight CF-Grau-to-white ramp with zero chroma, and it was the only
   gradient in the system belonging to no family. It now runs `--foil-stops` backwards —
@@ -704,9 +730,9 @@ Two things it settles that the source material does not:
   that cannot contradict itself. Flagged there for a designer; it is three fill values, not a
   redraw.
 
-## Redrawing an illustration: three things that vanish quietly
+## Redrawing an illustration: four things that vanish quietly
 
-All three bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
+All four bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
 and none of them announces itself — the drawing still renders, it is simply no longer what
 the designer drew.
 
@@ -724,3 +750,13 @@ the designer drew.
   drawing is not wrong, it just spends most of its scroll range invisible. Each one carries a
   comment at the element, and there are three: two on card 02, one on card 04.
   → `foundations/motion.html`
+- **`--iso-travel` on a frame that has been recropped.** The arrival distance is a transform,
+  so it is in viewBox units, and the rule is `viewBox width / 40` — the same 5 % of the
+  drawing in every frame. Seven of the fifteen shipping objects are not on a 640 square and
+  carry their own value, four of them as inline custom properties on the `svg`. Nothing ties
+  those literals to the viewBox they were derived from, so **recropping a drawing leaves its
+  travel silently wrong.** It has already happened once: the four objects on
+  `patterns/expertise.html` were recropped from 695.2 / 612 / 552.4 / 714.24 to
+  732 / 776.8 / 732 / 790.24 within an hour of the values first being written, and nothing
+  failed — the objects simply arrived from the wrong distance. Re-measure after any recrop.
+  → `foundations/motion.html#travel`
