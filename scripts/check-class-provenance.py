@@ -11,19 +11,20 @@ re-implementation looks exactly like the component until the component moves.
 
 So this is a census before it is a gate. It reads every .html under
 design-system/, counts every class the markup uses, and asks one question of
-each: WHO DECLARES THIS. There are exactly four legitimate answers —
+each: WHO DECLARES THIS. There are exactly five legitimate answers —
 
     tokens.css / base.css / components.css   the three that ship
     docs.css                                 documentation chrome, never ships
+    preview.css                              pattern-preview chrome, never ships
     the page's own <style> block             page-local, and stated as such
     nobody                                   a finding
 
-— and the fourth is what the exit code is about. A class nothing declares is
+— and the fifth is what the exit code is about. A class nothing declares is
 either a typo, a rule that was deleted out from under its markup, or a name
 that was always decorative; all three are worth knowing about, and none of the
 three announces itself in a screenshot.
 
-The gate is four rules:
+The gate is five rules:
 
   1. RESOLUTION. Every class used on the shipping surface resolves to a
      declaration. The one structural exception is a BEM namespace root: a page
@@ -33,13 +34,20 @@ The gate is four rules:
      needs a declared `X__…` or `X--…` member — so a misspelt component name
      still fails.
 
-  2. NO DOCS CHROME ON A SHIPPING PAGE. docs.css never reaches control-f.de. A
-     page that does not link it must not use a class only it declares, or the
-     page renders one way in the design system and another way in production —
-     the one drift a screenshot of the design system can never show, because
-     the design system is where it looks right.
+  2. NO DOCS CHROME ON A SHIPPING PAGE. docs.css and preview.css never reach
+     control-f.de. A page that does not link one of them must not use a class
+     only it declares, or the page renders one way in the design system and
+     another way in production — the one drift a screenshot of the design
+     system can never show, because the design system is where it looks right.
 
-  3. NO LITERAL IN A PAGE-LOCAL BLOCK WHERE A TOKEN EXISTS. check-spacing-
+  3. NO PAGE-LOCAL COPY OF PREVIEW CHROME. The first census found .ds-back
+     shipping in fourteen page-local copies, byte for byte, with the two under
+     prototypes/ already forked to a hardcoded z-index and respelt tokens.
+     Those copies are folded into preview.css now, and the only way the fold
+     reopens is a page redeclaring a class preview.css owns — so that exact
+     move is the finding.
+
+  4. NO LITERAL IN A PAGE-LOCAL BLOCK WHERE A TOKEN EXISTS. check-spacing-
      scale.py holds the three shipping stylesheets to this and says so: page
      -local <style> blocks are "deliberately out of scope". They were out of
      scope of every check in this directory, which made them the one place in
@@ -47,7 +55,7 @@ The gate is four rules:
      checked here: a colour a token already names exactly, and a length in a
      spacing property.
 
-  4. NO INLINE LAYOUT UNDER patterns/. An inline style= may set custom
+  5. NO INLINE LAYOUT UNDER patterns/. An inline style= may set custom
      properties — that is per-instance data the markup genuinely owns, `--i`,
      `--stage`, `--build-dx` — and nothing else. The scope is patterns/ alone
      and that is a boundary rather than an omission: a pattern page stands in
@@ -57,10 +65,12 @@ The gate is four rules:
 --report prints the whole census instead: the resolution table, every
 page-local block with what it declares, and the page-local rules that appear
 verbatim on more than one page. That last table is the one to read. It is how
-this run found that .ds-back ships in fourteen copies and that two of them —
-the two under prototypes/ — have already forked to a different z-index and a
-different token spelling, which is the entire argument for this script written
-out by the tree itself.
+the first run of this census found that .ds-back shipped in fourteen copies
+and that two of them — the two under prototypes/ — had already forked to a
+different z-index and a different token spelling: the entire argument for this
+script, written out by the tree itself. Those fourteen are one declaration in
+preview.css now and rule 3 keeps them that way; the prototype forks remain, in
+the table, where the census can see them.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
@@ -78,9 +88,13 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 DS = ROOT / "design-system"
 CSS = DS / "assets" / "css"
 
-# The three that ship to control-f.de, and the fourth that does not.
+# The three that ship to control-f.de, and the two that do not: docs.css is
+# the documentation's own chrome, preview.css is the one rule for the .ds-back
+# link a pattern page carries back into the documentation — the rule that used
+# to ship in fourteen page-local copies.
 SHIPPING = ("tokens.css", "base.css", "components.css")
 DOCS = "docs.css"
+PREVIEW = "preview.css"
 
 # prototypes/ are sketches, not the system: they predate most of the tokens,
 # they are linked from nowhere the reader walks, and check-spacing-scale.py
@@ -260,7 +274,8 @@ def load():
     for name in SHIPPING:
         ship |= declared_classes((CSS / name).read_text())
     docs = declared_classes((CSS / DOCS).read_text())
-    return ship, docs, [Page(p) for p in pages()]
+    preview = declared_classes((CSS / PREVIEW).read_text())
+    return ship, docs, preview, [Page(p) for p in pages()]
 
 
 def namespace_root(name, declared):
@@ -276,10 +291,10 @@ def exempt(page_rel, name):
 
 
 # --------------------------------------------------------------------------
-# The four rules
+# The five rules
 # --------------------------------------------------------------------------
-def rule_resolution(ship, docs, pages_):
-    declared = ship | docs
+def rule_resolution(ship, docs, preview, pages_):
+    declared = ship | docs | preview
     findings = []
     for page in pages_:
         if not gated(page.path):
@@ -295,17 +310,36 @@ def rule_resolution(ship, docs, pages_):
     return findings
 
 
-def rule_docs_leak(ship, docs, pages_):
-    docs_only = docs - ship
+def rule_docs_leak(ship, docs, preview, pages_):
+    findings = []
+    for sheet, declared in ((DOCS, docs - ship), (PREVIEW, preview - ship - docs)):
+        for page in pages_:
+            if not gated(page.path) or sheet in page.stylesheets:
+                continue
+            for name in sorted(page.used & declared):
+                if name in page.local or exempt(page.rel, name):
+                    continue
+                findings.append(
+                    f"{page.rel}: uses .{name}, which only {sheet} declares, and does not link {sheet}"
+                )
+    return findings
+
+
+def rule_preview_copy(preview, pages_):
+    """Preview chrome is declared once. This is the rule the fold rests on:
+    .ds-back shipped in fourteen page-local copies, byte for byte, and the two
+    under prototypes/ had already forked to a hardcoded z-index and respelt
+    tokens by the time the census first counted them. The copies are folded
+    into preview.css now, and a page-local redeclaration is how they would
+    come back."""
     findings = []
     for page in pages_:
-        if not gated(page.path) or DOCS in page.stylesheets:
+        if not gated(page.path):
             continue
-        for name in sorted(page.used & docs_only):
-            if name in page.local or exempt(page.rel, name):
-                continue
+        for name in sorted(page.local & preview):
             findings.append(
-                f"{page.rel}: uses .{name}, which only docs.css declares, and does not link docs.css"
+                f"{page.rel}: declares .{name} in a page-local block; "
+                f"preview chrome is declared once, in {PREVIEW}"
             )
     return findings
 
@@ -358,12 +392,13 @@ def rule_inline(pages_):
 # --------------------------------------------------------------------------
 # The census
 # --------------------------------------------------------------------------
-def report(ship, docs, pages_):
-    declared = ship | docs
+def report(ship, docs, preview, pages_):
+    declared = ship | docs | preview
     print("CLASS PROVENANCE")
     print(f"  {len(list(pages_)):>4} html files under design-system/")
     print(f"  {len(ship):>4} classes declared by the three shipping stylesheets")
     print(f"  {len(docs):>4} declared by docs.css")
+    print(f"  {len(preview):>4} declared by preview.css")
 
     where = collections.Counter()
     unresolved = collections.defaultdict(list)
@@ -373,6 +408,8 @@ def report(ship, docs, pages_):
                 where["shipping stylesheet"] += 1
             elif name in docs:
                 where["docs.css"] += 1
+            elif name in preview:
+                where["preview.css"] += 1
             elif name in page.local:
                 where["the page's own <style>"] += 1
             elif namespace_root(name, declared):
@@ -455,14 +492,15 @@ def main():
     parser.add_argument("--report", action="store_true", help="print the census and exit 0")
     args = parser.parse_args()
 
-    ship, docs, pages_ = load()
+    ship, docs, preview, pages_ = load()
     if args.report:
-        report(ship, docs, pages_)
+        report(ship, docs, preview, pages_)
         return 0
 
     checks = (
-        ("class resolution", rule_resolution(ship, docs, pages_)),
-        ("docs chrome on a shipping page", rule_docs_leak(ship, docs, pages_)),
+        ("class resolution", rule_resolution(ship, docs, preview, pages_)),
+        ("docs chrome on a shipping page", rule_docs_leak(ship, docs, preview, pages_)),
+        ("a page-local copy of preview chrome", rule_preview_copy(preview, pages_)),
         ("literal in a page-local block", rule_literals(pages_)),
         ("inline layout under patterns/", rule_inline(pages_)),
     )

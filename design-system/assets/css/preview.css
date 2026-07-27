@@ -1,0 +1,27 @@
+/* ==========================================================================
+   Control-F — Pattern-preview chrome
+   One rule, for the one element every pattern page carries that the real
+   site never will: the fixed link in the bottom-left corner that leads back
+   out of the preview and into the documentation. None of this ships to
+   control-f.de — in production the .ds-back nav is removed, and the link tag
+   that loads this file goes with it.
+
+   It is a stylesheet rather than a per-page <style> block because it used to
+   be fourteen per-page blocks, byte for byte, and the census caught the
+   copies under prototypes/ already forked — a hardcoded z-index: 9999 where
+   this rule stays under --z-overlay, and token fallbacks spelling out the
+   values the tokens already own. A rule that must render identically on
+   every page it appears on cannot be maintained as seventeen private copies.
+   check-class-provenance.py holds the fold closed: preview chrome is
+   declared here and nowhere else on the gated surface.
+   ========================================================================== */
+
+.ds-back {
+  /* Under --z-overlay: preview chrome must never cover real UI, and the
+     consent banner sits in that layer along this edge. */
+  position: fixed; left: 0; bottom: 0; z-index: calc(var(--z-overlay) - 1);
+  padding: var(--space-2) var(--space-4);
+  background: var(--cf-schwarz); color: var(--grey-000);
+  font-family: var(--font-mono); font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label); text-transform: uppercase;
+}
