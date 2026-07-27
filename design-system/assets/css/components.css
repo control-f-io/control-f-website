@@ -1790,8 +1790,20 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 
 /* --------------------------------------------------------------------------
    STATEMENT
-   A single large claim beside an isometric object. Used for the
+   A single large claim standing in a field. Used for the
    "Tausende Sensoren erzeugen Daten" moment.
+
+   It used to be a claim BESIDE a square object, and the square was the
+   problem. At 1280 the figure cell measured 608 x 608 to carry five hairlines,
+   a 14 px dot and a small grey mark, while the claim it was there to support
+   filled 168 px of the 608 px row next to it. Seventy-two per cent of the
+   component was reserved for nothing, and the section stood 848 px tall on a
+   900 px viewport to say one sentence.
+
+   The figure is a band now, spanning the whole block, and the claim sits
+   inside it rather than next to it — over the part of the band the field has
+   already thinned out of. Same content, roughly half the height, and the two
+   halves of the composition finally touch.
    -------------------------------------------------------------------------- */
 .cf-statement {
   display: grid;
@@ -1799,6 +1811,28 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   align-items: center;
   gap: var(--space-8);
 }
+/* The band is 1200 x 420 and `slice`s from its left edge, so a narrow block
+   crops toward the void rather than shrinking the whole scene to a letterbox:
+   at 375 the figure is still 225 px tall and the absence still reads. */
+.cf-statement__figure { min-width: 0; }
+.cf-statement__figure .cf-iso {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 5 / 3;
+}
+/* This figure carries traces, so it owes a --trace-weight: viewBox width over the
+   width the frame actually renders at, which is what lands the signal on the same
+   1 CSS px as the contours beside it. `slice` makes that a HEIGHT question rather
+   than a width one — the stacked box is 5/3, so its scale is width/700, not
+   width/1200 — and the two cases are far enough apart to need separate values.
+
+   Stacked the block runs from about 335 px to 890 px, so the true value runs from
+   2.09 to 0.79 and one number cannot be right across it. 1.75 is tuned to the
+   narrow end, where a trace that thins out disappears against CF-Grau; at the wide
+   end of stacked it is heavy by roughly a fifth. That residual is stated rather
+   than hidden — same shape as .cf-process__figure, which needs two values for the
+   same reason. */
+.cf-statement__figure .cf-iso { --trace-weight: 1.75; }
 .cf-statement__title {
   font-size: var(--text-h2);
   font-weight: var(--weight-medium);
@@ -1813,8 +1847,8 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 }
 /* --iso-travel is a transform, so it is in viewBox units — which makes it a
    fact about the DRAWING's own coordinate window and not about the page the
-   drawing happens to be on. This figure is 480 units wide wherever it is used,
-   so it takes 480/40: the same 2.5 % of itself that the 640-unit process
+   drawing happens to be on. This figure is 1200 units wide wherever it is used,
+   so it takes 1200/40: the same 2.5 % of itself that the 640-unit process
    objects get from the token's default 16.
 
    The value lived in patterns/landing-page.html's own <style> block, keyed on
@@ -1824,15 +1858,27 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    ships, on the page whose whole job is to be the specimen. Keyed on the
    component, both are right and neither can be forgotten again.
    → foundations/motion.html#travel */
-.cf-statement .cf-iso { --iso-travel: 12; }
-/* Two columns once the component itself has room for them, not once the
-   viewport does. Stacked is the default, so a browser without container
-   query support gets the safe layout rather than a broken one. */
+.cf-statement .cf-iso { --iso-travel: 30; }
+/* Two layers in one row once the component itself has room for them, not once
+   the viewport does. Stacked is the default, so a browser without container
+   query support gets the safe layout rather than a broken one.
+
+   The figure spans BOTH columns and the claim sits over the second. That is
+   the composition, not a trick to save space: the field is masked to nothing
+   by 52 % of its own width, so the sentence occupies the frame exactly where
+   the data stopped arriving. Ending the figure at the column edge instead
+   would put a seam through the one idea the drawing has. */
 @container (min-width: 56rem) {
   .cf-statement {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: var(--space-16);
+    gap: 0;
   }
+  .cf-statement__figure { grid-area: 1 / 1 / 2 / 3; }
+  .cf-statement__text   { grid-area: 1 / 2 / 2 / 3; }
+  /* Side by side the band is the block's full width at the drawing's own ratio,
+     so the scale is width/1200 and the trace weight follows it: 1139 px of
+     container at a 1280 px viewport puts the signal on 0.99 CSS px. */
+  .cf-statement__figure .cf-iso { aspect-ratio: 1200 / 420; --trace-weight: 0.94; }
 }
 
 /* --------------------------------------------------------------------------
@@ -4873,6 +4919,11 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
                        cover calc(22% + var(--stage, 0) * 7%);
     }
 
+    /* The light is a part like any other while the object is being built, so
+       it takes a stage and travels with the section it belongs to — card 01's
+       lime plate IS the top of the inner shaft and cannot stay behind while
+       the shaft rises. Its fill still comes up last, on the range it always
+       had: two animations, one for the arrival and one for the light. */
     /* The light is a part like any other while the object is being built, so
        it takes a stage and travels with the section it belongs to — card 01's
        lime plate IS the top of the inner shaft and cannot stay behind while
