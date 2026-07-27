@@ -102,6 +102,65 @@
 &lt;/<span class="tag">section</span>&gt;</pre>
   </section>
 
+  <section class="docs-section" id="column-inset">
+    <h2>Landing a full-bleed element on the column</h2>
+    <p>
+      Most things sit inside a <code>.container</code> and inherit the column for free. A few
+      cannot: the hero's CTA and its pause switch, the counter and the progress bar of the
+      values section. Every one of them is drawn against a full-bleed box, so each has to name
+      its own inset — and the obvious name for it, <code>--gutter</code>, is the wrong one.
+    </p>
+    <p>
+      <code>--gutter</code> is the outer margin <em>while the container is still growing</em>.
+      Once the container hits <code>--container-max</code> it stops and centres, so the column
+      moves inward while the gutter stays where it was. Past that crossover the two are
+      different distances, and the gap between them opens without limit.
+    </p>
+    <table class="docs-table">
+      <thead>
+        <tr><th>Viewport</th><th>Column edge</th><th><code>--gutter</code></th><th>An element pinned to the gutter is off the column by</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1280</td><td>70.4</td><td>70.4</td><td>0 — they coincide</td></tr>
+        <tr><td>1440</td><td>80</td><td>79.2</td><td>0.8</td></tr>
+        <tr><td>1920</td><td>240</td><td>80</td><td><strong>160</strong></td></tr>
+        <tr><td>2560</td><td>560</td><td>80</td><td><strong>480</strong></td></tr>
+      </tbody>
+    </table>
+    <p>
+      <code>--column-inset</code> is that distance, and it is the token those elements take:
+    </p>
+    <pre class="docs-code"><span class="attr">--column-inset</span>: <span class="val">max(var(--gutter), (100% - var(--container-max)) / 2)</span>;</pre>
+    <p>
+      The crossover is exact rather than approximate, and for the same reason the note above
+      gives: <code>.container</code>'s <code>max-width</code> is
+      <code>calc(--container-max + 2 × gutter)</code>, so at the width where the cap starts
+      binding the centring margin is exactly one gutter and the two arms of the
+      <code>max()</code> meet. Below it the first arm wins and nothing moves; above it the
+      second does.
+    </p>
+    <div class="docs-note">
+      <strong>The percentage resolves against the user's containing block, not the viewport.</strong>
+      So this token only means what it says on an element whose containing block spans the page —
+      which is exactly the condition under which reaching for <code>--gutter</code> was ever
+      defensible. On anything already inside a <code>.container</code>, the column is the
+      containing block and no inset is needed at all.
+    </div>
+    <p>
+      The mockups draw all four on the column, and at the 1440 frame they were measured on,
+      the gutter and the column edge differ by 0.8 px — which is why the wrong token survived.
+      Nothing below 1440 renders differently for this change.
+    </p>
+    <p>
+      The Über uns header object had the same fault and is fixed a different way, because it
+      is the one case where the column edge is not the answer: it stops two columns short of
+      it, so it sits inside <code>.container</code> and measures from there. When an element
+      can be put in the container, that is always the better fix — the container is the column,
+      and a token that merely computes the same number is a second copy of the decision.
+      <code>--column-inset</code> is for the elements that genuinely cannot.
+    </p>
+  </section>
+
   <section class="docs-section" id="columns">
     <h2>12 columns</h2>
     <div class="docs-demo docs-demo--flat">

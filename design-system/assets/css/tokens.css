@@ -687,6 +687,29 @@
   --container-max: 80rem;   /* 1280 */
   --gutter:        clamp(1.25rem, 5.5vw, 5rem);  /* 20 → 80 */
 
+  /* THE DISTANCE FROM THE VIEWPORT EDGE TO THE CONTENT COLUMN'S EDGE.
+     --gutter is not that distance, and the difference is the whole point of
+     this token. While the container is still growing the two are equal; once
+     it has hit --container-max the container stops and centres, so the column
+     moves inward while --gutter stays put. Past that crossover an element
+     positioned at --gutter is no longer on the column — it is on the window,
+     and the gap between them opens without limit: 80 px at the 1440 frame,
+     240 at 1920, 560 at 2560.
+
+     Anything full-bleed that has to line up with the column takes this
+     instead: the hero's CTA and its pause switch, the Über uns header object,
+     the values section's counter and progress bar. All five were on --gutter
+     and all five are drawn on the column in the mockups.
+
+     The crossover is exact rather than approximate, because .container's own
+     max-width is calc(--container-max + 2 * --gutter): at that width the
+     centring margin is exactly --gutter and the two arms of the max() meet.
+
+     The percentage resolves against the USER's containing block, so this only
+     means what it says on an element whose containing block spans the page.
+     That is the same condition under which --gutter was ever correct here. */
+  --column-inset:  max(var(--gutter), (100% - var(--container-max)) / 2);
+
   /* The floating nav's own height: 2 × --space-5 plus the 44 px logo plate.
      The hero pulls itself up by exactly this so the bar overlays the artwork
      instead of sitting on a band above it. */
