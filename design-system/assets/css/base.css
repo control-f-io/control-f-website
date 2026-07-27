@@ -496,17 +496,31 @@ hr {
    reason written on .container: the same two-column split is comfortable in the
    1280 px content column and cramped in a 533 px documentation panel, and only
    the container can tell those apart. 56rem is the system's two-column
-   threshold — see the breakpoint register in tokens.css. */
+   threshold — see the breakpoint register in tokens.css.
+
+   STACKED MEANS ONE TRACK, NOT TWELVE FULL-SPAN ONES. The stacked state used
+   to keep the twelve tracks and stretch every .col-* across them, which reads
+   the same but is not: twelve tracks carry eleven --grid-gap gaps, and the gap
+   is a rem, so it grows with the reader's font size while the viewport does
+   not. At a 20 px browser default on a 320 px screen the eleven gaps alone are
+   330 px inside a 270 px container — the page scrolled sideways before any
+   content was placed, on all five pages built on this grid. Measured at 35 px
+   of document overflow on each; foundations/layout.html carries the record.
+   So the tracks are now what the state is: one track stacked, twelve only
+   inside the same queries that give the spans out. .col-* pins 1 / -1, which
+   is every explicit track whichever declaration is live — the two rules
+   cannot disagree about a width the way a span and a track count can. */
 .grid {
   display: grid;
-  grid-template-columns: var(--grid-tracks);
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--grid-gap);
 }
 .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-12 {
-  grid-column: span var(--grid-columns);
+  grid-column: 1 / -1;
 }
 
 @container layout (min-width: 56rem) {
+  .grid { grid-template-columns: var(--grid-tracks); }
   .col-2 { grid-column: span 2; }
   .col-3 { grid-column: span 3; }
   .col-4 { grid-column: span 4; }
@@ -545,8 +559,13 @@ hr {
    the 7 beside a 12 and breaks the row. Pairs have to switch together.
 
    Additive by construction. A .grid without the modifier is unchanged, and
-   the two rules never disagree — above 56rem both say the same span. */
+   the two rules never disagree — above 56rem both say the same span. The
+   track list comes with the spans here for the same reason it does at 56rem:
+   a span rule that fires while the stacked single track is still live would
+   manufacture eleven implicit tracks — and their gaps — to satisfy itself,
+   which is the overflow above by another road. */
 @container layout (min-width: 44rem) {
+  .grid--early { grid-template-columns: var(--grid-tracks); }
   .grid--early > .col-2 { grid-column: span 2; }
   .grid--early > .col-3 { grid-column: span 3; }
   .grid--early > .col-4 { grid-column: span 4; }
