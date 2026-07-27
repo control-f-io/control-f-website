@@ -20,8 +20,8 @@ Then open <http://localhost:8000/design-system/>. It also works by opening
 ```bash
 python3 scripts/check-spacing-scale.py         # from the repo root
 python3 scripts/check-spacing-scale.py --fix   # rewrite the table in foundations/layout.html
-python3 scripts/check-gradient-family.py       # the light family, in every shipped SVG
-python3 scripts/check-gradient-family.py -v    # list all 40 gradients, not only the failures
+python3 scripts/check-gradient-family.py       # the light family, in every shipped SVG and stylesheet
+python3 scripts/check-gradient-family.py -v    # list all 86 gradients, not only the failures
 python3 scripts/check-iso-motion.py            # the isometric assembly's invariants
 python3 scripts/check-glass-budget.py          # what backdrop-filter is allowed to cost
 python3 scripts/check-glass-budget.py --fix    # rewrite the census in foundations/materials.html
@@ -46,6 +46,28 @@ against a list, and it also catches a stop that is *almost* a chromatic brand co
 is how `#E0FF02` gets in. `assets/source/` and `prototypes/` are out of scope: the first is
 the designer's own material and the second is unshipped, and both carry raw Figma exports
 on purpose.
+
+**The other half of the family is in CSS,** and it went unchecked for as long as the script
+existed. Two more conventions live in `tokens.css` as prose over literals nobody can
+recompute by eye, and both are checked now, in the three shipping stylesheets:
+
+| | |
+|---|---|
+| **the arc** | Every opaque leg that *turns* carries one waypoint at its own OKLCh midpoint. A waypoint is recognised by **being** that midpoint rather than by appearing on a list, so `#B9E3EB`, `#B8CCF3`, `#33494E` and `#273650` are re-derived on every run — the same standing `#DBFC60` has. A leg that turns and carries nothing is a chord and fails. |
+| **the path** | A ramp carrying a **lime** leg exists somewhere with `in oklab`. lime → Glas is ΔEok 0.0443 between the two paths where every other leg in the family is under 0.0015, which is why `--glass-edge` and `--sheen-panel` are left in sRGB by name and the lime legs are not. |
+
+What the arc does *not* govern is where the second rule gets its scope. A leg touching lime,
+CF-Grau or Weiss is a **falloff** — light's source and what it falls away to — and oklab's
+straight line is already its correct path. Only what happens in the band between them turns.
+The premise is not just "chromatic at both ends": lime at C 0.2201 against Glas at C 0.0414 is
+a radial move, and the polar path through it bows out to `#A8FFB6`, a green in no palette at
+three times the chroma of the stop it is travelling to.
+
+The second rule had already been broken. `.cf-btn--glass` drew Glas into lime on the sRGB path
+with no `@supports` branch — the only lime ramp in the system's CSS never put on the family's
+path, at ΔEok 0.03866 composited over CF-Grau, seventy-nine times the divergence of the
+`--glass-edge` layer directly above it that the family deliberately declines to correct. Its
+stops are a custom property now and only the path changes.
 
 **The isometric assembly** holds to six rules, all of which were already written down in
 prose and none of which anything ran:

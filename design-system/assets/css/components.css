@@ -293,16 +293,41 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      rather than assumed it — forced to `none`, the layer empties, the other
      two hold their positions in the three-item size list, and the label row
      renders byte-identical to the plate before this rim existed. */
+  /* THE FACE IS A RAMP AND AN ANGLE, DECLARED APART, for the reason
+     --foil-stops and --foil-rake are: written together, the material has to
+     be restated in full every time the path changes, and the path does change
+     one rule below.
+
+     It had to. This is the only lime leg in the system's CSS that was never
+     put on the oklab path — every other one is (--gradient-light,
+     --gradient-light-90, --gradient-spectrum, .material-rake, .material-bloom)
+     and lime -> Glas is precisely the leg where the two paths part: dEok
+     0.04430 declared, 0.03866 composited over CF-Grau at these stops' own
+     alphas. --glass-edge, one layer up, is left in sRGB deliberately at
+     0.00049 composited, and the table at that token says why. This was
+     seventy-nine times that, in the same declaration, by omission.
+
+     THE STOPS DO NOT MOVE. Only the path between them, which is the whole
+     claim of the INTERPOLATION block in tokens.css and the reason the rim's
+     62 % window — measured off where this face's lime becomes visible, about
+     63 % across — is unaffected. A ramp and its oklab twin sharing one stop
+     list is also what makes the pair legible to the family check.
+
+     --cf-face is an unconditional declaration on this rule with no @property
+     behind it, so it always resolves. That is the same safety --glass-edge
+     has and NOT the safety --cf-specular needs; should it ever move behind a
+     feature query, it needs a fallback or the whole plate goes with it. */
+  --cf-face-ramp: rgba(197, 235, 226, 0)    30%,
+                  rgba(197, 235, 226, 0.55) 62%,
+                  rgba(225, 255, 0, 0.88)   87%,
+                  var(--cf-lime)           100%;
+  --cf-face: linear-gradient(var(--angle-square), var(--cf-face-ramp));
   background-image:
     radial-gradient(55% 300% at var(--cf-specular) 50%,
                     rgba(255, 255, 255, 0.42) 0%,
                     rgba(255, 255, 255, 0) 60%),
     var(--glass-edge),
-    linear-gradient(var(--angle-square),
-                    rgba(197, 235, 226, 0)    30%,
-                    rgba(197, 235, 226, 0.55) 62%,
-                    rgba(225, 255, 0, 0.88)   87%,
-                    var(--cf-lime)           100%);
+    var(--cf-face);
   background-repeat: no-repeat;
   background-size: auto, 62% var(--stroke-1), auto;
   background-position: 0 0;
@@ -388,6 +413,20 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   transition: color var(--duration-base) var(--ease-standard),
               border-color var(--duration-base) var(--ease-standard),
               --cf-specular var(--duration-slow) var(--ease-standard);
+}
+/* The face on the oklab path, the same way every other lime leg in the system
+   takes it; browsers without it keep the sRGB ramp above. One line, because
+   the stops are a custom property and only the path changes here — the same
+   shape as the two foils in tokens.css and .cf-arrive__ghost below.
+
+   NOT --glass-edge, and that is the point of leaving it out. The layer above
+   this one runs Weiss -> Glas -> Sky and diverges by 0.00148, which the table
+   at that token measures and deliberately declines to correct. This leg
+   carries lime and diverges by thirty times as much. */
+@supports (background: linear-gradient(in oklab, red, blue)) {
+  .cf-btn--glass {
+    --cf-face: linear-gradient(var(--angle-square) in oklab, var(--cf-face-ramp));
+  }
 }
 /* The highlight travels in from off the right edge rather than sweeping
    across. Refraction hinted at, not simulated.
