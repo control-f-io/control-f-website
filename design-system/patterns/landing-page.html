@@ -443,7 +443,6 @@
         width: 100%;
         aspect-ratio: 1200 / 620;
         pointer-events: none;
-        opacity: .62;
         view-timeline-name: --lp-flow;
         view-timeline-axis: block;
         /* the drops end on the frame's rail, so the last unit of each is a
@@ -452,8 +451,62 @@
         overflow: visible;
       }
       .lp-flow :is(path, circle) { vector-effect: non-scaling-stroke; }
+      /* THE COLOUR GOES FIRST AND THE BLACK FOLLOWS. Two strokes per route:
+         the light at 2 px carrying the family's ramp, the contour at 1 px in
+         --border-strong six points of `cover` behind it. The lead is what
+         makes it a head rather than a tint — see the markup note for how the
+         scale-draw puts the ramp's lime end on the growing tip.
+
+         The light's window is 16 points against the contour's 18, so it does
+         not merely start earlier, it outruns: colour lands on the frame's rail
+         at 34 + 8l and the black closes eight points later at 42 + 8l. Then it
+         goes. The fade runs 36 + 8l -> 44 + 8l, which begins two points after
+         the light has finished drawing — one beat of the route fully lit — and
+         ends two points after the contour has landed, so the colour dissolves
+         off a line that is already whole rather than off a gap.
+
+         THE LIGHT IS GONE BEFORE ANY OTHER LIME IS LIT. The last stroke's fade
+         ends at cover 68 %. Swept at 10 px: the last lit flow stroke is at
+         scroll 1339 and card 01's fill-opacity first leaves 0 at 2339, which is
+         contain 11.5 % of the pinned track — 1000 px of scroll between them at
+         1440x900 and 900 at 1280x800, with nothing lime in between, because the
+         frame is monochrome by decision. → foundations/colors.html#one-per-screen,
+         whose measured practice is one light per OBJECT; the flow is one
+         drawing and this is its one light pass, on the way through.
+
+         `forwards` on the fade, not `both`: under `both` the backwards fill
+         would hold the fade's from-state over the draw's whole window on a
+         timeline this animation has not entered yet, which is the collision
+         the statement's own scatter records paying for.
+
+         linear on both, because scroll position IS the draw — the grammar's
+         own division, and the same one .lp-flow__seg is written on. */
+      .lp-flow__light {
+        stroke-width: 2;
+        transform-box: fill-box;
+        transform-origin: var(--o, 0 0);
+        animation: lp-frame-draw linear, lp-flow-out linear;
+        animation-timeline: --lp-flow, --lp-flow;
+        animation-range: cover calc((18 + var(--l) * 8) * 1%)
+                         cover calc((34 + var(--l) * 8) * 1%),
+                         cover calc((36 + var(--l) * 8) * 1%)
+                         cover calc((44 + var(--l) * 8) * 1%);
+        animation-fill-mode: both, forwards;
+      }
+      /* THE .62 MOVED OFF THE SVG AND ONTO THE THINGS IT WAS ALWAYS FOR. It
+         was group opacity on .lp-flow, which held the whole drawing back so the
+         flow stays subordinate to the statement above it — right for the
+         contour and the nodes, and fatal for a light: a child cannot be more
+         opaque than its group, so lime would have shipped at .62 over the wash,
+         about #EBFF6A, which is a pastel and not a signal. Declared per part,
+         the contour and the nodes render exactly as before — the flow's strokes
+         meet end to end and share only single points, so group opacity and
+         per-element opacity are the same picture — and the light is free to be
+         lit. The signal is the bright thing and the record behind it is quiet,
+         which is the reading the two weights were already asking for. */
       .lp-flow__seg {
         stroke: var(--border-strong);
+        opacity: .62;
         transform-box: fill-box;
         transform-origin: var(--o, 0 0);
         animation: lp-frame-draw linear both;
@@ -468,6 +521,7 @@
          leaves it. */
       .lp-flow__node {
         fill: var(--border-strong);
+        opacity: .62;
         animation: lp-frame-in linear both;
         animation-timeline: --lp-flow;
         animation-range: cover calc((30 + var(--l) * 8) * 1%)
@@ -491,6 +545,10 @@
      from. → the .lp-frame path note above for why this is a scale at all. */
   @keyframes lp-frame-draw { from { scale: 0; } to { scale: 1; } }
   @keyframes lp-frame-in { from { opacity: 0; } }
+  /* One-sided on purpose, and the opposite side from lp-frame-in: the light is
+     opaque until its window opens, so the from-state is the base style and
+     writing it out would be the thing that pins it. */
+  @keyframes lp-flow-out { to { opacity: 0; } }
 
   /* Over .cf-pin's chrome: this stage spaces its index and bar a rung further
      from the card than the Expertise page does — and that rung is now the
@@ -849,8 +907,79 @@
                It grows by SCALE, not by dash — see the .lp-frame path note: a dashed
                draw under non-scaling-stroke stops at the render scale and stays
                there. transform-origin per segment is the end it grows FROM, which
-               for a 2:1 run down-left is its box's top right. -->
+               for a 2:1 run down-left is its box's top right.
+
+               EVERY ROUTE IS DRAWN TWICE, colour first and black behind it. The
+               light is 2 px carrying the ramp and runs six points of `cover`
+               ahead of the 1 px contour, so what the reader meets is a coloured
+               head travelling down the route and a black line closing in on it
+               from behind — not a tint laid over a finished drawing. The light
+               is the signal; the contour is what remains, which is why the light
+               dissolves two points after its own contour lands and the drawing
+               settles monochrome.
+
+               THE RAMP RIDES THE TIP, and the mechanism is the scale-draw
+               itself. A userSpaceOnUse gradient is resolved in the element's own
+               user space, so the `scale: 0 -> 1` that grows the stroke carries
+               the gradient with it: at scale s the stroke occupies the first s
+               of its length and the WHOLE ramp is compressed into it. Whatever
+               colour sits at the path's far end therefore sits at the growing
+               tip at every value of s. So each axis below is written from the
+               far end BACK to the origin — lime at the tip, CF-Grau trailing
+               into the junction the stroke left — and the ramp's stop list is
+               the family's, unreversed. Verified at scale 0.5: half the stroke
+               drawn, lime at the halfway point, grey at the origin.
+
+               ONE RAMP, TEN AXES. The stops are declared once, on
+               #lp-flow-ramp, and every axis def inherits them with href — so
+               check-gradient-family.py has exactly one stop list to recompute
+               and there is no second place for the near rake's waypoint to
+               drift. The axes cannot be shared the way the frame's two were:
+               the frame's five strokes all began at a coordinate origin, and
+               these ten begin at eight different junctions. Each axis is its
+               own stroke's line, which is how the gradient's angle is a brand
+               angle without anything here typing one — 90 for the trunk and the
+               seven drops, 26.57 for the two 2:1 runs.
+
+               The ramp is the NEAR rake, Glas at 0.32, stop for stop off
+               cf-01-light: a short bright falloff is what makes a head read as
+               a head. The waypoint at 0.061 is 19 % of the lime leg, the oklab
+               path's own value there — see foundations/colors.html, "One ramp,
+               two colour spaces"; check-gradient-family.py recomputes both the
+               position and the colour, so neither is a number to be trusted
+               here.
+
+               The lights are drawn BEFORE the contours so the black paints over
+               the colour. It cannot cover it: 2 px under 1 px leaves half a
+               pixel of ramp on each side, which is the whole point of the two
+               weights — the colour survives at the edges until it fades. -->
           <svg class="lp-flow" viewBox="0 0 1200 620" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="lp-flow-ramp">
+                <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+              </linearGradient>
+              <!-- far end -> origin, one per stroke, in the drawing's own units -->
+              <linearGradient id="lp-flow-ax-trunk"  href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="330"  y1="150" x2="330"  y2="84"/>
+              <linearGradient id="lp-flow-ax-run-l"  href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="0"    y1="315" x2="330"  y2="150"/>
+              <linearGradient id="lp-flow-ax-run-r"  href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1200" y1="585" x2="330"  y2="150"/>
+              <linearGradient id="lp-flow-ax-d0"     href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="0"    y1="620" x2="0"    y2="315"/>
+              <linearGradient id="lp-flow-ax-d165"   href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="165"  y1="620" x2="165"  y2="232.5"/>
+              <linearGradient id="lp-flow-ax-d330"   href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="330"  y1="620" x2="330"  y2="150"/>
+              <linearGradient id="lp-flow-ax-d600"   href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="600"  y1="620" x2="600"  y2="285"/>
+              <linearGradient id="lp-flow-ax-d840"   href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="840"  y1="620" x2="840"  y2="405"/>
+              <linearGradient id="lp-flow-ax-d1020"  href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1020" y1="620" x2="1020" y2="495"/>
+              <linearGradient id="lp-flow-ax-d1200"  href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1200" y1="620" x2="1200" y2="585"/>
+            </defs>
+            <path class="lp-flow__light" style="--o:0 0;--l:0"     stroke="url(#lp-flow-ax-trunk)" d="M330 84V150"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:1"  stroke="url(#lp-flow-ax-run-l)" d="M330 150L0 315"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1"     stroke="url(#lp-flow-ax-run-r)" d="M330 150L1200 585"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.4"   stroke="url(#lp-flow-ax-d0)"    d="M0 315V620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.2"   stroke="url(#lp-flow-ax-d165)"  d="M165 232.5V620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2"     stroke="url(#lp-flow-ax-d330)"  d="M330 150V620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.3"   stroke="url(#lp-flow-ax-d600)"  d="M600 285V620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.6"   stroke="url(#lp-flow-ax-d840)"  d="M840 405V620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.8"   stroke="url(#lp-flow-ax-d1020)" d="M1020 495V620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:3"     stroke="url(#lp-flow-ax-d1200)" d="M1200 585V620"/>
             <path class="lp-flow__seg" style="--o:0 0;--l:0" d="M330 84V150"/>
             <path class="lp-flow__seg" style="--o:100% 0;--l:1" d="M330 150L0 315"/>
             <path class="lp-flow__seg" style="--o:0 0;--l:1" d="M330 150L1200 585"/>

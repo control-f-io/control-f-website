@@ -208,7 +208,7 @@ def waypoint_colour(start, end, t=WAYPOINT_T):
 
 # --- parsing ----------------------------------------------------------------
 
-GRADIENT = re.compile(r"<(linear|radial)Gradient\s[^>]*?id=\"([^\"]+)\"(.*?)</\1Gradient>", re.S)
+GRADIENT_OPEN = re.compile(r"<(linear|radial)Gradient\b([^>]*?)(/?)>", re.S)
 STOP = re.compile(r"<stop\b([^>]*?)/?>")
 ATTR = re.compile(r"(\S+)=\"([^\"]*)\"")
 
@@ -219,15 +219,76 @@ def parse_offset(raw):
 
 
 def gradients(text):
-    for m in GRADIENT.finditer(text):
+    """(id, kind, stops) for every gradient in one file, href resolved.
+
+    A SELF-CLOSING GRADIENT USED TO BLIND THIS SCRIPT TO EVERY GRADIENT AFTER
+    IT, and the blinding was silent. The pattern this replaces asked for
+    `id="..."` and then `.*?</linearGradient>`; against `<linearGradient ... />`
+    there is no closing tag of its own, so the match ran on to the next one it
+    could find and swallowed whole gradients on the way. Measured on
+    patterns/landing-page.html the first time a stop-less gradient shipped
+    there: one match consumed ten axis definitions AND cf-01-light, reported
+    cf-01-light's stops under the first axis def's id, and dropped cf-01-light
+    from the checked set — a gradient this script had covered since it was
+    written, quietly no longer covered, with the summary line still saying ok.
+
+    So the start tag is found first and the body is taken from what the tag
+    itself says: nothing at all if it closes itself, otherwise the text up to
+    its own closing tag. Gradients do not nest, so the first close is the
+    right one.
+
+    href IS FOLLOWED, which is what makes a stop-less gradient a legitimate
+    thing to write rather than a hole. `<linearGradient id="x" href="#ramp"
+    x1=... />` is how a drawing carries one ramp along several axes without
+    restating the stop list once per axis — the stops are declared once, in one
+    place, and every axis inherits them. Resolved here, each of those axes is
+    CHECKED against the family rather than skipped, and a href pointing at
+    nothing is an error instead of an invisible pass.
+    """
+    raw, order = {}, []
+    for m in GRADIENT_OPEN.finditer(text):
+        kind, attrs, selfclose = m.group(1), m.group(2), m.group(3)
+        a = dict(ATTR.findall(attrs))
+        if "id" not in a:
+            continue
+        if selfclose:
+            body = ""
+        else:
+            close = text.find("</%sGradient>" % kind, m.end())
+            body = text[m.end():close] if close != -1 else text[m.end():]
         stops = []
-        for sm in STOP.finditer(m.group(3)):
-            a = dict(ATTR.findall(sm.group(1)))
-            if "stop-color" not in a:
+        for sm in STOP.finditer(body):
+            sa = dict(ATTR.findall(sm.group(1)))
+            if "stop-color" not in sa:
                 continue
-            stops.append((parse_offset(a.get("offset", "0")), a["stop-color"].strip().upper()))
+            stops.append((parse_offset(sa.get("offset", "0")), sa["stop-color"].strip().upper()))
+        href = a.get("href") or a.get("xlink:href") or ""
+        raw[a["id"]] = (kind, stops, href.lstrip("#"))
+        order.append(a["id"])
+
+    def resolve(gid, seen):
+        kind, stops, href = raw[gid]
+        if stops or not href:
+            return kind, stops
+        if href in seen or href not in raw:
+            return kind, []
+        return kind, resolve(href, seen | {gid})[1]
+
+    for gid in order:
+        kind, stops = resolve(gid, set())
         if stops:
-            yield m.group(2), m.group(1), stops
+            yield gid, kind, stops
+
+
+def dangling_hrefs(text):
+    """Gradient ids whose href names something this file does not define."""
+    out = []
+    for m in GRADIENT_OPEN.finditer(text):
+        a = dict(ATTR.findall(m.group(2)))
+        href = (a.get("href") or a.get("xlink:href") or "").lstrip("#")
+        if "id" in a and href and not re.search(r"<(?:linear|radial)Gradient\b[^>]*?id=\"%s\"" % re.escape(href), text):
+            out.append((a["id"], href))
+    return out
 
 
 def sources():
@@ -634,6 +695,13 @@ def main():
                     " ".join("%g:%s" % s for s in stops)))
             for p in problems:
                 failures.append("%s  %s: %s" % (rel, gid, p))
+        # A gradient that inherits its stops is checked through the one it
+        # inherits from; one that inherits from nothing is painted with no
+        # stops at all, which SVG renders as `none` — an invisible stroke, and
+        # the kind of failure a screenshot shows and a stop list cannot.
+        for gid, href in dangling_hrefs(text):
+            failures.append("%s  %s: href=\"#%s\" names no gradient in this file, so it "
+                            "inherits no stops and paints nothing" % (rel, gid, href))
 
     # --- the CSS half. One props map across all three files, because the
     #     ramps are declared in tokens.css and consumed in the other two.
