@@ -1377,6 +1377,10 @@ Two rules make it a system rather than four animations:
 Parts move with the `translate` property rather than `transform`, because half of them carry
 a `transform` attribute that *is* their shape. Full account in `foundations/motion.html#build`.
 
+On a wide screen the landing page pins the whole section and scrubs the same build off the
+track's timeline — the third pinned track, and the one to copy when the copy is prose rather
+than typed. See `foundations/motion.html#pinned`.
+
 ## Redrawing an illustration: five things that vanish quietly
 
 All five bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
