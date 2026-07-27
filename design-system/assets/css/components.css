@@ -1346,6 +1346,21 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   margin-bottom: 0;
   border-bottom: 0;
 }
+/* THE LABEL IS THE ANCHOR, so it carries the clearance. components/article
+   .html states the rule in as many words — "Headings carry scroll-margin-top
+   for the sticky navigation. Without it an anchor lands underneath the bar" —
+   and .cf-prose :is(h2, h3, h4) is where it was kept. It is a rule about
+   heading elements that own an id, and this is the other class in the system
+   that does: the section header's label is the <h2> of every section on every
+   designed page, and it is what a fragment in the URL resolves to. Thirty-three
+   headings across thirteen pattern pages carry it.
+   Without it the bar wins outright rather than nearly. The nav is 84 px and
+   the label's own box is 16, so the heading does not land low — it lands
+   entirely inside the band and is not on screen at all. Measured on the
+   landing page, loading the address with the fragment already in it:
+   #prozess, #partner, #faq and #blog each put 16 px of 16 behind the nav, and
+   #team escaped only because the document had run out of scroll. The value is
+   .cf-prose's, unchanged: the clearance is the same bar. */
 .cf-section-header__label {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -1353,6 +1368,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--text-primary);
+  scroll-margin-top: calc(var(--nav-height) + var(--space-6));
 }
 /* The other half of the same hairline row, so it is set the same way: mono,
    11 px, +0.01em, uppercase. Only the colour differs, which is what makes the
@@ -2271,12 +2287,19 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    wash. Measured on the shipping plate at the thin tint, muted lands at
    2.32:1 and secondary at 6.73:1. */
 .cf-info-card__count { color: var(--text-secondary); }
+/* An id on a heading in the flow is an address, whatever else it is for. These
+   four ids name their cards to aria-labelledby and are linked from nowhere —
+   and expertise.html#feld-02 is still a URL anyone can be sent, so it still has
+   to arrive somewhere the reader can see. Same clearance as .cf-prose and the
+   section header; scroll-margin-top does nothing until something scrolls to
+   this element, so the pinned stage these cards sit on is unaffected. */
 .cf-info-card__title {
   margin-top: var(--space-2);
   font-family: var(--font-display);
   font-size: var(--text-h1);
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-display);
+  scroll-margin-top: calc(var(--nav-height) + var(--space-6));
 }
 .cf-info-card__sub { margin-top: var(--space-2); color: var(--text-secondary); }
 .cf-info-card__body { margin-top: var(--space-5); max-width: 52ch; color: var(--text-secondary); }
@@ -2924,6 +2947,8 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
   font-variant-numeric: tabular-nums;
 }
 
+/* The last id-bearing heading in the tree that sits in the flow, and the same
+   clearance for the same reason — see .cf-info-card__title. */
 .cf-error__title {
   margin: 0;
   max-width: var(--measure-tight);
@@ -2932,6 +2957,7 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
   font-weight: var(--weight-bold);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-display);
+  scroll-margin-top: calc(var(--nav-height) + var(--space-6));
 }
 
 .cf-error__body {
