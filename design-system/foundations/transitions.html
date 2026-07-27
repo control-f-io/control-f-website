@@ -218,9 +218,21 @@
       <thead><tr><th>Selector</th><th>Name</th><th>Behaviour</th><th>Declared in</th></tr></thead>
       <tbody>
         <tr>
-          <td><code>body &gt; .cf-nav</code></td>
-          <td><code>cf-nav</code></td>
+          <td><code>body &gt; .cf-nav .cf-logo</code></td>
+          <td><code>cf-nav-logo</code></td>
           <td>Identical on every page, so it holds still.</td>
+          <td><code>base.css</code> — ships</td>
+        </tr>
+        <tr>
+          <td><code>body &gt; .cf-nav .cf-nav__list</code></td>
+          <td><code>cf-nav-links</code></td>
+          <td>Same. Only the current-page plate differs, which the default cross-fade handles.</td>
+          <td><code>base.css</code> — ships</td>
+        </tr>
+        <tr>
+          <td><code>body &gt; .cf-nav .cf-nav__toggle</code></td>
+          <td><code>cf-nav-toggle</code></td>
+          <td>The chrome that survives on the phone layout. Not rendered above 780 px, so not captured there.</td>
           <td><code>base.css</code> — ships</td>
         </tr>
         <tr>
@@ -277,8 +289,11 @@
   <span class="tag">@view-transition</span> { <span class="attr">navigation</span>: <span class="val">auto</span>; }
 }
 
-<span class="com">/* Furniture. Named = lifted out of the page snapshot = holds still. */</span>
-body &gt; .cf-nav    { <span class="attr">view-transition-name</span>: <span class="val">cf-nav</span>; }
+<span class="com">/* Furniture. Named = lifted out of the page snapshot = holds still.
+   The bar's two plates, not the bar — see "The bar cannot carry the name". */</span>
+body &gt; .cf-nav .cf-logo        { <span class="attr">view-transition-name</span>: <span class="val">cf-nav-logo</span>; }
+body &gt; .cf-nav .cf-nav__list   { <span class="attr">view-transition-name</span>: <span class="val">cf-nav-links</span>; }
+body &gt; .cf-nav .cf-nav__toggle { <span class="attr">view-transition-name</span>: <span class="val">cf-nav-toggle</span>; }
 body &gt; .cf-footer { <span class="attr">view-transition-name</span>: <span class="val">cf-footer</span>; }
 
 <span class="tag">@media</span> (prefers-reduced-motion: no-preference) {
@@ -352,6 +367,28 @@ body &gt; .cf-footer { <span class="attr">view-transition-name</span>: <span cla
         </tr>
       </tbody>
     </table>
+    <div class="docs-note docs-note--warn">
+      <strong>The bar cannot carry the name, and it cost a working material to learn.</strong>
+      <p>
+        A <code>view-transition-name</code> makes its element a <strong>backdrop root</strong>,
+        and <code>backdrop-filter</code> only samples what is painted below it inside its own
+        backdrop root. Naming <code>.cf-nav</code> therefore left <code>.cf-nav::before</code>
+        — the navigation's frosted sheet — with an empty backdrop, and the glass stopped
+        blurring anything, on every page, at all times. It was not a subtle loss: measured on
+        the landing page with a 6 px stripe pattern behind the bar, the mean gradient inside
+        the bar was <strong>15.99</strong> against <strong>16.07</strong> on the bare artwork
+        beside it. No blur whatsoever. With the name removed, <strong>4.83</strong>.
+      </p>
+      <p>
+        The two plates carry it instead. They are what the eye actually tracks while the bar
+        holds still — black rectangles with hard edges — and neither contains a frosted
+        surface, so naming them costs nothing. The sheet stays in the root snapshot, where its
+        backdrop is the page and its blur is live. A transient benefit paid for with a
+        permanent one is the wrong trade, and this is the general shape of it: name the
+        opaque things, never the material.
+        → <a href="materials.html#glass">Materials</a>
+      </p>
+    </div>
     <div class="docs-note docs-note--warn">
       <strong>The one thing that can break it is a duplicate name.</strong> Not a partial
       failure — the browser abandons the whole transition and reports it. If a page ever
