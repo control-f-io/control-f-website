@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The status code belongs in the title as well as in the response: it is
+     what makes a 404 separable from every other page in an analytics report.
+     No description meta — a page that must not be indexed has nothing to
+     describe. -->
+<title>Seite nicht gefunden (404) — Control-F</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<style>
+  /* Preview only: link back to the documentation. Remove in production. */
+  .ds-back {
+    /* Under --z-overlay: preview chrome must never cover real UI, and the
+       consent banner sits in that layer along this edge. */
+    position: fixed; left: 0; bottom: 0; z-index: calc(var(--z-overlay) - 1);
+    padding: var(--space-2) var(--space-4);
+    background: var(--cf-schwarz); color: var(--grey-000);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label); text-transform: uppercase;
+  }
+</style>
+</head>
+<body class="page-wash">
+<a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+
+<!-- Consent — first thing after the skip link, so it is first in reading and
+     tab order. `hidden` until cf-consent.js decides; with JS off it never
+     appears and no non-essential script is ever activated.
+
+     It belongs on the error page as much as on any other: a reader whose very
+     first request 404s is still a reader arriving on the site, and the
+     decision has to be asked before anything non-essential runs. -->
+<section class="cf-consent" data-cf-consent-banner hidden
+         role="dialog" aria-labelledby="cf-consent-title">
+  <div class="container cf-consent__inner">
+    <div>
+      <h2 class="cf-consent__title" id="cf-consent-title" tabindex="-1" data-cf-consent-title>Datenschutz-Einstellungen</h2>
+      <p class="cf-consent__body">
+        Notwendige Cookies brauchen wir, damit die Seite funktioniert. Statistik und Marketing
+        nur, wenn Sie zustimmen — Sie können das jederzeit im Footer ändern.
+        <a href="/datenschutz">Datenschutzerklärung</a> · <a href="/impressum">Impressum</a>
+      </p>
+    </div>
+    <div class="cf-consent__actions">
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="reject">Nur notwendige</button>
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="accept">Alle akzeptieren</button>
+      <button type="button" class="cf-btn cf-btn--ghost" data-cf-consent-action="open">Einstellungen</button>
+    </div>
+  </div>
+</section>
+
+<dialog class="cf-consent__dialog" data-cf-consent-dialog aria-labelledby="cf-consent-settings-title">
+  <div class="cf-consent__dialog-inner">
+    <h2 class="cf-consent__dialog-title" id="cf-consent-settings-title">Ihre Einstellungen</h2>
+    <p class="cf-consent__body">
+      Sie entscheiden pro Kategorie. Notwendige Cookies lassen sich nicht abwählen, weil ohne
+      sie nichts funktioniert.
+    </p>
+
+    <div class="cf-consent__group">
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" checked disabled>
+          <span class="cf-check__label"><strong>Notwendig</strong>Sitzung, Sprachwahl und die Speicherung dieser Entscheidung.</span>
+        </label>
+        <p class="cf-consent__meta">Immer aktiv · 1 Eintrag · 12 Monate</p>
+      </div>
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" data-cf-consent-category="statistik">
+          <span class="cf-check__label"><strong>Statistik</strong>Anonyme Reichweitenmessung, damit wir sehen, welche Inhalte gelesen werden.</span>
+        </label>
+        <p class="cf-consent__meta">Optional · 2 Einträge · 14 Monate</p>
+      </div>
+      <div class="cf-consent__row">
+        <label class="cf-check">
+          <input class="cf-check__box" type="checkbox" data-cf-consent-category="marketing">
+          <span class="cf-check__label"><strong>Marketing</strong>Messung von Kampagnen und Einbindung externer Medien.</span>
+        </label>
+        <p class="cf-consent__meta">Optional · 3 Einträge · 12 Monate</p>
+      </div>
+    </div>
+
+    <div class="cf-consent__actions">
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="reject">Nur notwendige</button>
+      <button type="button" class="cf-btn cf-btn--outline" data-cf-consent-action="accept">Alle akzeptieren</button>
+      <button type="button" class="cf-btn cf-btn--ghost" data-cf-consent-action="save">Auswahl speichern</button>
+    </div>
+  </div>
+</dialog>
+
+<svg aria-hidden="true" style="display:none">
+  <symbol id="cf-arrow" viewBox="0 0 600 480"><g transform="translate(600,0) scale(-1,1)">
+    <path d="M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 327.317C183.155 328.422 183.155 331.578 185.367 332.683L476.422 478.211C478.675 479.337 481.325 479.337 483.578 478.211L594.633 422.683C596.845 421.578 596.845 418.422 594.633 417.317L425.367 332.683Z"/>
+    <path d="M116.422 298.211C118.675 299.337 121.325 299.337 123.578 298.211L594.633 62.6833C596.845 61.5777 596.845 58.4223 594.633 57.3167L483.578 1.78885C481.325 0.662745 478.675 0.662745 476.422 1.78885L5.36656 237.317C3.15542 238.422 3.15542 241.578 5.36656 242.683L116.422 298.211Z"/>
+  </g></symbol>
+</svg>
+
+<!-- Die vollständige Hauptnavigation, unverändert. Eine Fehlerseite, die
+     anders aussieht als der Rest der Seite, ist die zweite Sackgasse nach
+     der ersten. Kein aria-current: diese Seite steht in keinem Menüpunkt. -->
+<nav class="cf-nav" aria-label="Hauptnavigation">
+  <a class="cf-logo" href="/"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
+  <button class="cf-nav__toggle" aria-controls="hauptnav" aria-expanded="false">Menü</button>
+  <ul class="cf-nav__list" id="hauptnav" role="list">
+    <li><a class="cf-nav__link" href="/">Home</a></li>
+    <li><a class="cf-nav__link" href="/ueber-uns">Über uns</a></li>
+    <li><a class="cf-nav__link" href="/news">News</a></li>
+    <li><a class="cf-nav__link" href="/karriere">Karriere</a></li>
+    <li><a class="cf-nav__link" href="/kontakt">Kontakt</a></li>
+  </ul>
+</nav>
+
+<main id="inhalt">
+
+  <!-- 01 · Der Fehler selbst. Kein .cf-page-header: der Fehler IST der Titel,
+       und es gibt keine lange Überschrift, hinter der ein Objekt sitzen
+       könnte. Also steht das Objekt neben dem Text statt dahinter. -->
+  <section class="section section--tight" aria-labelledby="fehler-titel">
+    <div class="container">
+      <div class="cf-error cf-error--page">
+
+        <div class="cf-error__lead">
+          <p class="cf-error__code">Fehler 404</p>
+          <h1 class="cf-error__title" id="fehler-titel">Diese Seite gibt es nicht.</h1>
+          <p class="cf-error__body">
+            Entweder hat sich in der Adresse ein Zeichen verschoben, oder die Seite ist
+            umgezogen. Der Rest der Website steht — unten stehen die Bereiche, in denen
+            das Gesuchte am ehesten liegt. Wenn Sie einem Link von uns gefolgt sind,
+            sagen Sie uns bitte kurz Bescheid; dann reparieren wir ihn.
+          </p>
+          <div class="cf-error__actions">
+            <a class="cf-btn cf-btn--solid" href="/">
+              Zur Startseite
+              <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+            </a>
+            <a class="cf-btn cf-btn--ghost" href="/kontakt">
+              Defekten Link melden
+              <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Das Objekt: eine Reihe gleicher Einheiten auf der isometrischen
+             Grundebene, eine davon fehlt. Ihr Sockel ist der einzige Ort im
+             Bild, an dem Licht liegt — die Stelle, an der etwas sein sollte
+             und nichts ist. Die fehlende Einheit selbst ist gestrichelt
+             gezeichnet und verlässt den Rahmen nach oben.
+
+             Konstruktion: u = 60, e1 = (2u, +u), e2 = (2u, -u). Ursprung ist
+             die linke Ecke des leeren Sockels, (200, 340). Die Reihe ist
+             waagerecht, weil sie auf e1 - e2 = (4u, 0) läuft; die Rampe liegt
+             auf 63,43 Grad im nahen Rake (Glas bei 32 %). Nur die Winkel 0,
+             26,57, 63,43 und 90 Grad kommen vor.
+             → foundations/illustration.html -->
+        <svg class="cf-error__figure cf-iso" viewBox="0 0 640 440" fill="none" aria-hidden="true">
+          <defs>
+            <clipPath id="cf-404-frame"><rect width="640" height="440"/></clipPath>
+            <!-- Naher Rake: Glas bei 0.32. Achse senkrecht zur oberen linken
+                 Kante des Sockels, also 63,43 Grad, Lime an der Kante selbst. -->
+            <linearGradient id="cf-404-light" x1="260" y1="310" x2="308" y2="406" gradientUnits="userSpaceOnUse">
+              <!-- oklab waypoint — 19 % of the lime leg, measured from lime, see foundations/colors.html
+                   SVG cannot interpolate in oklab, so this stop carries the ramp's oklab path by hand. -->
+              <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+            </linearGradient>
+          </defs>
+
+          <g clip-path="url(#cf-404-frame)"><g class="cf-iso__scene" stroke-linejoin="round">
+
+            <!-- die fehlende Einheit, 3u über ihrem Sockel, Linientyp 1-2 -->
+            <path class="cf-iso__ghost" d="M320 -20L440 40L320 100L200 40Z" stroke="#000" stroke-dasharray="2 4"/>
+            <path class="cf-iso__ghost" d="M200 40V160M440 40V160M320 100V220" stroke="#000" stroke-dasharray="2 4"/>
+            <path class="cf-iso__ghost" d="M200 160L320 220L440 160" stroke="#000" stroke-dasharray="2 4"/>
+
+            <!-- die Lotrechten vom Sockel zur fehlenden Einheit, Linientyp 1-4 -->
+            <path class="cf-iso__ghost" d="M200 160V340M320 220V400M440 160V340" stroke="#000" stroke-dasharray="1 4"/>
+
+            <!-- die Einheit links; der Rahmen schneidet sie ab -->
+            <path class="cf-iso__form" d="M-40 220L80 280L80 400L-40 340Z" fill="#CFCFCF"/>
+            <path class="cf-iso__form" d="M80 280L200 220L200 340L80 400Z" fill="#C4C4C4"/>
+            <path class="cf-iso__form" d="M80 160L200 220L80 280L-40 220Z" fill="#DADADA"/>
+            <path class="cf-iso__form" d="M80 160L200 220L80 280L-40 220ZM-40 220V340M200 220V340M80 280V400M-40 340L80 400L200 340" stroke="#000"/>
+
+            <!-- die Einheit rechts, dieselbe Einheit um 4u versetzt -->
+            <path class="cf-iso__form" d="M440 220L560 280L560 400L440 340Z" fill="#CFCFCF"/>
+            <path class="cf-iso__form" d="M560 280L680 220L680 340L560 400Z" fill="#C4C4C4"/>
+            <path class="cf-iso__form" d="M560 160L680 220L560 280L440 220Z" fill="#DADADA"/>
+            <path class="cf-iso__form" d="M560 160L680 220L560 280L440 220ZM440 220V340M680 220V340M560 280V400M440 340L560 400L680 340" stroke="#000"/>
+
+            <!-- der leere Sockel: das einzige belichtete Element im Bild -->
+            <path class="cf-iso__light" d="M200 340L320 400L440 340L320 280Z" fill="url(#cf-404-light)" stroke="#000"/>
+
+            <!-- die vier Eckpunkte der leeren Stelle -->
+            <circle class="cf-iso__node" cx="200" cy="340" r="3" fill="#000"/>
+            <circle class="cf-iso__node" cx="320" cy="280" r="3" fill="#000"/>
+            <circle class="cf-iso__node" cx="440" cy="340" r="3" fill="#000"/>
+            <circle class="cf-iso__node" cx="320" cy="400" r="3" fill="#000"/>
+
+          </g></g>
+        </svg>
+
+        <!-- Die Wege von hier. Die Startseite fehlt in der Liste, weil sie
+             schon die erste Schaltfläche ist — eine Sackgasse braucht Ausgänge,
+             keine Wiederholungen. -->
+        <nav class="cf-error__routes" aria-label="Wege von hier">
+          <ul class="cf-error__routes-list" role="list">
+            <li>
+              <a class="cf-error__route" href="/ueber-uns">
+                <span class="cf-error__route-label">Über uns</span>
+                <span class="cf-error__route-desc">Das Team, die Werte und wie wir arbeiten.</span>
+                <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+              </a>
+            </li>
+            <li>
+              <a class="cf-error__route" href="/news">
+                <span class="cf-error__route-label">News</span>
+                <span class="cf-error__route-desc">Alle Beiträge zu Telemetrie, Energie und Architektur, nach Zeit sortiert.</span>
+                <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+              </a>
+            </li>
+            <li>
+              <a class="cf-error__route" href="/karriere">
+                <span class="cf-error__route-label">Karriere</span>
+                <span class="cf-error__route-desc">Offene Stellen in Konstanz, und was eine Bewerbung bei uns braucht.</span>
+                <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+              </a>
+            </li>
+            <li>
+              <a class="cf-error__route" href="/kontakt">
+                <span class="cf-error__route-label">Kontakt</span>
+                <span class="cf-error__route-desc">Schreiben oder anrufen. Antwort in der Regel innerhalb eines Werktages.</span>
+                <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Der Footer bleibt vollständig, und das ist auf einer deutschen Seite nicht
+     nur Gestaltung: nach § 5 DDG muss das Impressum von jeder Adresse aus
+     erreichbar sein, auch von einer, die es nicht gibt. -->
+<footer class="cf-footer" data-theme="inverse">
+  <div class="container">
+    <div class="cf-footer__cta">
+      <img class="cf-footer__mark" src="../assets/img/icons/cf-footer-mark.svg" alt="">
+      <div>
+        <p class="cf-footer__title text-foil">Jetzt Projekt starten!</p>
+        <a class="cf-btn cf-btn--primary cf-btn--xwide" href="/kontakt">
+          Kontakt aufnehmen
+          <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+        </a>
+      </div>
+    </div>
+    <div class="cf-footer__meta">
+      <a class="cf-logo cf-logo--bare" href="/"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
+      <ul class="cf-footer__links" role="list">
+        <li><a href="/ueber-uns">Über uns</a></li>
+        <li><a href="/news">News</a></li>
+        <li><a href="/karriere">Karriere</a></li>
+        <li><a href="/datenschutz">Datenschutz</a></li>
+        <li><a href="/impressum">Impressum</a></li>
+        <li><button type="button" class="cf-footer__linkbtn" data-cf-consent-action="open">Cookie-Einstellungen</button></li>
+      </ul>
+      <span>©2026 Control-F GmbH</span>
+      <span>Am Seerhein 6, 78467 Konstanz · <a href="mailto:info@control-f.de">info@control-f.de</a></span>
+    </div>
+  </div>
+</footer>
+
+<a class="ds-back" href="../index.html">← Design System</a>
+<script>
+  document.querySelector('.cf-nav__toggle').addEventListener('click', function () {
+    var list = document.getElementById('hauptnav');
+    var open = list.dataset.open === 'true';
+    list.dataset.open = String(!open);
+    this.setAttribute('aria-expanded', String(!open));
+  });
+</script>
+<script src="../assets/js/cf-consent.js"></script>
+</body>
+</html>
