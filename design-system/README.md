@@ -30,9 +30,11 @@ python3 scripts/check-grid-tracks.py           # every fr track has a floor
 python3 scripts/check-grid-tracks.py -v        # list every track list, not only the failures
 python3 scripts/check-breakpoints.py           # every threshold is in the register, in rem
 python3 scripts/check-breakpoints.py -v        # list every threshold, not only the failures
+python3 scripts/check-overflow-clip.py         # a crop is a crop, not a scroll container
+python3 scripts/check-overflow-clip.py -v      # list every overflow declaration, not only the failures
 ```
 
-The six checks the system enforces rather than documents, run by CI on every push and
+The seven checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step.
 
@@ -217,6 +219,31 @@ features, which are modes rather than thresholds, and `min()`/`clamp()` crossove
 change the layout at a width without being queries — the register says so in as many words,
 and a checker that widened the definition would be enforcing a different rule than the one
 written down. → `foundations/layout.html#breakpoints`
+**A crop says so,** and this is the seventh check, for the same reason as the other six.
+`overflow: hidden` does two things: it crops, which is what anyone writing it wants, and
+it makes the element a **scroll container**, which almost nobody does — and the second
+half renders identically to the first, so nothing about a screenshot can tell them apart.
+A scroll container is what a view timeline resolves against, what `position: sticky` is
+measured inside, and a box that can be panned to with a keyboard or a script.
+
+The system has been bitten by both halves and wrote each up where it happened rather than
+anywhere that could run. `.cf-hero` cropped its artwork with `hidden`, and every
+`animation-timeline: view()` in that header silently resolved against a box that never
+scrolls — `.cf-btn--glass::before` reported a live ViewTimeline whose progress sat at
+**0.116 and did not move at any scroll position on the page**. And
+`prototypes/demon-core.html` cropped an ambient wash inset −10 % with `overflow-x: hidden`
+on `<body>`, a declaration that never cropped anything: `overflow` on `<body>`
+**propagates** to the viewport and leaves body itself computing to `visible`, so the wash
+sailed past it and the document sat **128 px scrollable sideways at 1280** — 77 at 768,
+38 at 375 — with nothing out there to look at. `clip` is excluded from that propagation,
+so it stays on the box that declared it.
+
+The rule is the pair the hero already writes: `overflow: hidden` and `overflow: clip`
+under it. A browser without `clip` drops the second and keeps the crop it always had; a
+browser with it never makes the scrollport. Two exemptions, both because the block is not
+cropping a composed layer at all — a block that also declares `text-overflow` is
+truncating one line of text, and `.visually-hidden` is the standard clip-rect idiom quoted
+from the practice it comes from. → `foundations/materials.html`
 
 ## Layout
 

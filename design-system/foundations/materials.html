@@ -36,7 +36,7 @@
      sample a lie about the tint on it. */
   .mat__art { height:8rem; padding:var(--space-4); }
   .mat__art > .mat__sample { height:100%; }
-  .mat__stack { position:relative; height:16rem; background:var(--surface-page-wash); border:1px solid var(--border-default); overflow:hidden; }
+  .mat__stack { position:relative; height:16rem; background:var(--surface-page-wash); border:1px solid var(--border-default); overflow:hidden; overflow:clip; }
   @media (max-width:780px){ .mat { grid-template-columns:1fr; } }
 </style>
 </head>
@@ -539,6 +539,19 @@
       still gets the crop. Audited across all six pattern pages before changing it — 40
       scroll-driven animations, and this was the only one whose source was not the document.
       → <a href="motion.html#scroll-driven">Motion</a>
+      <br><br>
+      <strong>This paragraph is now a check.</strong> The rule was stated here, and again on
+      <a href="motion.html#scroll-driven">Motion</a>, and a third time on the fix in
+      <code>components.css</code> — three pieces of prose and nothing that ran any of them.
+      <code>scripts/check-overflow-clip.py</code> holds every <code>overflow: hidden</code>
+      in the three shipping stylesheets to carrying <code>overflow: clip</code> beside it,
+      exempting only the blocks that truncate a line of text and the
+      <code>.visually-hidden</code> idiom. It found the other half of the same bug in a
+      prototype: an ambient wash cropped with <code>overflow-x: hidden</code> on
+      <code>&lt;body&gt;</code>, which propagates to the viewport and leaves body computing
+      to <code>visible</code>, so the crop never happened and the document sat 128&nbsp;px
+      scrollable sideways at 1280 with nothing out there to look at. <code>clip</code> is
+      excluded from that propagation and stays on the box that declared it.
     </div>
     <p>
       <strong>Light only adds — behind the label.</strong> Every layer between the bearing

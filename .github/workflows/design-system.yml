@@ -27,6 +27,14 @@ name: Design system checks
 # what keeps it affordable in prose, and every one of those rules is invisible
 # in a screenshot: a third blurred layer renders correctly and just costs.
 #
+# The overflow crops are the sixth, and the one whose failure is invisible on
+# every day. `overflow: hidden` crops, which is what anyone writing it wants,
+# and makes a scroll container, which almost nobody does — and the second half
+# renders identically to the first. It cost this system a view timeline that
+# reported live and never moved, and a prototype that sat 128 px scrollable
+# sideways behind a declaration that had never cropped anything. `clip` crops
+# without the scrollport; the rule is that a crop says so.
+#
 # The grid tracks are the fifth, and the one whose failure is visible — just not
 # on a day anyone looks. base.css warns twice, in prose, that a bare `fr` floors
 # at min-content and lets one long word push the page sideways; thirty-two of
@@ -84,3 +92,6 @@ jobs:
       - name: Breakpoint register
         if: '!cancelled()'
         run: python3 scripts/check-breakpoints.py
+      - name: Overflow crops
+        if: '!cancelled()'
+        run: python3 scripts/check-overflow-clip.py
