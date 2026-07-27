@@ -33,6 +33,7 @@
       { href: 'components/blog-grid.html',      label: 'Blog Grid' },
       { href: 'components/subdivision-field.html', label: 'Subdivision Field' },
       { href: 'components/pagination.html',     label: 'Pagination' },
+      { href: 'components/error-state.html',    label: 'Error & Empty State' },
       { href: 'components/article.html',        label: 'Article & Prose' },
       { href: 'components/team.html',           label: 'Team' },
       { href: 'components/forms.html',          label: 'Forms' },
@@ -44,7 +45,8 @@
       { href: 'patterns/ueber-uns.html',    label: 'Über uns page' },
       { href: 'patterns/news.html',         label: 'News overview' },
       { href: 'patterns/blog-artikel.html', label: 'Blog article' },
-      { href: 'patterns/kontakt.html',      label: 'Kontakt page' }
+      { href: 'patterns/kontakt.html',      label: 'Kontakt page' },
+      { href: 'patterns/404.html',          label: '404 page' }
     ]},
     /* Full-page scroll studies, not components. They carry their own styling
        and their own scroll engine, so they sit outside the documentation
