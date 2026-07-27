@@ -1896,6 +1896,24 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    air comes back, and nothing moves horizontally. Above 56rem the width cap is
    still the tighter one and this changes nothing at all. */
 .cf-process__figure > svg { width: 100%; max-width: 22rem; max-block-size: 100%; }
+/* The trace weight belongs to this rule, because this rule is what sets the
+   scale it is derived from — see --trace-weight in the isometric section.
+   640 / 352 wherever the 22 rem cap binds, which is every width from the phone
+   band up: 1.00 CSS px, on the contour weight exactly. */
+.cf-process__figure .cf-iso { --trace-weight: 1.82; }
+/* The band where the OTHER cap binds, and the one place a number cannot fix.
+   Between 256 and 554 px of card width the height cap above is the tighter one,
+   so the drawing is letterboxed into a box that grows with the card — measured
+   0.22 of scale at 320 px of viewport and 0.53 at 608. That is a 2.4x ramp
+   against a fixed multiplier, so no single weight lands on 1 px across it: the
+   value that fits one end misses the other by the same 2.4x. It keeps the
+   constant every object carried before this property existed, which puts the
+   band at 0.45 - 1.06 CSS px, and the ramp is stated here rather than papered
+   over. A weight that tracked it would have to be read off the rendered box,
+   and only the box knows. */
+@container (max-width: 34.625rem) {
+  .cf-process__figure .cf-iso { --trace-weight: 2; }
+}
 /* No fill of its own, and it never had one that could be seen: this declared
    --surface-raised while the card behind it declared --surface-card, and both
    tokens resolved to grey-050. One plate painted twice, half of it dead. With
@@ -4464,8 +4482,32 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    it at 184. Under a CSS pixel at the small end, which is the cost of a draw
    that is linear at every size — and it is the small end that has the device
    pixels to spend: no 375 px viewport is DPR 1, so 0.58 CSS px is 1.15 device
-   pixels at DPR 2 and 1.7 at DPR 3. Verified 25/50/75 % exact. */
-.cf-iso__trace { stroke-width: 2; }
+   pixels at DPR 2 and 1.7 at DPR 3. Verified 25/50/75 % exact.
+
+   SO THE WEIGHT IS A PER-OBJECT NUMBER, AND IT USED TO BE A CONSTANT. A user-
+   unit stroke lands on screen at `weight x render scale`, and scale is a
+   property of the drawing's own frame — viewBox width over the pixels it is
+   rendered into. One literal therefore cannot serve two objects at two scales,
+   and it was serving five families at four:
+
+     .cf-process__figure   scale 0.55            2 -> 1.10 CSS px
+     .ex-step__figure      scale 0.78 - 0.86     2 -> 1.55 - 1.71 CSS px
+     .ill-frame            scale 0.19 - 0.25     2 -> 0.38 - 0.50 CSS px
+
+   Measured across 375 / 768 / 1280 / 1920, the shipped trace ran from 0.38 to
+   1.71 CSS px — a 4.5x spread on the one line in an illustration that is meant
+   to read as the same hairline as the contours beside it. At the heavy end the
+   signal was 71 % thicker than the object it arrives at; at the light end it
+   was a grey line at 2.5:1 against CF-Grau, under the 3:1 the system holds its
+   contours to.
+
+   --trace-weight is that number, declared where the object's SIZE is declared
+   so the two cannot drift apart — the same reason --iso-travel is written next
+   to the viewBox it is derived from. Its value is viewBox width divided by the
+   width the frame actually renders at, and it is 2 by default, which is what
+   every object got before and is still right for nothing in particular. */
+.cf-iso { --trace-weight: 2; }
+.cf-iso__trace { stroke-width: var(--trace-weight); }
 
 /* The frame is a crop, not a bounding box, and a trace is a signal from
    off-stage — so its path routinely runs past the edge. pathLength normalises
