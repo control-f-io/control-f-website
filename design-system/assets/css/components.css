@@ -475,6 +475,109 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
    with, and now so does the rest of the plate. */
 .cf-btn--glass:active { --cf-specular: 76%; }
 
+/* THE RIM PASS — the second half of what the navigation sheet already does,
+   on the other frosted surface in the system.
+
+   WHY IT EXISTS. Until now every response this plate made was gated on a
+   pointer: --cf-specular travels on :hover, :focus-visible and :active and on
+   nothing else. On a touch device none of those three arrive, so the primary
+   call to action of the whole site was a static plate — the one surface where
+   the brand's north star, a foil that shifts as you move past it, had the best
+   chance of being true and was not. The sheet had already answered the same
+   question the right way: a bar is not a thing you point at, it is a thing you
+   scroll past, so its light is scrubbed by scroll. A hero button is BOTH, and
+   it only had the half a mouse can reach.
+
+   Two lights on one control do not collide, because they are on the two layers
+   the family already keeps apart. --cf-specular is on the FACE — a radial band
+   crossing the plate, achromatic, the source reflected. This is on the EDGE —
+   --glass-rim-light over --glass-edge, exactly the pair .cf-nav::after paints.
+   One lit edge with hue, one specular without: the same division, now literally
+   true on both frosted surfaces rather than on one.
+
+   ON A PSEUDO-ELEMENT, AND THAT IS THE WHOLE ENGINEERING OF IT. The plate
+   itself carries backdrop-filter, and moving a gradient across a blurred layer
+   re-rasterises the blur every frame — the rule foundations/materials.html
+   states as "never move anything on a blurred layer", and the reason both of
+   the navigation's animations live on its one-pixel rim rather than on its
+   sheet. The rim there is .cf-nav::after, a separate element from the blur in
+   .cf-nav::before. This button has no such split: it paints its blur, its face
+   and its rim on one element. So the travelling band gets its own unblurred
+   layer and the plate's own background-image list is left exactly as it was —
+   which is also what keeps every contrast figure measured on it still valid,
+   since not one of its three layers moved.
+
+   THE WINDOW IS THE RIM'S OWN, and it is 62 % for the reason the rim is: this
+   plate has lime at its right end and the material's chroma cannot be in two
+   places at once. Sizing this layer to the rim's window rather than to the
+   plate means the band parks off the left of the WINDOW and leaves off its
+   right, so the light dies at exactly the x where --glass-edge has already
+   faded to nothing — and never reaches the lime, which the face's own band was
+   measured to only just avoid. Window the layer, leave the gradient alone.
+
+   The width looks like numerology and is not. The rim layer is sized against
+   the BORDER box (background-origin is border-box, from .cf-btn), while an
+   absolutely positioned element resolves its percentages against the padding
+   box, which is 2 x --stroke-1 narrower. 0.62 of that difference puts the two
+   windows on the same pixel. Drop the correction and the band expires about a
+   pixel short of the rim; keep it and the two edges end together by
+   construction rather than by looking right at one width.
+
+   -70 % AND 170 % ARE THE SHEET'S OWN ENDPOINTS, not a second guess at them.
+   A band 40 % of its container wide is fully off-canvas at both — a layer
+   positioned at P is offset by P x (container - image), so at -70 % the band's
+   right edge sits at -0.02 of the window and at 170 % its left edge is past
+   the far end. Same band, same width, same travel, on both glass surfaces.
+
+   IT ONLY ADDS, and on the one edge where that is worth checking rather than
+   asserting. The top border pixel is where --glass-edge is painted, and the
+   pair of lines there measures 4.33:1 — the lowest of the plate's four edges,
+   because the edge's Sky leg is darker than the white it stands in for. This
+   band is white over that pixel, so it lifts the rim away from the refraction
+   line beneath it: the floor can only rise, never fall, and it does so exactly
+   where the plate had least margin. Nothing under the label moves at all —
+   this is a 1 px strip on the border box, above the type, outside the padding
+   box the refraction line is clipped to.
+
+   ONE PASS PER TRAVERSE OF THE SCREEN, on view() rather than scroll(). The
+   sheet is a plane the whole document moves under, so its band is scrubbed by
+   the document; this is one object the reader carries up the screen once, so
+   its band is scrubbed by its own passage through the viewport. Proportional
+   to the trip rather than timed, like every other scrubbed thing here, and it
+   runs backwards when the reader scrolls back up.
+
+   PARKED AT REST, so the un-enhanced state is the designed one: no view
+   timeline, reduced motion, print, or forced colours all leave the band off
+   the left edge and the plate rendering byte-for-byte what it renders today.
+   The light is an enhancement on top of the drawing, never a replacement. */
+.cf-btn--glass::before {
+  content: "";
+  position: absolute;
+  top: calc(-1 * var(--stroke-1));
+  left: calc(-1 * var(--stroke-1));
+  width: calc(62% + 0.62 * 2 * var(--stroke-1));
+  height: var(--stroke-1);
+  pointer-events: none;
+  /* The plate's corner, on the one corner this strip can overhang. */
+  border-top-left-radius: var(--radius-sm);
+  background-image: var(--glass-rim-light);
+  background-repeat: no-repeat;
+  background-size: 40% 100%;
+  background-position: -70% 0;   /* off-canvas — see above */
+}
+@supports (animation-timeline: view()) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .cf-btn--glass::before {
+      animation: cf-glass-rim-pass linear both;
+      animation-timeline: view();
+    }
+  }
+}
+@keyframes cf-glass-rim-pass {
+  from { background-position: -70% 0; }
+  to   { background-position: 170% 0; }
+}
+
 /* The focus ring is the one part of this button the plate's contrast floor
    does NOT protect: at outline-offset it lands 2-4 px OUTSIDE the plate, on
    the hero artwork, which nobody controls and which is a video — so the
@@ -1091,7 +1194,30 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   margin-top: calc(var(--nav-height) * -1);
   min-height: min(92vh, 56rem);
   padding-block: var(--space-16) var(--space-12);
+  /* CLIP, NOT HIDDEN, AND THE DIFFERENCE IS NOT COSMETIC. What this line is
+     for is cropping the artwork to the hero's box — a paint decision. But
+     `overflow: hidden` also makes the element a SCROLL CONTAINER, and a
+     view timeline resolves against its subject's nearest scroll container.
+     So every view() inside this header was silently measured against a box
+     that never scrolls: .cf-btn--glass::before below reported a live
+     ViewTimeline whose progress sat at 0.116 and did not move at any scroll
+     position on the page. No error, no warning, no visible difference from
+     an animation that simply had not been written.
+
+     `overflow: clip` crops without creating a scrollport, so the timeline
+     resolves to the document and the pass runs. Both declarations are kept:
+     a browser too old for `clip` drops the second and keeps the crop, and
+     the same browser has no animation-timeline either, so it lands on the
+     parked state the pass is designed to degrade to.
+
+     Audited across all six pattern pages and the scroll-driven documentation
+     pages before changing this: 40 scroll-driven animations, and the one
+     below was the only one whose source was anything but the document. It
+     is the first scroll-driven thing ever placed inside this header, which
+     is why the trap had never been sprung. Anything else put in here later
+     inherits the fix rather than rediscovering it. */
   overflow: hidden;
+  overflow: clip;
 }
 /* NO BACKGROUND ON .cf-hero, and its absence is the point. It carried an
    opaque --surface-base, which was invisible while the artwork covered the
