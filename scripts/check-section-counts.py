@@ -72,10 +72,17 @@ COUNT = re.compile(r"^(\d+)(?:\s+von\s+(\d+))?(?:\s+([^\d/]+))?$")
 # Each marker is the opening of the section's own repeating element, matched as
 # a literal so it cannot drift into a modifier or a child: the process step and
 # not the lectern that shares .cf-process, the blog anchor and not its title
-# span, the bare <span> of a logo mark and not the counter above it.
+# span, the <li> of a logo mark and not the counter above it.
+#
+# The logo mark's marker used to be a bare "<span>", because the wall held its
+# seven marks as seven bare text nodes in a <div>. It is a <ul role="list"> now
+# — seven marks under a header that announces seven should be seven list items,
+# and a reader who cannot see the wall should be told how many there are — so
+# the marker is the item, the same shape the team strip's entry already had,
+# and it no longer rests on a tag that carries no class at all.
 REGISTER = {
     "prozess": ('<article class="cf-process cf-pin__step"', "process step"),
-    "partner": ("<span>", "logo mark"),
+    "partner": ('<li class="t-label">', "logo mark"),
     "faq": ('<details class="cf-accordion__item">', "question"),
     "blog": ('<a class="cf-blog-card', "article card"),
     "team": ('<li class="cf-team-strip__item">', "team member"),
