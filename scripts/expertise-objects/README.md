@@ -30,3 +30,22 @@ ending inside the plate are exactly what read as brittle at stage size.
 The generator also writes `--vb-w` and `--iso-travel` into each `<svg>`, both derived from
 the same number that produced the crop, so a re-crop cannot leave the arrival distance
 behind. See `foundations/motion.html#travel`.
+
+## The landing page's root
+
+`python3 gen-flow-root.py` prints the geometry of `.lp-flow` — the drawing that carries
+the reader from the statement's void down into the frame the four process cards are built
+in — as paths and nodes ready to paste into `design-system/patterns/landing-page.html`.
+It shares this directory's premise and not its library: the flow is 2-D and is not a
+`.cf-iso` drawing, so it computes in the page's own 1200 × 620 units rather than on the
+isometric lattice, in exact rational arithmetic.
+
+It is here because a self-similar form is not something anyone types by hand and keeps on
+the five brand angles, and because a construction may not be random at runtime — the same
+paths come out every run. Three of its terminals are pinned rather than grown: flow
+x 0, 600 and 1200 are frame x 0, 500 and 1000, so the three taproots must land exactly on
+the frame's three verticals, two of them in its top corners.
+
+`scripts/check-flow-terminals.py` holds the result — every terminal on the rail, the void
+or another branch; every segment on a brand angle; every node on a junction — against the
+*markup*, which is where a hand edit would land.
