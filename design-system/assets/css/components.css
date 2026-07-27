@@ -1086,6 +1086,35 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 /* The open menu already used --radius-sm while the closed bar was a pill, so
    the bar changed shape on the way to the small screen. One corner now. */
 @media (max-width: 780px) {
+  /* WITHOUT THE SCRIPT THE LINKS ARE SHOWN AND THE DEAD CONTROL IS NOT.
+
+     A disclosure needs something to disclose it, so every rule that folds this
+     bar is gated on [data-cf-nav] — the attribute assets/js/cf-nav.js writes on
+     <html> before the body is parsed. Nothing below this comment can therefore
+     take the five links away from a reader whose scripting is off, whose
+     network dropped the file, or whose browser hit an error in it: they get the
+     bar with its list stacked underneath, which is the same plate drawn with
+     the same corner, and no button that does nothing.
+
+     Not sticky in that state, and that is the whole reason the fallback is a
+     stacked list rather than the open panel. The panel is out of flow, so it
+     costs the bar no height; six rows of it pinned to the top of a 375 px
+     screen would leave the page about a third of itself to be read in.
+
+     The gate is an attribute on <html> rather than on the bar because it has to
+     be true before the bar exists — see the file's own header for why that is
+     the load-bearing part. */
+  html:not([data-cf-nav]) .cf-nav {
+    position: relative;
+    flex-wrap: wrap;
+    row-gap: var(--space-4);
+  }
+  html:not([data-cf-nav]) .cf-nav__list {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   /* THE ONE PANEL IN THE SYSTEM THAT OPENS AND CLOSES, and until now the only
      state change on the site that simply appeared: measured at 375 px, the
      frame 60 ms after the click and the frame 560 ms after it were
@@ -1121,7 +1150,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      shorthand is dropped at parse time, the open state's clip-path still
      applies, and the panel snaps exactly as it does today. The un-enhanced
      state is the settled one. */
-  .cf-nav__list {
+  [data-cf-nav] .cf-nav__list {
     display: none;
     position: absolute;
     inset: 100% var(--gutter) auto var(--gutter);
@@ -1145,7 +1174,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
     transition: clip-path var(--duration-slow) var(--ease-standard),
                 display   var(--duration-slow) var(--ease-standard) allow-discrete;
   }
-  .cf-nav__list[data-open="true"] {
+  [data-cf-nav] .cf-nav__list[data-open="true"] {
     display: flex;
     /* An inset and not `none`: `none` is not an interpolable clip-path, so the
        wipe would have nothing to travel to. At rest every side is outside the
@@ -1156,10 +1185,10 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      specificity of its own, so an earlier placement is overwritten by the open
      state and the entry wipe silently does not happen. */
   @starting-style {
-    .cf-nav__list[data-open="true"] { clip-path: inset(-4px -4px 100% -4px); }
+    [data-cf-nav] .cf-nav__list[data-open="true"] { clip-path: inset(-4px -4px 100% -4px); }
   }
 
-  .cf-nav__toggle {
+  [data-cf-nav] .cf-nav__toggle {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
@@ -1193,7 +1222,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      link both take their ink to exactly it. One lit value in one component,
      now on a contour as well as on a label. --duration-fast matches
      .cf-nav__link too; the bar should not answer at two speeds. */
-  .cf-nav__toggle[aria-expanded="true"] {
+  [data-cf-nav] .cf-nav__toggle[aria-expanded="true"] {
     border-color: var(--grey-000);
   }
 }

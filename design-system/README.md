@@ -56,6 +56,7 @@ design-system/
     │   └── docs.css        this documentation site only — does not ship
     ├── js/
     │   ├── cf-consent.js   the consent banner + settings dialog. Ships.
+    │   ├── cf-nav.js       the phone layout's menu disclosure. Ships.
     │   ├── cf-icons.js     the icon set — the one place a glyph is drawn. Ships.
     │   ├── cf-values.js    types the values copy. Ships, optional — see below.
     │   ├── cf-sight.js     the reader's position across the screen. Ships, optional.
@@ -89,9 +90,13 @@ paste its markup instead, see `foundations/iconography.html` — and build pages
 classes documented in `components/`.
 `patterns/landing-page.html` is a working reference for a whole page.
 
-Three scripts ship. One is required, two are not:
+Four scripts ship. Two are required, two are not:
 
 ```html
+<!-- in the <head>, after the three stylesheets -->
+<script src="/design-system/assets/js/cf-nav.js"></script>
+
+<!-- at the foot of the body -->
 <script src="/design-system/assets/js/cf-consent.js"></script>
 <script src="/design-system/assets/js/cf-values.js" defer></script>
 <script src="/design-system/assets/js/cf-sight.js" defer></script>
@@ -101,6 +106,18 @@ Three scripts ship. One is required, two are not:
 cannot legally do without (TDDDG § 25). It is dependency-free, creates no markup of
 its own, and if it never runs, no non-essential script runs either.
 → `components/consent.html`
+
+`cf-nav.js` is the disclosure behind the menu button on the phone layout, and the only
+implementation of it — the behaviour used to live in seven identical inline scripts on
+the pattern pages plus an eighth in `docs.js`, which is documentation chrome and does
+not ship, so a page built from this system got a button that did nothing. It creates no
+markup either, and it follows the WAI-ARIA Authoring Practices disclosure navigation
+pattern: `Esc` closes and returns focus to the button, focus leaving the bar closes it,
+a pointer outside it closes it, and the open state is dropped on the way past 780 px.
+**The tag goes in the `<head>`,** because every rule that folds the bar is gated on the
+attribute this file writes: with no script the links are a stacked list and no dead
+control is drawn, and that fallback is only free if the attribute is there before the
+first paint. → `components/navigation.html#script`
 
 `cf-values.js` is **optional and additive**. The values section is complete without it
 — the copy is real markup and a view timeline does the pinning, the scrubbing and the
