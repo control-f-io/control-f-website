@@ -45,7 +45,7 @@ design-system/
 │                           footer, consent
 ├── patterns/               full page templates — landing-page.html, ueber-uns.html,
 │                           news.html, blog-artikel.html, kontakt.html, 404.html
-├── prototypes/             scroll-animation studies — standalone, not yet system
+├── prototypes/             motion studies — standalone, not yet system
 ├── reference.html          the designer's source material, next to what implements it
 └── assets/
     ├── css/
@@ -111,19 +111,32 @@ Everything else in the system is HTML and CSS.
 
 ## Animation prototypes
 
-`prototypes/` holds scroll-animation studies. They are **not part of the system**: each
-one carries its own styling and its own scroll engine, neither has been reconciled with
-the tokens, and nothing in `components/` depends on them. They are in the sidebar so the
-motion they propose can be reviewed against the pages it would land on.
+`prototypes/` holds motion studies. They are **not part of the system**: each one carries
+its own styling and its own engine, none has been reconciled with the tokens, and nothing
+in `components/` depends on them. They are in the sidebar so the motion they propose can
+be reviewed against the pages it would land on.
 
 | | |
 |---|---|
 | `werte-scroll.html` | The mark builds itself from its own isometric subdivision grid across six value stages, with the copy streaming in char by char. Scroll-scrubbed, so it un-builds on the way back up. |
 | `services-scroll.html` | The four process cards assemble inside a pinned section — cubes telescoping up, layers sliding in, contours drawing themselves. 1.4 MB, almost all of it one inline Figma export. |
+| `demon-core.html` | The Über-uns header object, made live. Click the core: the reflector travels down the axis, holds, snaps shut, and the assembly goes critical in the full palette. |
 
-Both scrub from scroll position rather than playing on a timer, which is what the system
-already commits to in `foundations/motion.html` — the animation tracks the reader's hand
-and reverses when they scroll back.
+The first two scrub from scroll position rather than playing on a timer, which is what the
+system already commits to in `foundations/motion.html` — the animation tracks the reader's
+hand and reverses when they scroll back. `demon-core.html` is the exception and has to be:
+it is not a reveal, it is a *consequence*, and a consequence the reader can scrub backwards
+out of is not one. It runs once per click, on a timer, and resets itself. Its reduced-motion
+path skips the travel and shows the end state.
+
+The screwdriver is gone. The designer's file staged the accident with the tool wedged in
+the gap — wiggling, slipping, falling out of frame — and the sequence is retimed around
+its absence: the beat the wiggle used to fill is now a held pause with the reflector
+stopped one step short of the core. It is the only version that survives being 585 px wide
+in a page header, which is the size it would ship at.
+
+The static half of this object has already shipped: it is the figure in the `Über uns`
+page header, drawn from the same source vectors in the same coordinate system.
 
 **`werte-scroll.html` has shipped.** It is the *Unsere Werte* section of
 `patterns/ueber-uns.html` now, rebuilt as `.cf-values`. What changed on the way in:
