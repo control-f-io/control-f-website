@@ -679,18 +679,58 @@ python3 scripts/check-iso-motion.py</pre>
       The line was fully drawn by the time the offset reached 0.45, so the last 45 % of the
       trace's scroll range did nothing at all — and worse at small sizes, where the scale is
       lower and the dead stretch is longer. So <code>.cf-iso__trace</code> is excluded from
-      the <code>non-scaling-stroke</code> rule and given <code>stroke-width: 2</code>
-      instead, which puts it back on the contour weight: 1.1 CSS px where the object renders
-      at 352, and 0.58 at a 375 px viewport, where it renders at 184. Under a CSS pixel at
-      the small end is the price of a draw that is linear at every size, and it is the right
-      trade — a trace is a signal, not a structural contour. It is also the end with the
-      device pixels to spend: no 375 px viewport is DPR 1, so 0.58 CSS px is 1.15 device
-      pixels at DPR 2 and 1.7 at DPR 3, and the trace never actually thins below the hairline
-      it is imitating.
+      the <code>non-scaling-stroke</code> rule and stroked in user units instead.
+    </p>
+
+    <h4>The weight that pays for it is a per-object number, not a constant</h4>
+    <p>
+      A user-unit stroke lands on screen at <strong>weight &times; render scale</strong>, and
+      the scale belongs to the drawing's own frame — its viewBox width over the pixels it is
+      rendered into. So the number that puts a trace back on the contour weight is
+      <code>viewBox width / rendered width</code>, and it is different for every frame. It had
+      been one literal, <code>2</code>, serving five families at four scales:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Frame</th><th>Render scale</th><th>Was</th><th>Now</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-process__figure</code> — the four cards</td><td>0.55</td><td>1.10 px</td><td><strong>1.00 px</strong></td></tr>
+        <tr><td><code>.ex-step__figure</code> — Expertise</td><td>0.78 – 0.86</td><td>1.55 – 1.71 px</td><td><strong>0.95 – 1.00 px</strong></td></tr>
+        <tr><td><code>.ill-single</code> — the specimen on this system's illustration page</td><td>0.65</td><td>1.30 px</td><td><strong>1.00 px</strong></td></tr>
+        <tr><td><code>.ill-frame</code> — the reference strip</td><td>0.19 – 0.25</td><td>0.38 – 0.50 px</td><td><strong>0.97 – 1.13 px</strong></td></tr>
+      </tbody>
+    </table>
+    <p>
+      Measured across 375 / 768 / 1280 / 1920, the shipped trace ran from 0.38 to 1.71 CSS px.
+      At the heavy end the signal was 71 % thicker than the object it arrives at — a fifth line
+      type, in a system that sanctions four. At the light end it was 0.38 px, which composites
+      to about 2.5:1 against CF-Grau, under the 3:1 this system holds a contour to.
+      <code>--trace-weight</code> is that number, and it is declared <em>where the object's size
+      is declared</em> — beside the <code>max-width</code> or the <code>calc()</code> it is the
+      reciprocal of — for the same reason <code>--iso-travel</code> is written next to the
+      viewBox it comes from. A weight parked in the illustration would be a second place to
+      remember when a frame is resized.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong>Where a drawing is fluid rather than capped, no number is right, and that is
+      stated rather than papered over.</strong> A process card between 256 and 554 px of card
+      width is letterboxed by <code>max-block-size</code> into a box that grows with the card:
+      scale 0.22 at a 320 px viewport and 0.53 at 608. That is a 2.4&times; ramp against a fixed
+      multiplier, so the value that lands on 1 px at one end misses the other by the same
+      2.4&times;. Those bands keep the old constant — 0.45 to 1.06 CSS px on a phone — and the
+      three that are pinned to a cap are exact. Getting the fluid half right needs the rendered
+      box, and only the box knows how wide it is.
+    </div>
+    <p>
+      Under a CSS pixel at the small end is the price of a draw that is linear at every size,
+      and it is still the right trade — a trace is a signal, not a structural contour. It is
+      also the end with the device pixels to spend: no 375 px viewport is DPR 1, so 0.57 CSS px
+      is 1.15 device pixels at DPR 2 and 1.7 at DPR 3, and the trace never actually thins below
+      the hairline it is imitating.
     </p>
     <p>
       If you add an illustration with a trace of its own, give the path
-      <code>pathLength="1"</code> and the class, and leave the stroke alone. Do not put
+      <code>pathLength="1"</code> and the class, and set <code>--trace-weight</code> on the
+      frame to its viewBox width over the width it renders at. Do not put
       <code>non-scaling-stroke</code> back on it.
     </p>
   </section>

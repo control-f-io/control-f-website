@@ -1107,7 +1107,16 @@ These were judgement calls, each documented on the relevant page:
   contours on screen at 0.55 px. The one exception is `.cf-iso__trace`: under
   `non-scaling-stroke` the dash is measured in screen px while `pathLength` normalises
   against user space, which makes the line-drawing finish at 45 % of its range instead of
-  100 %. Traces are stroked in user units at width 2 instead. → `foundations/motion.html`
+  100 %. Traces are stroked in user units instead — **and a user-unit stroke lands on screen
+  at `weight × render scale`, so the weight is a property of the frame rather than of the
+  system.** One literal was serving five families at four scales, and measured across
+  375 / 768 / 1280 / 1920 the shipped trace ran 0.38 → 1.71 CSS px: 71 % heavier than the
+  object it arrives at on Expertise, and 2.5:1 against CF-Grau on the reference strip, under
+  the 3:1 a contour is held to. `--trace-weight` is `viewBox width / rendered width`, declared
+  beside the `max-width` or `calc()` it is the reciprocal of — the same reason `--iso-travel`
+  is written next to its viewBox. Every frame pinned to a cap is 1.00 px now; the fluid bands
+  keep the old constant and are stated as a band, because a 2.4× ramp has no constant.
+  → `foundations/motion.html`
 
 ## Drawing an illustration
 
@@ -1177,4 +1186,8 @@ people to ignore it.
   `patterns/expertise.html` were recropped from 695.2 / 612 / 552.4 / 714.24 to
   732 / 776.8 / 732 / 790.24 within an hour of the values first being written, and nothing
   failed — the objects simply arrived from the wrong distance. Re-measure after any recrop.
+  **`--trace-weight` is the same hazard read the other way round:** it is `viewBox width /
+  rendered width`, so a recrop breaks it from the viewBox end and a change to the frame's
+  `max-width` breaks it from the render end. Both leave a trace that still draws itself,
+  correctly and linearly, at the wrong weight.
   → `foundations/motion.html#travel`

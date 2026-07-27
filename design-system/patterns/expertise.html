@@ -65,6 +65,26 @@
      column and the two lattices would be at unrelated scales, which is what
      made the first pass read as two grids fighting. */
   .ex-step__figure svg { width: calc(var(--vb-w) / 112 * var(--field-unit)); max-width: 100%; height: auto; }
+  /* The trace is stroked in user units, so its screen weight is the render
+     scale times --trace-weight, and the line above IS the render scale:
+     --field-unit / 112. So the weight is its reciprocal, 112 / --field-unit,
+     which is 112/96 at stage size and 112/72 once the surface steps down.
+     Written out per band rather than as one expression over the token, because
+     below the stage the max-width above binds instead and the derivation stops
+     being the thing that decides the scale. */
+  .ex-step__figure .cf-iso { --trace-weight: 1.17; }
+  /* Under about 28 rem the calc above stops being what decides the size: the
+     drawing is wider than the column, `max-width: 100%` binds instead, and the
+     scale is the column's and falls with the viewport. That is a fluid scale
+     against a fixed number, so it is a band rather than a value — 2 holds it
+     between 0.90 and 1.18 CSS px down to 320, which is the number every object
+     carried before this property existed and the one place it was already
+     right. The threshold is where the two bands cross, not where the layout
+     changes: measured, 1.17 is the closer number from 448 px up even though
+     the column goes on binding to about 600. */
+  @media (max-width: 28rem) {
+    .ex-step__figure .cf-iso { --trace-weight: 2; }
+  }
   .ex-index, .ex-bar { display: none; }
 
   /* THE GROUND UNDER THE BUILD.

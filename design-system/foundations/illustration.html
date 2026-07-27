@@ -15,16 +15,37 @@
   .ill-strip figure { margin:0; }
   .ill-frame { border:1px solid var(--border-subtle); background:var(--grey-000); }
   .ill-frame svg { display:block; width:100%; }
+  /* These frames are the smallest the 640-unit drawing is rendered anywhere —
+     121 to 160 px across the four reference widths, scale 0.19 to 0.25. A trace
+     stroked in user units lands at scale x --trace-weight, so the system
+     default of 2 drew them at 0.38 to 0.50 CSS px: a grey line beside 1 px
+     contours. 4.5 is 640/142, the middle of that band. */
+  .ill-frame .cf-iso { --trace-weight: 4.5; }
   .ill-cap { margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs);
              letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--text-secondary); }
   .ill-cap b { display:block; font-weight:var(--weight-medium); text-transform:none; letter-spacing:0;
                font-family:var(--font-sans); font-size:var(--text-md); color:var(--text-primary); }
   .ill-single { width:100%; max-width:26rem; margin-inline:auto; display:block; }
+  /* 640 / 416, the 26 rem cap — 1 CSS px wherever that cap is the one that
+     binds, which is every width with room for it. Narrower than that the
+     column binds instead and the scale falls with it; see the band below. */
+  .ill-single.cf-iso { --trace-weight: 1.54; }
   .ill-label { font-family:var(--font-mono); font-size:20px; fill:var(--text-secondary); }
   .ill-swatch { display:flex; gap:var(--space-4); flex-wrap:wrap; }
   .ill-swatch figure { margin:0; flex:1 1 12rem; }
   .ill-swatch i { display:block; height:5rem; border:1px solid var(--border-strong); }
-  @media (max-width:640px){ .ill-strip { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:640px){
+    .ill-strip { grid-template-columns:repeat(2,1fr); }
+    /* Two columns instead of a fit, so both drawings are fluid across this
+       band rather than pinned to a cap — scale 0.15 to 0.40 for the strip and
+       0.16 to 0.28 for the single. One weight cannot land on 1 px across a
+       2.7x ramp; these are the middles of the two bands, at 640/200 and the
+       constant the single carried before. */
+    .ill-frame .cf-iso  { --trace-weight: 3.2; }
+  }
+  /* The single's own cap starts binding around 33 rem; under it the column
+     does, and the constant it carried before is the closer number there. */
+  @media (max-width:33rem){ .ill-single.cf-iso { --trace-weight: 2; } }
 </style>
 </head>
 <body class="docs" data-root="../">
