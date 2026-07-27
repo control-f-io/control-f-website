@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demon Core — Über uns easter egg</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<style>
+  /* ============================================================
+     DEMON CORE — the Über-uns header object, made live.
+
+     The static version of this drawing is the page header on
+     patterns/ueber-uns.html: a core inside an open shell, a reflector
+     dome parked at the far end of the axis, and the gap between them
+     that the whole composition is really about. Here the gap closes.
+     Click the core: the reflector travels down the axis, hesitates,
+     then snaps shut, and the assembly goes prompt critical in the
+     brand palette.
+
+     WHAT THIS IS NOT: the designer's file staged the accident with a
+     screwdriver — the tool wedged in the gap, wiggling, slipping, and
+     falling out of frame. It is removed here, and the sequence is
+     retimed around its absence: the beat the wiggle used to fill is
+     now a held pause with the reflector stopped one step short. The
+     object does the whole thing itself, which is also the only version
+     that survives being 585 px wide in a page header.
+
+     Every path is verbatim from that source file, in its coordinate
+     system, so nothing here has been retyped or re-approximated. One
+     colour is corrected: the nucleus was #E0FF02, one digit off the
+     palette's lime. Everything the STYLESHEET paints reads from
+     tokens.css; the hexes still in the markup are presentation
+     attributes, which cannot resolve a custom property, and they are the
+     token values written out.
+
+     NOT PART OF THE SYSTEM. Like the other two prototypes this carries
+     its own styling and its own engine; only tokens.css is shared.
+     ============================================================ */
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cf-weiss);
+    font-family: var(--font-mono);
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stage {
+    position: relative;
+    width: min(1440px, 100vw);
+    aspect-ratio: 1440 / 478;
+    /* The burst radiates well past the composition's bounding box, and
+       the ambient wash below is inset -10 %. Both are clipped to
+       nothing without this. */
+    overflow: visible;
+  }
+
+  .stage svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }
+
+  /* ---------- the trigger ----------
+     A real button rather than a hotspot drawn into the SVG, so the
+     easter egg is reachable from the keyboard and announces itself.
+     Its box is the source file's hotspot circle — cx 755.3, cy 214.6,
+     r 70 — expressed against the 1440 × 478 stage, which holds at every
+     width because the stage carries that aspect ratio. */
+  .trigger {
+    position: absolute;
+    left: 47.59%;
+    top: 30.25%;
+    width: 9.72%;
+    height: 29.29%;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    /* The button is over the drawing, not next to it — a focus ring is the
+       only thing that may draw on top of the core, so it is the system's
+       ring rather than the UA's orange. base.css is not loaded here, which
+       is where that rule normally lives. */
+    outline: none;
+  }
+  .trigger:focus-visible {
+    outline: var(--stroke-2) solid var(--focus-ring);
+    outline-offset: 4px;
+  }
+
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; overflow: hidden;
+    clip-path: inset(50%); white-space: nowrap;
+  }
+
+  .hint {
+    position: absolute;
+    left: 52.4%;
+    top: 72%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    /* --grey-400 is the token the mono meta line already uses, and it is
+       the exact grey the source file hard-coded here. */
+    color: var(--grey-400);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .stage:has(.trigger:hover):not(.running) .hint,
+  .stage:has(.trigger:focus-visible):not(.running) .hint { opacity: 1; }
+
+  /* ---------- the reflector travels ----------
+     Two stops, not one. `arming` moves it 100 px down the axis and
+     7.44 px onto it — the source drew the dome that far above the core's
+     equator, and closing the gap is also closing that offset. Then it
+     holds. `critical` covers the remaining 145 px in 0.16 s, which is
+     the whole point: the first move is deliberate, the second is not. */
+  #hemi {
+    transition: transform 1.2s cubic-bezier(0.6, 0, 0.3, 1);
+  }
+  .stage.arming #hemi {
+    transform: translate(-100px, 7.44px);
+  }
+  /* The travelling shell hands over to the closed sphere the instant it
+     arrives, so the two never overlap as separate contours. */
+  .stage.critical #hemi {
+    transform: translate(-244.91px, 7.44px);
+    opacity: 0;
+    transition: transform 0.16s cubic-bezier(0.8, 0, 1, 1), opacity 0.1s ease;
+  }
+
+  #axis {
+    transition: opacity 0.6s ease;
+  }
+  .stage.arming #axis,
+  .stage.critical #axis {
+    opacity: 0;
+  }
+
+  /* ---------- criticality: the flash ---------- */
+  .flash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(circle at 52.5% 45%,
+      var(--cf-weiss) 0%,
+      var(--cf-lime) 18%,
+      rgba(225, 255, 0, 0) 55%);
+  }
+  .stage.critical .flash {
+    animation: flash 0.5s ease-out;
+  }
+  @keyframes flash {
+    0%   { opacity: 0; }
+    12%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* ---------- criticality: radiating discs and rings ----------
+     Four gradient discs and six rings, staggered, in the order the
+     palette is written: lime, glas, sky, violett, grau, schwarz. The
+     blue flash is the one moment the whole palette is allowed at once. */
+  #burst circle { opacity: 0; }
+
+  .stage.critical .disc {
+    animation: disc 2s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+  }
+  .stage.critical .ring {
+    animation: ring 1.9s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+  }
+  @keyframes disc {
+    0%   { transform: scale(0.05); opacity: 0.95; }
+    100% { transform: scale(14);   opacity: 0; }
+  }
+  @keyframes ring {
+    0%   { transform: scale(0.05); opacity: 1; }
+    100% { transform: scale(26);   opacity: 0; }
+  }
+
+  .stage.critical .d1 { animation-delay: 0s; }
+  .stage.critical .d2 { animation-delay: 0.12s; }
+  .stage.critical .d3 { animation-delay: 0.26s; }
+  .stage.critical .d4 { animation-delay: 0.42s; }
+  .stage.critical .r1 { animation-delay: 0.05s; }
+  .stage.critical .r2 { animation-delay: 0.2s; }
+  .stage.critical .r3 { animation-delay: 0.38s; }
+  .stage.critical .r4 { animation-delay: 0.58s; }
+  .stage.critical .r5 { animation-delay: 0.8s; }
+  .stage.critical .r6 { animation-delay: 1.05s; }
+
+  /* the closed sphere, and the glow that says what it now contains */
+  #closedShell {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+  .stage.critical #closedShell {
+    opacity: 1;
+    transition: opacity 0.1s ease;
+    animation: glow 1.6s ease-out;
+  }
+  @keyframes glow {
+    0%   { filter: drop-shadow(0 0 0px var(--cf-lime)); }
+    15%  { filter: drop-shadow(0 0 40px var(--cf-lime)) drop-shadow(0 0 90px var(--cf-lime)); }
+    100% { filter: drop-shadow(0 0 0px var(--cf-lime)); }
+  }
+
+  /* On reset the travelling shell reappears at home. Fading it back in
+     is what keeps it from visibly driving backwards up the axis. */
+  .stage.resetting #hemi {
+    transition: opacity 0.5s ease 0.15s;
+  }
+
+  /* ambient brand wash behind everything while critical */
+  .stage::before {
+    content: "";
+    position: absolute;
+    inset: -10%;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    background:
+      radial-gradient(circle at 52.5% 45%,
+        rgba(225, 255, 0, 0.35) 0%,
+        rgba(197, 235, 226, 0.28) 22%,
+        rgba(114, 176, 226, 0.22) 42%,
+        rgba(126, 127, 225, 0.18) 60%,
+        rgba(255, 255, 255, 0) 78%);
+  }
+  .stage.critical::before { opacity: 1; }
+
+  /* ---------- reduced motion ----------
+     Nothing travels and nothing pulses; the reader gets the end state —
+     shell closed, palette lit — and then it goes away again. */
+  @media (prefers-reduced-motion: reduce) {
+    #hemi, .flash, .disc, .ring, #closedShell {
+      animation: none !important;
+      transition: none !important;
+    }
+    .stage.critical::before { opacity: 1; }
+    .stage.critical #closedShell { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="flash"></div>
+
+  <svg viewBox="0 0 1440 478" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <radialGradient id="gLime" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#E1FF00" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#E1FF00" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="gGlas" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#C5EBE2" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#C5EBE2" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="gSky" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#72B0E2" stop-opacity="0.85"/>
+        <stop offset="100%" stop-color="#72B0E2" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="gViolett" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#7E7FE1" stop-opacity="0.85"/>
+        <stop offset="100%" stop-color="#7E7FE1" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <!-- ====== the page header, as outlines ======
+         Title, rule and meta line are the source file's own vector text.
+         The stage is one drawing, not a page: the real header sets these
+         as live text in patterns/ueber-uns.html. They are here so the
+         motion can be judged against the line it has to stay on — the
+         rule at y 213.88 and the object's axis at y 214.88 read as one
+         continuous line, which is the whole reason the object sits where
+         it does. -->
+    <path d="M100.808 135.444C103.976 138.252 101.744 144.012 96.992 143.58C93.896 143.58 91.736 141.564 91.736 138.9C91.304 134.652 97.784 132.636 100.808 135.444ZM115.136 135.444C118.232 138.252 116 144.012 111.32 143.58C108.224 143.58 106.064 141.564 106.064 138.9C105.632 134.652 112.112 132.636 115.136 135.444ZM112.4 149.196H124.568V181.308C124.568 186.852 122.696 191.316 118.88 194.844C115.064 198.372 110.24 200.1 104.264 200.1C98.288 200.1 93.32 198.372 89.504 194.844C85.688 191.316 83.744 186.852 83.744 181.308V149.196H95.984V180.66C95.984 185.556 99.368 188.868 104.192 188.868C109.016 188.868 112.4 185.556 112.4 180.66V149.196ZM153.721 162.876C158.257 162.876 162.073 164.604 165.025 168.132C167.977 171.66 169.489 176.052 169.489 181.452C169.489 186.852 167.977 191.316 165.025 194.844C162.073 198.372 158.257 200.1 153.721 200.1C149.041 200.1 145.225 198.3 142.273 194.628V199.38H130.825V149.196H142.273V168.348C145.225 164.676 149.041 162.876 153.721 162.876ZM144.505 187.644C145.945 189.3 147.817 190.092 150.049 190.092C152.281 190.092 154.153 189.3 155.593 187.644C157.033 185.988 157.753 183.972 157.753 181.452C157.753 178.932 157.033 176.916 155.593 175.26C154.153 173.676 152.281 172.884 150.049 172.884C147.817 172.884 145.945 173.676 144.505 175.26C142.993 176.916 142.273 178.932 142.273 181.452C142.273 183.972 142.993 185.988 144.505 187.644ZM211.326 181.668C211.326 182.46 211.326 183.18 211.254 183.9H184.542C185.334 188.508 188.07 191.388 192.03 191.388C195.198 191.388 197.79 189.66 198.942 186.78H210.678C209.598 190.668 207.366 193.836 203.838 196.356C200.31 198.876 196.35 200.1 191.886 200.1C186.198 200.1 181.59 198.372 177.918 194.844C174.246 191.316 172.374 186.852 172.374 181.452C172.374 176.052 174.246 171.66 177.918 168.132C181.59 164.604 186.198 162.876 191.886 162.876C197.574 162.876 202.182 164.604 205.854 168.132C209.526 171.66 211.326 176.196 211.326 181.668ZM192.246 171.588C188.718 171.588 186.27 173.46 185.046 177.132H199.446C198.51 173.676 195.702 171.588 192.246 171.588ZM227.424 163.596V171.3C229.944 165.612 234.48 162.372 239.952 162.372V173.748C232.464 173.748 227.424 177.204 227.424 182.604V199.38H215.976V163.596H227.424ZM286.126 163.596H297.646V184.548C297.646 189.084 296.062 192.828 292.822 195.708C289.582 198.66 285.406 200.1 280.294 200.1C275.182 200.1 270.934 198.66 267.694 195.708C264.454 192.828 262.798 189.084 262.798 184.548V163.596H274.246V184.548C274.246 188.22 276.694 190.668 280.222 190.668C283.75 190.668 286.126 188.22 286.126 184.548V163.596ZM325.799 162.876C329.543 162.876 332.639 164.172 335.015 166.692C337.391 169.284 338.615 172.596 338.615 176.628V199.38H327.095V178.284C327.095 174.54 324.719 172.02 321.263 172.02C317.591 172.02 315.215 174.54 315.215 178.284V199.38H303.695V163.596H315.215V168.348C317.735 164.676 321.263 162.876 325.799 162.876ZM348.468 166.044C351.276 163.956 354.948 162.876 359.484 162.876C364.02 162.876 367.692 163.956 370.644 166.188C373.596 168.42 375.036 171.3 375.036 174.756H364.668C364.38 172.38 362.436 170.724 359.628 170.724C357.108 170.724 355.308 172.02 355.308 173.748C355.308 174.9 355.884 175.62 357.684 176.196C359.484 176.844 360.204 177.06 363.372 177.708C366.756 178.5 368.628 179.004 371.58 180.66C374.532 182.316 376.188 184.98 376.188 188.508C376.188 191.892 374.676 194.628 371.652 196.788C368.556 199.02 364.668 200.1 359.988 200.1C355.164 200.1 351.204 198.948 348.108 196.644C345.012 194.412 343.428 191.532 343.428 188.004H354.444C354.804 190.308 356.892 191.964 359.988 191.964C362.652 191.964 364.596 190.668 364.596 188.868C364.596 187.5 363.3 186.636 361.212 186.06C359.916 185.772 359.34 185.556 357.612 185.196C356.748 184.98 356.1 184.836 355.596 184.764C347.964 182.964 344.148 179.436 344.148 174.324C344.148 170.94 345.588 168.204 348.468 166.044Z" fill="#1F1F1F"/>
+    <line x1="80" y1="213.88" x2="540" y2="213.88" stroke="black"/>
+    <path d="M82.761 229.57C84.95 229.57 86.303 230.989 86.303 233.486C86.303 235.972 84.972 237.38 82.827 237.38H80.781V229.57H82.761ZM81.859 236.346H82.761C84.301 236.346 85.17 235.4 85.17 233.486C85.17 231.55 84.301 230.604 82.761 230.604H81.859V236.346ZM87.9487 237.38L90.3247 229.57H91.6667L94.0427 237.38H92.9317L92.3267 235.301H89.6647L89.0597 237.38H87.9487ZM89.9397 234.355H92.0517L90.9957 230.714L89.9397 234.355ZM96.9974 234.795C97.1954 235.807 97.8774 236.478 98.9554 236.478C99.8024 236.478 100.407 236.104 100.407 235.367C100.407 234.619 99.7694 234.168 98.4054 233.805C97.1734 233.486 96.0514 232.837 96.0514 231.583C96.0514 230.241 97.1074 229.394 98.5374 229.394C100.11 229.394 101.21 230.439 101.375 231.902L100.264 231.968C100.132 231.033 99.4284 230.428 98.5154 230.428C97.7674 230.428 97.1514 230.879 97.1624 231.594C97.1734 232.474 98.1304 232.727 99.0654 232.969C100.396 233.343 101.518 234.08 101.518 235.279C101.518 236.742 100.231 237.512 98.8894 237.512C97.2504 237.512 96.0184 236.467 95.8864 234.861L96.9974 234.795ZM116.932 229.57V230.604H114.622V237.38H113.544V230.604H111.234V229.57H116.932ZM119.425 229.57H124.397V230.604H120.503V232.958H124.265V233.97H120.503V236.346H124.485V237.38H119.425V229.57ZM126.427 237.38L128.803 229.57H130.145L132.521 237.38H131.41L130.805 235.301H128.143L127.538 237.38H126.427ZM128.418 234.355H130.53L129.474 230.714L128.418 234.355ZM134.519 229.57H136.158L137.17 234.96L138.182 229.57H139.821V237.38H138.743V230.912L137.599 236.83H136.73L135.597 230.912V237.38H134.519V229.57ZM149.987 237.38V229.57H151.054V232.947H154.068V229.57H155.146V237.38H154.068V233.97H151.054V237.38H149.987ZM162.556 229.57V230.604H160.796V236.346H162.622V237.38H157.903V236.346H159.718V230.604H157.958V229.57H162.556ZM165.467 229.57H166.897L169.361 235.851V229.57H170.439V237.38H168.91L166.545 231.341V237.38H165.467V229.57ZM178.497 229.57V230.604H176.187V237.38H175.109V230.604H172.799V229.57H178.497ZM180.99 229.57H185.962V230.604H182.068V232.958H185.83V233.97H182.068V236.346H186.05V237.38H180.99V229.57ZM191.018 229.57C192.657 229.57 193.691 230.483 193.691 231.935C193.691 232.837 193.108 233.541 192.426 233.761C193.163 233.904 193.482 234.3 193.559 235.103L193.779 237.38H192.69L192.492 235.213C192.426 234.531 191.986 234.3 190.919 234.3H189.588V237.38H188.51V229.57H191.018ZM189.588 233.277H191.007C191.997 233.277 192.558 232.793 192.558 231.946C192.558 231.088 191.997 230.604 191.007 230.604H189.588V233.277ZM209.39 234.861C209.082 236.522 208.07 237.556 206.585 237.556C204.638 237.556 203.527 235.983 203.527 233.486C203.527 230.967 204.638 229.394 206.585 229.394C207.982 229.394 208.972 230.362 209.335 231.924L208.191 232.001C207.927 230.978 207.355 230.428 206.574 230.428C205.342 230.428 204.649 231.517 204.649 233.486C204.649 235.444 205.342 236.522 206.574 236.522C207.432 236.522 208.026 235.917 208.257 234.795L209.39 234.861ZM214.127 237.556C212.301 237.556 211.223 235.972 211.223 233.486C211.223 230.978 212.301 229.394 214.127 229.394C215.953 229.394 217.031 230.978 217.031 233.486C217.031 235.972 215.953 237.556 214.127 237.556ZM212.356 233.486C212.356 235.367 212.994 236.522 214.127 236.522C215.26 236.522 215.898 235.367 215.898 233.486C215.898 231.583 215.26 230.428 214.127 230.428C212.994 230.428 212.356 231.583 212.356 233.486ZM219.337 229.57H220.767L223.231 235.851V229.57H224.309V237.38H222.78L220.415 231.341V237.38H219.337V229.57ZM232.367 229.57V230.604H230.057V237.38H228.979V230.604H226.669V229.57H232.367ZM237.192 229.57C238.831 229.57 239.865 230.483 239.865 231.935C239.865 232.837 239.282 233.541 238.6 233.761C239.337 233.904 239.656 234.3 239.733 235.103L239.953 237.38H238.864L238.666 235.213C238.6 234.531 238.16 234.3 237.093 234.3H235.762V237.38H234.684V229.57H237.192ZM235.762 233.277H237.181C238.171 233.277 238.732 232.793 238.732 231.946C238.732 231.088 238.171 230.604 237.181 230.604H235.762V233.277ZM244.91 237.556C243.084 237.556 242.006 235.972 242.006 233.486C242.006 230.978 243.084 229.394 244.91 229.394C246.736 229.394 247.814 230.978 247.814 233.486C247.814 235.972 246.736 237.556 244.91 237.556ZM243.139 233.486C243.139 235.367 243.777 236.522 244.91 236.522C246.043 236.522 246.681 235.367 246.681 233.486C246.681 231.583 246.043 230.428 244.91 230.428C243.777 230.428 243.139 231.583 243.139 233.486ZM250.284 237.38V229.57H251.362V236.346H255.388V237.38H250.284ZM258.453 233.574H262.149V234.542H258.453V233.574ZM265.698 229.57H270.56V230.604H266.787V233.057H270.362V234.069H266.787V237.38H265.698V229.57Z" fill="black"/>
+    <path d="M1253.64 230.346H1255.97V225.737H1254.01V224.835H1254.91C1255.79 224.835 1256.18 224.45 1256.18 223.57H1257.05V230.346H1259.16V231.38H1253.64V230.346ZM1264 231.556C1262.28 231.556 1261.2 229.972 1261.2 227.486C1261.2 224.978 1262.28 223.394 1264 223.394C1265.71 223.394 1266.79 224.978 1266.79 227.486C1266.79 229.972 1265.71 231.556 1264 231.556ZM1262.33 227.486C1262.33 229.367 1262.97 230.522 1264 230.522C1265.02 230.522 1265.66 229.367 1265.66 227.486C1265.66 225.583 1265.02 224.428 1264 224.428C1262.97 224.428 1262.33 225.583 1262.33 227.486ZM1276.74 223.57H1278.38L1279.39 228.96L1280.4 223.57H1282.04V231.38H1280.96V224.912L1279.82 230.83H1278.95L1277.81 224.912V231.38H1276.74V223.57ZM1289.38 223.57V224.604H1287.62V230.346H1289.45V231.38H1284.73V230.346H1286.54V224.604H1284.78V223.57H1289.38ZM1297.63 223.57V224.604H1295.32V231.38H1294.24V224.604H1291.93V223.57H1297.63ZM1299.43 231.38L1301.8 223.57H1303.15L1305.52 231.38H1304.41L1303.81 229.301H1301.14L1300.54 231.38H1299.43ZM1301.42 228.355H1303.53L1302.47 224.714L1301.42 228.355ZM1310.15 223.57C1311.79 223.57 1312.82 224.483 1312.82 225.935C1312.82 226.837 1312.24 227.541 1311.56 227.761C1312.29 227.904 1312.61 228.3 1312.69 229.103L1312.91 231.38H1311.82L1311.62 229.213C1311.56 228.531 1311.12 228.3 1310.05 228.3H1308.72V231.38H1307.64V223.57H1310.15ZM1308.72 227.277H1310.14C1311.13 227.277 1311.69 226.793 1311.69 225.946C1311.69 225.088 1311.13 224.604 1310.14 224.604H1308.72V227.277ZM1315.39 231.38V223.57H1317.57C1319.38 223.57 1320.38 224.34 1320.38 225.737C1320.38 226.584 1319.8 227.211 1318.93 227.343C1320.03 227.464 1320.71 228.146 1320.71 229.169C1320.71 230.533 1319.69 231.38 1318.01 231.38H1315.39ZM1316.47 230.346H1318C1318.98 230.346 1319.58 229.895 1319.58 229.147C1319.58 228.355 1319.02 227.926 1318 227.926H1316.47V230.346ZM1316.47 226.892H1317.58C1318.67 226.892 1319.25 226.496 1319.25 225.759C1319.25 225.011 1318.67 224.604 1317.58 224.604H1316.47V226.892ZM1323.21 223.57H1328.18V224.604H1324.29V226.958H1328.05V227.97H1324.29V230.346H1328.27V231.38H1323.21V223.57ZM1335.56 223.57V224.604H1333.8V230.346H1335.62V231.38H1330.9V230.346H1332.72V224.604H1330.96V223.57H1335.56ZM1343.8 223.57V224.604H1341.49V231.38H1340.41V224.604H1338.1V223.57H1343.8ZM1346.29 223.57H1351.27V224.604H1347.37V226.958H1351.13V227.97H1347.37V230.346H1351.35V231.38H1346.29V223.57ZM1356.32 223.57C1357.96 223.57 1359 224.483 1359 225.935C1359 226.837 1358.41 227.541 1357.73 227.761C1358.47 227.904 1358.79 228.3 1358.86 229.103L1359.08 231.38H1357.99L1357.8 229.213C1357.73 228.531 1357.29 228.3 1356.22 228.3H1354.89V231.38H1353.81V223.57H1356.32ZM1354.89 227.277H1356.31C1357.3 227.277 1357.86 226.793 1357.86 225.946C1357.86 225.088 1357.3 224.604 1356.31 224.604H1354.89V227.277Z" fill="#919191"/>
+    <line x1="1125" y1="213.88" x2="1360" y2="213.88" stroke="black"/>
+
+    <!-- ====== the core: shells open to the left, nucleus inside ====== -->
+    <g id="coreAssembly">
+      <path d="M752.195 422.257C693.964 422.257 646.757 327.845 646.757 211.382C646.757 94.9185 693.964 0.506348 752.195 0.506348" stroke="black" stroke-linejoin="round" stroke-dasharray="1 2"/>
+      <path d="M750.841 342.381C719.684 342.381 690.328 337.063 664.574 327.67M750.841 86.7744C719.684 86.7744 690.328 92.0928 664.574 101.485" stroke="black" stroke-linejoin="round" stroke-dasharray="3 1.5"/>
+      <ellipse cx="755.29" cy="214.58" rx="127.803" ry="63.9017" transform="rotate(90 755.29 214.58)" stroke="black"/>
+      <g id="nucleus">
+        <ellipse cx="753.406" cy="209.251" rx="17.0404" ry="8.52022" transform="rotate(90 753.406 209.251)" fill="black"/>
+        <ellipse cx="753.16" cy="215.661" rx="59.6415" ry="29.8208" transform="rotate(90 753.16 215.661)" fill="black"/>
+        <ellipse cx="755.694" cy="215.64" rx="10.6503" ry="5.32514" transform="rotate(90 755.694 215.64)" fill="#E1FF00"/>
+      </g>
+      <path d="M752.195 422.254C810.427 422.254 857.633 327.842 857.633 211.378" stroke="black" stroke-linejoin="round" stroke-dasharray="1 2"/>
+      <path d="M857.637 211.379C857.637 94.9161 810.431 0.503906 752.199 0.503906" stroke="black" stroke-linejoin="round" stroke-dasharray="1 2"/>
+      <path d="M750.871 422.251C634.408 422.251 539.995 327.839 539.995 211.376C539.995 94.9122 634.408 0.500001 750.871 0.5" stroke="black" stroke-linejoin="round" stroke-dasharray="1 2"/>
+    </g>
+
+    <!-- ====== the reflector: the half that travels ======
+         The white silhouette is not decoration. It is what lets the dome
+         occlude the core as it arrives, so the two read as one solid body
+         closing rather than two contours crossing. -->
+    <g id="hemi">
+      <path d="M1000.2 334.942C964.903 334.942 936.294 277.723 936.294 207.139C936.294 136.555 964.903 79.3359 1000.2 79.3359L997.195 79.3369C1067.78 79.3369 1125 136.556 1125 207.14C1125 277.724 1067.78 334.943 997.195 334.943Z" fill="#FFFFFF"/>
+      <path d="M1000.2 334.942C964.903 334.942 936.294 277.723 936.294 207.139C936.294 136.555 964.903 79.3359 1000.2 79.3359" stroke="black"/>
+      <path d="M997.324 79.3345C1032.62 79.3345 1061.23 136.554 1061.23 207.138C1061.23 277.721 1032.62 334.941 997.324 334.941" stroke="black" stroke-linejoin="round" stroke-dasharray="2 4"/>
+      <path d="M997.195 79.3369C1067.78 79.3369 1125 136.556 1125 207.14C1125 277.724 1067.78 334.943 997.195 334.943" stroke="black"/>
+    </g>
+
+    <line id="axis" x1="761" y1="214.88" x2="1061" y2="214.88" stroke="black" stroke-linejoin="round" stroke-dasharray="1 2"/>
+
+    <!-- ====== the closed sphere: one clean ball, core sealed inside ====== -->
+    <g id="closedShell">
+      <ellipse cx="755.29" cy="214.58" rx="96.2" ry="127.803" fill="#FFFFFF" stroke="black"/>
+    </g>
+
+    <!-- ====== the burst, on top of everything it radiates past ====== -->
+    <g id="burst" transform="translate(755.3, 214.6)">
+      <circle class="disc d1" cx="0" cy="0" r="60" fill="url(#gLime)"/>
+      <circle class="disc d2" cx="0" cy="0" r="60" fill="url(#gGlas)"/>
+      <circle class="disc d3" cx="0" cy="0" r="60" fill="url(#gSky)"/>
+      <circle class="disc d4" cx="0" cy="0" r="60" fill="url(#gViolett)"/>
+      <circle class="ring r1" cx="0" cy="0" r="20" fill="none" stroke="#E1FF00" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
+      <circle class="ring r2" cx="0" cy="0" r="20" fill="none" stroke="#C5EBE2" stroke-width="2"   vector-effect="non-scaling-stroke"/>
+      <circle class="ring r3" cx="0" cy="0" r="20" fill="none" stroke="#72B0E2" stroke-width="1.8" vector-effect="non-scaling-stroke"/>
+      <circle class="ring r4" cx="0" cy="0" r="20" fill="none" stroke="#7E7FE1" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+      <circle class="ring r5" cx="0" cy="0" r="20" fill="none" stroke="#CFCFCF" stroke-width="1.2" vector-effect="non-scaling-stroke"/>
+      <circle class="ring r6" cx="0" cy="0" r="20" fill="none" stroke="#000000" stroke-width="0.8" vector-effect="non-scaling-stroke"/>
+    </g>
+  </svg>
+
+  <button class="trigger" type="button" id="trigger" aria-describedby="hint">
+    <span class="visually-hidden">Kern auslösen</span>
+  </button>
+  <div class="hint" id="hint">Nicht anfassen</div>
+</div>
+
+<script>
+  var stage   = document.getElementById('stage');
+  var trigger = document.getElementById('trigger');
+  var running = false;
+
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function setState() {
+    stage.classList.remove('arming', 'critical');
+    for (var i = 0; i < arguments.length; i++) stage.classList.add(arguments[i]);
+  }
+
+  trigger.addEventListener('click', function () {
+    if (running) return;
+    running = true;
+    stage.classList.add('running');
+
+    if (reducedMotion) {
+      setState('critical');
+      setTimeout(reset, 3000);
+      return;
+    }
+
+    /* 1. the reflector starts down the axis (1.2 s) */
+    setState('arming');
+
+    /* 2. it arrives at 1200 and holds — the pause is the tell. Then the
+          last 145 px happen in 0.16 s and the shell is shut. */
+    setTimeout(function () { setState('critical'); }, 1900);
+
+    /* 3. the burst runs ~2 s from there; cool down and reopen */
+    setTimeout(reset, 5250);
+  });
+
+  function reset() {
+    stage.classList.add('resetting');
+    setState();
+    stage.classList.remove('running');
+    setTimeout(function () {
+      stage.classList.remove('resetting');
+      running = false;
+    }, 900);
+  }
+</script>
+
+</body>
+</html>

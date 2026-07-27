@@ -1192,28 +1192,40 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   position: relative;
   padding-block: var(--space-24) var(--space-16);
 }
-/* THE OBJECT BELONGS TO THE CONTENT COLUMN, NOT TO THE PAGE BLEED, and it
-   used to belong to neither. It was positioned against .cf-page-header,
-   which is full-bleed, with right: 0 — so at a 2000 px viewport it ran from
-   1456 to 2000: 280 px of it outside the column every other element on the
-   page lines up with, hard against the viewport edge, and lying across the
-   meta row. The figure now sits inside .container, so it is measured from
-   the same edge the title and the rule are.
+/* THE RULE IS THE OBJECT'S AXIS, so the rule is what the object is measured
+   against — not the container, and not the header.
 
-   TWO COLUMNS SHORT OF THAT EDGE, which is where the mockup puts it — right
-   edge at 83.5 % of the content column, measured off assets/source/mockups/
-   ueber-uns.jpg — and which is what leaves the last two columns to the meta
-   label the object used to sit on top of. The expression is the gutter (back
-   to the content edge) plus two twelfths of the content width, so it tracks
-   the grid rather than a viewport fraction. */
+   Both earlier attempts positioned the figure against a box and hoped the
+   axis would land somewhere sensible. Against .cf-page-header (full-bleed,
+   right: 0) it ran past the content column entirely. Against .container it
+   was centred on the container's middle — but the container holds a 65 px
+   title above the rule and a 16 px meta row below it, so its middle sits 31
+   px above the rule and the page line cut the drawing across the nucleus
+   instead of continuing its axis. Measured at 1440: rule centre 270, figure
+   centre 239.
+
+   The figure is now a child of the rule, and the rule is the only thing it
+   is measured from: `top: 50%` of a 1 px element is that line, and the
+   viewBox is padded at the bottom so the drawing's own dotted axis sits at
+   exactly 50 % of the SVG box. Rule and axis are then collinear by
+   construction at every width, with nothing to keep in sync by hand.
+
+   The horizontal numbers are the drawing's own, not a grid fraction. In the
+   designer's source the composition spans x 540..1125 of a 1440 page whose
+   content column is 80..1360, which is 35.937 % .. 81.641 % of that column —
+   so 45.703 % wide, inset 18.359 % from the right. Two columns short of the
+   content edge, which is what leaves the last columns to the meta label. */
 .cf-page-header > .container { position: relative; }
 .cf-page-header__figure {
   position: absolute;
-  right: calc(var(--gutter) + (100% - 2 * var(--gutter)) / 6);
+  right: 18.359%;
   top: 50%;
   translate: 0 -50%;
-  width: min(46%, 34rem);
-  z-index: 0;
+  width: 45.703%;
+  /* The viewBox is the drawing's bounding box, so a 1 px non-scaling contour
+     at the extremes is half outside it. SVG clips to the viewport by
+     default; without this the outermost shell loses half its stroke. */
+  overflow: visible;
   pointer-events: none;
 }
 .cf-page-header__body { position: relative; z-index: 1; }
@@ -1225,9 +1237,27 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   letter-spacing: var(--tracking-display);
 }
 .cf-page-header__rule {
+  position: relative;
   height: var(--stroke-1);
   margin-top: var(--space-6);
   background: var(--border-strong);
+}
+
+/* THE RULE STOPS WHERE THE OBJECT STARTS AND RESUMES WHERE IT ENDS. In the
+   mockup the page line and the object's dotted axis are one continuous line
+   that changes character as it passes through the drawing: solid page rule,
+   then the object's own 1-2 axis across the gap, then solid rule again. A
+   solid line drawn straight through the nucleus — which is what a full-width
+   rule does — reads as a line lying ON the object rather than as its axis.
+
+   Same two stops as the figure's own placement, so the line meets the
+   drawing's bounding box exactly. Scoped with :has() because every other
+   page header on the site carries an uninterrupted rule. */
+.cf-page-header__rule:has(.cf-page-header__figure) {
+  background: linear-gradient(to right,
+    var(--border-strong) 0 35.937%,
+    transparent 35.937% 81.641%,
+    var(--border-strong) 81.641%);
 }
 .cf-page-header__meta {
   display: flex;
@@ -1243,6 +1273,27 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 }
 .cf-page-header__meta :last-child { color: var(--text-secondary); }
 
+/* THE HEADER HAS TO BE TALL ENOUGH TO HOLD THE OBJECT, and only the header
+   that carries one — every other page header keeps the padding above.
+
+   The figure's box is symmetric about its axis by construction, so it hangs
+   exactly as far below the rule as it rises above it: 45.703 % of the content
+   column wide, 428.76 / 586 as tall, halved — 16.72 % of the content column,
+   214 px at 1440. The rule itself sits --space-3 plus one mono line above the
+   header's own content edge, so that much of the drop is already paid for.
+
+   Upward the object is free to overflow: it passes behind a transparent nav
+   bar, clear of both pills, which is what the mockup does too. Downward it
+   would run 42 px into the value table's top border.
+
+   The header is full-bleed, so its own 100 % is the window, not the column —
+   the exact case --column-inset was added for. Two of them off the window is
+   the column, and the reach is a fraction of that. */
+.cf-page-header:has(.cf-page-header__figure) {
+  --cf-figure-reach: calc(0.1672 * (100% - 2 * var(--column-inset)));
+  padding-bottom: calc(var(--cf-figure-reach) - var(--space-3) - var(--space-4) + var(--space-16));
+}
+
 /* Below 900 px the object would sit behind the title instead of beside it.
 
    THE SELECTOR CARRIES THE PARENT DELIBERATELY, and this is a bug fix rather
@@ -1257,6 +1308,12 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
 @media (max-width: 900px) {
   .cf-page-header { padding-block: var(--space-16) var(--space-12); }
   .cf-page-header .cf-page-header__figure { display: none; }
+  /* :has() matches on the element existing, not on it being painted, so both
+     the gap in the rule and the room reserved below it outlive the object
+     they were cut for. Same specificity as the rules above, later in the
+     file, so these win. */
+  .cf-page-header__rule:has(.cf-page-header__figure) { background: var(--border-strong); }
+  .cf-page-header:has(.cf-page-header__figure) { padding-bottom: var(--space-12); }
 }
 
 /* --------------------------------------------------------------------------
