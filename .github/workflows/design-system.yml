@@ -76,6 +76,16 @@ name: Design system checks
 # them all 241 were dead. The section that exists to prove the system can be
 # walked was the one section you could not walk, and nothing said so, because
 # a dead link renders exactly like a live one until someone clicks it.
+#
+# The job posting is the eleventh, and the only one whose subject is never
+# rendered at all. components/vacancy.html states that the JobPosting block
+# goes on the page describing one opening, that it may not go on the register
+# that lists several, and that every field in it has to match what the reader
+# sees. A screenshot cannot show any of that: the block is invisible, and a
+# posting whose validThrough was extended on the visible page and not in the
+# JSON-LD looks exactly like one that was extended in both. The consumer is a
+# search engine, the failure mode is a manual action against the site, and
+# nobody finds out by looking.
 
 on:
   push:
@@ -84,7 +94,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not ten. All ten checks are a few hundred milliseconds of
+  # One job, not eleven. All eleven checks are a few hundred milliseconds of
   # stdlib python; a second runner would cost more to start than any of them
   # takes to run, and a reader looking at a red tick wants every answer on one
   # page.
@@ -99,7 +109,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: ten
+      # Each check runs even when an earlier one has already failed: eleven
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -136,3 +146,7 @@ jobs:
       - name: Links
         if: '!cancelled()'
         run: python3 scripts/check-links.py
+
+      - name: Job postings
+        if: '!cancelled()'
+        run: python3 scripts/check-job-posting.py
