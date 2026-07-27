@@ -23,9 +23,12 @@ python3 scripts/check-spacing-scale.py --fix   # rewrite the table in foundation
 python3 scripts/check-gradient-family.py       # the light family, in every shipped SVG
 python3 scripts/check-gradient-family.py -v    # list all 40 gradients, not only the failures
 python3 scripts/check-iso-motion.py            # the isometric assembly's invariants
+python3 scripts/check-glass-budget.py          # what backdrop-filter is allowed to cost
+python3 scripts/check-glass-budget.py --fix    # rewrite the census in foundations/materials.html
+python3 scripts/check-glass-budget.py -v       # list every page, not only the ones carrying glass
 ```
 
-The three checks the system enforces rather than documents, run by CI on every push and
+The four checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step.
 
@@ -57,9 +60,30 @@ prose and none of which anything ran:
 | `screen` | Every `animation-timeline` declaration sits inside a `@media` that names `screen`. |
 
 Every one of the six is invisible in a screenshot and countable in a file, which is the
-whole test for what belongs in any of these three — and the reason two of the four in
+whole test for what belongs in any of these four — and the reason two of the four in
 [Redrawing an illustration](#redrawing-an-illustration-four-things-that-vanish-quietly)
 are deliberately left out.
+
+**The glass budget** holds `backdrop-filter` — the most expensive thing in the stylesheet —
+to what `foundations/materials.html` states in prose and nothing ran. Three claims: at most
+two blurred layers on a shipping page, every `backdrop-filter` reading `var(--glass-blur)`
+rather than its own radius, and no `animation` or `animation-timeline` on a rule that
+declares one. All three pass the same test: a third blurred layer renders perfectly and
+simply costs more, on the hardware least able to afford it. The page's own census was a
+sentence naming its own problem two paragraphs later — *a count somebody has to remember* —
+and is a generated table now, with a stamp, the same way the space scale's is.
+
+**What counts as glass is read out of the stylesheet, not listed in the script.** It takes
+the selectors of every shipping rule declaring `backdrop-filter` as the definition, so a
+fourth frosted surface enters the budget by existing rather than by somebody remembering to
+add it — the same reason the light-family script recomputes its waypoint instead of
+comparing against a table of hexes. A selector it cannot count is a finding, never a silent
+skip. The one rule it deliberately does **not** enforce is a transition, and that is a
+correction to the chapter rather than a gap in the script: *Cost* had said **never move
+anything** on a blurred layer while `.cf-btn--glass` has always travelled its specular
+across its own blurred plate. Measured, that plate is indistinguishable from the same plate
+with no blur at all — so the line is how long a thing runs and what it runs against, not
+whether it moves, and a scroll-scrubbed animation is the half that pays.
 
 **The waypoint is the light family's, not the assembly's,** and it is checked once. The
 isometric script was written with a seventh rule of its own — no inline gradient runs lime
