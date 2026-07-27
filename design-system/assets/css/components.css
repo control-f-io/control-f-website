@@ -1940,29 +1940,41 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
    for a figure used outside .cf-prose. */
 .cf-figure--inline { max-width: var(--measure-prose); }
 
-/* Quote. Contour, not quotation marks: one hairline down the left side and
-   the type one step up. The attribution is not part of the quote, so it goes
-   in a figcaption OUTSIDE the blockquote — putting it inside would make the
-   source read as something the source said about itself.
+/* Quote. Type, not quotation marks and not a bar: the words go one step up
+   the scale and the attribution closes the block under a hairline. The
+   attribution is not part of the quote, so it goes in a figcaption OUTSIDE
+   the blockquote — putting it inside would make the source read as something
+   the source said about itself.
+
+   It used to be marked by a hairline down its left side, which is the one
+   mark this system does not make — see foundations/geometry.html, "Where a
+   line may go". Two things changed when the bar came off. The type moved from
+   --text-h4 to --text-h3, because the bar was carrying half the distinction
+   and something had to take it over: 24 px Light against 20 px SemiBold for
+   .cf-prose h3 and 32 px Medium for h2, so the quote now sits in a slot of
+   its own by size AND weight rather than by a decoration. And the caption
+   stopped suppressing the figcaption rule it inherits from .cf-prose figure —
+   an attribution under a hairline is what every other caption in an article
+   already is, so the quote stops being a special case. The rule is declared
+   here rather than left to that inheritance because .cf-quote is usable
+   outside .cf-prose, where nothing would draw it.
 
    Declared after the figure block on purpose: .cf-quote is a <figure>, so
    both blocks reach its caption at equal specificity and the later one has
    to be this one. */
 .cf-prose blockquote,
 .cf-quote {
-  padding-left: var(--space-6);
-  border-left: var(--stroke-1) solid var(--border-strong);
-  font-size: var(--text-h4);
+  font-size: var(--text-h3);
   font-weight: var(--weight-light);
   line-height: var(--leading-snug);
 }
 .cf-quote { margin: 0; max-width: var(--measure-prose); }
-.cf-quote > blockquote { padding-left: 0; border-left: 0; font: inherit; }
+.cf-quote > blockquote { font: inherit; }
 .cf-quote figcaption,
 .cf-quote__source {
   margin-top: var(--space-4);
-  padding-top: 0;
-  border-top: 0;
+  padding-top: var(--space-3);
+  border-top: var(--stroke-1) solid var(--border-default);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   line-height: var(--leading-normal);
@@ -1980,14 +1992,45 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 }
 
 /* An aside inside the argument. Sunken rather than outlined, so it reads as
-   a step back from the page instead of another box on it. */
+   a step back from the page instead of another box on it, and opened by a
+   mono tag with the hairline running out of it to the far edge — the
+   .cf-section-header device at prose scale, which is what makes the aside
+   look like part of this site rather than like a callout from any other.
+
+   It used to be marked by a 2 px rule down its left side, and that is the
+   mark this system does not make: a bar beside a block is the only line on
+   the page that is not an edge of anything, does not divide two things, and
+   carries no label. See foundations/geometry.html, "Where a line may go".
+   The tag replaces it and does more than mark the block — it says what the
+   aside IS, which the bar never could.
+
+   The tag holds one word of plain text. It is a flex row whose ::after is
+   the rule, so an inline element inside it would become a second flex item
+   and push the rule along; nothing breaks, but the tag is not the place for
+   a link. Anything with structure in it belongs in the body. */
 .cf-prose__note {
-  padding: var(--space-4) var(--space-6);
+  padding: var(--space-5) var(--space-6);
   background: var(--surface-sunken);
-  border-left: var(--stroke-2) solid var(--border-strong);
   font-size: var(--text-md);
 }
 .cf-prose__note > * + * { margin-top: var(--space-3); }
+.cf-prose__note-tag {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+.cf-prose__note-tag::after {
+  content: "";
+  flex: 1;
+  height: var(--stroke-1);
+  background: var(--border-strong);
+}
 
 .cf-prose :is(code, kbd, samp) {
   padding: 0.1em 0.35em;

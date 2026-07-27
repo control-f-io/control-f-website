@@ -14,6 +14,16 @@
   .square-demo { width:8rem; height:8rem; border:1px solid var(--border-strong); background:rgba(225,255,0,.4); }
   .lines-demo > * + * { margin-top:var(--space-6); }
   .lines-demo figcaption { margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs); color:var(--text-muted); }
+  /* Where a line may go — the two asides, side by side. The left one is drawn the
+     way the system used to draw it and is deliberately not a class: nothing in the
+     shipping CSS should be able to produce it again. */
+  .wl { display:grid; grid-template-columns:repeat(auto-fit,minmax(17rem,1fr)); gap:var(--space-6); }
+  .wl figure { margin:0; }
+  .wl__block { padding:var(--space-5) var(--space-6); background:var(--surface-sunken); font-size:var(--text-md); }
+  .wl__block p { margin:0; }
+  .wl__block p + p { margin-top:var(--space-3); }
+  .wl__block--bar { border-left:var(--stroke-2) solid var(--border-strong); }
+  .wl__cap { margin-top:var(--space-3); font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label); line-height:var(--leading-normal); color:var(--text-secondary); }
 </style>
 </head>
 <body class="docs" data-root="../">
@@ -207,6 +217,91 @@
       <figure style="margin:0"><div class="rule rule--2"></div><figcaption>2 px · <code>--stroke-2</code> · focus ring, emphasis</figcaption></figure>
       <figure style="margin:0"><div class="rule rule--4"></div><figcaption>4 px · <code>--stroke-4</code> · diagrams, accent edges</figcaption></figure>
       <figure style="margin:0"><div class="rule rule--8"></div><figcaption>8 px · <code>--stroke-8</code> · large format only, never in UI</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="docs-section" id="where-lines-go">
+    <h2>Where a line may go</h2>
+    <p>
+      The four types above say what a line looks like. This says where it is allowed to be,
+      which turns out to matter more — a system this dependent on hairlines gets generic the
+      moment one of them is drawn for effect rather than for a reason.
+    </p>
+    <p><strong>Every line in this system is one of exactly three things.</strong></p>
+    <table class="docs-table">
+      <thead><tr><th>Kind</th><th>Is</th><th>Examples</th></tr></thead>
+      <tbody>
+        <tr><td><b>Edge</b></td><td>the boundary of a surface — it closes something</td><td>grid and table cells, a figure's frame, a button contour, every contour in an illustration</td></tr>
+        <tr><td><b>Division</b></td><td>one thing ends and another begins, with content on both sides</td><td>the rule under an <code>h2</code>, ruled table rows, <code>.cf-prose hr</code></td></tr>
+        <tr><td><b>Label rule</b></td><td>a mono label with the hairline running out of it to the far edge — the line and the word are one mark</td><td><code>.cf-section-header</code>, the article index title, <code>.cf-prose__note-tag</code></td></tr>
+      </tbody>
+    </table>
+    <p>
+      A line that is none of the three is decoration, and there is one piece of decoration
+      that turns up again and again because every UI kit ships it: <strong>the bar beside a
+      block</strong> — a rule down the left side of a quote, a callout, a note.
+    </p>
+    <p>
+      It fails all three tests at once. It is not an edge, because the block has three other
+      sides and none of them is drawn. It is not a division, because there is nothing on the
+      other side of it. And it carries no label, so it says only "this bit is different"
+      without saying how. It is the one mark on a page that belongs to no structure — which
+      is exactly why it is the default in generated interfaces, and why a page that uses it
+      reads as generic however carefully everything else is drawn.
+    </p>
+    <div class="docs-demo docs-demo--flat">
+      <div class="wl">
+        <figure>
+          <div class="wl__block wl__block--bar">
+            <p><strong>Faustregel.</strong> Wenn sich der Zustand einer Anlage nicht aus dem
+            Rohdatenstrom rekonstruieren lässt, rekonstruiert ihn auch kein Zwilling.</p>
+          </div>
+          <figcaption class="wl__cap">Don't · a bar beside the block. No edge, no division, no label.</figcaption>
+        </figure>
+        <figure>
+          <div class="wl__block">
+            <p class="cf-prose__note-tag">Faustregel</p>
+            <p>Wenn sich der Zustand einer Anlage nicht aus dem Rohdatenstrom rekonstruieren
+            lässt, rekonstruiert ihn auch kein Zwilling.</p>
+          </div>
+          <figcaption class="wl__cap">Do · a label rule. Marks the block and names it in one mark.</figcaption>
+        </figure>
+      </div>
+    </div>
+    <p>
+      Both blocks above are the same aside on the same sunken surface. The difference is
+      whether the mark that distinguishes it is doing any work. This is not a preference
+      between two looks: the left one could be any site, and the right one is the same
+      construction as every section header on this one.
+    </p>
+
+    <h3>The same test applies to objects</h3>
+    <p>
+      A lone mark parked at one side of a block fails for the same reason a bar does — an
+      icon in a note's left gutter, a single glyph beside a heading, one small drawing set
+      into the margin of a paragraph. If it is not an edge, a division or a label, it is
+      decoration, and decoration in a technical drawing is noise. The system's objects earn
+      their place a different way: they are the subject of a figure
+      (<a href="illustration.html">Illustration</a>), or they are a number
+      (<a href="../components/plot.html">Plot</a>), or they are a control's own glyph
+      (<a href="iconography.html">Iconography</a>).
+    </p>
+    <div class="docs-note">
+      <strong>What changed when this rule was written down.</strong> Two components were
+      breaking it, both in the article. <code>.cf-prose__note</code> carried a 2 px bar down
+      its left side and now opens with a label rule instead. <code>.cf-quote</code> carried a
+      1 px one and now has no rule of its own at all — the words go one step up the scale and
+      the attribution closes the block under a hairline, which is what every other caption in
+      an article already does. → <a href="../components/article.html">Article &amp; Prose</a>
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>Two-of-four borders on a grid are an edge, not a bar.</strong>
+      <code>.cf-blog-grid</code>, <code>.cf-team-grid</code> and <code>.cf-subdiv</code> each
+      set <code>border-top</code> + <code>border-left</code> on the container and the other
+      two on the cells, so the finished field carries exactly one hairline everywhere instead
+      of a doubled 2 px seam down the shared edges. Those declarations look like the thing
+      this section bans and are the opposite of it: every one of them is closing a surface.
+      The test is what the finished drawing does, not what a single declaration says.
     </div>
   </section>
 
