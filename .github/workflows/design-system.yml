@@ -207,6 +207,22 @@ name: Design system checks
 # is a height a person checks at, including both edges of the stage's own gate.
 # The fix moves the cap to a custom property on the stage, inherited by all
 # three rows, so a page cannot narrow one of them; this runs that.
+#
+# The overflow-wrap net is the twenty-first, and the one whose subject the
+# manual had already declared handled. base.css sets overflow-wrap on the
+# text-bearing elements and foundations/layout.html says, in a note about a
+# different bug, that "the reset sets it on everything" — so anyone reading
+# either file learns that a German compound cannot escape its box. The list was
+# written by hand and is a list of the elements that MEAN text; four tags on
+# the pattern pages hold copy and were not in it. Two were live on the landing
+# page at a 16 px default, with no enlarged type needed: one real compound in a
+# FAQ question or in a section counter took the document from 320 to 384 px.
+# The floor is what stops that (see the grid tracks above, and note that
+# neither of these two was a grid at all — one was a flex row and one an
+# ANONYMOUS flex item, which is the one kind nothing can put min-width: 0 on);
+# the net is what makes the row read afterwards instead of painting 322 px of
+# word through a 280 px row. Both halves ship here, and the check keeps the
+# hand-written half from being caught short again.
 
 on:
   push:
@@ -215,10 +231,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not twenty. All twenty checks are a few hundred milliseconds of
-  # stdlib python; a second runner would cost more to start than any of them
-  # takes to run, and a reader looking at a red tick wants every answer on one
-  # page.
+  # One job, not twenty-one. All twenty-one checks are a few hundred
+  # milliseconds of stdlib python; a second runner would cost more to start
+  # than any of them takes to run, and a reader looking at a red tick wants
+  # every answer on one page.
   self-checks:
     runs-on: ubuntu-latest
     steps:
@@ -230,7 +246,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: twenty
+      # Each check runs even when an earlier one has already failed: twenty-one
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -307,3 +323,7 @@ jobs:
       - name: Pinned measure
         if: '!cancelled()'
         run: python3 scripts/check-pin-measure.py
+
+      - name: Overflow-wrap net
+        if: '!cancelled()'
+        run: python3 scripts/check-wrap-net.py
