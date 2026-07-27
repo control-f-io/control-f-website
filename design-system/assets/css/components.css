@@ -1918,34 +1918,42 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    A field of copy on a plate of glass: a count, a title, a subtitle, a
    paragraph, the question the subject actually asks, and the facts under it.
 
-   IT IS A GLASS COMPONENT, AND THAT IS THE WHOLE REASON IT EXISTS AS ONE.
-   tokens.css states the material's rule in one line — Milchglas "exists to
-   calm a complex graphic beneath it, never to sit on a flat surface, where it
-   is only a grey box". This card is the case that sentence describes. Expertise
-   put four blocks of copy straight onto .cf-ground, and the lattice ran through
-   every ascender and every counter; a plate of frosted glass is what the
-   material was declared for. Drop this on a flat --surface-page and it IS only
-   a grey box, and something with a border is the right component instead.
+   THE MATERIAL IS A MODIFIER, AND THAT IS NOT A CONVENIENCE. The base card is
+   layout and type; --glass is what makes it a plate. The first version of this
+   component was glass unconditionally and Expertise turned the material off
+   again in its own stylesheet for the four cards that did not need it —
+   which check-glass-budget.py counted, correctly, as six blurred layers on a
+   two-layer page. That checker reads the HTML rather than resolving the
+   cascade, on purpose: a census with an unstated exception in it is worse than
+   no census. But it was right on the design too. A class that says "I am
+   glass" and a page-local rule that says "except here" is exactly the drift
+   these scripts exist to stop, and the budget should be legible from the
+   markup. Carry the modifier where the material is spent.
 
-   BEARING GLASS, NOT VEIL. Text sits directly on this, so it takes
+   BEARING GLASS, NOT VEIL. Text sits directly on this, so --glass takes
    --surface-glass and its 4.5:1 floor — see the measurement in tokens.css
    section 9, which is the reason that tint has almost no room to move. The
    no-blur and reduced-transparency fallbacks are already in the tokens, so
    there is nothing to write here: the surface goes opaque and the card keeps
    its contrast.
 
-   COUNT YOUR BLURRED LAYERS. tokens.css allows exactly two on a page and the
-   navigation band is always one of them, so a page may carry ONE of these
-   frosted. Anywhere a second is wanted, the second one is not glass. The
-   pinned Expertise stage is the case that already came up: four cards stacked
-   in one grid area would have been four, so the page hoists the material onto
-   a single plate underneath and the four cards hand over on top of it. That
-   composition — one lectern, changing copy — is also the better drawing.
+   WHERE THE MODIFIER BELONGS. foundations/materials.html states the material's
+   rule in one line — Milchglas "exists to calm a complex graphic beneath it,
+   never to sit on a flat surface, where it is only a grey box". So --glass
+   goes on a card that stands on the ground, on an illustration, on anything a
+   reader can still see through it, and nowhere else. And a shipping page gets
+   two blurred layers with the navigation band always one of them, so it goes
+   on ONE card per page. The pinned Expertise stage is the case that came up
+   first: the material is on a single empty card under the copy column and the
+   four cards hand over on top of it, unfrosted. One lectern, changing copy —
+   which is also the better drawing, because a lectern does not change when the
+   page on it does.
 
-   THE TITLE TAKES THE FOIL, and does not take it from here. .text-foil--ink
-   is authored on the element by the page, because the one-foil-moment-per-
-   screen budget is a fact about the SCREEN and a component cannot know how
-   many of itself are on one. Ink, never the lit half: this surface is light.
+   THE TITLE TAKES THE FOIL, and does not take it from here either.
+   .text-foil--ink is authored on the element by the page, because the
+   one-foil-moment-per-screen budget is a fact about the SCREEN and a component
+   cannot know how many of itself are on one. Ink, never the lit half: this
+   surface is light.
 
    The lit rim is the same one pixel of Weiss-Glas-Sky that .cf-nav::after and
    .cf-btn--glass end at — glass in this brand is edged with light, never
@@ -1954,15 +1962,21 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   position: relative;
   isolation: isolate;
   padding: var(--space-8);
+  background: var(--surface-card);
+  border: var(--stroke-1) solid var(--border-strong);
+}
+/* The material, and it REPLACES the surface rather than sitting on it. */
+.cf-info-card--glass {
   background-color: var(--surface-glass);
   -webkit-backdrop-filter: var(--glass-blur);
           backdrop-filter: var(--glass-blur);
   border: var(--glass-border);
 }
-/* The rim. Above the content rather than under it, so it survives a card
-   whose first line starts at the padding edge, and pointer-transparent so it
-   cannot eat a click on anything inside. */
-.cf-info-card::before {
+/* The rim, and it belongs to the material rather than to the card. Above the
+   content rather than under it, so it survives a card whose first line starts
+   at the padding edge, and pointer-transparent so it cannot eat a click on
+   anything inside. */
+.cf-info-card--glass::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
@@ -3513,7 +3527,12 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    Underlined fields, mono labels. No boxes — the hairline is the input.
    -------------------------------------------------------------------------- */
 .cf-field { display: flex; flex-direction: column; gap: var(--space-2); }
-.cf-field__label {
+/* The <legend> of a choice group is named here rather than given its own copy
+   of these six declarations: it is the same thing one level up — the name of
+   what is being asked — and two rules would let the face of a label and the
+   face of a legend drift apart. See CHOICE GROUP below. */
+.cf-field__label,
+.cf-choice__legend {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
@@ -3537,17 +3556,87 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-field__textarea { resize: vertical; min-height: 7rem; }
 .cf-field__input::placeholder,
 .cf-field__textarea::placeholder { color: var(--text-muted); }
+/* The line goes to 2 px and the padding gives the pixel back, so focusing a
+   field does not push everything under it down by one. The thickening is the
+   whole indicator here — see the note at the read-only rule for the one case
+   that has no line left to thicken and therefore keeps the global ring. */
 .cf-field__input:focus,
 .cf-field__textarea:focus,
 .cf-field__select:focus {
   outline: 0;
   border-bottom-width: var(--stroke-2);
+  padding-bottom: calc(var(--space-3) - var(--stroke-1));
 }
 .cf-field__hint { font-size: var(--text-sm); color: var(--text-secondary); }
 .cf-field--invalid :is(.cf-field__input, .cf-field__textarea, .cf-field__select) {
   border-bottom-color: var(--feedback-error);
 }
 .cf-field__error { font-size: var(--text-sm); color: var(--feedback-error); }
+
+/* --------------------------------------------------------------------------
+   NOT AVAILABLE, AND NOT EDITABLE — two states, two different claims
+
+   A field is a line. So the two states a field can be in without being
+   *wrong* are two things that can happen to a line, and the ladder in
+   components/arrival.html already has the rungs:
+
+     disabled   the field is here and is not available. That is rung 2,
+                --presence-near (2-1) — the rung the ladder reserved for
+                "a claim about the object, not about the wait" and which
+                nothing in the system had ever claimed. The drawing is the
+                same field one rung down: same box, same size, same place.
+     readonly   the value is here and is not yours to change. It is not a
+                control at all any more, so it loses the line entirely and
+                becomes what .cf-contact already is — a mono term with its
+                value under it. Nothing is drawn as a place to type, because
+                there is nowhere to type.
+
+   The two are never the same drawing and never the same markup, and the
+   difference is not cosmetic: a disabled control is skipped by assistive
+   technology and does not submit, a read-only one is announced, focusable,
+   copyable and submits. Reach for readonly whenever the value still matters
+   to whoever is reading the form.
+
+   Written as [disabled] / [readonly] rather than :disabled / :read-only on
+   purpose. :read-only matches every element that is not user-editable — a
+   disabled input is one, and a <select> is one *always*, since selects
+   cannot be read-only — so a :read-only rule here would silently strip the
+   line off every select on the site.
+
+   CSS gives no control over the dash-to-gap ratio of border-style: dashed
+   and the four line types are ratios, so 2-1 is a repeating gradient sized
+   to the border box — the same construction as .rule--dashed-2-1 in
+   base.css and .cf-arrive__plate below. Change one, change the others. */
+.cf-field__input[disabled],
+.cf-field__textarea[disabled],
+.cf-field__select[disabled] {
+  border-bottom-color: transparent;
+  background-image: repeating-linear-gradient(90deg,
+    var(--border-strong) 0 4px, transparent 4px 6px);
+  background-origin: border-box;
+  background-clip: border-box;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% var(--stroke-1);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+/* No line, so the focus indicator cannot be the line getting thicker: this is
+   the one field state that keeps the global :focus-visible ring from base.css,
+   which the rule above turns off for every field that still has one. */
+.cf-field__input[readonly],
+.cf-field__textarea[readonly] {
+  border-bottom-color: transparent;
+  cursor: default;
+}
+.cf-field__input[readonly]:focus-visible,
+.cf-field__textarea[readonly]:focus-visible {
+  outline: var(--stroke-2) solid var(--focus-ring);
+  outline-offset: 2px;
+  border-bottom-width: var(--stroke-1);
+  padding-bottom: var(--space-3);
+}
 
 /* "(optional)" rather than an asterisk on everything else. Most fields on a
    contact form are required, so marking the exception is the smaller mark —
@@ -3618,10 +3707,12 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    and the meta would have gone quietly out of alignment with no failing check
    and nothing visibly broken. A derived value cannot drift from what it derives
    from — that is the whole reason it is written as arithmetic. */
-.cf-check, .cf-consent__row { --check-box: 1.25rem; }
+.cf-check, .cf-radio, .cf-consent__row { --check-box: 1.25rem; }
 
-.cf-check { display: flex; align-items: flex-start; gap: var(--space-3); }
-.cf-check__box {
+.cf-check,
+.cf-radio { display: flex; align-items: flex-start; gap: var(--space-3); }
+.cf-check__box,
+.cf-radio__box {
   appearance: none;
   -webkit-appearance: none;
   flex: none;
@@ -3635,7 +3726,8 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   cursor: pointer;
   transition: background var(--duration-fast) var(--ease-standard);
 }
-.cf-check__box:checked { background: var(--gradient-foil); }
+.cf-check__box:checked,
+.cf-radio__box:checked { background: var(--gradient-foil); }
 .cf-check__box:checked::after {
   content: "";
   position: absolute;
@@ -3647,9 +3739,56 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   border-width: 0 var(--stroke-2) var(--stroke-2) 0;
   transform: rotate(45deg);
 }
-.cf-check__box:disabled { cursor: not-allowed; opacity: 0.72; }
-.cf-check__label { font-size: var(--text-md); line-height: var(--leading-relaxed); }
-.cf-check__label > strong {
+
+/* THE RADIO IS THE SAME BOX WITH A DIFFERENT MARK, and the box stays square.
+   Every other system draws a circle here, and this one may not: corners are
+   square and the three exceptions the manual grants are the logo, the nav bar
+   and a round avatar — none of which is a control. So single choice and
+   multiple choice are told apart by the mark inside the box rather than by the
+   shape of the box: a tick for "and", the lattice rhombus for "or". The
+   rhombus is the system's own unit — the cell every isometric object is cut
+   from, and the same mark .cf-progress fills with light at its head.
+
+   Drawn entirely out of border, like the tick above, and for the same reason:
+   forced-colors mode discards background-color and maps border colours into
+   its own palette, so a mark made of border survives Windows high contrast
+   and a mark made of fill does not. A zero-sized box with a border on all
+   four sides paints a filled square of twice the border width; turned 45° it
+   is the rhombus. 0.3125rem of border is a 10 px square, 14.1 px across the
+   diagonal, inside a 20 px box. */
+.cf-radio__box:checked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border: 0.3125rem solid var(--cf-schwarz);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* The box carries "not available" as ink where the field above carries it as
+   a line type, and the reason is that a box is four edges: a controlled dash
+   ratio has to be a gradient (see the field), and the checked state has
+   already spent this element's background on the foil. Composited, the
+   contour reads 7.30:1 on CF-Grau and 9.23:1 at the white end of the wash —
+   both well over the 3:1 a UI contour owes, and a disabled control is exempt
+   from that floor anyway. The cursor goes on the row, not on the input, so
+   the label reads as unavailable too.
+
+   The label keeps its full ink at every state. On a consent row the disabled
+   control is `Notwendig`, whose copy is the part a supervisory authority
+   would read; dimming legally required text to signal that its switch is
+   fixed would be trading the wrong thing away. */
+.cf-check__box:disabled,
+.cf-radio__box:disabled { cursor: not-allowed; opacity: 0.72; }
+.cf-check:has(:disabled),
+.cf-radio:has(:disabled) { cursor: not-allowed; }
+
+.cf-check__label,
+.cf-radio__label { font-size: var(--text-md); line-height: var(--leading-relaxed); }
+.cf-check__label > strong,
+.cf-radio__label > strong {
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -3657,6 +3796,58 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
+
+/* --------------------------------------------------------------------------
+   CHOICE GROUP
+   A set of radios or checkboxes that answer one question. <fieldset> and
+   <legend>, which is the whole reason this exists: a radio is labelled by its
+   own row and a screen reader reading the third row of five has no way to know
+   what the question was. The legend is announced with every control in the
+   group, so it supplies it. role="radiogroup" + aria-label is the fallback for
+   when the native element cannot be used, and it is not needed here — the
+   native pair is the recommended construction and it brings the arrow-key
+   model, the wrapping and the one-tab-stop-per-group behaviour for free.
+
+   The legend is the same mono label a .cf-field carries, because it is the
+   same thing one level up: the name of what is being asked. Its rules are
+   written as a selector list with .cf-field__label rather than copied, so a
+   change to the label's face reaches both.
+
+   Three UA resets. A <fieldset> ships a border, padding and a margin nothing
+   here wants; and `min-inline-size: 0` is the one that is not cosmetic —
+   fieldset resolves its min width to min-content, which stops its children
+   ever shrinking below their longest word and puts a horizontal scrollbar on
+   any group holding a long line on a phone. A <legend> is not an ordinary
+   box either, so its own padding is zeroed rather than assumed.
+   -------------------------------------------------------------------------- */
+.cf-choice {
+  margin-inline: 0;      /* the UA's 0 2px, and only that — a blanket `margin: 0`
+                            here would also beat .stack > * + * from base.css,
+                            since this file loads second, and every choice group
+                            in a stacked form would close up against the field
+                            above it. Reset what the UA sets, nothing more. */
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+.cf-choice__legend { padding: 0; }
+.cf-choice__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+.cf-choice > .cf-field__hint,
+.cf-choice > .cf-field__error { display: block; margin-top: var(--space-3); }
+
+/* An invalid group marks the group once, not five identical rows — the answer
+   is wrong, not any one of the options. A field carries that on its line and a
+   group has no line, so the legend carries it and the message states it. The
+   obvious drawing — a 2 px red rule down the left of the list — is the one
+   thing the system bans by name: it is not an edge, since the other three
+   sides are not drawn, and not a division, since nothing is on its far side.
+   See "Where a line may go" in foundations/geometry.html. */
+.cf-choice--invalid .cf-choice__legend { color: var(--feedback-error); }
 
 /* --------------------------------------------------------------------------
    CONTACT LIST
