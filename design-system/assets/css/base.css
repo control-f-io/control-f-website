@@ -137,7 +137,27 @@ a:not([class]) {
    18.51:1. Everything below is the other half of the story: a mark the reader
    did NOT make, and therefore has to be able to trust at a glance.
    → foundations/found.html */
-::selection { background: var(--cf-lime); color: var(--cf-schwarz); }
+/* A HIGHLIGHT DOES NOT OWN THE FILL OF THE TEXT IT IS PAINTED OVER, so it has
+   to state one. `color` is not enough: -webkit-text-fill-color is INHERITED
+   and, where it is set, it BEATS the color of every descendant. So any text
+   under a background-clip:text ancestor — a foil headline, a solid button —
+   arrives at the highlight already filled `transparent`, and a highlight that
+   sets only `color` paints a lime slab with no word in it.
+
+   This is stated once, here and on the four found rules below, rather than
+   per clipping context. It was previously done the other way: .text-foil and
+   .cf-btn--solid each carried their own ::selection rule restating this exact
+   pair, byte for byte, because the rule here was missing one property. Two
+   clipping contexts, two copies; a third would have needed a third. The
+   found state never got its copy at all, which is how the CURRENT MATCH —
+   the one drawing this brand is named after — came to render as an empty
+   lime block inside every foil headline and every solid button on the site.
+   → scripts/check-highlight-fill.py */
+::selection {
+  background: var(--cf-lime);
+  color: var(--cf-schwarz);
+  -webkit-text-fill-color: var(--cf-schwarz);
+}
 
 /* A brand named after a keyboard shortcut could not draw a key. A keycap is an
    OBJECT in this system's own taxonomy — a body of its own, like a control or a
@@ -195,10 +215,24 @@ a:not([class]) {
   text-underline-offset: var(--found-offset);
 }
 
-/* The current match, as an element. */
+/* The current match, as an element.
+
+   THE FILL IS RESTATED, not aliased to `color`, for the reason set out at
+   ::selection above: inside a foil headline or a solid button this element's
+   inherited -webkit-text-fill-color is `transparent` and beats --found-ink.
+   Measured before this line existed: the word inside the lime slab did not
+   render at all, at any size, on either designed page.
+
+   NOTHING IS RESTATED ON THE NON-CURRENT RUNG, and that is the boundary this
+   stops at. :where(mark)/.cf-mark takes `color: inherit` because a match the
+   reader has not arrived at is the running text with a ground line under it —
+   inside a foil, the running text is the foil, and inheriting the clip is the
+   correct drawing rather than a bug it got away with. Only the rung that
+   supplies its OWN ink has an ink to lose. */
 .cf-mark--current {
   background-color: var(--found-light);
   color: var(--found-ink);
+  -webkit-text-fill-color: var(--found-ink);
   text-decoration-line: underline;
   text-decoration-color: var(--found-rule);
   text-decoration-thickness: var(--found-rule-weight);
@@ -215,6 +249,7 @@ a:not([class]) {
 ::target-text {
   background-color: var(--found-light);
   color: var(--found-ink);
+  -webkit-text-fill-color: var(--found-ink);
   text-decoration-line: underline;
   text-decoration-color: var(--found-rule);
   text-decoration-thickness: var(--found-rule-weight);
@@ -235,9 +270,15 @@ a:not([class]) {
   text-decoration-skip-ink: none;
   text-underline-offset: var(--found-offset);
 }
+/* The fill is restated on the highlight pseudo-elements too, and it takes: a
+   highlight pseudo accepts only a short list of properties, and Chromium
+   honours -webkit-text-fill-color on both of these. Verified by render — a
+   ::highlight(cf-found-current) range inside a .text-foil paragraph draws its
+   word without it missing. */
 ::highlight(cf-found-current) {
   background-color: var(--found-light);
   color: var(--found-ink);
+  -webkit-text-fill-color: var(--found-ink);
   text-decoration-line: underline;
   text-decoration-color: var(--found-rule);
   text-decoration-thickness: var(--found-rule-weight);
@@ -253,14 +294,22 @@ a:not([class]) {
   :where(mark), .cf-mark {
     text-decoration-color: MarkText;
   }
+  /* The fill is restated here for the same reason it is restated at rest, and
+     the system value has to be named rather than left to the mode: .text-foil
+     hands its descendants CanvasText in forced colours, which is the pair for
+     Canvas and not the pair for Mark. A match inside a foil headline would
+     draw body ink on a highlight plate — legible in most themes and guaranteed
+     by none of them. MarkText is the value that is guaranteed against Mark. */
   .cf-mark--current {
     background-color: Mark;
     color: MarkText;
+    -webkit-text-fill-color: MarkText;
     text-decoration-color: MarkText;
   }
   ::target-text {
     background-color: Mark;
     color: MarkText;
+    -webkit-text-fill-color: MarkText;
     text-decoration-color: MarkText;
   }
   ::highlight(cf-found) {
@@ -269,6 +318,7 @@ a:not([class]) {
   ::highlight(cf-found-current) {
     background-color: Mark;
     color: MarkText;
+    -webkit-text-fill-color: MarkText;
     text-decoration-color: MarkText;
   }
 }
@@ -1283,12 +1333,12 @@ hr {
     color: transparent;
     -webkit-text-fill-color: transparent;
   }
-  /* Clipped text has no colour left for the selection layer to invert. */
-  .text-foil::selection {
-    color: var(--cf-schwarz);
-    -webkit-text-fill-color: var(--cf-schwarz);
-    background: var(--cf-lime);
-  }
+  /* NO ::selection RULE HERE, and its absence is the fix rather than an
+     omission. This class used to restate the global ::selection in full,
+     because that rule set `color` and not the fill. It states both now, so a
+     copy here would be three identical declarations whose only job was to be
+     kept in step with a rule twenty lines long that nothing checked. The one
+     that governs every clipping context is the one at ::selection. */
 }
 
 /* --------------------------------------------------------------------------
