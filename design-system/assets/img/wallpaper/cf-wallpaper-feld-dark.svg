@@ -25,6 +25,20 @@
     <stop offset="1" stop-color="#000000"/>
   </radialGradient>
 
+  <!-- Dither. 31 levels of grey over a 1560-unit radius is below what 8-bit
+       sRGB can resolve, which is the page wash's problem one surface out and
+       worse: measured on the rendered frame before this filter existed,
+       42.9 % of the picture sat in a flat plateau of eight pixels or more.
+       The system's own grain, primitive for primitive — the grain tile in
+       tokens.css, and cf-wallpaper-feld-light.svg, which has carried it from
+       the start while both dark files went without. (No double hyphen may
+       appear in an XML comment, which is why no token in any of these files
+       is written with its leading dashes.) -->
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+
   <!-- The pool of light. A 2:1 ellipse, the isometric circle, centred on
        the same source as the ground, so the floor is drawn only where it is
        lit and dissolves into the black everywhere else. Same shape and same
@@ -123,6 +137,27 @@
 
 <rect width="1920" height="1080" fill="url(#ground)"/>
 <rect width="1920" height="1080" fill="url(#lattice)" mask="url(#lit)"/>
+<!-- FOUR PER CENT AND NOT THE WASH'S EIGHT. The grain's own mean is a floor
+     lift wherever it lands: on a wash that ends at white it costs nothing,
+     on a near-black ground it is the one thing this file has to spend
+     carefully. So the strength is the least that clears the banding, and the
+     two are measured over the whole frame:
+
+                    banded area   mean luminance
+       no grain        42.9 %         53.14
+       .04              9.5 %         55.79
+       .08              9.4 %         58.54
+
+     WHAT THE RESIDUAL 9.5 % IS, because it does not move at any strength:
+     it is inside the MARK, not on the ground. Broken down by value it is
+     255, 221, 220, 219, 218, 216 — the white-to-Glas end of the spectrum
+     ramp filling the mark, which is a large enough object for its own legs
+     to band. The mark is drawn ABOVE this layer, here and in the light file,
+     because grain is a property of the base wash and not of anything
+     standing on it. Dithering it too is a separate call and a designer's:
+     the mark is also this file's one light moment, and grain over lime dulls
+     the one thing the picture is for. Flagged on foundations/field.html. -->
+<rect width="1920" height="1080" filter="url(#grain)" opacity=".04"/>
 
 <!-- The mark, 1.9x its native 600 x 480, running off the right edge. The
      manual's own wallpaper panel crops the mark rather than centring it,
