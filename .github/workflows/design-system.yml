@@ -223,7 +223,7 @@ name: Design system checks
 # the net is what makes the row read afterwards instead of painting 322 px of
 # word through a 280 px row. Both halves ship here, and the check keeps the
 # hand-written half from being caught short again.
-
+#
 # The arrival is the twenty-second, and the first whose subject is the scroll
 # rather than anything drawn on it. components/article.html states in prose
 # that headings carry scroll-margin-top for the sticky navigation, "without it
@@ -270,6 +270,33 @@ name: Design system checks
 # with the boundary rather than merely touching it, and loses exactly half of
 # itself by construction. Merely touching stays out — a drawing running out of
 # its frame is a deliberate crop, and this system is full of them.
+#
+# The pinned handover is the twenty-fourth, and the only one whose subject is
+# wrong in no single frame. It is also the only one whose rule the system had
+# already written down and then lost in a move. Unsere Werte, the first of the
+# three pinned tracks, has carried it since it was written — its sixth stage
+# runs cf-values-item-last instead of the animation that ends at opacity 0,
+# under the comment "the last one holds: there is no seventh stage to hand over
+# to" — and foundations/motion.html#hold states it a second time about
+# Expertise's glass pane. Then the landing page's and Expertise's byte-identical
+# private copies of the scaffolding were folded into .cf-pin, and the quarters,
+# the crossfade, the 62 % hold and the chrome all came across while the
+# last-stage exception did not, because neither page's copy had ever had it. So
+# all three animations that carry a .cf-pin stage are handover animations, each
+# authored to come back to nothing at 100 % so the next quarter can take the
+# stage, and all three were handed to the fourth quarter, which has no next
+# quarter. Both tracks therefore took themselves apart at the end and then made
+# the reader scroll the wreckage: on the landing page at 1440 x 900 the last
+# card's copy left at contain 96.5 %, its index number greyed out under it by
+# 100 %, the drawing dissolved by 103.5 %, and 700 px of empty lectern, four
+# dead numbers and a full progress bar scrolled past with nothing on the page
+# changing at all. Every frame of that renders exactly as authored; it is only
+# wrong as a sequence, at the one end of a 6,660 px track that a reviewer
+# reaches last. The check holds all three tracks — Werte included, so the place
+# this was learned is held to it too — to base keyframes that still hand over
+# and last stages that end standing on the same arrival literal, plus the two
+# things that will silently break: the markup shape `:last-child` is standing
+# on, and the count Werte's `:nth-child(6)` ending is bound to instead.
 
 on:
   push:
@@ -278,7 +305,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not twenty-three. All twenty-three checks are a few hundred
+  # One job, not twenty-four. All twenty-four checks are a few hundred
   # milliseconds of stdlib python; a second runner would cost more to start
   # than any of them takes to run, and a reader looking at a red tick wants
   # every answer on one page.
@@ -382,3 +409,7 @@ jobs:
       - name: Edge strokes
         if: '!cancelled()'
         run: python3 scripts/check-edge-stroke-clip.py
+
+      - name: Pinned handover
+        if: '!cancelled()'
+        run: python3 scripts/check-pin-handover.py
