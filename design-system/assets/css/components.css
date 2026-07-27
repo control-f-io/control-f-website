@@ -2032,12 +2032,17 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   position: relative;
   isolation: isolate;
   padding: var(--space-8);
-  background: var(--surface-card);
+  /* Contour, no surface. --surface-card is retired — see the note in
+     tokens.css section 2 — and a panel that needs a boundary takes a contour.
+     Which is also why the modifier below is a swap and not an addition. */
   border: var(--stroke-1) solid var(--border-strong);
 }
-/* The material, and it REPLACES the surface rather than sitting on it. */
+/* The material, and it REPLACES the boundary rather than sitting inside it.
+   --info-card-tint so a page that can NAME what is behind the glass can reach
+   for the thinner pane; the default is the floor for a backdrop nobody
+   controls. Both tints go opaque together in the two fallbacks. */
 .cf-info-card--glass {
-  background-color: var(--surface-glass);
+  background-color: var(--info-card-tint, var(--surface-glass));
   -webkit-backdrop-filter: var(--glass-blur);
           backdrop-filter: var(--glass-blur);
   border: var(--glass-border);
@@ -2119,7 +2124,11 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   .cf-info-card--glass::before { border-top: var(--stroke-1) solid CanvasText; }
 }
 
-.cf-info-card__count { color: var(--text-muted); }
+/* --text-secondary and not --text-muted: colors.html says twice that muted
+   may not sit on the wash, and a pane of glass over the wash is still the
+   wash. Measured on the shipping plate at the thin tint, muted lands at
+   2.32:1 and secondary at 6.73:1. */
+.cf-info-card__count { color: var(--text-secondary); }
 .cf-info-card__title {
   margin-top: var(--space-2);
   font-family: var(--font-display);
@@ -2162,7 +2171,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   --tile: 13rem;
   --flow: var(--space-6);
 }
-.cf-info-card__label { color: var(--text-muted); }
+.cf-info-card__label { color: var(--text-secondary); }
 /* The chips belong to the card rather than to the system: a global chip would
    be a fifth way of drawing a small bordered label, and the four that exist
    are all doing something this is not. */
@@ -5022,20 +5031,20 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    the text arrives: without it the line count changes as characters land and
    the whole three-column row jumps. Reserved from the longest value in the
    set, measured at the pinned breakpoint. */
-.cf-values__caret {
+.cf-stream__caret {
   display: inline-block;
   width: 0.45em;
   height: 0.95em;
   margin-left: 0.1em;
   background: var(--text-primary);
   vertical-align: text-bottom;
-  animation: cf-values-caret 0.9s steps(1) infinite;
+  animation: cf-stream-caret 0.9s steps(1) infinite;
 }
-.cf-values__caret.is-resting { opacity: 0; animation: none; }
+.cf-stream__caret.is-resting { opacity: 0; animation: none; }
 @media (prefers-reduced-motion: reduce) {
-  .cf-values__caret { animation: none; }
+  .cf-stream__caret { animation: none; }
 }
-@keyframes cf-values-caret {
+@keyframes cf-stream-caret {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0; }
 }
