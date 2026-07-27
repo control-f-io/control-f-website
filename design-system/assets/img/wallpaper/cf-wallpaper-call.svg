@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" role="img" aria-label="Control-F video-call background: a dark isometric lattice lit at the lower left, with the mark small at the lower right">
+<title>Control-F — Videocall</title>
+<!--
+  16:9, for the background slot in a video call. Same construction as
+  cf-wallpaper-feld-dark.svg with three things deliberately given up,
+  because the picture has a person standing in front of it:
+
+  1. THE MIDDLE IS EMPTY. Everything is placed outside 660..1260 in x, the
+     column a head and shoulders occupy in a 16:9 frame. Segmentation is
+     approximate and it fails at the hair and the shoulders, so anything
+     with structure behind that edge reads as a torn cut-out.
+  2. NOTHING IS BRIGHT. The pool tops out at the same 0.10 white the CSS
+     field uses, and the ground never leaves the black end of the neutral
+     ramp. A background that out-lights the sitter is the one failure mode
+     everybody notices.
+  3. THE MARK IS SMALL AND OFF THE SPEAKER LABEL. Bottom right, because
+     every conferencing client puts the participant's name bottom left.
+
+  Some clients MIRROR the self-view. The mark is directional, so check it
+  in the meeting rather than in the preview.
+-->
+<defs>
+  <radialGradient id="ground" gradientUnits="userSpaceOnUse"
+                  cx="300" cy="780" r="1500" gradientTransform="matrix(1 0 0 .5 0 390)">
+    <stop offset="0" stop-color="#1A1A1A"/>
+    <stop offset=".5" stop-color="#0A0A0A"/>
+    <stop offset="1" stop-color="#000000"/>
+  </radialGradient>
+
+  <radialGradient id="pool" gradientUnits="userSpaceOnUse"
+                  cx="300" cy="800" r="900" gradientTransform="matrix(1 0 0 .5 0 400)">
+    <stop offset="0" stop-color="#FFFFFF" stop-opacity="1"/>
+    <stop offset=".46" stop-color="#FFFFFF" stop-opacity=".45"/>
+    <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+  </radialGradient>
+  <mask id="lit"><rect width="1920" height="1080" fill="url(#pool)"/></mask>
+
+  <pattern id="lattice" width="120" height="60" patternUnits="userSpaceOnUse">
+    <path d="M0 0 L120 60 M0 60 L120 0" fill="none"
+          stroke="#FFFFFF" stroke-opacity=".10" stroke-width="1"/>
+  </pattern>
+
+  <!-- The foil, at the shallow rake.
+
+       COORDINATES ARE THE MARK'S OWN, not the canvas's, and that is the trap
+       the README calls out under "three things that vanish quietly": a
+       userSpaceOnUse paint server is resolved in the user space where it is
+       REFERENCED, so the group's own transform moves the gradient with it.
+       Written in canvas coordinates this ramp landed entirely off the mark
+       and every glyph clamped to the first stop. 0,0 to 600,300 is dx 2 /
+       dy 1 in the mark's 600 x 480 space, and the group's scale is uniform,
+       so it is still 26.57 deg on screen.
+
+       THE RAMP SPANS THE GLYPH, NOT ITS BOX. Projected on the 2:1 axis the
+       drawn mark runs from t 0.165 at the upper chevron's left tip to t
+       1.073 at the lower one's far corner; a ramp laid across 0 to 1 spends
+       its first sixth and its last twelfth on empty space, which on this
+       ramp means the lime end never lands on the mark at all. 100,50 to
+       644,322 is those two projections, and dx 544 / dy 272 is still 2:1. -->
+  <linearGradient id="foil" gradientUnits="userSpaceOnUse"
+                  x1="100" y1="50" x2="644" y2="322">
+    <stop offset="0" stop-color="#FFFFFF"/>
+    <stop offset=".17" stop-color="#C5EBE2"/>
+    <stop offset=".56" stop-color="#B8D7F1"/>
+    <stop offset="1" stop-color="#BEBFF0"/>
+  </linearGradient>
+
+  <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+    <feGaussianBlur stdDeviation="12"/>
+  </filter>
+</defs>
+
+<rect width="1920" height="1080" fill="url(#ground)"/>
+<rect width="1920" height="1080" fill="url(#lattice)" mask="url(#lit)"/>
+
+<!-- One lit cell, well clear of both the sitter's column and the strip
+     along the bottom where the client draws the participant's name. It is a
+     real face of the lattice: face centres sit at (60 + 120i, 60j) and
+     (120i, 30 + 60j), and (360, 690) is the second form at i = 3, j = 11. -->
+<g mask="url(#lit)">
+  <path d="M300 690 L360 660 L420 690 L360 720 Z" fill="#E1FF00" fill-opacity=".45" filter="url(#glow)"/>
+</g>
+<path d="M300 690 L360 660 L420 690 L360 720 Z" fill="#E1FF00"/>
+
+<g transform="translate(1520 800) scale(0.4)">
+  <path fill="url(#foil)" d="M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 327.317C183.155 328.422 183.155 331.578 185.367 332.683L476.422 478.211C478.675 479.337 481.325 479.337 483.578 478.211L594.633 422.683C596.845 421.578 596.845 418.422 594.633 417.317L425.367 332.683Z"/>
+  <path fill="url(#foil)" d="M116.422 298.211C118.675 299.337 121.325 299.337 123.578 298.211L594.633 62.6833C596.845 61.5777 596.845 58.4223 594.633 57.3167L483.578 1.78885C481.325 0.662745 478.675 0.662745 476.422 1.78885L5.36656 237.317C3.15542 238.422 3.15542 241.578 5.36656 242.683L116.422 298.211Z"/>
+</g>
+</svg>

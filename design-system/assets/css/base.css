@@ -497,6 +497,134 @@ hr {
 .material-foil { background: var(--gradient-spectrum); color: var(--accent-ink); }
 
 /* --------------------------------------------------------------------------
+   THE FIELD — the isometric lattice as a surface
+   Geometry in tokens.css, section 8b. This is only how it is hung on a box.
+
+   IT IS A PSEUDO-ELEMENT AND NOT A BACKGROUND, for one reason: the lit
+   variant is masked, and a mask on the element masks its text with it. So
+   the lattice gets a layer of its own at z-index -1, which the painting
+   order puts above the element's own background and below every scrap of
+   its content — exactly where the sixth material layer says a contour
+   belongs. `isolation: isolate` keeps that negative index inside the box
+   instead of letting it hunt for a stacking context up the tree.
+
+   Nothing about the box changes: no size, no spacing, no border. Drop
+   .cf-field on a section that is already laid out and it acquires a floor.
+
+   TWO VARIANTS, AND THE DIFFERENCE IS HOW MUCH SURFACE IS ASKING FOR IT.
+
+     .cf-field        the ground, edge to edge. For a bounded object — a
+                      figure, a plate, a demo frame — where the lattice is
+                      the subject and the box is small enough to be read
+                      as one drawing.
+     .cf-field--lit   the ground under a travelling light. For a whole
+                      section, where an unbroken lattice across 900 px of
+                      page stops being a data space and becomes graph
+                      paper. The pool is the difference between a floor
+                      that is drawn and a floor that is lit.
+
+   THE LIGHT MOVES BECAUSE A FLOOR THAT IS ALWAYS LIT THE SAME WAY IS A
+   PRINTED FLOOR. Same commitment .text-foil makes and for the same reason:
+   the material has to answer to where the reader is, or it is a photograph
+   of the material. --field-light-y is the pool's position down the
+   surface, scrubbed off a view() timeline so it tracks the reader's hand
+   and runs backwards when they scroll up.
+
+   -20 % TO 120 % KEEPS THE POOL AT THE MIDDLE OF THE VIEWPORT. When a
+   section first crosses the bottom edge of the screen the reader's eye is
+   above its top; by the time it leaves, below its bottom. The pool
+   therefore starts a fifth of its own height off the top of the section
+   and ends the same distance past the bottom, which is what "the light is
+   where you are looking" comes out as once it is written in the section's
+   own coordinates rather than the screen's.
+
+   50 % IS THE REST VALUE and it is the designed still: the pool at the
+   middle of the surface, the reader square to it. Every path that cannot
+   run the animation — no @property, no scroll timeline, reduced motion,
+   print, forced colours — lands there rather than on an edge case, which
+   is the same fallback rule the swinging foil follows.
+
+   THE MASK ONLY EVER REMOVES INK. --field-ink's contrast floor is measured
+   unmasked in tokens.css, so every frame of this is at or under it and
+   none of them needs checking. That is a property of multiplying by an
+   alpha below 1, not a result.
+   -------------------------------------------------------------------------- */
+@property --field-light-y {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 50%;
+}
+
+.cf-field {
+  position: relative;
+  isolation: isolate;
+}
+.cf-field::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+
+  /* Composed here rather than at :root, because --field-ink is theme
+     dependent and a custom property is substituted on the element that
+     declares it. See the note in tokens.css section 8b. The pseudo-element
+     inherits --field-ink from its originating element, so a .cf-field
+     inside an inverse section draws in white without either rule knowing
+     about the other.
+
+     One stop list, two rakes — material and angle declared apart, the same
+     split --foil-stops and --foil-rake make. The line sits in the middle of
+     its period with half a pixel of ramp either side, so both its edges are
+     antialiased and the wrap between periods happens in transparency. */
+  --field-stops: transparent 0,
+                 transparent calc(var(--field-half) - var(--field-edge)),
+                 var(--field-ink) var(--field-half),
+                 var(--field-ink) calc(var(--field-half) + var(--field-line)),
+                 transparent calc(var(--field-half) + var(--field-line) + var(--field-edge)),
+                 transparent var(--field-step);
+  --field: repeating-linear-gradient(var(--field-rake),        var(--field-stops)),
+           repeating-linear-gradient(var(--field-rake-mirror), var(--field-stops));
+
+  background-image: var(--field);
+}
+
+.cf-field--lit::before {
+  --field-light-y: 50%;
+  -webkit-mask-image: var(--field-bloom);
+          mask-image: var(--field-bloom);
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  -webkit-mask-size: var(--field-pool-w) var(--field-pool-h);
+          mask-size: var(--field-pool-w) var(--field-pool-h);
+  -webkit-mask-position: 50% var(--field-light-y);
+          mask-position: 50% var(--field-light-y);
+}
+
+@supports (animation-timeline: view()) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .cf-field--lit::before {
+      animation: cf-field-light linear both;
+      animation-timeline: view();
+    }
+  }
+}
+@keyframes cf-field-light {
+  from { --field-light-y: -20%; }
+  to   { --field-light-y: 120%; }
+}
+
+/* Decoration with nothing to say. A printer renders it as a grey mesh over
+   the copy and a forced-colours palette has no value to give it that is not
+   either invisible or a second border. */
+@media print {
+  .cf-field::before { display: none; }
+}
+@media (forced-colors: active) {
+  .cf-field::before { display: none; }
+}
+
+/* --------------------------------------------------------------------------
    FOIL TYPE
    The gradient inside letterforms. It carries no lime,
    so a screen that has already spent its lime moment can still take it.

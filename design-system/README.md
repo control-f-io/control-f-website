@@ -37,7 +37,7 @@ design-system/
 ├── index.html              overview + how to include the CSS
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
 │                           illustration, logo, photo, motion, mobile,
-│                           page transitions
+│                           page transitions, field
 ├── components/             buttons, nav, section header, statement + value table,
 │                           plot, process card, accordion, blog grid, subdivision
 │                           field, pagination, error + empty state, article +
@@ -58,7 +58,7 @@ design-system/
     │   ├── cf-values.js    types the values copy. Ships, optional — see below.
     │   └── docs.js         sidebar, swatch copy, arrow sprite — documentation only
     ├── fonts/              (empty — see below)
-    ├── img/                logo SVGs, icons, hero poster, team photos
+    ├── img/                logo SVGs, icons, hero poster, team photos, wallpaper
     ├── video/hero-abstract-art.mp4
     └── source/             reference only, never linked from a shipping page
         ├── manual/         22 brand-manual plates as compressed renders
@@ -184,6 +184,42 @@ Grids are the exception that proves the test: `.cf-blog-grid`, `.cf-team-grid` a
 `.cf-subdiv` each put two borders on the container and two on the cells, which *looks*
 like the banned declaration and is the opposite of it — the finished field carries one
 hairline everywhere instead of a doubled seam. Judge the drawing, not the declaration.
+
+## The field
+
+`foundations/field.html` is the chapter for the one thing the brand had claimed since its
+first line and never drawn: the space. The manual's *Isometrie-Raster* plate is a **ground**
+— a rhombic lattice running to all four edges with the cube and the cylinder standing on it
+— and every spatial object in the system is cut from that lattice while the lattice itself
+was invisible. `.cf-field` is it, as a surface.
+
+It does not break the rule above, and it is worth saying why, because it is a page full of
+hairlines that are none of the three. A lattice line is not a line **in the layout** — it
+draws no edge and divides nothing. It is a **material**, the way the grain on the page wash
+is a material: a texture on the ground, under everything, at a tenth of an ink. The test in
+that section is about lines that carry meaning; this one carries surface.
+
+Two gradients drawn along `--angle-b` and its mirror, one shared stop list, a step of
+`--field-unit / √5` because two families of lines that miss the lattice point are a moiré
+rather than an isometry, and 1 px of contour at every cell size — which is the reason it is
+a gradient and not a tiled SVG, since scaling a tile scales its stroke. `.cf-field--lit`
+masks it with a 2:1 pool of light that travels down the surface on a `view()` timeline, so
+the floor materialises ahead of the reader and dissolves behind them.
+
+The ink is capped at 10 % black, and the cap is measured rather than chosen:
+`--text-secondary` on CF-Grau **under a lattice line** is 4.71:1 there and 4.51:1 at 12 %.
+Every later state only removes ink — the lit variant masks, nothing composites over — so
+that one row bounds every variant and every frame by construction.
+
+**Its first application is the wallpaper**, which is the manual's other unused chapter.
+`assets/img/wallpaper/` holds three hand-drawn SVGs — 16:9 dark, 9:19.5 light, and a
+video-call background that gives up the middle of the frame, its brightness and the
+bottom-left corner for reasons the page states. No type in them, no raster, no dependency.
+
+**The field is not on either designed page.** Neither mockup draws a lattice, and the
+material wins over an improvement. It ships as available material with the wallpapers as
+its sanctioned application; putting it behind a section of the Landing Page is a designer's
+call, not a routine's.
 
 ## Vertical rhythm
 

@@ -21,7 +21,8 @@
       { href: 'foundations/photography.html', label: 'Photography' },
       { href: 'foundations/motion.html',      label: 'Motion' },
       { href: 'foundations/mobile.html',      label: 'Mobile' },
-      { href: 'foundations/transitions.html', label: 'Page Transitions' }
+      { href: 'foundations/transitions.html', label: 'Page Transitions' },
+      { href: 'foundations/field.html',       label: 'The Field' }
     ]},
     { title: 'Components', items: [
       { href: 'components/buttons.html',        label: 'Buttons' },
