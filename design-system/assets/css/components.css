@@ -1853,19 +1853,6 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   height: auto;
   aspect-ratio: 5 / 3;
 }
-/* This figure carries traces, so it owes a --trace-weight: viewBox width over the
-   width the frame actually renders at, which is what lands the signal on the same
-   1 CSS px as the contours beside it. `slice` makes that a HEIGHT question rather
-   than a width one — the stacked box is 5/3, so its scale is width/700, not
-   width/1200 — and the two cases are far enough apart to need separate values.
-
-   Stacked the block runs from about 335 px to 890 px, so the true value runs from
-   2.09 to 0.79 and one number cannot be right across it. 1.75 is tuned to the
-   narrow end, where a trace that thins out disappears against CF-Grau; at the wide
-   end of stacked it is heavy by roughly a fifth. That residual is stated rather
-   than hidden — same shape as .cf-process__figure, which needs two values for the
-   same reason. */
-.cf-statement__figure .cf-iso { --trace-weight: 1.75; }
 .cf-statement__title {
   font-size: var(--text-h2);
   font-weight: var(--weight-medium);
@@ -1911,7 +1898,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   /* Side by side the band is the block's full width at the drawing's own ratio,
      so the scale is width/1200 and the trace weight follows it: 1139 px of
      container at a 1280 px viewport puts the signal on 0.99 CSS px. */
-  .cf-statement__figure .cf-iso { aspect-ratio: 1200 / 420; --trace-weight: 0.94; }
+  .cf-statement__figure .cf-iso { aspect-ratio: 1200 / 420; }
 }
 
 /* THE STATEMENT TAKES ITSELF APART ON THE WAY OUT. The assembly runs on the
@@ -1940,23 +1927,34 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    replacement, not an addition, and a shorter list here would cycle wrong. */
 @supports (animation-timeline: view()) {
   @media screen and (prefers-reduced-motion: no-preference) {
+    /* THE ASSEMBLY WAS OVER BEFORE ANYONE ARRIVED. A `cover` range starts the
+       instant the element's first pixel crosses the viewport bottom, so under
+       the old `cover 20% -> 40%` this figure — 448 px tall in a 900 px
+       viewport — finished at 40 % of a range whose 50 % mark is the moment the
+       figure sits centred. It was done before it was looked at, and the reader
+       met a still drawing and no animation at all.
+
+       So the window straddles the centre instead: measured at 1440 x 900 the
+       figure is centred at 54 % of its own cover range, and these ranges put
+       the lattice at about half its fade there — still moving as the eye
+       settles on it, settled a little after, and a good margin before the
+       scatter starts at about cover 92. A reader wheeling past fast may miss
+       it; a reader reading cannot.
+
+       THE RANGE IS NOT THE PROGRESS, and that is what made the first retime
+       miss. These animations carry --ease-out, so the visual state runs ahead
+       of the linear range position: at the centre the lattice sat two thirds
+       of the way through its window and read 78 % built. The numbers below are
+       derived from the eased curve, not from the window, and the check is the
+       rendered opacity at the centred scroll position rather than the fraction
+       of the range spent. */
+    .cf-statement .cf-iso__scene {
+      animation-range: cover 34% cover 54%;
+    }
     .cf-statement .cf-iso__ghost {
       animation-name: cf-iso-fade, cf-stmt-scatter;
-      animation-range: cover 20% cover 40%,
+      animation-range: cover 46% cover 70%,
                        exit var(--scat-in, 30%) exit calc(var(--scat-in, 30%) + 40%);
-      animation-fill-mode: both, forwards;
-    }
-    .cf-statement .cf-iso__trace {
-      animation-name: cf-iso-draw, cf-stmt-scatter;
-      animation-range:
-        cover calc(18% + var(--trace-lead)) cover calc(18% + var(--trace-lead) + var(--trace-span)),
-        exit var(--scat-in, 8%) exit calc(var(--scat-in, 8%) + 40%);
-      animation-fill-mode: both, forwards;
-    }
-    .cf-statement .cf-iso__node {
-      animation-name: cf-iso-fade, cf-stmt-scatter;
-      animation-range: cover 35% cover 50%,
-                       exit var(--scat-in, 0%) exit calc(var(--scat-in, 0%) + 24%);
       animation-fill-mode: both, forwards;
     }
   }
