@@ -333,6 +333,7 @@
     <table class="docs-table">
       <thead><tr><th>Threshold</th><th>Kind</th><th>What it governs</th></tr></thead>
       <tbody>
+        <tr><td><code>34rem</code> / 544</td><td>container</td><td><code>.cf-error__route</code> drops its label above the description; <code>.cf-pagination</code> hides the page numerals</td></tr>
         <tr><td><code>44rem</code> / 704</td><td>container</td><td><code>.subdivide</code> folds to a stack; the blog axis goes with it</td></tr>
         <tr><td><code>48rem</code> / 768</td><td>container</td><td><code>.cf-value-row</code> splits into icon + copy</td></tr>
         <tr><td><code>56rem</code> / 896</td><td>container</td><td>the two-column threshold — <code>.col-*</code>, <code>.cf-statement</code>, <code>.cf-process</code></td></tr>
@@ -349,6 +350,35 @@
       viewport ones. That is exactly the drift the register exists to prevent, so the fix is not
       only to list them but to say so: <strong>a threshold and its register entry belong in the
       same commit.</strong>
+    </div>
+    <div class="docs-note">
+      <strong>And then two more were, including one this page argued could not exist.</strong>
+      The note above shipped with the table it corrects, and the corrected table was still short by
+      two: <code>34rem</code> was live in <code>components.css</code> with <em>two</em> consumers —
+      <code>.cf-error__route</code> and <code>.cf-pagination</code> — and
+      <code>.cf-error--page</code> split its columns at <code>@media (min-width: 62rem)</code>, a
+      figure that appeared exactly once in the whole repository and in neither copy of the register.
+      <br><br>
+      The <code>62rem</code> is the worse of the two, because it is not merely unlisted — it breaks
+      the rule stated directly above this table. An error block is not the nav, the hero, the footer
+      or the consent banner; it is a component, and components ask their container. The code's own
+      comment even claimed it: "a grid that folds on its own", written over a media query.
+      <strong>A rule with a register and a stated exception list still needs someone to grep the
+      preludes</strong>, because prose above a table does not enforce anything below it.
+      <br><br>
+      It was not converted, it was <strong>removed</strong>. A size query measures the content box,
+      so at the viewport 992 where <code>62rem</code> fired, a <code>.container</code> is
+      992 − 2 × 5.5vw = <strong>882.9 px = 55.18rem</strong> — the two-column threshold to within
+      0.82rem. The two were one threshold in different units, and the second copy was the one nobody
+      had written down. It now reads <code>@container (min-width: 56rem)</code>, unnamed, alongside
+      <code>.cf-statement</code> and <code>.cf-process</code>. The split moves from a viewport of
+      992 to about 1007: later, so the two-column state is 13 px roomier when it arrives and never
+      tighter, and the block now folds correctly inside a column instead of only at full bleed.
+      <br><br>
+      The lesson is one level up from the last one. <strong>A near-duplicate threshold is harder to
+      see than a missing one</strong>, because it is not wrong at any width — it simply asserts a
+      second opinion about the same moment, in units that make the collision invisible. Before
+      adding a threshold, convert it into the other kind and check what it lands next to.
     </div>
     <div class="docs-note">
       <strong>What sits outside the register, in full.</strong> The register covers the three
@@ -465,10 +495,11 @@
       <code>max-width: 44rem</code> includes 704 exactly. Same rule as the ~1007 figure above.
     </div>
     <div class="docs-note">
-      <strong><code>60rem</code> is the one threshold nothing derives.</strong> The other three
-      container numbers each answer to something — 44rem is where the finest subdivision ranks
-      stop being readable, 48rem is the value row's icon cell, 56rem is the system's declared
-      two-column threshold. 60rem is a judgement call, and measuring it does not rescue it:
+      <strong><code>60rem</code> is the one threshold nothing derives.</strong> The other four
+      container numbers each answer to something — 34rem is the width the error routes' two-column
+      form needs, 44rem is where the finest subdivision ranks stop being readable, 48rem is the
+      value row's icon cell, 56rem is the system's declared two-column threshold. 60rem is a
+      judgement call, and measuring it does not rescue it:
       the article rail is a fixed 13rem with a 64 px gap, so at 56rem of container the prose
       column would be <strong>624 px</strong> against a 66 ch measure of <strong>587 px</strong>,
       and at 60rem it is <strong>688 px</strong>. Both clear the measure. 60rem buys the prose
@@ -486,10 +517,13 @@
       being a free choice. So this is the one figure on the page that has to be re-measured the
       day Geist lands. The direction of the risk favours keeping 60rem.
       <br><br>
-      Whether to reconcile it down to 56rem and let the system carry three container thresholds
-      instead of four is a designer's call, for the same reason the 780 / 900 pair is: it changes
+      Whether to reconcile it down to 56rem and let the system carry four container thresholds
+      instead of five is a designer's call, for the same reason the 780 / 900 pair is: it changes
       designed behaviour on <code>patterns/blog-artikel.html</code>. Left as it is, now on the
-      record.
+      record. Worth noting that the <code>62rem</code> above <em>was</em> reconciled onto 56rem in
+      the same sweep, and the two cases are not alike: that one was an undocumented near-duplicate
+      of 56rem whose owner's own comment asked for the container, this one is a documented,
+      measured, deliberately different number with a designed behaviour behind it.
       <br><br>
       <strong>One concrete cost, for whoever rules on it.</strong> 60rem is the only container
       threshold that <em>its own documentation page cannot demonstrate at the reference frame.</em>
