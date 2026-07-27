@@ -988,18 +988,47 @@ button:hover > .cf-icon--motion { transform: translateX(4px); }
   min-height: min(92vh, 56rem);
   padding-block: var(--space-16) var(--space-12);
   overflow: hidden;
-  background: var(--surface-base);
 }
+/* NO BACKGROUND ON .cf-hero, and its absence is the point. It carried an
+   opaque --surface-base, which was invisible while the artwork covered the
+   box and became the thing the artwork dissolved into once it stopped. That
+   would have swapped one seam for another: the hero's flat CF-Grau against
+   the page wash, which at the hero's lower edge has already travelled most
+   of its ramp and is several levels lighter. The wash is fixed-attachment
+   and viewport-sized, so no colour declared here can match it at that
+   height. Let it through instead and the junction is not a junction.
+
+   The fallback colour the hero used to carry moves onto .cf-hero__media
+   below, where it belongs: it is what stands in for the artwork before the
+   loop has decoded, so it should be masked away with the artwork rather
+   than survive it. */
 .cf-hero__media {
   position: absolute;
   inset: 0;
   z-index: 0;
+  background: var(--surface-base);
+  /* See --hero-dissolve in tokens.css. Both spellings: Safari before 15.4
+     only knows the prefixed one, and the same pair is used on .cf-nav. */
+  -webkit-mask-image: var(--hero-dissolve);
+  mask-image: var(--hero-dissolve);
 }
 .cf-hero__media img,
 .cf-hero__media video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+/* The reading scrim — see --hero-scrim in tokens.css. Inside the media
+   rather than over it, so the dissolve takes the scrim away at the same
+   rate it takes the artwork away: the scrim exists to be read through, and
+   past the bottom of the picture there is nothing left to read through.
+   Below .cf-hero__body's z-index 1 by being in the media's box at all, so
+   no stacking order has to be stated for the type. */
+.cf-hero__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--hero-scrim);
 }
 .cf-hero__body {
   position: relative;
