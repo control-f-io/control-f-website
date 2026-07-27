@@ -239,8 +239,8 @@ for t in ['fast','base','slow','scene']:
     <table class="docs-table">
       <thead><tr><th>Part</th><th>What it is</th><th>What it does</th><th>Range</th></tr></thead>
       <tbody>
-        <tr><td><code>.cf-iso__scene</code></td><td>the whole object</td><td>travels in on 26.57° — see below — and fades up. The only thing that moves.</td><td>cover 5–30 %</td></tr>
-        <tr><td><code>.cf-iso__form</code></td><td>solid contoured body</td><td>nothing on its own; it rides the scene</td><td>—</td></tr>
+        <tr><td><code>.cf-iso__scene</code></td><td>the whole object</td><td>travels in on 26.57° — see below — and fades up. The only thing that moves. Silent under <code>.cf-iso--build</code>.</td><td>cover 5–30 %</td></tr>
+        <tr><td><code>.cf-iso__form</code></td><td>solid contoured body</td><td>nothing on its own; it rides the scene. Under <code>.cf-iso--build</code> it arrives on its own stage — see below.</td><td>— / cover 5–22 % + 7 % per stage</td></tr>
         <tr><td><code>.cf-iso__ghost</code></td><td>dashed reference geometry</td><td>fades up after the body it belongs to</td><td>cover 20–40 %</td></tr>
         <tr><td><code>.cf-iso__orbit</code></td><td>a ghost that circulates</td><td>fades up with the other ghosts, and keeps turning after them — see below</td><td>cover 20–40 % fading, 20–50 % turning</td></tr>
         <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object — <strong>one stroke</strong></td><td>draws itself, edge of the crop to edge of the crop — see below</td><td>cover 18–45 %, or a window inside it</td></tr>
@@ -252,6 +252,129 @@ for t in ['fast','base','slow','scene']:
       Everything is finished by the time the object reaches the middle of the viewport, so
       the illustration is never caught half-built while it is being read. The last range
       ends at cover 50 %, which is exactly that moment.
+    </p>
+
+    <h3 id="build">An object that is assembled, not delivered</h3>
+    <p>
+      The default assembly moves the whole scene: the finished object slides in along 26.57°
+      and its layers resolve on top of it. That is right for a figure that illustrates a
+      sentence, and wrong for the four objects in <em>Was wir machen</em>, which <em>are</em>
+      the sentence. A telescope that arrives already extended has not shown you a telescope;
+      it has shown you a picture of one.
+    </p>
+    <p>
+      <code>.cf-iso--build</code> on the <code>&lt;svg&gt;</code> turns that round. The scene
+      holds still and the parts arrive — each <code>.cf-iso__form</code> on its own stage,
+      out of its own direction. Two rules keep it from becoming decoration.
+    </p>
+    <p>
+      <strong>1 · A part travels only along an axis the object already contains, and only as
+      far as the drawing says.</strong> A telescoping section moves on the shaft axis, which
+      in 2:1 isometry is the screen vertical. A plate on a rack moves on the rack axis, by
+      one slot pitch. A radial graduation moves out along its own radius. Nothing is given a
+      direction that is not already drawn in the geometry — which is why
+      <code>--build-dx</code> and <code>--build-dy</code> are authored per part, in viewBox
+      units, rather than derived from one token. The 98 and 238 on card 01 are not a motion
+      decision; they are the two extensions measured off the source vector, and fully
+      retracted they put all three plates concentric on the same line, which is what a closed
+      telescope looks like from above. Both default to <code>0</code>, so a part with nowhere
+      to come from resolves in place. That is the common case, and it should be.
+    </p>
+    <p>
+      <strong>2 · Stage order is construction order, not paint order.</strong>
+      <code>--stage</code> is an index and it is deliberately independent of where the element
+      sits in the markup — card 04's meridian is the second element in the file and the first
+      to arrive. Nothing is reordered to animate it, so occlusion, paint servers and the diff
+      against <code>assets/source/illustrations/</code> are all exactly what they were. On
+      card 01 the paint order then does the occlusion for free: the inner walls are drawn
+      before the middle ones and those before the outer, so a section rising through the one
+      below it is hidden by it until it clears the mouth.
+    </p>
+    <pre class="docs-code">&lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-iso cf-iso--build"</span> …&gt;
+  <span class="com">&lt;!-- stage 0, no travel: it is already home --&gt;</span>
+  &lt;<span class="tag">path</span> <span class="attr">class</span>=<span class="val">"cf-iso__form"</span> …&gt;
+  <span class="com">&lt;!-- stage 1, retracted 98 units down the shaft --&gt;</span>
+  &lt;<span class="tag">path</span> <span class="attr">class</span>=<span class="val">"cf-iso__form"</span> <span class="attr">style</span>=<span class="val">"--stage:1;--build-dy:98"</span> …&gt;
+&lt;/<span class="tag">svg</span>&gt;</pre>
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>Under <code>.cf-iso--build</code></th><th>Range</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-iso__scene</code></td><td>does not animate at all — every child starts at opacity 0, so the scene has nothing left to fade and nowhere to arrive from</td><td>—</td></tr>
+        <tr><td><code>.cf-iso__ghost</code></td><td><strong>first on screen.</strong> A ghost is the object's future state, and the parts arrive out of exactly where the ghosts are, so a ghost that fades up after the part it predicts is the drawing told backwards</td><td>cover 2–14 %</td></tr>
+        <tr><td><code>.cf-iso__orbit</code></td><td>excluded from that retiming — an orbit is a ghost that turns, and its turn is written against 20–50 %</td><td>unchanged</td></tr>
+        <tr><td><code>.cf-iso__form</code></td><td>arrives on its stage, from <code>--build-dx</code> / <code>--build-dy</code></td><td>cover 5–22 %, +7 % per stage</td></tr>
+        <tr><td><code>.cf-iso__light</code></td><td>a part like any other while the object is being built, so it takes a stage and travels with the section it belongs to — card 01's lime plate <em>is</em> the top of the inner shaft and cannot stay behind while the shaft rises. Its fill still comes up last.</td><td>arrival on its stage; fill cover 30–48 %</td></tr>
+        <tr><td><code>.cf-iso__node</code></td><td><strong>not staged.</strong> Construction points are added to a finished object, at its finished position, which is what they mean</td><td>unchanged</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Stages overlap by ten points of the seventeen each one runs, which is what makes this
+      read as one assembly rather than four events. Four stages fit before lime comes up at
+      30 %, and the whole build is settled by 43 % — inside the same cover 50 % everything
+      else finishes at.
+    </p>
+    <p>
+      <strong>A part moves with <code>translate</code>, not with <code>transform</code>, and
+      that is not a style choice.</strong> Half the parts that build carry a
+      <code>transform</code> attribute: card 03's three ellipses and card 04's sphere are all
+      <code>rotate(-90 …)</code>, which on the ellipses <em>is</em> the shape and on the
+      circle is the paint server's axis. An SVG <code>transform</code> attribute is a
+      presentation attribute for the <code>transform</code> <em>property</em>, so a keyframe
+      that sets <code>transform</code> does not compose with it — it replaces it. Card 03's
+      apertures would snap from a tall ellipse to a wide one for the length of the build, and
+      card 04's orbit fade would swing a quarter turn, which is the same failure the orbit
+      section below is written to prevent. The individual <code>translate</code> property is
+      applied before <code>transform</code> and leaves it alone.
+    </p>
+    <pre class="docs-code"><span class="tag">@keyframes</span> cf-iso-build {
+  <span class="tag">from</span> {
+    <span class="attr">translate</span>: calc(<span class="val">var(--build-dx, 0)</span> * 1px) calc(<span class="val">var(--build-dy, 0)</span> * 1px);
+    <span class="attr">opacity</span>: <span class="val">0</span>;
+  }
+  <span class="tag">to</span> { <span class="attr">translate</span>: <span class="val">0 0</span>; <span class="attr">opacity</span>: <span class="val">1</span>; }
+}</pre>
+    <p>
+      <code>0 0</code> rather than <code>none</code> at the far end, though the two compute
+      the same thing and render identically here: a length pair matches the length pair it is
+      interpolating from, and needs no engine to agree that <code>none</code> means zeros.
+    </p>
+    <p>
+      The scene's own <code>cf-iso-arrive</code> can keep using <code>transform</code> because
+      it moves a bare <code>&lt;g&gt;</code> that carries no attribute of its own. Units are
+      viewBox units — 1 px on an SVG element is one user unit — the same basis
+      <code>--iso-travel</code> uses and the same basis the distances were measured in.
+    </p>
+    <p>
+      All of it sits inside the same
+      <code>@supports</code> / <code>@media (prefers-reduced-motion: no-preference)</code>
+      block as the rest of the assembly, and <code>--stage</code> and the two travel
+      properties are inert on their own. Without scroll-driven animations, under reduced
+      motion, or on paper, a built object is simply the finished drawing — and that is
+      measured rather than asserted: rendered under
+      <code>prefers-reduced-motion: reduce</code>, the four built cards are pixel-identical
+      to the same four before the build existed.
+    </p>
+    <p>
+      <strong>Measure it there and not in the settled animated state</strong>, because
+      animating an element at all changes how Chromium rasterises its contours — a sub-pixel
+      shift along a hairline, and it means no animated object lands on its own still render
+      to the pixel. That cost is not the build's; the version that moved the whole scene paid
+      it too, and on every card the build pays less:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Card, 1440×900 @2×</th><th>Reduced motion, built vs. un-built</th><th>Built: animated vs. still</th><th>Whole-scene arrival: animated vs. still</th></tr></thead>
+      <tbody>
+        <tr><td>01 Discovery</td><td><strong>0</strong> of 495,616</td><td>24,925</td><td>25,379</td></tr>
+        <tr><td>02 Datenfundament</td><td><strong>0</strong> of 495,616</td><td>34,982</td><td>36,058</td></tr>
+        <tr><td>03 Weniger Ausfälle</td><td><strong>0</strong> of 495,616</td><td>25,826</td><td>34,896</td></tr>
+        <tr><td>04 Mehr Leistung</td><td><strong>0</strong> of 495,616</td><td>25,270</td><td>25,483</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The shape of that check is worth keeping: <strong>compare under reduced motion, where
+      the answer has to be zero</strong>, and read an animated figure only against the same
+      figure taken the same way before the change. A settled-state diff against a still
+      render will always be a five-figure number and will never mean what it looks like.
     </p>
 
     <h3>An orbit turns, and it turns by moving its dashes</h3>
