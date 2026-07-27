@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Field — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* Demo sizing only. Nothing here is part of the system. */
+  .field-demo { min-height: 22rem; display: grid; place-items: center; }
+  .field-demo p { margin: 0; font-family: var(--font-mono); font-size: var(--text-xs);
+                  letter-spacing: var(--tracking-label); text-transform: uppercase;
+                  color: var(--text-secondary); }
+  .field-demo--sm { min-height: 13rem; }
+  .field-demo--dark { background: var(--surface-inverse); }
+  .field-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: var(--space-6); }
+  .field-pair figcaption { margin-top: var(--space-3); font-family: var(--font-mono);
+                           font-size: var(--text-xs); letter-spacing: var(--tracking-label);
+                           text-transform: uppercase; color: var(--text-secondary); }
+  .field-pair figure { margin: 0; }
+  .wallpapers { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--space-6); }
+  .wallpapers figure { margin: 0; }
+  .wallpapers img { display: block; width: 100%; border: var(--stroke-1) solid var(--border-default); }
+  .wallpapers figcaption { margin-top: var(--space-3); }
+  .wallpapers b { display: block; font-size: var(--text-md); }
+  .wallpapers span { display: block; font-family: var(--font-mono); font-size: var(--text-xs);
+                     letter-spacing: var(--tracking-label); color: var(--text-secondary); }
+  .field-swatch { height: 3.5rem; border: var(--stroke-1) solid var(--border-subtle); }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 13</p>
+    <h1>The Field</h1>
+    <p>
+      The isometric lattice, made a surface. The site has said since its first line that it
+      stands on a data space rather than on a sheet of paper, and until now it drew no space
+      at all. The field is the space: one rhombus, tiled edge to edge, lit where the reader
+      is looking and gone everywhere else.
+    </p>
+  </header>
+
+  <section class="docs-section" id="where">
+    <h2>Where this comes from</h2>
+    <p>
+      The manual's <em>Raster &gt; Grafische Projektion &gt; Isometrie-Raster</em> plate is not
+      a diagram of the isometry. It is a <strong>ground</strong>: a rhombic lattice running to
+      all four edges of the page, with the cube, the cylinder and a dotted wireframe standing
+      on it. Every spatial object in this brand is constructed on that lattice —
+      <a href="illustration.html#lattice">Illustration</a> builds the four process objects
+      out of it, <a href="../components/plot.html">Plot</a> steps its columns along it, the
+      icon set draws its keylines on it. The one thing the lattice had never been was
+      <em>visible</em>.
+    </p>
+    <div class="docs-plates">
+      <a class="docs-plate" href="../assets/source/manual/grid-isometry.jpg">
+        <figure>
+          <img src="../assets/source/manual/grid-isometry.jpg" alt="Manual plate: the 2:1 isometric grid drawn as a ground with objects standing on it">
+          <figcaption><b>Raster &gt; Grafische Projektion &gt; Isometrie-Raster</b> — the lattice as a floor, not as a construction aid.</figcaption>
+        </figure>
+      </a>
+    </div>
+    <div class="docs-note">
+      <strong>This is a surface, not a layout grid.</strong> The
+      <a href="layout.html">12-column grid</a> places content and the
+      <a href="../components/subdivision-field.html">Teilungsraster</a> divides it. The field
+      places nothing. It is the sixth material layer — contour — applied to the ground rather
+      than to an object, and it never moves a single box.
+    </div>
+  </section>
+
+  <section class="docs-section" id="demo">
+    <h2>Lit</h2>
+    <p>
+      The variant a whole section takes. Scroll the page and the pool of light travels down
+      the surface, so the lattice materialises ahead of the reader and dissolves behind them.
+      A floor that is always lit the same way is a printed floor.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <div class="cf-field cf-field--lit field-demo">
+        <p>.cf-field .cf-field--lit</p>
+      </div>
+    </div>
+    <pre class="docs-code"><span class="tag">&lt;section</span> <span class="attr">class</span>=<span class="val">"section cf-field cf-field--lit"</span><span class="tag">&gt;</span>
+  <span class="com">&lt;!-- nothing else changes: no wrapper, no size, no spacing --&gt;</span>
+<span class="tag">&lt;/section&gt;</span></pre>
+    <p>
+      The same material on an inverse surface. The ink inverts with everything else —
+      white at the same tenth.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <div class="cf-field cf-field--lit field-demo field-demo--dark" data-theme="inverse">
+        <p>[data-theme="inverse"]</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="construction">
+    <h2>Construction</h2>
+    <p>
+      One rhombus, <code>--field-unit</code> wide and half that tall — which is what 2:1
+      means, and the same cell every isometric object in the system is cut from. 96 × 48 at
+      rest, and both of those are rungs of the space scale
+      (<code>--space-24</code>, <code>--space-12</code>), so the lattice is commensurable with
+      the layout rather than merely near it.
+    </p>
+
+    <h3>Two gradients, one stop list</h3>
+    <p>
+      A <code>repeating-linear-gradient</code> paints bands <em>perpendicular</em> to its own
+      gradient line. The two families of lattice edges are the 26.57° rhombus edge read off
+      each axis — screen slope +<sup>1</sup>⁄<sub>2</sub> and −<sup>1</sup>⁄<sub>2</sub> — so
+      the gradient lines that draw them are 26.57° and its mirror.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Family</th><th>Gradient line</th><th>Bands run at</th><th>Token</th></tr></thead>
+      <tbody>
+        <tr><td>Descending</td><td>26.57°</td><td>26.57° below the horizontal</td><td><code>--field-rake</code></td></tr>
+        <tr><td>Ascending</td><td>153.43° = 180° − 26.57°</td><td>26.57° above the horizontal</td><td><code>--field-rake-mirror</code></td></tr>
+      </tbody>
+    </table>
+    <p>
+      The mirror is written as the subtraction and not as <code>153.43deg</code>, so it cannot
+      drift away from <code>--angle-b</code>. Material and angle are declared apart for the
+      same reason <a href="colors.html#foil">the foil</a> declares them apart: the stop list is
+      what the lines are made of, the rake is what they are crossed at, and writing them
+      together is how a value comes to exist twice.
+    </p>
+
+    <h3>The step is derived, not chosen</h3>
+    <p>
+      The perpendicular distance between two adjacent parallel lattice lines is the cell width
+      over √5 — 42.93 px at a 96 px cell. This is the one number that cannot be approximated:
+      get it slightly wrong and you do not have a slightly wrong grid, you have two families of
+      lines that no longer meet at a lattice point. It is therefore computed.
+    </p>
+    <pre class="docs-code"><span class="attr">--field-step</span>: <span class="val">calc(var(--field-unit) / 2.2360679775)</span>;
+<span class="attr">--field-half</span>: <span class="val">calc(var(--field-step) / 2)</span>;</pre>
+
+    <h3>Why a gradient and not a tile</h3>
+    <p>
+      The lattice tiles perfectly as an X inside a cell-by-half-cell box — both diagonals run
+      on unbroken across the seams — and a tiled SVG with a <code>background-size</code> would
+      be four lines shorter. It is still wrong here: scaling a tile scales its stroke, and
+      <em>1 px contour at every size</em> means a device pixel everywhere else in this system.
+      Every drawn thing in it carries <code>vector-effect: non-scaling-stroke</code> for exactly
+      this reason. A gradient stop measured in px stays 1 px however large the cell is set.
+    </p>
+    <p>
+      The wallpapers below are the deliberate exception, and they use the tile: a wallpaper is
+      an image rather than a UI surface, so its contour is supposed to scale with the picture.
+      A hairline pinned to one device pixel would disappear on a 5K screen.
+    </p>
+
+    <h3>Half a pixel of antialias</h3>
+    <p>
+      A hard stop on a diagonal is a hard diagonal edge. Gradients are evaluated per pixel and a
+      zero-width transition has no partial coverage to hand out, so the hairline stair-steps.
+      <code>--field-edge</code> is half a pixel of ramp either side, which gives each pixel a
+      fraction and resolves the line. The line sits in the middle of its period so both edges
+      are soft and the wrap from one period to the next happens in transparency, where there is
+      nothing left to alias.
+    </p>
+    <div class="field-pair">
+      <figure>
+        <div class="docs-demo docs-demo--plain">
+          <div class="cf-field field-demo field-demo--sm" style="--field-unit: 3rem"></div>
+        </div>
+        <figcaption>--field-unit: 3rem — 48 × 24</figcaption>
+      </figure>
+      <figure>
+        <div class="docs-demo docs-demo--plain">
+          <div class="cf-field field-demo field-demo--sm" style="--field-unit: 12rem"></div>
+        </div>
+        <figcaption>--field-unit: 12rem — 192 × 96</figcaption>
+      </figure>
+    </div>
+    <p>
+      Both are drawn at the same 1 px. That is the whole argument for the gradient.
+    </p>
+  </section>
+
+  <section class="docs-section" id="ink">
+    <h2>Ink — a ceiling, not a taste</h2>
+    <p>
+      The field is decoration that text is allowed to cross, so its ink is capped by the worst
+      thing that has to survive crossing it: <code>--text-secondary</code> at 14 px, which owes
+      4.5:1 and sits on CF-Grau at the top of the page wash. Measured on the composited value
+      under the line, not on the average over the cell — a glyph either has a lattice line
+      behind it or it does not.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Field ink</th><th>Surface under the line</th><th>--text-secondary</th><th>Body copy</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>black 0.10</td><td><code>#BABABA</code></td><td>4.71:1</td><td>10.8:1</td><td><strong>shipped</strong></td></tr>
+        <tr><td>black 0.12</td><td><code>#B6B6B6</code></td><td>4.51:1</td><td>10.4:1</td><td>no margin</td></tr>
+        <tr><td>black 0.16</td><td><code>#AEAEAE</code></td><td>4.15:1</td><td>9.5:1</td><td>fails</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The white end of the wash puts the same secondary label at 7.33:1 and the inverse theme
+      puts it at 9.46:1, so CF-Grau under the darkest line is the whole story — as it usually
+      is on this site.
+    </p>
+    <div class="docs-note">
+      <strong>Every later state is bounded by that row.</strong> Everything the field does
+      after the ink is set only ever <em>removes</em> ink: the lit variant masks it, and
+      nothing is ever composited over it. So no variant, no viewport and no frame of the
+      travelling light needs measuring again. That is a property of multiplying by an alpha
+      below 1, not a lucky result — the same argument
+      <a href="colors.html#foil">the swinging foil</a> makes about turning a gradient.
+    </div>
+  </section>
+
+  <section class="docs-section" id="light">
+    <h2>The light</h2>
+    <p>
+      A floor is only visible where something lights it. <code>.cf-field--lit</code> masks the
+      lattice with one 2:1 ellipse — the isometric circle, the same shape
+      <code>--gradient-bloom-iso</code> is — and slides it down the surface as the reader
+      passes.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th></th><th>Value</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Pool</td><td>72 × 36 rem</td>
+          <td>A length, not a percentage, for the reason <code>--scrim-reach</code> is one: the pool is a fixed object in the world and the section it lies on is not. <code>closest-side</code> on a box that shape gives radii of 36 and 18 rem — 2:1 by construction rather than by a second number.</td>
+        </tr>
+        <tr>
+          <td>Falloff</td><td>0.45 at 46 %</td>
+          <td>Full ink through the middle third, then out. The same plateau the wallpapers use.</td>
+        </tr>
+        <tr>
+          <td>Travel</td><td>−20 % → 120 %</td>
+          <td>Keeps the pool at the middle of the <em>viewport</em>. When a section first crosses the bottom of the screen the reader's eye is above its top; by the time it leaves, below its bottom.</td>
+        </tr>
+        <tr>
+          <td>At rest</td><td>50 %</td>
+          <td>The pool at the middle of the surface, the reader square to it. Every path that cannot run the animation lands here.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      Scrubbed off a <code>view()</code> timeline, so it tracks the reader's hand and runs
+      backwards when they scroll up — the commitment
+      <a href="motion.html">Motion</a> already makes for everything else in the system that
+      moves. No script. Below about 1150 px of viewport the pool is wider than the screen, so
+      the reader sees a band of light crossing the floor rather than a pool sitting on it; that
+      is what a light source further away than the room is wide actually does, and it is why
+      the pool is not clamped to the viewport.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong>The field spends no colour.</strong> It is contour, and contour in this brand is
+      ink. The obvious next move — the lattice going lime in the middle of the pool — would put
+      a second light moment on a screen that has already spent its one, on a surface whose whole
+      job is to sit behind something else. The light in the field is the <em>mask</em>. If a
+      section needs a lime moment it should be an object standing on the floor, not the floor.
+    </div>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <table class="docs-table">
+      <thead><tr><th>Token</th><th>Rest value</th><th>What it sets</th></tr></thead>
+      <tbody>
+        <tr><td><code>--field-unit</code></td><td><code>var(--space-24)</code> — 96</td><td>Rhombus width. The height is half of it, by construction.</td></tr>
+        <tr><td><code>--field-line</code></td><td><code>var(--stroke-1)</code> — 1px</td><td>Contour weight. A device pixel at every unit.</td></tr>
+        <tr><td><code>--field-edge</code></td><td><code>0.5px</code></td><td>The antialias shoulder either side of the line.</td></tr>
+        <tr><td><code>--field-step</code></td><td>unit ÷ √5 — 42.93</td><td>Perpendicular distance between adjacent parallel lines. Derived.</td></tr>
+        <tr><td><code>--field-half</code></td><td>step ÷ 2</td><td>Where the line sits inside its period.</td></tr>
+        <tr><td><code>--field-ink</code></td><td><code>rgba(0,0,0,.10)</code></td><td>The contour colour. Inverts to white 0.10 under <code>[data-theme="inverse"]</code>.</td></tr>
+        <tr><td><code>--field-rake</code></td><td><code>var(--angle-b)</code></td><td>Gradient line of the descending family.</td></tr>
+        <tr><td><code>--field-rake-mirror</code></td><td><code>calc(180deg − var(--angle-b))</code></td><td>Gradient line of the ascending family.</td></tr>
+        <tr><td><code>--field-stops</code></td><td>6 stops</td><td>The material. Used by both rakes, so it exists once. Composed on <code>.cf-field::before</code>, not at <code>:root</code> — see below.</td></tr>
+        <tr><td><code>--field</code></td><td>2 gradients</td><td>The finished lattice image. Composed alongside the stop list.</td></tr>
+        <tr><td><code>--field-pool-w</code> / <code>-h</code></td><td>72rem / 36rem</td><td>The pool of light, 2:1.</td></tr>
+        <tr><td><code>--field-bloom</code></td><td>radial, closest-side</td><td>The mask the lit variant wears.</td></tr>
+        <tr><td><code>--field-light-y</code></td><td>50 %</td><td>Where the pool sits down the surface. Registered, so it can travel.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Markup</h3>
+    <pre class="docs-code"><span class="com">&lt;!-- the ground, edge to edge — for a bounded object --&gt;</span>
+<span class="tag">&lt;figure</span> <span class="attr">class</span>=<span class="val">"cf-field"</span><span class="tag">&gt;</span> … <span class="tag">&lt;/figure&gt;</span>
+
+<span class="com">&lt;!-- the ground under a travelling light — for a whole section --&gt;</span>
+<span class="tag">&lt;section</span> <span class="attr">class</span>=<span class="val">"section cf-field cf-field--lit"</span><span class="tag">&gt;</span> … <span class="tag">&lt;/section&gt;</span>
+
+<span class="com">/* a denser or looser floor, per element */</span>
+<span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"cf-field"</span> <span class="attr">style</span>=<span class="val">"--field-unit: 12rem"</span><span class="tag">&gt;</span> … <span class="tag">&lt;/div&gt;</span></pre>
+    <p>
+      The class adds a pseudo-element at <code>z-index: -1</code> and an
+      <code>isolation: isolate</code> on the box. Painting order puts that layer above the
+      element's own background and below every scrap of its content, which is where the
+      material stack says a contour belongs. Nothing about the box changes: no size, no
+      spacing, no border. It is a pseudo-element rather than a background because the lit
+      variant is masked, and a mask on the element would mask its text with it.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong>The stop list is composed on the class, not at <code>:root</code>.</strong> A
+      custom property is substituted at computed-value time on the element that
+      <em>declares</em> it, so a <code>--field-stops</code> written at <code>:root</code>
+      resolves <code>--field-ink</code> against the light theme's black and inherits that
+      literal into every inverse section — a black lattice on Schwarz, which is a lattice
+      nobody can see. Measured exactly that way before it was moved. The pseudo-element
+      inherits <code>--field-ink</code> from its originating element instead, so the same
+      rule draws in ink or in light without either theme knowing about the other. Same shape
+      <code>.text-foil</code> uses for <code>--foil-image</code>, and the reason
+      <code>--foil-stops</code> can live in <code>tokens.css</code> while this one cannot:
+      none of the foil's stops is theme-dependent.
+    </div>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <ul>
+      <li><strong>One field per screen.</strong> Two lit sections in view at once give the
+        reader two floors at two heights, and the isometry stops meaning anything.</li>
+      <li><strong>Never behind running text.</strong> The contrast floor holds, but an article
+        column is read for minutes and a lattice under it is a distraction the measurement
+        does not capture. Section furniture, figures and plates only.</li>
+      <li><strong>Never under a photograph or the hero video.</strong> The field is the ground;
+        an image is an object standing on it. A lattice showing through a picture is a
+        printing error.</li>
+      <li><strong>It stays solid.</strong> The four line types govern individual lines. A
+        dashed field would need a second pattern running along the lines, which dashes one
+        family down its length and the other across it — the same rule applied twice, looking
+        like two.</li>
+      <li><strong>Do not respace the layout to fit it.</strong> The lattice phase is set by the
+        box the gradient is painted in, so it does not register with the column grid and is not
+        meant to. Chasing that alignment moves content to suit decoration.</li>
+    </ul>
+
+    <h3>Three ways to get it wrong</h3>
+    <ol>
+      <li><strong>Making it darker so it reads better.</strong> The table above is the reason it
+        is a tenth. If the field is invisible on a screen it is because the section wanted the
+        unlit variant, not because the ink is too light.</li>
+      <li><strong>Putting lime in it.</strong> See the warning above. The field is the one
+        surface in the system that must not become the thing you look at.</li>
+      <li><strong>Setting the step by eye.</strong> Any value other than the cell over √5 gives
+        two families of parallel lines that intersect somewhere other than a lattice point,
+        which is a moiré rather than an isometry. Change <code>--field-unit</code>; never
+        <code>--field-step</code>.</li>
+    </ol>
+  </section>
+
+  <section class="docs-section" id="wallpaper">
+    <h2>Wallpaper</h2>
+    <p>
+      The manual carries a wallpaper chapter and the web implementation had never used it. The
+      field is what it was waiting for: a surface with no text on it, no layout under it and
+      nothing to be read over is the one place the lattice can run at full strength.
+    </p>
+    <p>
+      Three files, hand-drawn SVG, no dependency and no build step. They are resolution
+      independent, so one file covers every screen of its shape — 1080p through 5K on the 16:9
+      pair. Everything in them is a system part: the ground is the neutral ramp or the page's
+      own <code>--wash-stops</code>, the lattice is the tile, the mark is filled from the light
+      family, and each file spends exactly one light moment.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>File</th><th>Lattice ink</th><th>The mark</th><th>The one light moment</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Feld, dark</td><td>white 0.16</td>
+          <td><code>--gradient-spectrum</code>, cropped by the right edge</td>
+          <td>The lime end of the ramp, inside the mark. So there is no lit cell on this floor.</td>
+        </tr>
+        <tr>
+          <td>Feld, light</td><td>black 0.14</td>
+          <td><code>--foil-ink-stops</code> — the lit foil measures 1.1:1 on CF-Grau and would not be there</td>
+          <td>One lattice face under the mark: the object's own footprint.</td>
+        </tr>
+        <tr>
+          <td>Videocall</td><td>white 0.10</td>
+          <td><code>--foil-stops</code>, small, bottom right</td>
+          <td>One lattice face, clear of both the sitter and the name strip.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>The two desktop files break the 0.10 ceiling on purpose.</strong> That number is
+      set by the worst text that has to stay readable across a lattice line, and nothing is read
+      over a wallpaper — so the ceiling does not apply and the binding number is the one where
+      the floor is legible at arm's length. The video-call file keeps 0.10, because something
+      <em>is</em> in front of that one.
+    </p>
+    <p>
+      The dark file fills its mark with the full spectrum rather than the foil, and that is the
+      manual's own move: the app icon on <em>Farben &gt; Anwendung</em> is a black plate whose
+      <em>mark</em> carries the light ramp while the plate stays black. A wallpaper is that
+      object at the size of a screen. The system already reads the plate that way for
+      <a href="../components/buttons.html">the solid button</a>, whose label is filled rather
+      than coloured.
+    </p>
+    <div class="wallpapers">
+      <figure>
+        <img src="../assets/img/wallpaper/cf-wallpaper-feld-dark.svg" alt="Dark wallpaper: the isometric lattice lit from the left, with the Control-F mark filled with the foil">
+        <figcaption>
+          <b><a href="../assets/img/wallpaper/cf-wallpaper-feld-dark.svg" download>Feld, dark</a></b>
+          <span>16:9 · desktop</span>
+        </figcaption>
+      </figure>
+      <figure>
+        <img src="../assets/img/wallpaper/cf-wallpaper-feld-light.svg" alt="Light wallpaper for phones: the isometric lattice on the page wash, with the mark in the shadow half of the foil">
+        <figcaption>
+          <b><a href="../assets/img/wallpaper/cf-wallpaper-feld-light.svg" download>Feld, light</a></b>
+          <span>9:19.5 · phone</span>
+        </figcaption>
+      </figure>
+      <figure>
+        <img src="../assets/img/wallpaper/cf-wallpaper-call.svg" alt="Video-call background: a dark lattice lit at the lower left with the middle of the frame left empty">
+        <figcaption>
+          <b><a href="../assets/img/wallpaper/cf-wallpaper-call.svg" download>Videocall</a></b>
+          <span>16:9 · background slot</span>
+        </figcaption>
+      </figure>
+    </div>
+
+    <h3>The one that has a person standing in front of it</h3>
+    <p>
+      The video-call file gives three things up on purpose, and they are worth stating because
+      they are the difference between a background and a distraction.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Given up</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>The middle of the frame</td><td>Everything sits outside 660–1260 px in x, the column a head and shoulders occupy in a 16:9 frame. Segmentation is approximate and it fails at the hair and the shoulders; structure behind that edge reads as a torn cut-out.</td></tr>
+        <tr><td>Brightness</td><td>The pool tops out at the same 0.10 white the CSS field uses and the ground never leaves the black end of the neutral ramp. A background that out-lights the sitter is the failure everybody notices.</td></tr>
+        <tr><td>The corner the mark would want</td><td>Bottom right, because every conferencing client puts the participant's name bottom left.</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>Some clients mirror the self-view.</strong> The mark is directional. Check it in
+      the meeting rather than in the preview.
+    </div>
+
+    <h3>What is not in them</h3>
+    <ul>
+      <li><strong>No type.</strong> Publica Sans is not licensed and Geist is not embedded, so
+        any lettering would either ship a font or render in whatever the viewer has. The mark
+        carries the brand on its own.</li>
+      <li><strong>No raster.</strong> Nothing in the set is a photograph or an exported PNG, so
+        there is no resolution to outgrow and no file to re-cut per device.</li>
+      <li><strong>No oklab waypoint,</strong> and none is missing. The
+        <code>#DBFC60</code> stop exists for lime-to-Glas legs, where the sRGB and oklab paths
+        diverge by ΔE 0.044. No ramp in the set has one: the two foils carry no lime at all,
+        and the spectrum's lime runs to Weiss, then Weiss to Glas — the leg the system already
+        leaves in sRGB deliberately, at ΔE 0.00045.
+        → <a href="colors.html">Colour</a></li>
+      <li><strong>No gradient in canvas coordinates.</strong> Every ramp is written in the
+        mark's own 600 × 480 space, because a <code>userSpaceOnUse</code> paint server is
+        resolved where it is <em>referenced</em> — so the group's transform moves the gradient
+        with it. Written the other way, all three ramps landed off the mark and every glyph
+        clamped to its first stop. This is the trap the README lists under
+        <em>three things that vanish quietly</em>, and it caught this set too.</li>
+    </ul>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>

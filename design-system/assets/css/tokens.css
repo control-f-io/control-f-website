@@ -882,6 +882,125 @@
   --radius-full: 50%;
 
   /* ------------------------------------------------------------------
+     8b. THE FIELD — the lattice as a surface
+
+     The manual's Isometrie-Raster plate is not a diagram of the isometry.
+     It is a GROUND: a rhombic lattice running edge to edge, with the cube,
+     the cylinder and the dotted wireframe standing on it. Every spatial
+     object in this brand is drawn on that lattice, and the site has said
+     since its first line that it stands on "a data space, not a sheet of
+     paper" — while drawing no space at all. The field is the space.
+
+     ONE RHOMBUS, TILED. The cell is --field-unit wide and half that tall,
+     which is what 2:1 means and is the same cell foundations/illustration
+     .html builds objects out of. 96 x 48 at rest: both are rungs of the
+     space scale (--space-24 and --space-12), so the lattice is
+     commensurable with the layout rather than merely near it.
+
+     DRAWN BY TWO GRADIENTS, ONE STOP LIST. A repeating-linear-gradient
+     paints bands PERPENDICULAR to its own gradient line, so the two
+     families of lattice edges — screen slope +1/2 and -1/2, the 26.57 deg
+     rhombus edge read off each axis — are drawn by gradient lines at
+     26.57 deg and at its mirror, 180 - 26.57 = 153.43 deg. Both are
+     sanctioned; the mirror is written as the subtraction rather than as
+     153.43deg so it cannot drift away from --angle-b.
+
+     Same split as the foil: --field-stops is the material and the two
+     rakes are the angles it is crossed at, so the stop list exists once.
+
+     THE STEP IS DERIVED, NOT CHOSEN. Perpendicular distance between two
+     adjacent parallel lattice lines is the cell width over sqrt(5) —
+     96 / 2.2360679775 = 42.93 px at rest. Getting this wrong by a little
+     is not a slightly wrong grid, it is two families of lines that no
+     longer meet at a lattice point, so it is computed rather than typed.
+
+     1 PX AT EVERY UNIT, which is why this is a gradient and not a tiled
+     SVG. The lattice tiles perfectly as an X in a --field-unit by
+     half-unit box, and a background-size on that tile would be shorter to
+     write — but scaling the tile scales its stroke, and "1 px contour at
+     every size" is a device pixel everywhere else in this system
+     (vector-effect: non-scaling-stroke on every drawn thing). A gradient
+     stop measured in px stays 1 px however large the cell is set.
+
+     --field-edge IS THE ANTIALIAS. A hard stop on a diagonal is a hard
+     diagonal edge: gradients are evaluated per pixel and a zero-width
+     transition has no partial coverage to give, so the hairline stair-
+     steps. Half a pixel of ramp either side hands each pixel a fraction
+     and the line resolves. It is centred in its period — --field-half —
+     so both edges are soft and the wrap from one period to the next
+     happens in transparency, where there is nothing to alias.
+
+     10 % BLACK IS A CEILING, NOT A TASTE. The field is decoration that
+     text is allowed to cross, so its ink is capped by the worst thing
+     that has to survive crossing it: --text-secondary at 14 px, which
+     owes 4.5:1 and sits on CF-Grau at the top of the page wash.
+
+       field ink   surface under the line   --text-secondary   verdict
+       0.10        #BABABA                  4.71:1             holds
+       0.12        #B6B6B6                  4.51:1             no margin
+       0.16        #AEAEAE                  4.15:1             fails
+
+     Black body copy on the same line is 10.8:1, and the white end of the
+     wash is 7.33:1, so CF-Grau under the darkest line is the whole story.
+     Inverse: white 0.10 on Schwarz puts --text-secondary at 9.46:1.
+
+     Everything the field does after this only ever REMOVES ink — the lit
+     variant masks it, nothing composites over it — so the floor above
+     bounds every state of it by construction and none of them needs
+     measuring again. Same argument the swinging foil makes.
+     ------------------------------------------------------------------ */
+  --field-unit: var(--space-24);   /* 96 — the rhombus is 96 x 48 */
+  --field-line: var(--stroke-1);
+  --field-edge: 0.5px;
+  --field-step: calc(var(--field-unit) / 2.2360679775);
+  --field-half: calc(var(--field-step) / 2);
+  --field-ink:  rgba(0, 0, 0, 0.10);
+
+  --field-rake:        var(--angle-b);
+  --field-rake-mirror: calc(180deg - var(--angle-b));
+
+  /* THE STOP LIST AND THE FINISHED IMAGE ARE COMPOSED IN base.css, ON
+     .cf-field::before, AND NOT HERE. Not a filing preference — the file
+     already carries the reason twice. A custom property is substituted at
+     computed-value time on the element that DECLARES it, so a --field-stops
+     written at :root would resolve --field-ink against :root's black and
+     inherit that literal into every inverse section, where a black lattice
+     on Schwarz is a lattice nobody can see. Measured exactly that way
+     before it was moved.
+
+     Composing on the class is the same shape .text-foil uses for
+     --foil-image, for the same reason, and --foil-stops can live up here
+     only because none of its stops is theme-dependent. This one's is. */
+
+  /* THE POOL OF LIGHT. The lattice is a floor and a floor is only visible
+     where something lights it. The lit variant masks the field with one
+     2:1 ellipse — the isometric circle, the same shape --gradient-bloom-iso
+     is — and slides it down the surface as the reader passes.
+
+     A LENGTH, NOT A PERCENTAGE, for the reason --scrim-reach is one: the
+     pool is a fixed object in the world and the section it lies on is not.
+     72 x 36 rem is 1152 x 576, one 1440-frame content column wider than the
+     1280 container, and closest-side on a box that shape gives radii of
+     36 and 18 rem — 2:1 by construction rather than by a second number.
+
+     Below about 1150 px of viewport the pool is wider than the screen, so
+     the reader sees a band of light crossing the floor rather than a pool
+     on it. That is what a light source further away than the room is wide
+     actually does, and it is the reason the pool is not clamped: clamping
+     it would keep the ellipse on screen and take the light source into the
+     room with it.
+
+     0.45 at 46 % is the plateau: full ink in the middle third, then out.
+     The mask multiplies, so the lit field is everywhere at or below the
+     0.10 the floor above was measured at. */
+  --field-pool-w: 72rem;
+  --field-pool-h: 36rem;
+  --field-bloom: radial-gradient(closest-side,
+                   #000                 0%,
+                   rgba(0, 0, 0, 0.45) 46%,
+                   transparent        100%);
+
+  /* ------------------------------------------------------------------
      9. MATERIALS — "Formsprache > Materialien"
      ------------------------------------------------------------------ */
   /* Milchglas — frosted glass. It exists to calm a complex graphic beneath
@@ -1188,6 +1307,11 @@
   --border-default: rgba(255, 255, 255, 0.18);
   --border-subtle:  rgba(255, 255, 255, 0.10);
   --focus-ring:     var(--cf-lime);
+
+  /* The lattice inverts with everything else. Same 0.10, drawn in light
+     instead of in ink: white 0.10 on Schwarz puts --text-secondary at
+     9.46:1 across the line, so the dark side is the comfortable one. */
+  --field-ink: rgba(255, 255, 255, 0.10);
 
   /* The dark red is unreadable on black (2.9:1). Same hue, lightened
      until it clears the floor: 12.3:1 on --surface-base here. */
