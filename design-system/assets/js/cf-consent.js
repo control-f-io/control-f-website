@@ -204,21 +204,30 @@
       } else {
         dialog.setAttribute('open', '');
       }
-      /* AND THEN THE HEADING, for the same reason showBanner focuses the
-         banner's: nothing is pre-selected, and the reader meets the question
-         before the answers. showModal's own rule is the first tabbable
-         descendant, and in this dialog that is the "Alle Einträge im Detail"
-         link in the explanation — so opening the settings put a keyboard or
-         screen-reader user PAST the dialog's name and past the sentence saying
-         what it decides, on a link that leaves the page. Measured: on open,
-         document.activeElement was a[href="datenschutz.html#cookies"], and
-         Enter — the key that had just opened the dialog — navigated away from
-         the decision.
-         The banner has done this since it was written; its own comment gives
-         the reason. This is the second half of that rule, in the layer where
-         the choice actually gets made. tabindex is set here rather than in the
-         markup so no page has to be edited to gain it, and -1 keeps the
-         heading out of the tab sequence it is now the head of. */
+      /* AND THEN THE HEADING: nothing is pre-selected, and the reader meets
+         the question before the answers. showModal's own rule is the first
+         tabbable descendant, and in this dialog that is the "Alle Einträge im
+         Detail" link in the explanation — so opening the settings put a
+         keyboard or screen-reader user PAST the dialog's name and past the
+         sentence saying what it decides, on a link that leaves the page.
+         Measured: on open, document.activeElement was
+         a[href="datenschutz.html#cookies"], and Enter — the key that had just
+         opened the dialog — navigated away from the decision.
+
+         THIS LAYER AND NOT THE BANNER, and the difference is the whole rule.
+         This comment used to say the banner did the same thing for the same
+         reason; showBanner no longer focuses anything, and the reason is in
+         its own comment. A modal is opened BY the reader, so moving focus into
+         it is the APG pattern and the only way Escape and the trap have
+         anything to act on. The banner appears unbidden at DOMContentLoaded,
+         where the same move costs the stop in front of it — the skip link,
+         which sits earlier in the document and was 47 Tab presses away once
+         focus landed past it. Opened by the reader: move focus. Arriving on
+         its own: do not.
+
+         tabindex is set here rather than in the markup so no page has to be
+         edited to gain it, and -1 keeps the heading out of the tab sequence it
+         is now the head of. */
       var title = dialogTitle();
       if (title) {
         if (!title.hasAttribute('tabindex')) title.setAttribute('tabindex', '-1');
