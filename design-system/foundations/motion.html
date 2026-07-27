@@ -512,7 +512,28 @@ for t in ['fast','base','slow','scene']:
       <code>screen</code> for the same reason.</strong>
     </p>
 
-    <h3>The other scroll-driven animation</h3>
+    <h3 id="scroll-driven">The other scroll-driven animations</h3>
+    <div class="docs-note docs-note--warn">
+      <strong>A fourth condition switches a view timeline off, and unlike the three above it
+      does so silently: a clipping ancestor.</strong> A view timeline resolves against its
+      subject's nearest <em>scroll container</em>, and <code>overflow: hidden</code> makes an
+      element one — whether or not anything ever scrolls inside it. Putting the glass button's
+      rim pass inside <code>.cf-hero</code>, whose <code>overflow: hidden</code> is there only
+      to crop the artwork, handed the timeline a box that never moves: Chromium reported a
+      live <code>ViewTimeline</code> whose progress sat at 0.116 at every scroll position on
+      the page. No error, no warning, and nothing on screen to distinguish it from an
+      animation that had never been written — which is what makes this worth a warning rather
+      than a sentence. The fix is <code>overflow: clip</code>, which crops without creating a
+      scrollport, declared after <code>hidden</code> so a browser too old for it still gets
+      the crop and, having no <code>animation-timeline</code> either, lands on the parked
+      state anyway.
+      <br><br>
+      Audited before changing it, across all six pattern pages and the scroll-driven
+      documentation pages: 40 scroll-driven animations, and the rim pass was the only one
+      whose timeline source was anything but the document. <strong>Check the source, not just
+      that the animation exists</strong> — <code>getAnimations()</code> reports a frozen
+      timeline and a running one identically.
+    </div>
     <p>
       The isometric assembly is not the only thing on a view timeline. <code>.text-foil</code>
       swings the angle its gradient is drawn at, by one brand angle, as the type crosses the
@@ -523,6 +544,29 @@ for t in ['fast','base','slow','scene']:
       path away from it lands on the designer's own 116.57° rake, so print and reduced motion
       get the drawn state rather than a frozen frame of an animation.
       → <a href="colors.html#foil">Colour &gt; The rake swings</a>
+    </p>
+    <p>
+      The two frosted surfaces make the third and fourth. The navigation rim runs on
+      <code>scroll(root block)</code> rather than a view timeline — the bar is a plane the
+      whole document moves under, so the document is its clock — while the hero glass button's
+      rim pass runs on <code>view()</code>, because that plate is one object the reader
+      carries up the screen once. Both park their band off-canvas as a plain declaration, so
+      all four doors lead to the drawn state rather than to a frozen frame.
+      → <a href="materials.html#glass">Materials &gt; Working with glass</a>
+    </p>
+    <p>
+      <strong>The navigation rim is where the <code>screen</code> rule above was found to have
+      been broken</strong>, which is worth recording because the rule was already written down
+      and the violation still shipped. That block carried
+      <code>(prefers-reduced-motion: no-preference)</code> without <code>screen and</code>, and
+      the consequence was sharper than the illustrations' was: print has no scroll, so a
+      <code>both</code>-filled animation holds its <code>from</code> keyframe — and
+      <code>cf-nav-edge</code>'s <code>from</code> is <code>opacity: 0</code>. Measured under
+      print emulation, the rim computed to opacity 0, so <em>every printed page lost the
+      hairline separating the bar from the content beneath it</em>. Scoped, print never applies
+      the animation and the rest declaration draws the edge. A rule stated in prose is not a
+      rule that is enforced; when you add the fourth door, check the other three on everything
+      already through them.
     </p>
   </section>
 

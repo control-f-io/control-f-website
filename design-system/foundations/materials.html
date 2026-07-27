@@ -312,6 +312,77 @@
       never simulated.
     </p>
     <p>
+      <strong>And the same plate answers the scroll, because a pointer is not the only way
+      a reader arrives at it.</strong> Until recently every response this button made was
+      gated on <code>:hover</code>, <code>:focus-visible</code> or <code>:active</code> —
+      none of which a touch device ever sends. The primary call to action of the whole site
+      was therefore a static plate for every reader on a phone, on the one surface where the
+      brand's north star, a foil that shifts as you move past it, had the best chance of
+      being true. So the rim carries <code>--glass-rim-light</code> as well: the same band,
+      the same 40&nbsp;% width and the same two parking positions the navigation sheet uses,
+      crossing once as the button travels up the screen.
+    </p>
+    <p>
+      Two lights on one control do not collide, because they are on the two layers this
+      family already keeps apart. <code>--cf-specular</code> is on the <em>face</em> — the
+      source reflected, achromatic, driven by the pointer. The band is on the <em>edge</em>,
+      over <code>--glass-edge</code>, driven by the scroll. One lit edge with hue, one
+      specular without: the division below is now literally true on both frosted surfaces
+      rather than true on one and asserted on the other.
+    </p>
+    <p>
+      It is <strong>windowed to the rim's own 62&nbsp;%</strong>, not to the plate, which is
+      what keeps it off the lime. The band parks off the left of that window and leaves off
+      its right, so the light dies at exactly the x where <code>--glass-edge</code> has
+      already faded to nothing. Sampled across the plate as it crosses the viewport, the lime
+      end (69–94&nbsp;% across) does not move by a single level at any scroll position.
+    </p>
+    <p>
+      And it <strong>touches exactly one row</strong>, which is measured rather than reasoned
+      from the geometry. Differencing the rendered plate with the band running against the same
+      plate with it parked, at 1280&nbsp;px: of 256&nbsp;&times;&nbsp;48 pixels,
+      <strong>54 differ by more than one level and every one of them is on row 0</strong>, max
+      delta 13. Rows 1 to 47 — the whole label, the arrow, and every pixel of the bearing tint
+      the type sits on — come back byte-identical at every scroll position sampled.
+    </p>
+    <p>
+      That is also why this layer needs no contrast table of its own, and the reason is the
+      ruling above rather than an exemption. The plate makes no boundary claim against the
+      artwork: glass is not outlined in this brand, so the rim is the material's edge and not a
+      guaranteed 3:1 line, and adding white to a decorative rim cannot cost anything that was
+      being counted. The floor that <em>is</em> counted is the label's, and it is set by
+      <code>background-color</code> — beneath every image layer, and 24&nbsp;rows away from a
+      1&nbsp;px strip painted on the border box above the type. There was never a mechanism by
+      which the band could reach it. The diff is here because <em>it cannot</em> is worth one
+      measurement.
+    </p>
+    <p>
+      <strong>It is a pseudo-element, and that is the whole engineering of it.</strong> The
+      plate carries <code>backdrop-filter</code>, and the rule under <em>Cost</em> below —
+      never move anything on a blurred layer — applies to its own background as much as to
+      the sheet's. The navigation already has the split it needs, blur on
+      <code>::before</code> and rim on <code>::after</code>; this button paints blur, face and
+      rim on one element, so the travelling band got an unblurred layer of its own and the
+      plate's three background layers were left untouched. That is also what keeps every
+      contrast figure measured on this component still valid — not one of them moved. Swept
+      3,000&nbsp;px at 1280&nbsp;px, three runs each way: 16.70&nbsp;ms median and
+      16.8–16.9&nbsp;ms p95 with the band and without it, indistinguishable.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong>A clipping ancestor silently freezes a view timeline.</strong> This animation
+      did not work when it was first written, and nothing said so. A view timeline resolves
+      against its subject's nearest <em>scroll container</em>, and
+      <code>overflow: hidden</code> makes an element one — so the hero's crop, four levels up
+      and there for a purely visual reason, became the timeline's source. Chromium reported a
+      live <code>ViewTimeline</code> whose progress sat at 0.116 and did not move at any
+      scroll position on the page: no error, no warning, and no visible difference from an
+      animation nobody had written. The fix is <code>overflow: clip</code>, which crops
+      without creating a scrollport, kept alongside <code>hidden</code> so an older browser
+      still gets the crop. Audited across all six pattern pages before changing it — 40
+      scroll-driven animations, and this was the only one whose source was not the document.
+      → <a href="motion.html#scroll-driven">Motion</a>
+    </div>
+    <p>
       <strong>Light only adds — behind the label.</strong> Every layer between the bearing
       tint and the label lightens, so the darkest point the label ever sits on is the tint
       itself and the contrast floor is the same whether the highlight is present or not. The
@@ -380,14 +451,23 @@
     </p>
     <p>
       <strong>The navigation sheet gets a specular too, and it is driven by the scroll rather
-      than by the pointer.</strong> That distinction is the whole rule, and it used to be
-      stated as the sheet having no specular at all. A highlight travelling across the full
-      width of the viewport <em>on hover</em> would be a screen effect, and the bar is not a
-      thing you point at — it is a thing you scroll past. So the sheet answers the only
-      gesture it actually receives: <code>--glass-rim-light</code>, a band 40&nbsp;% of the bar
-      wide, parked off the left edge and crossing the rim once over the length of the
-      document. The reader moving down the page is the reader moving past the material, which
-      is the one thing holographic stock does that a photograph of it cannot.
+      than by the pointer.</strong> It used to be stated as the sheet having no specular at
+      all. A highlight travelling across the full width of the viewport <em>on hover</em>
+      would be a screen effect, and the bar is not a thing you point at — it is a thing you
+      scroll past. So the sheet answers the only gesture it actually receives:
+      <code>--glass-rim-light</code>, a band 40&nbsp;% of the bar wide, parked off the left
+      edge and crossing the rim once over the length of the document. The reader moving down
+      the page is the reader moving past the material, which is the one thing holographic
+      stock does that a photograph of it cannot.
+    </p>
+    <p>
+      <strong>Read that as being about the gesture a surface actually receives, not as a
+      partition between the two surfaces</strong>, because the hero button receives both and
+      now answers both. The rule that generalises is: give a surface the light for every way
+      a reader can arrive at it, and put each light on the layer that belongs to it — the
+      pointer on the face, the passage on the edge. What would be wrong is the sheet
+      answering a hover it never gets, or the plate answering only a hover half its readers
+      cannot send.
     </p>
     <p>
       Two things about it are load-bearing. It is <strong>on the rim, not on the sheet</strong>
