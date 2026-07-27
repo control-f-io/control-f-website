@@ -157,12 +157,43 @@
       independent siblings that happen to sit side by side.
     </div>
     <div class="docs-note">
-      <strong>Nothing on the site uses this grid yet.</strong> Both pattern pages express their
-      splits at component level — the two 6 + 6s above, and the 4 + 4 + 4 card rows as
-      <code>auto-fill</code> tracks that pack themselves. <code>.grid</code> and
-      <code>.col-*</code> are the primitive for page composition when a page needs it; they are
-      documented here as a promise, not as a description of the two pages that exist. Said
-      plainly so nobody reads the demo above as a picture of the shipping layout.
+      <strong>One page uses this grid, and it is not one of the two designed ones.</strong>
+      This note used to read "nothing on the site uses this grid yet … documented here as a
+      promise, not as a description of the two pages that exist," and it was true when it was
+      written. There are five pattern pages now, and <code>patterns/kontakt.html</code> composes
+      its whole body with <code>.grid</code>: a <strong>7 + 5</strong> split, form left and
+      contact list right, with <code>row-gap</code> overridden to
+      <code>--section-gap-sm</code> because stacked they are two sections rather than two cells.
+      <br><br>
+      The rest still holds. The two designed pages do express their splits at component level —
+      the two 6 + 6s above, and the 4 + 4 + 4 card rows as <code>auto-fill</code> tracks that
+      pack themselves — so the demo above is still not a picture of <em>those</em> pages. The
+      part that stopped being true is the promise, and a promise that has quietly been kept is
+      exactly the kind of claim nobody re-reads.
+    </div>
+    <div class="docs-note">
+      <strong>Two of the eight span classes have a consumer, and four spans cannot be written
+      at all.</strong> Counted across the whole system: <code>.col-7</code> and
+      <code>.col-5</code> are used once each, in <code>kontakt.html</code>;
+      <code>.col-2</code>, <code>--3</code>, <code>--4</code>, <code>--6</code>,
+      <code>--8</code> and <code>--12</code> have no consumer anywhere. And the set has holes —
+      there is no <code>.col-1</code>, <code>--9</code>, <code>--10</code> or
+      <code>--11</code> — so <code>.col-3</code> and <code>.col-2</code> have no complement:
+      <strong>3 + 9 and 2 + 10 are unwritable</strong>, while every three-part row the set
+      suggests (4 + 4 + 4, 3 + 3 + 3 + 3, 2 + 2 + 8) is fine.
+      <br><br>
+      Both facts are recorded rather than acted on, and deliberately, because the two obvious
+      actions contradict each other and neither is this page's to take. The space scale's rule
+      below — <em>if a step loses its last consumer, delete it</em> — would cut the set to
+      <code>.col-5</code> and <code>.col-7</code>, which is absurd for a 12-column grid whose
+      canonical splits are 6 + 6 and 4 + 4 + 4. Completing it instead adds four classes nobody
+      has asked for, which is the menu the same rule exists to prevent. The real question is
+      whether span belongs in a class at all: this system's own stated rule is that a
+      <em>number</em> is a custom property and only what CSS cannot generate is a class — which
+      is why <code>--rank</code> and <code>--subdivide-count</code> are properties. Span is a
+      number. A <code>.col</code> with <code>--col</code> would have no holes by construction,
+      and it is a change to a public API with one consumer, so it wants a ruling, not a
+      routine.
     </div>
     <div class="docs-note">
       <strong>3-up folds straight to stacked.</strong> A row of <code>.col-4</code> goes from
@@ -680,6 +711,7 @@ print(counts)
         <tr><td><code>.subdivide--4</code></td><td>1/2 · 1/4 · 1/8 · 1/8 — the pure form, exact halves</td></tr>
         <tr><td><code>.subdivide--3</code>, <code>--5</code>, <code>--6</code></td><td>the same series at other depths</td></tr>
         <tr><td><code>.subdivide--even</code></td><td>equal columns — the applied form; count via <code>--subdivide-count</code></td></tr>
+        <tr><td><code>.subdivide</code> alone</td><td>the applied form as well — the base class carries it as its default, so no modifier is not an error state</td></tr>
         <tr><td><code>.subdivide__col</code></td><td>one column; <code>--rank</code> sets how many rows it carries</td></tr>
         <tr><td><code>.subdivide__row</code></td><td>a full-width band that adopts the parent's tracks — for a second object that has to line up with the columns</td></tr>
       </tbody>
@@ -697,6 +729,39 @@ print(counts)
       in 900 px of page and unreadable in 900 px of viewport with a 272 px sidebar in front
       of it.
     </p>
+    <div class="docs-note">
+      <strong>The base class used to have no behaviour of its own, and that is a worse failure
+      than it sounds.</strong> <code>--subdivide-cols</code> was written only by the five
+      modifiers, so <code>.subdivide</code> with no modifier read a property nothing had
+      defined. An unresolvable <code>var()</code> makes its declaration invalid at
+      computed-value time, so <code>grid-template-columns</code> fell all the way back to
+      <code>none</code> and the field collapsed to a single implicit track — every column drawn
+      at full width, on top of every other. <strong>Silent</strong>, because a grid with one
+      track is still a grid: nothing errors, nothing overflows, and the page still passes an
+      overflow sweep.
+      <br><br>
+      <code>components/pagination.html</code> shipped in that state. It asked for three columns
+      with <code>--subdivide-count:3</code> and no <code>--even</code>, and drew three cards
+      1071 px wide inside a 1072 px track. Measured, not inferred.
+      <br><br>
+      The fix is that the base class now declares the default rather than depending on a
+      modifier to supply one. Defaulting to the <em>applied</em> form is not a guess about
+      intent: it is the manual's own <em>Teilungsraster (Anwendungsbeispiel)</em> plate, and it
+      is the form all five shipping uses of this primitive take. <code>--subdivide-count</code>
+      therefore works on the base class, which is what the pagination markup already assumed.
+      The five call sites are now written the same way regardless.
+    </div>
+    <div class="docs-note">
+      <strong>One bug, not a pattern — checked rather than assumed.</strong> Every
+      <code>var()</code> in <code>base.css</code> and <code>components.css</code> that names a
+      non-token property and carries no fallback was traced to the rules that write it.
+      <code>--subdivide-cols</code> was the only one read by a base rule and written by nothing
+      but modifiers. <code>--rank</code> and <code>--subdivide-count</code> carry fallbacks;
+      <code>--btn-w</code> is read only by the two selectors that set it;
+      <code>--cf-specular</code> is registered with <code>@property</code> and so always
+      resolves. Worth re-running before a sixth modifier is added, because the check is cheap
+      and the failure it catches is invisible.
+    </div>
     <div class="docs-note">
       <strong>A subdivision is rarely one object.</strong> The application plate draws the ruled
       grid and, under it, a mono axis whose ticks name the columns. Those cannot be one element —
