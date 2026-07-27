@@ -574,8 +574,98 @@ hr {
 .material-rake--mid    { --rake: var(--rake-mid); }
 .material-rake--far    { --rake: var(--rake-far); }
 .material-rake--mirror { --rake-angle: calc(var(--angle-square) + 180deg); }
+/* The designer's own second linear, which is the mid rake seen at 239.25°. It
+   is an angle and nothing else, so it composes with the rakes rather than
+   replacing one: --grazing --mid is the gradient the Figma dump contains, and
+   --grazing on its own is the near rake grazing. 239.25° is not one of the four
+   sanctioned angles and is kept anyway for the reason 132.36° is — it is
+   measured off the material, not derived. Do not generate new angles from it. */
+.material-rake--grazing { --rake-angle: 239.25deg; }
 @supports (background: linear-gradient(in oklab, red, blue)) {
   .material-rake { --rake-image: linear-gradient(var(--rake-angle) in oklab, var(--rake-ramp)); }
+}
+
+/* THE SAME LIGHT ARRIVING AS A BLOOM RATHER THAN A SWEEP.
+   Four of the six gradients in the Figma dump are radial, and until now the
+   radial half of the light family was three tokens that nothing consumed —
+   --gradient-bloom, --gradient-bloom-iso and --gradient-bloom-top. They are
+   gone and this is what replaced them, for the reason .material-rake replaced
+   six inline literals: they were a third and fourth statement of a ramp the
+   system has already agreed to state once.
+
+   They had also drifted apart from each other, which is the sharper reason.
+   Two of the three were built from --rake-mid and mirrored; the third was
+   pasted in as raw Figma percentages, unmirrored, deriving from nothing. Read
+   as a family they disagreed about direction AND about whether a rake was a
+   parameter or a literal. Two hands, not one.
+
+   THE THIRD ONE IS THE FAR RAKE, and that is arithmetic rather than an
+   assertion. Its stops are lime 26.66 %, Glas 73.62 %, CF-Grau 100 %, so the
+   band runs 26.66 → 100 and Glas sits at
+
+     26.66 + (100 − 26.66) × 0.64 = 73.60 %
+
+   against the designer's 73.62. Two hundredths of a point, which is his
+   exporter rounding 64.03 to the sanctioned 64. So --bloom-in-n keeps the
+   inset verbatim — a lime core in the middle of a light source is a real part
+   of the drawing, not an artefact — and the rake underneath it is derived like
+   every other rake in the family.
+
+   MIRRORED BY DEFAULT, because the dominant radial form in the dump puts the
+   surface at the centre and the light on the rim: an object lit from all
+   round, which is what cards 02 and 04 draw. --top is the exception and
+   inverts it, because a surface lit from above has its light where the light
+   comes from.
+
+   A surface material, like .material-rake: a face, an edge, a plate. Not a
+   background for text. */
+.material-bloom {
+  --bloom-rake-n: var(--rake-mid-n);
+  --bloom-in-n:   0;
+  --bloom-shape:  circle;
+  --bloom-at:     50% 50%;
+  --bloom-ramp:   var(--cf-grau) 0%,
+                  var(--cf-glas) calc((100 - var(--bloom-rake-n)) * 1%),
+                  var(--cf-lime) 100%;
+  --bloom-image:  radial-gradient(var(--bloom-shape) at var(--bloom-at), var(--bloom-ramp));
+  background: var(--bloom-image);
+  color: var(--accent-ink);
+}
+/* THE ISOMETRIC CIRCLE, 2:1 WIDE — and the source does not say so, which is
+   worth stating plainly because the retired token claimed it did. Its comment
+   cited 02-datenfundament.svg, scale(120 59.88), as the authority for a 2:1
+   wide ellipse. That transform is translate(...) rotate(90) scale(120 59.88),
+   and the rotate swaps the axes: 59.88 wide by 120 tall. The designer's
+   ellipse is 1:2 TALL, and so is the Figma dump's (50 % 100 %).
+
+   It is tall because the thing it lights is: the rhombus under it in card 02
+   is 120 x 240, and the bloom is exactly half of it on both axes. That is a
+   light fitted to an object, not a projection rule — and a bloom fitted to its
+   object needs no token, because it is drawn with the object in SVG, which is
+   where both of the designer's live.
+
+   What the system needs a token for is the other thing: the circle seen in
+   2:1 isometry, which is 2:1 WIDE. --field-bloom's pool is that shape and is
+   named that in tokens.css. So the shape here is right and the citation was
+   wrong, and the two facts were never in contact until someone checked the
+   transform. */
+.material-bloom--iso { --bloom-shape: 100% 50%; }
+/* Light entering a surface from its top edge — the fourth radial in the dump,
+   45.72 % x 95 % from 50 % 0 %, at the far rake with the inset above. */
+.material-bloom--top {
+  --bloom-rake-n: var(--rake-far-n);
+  --bloom-in-n:   26.66;
+  --bloom-shape:  45.72% 95%;
+  --bloom-at:     50% 0%;
+  --bloom-ramp:   var(--cf-lime) calc(var(--bloom-in-n) * 1%),
+                  var(--cf-glas) calc((var(--bloom-in-n)
+                                      + (100 - var(--bloom-in-n)) * var(--bloom-rake-n) / 100) * 1%),
+                  var(--cf-grau) 100%;
+}
+@supports (background: radial-gradient(in oklab, red, blue)) {
+  .material-bloom {
+    --bloom-image: radial-gradient(var(--bloom-shape) at var(--bloom-at) in oklab, var(--bloom-ramp));
+  }
 }
 /* The foil — the light layer carried far enough to split into the brand's
    own spectrum. A surface material, like .material-light: an isometric face,
