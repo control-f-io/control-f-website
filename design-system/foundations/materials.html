@@ -80,7 +80,14 @@
           under opaque, never the other way round. It always needs something behind it, and
           something complex behind it, or it is just a grey box.
         </p>
-        <p><code>.material-glass</code> · <code>--glass-blur</code></p>
+        <p>
+          Its edge is two lines and not one: a lit rim outside and a dark refraction line one
+          pixel in, which is how the edge of a real sheet of glass reads and the only way a
+          glass perimeter has a boundary that survives what is behind it. See
+          <em>The edge is two lines</em> below.
+        </p>
+        <p><code>.material-glass</code> · <code>--glass-blur</code> · <code>--glass-border</code> ·
+           <code>--glass-refraction</code></p>
       </div>
     </div>
 
@@ -138,8 +145,11 @@
         <div class="iso" style="position:absolute;left:12%;top:18%;width:9rem;height:9rem;background:var(--gradient-light);border:1px solid var(--border-strong)"></div>
         <!-- 04 contour -->
         <div class="iso" style="position:absolute;left:34%;top:34%;width:11rem;height:11rem;border:1px solid var(--border-strong)"></div>
-        <!-- 03 frosted glass — the band, running the full width -->
-        <div class="material-glass material-glass--veil" style="position:absolute;inset:0 0 auto 0;height:4.5rem;border:0"></div>
+        <!-- 03 frosted glass — the band, running the full width. It ends at one
+             edge rather than closing a perimeter, so it gives up both halves of
+             the rim: no border, and no refraction line. The lit edge below is
+             the edge it actually ends at. -->
+        <div class="material-glass material-glass--veil" style="position:absolute;inset:0 0 auto 0;height:4.5rem;border:0;box-shadow:none"></div>
         <div class="material-glass-edge" style="position:absolute;inset:4.5rem 0 auto 0"></div>
         <!-- 02 opaque + 06 text — the plates, on the glass, not made of it -->
         <div class="material-solid" style="position:absolute;left:1.5rem;top:1.5rem;padding:var(--space-2) var(--space-4);border-radius:var(--radius-sm)">
@@ -220,6 +230,87 @@
       on where the highlight is.
     </p>
 
+    <h3>The edge is two lines</h3>
+    <p>
+      A lit rim outside — <code>--glass-border</code>, white 55&nbsp;% — and a dark
+      refraction line one pixel inside it — <code>--glass-refraction</code>, black 55&nbsp;%.
+      Until recently there was only the rim, and the rim alone does not give a sheet of glass a
+      boundary. Every layer on this material adds light, so a glass plate approaches its
+      backdrop as its backdrop approaches white, and the whole perimeter goes with it. Measured
+      on the hero CTA against the shipping artwork, worst pixel per edge, consent banner
+      dismissed:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Width</th><th>Top</th><th>Bottom</th><th>Left</th><th>Right (lime end)</th></tr></thead>
+      <tbody>
+        <tr><td>1280</td><td>1.25:1</td><td>1.08:1</td><td>1.15:1</td><td>1.11:1</td></tr>
+        <tr><td>1440</td><td>1.31:1</td><td>1.07:1</td><td>1.14:1</td><td>1.11:1</td></tr>
+        <tr><td>1920</td><td>1.10:1</td><td>1.08:1</td><td>1.16:1</td><td>1.09:1</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Every edge of the primary call to action on the site, at every desktop width, against a
+      3:1 requirement. The label was never in question and still is not — it measures 16.8:1.
+      But a control whose boundary is invisible is a control identified by its text alone, and
+      the plate happened to land on the brightest quarter of the artwork.
+    </p>
+    <p>
+      <strong>A darker rim could not have fixed it.</strong> Nothing painted against the artwork
+      can be guaranteed, because the artwork is a video: black holds only where the backdrop is
+      light, white only where it is dark, and a frame can be either. That is the same wall the
+      focus ring hit, and the answer is the one this component already reached — make the
+      guaranteed edge <em>internal</em>. The reader gets a lit line and a dark line side by
+      side; whichever one the artwork swallows, the other still reads, and the edge between the
+      two belongs to the button rather than to the frame.
+    </p>
+    <p>
+      The floor is computed rather than sampled, because a sampled worst case is only the worst
+      frame somebody happened to open. Both lines sit on the same composited colour, and
+      <em>light only adds</em> is what bounds it: never darker than the bearing tint over pure
+      black, never lighter than white. Across that whole range the rim contrasts with the
+      refraction line at <strong>4.76:1 or better</strong> — a floor over every backdrop that
+      can exist.
+    </p>
+    <p>
+      With one edge lower, and it is the one <code>--glass-edge</code> is painted on. The glass
+      button runs that gradient along its top border pixel, so the rim there is white 55&nbsp;%
+      over <em>the edge</em> over the plate rather than over the plate alone — and the edge's
+      Sky leg is the one stop darker than the white it stands in for. Recomputed through the
+      gradient per channel, that edge's floor is <strong>4.33:1</strong>; the other three keep
+      4.76:1. Measured on the page after the change: 4.59–4.62:1 internal on the top edge,
+      4.82–4.86:1 on the rest, and 3.46–4.23:1 directly against the artwork, up from
+      1.07–1.31:1.
+    </p>
+    <p>
+      Neither number is the one to carry forward. What generalises is that the rim's own
+      composition belongs in the arithmetic, because <em>the rim is white 55&nbsp;%</em> stopped
+      being true the moment something was painted underneath it.
+    </p>
+    <p>
+      <strong>It costs nothing to scroll.</strong> The line is static and painted on the same
+      element as the blur, so it does not re-rasterise anything — the rule below about never
+      moving anything on a blurred layer is about <em>movement</em>, not about paint. A 3,000&nbsp;px
+      scripted scroll at 1280&nbsp;px gives 16.7&nbsp;ms median and 16.9&nbsp;ms p95 both with
+      the line and without it, to the tenth of a millisecond.
+    </p>
+    <p>
+      <strong>Scope: surfaces that close a perimeter.</strong> That is
+      <code>.material-glass</code> and <code>.cf-btn--glass</code>. Not the navigation sheet,
+      and not the band in the layer stack above — those end at a single edge and already draw
+      <code>--glass-edge</code> along it, so a refraction line there would be a rule across the
+      top of every page rather than the edge of anything. Both turn it off where they are used,
+      next to the <code>border: 0</code> that says the same thing about the rim.
+    </p>
+    <p>
+      Implemented as <code>box-shadow: inset 0 0 0 1px</code> rather than a second element or a
+      second border, because an inset shadow is clipped to the padding box — which lands the
+      line exactly against the inside of the rim with nothing to position. One consequence is
+      worth knowing before you write the next state: <code>box-shadow</code> is a single
+      property, so a rule that sets an outer ring and forgets the inset drops the refraction
+      line for the duration of that state. <code>.cf-btn--glass:focus-visible</code> restates
+      both, which is why it lists two shadows.
+    </p>
+
     <h3>How glass responds to the reader</h3>
     <p>
       Glass gets a different treatment from a flat panel, because a sheet of glass has a
@@ -289,6 +380,14 @@
       on that rule. Every layer used to size to <code>auto</code> and fill the box, so the
       initial <code>repeat</code> had nothing to do; a 1&nbsp;px layer under it would tile the
       rim down all 48&nbsp;px of the plate.
+    </p>
+    <p>
+      That rule is about <em>the type</em>, and the refraction line above is the reason to say
+      so out loud rather than leave it to be inferred. What it protects is the darkest point
+      <em>under the label</em>; the line is a one-pixel ring at the padding edge, further from
+      the label than any padding token in the system. It darkens the material's edge, which is
+      where a real sheet of glass is dark, and it darkens nothing anybody reads. Read the rule
+      as a promise about legibility, not as a ban on ink.
     </p>
     <p>
       <strong>The navigation sheet gets a specular too, and it is driven by the scroll rather
@@ -495,6 +594,15 @@
       <code>prefers-reduced-transparency</code>, every glass surface becomes the opaque
       <code>--surface-glass-solid</code> plate. The edge light survives both, because it is a
       contour rather than a translucency.
+    </p>
+    <p>
+      So does the refraction line, and for the same reason — it is ink. On the opaque plate the
+      two lines still oppose each other at 5.08:1, so the boundary the blur was never
+      responsible for is not one of the things lost when the blur goes. Under
+      <code>forced-colors</code> it <em>is</em> dropped: <code>box-shadow</code> always is, the
+      border survives and takes the system's own colour, and at that point the platform has
+      decided what a control's edge looks like. Same disposition as the focus ring's inner
+      stroke, which is dropped there too.
     </p>
   </section>
 </main>
