@@ -1576,3 +1576,67 @@
     --surface-glass-veil:  var(--surface-glass-solid);
   }
 }
+
+/* THE THIRD FALLBACK, and it was missing. foundations/materials.html said in
+   so many words that forced colours is "the one context where none of the
+   arithmetic above applies" — that the platform decides the edge, the border
+   survives, and this system has nothing to do. That is true of the BUTTON,
+   which has a real border and gets it back in LinkText. It is not true of the
+   material, and the sentence is why nobody looked.
+
+   Measured in Chromium with forced colours active, landing page at 1280:
+
+     .cf-nav::after   background-image  ->  `none, none`
+     .cf-btn--glass   background-image  ->  `none, none, none`
+     .cf-nav::before  backdrop-filter   ->  blur(16px) saturate(1.08)   (live)
+     .cf-btn--glass   background-color  ->  rgba(255,255,255,0.46)      (kept)
+
+   Three things follow, and all three are this file's to fix because all three
+   are the tokens rather than the components.
+
+   THE BLUR IS DEAD WEIGHT. Forced colours drops every gradient on both frosted
+   surfaces, so what the blur composites under is a flat system colour. The
+   Don't list on foundations/materials.html already rules this out in general —
+   no backdrop-filter under an opaque background, the blur cannot be seen and
+   still costs a GPU pass — and this is that case arriving by way of the user's
+   own settings rather than by an author's mistake.
+
+   THE TINT IS THE REAL FAILURE. background-color is NOT among the properties
+   forced colours overrides in Chromium, so --surface-glass survives at white
+   46 % and the hero CTA stays translucent on a page where every other surface
+   has gone flat: the video plays through the primary call to action. Chromium
+   backplates the LABEL, so the text is legible either way — what is wrong is
+   the plate, which asserts a material the mode does not have. Canvas is the
+   answer rather than --surface-glass-solid, and that distinction is the whole
+   reason this is a separate block instead of another line in the one above:
+   grey-100 is an author grey, and in a dark high-contrast theme an author grey
+   is the one thing the reader switched the mode on to stop seeing. The other
+   two fallbacks answer "the browser cannot" and "the reader wants less"; this
+   one answers "the reader has chosen the palette", so it answers in the
+   palette.
+
+   Both selectors are named for the reason the comment above the first fallback
+   gives — a custom property resolves per element, so :root never reaches
+   inside an inverse scope — and here the two blocks are identical rather than
+   merely parallel: Canvas and CanvasText already ARE the theme, whichever
+   theme the reader picked.
+
+   The two lit EDGES cannot be recovered here, because they are painted rather
+   than tinted: an edge drawn as a background-image is gone whatever this file
+   says. They are redrawn as borders — the only paint forced colours keeps —
+   next to the rules that draw them. See .cf-nav::after in components.css and
+   .material-glass-edge in base.css. */
+@media (forced-colors: active) {
+  :root {
+    --glass-blur:          none;
+    --surface-glass:       Canvas;
+    --surface-glass-veil:  Canvas;
+    --surface-glass-solid: Canvas;
+  }
+  [data-theme="inverse"] {
+    --glass-blur:          none;
+    --surface-glass:       Canvas;
+    --surface-glass-veil:  Canvas;
+    --surface-glass-solid: Canvas;
+  }
+}

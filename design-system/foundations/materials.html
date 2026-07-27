@@ -663,20 +663,78 @@
 
     <h3>When there is no glass</h3>
     <p>
-      Both fallbacks are handled once, in <code>tokens.css</code>, by redefining the tokens
-      rather than by giving every component its own escape hatch. Where
-      <code>backdrop-filter</code> is unsupported, the blur becomes <code>none</code> and the
-      veil thickens to white 72 % so the band still separates. Where the reader has asked for
-      <code>prefers-reduced-transparency</code>, every glass surface becomes the opaque
-      <code>--surface-glass-solid</code> plate. The edge light survives both, because it is a
-      contour rather than a translucency.
+      There are three of these, not two, and they are handled once in
+      <code>tokens.css</code> by redefining the tokens rather than by giving every component
+      its own escape hatch. Where <code>backdrop-filter</code> is unsupported, the blur becomes
+      <code>none</code> and the veil thickens to white 72 % so the band still separates. Where
+      the reader has asked for <code>prefers-reduced-transparency</code>, every glass surface
+      becomes the opaque <code>--surface-glass-solid</code> plate. Where
+      <code>forced-colors</code> is active, every glass surface becomes <code>Canvas</code> and
+      the blur goes off. The edge light survives all three — but only because it is redrawn in
+      the third, and that is the correction this section exists to record.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong>This page used to say forced colours needed nothing from us.</strong> The
+      sentence was <em>“the platform decides the edge anyway … the one context where none of
+      the arithmetic above applies”</em>, and it is true of the <em>button</em>, which has a
+      real <code>border</code> and gets it back in the reader's own link colour. It is not
+      true of the <em>material</em>, and the sentence is the reason nobody looked. Forced
+      colours computes every gradient <code>background-image</code> to <code>none</code>, and
+      both of this system's lit edges are gradient background-images on a 1 px box with no
+      border. Measured in Chromium on the landing page at 1280 px, before the fix:
+      <code>.cf-nav::after</code> resolved to <code>none, none</code> over a transparent
+      background — <strong>the navigation bar had no bottom edge at all</strong>, on every
+      page, for every reader in that mode. That is the same loss print had until the
+      <code>screen and</code> scope was added to the scroll block, arriving a second time
+      through a different door.
+    </div>
+    <p>
+      Three things were wrong and each is fixed where it belongs:
+    </p>
+    <ul>
+      <li>
+        <strong>The two edges are redrawn as borders</strong>, which is the only paint the
+        mode keeps — <code>.cf-nav::after</code> and <code>.material-glass-edge</code> each
+        take <code>border-top: 1px solid CanvasText</code>. Same idiom
+        <code>.cf-arrive__line</code> and <code>.cf-progress__rail</code> already use, and
+        neither doubles a line, because neither had a border to begin with.
+      </li>
+      <li>
+        <strong>The blur goes off.</strong> With every gradient dropped, what the blur
+        composites under is a flat system colour — which is the <em>Don't</em> above, no
+        <code>backdrop-filter</code> under an opaque background, arriving by way of the
+        reader's settings instead of an author's mistake.
+      </li>
+      <li>
+        <strong>The tint becomes <code>Canvas</code>, and that was the real failure.</strong>
+        <code>background-color</code> is not among the properties Chromium's forced colours
+        overrides, so <code>--surface-glass</code> survived at white 46 % and the hero CTA
+        stayed translucent on a page where every other surface had gone flat: the video played
+        through the primary call to action. Chromium backplates the <em>label</em>, so the
+        text was legible either way — what was wrong was the plate, asserting a material the
+        mode does not have.
+      </li>
+    </ul>
+    <p>
+      <code>Canvas</code> rather than <code>--surface-glass-solid</code>, and the distinction
+      is why this is a third block instead of one more line in the second.
+      <code>--surface-glass-solid</code> is <code>--grey-100</code>, an author grey; in a dark
+      high-contrast theme an author grey is the one thing the reader turned the mode on to stop
+      seeing. The other two fallbacks answer <em>the browser cannot</em> and <em>the reader
+      wants less</em>. This one answers <em>the reader has chosen the palette</em>, so it
+      answers in the palette — which is also why its <code>:root</code> and
+      <code>[data-theme="inverse"]</code> declarations are identical rather than merely
+      parallel. <code>Canvas</code> and <code>CanvasText</code> already <em>are</em> the theme.
     </p>
     <p>
-      <strong>Under <code>forced-colors</code> the platform decides the edge anyway.</strong>
-      <code>box-shadow</code> is dropped there, the border survives and takes the system's own
-      colour, and a control gets whatever boundary the reader's own theme gives it — which is
-      the one context where none of the arithmetic above applies, and the one where the button
-      is guaranteed an edge without this system drawing one.
+      What the mode ends up with is the answer this page argues for everywhere else: the
+      navigation is an opaque plate with a hairline under it, and the hero CTA is an opaque
+      plate with a system-coloured border. <strong>Both of the two honest boundaries from
+      <em>A control's edge</em>, chosen for us by a reader who has already said which one they
+      want.</strong> Nothing here is a contrast measurement, and that is the point —
+      <code>CanvasText</code> on <code>Canvas</code> is guaranteed by the platform rather than
+      by us. The specular and the rim pass do not survive, and should not: both move a
+      <code>background-position</code> that no longer has an image to move.
     </p>
   </section>
 </main>
