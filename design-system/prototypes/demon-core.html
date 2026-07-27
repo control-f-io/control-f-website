@@ -39,10 +39,31 @@
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  /* Both boxes, and it takes both. <body>'s crop alone leaves the root still
+     reporting the overflow, and the root's alone leaves body leaking into it;
+     measured, only the pair brings scrollWidth back to clientWidth. */
+  html {
+    overflow-x: hidden;
+    overflow-x: clip;
+  }
+
   body {
     background: var(--cf-weiss);
     font-family: var(--font-mono);
+    /* The ambient wash is inset -10 %, so it bleeds a tenth of the stage past
+       each edge on purpose, and this line is what crops the bleed. It has to
+       be `clip`: `overflow-x: hidden` on <body> PROPAGATES to the viewport
+       and leaves body itself computing to `visible`, so the wash sailed
+       straight past it and the document sat 128 px scrollable sideways at
+       1280 — 77 at 768, 38 at 375 — with nothing out there to look at.
+       `clip` is excluded from that propagation, so it stays on the box that
+       declared it and crops what that box contains. It is also the form this
+       system uses everywhere it crops, for the neighbouring reason: `hidden`
+       makes a scrollport, and a stray scrollport is exactly this bug. The
+       `hidden` line is kept under it for browsers without `clip`, which land
+       on the behaviour this page already had. */
     overflow-x: hidden;
+    overflow-x: clip;
     min-height: 100vh;
     display: flex;
     align-items: center;
