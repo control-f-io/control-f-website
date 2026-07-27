@@ -3411,6 +3411,7 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
      .cf-iso__scene   the whole object — the only thing that travels
      .cf-iso__form    solid contoured body
      .cf-iso__ghost   dashed reference geometry, the object's future states
+     .cf-iso__orbit   a ghost that circulates — turns, then settles
      .cf-iso__light   the single lime-gradient element. One per object.
      .cf-iso__trace   the signal reaching the object — draws itself
      .cf-iso__node    construction points
@@ -3532,6 +3533,28 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
       animation-name: cf-iso-fade;
       animation-range: cover 35% cover 50%;
     }
+
+    /* AN ORBIT TURNS. It is the one piece of geometry in the system that is
+       drawn as motion, and until now it was the only thing on the page that
+       said "this is circulating" and then held perfectly still.
+
+       It carries .cf-iso__ghost as well, so it fades up with the rest of the
+       dashed geometry and then keeps turning for another ten per cent of the
+       range, settling exactly where the nodes do. That is the brand's rule for
+       anything spatial — turn slowly, then settle — and it is why the second
+       range runs long rather than starting late: an orbit that begins to move
+       after everything else has stopped reads as a separate event.
+
+       Two animations on one element, which is the shape .cf-nav::after already
+       uses: names, timelines and ranges are all comma lists, and the timeline
+       has to be repeated because a single value would not pair with two names.
+       --ease-out does the settling — most of the turn is spent in the first
+       third of the range, and the last dash creeps into place. */
+    .cf-iso__orbit {
+      animation-name: cf-iso-fade, cf-iso-orbit;
+      animation-timeline: --cf-iso, --cf-iso;
+      animation-range: cover 20% cover 40%, cover 20% cover 50%;
+    }
   }
 }
 
@@ -3555,6 +3578,34 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
 @keyframes cf-iso-draw {
   from { stroke-dashoffset: var(--trace-from); }
   to   { stroke-dashoffset: var(--trace-to); }
+}
+
+/* THE ORBIT TURNS BY MOVING ITS DASHES ALONG ITSELF, NOT BY ROTATING.
+   A rotation is the obvious way to turn a ring and it is the wrong one here,
+   for a reason this object has already cost the system once: all three orbits
+   are stroked with userSpaceOnUse gradients, and a paint server is resolved in
+   the user space in force where it is referenced — which includes the element's
+   own transform. Rotating the ring rotates its fade with it, so the designer's
+   "solid on the left, dissolving to the right" would sweep round the object and
+   spend its solid half across the top of the lime disc. That is the exact
+   failure components/process-card.html documents and measures.
+
+   stroke-dashoffset touches no paint server at all. The fade axis stays where
+   the source vector put it and only the dashes move, which is what an orbit
+   looks like anyway: the ring does not swing, the things on it go round.
+
+   It ends at 0 and starts at a whole number of dash periods, so BOTH ends of
+   the animation are on the phase the source draws — including the `both` fill
+   held before the range opens. See --iso-orbit-travel.
+
+   This is a paint-only animation, not a composited one. That is a real cost
+   and it is the same one the system already pays on every card: .cf-iso__trace
+   has animated stroke-dashoffset since the assembly was written. Three dashed
+   hairlines on one object, running only while that object crosses the
+   viewport, is the same order of work again — not a new class of expense. */
+@keyframes cf-iso-orbit {
+  from { stroke-dashoffset: var(--iso-orbit-travel); }
+  to   { stroke-dashoffset: 0; }
 }
 
 /* --------------------------------------------------------------------------
