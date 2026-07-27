@@ -199,19 +199,32 @@ for t in ['fast','base','slow','scene']:
       1 px contour at every width, and dash patterns pinned to the
       <code>--dash-*</code> px values instead of scaling with the drawing. The part classes
       on the children buy the assembly. A figure can take the first without the second, and
-      four of them do: the <em>Über uns</em> page-header figure is on screen the moment the
-      page loads and has nothing to reveal, and the three value-row marks are small
-      supporting glyphs where an entrance would be noise rather than meaning.
+      exactly one does: the <em>Über uns</em> page-header figure is on screen the moment the
+      page loads and has nothing to reveal.
     </p>
     <p>
       Every figure in the shipping tree, and which half each one takes — the eight objects
       <a href="illustration.html#where">Illustration &gt; Where illustrations go</a> counts,
       plus the three value-row marks, which are marks rather than objects and are counted
-      there as neither. <strong>Seven of the eight assemble; the one that does not is the
-      only one that is above the fold.</strong> That is the whole rule — an object the reader
-      scrolls to assembles, an object already on screen when the page loads has nothing to
-      reveal, and a mark small enough to be a glyph would only make noise trying.
+      there as neither. <strong>Seven of the eight objects assemble; the one that does not is
+      the only one that is above the fold.</strong> That is the whole rule — an object the
+      reader scrolls to assembles, and an object already on screen when the page loads has
+      nothing to reveal.
     </p>
+    <div class="docs-note">
+      <strong>This table said the three value-row marks do not assemble, and they have
+      assembled since the release that redrew them.</strong> The exemption it recorded was
+      real when it was written: the marks were three pairs of circles, and the argument was
+      that a mark small enough to be a glyph would only make noise trying to arrive. Then
+      they were rebuilt as constructed objects — bodies as 2:1 ground discs, chevron arms as
+      whole lattice steps, the wheel measured off the mockup by radial profile — and the
+      rebuild gave all three <code>.cf-iso__scene</code> and gave
+      <code>components.css</code> a deliberate <code>--iso-travel: 4</code> to go with it.
+      Nothing was wrong on screen; only this page was. <strong>The rebuilt marks are objects
+      the reader scrolls to, so the system's own rule covers them and the third clause was
+      deleted rather than re-argued.</strong> The travel it needed is the same rule the
+      section below states, which is what makes the two consistent: 160 / 40.
+    </div>
     <table class="docs-table">
       <thead><tr><th>Figure</th><th>Contour rules</th><th>Assembles</th></tr></thead>
       <tbody>
@@ -220,7 +233,7 @@ for t in ['fast','base','slow','scene']:
         <tr><td>404 page · the level row with its socket lit</td><td>yes</td><td>yes</td></tr>
         <tr><td>blog article · the plot</td><td>yes</td><td>yes — and it is the one that is not <code>aria-hidden</code>, so it carries <code>role="img"</code> and a <code>&lt;title&gt;</code></td></tr>
         <tr><td><em>Über uns</em> · page-header figure</td><td>yes</td><td>no — above the fold</td></tr>
-        <tr><td><em>Über uns</em> · value-row marks (×3)</td><td>yes</td><td>no — supporting glyphs</td></tr>
+        <tr><td><em>Über uns</em> · value-row marks (×3)</td><td>yes</td><td>yes — scene only; they carry no ghost, light, trace or node</td></tr>
       </tbody>
     </table>
     <table class="docs-table">
@@ -362,16 +375,47 @@ for t in ['fast','base','slow','scene']:
     <p>
       The catch is the other half of that sentence: because the unit is the drawing's own,
       <strong>a drawing with a different viewBox travels a different fraction on the same
-      token.</strong> The statement figure on the landing page is 480 units, so the shipped
+      token.</strong> The statement figure is 480 units, so the shipped
       16 would have moved it 3.33 % — measured at 35.8 × 17.9 px against the process
       objects' 17.6 × 8.8 px, roughly twice as far while being only 1.5× the size. It
       therefore overrides the token to 12, because 12/480 is exactly 16/640.
     </p>
-    <pre class="docs-code">.lp-statement-figure .cf-iso { <span class="attr">--iso-travel</span>: <span class="val">12</span>; }</pre>
+    <pre class="docs-code">.cf-statement .cf-iso { <span class="attr">--iso-travel</span>: <span class="val">12</span>; }</pre>
     <p>
       <strong>The rule: 2.5 % of the viewBox.</strong> Any new illustration whose viewBox is
       not 640 units sets <code>--iso-travel</code> to <code>viewBox / 40</code> on itself. The
       ratio is what the system holds constant, not the number.
+    </p>
+    <p>
+      <strong>And this one is now run rather than read.</strong> It has broken twice in the
+      life of this page — once when four objects were recropped within an hour of their
+      values being written, once when the statement figure's value was scoped to a single
+      page's stylesheet — and neither break rendered anything wrong. That is the same failure
+      mode as the duration table at the top of this page, and it gets the same treatment the
+      space scale got: a check, in CI, on every push.
+    </p>
+    <pre class="docs-code"><span class="com"># from the repo root</span>
+python3 scripts/check-iso-motion.py</pre>
+    <p>
+      It resolves each figure's travel the way the cascade does — inline style, then the
+      component-keyed rules in <code>components.css</code>, then the <code>:root</code>
+      default — and compares it against that drawing's own frame. It checks five more things
+      on the same principle, every one of them invisible in a screenshot and countable in a
+      file: the orbit's travel is a whole number of dashes, every trace is normalised and
+      none has <code>non-scaling-stroke</code> put back on it, every orbit is also a ghost,
+      no object carries two lights, and <strong>every <code>animation-timeline</code>
+      declaration sits in a <code>@media</code> that names <code>screen</code></strong> —
+      which is the rule the navigation rim broke while it was already written down two
+      sections below.
+    </p>
+    <p>
+      The oklab waypoint on every lime leg is the one invariant of this kind that this
+      script does <em>not</em> check, and the reason is worth stating:
+      <code>scripts/check-gradient-family.py</code> already recomputes that waypoint's
+      offset and its colour from the oklab path rather than comparing them against a
+      literal, which is strictly the stronger claim. Two scripts asserting one rule to two
+      standards is the drift these scripts exist to stop.
+      → <a href="colors.html">Colour</a>
     </p>
     <div class="docs-note">
       <strong>A rule nobody had checked since it was written.</strong> Counted across the
@@ -394,6 +438,19 @@ for t in ['fast','base','slow','scene']:
       no class it could hang on that the other three would not inherit.
     </p>
     <pre class="docs-code">.cf-value-row__figure .cf-iso { <span class="attr">--iso-travel</span>: <span class="val">4</span>; }   <span class="tag">/* 160 / 40 */</span></pre>
+    <div class="docs-note">
+      <strong>“Keyed on the component” is doing work in that sentence, and the statement
+      figure is where it was not.</strong> Its 12 lived in
+      <code>patterns/landing-page.html</code>'s own <code>&lt;style&gt;</code> block, keyed on
+      <code>.lp-statement-figure</code> — a hook that exists on exactly one page. The
+      identical 480-unit drawing on <a href="../components/statement.html">the component's own
+      documentation page</a> matched no such selector, so it sat on the 640-frame default and
+      arrived from 3.33 % of its own width: <strong>the specimen showed the motion a third
+      further than the thing it is a specimen of.</strong> The rule moved into
+      <code>components.css</code> as <code>.cf-statement .cf-iso</code>, which both copies
+      match. A value that is a fact about a drawing cannot be scoped to a page — the same
+      drawing turns up on at least two.
+    </div>
 
     <h3>How it is driven</h3>
     <p>

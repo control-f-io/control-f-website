@@ -1085,7 +1085,36 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 
 /* The open menu already used --radius-sm while the closed bar was a pill, so
    the bar changed shape on the way to the small screen. One corner now. */
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
+  /* WITHOUT THE SCRIPT THE LINKS ARE SHOWN AND THE DEAD CONTROL IS NOT.
+
+     A disclosure needs something to disclose it, so every rule that folds this
+     bar is gated on [data-cf-nav] — the attribute assets/js/cf-nav.js writes on
+     <html> before the body is parsed. Nothing below this comment can therefore
+     take the five links away from a reader whose scripting is off, whose
+     network dropped the file, or whose browser hit an error in it: they get the
+     bar with its list stacked underneath, which is the same plate drawn with
+     the same corner, and no button that does nothing.
+
+     Not sticky in that state, and that is the whole reason the fallback is a
+     stacked list rather than the open panel. The panel is out of flow, so it
+     costs the bar no height; six rows of it pinned to the top of a 375 px
+     screen would leave the page about a third of itself to be read in.
+
+     The gate is an attribute on <html> rather than on the bar because it has to
+     be true before the bar exists — see the file's own header for why that is
+     the load-bearing part. */
+  html:not([data-cf-nav]) .cf-nav {
+    position: relative;
+    flex-wrap: wrap;
+    row-gap: var(--space-4);
+  }
+  html:not([data-cf-nav]) .cf-nav__list {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   /* THE ONE PANEL IN THE SYSTEM THAT OPENS AND CLOSES, and until now the only
      state change on the site that simply appeared: measured at 375 px, the
      frame 60 ms after the click and the frame 560 ms after it were
@@ -1121,7 +1150,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      shorthand is dropped at parse time, the open state's clip-path still
      applies, and the panel snaps exactly as it does today. The un-enhanced
      state is the settled one. */
-  .cf-nav__list {
+  [data-cf-nav] .cf-nav__list {
     display: none;
     position: absolute;
     inset: 100% var(--gutter) auto var(--gutter);
@@ -1145,7 +1174,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
     transition: clip-path var(--duration-slow) var(--ease-standard),
                 display   var(--duration-slow) var(--ease-standard) allow-discrete;
   }
-  .cf-nav__list[data-open="true"] {
+  [data-cf-nav] .cf-nav__list[data-open="true"] {
     display: flex;
     /* An inset and not `none`: `none` is not an interpolable clip-path, so the
        wipe would have nothing to travel to. At rest every side is outside the
@@ -1156,10 +1185,10 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      specificity of its own, so an earlier placement is overwritten by the open
      state and the entry wipe silently does not happen. */
   @starting-style {
-    .cf-nav__list[data-open="true"] { clip-path: inset(-4px -4px 100% -4px); }
+    [data-cf-nav] .cf-nav__list[data-open="true"] { clip-path: inset(-4px -4px 100% -4px); }
   }
 
-  .cf-nav__toggle {
+  [data-cf-nav] .cf-nav__toggle {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
@@ -1193,7 +1222,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      link both take their ink to exactly it. One lit value in one component,
      now on a contour as well as on a label. --duration-fast matches
      .cf-nav__link too; the bar should not answer at two speeds. */
-  .cf-nav__toggle[aria-expanded="true"] {
+  [data-cf-nav] .cf-nav__toggle[aria-expanded="true"] {
     border-color: var(--grey-000);
   }
 }
@@ -1370,7 +1399,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   bottom: var(--space-12);
   z-index: 1;
 }
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
   /* Dropped back into the flow it has to pick up the container's gutter, or it
      sits a gutter-width left of the headline it belongs to. */
   .cf-hero__action {
@@ -1639,7 +1668,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    viewport, 172.5 px of isometric drawing sitting behind the page title.
    Naming the parent puts the hide at (0,2,0), which wins wherever .cf-iso
    ends up in the file. → foundations/mobile.html */
-@media (max-width: 900px) {
+@media (max-width: 56.25rem) {
   .cf-page-header { padding-block: var(--space-16) var(--space-12); }
   .cf-page-header .cf-page-header__figure { display: none; }
   /* :has() matches on the element existing, not on it being painted, so both
@@ -1673,6 +1702,20 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-size: var(--text-md);
   color: var(--text-secondary);
 }
+/* --iso-travel is a transform, so it is in viewBox units — which makes it a
+   fact about the DRAWING's own coordinate window and not about the page the
+   drawing happens to be on. This figure is 480 units wide wherever it is used,
+   so it takes 480/40: the same 2.5 % of itself that the 640-unit process
+   objects get from the token's default 16.
+
+   The value lived in patterns/landing-page.html's own <style> block, keyed on
+   .lp-statement-figure — a hook that exists on exactly one page. The identical
+   drawing in components/statement.html therefore sat on the 640-unit default
+   and arrived from 3.33 % of its own width, a third further than the one that
+   ships, on the page whose whole job is to be the specimen. Keyed on the
+   component, both are right and neither can be forgotten again.
+   → foundations/motion.html#travel */
+.cf-statement .cf-iso { --iso-travel: 12; }
 /* Two columns once the component itself has room for them, not once the
    viewport does. Stacked is the default, so a browser without container
    query support gets the safe layout rather than a broken one. */
@@ -1688,11 +1731,29 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    The four-step "Was wir machen" sequence. Square illustration panel on
    the left, copy panel on the right, one hairline border around the pair.
    -------------------------------------------------------------------------- */
+/* CONTOUR ON THE WASH, WITH NO PLATE UNDER IT. This card carried
+   `background: var(--surface-card)` — grey-050, an opaque near-white plate —
+   and foundations/materials.html has said all along that the process card
+   "sits on the page wash with nothing complex behind it, so it is drawn with
+   a contour instead". The page was describing a card that did not exist.
+
+   The designer agrees with the page. Sampled off mockups/landing-page.jpg
+   down the whole Discovery plate, the card's interior and the page margin
+   beside it read 206.8 vs 207.0, 208.4 vs 208.0, 210.9 vs 211.0, 211.9 vs
+   212.0 — within 0.2 at every row, and the only rows that differ at all are
+   the ones the illustration's own light fill passes through. There is no
+   plate in the material.
+
+   It also could not hold still. The wash is viewport-fixed and runs the full
+   207 → 255 down every screen, so measured at 1280x900 the plate stood +37.6
+   off the page near the top of the viewport and +7.5 near the bottom — the
+   card separating from its own page five times as strongly at one scroll
+   position as at another, and dissolving into it entirely at the last. A
+   contour is ink; it is the same line wherever the card happens to be. */
 .cf-process {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   border: var(--stroke-1) solid var(--border-strong);
-  background: var(--surface-card);
 }
 .cf-process__figure {
   display: grid;
@@ -1730,12 +1791,18 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    air comes back, and nothing moves horizontally. Above 56rem the width cap is
    still the tighter one and this changes nothing at all. */
 .cf-process__figure > svg { width: 100%; max-width: 22rem; max-block-size: 100%; }
+/* No fill of its own, and it never had one that could be seen: this declared
+   --surface-raised while the card behind it declared --surface-card, and both
+   tokens resolved to grey-050. One plate painted twice, half of it dead. With
+   the card's plate gone the honest reading of that pair is that the copy
+   column was never a second surface — the hairline between it and the figure
+   is what separates them, and that is an edge in the sense
+   foundations/geometry.html means it. */
 .cf-process__panel {
   display: flex;
   flex-direction: column;
   min-width: 0;
   padding: var(--space-6);
-  background: var(--surface-raised);
 }
 .cf-process__title {
   font-size: var(--text-h2);
@@ -1777,7 +1844,14 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-size: var(--text-md);
   color: var(--text-secondary);
 }
-/* Optional note block, pinned to the bottom of the panel. */
+/* Optional note block, pinned to the bottom of the panel. The one thing in
+   this card that still takes a surface, and the reason --surface-sunken had
+   to become a veil rather than a grey: with the card's plate gone this block
+   sits directly on the wash, and an absolute grey inside the wash's own range
+   inverts as the reader scrolls past it. Measured before the change, walking
+   this exact element down a 900 px viewport: +21 at the top of the screen,
+   0 at 65 %, -10 at the bottom. The veil is -12 to -15 at every position.
+   See tokens.css. */
 .cf-process__note {
   margin-top: auto;
   padding: var(--space-4);
@@ -1903,7 +1977,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-size: var(--text-md);
   color: var(--text-secondary);
 }
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
   .cf-accordion__summary { padding-left: var(--space-4); font-size: var(--text-md); }
   .cf-accordion__content { padding-left: var(--space-4); }
 }
@@ -3477,7 +3551,7 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   text-decoration: underline;
   text-underline-offset: 0.25em;
 }
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
   .cf-footer__cta { grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
 }
 
@@ -3623,13 +3697,13 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-consent__dialog .cf-check__label { color: var(--text-inverse); }
 .cf-consent__dialog .cf-check__box { border-color: var(--border-strong); }
 
-@media (max-width: 900px) {
+@media (max-width: 56.25rem) {
   .cf-consent__inner { grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
   .cf-consent__actions .cf-btn { flex: 1 1 100%; min-width: 0; }
   .cf-consent__actions .cf-btn--ghost { flex: 1 1 100%; justify-content: flex-start; }
 }
 /* A tall banner on a short screen must not eat the page it is asking about. */
-@media (max-height: 560px) {
+@media (max-height: 35rem) {
   .cf-consent { max-height: 70vh; overflow-y: auto; }
 }
 
@@ -3978,7 +4052,7 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   .cf-hero__still { display: none; }
 }
 
-@media (max-width: 780px) {
+@media (max-width: 48.75rem) {
   /* The navigation is full-bleed at this width and the headline climbs, so the
      control tucks a rung closer under the bar. One custom property moves both
      the plate and the input that has to stay under it. */
@@ -4019,9 +4093,25 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-values__track { position: relative; }
 .cf-values__frame {
   display: grid;
+  /* Written out rather than left implicit, and the minmax(0, …) is the point.
+     Every explicit track in this file already carries it, because a grid track
+     sized `auto` or `1fr` will not go below its content's min-content width. An
+     IMPLICIT single-column grid gets exactly that auto track, so this frame was
+     the one grid in the system quietly exempt from the rule the rest of it
+     follows. → foundations/layout.html */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-8);
   align-items: center;
 }
+/* The track is only half of it. A grid ITEM has `min-width: auto`, which floors
+   it at its own min-content independently of how shrinkable its track is — so
+   the longest German compound in the list ("Technologie-Kompetenz") set the
+   width of the whole column. Measured at a 24 px browser default and a 320 px
+   viewport, that pushed the list to 303 px inside a 260 px column and scrolled
+   the page sideways. `min-width: 0` is the item-side counterpart to minmax(0, …)
+   and is already the idiom here — .cf-consent__actions .cf-btn carries it for
+   the same reason. */
+.cf-values__list { min-width: 0; }
 /* 11.25rem is the prototype's 180px cap, and it is the mark's real size rather
    than a limit it rarely reaches. The middle column is deliberately wider than
    the mark: the prototype gives it minmax(240px, 30vw) and then draws a 180px
@@ -4055,11 +4145,25 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-values__progress { display: none; }
 
 /* ---- pinned and scrubbed, where the browser can and the reader wants it ----
-   Gated at 820 px on purpose. The track is seven viewports of scroll; on a
-   phone that is a long hijack for copy that reads perfectly well stacked, and
-   the three-column composition has nowhere to go at that width anyway. */
+   Gated at 51.25rem — 820 px at a 16 px default — on purpose. The track is
+   seven viewports of scroll; on a phone that is a long hijack for copy that
+   reads perfectly well stacked, and the three-column composition has nowhere to
+   go at that width anyway.
+
+   THE SIXTH VIEWPORT THRESHOLD, AND THE REGISTER DID NOT HAVE IT. It was
+   `min-width: 820px` and lived in a shipping stylesheet while tokens.css listed
+   three viewport thresholds and named 820 only as a figure belonging to
+   prototypes/werte-scroll.html — which is out of scope and is a different query
+   that happens to share the number. That is the fourth time the register has
+   been caught short, and it is the first time the missing entry was hiding
+   behind a correct statement about a different file.
+
+   In rem with the rest of them: whether there is room for a pinned
+   three-column stage is a question about how big the type is, so at a 24 px
+   default this now waits for 1230 px rather than engaging at 820 with the
+   composition already too tight for it. → foundations/layout.html */
 @supports (animation-timeline: view()) {
-  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 820px) {
+  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 51.25rem) {
     .cf-values__track {
       --values-stages: 6;
       height: calc((var(--values-stages) + 1) * 100vh);

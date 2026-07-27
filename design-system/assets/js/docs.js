@@ -143,18 +143,11 @@
     });
   }
 
-  /* Mobile nav toggle for the demo navigation component. */
-  function wireNavToggle() {
-    document.addEventListener('click', function (event) {
-      var toggle = event.target.closest ? event.target.closest('.cf-nav__toggle') : null;
-      if (!toggle) return;
-      var list = document.getElementById(toggle.getAttribute('aria-controls'));
-      if (!list) return;
-      var open = list.dataset.open === 'true';
-      list.dataset.open = String(!open);
-      toggle.setAttribute('aria-expanded', String(!open));
-    });
-  }
+  /* The mobile nav toggle used to be wired here too, which made this file the
+     eighth copy of one behaviour — seven inline scripts on the pattern pages
+     and this one, none of them shipping. It is assets/js/cf-nav.js now, and
+     components/navigation.html loads that file like any page built from the
+     system would. Documentation chrome does not implement components. */
 
   /* Inject the icon sprite so every page can `<use href="#cf-arrow">`.
      In production this block belongs in the page template, right after
@@ -181,6 +174,5 @@
     injectSprite();
     buildNav();
     wireSwatches();
-    wireNavToggle();
   });
 })();

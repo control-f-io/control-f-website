@@ -321,9 +321,19 @@ def trace(a, b, frm=None, to=None):
             f'x2="{f(pb[0])}" y2="{f(pb[1])}" stroke="#000" pathLength="1"{v}/>')
 
 
+# THE WAYPOINT IS DERIVED, NOT TYPED. SVG has no `in oklab`, so a gradient that
+# carries the family's ramp carries the oklab path by hand: one extra stop at
+# 19 % of the LIME LEG, measured from lime. The leg here ends at Glas, so the
+# offset is 0.19 x 0.32 and not the 0.097 that belongs to a ramp whose Glas sits
+# at 0.51. These four objects shipped once with the wrong one — computing it
+# from the two numbers it depends on is the only version that cannot drift
+# again. → scripts/check-gradient-family.py, foundations/colors.html#the-arc
+GLAS_AT = 0.32
+WAYPOINT_T = 0.19
 LIGHT_DEF = ('<linearGradient id="{id}" x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" gradientUnits="userSpaceOnUse">'
-             '<stop stop-color="#E1FF00"/><stop offset="0.097" stop-color="#DBFC60"/>'
-             '<stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient>')
+             '<stop stop-color="#E1FF00"/><stop offset="' + f'{GLAS_AT * WAYPOINT_T:g}' + '" stop-color="#DBFC60"/>'
+             '<stop offset="' + f'{GLAS_AT:g}' + '" stop-color="#C5EBE2"/>'
+             '<stop offset="1" stop-color="#CFCFCF"/></linearGradient>')
 
 
 def light_quad(gid, pts):

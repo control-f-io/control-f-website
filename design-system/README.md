@@ -20,15 +20,53 @@ Then open <http://localhost:8000/design-system/>. It also works by opening
 ```bash
 python3 scripts/check-spacing-scale.py         # from the repo root
 python3 scripts/check-spacing-scale.py --fix   # rewrite the table in foundations/layout.html
+python3 scripts/check-gradient-family.py       # the light family, in every shipped SVG
+python3 scripts/check-gradient-family.py -v    # list all 40 gradients, not only the failures
+python3 scripts/check-iso-motion.py            # the isometric assembly's invariants
 ```
 
-The one check the system enforces rather than documents, run by CI on every push and
-pull request. It holds the space scale to two rules: `foundations/layout.html`'s table of
-who uses each rung must match the shipping CSS, and spacing in the shipping CSS must be
-written as a token rather than as a length. Stdlib only — it does not give the system a
-build step.
+The three checks the system enforces rather than documents, run by CI on every push and
+pull request — one job, because each is a few hundred milliseconds of stdlib python.
+Stdlib only: they do not give the system a build step.
 
-The table in that page is **generated**. Run `--fix` rather than editing a count by hand.
+**The space scale** holds to two rules: `foundations/layout.html`'s table of who uses each
+rung must match the shipping CSS, and spacing in the shipping CSS must be written as a
+token rather than as a length. The table in that page is **generated** — run `--fix`
+rather than editing a count by hand.
+
+**The light family** holds every `<linearGradient>` and `<radialGradient>` the site ships
+to one ramp. SVG has no `in oklab`, so a drawing that carries the family's ramp carries
+the oklab path by hand: one waypoint at 19 % of the lime leg, coloured at the oklab path's
+value there. The script recomputes both — the offset from the leg's own two ends, the
+colour from the path — so `#DBFC60` and `#E6FF66` are re-derived rather than compared
+against a list, and it also catches a stop that is *almost* a chromatic brand colour, which
+is how `#E0FF02` gets in. `assets/source/` and `prototypes/` are out of scope: the first is
+the designer's own material and the second is unshipped, and both carry raw Figma exports
+on purpose.
+
+**The isometric assembly** holds to six rules, all of which were already written down in
+prose and none of which anything ran:
+
+| | |
+|---|---|
+| `--iso-travel` | Every figure that assembles travels `viewBox width / 40` — 2.5 % of its own drawing — resolved the way the cascade does: inline styles, then the component-keyed rules in `components.css`, then the `:root` default. |
+| `--iso-orbit-travel` | A whole multiple of the `--dash-1-4` period, or every orbit settles off the phase the source vector drew. |
+| `pathLength="1"` | On every `.cf-iso__trace`, and `non-scaling-stroke` on none of them. |
+| `.cf-iso__orbit` | Always carries `.cf-iso__ghost` too — an orbit is a ghost that also turns, and the shared rule names the ghost. |
+| one light | At most one `.cf-iso__light` per object. |
+| `screen` | Every `animation-timeline` declaration sits inside a `@media` that names `screen`. |
+
+Every one of the six is invisible in a screenshot and countable in a file, which is the
+whole test for what belongs in any of these three — and the reason two of the four in
+[Redrawing an illustration](#redrawing-an-illustration-four-things-that-vanish-quietly)
+are deliberately left out.
+
+**The waypoint is the light family's, not the assembly's,** and it is checked once. The
+isometric script was written with a seventh rule of its own — no inline gradient runs lime
+straight into Glas without `#DBFC60` between them — and it is gone: the light-family script
+recomputes that waypoint's offset *and* its colour from the oklab path, which is strictly
+the stronger claim. Two scripts asserting one invariant to two standards is the drift these
+scripts exist to stop.
 
 ## Layout
 
@@ -56,6 +94,7 @@ design-system/
     │   └── docs.css        this documentation site only — does not ship
     ├── js/
     │   ├── cf-consent.js   the consent banner + settings dialog. Ships.
+    │   ├── cf-nav.js       the phone layout's menu disclosure. Ships.
     │   ├── cf-icons.js     the icon set — the one place a glyph is drawn. Ships.
     │   ├── cf-values.js    types the values copy. Ships, optional — see below.
     │   ├── cf-sight.js     the reader's position across the screen. Ships, optional.
@@ -89,9 +128,13 @@ paste its markup instead, see `foundations/iconography.html` — and build pages
 classes documented in `components/`.
 `patterns/landing-page.html` is a working reference for a whole page.
 
-Three scripts ship. One is required, two are not:
+Four scripts ship. Two are required, two are not:
 
 ```html
+<!-- in the <head>, after the three stylesheets -->
+<script src="/design-system/assets/js/cf-nav.js"></script>
+
+<!-- at the foot of the body -->
 <script src="/design-system/assets/js/cf-consent.js"></script>
 <script src="/design-system/assets/js/cf-values.js" defer></script>
 <script src="/design-system/assets/js/cf-sight.js" defer></script>
@@ -101,6 +144,18 @@ Three scripts ship. One is required, two are not:
 cannot legally do without (TDDDG § 25). It is dependency-free, creates no markup of
 its own, and if it never runs, no non-essential script runs either.
 → `components/consent.html`
+
+`cf-nav.js` is the disclosure behind the menu button on the phone layout, and the only
+implementation of it — the behaviour used to live in seven identical inline scripts on
+the pattern pages plus an eighth in `docs.js`, which is documentation chrome and does
+not ship, so a page built from this system got a button that did nothing. It creates no
+markup either, and it follows the WAI-ARIA Authoring Practices disclosure navigation
+pattern: `Esc` closes and returns focus to the button, focus leaving the bar closes it,
+a pointer outside it closes it, and the open state is dropped on the way past 780 px.
+**The tag goes in the `<head>`,** because every rule that folds the bar is gated on the
+attribute this file writes: with no script the links are a stacked list and no dead
+control is drawn, and that fallback is only free if the attribute is there before the
+first paint. → `components/navigation.html#script`
 
 `cf-values.js` is **optional and additive**. The values section is complete without it
 — the copy is real markup and a view timeline does the pinning, the scrubbing and the
@@ -763,6 +818,31 @@ These were judgement calls, each documented on the relevant page:
   for exactly the readers most likely to need it. Under reduced motion the control is
   *removed*, not hidden: nothing is moving, so a switch that changes nothing is worse than
   none. → `foundations/motion.html#hero`
+- **The process card is contour on the wash; the code painted it an opaque plate.** This
+  one is a correction rather than a judgement call, and `foundations/materials.html` had
+  been describing the corrected version all along — it lists the process card among the
+  panels that "sit on the page wash with nothing complex behind it, so it is drawn with a
+  contour instead", while `.cf-process` declared `background: var(--surface-card)`, its copy
+  column declared a second plate in the same colour, and its note block a grey one. Sampled
+  down the Discovery plate in `mockups/landing-page.jpg`, the card's interior and the page
+  margin beside it read within **0.2** of each other at every row. There is no plate in the
+  drawing. `--surface-card` is retired; it resolved to the same `grey-050` as
+  `--surface-raised`, so wherever the two were stacked one of them painted nothing.
+  → `foundations/materials.html#panel-verdicts`
+- **A step away from the page is a ratio, not a grey — so `--surface-sunken` is a veil.**
+  The neutral steps were absolute values chosen against `--surface-base`, CF-Grau, and no
+  page in the system is painted CF-Grau: every page carries `.page-wash`, which is
+  `background-attachment: fixed` at `background-size: cover` and therefore spans the
+  **viewport**, running the full CF-Grau-to-white down every screen without scrolling. So
+  what is behind a panel depends on where that panel currently sits on screen. Measured on
+  the landing page at 1280×900, walking the process card's note down the viewport:
+  `#E7E7E7` reads **+21** at 14 % of viewport height, **0** at 65 % and **−10** at 86 % —
+  raised, then invisible, then sunken, all in one scroll. 6 % black removes 6 % of whatever
+  light is there, a constant 0.858 ratio in linear light, so the step is −12 to −15
+  everywhere. The direction had to flip: the light theme's steps used to climb toward white
+  and cannot, because the wash *ends* at white. Sunken now means sunken. Contrast floor is
+  the CF-Grau end — `--text-secondary` 5.19:1, `--text-primary` 11.91:1.
+  → `foundations/colors.html#a-step-is-a-ratio`
 - **Isometric contours use `vector-effect: non-scaling-stroke`.** "1 px contour at every
   size" is a device pixel. A 640-unit drawing shown at 352 px would otherwise put its
   contours on screen at 0.55 px. The one exception is `.cf-iso__trace`: under
@@ -797,6 +877,19 @@ Two things it settles that the source material does not:
 All four bite when an object is rebuilt or re-exported from `assets/source/illustrations/`,
 and none of them announces itself — the drawing still renders, it is simply no longer what
 the designer drew.
+
+**Two of the four are now checked**, by one script each, both run by CI on every push and
+pull request — the travel by `scripts/check-iso-motion.py`, the waypoint by
+`scripts/check-gradient-family.py`, which owns it because it recomputes the offset and the
+colour from the oklab path rather than looking for a hex. See [Check it](#check-it).
+The other two are not, and the line between them is worth stating rather than leaving
+as an accident of what was easy. A missing waypoint and a travel that disagrees with its
+viewBox are **facts about the markup**, so a script can settle them. The other two are
+not: a `transform` on a `userSpaceOnUse` gradient is sometimes exactly right — card 04's
+largest orbit carries `rotate(-90)` on purpose — so the presence of one is a question, not
+a verdict; and whether a trace runs off the edge of its crop is a fact about rendered
+geometry, which needs a browser to answer. A checker that guessed at either would train
+people to ignore it.
 
 - **The oklab waypoint.** `#DBFC60` exists in no source vector, so a re-export drops it and
   that lime→Glas leg reverts to the sRGB path. Every waypoint carries a comment at the stop.

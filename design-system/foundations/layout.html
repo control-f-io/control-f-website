@@ -357,11 +357,48 @@
         <tr><td><code>48rem</code> / 768</td><td>container</td><td><code>.cf-value-row</code> splits into icon + copy</td></tr>
         <tr><td><code>56rem</code> / 896</td><td>container</td><td>the two-column threshold — <code>.col-*</code>, <code>.cf-statement</code>, <code>.cf-process</code></td></tr>
         <tr><td><code>60rem</code> / 960</td><td>container</td><td><code>.cf-article</code> splits into rail + body; the rail goes sticky</td></tr>
-        <tr><td><code>780px</code></td><td>viewport</td><td>nav collapses to a toggle; hero action drops into the flow; accordion loses its indent; footer CTA folds</td></tr>
-        <tr><td><code>900px</code></td><td>viewport</td><td>page-header figure is dropped; consent banner goes single column</td></tr>
-        <tr><td><code>560px</code> height</td><td>viewport&nbsp;height</td><td>the consent banner caps at <code>70vh</code> and scrolls — the one height threshold in the system</td></tr>
+        <tr><td><code>48.75rem</code> / 780</td><td>viewport</td><td>nav collapses to a toggle; hero action drops into the flow; accordion loses its indent; footer CTA folds</td></tr>
+        <tr><td><code>56.25rem</code> / 900</td><td>viewport</td><td>page-header figure is dropped; consent banner goes single column</td></tr>
+        <tr><td><code>51.25rem</code> / 820</td><td>viewport</td><td>the Über uns values section takes its pinned, scroll-scrubbed form; below it the values stack and read straight through</td></tr>
+        <tr><td><code>35rem</code> / 560 height</td><td>viewport&nbsp;height</td><td>the consent banner caps at <code>70vh</code> and scrolls — the one height threshold in the system</td></tr>
       </tbody>
     </table>
+    <div class="docs-note">
+      <strong>Every threshold is in <code>rem</code>, and it used to be true of only half of
+      them.</strong> The five container rows have always been <code>rem</code>; the three
+      viewport rows were <code>px</code>. That is not a tidiness point. A media query's
+      <code>rem</code> resolves against the <em>browser's</em> default font size — not against
+      anything an author writes on <code>:root</code> — so a <code>rem</code> threshold is the
+      only kind that moves when the reader has asked for larger type. Every query in this table
+      is a "does this still fit" decision, and what fits depends on how big the type is.
+      <br><br>
+      Measured on the two designed pages, sweeping every viewport width from 320 to 2000 px and
+      counting the widths at which the document scrolled sideways:
+      <table class="docs-table" style="margin-top:var(--space-4)">
+        <thead><tr><th>Browser default font</th><th>before</th><th>after</th></tr></thead>
+        <tbody>
+          <tr><td>16 px</td><td>0</td><td>0</td></tr>
+          <tr><td>20 px</td><td>0</td><td>0</td></tr>
+          <tr><td>24 px</td><td>12</td><td>0</td></tr>
+        </tbody>
+      </table>
+      <br>
+      The clearest of the twelve was the nav. It collapses to a toggle below 780 px, but at a
+      24 px default its expanded links need 823 px — so between 780 and 823 the bar did not fold
+      and did not fit, and <em>every page in the system</em> scrolled sideways by up to 43 px.
+      <code>48.75rem</code> is 780 px at a 16 px default, to the pixel, and 1170 px at a 24 px
+      one, which is where the fold is actually needed.
+      <br><br>
+      <strong>Nothing moves at the reference.</strong> The conversion is arithmetic —
+      780 / 16 = 48.75, 900 / 16 = 56.25, 560 / 16 = 35 — so at a 16 px default every one of
+      these queries fires at exactly the width it always did. The remaining widths in the "before"
+      column were a different fault, and are dealt with under
+      <a href="#reflow">Reflow and the long German word</a> below.
+      <br><br>
+      <strong>Do not revert one of these to <code>px</code>.</strong> It would render
+      identically at the default and silently opt that threshold out of the reader's preference,
+      which is the least visible way this table has yet found to be wrong.
+    </div>
     <div class="docs-note">
       <strong>Two of these were missing from the register.</strong> <code>60rem</code> and the
       560 px height threshold were both live in <code>components.css</code> while this table and
@@ -412,11 +449,11 @@
     <table class="docs-table">
       <thead><tr><th>Where</th><th>Query</th><th>Collides with</th></tr></thead>
       <tbody>
-        <tr><td><code>docs.css</code></td><td><code>@media (max-width: 900px)</code> — collapses the sidebar</td><td>the <code>900px</code> viewport row, same type — but it has a consequence, see below</td></tr>
-        <tr><td><code>foundations/materials.html</code></td><td><code>@media (max-width:780px)</code></td><td>the <code>780px</code> viewport row, <strong>same type</strong></td></tr>
+        <tr><td><code>docs.css</code></td><td><code>@media (max-width: 900px)</code> — collapses the sidebar</td><td>the <code>56.25rem</code> viewport row at a 16 px default, same type — but it has a consequence, see below. Still <code>px</code>, deliberately: converting it would imply the register governs the documentation chrome</td></tr>
+        <tr><td><code>foundations/materials.html</code></td><td><code>@media (max-width:780px)</code></td><td>the <code>48.75rem</code> viewport row at a 16 px default, <strong>same type</strong>. Now a genuine divergence rather than a duplicate: this one does not follow the reader's font size</td></tr>
         <tr><td><code>foundations/iconography.html</code></td><td><code>@media (max-width: 48rem)</code> — a <strong>viewport</strong> query</td><td>the <strong>container</strong> <code>48rem</code> row — different type</td></tr>
         <tr><td><code>foundations/layout.html</code></td><td><code>@media (max-width:640px)</code> — the demo grid's gap</td><td>no other <em>query</em>; but see the crossovers below — 640 is not unused as a number</td></tr>
-        <tr><td><code>prototypes/werte-scroll.html</code></td><td><code>@media (max-width:820px)</code></td><td>nothing — but it lands <em>between</em> the <code>780</code> and <code>900</code> rows</td></tr>
+        <tr><td><code>prototypes/werte-scroll.html</code></td><td><code>@media (max-width:820px)</code></td><td>the <code>51.25rem</code> viewport row at a 16 px default — and that row is <em>new</em>, see the note directly below</td></tr>
       </tbody>
     </table>
     <div class="docs-note">
@@ -559,6 +596,81 @@
       because collapsing them changes designed behaviour on both pages and that is a designer's
       call, not a layout one.
     </div>
+
+    <div class="docs-note">
+      <strong>A fourth omission, hiding behind a true statement about a different file.</strong>
+      Converting the thresholds meant grepping every prelude in the shipping stylesheets, and
+      that turned up a sixth viewport threshold: <code>components.css</code> gates the Über uns
+      values section's pinned, scroll-scrubbed form at <code>min-width: 820px</code>, and the
+      register had never listed it.
+      <br><br>
+      What makes this one different from the three omissions above is <em>why</em> it stayed
+      hidden. 820 was not an unfamiliar number — the out-of-scope table directly above has
+      always carried it, as <code>prototypes/werte-scroll.html</code>'s. That entry is correct,
+      and it is a different query in a different file that happens to share a figure. So the
+      number looked accounted for while a live query in a shipping stylesheet was not.
+      <strong>The register is a list of queries, not a list of numbers</strong>, and reading
+      "820 appears on this page" as "820 is registered" is precisely the error that let it sit
+      there. Before concluding a threshold is known, check which <em>query</em> the entry is
+      about.
+    </div>
+
+    <h3 id="reflow">Reflow and the long German word</h3>
+    <p>
+      Converting the thresholds removed the 792–820 band. It did not remove the other one, at
+      320–380 px, because that band was never about a breakpoint. The page copy is German, and
+      German builds compounds: <code>Technologie-Kompetenz</code> and
+      <code>Datenfundament</code> are each <em>one word</em> as far as line breaking is
+      concerned. A word that does not fit does not wrap — it hangs out of its box, and the
+      document's scroll width goes with it. At a 24 px browser default,
+      <code>.cf-process__title</code> was 252 px of unbreakable word inside a 196 px panel.
+    </p>
+    <p>
+      Two things were wrong, and they needed different fixes.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Fault</th><th>Fix</th><th>Why that one</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Text overflowing a box that was already the right width</td>
+          <td><code>overflow-wrap: break-word</code> on the text-bearing elements, in
+            <code>base.css</code></td>
+          <td>Not <code>anywhere</code>: both break a word with no other option, but
+            <code>anywhere</code> also shrinks the element's min-content size, which would let
+            grid tracks across the whole system collapse to one character at widths where
+            nothing was wrong. <code>break-word</code> is inert until a line genuinely cannot
+            be set.</td>
+        </tr>
+        <tr>
+          <td>A grid <em>item</em> refusing to shrink below its own min-content, so the long
+            word set the width of the whole column</td>
+          <td><code>min-width: 0</code> on <code>.cf-values__list</code>, and an explicit
+            <code>minmax(0, 1fr)</code> track on <code>.cf-values__frame</code></td>
+          <td>Every <em>explicit</em> track in the system already carries
+            <code>minmax(0, …)</code> for exactly this reason. An <em>implicit</em>
+            single-column grid gets an <code>auto</code> track instead, so this frame was the
+            one grid quietly exempt from the rule the rest of it follows — and the track is
+            only half of it, because a grid item's <code>min-width: auto</code> floors it at
+            min-content whatever its track allows.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>The net is not typography.</strong> Breaking a word at the edge of its box is the
+      last resort, not the right answer. The right answer for German is hyphenation at the
+      dictionary's break points — <code>hyphens: auto</code>, which these pages already have the
+      <code>lang="de"</code> for. That changes how the type <em>reads</em>, so it is a decision
+      for the typography lane and for a designer. Until it is made, the page does not scroll
+      sideways, which is the part that could not wait.
+    </div>
+    <div class="docs-note">
+      <strong>Where it still fails.</strong> At a 28 px browser default (175 %) two widths on
+      <code>ueber-uns</code> still overflow, and at 32 px, ten do. Both are past what WCAG 1.4.4
+      asks for and both are the same long-compound problem meeting a 320 px viewport, where
+      there is genuinely not room for the word at that size. Hyphenation would take most of it.
+      Recorded rather than fixed, so that the next person to sweep this knows the floor was
+      measured and not assumed.
+    </div>
   </section>
 
   <section class="docs-section" id="space">
@@ -594,7 +706,7 @@
       <strong>Every step is accounted for.</strong> A scale is only honest if you can say who
       uses each rung, so here is the count of <em>declarations</em> that reference each step in
       the shipping CSS (<code>tokens</code> + <code>base</code> + <code>components</code>),
-      comments excluded. Stamped <code>92add6b6</code> — see below for what that is and how to
+      comments excluded. Stamped <code>3221578e</code> — see below for what that is and how to
       check it in one command:
     </div>
     <table class="docs-table" id="space-scale">
@@ -603,7 +715,7 @@
         <tr><td><code>--space-1</code></td><td>4</td><td>7</td><td>the gap under a name, inside a tight cluster</td></tr>
         <tr><td><code>--space-2</code></td><td>8</td><td>30</td><td>icon-to-label, chip padding</td></tr>
         <tr><td><code>--space-3</code></td><td>12</td><td>41</td><td>button <code>padding-block</code> — the most used step in the system</td></tr>
-        <tr><td><code>--space-4</code></td><td>16</td><td>36</td><td>the default gap: what <code>.stack</code> and <code>.cluster</code> do unaided</td></tr>
+        <tr><td><code>--space-4</code></td><td>16</td><td>37</td><td>the default gap: what <code>.stack</code> and <code>.cluster</code> do unaided</td></tr>
         <tr><td><code>--space-5</code></td><td>20</td><td>4</td><td>the nav bar's padding, the contact list's and the error routes' row padding — the thinnest-used rung</td></tr>
         <tr><td><code>--space-6</code></td><td>24</td><td>30</td><td><code>--grid-gap</code>, panel padding</td></tr>
         <tr><td><code>--space-8</code></td><td>32</td><td>24</td><td>the gap between an object and its copy</td></tr>
@@ -686,7 +798,7 @@ print(counts)
     <div class="docs-note">
       <strong>The stamp is a digest of the counts themselves.</strong> It is the first eight hex
       of a SHA-256 over the thirteen numbers, printed by the same command that prints them — so
-      if it still reads <code>92add6b6</code>, the table is current and there is nothing to
+      if it still reads <code>3221578e</code>, the table is current and there is nothing to
       re-derive.
       <br><br>
       It took two wrong answers to get here, and both are worth keeping because both are the

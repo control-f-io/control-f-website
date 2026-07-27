@@ -133,13 +133,68 @@
       the neutral ramp, which is where every other surface in the system already comes from.
     </p>
     <div class="docs-note">
-      <strong>Depth on black is built upward.</strong> Black is the floor of the neutral
-      scale — there is no rung below it — so both panel steps move away from the base
-      upward. That is what the light theme has always done anyway: base CF-Grau, sunken
-      grey-100, raised grey-050, all three climbing toward white. On an inverse surface
-      <code>--surface-raised</code> is <code>grey-800</code> and <code>--surface-sunken</code>
-      the half-step under it, which keeps their order and roughly their old separation from
-      the base — 1.12:1 and 1.27:1.
+      <strong>Depth on black is built upward, and it is the only theme that can be.</strong>
+      Black is the floor of the neutral scale — there is no rung below it — so on an inverse
+      surface the step moves away from the base upward: <code>--surface-raised</code> is
+      <code>grey-800</code> and <code>--surface-sunken</code> is a 6&nbsp;% white veil, which
+      renders <code>#0F0F0F</code> over Schwarz and keeps their old order and separation.
+      The light theme used to climb toward white as well, and no longer does. It cannot:
+      the wash it sits on <em>ends</em> at white, so a lighter step has nowhere left to go
+      and dies at the bottom of every screen. See
+      <a href="#a-step-is-a-ratio">A step away from the page is a ratio</a>.
+    </div>
+
+    <h3 id="a-step-is-a-ratio">A step away from the page is a ratio, not a grey</h3>
+    <p>
+      <code>--surface-sunken</code> was <code>grey-100</code>, <code>#E7E7E7</code>. That
+      number is only meaningful against <code>--surface-base</code>, CF-Grau — and
+      <strong>no page in this system is painted CF-Grau.</strong> Every page carries
+      <code>.page-wash</code>, and the wash is <code>background-attachment: fixed</code> at
+      <code>background-size: cover</code>. Fixed and cover together mean it spans the
+      <em>viewport</em> rather than the document, so it does not scroll with the page: what
+      is behind any element is a function of where that element currently sits on screen,
+      and it runs the full CF-Grau-to-white every single time. The panel steps were
+      calibrated against a colour that exists in the top row of pixels and nowhere else.
+    </p>
+    <p>
+      Measured on <code>patterns/landing-page.html</code> at 1280&nbsp;&times;&nbsp;900,
+      walking the process card's note block down the viewport and sampling the wash beside
+      it out of the same screenshot row:
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Note at</th><th>Wash beside it</th><th><code>#E7E7E7</code> reads</th><th>6&nbsp;% veil reads</th></tr></thead>
+      <tbody>
+        <tr><td>14 % of viewport height</td><td>210</td><td>+21 — raised</td><td>&minus;13</td></tr>
+        <tr><td>44 %</td><td>222</td><td>+9</td><td>&minus;13</td></tr>
+        <tr><td>65 %</td><td>231</td><td><strong>0 — invisible</strong></td><td>&minus;14</td></tr>
+        <tr><td>86 %</td><td>241</td><td>&minus;10 — sunken</td><td>&minus;14</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      An absolute grey inside the wash's own range is raised at the top of the screen,
+      gone at two thirds of it, and sunken below that: one block that changes which way it
+      steps as the reader scrolls past. Nothing renders wrong — the material simply is not
+      one. A veil is the same declaration made <em>relative</em>. Six per cent black removes
+      six per cent of whatever light is there, which is a constant 0.858 ratio in linear
+      light at both ends of the wash, so the step is the same step everywhere.
+    </p>
+    <p>
+      Contrast moves with the surface and the floor is the CF-Grau end:
+      <code>--text-secondary</code> measures <strong>5.19:1</strong> there, 6.48:1 in the
+      middle and 8.03:1 at the white end; <code>--text-primary</code> never drops below
+      11.91:1. <code>--text-muted</code> still may not sit on it, for exactly the reason it
+      may not sit on CF-Grau itself.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong><code>--surface-card</code> is retired.</strong> It was
+      <code>grey-050</code> — the same value as <code>--surface-raised</code>, so wherever
+      the two were stacked one of them painted nothing — and its only users were the process
+      card and the stacked form of the Expertise step. Both are contour on the wash now,
+      which is what <a href="materials.html#glass">Materials</a> already claimed they were.
+      A panel that needs a surface takes the veil; a panel that needs a boundary takes a
+      contour. There is no third thing to reintroduce.
     </div>
   </section>
 
@@ -246,8 +301,8 @@
       <thead><tr><th>Token</th><th>Value</th><th>Used for</th></tr></thead>
       <tbody>
         <tr><td><code>--surface-base</code></td><td>grey-300</td><td>the base surface of the page</td></tr>
-        <tr><td><code>--surface-sunken</code></td><td>grey-100</td><td>inset blocks, note panels</td></tr>
-        <tr><td><code>--surface-raised</code></td><td>grey-050</td><td>card panels, text areas</td></tr>
+        <tr><td><code>--surface-sunken</code></td><td>black 6 %</td><td>inset blocks, note panels — a veil, not a grey, so the step is the same step wherever the block sits on the wash</td></tr>
+        <tr><td><code>--surface-raised</code></td><td>grey-050</td><td>figure plates that already carry a contour, and the hero still, which sits on video rather than on the wash</td></tr>
         <tr><td><code>--surface-inverse</code></td><td>black</td><td>footer, logo plate, nav bar, dark sections</td></tr>
         <tr><td><code>--surface-glass</code></td><td>white 46 %</td><td>frosted layer that carries text — the tint at which black type clears 4.5:1 over any backdrop</td></tr>
         <tr><td><code>--surface-glass-veil</code></td><td>white 4 %</td><td>frosted layer that carries only opaque objects; the blur does the work</td></tr>
@@ -461,6 +516,23 @@
         corrected. That is the accepted cost: oklab gradient interpolation is supported
         across all mainline browsers, so the affected population is small and shrinking, and the
         alternative is holding the whole system to the worse curve for it.
+      </p>
+      <p>
+        <strong>The convention is now run rather than read.</strong> It held across twenty
+        gradients and broke on the twenty-first: all four lights on
+        <a href="../patterns/expertise.html">Expertise</a> were drawn on the near rake, Glas at
+        <code>0.32</code>, and carried the <em>mid</em> rake's waypoint offset of
+        <code>0.097</code> — so the colour that belongs at 19&nbsp;% of the leg was painted at
+        30.3&nbsp;% of it. Nothing rendered wrong and no reference broke; the ramp simply held
+        lime-yellow half again as long as it should and then hurried into Glas, at
+        <strong>ΔE 0.0265</strong> against the family's 0.0116, which is 60&nbsp;% of the way
+        back to carrying no waypoint at all. <code>scripts/check-gradient-family.py</code> reads
+        every gradient the site ships and derives the answer instead of trusting the literal:
+        it recomputes both the waypoint's position, from the leg's own two ends, and its
+        colour, from the oklab path, so <code>#DBFC60</code> and <code>#E6FF66</code> are
+        re-derived on every run rather than checked against a list. It also catches the other
+        way this drifts — a stop that is <em>almost</em> a chromatic brand colour, which is what
+        <code>#E0FF02</code> is. It runs in CI on every pull request.
       </p>
     </div>
 

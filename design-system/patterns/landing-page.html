@@ -8,6 +8,10 @@
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/base.css">
 <link rel="stylesheet" href="../assets/css/components.css">
+<!-- In the head and before the body, because it writes the attribute that folds
+     the nav. Moved to the end of the body it still works and the panel flashes
+     open on every load below 780 px — see the file's own header. -->
+<script src="../assets/js/cf-nav.js"></script>
 <style>
   /* Page-specific — belongs in the landing-page stylesheet, not in the system. */
   .lp-logo-wall span {
@@ -16,12 +20,10 @@
     color: var(--text-muted); opacity: .55;
   }
   .lp-statement-figure { display: grid; place-items: center; }
-  /* --iso-travel is measured in viewBox units, so its meaning depends on how big
-     the drawing's own coordinate system is. The process objects are 640 units and
-     travel 16, which is 2.5 % of the drawing. This one is 480 units, so it needs
-     12 to travel the same fraction — 12/480 == 16/640. Without the override it
-     would cover 3.33 % and visibly out-run the four objects below it. */
-  .lp-statement-figure .cf-iso { --iso-travel: 12; }
+  /* --iso-travel used to be set here, keyed on .lp-statement-figure. It is a
+     fact about the drawing's 480-unit frame rather than about this page, so it
+     now lives with the component in components.css — see .cf-statement .cf-iso
+     and foundations/motion.html#travel. */
   /* Preview only: link back to the documentation. Remove in production. */
   .ds-back {
     /* Under --z-overlay: preview chrome must never cover real UI, and the
@@ -109,7 +111,7 @@
 
 <nav class="cf-nav" aria-label="Hauptnavigation">
   <a class="cf-logo" href="/"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
-  <button class="cf-nav__toggle" aria-controls="hauptnav" aria-expanded="false">Menü</button>
+  <button class="cf-nav__toggle" type="button" aria-controls="hauptnav" aria-expanded="false">Menü</button>
   <ul class="cf-nav__list" id="hauptnav" role="list">
     <li><a class="cf-nav__link" href="/" aria-current="page">Home</a></li>
     <li><a class="cf-nav__link" href="/expertise">Expertise</a></li>
@@ -657,14 +659,6 @@
 </footer>
 
 <a class="ds-back" href="../index.html">← Design System</a>
-<script>
-  document.querySelector('.cf-nav__toggle').addEventListener('click', function () {
-    var list = document.getElementById('hauptnav');
-    var open = list.dataset.open === 'true';
-    list.dataset.open = String(!open);
-    this.setAttribute('aria-expanded', String(!open));
-  });
-</script>
 <script src="../assets/js/cf-consent.js"></script>
 <script src="../assets/js/cf-sight.js" defer></script>
 </body>

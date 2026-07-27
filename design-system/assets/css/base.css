@@ -61,6 +61,34 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd { margin: 0; }
+
+/* THE PAGE COPY IS GERMAN, AND GERMAN BUILDS COMPOUNDS. "Technologie-Kompetenz"
+   and "Datenfundament" are one word each as far as line breaking is concerned,
+   and a word that does not fit does not wrap — it hangs out of its box and takes
+   the document's scroll width with it.
+
+   At the 16 px default nothing here fires: measured across 320–2000 px on both
+   designed pages, every line already fits and the rule changes nothing. It fires
+   when the READER has enlarged their browser's default font, which is the case
+   the whole reflow requirement is about — WCAG 1.4.10 asks for no sideways
+   scrolling at 320 px of viewport, and at a 24 px default `.cf-process__title`
+   was 252 px of unbreakable word inside a 196 px panel.
+
+   `break-word` and not `anywhere`: both break a word that has no other option,
+   but `anywhere` also shrinks the element's min-content size, which would let
+   every grid track in the system collapse to one character and quietly change
+   how columns are sized at widths where nothing was wrong. This one is inert
+   until a line genuinely cannot be set, which is exactly the last resort it is
+   meant to be.
+
+   It is a NET, not typography. The right answer for German is hyphenation at the
+   dictionary's break points rather than at the box's edge — `hyphens: auto`
+   against these pages' `lang="de"` — but that is a decision about how the type
+   reads, so it belongs to the typography lane and to a designer. Until then the
+   page does not scroll sideways. → foundations/layout.html */
+h1, h2, h3, h4, h5, h6, p, li, dt, dd, blockquote, figcaption, td, th, a, button, label {
+  overflow-wrap: break-word;
+}
 ul[role="list"], ol[role="list"] { list-style: none; margin: 0; padding: 0; }
 img, svg, video { display: block; max-width: 100%; }
 img, video { height: auto; }
