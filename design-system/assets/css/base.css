@@ -297,26 +297,52 @@ hr {
   .grid--early > .col-8 { grid-column: span 8; }
 }
 
+/* FLOW PRIMITIVES — two ways of putting things in a line, one way of spacing
+   them.
+
+   .stack     down the block axis, spacing as margin between siblings
+   .cluster   along the inline axis, spacing as gap, wrapping
+
+   Both read --flow and both default to --space-4, so ONE set of rungs tunes
+   either. That symmetry is the point of this block. It did not hold before:
+   .stack carried five modifiers and .cluster carried a hard-coded gap, so the
+   first author who wanted a wider cluster had nothing to reach for and wrote
+   `style="gap:var(--space-8)"` on it — foundations/logo.html, the system's
+   only inline spacing override. A rung the family was missing became a length
+   in the markup, which is the exact failure the space scale exists to prevent.
+
+   The rungs are their own family rather than .stack--N, because they belong to
+   neither primitive: .flow-8 means the same thing on both, and a name that
+   says `stack` on a cluster would have to be read as a lie or duplicated.
+   They are the scale's own step numbers, so .flow-8 is --space-8 is 32 px.
+
+   .split IS GONE. It was `.cluster` plus `justify-content: space-between` and
+   minus the wrap, declared in shipping CSS and used by nothing — no pattern
+   page, no component page, no foundation. Twelve components do write those
+   same three declarations, but they write them on their own class names, which
+   a markup utility cannot reach without a build step this system does not
+   have. So the primitive was not being bypassed, it was simply never wanted.
+   It comes back as a modifier, where it costs two lines instead of five and
+   inherits the rungs: .cluster--between. */
 .stack { display: flex; flex-direction: column; }
 .stack > * + * { margin-top: var(--flow, var(--space-4)); }
-.stack--2  { --flow: var(--space-2); }
-.stack--3  { --flow: var(--space-3); }
-.stack--6  { --flow: var(--space-6); }
-.stack--8  { --flow: var(--space-8); }
-.stack--12 { --flow: var(--space-12); }
 
 .cluster {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--flow, var(--space-4));
 }
-.split {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
+/* Pushes the row's ends apart. No wrap: space-between on a wrapped row strands
+   the last line's items at opposite edges, which is never what the caller of a
+   two-ended row means. */
+.cluster--between { flex-wrap: nowrap; justify-content: space-between; }
+
+.flow-2  { --flow: var(--space-2); }
+.flow-3  { --flow: var(--space-3); }
+.flow-6  { --flow: var(--space-6); }
+.flow-8  { --flow: var(--space-8); }
+.flow-12 { --flow: var(--space-12); }
 
 /* --------------------------------------------------------------------------
    SUBDIVISION GRID — "Raster > Teilungsraster"
