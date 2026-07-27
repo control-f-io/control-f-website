@@ -646,14 +646,44 @@
       that keep it affordable: never add a third blurred layer; keep the blur radius at 16 px,
       since more reads no better; use <code>position: sticky</code> rather than
       <code>fixed</code>, because a fixed blurred element repaints its whole region every
-      scroll frame in iOS Safari; and never move <em>anything</em> on a blurred layer —
-      neither its opacity nor a gradient across it — because either re-rasterises the blur on
-      every frame. That last rule is why both of the navigation's animations live on its
-      one-pixel rim rather than on its sheet: an unblurred gradient is free, and a sheet that
-      wants to respond to the reader can always do it through the edge it ends at. A sheet may
+      scroll frame in iOS Safari; and run nothing <em>open-ended</em> on a blurred layer,
+      because moving its opacity or a gradient across it re-rasterises the blur on every frame
+      it runs. That last rule is why both of the navigation's animations live on its one-pixel
+      rim rather than on its sheet: an unblurred gradient is free, and a sheet that wants to
+      respond to the reader can always do it through the edge it ends at. A sheet may
       reach past its own edge by
       <code>--glass-lookahead</code> so content arrives through the blur rather than popping
       into it, but no further — everything past one blur kernel is spend with nothing to show.
+    </p>
+    <p>
+      <strong>It used to read <q>never move <em>anything</em></q>, and the shipping system has
+      never obeyed that.</strong> <code>.cf-btn--glass</code> paints its blur, its face and its
+      rim on one element, and <code>--cf-specular</code> travels a gradient across that face on
+      every hover, focus and press. The rule as written called the site's primary call to action
+      a violation of itself, which is the kind of sentence that gets a sound piece of design
+      deleted by whoever reads it next.
+    </p>
+    <p>
+      The line is not <em>whether</em> a thing moves but <em>how long it runs and what it runs
+      against</em>. A transition is bounded, user-initiated and over: the specular's is
+      <code>--duration-slow</code>, one plate of 256&nbsp;&times;&nbsp;48, and the reader is
+      holding still while it plays. A scroll-driven animation is neither — it runs for the
+      length of the document, and every frame of it lands while the compositor is already
+      re-reading the backdrop underneath. Measured on the landing page at 1280&nbsp;px, driving
+      the specular through <code>:focus-visible</code> over 58 frames, three runs each way: the
+      blurred plate gives a 16.70&nbsp;ms median and a 16.9–18.2&nbsp;ms p95, and the same plate
+      with its <code>backdrop-filter</code> removed gives 16.70&nbsp;ms and 16.9–17.0&nbsp;ms.
+      Indistinguishable, which is what makes the exception real rather than tolerated.
+    </p>
+    <p>
+      So the rule that pays, and the one <code>scripts/check-glass-budget.py</code> actually
+      enforces, is: <strong>no <code>animation</code> and no
+      <code>animation-timeline</code> on a rule that declares
+      <code>backdrop-filter</code></strong>. Transitions are left alone deliberately. Stating it
+      that way also makes it countable in a file, where <q>never move anything</q> was only ever
+      countable by argument — and it is still what put <code>.cf-nav::after</code> and
+      <code>.cf-btn--glass::before</code> on layers of their own, because both of those are
+      scroll-scrubbed and neither would have been allowed to stay.
     </p>
     <p>
       The two blurred layers <em>do</em> overlap, and the system used to claim they never do.
@@ -667,8 +697,44 @@
       never a third — not the stronger one the comment used to assert. The scope matters, and
       this page is why: it carries three composited plates of its own, the two samples above
       and the band in the layer stack below. A documentation page showing a material has to be
-      allowed more of it than a page selling something. Census of the shipping tree — landing
-      page 2, Über uns 1, and 1 each on the component pages that demo it.
+      allowed more of it than a page selling something.
+    </p>
+    <p>
+      <strong>The census is measured rather than remembered</strong>, and it used to be a
+      sentence in this paragraph — <q>landing page 2, Über uns 1, and 1 each on the component
+      pages that demo it</q> — which is exactly the count the next paragraph says is worth
+      less than naming the spenders. <code>scripts/check-glass-budget.py</code> counts the
+      blurred layers on every page in the tree and rewrites the table below, so the number
+      here is generated the same way <a href="layout.html#space-scale">the space scale's</a>
+      is. Stamp <code>237904b0</code> &mdash; a digest of the rows, so a reader can tell a
+      current census from a stale one without reading it.
+    </p>
+    <table class="docs-table" id="glass-census">
+      <thead>
+        <tr><th>Page</th><th>Kind</th><th>Blurred layers</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>components/buttons.html</code></td><td>documentation</td><td>1</td></tr>
+        <tr><td><code>components/navigation.html</code></td><td>documentation</td><td>1</td></tr>
+        <tr><td><code>foundations/materials.html</code></td><td>documentation</td><td>3</td></tr>
+        <tr><td><code>patterns/404.html</code></td><td>shipping</td><td>1</td></tr>
+        <tr><td><code>patterns/blog-artikel.html</code></td><td>shipping</td><td>1</td></tr>
+        <tr><td><code>patterns/expertise.html</code></td><td>shipping</td><td>1</td></tr>
+        <tr><td><code>patterns/kontakt.html</code></td><td>shipping</td><td>1</td></tr>
+        <tr><td><code>patterns/landing-page.html</code></td><td>shipping</td><td>2</td></tr>
+        <tr><td><code>patterns/news.html</code></td><td>shipping</td><td>1</td></tr>
+        <tr><td><code>patterns/suche.html</code></td><td>shipping</td><td>1</td></tr>
+        <tr><td><code>patterns/ueber-uns.html</code></td><td>shipping</td><td>1</td></tr>
+      </tbody>
+    </table>
+    <p>
+      What the script enforces beyond the count is the other two rules on this page that are
+      countable in a file: every <code>backdrop-filter</code> in the shipping CSS has to read
+      <code>var(--glass-blur)</code> rather than state its own radius, and no rule that
+      declares one may also carry an <code>animation</code> or an
+      <code>animation-timeline</code> touching a property that repaints its backdrop. It also
+      reads <em>what counts as glass</em> out of the stylesheet instead of holding a list, so
+      a fourth frosted surface enters the budget by existing.
     </p>
     <p>
       <strong>Where the third layer would come from, so it does not.</strong> The budget is
