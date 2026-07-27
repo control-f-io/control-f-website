@@ -2627,13 +2627,32 @@ a.cf-article__tag:hover { background: var(--cf-schwarz); color: var(--grey-000);
   color: var(--text-secondary);
 }
 
+/* The strip is a scroll box wrapping a list, for the same reason
+   .cf-table__scroll is a scroll box wrapping a table: the box carries
+   tabindex="0" and role="region" so it is reachable and scrollable by
+   keyboard, and the list inside keeps its list semantics, which role="region"
+   on the same element would have overwritten. WCAG 2.1.1 — measured at 375
+   and 768, where four cells at their 15rem floor overflow the viewport by
+   585 px and 192 px and a keyboard-only reader could reach neither.
+
+   It is deliberately not an APG carousel. That pattern is for rotating
+   content with slide controls and a rotation switch; this is a list that
+   happens to be wider than the screen, and the APG says so — a static
+   scrollable list wants semantic list markup, not carousel roles. */
 .cf-team-strip {
+  overflow-x: auto;
+  border-block: var(--stroke-1) solid var(--border-strong);
+  /* Mandatory is safe here and would not be everywhere. It strands content
+     when a cell can outgrow the box, and these cannot: the track is capped at
+     1fr, so a cell is never wider than the scroll box, and every cell is the
+     same width. Measured at 375, 768, 1280 and 1920 — the last cell's right
+     edge lands exactly on the box's at maximum scroll, no tail cut off. */
+  scroll-snap-type: x mandatory;
+}
+.cf-team-strip__list {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(15rem, 1fr);
-  overflow-x: auto;
-  border-block: var(--stroke-1) solid var(--border-strong);
-  scroll-snap-type: x mandatory;
 }
 .cf-team-strip__item {
   display: flex;
