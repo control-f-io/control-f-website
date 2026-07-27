@@ -71,10 +71,29 @@
        Because the lime is in the mark, there is no lit cell on the floor of
        this one. One light moment per screen, and a wallpaper is a screen.
 
-       No oklab waypoint, and none is missing. #DBFC60 corrects the lime-to-
-       Glas leg, where the sRGB and oklab paths diverge by dE 0.044. This
-       ramp has no such leg: its lime runs to Weiss and Weiss runs to Glas,
-       which is the leg the system already leaves in sRGB on purpose.
+       THE OKLAB WAYPOINT, WHICH THIS FILE SPENT A WHILE CLAIMING IT DID NOT
+       NEED. The claim was that this ramp has no lime-to-Glas leg — true — and
+       that lime-to-Weiss is therefore "the leg the system already leaves in
+       sRGB on purpose". That is a different leg. The exemption tokens.css
+       grants is for WEISS-TO-GLAS, at dE 0.00045; lime-to-Weiss was never
+       measured, and it is the worst leg in the family:
+
+         lime -> Weiss    0.04651   drawn #EFFF7A, oklab path #EEFFA7
+         lime -> Glas     0.04512   the leg the process cards correct
+         Weiss -> Glas    0.00045   the leg that is genuinely exempt
+
+       So the ramp ran through the muddy yellow-green dip on the one leg that
+       dips hardest, on a mark whose whole job is to catch light — while
+       the spectrum token, the same five stops in CSS, took the oklab path.
+       (An XML comment cannot contain a double hyphen, which is why no custom
+       property is ever named in full inside one of these files.)
+       Two statements of one ramp, disagreeing.
+
+       The fix is the process cards' own: one stop carrying the oklab path by
+       hand, at 19 % of the lime leg measured from lime, because SVG cannot
+       interpolate in oklab. 19 % of this leg is offset .0342, and the colour
+       there is #E6FF66. It takes the leg from dE 0.0465 to 0.0125. A second
+       waypoint would reach 0.0092 and is not worth a stop.
 
        COORDINATES ARE THE MARK'S OWN, not the canvas's, and that is the trap
        the README calls out under "three things that vanish quietly": a
@@ -94,6 +113,7 @@
   <linearGradient id="light" gradientUnits="userSpaceOnUse"
                   x1="100" y1="50" x2="644" y2="322">
     <stop offset="0" stop-color="#E1FF00"/>
+    <stop offset=".0342" stop-color="#E6FF66"/>
     <stop offset=".18" stop-color="#FFFFFF"/>
     <stop offset=".32" stop-color="#C5EBE2"/>
     <stop offset=".64" stop-color="#B8D7F1"/>

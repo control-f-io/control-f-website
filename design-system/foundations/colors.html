@@ -246,9 +246,9 @@
     </p>
     <div class="docs-demo docs-demo--plain">
       <div class="docs-swatch-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;border:1px solid var(--border-default)">
-        <div style="height:7rem;background:linear-gradient(90deg,var(--cf-lime) 0%,var(--cf-glas) var(--rake-near),var(--cf-grau) 100%)"></div>
-        <div style="height:7rem;background:linear-gradient(90deg,var(--cf-lime) 0%,var(--cf-glas) var(--rake-mid),var(--cf-grau) 100%)"></div>
-        <div style="height:7rem;background:linear-gradient(90deg,var(--cf-lime) 0%,var(--cf-glas) var(--rake-far),var(--cf-grau) 100%)"></div>
+        <div class="material-rake" style="height:7rem"></div>
+        <div class="material-rake material-rake--mid" style="height:7rem"></div>
+        <div class="material-rake material-rake--far" style="height:7rem"></div>
       </div>
     </div>
     <table class="docs-table">
@@ -259,6 +259,28 @@
         <tr><td><code>--rake-far</code></td><td>64 %</td><td>Figma 45.72 %/95 % radial · <code>04-mehr-leistung.svg</code></td></tr>
       </tbody>
     </table>
+    <p>
+      The three swatches above are <code>.material-rake</code>, the shipping class, not a
+      drawing of it — <code>--mid</code> and <code>--far</code> move the rake and
+      <code>--mirror</code> reads the band from the other end, for a face turning away.
+      It is the light layer with its one free parameter exposed;
+      <code>.material-light</code> is the same ramp at the designer's 132.36° with his
+      inset stops kept verbatim. → <a href="materials.html">Materials</a>
+    </p>
+    <div class="docs-note">
+      <strong>This row used to lie, and the lie was the colour space.</strong>
+      <p>
+        These swatches were three inline <code>style</code> attributes, and an inline style
+        cannot be reached by the <code>@supports (in oklab)</code> block that carries the
+        rest of the family. So the drawing that teaches the ramp was the one place in the
+        system still painting it on the raw sRGB path: at the crossover of the lime leg,
+        sRGB gives <code>#D4F66A</code> where oklab gives <code>#D3F798</code> — a
+        ΔE<sub>ok</sub> of 0.045, the family's second-worst leg, and plainly visible at
+        7 rem square. Three more of the same literals sat on
+        <a href="illustration.html">Illustration</a>. Composing the image on a class puts
+        all six back on the family's own path.
+      </p>
+    </div>
     <div class="docs-note">
       <strong>Why the Figma numbers look different.</strong>
       <p>
@@ -274,17 +296,32 @@
       <p>
         The CSS gradients interpolate in oklab where the browser supports it. SVG cannot:
         its <code>color-interpolation</code> attribute offers only sRGB and linearRGB, so an
-        inline <code>&lt;linearGradient&gt;</code> is always sRGB. That split matters on one
-        leg of the ramp and one only. Lime to Glas crosses a wide arc of hue, and the two
-        paths pull apart by <strong>ΔE 0.044</strong> in oklab — roughly twice the just-noticeable
-        threshold for a smooth ramp, with sRGB taking the darker, more saturated route through
-        chartreuse. Glas to CF-Grau peaks at ΔE 0.00073 and the page wash at ΔE 0.00071 — both
-        comfortably under a thousandth, so they stay on the sRGB path untouched. So the process-card
-        illustrations and the primary button were drawing the same three colours along visibly
-        different curves.
+        inline <code>&lt;linearGradient&gt;</code> is always sRGB. That split matters on the
+        legs that leave lime, and on no others. Lime crosses a wide arc of hue on its way to
+        anything, and on both of its legs the two paths pull apart far past the
+        just-noticeable threshold for a smooth ramp, with sRGB taking the darker, more
+        saturated route through chartreuse:
+      </p>
+      <table class="docs-table">
+        <thead><tr><th>Leg</th><th>ΔE<sub>ok</sub></th><th>Where</th></tr></thead>
+        <tbody>
+          <tr><td>lime → Weiss</td><td><strong>0.04651</strong></td><td>the spectrum's first leg</td></tr>
+          <tr><td>lime → Glas</td><td><strong>0.04512</strong></td><td>every rake</td></tr>
+          <tr><td>Glas → Sky</td><td>0.00148</td><td>the glass edge</td></tr>
+          <tr><td>Glas → CF-Grau</td><td>0.00073</td><td>the tail of every rake</td></tr>
+          <tr><td>the page wash</td><td>0.00071</td><td>end to end</td></tr>
+          <tr><td>Weiss → Glas</td><td>0.00045</td><td>the panel sheen</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Everything under a thousandth stays on the sRGB path untouched. The two lime legs do
+        not, and the difference between them is worth stating plainly, because a comment in
+        the dark wallpaper once granted <em>lime → Weiss</em> the exemption that belongs to
+        <em>Weiss → Glas</em> and left the mark running through the dip on the worst leg in
+        the family. They are different legs. Only the second is exempt.
       </p>
       <p>
-        Every lime-to-Glas leg in an inline SVG therefore carries one waypoint,
+        Every leg that leaves lime in an inline SVG therefore carries one waypoint,
         <code>#DBFC60</code> at <strong>19 %</strong> of the leg, which is the colour the oklab
         path passes through there — exactly, not approximately. The path at t = 0.19 comes back
         as R 219.05, G 252.05, B 96.16, which is <code>#DBFC60</code> at 8 bits, every channel
@@ -295,6 +332,16 @@
         it. The waypoint is scaled into each gradient's own offset space:
         <code>0.061</code> on the near rake, <code>0.097</code> on the mid rake,
         <code>0.905</code> and <code>0.822</code> on the two radials that run Glas → lime.
+      </p>
+      <p>
+        The lime → Weiss leg takes the same treatment at the same 19 %: <code>#E6FF66</code>,
+        at offset <code>0.0342</code> in the dark wallpaper's own space, which drops that leg
+        from ΔE 0.0465 to 0.0125. 19 % is the family's convention rather than that leg's
+        optimum — the best single waypoint for lime → Weiss sits at 21 % and buys 0.0013 —
+        and one number across every drawing is worth more than a thousandth per drawing.
+        A second waypoint reaches 0.0092 and no further on either leg, because what remains
+        is the short segment before the first stop, which nothing placed after it can
+        straighten. One stop, and no more.
       </p>
       <p>
         Every ΔE above compares the two interpolation paths continuously, before the 8-bit

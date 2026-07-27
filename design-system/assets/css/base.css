@@ -505,6 +505,52 @@ hr {
 /* Licht-Ebene — lime, as a highlight. Never as a background for text blocks. */
 .material-light { background: var(--gradient-light); color: var(--accent-ink); }
 .material-solid { background: var(--surface-inverse); color: var(--text-inverse); }
+
+/* THE SAME LIGHT, WITH ITS ONE FREE PARAMETER EXPOSED.
+   --gradient-light is the near rake at the designer's own 132.36°, inset stops
+   kept verbatim. This is the ramp stated as a band instead — lime at 0,
+   CF-Grau at 100, and Glas wherever --rake puts it. Three rakes are sanctioned
+   and only the near one had a drawn form; the other two were numbers, which is
+   why two documentation pages ended up re-typing the ramp as six inline
+   gradient literals to show them.
+
+   THOSE SIX WERE THE LAST GRADIENTS IN THE SYSTEM ON THE UNCORRECTED sRGB
+   PATH, and that is the reason this exists rather than tidiness. An inline
+   style attribute cannot be reached by the @supports block at the foot of
+   tokens.css, so the page that teaches the ramp was the one place drawing it
+   through the muddy dip the rest of the family corrects for: at the crossover
+   of the lime leg, sRGB gives #D4F66A where oklab gives #D3F798 — dE 0.045,
+   the family's second-worst leg, and plainly visible at 7 rem square.
+
+   IT IS A CLASS AND NOT THREE TOKENS, for the reason .cf-field::before is one:
+   a custom property is substituted at computed-value time on the element that
+   DECLARES it, so a --gradient-rake written at :root would resolve --rake
+   against :root's near rake and inherit that literal into every modifier.
+   Composing the image here lets a modifier move the rake, and lets the oklab
+   branch below restate the path and nothing else. Same shape --foil-image
+   uses, for the same reason.
+
+   THE MIRROR IS NOT A SECOND RAMP. Grey at the left and lime at the right is
+   the same band read from the other end — a face turning away rather than one
+   turning toward — so it is an angle, written 180° off --angle-square so it
+   cannot drift into a hand-typed 270deg that means nothing.
+
+   A surface material, like .material-light: a face, an edge, a plate. Not a
+   background for text. */
+.material-rake {
+  --rake: var(--rake-near);
+  --rake-angle: var(--angle-square);
+  --rake-ramp: var(--cf-lime) 0%, var(--cf-glas) var(--rake), var(--cf-grau) 100%;
+  --rake-image: linear-gradient(var(--rake-angle), var(--rake-ramp));
+  background: var(--rake-image);
+  color: var(--accent-ink);
+}
+.material-rake--mid    { --rake: var(--rake-mid); }
+.material-rake--far    { --rake: var(--rake-far); }
+.material-rake--mirror { --rake-angle: calc(var(--angle-square) + 180deg); }
+@supports (background: linear-gradient(in oklab, red, blue)) {
+  .material-rake { --rake-image: linear-gradient(var(--rake-angle) in oklab, var(--rake-ramp)); }
+}
 /* The foil — the light layer carried far enough to split into the brand's
    own spectrum. A surface material, like .material-light: an isometric face,
    an edge, a plate. Not a background for text. */
