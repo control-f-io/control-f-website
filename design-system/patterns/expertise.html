@@ -28,64 +28,48 @@
   /* ------------------------------------------------------------------
      Expertise — the four fields, built in place.
 
-     PAGE-LOCAL, in the same way .lp-statement-figure is on the landing
-     page: this is a composition made of shipped components, not a new
-     component, and nothing here belongs in components.css until a second
-     page needs it.
+     PAGE-LOCAL is a smaller claim than this block used to make. The
+     scaffolding it carried — the track and its height, the sticky stage,
+     the index, the bar, the step crossfade, the copy hold, the re-timed
+     trace and node windows — is .cf-pin in components.css now, with its
+     gate, because the landing page carried the same lines byte for byte
+     under a second name and both blocks said in place that a second page
+     wanting this exact stage is when it moves. What remains here is what
+     only this page does: the lattice ground and its scale, the lectern
+     plate and its travelling pane, the four-pass build off data-stage,
+     and the typed copy's own windows.
 
      The section is a track of seven and a bit viewports with one sticky
      stage, so every step gets 1.6 screens of scroll rather than one. Each
-     step owns a quarter of the range and overlaps its neighbours by four
-     points at each end, and inside its own quarter the object is BUILT:
-     four depth passes off data-stage, then the ghost, the trace, the
-     light and the nodes, in the order components.css already brings a
-     .cf-iso up — but read off THIS timeline instead of the object's own
-     view(). That is the whole reason for the overrides below: a sticky
-     object never travels through the viewport, so its own view timeline
-     would freeze at one value and the object would simply be there,
-     finished, which is what the page did before.
+     step owns a quarter of the range, and inside its own quarter the
+     object is BUILT: four depth passes off data-stage, then the ghost,
+     the trace, the light and the nodes, in the order components.css
+     already brings a .cf-iso up — but read off the TRACK's timeline
+     instead of the object's own view(). A sticky object never travels
+     through the viewport, so its own view timeline would freeze at one
+     value and the object would simply be there, finished, which is what
+     the page did before.
 
      Everything is a progressive enhancement over a stacked, readable
-     column: no view timelines, reduced motion, print, or outside the gate
-     below and the four fields are four blocks, each with its object above
-     its copy.
+     column: no view timelines, reduced motion, print, or outside
+     .cf-pin's gate and the four fields are four blocks, each with its
+     object above its copy.
 
-     THE GATE IS THE LANDING PAGE'S GATE, and it used to be `820px` — the
-     number prototypes/expertise-scroll.html asks, carried across into
-     patterns/ with the mechanism. It was wrong in both units and both
-     dimensions, and the reason is one line above this comment: the stage
-     is only habitable once .ex-step has its TWO columns, and that fold is
-     a CONTAINER query at 56rem. A px gate cannot track a rem fold. So the
-     pin arrived at a fixed 820 while the two-column form arrived wherever
-     56rem of container happened to land, and between the two the stage
-     pinned a stacked step into 100vh of `overflow: clip` and cropped it:
-
-       default font   pins at   two columns at   cropped band   worst crop
-         16 px          820          1007           187 px         84 px
-         20 px          820          1259           439 px        173 px
-         24 px          820          1511           691 px        297 px
-
-     The reader who asked for larger type lost the most, which is the exact
-     failure the register's rem rule exists to prevent. 64rem clears the
-     fold at every one of those sizes (1024 > 1007, 1280 > 1259, 1536 >
-     1511) because it is the same kind of number as the thing it is
-     gating. The height half is the same story with no crossover to hide
-     behind: at 1280 wide the stage cropped 19 px at 600 tall and 39 px at
-     560, and a stage that must also clear the nav band cannot hold a card
-     worth reading below it.
-
-     Both figures are the landing page's, unchanged, because that page runs
-     this mechanism and measured them for it. Adopting them rather than
-     deriving a third pair is the whole point: one mechanism, one gate. The
-     cost is stated — between 640 and 719 px of height the pinned form did
-     work and now falls back to the stacked column, which is a readable
-     page rather than a cropped one. See patterns/landing-page.html and
-     scripts/check-page-styles.py.
+     THE GATE WENT WITH THE MECHANISM: 64rem by 45rem, the landing page's
+     pair, derived there, adopted here unchanged — one mechanism, one
+     gate. It is registered in tokens.css now that a shipping stylesheet
+     asks it; this block opens the same prelude below only to scope what
+     stays page-local, and that copy is registered in
+     scripts/check-local-thresholds.py with the block's other thresholds —
+     28rem, 53.75rem, and the container 56rem the pinned gate has to
+     clear. The 820px it replaced, and the crop band that number caused,
+     are told there too.
      ------------------------------------------------------------------ */
   /* The step is layout and timing only. Everything that used to be drawn
      here — the plate, the type scale, the ruled question, the chips — is
      .cf-info-card now, because a second page wanted it. That is the line
-     this block's own preamble draws, and this is the first time it moved. */
+     this block's own preamble draws, and the scaffolding has now followed
+     it — see the preamble. */
   .ex-steps { display: grid; gap: var(--space-12); }
   .ex-step { display: grid; gap: var(--space-8); }
   .ex-plate { display: none; }
@@ -118,7 +102,6 @@
   @media (max-width: 28rem) {
     .ex-step__figure .cf-iso { --trace-weight: 2; }
   }
-  .ex-index, .ex-bar { display: none; }
 
   /* THE GROUND UNDER THE BUILD.
      The lattice is the surface the objects are cut from, so on the one screen
@@ -154,21 +137,10 @@
 
   @supports (animation-timeline: view()) {
     @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
-      /* 1.6 SCREENS OF SCROLL PER STEP, not one. The track's contain range is
-         its own height minus one viewport, so at (steps + 1) each step had a
-         single screen to arrive, hold and leave in — every part of the build
-         was over in a flick of the wheel and the handovers read as cuts. The
-         same keyframes over 1.6 screens are the same motion at five eighths
-         of the speed, which is the whole of what "smoother" means here. */
-      .ex-track { --steps: 4; height: calc((var(--steps) * 1.6 + 1) * 100vh); }
-      .ex-track { view-timeline-name: --ex; view-timeline-axis: block; }
-      .ex-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; overflow: clip; }
+      /* Over .cf-pin__inner: this stage sits its bar a rung deeper. */
       .ex-stage__inner {
-        height: 100%;
-        display: grid; grid-template-rows: auto 1fr auto; align-content: center;
-        /* The nav floats over the page, so a stage pinned to the viewport top
-           has to start below it or the index reads through the bar. */
-        padding-block: calc(var(--nav-height) + var(--space-4)) var(--space-12);
+        align-content: center;
+        padding-block-end: var(--space-12);
       }
       /* THE LECTERN. The material is spent once, on the empty card under the
          copy column, and the four cards hand over on top of it unfrosted —
@@ -209,86 +181,47 @@
         --pane-in: 50vw;
         --pane-out: -14vw;
         animation: ex-pane linear both;
-        animation-timeline: --ex;
+        animation-timeline: --cf-pin;
         animation-range: contain 0% contain 100%;
       }
-      .ex-step { opacity: 0; }
       /* The cards give up their own surface to the plate. Not the material —
          they never had it — the plain card back, which would otherwise sit on
          the glass and hide it. Padding stays: it is what insets the copy. */
       .ex-step .cf-info-card { background: none; border-color: transparent; }
-      .ex-index, .ex-bar { display: block; }
-      .ex-index { display: flex; }
 
-      /* THE HOLD IS THE POINT, and it is the thing this sequence did not have.
-         Every part of the build used to run right up to the moment the step
-         began leaving, so the reader was chasing the last of it with the
-         wheel. The reveal now ends at 62 % of a step and the remaining 38 %
-         is a still — object built, sentence whole, nothing moving. 62 % is
-         not a new number: it is the werte-scroll's, and cf-stream.js reads
-         the same one, so the type stops typing exactly where the drawing
-         stops drawing. → foundations/motion.html#hold
+      /* The step's crossfade and the copy's hold are .cf-pin__step and
+         .cf-pin__copy in the markup now — the abutting quarters, the
+         three-point dissolve and the snap are the mechanism's and are
+         argued where it lives. Two facts of the handover stay this page's:
+         the reveal ends at 62 % of a step because cf-stream.js reads the
+         same number, so the type stops typing exactly where the drawing
+         stops drawing — and the copy's quarter is the quarter the stage
+         boundaries in cf-stream.js use, so the type starts as the pane
+         lands. → foundations/motion.html#hold
 
-         THE WINDOWS ABUT, THEY NO LONGER OVERLAP, and that is what the fly is
-         for. Two blocks of copy crossfading in the same square of screen is
-         muddy at every ratio — measured at the handover with a four-point
-         overlap, "Maschinenbau" and "Großanlagen" were both half-lit and
-         forty-eight pixels apart, which reads as one title printed twice. A
-         step now owns exactly its quarter, ending at zero where the next
-         begins at zero, and the relay is carried by travel instead: one card
-         slides out of the frame as the next slides in. Same quarter the stage
-         boundaries in cf-stream.js use, so the type starts as the card lands.
-
-         THE TWO HALVES HAND OVER DIFFERENTLY, and they have to. The step as a
-         whole — which is the OBJECT — crossfades over a three-point overlap at
-         each end: two line drawings dissolving through each other is legible,
-         and without it the stage goes blank at every boundary. The CARD
-         cannot: two blocks of copy at half opacity in the same column read as
-         one title printed twice, at every ratio and every travel distance. So
-         the copy carries its own opacity on the abutting quarter, snapping out
-         and in across about a point of scroll each way, and the object's
-         dissolve is what the eye holds while it does. */
-      .ex-step {
-        animation: ex-step linear both;
-        animation-timeline: --ex;
-        animation-range: contain calc(var(--i) * 25% - 3%) contain calc((var(--i) + 1) * 25% + 3%);
-      }
-      /* THE PANE ARRIVES FIRST AND EMPTY, THEN THE COPY APPEARS ON IT.
-         That order is the whole gesture and it is why the plate moves and the
-         copy does not: a sheet of glass slides in from off the right edge,
-         lands, and only then does anything get written on it. The first
-         version had this the wrong way round — the plate stood still and the
-         copy flew across it — which is a caption sliding over a window rather
-         than a window being put in place.
-
-         So the copy only fades: in behind the typing once the pane has landed,
-         out with the pane when it goes. Nothing here translates. */
-      .ex-step__copy {
-        animation: ex-copy-out linear both;
-        animation-timeline: --ex;
-        animation-range: contain calc(var(--i) * 25%) contain calc((var(--i) + 1) * 25%);
-      }
+         THE PANE ARRIVES FIRST AND EMPTY, THEN THE COPY APPEARS ON IT.
+         That order is the whole gesture and it is why the plate moves and
+         the copy does not: a sheet of glass slides in from off the right
+         edge, lands, and only then does anything get written on it. The
+         first version had this the wrong way round — the plate stood still
+         and the copy flew across it — which is a caption sliding over a
+         window rather than a window being put in place. So the copy only
+         fades: in behind the typing once the pane has landed — the
+         staggered windows below — out with the pane when it goes, on
+         .cf-pin__copy's own hold. Nothing here translates. */
 
       /* THE OBJECT COMES UP IN FOUR PASSES, BACK TO FRONT.
-         Each .cf-iso__form group carries data-stage, and the generator assigns
-         those by DEPTH: 0 is the foundation, 3 is whatever stands nearest the
-         reader. So the build is the drawing's own paint order played at
-         reading speed — ground, back, middle, front — and every part arrives
-         along the same 26.57° everything else in the system arrives along.
-         The scene itself no longer travels: it would add its translate to
-         each group's and the object would come in twice. */
-      .ex-step .cf-iso__scene { animation-name: none; }
-      .ex-step .cf-iso__form,
-      .ex-step .cf-iso__ghost,
-      .ex-step .cf-iso__orbit,
-      .ex-step .cf-iso__trace,
-      .ex-step .cf-iso__light,
-      .ex-step .cf-iso__node {
-        animation-timeline: --ex;
-        animation-duration: auto;
-        animation-fill-mode: both;
-        animation-timing-function: var(--ease-out);
-      }
+         The stopped scene, the parts' timeline and the trace and node
+         windows are .cf-pin's. What is this page's is the order of
+         arrival: each .cf-iso__form group carries data-stage, and the
+         generator assigns those by DEPTH — 0 is the foundation, 3 is
+         whatever stands nearest the reader — so the build is the drawing's
+         own paint order played at reading speed, ground, back, middle,
+         front, every part arriving along the same 26.57° everything else
+         in the system arrives along. Then ghost, light — the same order
+         components.css uses for a .cf-iso arriving on its own timeline,
+         only the windows change. All of it inside the reveal, so the last
+         node lands on the same point the last character does. */
       .ex-step .cf-iso__form {
         --s: 0;
         animation-name: ex-part;
@@ -298,33 +231,19 @@
       .ex-step .cf-iso__form[data-stage="1"] { --s: 1; }
       .ex-step .cf-iso__form[data-stage="2"] { --s: 2; }
       .ex-step .cf-iso__form[data-stage="3"] { --s: 3; }
-
-      /* Then the same order components.css uses for a .cf-iso arriving on its
-         own timeline — ghost, trace, light, nodes — only the timeline and the
-         ranges change. All of it inside the reveal, so the last node lands on
-         the same point the last character does. */
       .ex-step .cf-iso__ghost {
         animation-name: cf-iso-fade;
         animation-range: contain calc(var(--i) * 25% + 8%) contain calc(var(--i) * 25% + 13%);
       }
       .ex-step .cf-iso__orbit {
         animation-name: cf-iso-fade, cf-iso-orbit;
-        animation-timeline: --ex, --ex;
+        animation-timeline: --cf-pin, --cf-pin;
         animation-range: contain calc(var(--i) * 25% + 8%) contain calc(var(--i) * 25% + 13%),
                          contain calc(var(--i) * 25% + 8%) contain calc(var(--i) * 25% + 15.5%);
-      }
-      .ex-step .cf-iso__trace {
-        stroke-dasharray: 1;
-        animation-name: cf-iso-draw;
-        animation-range: contain calc(var(--i) * 25% + 5%) contain calc(var(--i) * 25% + 13%);
       }
       .ex-step .cf-iso__light {
         animation-name: cf-iso-light;
         animation-range: contain calc(var(--i) * 25% + 11.5%) contain calc(var(--i) * 25% + 15%);
-      }
-      .ex-step .cf-iso__node {
-        animation-name: cf-iso-fade;
-        animation-range: contain calc(var(--i) * 25% + 13%) contain calc(var(--i) * 25% + 15.5%);
       }
 
       /* THE COPY IS TYPED, NOT FADED, so this fade only opens the box the
@@ -342,8 +261,8 @@
          rest: the count with the title, the facts last, so the card is
          finished at the same moment the sentence is. */
       .ex-step__copy > * {
-        animation: ex-copy linear both;
-        animation-timeline: --ex;
+        animation: cf-pin-copy linear both;
+        animation-timeline: --cf-pin;
         animation-range: contain calc(var(--i) * 25% + var(--from) * 1%)
                          contain calc(var(--i) * 25% + var(--to) * 1%);
       }
@@ -365,41 +284,9 @@
       .ex-step .cf-info-card__sub   { min-height: 1.5em; }
       .ex-step .cf-info-card__body  { min-height: 9.6em; }
       .ex-step .cf-info-card__ask   { min-height: 3.2em; }
-
-      .ex-mark {
-        animation: ex-mark linear both;
-        animation-timeline: --ex;
-        animation-range: contain calc(var(--i) * 25%) contain calc((var(--i) + 1) * 25%);
-      }
-      .ex-bar::after {
-        animation: ex-bar linear both;
-        animation-timeline: --ex;
-        animation-range: contain 0% contain 100%;
-      }
     }
   }
 
-  .ex-index {
-    gap: var(--space-4); padding: 0; list-style: none;
-    font-family: var(--font-mono); font-size: var(--text-xs);
-    letter-spacing: var(--tracking-label); color: var(--text-muted);
-  }
-  .ex-bar { position: relative; height: var(--stroke-1); background: var(--border-default); }
-  .ex-bar::after {
-    content: ""; position: absolute; inset: 0 auto 0 0; width: 100%;
-    background: var(--border-strong); transform-origin: left; transform: scaleX(0);
-  }
-
-  /* In over the first sixteenth, out over the last tenth, and between them a
-     stretch of nothing happening. The reveal ends at 62 % of the step, so the
-     still runs from there to 90 % — at 1.6 screens per step, about four fifths
-     of a screen of scroll with the object built, the sentence whole and
-     nothing moving. That is the part anybody actually reads. */
-  @keyframes ex-step {
-    0%        { opacity: 0; }
-    11%, 89%  { opacity: 1; }
-    100%      { opacity: 0; }
-  }
   /* THE PANE, FOUR TIMES, ON ONE ELEMENT. There is exactly one plate of glass
      on this page — a shipping page gets two blurred layers and the navigation
      band is the other — so the swipe cannot be four elements taking turns. It
@@ -438,12 +325,6 @@
     75%           { opacity: 0; translate: var(--pane-in) 0; }
     78%,    100%  { opacity: 1; translate: 0 0; }
   }
-  /* The copy does not travel. It appears once the pane is under it — see the
-     staggered ex-copy ranges — and leaves with the pane. */
-  @keyframes ex-copy-out {
-    0%, 88%   { opacity: 1; }
-    96%, 100% { opacity: 0; }
-  }
   /* The parts arrive on the 26.57° the whole system arrives on — half the
      distance a whole object travels, because they are assembling, not landing. */
   @keyframes ex-part {
@@ -453,15 +334,6 @@
     }
     to { opacity: 1; transform: translate(0, 0); }
   }
-  @keyframes ex-copy {
-    from { opacity: 0; translate: 0 var(--space-4); }
-    to   { opacity: 1; translate: 0 0; }
-  }
-  @keyframes ex-mark {
-    0%, 100% { color: var(--text-muted); }
-    14%, 86% { color: var(--text-primary); }
-  }
-  @keyframes ex-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 </style>
 </head>
 <body class="page-wash">
@@ -599,23 +471,23 @@
       </div>
     </div>
 
-    <div class="ex-track" data-stream>
+    <div class="cf-pin" data-stream>
       <!-- The ground is the stage itself, so the lattice runs to both edges of
            the screen while the copy stays in the content column. Unlit on
            purpose — see THE GROUND UNDER THE BUILD above. -->
-      <div class="ex-stage cf-ground">
-        <div class="container ex-stage__inner">
-          <ol class="ex-index" role="list" aria-hidden="true">
-              <li class="ex-mark" style="--i:0">01</li>
-              <li class="ex-mark" style="--i:1">02</li>
-              <li class="ex-mark" style="--i:2">03</li>
-              <li class="ex-mark" style="--i:3">04</li>
+      <div class="cf-pin__stage ex-stage cf-ground">
+        <div class="container cf-pin__inner ex-stage__inner">
+          <ol class="cf-pin__index" role="list" aria-hidden="true">
+              <li class="cf-pin__mark" style="--i:0">01</li>
+              <li class="cf-pin__mark" style="--i:1">02</li>
+              <li class="cf-pin__mark" style="--i:2">03</li>
+              <li class="cf-pin__mark" style="--i:3">04</li>
           </ol>
 
           <div class="ex-steps">
             <!-- ONE plate, not four. See THE LECTERN below. -->
             <div class="ex-plate cf-info-card cf-info-card--glass" aria-hidden="true"></div>
-            <article class="ex-step" style="--i:0" aria-labelledby="feld-01" data-stream-stage>
+            <article class="ex-step cf-pin__step" style="--i:0" aria-labelledby="feld-01" data-stream-stage>
               <div class="ex-step__figure">
 <svg class="cf-iso" style="--vb-w:620; --iso-travel: 15.5" viewBox="-9.6 108.26 620 423.94" fill="none" aria-hidden="true">
                   <defs><linearGradient id="cf-ex-01" x1="476.8" y1="322.72" x2="331.2" y2="541.12" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
@@ -727,7 +599,7 @@
                   </g>
                 </svg>
               </div>
-              <div class="cf-info-card ex-step__copy">
+              <div class="cf-info-card ex-step__copy cf-pin__copy">
                 <p class="cf-info-card__count t-label">01 / 04</p>
                 <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-01" data-stream-line="0.20 0.22">Maschinenbau</h3>
                 <p class="cf-info-card__sub t-label" data-stream-line="0.34 0.12">Rotierende Assets</p>
@@ -757,7 +629,7 @@
                 </div>
               </div>
             </article>
-            <article class="ex-step" style="--i:1" aria-labelledby="feld-02" data-stream-stage>
+            <article class="ex-step cf-pin__step" style="--i:1" aria-labelledby="feld-02" data-stream-stage>
               <div class="ex-step__figure">
 <svg class="cf-iso" style="--vb-w:642.4; --iso-travel: 16.06" viewBox="-1.2 30.05 642.4 517.55" fill="none" aria-hidden="true">
                   <defs><linearGradient id="cf-ex-02" x1="289.2" y1="56.44" x2="289.2" y2="120.5" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
@@ -919,7 +791,7 @@
                   </g>
                 </svg>
               </div>
-              <div class="cf-info-card ex-step__copy">
+              <div class="cf-info-card ex-step__copy cf-pin__copy">
                 <p class="cf-info-card__count t-label">02 / 04</p>
                 <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-02" data-stream-line="0.20 0.22">Großanlagen</h3>
                 <p class="cf-info-card__sub t-label" data-stream-line="0.34 0.12">Prozess und Verfügbarkeit</p>
@@ -950,7 +822,7 @@
                 </div>
               </div>
             </article>
-            <article class="ex-step" style="--i:2" aria-labelledby="feld-03" data-stream-stage>
+            <article class="ex-step cf-pin__step" style="--i:2" aria-labelledby="feld-03" data-stream-stage>
               <div class="ex-step__figure">
 <svg class="cf-iso" style="--vb-w:653.6; --iso-travel: 16.34" viewBox="-6.8 12.78 653.6 537.62" fill="none" aria-hidden="true">
                   <defs><linearGradient id="cf-ex-03" x1="111.68" y1="319.92" x2="169.92" y2="439.31" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
@@ -1087,7 +959,7 @@
                   </g>
                 </svg>
               </div>
-              <div class="cf-info-card ex-step__copy">
+              <div class="cf-info-card ex-step__copy cf-pin__copy">
                 <p class="cf-info-card__count t-label">03 / 04</p>
                 <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-03" data-stream-line="0.20 0.22">Erneuerbare</h3>
                 <p class="cf-info-card__sub t-label" data-stream-line="0.34 0.12">Speicher und Wandlung</p>
@@ -1116,7 +988,7 @@
                 </div>
               </div>
             </article>
-            <article class="ex-step" style="--i:3" aria-labelledby="feld-04" data-stream-stage>
+            <article class="ex-step cf-pin__step" style="--i:3" aria-labelledby="feld-04" data-stream-stage>
               <div class="ex-step__figure">
 <svg class="cf-iso" style="--vb-w:625.6; --iso-travel: 15.64" viewBox="7.2 132.56 625.6 410.84" fill="none" aria-hidden="true">
                   <defs><linearGradient id="cf-ex-04" x1="355.84" y1="292.48" x2="395.26" y2="386.11" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
@@ -1271,7 +1143,7 @@
                   </g>
                 </svg>
               </div>
-              <div class="cf-info-card ex-step__copy">
+              <div class="cf-info-card ex-step__copy cf-pin__copy">
                 <p class="cf-info-card__count t-label">04 / 04</p>
                 <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-04" data-stream-line="0.20 0.22">Flotten</h3>
                 <p class="cf-info-card__sub t-label" data-stream-line="0.34 0.12">Viele gleiche Assets</p>
@@ -1302,7 +1174,7 @@
             </article>
           </div>
 
-          <div class="ex-bar" aria-hidden="true"></div>
+          <div class="cf-pin__bar" aria-hidden="true"></div>
         </div>
       </div>
     </div>
