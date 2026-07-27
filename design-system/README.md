@@ -173,6 +173,29 @@ not a surface: one element per screen, which is why the black button's label is 
 with the foil rather than the lime ramp. Publica Sans sets display headlines, Geist sets
 everything readable, Geist Mono sets labels and every number.
 
+## Lime is never flat
+
+Wherever lime fills an area it fills it with a **gradient** — one of the light family,
+running out of lime into Glas and away to CF-Grau. A rhombus painted `#E1FF00` edge to
+edge is not the light layer; it is a yellow shape. Light in this brand is *a source and a
+falloff*, which is what the three rakes are, what the bloom is, what the foil is — and a
+flat lime plane has neither, so it says nothing about where the light comes from.
+
+Pick the ramp by what the mark is: a flat face takes the near rake, a curved body the mid
+rake, a rim or a nucleus the bloom, a horizontal run `--gradient-light-90`. A mark on a
+**dark** surface takes the same ramp **stopped at Glas**, because CF-Grau over black is a
+mid grey and the far end of the ramp would read as a grey pill rather than as light
+falling off. In SVG the ramp is a paint server and carries the `#DBFC60` oklab waypoint,
+because a CSS gradient cannot be an SVG `fill`.
+
+Three exceptions, each technical rather than aesthetic: the palette swatch on
+`foundations/colors.html` (a swatch of a colour has to be the colour), `::selection` (CSS
+cannot paint a gradient into a selection highlight), and any **stroke, outline or focus
+ring** (not a fill — the rule is about area). The flat lime cube on
+`foundations/illustration.html` is a labelled *don't*, drawn wrong on purpose.
+
+→ `foundations/colors.html#lime-is-never-flat`
+
 ## Where a line may go
 
 The system runs on hairlines, so the one rule that keeps it from reading as generic is

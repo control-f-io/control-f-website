@@ -27,6 +27,15 @@
   .band-swatches figcaption { margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs);
                               letter-spacing:var(--tracking-label); color:var(--text-primary); }
   .band-swatches figcaption span { display:block; margin-top:var(--space-1); color:var(--text-secondary); }
+
+  /* Flat lime against the same face taking the ramp. Both are the isometric
+     rhombus, because the argument is about a lit FACE and a square would be
+     making it about something else. */
+  .flat-vs-ramp { display:grid; grid-template-columns:repeat(auto-fit,minmax(13rem,1fr)); gap:var(--space-8); justify-items:center; }
+  .flat-vs-ramp figure { margin:0; display:grid; justify-items:center; gap:var(--space-4); }
+  .flat-vs-ramp__face { display:block; width:9rem; height:9rem; transform:var(--iso-transform); border:var(--stroke-1) solid var(--border-strong); }
+  .flat-vs-ramp figcaption { font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label);
+                             line-height:var(--leading-normal); text-align:center; color:var(--text-secondary); max-width:16rem; }
 </style>
 </head>
 <body class="docs" data-root="../">
@@ -1058,6 +1067,81 @@
       they must be recomputed, or the wash quietly stops starting where the page starts. At
       this chroma the 8-bit grid is coarser than the target, so each hex lands 2.5–4.2° off
       its hue and within 0.001 of the chroma. That is the grid, not the arithmetic.
+    </p>
+  </section>
+
+  <section class="docs-section" id="lime-is-never-flat">
+    <h2>Lime is never flat</h2>
+    <p>
+      <strong>Lime never appears as a flat fill.</strong> Wherever it fills an area, it fills
+      it with a gradient — one of the light family above, running out of lime into Glas and
+      away to CF-Grau. A rhombus painted <code>#E1FF00</code> edge to edge is not the light
+      layer; it is a yellow shape. The ramp is what makes it light.
+    </p>
+    <p>
+      This follows from the rule the whole palette is built on and had simply never been
+      written down as its own line. Light in this brand is <em>a source and a falloff</em> —
+      that is what the three rakes are, what the bloom is, what the foil is. A flat lime plane
+      has no source and no falloff, so it has nothing to say about where the light is coming
+      from, and it reads as the one thing the manual never draws: a coloured surface.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <div class="flat-vs-ramp">
+        <figure>
+          <span class="flat-vs-ramp__face" style="background:var(--cf-lime)"></span>
+          <figcaption>Don't · a lime plane. No source, no falloff.</figcaption>
+        </figure>
+        <figure>
+          <span class="flat-vs-ramp__face" style="background:var(--gradient-light)"></span>
+          <figcaption>Do · the near rake. Lime is where the light lands.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <h3>Which ramp, on a small mark</h3>
+    <p>
+      The objection to the rule is always the same: a 40&nbsp;px cap or an 8&nbsp;px marker
+      has no room for a ramp. It has exactly as much room as it needs, because the ramp is
+      sized to the <em>element</em> and not to the page — the process cards' lit faces are
+      120 units in a 640 box and read as light at 352&nbsp;px. Pick by what the mark is:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>The mark is</th><th>Take</th><th>Because</th></tr></thead>
+      <tbody>
+        <tr><td>a flat face — a cap, a top face, a tile</td><td><code>--gradient-light</code>, near rake</td><td>the face light actually lands on. Same choice as card 01.</td></tr>
+        <tr><td>a curved body turning away</td><td><code>--gradient-light-raking</code>, mid rake</td><td>the falloff is longer because the surface leaves the light gradually.</td></tr>
+        <tr><td>a rim, a ring, a nucleus</td><td><code>--gradient-bloom</code> / <code>-iso</code></td><td>lime sits on the rim and the centre falls to CF-Grau — cards 02 and 04.</td></tr>
+        <tr><td>a horizontal run — an edge, a head, a bar</td><td><code>--gradient-light-90</code></td><td>the same ramp mirrored onto a level axis.</td></tr>
+        <tr><td>a mark on a <em>dark</em> surface</td><td>the same ramp, <strong>stopped at Glas</strong></td><td>CF-Grau over black is a mid grey, so the far end of the ramp reads as a grey pill rather than as light falling off. Ending at Glas keeps the whole mark inside the light half.</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The last row is the one that is easy to get wrong, because it looks like an exception
+      and is not: it is the same ramp, run over a shorter distance, for the same reason the
+      three rakes exist. What changes on black is not the material — it is where the falloff
+      stops being light and starts being a surface.
+    </p>
+    <div class="docs-note">
+      <strong>In SVG the ramp is a paint server, and it carries the oklab waypoint.</strong>
+      A CSS gradient cannot be an SVG <code>fill</code>, so a lit face in a drawing declares
+      its own <code>&lt;linearGradient&gt;</code> — with <code>#DBFC60</code> at 19&nbsp;% of
+      the lime→Glas leg, because SVG interpolates in sRGB and the rest of the family
+      interpolates in oklab. → <a href="../foundations/illustration.html#light">Illustration</a>
+    </div>
+
+    <h3>Three exceptions, and each is a technical one</h3>
+    <table class="docs-table">
+      <thead><tr><th>Where</th><th>Why it stays flat</th></tr></thead>
+      <tbody>
+        <tr><td>the palette swatch on this page</td><td>a swatch of a colour has to be the colour. It is the specimen, not an application of it.</td></tr>
+        <tr><td><code>::selection</code></td><td>CSS cannot paint a gradient into a selection highlight. There is no gradient form of this declaration to reach for.</td></tr>
+        <tr><td>a stroke, an outline, a focus ring</td><td>not a fill. A line has no plane to ramp across, and the rule is about area.</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The fourth thing that looks like an exception is not one: the flat lime cube on
+      <a href="../foundations/illustration.html#rules">Illustration</a> is a labelled
+      <em>don't</em>, drawn wrong on purpose.
     </p>
   </section>
 
