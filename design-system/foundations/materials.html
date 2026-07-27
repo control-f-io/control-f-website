@@ -186,8 +186,10 @@
 
     <h3>Where it is, and where it deliberately is not</h3>
     <p>
-      Two surfaces in the whole system are frosted, and they do not overlap: the navigation
-      band, and the hero button. Everything else that looks like a panel — the process card
+      Two surfaces in the whole system are frosted: the navigation band, and the hero
+      button. They <em>do</em> overlap, for about 150&nbsp;px of scroll — see
+      <em>Cost</em> below, which this sentence used to contradict by claiming they never
+      meet. Everything else that looks like a panel — the process card
       and its note block, the value-table cells, the blog-grid cells, the footer CTA — sits
       on the page wash with nothing complex behind it, so it is drawn with a contour instead.
       Frosted glass there would be an effect rather than a material.
@@ -230,10 +232,63 @@
       never simulated.
     </p>
     <p>
-      <strong>Light only adds.</strong> Every layer above the bearing tint lightens, so the
-      darkest point on the button is the tint itself and the contrast floor is the same
-      whether the highlight is present or not — the guarantee never depends on where the
-      light happens to be.
+      <strong>Light only adds — behind the label.</strong> Every layer between the bearing
+      tint and the label lightens, so the darkest point the label ever sits on is the tint
+      itself and the contrast floor is the same whether the highlight is present or not. The
+      guarantee never depends on where the light happens to be.
+    </p>
+    <p>
+      <strong>The button ends at the same edge the sheet does.</strong> This page asserted
+      that below — "one lit edge with hue, one specular without, on the sheet exactly as on
+      the button" — for longer than it was true. <code>--glass-edge</code> was on the
+      navigation rim and nowhere else; what the button had was a flat white 55&nbsp;% border
+      and a face gradient carrying Glas into lime, which is a lit <em>face</em>. The claim
+      was the right design and the code has caught up to it: the token is now the button's
+      top pixel too, painted on the border box under the rim colour, so both frosted
+      surfaces in the system end at one edge drawn from one declaration.
+    </p>
+    <p>
+      The rim <em>colour</em> was a second copy of the same problem and is fixed the same way.
+      <code>--glass-border</code> held white 55&nbsp;% and was read by exactly one rule in the
+      system — the <code>.material-glass</code> swatch on this page — while the only shipping
+      glass surface with a border wrote the value out by hand. The two could not be changed
+      together, and the inverse theme's redeclaration of the token reached the documentation
+      swatch and never the button. The button reads the token now.
+    </p>
+    <p>
+      It is <strong>windowed, not rewritten</strong>, and that distinction is the rule worth
+      carrying. <code>--glass-edge</code> is authored for a full-bleed sheet with no lime on
+      it; this plate has lime at its right end, and running the edge's Sky tail into that end
+      would put the material's chroma in two places at once — the same failure a Glas tail on
+      the specular would cause. So the layer is sized to 62&nbsp;% of the plate and the whole
+      gradient renders inside that window: Weiss peaks at 9.9&nbsp;% across, Glas at
+      33.5&nbsp;%, Sky at 49.6&nbsp;%, transparent again by 62&nbsp;%. The face's lime becomes
+      visible at about 63&nbsp;%, measured — well before its declared 87&nbsp;% stop — so the
+      rim expires one point before the lime arrives, which is the relationship the specular
+      already has. Size the layer and leave the stops alone; editing stop positions to fit a
+      narrower box forks the family into two edges that merely resemble each other.
+    </p>
+    <p>
+      The rim costs no contrast, and it is worth saying why rather than asserting it, because
+      <strong>the rim is the one layer on this plate that is not strictly additive</strong> —
+      which is why the rule above now reads "behind the label" where it used to read "on the
+      button". Measured on the rendered plate at 1280&nbsp;px: over a <em>white</em> backdrop
+      the rim's Sky stop is <code>rgb(232,243,249)</code> against a plate of
+      <code>rgb(235,248,245)</code> — relative luminance 0.881 against 0.914, so the rim sits
+      3.6&nbsp;% <em>darker</em> than what it crosses. Over a <em>black</em> backdrop the same
+      point reads <code>rgb(202,213,219)</code> against <code>rgb(144,157,154)</code> and is far
+      lighter. That is a real edge taking the colour of the light rather than always
+      brightening, and it is the behaviour to want. It costs nothing because it is one pixel at
+      the top of a 48&nbsp;px plate, above the label rather than behind it, and the plate's
+      floor is its <code>background-color</code>, which sits beneath all three image layers and
+      covers the whole box either way. Sampled at the label's own row, every value is byte-identical
+      to what the button rendered before the rim existed.
+    </p>
+    <p>
+      One mechanical consequence: <code>background-repeat: no-repeat</code> is now load-bearing
+      on that rule. Every layer used to size to <code>auto</code> and fill the box, so the
+      initial <code>repeat</code> had nothing to do; a 1&nbsp;px layer under it would tile the
+      rim down all 48&nbsp;px of the plate.
     </p>
     <p>
       <strong>The navigation sheet gets a specular too, and it is driven by the scroll rather
