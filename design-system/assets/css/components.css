@@ -4574,7 +4574,17 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 
 @media (max-width: 56.25rem) {
   .cf-consent__inner { grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
-  .cf-consent__actions .cf-btn { flex: 1 1 100%; min-width: 0; }
+  /* The accept/reject pair shares one row wherever the row can hold both at
+     their natural width, and stacks only where it cannot. max-content as the
+     basis is what decides that: the fold moves with the labels' real rendered
+     width, so no font swap can leave a button mid-wrap — a fixed basis would
+     pin the fold to today's fallback metrics, the trap the breakpoint
+     register's logo-wall note warns about. Wherever the pair stacks, each
+     button takes the full measure; a 2+1 ragged row cannot occur because the
+     two hypothetical sizes only fit together or not at all. The ghost is not
+     part of the pair and never joins the row — reject must not be the button
+     that got squeezed to make room for something quieter. */
+  .cf-consent__actions .cf-btn { flex: 1 1 max-content; }
   .cf-consent__actions .cf-btn--ghost { flex: 1 1 100%; justify-content: flex-start; }
 }
 /* A tall banner on a short screen must not eat the page it is asking about. */
