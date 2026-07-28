@@ -266,9 +266,13 @@ def main():
         checked += c
 
     if not checked:
-        print("anchor position cascade: no selector on the shipping surface reads an "
-              "anchor — the scan went stale")
-        return 1
+        # The anchor chain was removed by design on 2026-07-28: the prototype's
+        # rebuild placed the drawing statically inside one sticky stage, so
+        # nothing on the shipping surface reads an anchor. Zero is a valid
+        # census now; this check stands ready for the day anchors return.
+        print("anchor position cascade: no selector reads an anchor — the chain "
+              "was removed by design (prototype rebuild, 2026-07-28); nothing to order")
+        return 0
     if args.verbose:
         for s in skipped:
             print(f"  skipped: {s}")

@@ -254,17 +254,19 @@ def main():
             f"{show(f_w)} — a flow unit and a statement unit are no longer the "
             f"same length, and every identity below is arithmetic about nothing")
 
-    # 2. `top: 50%` lands the flow's y 0 on the void's centre
-    if cy * 2 != s_h:
+    # 2. THE FLOW STANDS DIRECTLY UNDER THE FIELD, IN FLOW. Identity 2 used
+    #    to hold `top: 50%` — the anchor-era placement that hung the flow's
+    #    y 0 on the void's centre. The 2026-07-28 rebuild removed the anchor
+    #    chain: the flow is a normal block stacked under the field inside one
+    #    sticky stage, wrapped in .sp-root so the numerals' box is the flow's.
+    #    What the identity still owes is that the two drawings are the same
+    #    column: same markup order (field svg, then .sp-root holding the
+    #    flow), so the departure reads as leaving the field's underside.
+    if not re.search(r"cf-iso\b[^>]*viewBox=\"0 0 1200 288\"[\s\S]*?<div class=\"sp-root\">[\s\S]*?lp-flow\b", text):
         findings.append(
-            f"the field's centre y is {show(cy)} of a {show(s_h)}-unit viewBox, so the "
-            f"figure's midpoint is {show(s_h / 2)} — .lp-flow is placed `top: 50%` and "
-            f"its y 0 therefore lands {show(abs(cy - s_h / 2))} units off the void's centre")
-    if not re.search(r"\.lp-flow,\s*\.lp-flow-data\s*\{[^}]*?\btop:\s*50%", text, re.S):
-        findings.append(
-            "`top: 50%` is no longer what places .lp-flow on the figure — the flow's "
-            "y 0 is not the void's centre any more, and the departure below is "
-            "measured from a point the page does not use")
+            "the field svg is no longer followed by .sp-root holding .lp-flow — "
+            "the static stacking that replaced the anchor chain is gone, and the "
+            "departure no longer leaves from the field's underside")
 
     # 3. plumb under the void
     if dep[0] != cx:

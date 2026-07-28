@@ -3,59 +3,56 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Statement → Prozess — Scroll-Choreografie (Labor)</title>
+<title>Statement &rarr; Prozess — Scroll-Choreografie (Labor)</title>
+<!-- Without rel="icon" the browser falls back to GET /favicon.ico at the
+     origin root, which this repository does not reach — the landing page
+     records the same finding. Declared, not shipped as a root file. -->
+<link rel="icon" href="../assets/img/logo/cf-favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/base.css">
 <link rel="stylesheet" href="../assets/css/components.css">
 <style>
   /* ============================================================
-     STATEMENT -> PROZESS, THE WHOLE CHAIN, QUARANTINED.
+     STATEMENT -> PROZESS, REBUILT CLEAN. 2026-07-28.
 
-     This page is the landing page's statement-to-process
-     choreography — the sensor field forming, collapsing into the
-     root, the root growing into the lectern, the pinned card build
-     — moved here WHOLE on 2026-07-28, on Daniel's instruction,
-     after three rounds of review still found it broken in the
-     shipped page. The landing page now ships its settled, static
-     state; this is the only place the chain runs, and the place it
-     gets fixed before any of it goes back.
+     The first version of this page transplanted the landing page's
+     2,174 lines of accreted choreography and inherited every layer
+     of it: a fake hold built from translate ramps, anchor chains
+     stretching one drawing between two sections, a dual trunk/stem
+     tier, and windows in four different units. Daniel's recording
+     of it showed a split field, orphan junction dots and a missing
+     root. The layers were the bug. It is one mechanism now:
 
-     THE OPEN FAULTS, measured, in order of pain:
+       ONE STAGE   .sp-track is the scroll budget (400vh), .sp-stage
+                   is position: sticky for its whole length — a real
+                   hold, not a translate ramp cancelling scroll.
+       ONE
+       TIMELINE    --sp, the track's own view timeline. Every part of
+                   acts 1 and 2 reads it in `contain` percentages,
+                   which map linearly to scroll pixels. No cover-of-
+                   subject arithmetic, no per-viewport fitting.
+       ONE
+       DRAWING     the field and the root are laid out as one static
+                   column inside the stage, sized BY the stage
+                   (--sp-measure) so the whole drawing always fits
+                   the viewport it plays in. No anchor(), no second
+                   trunk, no camera pan.
 
-     1. THE RULE FLIES IN. The "Was wir machen" rule + label ride
-        the hold ramp with the drawing, so they enter from above the
-        viewport and cross the field on their way down. A horizon
-        that arrives by falling past the thing it grounds. Fix
-        direction: the rule belongs to the RELEASED layout only, or
-        fades in place — it should never travel.
-     2. THE SCROLL-TO-COVER MAPPING IS NOT ARITHMETIC. Four separate
-        retimes were wrong because rendered cover positions do not
-        match what box heights predict (section padding moves the
-        subject). Every timing here must be fitted by sampling the
-        rendered page. scripts/ has the harness.
-     3. THE TAIL IS NAILED. The contour lands at cover 65.98 (the
-        lectern relay) and the light fades by 67.98 (the lime
-        clearance sweep) — so the root's last ~16 points of cover
-        always play during the release scroll. Moving them means
-        moving the relay and re-sweeping the clearance in the same
-        change: check-flow-chain.py and check-hold-containment.py
-        hold both ends.
-     4. THE DRAWING vs THE VIEWPORT. The chain fits under 900-tall
-        viewports only since #227; at the gate floor the margins are
-        single-digit px. check-figure-fits.py holds it.
-     5. THE HOLD'S RESERVE IS BLANK APPROACH. The standstill scroll
-        is reserved as padding above the drawing, so the reader
-        wheels 300-400 px of nothing before stop 1. Any fix must
-        keep check-hold-ramp.py's invariants: reservation = window,
-        ends at translate 0.
+     THE SCRIPT, in contain % of the track:
+        4 - 16    the lattice resolves
+        8 - 30    ACT 1: the sensors fade in, staggered by --m
+       34 - 46    the field collapses into the departure (--m stagger)
+       36 - 88    ACT 2: the root draws, front = head + l*c, exactly
+                  the algebra check-flow-chain.py holds
+       90 -100    still: the finished drawing holds one beat
+       then the stage releases and ACT 3 is the cards' own .cf-pin
+       below, unchanged, with the lectern frame drawn on its entry.
 
-     Everything below this banner is the chain exactly as it left
-     the landing page, CSS and markup, selectors unchanged, so the
-     scripts/check-* suite holds it here instead. Fix it here,
-     prove it here, and only then port it back.
+     Acts 1+2 never overlap the cards: different sections, different
+     timelines, and the rule over "Was wir machen" is ordinary flow
+     content that never travels.
      ============================================================ */
 
-  /* Preview only: back to the documentation. */
   .ds-back {
     position: fixed; left: 0; bottom: 0; z-index: calc(var(--z-overlay) - 1);
     padding: var(--space-2) var(--space-4);
@@ -66,423 +63,144 @@
   .proto-head { padding: var(--space-12) 0 var(--space-8); }
   .proto-head p { max-width: 60ch; color: var(--text-secondary); margin-top: var(--space-3); }
 
-  /* ------------------------------------------------------------------
-     Was wir machen — the four steps, built in place.
+  /* ---- the stage's own layout, valid at every tier ---- */
+  .sp-stage__inner {
+    display: grid;
+    gap: var(--space-8);
+    align-items: center;
+  }
+  .sp-drawing { min-width: 0; }
+  .sp-drawing .cf-iso, .sp-drawing .lp-flow { display: block; width: 100%; height: auto; }
+  /* The root draws rails ON its viewBox boundary; SVG clips to its viewport
+     by default, so without this the outermost strokes lose half their weight
+     — the rule .cf-page-header__figure writes out in components.css. */
+  .sp-drawing .lp-flow { overflow: visible; }
+  /* The drawing's paint, static and tier-independent: the contour is the
+     border colour, the light is 2 px over its own per-stroke ramp, junctions
+     are filled points, and every stroke holds its weight under the stretch
+     (non-scaling). These lived in the old page block and died with it — the
+     first render of this rebuild drew forty invisible strokes. */
+  .lp-flow :is(path, circle) { vector-effect: non-scaling-stroke; }
+  .lp-flow__seg { stroke: var(--border-strong); }
+  .lp-flow__light { stroke-width: 2; }
+  .lp-flow__node { fill: var(--border-strong); }
+  /* The flow's own top 84 units are the trunk's approach — empty band before
+     the first ink. Tuck it under the field so the two read as one column:
+     84/1200 of the shared width. */
+  .sp-root { margin-block-start: calc(var(--sp-measure) * -0.07); }
+  /* The drawing is field (288u) over root (620u) on a 1200u basis: 0.7567
+     of its width in height. Sizing it off the viewport's height is what
+     guarantees the whole of it fits the stage — the fault the landing page
+     carried for a day was a drawing 1.07x its viewport. */
+  .sp-drawing { --sp-measure: min(100%, calc((100vh - 14rem) * 1.25)); width: var(--sp-measure); position: relative; }
+  /* The root's numerals are placed over the flow box by the label law's own
+     --x/--y (flow units of 1200 x 620) with --tx/--ty clearances. The flow
+     box is the last child, so the values' container matches it exactly. */
+  .sp-root { position: relative; }
+  .lp-flow-data { position: absolute; inset: 0; pointer-events: none; }
+  .lp-flow__val {
+    position: absolute;
+    left: calc(var(--x) / 1200 * 100%);
+    top: calc(var(--y) / 620 * 100%);
+    translate: var(--tx, 0) var(--ty, 0);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  @container (min-width: 56rem) {
+    .sp-stage__inner { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+  }
 
-     THE SECOND PAGE ARRIVED, and the line this block used to draw —
-     nothing moves to components.css until a second page wants this exact
-     stage — has been crossed in the direction it named: the scaffolding
-     both this section and the Expertise page carried byte for byte is
-     .cf-pin in components.css now, gate and all. The mechanism is still
-     the one prototypes/services-scroll.html was approved on — a pinned
-     stage, a track of scroll behind it, and the build scrubbed by scroll
-     position, forwards and back. What stays in this block is what only
-     this page does: the stage-sized card, the shared plate, and the
-     build's own windows.
-
-     WHY THE BUILD IS RE-TIMED AT ALL: .cf-iso--build already assembles
-     these objects, but off each object's OWN view timeline — and a sticky
-     object never travels through the viewport, so its own view() would
-     freeze at one value and the object would simply stand there,
-     finished. Same fact expertise.html documents. So on the pinned stage
-     every part reads the TRACK's timeline instead, quarter by quarter,
-     while the staging itself — --stage, --build-dx, --build-dy, and the
-     cf-iso-build keyframe with its per-part directions — is exactly the
-     one components.css ships. The telescope still telescopes; it just
-     telescopes on the reader's scroll.
-
-     Everything is a progressive enhancement over the stacked column: no
-     view timelines, reduced motion, print, or a viewport under 64rem x
-     45rem, and the section is four cards in a column, each assembling on
-     its own view timeline as before. The height gate is not decoration:
-     the card's height is half its width plus the copy, and under 45rem
-     of viewport a stage that must also clear the nav band cannot hold a
-     card worth reading.
-     ------------------------------------------------------------------ */
+  /* ---- fallback: no timelines / reduced motion / under the gate ----
+     The stage does not stick and nothing animates; the drawing stands
+     complete (strokes ship drawn — the animations below only add the
+     build), the cards are the stacked column. Nothing is hidden. */
   .lp-proc-plate { display: none; }
-  /* The flow exists to hand the data to the pinned frame, so it lives and dies
-     with it: below the gate the section is a stacked column of four cards and
-     there is nothing to arrive at. Hidden here, shown inside the gate.
-
-     AND THE VALUES GO WITH IT, which the drawing's own hide does not do for
-     them: .lp-flow-data is a sibling, not a child, and everything that places
-     it is inside the gate. Left out of this rule it fell back to a static
-     block and rendered "12 480 3 840 3 200 5 440 1 360 4 080" as one 20 px
-     line of loose text in the statement's figure — the six values of the day,
-     measured under prefers-reduced-motion: reduce at 1440x900, and true below
-     the gate on both axes as well. A quantity with no route under it is not a
-     quieter version of this drawing; it is a row of numbers with nothing to
-     belong to.
-
-     AND THE STEM WITH IT, for the third time and the same reason: it is a third
-     sibling, and everything that places it is inside the gate. Left out of this
-     rule it fell back to a static <svg> at the container's full width with
-     `preserveAspectRatio="none"` and no intrinsic height to stop it — measured
-     under prefers-reduced-motion: reduce at 1280 x 900, a box 1139 px wide and
-     9493 px TALL in the statement's figure, one hairline stretched down a third
-     of the document. Also true in print, and below the gate on both axes. Every
-     part of this drawing has now been forgotten here once. */
-  .lp-flow,
-  .lp-flow-data,
-  .lp-flow__stem { display: none; }
-  /* The stacked fallback keeps the rhythm the section always had — this
-     gap is .flow-12, restated as a gap because the pinned mode needs the
-     same element to be a grid. */
   .lp-proc-steps { display: grid; gap: var(--space-12); }
 
   @supports (animation-timeline: view()) {
     @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
-      /* THE CARD IS SIZED BY THE STAGE, NOT THE COLUMN. Its height is its
-         width over two — two equal columns, and the figure is square — so
-         binding the width to the viewport height is what guarantees the
-         card, the index and the bar all fit one screen at any size the
-         gate admits. 13rem is the stage's own chrome: the nav clearance,
-         the index, the bar and the paddings, measured.
-
-         THE CAP IS ON THE STAGE AND NOT ON THE CARD, and the difference is
-         the whole finding. Written on .lp-proc-steps it narrowed the card
-         and left the index and the bar at the full container: at 1440 x 720
-         the chrome ran 256 px wider than the card it annotates, 128 px off
-         at each edge, with 01 standing over empty wash. Written here it is
-         inherited by all three rows of .cf-pin__inner — see the component's
-         own note, which carries the measurements. The number is unchanged;
-         only who reads it is.
-
-         AND IT IS DECLARED ONCE, HERE, FOR EVERY BOX THAT HAS TO AGREE WITH
-         THE CARD — which turned out to be four boxes and not three. The three
-         rows of .cf-pin__inner read it through --pin-measure; .lp-flow, a
-         section above, reads --lp-measure directly, because the drops it draws
-         land on the frame that IS this card's border. See the flow's own note
-         for what missing that cost, and for the one thing the measure cannot
-         also buy.
-
-         AND THESE TWO LINES ARE HALF OF WHAT check-flow-handover.py PROVES.
-         That check maps a flow x onto a frame x by 1000/1200 and holds all
-         fourteen arrivals to it exactly — on a basis it takes from the two
-         viewBox attributes and justifies in one sentence, "both drawings are
-         the same width by construction". The construction is this declaration,
-         the pass-through under it, .lp-flow's own `width: min(100%,
-         var(--lp-measure))`, and components.css's max-inline-size on
-         .cf-pin__inner > *. Four declarations, two files, and until #202 no
-         check read any of them: with the pass-through changed to
-         `calc(var(--lp-measure) * 0.92)` the lectern moves 3.38 px right and
-         6.75 px narrow, the two taproots land 4.69 and 4.68 px off the
-         verticals they are drawn into and the centre drop 3.27 px off the top
-         rail's own T-junction, and the whole gate — handover included — stays
-         green, because the `d` attributes never moved. Both earlier breaks at
-         this seam were CSS-side as well: #177 the stage narrowing with the card
-         not told, #178 the frame standing 1 px inside the border it replaced.
-         scripts/check-shared-measure.py holds the chain now, so the sentence
-         handover rests on is read rather than believed. */
-      /* AND THE STAGE IS 100vh OF SCREEN THE READER DOES NOT ALWAYS HAVE. Both
-         lines below used to read the viewport raw, and the viewport is not what
-         is free: the consent banner is `position: fixed; inset: auto 0 0 0`, so
-         on a first visit — the only visit it is shown on — the bottom 144.4 px
-         of every one of these screens belongs to it.
-
-         The system already knows this rule and already pays it twice.
-         .cf-hero caps its min-height against calc(100vh - var(--cf-consent-
-         height, 0px)) and .cf-footer pads by it, both off the property
-         cf-consent.js publishes while the banner is up and removes when it
-         goes. This stage is the third layer over the same edge and reserved
-         nothing. Measured on first load, the stage stuck — how much of each
-         box's bottom edge is below the banner's top edge, in px:
-
-           viewport      bar buried   card foot buried   elementFromPoint at the bar's centre
-           1280 x  720      99.4            82.4         the banner's "Datenschutzerklärung"
-           1366 x  768      99.4            82.4         the banner's body copy
-           1280 x  800      88.2            71.2         the banner's plate
-           1024 x  720      81.4            64.4         the banner's plate
-           1440 x  900      73.4            56.4         the banner's plate
-           1024 x  768      57.4            40.4         the banner's plate
-           1280 x  900      38.2            21.2         the banner's plate
-           1024 x  900       0               0           the bar
-           1920 x 1080       0               0           the bar
-
-         Seven of nine, and the two clear ones are the tall pair anyone checks
-         at. The bar is the one element on the stage that says this section
-         scrubs, and the hit test is the finding rather than the paint: at the
-         middle of it the document hands back the banner.
-
-         SO THE HABITABLE STAGE IS THE VIEWPORT MINUS THE LAYER OVER ITS FOOT,
-         and it is said twice because the card's size and the stage's box are
-         two different things that have to agree — the same pair the note above
-         is about. `block-size` and not padding: the inner is height: 100% of a
-         100vh sticky box with `align-content: center`, so shortening the box
-         lifts the trio, where padding inside it would push the same content
-         into the same banner. That is the trap check-consent-clearance.py
-         spells out for the hero, and it is the opposite way round here.
-
-         FLOORED AT 45rem, WHICH IS THE GATE'S OWN HEIGHT AND NOT A NEW NUMBER.
-         Without the floor the reservation over-narrows: the card's height is
-         `max(width / 2, the copy)` and the copy is the taller column below
-         about 1000 px of card, so past that point narrowing the card makes it
-         TALLER and the stage's own clip crops it — 90.7 px at 1280 x 720 with
-         the banner up, measured. The gate already says 45rem of viewport is the
-         least this stage can hold a card worth reading in; the floor says the
-         reservation may not take it below that. Paid in full at and above 820
-         px of viewport, tapering to nothing at the gate's floor, and identical
-         to what shipped at every size once the banner is dismissed — max()
-         against a 0px fallback is the same expression it was.
-
-         WHAT IS LEFT, so it is not rediscovered as a bug. Between 720 and 820
-         px tall the banner still covers 19 to 99 px of the trio, because a 562
-         px trio does not fit in 576 px of screen minus the stage's own padding
-         and there is nothing left to give that is not the card. The honest
-         answer there is that the gate's floor is 45rem of VIEWPORT where it
-         wants to be 45rem of HABITABLE stage — a threshold a media query cannot
-         express, since the banner's height is a runtime property. Flagged for a
-         designer rather than invented here. */
       main { --lp-measure: calc((max(45rem, 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }
-      /* ------------------------------------------------------------------
-         THE STATEMENT HOLDS WHILE ITS ROOT GROWS. --lp-hold is how much
-         scroll it holds for, and it is the only number in this mechanism.
-
-         WHAT WAS WRONG, measured at 1440 x 900 with the notice dismissed. The
-         root's build runs cover 26 % (the light's first ink) to cover 68 %
-         (the last fade) of --lp-flow, which is 656.8 px of scroll — and over
-         those 656.8 px the drawing travelled 656.8 px, because nothing held
-         it. Its box is 663.91 px tall in a 900 px viewport, so it is entirely
-         on screen only while its top sits in [0, 236.09]:
-
-           scroll   flow top   contour   the reader sees
-             685     +493.4      2 %     the trunk; the bottom 257 px are below the fold
-             942     +236.1     13 %     whole, for the first time
-            1178       -0.0     79 %     whole, for the last time
-            1341     -163.5    100 %     lands with its crown off the top of the screen
-
-         236 px of the build's 657 — 36 % — happen with the whole drawing on
-         screen, and NONE of them happen with it still. That is the brief:
-         "i should be able to see it growing when scrolling".
-
-         WHY IT CANNOT BE A STICKY STAGE, and this is the constraint that had
-         to be settled before anything was written. .lp-flow is stretched
-         between two anchors — the void's centre above and the lectern's rail
-         below (see the @supports block) — so it is NOT in the figure's
-         containing block and does not travel with it. Two measurements settle
-         what may be done to it:
-
-           1. anchor() does not follow a sticky ancestor. .lp-frame is inside
-              .cf-pin__stage; at the pin the frame's top holds at viewport
-              171.0 while .lp-flow's box keeps travelling and its height holds
-              at 663.91. So making the figure sticky leaves the root behind.
-           2. A transform is invisible to BOTH anchor() and view(). Measured
-              at 1440 x 900 with `translate: -50% 250px` forced onto .lp-flow:
-              the box paints 250.0 px lower and the contour's mean scale reads
-              0.2538 / 0.5413 / 0.8280 at scroll 1000 / 1100 / 1200 — the same
-              four decimal places as without it. Layout boxes are what both
-              features read, and the note on .lp-flow's centring records the
-              same fact from the other side: `translate` "is not in it".
-
-         SO THE HOLD IS A DISPLACEMENT, NOT A BOX. The section reserves
-         --lp-hold of scroll above the statement, and every part of the
-         statement carries a scrubbed translate that starts at exactly
-         -(--lp-hold) and ends at exactly 0 across a window exactly --lp-hold
-         px long. Three consequences, and they are why this shape was chosen:
-
-           before the window   translate is -(--lp-hold), which cancels the
-                               reservation exactly: the approach paints where
-                               it painted before this existed
-           inside it           the two rates are equal and opposite, so the
-                               statement stands still — 1.00 px of translate
-                               per 1.00 px of scroll, the same asymmetry
-                               check-seam-travel.py derives, used deliberately
-           after it            translate is 0. The flow's box, the figure's,
-                               the rail's and the seam between them are the
-                               layout they always were, and every number in
-                               check-flow-handover.py and
-                               check-void-departure.py is untouched — neither
-                               reads a transform, and there is no scroll
-                               position at which the released drawing is
-                               anywhere but where it used to be.
-
-         THE WINDOW IS EXACTLY --lp-hold PX LONG BY CONSTRUCTION, at every
-         viewport, and that is what a percentage cannot buy. `cover 50%` is
-         the centred position — the definition of the cover range's midpoint —
-         so `cover calc(50% - var(--lp-hold))` opens exactly --lp-hold px
-         earlier: the percentage resolves against the cover range and the
-         length does not resolve against anything. Had the two ends both been
-         percentages the window would have been 24 % of `100vh + the flow's
-         own height`, and the flow's height is a stretch between two anchors —
-         a number no stylesheet can write. Ending at cover 50 % is what makes
-         the held position the CENTRED one rather than a tuned offset.
-
-         WHERE THE ROOT'S FIRST INK FALLS AMONG THE THREE PHASES. The window
-         opens at cover 50 % - --lp-hold and the cloud's standstill runs to
-         45 % of it; the light's first ink is authored to sit between those
-         two, so the root begins after the drawing has stopped and before the
-         camera glides off the cloud. Re-measured at 77vh, notice dismissed,
-         on the page as it stands:
-
-           viewport      flow h   cover range   per vh   opens at   glide at
-           1024 x  720    470.9     1190.9      1.654    cover 3.45    29.05
-           1280 x  800    534.1     1334.1      1.668    cover 3.83    29.22
-           1366 x  768    546.5     1314.5      1.712    cover 5.02    29.76
-           1440 x  900    592.5     1492.5      1.658    cover 3.56    29.10
-           1920 x 1080    762.5     1842.5      1.706    cover 4.87    29.69
-           2560 x 1440    942.5     2382.5      1.655    cover 3.47    29.06
-
-         The light's head is cover 6, inside [5.02, 29.05] — the latest opening
-         and the earliest glide — at every viewport at once.
-
-         THIS TABLE HAD GONE STALE AND IT TOOK AN INVARIANT WITH IT. The flow's
-         height and the viewport height are the same number twice, because
-         --lp-measure is built from 100vh, so the cover range is a near-fixed
-         multiple of the viewport; three scripts carry that multiple as data
-         because no stylesheet can resolve a stretch between two anchors. #227
-         shrank the drawing and the multiple went from 1.704-1.800 to
-         1.654-1.712, and nothing failed — data about a rendered box goes stale
-         silently. In check-hold-ramp.py it went stale in the direction that
-         kept invariant 6 PASSING: the band it computed sat where the head
-         happened to be, so the single-phase law "the hold opens ON the head"
-         went on being asserted for an hour after #228 made the first 45 % of
-         the window the cloud's. Two errors cancelling, and correcting either
-         one alone surfaces the other. Both are corrected together, here and in
-         check-hold-ramp.py and check-build-arrival.py.
-
-         THE ONE THING IT COSTS, measured rather than reasoned. While the ramp
-         is running the drawing is up to --lp-hold above its own layout box, and
-         the lectern's rail — which IS that box's bottom edge — is not. So the
-         PAINTED seam is open by exactly the remaining ramp. For most of it
-         that is invisible, because the rail is still below the fold; the two
-         are on screen together only over the last stretch, and there the gap
-         is closing at 1.00 px per px into 0.00. Swept every 5 px, the window
-         where a nonzero gap and the rail are BOTH on screen:
-
-           viewport      window    gap opens at   lowest ink above the foot
-           1024 x  720    100 px      96.56 px      252.2 px   2.61 x the gap
-           1280 x  800    100 px      97.88 px      268.3 px   2.74 x
-           1366 x  768     75 px      79.78 px      242.1 px   3.03 x
-           1440 x  900    125 px     117.89 px      313.7 px   2.66 x
-           1920 x 1080    125 px     121.51 px      350.1 px   2.88 x
-           2560 x 1440    230 px     212.70 px      529.8 px   2.49 x
-
-         The gap opens at (viewport - flow h) / 2 — the held column above, to
-         the sweep's own 5 px step. It is the centring offset and nothing else,
-         which is why it cannot be tuned smaller by choosing a different 42:
-         the rail is the drawing's layout foot, so it crosses the viewport's
-         bottom edge exactly when the drawing's layout box does, and the ramp
-         still owes whatever it owes to reach centre. What makes it admissible
-         is the last column instead: the rail appears
-         while the contour front is around l = 0.95 of a run that reaches 3.08,
-         so the lowest ink in the drawing is two and a half to three times the
-         gap above the drawing's own foot. Nothing is hanging over the rail
-         because nothing has grown near it yet. Every terminal that does arrive
-         there arrives at cover 66, which is 400 px of scroll after the ramp
-         has finished and the gap has been 0.00 the whole way.
-
-         STAGE 2, THE PACING, AND THE ONE TERM THAT COULD GROW. The second
-         half of the brief is that the growth is too fast to follow. Both tails
-         of the build are nailed — the contour lands at cover 66 where the
-         frame's relay takes over, the light is out at cover 68 where the lime
-         clearance was swept, and check-flow-chain.py fails if either moves —
-         so the build's length is:
-
-             the build, in px of scroll  =  18 points of cover  +  --lp-hold
-
-         18 points is the released tail: the last of the contour and the whole
-         of the fade, which run after cover 50 % and cannot be held, because the
-         held position IS the natural position at the window's end and holding
-         past centre would hold the crown off the top of the screen. Everything
-         else the build has is the hold's own reservation. So SLOWING THE ROOT
-         AND LENGTHENING THE HOLD ARE ONE ACT, and every pixel the hold gains is
-         a pixel the root gains WITH THE DRAWING STANDING STILL.
-
-         The front was pulled back 20 points and the hold lengthened to match —
-         42vh to 77vh, every head 20 points earlier, --flow-c widened from 11.04
-         to 17.53 so the deepest terminal still lands on 66.00. Neither tail
-         moved, so the relay and the sweep are untouched; the clearance was
-         re-swept anyway and is on the .lp-flow__light note. At 1440 x 900:
-
-                                              before    after
-           the root's contour extends          490 px    790 px
-           the light pass that leads it        490 px    780 px
-           the whole build, ink to dark        610 px    910 px
-           of which the drawing is STILL       370 px    690 px
-           contour drawn when the hold lets go   40 %      82 %
-
-         THE RAMP SEPARATES PAINT FROM LAYOUT, AND EVERY WINDOW ON A HELD
-         ELEMENT IS TUNED AGAINST THE PAINT. This is the hazard the pacing run
-         found and it is general, not a detail of one rule. A held part's
-         view() reads its LAYOUT box, which the reservation pushes down by
-         --lp-hold; the reader sees the PAINTED box, which the ramp pulls back
-         up by the same amount. Lengthening the hold therefore silently
-         re-times every window written on --cf-iso against where the reader
-         sees it — by 23.4 points of the figure's own cover range for this
-         change alone.
-
-         WHAT IT COST, measured and not yet paid. #223 had just tuned the
-         sensor field so the cloud is whole on screen at full strength (its
-         window is `cover 3 + 8m` to `25 + 8m` on --cf-iso). Under 42vh the
-         field peaked at scroll 875, before the statement parks, with the cloud
-         at viewport 101..522 — whole. Under 77vh it peaks at 1175, which is
-         AFTER the park, and the parked figure sits at -106..342, so the top of
-         the cloud is behind the header at its brightest:
-
-           hold    field peaks at    cloud top/bottom    whole?
-           42vh       scroll  875        101 / 522        yes
-           56vh              1000        -24 / 397        no
-           63vh              1050        -74 / 347        no
-           70vh              1125        -84 / 337        no
-           77vh              1175        -84 / 337        no
-
-         There is no hold above about 50vh that keeps it, because the park
-         begins at the same painted scroll (~1060) whatever the hold's length —
-         the hold OPENS where the drawing reaches centre and only its END
-         moves — while the field's peak slides later with the reservation. A
-         scroll position where both the cloud and the claim are whole still
-         exists, around 900 to 950, but the field is at 0.64 of full there and
-         not at 1.00.
-
-         THE RESOLUTION IS THE PARKED POSITION, and it is the next stage. The
-         hold ends at cover 50 %, which centres the ROOT — and the figure is
-         taller than the root and hangs above it, so centring one clips the
-         other. Parked 106 px lower the figure sits at 0..448 and the flow at
-         224..888, both wholly on screen in a 900 px viewport. That means
-         ending the ramp before cover 50 %, which trades this page's cleanest
-         identity — the held position IS the centred position, by definition,
-         at every viewport — for a tuned offset, and re-derives the `held at`
-         column above. It is a real change to stage 1 and it is not made here
-         on the way past.
-
-         WHAT IT STILL DOES NOT BUY. The released tail is those 18 points and
-         nothing shortens it but moving cover 66 and 68 together with the relay
-         and a re-swept clearance. Past that, the hold can only grow until the
-         head reaches cover 0 — about 26 points, or 45vh more than it has — and
-         the head is what a reader meets first, so the room left is real but it
-         is not large. Moving the build onto the hold window's own timeline is
-         still what buys the rest, and it still re-derives both tails.
-         ------------------------------------------------------------------ */
-      main { --lp-hold: 77vh; --lp-pan: 150px; timeline-scope: --lp-flow; }
-      /* THE RESERVATION IS ADDED TO THE SECTION'S OWN RHYTHM, NOT WRITTEN OVER
-         IT, and this is the one place the arithmetic actually bit. `.section`
-         is `padding-block: var(--section-gap)`, so `padding-block-start:
-         var(--lp-hold)` REPLACES that top gap rather than adding to it: at
-         1440 x 900 the section reserved 378 px where it had already been
-         reserving 120, and the page below the hero moved down by 258 while
-         the ramp went on displacing the full 378. The seam past the hold was
-         still 0.00 — the ramp returns to zero either way — but through the
-         whole approach the statement painted 120 px HIGHER than its own
-         layout, closing the band between it and the hero by that much at
-         every viewport. Same token, one term added. */
-      .lp-hold { padding-block-start: calc(var(--section-gap) + var(--lp-hold)); }
-      .cf-statement__figure .cf-iso,
-      .cf-statement__text {
-        animation: lp-hold linear both;
-        animation-timeline: --lp-flow;
-        animation-range: cover calc(50% - var(--lp-hold)) cover 50%;
+      /* ---- ACT 1 + 2: the track and the stage ---- */
+      .sp-track {
+        height: 400vh;
+        view-timeline-name: --sp;
+        view-timeline-axis: block;
       }
-      /* The four boxes that are centred with `translate` take the same ramp in
-         the x component they already carry, because `translate` is one
-         property and a keyframe replaces all of it. .lp-flow__stem and
-         .lp-proc-head are named in the @supports block below, where they are
-         the only place they exist. */
-      .lp-flow,
-      .lp-flow-data {
-        animation: lp-hold-c linear both;
-        animation-timeline: --lp-flow;
-        animation-range: cover calc(50% - var(--lp-hold)) cover 50%;
+      .sp-stage {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow: hidden;
+        overflow: clip;
+        display: grid;
+        align-content: center;
+        padding-block-start: var(--nav-height, 5rem);
       }
+
+      /* Every animated part inside a sticky stage MUST read the track's
+         timeline: a sticky subject's own view() freezes at one value — the
+         same fact .cf-pin documents — so the component defaults on --cf-iso
+         are re-declared here onto --sp, full lists, because animation-name
+         is a replacement and not an addition. */
+      .sp-stage .cf-iso__scene { animation: none; }
+      .sp-stage .cf-statement .cf-iso__ghost {
+        animation-name: cf-iso-fade;
+        animation-timeline: --sp;
+        animation-range: contain 4% contain 16%;
+        animation-fill-mode: both;
+        animation-duration: auto;
+        animation-timing-function: var(--ease-out);
+      }
+      .sp-stage .cf-stmt-sensor {
+        animation-name: cf-iso-fade, cf-stmt-collapse;
+        animation-timeline: --sp, --sp;
+        animation-range: contain calc((8 + var(--m) * 10) * 1%)
+                         contain calc((20 + var(--m) * 10) * 1%),
+                         contain calc((34 + var(--m) * 6) * 1%)
+                         contain calc((40 + var(--m) * 6) * 1%);
+        animation-fill-mode: both, forwards;
+        animation-duration: auto;
+        animation-timing-function: var(--ease-out);
+      }
+
+      /* ---- the root: same range algebra the chain check holds ---- */
+      .sp-stage { --flow-c: 13; }
+      .lp-flow__trunk { display: block; }
+      .lp-flow__seg, .lp-flow__light, .lp-flow__node, .lp-flow__val {
+        transform-box: fill-box;
+        transform-origin: var(--o, 0 0);
+      }
+      .lp-flow__seg {
+        animation: lp-frame-draw linear both;
+        animation-timeline: --sp;
+        animation-range: contain calc((42 + var(--l) * var(--flow-c)) * 1%)
+                         contain calc((42 + (var(--l) + var(--u)) * var(--flow-c)) * 1%);
+      }
+      .lp-flow__light {
+        animation: lp-frame-draw linear, lp-flow-out linear;
+        animation-timeline: --sp, --sp;
+        animation-range: contain calc((36 + var(--l) * var(--flow-c)) * 1%)
+                         contain calc((36 + (var(--l) + var(--u)) * var(--flow-c)) * 1%),
+                         contain calc((38 + (var(--l) + var(--u)) * var(--flow-c)) * 1%)
+                         contain calc((44 + (var(--l) + var(--u)) * var(--flow-c)) * 1%);
+        animation-fill-mode: both, forwards;
+      }
+      .lp-flow__node {
+        animation: lp-frame-in linear both;
+        animation-timeline: --sp;
+        animation-range: contain calc((43 + var(--l) * var(--flow-c)) * 1%)
+                         contain calc((49 + var(--l) * var(--flow-c)) * 1%);
+      }
+      .lp-flow-data .lp-flow__val {
+        opacity: 0;
+        animation: lp-frame-in linear both;
+        animation-timeline: --sp;
+        animation-range: contain calc((44 + var(--l) * var(--flow-c)) * 1%)
+                         contain calc((50 + var(--l) * var(--flow-c)) * 1%);
+        animation-fill-mode: forwards;
+      }
+
+      /* ---- ACT 3: the cards' pinned stage, carried verbatim ---- */
       .lp-proc-stage { --pin-measure: var(--lp-measure);
         block-size: max(45rem, calc(100% - var(--cf-consent-height, 0px))); }
       /* AND THE SAME FINDING ON THE OTHER AXIS. The note above is about the
@@ -988,1282 +706,27 @@
         animation-range: entry calc(var(--a) * 1%)
                          entry calc((var(--a) + var(--u) * var(--relay-rate)) * 1%);
       }
-      /* THE FLOW: the data leaving the void and growing down into the frame, as
-         a root rather than as a bus. Anchored to the figure rather than placed
-         against it — top 50% is the void's own centre (its y is 210 of the
-         band's 420 units) — and its WIDTH is the frame's, which is the whole of
-         the fix below and was the one thing this note used to get wrong.
-
-         WHAT IT SAID, AND WHERE IT STOPPED BEING TRUE. "Because this element
-         and the statement band are the same width on the same 1200-unit basis,
-         a branch is plumb under the lattice column it left; and because the
-         plate is that width too, flow x 0, 600 and 1200 land on frame x 0, 500
-         and 1000 with nothing in the CSS asserting it." The first clause holds.
-         The second stopped holding the day --pin-measure was written, and it
-         survived a rewrite of the drawing because it is a fact about the BOX,
-         not about the paths: the plate is no longer the container's width
-         wherever the height cap binds. It is the same finding as the note on
-         .lp-proc-stage, one section up the page and one element further out —
-         the card narrowed, and a thing drawn to meet it did not follow.
-         Measured, flow x 0 against frame x 0 (x 1200 / x 1000 is its mirror,
-         x 600 is centred and was always right):
-
-           1024 x 900     0     the height cap does not bind
-           1280 x 800     0     the crossover
-           1280 x 768    11
-           1366 x 768    49
-           1280 x 720    59
-           1440 x 720   129     every laptop, and the worst of them
-
-         129 px is not a seam. The root has three PINNED taproots and no free
-         end; two of the three are meant to land in the frame's top corners. At
-         1440 x 720 the left one landed 129 px outside the corner and carried on
-         past the rail, so the frame's left vertical grew down from a point
-         nothing had arrived at while a terminal hung beside the box with
-         nothing under it. The relay's whole premise — each vertical continues
-         the branch that lands on it, in the order they land, which is what --a
-         is — was false at every viewport in that band. Zero at 900 of height,
-         zero at 1080, zero above 800 at 1280: a composition that was right at
-         the three sizes anyone checks and wrong at the ones people own.
-
-         SO THE FLOW TAKES THE STAGE'S MEASURE. One declaration for both, up
-         with the derivation, and the three arrivals are exact at every size the
-         gate admits. check-flow-terminals.py is unaffected: it holds the
-         markup's 42 paths to the generator's units, and units are what this
-         leaves alone.
-
-         WHAT THE MEASURE CANNOT ALSO BUY, stated so it is not rediscovered as
-         a bug. Four points want to be right: the trunk at x 330 under the void,
-         and the three taproots at x 0, 600, 1200. A box has two degrees of
-         freedom — where it starts and how wide it is — and the three arrivals
-         use both of them exactly (start at the frame's left, span the frame).
-         The trunk is then over-determined, and it lands 0.225 x (container -
-         measure) right of the void's centre: 26 px at 1280 x 720, 58 px at
-         1440 x 720, under half a pixel everywhere the cap does not bind.
-
-         And the trunk still leaves the void, which is what makes the trade
-         payable. It starts at y 84 of a box whose y 0 is the void's own centre,
-         and the ring is 84 — the markup's own arcs, `A84 84`, and the comment
-         over them: "the ring at 84 and the nucleus at 11". Both drawings are
-         1200 units over the same page width wherever the cap does not bind, so
-         a flow unit IS a statement unit and 84 == 84 puts the departure exactly
-         on the rim. Not near it, on it: measured at device scale 4, the rim is
-         89.60 px and the departure is 89.60 px out, at 1024 x 900, 1280 x 800,
-         1280 x 900, 1440 x 900, 1600 x 900, 1920 x 1080 and 2560 x 1440 alike.
-         check-void-departure.py holds that identity now; it used to be here in
-         prose, and the prose had the ring at "about 88 flow units", which is
-         where the 94 px rim two notes down came from — 88 x (1280/1200) = 93.87.
-         One wrong radius, copied into two conclusions.
-
-         WHERE THE CAP BINDS the departure leaves the rim, and this is the part
-         the trade does not cover. Distance from the departure to the rim:
-
-           1280 x  720    -3.52     inside
-           1366 x  768    -3.80     inside
-           1440 x  720    +2.35     OUTSIDE — 91.95 px out against an 89.60 rim
-
-         So "off-centre, not off the void" is true at two of the three and false
-         at the third, which the old sqrt(58^2 + 72^2) = 92 line got backwards by
-         comparing 92 against the 94 that never existed. 92 > 89.60. It is a hair
-         — 2.35 px — but it is the drawing's head not touching the thing it
-         leaves, and the fix is where the trunk departs from, which is the
-         drawing's form → the craft lane. The table above is the measurement.
-
-         Traded deliberately, and in this direction: a departure from another
-         point on the rim reads as the same drawing, and a taproot ending beside
-         the lectern does not. There is no third answer — the two constraints
-         are inconsistent, not merely untuned.
-
-         It carries its own view timeline: the frame's is --cf-pin, which is
-         scoped to that section's subtree and cannot be read from here. The two
-         are tuned to meet — the last terminal lands within a few pixels of
-         scroll of the first vertical's ignition — and both are scrubbed, so
-         backing up ungrows the frame and then the flow, in that order.
-
-         THE MEASURE MOVES THAT MEETING, because the flow's own timeline is its
-         own height and its height falls out of its width. Sampled every 10 px
-         of scroll, first vertical minus last terminal, before and after:
-
-           1024 x 900    -40 / -40      unchanged, the cap does not bind
-           1280 x 900    -40 / -40      unchanged
-           1920 x 1080   +30 / +30      unchanged
-           1280 x 720    -20 / +20
-           1440 x 720    -20 / +70
-
-         So the handover is 90 px of scroll later at 1440 x 720, 40 later at
-         1280 x 720, and identical at every viewport where the cap does not
-         bind. Against an approach of some 2,000 px and a step of about 1,150,
-         ±70 is still inside "a few pixels of scroll" in the only sense that
-         phrase has ever meant here.
-
-         Recorded because a geometry fix that quietly retimes a handover is the
-         next lane's bug.
-
-         GROWN BY SCALE, NOT BY DASH. See the .lp-frame path note: a dashed
-         draw under non-scaling-stroke stops at the render scale and stays
-         there. A straight stroke grown from one end is a scale about that end,
-         and --o is that end: a run heading down-left grows from its box's top
-         right, everything else from its top left. */
-      /* THE TIMELINE HAS TO BE LIFTED TO THE PARENT, and this is measured, not
-         read off a spec. --lp-flow is named on the <svg>, and the values are
-         its FOLLOWING SIBLING because they cannot be its children — they are
-         HTML and it is an SVG. Chromium resolves a view-timeline name for the
-         element and its DESCENDANTS only: with the name in the sibling's
-         `animation-timeline`, getAnimations() reported the numeral's
-         lp-frame-in with timeline null, playState "finished", and the six
-         values sat at opacity 1 from the top of the document — visible a
-         screen and a half before the data that carries them. The nodes, being
-         descendants, resolved a ViewTimeline in the same frame, which is what
-         made the difference legible. timeline-scope names the timeline on the
-         common parent and both branches see it; nothing about what --lp-flow
-         MEASURES changes, because the <svg> still declares it. */
-      /* --flow-c IS HERE FOR THE SAME REASON THE TIMELINE IS. It is the root's
-         one drawing speed and all four families under it are written off it —
-         and the numerals are that sibling, not a descendant of the <svg>, so a
-         value declared on .lp-flow reaches the strokes and the junctions and
-         stops one element short of the numerals riding them. Declared on the
-         common parent, the whole drawing reads one number. */
-      /* THE SCOPE IS ON `main` NOW, one element out and for one more reader.
-         The paragraph above is unchanged in substance — the name still has to
-         be lifted off the <svg> that declares it, or the numerals, which are
-         its SIBLING and not its descendants, resolve a null timeline. What
-         changed is who else needs it: the statement's copy and the process
-         header hold on the same window as the drawing, and neither is inside
-         .cf-statement__figure. `main` is the nearest element that is an
-         ancestor of all four. Nothing about what --lp-flow MEASURES changes;
-         a wider scope is a wider audience for the same timeline. */
-      .cf-statement__figure {
-        position: relative;
-        --flow-c: 11.033;
-      }
-      /* ONE BOX, DECLARED ONCE, FOR THE DRAWING AND FOR WHAT IT CARRIES. The
-         values are real HTML over the figure rather than <text> inside it —
-         foundations/illustration.html#a11y, "never put text in an
-         illustration: it will not scale with the reader's type size" — so
-         they need the drawing's box to the unit, or a numeral's percentage
-         coordinates would not be the same point the stroke is at. Sharing the
-         rule is the only way that stays true through a later edit; two copies
-         of six declarations is the drift this system keeps finding.
-
-         THE FRAME'S BOX, CENTRED THE WAY THE FRAME IS CENTRED. min() rather
-         than max-inline-size because the used width has to be readable by
-         the translate below, and translate rather than auto margins for the
-         reason .cf-pin__inner gives one property over: `margin-inline: auto`
-         is (0,1,0) and loses to any reset that sets `margin` on the element
-         it lands on. Nothing here animates transform, so the standalone
-         translate is nobody else's property. */
-      .lp-flow,
-      .lp-flow-data {
-        display: block;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: min(100%, var(--lp-measure));
-        translate: -50% 0;
-        aspect-ratio: 1200 / 620;
-        pointer-events: none;
-        /* every terminal ends on the FOOT OF THIS BOX, so the last unit of each
-           is a half-stroke over the edge of it — the same rule .lp-frame pays
-           above, and for the same reason. Two of them end on the box's left and
-           right edges as well, for the frame's two top corners. And a numeral
-           sits OUTSIDE its own point by design, so this carries it too.
-
-           THE FOOT OF THIS BOX IS NOT THE FRAME'S RAIL, and this line used to
-           say it was. It is at 1440 x 900 and nowhere else. Measured BEFORE THE
-           PIN ENGAGES — which is half the seam, see the travel note under the
-           table — frame top minus flow bottom:
-
-             1440 x  900     +1.58     the size the drawing was tuned at
-             1280 x  768     +6.92
-             1280 x  800     +8.17
-             1600 x  900    +28.23
-             1366 x  768    +34.66
-             1280 x  720    +56.52
-             1280 x  900    +58.17
-             1440 x  720   +107.84
-             1024 x  900   +140.14
-             1920 x 1080   +171.58     an ordinary desktop
-
-           At 1920 x 1080 all sixteen terminals stop in 172 px of empty wash
-           with no rail under any of them. The x arrivals are exact at every one
-           of these — that is what --lp-measure bought, and check-flow-handover.py
-           now holds it, on a basis check-shared-measure.py holds the four CSS
-           declarations under — so this is the OTHER axis of the same seam, and
-           it was never bought at all. It slides because .lp-proc-stage centres
-           the trio in the stage (see its note): the card's top moves half a
-           pixel for every pixel of viewport height, and this box, being in
-           static flow a section above, does not follow.
-
-           AND THAT TABLE IS ONE OF TWO NUMBERS, because every row of it is flat
-           only while the stage is still travelling. SEAM TRAVEL: .lp-flow is
-           outside .cf-pin__stage (position: sticky), .lp-frame is inside it, so
-           from the scroll position the stage sticks at, the frame holds against
-           the viewport while this box goes on moving with the page and the gap
-           opens at 1.00 px per px of scroll. Measured at 1440 x 900, the one
-           size the table above records the seam as MADE at, by distance from
-           the scroll position the stage sticks at:
-
-             pin -400 .. -20      1.58     flat, the whole approach
-             pin   +0             1.70     the sticky snap, +0.12
-             pin  +10            11.70
-             pin  +30            31.70
-             pin  +60            61.70
-             pin +100           101.70
-             pin +160           161.70     flow bottom still at viewport 9.3
-             pin +200           201.70     flow bottom finally off screen
-
-           The stage sticks at scrollY 1670 with the notice dismissed and 1598
-           with it up — the hero's reservation moves the whole section 72 px —
-           and every gap in the column is the same in both states, which is the
-           point: the rate is a property of the asymmetry, not of the layout.
-
-           So for 160 px of scroll after the handover, both ends are on screen
-           at once and sixteen terminals hang in wash above the rail they are
-           drawn to arrive on. It is the picture #176 was opened for, reached
-           from the other side, and it is what a table taken at one scroll
-           position cannot show. The rate is not tuned and cannot be: a held
-           layer and a travelling one separate by exactly the scroll delta, at
-           every viewport, for any join whose two sides sit in different scroll
-           contexts. scripts/check-seam-travel.py derives that asymmetry from
-           this markup and the stylesheets and holds this paragraph to it, so
-           the second number cannot go missing again the way the first one's
-           "before the pin engages" did.
-
-           THIS RULE IS THE FALLBACK NOW. Everything above is what the box does
-           where anchor positioning is not available — the aspect-ratio box, the
-           nine-row table, the sixteen terminals in wash. Inside the @supports
-           block below the box reaches the rail at every viewport, and the note
-           there carries the new numbers. The two tables are kept because the
-           fallback is a real rendering (view timelines shipped two years before
-           anchor positioning did), and because the second one is still true in
-           BOTH tiers: it is the asymmetry, not the box.
-
-           WHY THE TRUNK IS THE ONLY PLACE THE STRETCH CAN GO. The height is
-           locked to the width by aspect-ratio — the ratio is what keeps the
-           taproots on the corners, since the default preserveAspectRatio would
-           otherwise letterbox the drawing inside its own box — and the top is
-           locked to the void the trunk leaves. One degree of freedom, two
-           arrivals: the same over-determination the note above works through for
-           x, where the arrival was kept and the departure was let drift on the
-           void's rim. Anchoring this box's BOTTOM to the rail applies that same
-           trade to y and does not survive it ON ITS OWN: the trunk would then
-           start gap + 89.60 px below the void's centre against an 89.60 px rim —
-           so it leaves the rim at EVERY viewport, by exactly the gap, which is
-           1.58 px at 1440 x 900 and 171.58 px at 1920 x 1080. (This note used to
-           say "a 94 px rim — inside it at 1440 x 900". The rim is 89.60; 94 came
-           from the same wrong 88 the note above corrects, and it was the only
-           thing making the 1440 case look survivable.) Fourteen free ends at the
-           rail traded for one free end in open wash is a different bug, not a
-           fix — which is why the bottom anchor ships WITH .lp-flow__stem and not
-           without it. Sixteen arrivals and one departure, all of them made. */
-        overflow: visible;
-      }
-      /* ONE FRONT TRAVELS THE ROOT, AND --flow-c IS ITS SPEED: points of
-         `cover` per unit of --l, which is the drawing's own measure of how far
-         from the void a thing is. Every window under here — the light, the
-         contour, the junctions, the numerals — is `head + l · --flow-c`, so
-         all four say WHERE THE FRONT IS and differ only in how far behind it
-         they sit. It is declared on .cf-statement__figure and not here, with
-         the timeline and for the same reason: the numerals are the <svg>'s
-         sibling. → .lp-flow__seg for how the value is derived from the seam. */
-      .lp-flow {
-        view-timeline-name: --lp-flow;
-        view-timeline-axis: block;
-      }
-      .lp-flow :is(path, circle),
-      .lp-flow__stem :is(path, circle) { vector-effect: non-scaling-stroke; }
-      /* THE TRUNK, TWICE, ONE PER CAPABILITY TIER — and it is one stroke, not
-         two drawings. Where the box cannot reach the rail the trunk is what it
-         has always been, .lp-flow__trunk inside the drawing's own units; where
-         it can, the box is taller than 1200 x 620 and the trunk is the piece
-         that absorbs the difference, so it leaves the drawing and becomes
-         .lp-flow__stem, a stroke placed in page pixels between the rim and the
-         crown. The one that is not in use is display: none, so exactly one is
-         ever drawn and neither is a second line beside the other. Both are kept
-         in the markup because check-flow-terminals.py and check-flow-crossings.py
-         read the paste, and a trunk that is only in a stylesheet is a trunk the
-         no-free-ends walk cannot see.
-
-         WHICH ONE IS DRAWN is two declarations and neither is here: the stem is
-         hidden with the rest of the drawing at the top of this stylesheet, and
-         turned on — with the drawing's own trunk turned off — inside the
-         @supports block that gives it something to stand on. So the tier with
-         view timelines and without anchor positioning gets the trunk it always
-         had, by falling through both. Held by scripts/check-flow-stem.py. */
-
-      /* ------------------------------------------------------------------
-         THE SECTION TITLE, ON THE DRAWING'S GROUND LINE.
-
-         WHAT WAS WRONG. "Was wir machen" took .cf-section-header--flush, and
-         that modifier's contract is exact: "the content below is a ruled
-         container and ITS top border is the rule. The header gives up its own
-         border rather than drawing a second hairline 1 px away." The container
-         below here is the LECTERN, and the lectern is sticky. Measured, header
-         bottom to frame top, before the pin engages:
-
-           1440 x  900   170.9      1280 x 720   144.9
-           1920 x 1080   260.9      1440 x 720   144.9
-           1280 x  800   156.1      1024 x 900   253.0
-           1366 x  768   145.0      1600 x 900   170.9
-
-         145 to 261 px, and moving. Nothing was ever 1 px away, so the rule the
-         header deferred to was never drawn: of the page's five section headers
-         this was the only one with no rule at all (Partner and Das Team carry
-         theirs; FAQ and Blog defer correctly, to an accordion and a grid that
-         really are immediately below).
-
-         AND UNRULED, IT WAS DEBRIS ON THE DRAWING. Without its hairline the
-         header is two mono runs 1200 px apart, and both of them stood inside
-         the root: at 1440 x 900 the label sat at flow y 435-462, where its
-         first glyph stands on the left taproot's own vertical (x 0) and a
-         generation-2 twig crosses it at x 60-73, and the count was crossed by
-         the right taproot's last run at x 1174-1200. The title was drawn
-         THROUGH, at every viewport in the table above.
-
-         WHERE IT GOES. Swept every 26-unit band of the box against all 37
-         segments, testing the two ends the label and the count occupy: the
-         crown, y 0 to 84, is the only band no stroke crosses. Below it the root
-         has reached both walls and there is no clear line anywhere — which is
-         the drawing's own finding, not the header's: the root was grown to fill
-         its box edge to edge and nothing in it was ever reserved for the title
-         it is supposed to carry.
-
-         So the rule goes on y 84 — the void's rim, the point the trunk leaves
-         from — and it is the drawing's horizon: everything below it, the title
-         and the whole root, is this section. The trunk drops out of the void
-         through it.
-
-         AND THE ROW HANGS UNDER ITS RULE, which is the one place this departs
-         from components/section-header.html and it is forced, not chosen.
-         Above the rule is the statement's own air: at 1440 x 900 the rim sits
-         15 px under the last line of "…in Geschäftsmodelle verwandelt", so a
-         26-unit row of type above the rule lands in that paragraph. Under the
-         rule the band y 84-110 is empty at every viewport — the crown split is
-         at 150 and the source value rides x 342-400, clear of both ends. The
-         system does ship this device the other way up: .cf-pagination is the
-         same mono row standing under a hairline, for the same reason (the rule
-         belongs to what is above it). What the system does NOT have is a
-         section-header modifier for it, so this is page-local, and a
-         --rule-over modifier belongs in the component → the component lane.
-
-         BOUND TO THE DRAWING, NOT TO THE COLUMN. The rule spans the drawing's
-         measure exactly — which is also the lectern's measure, since both read
-         --lp-measure — so the three objects finally share one width. In flow it
-         spanned the container instead, which is wider than the drawing at every
-         viewport where --lp-measure binds.
-
-         TWO THINGS ANCHOR POSITIONING WILL NOT DO HERE, both measured rather
-         than read off a spec. anchor() resolves the anchor's LAYOUT box, and
-         .lp-flow is centred with `translate`, which is not in it: left:
-         anchor(… left) put the rule's left edge at the figure's MIDPOINT, 640
-         px right of the drawing. So the horizontal is centred the way .lp-flow
-         centres itself and only the SIZE is read off the anchor. And the
-         containing block has to stay the initial one — an anchor is only
-         acceptable to a positioned element whose containing block is either the
-         ICB or an ancestor of the anchor. Giving the slot `position: relative`
-         to get a sane 100% made .lp-flow unacceptable, every anchor() fell back
-         at once, and the header dropped to its static position 250 px down,
-         drawing a full-bleed rule through the middle of the root. Hence
-         anchor-size() for the width: a percentage here would resolve against
-         the ICB.
-
-         536/620 is (620 - 84)/620: the rim's height above the box's foot, in
-         the drawing's own units, so it tracks the box at every size.
-
-         @supports because anchor positioning is narrower than the view
-         timelines this whole gate already needs. Without it the header stays
-         where it is today — unruled and in the drawing — which is no worse
-         than it was, and the drawing is hidden entirely outside the gate. */
-      /* THE HEADER'S BASE `position`, AND IT HAS TO BE ON THIS SIDE OF THE
-         @supports. .lp-proc-head::after — the hairline that draws itself, far
-         below in this file — is absolutely positioned against this box, so the
-         box needs to be a containing block in BOTH tiers. In the anchored tier
-         the block below makes it `absolute`, which is a containing block and is
-         also the only `position` an anchor is acceptable to. In the tier with
-         view timelines and without anchor positioning, this is the one that
-         supplies it. Written HERE rather than beside the ::after because the
-         two rules have equal specificity and the later one wins: from below the
-         @supports, `relative` overrides `absolute` and every anchor() on this
-         header falls back to the static position, silently. It shipped that way
-         and is written up at the ::after. Held by
-         scripts/check-anchor-position-cascade.py. */
-      .lp-proc-head { position: relative; }
-
-      @supports (anchor-name: --lp-flow-box) and (top: anchor(--lp-flow-box bottom)) {
-        .lp-flow { anchor-name: --lp-flow-box; }
-        .cf-statement__text { anchor-name: --lp-statement-text; }
-
-        /* ----------------------------------------------------------------
-           THE BOX REACHES THE RAIL, AND THE TRUNK IS WHAT GIVES.
-
-           WHAT WAS WRONG. The nine-row table in the .lp-flow note above is the
-           finding: the foot of the drawing's box is the frame's rail at
-           1440 x 900 and at no other viewport. 58.17 px of empty wash at
-           1280 x 900, 50.14 at the gate floor, 171.58 at 1920 x 1080 — sixteen
-           terminals drawn to arrive on a line that is not under them. The note
-           worked out why it could not be fixed from inside that rule and handed
-           the answer here: "the trunk has to be able to stretch, which is how
-           the route terminates, which is the drawing's form".
-
-           SO THE BOX IS BOUND AT BOTH ENDS AND THE DRAWING SITS ON ITS FOOT.
-           top is the void's centre — the same point `top: 50%` of the figure
-           named, said in the anchor's terms because the containing block has to
-           become the ICB for the rail anchor to be acceptable at all (an anchor
-           is only acceptable to a positioned element whose containing block is
-           the ICB or an ancestor of the anchor, and .cf-statement__figure is not
-           an ancestor of .lp-frame; the header's own note above records the same
-           constraint from the other side). bottom is the rail. The 1200 x 620
-           viewBox then renders at the width, on the box's FOOT, because
-           preserveAspectRatio is xMidYMax — so every one of the sixteen rail
-           terminals lands on the rail, exactly, and the three pinned taproots
-           still land in the frame's corners because x was never the loose axis.
-
-           `align-self: stretch` is load-bearing and is the one thing here that
-           is not obvious. An absolutely positioned REPLACED element with both
-           insets set and `height: auto` does not stretch — it takes its
-           intrinsic height and drops the bottom inset, which is the viewBox's
-           620 units all over again. Measured: without it the box stayed at
-           662.91 px at 1440 x 900 and the gap was the old 1.58. Box alignment is
-           what overrides intrinsic sizing for an over-constrained abspos box,
-           and `stretch` is what asks for it.
-
-           MEASURED, frame top minus flow bottom, before the pin engages —
-           the same column as the fallback table, at the same ten viewports:
-
-             1440 x  900     +1.58  ->  0.00      1280 x 720    +56.52  ->  0.00
-             1280 x  768     +6.92  ->  0.00      1280 x 900    +58.17  ->  0.00
-             1280 x  800     +8.17  ->  0.00      1440 x 720   +107.84  ->  0.00
-             1600 x  900    +28.23  ->  0.00      1024 x 900   +140.14  ->  0.00
-             1366 x  768    +34.66  ->  0.00      1920 x 1080  +171.58  ->  0.00
-                                                  2560 x 1440  +351.58  ->  0.00
-
-           THE SECOND TABLE IS UNCHANGED, AND THAT IS DELIBERATE. anchor() is
-           resolved at layout, not per scroll frame — measured at 1440 x 900, the
-           box's height held at 662.91 px through the pin — so the seam still
-           opens at 1.00 px per px from the scroll position .cf-pin__stage sticks
-           at, for the reason check-seam-travel.py derives rather than trusts:
-           .lp-flow is outside the sticky stage and .lp-frame is inside it. What
-           changes is where that ramp starts. It ran 1.58 -> 161.70 over the 160
-           px of scroll with both ends on screen; it now runs 0.00 -> 160.13, so
-           the seam is MADE, and read as made, for the whole approach and the
-           pin itself. That is the half of it Daniel's brief asks for: "any
-           connection has to be made and read BEFORE the pin".
-
-           WHAT IT DOES NOT BUY, so the next lane does not go looking. The
-           departure still slides on the three viewports where --lp-measure caps
-           the drawing and the statement figure does not narrow with it — 0.225 x
-           (figure - measure) sideways off plumb, -3.52 / -3.80 / +2.35 px off
-           the rim, the table in check-void-departure.py. Fixing that means
-           moving x, and x is where fourteen arrivals sit against one departure.
-           ---------------------------------------------------------------- */
-        .cf-statement__figure { position: static; anchor-name: --lp-void-box; }
-        .lp-frame { anchor-name: --lp-rail-box; }
-        .lp-flow,
-        .lp-flow-data {
-          top: calc(anchor(--lp-void-box top)
-                    + anchor-size(--lp-void-box height) / 2);
-          width: min(anchor-size(--lp-void-box width), var(--lp-measure));
-        }
-        .lp-flow {
-          bottom: anchor(--lp-rail-box top);
-          block-size: auto;
-          aspect-ratio: auto;
-          align-self: stretch;
-        }
-        /* THE VALUES DO NOT STRETCH WITH THE DRAWING, and this is the trap in
-           sharing one rule. A numeral is placed at `top: var(--y) * 100% / 620`
-           — a percentage of its box, against the drawing's 620 units — so the
-           moment the box is taller than 620 units every value slides down by
-           its own share of the stretch. At 1920 x 1080 that is 160 units of
-           drift on a drawing whose whole claim is that a value labels the
-           stroke it stands on. So this box keeps the ratio and takes the rail
-           for its foot instead: same width, same left, aspect-ratio 1200/620,
-           top auto. It lands exactly on the drawing's own 620 units, which is
-           what the shared rule was for. */
-        .lp-flow-data {
-          top: auto;
-          bottom: anchor(--lp-rail-box top);
-        }
-        /* THE TRUNK, AS A STRETCHING STROKE. Everything the drawing gained in
-           height is between the void's rim and the crown, and the trunk is the
-           only stroke in the root that crosses it. Out of the viewBox, into page
-           pixels, and placed off the flow box's own metrics so it cannot come
-           adrift from the drawing it belongs to:
-
-             top     the departure, 84 of the drawing's units below the box top,
-                     which is the void's centre — the identity
-                     check-void-departure.py holds, unmoved
-             bottom  the crown at y 150, i.e. 470 units above the box's foot
-             left    x 330, and centred the way .lp-flow centres itself rather
-                     than read off anchor(left): anchor() resolves the LAYOUT
-                     box and .lp-flow is placed with `translate`, which is not
-                     in it — the header's note above records what that cost when
-                     it was read the other way. 600 - 330 = 270 units left of
-                     centre.
-
-           viewBox 0 0 12 100 with preserveAspectRatio="none": under a non-
-           uniform scale a vertical stays vertical, so the one angle in the
-           system that survives being stretched is the only one asked to. The
-           weight does not stretch with it — non-scaling-stroke, above, the same
-           rule every other stroke in the flow is drawn under.
-
-           4 px of box for a 2 px light and a 1 px contour: the light is the
-           wider of the two and a stroke is centred on its path, so 2 px of box
-           on each side of x 6 is the half-stroke each of them needs. */
-        .lp-flow__trunk { display: none; }
-        .lp-flow__stem {
-          display: block;
-          position: absolute;
-          inline-size: 4px;
-          top: calc(anchor(--lp-flow-box top)
-                    + anchor-size(--lp-flow-box width) * 84 / 1200);
-          bottom: calc(anchor(--lp-flow-box bottom)
-                       + anchor-size(--lp-flow-box width) * 470 / 1200);
-          left: calc(50% - anchor-size(--lp-flow-box width) * 270 / 1200);
-          translate: -50% 0;
-          align-self: stretch;
-          overflow: visible;
-          pointer-events: none;
-          /* Held with the drawing it is the trunk of. Its three insets are
-             read off --lp-flow-box, which is a LAYOUT box and does not move
-             under the ramp — so the stroke would have stayed in the rim while
-             the root it feeds stood still 375 px away. → the hold's own note. */
-          animation: lp-hold-c linear both;
-          animation-timeline: --lp-flow;
-          animation-range: cover calc(50% - var(--lp-hold)) cover 50%;
-        }
-        .lp-proc-head {
-          position: absolute;
-          /* THE RIM, OR CLEAR OF THE STATEMENT, WHICHEVER IS LOWER. The rim is
-             where the rule belongs — it is the drawing's own horizon — and at
-             the reference frame it is already clear of the copy by 15.71 px.
-             The statement's two columns do not scale together, though: the
-             figure shrinks with its column while the copy WRAPS, so on the
-             short and narrow half of the range the rim rises into the
-             paragraph. At 1024 x 900 the rule was drawn straight through both
-             of its lines with 4 SCHRITTE sitting on the second.
-
-             Measured, where the rule lands in the drawing's own units:
-
-               1440 x  900    84.3     1280 x 800    94.7
-               1600 x  900    84.3     1366 x 768    96.3
-               1920 x 1080    84.3     1280 x 720   105.3
-               2560 x 1440    84.3     1440 x 720   105.3
-                                       1024 x 900   140.3
-                                       1024 x 720   140.3
-
-             84.3 is the rim. Below it the floor is carrying the rule, by 9 px
-             at 1280 x 800 and by 43 px at 1024 x 900 — and at the four sizes
-             that read 84.3 the floor is under it by 0.29 px, because the figure
-             and the copy share a grid row and their proportions happen to
-             agree there. So the floor is doing the work almost everywhere; the
-             rim term is what stops the rule floating off the top of the drawing
-             if the copy is ever shortened.
-
-             The row still clears the root at all of them: the crown split is at
-             150 and the only stroke above it is the trunk, at x 330, which the
-             rule is meant to cross. At 140.3 the row's own type reaches 178,
-             where the two crown runs have only reached x 274 and x 386 — the
-             label ends at x 90 and the count starts at x 1110. */
-          /* THE RIM TERM IS OFF THE WIDTH NOW, NOT OFF THE HEIGHT, and it is
-             the same point said in terms that survive the stretch. It read
-             `bottom - height * 536/620`: correct while the box WAS the drawing,
-             because 536/620 is (620 - 84)/620 and the box's height was 620 of
-             the drawing's units. The box is now taller than the drawing by
-             whatever the seam used to be, so that fraction resolves below the
-             rim by 536/620 of the stretch — 148 px at 1920 x 1080, a rule drawn
-             through the middle of the root. The rim is 84 of the drawing's units
-             under the box's TOP, and the drawing's unit is the box's width over
-             1200 in either tier, so this is the one expression that is right in
-             both. Same 84 as .lp-flow__stem's departure and as the ring's
-             radius; check-void-departure.py holds all three to each other. */
-          top: max(calc(anchor(--lp-flow-box top)
-                        + anchor-size(--lp-flow-box width) * 84 / 1200),
-                   calc(anchor(--lp-statement-text bottom) + var(--space-4)));
-          left: 50%;
-          width: anchor-size(--lp-flow-box width);
-          translate: -50% 0;
-          margin: 0;
-          padding-block: var(--space-3) 0;
-          border-block-start: var(--stroke-1) solid var(--border-strong);
-          /* Held with the drawing, for the reason this row exists at all: it
-             stands ON the drawing's horizon. Both of its `top` terms are
-             anchors — the rim off --lp-flow-box, the floor off
-             --lp-statement-text — and both are layout boxes, so without this
-             the rule would have been drawn through the middle of a root that
-             was standing still 375 px above it. It is named HERE and not with
-             the drawing because outside this block the header is an ordinary
-             section header in flow, belonging to the section below, and
-             holding it there would take it away from its own copy. */
-          animation: lp-hold-c linear both;
-          animation-timeline: --lp-flow;
-          animation-range: cover calc(50% - var(--lp-hold)) cover 50%;
-        }
-        /* What the header no longer occupies. → the markup note. The label's
-           line box is the term that is easy to get wrong: .cf-section-header
-           __label sets no line-height, so it inherits the page's
-           --leading-relaxed and NOT the --leading-normal its own type ramp
-           would suggest — 15.95 px at 11 px, measured, not assumed.
-
-           NO STROKE TERM. What is being held open is the box the header USED
-           to occupy, and that box was --flush: 15.95 + 12 and no rule. Adding
-           the hairline the header now draws puts the seam 1.00 px further open
-           at all eight viewports in the .lp-flow table — uniform, harmless, and
-           still a number the next lane would have to re-measure for nothing. */
-        .lp-proc-head-slot {
-          min-block-size: calc(var(--text-xs) * var(--leading-relaxed)
-                               + var(--space-3));
-        }
-      }
-
-      /* WHAT THE ROOT IS CARRYING, and why it is text and not a drawing.
-         Six values ride the routes: the source on the trunk, one on each
-         taproot where it leaves the crown, and the two the right taproot
-         divides into. They CONSERVE — 12 480 leaves the void, 3 840 + 3 200 +
-         5 440 leave the crown, and 5 440 divides into 1 360 + 4 080 — which is
-         the difference between a drawing of data moving and a drawing with
-         decoration on it. Generated with the geometry by
-         scripts/expertise-objects/gen-flow-root.py, which asserts both the
-         balance and that every value sits ON a segment; held on the shipped
-         markup by scripts/check-flow-values.py.
-
-         --text-secondary, NOT --text-muted, and this is the one place the
-         brief and the system disagreed. foundations/illustration.html#a11y:
-         "Nothing in an illustration is read, so nothing in one owes 4.5:1. The
-         moment a drawing does carry a label, the label owes the same contrast
-         as any other text on the page wash — which on CF-Grau means
-         --text-secondary, never --text-muted." These are read. #919191 on the
-         wash is 2.0:1, and check-contrast.py fails the build on it.
-
-         .t-label CARRIES THE TYPE, unrestated: mono, --text-xs, medium,
-         --tracking-label. Uppercase is a no-op on digits, which is why these
-         can take the brand's label style whole instead of copying four of its
-         five declarations and getting the fifth wrong — the exact failure
-         check-label-ramp.py exists for.
-
-         The offsets are PIXELS, not units. A clearance from the stroke stated
-         in the drawing's units would close up as the box shrinks; these hold
-         12 px off the line at every viewport the gate admits, and --tx also
-         carries the anchoring (-100% right-aligns to the point).
-
-         AND UNTIL NOW THAT SENTENCE WAS NOT TRUE OF ONE OF THEM. --tx/--ty
-         were eight hand-typed AXIS-ALIGNED pairs — 12 px across, 8 px down,
-         -50% — so the clearance each actually bought was the projection of its
-         pair onto its own stroke's normal, and the eight came out between 7.55
-         and 14.14 px. Measured on the render at 1440 x 900, nearest corner of
-         the label box to the stroke it names:
-
-           12 480   11.99     3 840   12.52     3 200   14.13     5 440   12.52
-            1 360    7.56      4 080   12.53     2 400   12.54     1 680    7.55
-
-         An 87 % spread under one published number, and invisible: a numeral
-         7.5 px off a line and a numeral 14 px off a line both read as a
-         numeral near a line. Eight labels placed by hand is what that looks
-         like from the inside.
-
-         THE LAW, one sentence, and it decides all eight with nothing typed:
-
-           A numeral sits exactly 12 px from the stroke it names, measured
-           perpendicular from the numeral's NEAREST CORNER, on that stroke's
-           LEFT — and on its right only where the left would bring another
-           stroke inside the same 12 px.
-
-         Perpendicular, because a horizontal box on a sloped line gets no
-         clearance from a vertical offset. Nearest corner, because the anchor
-         is chosen so the box grows into the quadrant the offset points into,
-         which makes every other corner further from the line than that one —
-         so "12 px" is a distance and not a direction of travel. Left is the
-         walker's left going down the stroke, (dy, -dx). On the drawing's four
-         labelled slopes that is four offsets and no fifth, each of magnitude
-         exactly 12:
-
-           vertical   (12, 0)              1:1   (8.485, -8.485)  = 12/sqrt2
-           1:2        (5.367, -10.733)     2:1   (10.733, -5.367) = 12/sqrt5
-
-         THE RIGHT IS TAKEN THREE TIMES and never by preference. 3 200, 1 360
-         and 1 680 are each the steeper of two strokes leaving one junction, so
-         their left is the inside of the fork and the fork closes on them.
-         Measured at the gate floor — 1024, where the box is smallest and this
-         11 px label is therefore largest against the strokes — left-side box
-         to the nearest stroke it does NOT name: 1.20, 0.00 and 0.00 px, two of
-         them literal crossings. On the right they get 21.57, 40.17 and 10.94.
-         The other five clear the left by 24.78 to 45.64 and stay there.
-
-         1 680's 10.94 px is the tightest mark on this drawing and it is under
-         the 12 the law names — the law BARS a side, it does not promise the
-         other one. That is a geometry finding (the 63.43deg dive out of
-         (840, 405) runs close to its own sibling), not a placement one, and it
-         is left standing rather than nudged off the law. Derived in
-         gen-flow-root.py, held on the shipped markup by
-         scripts/check-flow-label-law.py.
-
-         They light on the NODE'S window, 13 + 17.53l -> 19 + 17.53l, so a
-         value arrives exactly as the data reaches its point and no new
-         envelope enters the flow's timing — which the motion lane owns. And
-         "exactly" is now literal rather than approximate: --l on one of these
-         is the run from the void to the numeral's own position, the front
-         passes that run at cover 12 + 17.53l, and the numeral comes up over
-         the six points after it. See .lp-flow__seg for the front. */
-      .lp-flow__val {
-        position: absolute;
-        left: calc(var(--x) * 100% / 1200);
-        top: calc(var(--y) * 100% / 620);
-        translate: var(--tx) var(--ty);
-        color: var(--text-secondary);
-        white-space: nowrap;
-        animation: lp-frame-in linear both;
-        animation-timeline: --lp-flow;
-        animation-range: cover calc((33 + var(--l) * var(--flow-c)) * 1%)
-                         cover calc((39 + var(--l) * var(--flow-c)) * 1%);
-      }
-      /* THE ROOT GREW OUT OF JUNCTIONS THAT WERE NOT THERE YET, and for as
-         long as this drawing has existed. Every window used to be `a + c·l`
-         over a FLAT WIDTH — the contour 34 + 5l to 51 + 5l, seventeen points
-         for every stroke from the 240-unit taproot to the 25-unit twig — so
-         the stagger between a stroke and its child was c × the parent's own
-         extent, 0.75 to 3.95 points, against seventeen points of drawing. A
-         branch therefore ignited while its parent was between 4.4 % and 23.2 %
-         drawn (mean 12.1 %, and linear, which is what this family scrubs on:
-         no easing softens it). Measured on the render at 1440 x 900: at
-         y 754 the trunk was a 4 px stub under the void and the fork it feeds
-         was already carrying ink 130 px below it, two arms hanging in the
-         wash with nothing joining them to anything. At y 860 the trunk's tip
-         still stood 55 px clear of a chevron that was by then fully black,
-         with two further generations lit beyond it.
-
-         In a construction drawing that is not a stylistic quibble. This page
-         has already paid for the same sentence twice — #191, the growth rule
-         with nothing to grow from; #190, the rail growing out of the corner
-         instead of out of the split — and check-flow-crossings.py exists
-         because two lines meeting with nothing on the meeting means NOT
-         CONNECTED. A stroke leaving a point its own parent has not reached is
-         the same claim in the time axis, made forty-one times, in the one
-         drawing whose entire subject is data merging.
-
-         AND THE SECOND HALF OF IT IS THE ONE #201 JUST FIXED ON THE FRAME. A
-         flat window over strokes of wildly different length is a different
-         DRAWING SPEED per stroke: 0.13 to 1.08 CSS px of ink per px of scroll
-         across these 42, an eight-fold spread, where the frame's six had a
-         two-fold one and that was already a finding. Same cause, same cure,
-         and the cure is written three hundred lines up this file: "the rate is
-         declared once, in points per viewBox unit, and every window is --u ×
-         that."
-
-         SO THE WINDOW IS BOUGHT BY THE STROKE'S OWN RUN. --u is that run, in
-         the same currency as --l: --l is the distance from the void to where
-         this stroke starts, over the drawing's longest such distance, times
-         three; --u is what this stroke adds to it. Both come off gen-flow-root
-         .py's `level()`, and --u is emitted as the DIFFERENCE OF THE TWO
-         ROUNDED LEVELS rather than as its own rounding of the geometry — which
-         is what makes the identity below exact in the two-decimal numbers that
-         actually ship, and not merely true of the reals behind them:
-
-             parent --l + parent --u == child --l,  at all 41 junctions
-
-         Every window is then `head + l·c` to `head + (l + u)·c`, so a stroke's
-         window CLOSES on the point its children's windows OPEN on, by
-         arithmetic rather than by tuning. One front travels the root; the
-         strokes are where it happens to be. scripts/check-flow-chain.py holds
-         the identity, and holds --u against the `d` it claims to measure.
-
-         THE RUN IS CHEBYSHEV, and it has to be, because --l already is:
-         gen-flow-root.py accumulates `max(|dx|, |dy|)` along the path ("exact
-         in Fractions, monotone along a path, and never more than 12 % off on
-         the five angles"). Measure --u Euclidean and the chain drifts on every
-         diagonal — 41 % on the 45s — while every number in the file still
-         looks right. It is the same trap the frame's note names one axis over:
-         the rate is uniform in the DRAWING'S units, not in pixels.
-
-         THE CONSTANT. c is 17.53 points of `cover` per unit of --l, declared
-         once on .lp-flow as --flow-c, and it is not a taste: the deepest
-         terminal sits at l + u = 3.08, the contour must still land at cover 66
-         where the frame's handover is written, and the head is 12. 12 + 3.08 ×
-         17.53 = 66.00. Move the head and c follows; the tail cannot move
-         without the seam moving with it.
-
-         c WAS 11.04 AGAINST A HEAD OF 32 UNTIL THE PACING RUN. Widening c and
-         pulling every head back by the same 20 points is the one move that
-         makes the build LONGER without moving either tail: the front starts
-         20 points earlier and still closes on 66.00 and 68.00, so the frame's
-         relay and the lime clearance never learn about it. That 20 points is
-         also exactly what the hold gained, which is not a coincidence but the
-         identity the hold's own note is written on — the head sits at the
-         hold's opening, so every point of it is drawn standing still.
-
-         WHAT THIS COST AND WHAT IT BOUGHT, all at 1440 x 900, before -> after:
-
-           parent drawn when its child ignites   4.4–23.2 %  ->  100 %, all 41
-           draw rate, CSS px of ink per px       0.13–1.08   ->  1.82–2.73
-           rate spread across the 42 strokes     8.0x        ->  1.50x
-           contour ink at the centred scroll     51.5 %      ->  45.3 %
-           junctions up at the centred scroll    52.9 %      ->  50.1 %
-           last light drawn / contour lands      58 / 66     ->  60 / 66
-           last fade ends                        68          ->  68
-
-         That table is the chain retime's own record and is left as it was
-         taken. Two of its rows have since been overtaken by the pacing run:
-         the draw rate falls with c, so widening c from 11.04 to 17.53 takes
-         1.82–2.73 px of ink per px of scroll down to 1.15–1.72, which IS the
-         slowdown the brief asked for; and the two centred-scroll numbers were
-         the last ones read at cover 50 %, which is no longer the moment this
-         figure first sits centred.
-
-         The two tails the frame's handover and the lime clearance are written
-         against — 66 and 68 — are unchanged. The residual 1.50x in the rate is
-         the five brand angles and nothing else: a 45° stroke is √2 longer in
-         pixels than its Chebyshev run, which is exactly the gap .lp-frame's
-         own note records under preserveAspectRatio.
-
-         AND IT IS STILL RUNNING WHERE THE EYE IS — AT A MOMENT THAT MOVED.
-         Both held numbers used to be read at cover 50 %, because cover 50 % is
-         where a figure sits centred and a build that is over by then ran below
-         where anyone was looking. Since the hold, this figure does not ARRIVE
-         at cover 50 %: it reaches centre at the hold's OPENING and stands there
-         until cover 50 % releases it. Read at cover 50 the ceiling scores the
-         hold as the fault it cures, and it caps the reservation four points
-         above where it started. So scripts/check-build-arrival.py samples where
-         the figure FIRST sits centred — cover 50 % for anything that travels,
-         the hold's opening for anything held — and the rule itself is unchanged
-         to the word. At 77vh that is cover 7.22 (the latest of the six
-         viewports, which is the conservative end), and the contour and the
-         junctions both read 0.0 % there against the same ceiling of 60: the
-         root does not start until the drawing has stopped. What that still
-         catches is the head drifting EARLIER than the opening — ink laid down
-         while the drawing is climbing into view — which is the fault the file
-         was written against and is now one token away.
-         → foundations/motion.html#arrival.
-
-         THE COLOUR GOES FIRST AND THE BLACK FOLLOWS. Two strokes per route:
-         the light at 2 px carrying the family's ramp, the contour at 1 px in
-         --border-strong six points of `cover` behind it. The lead is what
-         makes it a head rather than a tint — see the markup note for how the
-         scale-draw puts the ramp's lime end on the growing tip.
-
-         Both passes now run at the same rate, so "six points behind" is a
-         constant distance rather than a difference of window widths: the light
-         front and the black front travel the root together, 165 units of route
-         and 94 px of scroll apart, which is about a stroke and a half. The
-         light lands on the frame's rail at cover 60 and the black closes on it
-         at 66. Then the colour goes: the fade runs 28 + (l+u)·c -> 34 + (l+u)·c
-         — two points after that route's light has finished drawing, one beat
-         fully lit, and ending two points after its contour has landed, so the
-         colour dissolves off a line that is already whole rather than off a
-         gap. Keyed to (l+u) and not to l, because what it waits for is the
-         stroke's own ARRIVAL, and under a length-bought window that is no
-         longer a fixed distance from its start.
-
-         THE LIGHT IS GONE BEFORE ANY OTHER LIME IS LIT. The last stroke's fade
-         ends at cover 68 %, which this retime left exactly where it was.
-         Swept at 10 px, the last lit flow stroke against card 01's first lime
-         — its fill-opacity leaving 0 at contain 11.5 % of the pinned track:
-
-           1024 x  720    y 1590 ->  2360      770 px of scroll, 1.07 viewports
-           1280 x  800      1810 ->  2700      890            1.11
-           1440 x  900      2030 ->  3030     1000            1.11
-           1920 x 1080      2330 ->  3490     1160            1.07
-           2560 x 1440      2620 ->  4030     1410            0.98
-
-         RE-SWEPT AFTER THE PACING RUN, which is why both columns moved: the
-         page is 35vh taller and the whole build sits later in it. The
-         CLEARANCE is what the standing order is about and it held — 770 to
-         1410 px where it was 810 to 1650, never below 0.98 of a viewport, and
-         the authored numbers the sweep is written against (cover 66 and 68)
-         did not move at all, which is what check-flow-chain.py holds.
-
-         Nothing lime in between at any of them, because the frame is
-         monochrome by decision. → foundations/colors.html#one-per-screen,
-         whose measured practice is one light per OBJECT; the flow is one
-         drawing and this is its one light pass, on the way through.
-         scripts/check-flow-chain.py sweeps this too — it is Standing Order 2's
-         own constraint and it had been prose since the light was restored.
-
-         `forwards` on the fade, not `both`: under `both` the backwards fill
-         would hold the fade's from-state over the draw's whole window on a
-         timeline this animation has not entered yet, which is the collision
-         the statement's own scatter records paying for.
-
-         linear on both, because scroll position IS the draw — the grammar's
-         own division, and the same one .lp-flow__seg is written on. */
-      .lp-flow__light {
-        stroke-width: 2;
-        transform-box: fill-box;
-        transform-origin: var(--o, 0 0);
-        animation: lp-frame-draw linear, lp-flow-out linear;
-        animation-timeline: --lp-flow, --lp-flow;
-        animation-range: cover calc((26 + var(--l) * var(--flow-c)) * 1%)
-                         cover calc((26 + (var(--l) + var(--u)) * var(--flow-c)) * 1%),
-                         cover calc((28 + (var(--l) + var(--u)) * var(--flow-c)) * 1%)
-                         cover calc((34 + (var(--l) + var(--u)) * var(--flow-c)) * 1%);
-        animation-fill-mode: both, forwards;
-      }
-      /* THE .62 MOVED OFF THE SVG AND ONTO THE THINGS IT WAS ALWAYS FOR. It
-         was group opacity on .lp-flow, which held the whole drawing back so the
-         flow stays subordinate to the statement above it — right for the
-         contour and the nodes, and fatal for a light: a child cannot be more
-         opaque than its group, so lime would have shipped at .62 over the wash,
-         about #EBFF6A, which is a pastel and not a signal. Declared per part,
-         the contour and the nodes render exactly as before — the flow's strokes
-         meet end to end and share only single points, so group opacity and
-         per-element opacity are the same picture — and the light is free to be
-         lit. The signal is the bright thing and the record behind it is quiet,
-         which is the reading the two weights were already asking for. */
-      .lp-flow__seg {
-        stroke: var(--border-strong);
-        opacity: .62;
-        transform-box: fill-box;
-        transform-origin: var(--o, 0 0);
-        animation: lp-frame-draw linear both;
-        animation-timeline: --lp-flow;
-        animation-range: cover calc((32 + var(--l) * var(--flow-c)) * 1%)
-                         cover calc((32 + (var(--l) + var(--u)) * var(--flow-c)) * 1%);
-      }
-      /* A junction is a point the construction depends on, which is exactly
-         what .cf-iso__node means elsewhere; these are that, in this page's own
-         namespace because the flow is not a .cf-iso drawing. Eight of them,
-         which is the number foundations/illustration.html calls "a lot" and
-         four short of the number it calls too many. Each lights just
-         after the branch that reaches it: the window opens seven points into
-         that branch's own seventeen-point contour draw and closes four points
-         before it lands.
-
-         THE RADIUS IS DERIVED NOW, and the reason is that the typed one was
-         not true. That page says r "steps down with distance from the
-         subject"; the subject here is the void the trunk leaves, and every
-         node already carries its run from it as --l. Three of the eight —
-         (720, 345), (0, 450) and (600, 495) — are at --l 1.5, the same run to
-         the unit, and they were r 2, r 1 and r 1. One distance, two radii,
-         under a rule whose only variable is distance. A hand-typed ladder
-         cannot help doing this: it is read off the picture rather than off
-         the number the picture is built from, and the picture moves. So r is
-         a function of --l, in thirds of the drawing's own 0–3 depth, which is
-         the ladder's own three levels — the way card 01 puts r 3 on the lit
-         face, 2 on the stage below it and 1 on the one below that. Three
-         nearest r 3, eight middle r 2. Emitted by gen-flow-root.py and held by
-         scripts/check-flow-crossings.py, which asserts the weaker and
-         unarguable form: non-increasing in --l, and equal at equal --l.
-
-         WHICH POINTS IS DERIVED NOW TOO, and this paragraph used to argue it
-         should not be: "the selection is a judgement about legibility and not
-         a fact about the geometry". The judgement was not being exercised. The
-         eight it defended marked SEVEN of the root's fifteen divisions, and
-         the eighth was not a division at all — (480, 255) is a bend, the
-         middle taproot turning 45° into 63.43°, and it carried r 3, the
-         largest dot in the drawing, on the one marked point in it where
-         nothing divides. (150, 240), (530, 355), (270, 480), (150, 510) and
-         (840, 405) are all real splits, all nearer the void than the dot at
-         (970, 470) that WAS drawn, and all bare — and (840, 405) is the split
-         the numerals 2 400 and 1 680 name, so the drawing quantified a
-         division it did not mark. The guard this paragraph cited does not
-         reach any of it: "every node stands on a point two segments meet at"
-         is true of a bend, where the two segments are the one arriving and the
-         one leaving.
-
-         SO THE CUT IS THE SAME NUMBER THE RADIUS IS. Every junction at --l < 2
-         — the r 3 and r 2 bands, the nearest two thirds of the run — carries
-         a node; nothing else does. The fringe (2.06, 2.32, 2.34, 2.85) carries
-         none, and should not: out there the root is thinning to twigs and a
-         dot every few units reads as texture, which is the "not a scatter" the
-         manual is warning about. Eleven, which also settles the ceiling
-         question this paragraph raised and left open — "eight is a lot for one
-         object; twelve is too many", so eleven is the most admissible, and the
-         cut lands exactly on it without being told to. scripts/check-flow-
-         nodes.py holds all of it, including that the two cuts keep agreeing.
-
-         THE WINDOW IS NO LONGER A GUESS AT "just after", because the chain
-         made the arrival a number. A node's --l is the run from the void to
-         the junction itself, and under the envelope on .lp-flow__seg the
-         contour front reaches a run of l at exactly cover 12 + 17.53l. So the
-         node lights one point after its own stroke has landed on it and takes
-         six to come up — `13 + 17.53l -> 19 + 17.53l` — rather than opening
-         seven points into a seventeen-point window and hoping.
-
-         WHAT THAT REPLACED, and why the old form needed the fudge it carried:
-         the junctions sit at a mean --l of 1.22 against the strokes' 1.52 —
-         they mark the splits, and a split is nearer the void than the runs
-         that leave it — so any window written off --l resolved EARLIER for the
-         nodes than for the contour they belong to, and the constant had to be
-         nudged a point to bring them back under the ceiling. Under the chain
-         the two are the same quantity and nothing needs nudging: 44.8 % of the
-         junctions are up at the centred scroll against the contour's 45.3 —
-         the dots now trail their own strokes by half a point rather than
-         leading them — and the last node is up at cover 59.98, six points
-         earlier than the eight were, well before the drawing lands at 66. */
-      .lp-flow__node {
-        fill: var(--border-strong);
-        opacity: .62;
-        animation: lp-frame-in linear both;
-        animation-timeline: --lp-flow;
-        animation-range: cover calc((13 + var(--l) * var(--flow-c)) * 1%)
-                         cover calc((19 + var(--l) * var(--flow-c)) * 1%);
-      }
-
-      /* THE GROUND LINE DRAWS ITSELF. The title stands on it, and until now it
-         was a border-bottom: present from the first paint, so the reader met a
-         finished rule over a section that had not started. A border cannot be
-         grown, so the rule is a pseudo-element scaled from its left end — the
-         same `scale` this page grows every other stroke with, and for the same
-         reason (a dashed draw under non-scaling-stroke stops at the render
-         scale). It carries its own view timeline because it sits OUTSIDE
-         .cf-pin, whose name is scoped to that subtree.
-
-         The range is `cover`, not `entry`, and the difference is the whole
-         behaviour: this element is a line of type about 40 px tall, so its
-         entry phase is 40 px of scroll and a 30-point window inside it resolved
-         to twelve pixels — the rule went from absent to finished between two
-         wheel notches. Cover spans the element plus a viewport, which is the
-         940 px this draw actually needs. It arrives after the root that reaches
-         it and before the lectern below it, which is the order the reader's eye
-         travels.
-
-         AND IT HAS TO BE THE EDGE THAT ACTUALLY CARRIES THE RULE, which is the
-         BLOCK-START one, not the block-end. Three rules stack on this box and
-         only the last of them is on the edge the reader sees:
-
-           .cf-section-header          border-bottom: 1px      the component
-           .cf-section-header--flush   border-bottom: 0        gives it up
-           .lp-proc-head (above)       border-block-start: 1px on the rim
-
-         --flush exists to stop exactly this ("The header gives up its own
-         border rather than drawing a second hairline 1 px away"), and the
-         anchored block above then re-hangs the rule on the box's TOP because
-         that is where the drawing's rim is. So `border-bottom-color:
-         transparent` here neutralised a border that was already 0 px wide — a
-         no-op — and the ::after drew its replacement at `bottom`, 28.9 px
-         under the hairline it was supposed to be replacing.
-
-         Measured at 1440 x 900 before this commit: the block-start border, an
-         opaque 1 px black full-container rule that no animation touches,
-         entered the viewport finished at scroll y 742; the ::after did not
-         begin to draw until y 1100 and landed at y 1280. So the reader met the
-         finished rule this note's first paragraph was written to abolish, 358
-         px before the drawn one started, and then got a SECOND full-width
-         hairline growing in below it — two parallel rules across a drawing
-         that has one horizon. Both cross the root at full container width with
-         the label row trapped between them. → scripts/check-head-rule.py, which
-         reads the edge off the cascade and fails if the animated edge and the
-         bordered edge are not the same one. */
-      /* NO `position` HERE, AND THAT IS THE WHOLE POINT OF THE RULE ABOVE IT.
-         This block sits 476 lines BELOW the @supports that anchors this header
-         to the drawing, at the same specificity, so anything it says about
-         `position` wins the cascade — and `position: relative`, which is what
-         it used to say, is not `absolute`. An anchor is only acceptable to an
-         ABSOLUTELY positioned element; a relatively positioned one is an
-         ordinary in-flow box, so `top`, `left` and `width` up there all became
-         invalid at computed-value time and the header rendered at its static
-         position, at its static width, with no error anywhere. Measured at
-         1440 x 900 before this commit: `top` computed to 0px, the rule spanned
-         1280.02 px against the drawing's 1096, it stood 315.6 px BELOW the rim
-         it names, and eight strokes of the root crossed it. The failure is
-         written out verbatim in check-anchor-positioning.py's own docstring —
-         "the header dropped 250 px to its static position and drew a
-         full-measure hairline through the middle of the root" — as the story of
-         how that check came to exist, and the check had no clause that could
-         see it. It has one now: scripts/check-anchor-position-cascade.py
-         resolves `position` over the whole cascade for every selector that
-         reads an anchor, and fails when the winner is not absolute or fixed.
-
-         WHAT `position: relative` WAS FOR is the ::after below, which needs a
-         positioned ancestor for its `inset-inline: 0` and its top hairline. In
-         the anchored tier `position: absolute` is that ancestor already. In the
-         tier with view timelines and no anchor positioning nothing else
-         supplies one, so the declaration moves UP the file, above the
-         @supports, where it is the base the anchored tier overrides instead of
-         the override that silently unmakes it. → the .lp-proc-head rule that
-         stands immediately before that @supports. */
-      .lp-proc-head {
-        border-block-start-color: transparent;
-        view-timeline-name: --lp-head;
-        view-timeline-axis: block;
-      }
-      .lp-proc-head::after {
-        content: "";
-        position: absolute;
-        inset-inline: 0;
-        top: calc(-1 * var(--stroke-1));
-        border-block-start: var(--stroke-1) solid var(--border-strong);
-        transform-origin: 0 50%;
-        animation: lp-frame-draw linear both;
-        animation-timeline: --lp-head;
-        animation-range: cover 38% cover 56%;
-      }
-
-      /* The chrome arrives last, once the frame it annotates exists — the
-         index numbers standing on an empty wash before any line had been
-         drawn was the tell that this stage was assembled rather than
-         assembling.
-
-         AND "LAST" USED TO MEAN THE INSTANT THE STAGE PINS, WHICH IS NOT LAST
-         ENOUGH — the frame exists by then, and so does the drawing that fed
-         it, still lying across the row this chrome arrives into. `entry 100%`
-         IS the pin: the subject's leading edge reaching the scrollport's start
-         edge is the same moment .cf-pin__stage sticks. From that moment the
-         two sides of the seam separate — .lp-flow scrolls with the page,
-         .lp-frame sticks with the stage, the asymmetry the .lp-flow note's
-         second table records — so the drawing does not leave the index's row
-         until 42 px of scroll LATER, and the index spent the whole of its
-         fade under it.
-
-         THE CLEARANCE IS THE DRAWING'S OWN, AND IT IS PUBLISHED ONE RULE UP.
-         .lp-flow__val, on the eight numerals that ride the routes: "these hold
-         12 px off the line at every viewport the gate admits" — 12 px, in
-         PIXELS, because a clearance in the drawing's units closes up as the
-         box shrinks. Six, this said, for as long as there have been eight, and
-         the number it was quoting was not true of two of them either until the
-         law one rule up made it so. The four step marks are copy set on the
-         same drawing and
-         held NOTHING. Measured as the minimum distance from any .cf-pin__mark
-         box to any .lp-flow__seg, in page pixels, at the pin:
-
-           1280 x  800     0.00     mark 01 touched by the leftmost drop
-           1440 x  900     0.00     the size the drawing is tuned at
-           1600 x  900     0.00
-           1366 x  768     2.72
-           1280 x  720    24.58     clear
-           1280 x  900    26.23     clear
-           1440 x  720    75.91     clear
-           1024 x  900   108.20     clear
-           1920 x 1080   139.64     clear
-
-         The five clear rows are clear for the wrong reason: their handover gap
-         is 26 to 172 px, so the drawing never gets near the chrome. The four
-         that are touched are exactly the four where the seam is TIGHT — gap
-         1.57 to 34.66 px. The closer the drawing comes to landing where it
-         should, the harder it lands on the copy underneath.
-
-         Clearance opens at 1.00 px per px of scroll past the pin, off the same
-         sticky asymmetry, so the fix is an offset and not a percentage: 12 px
-         is first held at pin+42.23 at 1440 x 900, the worst of the nine.
-         --space-16 buys that with 21.8 px to spare and is a rem, which is
-         right — the marks are type and the row-gap over them is a rem, so the
-         deficit scales with the reader's root size and so does this. The fade
-         is as long again as the wait, which keeps the ~64-72 px the entry
-         window used to run over. Verified at both sides of the pin: at pin+0
-         the chrome is at opacity 0 at all nine, and at every position where it
-         carries ink the nearest stroke is ≥ 12 px away. */
-      .lp-proc-index,
-      .lp-proc-bar {
-        animation: lp-frame-in linear both;
-        animation-timeline: --cf-pin;
-        animation-range: contain var(--space-16)
-                         contain calc(var(--space-16) * 2);
-      }
     }
   }
-  /* Both ends written out: the from-state is the whole animation here, and a
-     one-sided keyframe over an implied `scale: 1` would have nothing to grow
-     from. → the .lp-frame path note above for why this is a scale at all. */
   @keyframes lp-frame-draw { from { scale: 0; } to { scale: 1; } }
-  @keyframes lp-frame-in { from { opacity: 0; } }
-  /* One-sided on purpose, and the opposite side from lp-frame-in: the light is
-     opaque until its window opens, so the from-state is the base style and
-     writing it out would be the thing that pins it. */
+  @keyframes lp-frame-in { from { opacity: 0; } to { opacity: 1; } }
   @keyframes lp-flow-out { to { opacity: 0; } }
-  /* THE HOLD, IN TWO COPIES BECAUSE `translate` IS ONE PROPERTY. A keyframe
-     replaces the whole of it, so a part that is centred with `translate: -50%
-     0` has to be given its x back in every keyframe or it jumps half its own
-     width sideways the moment the animation applies — and `both` means that
-     is from the top of the document. Both ends are written out for the same
-     reason lp-frame-draw writes both: an implied end taken from the base
-     style is a value the next edit can move without touching this. */
-  /* THREE STOPS, NOT ONE. The single linear ramp was a perfect standstill —
-     and it held the WRONG MOMENT: the cloud built while the page still
-     scrolled over it, and the hold caught only the root. The ramp is now
-     piecewise, same window, same endpoints, three phases:
-
-       0 - 45 %    standstill, offset +--lp-pan   THE CLOUD builds, sitting
-                   --lp-pan lower so the claim and the whole field clear the
-                   nav — this is the stop Daniel's screenshots were missing
-       45 - 60 %   the glide: offset +--lp-pan -> 0, the camera easing down
-                   from the cloud to the root's ground, while the field
-                   collapses into the departure
-       60 - 100 %  standstill, offset 0            THE ROOT grows, and the
-                   window ends at translate 0 so the release into the cards'
-                   own pinned stage is seamless
-
-     The arithmetic that makes each flat segment a true standstill: over a
-     window exactly --lp-hold px long, translate advancing at the scroll rate
-     cancels it; a segment where the translate term advances by exactly its
-     share of --lp-hold is frozen on screen, and the glide is the one segment
-     where the pan term drains. Both keyframes below carry the SAME phase
-     boundaries — every held element moves in lockstep or the drawing tears. */
-  /* THE CLOUD IS BOUND TO THE HOLD'S OWN WINDOW, NOT TO ITS OWN TIMELINE.
-     components.css times the sensors off --cf-iso in cover points fitted at
-     1440 x 900 — and a cover point is a different number of scroll pixels at
-     every viewport, so at 1512 x 830 the fade landed half outside the first
-     standstill and collided with the collapse: the field peaked at 31 % and
-     never completed. Daniel's screenshot is that state.
-
-     This override expresses the windows in the SAME vocabulary as the ramp —
-     fractions of --lp-hold from the window's own end — on the SAME timeline,
-     so the alignment with the three phases is an identity at every viewport
-     rather than a fit at one:
-
-       fade      50% - W*(0.99..0.70), staggered 0.04 W by --m
-                 -> entirely inside the first standstill (which ends at 0.55 W)
-       collapse  50% - W*(0.55..0.32), staggered 0.06 W
-                 -> opens exactly at the glide, done well inside the second stop
-
-     Full lists restated: animation-name is a replacement, not an addition. */
-  @supports (animation-timeline: view()) {
-    @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
-      .lp-hold .cf-stmt-sensor {
-        animation-name: cf-iso-fade, cf-stmt-collapse;
-        animation-range: cover calc(50% - var(--lp-hold) * (0.99 - var(--m) * 0.04))
-                         cover calc(50% - var(--lp-hold) * (0.70 - var(--m) * 0.04)),
-                         cover calc(50% - var(--lp-hold) * (0.55 - var(--m) * 0.06))
-                         cover calc(50% - var(--lp-hold) * (0.32 - var(--m) * 0.06));
-        animation-fill-mode: both, forwards;
-        animation-timing-function: var(--ease-out);
-        animation-timeline: --lp-flow, --lp-flow;
-        animation-duration: auto;
-      }
-    }
-  }
-
-  @keyframes lp-hold {
-    0%   { translate: 0 calc(-1 * var(--lp-hold) + var(--lp-pan)); }
-    45%  { translate: 0 calc(-0.55 * var(--lp-hold) + var(--lp-pan)); }
-    60%  { translate: 0 calc(-0.40 * var(--lp-hold)); }
-    100% { translate: 0 0; }
-  }
-  @keyframes lp-hold-c {
-    0%   { translate: -50% calc(-1 * var(--lp-hold) + var(--lp-pan)); }
-    45%  { translate: -50% calc(-0.55 * var(--lp-hold) + var(--lp-pan)); }
-    60%  { translate: -50% calc(-0.40 * var(--lp-hold)); }
-    100% { translate: -50% 0; }
-  }
-
-  /* Over .cf-pin's chrome: this stage spaces its index and bar a rung further
-     from the card than the Expertise page does — and that rung is now the
-     stage's own row-gap, inside the gate, where the reset cannot reach it and
-     where it costs the stacked column nothing. Both declarations that used to
-     stand here are gone: the index's padding-block-end never applied (see the
-     note on .lp-proc-stage), and the bar's margin-top said the same thing the
-     row-gap says, on one side only, which is why the two gaps differed by
 </style>
 </head>
 <body class="page-wash">
 <main>
   <header class="container proto-head">
     <h1 class="t-h3">Statement &rarr; Prozess: die Scroll-Choreografie</h1>
-    <p>Labor-Seite. Die komplette Kette — Sensorfeld, Wurzel, Bühne — läuft nur
-       noch hier; die Landing-Page zeigt den fertigen Zustand. Die offenen
-       Fehler stehen im Quelltext dieser Seite, mit Messwerten.</p>
+    <p>Labor-Seite, neu aufgebaut: eine B&uuml;hne, eine Timeline, eine Zeichnung.
+       Die Kette l&auml;uft nur hier; die Landing-Page zeigt den fertigen Zustand.</p>
   </header>
 
-  <!-- 02 · Statement -->
-  <!-- .lp-hold RESERVES THE SCROLL THE STATEMENT STANDS STILL FOR, and it is
-       padding rather than an element because there is nothing to draw: the
-       section's own top edge does not move, everything inside it starts
-       --lp-hold lower, and the ramp on the parts takes exactly that much back
-       until the hold begins. Below the gate — no view timelines, reduced
-       motion, print, or a viewport under 64rem x 45rem — the custom property
-       is never declared, the padding resolves to nothing, and the page is the
-       stacked one it always was. → the rule's own note in the <style> block. -->
-  <section class="section lp-hold">
-    <div class="container">
-      <div class="cf-statement">
-        <div class="cf-statement__figure">
+  <!-- ACT 1 + 2: one sticky stage, one timeline -->
+  <section class="sp-track">
+    <div class="sp-stage">
+      <div class="container">
+      <div class="cf-statement sp-stage__inner">
+        <figure class="cf-statement__figure sp-drawing" aria-hidden="true">
           <svg class="cf-iso" viewBox="0 0 1200 288" fill="none"
                preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             <defs>
@@ -2523,8 +986,8 @@
             </g>
             </g></g>
           </svg>
-
-          <!-- THE FLOW, a root. The data leaves the void and grows downward until
+          <div class="sp-root">
+<!-- THE FLOW, a root. The data leaves the void and grows downward until
                it is the frame the next section is built in. Not a bus and seven
                drops any more: a trunk that bifurcates twice, three taproots, and
                a fringe of branches that each turn twice and land. Every segment
@@ -2695,8 +1158,6 @@
                the colour. It cannot cover it: 2 px under 1 px leaves half a
                pixel of ramp on each side, which is the whole point of the two
                weights — the colour survives at the edges until it fades. -->
-
-
           <svg class="lp-flow" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMax meet" fill="none" aria-hidden="true">
             <defs>
               <linearGradient id="lp-flow-ramp">
@@ -2868,46 +1329,6 @@
             <circle class="lp-flow__node" style="--l:1.5" cx="600" cy="495" r="2"/>
             <circle class="lp-flow__node" style="--l:1.7" cx="150" cy="510" r="2"/>
           </svg>
-
-          <!-- WHAT THE ROOT IS CARRYING. The drawing said data moves; it did
-               not say how much, and a route with no quantity on it is a pipe
-               rather than a stream. Eight values, each ON the route it belongs
-               to and each the value AT that point: 12 480 leaves the void,
-               3 840 / 3 200 / 5 440 leave the crown on the three taproots, the
-               right taproot divides into 1 360 and 4 080, and 4 080 divides
-               again into 2 400 and 1 680 where the drawing is emptiest. They
-               BALANCE at every labelled junction, which is the difference
-               between a drawing of data flowing and a drawing with numerals on
-               it, and it is why they are generated with the geometry rather
-               than typed — gen-flow-root.py asserts the balance, that each
-               value rides a segment, and that no route out of a labelled point
-               reaches the rail unlabelled, and
-               scripts/check-flow-values.py asserts it again here, where a hand
-               edit can actually land.
-
-               A VALUE LABELS THE STROKE IT STANDS ON, which is the sentence
-               4 080 was breaking. It stood at (860, 415) — on
-               (840, 405) → (970, 470), one junction PAST the split it was
-               naming — and the branch (840, 405) sheds to (907.5, 540) carried
-               no value at all, so the balance 5 440 = 1 360 + 4 080 was
-               asserting that two of the lectern's fourteen rail arrivals are
-               fed by nothing. The arithmetic was right and the sentence was
-               false, which is the failure only the walk can see.
-
-               REAL HTML, A FOLLOWING SIBLING OF THE DRAWING, for the rule
-               foundations/illustration.html#a11y states and the flow could not
-               otherwise keep: never put text in an illustration, because it
-               will not scale with the reader's type size. As markup these are
-               11 px of the reader's own root size over a box that is a
-               fraction of the viewport, which is the whole point — the drawing
-               shrinks, the numerals stay readable. A sibling and not a child so
-               it can still read --lp-flow, the view timeline named on the svg,
-               which is in scope for an element's following siblings.
-
-               aria-hidden, and pointer-events: none from the shared box rule.
-               The values are illustration — an order of magnitude for a
-               sensor stream, not a claim about a customer — so they are the
-               drawing's, and the drawing is decorative. -->
           <div class="lp-flow-data" aria-hidden="true">
             <span class="t-label lp-flow__val" style="--x:330;--y:112;--tx:12px;--ty:-50%;--l:0.09">12 480</span>
             <span class="t-label lp-flow__val" style="--x:250;--y:190;--tx:5.367px;--ty:10.733px;--l:0.48">3 840</span>
@@ -2918,32 +1339,8 @@
             <span class="t-label lp-flow__val" style="--x:900;--y:435;--tx:5.367px;--ty:calc(-100% - 10.733px);--l:2.09">2 400</span>
             <span class="t-label lp-flow__val" style="--x:870;--y:465;--tx:calc(-100% - 10.733px);--ty:5.367px;--l:2.09">1 680</span>
           </div>
-
-          <!-- THE TRUNK, WHERE THE BOX IS TALLER THAN THE DRAWING. The same one
-               stroke as .lp-flow__trunk above and never drawn at the same time
-               as it: the rule's own note says which tier gets which. It is out
-               here rather than in the drawing because the drawing's units are
-               fixed at 1200 x 620 and the distance this has to cross is not —
-               it is the rim to the crown, and the rail is what sets the far end
-               of it. --o and --l are the trunk's, unchanged, so the stroke still
-               enters the timing envelope first and grows downward out of the
-               void. Two paths, light then contour, in that order, for the reason
-               the drawing's own note gives: the black paints over the colour and
-               cannot cover it.
-
-               LAST OF THE THREE, AND THE ORDER IS NOT A PREFERENCE. Every one of
-               its three insets is read off --lp-flow-box, and an anchor is only
-               acceptable to an element the anchor PRECEDES in tree order. Drawn
-               before .lp-flow this stroke lost all three at once and fell back
-               to its static position — measured at 1024 x 720: a 37 px stub at
-               the container's left edge, with the crown 250 px away and nothing
-               above it. It is after the values as well, so the numerals still
-               paint over the drawing rather than under this. -->
-          <svg class="lp-flow__stem" viewBox="0 0 12 100" preserveAspectRatio="none" fill="none" aria-hidden="true">
-            <path class="lp-flow__light" style="--o:0 0;--l:0;--u:0.22" stroke="url(#lp-flow-ax-stem)" d="M6 0V100"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:0;--u:0.22" d="M6 0V100"/>
-          </svg>
-        </div>
+          </div>
+        </figure>
         <div class="cf-statement__text">
           <h2 class="cf-statement__title">Tausende Sensoren erzeugen Daten, aber daraus keine Antworten.</h2>
           <p class="cf-statement__body">
@@ -2952,41 +1349,18 @@
           </p>
         </div>
       </div>
+      </div>
     </div>
   </section>
 
-  <!-- 03 · Was wir machen -->
+  <!-- ACT 3: the cards, on .cf-pin from components.css -->
   <section class="section" aria-labelledby="prozess">
-    <!-- THE TITLE STANDS ON THE DRAWING'S GROUND LINE, and the slot is what it
-         leaves behind. Inside the gate .lp-proc-head is taken out of flow and
-         placed on the root's crown, so this container would collapse and pull
-         the lectern up by the header's own height — which is the one direction
-         the flow-to-frame seam has no room in (+1.58 px at 1440 x 900; see the
-         .lp-flow note's table). The slot holds exactly that height open, built
-         from the tokens the header is built from, so the seam is where it was.
-         Outside the gate the header is in flow and the slot is a no-op. -->
-    <div class="container lp-proc-head-slot">
-      <div class="cf-section-header cf-section-header--flush lp-proc-head">
+    <div class="container">
+      <div class="cf-section-header">
         <h2 class="cf-section-header__label" id="prozess">Was wir machen</h2>
-        <!-- A COUNT, NOT A POSITION, and for the reason components/section-header.html
-             writes into its own "In context" note about Unsere Werte: this section
-             already carries a LIVE position, .cf-pin__index, whose four marks light
-             one at a time off the track's timeline. A frozen "01 / 04" in the header
-             is a second copy of that number which is wrong for three of the four
-             quarters the reader scrubs through. The page's own source numbers this
-             section 03 of 07 — so the pair was not a section position either. -->
         <span class="cf-section-header__count">4 Schritte</span>
       </div>
     </div>
-
-    <!-- The four steps, built in place while the reader scrolls — the same
-         pinned scrub the Expertise page ships and prototypes/services-scroll
-         proposed: one sticky stage, a track of scroll behind it, and each
-         card's object assembled off the TRACK's timeline rather than its own.
-         Everything below is a progressive enhancement over the stacked column:
-         no view timelines, reduced motion, print, a narrow or short viewport,
-         and the four cards are simply four cards, each building on its own
-         view timeline as before. -->
     <div class="cf-pin">
       <div class="cf-pin__stage">
         <div class="container cf-pin__inner lp-proc-stage">
@@ -3351,8 +1725,6 @@
       </div>
     </div>
   </section>
-
-
 </main>
 <script src="../assets/js/cf-pin-gate.js"></script>
 <a class="ds-back" href="../index.html">&larr; Design System</a>
