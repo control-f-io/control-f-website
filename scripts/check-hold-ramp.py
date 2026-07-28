@@ -133,7 +133,22 @@ HELD = {
     ".lp-proc-head": CENTRED,
 }
 RANGE = "cover calc(50% - var(--lp-hold)) cover 50%"
-FROM_Y = "calc(-1 * var(--lp-hold))"
+# THE RAMP IS THREE PHASES NOW, NOT ONE, and this table is the shape of it.
+# The old truth was a single from/to ramp — one perfect standstill — and it
+# held the wrong moment: the cloud built while the page still scrolled over
+# it (Daniel's 2026-07-28 review, three screenshots of a half-covered field),
+# and the hold caught only the root. The new ramp keeps the same window and
+# the same endpoints and cuts it into:
+#   0-45     standstill at +--lp-pan   the cloud builds, clear of the nav
+#   45-60    the glide: the pan drains to 0 while the field collapses
+#   60-100   standstill at 0           the root grows; ends at translate 0
+# Each row: (stop %, coefficient of --lp-hold, pan term present).
+# A flat segment is a standstill iff the coefficient advances by exactly the
+# segment's share of the window; the glide is standstill-plus-drain.
+PHASES = (("0%", -1.00, True),
+          ("45%", -0.55, True),
+          ("60%", -0.40, False),
+          ("100%", 0.0, False))
 # ADDED TO the section's own gap, never written over it. `.section` is
 # `padding-block: var(--section-gap)` in base.css, so the bare `var(--lp-hold)`
 # replaces the top gap instead of extending it — 258 px of reservation against
@@ -272,30 +287,45 @@ def main():
                 f"band between the hero and the statement that closes by the "
                 f"difference, through the whole approach, at every viewport")
 
+    # --lp-pan is the cloud stop's altitude and must be declared with the hold
+    if not re.search(r"--lp-pan\s*:", css):
+        findings.append("nothing declares `--lp-pan` — the cloud stop has no "
+                        "altitude and the first phase holds at the root's "
+                        "position, under the nav, which is the fault the pan "
+                        "exists to fix")
+
     for name, x in ((PLAIN, "0"), (CENTRED, "-50%")):
         stops = keyframe_stops(css, name)
         if stops is None:
             findings.append(f"@keyframes {name} is missing")
             continue
-        if norm(",".join(sorted(stops))) != "from,to":
+        want = [p for p, _, _ in PHASES]
+        if sorted(stops) != sorted(want):
             findings.append(
-                f"@keyframes {name} is not the two written-out stops the ramp "
-                f"needs — an implied end is a value the next edit can move "
-                f"without touching this")
+                f"@keyframes {name} has stops {sorted(stops)} and the ramp is "
+                f"the four written-out phases {want} — a missing or extra stop "
+                f"is a phase the two ramps no longer agree on, and every held "
+                f"part must move in lockstep or the drawing tears")
             continue
-        f, t = translate_y(stops["from"]), translate_y(stops["to"])
-        if f is None or norm(f) != FROM_Y:
-            findings.append(
-                f"@keyframes {name} opens at y `{f}`, not `{FROM_Y}` — the "
-                f"approach no longer cancels the reservation and the statement "
-                f"paints off its own layout by the difference")
-        if t is None or norm(t) not in ("0", "0px"):
-            findings.append(
-                f"@keyframes {name} closes at y `{t}`, not 0 — a hold that "
-                f"lands anywhere else is a permanent offset on the seam "
-                f".lp-flow's foot makes with the lectern's rail")
+        for pct, coef, has_pan in PHASES:
+            y = translate_y(stops[pct]) or ""
+            yn = norm(y)
+            if coef == 0.0:
+                ok = yn in ("0", "0px")
+                expect = "0"
+            else:
+                cstr = "-1" if coef == -1.0 else ("%.2f" % coef)
+                expect = f"calc({cstr} * var(--lp-hold)" + (" + var(--lp-pan))" if has_pan else ")")
+                ok = yn == expect
+            if not ok:
+                findings.append(
+                    f"@keyframes {name} at {pct} is y `{y}`, not `{expect}` — "
+                    f"the phase table above is the standstill arithmetic: a "
+                    f"coefficient off its share of the window is a stop that "
+                    f"drifts on screen, and a pan term where the table has "
+                    f"none is a stop at the wrong altitude")
         # 5. the x component is the part's own centring, unchanged
-        for stop in ("from", "to"):
+        for stop, _, _ in PHASES:
             if norm(translate_x(stops[stop]) or "") != x:
                 findings.append(
                     f"@keyframes {name}'s `{stop}` sets x `{translate_x(stops[stop])}` "
