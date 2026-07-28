@@ -121,9 +121,19 @@
      measured under prefers-reduced-motion: reduce at 1440x900, and true below
      the gate on both axes as well. A quantity with no route under it is not a
      quieter version of this drawing; it is a row of numbers with nothing to
-     belong to. */
+     belong to.
+
+     AND THE STEM WITH IT, for the third time and the same reason: it is a third
+     sibling, and everything that places it is inside the gate. Left out of this
+     rule it fell back to a static <svg> at the container's full width with
+     `preserveAspectRatio="none"` and no intrinsic height to stop it — measured
+     under prefers-reduced-motion: reduce at 1280 x 900, a box 1139 px wide and
+     9493 px TALL in the statement's figure, one hairline stretched down a third
+     of the document. Also true in print, and below the gate on both axes. Every
+     part of this drawing has now been forgotten here once. */
   .lp-flow,
-  .lp-flow-data { display: none; }
+  .lp-flow-data,
+  .lp-flow__stem { display: none; }
   /* The stacked fallback keeps the rhythm the section always had — this
      gap is .flow-12, restated as a gap because the pinned mode needs the
      same element to be a grid. */
@@ -901,39 +911,59 @@
            the second number cannot go missing again the way the first one's
            "before the pin engages" did.
 
-           IT IS NOT FIXABLE FROM HERE, which is why the number is written down
-           instead of tuned. The height is locked to the width by aspect-ratio —
-           the ratio is what keeps the taproots on the corners, since the default
-           preserveAspectRatio would otherwise letterbox the drawing inside its
-           own box — and the top is locked to the void the trunk leaves. One
-           degree of freedom, two arrivals: the same over-determination the note
-           above works through for x, where the arrival was kept and the
-           departure was let drift on the void's rim. Anchoring this box's BOTTOM
-           to the rail applies that same trade to y and does not survive it: the
-           trunk would then start gap + 89.60 px below the void's centre against
-           an 89.60 px rim — so it leaves the rim at EVERY viewport, by exactly
-           the gap, which is 1.58 px at 1440 x 900 and 171.58 px at 1920 x 1080.
-           (This note used to say "a 94 px rim — inside it at 1440 x 900". The
-           rim is 89.60; 94 came from the same wrong 88 the note above corrects,
-           and it was the only thing making the 1440 case look survivable.)
-           Fourteen free ends at the rail traded for one free end in open wash is
-           a different bug, not a fix.
+           THIS RULE IS THE FALLBACK NOW. Everything above is what the box does
+           where anchor positioning is not available — the aspect-ratio box, the
+           nine-row table, the sixteen terminals in wash. Inside the @supports
+           block below the box reaches the rail at every viewport, and the note
+           there carries the new numbers. The two tables are kept because the
+           fallback is a real rendering (view timelines shipped two years before
+           anchor positioning did), and because the second one is still true in
+           BOTH tiers: it is the asymmetry, not the box.
 
-           So the trunk has to be able to stretch, which is how the route
-           terminates, which is the drawing's form → the craft lane. BOTH tables
-           above are the measurement it needs, and the second is the one that
-           constrains the answer: a form change that closes the pre-pin gap at
-           1920 x 1080 and leaves this box outside .cf-pin__stage still opens
-           the seam at 1.00 px per px the moment the stage sticks. A stretch
-           that ends at the rail is only correct for the one scroll position it
-           was measured at unless the two sides travel together. */
+           WHY THE TRUNK IS THE ONLY PLACE THE STRETCH CAN GO. The height is
+           locked to the width by aspect-ratio — the ratio is what keeps the
+           taproots on the corners, since the default preserveAspectRatio would
+           otherwise letterbox the drawing inside its own box — and the top is
+           locked to the void the trunk leaves. One degree of freedom, two
+           arrivals: the same over-determination the note above works through for
+           x, where the arrival was kept and the departure was let drift on the
+           void's rim. Anchoring this box's BOTTOM to the rail applies that same
+           trade to y and does not survive it ON ITS OWN: the trunk would then
+           start gap + 89.60 px below the void's centre against an 89.60 px rim —
+           so it leaves the rim at EVERY viewport, by exactly the gap, which is
+           1.58 px at 1440 x 900 and 171.58 px at 1920 x 1080. (This note used to
+           say "a 94 px rim — inside it at 1440 x 900". The rim is 89.60; 94 came
+           from the same wrong 88 the note above corrects, and it was the only
+           thing making the 1440 case look survivable.) Fourteen free ends at the
+           rail traded for one free end in open wash is a different bug, not a
+           fix — which is why the bottom anchor ships WITH .lp-flow__stem and not
+           without it. Sixteen arrivals and one departure, all of them made. */
         overflow: visible;
       }
       .lp-flow {
         view-timeline-name: --lp-flow;
         view-timeline-axis: block;
       }
-      .lp-flow :is(path, circle) { vector-effect: non-scaling-stroke; }
+      .lp-flow :is(path, circle),
+      .lp-flow__stem :is(path, circle) { vector-effect: non-scaling-stroke; }
+      /* THE TRUNK, TWICE, ONE PER CAPABILITY TIER — and it is one stroke, not
+         two drawings. Where the box cannot reach the rail the trunk is what it
+         has always been, .lp-flow__trunk inside the drawing's own units; where
+         it can, the box is taller than 1200 x 620 and the trunk is the piece
+         that absorbs the difference, so it leaves the drawing and becomes
+         .lp-flow__stem, a stroke placed in page pixels between the rim and the
+         crown. The one that is not in use is display: none, so exactly one is
+         ever drawn and neither is a second line beside the other. Both are kept
+         in the markup because check-flow-terminals.py and check-flow-crossings.py
+         read the paste, and a trunk that is only in a stylesheet is a trunk the
+         no-free-ends walk cannot see.
+
+         WHICH ONE IS DRAWN is two declarations and neither is here: the stem is
+         hidden with the rest of the drawing at the top of this stylesheet, and
+         turned on — with the drawing's own trunk turned off — inside the
+         @supports block that gives it something to stand on. So the tier with
+         view timelines and without anchor positioning gets the trunk it always
+         had, by falling through both. Held by scripts/check-flow-stem.py. */
 
       /* ------------------------------------------------------------------
          THE SECTION TITLE, ON THE DRAWING'S GROUND LINE.
@@ -1021,6 +1051,139 @@
       @supports (anchor-name: --lp-flow-box) and (top: anchor(--lp-flow-box bottom)) {
         .lp-flow { anchor-name: --lp-flow-box; }
         .cf-statement__text { anchor-name: --lp-statement-text; }
+
+        /* ----------------------------------------------------------------
+           THE BOX REACHES THE RAIL, AND THE TRUNK IS WHAT GIVES.
+
+           WHAT WAS WRONG. The nine-row table in the .lp-flow note above is the
+           finding: the foot of the drawing's box is the frame's rail at
+           1440 x 900 and at no other viewport. 58.17 px of empty wash at
+           1280 x 900, 50.14 at the gate floor, 171.58 at 1920 x 1080 — sixteen
+           terminals drawn to arrive on a line that is not under them. The note
+           worked out why it could not be fixed from inside that rule and handed
+           the answer here: "the trunk has to be able to stretch, which is how
+           the route terminates, which is the drawing's form".
+
+           SO THE BOX IS BOUND AT BOTH ENDS AND THE DRAWING SITS ON ITS FOOT.
+           top is the void's centre — the same point `top: 50%` of the figure
+           named, said in the anchor's terms because the containing block has to
+           become the ICB for the rail anchor to be acceptable at all (an anchor
+           is only acceptable to a positioned element whose containing block is
+           the ICB or an ancestor of the anchor, and .cf-statement__figure is not
+           an ancestor of .lp-frame; the header's own note above records the same
+           constraint from the other side). bottom is the rail. The 1200 x 620
+           viewBox then renders at the width, on the box's FOOT, because
+           preserveAspectRatio is xMidYMax — so every one of the sixteen rail
+           terminals lands on the rail, exactly, and the three pinned taproots
+           still land in the frame's corners because x was never the loose axis.
+
+           `align-self: stretch` is load-bearing and is the one thing here that
+           is not obvious. An absolutely positioned REPLACED element with both
+           insets set and `height: auto` does not stretch — it takes its
+           intrinsic height and drops the bottom inset, which is the viewBox's
+           620 units all over again. Measured: without it the box stayed at
+           662.91 px at 1440 x 900 and the gap was the old 1.58. Box alignment is
+           what overrides intrinsic sizing for an over-constrained abspos box,
+           and `stretch` is what asks for it.
+
+           MEASURED, frame top minus flow bottom, before the pin engages —
+           the same column as the fallback table, at the same ten viewports:
+
+             1440 x  900     +1.58  ->  0.00      1280 x 720    +56.52  ->  0.00
+             1280 x  768     +6.92  ->  0.00      1280 x 900    +58.17  ->  0.00
+             1280 x  800     +8.17  ->  0.00      1440 x 720   +107.84  ->  0.00
+             1600 x  900    +28.23  ->  0.00      1024 x 900   +140.14  ->  0.00
+             1366 x  768    +34.66  ->  0.00      1920 x 1080  +171.58  ->  0.00
+                                                  2560 x 1440  +351.58  ->  0.00
+
+           THE SECOND TABLE IS UNCHANGED, AND THAT IS DELIBERATE. anchor() is
+           resolved at layout, not per scroll frame — measured at 1440 x 900, the
+           box's height held at 662.91 px through the pin — so the seam still
+           opens at 1.00 px per px from the scroll position .cf-pin__stage sticks
+           at, for the reason check-seam-travel.py derives rather than trusts:
+           .lp-flow is outside the sticky stage and .lp-frame is inside it. What
+           changes is where that ramp starts. It ran 1.58 -> 161.70 over the 160
+           px of scroll with both ends on screen; it now runs 0.00 -> 160.13, so
+           the seam is MADE, and read as made, for the whole approach and the
+           pin itself. That is the half of it Daniel's brief asks for: "any
+           connection has to be made and read BEFORE the pin".
+
+           WHAT IT DOES NOT BUY, so the next lane does not go looking. The
+           departure still slides on the three viewports where --lp-measure caps
+           the drawing and the statement figure does not narrow with it — 0.225 x
+           (figure - measure) sideways off plumb, -3.52 / -3.80 / +2.35 px off
+           the rim, the table in check-void-departure.py. Fixing that means
+           moving x, and x is where fourteen arrivals sit against one departure.
+           ---------------------------------------------------------------- */
+        .cf-statement__figure { position: static; anchor-name: --lp-void-box; }
+        .lp-frame { anchor-name: --lp-rail-box; }
+        .lp-flow,
+        .lp-flow-data {
+          top: calc(anchor(--lp-void-box top)
+                    + anchor-size(--lp-void-box height) / 2);
+          width: min(anchor-size(--lp-void-box width), var(--lp-measure));
+        }
+        .lp-flow {
+          bottom: anchor(--lp-rail-box top);
+          block-size: auto;
+          aspect-ratio: auto;
+          align-self: stretch;
+        }
+        /* THE VALUES DO NOT STRETCH WITH THE DRAWING, and this is the trap in
+           sharing one rule. A numeral is placed at `top: var(--y) * 100% / 620`
+           — a percentage of its box, against the drawing's 620 units — so the
+           moment the box is taller than 620 units every value slides down by
+           its own share of the stretch. At 1920 x 1080 that is 160 units of
+           drift on a drawing whose whole claim is that a value labels the
+           stroke it stands on. So this box keeps the ratio and takes the rail
+           for its foot instead: same width, same left, aspect-ratio 1200/620,
+           top auto. It lands exactly on the drawing's own 620 units, which is
+           what the shared rule was for. */
+        .lp-flow-data {
+          top: auto;
+          bottom: anchor(--lp-rail-box top);
+        }
+        /* THE TRUNK, AS A STRETCHING STROKE. Everything the drawing gained in
+           height is between the void's rim and the crown, and the trunk is the
+           only stroke in the root that crosses it. Out of the viewBox, into page
+           pixels, and placed off the flow box's own metrics so it cannot come
+           adrift from the drawing it belongs to:
+
+             top     the departure, 84 of the drawing's units below the box top,
+                     which is the void's centre — the identity
+                     check-void-departure.py holds, unmoved
+             bottom  the crown at y 150, i.e. 470 units above the box's foot
+             left    x 330, and centred the way .lp-flow centres itself rather
+                     than read off anchor(left): anchor() resolves the LAYOUT
+                     box and .lp-flow is placed with `translate`, which is not
+                     in it — the header's note above records what that cost when
+                     it was read the other way. 600 - 330 = 270 units left of
+                     centre.
+
+           viewBox 0 0 12 100 with preserveAspectRatio="none": under a non-
+           uniform scale a vertical stays vertical, so the one angle in the
+           system that survives being stretched is the only one asked to. The
+           weight does not stretch with it — non-scaling-stroke, above, the same
+           rule every other stroke in the flow is drawn under.
+
+           4 px of box for a 2 px light and a 1 px contour: the light is the
+           wider of the two and a stroke is centred on its path, so 2 px of box
+           on each side of x 6 is the half-stroke each of them needs. */
+        .lp-flow__trunk { display: none; }
+        .lp-flow__stem {
+          display: block;
+          position: absolute;
+          inline-size: 4px;
+          top: calc(anchor(--lp-flow-box top)
+                    + anchor-size(--lp-flow-box width) * 84 / 1200);
+          bottom: calc(anchor(--lp-flow-box bottom)
+                       + anchor-size(--lp-flow-box width) * 470 / 1200);
+          left: calc(50% - anchor-size(--lp-flow-box width) * 270 / 1200);
+          translate: -50% 0;
+          align-self: stretch;
+          overflow: visible;
+          pointer-events: none;
+        }
         .lp-proc-head {
           position: absolute;
           /* THE RIM, OR CLEAR OF THE STATEMENT, WHICHEVER IS LOWER. The rim is
@@ -1054,8 +1217,20 @@
              rule is meant to cross. At 140.3 the row's own type reaches 178,
              where the two crown runs have only reached x 274 and x 386 — the
              label ends at x 90 and the count starts at x 1110. */
-          top: max(calc(anchor(--lp-flow-box bottom)
-                        - anchor-size(--lp-flow-box height) * 536 / 620),
+          /* THE RIM TERM IS OFF THE WIDTH NOW, NOT OFF THE HEIGHT, and it is
+             the same point said in terms that survive the stretch. It read
+             `bottom - height * 536/620`: correct while the box WAS the drawing,
+             because 536/620 is (620 - 84)/620 and the box's height was 620 of
+             the drawing's units. The box is now taller than the drawing by
+             whatever the seam used to be, so that fraction resolves below the
+             rim by 536/620 of the stretch — 148 px at 1920 x 1080, a rule drawn
+             through the middle of the root. The rim is 84 of the drawing's units
+             under the box's TOP, and the drawing's unit is the box's width over
+             1200 in either tier, so this is the one expression that is right in
+             both. Same 84 as .lp-flow__stem's departure and as the ring's
+             radius; check-void-departure.py holds all three to each other. */
+          top: max(calc(anchor(--lp-flow-box top)
+                        + anchor-size(--lp-flow-box width) * 84 / 1200),
                    calc(anchor(--lp-statement-text bottom) + var(--space-4)));
           left: 50%;
           width: anchor-size(--lp-flow-box width);
@@ -1882,7 +2057,9 @@
                the colour. It cannot cover it: 2 px under 1 px leaves half a
                pixel of ramp on each side, which is the whole point of the two
                weights — the colour survives at the edges until it fades. -->
-          <svg class="lp-flow" viewBox="0 0 1200 620" fill="none" aria-hidden="true">
+
+
+          <svg class="lp-flow" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMax meet" fill="none" aria-hidden="true">
             <defs>
               <linearGradient id="lp-flow-ramp">
                 <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
@@ -1930,8 +2107,16 @@
               <linearGradient id="lp-flow-ax-39" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1072.5" y1="620" x2="1017.5" y2="565"/>
               <linearGradient id="lp-flow-ax-40" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1107.5" y1="595" x2="1130" y2="550"/>
               <linearGradient id="lp-flow-ax-41" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1082.5" y1="620" x2="1107.5" y2="595"/>
+              <!-- the stem's axis, in the stem's own user space and written the
+                   same way round as the other forty-two: far end (the crown,
+                   y 100) back to the origin (the rim, y 0), so lime sits at the
+                   tip the stroke is growing toward. userSpaceOnUse and not the
+                   default: a vertical line's object bounding box has zero width,
+                   and an objectBoundingBox gradient on a degenerate box does not
+                   render at all. -->
+              <linearGradient id="lp-flow-ax-stem" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="6" y1="100" x2="6" y2="0"/>
             </defs>
-            <path class="lp-flow__light" style="--o:0 0;--l:0" stroke="url(#lp-flow-ax-00)" d="M330 84V150"/>
+            <path class="lp-flow__light lp-flow__trunk" style="--o:0 0;--l:0" stroke="url(#lp-flow-ax-00)" d="M330 84V150"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:0.22" stroke="url(#lp-flow-ax-01)" d="M330 150L150 240"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:0.81" stroke="url(#lp-flow-ax-02)" d="M150 240L60 330"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:1.11" stroke="url(#lp-flow-ax-03)" d="M60 330L0 450"/>
@@ -1974,7 +2159,7 @@
             <path class="lp-flow__light" style="--o:100% 0;--l:2.85" stroke="url(#lp-flow-ax-40)" d="M1130 550L1107.5 595"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:3" stroke="url(#lp-flow-ax-41)" d="M1107.5 595L1082.5 620"/>
 
-            <path class="lp-flow__seg" style="--o:0 0;--l:0" d="M330 84V150"/>
+            <path class="lp-flow__seg lp-flow__trunk" style="--o:0 0;--l:0" d="M330 84V150"/>
             <path class="lp-flow__seg" style="--o:100% 0;--l:0.22" d="M330 150L150 240"/>
             <path class="lp-flow__seg" style="--o:100% 0;--l:0.81" d="M150 240L60 330"/>
             <path class="lp-flow__seg" style="--o:100% 0;--l:1.11" d="M60 330L0 450"/>
@@ -2076,6 +2261,31 @@
             <span class="t-label lp-flow__val" style="--x:900;--y:435;--tx:12px;--ty:calc(-100% - 8px);--l:2.09">2 400</span>
             <span class="t-label lp-flow__val" style="--x:870;--y:465;--tx:calc(-100% - 12px);--ty:-50%;--l:2.09">1 680</span>
           </div>
+
+          <!-- THE TRUNK, WHERE THE BOX IS TALLER THAN THE DRAWING. The same one
+               stroke as .lp-flow__trunk above and never drawn at the same time
+               as it: the rule's own note says which tier gets which. It is out
+               here rather than in the drawing because the drawing's units are
+               fixed at 1200 x 620 and the distance this has to cross is not —
+               it is the rim to the crown, and the rail is what sets the far end
+               of it. --o and --l are the trunk's, unchanged, so the stroke still
+               enters the timing envelope first and grows downward out of the
+               void. Two paths, light then contour, in that order, for the reason
+               the drawing's own note gives: the black paints over the colour and
+               cannot cover it.
+
+               LAST OF THE THREE, AND THE ORDER IS NOT A PREFERENCE. Every one of
+               its three insets is read off --lp-flow-box, and an anchor is only
+               acceptable to an element the anchor PRECEDES in tree order. Drawn
+               before .lp-flow this stroke lost all three at once and fell back
+               to its static position — measured at 1024 x 720: a 37 px stub at
+               the container's left edge, with the crown 250 px away and nothing
+               above it. It is after the values as well, so the numerals still
+               paint over the drawing rather than under this. -->
+          <svg class="lp-flow__stem" viewBox="0 0 12 100" preserveAspectRatio="none" fill="none" aria-hidden="true">
+            <path class="lp-flow__light" style="--o:0 0;--l:0" stroke="url(#lp-flow-ax-stem)" d="M6 0V100"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:0" d="M6 0V100"/>
+          </svg>
         </div>
         <div class="cf-statement__text">
           <h2 class="cf-statement__title">Tausende Sensoren erzeugen Daten, aber daraus keine Antworten.</h2>
