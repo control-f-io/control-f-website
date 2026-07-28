@@ -73,10 +73,43 @@ THE FIVE THINGS HELD
      sideways — and `both` means from the top of the document, not just during
      the hold.
 
-WHAT IT DOES NOT CHECK. Whether --lp-hold is the RIGHT length. 42vh puts the
-window's opening within a point of the light's first ink at all six viewports,
-which is a tuning recorded in the rule's own note and re-measured when it moves;
-it is not an identity and this file does not pretend it is one.
+  6. THE HOLD OPENS ON THE BUILD'S HEAD, and this stopped being a tuning the
+     moment the hold started carrying the pacing. Both tails of the root's
+     build are nailed — the contour lands at cover 66 where the frame's relay
+     takes over, the light is out at 68 where the lime clearance was swept
+     (check-flow-chain.py holds both) — so the ONLY term in the build's length
+     that can grow is the hold's own reservation:
+
+         the build, in px of scroll  =  18 points of cover  +  --lp-hold
+
+     Lengthening the hold and slowing the root are therefore the same act, and
+     they are only the same act while the build's head sits at the hold's
+     OPENING. Let them drift apart and one of two faults appears, both of them
+     the thing this page has now been told about twice:
+
+       head before the opening   ink is laid down while the drawing is still
+                                 climbing into view, below where anyone is
+                                 looking (→ check-build-arrival.py)
+       head after the opening    the drawing stands still, finished-looking and
+                                 doing nothing, for the difference
+
+     The opening is `cover 50% - --lp-hold`, which needs the cover range to
+     resolve into points and therefore needs a viewport. The ratio between the
+     two is what is stable: the cover range is `100vh + the flow's own height`
+     and the flow's height is built from --lp-measure, which is built from
+     100vh, so across the six viewports the gate admits it is 1.704 to 1.800
+     viewports (measured; the table is in the rule's own note and in
+     check-build-arrival.py). A hold of H vh therefore opens somewhere in
+     `50 - H/1.704` to `50 - H/1.800`, and the light's head must be in that
+     band. That is a band and not a number because a vh and a percentage of the
+     cover range cannot be made equal at every viewport at once — the same
+     reason the window's LENGTH is written as a length and not a percentage.
+
+WHAT IT DOES NOT CHECK. Whether the hold is the right length in the sense that
+matters to a reader — whether 77vh of standing still is generous or tedious.
+That is a judgement made by watching it, recorded in the rule's own note with
+the scroll-pixel budget it buys, and it is not an arithmetic anything here can
+settle.
 """
 
 import argparse
@@ -107,6 +140,20 @@ FROM_Y = "calc(-1 * var(--lp-hold))"
 # 378 px of ramp at 1440 x 900, and a band between the hero and the statement
 # that closes by the 120 px difference for the whole approach.
 RESERVATION = "calc(var(--section-gap) + var(--lp-hold))"
+
+# Cover range over viewport height at the six viewports the gate admits, so a
+# hold in vh can be turned into a band of cover points without a browser. Same
+# table as check-build-arrival.py and as the rule's own note; re-measured when
+# the flow's height law changes. → invariant 6.
+COVER_RANGE_PER_VH = (1.725, 1.747, 1.800, 1.738, 1.772, 1.704)
+# The family whose first ink IS the build's head. The light leads the contour by
+# six points by construction, so the light is the one that has to meet the hold.
+HEAD_RULE = ".lp-flow__light"
+# cover 50 % is the centred position, so it is where the hold has to end.
+CENTRE_PCT = 50.0
+# The band is already 2.4 points wide at 77vh; this only absorbs the
+# rounding in the ratio table, not a drift worth a point.
+BAND_TOL = 0.05
 
 
 def strip_comments(css):
@@ -299,6 +346,35 @@ def main():
             "process header are outside .cf-statement__figure, so a narrower "
             "scope resolves a null timeline for them and they do not hold")
 
+    # ---- 6. the hold opens on the build's head --------------------------
+    hold_m = re.search(r"--lp-hold:\s*([\d.]+)vh\s*;", text)
+    head_m = None
+    for body in declaring(css, HEAD_RULE):
+        head_m = re.search(r"animation-range:\s*cover calc\(\(([\d.-]+) \+", body)
+        if head_m:
+            break
+    if hold_m is None:
+        findings.append(
+            "--lp-hold is no longer a vh length — invariant 6 turns the hold "
+            "into cover points through the viewport ratio and cannot without one")
+    elif head_m is None:
+        findings.append(
+            f"`{HEAD_RULE}` has no `cover calc((N + ...` head — that head is what "
+            f"the hold's opening has to land on")
+    else:
+        hold_vh, head = float(hold_m.group(1)), float(head_m.group(1))
+        lo = CENTRE_PCT - hold_vh / min(COVER_RANGE_PER_VH)
+        hi = CENTRE_PCT - hold_vh / max(COVER_RANGE_PER_VH)
+        if not (lo - BAND_TOL <= head <= hi + BAND_TOL):
+            findings.append(
+                f"a {hold_vh:g}vh hold opens between cover {lo:.2f} and {hi:.2f} across "
+                f"the six viewports, and the light's first ink is at cover {head:g} — "
+                f"the build's head is {'before' if head < lo else 'after'} the hold's "
+                f"opening, so the root "
+                f"{'starts growing while the drawing is still climbing into view' if head < lo else 'stands still and finished for the difference'}. "
+                f"The hold and the head move together: 18 points of cover plus "
+                f"--lp-hold IS the build's length (invariant 6)")
+
     if findings:
         print(f"hold ramp: {len(findings)} finding(s)")
         for f in findings:
@@ -307,6 +383,11 @@ def main():
     if args.verbose:
         print(f"hold ramp: {len(HELD)} parts, one window {RANGE}")
         print(f"  ramp {FROM_Y} -> 0, reservation var(--lp-hold)")
+        if hold_m and head_m:
+            print(f"  a {float(hold_m.group(1)):g}vh hold opens cover "
+                  f"{CENTRE_PCT - float(hold_m.group(1)) / min(COVER_RANGE_PER_VH):.2f}"
+                  f"-{CENTRE_PCT - float(hold_m.group(1)) / max(COVER_RANGE_PER_VH):.2f}; "
+                  f"the light's first ink is cover {float(head_m.group(1)):g}")
     print("hold ramp OK — the reservation, the ramp's two ends and the window's "
           "length are one number, so the statement returns to its own layout "
           "exactly and the seam past the hold is the seam that was measured")

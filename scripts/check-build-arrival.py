@@ -72,6 +72,64 @@ TOKENS = ROOT / "design-system/assets/css/tokens.css"
 CENTRED = 50.0
 CEILING = 0.60
 
+# WHERE A HELD FIGURE FIRST SITS CENTRED, AND WHY IT IS NOT COVER 50 ANY MORE.
+#
+# The arithmetic at the top of this file is still exactly right — cover 50 % IS
+# the centred position, at every viewport, by the definition of the cover range.
+# What changed under it is that this page's statement no longer ARRIVES at that
+# position: #219 gave it a hold, and a held figure reaches centre at the hold's
+# OPEN and stands there, motionless, until cover 50 % releases it.
+#
+# So for the statement and its root, cover 50 % is not the moment the reader
+# first looks at the drawing. It is the moment the drawing STOPS being looked
+# at from one place — the end of the long still stretch, after the whole held
+# build. Sampling there asks "how much was built during the hold?", and the
+# answer to that is meant to be "nearly all of it": the hold exists to put the
+# build where the eye is. Read at cover 50 the ceiling scores the cure as the
+# disease, and it caps --lp-hold at about four points of extra reservation.
+#
+# The rule this file is about does not change one word. The MOMENT it is
+# evaluated at does: a figure is sampled where it FIRST sits centred, which for
+# an unheld assembly is cover 50 % and for a held one is the hold's opening.
+# What that still catches, and it is the real regression, is a build whose head
+# drifts EARLIER than the hold's open — ink laid down while the drawing is
+# still climbing into view, below where anyone is looking, which is the exact
+# fault the file was written against and is now reachable by moving one token.
+#
+# THE HOLD IN POINTS NEEDS A VIEWPORT AND THIS SCRIPT DOES NOT HAVE ONE.
+# --lp-hold is authored in vh; the cover range is `100vh + the flow's own
+# height`, and that height is a stretch between two anchors, so no stylesheet
+# and no stdlib can resolve it. What CAN be pinned is the ratio between them,
+# measured at the six viewports the gate admits and recorded in the rule's own
+# note in landing-page.html — cover range over viewport height:
+#
+#     1024 x  720   1242.0 / 720  = 1.725      1440 x  900   1563.9 / 900  = 1.738
+#     1280 x  800   1397.8 / 800  = 1.747      1920 x 1080   1913.9 / 1080 = 1.772
+#     1366 x  768   1382.3 / 768  = 1.800      2560 x 1440   2453.9 / 1440 = 1.704
+#
+# A hold of H vh is therefore H / ratio points of cover, and the LARGEST ratio
+# gives the FEWEST points, which opens the hold LATEST and so leaves the most
+# build already run before it. That is the conservative end and it is the one
+# taken here. Re-measure this table when the flow's height law changes; it is
+# the same table the note carries, and it is data, not a claim about geometry.
+COVER_RANGE_PER_VH = (1.725, 1.747, 1.800, 1.738, 1.772, 1.704)
+
+
+def first_centred(text):
+    """The cover position at which the held figure first sits centred.
+
+    Returns (position, hold_source). Without a hold the answer is cover 50 %,
+    which is what this file always assumed and is still right for anything that
+    travels the whole way past the eye.
+    """
+    m = re.search(r"--lp-hold:\s*([\d.]+)vh\s*;", text)
+    if m is None:
+        return CENTRED, None
+    hold_vh = float(m.group(1))
+    # Fewest points -> latest opening -> most build already run.
+    points = hold_vh / max(COVER_RANGE_PER_VH)
+    return CENTRED - points, f"{hold_vh:g}vh"
+
 # WHAT THE CEILING IS ON, and it is not every animation a figure runs.
 #
 #   BUILD      the drawing being constructed — the strokes, the ghosts, the
@@ -227,23 +285,24 @@ def rule_body(text, selector):
     return body
 
 
-def progress(start, end, l, u, ease):
-    """Rendered progress of one part at the centred moment.
+def progress(start, end, l, u, ease, at):
+    """Rendered progress of one part at the moment its figure first sits centred.
 
     `start` and `end` are (base, --l coefficient, --u coefficient) triples, so
     a window bought by the stroke's own run resolves here rather than at four
-    call sites.
+    call sites. `at` is that moment in cover %, which is cover 50 for a figure
+    that travels and the hold's opening for one that is held.
     """
     a = start[0] + start[1] * l + start[2] * u
     b = end[0] + end[1] * l + end[2] * u
     if b <= a:
         return None
-    return ease(min(1.0, max(0.0, (CENTRED - a) / (b - a))))
+    return ease(min(1.0, max(0.0, (at - a) / (b - a))))
 
 
 # --------------------------------------------------------------- checks ----
 
-def check_flow(findings, verbose):
+def check_flow(findings, verbose, at):
     """The root: contour ink, the light's own draw, and the junctions."""
     text = LANDING.read_text(encoding="utf-8")
     parts = {
@@ -299,7 +358,7 @@ def check_flow(findings, verbose):
                 if w is None:
                     findings.append(f"flow: a .{cls} has a `d` this check cannot measure: {d!r}")
                     continue
-            p = progress(a, b, l, u, LINEAR)
+            p = progress(a, b, l, u, LINEAR, at)
             if p is None:
                 findings.append(f"flow: .{cls}'s window ends before it starts at --l {l}")
                 continue
@@ -313,19 +372,19 @@ def check_flow(findings, verbose):
 
     for label, cls, f, n, role in results:
         if verbose:
-            print(f"  flow · {label:14} ({cls}, {n} parts): {f * 100:5.1f} % at cover 50  [{role}]")
+            print(f"  flow · {label:14} ({cls}, {n} parts): {f * 100:5.1f} % at cover {at:.2f}  [{role}]")
         if role is not BUILD:
             continue
         if f > CEILING:
             findings.append(
                 f"flow: {label} reads {f * 100:.1f} % complete at the moment the drawing "
-                f"sits centred (cover 50 %), over the {CEILING * 100:.0f} % ceiling — "
+                f"FIRST sits centred (cover {at:.2f} %), over the {CEILING * 100:.0f} % ceiling — "
                 f"re-anchor the window later (foundations/motion.html#arrival)"
             )
     return results
 
 
-def check_statement(findings, verbose):
+def check_statement(findings, verbose, at):
     """The statement figure: parts that fade, so a mean over parts is the measure."""
     css = COMPONENTS.read_text(encoding="utf-8")
     html = LANDING.read_text(encoding="utf-8")
@@ -357,19 +416,19 @@ def check_statement(findings, verbose):
             continue
         a, b = pairs[0], pairs[1]
         n = len(re.findall(rf'class="{cls}"', figure)) or 1
-        p = progress(a, b, 0.0, 0.0, ease)
+        p = progress(a, b, 0.0, 0.0, ease, at)
         results.append((cls, p, n, a[0], b[0], role))
 
     for cls, p, n, a, b, role in results:
         if verbose:
             print(f"  statement · {cls:16} (cover {a:g}-{b:g}, {n} parts): "
-                  f"{p * 100:5.1f} % at cover 50  [{role}]")
+                  f"{p * 100:5.1f} % at cover {at:.2f}  [{role}]")
         if role is not BUILD:
             continue
         if p > CEILING:
             findings.append(
                 f"statement figure: .{cls} reads {p * 100:.1f} % complete at the moment the "
-                f"figure sits centred (cover 50 %), over the {CEILING * 100:.0f} % ceiling — "
+                f"figure FIRST sits centred (cover {at:.2f} %), over the {CEILING * 100:.0f} % ceiling — "
                 f"re-anchor the window later (foundations/motion.html#arrival)"
             )
     return results
@@ -379,14 +438,18 @@ def main():
     parser = argparse.ArgumentParser(
         description="Every assembly must still be running when its figure is centred.")
     parser.add_argument("-v", "--verbose", action="store_true",
-                        help="print the rendered state of every family at cover 50 %%")
+                        help="print the rendered state of every family at that moment")
     args = parser.parse_args()
 
     findings = []
+    at, hold = first_centred(LANDING.read_text(encoding="utf-8"))
     if args.verbose:
-        print(f"build arrival, at cover {CENTRED:g} % — the moment a figure sits centred:")
-    flow = check_flow(findings, args.verbose)
-    stmt = check_statement(findings, args.verbose)
+        where = (f"cover {at:.2f} % — the opening of a {hold} hold, where the figure "
+                 f"FIRST sits centred" if hold else
+                 f"cover {at:g} % — the moment a figure sits centred")
+        print(f"build arrival, at {where}:")
+    flow = check_flow(findings, args.verbose, at)
+    stmt = check_statement(findings, args.verbose, at)
 
     if not flow or not stmt:
         findings.append("nothing was measured — the register no longer matches the tree")
@@ -400,7 +463,8 @@ def main():
              + [p for _, p, _, _, _, role in stmt if role is BUILD])
     print(f"build arrival OK — {len(flow) + len(stmt)} families across 2 assemblies, "
           f"{len(gated)} of them the build itself and none over {CEILING * 100:.0f} % "
-          f"at cover 50 %; worst is {max(gated) * 100:.1f} %")
+          f"at cover {at:.2f} %, where the figure first sits centred; "
+          f"worst is {max(gated) * 100:.1f} %")
     return 0
 
 
