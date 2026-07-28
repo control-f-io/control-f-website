@@ -40,6 +40,23 @@ short 1 px line, not a thin one.
 NO FREE ENDS. Every terminal arrives: on the rail at y 620, or on another
 branch. The script asserts it -- and scripts/check-flow-terminals.py asserts it
 again on the shipped markup, which is where it can actually rot.
+
+AND NO CROSSINGS, which is the same sentence about the middle of a stroke
+rather than its end, and was the half this script did not say. The growth rule
+turned a branch away from a WALL and had no idea the rest of the root was
+there, so three branches walked through their own siblings -- at (600, 550),
+(195, 555) and (653.33, 478.33). In a construction drawing two lines crossing
+with nothing on the crossing MEANS "not connected", and none of the three could
+carry a node, because a crossing is not a junction. A drawing whose subject is
+data merging was denying it three times in its own vocabulary.
+
+So the wall test became a room test, and a branch is now chosen WHOLE: both
+legs together, first free pair wins, in the preference order the rule always
+had (the side it wants, the other side, then straight down), and a branch with
+no free pair is not grown. Leg by leg is not enough -- flipping leg 1 to clear
+a crossing is exactly what laid a child branch along its parent's leg 2, which
+is one stroke at twice the weight and worse than the crossing it was reached
+for. scripts/check-flow-crossings.py asserts the result on the paste.
 """
 
 from fractions import Fraction as F
@@ -73,6 +90,49 @@ def name_of(kind, side):
 
 segments = []   # (x1, y1, x2, y2, dist) -- dist is the run from the void to x1
 DIST = {}       # junction -> its run from the void, so a branch inherits it
+
+
+def touches(x, y, nx, ny):
+    """Does the step (x,y)->(nx,ny) run into something already drawn?
+
+    A ROOT DOES NOT PASS THROUGH ITSELF, and in this system that is not a
+    botanical nicety: the drawing's whole vocabulary is construction, where two
+    lines crossing without a dot on the crossing means "these are not
+    connected". Three of the grown branches did exactly that -- ran straight
+    over another branch -- so at three points the reader could not tell whether
+    the data merges or passes by, in a drawing whose entire subject is data
+    merging.
+
+    A step leaves a junction that already carries strokes, and it may END on
+    another branch -- that is the arrival "no free ends" is about, and it is
+    the one contact that is wanted. So the parameter is open at the start and
+    CLOSED at the finish: 0 < t < 1 is a crossing, t == 1 is an arrival.
+
+    AND THE PARALLEL CASE IS NOT "no intersection", which is the trap the first
+    version of this fell into: two steps leaving the SAME junction on the SAME
+    angle have no crossing point to find, because one lies along the other. A
+    45deg branch drawn over the first 70 units of its 110-unit sibling is one
+    stroke at twice the weight and a fringe with a limb missing -- worse than
+    the crossing it was reached for, and invisible in a diff. Both branches
+    below were turned into exactly that by a naive flip, so collinearity is
+    tested first and shares no code with the crossing test.
+    """
+    for x1, y1, x2, y2, _ in segments:
+        det = (nx - x) * (y2 - y1) - (ny - y) * (x2 - x1)
+        if det == 0:
+            # parallel. On the same line, and overlapping in more than the one
+            # point they may share?
+            if (x1 - x) * (ny - y) - (y1 - y) * (nx - x) != 0:
+                continue
+            lo, hi = min(y, ny), max(y, ny)
+            if min(y1, y2) < hi and max(y1, y2) > lo:
+                return True
+            continue
+        t = ((x1 - x) * (y2 - y1) - (y1 - y) * (x2 - x1)) / det
+        u = ((x1 - x) * (ny - y) - (y1 - y) * (nx - x)) / det
+        if 0 < t < 1 and 0 <= u <= 1:
+            return True
+    return False
 
 
 def walk(x, y, chain):
@@ -157,6 +217,35 @@ RATIO = F(5, 8)        # where a branch puts its own junction, in its drop
 # whatever drop is left.
 
 
+def lands(x, y, name, h):
+    """Where a step would actually be drawn: clipped to the rail."""
+    dx, dy = STEPS[name]
+    nx, ny = x + dx * h, y + dy * h
+    if ny > RAIL:
+        t = (RAIL - y) / (ny - y)
+        nx, ny = x + (nx - x) * t, RAIL
+    return nx, ny
+
+
+def free(x, y, name, h):
+    """Is this step clear -- inside the box, and clear of everything drawn?
+
+    THE SAME TEST THE WALL ALWAYS GOT, EXTENDED TO THE DRAWING ITSELF. The
+    growth rule has always turned a branch away from a wall; it had no idea the
+    rest of the root was there, so it turned away from the box and walked
+    through its own siblings. Both clauses answer one question -- is there room
+    this way -- and a branch that has to be told twice which obstacles count is
+    the shape of the bug this fixes.
+
+    Measured where the step will be DRAWN, clipped to the rail, because a
+    branch that overshoots the rail cannot cross anything under it.
+    """
+    nx, ny = lands(x, y, name, h)
+    if not (LEFT <= nx <= RIGHT):
+        return False
+    return not touches(x, y, nx, ny)
+
+
 def grow(x, y, kind, depth, side):
     """One branch: turn a notch, run 5/8 of the drop, turn again, meet the rail.
 
@@ -181,16 +270,32 @@ def grow(x, y, kind, depth, side):
     b = "D" if a == "S" else "S"
     h1 = F(5) * round(rem * RATIO / 5)  # on fives, so the paste stays readable
     h2 = rem - h1
-    if not (LEFT <= x + STEPS[name_of(a, side)][0] * h1 <= RIGHT):
-        side = -side                    # a wall is not something to arrive at
-    x1, y1, _ = walk(x, y, [(name_of(a, side), h1)])
-    side2 = side
-    if not (LEFT <= x1 + STEPS[name_of(b, side2)][0] * h2 <= RIGHT):
-        side2 = -side2                  # the tip curves back rather than out
-    if not (LEFT <= x1 + STEPS[name_of(b, side2)][0] * h2 <= RIGHT):
-        b = "V"                         # ...and only then falls straight
-    walk(x1, y1, [(name_of(b, side2), h2)])
-    grow(x1, y1, a, depth + 1, -side)
+    # A BRANCH IS CHOSEN WHOLE, and that is the second half of the crossing
+    # fix. Turning one leg away from an obstacle, leg by leg, is how the
+    # sibling overlaps got made: leg 1 flipped to clear a crossing and landed
+    # the child on top of the parent's leg 2, which no test of leg 1 alone can
+    # see. So both legs are chosen together and the branch is only committed if
+    # the PAIR fits -- the preference order is the one this rule always had
+    # (the side it wants, then the other side, then straight down), and a
+    # branch with no free pair is simply not grown. A root does not put out a
+    # limb where there is no room for one; drawing it anyway is what left the
+    # drawing saying something untrue about itself.
+    for n1 in (name_of(a, side), name_of(a, -side), "V"):
+        if not free(x, y, n1, h1):
+            continue
+        x1, y1 = lands(x, y, n1, h1)
+        s1 = side if n1 == "V" else (1 if n1.endswith("R") else -1)
+        if y1 >= RAIL:                  # leg 1 already arrived; there is no leg 2
+            walk(x, y, [(n1, h1)])
+            return
+        n2 = next((n for n in (name_of(b, s1), name_of(b, -s1), "V")
+                   if free(x1, y1, n, h2)), None)
+        if n2 is None:                  # the tip has nowhere to go from there
+            continue
+        walk(x, y, [(n1, h1)])
+        walk(x1, y1, [(n2, h2)])
+        grow(x1, y1, a, depth + 1, -s1)
+        return
 
 
 # The seven junctions that carry a branch, and the step that made each of them:
@@ -224,7 +329,7 @@ def on_segment(px, py, seg):
     return min(x1, x2) <= px <= max(x1, x2) and min(y1, y2) <= py <= max(y1, y2)
 
 
-free = []
+free_ends = []
 for i, (x1, y1, x2, y2, d) in enumerate(segments):
     # every segment is on one of the five angles
     dx, dy = x2 - x1, y2 - y1
@@ -234,11 +339,38 @@ for i, (x1, y1, x2, y2, d) in enumerate(segments):
         continue
     if any(on_segment(x2, y2, s) for j, s in enumerate(segments) if j != i):
         continue
-    free.append((i, x2, y2))
+    free_ends.append((i, x2, y2))
+
+# AND NO CROSSINGS, which is the other half of the same sentence. "Every
+# terminal arrives" was asserted from the first paste; nothing asserted that
+# the strokes BETWEEN the terminals keep out of each other's way, and three
+# pairs did not. A crossing with no dot on it says "not connected" in this
+# vocabulary, so a drawing of data merging had three points where the reader
+# was told, in the drawing's own language, that it does not.
+crossings = []
+for i in range(len(segments)):
+    for j in range(i + 1, len(segments)):
+        ax1, ay1, ax2, ay2, _ = segments[i]
+        bx1, by1, bx2, by2, _ = segments[j]
+        det = (ax2 - ax1) * (by2 - by1) - (ay2 - ay1) * (bx2 - bx1)
+        if det == 0:
+            continue
+        t = ((bx1 - ax1) * (by2 - by1) - (by1 - ay1) * (bx2 - bx1)) / det
+        u = ((bx1 - ax1) * (ay2 - ay1) - (by1 - ay1) * (ax2 - ax1)) / det
+        if not (0 <= t <= 1 and 0 <= u <= 1):
+            continue
+        p = (ax1 + t * (ax2 - ax1), ay1 + t * (ay2 - ay1))
+        # an END meeting another stroke is the arrival; only the interior of
+        # BOTH strokes at once is a crossing
+        if p in ((ax1, ay1), (ax2, ay2)) or p in ((bx1, by1), (bx2, by2)):
+            continue
+        crossings.append((i, j, float(p[0]), float(p[1])))
 
 print(f"{len(segments)} segments ({SKELETON} pinned, {len(segments) - SKELETON} grown)")
-print(f"free ends: {len(free)}  {free}")
-assert not free, "a root has no free ends"
+print(f"free ends: {len(free_ends)}  {free_ends}")
+print(f"crossings: {len(crossings)}  {crossings}")
+assert not free_ends, "a root has no free ends"
+assert not crossings, "a root does not pass through itself"
 
 # --------------------------------------------------------------------- paste
 #
@@ -298,16 +430,37 @@ for x1, y1, x2, y2, d in segments:
 # because "eight is a lot for one object; twelve is too many" -- so the three
 # rail arrivals carry none. They do not need one: the frame's own verticals
 # stand up out of them, which is a louder mark than a 2 px dot.
-print()
-NODES = [
-    (F(330), F(150), 3), (F(420), F(195), 3),
-    (F(60), F(330), 2), (F(480), F(255), 2), (F(720), F(345), 2),
-    (F(0), F(450), 1), (F(970), F(470), 1), (F(600), F(495), 1),
+#
+# THE RADIUS IS NOT TYPED ANY MORE, and that is the finding. Three of the eight
+# stood at exactly the same run from the void -- (720, 345), (0, 450) and
+# (600, 495) are all at d 456, level 1.5 -- and carried r 2, r 1 and r 1. Same
+# distance, two radii, in a drawing whose only rule for the radius is that it
+# steps down WITH distance. A hand-typed ladder cannot help doing this: it is
+# read off the picture ("the fringe ones look far away") rather than off the
+# number the picture is built from, and the picture moves.
+#
+# So r is a function of the run, in the drawing's own depth units: level()
+# already normalises the run to 0-3, which is three bands of one, and the
+# manual's ladder is three deep -- card 01 puts r 3 on the lit face, 2 on the
+# stage below it, 1 on the one below that. Nearest third r 3, middle third
+# r 2, last third r 1. Held on the shipped markup by check-flow-crossings.py,
+# which also has the ladder.
+NODE_POINTS = [
+    (F(330), F(150)), (F(420), F(195)), (F(480), F(255)), (F(60), F(330)),
+    (F(720), F(345)), (F(0), F(450)), (F(970), F(470)), (F(600), F(495)),
 ]
-for nx, ny, r in NODES:
+
+
+def radius(l):
+    return max(1, 3 - int(l))
+
+
+print()
+for nx, ny in NODE_POINTS:
     assert (nx, ny) in DIST, f"node at ({nx}, {ny}) is not a junction"
-    print(f'<circle class="lp-flow__node" style="--l:{level(DIST[(nx, ny)])}" '
-          f'cx="{num(nx)}" cy="{num(ny)}" r="{r}"/>')
+    l = level(DIST[(nx, ny)])
+    print(f'<circle class="lp-flow__node" style="--l:{l}" '
+          f'cx="{num(nx)}" cy="{num(ny)}" r="{radius(float(l))}"/>')
 
 # ------------------------------------------------------------------ the values
 #
@@ -357,7 +510,20 @@ VALUES = [
     (F(250), F(190),  3840, "12px",                "8px"),
     (F(450), F(225),  3200, "calc(-100% - 12px)",  "8px"),
     (F(500), F(235),  5440, "12px",                "calc(-100% - 8px)"),
-    (F(690), F(405),  1360, "calc(-100% - 12px)",  "-50%"),
+    # 1 360 RODE THE BRANCH THAT MOVED. It sat at (690, 405) on the branch
+    # leaving (720, 345) down-LEFT, and that branch is the one the crossing
+    # rule turned around: it now leaves down-RIGHT, so its mirror point is
+    # (750, 405) and the old one rides nothing at all. run_to() below would
+    # have caught it -- this is that assertion doing its job on the first run
+    # after the geometry changed under it.
+    #
+    # THE SIDE IS STILL THE ONE THE LINE WALKS AWAY FROM, and on a 63.43deg
+    # line that is a HORIZONTAL clearance, not a vertical one: descending, the
+    # line moves right, so the left side opens and the right side closes. Left
+    # of the point it stays, which is where it was. Measured on the label's own
+    # box at 1440: at its right edge the line is 17 px above its top corner and
+    # climbing away across the rest of it.
+    (F(750), F(405),  1360, "calc(-100% - 12px)",  "-50%"),
     (F(860), F(415),  4080, "12px",                "calc(-100% - 8px)"),
 ]
 
