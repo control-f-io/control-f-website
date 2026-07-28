@@ -2137,6 +2137,65 @@ ul.cf-nav__list {
   place-items: center;
   aspect-ratio: 4 / 3;
   min-width: 0;
+  /* THE BOX STOPS WHERE THE DRAWING STOPS, and the number is not chosen: it is
+     the drawing's own cap plus the air this rule declares around it. The svg
+     below is capped at 22rem and this rule states --space-8 of padding on every
+     side, so 22rem + 2 x --space-8 = 26rem is the tallest this panel can be and
+     still be a drawing with its padding around it. One pixel more is air nobody
+     asked for.
+
+     WITHOUT IT THE 4:3 RAN AWAY FROM ITS OWN CONTENT. The note under the svg
+     already records the crossover — "above 554 the 22 rem width cap binds first
+     and the height never can" — but only the drawing was capped there, not the
+     box holding it, so past that card width the panel kept taking three
+     quarters of every pixel the card gained while the object inside it stayed
+     352 x 352. Measured on the landing page's stacked "Was wir machen" column,
+     dead height BEYOND the --space-8 this rule asks for:
+
+       viewport   card    panel        drawing    dead height
+       600        532     532 x 399    352 x 334  0     (height cap still binds)
+       700        621     621 x 466    352 x 352  50
+       768        682     682 x 511    352 x 352  95
+       834        740     740 x 555    352 x 352  139
+       1000       888     888 x 666    352 x 352  250
+
+     At 834 — an iPad Air held upright — the panel was 63 % of the card's whole
+     height to show an object covering 30 % of its area, and the four steps
+     stood 3 678 px tall between them. The card is designed at 375, where the
+     drawing fills its panel, and it is designed again at the two-column fold,
+     where the panel is square beside the copy. The 360 px of viewport between
+     those two designs had no design in it, only the 4:3 stretching.
+
+     THIS ADDS NO THRESHOLD, and the register says why in its own words: it is
+     "a list of QUERIES, not of numbers". There is no query here. The cap is a
+     length derived from two the rule already states, and it engages where the
+     4:3 box grows past it — binary-searched to a card width of 556 px, one
+     pixel over 4/3 of the cap and 2 px above the 554 the register records for
+     the crossover the SVG's own cap makes. Below it nothing changes: the box is
+     shorter than the cap, and the svg's max-block-size still shrinks the
+     drawing to fit exactly as the note below describes. At and above it the
+     panel is 26rem plus its hairline, the content box is 22rem, and the drawing
+     fills it to the pixel — measured 352 x 352 at 700, 768, 834, 900 and 1000.
+
+     NOT IN THE TWO-COLUMN FORM, where it is reset: there the panel is square
+     BESIDE the copy and its height is the row's, so a cap would leave the
+     hairline that divides the card stopping short of the copy it divides.
+
+     THE BORDER IS IN THE NUMBER AND THE WIDTH IS STATED, and both are here
+     because of what a max size does to a box that also has a ratio. Everything
+     is border-box (base.css:49), so the cap has to carry the border-bottom this
+     rule draws or the content box lands on 351 and the drawing misses its own
+     22rem cap by a pixel — which is the pixel --trace-weight: 1.82 is derived
+     from, 640/352 = 1.00 CSS px on the contour. And a max size in one axis
+     TRANSFERS through an aspect-ratio to the other whenever the box's size in
+     that other axis is a stretch-fit rather than a stated length: with the cap
+     and no width, the panel came out 555 x 416 — the ratio pulling the WIDTH in
+     to match the clamped height, a card-wide band shrunk to a 555 px box with
+     the copy's full width under it. `width: 100%` makes the inline size a
+     definite length, the ratio resolves height from width as it always did, and
+     the cap clamps that height and nothing else. */
+  width: 100%;
+  max-block-size: calc(22rem + var(--space-8) * 2 + var(--stroke-1));
   padding: var(--space-8);
   border-bottom: var(--stroke-1) solid var(--border-strong);
   background: transparent;
@@ -2267,6 +2326,13 @@ ul.cf-nav__list {
   .cf-process { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .cf-process__figure {
     aspect-ratio: 1;
+    /* The stacked form's cap is released here, and the reason is the hairline.
+       Square beside the copy, this panel's right border IS the card's divider,
+       so its height has to be the row's — capped at 26rem it would stop short
+       of the copy it divides on every card wider than 52rem. The stacked form
+       has no such duty: its border-bottom is drawn at the panel's own edge
+       wherever that edge lands. */
+    max-block-size: none;
     border-bottom: 0;
     border-right: var(--stroke-1) solid var(--border-strong);
   }
