@@ -109,6 +109,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PATTERNS = ROOT / "design-system" / "patterns"
+# The statement-to-process chain moved to prototypes/ on 2026-07-28;
+# these checks follow the drawing, not the folder.
+PROTOTYPES = ROOT / "design-system" / "prototypes"
 TOKENS = ROOT / "design-system" / "assets" / "css" / "tokens.css"
 
 # The copy that rides the routes, and the chrome that stands inside the box.
@@ -296,7 +299,7 @@ def main():
 
     tokens = spacing_tokens()
     findings, values, chromes, pages = [], 0, 0, 0
-    for page in sorted(PATTERNS.glob("*.html")):
+    for page in sorted([*PATTERNS.glob("*.html"), *PROTOTYPES.glob("*.html")]):
         text = page.read_text(encoding="utf-8")
         if VALUE_CLASS not in text and CHROME_SELECTORS[0] not in text:
             continue

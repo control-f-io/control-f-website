@@ -82,7 +82,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PAGE = ROOT / "design-system/patterns/landing-page.html"
+PAGE = ROOT / "design-system/prototypes/statement-to-process.html"
 
 LINE_CLASS = "lp-frame__line"
 RULE_SELECTOR = ".lp-frame__line"

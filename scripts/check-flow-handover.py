@@ -123,6 +123,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PATTERNS = ROOT / "design-system" / "patterns"
+# The statement-to-process chain moved to prototypes/ on 2026-07-28;
+# these checks follow the drawing, not the folder.
+PROTOTYPES = ROOT / "design-system" / "prototypes"
 
 SVG_RE = re.compile(r'<svg\b[^>]*class="([^"]*)"[^>]*viewBox="([^"]*)"(.*?)</svg>', re.S)
 PATH_RE = re.compile(r'<path\b[^>]*class="([^"]*)"[^>]*\bd="([^"]*)"', re.S)
@@ -255,7 +258,7 @@ def main():
     args = parser.parse_args()
 
     findings, seams = [], 0
-    for page in sorted(PATTERNS.glob("*.html")):
+    for page in sorted([*PATTERNS.glob("*.html"), *PROTOTYPES.glob("*.html")]):
         f, found = check_page(page, args.verbose)
         findings += f
         seams += 1 if found else 0

@@ -83,6 +83,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PATTERNS = ROOT / "design-system" / "patterns"
+# The statement-to-process chain moved to prototypes/ on 2026-07-28;
+# these checks follow the drawing, not the folder.
+PROTOTYPES = ROOT / "design-system" / "prototypes"
 
 SVG_RE = re.compile(r'<svg\b[^>]*class="([^"]*)"[^>]*>(.*?)</svg>', re.S)
 GRAD_RE = re.compile(
@@ -291,7 +294,7 @@ def main():
     args = ap.parse_args()
 
     findings, stats = [], None
-    for path in sorted(PATTERNS.glob("*.html")):
+    for path in sorted([*PATTERNS.glob("*.html"), *PROTOTYPES.glob("*.html")]):
         f, s = check(path, args.verbose)
         findings += f
         stats = s or stats

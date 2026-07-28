@@ -103,7 +103,7 @@ from fractions import Fraction
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PAGE = ROOT / "design-system" / "patterns" / "landing-page.html"
+PAGE = ROOT / "design-system" / "prototypes" / "statement-to-process.html"
 
 SVG_RE = re.compile(r'<svg\b[^>]*class="([^"]*)"[^>]*viewBox="([^"]*)"(.*?)</svg>', re.S)
 PATH_RE = re.compile(r'<path\b[^>]*class="([^"]*)"[^>]*\bd="([^"]*)"', re.S)

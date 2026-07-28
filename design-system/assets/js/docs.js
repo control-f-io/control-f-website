@@ -68,6 +68,7 @@
        and their own scroll engine, so they sit outside the documentation
        chrome like the patterns do. */
     { title: 'Animation Prototypes', items: [
+      { href: 'prototypes/statement-to-process.html', label: 'Statement → Prozess — die Kette (Labor)' },
       { href: 'prototypes/werte-scroll.html',    label: 'Werte — logo build' },
       { href: 'prototypes/services-scroll.html', label: 'Services — assembly' },
       { href: 'prototypes/expertise-scroll.html', label: 'Expertise — vier Felder' },
