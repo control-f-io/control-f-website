@@ -1295,3 +1295,30 @@ jobs:
       - name: Flow label law
         if: '!cancelled()'
         run: python3 scripts/check-flow-label-law.py
+      # The sixty-seventh, and the first that reads two things and holds them to
+      # each other rather than reading one and holding it to a number. The
+      # fault it exists for was invisible in either half: .lp-proc-head's rule
+      # is a `border-block-start` -- the header hangs BELOW its own hairline
+      # inside the gate, because that hairline is the drawing's rim -- and the
+      # block that set out to make that rule grow instead of arrive finished
+      # neutralised `border-bottom-color` and drew its replacement at
+      # `bottom`. Both edges named, both the wrong one.
+      #
+      # So `border-bottom-color: transparent` recoloured a border --flush had
+      # already set to 0 px, which is a no-op that reads exactly like the fix,
+      # and the 1 px opaque black block-start border went on painting. Measured
+      # at 1440 x 900 in 20 px steps: the painted rule entered the viewport
+      # finished at scroll y 742, the drawn one did not start until y 1100 and
+      # landed at y 1280. The reader met the finished rule the change was
+      # written to abolish, 358 px before the drawn one began, and then got a
+      # second full-container hairline growing in below it -- two parallel
+      # rules across a drawing that has one horizon, at every viewport inside
+      # the gate.
+      #
+      # Proven failing on the reintroduction: putting both declarations back on
+      # the block-end edge reports all three of the painted survivor, the edge
+      # mismatch and the no-op neutralisation; moving only the inset back
+      # reports the fourth on its own.
+      - name: Drawn rule edge
+        if: '!cancelled()'
+        run: python3 scripts/check-head-rule.py
