@@ -1218,10 +1218,23 @@ SEP = " "   # see the note at the values' own print loop below
 # line at 12.4 bar, a drive at 246 kW. They are typed, because a temperature is
 # not derivable from a geometry — but the CHOICE of stroke is not, and neither
 # is the placement, which goes through the same label law as everything else.
+# A POOL, NOT A LIST. The fringe holds as many of these as it can set clear of
+# the strokes, the numerals already placed and the frame — see fringe_readings
+# — and the pool is longer than the fringe can carry on purpose. Adding a
+# reading is then a matter of writing one more plausible plant value rather
+# than of finding it a home, and the drawing never has to be redrawn to take
+# one. They are read in order, so the first are the ones most worth having.
+#
+# THEY ARE TYPED, and that is the one thing on this drawing that is. A
+# temperature is not derivable from a geometry. What is not typed is where any
+# of them goes, which is the half that was getting placed by eye.
 READINGS = [
     "74 \u00b0C", "12.4 bar", "246 kW", "1 480 rpm", "318 K",
-    "4.2 mm/s", "96 %", "51 Hz",
+    "4.2 mm/s", "96 %", "51 Hz", "38 m\u00b3/h", "690 V",
+    "21.5 A", "0.92 cos \u03c6", "7.4 kg/s", "1.6 kN\u00b7m",
+    "182 \u00b5m", "9.8 kPa",
 ]
+MIN_READINGS = 8           # below this the fringe has stopped being annotated
 
 
 def place_values():
@@ -1250,7 +1263,7 @@ def fringe_readings(texts):
     which is the fringe, which is all of them. A candidate that cannot be
     placed legibly is skipped and the next one tried — see place_reading.
     """
-    span = max(len(t) for t in texts) * LABEL_ADVANCE / FLOOR_SCALE * 0.7
+    span = max(len(t) for t in texts) * LABEL_ADVANCE / FLOOR_SCALE * 0.55
     taken, placed, out = [], list(VALUE_BOXES), []
     for x1, y1, x2, y2, d in sorted(segments, key=lambda s_: -s_[4]):
         if len(out) == len(texts):
@@ -1273,9 +1286,10 @@ def fringe_readings(texts):
 
 PLACED_VALUES, VALUE_BOXES = place_values()
 PLACED_READINGS = fringe_readings(READINGS)
-assert len(PLACED_READINGS) == len(READINGS), (
-    f"only {len(PLACED_READINGS)} of {len(READINGS)} readings could be placed "
-    f"clear of the strokes, the other labels and the walls")
+assert len(PLACED_READINGS) >= MIN_READINGS, (
+    f"only {len(PLACED_READINGS)} of the pool's {len(READINGS)} readings could "
+    f"be placed clear of the strokes, the other numerals and the frame, and the "
+    f"floor is {MIN_READINGS} — the fringe has stopped being annotated")
 
 print()
 for (px, py, side, (ox, oy), gap), text in zip(PLACED_READINGS, READINGS):
