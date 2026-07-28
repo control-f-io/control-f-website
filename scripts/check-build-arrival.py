@@ -33,7 +33,7 @@ check and not a restatement:
   page's flow was a bus of ten strokes and became a root of thirty-seven; the
   envelope that read 67 % of its ink at the centred position under the first
   geometry read 78 % under the second, and its unweighted part mean barely moved,
-  because a 40-unit fringe twig and the 280-unit taproot count the same in a mean
+  because a 40-unit fringe twig and the 201-unit taproot count the same in a mean
   and do not count the same to an eye. Each stroke is weighted by its own length,
   taken from the `d` the markup ships.
 
