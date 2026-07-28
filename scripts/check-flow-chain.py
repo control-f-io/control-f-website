@@ -72,9 +72,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 LANDING = ROOT / "design-system/prototypes/statement-to-process.html"
 
-# The two tails every measured number at this seam was taken at.
-CONTOUR_LANDS = 66.0        # the frame's relay takes over here
-FADE_ENDS = 68.0            # the light is out here, and the lime sweep says so
+# THE TAILS ARE RECORDED, NOT NAILED, since the 2026-07-28 rebuild. The old
+# truth: the contour had to land at cover 66 because the frame's relay took
+# over there, and the light had to be out by 68 where the lime clearance was
+# swept — one drawing stretched between two sections by an anchor chain. The
+# rebuild put acts 1+2 on their own sticky stage; the stage RELEASES before
+# the cards' pin begins, so the relay coupling is gone by construction. What
+# the tails still owe: they resolve inside the track (< 100), the light leads
+# the contour, and these recorded values move only on purpose.
+CONTOUR_LANDS = 82.05       # 42 + 3.0805 * 13, the head plus the longest walk
+FADE_ENDS = 84.05           # the light's fade, six points behind its draw
 CARD_LIME = 11.5            # contain %, card 01's fill-opacity leaving 0
 TOL = 0.02                  # two decimal places, plus the rounding under them
 
@@ -164,10 +171,10 @@ def walk(segs):
 
 
 def cover_tail(body, const, l_plus_u):
-    """The last `cover` position a family's window resolves to."""
+    """The last `cover`/`contain` position a family's window resolves to."""
     tails = []
     for m in re.finditer(
-            r"cover\s+calc\(\(\s*([\d.]+)\s*\+\s*"
+            r"(?:cover|contain)\s+calc\(\(\s*([\d.]+)\s*\+\s*"
             r"(?:var\(--l\)|\(\s*var\(--l\)\s*\+\s*var\(--u\)\s*\))"
             r"\s*\*\s*var\(--flow-c\)\s*\)\s*\*\s*1%\)", body):
         on_u = "--u" in m.group(0)
@@ -239,20 +246,17 @@ def main():
             f"{junctions} junctions for {len(segs)} strokes; a tree has one fewer "
             f"junction than it has strokes")
 
-    # ---- 3a. the stem opens the drawing at the trunk's moment -----------
+    # ---- 3a. the trunk is drawn in the drawing, once, as both passes -----
+    # The stem tier — a second svg standing in for the trunk when the anchor
+    # chain stretched the box — was removed with the chain (2026-07-28). The
+    # trunk is the in-drawing pair again: one light and one contour on
+    # .lp-flow__trunk, visible, opening the walk.
     trunk = min(segs, key=lambda s: (s["l"], s["u"]))
-    stems = [(m.group(1), float(m.group(4)), float(m.group(5)))
-             for m in STROKE.finditer(text) if m.group(6) == STEM_D]
-    if len(stems) != 2:
+    trunk_marks = [m for m in STROKE.finditer(text) if "lp-flow__trunk" in m.group(0)]
+    if len(trunk_marks) < 1:
         findings.append(
-            f"{len(stems)} strokes on .lp-flow__stem, not the light-then-contour "
-            f"pair the tall-box tier draws the trunk as")
-    for kind, l, u in stems:
-        if (l, u) != (trunk["l"], trunk["u"]):
-            findings.append(
-                f"the stem's {kind} runs l {l} u {u} and the trunk it stands in for "
-                f"runs l {trunk['l']} u {trunk['u']} — the two tiers would open the "
-                f"drawing at different moments")
+            "no stroke carries .lp-flow__trunk — the drawing has no trunk of its "
+            "own and the walk below starts from an arbitrary stroke")
 
     # ---- 3. the two passes agree ----------------------------------------
     seg_by_d = {s["d"]: s for s in segs}
