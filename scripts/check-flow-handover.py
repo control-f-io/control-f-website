@@ -48,13 +48,13 @@ flow x maps to a frame x by 1000/1200 exactly. On that basis:
 
 WHAT THIS CHECK CANNOT SEE, stated here so it is not mistaken for covered. The
 seam has two axes and this check holds one of them. The VERTICAL join — the
-flow's box bottom against the frame's top rail — is not countable in any file,
-because it is the sum of the statement figure's height, the section rule below
-it, the pin section's padding and the stage's own centring, and the last of
-those is a function of viewport height by design (see the .lp-proc-stage note:
-the trio is centred in the stage, so the card's top slides half a pixel for
-every pixel of viewport). Measured at scroll positions before the pin engages,
-frame top minus flow bottom:
+flow's box bottom against the frame's top rail — WAS not countable in any file,
+because in the fallback tier it is the sum of the statement figure's height, the
+section rule below it, the pin section's padding and the stage's own centring,
+and the last of those is a function of viewport height by design (see the
+.lp-proc-stage note: the trio is centred in the stage, so the card's top slides
+half a pixel for every pixel of viewport). Measured in that tier at scroll
+positions before the pin engages, frame top minus flow bottom:
 
     1440 x  900     +1.58        the size the drawing was tuned at
     1280 x  768     +6.92
@@ -76,9 +76,21 @@ until scripts/check-flow-ratio.py read it against the viewBox), its top is
 locked to the void it leaves, and a box with one degree of freedom cannot serve
 two arrivals — the same over-determination .lp-flow's own note works through for
 the horizontal axis and resolves by keeping the arrival and letting the
-departure drift on the void's rim. Bottom-anchoring the box trades the sixteen
-free ends at the rail for one free end at the void, 167 px below its rim at
-1920 x 1080, which is a different bug and not a fix.
+departure drift on the void's rim. Bottom-anchoring the box ON ITS OWN trades the
+sixteen free ends at the rail for one free end at the void, 167 px below its rim
+at 1920 x 1080, which is a different bug and not a fix.
+
+AND THAT IS WHY #207 SHIPPED THE BOTTOM ANCHOR WITH A STROKE TO ABSORB IT, so
+the paragraph above is now the fallback's account and not the page's. .lp-flow
+is bound between the void and the rail, .lp-flow__stem crosses the stretch as a
+stroke placed in page pixels, and every row of the table above goes to 0.00 —
+which makes this axis four declarations in one file rather than a sum of layout
+terms, and therefore countable after all. scripts/check-seam-anchor.py reads
+them: the rail is nameable, .lp-flow's `bottom` is an anchor on THAT name, the
+box is told to stretch to it, and the numerals take the same foot. Measured by
+making each edit and reloading, `align-self: stretch` alone is worth 171.58 px
+at 1920 x 1080 and 351.58 at 2560 x 1440, and every check in this repository —
+this one included — passed on that state.
 
 AND EVERY ROW OF THAT TABLE IS A PRE-PIN NUMBER. .lp-frame sits inside
 .cf-pin__stage, which is `position: sticky; top: 0`; .lp-flow sits in static
