@@ -564,17 +564,100 @@
          the top rail then spreads outward from the middle vertical the way the
          flow spread from its own split; the base closes it last.
 
+         THE WINDOW IS BOUGHT BY THE STROKE'S OWN LENGTH, AND IT USED TO BE A
+         FLAT 12. Six strokes, one window width, and five of the six are 500
+         viewBox units long — so the flat number was right five times and the
+         sixth stroke is the base rail, M0 500H1000, which is 1000. It drew
+         twice the line in the same scroll. Measured as the tip's travel, which
+         is the quantity check-scrub-rate.py is written in:
+
+           1440 x 900    five strokes 5.94 px/px    base 11.85
+           1280 x 800                 5.94                11.87
+           1024 x 720                 5.52 / 5.27         10.55
+           1512 x 982                 5.44                10.86
+           1920 x 1080                4.95                 9.88
+
+         Exactly 2.00x at every viewport, because the ratio is a pure number:
+         12 points per 500 units against 12 per 1000. A relay whose whole
+         premise is that consecutive strokes CHAIN — one line handed on, which
+         is what the paragraph above claims and what --o exists to make true —
+         cannot have its last leg travel at twice the speed of the five that
+         hand over to it. That is not a stagger, it is a different drawing
+         speed on one stroke.
+
+         So the rate is declared once, in points of entry per viewBox unit, and
+         every window is --u x that. .024 is the value the five correct strokes
+         already had (12 / 500); nothing that was right moves, and the base rail
+         goes from 12 points to 24.
+
+         AND THE 24 POINTS GO WHERE THE READER IS, which is the second half of
+         the same finding. The base rail is the one stroke of the six lying on
+         the frame's BOTTOM edge, and during entry that edge is below the fold:
+         the plate's foot only crosses the viewport bottom at entry 90.2 % at
+         1440 x 900 (90.8 at 1280 x 800, 88.9 at the gate floor, 83.5 at
+         1920 x 1080 — it is 812 px under the stage's top, over a viewport).
+         At `entry 80 -> 92` that put 84.4 % of the rail down before its own
+         line had entered the viewport at all, and 90.0 % at 1280 x 800: the
+         reader saw the last tenth of a stroke arrive and the rest was simply
+         already there. → foundations/motion.html#arrival, a build happens
+         where the eye is.
+
+         Ending at entry 100 instead of 92 is the fix and is also what the
+         paragraph on .lp-frame says the relay does — "the relay finishes as it
+         pins and the build takes over at contain 0" — which was true of the
+         frame's five OTHER strokes and eight points early on this one.
+         Measured off the rendered `scale` at the exact scroll where the rail's
+         own line crosses the viewport bottom, before -> after:
+
+           1440 x 900    84.4 -> 58.9 %
+           1280 x 800    90.0 -> 61.7
+           1280 x 848    70.8 -> 52.1
+           1024 x 720    73.1 -> 53.2
+           1512 x 982    56.5 -> 44.9
+           1920 x 1080   28.6 -> 31.0
+
+         The one that rises is the one viewport that was already well under,
+         and it rises because the window widened around a fixed moment of first
+         sight. 1280 x 800 is 1.7 points over the ~60 ceiling and is left
+         there: closing it means narrowing the window, which is the doubled
+         rate coming back.
+
+         AND ENTRY 100 IS NOW THE LAST THING IN THE PHASE, which it was not
+         when this was measured: the chrome used to fade up over `entry 92% ->
+         100%` and #199 moved it past the pin, to an offset in `contain`, so
+         that the index is not lit under a drawing still lying across it. That
+         left the relay's last eight points carrying nothing but the plate's
+         crossfade. They carry the base rail now, and the drawing's last stroke
+         lands on the same pixel of scroll the stage takes the page on.
+
+         --a 80 -> 76 follows from the width and not from taste: the base grows
+         from x 0, the left vertical's foot, which lands at 60 + 12 = 72, so 76
+         keeps the same four points of clearance behind its own junction that
+         the stroke had before. It closes on the bottom-right corner at 100,
+         twenty points after the right vertical put that corner there.
+
+         THE RATE IS UNIFORM IN THE DRAWING'S UNITS, NOT IN PIXELS, and the
+         gap between those is preserveAspectRatio="none": where the plate is
+         not exactly 2:1 the two axes scale differently, so a 500-unit vertical
+         and a 500-unit horizontal render 4.5 % apart at the gate floor (477 px
+         against 456) and identically everywhere the height cap does not bind.
+         The pure number is the one a script can hold and the one the authoring
+         is done in. scripts/check-relay-rate.py holds it, and holds --u
+         against the `d` it claims to measure.
+
          One stroke weight, one colour. The light pass that used to lead each
          stroke in the near rake is gone: a border is a contour, and colour on
          it read as a stray tint on the one element that frames everything
          else. → foundations/colors.html#one-per-screen for where lime does
          belong on this page. */
+      .lp-frame { --relay-rate: .024; }
       .lp-frame__line {
         stroke: var(--border-strong);
         transform-origin: var(--o, 0 0);
         animation: lp-frame-draw linear both;
         animation-timeline: --cf-pin;
-        animation-range: entry calc(var(--a) * 1%) entry calc((var(--a) + 12) * 1%);
+        animation-range: entry calc(var(--a) * 1%)
+                         entry calc((var(--a) + var(--u) * var(--relay-rate)) * 1%);
       }
       /* THE FLOW: the data leaving the void and growing down into the frame, as
          a root rather than as a bus. Anchored to the figure rather than placed
@@ -2056,14 +2139,21 @@
                    preserveAspectRatio="none" stretches the 1000 x 500 box to the
                    plate, so coordinates are fractions of the frame; every stroke is
                    axis-aligned, so nothing distorts. --a is the stroke's start in
-                   entry points. -->
+                   entry points, and --u is its LENGTH in those same viewBox units,
+                   which is what buys the window: the draw rate is one constant for
+                   the whole relay (.lp-frame's --relay-rate) and the window is
+                   --u x that. Stated in the markup beside the `d` it measures, the
+                   way the flow states --l beside the path it staggers, and held
+                   against the `d` by scripts/check-relay-rate.py — a hand-typed --u
+                   that disagrees with its own stroke is the failure that check
+                   exists for. -->
               <svg class="lp-frame" viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true">
-                <path class="lp-frame__line" style="--a:56;--o:0 0"    d="M500 0V500"/>
-                <path class="lp-frame__line" style="--a:60;--o:0 0"    d="M0 0V500"/>
-                <path class="lp-frame__line" style="--a:68;--o:0 0"    d="M1000 0V500"/>
-                <path class="lp-frame__line" style="--a:72;--o:100% 0" d="M0 0H500"/>
-                <path class="lp-frame__line" style="--a:74;--o:0 0"    d="M500 0H1000"/>
-                <path class="lp-frame__line" style="--a:80;--o:0 0"    d="M0 500H1000"/>
+                <path class="lp-frame__line" style="--a:56;--u:500;--o:0 0"     d="M500 0V500"/>
+                <path class="lp-frame__line" style="--a:60;--u:500;--o:0 0"     d="M0 0V500"/>
+                <path class="lp-frame__line" style="--a:68;--u:500;--o:0 0"     d="M1000 0V500"/>
+                <path class="lp-frame__line" style="--a:72;--u:500;--o:100% 0"  d="M0 0H500"/>
+                <path class="lp-frame__line" style="--a:74;--u:500;--o:0 0"     d="M500 0H1000"/>
+                <path class="lp-frame__line" style="--a:76;--u:1000;--o:0 0"    d="M0 500H1000"/>
               </svg>
             </article>
             <article class="cf-process cf-pin__step" style="--i:0">
