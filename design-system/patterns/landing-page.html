@@ -616,11 +616,53 @@
         translate: -50% 0;
         aspect-ratio: 1200 / 620;
         pointer-events: none;
-        /* every terminal ends ON the frame's rail, so the last unit of each is
-           a half-stroke over the edge of the box — the same rule .lp-frame pays
+        /* every terminal ends on the FOOT OF THIS BOX, so the last unit of each
+           is a half-stroke over the edge of it — the same rule .lp-frame pays
            above, and for the same reason. Two of them end on the box's left and
            right edges as well, for the frame's two top corners. And a numeral
-           sits OUTSIDE its own point by design, so this carries it too. */
+           sits OUTSIDE its own point by design, so this carries it too.
+
+           THE FOOT OF THIS BOX IS NOT THE FRAME'S RAIL, and this line used to
+           say it was. It is at 1440 x 900 and nowhere else. Measured before the
+           pin engages, frame top minus flow bottom:
+
+             1440 x  900     +1.58     the size the drawing was tuned at
+             1280 x  768     +6.92
+             1280 x  800     +8.17
+             1600 x  900    +28.23
+             1366 x  768    +34.66
+             1280 x  720    +56.52
+             1280 x  900    +58.17
+             1440 x  720   +107.84
+             1024 x  900   +140.14
+             1920 x 1080   +171.58     an ordinary desktop
+
+           At 1920 x 1080 all fourteen terminals stop in 172 px of empty wash
+           with no rail under any of them. The x arrivals are exact at every one
+           of these — that is what --lp-measure bought, and check-flow-handover.py
+           now holds it — so this is the OTHER axis of the same seam, and it was
+           never bought at all. It slides because .lp-proc-stage centres the trio
+           in the stage (see its note): the card's top moves half a pixel for
+           every pixel of viewport height, and this box, being in static flow a
+           section above, does not follow.
+
+           IT IS NOT FIXABLE FROM HERE, which is why the number is written down
+           instead of tuned. The height is locked to the width by aspect-ratio —
+           the ratio is what keeps the taproots on the corners, since the default
+           preserveAspectRatio would otherwise letterbox the drawing inside its
+           own box — and the top is locked to the void the trunk leaves. One
+           degree of freedom, two arrivals: the same over-determination the note
+           above works through for x, where the arrival was kept and the
+           departure was let drift on the void's rim. Anchoring this box's BOTTOM
+           to the rail applies that same trade to y and does not survive it: the
+           trunk would then start gap + 90 px below the void's centre against a
+           94 px rim — inside it at 1440 x 900, and 167 px clear of it at
+           1920 x 1080. Fourteen free ends at the rail traded for one free end in
+           open wash is a different bug, not a fix.
+
+           So the trunk has to be able to stretch, which is how the route
+           terminates, which is the drawing's form → the craft lane. The table
+           above is the measurement it needs. */
         overflow: visible;
       }
       .lp-flow {
@@ -1477,7 +1519,11 @@
               <div class="cf-process__panel"></div>
               <!-- THE LECTERN IS WHAT THE FLOW ARRIVES AS. Each vertical continues
                    the drop that lands on it — flow x 0, 600 and 1200 are these
-                   x 0, 500 and 1000 — so the three verticals are drawn downward
+                   x 0, 500 and 1000 — and that correspondence is arithmetic on a
+                   shared width basis, so scripts/check-flow-handover.py reads it
+                   rather than leaving it stated here and kept by hand, which is
+                   how it was kept the two times it broke. The three verticals are
+                   drawn downward
                    from the points the data reached, in the order it reached them:
                    the middle drop lands first (it is nearest the split), then the
                    left, then the far right. The top rail then spreads outward from
