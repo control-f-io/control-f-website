@@ -109,7 +109,10 @@ MAX_NODES = 11
 SVG_RE = re.compile(r'<svg\b[^>]*class="([^"]*)"[^>]*viewBox="([^"]*)"(.*?)</svg>', re.S)
 PATH_RE = re.compile(r'<path\b[^>]*class="([^"]*)"[^>]*style="([^"]*)"[^>]*\bd="([^"]*)"',
                      re.S)
-NODE_CUT = 2.0   # the ladder's r 3 and r 2 bands -- see (2) above
+NODE_CUT = 1.75  # gen-flow-root.py's NODE_LEVEL -- see (2) above. It came
+                 # down from 2.0 when the root grew arms: the level-2 band went
+                 # from nine junctions to twelve and the manual's ceiling is
+                 # eleven, so the CUT moves rather than the ceiling.
 
 CIRCLE_RE = re.compile(
     r'<circle\b[^>]*class="([^"]*)"[^>]*style="([^"]*)"[^>]*\bcx="([^"]*)"'

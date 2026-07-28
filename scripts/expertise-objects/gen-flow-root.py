@@ -79,11 +79,14 @@ CROWN = F(170)         # where the trunk stops being a trunk
 
 # HOW CLOSE TWO STROKES MAY COME, in drawing units, where they are not joined.
 # At the gate floor the box renders 1024 units wide, so one drawing unit is
-# 0.853 px: 14 units is 12 px of daylight at the smallest the figure gets, and
-# 16 px at 1440. Under about 12 the two strokes stop reading as two, and this
-# is the number that decides how many arms the box will take -- at 18 the root
-# grew 24 limbs and the fringe had room it was not allowed to use.
-CLEAR = F(14)
+# 0.853 px: 11 units is 9.4 px of daylight at the smallest the figure gets and
+# 12.5 px at 1440, which is where two 1 px hairlines stop merging into one.
+# This is the number that decides how many arms the box takes, and it has come
+# down twice on the same evidence -- 18 grew 24 limbs, 14 grew 30, and the
+# fringe still had room it was not allowed to use. 11 is the floor: under it
+# the dives at the bottom of the drawing start reading as a single thick edge
+# rather than as separate roots.
+CLEAR = F(11)
 
 # HOW DEEP A LIMB MAY DIVIDE. Three generations of grow() below a seed; a
 # fifth puts more line under the rail's last 60 units than the eye separates
@@ -362,8 +365,14 @@ def grow(x, y, kind, depth, side, budget):
         return
 
 
-# THE SEEDS, mirrored about the trunk: every junction on a reach, plus two on
-# the centre taproot. A taproot is bare near the crown and branchy near the
+# THE SEEDS, mirrored about the trunk: every junction on a reach, most of them
+# TWICE -- once each way -- plus both sides of three points on the taproot.
+#
+# A junction seeded once puts out one limb and the other side of that junction
+# stays bare, which is what left the reaches looking combed. Seeding both ways
+# asks for a limb on each side; the clearance decides whether there is room for
+# the second, so the drawing fills where it can and stays open where it cannot,
+# rather than being told in advance which side may have one. A taproot is bare near the crown and branchy near the
 # tip, so the deeper seeds are given more budget — the number of further
 # generations they may spawn — and the shallow ones one limb only.
 SEEDS = []
@@ -376,19 +385,61 @@ for side in (-1, +1):
     for (dx, dy), kind, out, depth, budget in [
         (( 60,  60), "D", -1, 1, 4),
         ((240, 150), "F", -1, 1, 4),
+        (( 60,  60), "D", +1, 2, 3),   # the same junction, the other way
         ((300, 210), "D", +1, 1, 4),
-        ((480, 300), "F", -1, 1, 3),
-        ((540, 360), "D", +1, 2, 2),
+        ((240, 150), "F", +1, 2, 3),
+        ((480, 300), "F", -1, 1, 4),
+        ((300, 210), "D", -1, 2, 3),
+        ((540, 360), "D", +1, 2, 3),
+        ((480, 300), "F", +1, 2, 2),
         ((600, 390), "F", -1, 2, 2),
     ]:
         SEEDS.append((F(600 + side * dx), CROWN + F(dy), kind,
                       depth, out * side, budget))
 # and the taproot, alternating the side it puts a limb out on
-for dy, side, budget in ((F(110), +1, 4), (F(210), -1, 4), (F(320), +1, 3)):
+for dy, side, budget in ((F(110), +1, 4), (F(110), -1, 3), (F(210), -1, 4),
+                         (F(210), +1, 3), (F(320), +1, 3), (F(320), -1, 3)):
     SEEDS.append((F(600), CROWN + dy, "V", 1, side, budget))
 
 for jx, jy, pkind, d, side, budget in SEEDS:
     grow(jx, jy, pkind, d, side, budget)
+
+# A SECOND SWEEP, OVER WHAT THE FIRST ONE GREW.
+#
+# The seed list can only name junctions that exist before the growth runs —
+# the ones on the skeleton — so every limb in the drawing hung off the trunk
+# or off a reach, and the limbs themselves stayed bare however long they got.
+# That is what "add more of the root lines" is looking at: not a thinner
+# clearance, which had already come down twice, but the fact that a branch was
+# never asked whether IT had room for a branch.
+#
+# So the sweep runs after, over every point the first pass created, deepest
+# first: a junction that already sheds two strokes is full, a bend has one side
+# free, and the clearance decides the rest. Deepest first matters — it fills
+# the fringe before the middle, so the room near the rail goes to the twigs
+# that belong there rather than to a limb reaching down from higher up.
+#
+# It is still not random and still converges: the sweep reads a snapshot of the
+# junctions taken before it starts, so nothing it grows can seed it again.
+
+SWEEP = sorted((p for p in DIST if F(0) < p[1] < RAIL), key=lambda p: -p[1])
+for jx, jy in SWEEP:
+    out = [t for t in segments if (t[0], t[1]) == (jx, jy)]
+    # Three strokes out is the ceiling and the crown is not the only point
+    # allowed to reach it — see check-flow-split.py identity 4. A fourth is
+    # refused: four roots leaving one point is a star, and the eye stops
+    # reading it as a division.
+    if len(out) >= 3 or not out:
+        continue
+    # the kind of the stroke that arrived here, so the branch alternates off it
+    inc = next((t for t in segments if (t[2], t[3]) == (jx, jy)), None)
+    if inc is None:
+        continue
+    dx, dy = inc[2] - inc[0], inc[3] - inc[1]
+    kind = "V" if dx == 0 else ("F" if abs(dx / dy) == 2 else
+                                ("D" if abs(dx / dy) == 1 else "S"))
+    side = 1 if dx >= 0 else -1
+    grow(jx, jy, kind, 2, -side, 2)
 
 # ---------------------------------------------------------------- assertions
 
@@ -626,15 +677,21 @@ for x1, y1, x2, y2, d in segments:
 # dots, inside the ceiling with room. The radius keeps the same ladder.
 # ON A GROWN ROOT "EVERY DIVISION" IS TOO MANY AGAIN. The symmetric
 # construction had seven divisions and could mark all of them; this one has
-# nineteen, and a dot on each spends the drawing's one word for "here it
+# thirty-odd, and a dot on each spends the drawing's one word for "here it
 # divides" until it reads as texture rather than as construction. So the cut
 # goes back to the one the radius is already a function of: level, the run from
-# the void normalised to 0-3, nearest two thirds. That is the same sentence as
-# the ladder — r 3 and r 2 are the bands nearest the subject, and those are the
-# divisions the reader is meant to count; out at the fringe the root is
-# thinning to twigs and a dot every few units is noise. It selects nine of the
-# nineteen, inside the manual's ceiling of eleven with room.
-NODE_LEVEL = 2.0
+# the void normalised to 0-3. That is the same sentence as the ladder — the
+# bands nearest the subject are the divisions the reader is meant to count; out
+# at the fringe the root is thinning to twigs and a dot every few units is
+# noise.
+#
+# 1.75 AND NOT 2. The cut is the manual's ceiling read backwards: eleven marks
+# is the most this drawing may carry, and as the root grew arms the level-2
+# band went from nine junctions to twelve. Rather than raise the ceiling, the
+# cut moves — which is the honest direction, because the ceiling is a
+# statement about how much a reader can hold and the cut is only a way of
+# choosing. It selects eleven, exactly the ceiling.
+NODE_LEVEL = 1.75
 outdeg = Counter((x1, y1) for x1, y1, _, _, _ in segments)
 NODE_POINTS = sorted((p for p, n in outdeg.items()
                       if n >= 2 and float(level(DIST[p])) < NODE_LEVEL),
@@ -915,92 +972,21 @@ def downstream_labelled(px, py, labelled):
 #
 # A point with NOTHING labelled below it asserts nothing and escapes nothing --
 # the fringe under 3 840 is unquantified, and unquantified is not wrong.
-VALUE_JUNCTIONS = 3        # the crown and the first two divisions under it
+# SIX, NOT THREE. "annotate some numbers" — the drawing carried a rate on the
+# trunk and on the routes out of the first two divisions, and everything below
+# the third generation was unquantified. Six junctions is fourteen numerals,
+# which reaches down into the middle band where the limbs actually divide
+# rather than stopping at the crown's own children. The ceiling is not the
+# manual's eleven — that governs NODES, the dots, and a numeral is not a dot —
+# it is legibility, and the placement law below is what enforces that: a value
+# that cannot be set clear of the strokes, the other numerals and the frame is
+# not set at all.
+VALUE_JUNCTIONS = 6
 BASE_RATE = F(80)          # every value is a multiple of it, as they always were
 
 
 def outgoing(px, py):
     return [s for s in segments if (s[0], s[1]) == (px, py)]
-
-
-def value_points():
-    """A point a quarter of the way down every route out of the quantified
-    junctions, in the order the data reaches them."""
-    js = sorted(NODE_POINTS, key=lambda p: DIST[p])[:VALUE_JUNCTIONS]
-    pts = [(F(600), F(120))]                       # the source, on the trunk
-    for jx, jy in js:
-        for x1, y1, x2, y2, _ in outgoing(jx, jy):
-            pts.append((x1 + (x2 - x1) / 4, y1 + (y2 - y1) / 4))
-    return pts
-
-
-PTS = value_points()
-
-
-def _sum_below(p, rest):
-    kids, _ = downstream_labelled(p[0], p[1], set(PTS))
-    return [k for k in kids if k != p]
-
-
-# The fringe of the label tree first, then every parent as the sum of its
-# children — deepest first, so a parent is only ever summed from figures that
-# are already fixed. The base rates step down the fringe by one unit of
-# BASE_RATE each, which is what keeps the sums from all coming out equal and
-# the drawing from claiming a perfectly even split it does not draw.
-_v = {}
-for i, p in enumerate(sorted(PTS, key=lambda q: -q[1])):
-    kids = _sum_below(p, PTS)
-    _v[p] = sum(_v[k] for k in kids) if kids else BASE_RATE * (17 + 2 * i)
-
-VALUES = [(x, y, int(_v[(x, y)])) for x, y in PTS]
-
-LABELLED = {(x, y): v for x, y, v, *_ in VALUES}
-for (px, py), v in LABELLED.items():
-    kids, escaped = downstream_labelled(px, py, set(LABELLED))
-    if kids:
-        total = sum(LABELLED[k] for k in kids)
-        assert total == v, (f"the value at ({px}, {py}) is {v} and the "
-                            f"{len(kids)} below it total {total}")
-        assert not escaped, (
-            f"the value at ({px}, {py}) is {v} and divides into "
-            f"{len(kids)} labelled value(s), but {len(escaped)} route(s) "
-            f"leaving it reach the rail with nothing labelled on them: "
-            f"{sorted(escaped)} — the sum says those carry zero")
-
-SEP = " "   # see the note at the values' own print loop below
-
-# ---------------------------------------------------------------- the readings
-#
-# WHAT THE ROOT IS CARRYING, AT THE END WHERE IT IS CARRYING IT FROM. The
-# values above are one quantity — a data rate — and they divide, which is why
-# they are numerals with no unit on them and why every one of them has to add
-# up. The statement over this drawing is "Tausende Sensoren erzeugen Daten",
-# and until now the drawing answered it with eight counts of nothing in
-# particular: the fringe, where the sensors actually are, carried no reading at
-# all.
-#
-# A READING IS NOT A VALUE, and that is the whole reason it is a second class
-# rather than eight more .lp-flow__val. A rate divides: the stream that leaves
-# a junction is the sum of the streams that leave it, and check-flow-values.py
-# holds the drawing to that. A temperature does not. Two 400 °C channels
-# merging do not make 800 °C, and a drawing that let its units into the sum
-# would be asserting exactly that. So the two carry different classes, the
-# check reads only the one that conserves, and the unit is what tells the
-# reader which kind of number they are looking at.
-#
-# WHERE THEY GO: the fringe, one per limb, spread across the width. That is
-# where the sensors are in the drawing's own logic — the far end of the root,
-# furthest from the void — and it is also the emptiest band of the box, which
-# is the one part of this the eye was going to notice first either way.
-#
-# THE FIGURES ARE PLAUSIBLE PLANT VALUES, not decoration: a bearing at 74 °C, a
-# line at 12.4 bar, a drive at 246 kW. They are typed, because a temperature is
-# not derivable from a geometry — but the CHOICE of stroke is not, and neither
-# is the placement, which goes through the same label law as everything else.
-READINGS = [
-    "74 \u00b0C", "12.4 bar", "246 kW", "1 480 rpm", "318 K",
-    "4.2 mm/s", "96 %", "51 Hz",
-]
 
 
 def label_side_box(px, py, chars, side):
@@ -1056,21 +1042,204 @@ def place_reading(px, py, chars, placed):
     return None
 
 
-def value_boxes():
-    """The eight rate numerals' boxes, so a reading can keep off them too.
+# WIDEST FIRST, AND WHY THE PLACEMENT DECIDES THE LABEL SET RATHER THAN THE
+# OTHER WAY ROUND. A value's box depends on how many digits it has, and its
+# digits depend on which other points are labelled, because every figure is the
+# sum of the ones below it. Placing first and summing after breaks that circle:
+# the placement is done against the WIDEST numeral this drawing can carry, so
+# any figure that later lands on the point fits the box that was cleared for it.
+VALUE_WIDTH = 6            # "12 480" — six characters including the separator
 
-    They are placed first and by a law of their own, so from the reading's
-    point of view they are simply furniture that is already in the room. This
-    is the clause whose absence put "246 kW" on top of its neighbour: the
-    reading law could see every stroke in the drawing and none of the writing.
+
+def value_points():
+    """A point a quarter of the way down every route out of the quantified
+    junctions, in the order the data reaches them."""
+    js = sorted(NODE_POINTS, key=lambda p: DIST[p])[:VALUE_JUNCTIONS]
+    pts = [[(F(600), F(120))]]                     # the source, on the trunk
+    for jx, jy in js:
+        pts.append([route_chain(s_) for s_ in outgoing(jx, jy)])
+    return pts
+
+
+def route_chain(seg):
+    """The whole run a numeral may stand on: this stroke, and every stroke
+    that continues it until the next division or the rail.
+
+    A ROUTE IS NOT A STROKE. The drawing writes a long descent as several
+    strokes so that limbs have junctions to leave from, and the centre taproot
+    leaves the crown as five of them. Searching only the first meant the
+    taproot's own figure had 110 units to find a home in — and no home in it,
+    because the two reaches leave the same point at 45 and bracket the vertical
+    for exactly that distance. Nothing about the drawing was wrong; the search
+    was looking at a tenth of the route it was labelling.
     """
-    out = []
+    chain = [seg]
+    while True:
+        nxt = [t for t in segments if (t[0], t[1]) == (chain[-1][2], chain[-1][3])]
+        if len(nxt) != 1:
+            break
+        chain.append(nxt[0])
+    return chain
+
+
+def along(chain, t):
+    """A point at fraction t of a chain's total run, in Chebyshev length —
+    the same measure walk() accumulates, so it is exact in Fractions."""
+    spans = [max(abs(s_[2] - s_[0]), abs(s_[3] - s_[1])) for s_ in chain]
+    want = sum(spans) * t
+    for s_, span in zip(chain, spans):
+        if want <= span or s_ is chain[-1]:
+            u = want / span
+            return s_[0] + (s_[2] - s_[0]) * u, s_[1] + (s_[3] - s_[1]) * u
+        want -= span
+
+
+STEPS_ALONG = [F(k, 40) for k in range(10, 35)]     # a quarter to seven eighths
+def placeable(groups):
+    """The groups that can be set legibly, and their boxes.
+
+    ALL OR NOTHING PER JUNCTION, AND THE SET STOPS AT THE FIRST JUNCTION THAT
+    CANNOT BE SET. Both clauses are load-bearing rather than tidy, and both are
+    about the same arithmetic.
+
+    The figures conserve — a labelled point carries the sum of the labelled
+    points below it — so dropping ONE route out of a junction leaves the parent
+    claiming a total its remaining children do not add up to, and leaves a
+    route out of it carrying nothing. That is the first clause.
+
+    The second is subtler and is what the first pass of this got wrong. Skipping
+    a junction and then labelling one BELOW it does not leave a hole, it
+    rewires the tree: the deeper label becomes the nearest labelled thing under
+    the source, so the source is read as dividing into it and into eleven
+    unlabelled routes. Measured on that pass: 12 480 dividing into two values
+    with twelve escapes. So the groups are taken in the order the data reaches
+    them and the set is a PREFIX of that order — the moment one will not fit,
+    nothing deeper is labelled either, and every labelled point's children are
+    all labelled or all not.
+    """
+    kept, boxes = [], []
+    for group in groups:
+        trial, found, ok = list(boxes), [], True
+        for item in group:
+            if isinstance(item, tuple):                         # the source
+                got = place_reading(item[0], item[1], VALUE_WIDTH, trial)
+                if got is None:
+                    ok = False
+                    break
+                found.append(item)
+                trial.append(got[2])
+                continue
+            hit = None
+            for t in STEPS_ALONG:
+                px, py = along(item, t)
+                # A point that lands exactly on a bend rides two strokes, and
+                # "the stroke it names" stops having an answer — the label law
+                # asserts on it. Stepping past is the whole fix: the search has
+                # twenty-five other places to stand.
+                if len([q for q in segments if on_segment(px, py, q[:4])]) != 1:
+                    continue
+                got = place_reading(px, py, VALUE_WIDTH, trial)
+                if got is not None:
+                    hit = ((px, py), got[2])
+                    break
+            if hit is None:
+                ok = False
+                break
+            found.append(hit[0])
+            trial.append(hit[1])
+        if not ok:
+            break
+        kept.extend(found)
+        boxes = trial
+    return kept, boxes
+
+
+PTS, _ = placeable(value_points())
+
+
+def _sum_below(p, rest):
+    kids, _ = downstream_labelled(p[0], p[1], set(PTS))
+    return [k for k in kids if k != p]
+
+
+# The fringe of the label tree first, then every parent as the sum of its
+# children — deepest first, so a parent is only ever summed from figures that
+# are already fixed. The base rates step down the fringe by one unit of
+# BASE_RATE each, which is what keeps the sums from all coming out equal and
+# the drawing from claiming a perfectly even split it does not draw.
+_v = {}
+for i, p in enumerate(sorted(PTS, key=lambda q: -q[1])):
+    kids = _sum_below(p, PTS)
+    _v[p] = sum(_v[k] for k in kids) if kids else BASE_RATE * (17 + 2 * i)
+
+VALUES = [(x, y, int(_v[(x, y)])) for x, y in PTS]
+
+LABELLED = {(x, y): v for x, y, v, *_ in VALUES}
+for (px, py), v in LABELLED.items():
+    kids, escaped = downstream_labelled(px, py, set(LABELLED))
+    if kids:
+        total = sum(LABELLED[k] for k in kids)
+        assert total == v, (f"the value at ({px}, {py}) is {v} and the "
+                            f"{len(kids)} below it total {total}")
+        assert not escaped, (
+            f"the value at ({px}, {py}) is {v} and divides into "
+            f"{len(kids)} labelled value(s), but {len(escaped)} route(s) "
+            f"leaving it reach the rail with nothing labelled on them: "
+            f"{sorted(escaped)} — the sum says those carry zero")
+
+SEP = " "   # see the note at the values' own print loop below
+
+
+# ---------------------------------------------------------------- the readings
+#
+# WHAT THE ROOT IS CARRYING, AT THE END WHERE IT IS CARRYING IT FROM. The
+# values above are one quantity — a data rate — and they divide, which is why
+# they are numerals with no unit on them and why every one of them has to add
+# up. The statement over this drawing is "Tausende Sensoren erzeugen Daten",
+# and until now the drawing answered it with eight counts of nothing in
+# particular: the fringe, where the sensors actually are, carried no reading at
+# all.
+#
+# A READING IS NOT A VALUE, and that is the whole reason it is a second class
+# rather than eight more .lp-flow__val. A rate divides: the stream that leaves
+# a junction is the sum of the streams that leave it, and check-flow-values.py
+# holds the drawing to that. A temperature does not. Two 400 °C channels
+# merging do not make 800 °C, and a drawing that let its units into the sum
+# would be asserting exactly that. So the two carry different classes, the
+# check reads only the one that conserves, and the unit is what tells the
+# reader which kind of number they are looking at.
+#
+# WHERE THEY GO: the fringe, one per limb, spread across the width. That is
+# where the sensors are in the drawing's own logic — the far end of the root,
+# furthest from the void — and it is also the emptiest band of the box, which
+# is the one part of this the eye was going to notice first either way.
+#
+# THE FIGURES ARE PLAUSIBLE PLANT VALUES, not decoration: a bearing at 74 °C, a
+# line at 12.4 bar, a drive at 246 kW. They are typed, because a temperature is
+# not derivable from a geometry — but the CHOICE of stroke is not, and neither
+# is the placement, which goes through the same label law as everything else.
+READINGS = [
+    "74 \u00b0C", "12.4 bar", "246 kW", "1 480 rpm", "318 K",
+    "4.2 mm/s", "96 %", "51 Hz",
+]
+
+
+def place_values():
+    """The kept points again, now that their figures are known.
+
+    The set was fixed by placeable() against VALUE_WIDTH, so nothing here can
+    fail — the assert says so rather than leaving it to be discovered.
+    """
+    out, boxes = [], []
     for x, y, v in VALUES:
         text = f"{v // 1000}{SEP}{v % 1000:03d}" if v >= 1000 else str(v)
-        dx, dy, side, _, _ = offsets(x, y, len(text))
-        b, _, _ = label_side_box(x, y, len(text), side)
-        out.append(b)
-    return out
+        assert len(text) <= VALUE_WIDTH, f"{text!r} is wider than the box cleared for it"
+        got = place_reading(x, y, VALUE_WIDTH, boxes)
+        assert got is not None, f"the value at ({x}, {y}) passed placeable() and now cannot be set"
+        side, off, box, gap = got
+        boxes.append(box)
+        out.append((x, y, v, text, side, off, gap))
+    return out, boxes
 
 
 def fringe_readings(texts):
@@ -1082,7 +1251,7 @@ def fringe_readings(texts):
     placed legibly is skipped and the next one tried — see place_reading.
     """
     span = max(len(t) for t in texts) * LABEL_ADVANCE / FLOOR_SCALE * 0.7
-    taken, placed, out = [], value_boxes(), []
+    taken, placed, out = [], list(VALUE_BOXES), []
     for x1, y1, x2, y2, d in sorted(segments, key=lambda s_: -s_[4]):
         if len(out) == len(texts):
             break
@@ -1102,6 +1271,7 @@ def fringe_readings(texts):
     return out
 
 
+PLACED_VALUES, VALUE_BOXES = place_values()
 PLACED_READINGS = fringe_readings(READINGS)
 assert len(PLACED_READINGS) == len(READINGS), (
     f"only {len(PLACED_READINGS)} of {len(READINGS)} readings could be placed "
@@ -1125,10 +1295,9 @@ print()
 # sets `white-space: nowrap`, so the break the no-break space was insuring
 # against cannot happen, and an insurance that no longer does any work is one
 # more thing for a hand edit to get wrong.
-for x, y, v in VALUES:
-    text = f"{v // 1000}{SEP}{v % 1000:03d}" if v >= 1000 else str(v)
-    dx, dy, side, left_gap, gap = offsets(x, y, len(text))
+for x, y, v, text, side, (ox, oy), gap in PLACED_VALUES:
     print(f'<span class="t-label lp-flow__val" style="--x:{num(x)};--y:{num(y)};'
-          f'--tx:{dx};--ty:{dy};--l:{level(run_to(x, y))}">{text}</span>')
+          f'--tx:{css_offset(ox, "x")};--ty:{css_offset(oy, "y")};'
+          f'--l:{level(run_to(x, y))}">{text}</span>')
     print(f'  <!-- {side:>5}: own stroke {CLEARANCE:.2f} px, nearest other '
-          f'{gap:.2f} px at the gate floor; the left offers {left_gap:.2f} -->')
+          f'{gap:.2f} px at the gate floor, clear of every numeral already set -->')
