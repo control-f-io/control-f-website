@@ -110,7 +110,15 @@
      and an outline round it would draw it as an object. It is also the only
      filled shape in the figure, which is the same sentence from the other
      side. → foundations/illustration.html, one light per object. */
-  .lp-flow__orb { --glow-r: 44px; filter: var(--glow-light); }
+  .lp-flow__orb {
+    --glow-r: 44px;
+    filter: var(--glow-light);
+    /* the circle grows about its own centre; fill-box on a circle is its own
+       bounding box, so `center` is the centre of the disc rather than of the
+       viewBox */
+    transform-box: fill-box;
+    transform-origin: center;
+  }
   /* The drawing is the root alone now — the field moved to the stage's own
      backdrop — 620u on a 1200u basis: 0.5167 of its width in height. Sizing
      it off the viewport's height is what guarantees the whole of it fits the
@@ -460,9 +468,46 @@
                          contain calc((36 + (var(--l) + var(--u)) * var(--flow-c)) * 1%),
                          contain calc((38 + (var(--l) + var(--u)) * var(--flow-c)) * 1%)
                          contain calc((44 + (var(--l) + var(--u)) * var(--flow-c)) * 1%),
-                         auto;
+                         /* `normal`, NOT `auto`. animation-range takes `normal`
+                            or a range name and a length; `auto` is not one of
+                            its keywords, and one invalid item drops the WHOLE
+                            declaration — so all three animations fell back to
+                            animation-range: normal and ran across the entire
+                            track. The leaves were 15 % drawn and glowing at the
+                            top of act 1, which is the drawing lit before it
+                            exists. animation-timeline DOES take `auto` and that
+                            is where the confusion came from: the two lists sit
+                            one under the other and only one of them means the
+                            document clock by that name. */
+                         normal;
         animation-fill-mode: both, forwards, none;
         animation-delay: 0s, 0s, calc(var(--l) * -370ms);
+      }
+
+      /* THE SOURCE FILLS AS THE FIELD ARRIVES IN IT.
+         The orb shipped with no animation at all, so it stood at full size in
+         the top left of act 1 — before a single sensor had moved, and next to
+         a claim that says the data has nowhere to go yet. A source that is
+         already full is not a source; it is a decoration that happens to be
+         where one belongs.
+
+         Its window is the field's own convergence, exactly: sp-field-merge
+         runs each glow from its crossing to the trunk's head over
+         36 + m*6 → 42 + m*6, where --m is the sensor's slot, so the last of
+         the twenty-five lands at 48. The orb opens at 36 with the first of
+         them and is full at 50, two points after the last — which is the
+         difference between growing WITH the merge and growing at the same
+         time as it.
+
+         Scale and opacity together, not scale alone: a disc scaling up from
+         zero at full opacity reads as a shape being pushed toward the reader,
+         and this is a light coming on. --ease-out puts most of the growth in
+         the first third, so the orb is present early and then only swells —
+         the same curve every arrival in this system uses. */
+      .lp-flow__orb {
+        animation: sp-orb-fill linear both;
+        animation-timeline: --sp;
+        animation-range: contain 36% contain 50%;
       }
 
       .lp-flow__node {
@@ -1113,6 +1158,15 @@
   }
   @keyframes sp-head-rule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @keyframes sp-head-wipe { from { --wipe: 100%; } to { --wipe: 0%; } }
+  /* From nothing, through the ease-out the rest of the system arrives on. The
+     0.35 waypoint at 40 % of the window is what makes it read as filling
+     rather than as inflating: it is a third of the way to full while the first
+     handful of sensors are still on their way in. */
+  @keyframes sp-orb-fill {
+    from     { scale: 0;    opacity: 0; }
+    40%      { scale: 0.35; opacity: 1; }
+    to       { scale: 1;    opacity: 1; }
+  }
   @keyframes sp-leaf-settle { to { opacity: var(--leaf-peak); } }
   @keyframes sp-leaf-shimmer { from { stroke-opacity: .28; } to { stroke-opacity: 1; } }
   @keyframes sp-ground-recede { to { opacity: var(--sp-ground-dim, 1); } }
