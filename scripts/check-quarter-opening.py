@@ -111,8 +111,10 @@ COMPONENT_FAMILIES = [
 
 TRACKS = [
     {
-        "name": "landing page · Was wir machen",
-        "page": DS / "patterns" / "landing-page.html",
+        # The pinned track moved to the prototype whole on 2026-07-28; same
+        # selectors, same windows, new address.
+        "name": "prototype · Statement -> Prozess",
+        "page": DS / "prototypes" / "statement-to-process.html",
         "container": ".lp-proc-steps",
         "families": [
             ("plan", ".lp-proc-steps .cf-iso--build .cf-iso__ghost:not(.cf-iso__orbit)",

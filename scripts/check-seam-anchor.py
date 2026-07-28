@@ -93,6 +93,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PATTERNS = ROOT / "design-system" / "patterns"
+# The statement-to-process chain moved to prototypes/ on 2026-07-28;
+# these checks follow the drawing, not the folder.
+PROTOTYPES = ROOT / "design-system" / "prototypes"
 
 STYLE_RE = re.compile(r"<style\b[^>]*>(.*?)</style>", re.S)
 COMMENT_RE = re.compile(r"/\*.*?\*/", re.S)
@@ -277,7 +280,7 @@ def main():
     args = parser.parse_args()
 
     findings, pages = [], 0
-    for page in sorted(PATTERNS.glob("*.html")):
+    for page in sorted([*PATTERNS.glob("*.html"), *PROTOTYPES.glob("*.html")]):
         f, seen = check_page(page, args.verbose)
         findings += f
         pages += 1 if seen else 0

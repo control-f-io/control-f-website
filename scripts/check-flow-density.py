@@ -62,6 +62,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PATTERNS = ROOT / "design-system" / "patterns"
+# The statement-to-process chain moved to prototypes/ on 2026-07-28;
+# these checks follow the drawing, not the folder.
+PROTOTYPES = ROOT / "design-system" / "prototypes"
 
 # The drawings this governs, by the segment class that carries their geometry.
 DRAWINGS = {"lp-flow": "lp-flow__seg"}
@@ -152,7 +155,7 @@ def main():
     args = parser.parse_args()
 
     findings, segs, drawings = [], 0, 0
-    for page in sorted(PATTERNS.glob("*.html")):
+    for page in sorted([*PATTERNS.glob("*.html"), *PROTOTYPES.glob("*.html")]):
         text = page.read_text(encoding="utf-8")
         for classes, view_box, body in SVG_RE.findall(text):
             for cls, seg_cls in DRAWINGS.items():

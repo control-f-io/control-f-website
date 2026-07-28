@@ -127,6 +127,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PATTERNS = ROOT / "design-system" / "patterns"
+# The statement-to-process chain moved to prototypes/ on 2026-07-28;
+# these checks follow the drawing, not the folder.
+PROTOTYPES = ROOT / "design-system" / "prototypes"
 GENERATOR = ROOT / "scripts" / "expertise-objects" / "gen-flow-root.py"
 
 # class -> (segment class, the three arrivals the frame's verticals pin)
@@ -369,7 +372,7 @@ def main():
         return 1
 
     findings, checked, drawings, band = [], 0, 0, None
-    for page in sorted(PATTERNS.glob("*.html")):
+    for page in sorted([*PATTERNS.glob("*.html"), *PROTOTYPES.glob("*.html")]):
         text = page.read_text(encoding="utf-8")
         for classes, view_box, body in SVG_RE.findall(text):
             for cls in DRAWINGS:

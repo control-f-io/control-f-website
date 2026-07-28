@@ -118,7 +118,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PAGE = ROOT / "design-system/patterns/landing-page.html"
+PAGE = ROOT / "design-system/prototypes/statement-to-process.html"
 
 # The two ramps and who takes which. The -c copy exists only because those four
 # parts are centred with `translate` and a keyframe replaces the whole property.

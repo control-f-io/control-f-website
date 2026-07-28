@@ -64,7 +64,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PAGE = ROOT / "design-system/patterns/landing-page.html"
+PAGE = ROOT / "design-system/prototypes/statement-to-process.html"
 
 # In the order the page loads them: the linked stylesheets first, the page's own
 # <style> last. Source order is the tiebreaker at equal specificity, so this

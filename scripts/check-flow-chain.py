@@ -70,7 +70,7 @@ from fractions import Fraction as F
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-LANDING = ROOT / "design-system/patterns/landing-page.html"
+LANDING = ROOT / "design-system/prototypes/statement-to-process.html"
 
 # The two tails every measured number at this seam was taken at.
 CONTOUR_LANDS = 66.0        # the frame's relay takes over here

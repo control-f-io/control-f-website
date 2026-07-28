@@ -81,7 +81,10 @@ COUNT = re.compile(r"^(\d+)(?:\s+von\s+(\d+))?(?:\s+([^\d/]+))?$")
 # the marker is the item, the same shape the team strip's entry already had,
 # and it no longer rests on a tag that carries no class at all.
 REGISTER = {
-    "prozess": ('<article class="cf-process cf-pin__step"', "process step"),
+    # The landing page's steps lost cf-pin__step when the pinned chain moved
+    # to prototypes/statement-to-process.html (2026-07-28); the exact form
+    # with the closing quote is what keeps the lectern plate out of the count.
+    "prozess": ('<article class="cf-process">', "process step"),
     "partner": ('<li class="t-label">', "logo mark"),
     "faq": ('<details class="cf-accordion__item">', "question"),
     "blog": ('<a class="cf-blog-card', "article card"),

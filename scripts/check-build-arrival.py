@@ -64,7 +64,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-LANDING = ROOT / "design-system/patterns/landing-page.html"
+LANDING = ROOT / "design-system/prototypes/statement-to-process.html"
 COMPONENTS = ROOT / "design-system/assets/css/components.css"
 TOKENS = ROOT / "design-system/assets/css/tokens.css"
 
