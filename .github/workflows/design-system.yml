@@ -962,3 +962,21 @@ jobs:
       - name: Pin gate
         if: '!cancelled()'
         run: python3 scripts/check-pin-gate.py
+
+      # The scroll port reserves the layer fixed over its bottom edge. Chromium
+      # scrolls a newly focused off-screen element into view with `nearest`
+      # alignment, so every forward Tab parks its control against the viewport's
+      # BOTTOM edge — which is exactly where the consent banner is fixed, at
+      # 144.4 px on a desktop and 333.5 on a 375 px phone. Counted on the
+      # landing page, first visit, under `reduce` so every stop is at rest: 30
+      # of 45 stops at 375 and 20 of 45 at 768 had the banner returned by
+      # elementFromPoint at the control's own centre. Entirely hidden, which is
+      # the wording WCAG 2.2 SC 2.4.11 fails on.
+      #
+      # It is the fourth check here whose subject renders correctly. The banner
+      # is drawn as designed and the focus ring is drawn as designed; they are
+      # simply drawn in the same 144 to 334 px of screen, on the one visit the
+      # banner is shown and no reviewer ever sees twice.
+      - name: Scroll reserve
+        if: '!cancelled()'
+        run: python3 scripts/check-scroll-reserve.py
