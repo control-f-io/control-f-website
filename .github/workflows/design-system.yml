@@ -1385,3 +1385,27 @@ jobs:
       - name: Anchor position cascade
         if: '!cancelled()'
         run: python3 scripts/check-anchor-position-cascade.py
+
+      # The hold and the build were each correct and neither knew the other
+      # existed. check-hold-ramp.py holds the hold's own arithmetic;
+      # check-flow-chain.py holds the identity that makes one front travel the
+      # root. Nothing had read the two windows in the same breath, and so
+      # nothing could say the thing the brief asks for -- "stopping when i
+      # scroll to see the bubbles inflate into the root system".
+      #
+      # Measured in Chromium at 1440 x 900 at 10 px steps, either side of #225:
+      # the share of the contour drawn while the drawing is stopped went 50.9 %
+      # -> 69.0 %, and the travelling remainder did not move at all, 260 px
+      # before and 260 px after. Lengthening --lp-hold bought the build's
+      # opening and bought its tail nothing.
+      #
+      # Because the hold's END is the literal `cover 50%` and the contour's is
+      # max(h + (l+u)*c) = 65.99 off the shipped markup, the contour closes
+      # 15.99 points of cover after the release AT EVERY VIEWPORT, and no value
+      # of --lp-hold can shorten it by a point. Those 15.99 points ARE the 260
+      # px, arrived at from the stylesheet without opening a browser. Every
+      # ceiling in the file is the value that ships rather than one anyone
+      # chose; the target for all of them is 0.
+      - name: Hold containment
+        if: '!cancelled()'
+        run: python3 scripts/check-hold-containment.py
