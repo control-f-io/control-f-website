@@ -931,6 +931,46 @@ hr {
   }
 }
 
+/* THE FOLD WIDTH IS NOT A PROPERTY OF THE PRIMITIVE, IT IS A PROPERTY OF THE
+   COLUMN COUNT — and 44rem above is the number for the counts this system
+   mostly runs. blog-artikel.html runs the grid at three, and three columns of
+   a 44rem container are 234 px each, which reads. Five columns of the same
+   container are 141 px, and 141 px is where the applied form stops working.
+
+   Measured on the landing page, at the pixel after the fold — a viewport of
+   792, a container of 705:
+
+     .cf-blog-card--compact is one line with an ellipsis, so its cell has to
+     hold the headline's FIRST WORD plus the ellipsis or it labels nothing.
+     At --text-sm the widest first words in that grid are "Smart-Home-Systeme"
+     at 130 px and "Erneuerbaren-Ausbau" at 127. The cell gives
+     C/5 - 1 - 2 x --space-3 of text width, which at C = 705 is 116 px. Two of
+     the twelve tail headlines therefore rendered as a fragment of one word
+     followed by an ellipsis: not a shortened headline, an unlabelled link.
+     Six of the twelve showed fewer than two whole words. One pixel earlier,
+     folded, all eighteen headlines were complete.
+
+   The floor solves to C >= 5 x (130 + 24 + 1) = 775, binary-searched to 773.
+   48rem / 768 is the register's next number up and misses it by 5 px, which
+   is the wrong side of a window too narrow to build on — the content is
+   placeholder copy and the next real headline can have a longer first word.
+   56rem / 896 clears it by 121 px and is already the width at which
+   .cf-statement and .cf-process take their two-column form, so the page
+   changes shape once rather than twice: before this the blog grid went wide
+   200 px of container before anything else on the page did.
+
+   A second consumer for an existing number, not a second number — the same
+   move .grid--early makes in the other direction on 44rem, and the reason
+   this is a modifier rather than a change to the rule above: the primitive's
+   own fold is right for three columns and this one is right for five.
+   → foundations/layout.html, and the register in tokens.css */
+@container (max-width: 56rem) {
+  .subdivide--late .subdivide__col {
+    grid-column: 1 / -1;
+    grid-template-rows: none;
+  }
+}
+
 /* Page wash — the long CF-Grau → white gradient the whole site sits on.
    The grain tile rides on top of the ramp inside the same background, so it
    dithers the wash and never touches the text above it. Fixed attachment on
