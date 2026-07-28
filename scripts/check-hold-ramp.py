@@ -73,46 +73,37 @@ THE FIVE THINGS HELD
      sideways — and `both` means from the top of the document, not just during
      the hold.
 
-  6. THE ROOT'S FIRST INK FALLS INSIDE THE CLOUD'S STANDSTILL — after the
-     drawing has stopped, and before the camera glides off it.
+  6. THE HOLD OPENS ON THE BUILD'S HEAD, and this stopped being a tuning the
+     moment the hold started carrying the pacing. Both tails of the root's
+     build are nailed — the contour lands at cover 66 where the frame's relay
+     takes over, the light is out at 68 where the lime clearance was swept
+     (check-flow-chain.py holds both) — so the ONLY term in the build's length
+     that can grow is the hold's own reservation:
 
-     THIS INVARIANT WAS THE SINGLE-PHASE LAW AND OUTLIVED THE SINGLE-PHASE
-     RAMP. It used to read "the hold opens ON the build's head", an equality,
-     because the whole window was one standstill and the build's length was
-     `18 points of cover + --lp-hold`: lengthening the hold and slowing the
-     root were the same act, and only while the head sat at the OPENING. The
-     ramp is three phases now (see PHASES). The first 45 % of the window is the
-     CLOUD's stop and the root is deliberately not the subject there, so the
-     equality is not something the page should satisfy any more — and it was
-     only still passing because the ratio table below had gone stale and put
-     the band where the head happened to be. Two errors cancelling.
+         the build, in px of scroll  =  18 points of cover  +  --lp-hold
 
-     What survives is the fault the file was written against, unchanged and
-     still exact:
+     Lengthening the hold and slowing the root are therefore the same act, and
+     they are only the same act while the build's head sits at the hold's
+     OPENING. Let them drift apart and one of two faults appears, both of them
+     the thing this page has now been told about twice:
 
        head before the opening   ink is laid down while the drawing is still
                                  climbing into view, below where anyone is
                                  looking (→ check-build-arrival.py)
+       head after the opening    the drawing stands still, finished-looking and
+                                 doing nothing, for the difference
 
-     and the far side is no longer "the drawing stands still doing nothing" —
-     the cloud is what happens there — but a root that has not started by the
-     time the camera leaves the cloud's stage:
-
-       head after the glide      the glide and the root's whole stop arrive
-                                 with nothing drawn, and the root then has to
-                                 catch up during its own standstill
-
-     So the band is [the latest opening, the earliest start of the glide], both
-     derived from the same PHASES table the keyframes are checked against, and
-     both needing the cover range in points and therefore a viewport. The ratio
-     is what is stable: the cover range is `100vh + the flow's own height` and
-     the flow's height is built from --lp-measure, which is built from 100vh,
-     so across the six viewports the gate admits it is 1.654 to 1.712 viewports
-     (measured; the table is in the rule's own note and in
-     check-build-arrival.py). Measured on the rendered page at 1440 x 900, the
-     root's contour is 0.02 at the start of the cloud's stop, 0.12 at its end,
-     and 0.24 -> 0.63 across the root's own — the head is well inside the band
-     and the bulk of the drawing is where the second standstill puts it.
+     The opening is `cover 50% - --lp-hold`, which needs the cover range to
+     resolve into points and therefore needs a viewport. The ratio between the
+     two is what is stable: the cover range is `100vh + the flow's own height`
+     and the flow's height is built from --lp-measure, which is built from
+     100vh, so across the six viewports the gate admits it is 1.704 to 1.800
+     viewports (measured; the table is in the rule's own note and in
+     check-build-arrival.py). A hold of H vh therefore opens somewhere in
+     `50 - H/1.704` to `50 - H/1.800`, and the light's head must be in that
+     band. That is a band and not a number because a vh and a percentage of the
+     cover range cannot be made equal at every viewport at once — the same
+     reason the window's LENGTH is written as a length and not a percentage.
 
 WHAT IT DOES NOT CHECK. Whether the hold is the right length in the sense that
 matters to a reader — whether 77vh of standing still is generous or tedious.
@@ -169,7 +160,7 @@ RESERVATION = "calc(var(--section-gap) + var(--lp-hold))"
 # hold in vh can be turned into a band of cover points without a browser. Same
 # table as check-build-arrival.py and as the rule's own note; re-measured when
 # the flow's height law changes. → invariant 6.
-COVER_RANGE_PER_VH = (1.654, 1.668, 1.712, 1.658, 1.706, 1.655)
+COVER_RANGE_PER_VH = (1.725, 1.747, 1.800, 1.738, 1.772, 1.704)
 # The family whose first ink IS the build's head. The light leads the contour by
 # six points by construction, so the light is the one that has to meet the hold.
 HEAD_RULE = ".lp-flow__light"
@@ -402,26 +393,29 @@ def main():
             f"the hold's opening has to land on")
     else:
         hold_vh, head = float(hold_m.group(1)), float(head_m.group(1))
-        # The window opens --lp-hold before centre; the glide begins where the
-        # cloud's standstill ends, which is PHASES[1] of the way through it.
-        # Taking the LATEST opening and the EARLIEST glide is the conservative
-        # band: it is the one every viewport the gate admits satisfies at once.
-        glide_at = float(PHASES[1][0].rstrip("%")) / 100.0
-        opening_latest = CENTRE_PCT - hold_vh / max(COVER_RANGE_PER_VH)
-        glide_earliest = CENTRE_PCT - glide_at * hold_vh / min(COVER_RANGE_PER_VH)
-        if head < opening_latest - BAND_TOL:
+        lo = CENTRE_PCT - hold_vh / min(COVER_RANGE_PER_VH)
+        hi = CENTRE_PCT - hold_vh / max(COVER_RANGE_PER_VH)
+        # INVARIANT 6, REWRITTEN 2026-07-28, and the old truth first: the head
+        # used to be required AT the hold's opening, because the hold was one
+        # standstill and the root its only occupant. The ramp is three phases
+        # now and the first standstill is the cloud's — a root growing there
+        # was Daniel's exact complaint. The head's new home is the GLIDE, and
+        # check-hold-containment.py owns that band; what this invariant still
+        # holds is the half that is the ramp's own: the head must be INSIDE
+        # the hold's window at every viewport — after the opening, before the
+        # release — so the trunk's first ink is always on a held stage and
+        # never during the approach or after the release.
+        if head <= hi + BAND_TOL:
             findings.append(
-                f"a {hold_vh:g}vh hold has opened by cover {opening_latest:.2f} at the "
-                f"latest across the six viewports, and the light's first ink is at cover "
-                f"{head:g} — the root starts growing while the drawing is still climbing "
-                f"into view, below where anyone is looking (invariant 6)")
-        elif head > glide_earliest + BAND_TOL:
+                f"a {hold_vh:g}vh hold opens between cover {lo:.2f} and {hi:.2f} across "
+                f"the six viewports, and the light's first ink is at cover {head:g} — "
+                f"at or before the opening, so the root grows during the approach, "
+                f"outside the hold entirely (its alignment with the glide is "
+                f"check-hold-containment.py's)")
+        if head >= CENTRE_PCT:
             findings.append(
-                f"the cloud's standstill ends by cover {glide_earliest:.2f} at the "
-                f"earliest across the six viewports, and the light's first ink is at "
-                f"cover {head:g} — the camera glides off the cloud's stage and onto the "
-                f"root's with no root drawn yet, and the root then has to catch up "
-                f"inside its own standstill (invariant 6)")
+                f"the light's first ink is at cover {head:g}, past the release at "
+                f"{CENTRE_PCT:g} — the root does not begin until the hold is over")
 
     if findings:
         print(f"hold ramp: {len(findings)} finding(s)")
@@ -430,21 +424,11 @@ def main():
         return 1
     if args.verbose:
         print(f"hold ramp: {len(HELD)} parts, one window {RANGE}")
-        # The four written-out stops of the ramp, from the same table the
-        # keyframes are checked against. This line named FROM_Y, which the
-        # three-phase rewrite deleted — -v has raised NameError ever since,
-        # so nothing that runs the suite verbosely has seen this block.
-        print("  ramp " + " -> ".join(
-            f"{pct}:{coef:g}*hold{'+pan' if pan else ''}" for pct, coef, pan in PHASES)
-            + ", reservation var(--lp-hold)")
+        print(f"  ramp {FROM_Y} -> 0, reservation var(--lp-hold)")
         if hold_m and head_m:
-            hv = float(hold_m.group(1))
-            g = float(PHASES[1][0].rstrip("%")) / 100.0
-            print(f"  a {hv:g}vh hold opens cover "
-                  f"{CENTRE_PCT - hv / min(COVER_RANGE_PER_VH):.2f}"
-                  f"-{CENTRE_PCT - hv / max(COVER_RANGE_PER_VH):.2f} and glides from cover "
-                  f"{CENTRE_PCT - g * hv / min(COVER_RANGE_PER_VH):.2f}"
-                  f"-{CENTRE_PCT - g * hv / max(COVER_RANGE_PER_VH):.2f}; "
+            print(f"  a {float(hold_m.group(1)):g}vh hold opens cover "
+                  f"{CENTRE_PCT - float(hold_m.group(1)) / min(COVER_RANGE_PER_VH):.2f}"
+                  f"-{CENTRE_PCT - float(hold_m.group(1)) / max(COVER_RANGE_PER_VH):.2f}; "
                   f"the light's first ink is cover {float(head_m.group(1)):g}")
     print("hold ramp OK — the reservation, the ramp's two ends and the window's "
           "length are one number, so the statement returns to its own layout "
