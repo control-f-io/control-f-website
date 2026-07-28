@@ -103,16 +103,24 @@ CEILING = 0.60
 # measured at the six viewports the gate admits and recorded in the rule's own
 # note in landing-page.html — cover range over viewport height:
 #
-#     1024 x  720   1242.0 / 720  = 1.725      1440 x  900   1563.9 / 900  = 1.738
-#     1280 x  800   1397.8 / 800  = 1.747      1920 x 1080   1913.9 / 1080 = 1.772
-#     1366 x  768   1382.3 / 768  = 1.800      2560 x 1440   2453.9 / 1440 = 1.704
+#     1024 x  720   1190.9 / 720  = 1.654      1440 x  900   1492.5 / 900  = 1.658
+#     1280 x  800   1334.1 / 800  = 1.668      1920 x 1080   1842.5 / 1080 = 1.706
+#     1366 x  768   1314.5 / 768  = 1.712      2560 x 1440   2382.5 / 1440 = 1.655
+#
+# RE-MEASURED AFTER #227. That commit shrank the drawing against its viewport,
+# which is exactly the change the paragraph below says to re-measure for, and
+# the row both files were reading — 1.725 / 1.747 / 1.800 / 1.738 / 1.772 /
+# 1.704 — was 4 % wide of the page from the moment it landed. It is data about
+# a rendered box, so it goes stale silently: nothing fails, the numbers derived
+# from it are simply wrong. In check-hold-ramp.py it was wrong in the direction
+# that kept invariant 6 passing, which is the worst direction available.
 #
 # A hold of H vh is therefore H / ratio points of cover, and the LARGEST ratio
 # gives the FEWEST points, which opens the hold LATEST and so leaves the most
 # build already run before it. That is the conservative end and it is the one
 # taken here. Re-measure this table when the flow's height law changes; it is
 # the same table the note carries, and it is data, not a claim about geometry.
-COVER_RANGE_PER_VH = (1.725, 1.747, 1.800, 1.738, 1.772, 1.704)
+COVER_RANGE_PER_VH = (1.654, 1.668, 1.712, 1.658, 1.706, 1.655)
 
 
 def first_centred(text):
