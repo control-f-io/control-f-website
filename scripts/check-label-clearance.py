@@ -13,22 +13,40 @@ WHAT THE DRAWING PUBLISHES. patterns/landing-page.html, on .lp-flow__val:
      the drawing's units would close up as the box shrinks; these hold 12 px
      off the line at every viewport the gate admits."
 
-Twelve pixels, stated once in prose and typed six times in markup, on six
+Twelve pixels, stated once in prose and typed eight times in markup, on eight
 sibling spans, by hand. That is the shape of every drift this repository has
 had: a fact that is true of some of the elements, false of others, and
 invisible in review because a numeral 9 px off a hairline looks exactly like a
 numeral 12 px off a hairline until the box shrinks and the 9 becomes 4.
 
-RULE ONE -- THE NUMERALS. Every .lp-flow__val declares --tx, every --tx carries
-its clearance as a PX length, and all of them carry the SAME one. Two forms are
-legal and they are the same clearance from opposite sides:
+RULE ONE -- THE NUMERALS, AND IT USED TO HOLD THE WRONG QUANTITY. It read --tx
+alone and asserted the eight agreed on it. --tx is the HORIZONTAL COMPONENT of
+the offset, and a numeral is a horizontal box on a SLOPED line: on the 26.57deg
+runs, 12 px across the page is 5.4 px off the stroke. So "the six agree on
+12 px" was true of the component and false of the clearance, which came out
+between 7.55 and 14.14 px across the eight -- and this check was the reason the
+components all read 12 and nobody looked further. A check can hold a number
+exactly and still be holding the wrong number.
 
-    --tx: 12px                    the label hangs to the right of the point
-    --tx: calc(-100% - 12px)      the label hangs to the left of it
+It holds the offset's MAGNITUDE now: hypot(--tx, --ty), which is the distance
+from the numeral's nearest corner to the point it labels, and -- because
+check-flow-label-law.py separately holds that the offset is perpendicular to
+the stroke -- the distance off the line. Three forms are legal per component,
+and they are the same clearance seen from different sides:
 
-A bare percentage, a unitless number, or a length in any other unit is a
-clearance that does not survive the box shrinking, which is the exact failure
-the note above rules out in its own words.
+    --tx: 5.367px                 the label hangs right of / below the point
+    --tx: calc(-100% - 5.367px)   the label hangs left of / above it
+    --ty: -50%                    a zero component, centred on that axis
+
+A bare percentage other than -50%, a unitless number, or a length in any other
+unit is a clearance that does not survive the box shrinking, which is the exact
+failure the note above rules out in its own words.
+
+WHAT THIS CHECK IS NOT. It holds that the eight agree on ONE clearance. It says
+nothing about the DIRECTION of the offset or which side of its stroke a numeral
+takes -- that is check-flow-label-law.py, and the two are only together a
+placement rule. Eight numerals could agree perfectly on 12 px here and all
+eight be pointing into the strokes.
 
 RULE TWO -- THE CHROME THAT STANDS INSIDE THE DRAWING. The four step marks of
 .cf-pin__index are copy on this same drawing and cannot state an offset,
@@ -84,6 +102,7 @@ stdlib only, no build step, no dependency. Same python3 that serves the pages.
 """
 
 import argparse
+import math
 import re
 import sys
 from pathlib import Path
@@ -98,7 +117,7 @@ CHROME_SELECTORS = (".lp-proc-index", ".lp-proc-bar")
 
 SPAN_RE = re.compile(r'<span\b[^>]*class="([^"]*)"[^>]*style="([^"]*)"[^>]*>([^<]*)</span>', re.S)
 
-# --tx: 12px   |   --tx: calc(-100% - 12px)
+# 5.367px   |   calc(-100% - 5.367px)   |   -50%, the zero component
 PLAIN_RE = re.compile(r"^(-?\d+(?:\.\d+)?)px$")
 CALC_RE = re.compile(r"^calc\(\s*-100%\s*-\s*(\d+(?:\.\d+)?)px\s*\)$")
 
@@ -136,9 +155,16 @@ def style_vars(style):
     return out
 
 
-def clearance_of(value):
-    """The px clearance a --tx states, or None if it does not state one in px."""
+def component_of(value):
+    """One component of the offset in px, or None if it is not stated in px.
+
+    -50% is a ZERO component and the only percentage that is: it centres the
+    box on that axis, which is what the vertical trunk's numeral needs and
+    what a sloped stroke's never does.
+    """
     text = " ".join(value.split())
+    if text == "-50%":
+        return 0.0
     m = PLAIN_RE.match(text)
     if m:
         return abs(float(m.group(1)))
@@ -148,6 +174,14 @@ def clearance_of(value):
     return None
 
 
+def clearance_of(tx, ty):
+    """The offset's magnitude — the distance from the nearest corner to the point."""
+    a, b = component_of(tx), component_of(ty)
+    if a is None or b is None:
+        return None
+    return round(math.hypot(a, b), 3)
+
+
 def check_values(page, text, findings, verbose):
     held = {}
     for classes, style, label in SPAN_RE.findall(text):
@@ -155,19 +189,23 @@ def check_values(page, text, findings, verbose):
             continue
         var = style_vars(style)
         name = " ".join(label.split()) or "(blank)"
-        if "--tx" not in var:
+        missing = [a for a in ("--tx", "--ty") if a not in var]
+        if missing:
             findings.append(
-                f"{page.name}: the value {name!r} declares no --tx — it states no "
-                f"clearance from the line it rides, and .lp-flow__val's own note "
-                f"publishes one: 12 px off the line at every viewport the gate admits")
+                f"{page.name}: the value {name!r} declares no {' or '.join(missing)} — "
+                f"the clearance is the magnitude of BOTH components, so a missing one "
+                f"is not a zero, it is an unstated distance, and .lp-flow__val's own "
+                f"note publishes the number: 12 px off the line at every viewport the "
+                f"gate admits")
             continue
-        px = clearance_of(var["--tx"])
+        px = clearance_of(var["--tx"], var["--ty"])
         if px is None:
             findings.append(
-                f"{page.name}: the value {name!r} states its clearance as "
-                f"{var['--tx']!r} — not a px length. A clearance in the drawing's "
-                f"units or in percent closes up as the box shrinks, which is the "
-                f"failure .lp-flow__val's note rules out in its own words")
+                f"{page.name}: the value {name!r} states its offset as "
+                f"{var['--tx']!r} / {var['--ty']!r} — not a pair of px lengths. A "
+                f"clearance in the drawing's units or in percent closes up as the box "
+                f"shrinks, which is the failure .lp-flow__val's note rules out in its "
+                f"own words")
             continue
         held.setdefault(px, []).append(name)
 
@@ -176,11 +214,12 @@ def check_values(page, text, findings, verbose):
                            for px, n in sorted(held.items()))
         findings.append(
             f"{page.name}: the values do not agree on one clearance — {spread}. "
-            f"It is stated once in prose and typed once per numeral, so the six "
-            f"have to be read against each other or the odd one out is invisible")
+            f"The clearance is hypot(--tx, --ty), not either component: a numeral is "
+            f"a horizontal box on a sloped line, so agreeing on --tx alone is how "
+            f"eight labels came to hold 7.55 to 14.14 px while every --tx read 12")
     if verbose and held:
         for px, names in sorted(held.items()):
-            print(f"    {len(names)} value(s) hold {px:g} px off the line: "
+            print(f"    {len(names)} value(s) hold {px:g} px off the line (hypot of --tx, --ty): "
                   f"{', '.join(sorted(names))}")
     return sum(len(n) for n in held.values())
 
