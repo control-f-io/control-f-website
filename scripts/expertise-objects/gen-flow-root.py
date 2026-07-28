@@ -174,9 +174,16 @@ walk(F(330), F(150), [("FL", F(90)), ("DL", F(90)), ("SL", F(120)), ("V", F(170)
 # the right spine, to the second split
 walk(F(330), F(150), [("FR", F(45))])
 # middle taproot -> (600, 620). Its long steep run is written as two collinear
-# steps, and the right taproot's first flat one likewise: a root branches along
-# a straight length as well as at its bends, and a junction is where a branch
-# can leave from. Neither changes the taproot's path by a unit.
+# steps: a root branches along a straight length as well as at its bends, and a
+# junction is where a branch can leave from. It does not change the taproot's
+# path by a unit, and (530, 355) does shed a branch, which is the whole of why
+# the break is there.
+#
+# AND THE RIGHT TAPROOT'S FIRST FLAT RUN WAS BROKEN THE SAME WAY AND NOTHING
+# EVER LEFT IT -- see the note on that taproot below. A junction made for a
+# branch that never comes is a division that divides nothing, and two collinear
+# strokes drawn end to end are one stroke: it was invisible on the page and a
+# branch point in the markup.
 walk(F(420), F(195), [("DR", F(60)), ("SR", F(100)), ("SR", F(140)), ("V", F(125))])
 # right taproot -> (1200, 620). 355 of flat and 70 of 45 is the only split of
 # the drop budget that lands on 1200 at all; the lengths taper.
@@ -193,7 +200,33 @@ walk(F(420), F(195), [("DR", F(60)), ("SR", F(100)), ("SR", F(140)), ("V", F(125
 # inside that band and leaves 215 of drop under it -- enough for the growth
 # rule to size a branch that lands on the rail rather than one more twig.
 # The taproot's path is not changed by a unit.
-walk(F(420), F(195), [("FR", F(70)), ("FR", F(80)), ("FR", F(60)), ("FR", F(65)),
+#
+# AND ITS FIRST RUN IS NOT SPLIT ANY MORE, which is the same rule read the
+# other way. 70 + 80 put a junction at (560, 265) for a branch to leave from,
+# and in six generations of this drawing nothing has ever left it. Two
+# collinear strokes drawn end to end are one stroke -- the junction was a
+# branch point in the markup and nothing at all on the page, and the next
+# person to read this file would have counted it as one of the root's
+# divisions. Nothing can ever leave it, for two independent reasons:
+#
+#   1. THERE IS NO ROOM. rem 355 gives legs of 220 and 135, and of the three
+#      leg-1 candidates the rule tries, SL crosses (480, 255)-(530, 355) and V
+#      crosses the middle taproot twice; SR is free to (670, 485), and from
+#      there all three leg-2 candidates cross -- DR through (805, 515)-(740,
+#      580), DL through the middle taproot's last drop, V through (530,
+#      355)-(695, 520). The ground under it belongs to its two neighbours'
+#      branches. All four seedings of grow() were run and all four decline.
+#   2. IT WOULD BE THE TWELFTH NODE. Its run is 296, level 1.03, which is
+#      inside the level < 2 band that takes a dot -- so a branch here makes it
+#      a node, and the manual's ceiling is eleven ("eight is a lot for one
+#      object; twelve is too many"). The assert below already holds that.
+#
+# So the break is removed rather than filled. 70 + 80 becomes 150, and because
+# Chebyshev is additive along a straight line the run at every point past it is
+# the number it always was: no coordinate moves, no --l or --u changes, the
+# node set is the same eleven, and the drawing loses one element of markup and
+# not one unit of ink.
+walk(F(420), F(195), [("FR", F(150)), ("FR", F(60)), ("FR", F(65)),
                       ("FR", F(80)), ("DR", F(70))])
 
 SKELETON = len(segments)
