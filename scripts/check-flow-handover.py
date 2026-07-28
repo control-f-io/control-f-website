@@ -70,7 +70,9 @@ frame top minus flow bottom:
 At 1920 x 1080 all sixteen terminals stop in 172 px of empty wash with no rail
 under any of them, which is a screenshot of the thing this system says it does
 not ship. It is not fixable by moving a box: the flow's height is locked to its
-width by aspect-ratio (the ratio is what makes the x arrivals exact), its top is
+width by aspect-ratio (the ratio is what makes the x arrivals exact — this
+parenthesis is the basis of everything above it and was prose in two files
+until scripts/check-flow-ratio.py read it against the viewBox), its top is
 locked to the void it leaves, and a box with one degree of freedom cannot serve
 two arrivals — the same over-determination .lp-flow's own note works through for
 the horizontal axis and resolves by keeping the arrival and letting the
