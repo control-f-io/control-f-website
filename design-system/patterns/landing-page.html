@@ -183,8 +183,68 @@
          not told, #178 the frame standing 1 px inside the border it replaced.
          scripts/check-shared-measure.py holds the chain now, so the sentence
          handover rests on is read rather than believed. */
-      main { --lp-measure: calc((100vh - 13rem) * 2); }
-      .lp-proc-stage { --pin-measure: var(--lp-measure); }
+      /* AND THE STAGE IS 100vh OF SCREEN THE READER DOES NOT ALWAYS HAVE. Both
+         lines below used to read the viewport raw, and the viewport is not what
+         is free: the consent banner is `position: fixed; inset: auto 0 0 0`, so
+         on a first visit — the only visit it is shown on — the bottom 144.4 px
+         of every one of these screens belongs to it.
+
+         The system already knows this rule and already pays it twice.
+         .cf-hero caps its min-height against calc(100vh - var(--cf-consent-
+         height, 0px)) and .cf-footer pads by it, both off the property
+         cf-consent.js publishes while the banner is up and removes when it
+         goes. This stage is the third layer over the same edge and reserved
+         nothing. Measured on first load, the stage stuck — how much of each
+         box's bottom edge is below the banner's top edge, in px:
+
+           viewport      bar buried   card foot buried   elementFromPoint at the bar's centre
+           1280 x  720      99.4            82.4         the banner's "Datenschutzerklärung"
+           1366 x  768      99.4            82.4         the banner's body copy
+           1280 x  800      88.2            71.2         the banner's plate
+           1024 x  720      81.4            64.4         the banner's plate
+           1440 x  900      73.4            56.4         the banner's plate
+           1024 x  768      57.4            40.4         the banner's plate
+           1280 x  900      38.2            21.2         the banner's plate
+           1024 x  900       0               0           the bar
+           1920 x 1080       0               0           the bar
+
+         Seven of nine, and the two clear ones are the tall pair anyone checks
+         at. The bar is the one element on the stage that says this section
+         scrubs, and the hit test is the finding rather than the paint: at the
+         middle of it the document hands back the banner.
+
+         SO THE HABITABLE STAGE IS THE VIEWPORT MINUS THE LAYER OVER ITS FOOT,
+         and it is said twice because the card's size and the stage's box are
+         two different things that have to agree — the same pair the note above
+         is about. `block-size` and not padding: the inner is height: 100% of a
+         100vh sticky box with `align-content: center`, so shortening the box
+         lifts the trio, where padding inside it would push the same content
+         into the same banner. That is the trap check-consent-clearance.py
+         spells out for the hero, and it is the opposite way round here.
+
+         FLOORED AT 45rem, WHICH IS THE GATE'S OWN HEIGHT AND NOT A NEW NUMBER.
+         Without the floor the reservation over-narrows: the card's height is
+         `max(width / 2, the copy)` and the copy is the taller column below
+         about 1000 px of card, so past that point narrowing the card makes it
+         TALLER and the stage's own clip crops it — 90.7 px at 1280 x 720 with
+         the banner up, measured. The gate already says 45rem of viewport is the
+         least this stage can hold a card worth reading in; the floor says the
+         reservation may not take it below that. Paid in full at and above 820
+         px of viewport, tapering to nothing at the gate's floor, and identical
+         to what shipped at every size once the banner is dismissed — max()
+         against a 0px fallback is the same expression it was.
+
+         WHAT IS LEFT, so it is not rediscovered as a bug. Between 720 and 820
+         px tall the banner still covers 19 to 99 px of the trio, because a 562
+         px trio does not fit in 576 px of screen minus the stage's own padding
+         and there is nothing left to give that is not the card. The honest
+         answer there is that the gate's floor is 45rem of VIEWPORT where it
+         wants to be 45rem of HABITABLE stage — a threshold a media query cannot
+         express, since the banner's height is a runtime property. Flagged for a
+         designer rather than invented here. */
+      main { --lp-measure: calc((max(45rem, 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }
+      .lp-proc-stage { --pin-measure: var(--lp-measure);
+        block-size: max(45rem, calc(100% - var(--cf-consent-height, 0px))); }
       /* AND THE SAME FINDING ON THE OTHER AXIS. The note above is about the
          chrome running WIDER than the card; this is the chrome drifting AWAY
          from it as the viewport gets taller, and it is the larger of the two.
