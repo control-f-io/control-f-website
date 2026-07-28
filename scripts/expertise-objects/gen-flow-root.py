@@ -59,6 +59,7 @@ is one stroke at twice the weight and worse than the crossing it was reached
 for. scripts/check-flow-crossings.py asserts the result on the paste.
 """
 
+import math
 from collections import Counter
 from fractions import Fraction as F
 
@@ -555,37 +556,88 @@ for nx, ny in NODE_POINTS:
 # clearance at the point: on the 26.57deg runs the line drops 34 px across the
 # width of a six-digit label and walks straight back through it. Measured at
 # 1440x900 on the first paste -- 4 080 sat at flow y 422-436, x 871-903, and
-# its own taproot crossed that box from 420.5 to 436.5. So a value on a line
-# heading DOWN-RIGHT sits ABOVE it and one heading DOWN-LEFT sits BELOW it,
-# which is the side the line is walking away from; clearance then grows across
-# the label instead of closing.
+# its own taproot crossed that box from 420.5 to 436.5. So the clearance is
+# PERPENDICULAR to the stroke, and it is the NEAREST CORNER of the label box
+# that holds it: the box then extends into the quadrant the offset points into,
+# and every other point of it is further from the line than that corner. Which
+# is what makes "12 px" a number rather than a direction of travel.
+#
+# THE OFFSETS WERE TYPED, AND THAT IS WHY THERE WERE EIGHT OF THEM. dx/dy were
+# axis-aligned constants -- 12 px across, 8 px down, -50% -- so the clearance
+# they actually bought was whatever the projection of that pair onto the
+# stroke's normal happened to come to. Measured on the render at 1440 x 900,
+# nearest corner to own stroke:
+#
+#     12 480   11.99      3 840   12.52      3 200   14.13      5 440   12.52
+#      1 360    7.56       4 080   12.53      2 400   12.54      1 680    7.55
+#
+# One drawing, one stated clearance, and 7.55 to 14.14 px of it -- an 87 %
+# spread, with the two tightest 37 % under the number the rule publishes. None
+# of it visible: every label looks placed, because a label 7.5 px off a line
+# and a label 14 px off a line both look like a label near a line.
+#
+# THE LAW, and it decides all eight with nothing left over:
+#
+#     A numeral sits exactly 12 px from the stroke it names, measured
+#     perpendicular from the numeral's nearest corner, on that stroke's LEFT --
+#     and on its right only where the left would bring another stroke inside
+#     the same 12 px.
+#
+# "Left" is the walker's left going down the stroke: rotate the direction a
+# quarter turn to (dy, -dx). On the drawing's four labelled slopes that gives
+# four offsets and no fifth, each of magnitude exactly 12:
+#
+#     vertical      (12, 0)                 1:1   (8.485, -8.485)  = 12/sqrt2
+#     1:2 (26.57d)  (5.367, -10.733)        2:1   (10.733, -5.367) = 12/sqrt5
+#
+# THE RIGHT IS TAKEN THREE TIMES, and never by preference. 3 200, 1 360 and
+# 1 680 are each the STEEPER of two strokes leaving one junction, so their left
+# is the inside of the fork, and the fork closes on them. Measured at the gate
+# floor (1024, where the box is smallest and the 11 px label is therefore
+# largest against it), left-side box to nearest stroke it does not name:
+# 1.20 px, 0.00 px, 0.00 px -- a crossing, twice literally. On the right they
+# get 21.57, 40.17 and 10.94. The other five are clear on the left by 24.78 to
+# 45.64 and stay there.
+#
+# 1 680 IS THE TIGHTEST MARK ON THE DRAWING at 10.94 px, which is under the
+# 12 px the law names -- the law bars the left, it does not promise the right.
+# It is a geometry finding, not a placement one: the 63.43deg dive out of
+# (840, 405) runs close to its own sibling. Recorded here rather than fixed by
+# nudging the label off the law.
 #
 # AND THE CROWN SITS IN THE STATEMENT'S GHOST FIELD. The lattice the statement
 # figure scatters overlaps the top of this box: its rules land on flow y 96,
 # 128 and 160 (its own 32-unit rows, offset 240 -- measured, not declared).
 # The source value is 14 units tall, so it goes in the 32-unit band between 96
-# and 128 rather than on a rule. It was on 128 and read as "12.480".
+# and 128 rather than on a rule. It was on 128 and read as "12.480". The band
+# is why 3 840 keeps its left even though its right is 14.35 px roomier: the
+# right is up-and-left of (250, 190), which puts the box across y 160.
+
+# The label's own box, measured on the render -- 11 px Geist Mono at
+# --tracking-label, so 7.111 px of advance per character and a 14.30 px line
+# box, constant at every viewport because the type does not scale with the
+# drawing. The line box, not the glyphs, which is the conservative end.
+LABEL_ADVANCE = 7.111
+LABEL_HEIGHT = 14.30
+# px per drawing unit at the gate floor, 1024 x 720 -- the smallest the box
+# gets and therefore the largest the label is against the strokes. 0.91333 at
+# 1440, 1.06667 at 1920; the floor is the one a side has to survive.
+FLOOR_SCALE = 0.75948
+CLEARANCE = 12.0
 
 VALUES = [
-    # x, y, value, dx, dy -- dx/dy are CSS, applied after the % placement
-    (F(330), F(112), 12480, "12px",                "-50%"),
-    (F(250), F(190),  3840, "12px",                "8px"),
-    (F(450), F(225),  3200, "calc(-100% - 12px)",  "8px"),
-    (F(500), F(235),  5440, "12px",                "calc(-100% - 8px)"),
+    # x, y, value -- the offsets are DERIVED below and no longer typed
+    (F(330), F(112), 12480),
+    (F(250), F(190),  3840),
+    (F(450), F(225),  3200),
     # 1 360 RODE THE BRANCH THAT MOVED. It sat at (690, 405) on the branch
     # leaving (720, 345) down-LEFT, and that branch is the one the crossing
     # rule turned around: it now leaves down-RIGHT, so its mirror point is
     # (750, 405) and the old one rides nothing at all. run_to() below would
     # have caught it -- this is that assertion doing its job on the first run
     # after the geometry changed under it.
-    #
-    # THE SIDE IS STILL THE ONE THE LINE WALKS AWAY FROM, and on a 63.43deg
-    # line that is a HORIZONTAL clearance, not a vertical one: descending, the
-    # line moves right, so the left side opens and the right side closes. Left
-    # of the point it stays, which is where it was. Measured on the label's own
-    # box at 1440: at its right edge the line is 17 px above its top corner and
-    # climbing away across the rest of it.
-    (F(750), F(405),  1360, "calc(-100% - 12px)",  "-50%"),
+    (F(500), F(235),  5440),
+    (F(750), F(405),  1360),
     # 4 080 MOVED ONE JUNCTION BACK, ONTO THE STROKE IT NAMES. It stood at
     # (860, 415), which is on (840, 405) -> (970, 470) -- past the split at
     # (840, 405), and that split sheds a six-stroke branch to (907.5, 540)
@@ -595,7 +647,7 @@ VALUES = [
     # between carries nothing. (780, 375) is the midpoint of (720, 345) ->
     # (840, 405), the stroke that actually leaves the split, and it takes the
     # same treatment 5 440 takes on the same 26.57deg descent.
-    (F(780), F(375),  4080, "12px",                "calc(-100% - 8px)"),
+    (F(780), F(375),  4080),
     # AND THE SPLIT IT WAS STANDING PAST IS NOW STATED. Moving 4 080 up alone
     # would have emptied the lower right of the one quantity it had, so the
     # division at (840, 405) carries its own two: 2 400 down the 26.57deg run
@@ -603,9 +655,80 @@ VALUES = [
     # two. Both multiples of 80, like every other value here, and the larger
     # goes to the branch with more of the lectern under it. This is also the
     # first quantity the drawing states below y 415 of its 620.
-    (F(900), F(435),  2400, "12px",                "calc(-100% - 8px)"),
-    (F(870), F(465),  1680, "calc(-100% - 12px)",  "-50%"),
+    (F(900), F(435),  2400),
+    (F(870), F(465),  1680),
 ]
+
+
+def own_stroke(px, py):
+    """The one segment a value stands on. Two would make "its stroke" a guess."""
+    hits = [s for s in segments if on_segment(px, py, s[:4])]
+    assert len(hits) == 1, f"the value at ({px}, {py}) rides {len(hits)} routes"
+    return hits[0][:4]
+
+
+def label_box(px, py, sx, sy, chars):
+    """The label's box in drawing units, placed 12 px along (sx, sy).
+
+    The anchor corner is the one the offset points AWAY from, so the box grows
+    into the same quadrant and no other corner is nearer the line than this
+    one. A zero component centres that axis, which only the vertical uses.
+    """
+    w = chars * LABEL_ADVANCE / FLOOR_SCALE
+    h = LABEL_HEIGHT / FLOOR_SCALE
+    off = CLEARANCE / FLOOR_SCALE
+    ax, ay = float(px) + off * sx, float(py) + off * sy
+    x0 = ax if sx > 0 else (ax - w if sx < 0 else ax - w / 2)
+    y0 = ay if sy > 0 else (ay - h if sy < 0 else ay - h / 2)
+    return x0, y0, x0 + w, y0 + h
+
+
+def box_gap(seg, box, samples=400):
+    """Least distance in units from a segment to an axis-aligned box."""
+    x1, y1, x2, y2 = (float(v) for v in seg)
+    bx0, by0, bx1, by1 = box
+    best = float("inf")
+    for i in range(samples + 1):
+        px = x1 + (x2 - x1) * i / samples
+        py = y1 + (y2 - y1) * i / samples
+        dx = max(bx0 - px, 0.0, px - bx1)
+        dy = max(by0 - py, 0.0, py - by1)
+        best = min(best, math.hypot(dx, dy))
+    return best
+
+
+def offsets(px, py, chars):
+    """The two CSS offsets the law produces for a value, and why that side.
+
+    Returns (dx, dy, side, left_gap, taken_gap) -- gaps in px at the gate
+    floor, to the nearest stroke the value does NOT name.
+    """
+    x1, y1, x2, y2 = own_stroke(px, py)
+    dx, dy = float(x2 - x1), float(y2 - y1)
+    length = math.hypot(dx, dy)
+    left = (dy / length, -dx / length)          # the walker's left, (dy, -dx)
+    gaps = {}
+    for name, (sx, sy) in (("left", left), ("right", (-left[0], -left[1]))):
+        box = label_box(px, py, sx, sy, chars)
+        gaps[name] = min(box_gap(s[:4], box) for s in segments
+                         if s[:4] != (x1, y1, x2, y2)) * FLOOR_SCALE
+    side = "left" if gaps["left"] >= CLEARANCE else "right"
+    sx, sy = left if side == "left" else (-left[0], -left[1])
+    ox, oy = CLEARANCE * sx, CLEARANCE * sy
+    return css_offset(ox, "x"), css_offset(oy, "y"), side, gaps["left"], gaps[side]
+
+
+def css_offset(v, axis):
+    """One component of the offset, carrying its own anchoring.
+
+    The anchor is not a taste either: the box has to grow away from the line,
+    so a positive component anchors the near edge at 0 and a negative one at
+    -100%. A zero component is the vertical's, and centres.
+    """
+    if abs(v) < 1e-9:
+        return "-50%"
+    r = round(v, 3)
+    return f"{r:g}px" if r > 0 else f"calc(-100% - {abs(r):g}px)"
 
 
 def run_to(px, py):
@@ -691,7 +814,10 @@ print()
 # against cannot happen, and an insurance that no longer does any work is one
 # more thing for a hand edit to get wrong.
 SEP = " "
-for x, y, v, dx, dy in VALUES:
+for x, y, v in VALUES:
     text = f"{v // 1000}{SEP}{v % 1000:03d}" if v >= 1000 else str(v)
+    dx, dy, side, left_gap, gap = offsets(x, y, len(text))
     print(f'<span class="t-label lp-flow__val" style="--x:{num(x)};--y:{num(y)};'
           f'--tx:{dx};--ty:{dy};--l:{level(run_to(x, y))}">{text}</span>')
+    print(f'  <!-- {side:>5}: own stroke {CLEARANCE:.2f} px, nearest other '
+          f'{gap:.2f} px at the gate floor; the left offers {left_gap:.2f} -->')

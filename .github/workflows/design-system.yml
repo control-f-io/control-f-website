@@ -938,10 +938,20 @@ jobs:
         run: python3 scripts/check-print-fixed.py
       # The forty-eighth, and the sibling of check-flow-values.py — that one
       # reads --x and --y off each numeral on the root and holds the arithmetic;
-      # this reads --tx, which is the property that decides whether the numeral
-      # is legible where it was put. The drawing publishes the rule itself, on
-      # .lp-flow__val: "these hold 12 px off the line at every viewport the gate
-      # admits". Stated once in prose, typed six times by hand.
+      # this reads the OFFSET, which is the property that decides whether the
+      # numeral is legible where it was put. The drawing publishes the rule
+      # itself, on .lp-flow__val: "these hold 12 px off the line at every
+      # viewport the gate admits". Stated once in prose, typed eight times by
+      # hand.
+      #
+      # AND IT USED TO HOLD THE WRONG QUANTITY. It read --tx alone. --tx is the
+      # HORIZONTAL COMPONENT of the offset and a numeral is a horizontal box on
+      # a SLOPED line, so on the 26.57deg runs 12 px across the page is 5.4 px
+      # off the stroke. The eight components all read 12 and the eight
+      # clearances came out between 7.55 and 14.14 px — this check was the
+      # reason nobody looked further. It holds hypot(--tx, --ty) now, and
+      # check-flow-label-law.py below holds that the offset is perpendicular,
+      # which is what makes that magnitude a distance off the line.
       #
       # And the same rule applied to the copy that cannot state an offset. The
       # four step marks of .cf-pin__index are on this drawing too — not placed
@@ -1242,3 +1252,46 @@ jobs:
       - name: Flow split
         if: '!cancelled()'
         run: python3 scripts/check-flow-split.py
+
+      # The sixty-fifth, and the third at this drawing's numerals: check-flow-
+      # values.py holds what they say, check-label-ramp.py the type they say it
+      # in, and this one where they STAND.
+      #
+      # --tx/--ty on the eight .lp-flow__val were eight hand-typed AXIS-ALIGNED
+      # pairs -- "12px" across, "8px" down, "-50%" -- and a numeral is a
+      # horizontal box on a sloped line, so what each actually bought was the
+      # projection of its pair onto that line's own normal. Measured on the
+      # render at 1440 x 900, nearest corner of the label box to the stroke it
+      # names: 11.99, 12.52, 14.13, 12.52, 7.56, 12.53, 12.54, 7.55 px. One
+      # drawing, one published clearance -- ".lp-flow__val ... these hold 12 px
+      # off the line at every viewport the gate admits" -- and an 87 % spread
+      # under it, with the two tightest 37 % below the number the rule states.
+      # Invisible in review: a numeral 7.5 px off a line and a numeral 14 px
+      # off a line both read as a numeral near a line.
+      #
+      # THE LAW. A numeral sits exactly 12 px from the stroke it names,
+      # measured perpendicular from the numeral's NEAREST CORNER, on that
+      # stroke's LEFT -- and on its right only where the left would bring
+      # another stroke inside the same 12 px. On the drawing's four labelled
+      # slopes that is four offsets and no fifth, each of magnitude 12:
+      # (12, 0), (8.485, -8.485), (5.367, -10.733), (10.733, -5.367). The
+      # anchoring is part of it -- a positive component anchors at 0 and a
+      # negative one at -100%, so the box grows away from the line and the
+      # corner holding the 12 px is the nearest corner.
+      #
+      # THE SIDE IS DERIVED, which a magnitude check would miss: 3 200, 1 360
+      # and 1 680 each take the right, because each is the steeper of two
+      # strokes leaving one junction and its left is the inside of that fork.
+      # At the gate floor -- 1024, where the label is largest against the
+      # strokes -- their left boxes come within 1.20, 0.00 and 0.00 px of a
+      # stroke they do not name, two of them literal crossings.
+      #
+      # Proven on four reintroduced strays, each green everywhere else in the
+      # tree: the old axis-aligned pair back on 4 080; 1 360 flipped onto the
+      # side that crosses, with the magnitude still exactly 12; 2 400 anchored
+      # so the box grows back over its own line; and "-12px" written where
+      # "calc(-100% - 12px)" was meant, which is the right distance from the
+      # wrong corner.
+      - name: Flow label law
+        if: '!cancelled()'
+        run: python3 scripts/check-flow-label-law.py
