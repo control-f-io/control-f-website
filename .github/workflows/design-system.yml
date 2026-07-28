@@ -1159,3 +1159,28 @@ jobs:
       - name: Pinned index
         if: '!cancelled()'
         run: python3 scripts/check-pin-name.py
+
+      # The fifty-ninth, and the first whose subject is WHEN a file runs rather
+      # than what is in it. cf-consent.js measures the consent banner and writes
+      # --cf-consent-height; components.css spends that number on the hero's
+      # min-height, so the property is an input to the first paint. The script
+      # was the last <script> in the body, so the browser painted the hero at
+      # 92vh and the hero then collapsed onto the banner's top edge with the
+      # whole document following it up. Measured on the landing page, first
+      # visit, nothing stored: CLS 0.32341 at 375 x 812 — over twice the 0.25
+      # that counts as a poor score — 0.09053 at 768, 0.03016 at 1280, 0.02675
+      # at 1440, every one of them a shift landing 2 to 10 ms after first
+      # contentful paint. It is the worst kind of invisible: on a RETURN visit
+      # the banner never shows, the property is never set, and CLS is 0.000 at
+      # every width, which is every load anybody reviewing this page has after
+      # their first. The tag now sits directly after the banner markup, where
+      # the parser is still forty lines above the hero, and the same four
+      # measure 0.000 / 0.011 / 0.000 / 0.000. The check is a byte-offset
+      # comparison with both sides derived — the consumers out of the shipping
+      # stylesheets, the elements out of the markup — and the one exemption
+      # derived too: trailing padding on the last shipping block moves nothing,
+      # which is why the fourteen pages with a footer and no hero are green
+      # with their tag where it has always been.
+      - name: Consent paint order
+        if: '!cancelled()'
+        run: python3 scripts/check-consent-paint-order.py

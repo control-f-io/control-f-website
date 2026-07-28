@@ -98,7 +98,52 @@
     }));
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
+  /* WHEN THIS RUNS IS A LAYOUT FACT, NOT A LIFECYCLE PREFERENCE, and the
+     reason is publishHeight() below. This file measures the banner and writes
+     --cf-consent-height, and components.css spends that number on
+     `.cf-hero { min-height: min(92vh, 56rem, calc(100vh - …)) }`. The hero is
+     the first screen. So the property is an input to the FIRST PAINT, and a
+     script that waits for DOMContentLoaded publishes it one frame too late:
+     the browser paints the hero at 92vh, this file then measures the banner,
+     and the hero collapses onto the banner's top edge with the whole document
+     following it up.
+
+     Measured on patterns/landing-page.html, first visit, nothing stored —
+     cumulative layout shift, and the hero's height across the shift:
+
+       viewport      FCP      shift at    CLS       hero px
+       375 x 812     192 ms   194 ms      0.32341   747 -> 501
+       768 x 1024    192 ms   202 ms      0.09053   896 -> 791
+       1280 x 900    224 ms   227 ms      0.03016   828 -> 756
+       1440 x 900    240 ms   235 ms      0.02675   828 -> 756
+
+     0.32341 is over twice the 0.25 that counts as a poor score, on a phone, on
+     the one visit every new reader has: the hero paints, and 2 ms later 246 px
+     of it is gone. On a return visit, with a decision stored, the banner never
+     shows and every one of those numbers is 0.000 — which is why the fault
+     survived: it is absent from the second load onward, and from every load
+     anybody reviewing the page has after the first.
+
+     THE FIX IS WHERE THE SCRIPT TAG SITS, and this function is what lets the
+     tag move. The banner and the settings dialog are the first two elements in
+     the body, so a <script> placed directly after them runs while the parser
+     is still above the hero: boot() shows the banner, measures it, and writes
+     the property before the hero has a box at all. Same measurements after the
+     move: 0.000 / 0.011 / 0.000 / 0.000. Nothing about the banner's behaviour
+     changes — it is the same show, the same measurement, the same observer,
+     one parse position earlier.
+
+     It is the argument cf-nav.js's own header makes for sitting in the head:
+     a script that writes something the first paint depends on has to run
+     before that paint, and where it runs is the only lever.
+
+     BOTH ENTRY POINTS STAY, because only one page has the tag in the new
+     position today. Where the banner is already parsed, boot() runs now; where
+     the tag is still at the end of the body — the other fourteen pages, whose
+     only consumer is the footer's bottom padding, which moves nothing because
+     nothing follows it — the banner is not there yet and DOMContentLoaded is
+     the entry point exactly as before. → scripts/check-consent-paint-order.py */
+  function boot() {
     var banner = document.querySelector('[data-cf-consent-banner]');
     var dialog = document.querySelector('[data-cf-consent-dialog]');
     if (!banner) return;
@@ -320,5 +365,26 @@
       announce([]);
       showBanner();
     }
-  });
+
+    /* AND ONE THING HAS TO HAPPEN TWICE WHEN boot() RUNS EARLY. activate()
+       rewrites every <script type="text/plain" data-cf-consent> the document
+       holds, and run from the top of the body it can only see the ones parsed
+       so far — which is none of them, since a gated tag sits with the thing it
+       gates. So the sweep is repeated once the document is complete. It is
+       idempotent by construction: a tag it activates stops matching the
+       selector, so the second pass finds only what the first could not yet
+       see, and on the pages where boot() still runs at DOMContentLoaded the
+       document is already complete and the second pass finds nothing. */
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () {
+        activate(grantedFrom(read()));
+      });
+    }
+  }
+
+  /* Parsed already means the tag sits after the banner — run now, before the
+     hero has a box. Not parsed means the tag is at the end of the body, where
+     DOMContentLoaded is the earliest this can run at all. */
+  if (document.querySelector('[data-cf-consent-banner]')) boot();
+  else document.addEventListener('DOMContentLoaded', boot);
 })();
