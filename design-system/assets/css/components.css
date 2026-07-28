@@ -4944,13 +4944,69 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
      button takes the full measure; a 2+1 ragged row cannot occur because the
      two hypothetical sizes only fit together or not at all. The ghost is not
      part of the pair and never joins the row — reject must not be the button
-     that got squeezed to make room for something quieter. */
+     that got squeezed to make room for something quieter. The short-screen
+     block below is the one exception, and it is the same argument rather than
+     a break with it: there the ghost joins a row the pair still fills to the
+     measure, so nothing is squeezed to make room for it. */
   .cf-consent__actions .cf-btn { flex: 1 1 max-content; }
   .cf-consent__actions .cf-btn--ghost { flex: 1 1 100%; justify-content: flex-start; }
 }
-/* A tall banner on a short screen must not eat the page it is asking about. */
+/* A tall banner on a short screen must not eat the page it is asking about.
+   THAT SENTENCE WAS TRUE OF THE INTENT AND FALSE OF THE RULE. The block held
+   one declaration — a 70vh cap with an inner scroll — and a cap only does
+   something where the banner is already taller than it. The banner is 253 px
+   wide-independently from 375 to 900, so across the whole band this threshold
+   governs the cap is above it and never engages; measured on the landing page,
+   first load, nothing dismissed:
+
+     viewport    banner   of screen   nav band   CLEAR between the two fixed layers
+     667 x 375    253       68 %        84         38
+     740 x 375    253       68 %        84         38
+     812 x 375    253       68 %        90         32
+     844 x 390    253       65 %        90         47
+     900 x 400    253       63 %        90         57
+
+   The nav is fixed at the top and the banner is fixed at the bottom, so that
+   CLEAR figure is a constant — it does not move with scroll. Nothing in the
+   hero is 32 px tall: the headline is 190 and the one call to action is 48,
+   the .cf-btn floor. So on a landscape phone, on the one visit the notice is
+   shown, there is NO scroll offset at which the page's opening line can be
+   read whole or its button pressed whole. The reservation .cf-hero pays out of
+   --cf-consent-height cannot save it: that cap is a term of a min-height, and
+   a min-height cannot shrink a box whose content is taller than it — the hero
+   renders 467 px against a 122 px cap, so the link measures as applied and
+   the button is buried exactly as it was before it existed.
+
+   SO THE BLOCK SHORTENS THE BANNER INSTEAD OF CAPPING IT, in the two places
+   the narrow form spends height that a short screen has not got:
+
+     - the ghost rejoins the pair's row. It is a full-width row of its own only
+       because the screen is NARROW, and a screen under 35rem tall is landscape
+       — the width is the axis with room. This is the taller of the two: 52 px.
+     - the block padding drops one rung, 24 to 16. 16 px.
+
+   Measured after, same viewports: 191 px and 94-119 px of CLEAR from 667 up,
+   and 219 / 72 at 600, where the row cannot hold three, the ghost still wraps
+   and the cap below is what finishes the job.
+   The pair is never squeezed to make room: both shrink by the same 58 px and
+   floor at the 13rem min-width, 225 px against a 208 px floor at the narrowest
+   width the three share a row. Above 900 the banner is already two columns and
+   only the padding applies — 144 to 128 at 1024 x 400.
+
+   AND THE CAP IS NOW STATED AGAINST WHAT IT LEAVES. 70vh was a share of the
+   screen and said nothing about the nav, which is the other fixed layer and is
+   there at every height: at 568 x 320 the cap engaged at 224 and left 12 px.
+   The terms below are the two things that must survive it — the nav band and
+   one control, .cf-btn's own 3rem min-height, plus a rung of air — so the
+   backstop leaves 72 px there instead of 12. It is still a backstop and still
+   rarely reached: at 375 tall it sits at 219 against a banner of 191. */
 @media (max-height: 35rem) {
-  .cf-consent { max-height: 70vh; overflow-y: auto; }
+  .cf-consent__inner { padding-block: var(--space-4); }
+  .cf-consent__actions .cf-btn--ghost { flex: 0 0 auto; justify-content: center; }
+  .cf-consent {
+    max-height: calc(100vh - var(--nav-height) - 3rem - var(--space-6));
+    overflow-y: auto;
+  }
 }
 
 /* --------------------------------------------------------------------------

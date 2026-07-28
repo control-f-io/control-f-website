@@ -63,6 +63,51 @@ WHAT IS CHECKED
      reached from the hide path, not only from a resize.
   4. The reservation is a cap and not padding: `.cf-hero` declares no
      padding-block-end/padding-bottom that reads the property.
+
+  5. The short-screen block is the last word, and it SHORTENS the banner.
+
+THE FIFTH LINK, AND WHY IT NEEDED ITS OWN NUMBER. Everything above verifies the
+reservation is declared. None of it can see that the reservation does nothing,
+and on a landscape phone it does nothing: a min-height cannot shrink a box whose
+content is taller than it. The hero renders 467 px against a 122 px cap at
+812 x 375, so the chain measures as applied all the way down and the button is
+buried exactly as it was before any of it existed. The table above has no row
+under 600 px of viewport height, which is the only reason that was ever missed.
+
+Two queries govern the banner and both match on a landscape phone:
+(max-width: 56.25rem), which stacks it, and (max-height: 35rem), which exists —
+in the breakpoint register's own words — because "a tall banner on a short
+screen hides the page it is asking about". The second held one declaration, a
+70vh cap with an inner scroll, and a cap does nothing where the banner is
+already shorter than it. The banner is 253 px at every width from 375 to 900, so
+across the whole band this threshold governs the cap never engaged:
+
+    viewport    banner   of screen   nav band   CLEAR between the two fixed layers
+    667 x 375    253       68 %        84         38
+    812 x 375    253       68 %        90         32
+    844 x 390    253       65 %        90         47
+    900 x 400    253       63 %        90         57
+
+Both layers are `position: fixed`, so CLEAR is a constant — it does not move
+with scroll. The hero's call to action is 48 px, `.cf-btn`'s own min-height, so
+on five of those five sizes there is no scroll offset at which the page's one
+button is a live target. Measured after: 191 px of banner and 94-119 of CLEAR.
+
+WHAT IS CHECKED, and it is file shape rather than geometry because every other
+check here is:
+
+  a. the (max-height: 35rem) block appears AFTER the (max-width: 56.25rem) one
+     in components.css. Both match on a landscape phone and the later block
+     wins per declaration; ahead of it, nothing it says survives.
+  b. it does more than cap: it returns `.cf-consent__actions .cf-btn--ghost`
+     off a full-row flex basis. The ghost's own row is the tallest thing the
+     narrow form adds — 52 of the 68 px — and it is a full row only because the
+     screen is NARROW, which a short screen is not.
+  c. the cap is stated against what it LEAVES, not as a share of the screen.
+     70vh said nothing about the nav, which is fixed and present at every
+     height: at 568 x 320 it engaged at 224 px and left 12. The value must
+     subtract var(--nav-height), so whatever else it takes, the other fixed
+     layer is not it.
 """
 import re
 import sys
@@ -192,6 +237,96 @@ else:
         failures.append(
             "cf-consent.js: showBanner() does not publish the banner's height, so the "
             "hero only clears the banner once something else resizes it."
+        )
+
+# ---- 5 · the short-screen block is the last word, and it shortens ---------
+NARROW = "@media (max-width: 56.25rem)"
+SHORT = "@media (max-height: 35rem)"
+
+
+def at_rule_body(text, prelude):
+    """The body of the first top-level at-rule with this exact prelude."""
+    i = text.find(prelude)
+    if i < 0:
+        return None, -1
+    j = text.index("{", i) + 1
+    depth = 1
+    k = j
+    while k < len(text) and depth:
+        if text[k] == "{":
+            depth += 1
+        elif text[k] == "}":
+            depth -= 1
+        k += 1
+    return text[j: k - 1], i
+
+
+narrow_body, narrow_at = at_rule_body(components, NARROW)
+short_body, short_at = at_rule_body(components, SHORT)
+
+if short_body is None:
+    failures.append(
+        "components.css: no `%s` block. It is the one height threshold in the "
+        "register and the only thing standing between a landscape phone and a "
+        "banner that covers 68 %% of it." % SHORT
+    )
+elif narrow_body is None:
+    failures.append("components.css: no `%s` block to order the height one against"
+                    % NARROW)
+else:
+    # a · order
+    if short_at < narrow_at:
+        failures.append(
+            "components.css: `%s` is written before `%s`. Both match on a landscape "
+            "phone, and the later block wins per declaration — ahead of the narrow "
+            "one the short-screen block cannot undo a single thing it says."
+            % (SHORT, NARROW)
+        )
+    short_decls = strip_comments(short_body)
+    # b · the ghost comes off its own row
+    ghost = re.search(r"\.cf-consent__actions\s+\.cf-btn--ghost\s*\{([^}]*)\}",
+                      short_decls)
+    if not ghost:
+        failures.append(
+            "components.css %s: nothing returns `.cf-consent__actions .cf-btn--ghost` "
+            "off the full-width row the narrow block gives it. That row is 52 of the "
+            "68 px this block has to save, and it is a full row only because the "
+            "screen is NARROW — a screen under 35rem tall is landscape, so width is "
+            "the axis with room. Without it the banner stands 253 px on a 375 px "
+            "screen and leaves 32 px between the nav and itself, which is less than "
+            "the 48 px call to action that has to fit there." % SHORT
+        )
+    else:
+        flex = re.search(r"flex\s*:\s*([^;]+)", ghost.group(1))
+        if not flex:
+            failures.append(
+                "components.css %s: the `.cf-btn--ghost` rule declares no `flex`, so "
+                "the narrow block's `flex: 1 1 100%%` still stands and the ghost still "
+                "holds a row of its own." % SHORT
+            )
+        elif "100%" in flex.group(1):
+            failures.append(
+                "components.css %s: `.cf-btn--ghost` is back on a 100%% basis — a row "
+                "of its own. That is the narrow screen's answer on the short screen's "
+                "axis.\n    flex: %s" % (SHORT, " ".join(flex.group(1).split()))
+            )
+    # c · the cap says what it leaves
+    cap = re.search(r"\.cf-consent\s*\{([^}]*)\}", short_decls)
+    cap_value = re.search(r"max-height\s*:\s*([^;]+)", cap.group(1)) if cap else None
+    if not cap_value:
+        failures.append(
+            "components.css %s: the banner has no max-height backstop left. It is "
+            "rarely reached now and it is still what holds the line at 320 px of "
+            "screen." % SHORT
+        )
+    elif "--nav-height" not in cap_value.group(1):
+        failures.append(
+            "components.css %s: the banner's max-height does not subtract "
+            "var(--nav-height).\n    max-height: %s\n    A cap has to be stated "
+            "against what it LEAVES. A bare share of the screen says nothing about "
+            "the nav, which is the other fixed layer and is there at every height: "
+            "70vh engaged at 568 x 320 and left 12 px of page between the two of them."
+            % (SHORT, " ".join(cap_value.group(1).split()))
         )
 
 if failures:

@@ -199,12 +199,43 @@
     </div>
     <div class="docs-note">
       <strong>One height threshold.</strong> At a viewport <em>height</em> of 560 or less
-      — a phone in landscape — the consent banner caps at 70vh and scrolls inside itself,
-      so it cannot swallow the page it is asking about. It is the only height query in the
-      system, and it is a backstop, not the working state: since the accept/reject pair
-      shares one row wherever both fit at natural width, the banner measures 253 px at
-      667×375 and sits under the cap with all three actions visible. Measured, the cap's
-      scroll only engages below that — 568×320 is the first common size that needs it.
+      — a phone in landscape — the consent banner takes its short-screen form, so it
+      cannot swallow the page it is asking about. It is the only height query in the
+      system.
+    </div>
+    <div class="docs-note">
+      <strong>And for a year it said that and did the opposite.</strong> The block held
+      one declaration, a <code>70vh</code> cap with an inner scroll, and a cap only does
+      something where the banner is already taller than it. The banner is
+      <strong>253&nbsp;px at every width from 375 to 900</strong> — it has no height
+      query of its own — so across the whole band this threshold governs, the cap sat
+      above it and never engaged. The nav is fixed at the top and the banner is fixed at
+      the bottom, which makes the gap between them a constant that no amount of scrolling
+      moves:
+    </div>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Viewport</th><th>Banner</th><th>Of the screen</th><th>Clear band</th><th>After</th></tr></thead>
+      <tbody>
+        <tr><td>667 × 375</td><td>253</td><td>68 %</td><td><strong>38</strong></td><td>191 / 100</td></tr>
+        <tr><td>812 × 375</td><td>253</td><td>68 %</td><td><strong>32</strong></td><td>191 / 94</td></tr>
+        <tr><td>844 × 390</td><td>253</td><td>65 %</td><td><strong>47</strong></td><td>191 / 109</td></tr>
+        <tr><td>900 × 400</td><td>253</td><td>63 %</td><td><strong>57</strong></td><td>191 / 119</td></tr>
+        <tr><td>568 × 320</td><td>224 <em>capped</em></td><td>70 %</td><td><strong>12</strong></td><td>164 / 72</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note">
+      The hero's one call to action is 48&nbsp;px — <code>.cf-btn</code>'s own
+      <code>min-height</code> — and its headline is 190. On a 32&nbsp;px band there is no
+      scroll offset at which either fits, so on a landscape phone, on the one visit the
+      notice is shown, the landing page's opening line could not be read whole and its
+      button could not be pressed whole. The fix is in the two places the narrow form
+      spends height a short screen has not got: the ghost rejoins the pair's row (it is a
+      row of its own only because the screen is <em>narrow</em>, and a screen under 35rem
+      tall is landscape), and the block padding drops a rung. What is left caps against
+      <code>var(--nav-height)</code> plus one control plus a rung of air, so the backstop
+      now says what it <em>leaves</em> rather than what it takes.
       → <a href="../components/consent.html">Consent</a>
     </div>
   </section>
@@ -270,7 +301,7 @@
         <tr><td>Values</td><td>stacked and readable — never pinned, never scrubbed</td></tr>
         <tr><td>Accordion</td><td>loses its indent; rows are 52–73 px tall</td></tr>
         <tr><td>Forms</td><td>fields already full width; nothing changes</td></tr>
-        <tr><td>Consent</td><td>single column, and the three controls go full width in a stack</td></tr>
+        <tr><td>Consent</td><td>single column, and the three controls go full width in a stack — unless the screen is also short, where the ghost rejoins the pair's row; see the height threshold above</td></tr>
         <tr><td>Footer</td><td>CTA stacks over the button; meta rows wrap</td></tr>
         <tr id="logo-wall"><td>Logo wall</td><td>marks wrap and <strong>centre</strong>, a true 48 px apart on every row. Above a container of <code>48rem</code> the seven fit on one line and are justified to the measure instead — see below</td></tr>
         <tr><td>Tables and code blocks</td><td>scroll inside their own box, never widen the page</td></tr>
@@ -500,7 +531,7 @@
       <thead><tr><th>Where</th><th>Value</th><th>On a phone</th></tr></thead>
       <tbody>
         <tr><td>Hero</td><td><code>min-height: min(92vh, 56rem)</code></td><td>747 px on a 812 px screen. 92 rather than 100 on purpose: the page has to show that it continues</td></tr>
-        <tr><td>Consent, short screens</td><td><code>max-height: 70vh</code></td><td>only under a 560 px viewport height, i.e. landscape</td></tr>
+        <tr><td>Consent, short screens</td><td><code>calc(100vh - var(--nav-height) - 3rem - var(--space-6))</code></td><td>only under a 560 px viewport height, i.e. landscape, and a backstop rather than the working state: 219 px against a 191 px banner at 375 tall. It was <code>70vh</code>, which never engaged at all across that band</td></tr>
         <tr><td>Values track</td><td><code>100vh</code> per stage</td><td><strong>never runs below 820 px</strong>, so the 100vh stage does not exist on a phone</td></tr>
       </tbody>
     </table>
