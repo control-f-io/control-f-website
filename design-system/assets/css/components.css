@@ -5451,12 +5451,60 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 
    The switch reads FIRST in the markup so these sibling selectors can reach
    both media elements. Keep it there.
+
+   AND IT SITS BESIDE .cf-hero__media RATHER THAN INSIDE IT, which is the one
+   thing about its placement that is load-bearing rather than convenient. The
+   media box is `position: absolute; z-index: 0` — a STACKING CONTEXT, and
+   deliberately so: the note over .cf-hero__media::after banks on it, "below
+   .cf-hero__body's z-index 1 by being in the media's box at all, so no
+   stacking order has to be stated for the type". That seal is right for the
+   artwork and the scrim. It is wrong for a control, and it does not ask which
+   it is holding down. Inside the media box the plate's own `z-index` ranks it
+   only against the video and the scrim; against anything outside it the whole
+   subtree is one layer at 0, under the type at 1, and no number written here
+   can lift it.
+
+   The type has no background, so nothing looked wrong. What was wrong was the
+   hit test. .cf-hero__body is `width: fit-content` sized to the LONGEST line
+   the headline sets, and the h1's box therefore runs the full width of that
+   column on every line — including the trailing emptiness after the short
+   ones. Wherever that box reaches the plate, the plate is under it and the h1
+   takes the click. Measured on the landing page, elementFromPoint at the
+   plate's centre and at both of its diagonal corners:
+
+     375 x 812   h1.cf-hero__title   h1.cf-hero__title   h1.cf-hero__title
+     414 x 896   label.cf-hero__still  (own)  ...  and clear at every width above
+
+   375 is where it binds because that is where the hero runs out of height:
+   min(92vh, 56rem, 100vh - banner) leaves 478.5 px for ~473 px of content, the
+   flex column stops being bottom-slack, and the headline climbs to y 84 —
+   through the plate's band at 96–136. Above 414 the body starts at 179 and the
+   two boxes never meet. So the one viewport where this control is unreachable
+   by pointer is the phone, and this control is WCAG 2.2.2 (level A): the
+   mechanism over a 12 s loop that repeats forever. The checkbox kept working —
+   focus is not hit-testing — so a keyboard reader could always pause the loop
+   and a touch reader never could.
+
+   Out here the plate and its input are children of .cf-hero, which is
+   `position: relative` with `z-index: auto` and so establishes no context of
+   its own (`overflow: clip` does not make one). Control and type therefore
+   rank against each other directly, at 2 against 1, and the artwork keeps its
+   seal at 0 with nothing in it that has to escape. The geometry does not move:
+   absolute positioning resolves against the padding box either way, and
+   .cf-hero__media is `inset: 0` on that same box — measured identical, 96 px
+   from the top at 375 and 106 at 1440, before and after.
+
+   The sibling selectors pay one hop for it: the media elements are no longer
+   the switch's own siblings, so the two rules below reach through
+   .cf-hero__media to them. Everything else about the mechanism is unchanged —
+   still no script, still working with JS off.
+   → scripts/check-pointer-reach.py
    -------------------------------------------------------------------------- */
 .cf-hero__media img { display: none; }
-.cf-hero__still-toggle:checked ~ video { display: none; }
-.cf-hero__still-toggle:checked ~ img   { display: block; }
+.cf-hero__still-toggle:checked ~ .cf-hero__media video { display: none; }
+.cf-hero__still-toggle:checked ~ .cf-hero__media img   { display: block; }
 
-.cf-hero__media { --hero-still-top: calc(var(--nav-height) + var(--space-4)); }
+.cf-hero { --hero-still-top: calc(var(--nav-height) + var(--space-4)); }
 
 /* The input is not `.visually-hidden`, and that is a fix rather than a style.
    The hero is pulled up by the nav's height, so its media box starts ABOVE the
@@ -5468,7 +5516,10 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    click, and the accessible checkbox is still a real checkbox. */
 .cf-hero__still-toggle {
   position: absolute;
-  z-index: 1;
+  /* 2, not 1, and against .cf-hero__body's 1 — see the block header. The input
+     is not hit-testable, so this rank is only what keeps it in the same layer
+     as the plate it has to stay under. */
+  z-index: 2;
   top: var(--hero-still-top);
   right: var(--column-inset);
   width: 2.5rem;
@@ -5484,7 +5535,10 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    which a translucent plate over a moving image cannot promise. */
 .cf-hero__still {
   position: absolute;
-  z-index: 1;
+  /* Above .cf-hero__body's 1, which is the whole point of the move out of the
+     media box — the plate has to take the click where the headline's box
+     overlaps it. */
+  z-index: 2;
   top: var(--hero-still-top);
   right: var(--column-inset);
   display: grid;
@@ -5548,8 +5602,10 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 @media (max-width: 48.75rem) {
   /* The navigation is full-bleed at this width and the headline climbs, so the
      control tucks a rung closer under the bar. One custom property moves both
-     the plate and the input that has to stay under it. */
-  .cf-hero__media { --hero-still-top: calc(var(--nav-height) + var(--space-3)); }
+     the plate and the input that has to stay under it — declared on .cf-hero
+     rather than .cf-hero__media since the pair left the media box; both are
+     still inside it, so both still inherit. */
+  .cf-hero { --hero-still-top: calc(var(--nav-height) + var(--space-3)); }
 }
 
 /* --------------------------------------------------------------------------
