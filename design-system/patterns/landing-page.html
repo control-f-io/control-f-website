@@ -1890,10 +1890,38 @@
          wheel notches. Cover spans the element plus a viewport, which is the
          940 px this draw actually needs. It arrives after the root that reaches
          it and before the lectern below it, which is the order the reader's eye
-         travels. */
+         travels.
+
+         AND IT HAS TO BE THE EDGE THAT ACTUALLY CARRIES THE RULE, which is the
+         BLOCK-START one, not the block-end. Three rules stack on this box and
+         only the last of them is on the edge the reader sees:
+
+           .cf-section-header          border-bottom: 1px      the component
+           .cf-section-header--flush   border-bottom: 0        gives it up
+           .lp-proc-head (above)       border-block-start: 1px on the rim
+
+         --flush exists to stop exactly this ("The header gives up its own
+         border rather than drawing a second hairline 1 px away"), and the
+         anchored block above then re-hangs the rule on the box's TOP because
+         that is where the drawing's rim is. So `border-bottom-color:
+         transparent` here neutralised a border that was already 0 px wide — a
+         no-op — and the ::after drew its replacement at `bottom`, 28.9 px
+         under the hairline it was supposed to be replacing.
+
+         Measured at 1440 x 900 before this commit: the block-start border, an
+         opaque 1 px black full-container rule that no animation touches,
+         entered the viewport finished at scroll y 742; the ::after did not
+         begin to draw until y 1100 and landed at y 1280. So the reader met the
+         finished rule this note's first paragraph was written to abolish, 358
+         px before the drawn one started, and then got a SECOND full-width
+         hairline growing in below it — two parallel rules across a drawing
+         that has one horizon. Both cross the root at full container width with
+         the label row trapped between them. → scripts/check-head-rule.py, which
+         reads the edge off the cascade and fails if the animated edge and the
+         bordered edge are not the same one. */
       .lp-proc-head {
         position: relative;
-        border-bottom-color: transparent;
+        border-block-start-color: transparent;
         view-timeline-name: --lp-head;
         view-timeline-axis: block;
       }
@@ -1901,8 +1929,8 @@
         content: "";
         position: absolute;
         inset-inline: 0;
-        bottom: calc(-1 * var(--stroke-1));
-        border-bottom: var(--stroke-1) solid var(--border-strong);
+        top: calc(-1 * var(--stroke-1));
+        border-block-start: var(--stroke-1) solid var(--border-strong);
         transform-origin: 0 50%;
         animation: lp-frame-draw linear both;
         animation-timeline: --lp-head;
