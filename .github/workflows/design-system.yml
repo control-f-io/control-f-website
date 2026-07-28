@@ -868,3 +868,29 @@ jobs:
       - name: Figure letterbox
         if: '!cancelled()'
         run: python3 scripts/check-figure-letterbox.py
+
+      # The forty-seventh, and the first about paper. `position: fixed` is two
+      # different declarations wearing one name: on a screen it pins a box to
+      # the viewport, and in paged media the viewport IS the page box, so the
+      # browser repeats the same box on every sheet. CSS 2.1 §9.6.1 says so
+      # outright and all three engines do it.
+      #
+      # .cf-consent is that box on every page in the tree — `position: fixed;
+      # inset: auto 0 0 0`, opaque, on --surface-inverse, and nothing scoped it
+      # to screen. landing-page.html printed to A4 on a first visit came out as
+      # nine pages each carrying `794 x 253 re f` filled `0 0 0`, painted last:
+      # 189.9 pt of an 842.88 pt sheet, 22.5 % of every page, over the content.
+      # Pages 2 to 9 ended with 4,540 bytes of byte-identical drawing
+      # operators. Page four lost "Ihr Vorteil" and the benefit line under it
+      # off the middle of a process card. What the reader got was a question
+      # with three unpressable buttons, reprinted nine times.
+      #
+      # It is invisible in every screenshot this repository takes, because
+      # every screenshot is `screen`. It is exactly countable in a file. The
+      # rule admits two answers — scope the rule to `screen` so print never
+      # reads it, or withdraw the layer in an `@media print` block — and it
+      # carries the one fixed layer no author declaration can name, the UA
+      # stylesheet's `dialog:modal`.
+      - name: Print artefacts
+        if: '!cancelled()'
+        run: python3 scripts/check-print-fixed.py

@@ -4903,6 +4903,46 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
               opacity   var(--duration-base) var(--ease-out);
 }
 .cf-consent[hidden] { display: none; }
+/* AND IT DOES NOT PRINT, which is not a nicety — a fixed box in paged media is
+   repeated on EVERY sheet, and this one is an opaque black plate the full width
+   of the page.
+
+   Measured before this rule existed, first visit, landing-page.html printed to
+   A4 through Chromium: nine pages, and all nine carry `0 0 794 253 re f` filled
+   `0 0 0` painted last in the content stream. The page content is laid out at
+   794 units wide and scaled to the 595.92 pt MediaBox, so 253 units is 189.9 pt
+   of an 842.88 pt sheet — 22.5 % of every page, over the bottom edge, opaque,
+   on top of whatever the flow had put there. Pages 2 to 9 end with 4,540 bytes
+   of byte-identical drawing operators: the plate, the foil rule above it, the
+   11 px "Datenschutz-Einstellungen" run and the 14 px body. Page four of the
+   proof lost "Ihr Vorteil" and the benefit line under it mid-card.
+
+   It is also the one layer on the page that paper cannot answer. The banner
+   asks a question and offers three buttons; printed, it is three dead buttons
+   stamped nine times over the content the reader was trying to keep. The
+   decision itself is not lost — it lives in localStorage and the banner is
+   back on screen on the next load.
+
+   The dialog goes with it for the same reason and one more: an open
+   <dialog> is `position: fixed` by the UA stylesheet, so a reader who prints
+   with the settings panel open gets the modal, its ::backdrop and none of the
+   page. Both layers are chrome; neither is the document.
+
+   AND IT IS WRITTEN `dialog`, NOT `.cf-consent__dialog`, which is the only
+   place in this file where the bare element is the more precise selector. The
+   fix on the second layer is not declared here at all — it comes from the UA
+   stylesheet's `dialog:modal`, which is keyed on the element. Every <dialog>
+   in the tree is this one component (ten pattern pages, one each), so the two
+   selectors name exactly the same boxes today; the element name is the one
+   that stays true the day a second dialog is written, and it is the key
+   check-print-fixed.py can see.
+
+   → scripts/check-print-fixed.py, which holds this for every fixed layer the
+   shipping stylesheets declare, not only for these two. */
+@media print {
+  .cf-consent,
+  dialog { display: none; }
+}
 /* Entry state. Removed on the frame after insertion, so the banner rises into
    place; with reduced motion the durations collapse to 1 ms and it just is. */
 .cf-consent[data-enter="true"] { transform: translateY(100%); opacity: 0; }
@@ -5654,8 +5694,18 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    `display: grid` above it, and both selectors weigh (0,1,0) — a media query
    adds nothing to specificity, so above the plate's own rule this block lost
    silently and the control stayed on screen with nothing left for it to switch.
-   Caught in the browser, not read off the cascade. */
-@media (prefers-reduced-motion: reduce) {
+   Caught in the browser, not read off the cascade.
+
+   AND PRINT TAKES THE SAME ARM, because print is the other state where nothing
+   is moving. Paper cannot loop twelve seconds of artwork, so what a printed
+   hero was getting was whichever frame the decoder happened to be holding when
+   the sheet was composed — a different picture every time the same page is
+   printed — under a 40 x 40 black plate carrying a pause glyph for a loop that
+   is not running. The still is the authored frame and the one this system
+   already publishes contrast figures against; the switch is a control, and a
+   control on paper is ink that does nothing. Both answers are already written
+   here, so print joins the query rather than restating it. */
+@media print, (prefers-reduced-motion: reduce) {
   .cf-hero__media video { display: none; }
   .cf-hero__media img   { display: block; }
   /* Nothing is moving, so there is nothing to switch off. The control is not
