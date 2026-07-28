@@ -670,6 +670,153 @@
         view-timeline-axis: block;
       }
       .lp-flow :is(path, circle) { vector-effect: non-scaling-stroke; }
+
+      /* ------------------------------------------------------------------
+         THE SECTION TITLE, ON THE DRAWING'S GROUND LINE.
+
+         WHAT WAS WRONG. "Was wir machen" took .cf-section-header--flush, and
+         that modifier's contract is exact: "the content below is a ruled
+         container and ITS top border is the rule. The header gives up its own
+         border rather than drawing a second hairline 1 px away." The container
+         below here is the LECTERN, and the lectern is sticky. Measured, header
+         bottom to frame top, before the pin engages:
+
+           1440 x  900   170.9      1280 x 720   144.9
+           1920 x 1080   260.9      1440 x 720   144.9
+           1280 x  800   156.1      1024 x 900   253.0
+           1366 x  768   145.0      1600 x 900   170.9
+
+         145 to 261 px, and moving. Nothing was ever 1 px away, so the rule the
+         header deferred to was never drawn: of the page's five section headers
+         this was the only one with no rule at all (Partner and Das Team carry
+         theirs; FAQ and Blog defer correctly, to an accordion and a grid that
+         really are immediately below).
+
+         AND UNRULED, IT WAS DEBRIS ON THE DRAWING. Without its hairline the
+         header is two mono runs 1200 px apart, and both of them stood inside
+         the root: at 1440 x 900 the label sat at flow y 435-462, where its
+         first glyph stands on the left taproot's own vertical (x 0) and a
+         generation-2 twig crosses it at x 60-73, and the count was crossed by
+         the right taproot's last run at x 1174-1200. The title was drawn
+         THROUGH, at every viewport in the table above.
+
+         WHERE IT GOES. Swept every 26-unit band of the box against all 37
+         segments, testing the two ends the label and the count occupy: the
+         crown, y 0 to 84, is the only band no stroke crosses. Below it the root
+         has reached both walls and there is no clear line anywhere — which is
+         the drawing's own finding, not the header's: the root was grown to fill
+         its box edge to edge and nothing in it was ever reserved for the title
+         it is supposed to carry.
+
+         So the rule goes on y 84 — the void's rim, the point the trunk leaves
+         from — and it is the drawing's horizon: everything below it, the title
+         and the whole root, is this section. The trunk drops out of the void
+         through it.
+
+         AND THE ROW HANGS UNDER ITS RULE, which is the one place this departs
+         from components/section-header.html and it is forced, not chosen.
+         Above the rule is the statement's own air: at 1440 x 900 the rim sits
+         15 px under the last line of "…in Geschäftsmodelle verwandelt", so a
+         26-unit row of type above the rule lands in that paragraph. Under the
+         rule the band y 84-110 is empty at every viewport — the crown split is
+         at 150 and the source value rides x 342-400, clear of both ends. The
+         system does ship this device the other way up: .cf-pagination is the
+         same mono row standing under a hairline, for the same reason (the rule
+         belongs to what is above it). What the system does NOT have is a
+         section-header modifier for it, so this is page-local, and a
+         --rule-over modifier belongs in the component → the component lane.
+
+         BOUND TO THE DRAWING, NOT TO THE COLUMN. The rule spans the drawing's
+         measure exactly — which is also the lectern's measure, since both read
+         --lp-measure — so the three objects finally share one width. In flow it
+         spanned the container instead, which is wider than the drawing at every
+         viewport where --lp-measure binds.
+
+         TWO THINGS ANCHOR POSITIONING WILL NOT DO HERE, both measured rather
+         than read off a spec. anchor() resolves the anchor's LAYOUT box, and
+         .lp-flow is centred with `translate`, which is not in it: left:
+         anchor(… left) put the rule's left edge at the figure's MIDPOINT, 640
+         px right of the drawing. So the horizontal is centred the way .lp-flow
+         centres itself and only the SIZE is read off the anchor. And the
+         containing block has to stay the initial one — an anchor is only
+         acceptable to a positioned element whose containing block is either the
+         ICB or an ancestor of the anchor. Giving the slot `position: relative`
+         to get a sane 100% made .lp-flow unacceptable, every anchor() fell back
+         at once, and the header dropped to its static position 250 px down,
+         drawing a full-bleed rule through the middle of the root. Hence
+         anchor-size() for the width: a percentage here would resolve against
+         the ICB.
+
+         536/620 is (620 - 84)/620: the rim's height above the box's foot, in
+         the drawing's own units, so it tracks the box at every size.
+
+         @supports because anchor positioning is narrower than the view
+         timelines this whole gate already needs. Without it the header stays
+         where it is today — unruled and in the drawing — which is no worse
+         than it was, and the drawing is hidden entirely outside the gate. */
+      @supports (anchor-name: --lp-flow-box) and (top: anchor(--lp-flow-box bottom)) {
+        .lp-flow { anchor-name: --lp-flow-box; }
+        .cf-statement__text { anchor-name: --lp-statement-text; }
+        .lp-proc-head {
+          position: absolute;
+          /* THE RIM, OR CLEAR OF THE STATEMENT, WHICHEVER IS LOWER. The rim is
+             where the rule belongs — it is the drawing's own horizon — and at
+             the reference frame it is already clear of the copy by 15.71 px.
+             The statement's two columns do not scale together, though: the
+             figure shrinks with its column while the copy WRAPS, so on the
+             short and narrow half of the range the rim rises into the
+             paragraph. At 1024 x 900 the rule was drawn straight through both
+             of its lines with 4 SCHRITTE sitting on the second.
+
+             Measured, where the rule lands in the drawing's own units:
+
+               1440 x  900    84.3     1280 x 800    94.7
+               1600 x  900    84.3     1366 x 768    96.3
+               1920 x 1080    84.3     1280 x 720   105.3
+               2560 x 1440    84.3     1440 x 720   105.3
+                                       1024 x 900   140.3
+                                       1024 x 720   140.3
+
+             84.3 is the rim. Below it the floor is carrying the rule, by 9 px
+             at 1280 x 800 and by 43 px at 1024 x 900 — and at the four sizes
+             that read 84.3 the floor is under it by 0.29 px, because the figure
+             and the copy share a grid row and their proportions happen to
+             agree there. So the floor is doing the work almost everywhere; the
+             rim term is what stops the rule floating off the top of the drawing
+             if the copy is ever shortened.
+
+             The row still clears the root at all of them: the crown split is at
+             150 and the only stroke above it is the trunk, at x 330, which the
+             rule is meant to cross. At 140.3 the row's own type reaches 178,
+             where the two crown runs have only reached x 274 and x 386 — the
+             label ends at x 90 and the count starts at x 1110. */
+          top: max(calc(anchor(--lp-flow-box bottom)
+                        - anchor-size(--lp-flow-box height) * 536 / 620),
+                   calc(anchor(--lp-statement-text bottom) + var(--space-4)));
+          left: 50%;
+          width: anchor-size(--lp-flow-box width);
+          translate: -50% 0;
+          margin: 0;
+          padding-block: var(--space-3) 0;
+          border-block-start: var(--stroke-1) solid var(--border-strong);
+        }
+        /* What the header no longer occupies. → the markup note. The label's
+           line box is the term that is easy to get wrong: .cf-section-header
+           __label sets no line-height, so it inherits the page's
+           --leading-relaxed and NOT the --leading-normal its own type ramp
+           would suggest — 15.95 px at 11 px, measured, not assumed.
+
+           NO STROKE TERM. What is being held open is the box the header USED
+           to occupy, and that box was --flush: 15.95 + 12 and no rule. Adding
+           the hairline the header now draws puts the seam 1.00 px further open
+           at all eight viewports in the .lp-flow table — uniform, harmless, and
+           still a number the next lane would have to re-measure for nothing. */
+        .lp-proc-head-slot {
+          min-block-size: calc(var(--text-xs) * var(--leading-relaxed)
+                               + var(--space-3));
+        }
+      }
+
       /* WHAT THE ROOT IS CARRYING, and why it is text and not a drawing.
          Six values ride the routes: the source on the trunk, one on each
          taproot where it leaves the crown, and the two the right taproot
@@ -1476,8 +1623,16 @@
 
   <!-- 03 · Was wir machen -->
   <section class="section" aria-labelledby="prozess">
-    <div class="container">
-      <div class="cf-section-header cf-section-header--flush">
+    <!-- THE TITLE STANDS ON THE DRAWING'S GROUND LINE, and the slot is what it
+         leaves behind. Inside the gate .lp-proc-head is taken out of flow and
+         placed on the root's crown, so this container would collapse and pull
+         the lectern up by the header's own height — which is the one direction
+         the flow-to-frame seam has no room in (+1.58 px at 1440 x 900; see the
+         .lp-flow note's table). The slot holds exactly that height open, built
+         from the tokens the header is built from, so the seam is where it was.
+         Outside the gate the header is in flow and the slot is a no-op. -->
+    <div class="container lp-proc-head-slot">
+      <div class="cf-section-header cf-section-header--flush lp-proc-head">
         <h2 class="cf-section-header__label" id="prozess">Was wir machen</h2>
         <!-- A COUNT, NOT A POSITION, and for the reason components/section-header.html
              writes into its own "In context" note about Unsere Werte: this section

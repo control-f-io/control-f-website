@@ -492,7 +492,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not thirty-seven. All thirty-seven checks are a few hundred
+  # One job, not forty. All forty checks are a few hundred
   # milliseconds of stdlib python; a second runner would cost more to start
   # than any of them takes to run, and a reader looking at a red tick wants
   # every answer on one page.
@@ -507,7 +507,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: thirty-seven
+      # Each check runs even when an earlier one has already failed: forty
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -699,3 +699,17 @@ jobs:
       - name: Subdivision fold
         if: '!cancelled()'
         run: python3 scripts/check-subdivide-fold.py
+      # The fortieth, and the first about a feature that fails by not
+      # failing. anchor() does not error when it cannot resolve — the
+      # declaration behaves as `auto` and the element renders perfectly at its
+      # STATIC position, which is a place nobody chose. Both ways of not
+      # resolving were hit while placing the "Was wir machen" title on the
+      # drawing's horizon: a wrapper given `position: relative` made the anchor
+      # unacceptable and dropped the header 250 px, drawing a full-measure
+      # hairline through the middle of the root; a misspelt dashed ident does
+      # exactly the same thing and is cheaper to write. So: every reference
+      # resolves, every declared anchor is used, and every use sits inside an
+      # @supports that tests the feature.
+      - name: Anchor positioning
+        if: '!cancelled()'
+        run: python3 scripts/check-anchor-positioning.py
