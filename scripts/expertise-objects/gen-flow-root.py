@@ -117,8 +117,22 @@ walk(F(330), F(150), [("FR", F(45))])
 # can leave from. Neither changes the taproot's path by a unit.
 walk(F(420), F(195), [("DR", F(60)), ("SR", F(100)), ("SR", F(140)), ("V", F(125))])
 # right taproot -> (1200, 620). 355 of flat and 70 of 45 is the only split of
-# the drop budget that lands on 1200 at all; the four lengths taper.
-walk(F(420), F(195), [("FR", F(70)), ("FR", F(80)), ("FR", F(125)), ("FR", F(80)), ("DR", F(70))])
+# the drop budget that lands on 1200 at all; the lengths taper.
+#
+# ITS LONGEST RUN IS SPLIT TOO, and it is the one the rule above was written
+# for and never reached. 125 of drop at 26.57deg is 250 of width -- the single
+# longest step in the drawing -- and it crossed the emptiest ground on it with
+# no junction anywhere along it, so nothing could leave. Measured on the paste
+# it replaces: of the drawing's 4795 units of ink, the 200-unit band at x
+# 800-1000 held 6.0 % against 27.5 % in the band at the other wall, and the
+# right half held 35.6 % of the whole. A root branches along a straight length;
+# a run this long that does not is the bus this drawing replaced, kept alive in
+# its emptiest quarter. 60 + 65 puts the junction at (840, 405), which is
+# inside that band and leaves 215 of drop under it -- enough for the growth
+# rule to size a branch that lands on the rail rather than one more twig.
+# The taproot's path is not changed by a unit.
+walk(F(420), F(195), [("FR", F(70)), ("FR", F(80)), ("FR", F(60)), ("FR", F(65)),
+                      ("FR", F(80)), ("DR", F(70))])
 
 SKELETON = len(segments)
 
@@ -188,6 +202,7 @@ for jx, jy, pkind, d, side in [
     (F(530), F(355), "S", 2, +1),   # middle taproot, along the steep run
     (F(600), F(495), "S", 2, -1),   # middle taproot, the last corner
     (F(720), F(345), "F", 1, -1),   # right taproot, its first bend
+    (F(840), F(405), "F", 1, +1),   # right taproot, along its longest run
     (F(970), F(470), "F", 1, +1),   # right taproot, second bend
     (F(1130), F(550), "F", 2, -1),  # right taproot, the tip\'s shoulder
 ]:
@@ -390,8 +405,16 @@ for (px, py), v in LABELLED.items():
                             f"{len(kids)} below it total {total}")
 
 print()
-NBSP = " "
+# A PLAIN SPACE, AND THE THOUSANDS SEPARATOR IS STILL UNBREAKABLE. This emitted
+# U+00A0 and the shipped paste carried U+0020, so six of the generator's 125
+# lines did not match the markup it is the source of truth for -- invisible on
+# the page, and exactly the drift "re-run it and the same lines come out" is a
+# claim against. The plain space is the correct one of the two: .lp-flow__val
+# sets `white-space: nowrap`, so the break the no-break space was insuring
+# against cannot happen, and an insurance that no longer does any work is one
+# more thing for a hand edit to get wrong.
+SEP = " "
 for x, y, v, dx, dy in VALUES:
-    text = f"{v // 1000}{NBSP}{v % 1000:03d}" if v >= 1000 else str(v)
+    text = f"{v // 1000}{SEP}{v % 1000:03d}" if v >= 1000 else str(v)
     print(f'<span class="t-label lp-flow__val" style="--x:{num(x)};--y:{num(y)};'
           f'--tx:{dx};--ty:{dy};--l:{level(run_to(x, y))}">{text}</span>')
