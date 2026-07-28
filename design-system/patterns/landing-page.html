@@ -2961,22 +2961,53 @@
          exception the criterion allows is for a foreign phrase that has become
          the vernacular of the text around it, and these are not inside German
          text at all: they are the whole of their element. -->
+    <!-- THE AVATAR BOX IS A FIXED 56 PX AND THE FILES WERE 640 x 800.
+         components.css pins .cf-team-strip__avatar at width/height 3.5rem with
+         nothing in the system moving it at any width, and components/team.html
+         publishes the same number in prose — "56 px round, grayscale". Against
+         that fixed box the four portraits shipped 512,000 source pixels each to
+         paint 3,136, and cost 210,928 bytes: 10.1 % of the 2,098,207 this page
+         transfers, second only to the hero loop, for 0.6 % of its drawn area.
+         Nothing about it was visible — the browser downsamples and the circles
+         look right — which is why it survived.
+
+         THE DERIVATIVE IS THE PIXELS THE BROWSER ALREADY PAINTS. object-fit:
+         cover at the default 50% 50% resolves a 640 x 800 source into a 1:1 box
+         as the centre 640 x 640 — rows 80 to 720 — so the file is cropped to
+         exactly that and resampled. The crop removes only what cover discarded
+         at paint time. Diffed against the old render at 375 / 768 / 1280 / 1440
+         at dpr 2: mean absolute channel difference 0.12 to 0.19 of 255, nothing
+         outside the circles, which is resampler noise and not a change.
+
+         ONE SIZE AND NOT A SRCSET, because two fixed boxes share one window.
+         This component wants at least 2 x 56 = 112 and at most 3 x 56 = 168;
+         .cf-article__avatar, the system's other fixed image box, wants at least
+         96 and at most 144. The windows overlap at 112 to 144, so a single
+         144 px file is a 3 x asset for both and there is no viewport or pixel
+         ratio at which a second candidate would be chosen. A srcset here would
+         be two files and a `sizes` to express one number.
+
+         210,928 bytes becomes 17,395 — 91.8 % off, 9.2 % of this page's
+         transfer — with no change on screen. The 640 x 800 originals stay:
+         .cf-team-grid draws the same people at 184 px and up and is the reason
+         they exist at that size.
+         → scripts/check-image-scale.py -->
     <div class="cf-team-strip" tabindex="0" role="region" aria-labelledby="team">
       <ul class="cf-team-strip__list" role="list">
         <li class="cf-team-strip__item">
-          <img class="cf-team-strip__avatar" src="../assets/img/team/portrait-01.jpg" alt="" width="640" height="800" loading="lazy" decoding="async">
+          <img class="cf-team-strip__avatar" src="../assets/img/team/portrait-01-144.jpg" alt="" width="144" height="144" loading="lazy" decoding="async">
           <div><p class="cf-person__name">Simon Deussen</p><p class="cf-person__role" lang="en">Founder</p></div>
         </li>
         <li class="cf-team-strip__item">
-          <img class="cf-team-strip__avatar" src="../assets/img/team/portrait-02.jpg" alt="" width="640" height="800" loading="lazy" decoding="async">
+          <img class="cf-team-strip__avatar" src="../assets/img/team/portrait-02-144.jpg" alt="" width="144" height="144" loading="lazy" decoding="async">
           <div><p class="cf-person__name">Daniel Tremer</p><p class="cf-person__role" lang="en">CEO &amp; Managing Partner</p></div>
         </li>
         <li class="cf-team-strip__item">
-          <img class="cf-team-strip__avatar" src="../assets/img/team/portrait-03.jpg" alt="" width="640" height="800" loading="lazy" decoding="async">
+          <img class="cf-team-strip__avatar" src="../assets/img/team/portrait-03-144.jpg" alt="" width="144" height="144" loading="lazy" decoding="async">
           <div><p class="cf-person__name">Vorname Nachname</p><p class="cf-person__role" lang="en">Data Engineer</p></div>
         </li>
         <li class="cf-team-strip__item">
-          <img class="cf-team-strip__avatar" src="../assets/img/team/portrait-04.jpg" alt="" width="640" height="800" loading="lazy" decoding="async">
+          <img class="cf-team-strip__avatar" src="../assets/img/team/portrait-04-144.jpg" alt="" width="144" height="144" loading="lazy" decoding="async">
           <div><p class="cf-person__name">Vorname Nachname</p><p class="cf-person__role" lang="en">AI Specialist</p></div>
         </li>
       </ul>
