@@ -452,7 +452,7 @@
          is not large. Moving the build onto the hold window's own timeline is
          still what buys the rest, and it still re-derives both tails.
          ------------------------------------------------------------------ */
-      main { --lp-hold: 77vh; timeline-scope: --lp-flow; }
+      main { --lp-hold: 77vh; --lp-pan: 150px; timeline-scope: --lp-flow; }
       /* THE RESERVATION IS ADDED TO THE SECTION'S OWN RHYTHM, NOT WRITTEN OVER
          IT, and this is the one place the arithmetic actually bit. `.section`
          is `padding-block: var(--section-gap)`, so `padding-block-start:
@@ -2164,10 +2164,39 @@
      is from the top of the document. Both ends are written out for the same
      reason lp-frame-draw writes both: an implied end taken from the base
      style is a value the next edit can move without touching this. */
-  @keyframes lp-hold   { from { translate: 0 calc(-1 * var(--lp-hold)); }
-                         to   { translate: 0 0; } }
-  @keyframes lp-hold-c { from { translate: -50% calc(-1 * var(--lp-hold)); }
-                         to   { translate: -50% 0; } }
+  /* THREE STOPS, NOT ONE. The single linear ramp was a perfect standstill —
+     and it held the WRONG MOMENT: the cloud built while the page still
+     scrolled over it, and the hold caught only the root. The ramp is now
+     piecewise, same window, same endpoints, three phases:
+
+       0 - 45 %    standstill, offset +--lp-pan   THE CLOUD builds, sitting
+                   --lp-pan lower so the claim and the whole field clear the
+                   nav — this is the stop Daniel's screenshots were missing
+       45 - 60 %   the glide: offset +--lp-pan -> 0, the camera easing down
+                   from the cloud to the root's ground, while the field
+                   collapses into the departure
+       60 - 100 %  standstill, offset 0            THE ROOT grows, and the
+                   window ends at translate 0 so the release into the cards'
+                   own pinned stage is seamless
+
+     The arithmetic that makes each flat segment a true standstill: over a
+     window exactly --lp-hold px long, translate advancing at the scroll rate
+     cancels it; a segment where the translate term advances by exactly its
+     share of --lp-hold is frozen on screen, and the glide is the one segment
+     where the pan term drains. Both keyframes below carry the SAME phase
+     boundaries — every held element moves in lockstep or the drawing tears. */
+  @keyframes lp-hold {
+    0%   { translate: 0 calc(-1 * var(--lp-hold) + var(--lp-pan)); }
+    45%  { translate: 0 calc(-0.55 * var(--lp-hold) + var(--lp-pan)); }
+    60%  { translate: 0 calc(-0.40 * var(--lp-hold)); }
+    100% { translate: 0 0; }
+  }
+  @keyframes lp-hold-c {
+    0%   { translate: -50% calc(-1 * var(--lp-hold) + var(--lp-pan)); }
+    45%  { translate: -50% calc(-0.55 * var(--lp-hold) + var(--lp-pan)); }
+    60%  { translate: -50% calc(-0.40 * var(--lp-hold)); }
+    100% { translate: -50% 0; }
+  }
 
   /* Over .cf-pin's chrome: this stage spaces its index and bar a rung further
      from the card than the Expertise page does — and that rung is now the
