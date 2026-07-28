@@ -1143,7 +1143,7 @@
          a wider scope is a wider audience for the same timeline. */
       .cf-statement__figure {
         position: relative;
-        --flow-c: 17.53;
+        --flow-c: 11.033;
       }
       /* ONE BOX, DECLARED ONCE, FOR THE DRAWING AND FOR WHAT IT CARRIES. The
          values are real HTML over the figure rather than <text> inside it —
@@ -1722,8 +1722,8 @@
         white-space: nowrap;
         animation: lp-frame-in linear both;
         animation-timeline: --lp-flow;
-        animation-range: cover calc((13 + var(--l) * var(--flow-c)) * 1%)
-                         cover calc((19 + var(--l) * var(--flow-c)) * 1%);
+        animation-range: cover calc((33 + var(--l) * var(--flow-c)) * 1%)
+                         cover calc((39 + var(--l) * var(--flow-c)) * 1%);
       }
       /* THE ROOT GREW OUT OF JUNCTIONS THAT WERE NOT THERE YET, and for as
          long as this drawing has existed. Every window used to be `a + c·l`
@@ -1899,10 +1899,10 @@
         transform-origin: var(--o, 0 0);
         animation: lp-frame-draw linear, lp-flow-out linear;
         animation-timeline: --lp-flow, --lp-flow;
-        animation-range: cover calc((6 + var(--l) * var(--flow-c)) * 1%)
-                         cover calc((6 + (var(--l) + var(--u)) * var(--flow-c)) * 1%),
-                         cover calc((8 + (var(--l) + var(--u)) * var(--flow-c)) * 1%)
-                         cover calc((14 + (var(--l) + var(--u)) * var(--flow-c)) * 1%);
+        animation-range: cover calc((26 + var(--l) * var(--flow-c)) * 1%)
+                         cover calc((26 + (var(--l) + var(--u)) * var(--flow-c)) * 1%),
+                         cover calc((28 + (var(--l) + var(--u)) * var(--flow-c)) * 1%)
+                         cover calc((34 + (var(--l) + var(--u)) * var(--flow-c)) * 1%);
         animation-fill-mode: both, forwards;
       }
       /* THE .62 MOVED OFF THE SVG AND ONTO THE THINGS IT WAS ALWAYS FOR. It
@@ -1923,8 +1923,8 @@
         transform-origin: var(--o, 0 0);
         animation: lp-frame-draw linear both;
         animation-timeline: --lp-flow;
-        animation-range: cover calc((12 + var(--l) * var(--flow-c)) * 1%)
-                         cover calc((12 + (var(--l) + var(--u)) * var(--flow-c)) * 1%);
+        animation-range: cover calc((32 + var(--l) * var(--flow-c)) * 1%)
+                         cover calc((32 + (var(--l) + var(--u)) * var(--flow-c)) * 1%);
       }
       /* A junction is a point the construction depends on, which is exactly
          what .cf-iso__node means elsewhere; these are that, in this page's own
@@ -2195,6 +2195,40 @@
      share of --lp-hold is frozen on screen, and the glide is the one segment
      where the pan term drains. Both keyframes below carry the SAME phase
      boundaries — every held element moves in lockstep or the drawing tears. */
+  /* THE CLOUD IS BOUND TO THE HOLD'S OWN WINDOW, NOT TO ITS OWN TIMELINE.
+     components.css times the sensors off --cf-iso in cover points fitted at
+     1440 x 900 — and a cover point is a different number of scroll pixels at
+     every viewport, so at 1512 x 830 the fade landed half outside the first
+     standstill and collided with the collapse: the field peaked at 31 % and
+     never completed. Daniel's screenshot is that state.
+
+     This override expresses the windows in the SAME vocabulary as the ramp —
+     fractions of --lp-hold from the window's own end — on the SAME timeline,
+     so the alignment with the three phases is an identity at every viewport
+     rather than a fit at one:
+
+       fade      50% - W*(0.99..0.70), staggered 0.04 W by --m
+                 -> entirely inside the first standstill (which ends at 0.55 W)
+       collapse  50% - W*(0.55..0.32), staggered 0.06 W
+                 -> opens exactly at the glide, done well inside the second stop
+
+     Full lists restated: animation-name is a replacement, not an addition. */
+  @supports (animation-timeline: view()) {
+    @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
+      .lp-hold .cf-stmt-sensor {
+        animation-name: cf-iso-fade, cf-stmt-collapse;
+        animation-range: cover calc(50% - var(--lp-hold) * (0.99 - var(--m) * 0.04))
+                         cover calc(50% - var(--lp-hold) * (0.70 - var(--m) * 0.04)),
+                         cover calc(50% - var(--lp-hold) * (0.55 - var(--m) * 0.06))
+                         cover calc(50% - var(--lp-hold) * (0.32 - var(--m) * 0.06));
+        animation-fill-mode: both, forwards;
+        animation-timing-function: var(--ease-out);
+        animation-timeline: --lp-flow, --lp-flow;
+        animation-duration: auto;
+      }
+    }
+  }
+
   @keyframes lp-hold {
     0%   { translate: 0 calc(-1 * var(--lp-hold) + var(--lp-pan)); }
     45%  { translate: 0 calc(-0.55 * var(--lp-hold) + var(--lp-pan)); }

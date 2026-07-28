@@ -78,12 +78,19 @@ WHAT IS HELD, and how each number can be made to fail
   3. THE OVERHANG MAY NOT GROW. Contour: 15.99 points. Whole build including
      the light's fade: 17.99 points. Both recorded as ceilings.
 
-  4. THE BUILD STILL STARTS INSIDE THE HOLD. The first window to open is the
-     light's, at cover 6.00 %, against the hold's 5.69 % at 1440 x 900 -- a
-     margin of 10 px of scroll, which is the tightest number on this page and
-     the thing #225 bought. This one IS viewport-dependent and it is the half
-     that now works; it is held so that a lane shortening --lp-hold, or moving
-     a head back down, cannot quietly take the opening away as well.
+  4. THE BUILD OPENS AT THE GLIDE, NOT AT THE HOLD'S OWN OPENING. This
+     invariant changed on 2026-07-28 and the old truth is worth stating: the
+     build used to take its first ink at cover 6.00, ten px inside the hold's
+     opening, because the hold had ONE standstill and the root was its only
+     occupant. The ramp is three phases now (the page's own keyframe note):
+     the first standstill belongs to the CLOUD, and a root growing during it
+     was Daniel's exact complaint — "the root animation starts immediately,
+     and the stop is too short for the full cloud animation". So the light's
+     first ink now belongs at the glide — the ramp's 45 % phase boundary —
+     and this check derives that band from the shipped keyframes and the same
+     per-viewport cover table the ramp check uses, and holds the head inside
+     it. A head before the band is a root intruding on the cloud's stop; a
+     head after it is a root that wastes the glide.
 
 THE TARGET IS ZERO AND THE FLOOR IS TODAY. Every number here is a ceiling at
 the value that ships, not a value anyone chose. The check passes on the page as
@@ -105,7 +112,15 @@ PAGE = Path(__file__).resolve().parent.parent / "design-system/patterns/landing-
 # page as it ships; the target for every one of them is 0.00.
 CONTOUR_OVERHANG_MAX = 15.99
 BUILD_OVERHANG_MAX = 17.99
-BUILD_OPEN_MAX = 6.00  # the first window may not open later than the light's
+# The hold's window in points of cover per vh of --lp-hold, at the six
+# viewports the gate admits — the reciprocals of the corrected table #230
+# put into check-hold-ramp.py, after its stale one was caught cancelling a
+# second error. One source of truth would be better than two derivations;
+# until a shared module exists, this line names its origin so the next
+# correction lands in both.
+COVER_PER_VH = (0.6046, 0.5995, 0.5841, 0.6031, 0.5862, 0.6042)
+GLIDE_AT = 0.45          # the ramp's second keyframe: the glide's opening
+GLIDE_BAND_SLACK = 0.75  # rounding room on either side of the derived band
 
 TOL = 0.005
 
@@ -202,20 +217,30 @@ def main():
     contour_overhang = contour_close - release
     build_overhang = build_close - release
 
+    m = re.search(r"--lp-hold:\s*([\d.]+)vh", src)
+    hold_vh = float(m.group(1)) if m else 77.0
+    glide_lo = release - (1 - GLIDE_AT) * hold_vh * max(COVER_PER_VH)
+    glide_hi = release - (1 - GLIDE_AT) * hold_vh * min(COVER_PER_VH)
+
     print(f"check-hold-containment: hold releases at cover {release:.2f}%")
-    print(f"  build opens   cover {build_open:.2f}%   (ceiling {BUILD_OPEN_MAX:.2f})")
+    print(f"  build opens   cover {build_open:.2f}%   (glide band "
+          f"{glide_lo:.2f}..{glide_hi:.2f} across the gate's viewports)")
     print(f"  contour opens cover {contour_open:.2f}%")
     print(f"  contour close cover {contour_close:.2f}%  overhang "
           f"{contour_overhang:+.2f} pts (ceiling {CONTOUR_OVERHANG_MAX:.2f}, target 0)")
     print(f"  build close   cover {build_close:.2f}%  overhang "
           f"{build_overhang:+.2f} pts (ceiling {BUILD_OVERHANG_MAX:.2f}, target 0)")
 
-    if build_open > BUILD_OPEN_MAX + TOL:
-        fail(f"the build now opens at cover {build_open:.2f}%, later than the "
-             f"{BUILD_OPEN_MAX:.2f}% that ships. At 1440 x 900 the hold opens at "
-             "cover 25.83 %, so the opening that currently falls inside the hold "
-             "would fall outside it: the reader would meet a stopped drawing "
-             "doing nothing, and then the growth after it had started moving again")
+    if build_open < glide_lo - GLIDE_BAND_SLACK - TOL:
+        fail(f"the build opens at cover {build_open:.2f}%, before the glide's "
+             f"{glide_lo:.2f}..{glide_hi:.2f} band — the root takes its first ink "
+             "during the cloud's standstill, which is the fault Daniel named: "
+             "'the root animation starts immediately, and the stop is too short "
+             "for the full cloud animation'")
+    if build_open > glide_hi + GLIDE_BAND_SLACK + TOL:
+        fail(f"the build opens at cover {build_open:.2f}%, after the glide's "
+             f"{glide_lo:.2f}..{glide_hi:.2f} band — the glide arrives at the "
+             "root's ground with nothing growing there, a pan to an empty stage")
 
     if contour_overhang > CONTOUR_OVERHANG_MAX + TOL:
         fail(f"the contour now closes {contour_overhang:.2f} points of cover after "
