@@ -1630,6 +1630,41 @@
                          cover calc((39 + var(--l) * var(--flow-c)) * 1%);
       }
 
+      /* THE GROUND LINE DRAWS ITSELF. The title stands on it, and until now it
+         was a border-bottom: present from the first paint, so the reader met a
+         finished rule over a section that had not started. A border cannot be
+         grown, so the rule is a pseudo-element scaled from its left end — the
+         same `scale` this page grows every other stroke with, and for the same
+         reason (a dashed draw under non-scaling-stroke stops at the render
+         scale). It carries its own view timeline because it sits OUTSIDE
+         .cf-pin, whose name is scoped to that subtree.
+
+         The range is `cover`, not `entry`, and the difference is the whole
+         behaviour: this element is a line of type about 40 px tall, so its
+         entry phase is 40 px of scroll and a 30-point window inside it resolved
+         to twelve pixels — the rule went from absent to finished between two
+         wheel notches. Cover spans the element plus a viewport, which is the
+         940 px this draw actually needs. It arrives after the root that reaches
+         it and before the lectern below it, which is the order the reader's eye
+         travels. */
+      .lp-proc-head {
+        position: relative;
+        border-bottom-color: transparent;
+        view-timeline-name: --lp-head;
+        view-timeline-axis: block;
+      }
+      .lp-proc-head::after {
+        content: "";
+        position: absolute;
+        inset-inline: 0;
+        bottom: calc(-1 * var(--stroke-1));
+        border-bottom: var(--stroke-1) solid var(--border-strong);
+        transform-origin: 0 50%;
+        animation: lp-frame-draw linear both;
+        animation-timeline: --lp-head;
+        animation-range: cover 38% cover 56%;
+      }
+
       /* The chrome arrives last, once the frame it annotates exists — the
          index numbers standing on an empty wash before any line had been
          drawn was the tell that this stage was assembled rather than
