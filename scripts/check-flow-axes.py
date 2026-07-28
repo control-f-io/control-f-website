@@ -43,11 +43,21 @@ slightly wrong angle still looks like a gradient.
 
 WHAT IS HELD, and each is a way this can rot:
 
-  1. ONE AXIS PER STROKE. The count of lp-flow-ax-NN defs equals the count of
+  1. ONE AXIS PER STROKE. The count of axis defs equals the count of
      .lp-flow__seg paths, and every .lp-flow__light references a distinct one.
      A shared axis is how the frame's strokes are done and is wrong here: the
      frame's five all begin at a coordinate origin and the root's forty-one
      begin at twenty-six different junctions.
+
+     TWO FAMILIES, ONE LAW. lp-flow-ax-NN is a route's axis and runs the
+     stroke's own length. lp-flow-lf-NN is a LEAF's, and runs 3.125 times it —
+     the reciprocal of the ramp's Glas stop, which puts Glas at the stroke's
+     far end instead of at six per cent of it. That is the one stroke in the
+     drawing that keeps its light after the front has gone by, so it is the
+     one that needs the leg spread across it rather than compressed into its
+     tip. Same ramp, same href, same direction: only the length differs, and
+     the angle check below reads both, because a stretched axis on the wrong
+     angle is exactly as wrong as a short one.
 
   2. THE AXIS IS ITS STROKE'S LINE, FAR END BACK TO ORIGIN. Exactly: the def's
      (x1, y1) is the path's second point and its (x2, y2) is the path's first.
@@ -89,12 +99,12 @@ PROTOTYPES = ROOT / "design-system" / "prototypes"
 
 SVG_RE = re.compile(r'<svg\b[^>]*class="([^"]*)"[^>]*>(.*?)</svg>', re.S)
 GRAD_RE = re.compile(
-    r'<linearGradient\b[^>]*id="(lp-flow-ax-\d+)"[^>]*'
+    r'<linearGradient\b[^>]*id="(lp-flow-(?:ax|lf)-\d+)"[^>]*'
     r'x1="(-?[\d.]+)"\s*y1="(-?[\d.]+)"\s*x2="(-?[\d.]+)"\s*y2="(-?[\d.]+)"'
 )
 LIGHT_RE = re.compile(
     r'<path\b[^>]*class="[^"]*lp-flow__light[^"]*"[^>]*'
-    r'stroke="url\(#(lp-flow-ax-\d+)\)"[^>]*\bd="([^"]*)"'
+    r'stroke="url\(#(lp-flow-(?:ax|lf)-\d+)\)"[^>]*\bd="([^"]*)"'
 )
 SEG_RE = re.compile(r'<path\b[^>]*class="[^"]*lp-flow__seg[^"]*"[^>]*\bd="([^"]*)"')
 D_RE = re.compile(
@@ -124,6 +134,13 @@ UNITS = {
 
 # foundations/geometry.html#angles, and the only five this drawing may use.
 BRAND = {0.0, 26.57, 45.0, 63.43, 90.0}
+
+# gen-flow-root.py's own LEAF_STRETCH. Three rather than the ramp's exact
+# 1 / 0.32 = 3.125, because 3.125 puts the endpoints off the drawing's rational
+# grid and the printed coordinates then round three leaf axes onto 63.44
+# degrees. See that file's note. Glas lands at 0.333 of the leaf instead of
+# 0.320, which is under a pixel on the longest one.
+LEAF_STRETCH = Fraction(3)
 
 
 def spelled(word):
@@ -183,11 +200,17 @@ def check(path, verbose):
     lights = LIGHT_RE.findall(body)
 
     # ---- 1. one axis per stroke ------------------------------------------
-    if len(axes) != len(segs):
+    # A leaf carries two: the route axis every stroke has, and its own
+    # stretched one, which is what it actually references. The route axis is
+    # kept because the census below is a statement about the DRAWING's angle
+    # distribution and every stroke owes it one line.
+    routes = {g for g in axes if g.startswith("lp-flow-ax-")}
+    leaves = {g for g in axes if g.startswith("lp-flow-lf-")}
+    if len(routes) != len(segs):
         findings.append(
-            f"{name}: {len(segs)} strokes and {len(axes)} axes — the paragraph "
-            f"says one axis per stroke, and a shared axis lights two strokes "
-            f"along one line")
+            f"{name}: {len(segs)} strokes and {len(routes)} route axes — the "
+            f"paragraph says one axis per stroke, and a shared axis lights two "
+            f"strokes along one line")
     if len(lights) != len(segs):
         findings.append(
             f"{name}: {len(segs)} contour strokes but {len(lights)} lit ones "
@@ -211,7 +234,13 @@ def check(path, verbose):
             findings.append(f"{name}: the stroke on #{gid} has a `d` this cannot read: {d}")
             continue
         px1, py1, px2, py2 = pts
-        want = (px2, py2, px1, py1)
+        if gid.startswith("lp-flow-lf-"):
+            # the same line, from the same end, LEAF_STRETCH times as long
+            want = (px2, py2,
+                    px2 + (px1 - px2) * LEAF_STRETCH,
+                    py2 + (py1 - py2) * LEAF_STRETCH)
+        else:
+            want = (px2, py2, px1, py1)
         if axes[gid] != want:
             ax1, ay1, ax2, ay2 = axes[gid]
             reversed_ = axes[gid] == (px1, py1, px2, py2)
@@ -221,17 +250,23 @@ def check(path, verbose):
             findings.append(
                 f"{name}: axis #{gid} is ({ax1}, {ay1}) -> ({ax2}, {ay2}) but its "
                 f"stroke is ({px1}, {py1}) -> ({px2}, {py2}); the axis must be the "
-                f"stroke far end back to origin — {why}")
+                f"stroke far end back to origin"
+                f"{' x %s' % LEAF_STRETCH if gid.startswith('lp-flow-lf-') else ''}"
+                f" — {why}")
 
     # ---- 3. every axis on a brand angle ----------------------------------
     census = {45.0: 0, 63.43: 0, 26.57: 0, 90.0: 0}
     strays = []
-    for gid in sorted(axes):
+    for gid in sorted(routes):
         a = angle(*axes[gid])
         if a is None or a not in BRAND:
             strays.append((gid, a))
             continue
         census[a] = census.get(a, 0) + 1
+    for gid in sorted(leaves):      # counted once, above, on the route axis
+        a = angle(*axes[gid])
+        if a is None or a not in BRAND:
+            strays.append((gid, a))
     for gid, a in strays:
         findings.append(
             f"{name}: axis #{gid} lies at {a} degrees, which is not one of the five "
@@ -259,10 +294,10 @@ def check(path, verbose):
     m = TOTAL_RE.search(prose)
     if not m or spelled(m.group(1)) is None:
         findings.append(f"{name}: 'ONE RAMP, <n> AXES' no longer states a number")
-    elif spelled(m.group(1)) != len(axes):
+    elif spelled(m.group(1)) != len(routes):
         findings.append(
             f"{name}: the paragraph heads itself 'ONE RAMP, {m.group(1).upper()} AXES' "
-            f"and there are {len(axes)}")
+            f"and there are {len(routes)} route axes")
 
     m = JUNCTIONS_RE.search(prose)
     if not m or spelled(m.group(1)) is None or spelled(m.group(2)) is None:
@@ -270,9 +305,9 @@ def check(path, verbose):
             f"{name}: 'these <n> begin at <m> different junctions' no longer states "
             f"two numbers")
     else:
-        if spelled(m.group(1)) != len(axes):
+        if spelled(m.group(1)) != len(routes):
             findings.append(
-                f"{name}: the paragraph says 'these {m.group(1)}' of {len(axes)} axes")
+                f"{name}: the paragraph says 'these {m.group(1)}' of {len(routes)} route axes")
         if spelled(m.group(2)) != junctions:
             findings.append(
                 f"{name}: the paragraph says the strokes begin at {m.group(2)} "
