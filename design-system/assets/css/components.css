@@ -2143,7 +2143,31 @@ ul.cf-nav__list {
     /* The field as a whole sits under the claim, quieter than the lattice it
        stands on is dark; per-instrument opacity rides on top of this. */
     .cf-stmt-field { opacity: .92; }
-    /* THE FIELD COLLAPSES INTO THE LINE. Two animations on one element and
+    /* THE FIELD MUST BE WHOLE WHILE IT IS WHOLLY ON SCREEN, and it was not.
+       The figure is 448 units tall in a 900 px viewport, so it is FULLY visible
+       for exactly 452 px of scroll — page 502 to 954 at 1440 x 900 — and the
+       field was reaching full strength at 980, twenty-six pixels after the
+       figure had started leaving the top. Measured at the peak, a third of the
+       cloud and the first line of the claim were above the fold: the reader
+       never once saw the whole of either.
+
+       These numbers are read off the rendered page, not off the range: sampling
+       the aggregate opacity against scroll puts cover 0 near scroll 533 and a
+       point at about 10.4 px, which is not what the box's own height predicts,
+       and the arithmetic was wrong about it twice. Measure the mapping, then
+       set the window inside the visible band.
+
+       THE REAL FIX IS A PIN, and this is not it. 452 px of visible scroll
+       cannot hold a cloud arriving, holding, and collapsing into a root; the
+       collapse still runs while the figure leaves. A sticky stage would give
+       the sequence as much room as it needs, and it is blocked on the anchor
+       chain that stretches .lp-flow between the void and the rail — anchor()
+       does not follow a sticky ancestor. That is the hold lane's brief and it
+       has already found it independently. What this window buys is the one
+       thing that was strictly broken: the field is now whole, on screen, with
+       both lines of the claim, before anything moves.
+
+       THE FIELD COLLAPSES INTO THE LINE. Two animations on one element and
        they must not be one: the glows arrive with the lattice, hold, and then
        every one of them travels to the trunk's head and goes out as it gets
        there — nearest first, the far edge of the field last, staggered by --m,
@@ -2162,10 +2186,10 @@ ul.cf-nav__list {
        it, and half the parts in this system carry one. */
     .cf-stmt-sensor {
       animation-name: cf-iso-fade, cf-stmt-collapse;
-      animation-range: cover calc((18 + var(--m) * 9) * 1%)
-                       cover calc((34 + var(--m) * 9) * 1%),
-                       cover calc((70 + var(--m) * 14) * 1%)
-                       cover calc((86 + var(--m) * 14) * 1%);
+      animation-range: cover calc((3 + var(--m) * 8) * 1%)
+                       cover calc((25 + var(--m) * 8) * 1%),
+                       cover calc((38 + var(--m) * 10) * 1%)
+                       cover calc((58 + var(--m) * 10) * 1%);
       animation-fill-mode: both, forwards;
       animation-timing-function: var(--ease-out);
       animation-timeline: --cf-iso, --cf-iso;
