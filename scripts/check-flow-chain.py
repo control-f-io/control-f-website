@@ -2,7 +2,7 @@
 """A stroke grows out of a point that is already there.
 
 THE FAILURE THIS IS WRITTEN AGAINST is not hypothetical and was not subtle once
-it was measured. The flow's forty-two strokes were staggered by depth — every
+it was measured. The flow's forty-one strokes were staggered by depth — every
 window `a + c·l` over a FLAT WIDTH of seventeen points, from the 240-unit
 taproot to the 25-unit twig — so the gap between a stroke and its child was c
 times the parent's own extent, 0.75 to 3.95 points, against seventeen points of
