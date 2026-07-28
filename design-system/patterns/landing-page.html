@@ -681,8 +681,9 @@
            sits OUTSIDE its own point by design, so this carries it too.
 
            THE FOOT OF THIS BOX IS NOT THE FRAME'S RAIL, and this line used to
-           say it was. It is at 1440 x 900 and nowhere else. Measured before the
-           pin engages, frame top minus flow bottom:
+           say it was. It is at 1440 x 900 and nowhere else. Measured BEFORE THE
+           PIN ENGAGES — which is half the seam, see the travel note under the
+           table — frame top minus flow bottom:
 
              1440 x  900     +1.58     the size the drawing was tuned at
              1280 x  768     +6.92
@@ -704,6 +705,41 @@
            every pixel of viewport height, and this box, being in static flow a
            section above, does not follow.
 
+           AND THAT TABLE IS ONE OF TWO NUMBERS, because every row of it is flat
+           only while the stage is still travelling. SEAM TRAVEL: .lp-flow is
+           outside .cf-pin__stage (position: sticky), .lp-frame is inside it, so
+           from the scroll position the stage sticks at, the frame holds against
+           the viewport while this box goes on moving with the page and the gap
+           opens at 1.00 px per px of scroll. Measured at 1440 x 900, the one
+           size the table above records the seam as MADE at, by distance from
+           the scroll position the stage sticks at:
+
+             pin -400 .. -20      1.58     flat, the whole approach
+             pin   +0             1.70     the sticky snap, +0.12
+             pin  +10            11.70
+             pin  +30            31.70
+             pin  +60            61.70
+             pin +100           101.70
+             pin +160           161.70     flow bottom still at viewport 9.3
+             pin +200           201.70     flow bottom finally off screen
+
+           The stage sticks at scrollY 1670 with the notice dismissed and 1598
+           with it up — the hero's reservation moves the whole section 72 px —
+           and every gap in the column is the same in both states, which is the
+           point: the rate is a property of the asymmetry, not of the layout.
+
+           So for 160 px of scroll after the handover, both ends are on screen
+           at once and sixteen terminals hang in wash above the rail they are
+           drawn to arrive on. It is the picture #176 was opened for, reached
+           from the other side, and it is what a table taken at one scroll
+           position cannot show. The rate is not tuned and cannot be: a held
+           layer and a travelling one separate by exactly the scroll delta, at
+           every viewport, for any join whose two sides sit in different scroll
+           contexts. scripts/check-seam-travel.py derives that asymmetry from
+           this markup and the stylesheets and holds this paragraph to it, so
+           the second number cannot go missing again the way the first one's
+           "before the pin engages" did.
+
            IT IS NOT FIXABLE FROM HERE, which is why the number is written down
            instead of tuned. The height is locked to the width by aspect-ratio —
            the ratio is what keeps the taproots on the corners, since the default
@@ -723,8 +759,13 @@
            a different bug, not a fix.
 
            So the trunk has to be able to stretch, which is how the route
-           terminates, which is the drawing's form → the craft lane. The table
-           above is the measurement it needs. */
+           terminates, which is the drawing's form → the craft lane. BOTH tables
+           above are the measurement it needs, and the second is the one that
+           constrains the answer: a form change that closes the pre-pin gap at
+           1920 x 1080 and leaves this box outside .cf-pin__stage still opens
+           the seam at 1.00 px per px the moment the stage sticks. A stretch
+           that ends at the rail is only correct for the one scroll position it
+           was measured at unless the two sides travel together. */
         overflow: visible;
       }
       .lp-flow {
