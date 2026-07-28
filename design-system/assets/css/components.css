@@ -2038,6 +2038,57 @@ ul.cf-nav__list {
    component, both are right and neither can be forgotten again.
    → foundations/motion.html#travel */
 .cf-statement .cf-iso { --iso-travel: 30; }
+/* THE LATTICE IS GROUND, AND IT WAS SHIPPING AS FIGURE. The statement's lattice
+   is authored at less than full strength — a 1-4 dashed field across the whole
+   1200-unit frame, written `opacity=".26"` on the group, because a field drawn
+   at contour weight competes with the object standing in it. That attribute
+   never once reached a pixel.
+
+   `.cf-iso__ghost` runs `cf-iso-fade`, and that keyframe ended `to {opacity:1}`.
+   A CSS animation resolves in the ANIMATION origin, and an SVG presentation
+   attribute sits at the very BOTTOM of the author origin — below every
+   selector, below the element's own style attribute. Between the two there is
+   no contest and no warning, and `animation-fill-mode: both` made the
+   replacement total: 0 before the range, 1 after it, .26 at no point on any
+   scroll. Same failure shape as #224, one origin further up — the value is
+   stated in one place, something else gets the last word, and the render is
+   plausible enough that nobody re-reads the declaration.
+
+   FOUR TIMES TOO DARK, and measured rather than judged. On the render at
+   1440 x 900 at the scroll where the root is fully drawn, the darkest pixel
+   inside the "12 480" label's own box is luminance 0.0341 — a lattice dash
+   crossing the digits — against 0.0648 for the numeral's own --text-secondary
+   ink. The ground was 1.37:1 from the figure standing on it: the dash and the
+   digit are the same mark to a reader, and the dash is the darker of the two.
+   At the .26 the markup asks for, it renders 0.4164 and the separation is
+   4.06:1.
+
+   --iso-rest IS THE OPACITY A PART COMES TO REST AT, defaulted to 1 in the
+   keyframe, so every other part that fades — form, light, trace, node, orbit,
+   scene — is untouched and needs to say nothing. Declared here rather than in
+   the markup so ONE number governs both paths: the animated one through the
+   keyframe, and the un-animated one (below the gate, reduced motion, print, no
+   view-timeline support) through the `opacity` declaration, which is why the
+   markup's dead attribute could be deleted rather than left to rot.
+   Held by scripts/check-authored-opacity.py. */
+.cf-statement .cf-iso__ghost { --iso-rest: .26; opacity: var(--iso-rest); }
+/* AND THE FIELD WAS FLAT FOR THE SAME REASON, 69 TIMES OVER. The sensors run
+   `cf-iso-fade, cf-stmt-collapse` — the same fade, so the same override — and
+   every one of them carried its intensity as `opacity="0.1"`…`opacity="0.6"`.
+   gen-stmt-field.py derives that number from the glow's radius and calls it one
+   of "one quantity, three consequences"; the consequence never rendered. Read
+   off the render at the field's peak (scroll 1225 at 1440 x 900): 69 sensors,
+   SIX authored values, and ONE computed value, 1. A field of instruments of
+   differing strength was rendering as instruments of identical strength, which
+   is a field with no information in it, drawn at up to ten times the weight it
+   asked for, under the numerals and the claim.
+
+   So each sensor's intensity is emitted as `--iso-rest` beside its own
+   --mx/--my/--m, where the keyframe reads it and this declaration falls back on
+   it. Still one number per sensor, still derived rather than typed, and now it
+   is the number that renders. scripts/check-void-departure.py weighs an
+   instrument by it. */
+.cf-stmt-sensor { opacity: var(--iso-rest); }
 /* Two layers in one row once the component itself has room for them, not once
    the viewport does. Stacked is the default, so a browser without container
    query support gets the safe layout rather than a broken one.
@@ -5646,9 +5697,14 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   }
   to   { transform: translate(0, 0); opacity: 1; }
 }
+/* A part fades up to the opacity it RESTS at, which is 1 for all but two of
+   them. The literal that used to stand here silently outranked every authored
+   opacity on every element this keyframe touches — see the statement lattice's
+   note above --iso-rest. The fallback keeps the six parts that rest at full
+   strength saying nothing at all. */
 @keyframes cf-iso-fade {
   from { opacity: 0; }
-  to   { opacity: 1; }
+  to   { opacity: var(--iso-rest, 1); }
 }
 
 /* A PART MOVES WITH `translate`, NOT WITH `transform`, AND THAT IS NOT A STYLE

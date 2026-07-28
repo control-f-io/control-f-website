@@ -1452,3 +1452,43 @@ jobs:
       - name: Statement field is generated
         if: '!cancelled()'
         run: python3 scripts/gen-stmt-field.py --check
+
+      # A value is only authored if nothing outranks it, and a CSS animation
+      # outranks the entire author origin -- including an SVG presentation
+      # attribute, which sits at the very bottom of it, below every selector and
+      # below the element's own style attribute.
+      #
+      # `@keyframes cf-iso-fade` ended `to { opacity: 1 }`, and both the
+      # statement's lattice and its 69 sensors run it with
+      # `animation-fill-mode: both`, which fills that endpoint OUTSIDE the range
+      # in both directions -- so the override was total at every scroll position
+      # rather than only during the fade. The lattice was authored .26 and
+      # rendered 1. The sensors were authored across six intensities, .1 through
+      # .6, and rendered one value: measured on the render at 1440 x 900 at
+      # scroll 1225, where the field is at its peak, 69 sensors and
+      # `[...new Set(computed)]` == `[1]`. gen-stmt-field.py derives that
+      # opacity from each glow's radius and calls it one of "one quantity, three
+      # consequences" -- and the consequence had never reached a pixel.
+      #
+      # Nothing renders wrong, which is why it stood: a glow at .3 and the same
+      # glow at 1 are both "a pale glow". It surfaces only when something has to
+      # be READ against it. The root's numerals are superimposed on this field,
+      # and at 1440 x 900 the darkest pixel inside the "12 480" label's own box
+      # was luminance 0.0341 against 0.0648 for the numeral's ink -- the ground
+      # was 1.37:1 from the figure standing on it, and it was the DARKER of the
+      # two. At the authored .26 that dash renders 0.4164 and the separation is
+      # 4.06:1, measured the same way, on the same frame.
+      #
+      # The same page already knew the failure: `lp-frame-in` is written
+      # one-sided, `from { opacity: 0 }` and no `to`, with a comment saying that
+      # writing the other side out "would be the thing that pins it" -- which is
+      # how .lp-flow__node keeps its .62. cf-iso-fade, in a different file, was
+      # written two-sided and pinned 70 elements. One page knowing a rule is not
+      # the rule being kept.
+      #
+      # Proven failing on both reintroductions: putting the literal back in the
+      # keyframe names all six governed selectors, and re-adding an `opacity`
+      # attribute to a single sensor names that circle by line.
+      - name: Authored opacity
+        if: '!cancelled()'
+        run: python3 scripts/check-authored-opacity.py
