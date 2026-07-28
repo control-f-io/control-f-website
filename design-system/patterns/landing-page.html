@@ -817,7 +817,17 @@
          made the difference legible. timeline-scope names the timeline on the
          common parent and both branches see it; nothing about what --lp-flow
          MEASURES changes, because the <svg> still declares it. */
-      .cf-statement__figure { position: relative; timeline-scope: --lp-flow; }
+      /* --flow-c IS HERE FOR THE SAME REASON THE TIMELINE IS. It is the root's
+         one drawing speed and all four families under it are written off it —
+         and the numerals are that sibling, not a descendant of the <svg>, so a
+         value declared on .lp-flow reaches the strokes and the junctions and
+         stops one element short of the numerals riding them. Declared on the
+         common parent, the whole drawing reads one number. */
+      .cf-statement__figure {
+        position: relative;
+        timeline-scope: --lp-flow;
+        --flow-c: 11.04;
+      }
       /* ONE BOX, DECLARED ONCE, FOR THE DRAWING AND FOR WHAT IT CARRIES. The
          values are real HTML over the figure rather than <text> inside it —
          foundations/illustration.html#a11y, "never put text in an
@@ -940,6 +950,14 @@
            without it. Sixteen arrivals and one departure, all of them made. */
         overflow: visible;
       }
+      /* ONE FRONT TRAVELS THE ROOT, AND --flow-c IS ITS SPEED: points of
+         `cover` per unit of --l, which is the drawing's own measure of how far
+         from the void a thing is. Every window under here — the light, the
+         contour, the junctions, the numerals — is `head + l · --flow-c`, so
+         all four say WHERE THE FRONT IS and differ only in how far behind it
+         they sit. It is declared on .cf-statement__figure and not here, with
+         the timeline and for the same reason: the numerals are the <svg>'s
+         sibling. → .lp-flow__seg for how the value is derived from the seam. */
       .lp-flow {
         view-timeline-name: --lp-flow;
         view-timeline-axis: block;
@@ -1286,9 +1304,13 @@
          12 px off the line at every viewport the gate admits, and --tx also
          carries the anchoring (-100% right-aligns to the point).
 
-         They light on the NODE'S window, 41 + 5l -> 47 + 5l, so a value
-         arrives exactly as the data reaches its point and no new envelope
-         enters the flow's timing — which the motion lane owns. */
+         They light on the NODE'S window, 33 + 11.04l -> 39 + 11.04l, so a
+         value arrives exactly as the data reaches its point and no new
+         envelope enters the flow's timing — which the motion lane owns. And
+         "exactly" is now literal rather than approximate: --l on one of these
+         is the run from the void to the numeral's own position, the front
+         passes that run at cover 32 + 11.04l, and the numeral comes up over
+         the six points after it. See .lp-flow__seg for the front. */
       .lp-flow__val {
         position: absolute;
         left: calc(var(--x) * 100% / 1200);
@@ -1298,52 +1320,98 @@
         white-space: nowrap;
         animation: lp-frame-in linear both;
         animation-timeline: --lp-flow;
-        animation-range: cover calc((41 + var(--l) * 5) * 1%)
-                         cover calc((47 + var(--l) * 5) * 1%);
+        animation-range: cover calc((33 + var(--l) * var(--flow-c)) * 1%)
+                         cover calc((39 + var(--l) * var(--flow-c)) * 1%);
       }
-      /* THE ENVELOPE IS 34 + 5l, AND THE 5 IS THE FINDING. Every window below
-         is `a + c·l` — a is where the route nearest the void starts, c is how
-         far each further run is staggered behind it — and c was 8 for as long
-         as this drawing was a bus of ten strokes. The bus's --l sat at a mean
-         of 1.93 with its mass at 2.0–3.0, so `24 + 8l` put the mean contour
-         window at 39 → 57 and the drawing straddled the moment it is looked at.
+      /* THE ROOT GREW OUT OF JUNCTIONS THAT WERE NOT THERE YET, and for as
+         long as this drawing has existed. Every window used to be `a + c·l`
+         over a FLAT WIDTH — the contour 34 + 5l to 51 + 5l, seventeen points
+         for every stroke from the 240-unit taproot to the 25-unit twig — so
+         the stagger between a stroke and its child was c × the parent's own
+         extent, 0.75 to 3.95 points, against seventeen points of drawing. A
+         branch therefore ignited while its parent was between 4.4 % and 23.2 %
+         drawn (mean 12.1 %, and linear, which is what this family scrubs on:
+         no easing softens it). Measured on the render at 1440 x 900: at
+         y 754 the trunk was a 4 px stub under the void and the fork it feeds
+         was already carrying ink 130 px below it, two arms hanging in the
+         wash with nothing joining them to anything. At y 860 the trunk's tip
+         still stood 55 px clear of a chevron that was by then fully black,
+         with two further generations lit beyond it.
 
-         The root has 42 strokes and its mass is in the middle: mean --l 1.60,
-         median 1.60, with 30 of the 42 under 2.  (37, mean 1.52, median 1.50
-         and 27 under 2 when the envelope below was derived; the five strokes
-         the craft lane grew off the right taproot's longest run sit at l 1.5 to
-         2.51 and moved the mean eight hundredths. The envelope is unchanged —
-         its constants are the motion lane's — and check-build-arrival.py
-         re-measures the consequence rather than trusting this paragraph.) The same `24 + 8l` therefore
-         resolves to a mean window of 36 → 54 — five points earlier, on a
-         drawing five points slower to finish — and the build ran out under the
-         reader. Measured as INK, which is the only measure that survives a
-         redraw: at the scroll where the flow sits centred, 78.2 % of the
-         contour's stroke length was already down, the light 96.6 % drawn and
-         90.1 % of the junctions up. The standing rule is ~60 % (a build happens
-         where the eye is → foundations/motion.html#arrival), and the number of
-         record was 54 % — measured on the bus, as an unweighted mean over ten
-         parts. Thirty-seven parts later that mean no longer counts the same
-         thing: a 40-unit fringe twig and the 280-unit taproot are not one part
-         each. scripts/check-build-arrival.py counts ink and holds the ceiling.
+         In a construction drawing that is not a stylistic quibble. This page
+         has already paid for the same sentence twice — #191, the growth rule
+         with nothing to grow from; #190, the rail growing out of the corner
+         instead of out of the split — and check-flow-crossings.py exists
+         because two lines meeting with nothing on the meeting means NOT
+         CONNECTED. A stroke leaving a point its own parent has not reached is
+         the same claim in the time axis, made forty-one times, in the one
+         drawing whose entire subject is data merging.
 
-         WHAT MOVED AND WHAT DID NOT. Every window's HEAD is ten points later
-         and c is 5 instead of 8; every window's TAIL is exactly where it was,
-         because l runs to 3 and 10 = (8 - 5) × 3 falls out. So the last light
-         still finishes drawing at cover 58, the last contour lands at 66 and the
-         last fade ends at 68 — every number the notes below and the frame's
-         handover are written against is unchanged, and only the middle of the
-         drawing moved. The junctions are the one exception, moved a further
-         point for a reason of their own; their note has it. Re-measured at the
-         centred
-         scroll, before -> after: contour ink 78.2 -> 51.5 %, junctions up
-         90.1 -> 52.9 %; 53.4 and 52.7 at 1280 x 800, because the centred moment
-         is cover 50 % at every viewport and both numbers are properties of the
-         range rather than of the box. The light's own draw stays high — 96.6 -> 90.1 % — and
-         is meant to: it is the head, eight points in front of the black by
-         construction. What it is doing there is dissolving, 84.7 % of it still
-         lit and falling, which is the one part of this drawing whose job at the
-         centre of the screen is to be leaving.
+         AND THE SECOND HALF OF IT IS THE ONE #201 JUST FIXED ON THE FRAME. A
+         flat window over strokes of wildly different length is a different
+         DRAWING SPEED per stroke: 0.13 to 1.08 CSS px of ink per px of scroll
+         across these 42, an eight-fold spread, where the frame's six had a
+         two-fold one and that was already a finding. Same cause, same cure,
+         and the cure is written three hundred lines up this file: "the rate is
+         declared once, in points per viewBox unit, and every window is --u ×
+         that."
+
+         SO THE WINDOW IS BOUGHT BY THE STROKE'S OWN RUN. --u is that run, in
+         the same currency as --l: --l is the distance from the void to where
+         this stroke starts, over the drawing's longest such distance, times
+         three; --u is what this stroke adds to it. Both come off gen-flow-root
+         .py's `level()`, and --u is emitted as the DIFFERENCE OF THE TWO
+         ROUNDED LEVELS rather than as its own rounding of the geometry — which
+         is what makes the identity below exact in the two-decimal numbers that
+         actually ship, and not merely true of the reals behind them:
+
+             parent --l + parent --u == child --l,  at all 41 junctions
+
+         Every window is then `head + l·c` to `head + (l + u)·c`, so a stroke's
+         window CLOSES on the point its children's windows OPEN on, by
+         arithmetic rather than by tuning. One front travels the root; the
+         strokes are where it happens to be. scripts/check-flow-chain.py holds
+         the identity, and holds --u against the `d` it claims to measure.
+
+         THE RUN IS CHEBYSHEV, and it has to be, because --l already is:
+         gen-flow-root.py accumulates `max(|dx|, |dy|)` along the path ("exact
+         in Fractions, monotone along a path, and never more than 12 % off on
+         the five angles"). Measure --u Euclidean and the chain drifts on every
+         diagonal — 41 % on the 45s — while every number in the file still
+         looks right. It is the same trap the frame's note names one axis over:
+         the rate is uniform in the DRAWING'S units, not in pixels.
+
+         THE CONSTANT. c is 11.04 points of `cover` per unit of --l, declared
+         once on .lp-flow as --flow-c, and it is not a taste: the deepest
+         terminal sits at l + u = 3.08, the contour must still land at cover 66
+         where the frame's handover is written, and the head is 32. 32 + 3.08 ×
+         11.04 = 66.00. Move the head and c follows; the tail cannot move
+         without the seam moving with it.
+
+         WHAT THIS COST AND WHAT IT BOUGHT, all at 1440 x 900, before -> after:
+
+           parent drawn when its child ignites   4.4–23.2 %  ->  100 %, all 41
+           draw rate, CSS px of ink per px       0.13–1.08   ->  1.82–2.73
+           rate spread across the 42 strokes     8.0x        ->  1.50x
+           contour ink at the centred scroll     51.5 %      ->  45.3 %
+           junctions up at the centred scroll    52.9 %      ->  50.1 %
+           last light drawn / contour lands      58 / 66     ->  60 / 66
+           last fade ends                        68          ->  68
+
+         The two tails the frame's handover and the lime clearance are written
+         against — 66 and 68 — are unchanged. The residual 1.50x in the rate is
+         the five brand angles and nothing else: a 45° stroke is √2 longer in
+         pixels than its Chebyshev run, which is exactly the gap .lp-frame's
+         own note records under preserveAspectRatio.
+
+         AND IT IS STILL RUNNING WHERE THE EYE IS. Both held numbers fell —
+         45.3 % of the contour's ink and 50.1 % of the junctions at cover 50,
+         against a ceiling of 60 (a build happens where the eye is →
+         foundations/motion.html#arrival). They fell because a chain spends its
+         scroll in sequence instead of drawing the whole root abreast.
+         scripts/check-build-arrival.py counts the ink and holds the ceiling; it
+         reads these windows out of this file, so the numbers above are its
+         output and not a claim over it.
 
          THE COLOUR GOES FIRST AND THE BLACK FOLLOWS. Two strokes per route:
          the light at 2 px carrying the family's ramp, the contour at 1 px in
@@ -1351,25 +1419,36 @@
          makes it a head rather than a tint — see the markup note for how the
          scale-draw puts the ramp's lime end on the growing tip.
 
-         The light's window is 15 points against the contour's 17, so it does
-         not merely start earlier, it outruns: colour lands on the frame's rail
-         at 43 + 5l and the black closes eight points later at 51 + 5l. Then it
-         goes. The fade runs 45 + 5l -> 53 + 5l, which begins two points after
-         the light has finished drawing — one beat of the route fully lit — and
-         ends two points after the contour has landed, so the colour dissolves
-         off a line that is already whole rather than off a gap. All four leads
-         are the ones the 8-envelope had; it is the run-to-run stagger that
-         narrowed, not the beats inside a route.
+         Both passes now run at the same rate, so "six points behind" is a
+         constant distance rather than a difference of window widths: the light
+         front and the black front travel the root together, 165 units of route
+         and 94 px of scroll apart, which is about a stroke and a half. The
+         light lands on the frame's rail at cover 60 and the black closes on it
+         at 66. Then the colour goes: the fade runs 28 + (l+u)·c -> 34 + (l+u)·c
+         — two points after that route's light has finished drawing, one beat
+         fully lit, and ending two points after its contour has landed, so the
+         colour dissolves off a line that is already whole rather than off a
+         gap. Keyed to (l+u) and not to l, because what it waits for is the
+         stroke's own ARRIVAL, and under a length-bought window that is no
+         longer a fixed distance from its start.
 
          THE LIGHT IS GONE BEFORE ANY OTHER LIME IS LIT. The last stroke's fade
-         ends at cover 68 %, which the retime above left exactly where it was.
-         Swept at 10 px: the last lit flow stroke is at scroll 1260 and card 01's
-         fill-opacity first leaves 0 at 2270, which is contain 11.5 % of the
-         pinned track — 1010 px of scroll between them at 1440x900 and 890 at
-         1280x800, with nothing lime in between, because the frame is monochrome
-         by decision. → foundations/colors.html#one-per-screen,
+         ends at cover 68 %, which this retime left exactly where it was.
+         Swept at 10 px, the last lit flow stroke against card 01's first lime
+         — its fill-opacity leaving 0 at contain 11.5 % of the pinned track:
+
+           1024 x  720    y  910 ->  1720      810 px of scroll, 1.13 viewports
+           1280 x  800      1110 ->  2000      890
+           1440 x  900      1260 ->  2270     1010
+           1920 x 1080      1380 ->  2660     1280
+           2560 x 1440      1270 ->  2920     1650
+
+         Nothing lime in between at any of them, because the frame is
+         monochrome by decision. → foundations/colors.html#one-per-screen,
          whose measured practice is one light per OBJECT; the flow is one
          drawing and this is its one light pass, on the way through.
+         scripts/check-flow-chain.py sweeps this too — it is Standing Order 2's
+         own constraint and it had been prose since the light was restored.
 
          `forwards` on the fade, not `both`: under `both` the backwards fill
          would hold the fade's from-state over the draw's whole window on a
@@ -1384,10 +1463,10 @@
         transform-origin: var(--o, 0 0);
         animation: lp-frame-draw linear, lp-flow-out linear;
         animation-timeline: --lp-flow, --lp-flow;
-        animation-range: cover calc((28 + var(--l) * 5) * 1%)
-                         cover calc((43 + var(--l) * 5) * 1%),
-                         cover calc((45 + var(--l) * 5) * 1%)
-                         cover calc((53 + var(--l) * 5) * 1%);
+        animation-range: cover calc((26 + var(--l) * var(--flow-c)) * 1%)
+                         cover calc((26 + (var(--l) + var(--u)) * var(--flow-c)) * 1%),
+                         cover calc((28 + (var(--l) + var(--u)) * var(--flow-c)) * 1%)
+                         cover calc((34 + (var(--l) + var(--u)) * var(--flow-c)) * 1%);
         animation-fill-mode: both, forwards;
       }
       /* THE .62 MOVED OFF THE SVG AND ONTO THE THINGS IT WAS ALWAYS FOR. It
@@ -1408,8 +1487,8 @@
         transform-origin: var(--o, 0 0);
         animation: lp-frame-draw linear both;
         animation-timeline: --lp-flow;
-        animation-range: cover calc((34 + var(--l) * 5) * 1%)
-                         cover calc((51 + var(--l) * 5) * 1%);
+        animation-range: cover calc((32 + var(--l) * var(--flow-c)) * 1%)
+                         cover calc((32 + (var(--l) + var(--u)) * var(--flow-c)) * 1%);
       }
       /* A junction is a point the construction depends on, which is exactly
          what .cf-iso__node means elsewhere; these are that, in this page's own
@@ -1447,24 +1526,31 @@
          measure is "one object" in the sense that ceiling was written for is a
          real question and not one for this lane to settle quietly.
 
-         THE ONE WINDOW THAT IS NOT A STRAIGHT TRANSLATION of the 8-envelope,
-         and the reason is the drawing's shape rather than the timing's. The
-         eight junctions sit at a mean --l of 1.17 against the strokes' 1.52 —
-         they mark the splits, and a split is nearer the void than the runs that
-         leave it — so any window written off --l resolves EARLIER for the nodes
-         than for the contour they belong to. At the direct translation, `40 +
-         5l`, that put them at 62.4 % at the centred moment against the contour's
-         53.5: over the ceiling on their own, while every node was still
-         correctly behind its own branch. One point later fixes it without
-         touching the placement: 53.2 % measured, and the last node is up at
-         cover 62 instead of 61 — the only tail in this drawing that moved. */
+         THE WINDOW IS NO LONGER A GUESS AT "just after", because the chain
+         made the arrival a number. A node's --l is the run from the void to
+         the junction itself, and under the envelope on .lp-flow__seg the
+         contour front reaches a run of l at exactly cover 32 + 11.04l. So the
+         node lights one point after its own stroke has landed on it and takes
+         six to come up — `33 + 11.04l -> 39 + 11.04l` — rather than opening
+         seven points into a seventeen-point window and hoping.
+
+         WHAT THAT REPLACED, and why the old form needed the fudge it carried:
+         the eight junctions sit at a mean --l of 1.17 against the strokes'
+         1.52 — they mark the splits, and a split is nearer the void than the
+         runs that leave it — so any window written off --l resolved EARLIER
+         for the nodes than for the contour they belong to, and the constant
+         had to be nudged a point to bring them back under the ceiling. Under
+         the chain the two are the same quantity and nothing needs nudging:
+         50.1 % of the junctions are up at the centred scroll against the
+         contour's 45.3, and the last node is up at cover 64.6, before the
+         drawing lands at 66. */
       .lp-flow__node {
         fill: var(--border-strong);
         opacity: .62;
         animation: lp-frame-in linear both;
         animation-timeline: --lp-flow;
-        animation-range: cover calc((41 + var(--l) * 5) * 1%)
-                         cover calc((47 + var(--l) * 5) * 1%);
+        animation-range: cover calc((33 + var(--l) * var(--flow-c)) * 1%)
+                         cover calc((39 + var(--l) * var(--flow-c)) * 1%);
       }
 
       /* The chrome arrives last, once the frame it annotates exists — the
@@ -2116,91 +2202,91 @@
                    render at all. -->
               <linearGradient id="lp-flow-ax-stem" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="6" y1="100" x2="6" y2="0"/>
             </defs>
-            <path class="lp-flow__light lp-flow__trunk" style="--o:0 0;--l:0" stroke="url(#lp-flow-ax-00)" d="M330 84V150"/>
-            <path class="lp-flow__light" style="--o:100% 0;--l:0.22" stroke="url(#lp-flow-ax-01)" d="M330 150L150 240"/>
-            <path class="lp-flow__light" style="--o:100% 0;--l:0.81" stroke="url(#lp-flow-ax-02)" d="M150 240L60 330"/>
-            <path class="lp-flow__light" style="--o:100% 0;--l:1.11" stroke="url(#lp-flow-ax-03)" d="M60 330L0 450"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:1.5" stroke="url(#lp-flow-ax-04)" d="M0 450V620"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:0.22" stroke="url(#lp-flow-ax-05)" d="M330 150L420 195"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:0.51" stroke="url(#lp-flow-ax-06)" d="M420 195L480 255"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:0.71" stroke="url(#lp-flow-ax-07)" d="M480 255L530 355"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:1.04" stroke="url(#lp-flow-ax-08)" d="M530 355L600 495"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:1.5" stroke="url(#lp-flow-ax-09)" d="M600 495V620"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:0.51" stroke="url(#lp-flow-ax-10)" d="M420 195L560 265"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:0.97" stroke="url(#lp-flow-ax-11)" d="M560 265L720 345"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:1.5" stroke="url(#lp-flow-ax-12)" d="M720 345L840 405"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:1.9" stroke="url(#lp-flow-ax-13)" d="M840 405L970 470"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:2.32" stroke="url(#lp-flow-ax-14)" d="M970 470L1130 550"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:2.85" stroke="url(#lp-flow-ax-15)" d="M1130 550L1200 620"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:0.81" stroke="url(#lp-flow-ax-16)" d="M150 240L270 480"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:1.6" stroke="url(#lp-flow-ax-17)" d="M270 480L410 620"/>
-            <path class="lp-flow__light" style="--o:100% 0;--l:1.6" stroke="url(#lp-flow-ax-18)" d="M270 480L180 570"/>
-            <path class="lp-flow__light" style="--o:100% 0;--l:1.9" stroke="url(#lp-flow-ax-19)" d="M180 570L155 620"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:1.11" stroke="url(#lp-flow-ax-20)" d="M60 330L150 510"/>
-            <path class="lp-flow__light" style="--o:100% 0;--l:1.7" stroke="url(#lp-flow-ax-21)" d="M150 510L40 620"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:1.7" stroke="url(#lp-flow-ax-22)" d="M150 510V580"/>
-            <path class="lp-flow__light" style="--o:100% 0;--l:1.93" stroke="url(#lp-flow-ax-23)" d="M150 580L130 620"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:1.5" stroke="url(#lp-flow-ax-24)" d="M0 450L105 555"/>
-            <path class="lp-flow__light" style="--o:100% 0;--l:1.85" stroke="url(#lp-flow-ax-25)" d="M105 555L72.5 620"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:1.04" stroke="url(#lp-flow-ax-26)" d="M530 355L695 520"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:1.58" stroke="url(#lp-flow-ax-27)" d="M695 520L745 620"/>
-            <path class="lp-flow__light" style="--o:100% 0;--l:1.5" stroke="url(#lp-flow-ax-28)" d="M600 495L520 575"/>
-            <path class="lp-flow__light" style="--o:100% 0;--l:1.77" stroke="url(#lp-flow-ax-29)" d="M520 575L497.5 620"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:1.5" stroke="url(#lp-flow-ax-30)" d="M720 345L805 515"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:2.06" stroke="url(#lp-flow-ax-31)" d="M805 515L910 620"/>
-            <path class="lp-flow__light" style="--o:100% 0;--l:2.06" stroke="url(#lp-flow-ax-32)" d="M805 515L740 580"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:2.28" stroke="url(#lp-flow-ax-33)" d="M740 580L760 620"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:1.9" stroke="url(#lp-flow-ax-34)" d="M840 405L907.5 540"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:2.34" stroke="url(#lp-flow-ax-35)" d="M907.5 540L987.5 620"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:2.34" stroke="url(#lp-flow-ax-36)" d="M907.5 540V590"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:2.51" stroke="url(#lp-flow-ax-37)" d="M907.5 590L922.5 620"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:2.32" stroke="url(#lp-flow-ax-38)" d="M970 470L1017.5 565"/>
-            <path class="lp-flow__light" style="--o:0 0;--l:2.64" stroke="url(#lp-flow-ax-39)" d="M1017.5 565L1072.5 620"/>
-            <path class="lp-flow__light" style="--o:100% 0;--l:2.85" stroke="url(#lp-flow-ax-40)" d="M1130 550L1107.5 595"/>
-            <path class="lp-flow__light" style="--o:100% 0;--l:3" stroke="url(#lp-flow-ax-41)" d="M1107.5 595L1082.5 620"/>
+            <path class="lp-flow__light lp-flow__trunk" style="--o:0 0;--l:0;--u:0.22" stroke="url(#lp-flow-ax-00)" d="M330 84V150"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:0.22;--u:0.59" stroke="url(#lp-flow-ax-01)" d="M330 150L150 240"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:0.81;--u:0.3" stroke="url(#lp-flow-ax-02)" d="M150 240L60 330"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:1.11;--u:0.39" stroke="url(#lp-flow-ax-03)" d="M60 330L0 450"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1.5;--u:0.56" stroke="url(#lp-flow-ax-04)" d="M0 450V620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:0.22;--u:0.29" stroke="url(#lp-flow-ax-05)" d="M330 150L420 195"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:0.51;--u:0.2" stroke="url(#lp-flow-ax-06)" d="M420 195L480 255"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:0.71;--u:0.33" stroke="url(#lp-flow-ax-07)" d="M480 255L530 355"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1.04;--u:0.46" stroke="url(#lp-flow-ax-08)" d="M530 355L600 495"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1.5;--u:0.41" stroke="url(#lp-flow-ax-09)" d="M600 495V620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:0.51;--u:0.46" stroke="url(#lp-flow-ax-10)" d="M420 195L560 265"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:0.97;--u:0.53" stroke="url(#lp-flow-ax-11)" d="M560 265L720 345"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1.5;--u:0.4" stroke="url(#lp-flow-ax-12)" d="M720 345L840 405"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1.9;--u:0.42" stroke="url(#lp-flow-ax-13)" d="M840 405L970 470"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.32;--u:0.53" stroke="url(#lp-flow-ax-14)" d="M970 470L1130 550"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.85;--u:0.23" stroke="url(#lp-flow-ax-15)" d="M1130 550L1200 620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:0.81;--u:0.79" stroke="url(#lp-flow-ax-16)" d="M150 240L270 480"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1.6;--u:0.46" stroke="url(#lp-flow-ax-17)" d="M270 480L410 620"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:1.6;--u:0.3" stroke="url(#lp-flow-ax-18)" d="M270 480L180 570"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:1.9;--u:0.16" stroke="url(#lp-flow-ax-19)" d="M180 570L155 620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1.11;--u:0.59" stroke="url(#lp-flow-ax-20)" d="M60 330L150 510"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:1.7;--u:0.36" stroke="url(#lp-flow-ax-21)" d="M150 510L40 620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1.7;--u:0.23" stroke="url(#lp-flow-ax-22)" d="M150 510V580"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:1.93;--u:0.13" stroke="url(#lp-flow-ax-23)" d="M150 580L130 620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1.5;--u:0.35" stroke="url(#lp-flow-ax-24)" d="M0 450L105 555"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:1.85;--u:0.21" stroke="url(#lp-flow-ax-25)" d="M105 555L72.5 620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1.04;--u:0.54" stroke="url(#lp-flow-ax-26)" d="M530 355L695 520"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1.58;--u:0.33" stroke="url(#lp-flow-ax-27)" d="M695 520L745 620"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:1.5;--u:0.27" stroke="url(#lp-flow-ax-28)" d="M600 495L520 575"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:1.77;--u:0.14" stroke="url(#lp-flow-ax-29)" d="M520 575L497.5 620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1.5;--u:0.56" stroke="url(#lp-flow-ax-30)" d="M720 345L805 515"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.06;--u:0.35" stroke="url(#lp-flow-ax-31)" d="M805 515L910 620"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:2.06;--u:0.22" stroke="url(#lp-flow-ax-32)" d="M805 515L740 580"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.28;--u:0.13" stroke="url(#lp-flow-ax-33)" d="M740 580L760 620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:1.9;--u:0.44" stroke="url(#lp-flow-ax-34)" d="M840 405L907.5 540"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.34;--u:0.26" stroke="url(#lp-flow-ax-35)" d="M907.5 540L987.5 620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.34;--u:0.17" stroke="url(#lp-flow-ax-36)" d="M907.5 540V590"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.51;--u:0.09" stroke="url(#lp-flow-ax-37)" d="M907.5 590L922.5 620"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.32;--u:0.32" stroke="url(#lp-flow-ax-38)" d="M970 470L1017.5 565"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:2.64;--u:0.18" stroke="url(#lp-flow-ax-39)" d="M1017.5 565L1072.5 620"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:2.85;--u:0.15" stroke="url(#lp-flow-ax-40)" d="M1130 550L1107.5 595"/>
+            <path class="lp-flow__light" style="--o:100% 0;--l:3;--u:0.08" stroke="url(#lp-flow-ax-41)" d="M1107.5 595L1082.5 620"/>
 
-            <path class="lp-flow__seg lp-flow__trunk" style="--o:0 0;--l:0" d="M330 84V150"/>
-            <path class="lp-flow__seg" style="--o:100% 0;--l:0.22" d="M330 150L150 240"/>
-            <path class="lp-flow__seg" style="--o:100% 0;--l:0.81" d="M150 240L60 330"/>
-            <path class="lp-flow__seg" style="--o:100% 0;--l:1.11" d="M60 330L0 450"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:1.5" d="M0 450V620"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:0.22" d="M330 150L420 195"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:0.51" d="M420 195L480 255"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:0.71" d="M480 255L530 355"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:1.04" d="M530 355L600 495"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:1.5" d="M600 495V620"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:0.51" d="M420 195L560 265"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:0.97" d="M560 265L720 345"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:1.5" d="M720 345L840 405"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:1.9" d="M840 405L970 470"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:2.32" d="M970 470L1130 550"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:2.85" d="M1130 550L1200 620"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:0.81" d="M150 240L270 480"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:1.6" d="M270 480L410 620"/>
-            <path class="lp-flow__seg" style="--o:100% 0;--l:1.6" d="M270 480L180 570"/>
-            <path class="lp-flow__seg" style="--o:100% 0;--l:1.9" d="M180 570L155 620"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:1.11" d="M60 330L150 510"/>
-            <path class="lp-flow__seg" style="--o:100% 0;--l:1.7" d="M150 510L40 620"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:1.7" d="M150 510V580"/>
-            <path class="lp-flow__seg" style="--o:100% 0;--l:1.93" d="M150 580L130 620"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:1.5" d="M0 450L105 555"/>
-            <path class="lp-flow__seg" style="--o:100% 0;--l:1.85" d="M105 555L72.5 620"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:1.04" d="M530 355L695 520"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:1.58" d="M695 520L745 620"/>
-            <path class="lp-flow__seg" style="--o:100% 0;--l:1.5" d="M600 495L520 575"/>
-            <path class="lp-flow__seg" style="--o:100% 0;--l:1.77" d="M520 575L497.5 620"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:1.5" d="M720 345L805 515"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:2.06" d="M805 515L910 620"/>
-            <path class="lp-flow__seg" style="--o:100% 0;--l:2.06" d="M805 515L740 580"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:2.28" d="M740 580L760 620"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:1.9" d="M840 405L907.5 540"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:2.34" d="M907.5 540L987.5 620"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:2.34" d="M907.5 540V590"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:2.51" d="M907.5 590L922.5 620"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:2.32" d="M970 470L1017.5 565"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:2.64" d="M1017.5 565L1072.5 620"/>
-            <path class="lp-flow__seg" style="--o:100% 0;--l:2.85" d="M1130 550L1107.5 595"/>
-            <path class="lp-flow__seg" style="--o:100% 0;--l:3" d="M1107.5 595L1082.5 620"/>
+            <path class="lp-flow__seg lp-flow__trunk" style="--o:0 0;--l:0;--u:0.22" d="M330 84V150"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:0.22;--u:0.59" d="M330 150L150 240"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:0.81;--u:0.3" d="M150 240L60 330"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:1.11;--u:0.39" d="M60 330L0 450"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1.5;--u:0.56" d="M0 450V620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:0.22;--u:0.29" d="M330 150L420 195"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:0.51;--u:0.2" d="M420 195L480 255"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:0.71;--u:0.33" d="M480 255L530 355"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1.04;--u:0.46" d="M530 355L600 495"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1.5;--u:0.41" d="M600 495V620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:0.51;--u:0.46" d="M420 195L560 265"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:0.97;--u:0.53" d="M560 265L720 345"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1.5;--u:0.4" d="M720 345L840 405"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1.9;--u:0.42" d="M840 405L970 470"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.32;--u:0.53" d="M970 470L1130 550"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.85;--u:0.23" d="M1130 550L1200 620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:0.81;--u:0.79" d="M150 240L270 480"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1.6;--u:0.46" d="M270 480L410 620"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:1.6;--u:0.3" d="M270 480L180 570"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:1.9;--u:0.16" d="M180 570L155 620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1.11;--u:0.59" d="M60 330L150 510"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:1.7;--u:0.36" d="M150 510L40 620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1.7;--u:0.23" d="M150 510V580"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:1.93;--u:0.13" d="M150 580L130 620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1.5;--u:0.35" d="M0 450L105 555"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:1.85;--u:0.21" d="M105 555L72.5 620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1.04;--u:0.54" d="M530 355L695 520"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1.58;--u:0.33" d="M695 520L745 620"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:1.5;--u:0.27" d="M600 495L520 575"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:1.77;--u:0.14" d="M520 575L497.5 620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1.5;--u:0.56" d="M720 345L805 515"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.06;--u:0.35" d="M805 515L910 620"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:2.06;--u:0.22" d="M805 515L740 580"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.28;--u:0.13" d="M740 580L760 620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:1.9;--u:0.44" d="M840 405L907.5 540"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.34;--u:0.26" d="M907.5 540L987.5 620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.34;--u:0.17" d="M907.5 540V590"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.51;--u:0.09" d="M907.5 590L922.5 620"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.32;--u:0.32" d="M970 470L1017.5 565"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:2.64;--u:0.18" d="M1017.5 565L1072.5 620"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:2.85;--u:0.15" d="M1130 550L1107.5 595"/>
+            <path class="lp-flow__seg" style="--o:100% 0;--l:3;--u:0.08" d="M1107.5 595L1082.5 620"/>
 
             <circle class="lp-flow__node" style="--l:0.22" cx="330" cy="150" r="3"/>
             <circle class="lp-flow__node" style="--l:0.51" cx="420" cy="195" r="3"/>
@@ -2283,8 +2369,8 @@
                above it. It is after the values as well, so the numerals still
                paint over the drawing rather than under this. -->
           <svg class="lp-flow__stem" viewBox="0 0 12 100" preserveAspectRatio="none" fill="none" aria-hidden="true">
-            <path class="lp-flow__light" style="--o:0 0;--l:0" stroke="url(#lp-flow-ax-stem)" d="M6 0V100"/>
-            <path class="lp-flow__seg" style="--o:0 0;--l:0" d="M6 0V100"/>
+            <path class="lp-flow__light" style="--o:0 0;--l:0;--u:0.22" stroke="url(#lp-flow-ax-stem)" d="M6 0V100"/>
+            <path class="lp-flow__seg" style="--o:0 0;--l:0;--u:0.22" d="M6 0V100"/>
           </svg>
         </div>
         <div class="cf-statement__text">
