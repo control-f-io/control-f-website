@@ -48,19 +48,24 @@ THE RULE, in three parts, all of them the run from the void:
 
   1. EVERY NODE IS ON A JUNCTION. The point carries two or more segments
      leaving it. A bend is not a junction; nor is a terminal, nor the void.
-  2. EVERY JUNCTION CARRIES ONE. The cut used to be level < 2 -- the r 3 and
-     r 2 thirds of the ladder -- because the GROWN root had fifteen junctions
-     and its fringe was twigs, where a dot reads as texture. The balanced
-     construction (2026-07-28, second review: "make it branch equally") has
-     SEVEN divisions, every one load-bearing -- the crown and the six fan
-     junctions -- and a division without a dot says "not connected" in the
-     one drawing about data dividing. So the cut is gone: a junction is
-     marked because it divides, however deep it sits, and the fringe-texture
-     argument retires with the fringe that made it.
+  2. EVERY JUNCTION INSIDE THE CUT CARRIES ONE, and the cut is level < 2 --
+     the r 3 and r 2 thirds of the ladder. This clause has now been written
+     both ways and each was right about the drawing in front of it. The
+     balanced construction (2026-07-28, second review: "make it branch
+     equally") had SEVEN divisions, every one load-bearing, so the cut came
+     out and every division was marked. The root is grown again (2026-07-28,
+     third review: "more arms, back to the procedural graph"), it has fifty
+     junctions, and a dot on each is not a vocabulary -- it is a texture. So
+     the cut is back, and it is the same number the RADIUS is a function of
+     rather than a second one: r 3 and r 2 are the bands nearest the subject,
+     and those are the divisions the reader is meant to count. Out at level 2
+     and beyond the root is thinning to twigs, where the manual's own reason
+     for a dot -- "a point the construction depends on" -- stops picking
+     anything out, because out there every point does.
   3. AT MOST ELEVEN. foundations/illustration.html: "Eight is a lot for one
      object; twelve is too many", so eleven is the ceiling. On the geometry
-     that ships, the cut in (2) selects exactly eleven of the fifteen; the two
-     agree here and this holds them to agreeing. If the root grows a twelfth
+     that ships, the cut in (2) selects eight of the fifty; the two agree
+     here and this holds them to agreeing. If the root grows a twelfth
      junction inside the cut, that is a decision for a person, not a drift.
 
 A node's --l is checked too: it is the level of the strokes LEAVING its
@@ -104,6 +109,8 @@ MAX_NODES = 11
 SVG_RE = re.compile(r'<svg\b[^>]*class="([^"]*)"[^>]*viewBox="([^"]*)"(.*?)</svg>', re.S)
 PATH_RE = re.compile(r'<path\b[^>]*class="([^"]*)"[^>]*style="([^"]*)"[^>]*\bd="([^"]*)"',
                      re.S)
+NODE_CUT = 2.0   # the ladder's r 3 and r 2 bands -- see (2) above
+
 CIRCLE_RE = re.compile(
     r'<circle\b[^>]*class="([^"]*)"[^>]*style="([^"]*)"[^>]*\bcx="([^"]*)"'
     r'[^>]*\bcy="([^"]*)"[^>]*\br="([^"]*)"', re.S)
@@ -191,6 +198,8 @@ def check_drawing(name, cls, body, verbose):
 
     # ---- 2. every junction the cut reaches carries one -------------------
     for p, level in sorted(junctions.items(), key=lambda kv: (kv[1] is None, kv[1])):
+        if level is not None and level >= NODE_CUT:
+            continue
         if level is None:
             findings.append(
                 f"{name}: the junction at {point(p)} carries no --l on the strokes "

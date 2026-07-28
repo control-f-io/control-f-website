@@ -288,8 +288,14 @@ def main():
     else:
         const = float(decls[0])
 
+    # THE READING RIDES THE SAME WINDOW AS THE VALUE, and the two are one rule
+    # on the page because they are one behaviour: both are numerals that light
+    # where the front reaches the stroke they stand on. They differ in what
+    # they SAY -- a value conserves and a reading carries a unit -- which is
+    # check-flow-values.py's business, not this file's.
     families = {".lp-flow__seg": "the contour", ".lp-flow__light": "the light",
-                ".lp-flow__node": "the junctions", ".lp-flow__val": "the numerals"}
+                ".lp-flow__node": "the junctions",
+                ".lp-flow-data :is(.lp-flow__val, .lp-flow__read)": "the numerals"}
     for selector, label in families.items():
         body = rule_body(text, selector)
         if body is None:
