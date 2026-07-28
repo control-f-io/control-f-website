@@ -465,18 +465,23 @@ for nx, ny in NODE_POINTS:
 # ------------------------------------------------------------------ the values
 #
 # WHAT THE ROOT IS CARRYING. The drawing said data moves; it did not say how
-# much, and a route with no quantity on it is a pipe rather than a stream. Six
-# values ride the routes -- the source on the trunk, one on each of the three
-# taproots where it leaves the crown, and the two the right taproot divides
-# into where the drawing is emptiest.
+# much, and a route with no quantity on it is a pipe rather than a stream.
+# Eight values ride the routes -- the source on the trunk, one on each of the
+# three taproots where it leaves the crown, the two the right taproot divides
+# into, and the two THOSE divide into where the drawing is emptiest.
 #
 # THEY CONSERVE, and that is the whole reason they are generated rather than
 # typed. At any labelled point the value equals the sum of the labelled values
 # immediately downstream of it: 12 480 leaves the void and 3 840 + 3 200 +
-# 5 440 leave the crown; 5 440 divides into 1 360 + 4 080. A number that does
-# not balance is a drawing telling the reader something untrue about itself,
-# which is the one thing an illustration of data flow cannot afford. Asserted
-# here and again on the shipped markup by scripts/check-flow-values.py.
+# 5 440 leave the crown; 5 440 divides into 1 360 + 4 080, and 4 080 into
+# 2 400 + 1 680. A number that does not balance is a drawing telling the
+# reader something untrue about itself, which is the one thing an illustration
+# of data flow cannot afford. Asserted here and again on the shipped markup by
+# scripts/check-flow-values.py.
+#
+# AND EVERY ROUTE OUT IS IN THE SUM, which is the half of "they conserve" that
+# balancing alone does not say -- see the assertion under downstream_labelled()
+# for the branch this drawing shipped asserting carries zero.
 #
 # A value is a POINT ON A SEGMENT, never a free coordinate: it rides the route
 # it belongs to. The assertion below finds the segment it lies on and takes its
@@ -524,7 +529,25 @@ VALUES = [
     # box at 1440: at its right edge the line is 17 px above its top corner and
     # climbing away across the rest of it.
     (F(750), F(405),  1360, "calc(-100% - 12px)",  "-50%"),
-    (F(860), F(415),  4080, "12px",                "calc(-100% - 8px)"),
+    # 4 080 MOVED ONE JUNCTION BACK, ONTO THE STROKE IT NAMES. It stood at
+    # (860, 415), which is on (840, 405) -> (970, 470) -- past the split at
+    # (840, 405), and that split sheds a six-stroke branch to (907.5, 540)
+    # which lands twice on the lectern's rail. So the number naming the
+    # right-hand half of the (720, 345) split was written on a stroke that
+    # carries only part of it, and `5 440 = 1 360 + 4 080` said the branch in
+    # between carries nothing. (780, 375) is the midpoint of (720, 345) ->
+    # (840, 405), the stroke that actually leaves the split, and it takes the
+    # same treatment 5 440 takes on the same 26.57deg descent.
+    (F(780), F(375),  4080, "12px",                "calc(-100% - 8px)"),
+    # AND THE SPLIT IT WAS STANDING PAST IS NOW STATED. Moving 4 080 up alone
+    # would have emptied the lower right of the one quantity it had, so the
+    # division at (840, 405) carries its own two: 2 400 down the 26.57deg run
+    # that feeds three rail arrivals, 1 680 down the 63.43deg dive that feeds
+    # two. Both multiples of 80, like every other value here, and the larger
+    # goes to the branch with more of the lectern under it. This is also the
+    # first quantity the drawing states below y 415 of its 620.
+    (F(900), F(435),  2400, "12px",                "calc(-100% - 8px)"),
+    (F(870), F(465),  1680, "calc(-100% - 12px)",  "-50%"),
 ]
 
 
@@ -537,20 +560,27 @@ def run_to(px, py):
 
 
 def downstream_labelled(px, py, labelled):
-    """The labelled points reachable from here without passing another.
+    """The labelled points reachable from here, and the routes that reach none.
 
     Every step of this drawing descends, so downstream is simply larger y and
     the walk cannot loop. A labelled point STOPS its branch -- that is what
     makes the sum below a statement about one generation rather than about the
     whole subtree.
+
+    ESCAPED is the second half of the same walk and the half that was missing:
+    the points where the walk simply RAN OUT -- a terminal reached with no
+    labelled value anywhere between it and where the walk started. Those are
+    the routes the sum does not cover. See the assertion below.
     """
-    found, seen, stack = set(), set(), [(px, py)]
+    found, escaped, seen, stack = set(), set(), set(), [(px, py)]
     while stack:
         p = stack.pop()
+        onward = 0
         for x1, y1, x2, y2, _ in segments:
             seg = (x1, y1, x2, y2)
             if (x2, y2) == p or not on_segment(p[0], p[1], seg):
                 continue
+            onward += 1
             below = sorted(l for l in labelled
                            if l[1] > p[1] and on_segment(l[0], l[1], seg))
             q = min(below, key=lambda l: l[1]) if below else (x2, y2)
@@ -559,16 +589,40 @@ def downstream_labelled(px, py, labelled):
             elif q not in seen:
                 seen.add(q)
                 stack.append(q)
-    return found
+        if not onward and (p[0], p[1]) != (px, py):
+            escaped.add(p)
+    return found, escaped
 
 
+# A SUM IS ONLY A SUM IF EVERY ROUTE OUT IS IN IT. "The value equals the total
+# of the labelled values immediately below it" is silent about the routes that
+# reach no labelled value at all, and the drawing shipped one: 4 080 stood at
+# (860, 415), which is on (840, 405) -> (970, 470) -- one junction PAST the
+# split it was naming. (840, 405) also sheds (907.5, 540), a six-stroke branch
+# that lands twice on the lectern's rail, and nothing on it is labelled. So
+# `5 440 = 1 360 + 4 080` was a claim that those two rail arrivals carry
+# nothing. The arithmetic balanced; the sentence was false.
+#
+# A value labels THE STROKE IT STANDS ON, so a value that names a split has to
+# stand on a stroke leaving that split -- not on a stroke two generations down
+# with another division in between. The rule below is that stated as something
+# a walk can decide: from a labelled point, every route must arrive at a
+# labelled point, or the sum below it is not the whole of what left it.
+#
+# A point with NOTHING labelled below it asserts nothing and escapes nothing --
+# the fringe under 3 840 is unquantified, and unquantified is not wrong.
 LABELLED = {(x, y): v for x, y, v, *_ in VALUES}
 for (px, py), v in LABELLED.items():
-    kids = downstream_labelled(px, py, set(LABELLED))
+    kids, escaped = downstream_labelled(px, py, set(LABELLED))
     if kids:
         total = sum(LABELLED[k] for k in kids)
         assert total == v, (f"the value at ({px}, {py}) is {v} and the "
                             f"{len(kids)} below it total {total}")
+        assert not escaped, (
+            f"the value at ({px}, {py}) is {v} and divides into "
+            f"{len(kids)} labelled value(s), but {len(escaped)} route(s) "
+            f"leaving it reach the rail with nothing labelled on them: "
+            f"{sorted(escaped)} — the sum says those carry zero")
 
 print()
 # A PLAIN SPACE, AND THE THOUSANDS SEPARATOR IS STILL UNBREAKABLE. This emitted

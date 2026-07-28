@@ -5,17 +5,33 @@ The thirtieth check, and the sibling of check-flow-terminals.py. That one holds
 the SHAPE of the statement-to-process illustration -- a root has no free ends.
 This one holds what the root is CARRYING.
 
-WHAT IS DRAWN. Six values ride the routes of .lp-flow on
+WHAT IS DRAWN. Eight values ride the routes of .lp-flow on
 patterns/landing-page.html: 12 480 on the trunk as it leaves the void, 3 840 /
-3 200 / 5 440 on the three taproots as they leave the crown, and 1 360 / 4 080
-where the right taproot divides. They are the drawing's claim that data is
-moving and not merely that lines exist.
+3 200 / 5 440 on the three taproots as they leave the crown, 1 360 / 4 080
+where the right taproot divides, and 2 400 / 1 680 where 4 080 divides again.
+They are the drawing's claim that data is moving and not merely that lines
+exist.
 
-THE RULE, and it is one sentence: at any labelled point, the value equals the
-sum of the labelled values immediately downstream of it. 3 840 + 3 200 + 5 440
-is 12 480; 1 360 + 4 080 is 5 440. Points with no labelled value below them
-assert nothing -- the fringe below 3 840 is unquantified, and unquantified is
-not the same as wrong.
+THE RULE, and it is two sentences now. At any labelled point, the value equals
+the sum of the labelled values immediately downstream of it: 3 840 + 3 200 +
+5 440 is 12 480; 1 360 + 4 080 is 5 440; 2 400 + 1 680 is 4 080. AND every
+route out of that point is in the sum -- no route may run from a labelled point
+to an end of the drawing without meeting a labelled value on the way. Points
+with no labelled value below them assert nothing -- the fringe below 3 840 is
+unquantified, and unquantified is not the same as wrong.
+
+THE SECOND SENTENCE IS THE ONE THIS SHIPPED WITHOUT, and the balance could not
+see what it cost. 4 080 stood at (860, 415), which is a point on
+(840, 405) -> (970, 470) -- one junction PAST the split it was naming. The
+junction at (840, 405) also sheds a branch to (907.5, 540), six strokes that
+land twice on the lectern's rail, and nothing on it carried a value. So
+`5 440 = 1 360 + 4 080` balanced perfectly while saying that two of the
+fourteen arrivals the root hands the lectern are fed by nothing at all: the
+arithmetic was right and the sentence was false. A value labels THE STROKE IT
+STANDS ON; a value naming a split must stand on a stroke leaving that split.
+The walk is the only thing that can tell the difference, because on the page
+the label sits a comfortable 45 units from the junction it appears to name and
+looks exactly like the correct one.
 
 WHY IT IS WORTH A CHECK AND NOT A COMMENT. A number in a drawing is the one
 kind of content that looks equally right whatever it says. Nothing about
@@ -123,18 +139,26 @@ def style_vars(style):
 
 
 def downstream(point, labelled, segs):
-    """The labelled points reachable from here without passing another.
+    """The labelled points reachable from here, and the routes that reach none.
 
     Every segment of this drawing descends, so downstream is larger y and the
     walk cannot loop. A labelled point STOPS its branch, which is what makes
     the sum a statement about one generation rather than the whole subtree.
+
+    The second return is the half the balance cannot see: the points where the
+    walk RAN OUT — an end of the drawing reached with no labelled value
+    anywhere between it and where the walk started. Those are the routes the
+    sum below does not cover, and a sum that does not cover a route is a claim
+    that the route carries zero.
     """
-    found, seen, stack = set(), set(), [point]
+    found, escaped, seen, stack = set(), set(), set(), [point]
     while stack:
         p = stack.pop()
+        onward = 0
         for seg in segs:
             if seg[1] == p or not on_segment(p, seg):
                 continue
+            onward += 1
             below = [q for q in labelled if q[1] > p[1] and on_segment(q, seg)]
             q = min(below, key=lambda v: v[1]) if below else seg[1]
             if q in labelled:
@@ -142,7 +166,9 @@ def downstream(point, labelled, segs):
             elif q not in seen:
                 seen.add(q)
                 stack.append(q)
-    return found
+        if not onward and p != point:
+            escaped.add(p)
+    return found, escaped
 
 
 def check_drawing(name, cls, svg_body, tail, verbose):
@@ -186,7 +212,7 @@ def check_drawing(name, cls, svg_body, tail, verbose):
                 f"callout, and a callout is drawn with a leader line.")
 
     for p, (v, shown) in sorted(values.items(), key=lambda kv: kv[0][1]):
-        kids = downstream(p, set(values), segs)
+        kids, escaped = downstream(p, set(values), segs)
         if not kids:
             if verbose:
                 print(f"    {shown:>8}  at ({show(p[0]):>4}, {show(p[1]):>3})  nothing labelled below it")
@@ -198,7 +224,18 @@ def check_drawing(name, cls, svg_body, tail, verbose):
                 f"{name}: the value {shown!r} divides into {parts}, which is {total:,} — "
                 f"the drawing says a stream splits into {'more' if total > v else 'less'} "
                 f"than it carried")
-        elif verbose:
+        if escaped:
+            where = ", ".join(f"({show(q[0])}, {show(q[1])})"
+                              for q in sorted(escaped, key=lambda q: (q[0], q[1])))
+            findings.append(
+                f"{name}: the value {shown!r} divides into {parts}, and {len(escaped)} "
+                f"route(s) leaving it end unlabelled — at {where}. A sum is only a sum "
+                f"if every route out of the point is in it; these are not, so the "
+                f"drawing is saying those branches carry nothing. A value names the "
+                f"stroke it stands on, so a value naming a split has to stand on a "
+                f"stroke leaving that split — not two generations down with another "
+                f"division in between.")
+        elif total == v and verbose:
             print(f"    {shown:>8}  at ({show(p[0]):>4}, {show(p[1]):>3})  = {parts}")
 
     return findings, len(values)
@@ -232,8 +269,9 @@ def main():
             print(f"  {f}")
         return 1
     print(f"flow values OK — {values} values across {drawings} drawing(s), every one on a "
-          f"route it belongs to, carrying the label ramp, and balancing at every junction "
-          f"that has labelled values below it")
+          f"route it belongs to, carrying the label ramp, balancing at every junction "
+          f"that has labelled values below it, and with no route leaving such a junction "
+          f"unlabelled")
     return 0
 
 
