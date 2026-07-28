@@ -1184,3 +1184,27 @@ jobs:
       - name: Consent paint order
         if: '!cancelled()'
         run: python3 scripts/check-consent-paint-order.py
+
+      # The sixtieth, and it closes the axis check-flow-handover.py names in its
+      # own docstring as the one it cannot see: "the VERTICAL join — the flow's
+      # box bottom against the frame's top rail — is not countable in any file".
+      # That was true of the fallback, where the gap is a sum of four layout
+      # terms and the .lp-flow note carries a nine-row table of it instead of a
+      # rule. #207 bound the box between the void and the rail and drove every
+      # row of that table to 0.00, which turned the axis into four declarations
+      # in one file — and nothing read them.
+      #
+      # Measured by making each edit and reloading, frame top minus flow bottom
+      # before the pin engages, at 1440x900 / 1920x1080 / 1280x900 / 2560x1440:
+      # deleting `align-self: stretch` gives 1.58 / 171.58 / 58.17 / 351.58, and
+      # re-anchoring `bottom` to the void — a live anchor, on a real element,
+      # under the same @supports, resolving perfectly — gives 438.91 / 608.91 /
+      # 447.41 / 788.91. All sixty checks then in the tree passed on both, because
+      # check-anchor-positioning.py proves a name RESOLVES and not that it
+      # resolves to the rail, and nothing at all asked whether an absolutely
+      # positioned REPLACED element with both insets set was ever told to
+      # stretch to them. It is not: an <svg> takes its intrinsic height and
+      # drops the bottom inset. Two words, sixteen free ends.
+      - name: Seam anchor
+        if: '!cancelled()'
+        run: python3 scripts/check-seam-anchor.py
