@@ -79,6 +79,17 @@ THE LAW. Three constants and no table.
   glow is drawn with the hot ramp once it is at least half of r_max. One
   quantity, three consequences.
 
+  IT IS EMITTED AS --iso-rest AND NOT AS opacity="", and that is not a spelling
+  choice. `.cf-stmt-sensor` runs `cf-iso-fade` with `animation-fill-mode: both`,
+  and a CSS animation resolves in the animation origin while an SVG
+  presentation attribute sits at the very bottom of the author origin — so for
+  as long as this field has animated, `to {opacity:1}` WAS every sensor's
+  opacity and the attribute was decoration on a tag. Measured on the render at
+  1440 x 900 at the field's peak: 145 sensors, seven authored values,
+  `[...new Set(computed)]` == `[1]`. The keyframe reads --iso-rest now, so the
+  number this function derives is the number that renders, and
+  scripts/check-authored-opacity.py fails the build if it moves back.
+
 THE TWO ENDS STAY PUT. The departure is at (330, cy + 84) — check-void-
 departure.py holds that it is plumb under the void and in the field's quietest
 fifth, and v = 1 exactly there, so the law puts every instrument around it at
@@ -291,8 +302,9 @@ def field_markup(indent):
     for x, y, r, op, m, ramp in field():
         out.append(
             f'{indent}<circle class="cf-stmt-sensor" '
-            f'style="--mx:{num(dx - x)};--my:{num(dy - y)};--m:{m:g}" '
-            f'cx="{num(x)}" cy="{num(y)}" r="{r:.1f}" opacity="{op:g}" '
+            f'style="--mx:{num(dx - x)};--my:{num(dy - y)};--m:{m:g}'
+            f';--iso-rest:{op:g}" '
+            f'cx="{num(x)}" cy="{num(y)}" r="{r:.1f}" '
             f'fill="url(#cf-stmt-sensor-{ramp})"/>')
     return "\n".join(out)
 

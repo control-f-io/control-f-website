@@ -117,9 +117,16 @@ ARC_RE = re.compile(
 # The field whose hole the trunk leaves from.
 STATEMENT = "cf-iso"
 SENSOR = "cf-stmt-sensor"
+# --iso-rest, NOT opacity="". An instrument's intensity used to be a
+# presentation attribute, and a presentation attribute sits at the bottom of the
+# author origin while `cf-iso-fade` sits in the animation origin above it — so
+# all 145 of them rendered at 1 and this function was weighing a field by
+# numbers no reader ever saw. The value moved into the sensor's own style, where
+# the keyframe reads it. → components.css, ".cf-stmt-sensor", and
+# scripts/check-authored-opacity.py, which exists so it cannot move back.
 CIRCLE_RE = re.compile(
-    r'<circle\b[^>]*class="([^"]*)"[^>]*\bcx="([-\d.]+)"[^>]*\bcy="([-\d.]+)"'
-    r'[^>]*\br="([-\d.]+)"[^>]*\bopacity="([-\d.]+)"', re.S)
+    r'<circle\b[^>]*class="([^"]*)"[^>]*style="[^"]*--iso-rest:\s*([-\d.]+)[^"]*"'
+    r'[^>]*\bcx="([-\d.]+)"[^>]*\bcy="([-\d.]+)"[^>]*\br="([-\d.]+)"', re.S)
 FLOW = "lp-flow"
 FLOW_SEG = "lp-flow__seg"
 
@@ -162,10 +169,10 @@ def find_void(body):
     a disc laid over the drawing, so the middle is floored instead of culled and
     the emptiness is made of intensity. Centre from the bounding box of the
     instruments, which are laid out symmetrically about it. `field` is every
-    instrument with the weight it actually carries: its opacity and its radius,
-    which together are how much of the drawing it is."""
+    instrument with the weight it actually carries: its --iso-rest and its
+    radius, which together are how much of the drawing it is."""
     field = [(rational(cx), rational(cy), float(r), float(op))
-             for cls, cx, cy, r, op in CIRCLE_RE.findall(body) if SENSOR in cls.split()]
+             for cls, op, cx, cy, r in CIRCLE_RE.findall(body) if SENSOR in cls.split()]
     if len(field) < 8:
         return None, []
     xs, ys = [p[0] for p in field], [p[1] for p in field]
