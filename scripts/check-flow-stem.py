@@ -126,12 +126,25 @@ def blocks(src):
     return out
 
 
-def rule(src, selector):
-    """The declaration block of the first rule whose selector list has this."""
+def rule(src, selector, prop=None):
+    """The declaration block of the rule whose selector list has this.
+
+    With `prop`, the LAST block that declares it — which is the one that wins
+    the cascade, and the only right answer once a selector legitimately appears
+    more than once in a file. .lp-proc-head now does: its base `position` has to
+    stand ABOVE the @supports that anchors it, or it outvotes the `absolute` an
+    anchor needs (→ scripts/check-anchor-position-cascade.py). "The first rule
+    with this selector" would read that one-liner and find no `top` at all.
+    """
+    found = (None, None)
     for at, sels, body in blocks(src):
-        if selector in sels:
+        if selector not in sels:
+            continue
+        if prop is None:
             return body, at
-    return None, None
+        if declared(body, prop) is not None:
+            found = (body, at)
+    return found
 
 
 def declared(block, prop):
@@ -209,7 +222,7 @@ def main():
         checked += 1
 
     # 2. the header's rim is the trunk's departure
-    head_block, _ = rule(src, ".lp-proc-head")
+    head_block, _ = rule(src, ".lp-proc-head", "top")
     head_top = declared(head_block, "top")
     head_terms = TERM_RE.findall(head_top or "")
     if len(head_terms) != 1 or [num(t) for t in head_terms[0]] != [ty, width]:
