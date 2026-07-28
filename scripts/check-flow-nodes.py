@@ -48,12 +48,15 @@ THE RULE, in three parts, all of them the run from the void:
 
   1. EVERY NODE IS ON A JUNCTION. The point carries two or more segments
      leaving it. A bend is not a junction; nor is a terminal, nor the void.
-  2. EVERY JUNCTION THE LADDER REACHES CARRIES ONE. The ladder is
-     check-flow-crossings.py's: r = 3, 2, 1 by thirds of the normalised run,
-     and this drawing's marked band is the r 3 and r 2 thirds -- level < 2.
-     Every junction below the cut is marked; no junction above it is. Stated as
-     a cut and not as a list, so a junction added to the crown cannot quietly
-     arrive bare.
+  2. EVERY JUNCTION CARRIES ONE. The cut used to be level < 2 -- the r 3 and
+     r 2 thirds of the ladder -- because the GROWN root had fifteen junctions
+     and its fringe was twigs, where a dot reads as texture. The balanced
+     construction (2026-07-28, second review: "make it branch equally") has
+     SEVEN divisions, every one load-bearing -- the crown and the six fan
+     junctions -- and a division without a dot says "not connected" in the
+     one drawing about data dividing. So the cut is gone: a junction is
+     marked because it divides, however deep it sits, and the fringe-texture
+     argument retires with the fringe that made it.
   3. AT MOST ELEVEN. foundations/illustration.html: "Eight is a lot for one
      object; twelve is too many", so eleven is the ceiling. On the geometry
      that ships, the cut in (2) selects exactly eleven of the fifteen; the two
@@ -90,9 +93,9 @@ PROTOTYPES = ROOT / "design-system" / "prototypes"
 # drawing class -> (segment class, node class)
 DRAWINGS = {"lp-flow": ("lp-flow__seg", "lp-flow__node")}
 
-# The cut, in the drawing's own normalised run: the r 3 and r 2 bands of
-# check-flow-crossings.py's ladder. → the module docstring, rule 2.
-MARKED_BELOW = Fraction(2)
+# No cut any more -- every division is marked (docstring, rule 2). The old
+# truth was Fraction(2), the r 3 + r 2 bands, retired with the grown fringe.
+MARKED_BELOW = None
 
 # foundations/illustration.html: "Eight is a lot for one object; twelve is too
 # many." Twelve is too many, so eleven is the most there may be.
@@ -193,17 +196,11 @@ def check_drawing(name, cls, body, verbose):
                 f"{name}: the junction at {point(p)} carries no --l on the strokes "
                 f"leaving it, so nothing can say whether it is inside the cut")
             continue
-        inside = level < MARKED_BELOW
-        if inside and p not in nodes:
+        if p not in nodes:
             findings.append(
-                f"{name}: the junction at {point(p)} is at level {show(level)}, "
-                f"inside the marked band (< {show(MARKED_BELOW)}), and carries no "
-                f"node — the drawing divides there and does not say so")
-        elif not inside and p in nodes:
-            findings.append(
-                f"{name}: the node at {point(p)} is at level {show(level)}, out in "
-                f"the fringe (>= {show(MARKED_BELOW)}), where the root is twigs and "
-                f"a dot reads as texture")
+                f"{name}: the junction at {point(p)} is at level {show(level)} "
+                f"and carries no node — the drawing divides there and does not "
+                f"say so")
 
     # ---- 3. the node's --l is its junction's -----------------------------
     for p, (level, r) in sorted(nodes.items(), key=lambda kv: (kv[0][1], kv[0][0])):
@@ -224,13 +221,12 @@ def check_drawing(name, cls, body, verbose):
 
     if verbose:
         print(f"  {name} .{cls}: {len(junctions)} junctions, {len(nodes)} nodes, "
-              f"cut at level < {show(MARKED_BELOW)}")
+              f"every division marked")
         rows = sorted(((lv, p) for p, lv in junctions.items()),
                       key=lambda kv: (kv[0] is None, kv[0]))
         for level, p in rows:
             mark = f"r {nodes[p][1]}" if p in nodes else "—"
-            band = "marked" if level is not None and level < MARKED_BELOW else "fringe"
-            print(f"    {point(p):>16}  level {show(level):<5} {band:<7} {mark}")
+            print(f"    {point(p):>16}  level {show(level):<5} {mark}")
 
     return findings, len(junctions), len(nodes)
 
