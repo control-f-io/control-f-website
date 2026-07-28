@@ -1,94 +1,50 @@
 #!/usr/bin/env python3
-"""A root leaves from somewhere, and that somewhere is checkable.
+"""The field converges on the trunk's head, and that meeting is checkable.
 
-The forty-first check, and the last unguarded end of the statement-to-process
-illustration on patterns/landing-page.html.
+WHAT THIS FILE USED TO HOLD, in two earlier truths. First: the trunk departs
+from the rim of a drawn void — arcs at radius 84, plumb, on a shared 1200-unit
+basis with the statement figure (patterns/landing-page.html, the anchor era).
+Then, after the 2026-07-28 rebuild moved the chain to the prototype: the same
+identities restated for a statically stacked column — field svg over .sp-root,
+symmetric field, departure in the field's quietest fifth.
 
-The drawing has exactly two ends that are not junctions with itself. The
-fourteen at the foot hand over to the lectern, and check-flow-handover.py holds
-that seam on the axis where it is countable. The ONE at the head is the trunk's
-departure -- the point the data leaves the void from -- and nothing held it at
-all. check-flow-terminals.py permits it by construction:
+BOTH ARE GONE, BY REVIEW. The review of 2026-07-28 ("make the grid cover the
+whole screen … the gradient dots streaming from the corners into the grid
+positions and then pulsing and merging … let not bubble it so close together")
+replaced the column-strip field with a full-bleed stage backdrop on its OWN
+1600 x 900 basis, and inverted the old quiet-departure claim on purpose: the
+field is now HOTTEST at the point the data funnels into, because the merge is
+the story. The shared basis is gone too — the two svgs deliberately differ —
+so the meeting point cannot be arithmetic between literals any more. It is
+measured at runtime: the aim script maps the trunk's head through both screen
+matrices and publishes --ux/--uy on the field.
 
-    # The void: the one point a segment may start from without another segment
-    # under it. It is the topmost start, and there must be exactly one.
-    tops = sorted({s[0] for s in segs}, key=lambda p: (p[1], p[0]))
-    void = tops[0]
+What survives is the drawing's one load-bearing seam, restated:
 
-That is a definition, not a measurement. Whatever the topmost start happens to
-be IS the void as far as that check is concerned, so the trunk could depart from
-anywhere on the page -- a hundred units below the ring, in open wash -- and
-every existing check would still pass. The relationship to the actual void was
-kept the way this seam's other axis was kept for three fixes running: in prose.
+  1. THE GROUND PRECEDES THE CONTENT. The stage carries the .sp-field svg
+     (viewBox 0 0 1600 900, sliced) BEFORE the .container that holds .sp-root
+     and the flow — the field is under the drawing it converges on, at every
+     tier, including the scriptless one.
 
-AND THE PROSE WAS WRONG. Two places in landing-page.html put the ring at "about
-88 flow units" and "a 94 px rim", while the markup that draws it, and the
-comment directly above that markup, both say 84:
+  2. EVERY SENSOR SITS ON A LATTICE CROSSING. The two diagonal families cross
+     at x == 0 (mod 32), y == 8 (mod 16) — gen-proto-field.py's law — and each
+     sensor's --cx/--cy equal its cx/cy, because sp-field-merge computes its
+     flight FROM those custom properties: a circle whose attribute and property
+     disagree flies from somewhere it is not.
 
-    the ring at 84 and the nucleus at 11 disassemble under the same rule
-    <path ... d="M270.6 150.6A84 84 0 0 1 389.4 150.6"/>
+  3. THE FIELD BREATHES. No two sensors stand closer than 200 units — the
+     review's "let not bubble it so close together", as a number the supergrid
+     guarantees (nearest neighbours hypot(128, 160) = 204.9).
 
-88 x (1280/1200) = 93.87, which is where the 94 came from: one wrong radius,
-copied into two conclusions. Measured on the shipped page at device scale 4,
-the ring's rim is 89.60 px at 1440 x 900 and at every viewport at the full
-measure -- not 94 -- and the conclusions drawn from 94 do not survive the
-correction. See the corrected notes in the page.
+  4. THE AIM AND THE DEPARTURE AGREE. The aim script maps DOMPoint(330, 84),
+     and the flow's actual departure — the topmost segment start, the same
+     definition check-flow-terminals.py uses — is exactly (330, 84). Move the
+     trunk and forget the script, and the field merges into open wash.
 
-WHAT IS TRUE, and what this check holds. Both drawings are 1200 units wide over
-the same page width wherever the height cap does not bind, so a flow unit and a
-statement unit are the same length and the relationship is exact arithmetic:
-
-  1. SHARED BASIS. The statement figure's viewBox and the flow's viewBox are
-     the same width. Everything below is arithmetic only because of this.
-
-  2. THE BOX TOP IS THE VOID'S CENTRE. .lp-flow is placed `top: 50%` of the
-     figure, so the flow's y 0 sits on the figure's vertical midpoint. That is
-     the void's centre only if the ring's cy is exactly half the statement
-     viewBox height. 210 of 420. Move the ring off centre and `top: 50%` stops
-     meaning what the note says it means, silently.
-
-  3. THE TRUNK IS PLUMB UNDER THE VOID. The departure's x equals the ring's
-     centre x, in the shared basis.
-
-  4. THE DEPARTURE IS ON THE RIM. The departure's y -- its drop below the flow
-     box top, which is the void's centre -- lands on the inner edge of the
-     emptiness. THIS is why the head of the drawing touches the void at all.
-
-THE VOID IS NO LONGER DRAWN, AND THAT IS THE POINT. It used to be a ring of
-quarter-arcs at radius 84 and this check read the arcs. The ring is now a HOLE
-in the sensor field: sixty-odd glows on the lattice's vertices with nothing
-inside 84 units of the centre, so the absence is made of what is missing rather
-than of a contour around it. Every identity above survived the change because
-none of them was ever about the arcs -- they were about where the emptiness is
-and where the root leaves it -- but identity 4 can no longer be an equality
-between two literals. The inner edge of a hole punched in a lattice is not a
-circle: the nearest instrument the grid allows sits at sqrt(40^2 + 80^2) =
-89.44, not at 84. So the rule is that the departure is INSIDE the emptiness and
-within one instrument's spacing of its edge, which is the same claim the
-equality made and is the strongest one the geometry can support.
-
-Measured on the shipped page, distance from the departure to the rim:
-
-    1024 x  900    -0.00        \
-    1280 x  800    -0.00         |
-    1280 x  900    -0.00         |  the flow is at the full measure: the two
-    1440 x  900    -0.00         |  drawings share a width, and 84 == 84
-    1600 x  900    -0.00         |  puts the departure exactly on the rim
-    1920 x 1080    -0.00         |
-    2560 x 1440    -0.00        /
-    1280 x  720    -3.52        \\  the stage's height cap binds, the flow
-    1366 x  768    -3.80         |  narrows and the figure does not, and the
-    1440 x  720    +2.35        /   departure slides 0.225 x (figure - measure)
-
-The three capped rows are NOT what this check holds, and cannot be: the drift is
-0.225 x (figure width - measure), the measure is a function of viewport height,
-and no file contains it. It is the same over-determination the page's own note
-works through -- a box with two degrees of freedom serving three arrivals -- and
-moving the departure onto the rim there means changing where the trunk leaves,
-which is the drawing's form. That is the craft lane's brief, and the table above
-is the measurement it needs. What this check holds is the exact identity the
-whole arrangement rests on, so that the day someone edits 84 in either file the
-build says so instead of a screenshot saying so eighteen months later.
+  5. THE FALLBACK IS THE FOCUS, AND THE FOCUS IS A CROSSING. sp-field-merge's
+     var(--ux, X)/var(--uy, Y) fallbacks equal gen-proto-field.py's FOCUS, so
+     a scriptless render still merges into the drawing's neighbourhood, and
+     the law's centre stays a point the lattice owns.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
@@ -97,6 +53,7 @@ stdlib only, no build step, no dependency. Same python3 that serves the pages.
 """
 
 import argparse
+import math
 import re
 import sys
 from fractions import Fraction
@@ -104,37 +61,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PAGE = ROOT / "design-system" / "prototypes" / "statement-to-process.html"
+GEN = ROOT / "scripts" / "gen-proto-field.py"
 
 SVG_RE = re.compile(r'<svg\b[^>]*class="([^"]*)"[^>]*viewBox="([^"]*)"(.*?)</svg>', re.S)
 PATH_RE = re.compile(r'<path\b[^>]*class="([^"]*)"[^>]*\bd="([^"]*)"', re.S)
 CMD_RE = re.compile(r'([MLVH])\s*(-?[\d.]+)(?:[ ,]+(-?[\d.]+))?')
-# M x y A rx ry rot large sweep x2 y2 — the quarter-arcs both rings are cut into.
-ARC_RE = re.compile(
-    r'M\s*(-?[\d.]+)[ ,]+(-?[\d.]+)\s*A\s*(-?[\d.]+)[ ,]+(-?[\d.]+)'
-    r'[ ,]+[-\d.]+[ ,]+[01][ ,]+[01][ ,]+(-?[\d.]+)[ ,]+(-?[\d.]+)'
-)
-
-# The field whose hole the trunk leaves from.
-STATEMENT = "cf-iso"
-SENSOR = "cf-stmt-sensor"
-# --iso-rest, NOT opacity="". An instrument's intensity used to be a
-# presentation attribute, and a presentation attribute sits at the bottom of the
-# author origin while `cf-iso-fade` sits in the animation origin above it — so
-# all 145 of them rendered at 1 and this function was weighing a field by
-# numbers no reader ever saw. The value moved into the sensor's own style, where
-# the keyframe reads it. → components.css, ".cf-stmt-sensor", and
-# scripts/check-authored-opacity.py, which exists so it cannot move back.
 CIRCLE_RE = re.compile(
-    r'<circle\b[^>]*class="([^"]*)"[^>]*style="[^"]*--iso-rest:\s*([-\d.]+)[^"]*"'
-    r'[^>]*\bcx="([-\d.]+)"[^>]*\bcy="([-\d.]+)"[^>]*\br="([-\d.]+)"', re.S)
+    r'<circle\b[^>]*class="([^"]*)"[^>]*style="([^"]*)"'
+    r'[^>]*\bcx="(-?[\d.]+)"[^>]*\bcy="(-?[\d.]+)"', re.S)
+VAR_RE = re.compile(r'--(cx|cy|fx|fy|m|iso-rest):\s*(-?[\d.]+)')
+
+FIELD = "sp-field"
+SENSOR = "cf-stmt-sensor"
 FLOW = "lp-flow"
 FLOW_SEG = "lp-flow__seg"
 
-# How far an arc endpoint may sit from the radius the arc declares. The split
-# points are the diagonals, so they are r/sqrt(2) rounded to one decimal —
-# 59.4 for 84 — and land 0.0043 off. This is a rounding gate, not a tolerance
-# on the identities below, which are exact.
-ROUND_TOL = Fraction(1, 100)
+MODULE_X, MODULE_Y, PHASE_Y = 32, 16, 8    # the crossings' congruences
+MIN_SPACING = 200                          # identity 3's bar
 
 
 def rational(text):
@@ -162,154 +105,132 @@ def show(v):
     return str(int(v)) if v.denominator == 1 else f"{float(v):g}"
 
 
-def find_void(body):
-    """The void: the quietest place in the sensor field.
-
-    There is no hole to measure any more — a hole was cut here once and read as
-    a disc laid over the drawing, so the middle is floored instead of culled and
-    the emptiness is made of intensity. Centre from the bounding box of the
-    instruments, which are laid out symmetrically about it. `field` is every
-    instrument with the weight it actually carries: its --iso-rest and its
-    radius, which together are how much of the drawing it is."""
-    field = [(rational(cx), rational(cy), float(r), float(op))
-             for cls, op, cx, cy, r in CIRCLE_RE.findall(body) if SENSOR in cls.split()]
-    if len(field) < 8:
-        return None, []
-    xs, ys = [p[0] for p in field], [p[1] for p in field]
-    cx = (min(xs) + max(xs)) / 2
-    cy = (min(ys) + max(ys)) / 2
-    return (cx, cy, field), field
-
-
-def intensity(px, py, field):
-    """How much ink the field puts at a point. A linear stand-in for the radial
-    ramp — exact enough to rank places against each other, which is all that is
-    asked of it, and it needs no colour maths to do it."""
-    total = 0.0
-    for x, y, r, op in field:
-        d = ((float(x) - px) ** 2 + (float(y) - py) ** 2) ** 0.5
-        if d < r:
-            total += op * (1.0 - d / r)
-    return total
-
-
 def main():
     parser = argparse.ArgumentParser(
-        description="The trunk departs from the rim of the hole in the sensor field.")
+        description="The field converges on the trunk's head, and the meeting holds.")
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
     text = PAGE.read_text(encoding="utf-8")
-    statement = flow = None
+    field_svg = flow_svg = None
     for classes, view_box, body in SVG_RE.findall(text):
         names = classes.split()
-        if STATEMENT in names and statement is None:
-            statement = (view_box, body)
-        if FLOW in names and flow is None:
-            flow = (view_box, body)
+        if FIELD in names and field_svg is None:
+            field_svg = (view_box, body)
+        if FLOW in names and flow_svg is None:
+            flow_svg = (view_box, body)
 
     findings = []
-    if statement is None or flow is None:
-        missing = ".cf-iso" if statement is None else ".lp-flow"
+    if field_svg is None or flow_svg is None:
+        missing = ".sp-field" if field_svg is None else ".lp-flow"
         print(f"void departure: {missing} is not on the page — the selector went stale")
         return 1
 
-    s_vb, s_body = statement
-    f_vb, f_body = flow
-    s_w, s_h = rational(s_vb.split()[2]), rational(s_vb.split()[3])
-    f_w = rational(f_vb.split()[2])
+    # 1. the ground precedes the content, inside the stage
+    if not re.search(
+            r'<div class="sp-stage">[\s\S]*?<svg class="sp-field"[^>]*'
+            r'viewBox="0 0 1600 900"[^>]*preserveAspectRatio="xMidYMid slice"'
+            r'[\s\S]*?</svg>\s*<div class="container">[\s\S]*?'
+            r'<div class="sp-root">[\s\S]*?lp-flow\b', text):
+        findings.append(
+            "the stage no longer opens with the full-bleed .sp-field svg "
+            "(1600 x 900, sliced) before the container holding .sp-root — "
+            "the ground is not under the drawing it converges on")
 
-    void, pts = find_void(s_body)
-    if void is None:
-        print(f"void departure: the statement draws no .{SENSOR} field — the void is gone")
-        return 1
-    cx, cy, field = void
+    # 2 + 3. every sensor on a crossing, with its properties telling the truth,
+    #        and no two closer than the supergrid's bar
+    sensors = []
+    for cls, style, cx, cy in CIRCLE_RE.findall(field_svg[1]):
+        if SENSOR not in cls.split():
+            continue
+        v = dict(VAR_RE.findall(style))
+        sensors.append((float(cx), float(cy), v))
+    if len(sensors) < 8:
+        findings.append(
+            f"the field carries {len(sensors)} sensors — under any reading of "
+            f"'Tausende Sensoren' the ground has gone missing")
+    for x, y, v in sensors:
+        if x % MODULE_X or (y - PHASE_Y) % MODULE_Y:
+            findings.append(
+                f"sensor at ({x:g}, {y:g}) is off the lattice crossings "
+                f"(x == 0 mod {MODULE_X}, y == {PHASE_Y} mod {MODULE_Y})")
+        if float(v.get("cx", "nan")) != x or float(v.get("cy", "nan")) != y:
+            findings.append(
+                f"sensor at ({x:g}, {y:g}) declares --cx:{v.get('cx')} "
+                f"--cy:{v.get('cy')} — sp-field-merge flies it from somewhere "
+                f"it is not")
+        if not (v.get("m") and 0.0 <= float(v["m"]) <= 1.0):
+            findings.append(
+                f"sensor at ({x:g}, {y:g}) has no --m in 0..1 — its windows "
+                f"in the script resolve to nonsense")
+    for i, (x1, y1, _) in enumerate(sensors):
+        for x2, y2, _ in sensors[i + 1:]:
+            d = math.hypot(x1 - x2, y1 - y2)
+            if d < MIN_SPACING:
+                findings.append(
+                    f"sensors at ({x1:g}, {y1:g}) and ({x2:g}, {y2:g}) stand "
+                    f"{d:.1f} units apart — under the {MIN_SPACING}-unit bar the "
+                    f"review set ('let not bubble it so close together')")
 
+    # 4. the aim and the departure agree
     segs = []
-    for classes, d in PATH_RE.findall(f_body):
+    for classes, d in PATH_RE.findall(flow_svg[1]):
         if FLOW_SEG in classes.split():
             segs.extend(parse_path(d))
     if not segs:
         print(f"void departure: .{FLOW} carries no .{FLOW_SEG}")
         return 1
-    # The departure, by the same definition check-flow-terminals.py uses.
     dep = sorted({s[0] for s in segs}, key=lambda p: (p[1], p[0]))[0]
+    aim = re.search(r'new DOMPoint\((-?[\d.]+),\s*(-?[\d.]+)\)', text)
+    if not aim:
+        findings.append(
+            "the aim script no longer maps a DOMPoint — nothing publishes "
+            "--ux/--uy and the merge runs on its fallback everywhere")
+    elif (rational(aim.group(1)), rational(aim.group(2))) != dep:
+        findings.append(
+            f"the aim script maps ({aim.group(1)}, {aim.group(2)}) and the flow "
+            f"departs at ({show(dep[0])}, {show(dep[1])}) — the field merges "
+            f"into a point the trunk is not at")
 
-    # 0. the field is symmetric about the hole, which is what makes its
-    #    bounding box the void's centre rather than merely its middle
-    mean_x = sum(p[0] for p in field) / len(field)
-    mean_y = sum(p[1] for p in field) / len(field)
-    for name, mean, box in (("x", mean_x, cx), ("y", mean_y, cy)):
-        if abs(float(mean - box)) > 0.5:
+    # 5. the fallback is the focus, and the focus is a crossing
+    fb = re.search(r'var\(--ux,\s*(-?[\d.]+)\)[\s\S]{0,120}?var\(--uy,\s*(-?[\d.]+)\)', text)
+    focus = re.search(r'FOCUS\s*=\s*\((-?[\d.]+),\s*(-?[\d.]+)\)', GEN.read_text(encoding="utf-8"))
+    if not fb:
+        findings.append("sp-field-merge no longer carries --ux/--uy fallbacks — "
+                        "a scriptless render merges into nothing at all")
+    elif not focus:
+        findings.append("gen-proto-field.py no longer states FOCUS — identity 5 "
+                        "has nothing to compare against")
+    else:
+        fx, fy = float(fb.group(1)), float(fb.group(2))
+        gx, gy = float(focus.group(1)), float(focus.group(2))
+        if (fx, fy) != (gx, gy):
             findings.append(
-                f"the field's mean {name} is {float(mean):g} and its box centre is "
-                f"{show(box)} — the instruments are not laid out symmetrically about "
-                f"the hole, so the box is not the void's centre and everything "
-                f"measured from it below is measured from the wrong point")
-
-    # 1. shared basis
-    if s_w != f_w:
-        findings.append(
-            f"the statement's viewBox is {show(s_w)} wide and the flow's is "
-            f"{show(f_w)} — a flow unit and a statement unit are no longer the "
-            f"same length, and every identity below is arithmetic about nothing")
-
-    # 2. THE FLOW STANDS DIRECTLY UNDER THE FIELD, IN FLOW. Identity 2 used
-    #    to hold `top: 50%` — the anchor-era placement that hung the flow's
-    #    y 0 on the void's centre. The 2026-07-28 rebuild removed the anchor
-    #    chain: the flow is a normal block stacked under the field inside one
-    #    sticky stage, wrapped in .sp-root so the numerals' box is the flow's.
-    #    What the identity still owes is that the two drawings are the same
-    #    column: same markup order (field svg, then .sp-root holding the
-    #    flow), so the departure reads as leaving the field's underside.
-    if not re.search(r"cf-iso\b[^>]*viewBox=\"0 0 1200 288\"[\s\S]*?<div class=\"sp-root\">[\s\S]*?lp-flow\b", text):
-        findings.append(
-            "the field svg is no longer followed by .sp-root holding .lp-flow — "
-            "the static stacking that replaced the anchor chain is gone, and the "
-            "departure no longer leaves from the field's underside")
-
-    # 3. plumb under the void
-    if dep[0] != cx:
-        findings.append(
-            f"the trunk departs at x {show(dep[0])} and the void's centre is x "
-            f"{show(cx)} — {show(abs(dep[0] - cx))} units off plumb")
-
-    # 4. THE ROOT LEAVES FROM THE QUIETEST PLACE IN THE FIELD. Not a rim any
-    #    more -- there is no hole to have one. The claim that survived the
-    #    change is the one that mattered: the departure is not in the middle of
-    #    a hot cluster. Measured against the field's own instruments as the
-    #    sample set, so the bar moves with the drawing instead of being a
-    #    literal somebody has to remember to update.
-    dep_i = intensity(float(dep[0]), float(dep[1]), field)
-    samples = sorted(intensity(float(x), float(y), field) for x, y, _, _ in field)
-    median = samples[len(samples) // 2]
-    quiet = samples[max(0, len(samples) // 5)]      # the field's quietest fifth
-    if dep_i > quiet:
-        findings.append(
-            f"the field puts {dep_i:.2f} of ink at the departure and its quietest "
-            f"fifth is under {quiet:.2f} (median {median:.2f}) — the root leaves out "
-            f"of a bright part of the field instead of out of the quiet in the "
-            f"middle of it. A root leaves from somewhere.")
+                f"the merge fallback is ({fx:g}, {fy:g}) and the generator's "
+                f"FOCUS is ({gx:g}, {gy:g}) — the scriptless merge and the "
+                f"field's law no longer share a centre")
+        if fx % MODULE_X or (fy - PHASE_Y) % MODULE_Y:
+            findings.append(
+                f"the focus ({fx:g}, {fy:g}) is off the lattice crossings — "
+                f"the law's centre is a point the lattice does not own")
 
     if args.verbose:
-        print(f"  statement viewBox  {show(s_w)} x {show(s_h)}")
-        print(f"  flow viewBox       {show(f_w)} x {show(rational(f_vb.split()[3]))}")
-        print(f"  void (field low)   centre ({show(cx)}, {show(cy)})   instruments {len(field)}")
-        print(f"  ink at departure   {intensity(float(dep[0]), float(dep[1]), field):.2f}")
-        print(f"  figure midpoint    {show(s_h / 2)}   (`top: 50%` puts flow y 0 here)")
+        dmin = min((math.hypot(a[0] - b[0], a[1] - b[1])
+                    for i, a in enumerate(sensors) for b in sensors[i + 1:]),
+                   default=float("inf"))
+        print(f"  sensors            {len(sensors)}   nearest pair {dmin:.1f} units")
         print(f"  trunk departure    ({show(dep[0])}, {show(dep[1])})")
-        _s = sorted(intensity(float(x), float(y), field) for x, y, _, _ in field)
-        print(f"  field ink          quietest fifth < {_s[len(_s)//5]:.2f}   "
-              f"median {_s[len(_s)//2]:.2f}   brightest {_s[-1]:.2f}")
+        print(f"  aim script maps    {aim.group(0) if aim else '—'}")
+        print(f"  merge fallback     ({fb.group(1)}, {fb.group(2)})" if fb else "  merge fallback     —")
 
     if findings:
         print(f"\nvoid departure: {len(findings)} finding(s)")
         for f in findings:
             print(f"  {f}")
         return 1
-    print(f"void departure OK — the trunk leaves x {show(dep[0])} plumb under the void's "
-          f"centre and {show(dep[1])} units below it, into the quiet of a "
-          f"{len(field)}-instrument field, both drawings on a {show(s_w)}-unit basis")
+    print(f"void departure OK — {len(sensors)} sensors on crossings, none under "
+          f"{MIN_SPACING} units apart, aimed at the trunk's head ({show(dep[0])}, "
+          f"{show(dep[1])}) with the generator's focus as the fallback")
     return 0
 
 
