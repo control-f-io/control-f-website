@@ -78,9 +78,22 @@ departure drift on the void's rim. Bottom-anchoring the box trades the sixteen
 free ends at the rail for one free end at the void, 167 px below its rim at
 1920 x 1080, which is a different bug and not a fix.
 
+AND EVERY ROW OF THAT TABLE IS A PRE-PIN NUMBER. .lp-frame sits inside
+.cf-pin__stage, which is `position: sticky; top: 0`; .lp-flow sits in static
+flow one section up. While the stage is still travelling the gap is flat, which
+is what the nine rows record. From the scroll position the stage sticks at, the
+frame holds against the viewport and the flow does not, so the gap opens at
+1.00 px per px of scroll — at 1440 x 900, the one size the table records the
+seam as MADE at, 1.58 px becomes 61.70 at 60 px past the pin and 161.70 at
+160 px, with the flow's bottom still on screen at viewport y 9.3 throughout.
+scripts/check-seam-travel.py holds that second number, derived from the sticky
+asymmetry rather than measured, and the .lp-flow note carries both tables.
+
 So the trunk has to absorb it, which is the drawing's FORM: how the route
-branches and where it terminates. That belongs to the craft lane, and the table
-above is the measurement it needs.
+branches and where it terminates. That belongs to the craft lane, and BOTH
+tables are the measurement it needs — the second one constrains the answer,
+because a stretch that lands on the rail at one scroll position still comes
+apart at 1.00 px per px unless the two sides travel together.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
