@@ -941,3 +941,24 @@ jobs:
       - name: Relay rate
         if: '!cancelled()'
         run: python3 scripts/check-relay-rate.py
+
+      # The fiftieth, and the first one about a viewport that CHANGES rather
+      # than a viewport that is. Every responsive number in this repository has
+      # been measured by standing still at a width and looking; the pinned
+      # section has two shapes, and the fault is not in either of them but in
+      # the instant between. At 1280 x 900 "Was wir machen" is 6901 px tall
+      # above the gate and 2209 px below it, and a browser handed the reader's
+      # pixel offset across that put them five sections further down the page —
+      # measured at both edges, both axes, and on an iPad turned from landscape
+      # to portrait, which crosses both at once.
+      #
+      # Scroll anchoring is the platform's own answer and it is suppressed for
+      # resize-driven layout changes: tested with the stage's stickiness
+      # removed, with overflow-anchor forced auto everywhere, and with it forced
+      # none across the pin — scrollY identical to the baseline in all three.
+      # So the cure is a file, and a file is a thing a page can quietly stop
+      # loading. Both halves are countable: which pages instantiate the pinned
+      # track, and which pages load the cure.
+      - name: Pin gate
+        if: '!cancelled()'
+        run: python3 scripts/check-pin-gate.py
