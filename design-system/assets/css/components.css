@@ -2140,6 +2140,37 @@ ul.cf-nav__list {
        spend, and the leads are per-part markup that the drawing's own lane
        owns. The curve is this file's, and the curve is what was wrong.
        scripts/check-scrub-rate.py holds the ceiling. */
+    /* The field as a whole sits under the claim, quieter than the lattice it
+       stands on is dark; per-instrument opacity rides on top of this. */
+    .cf-stmt-field { opacity: .92; }
+    /* THE FIELD COLLAPSES INTO THE LINE. Two animations on one element and
+       they must not be one: the glows arrive with the lattice, hold, and then
+       every one of them travels to the trunk's head and goes out as it gets
+       there — nearest first, the far edge of the field last, staggered by --m,
+       which is each dot's own distance to the head normalised. The trunk grows
+       downward out of that point while they are still arriving, so the line is
+       made of them rather than replacing them.
+
+       `forwards` on the collapse, not `both`: under `both` it would hold its
+       from-state through the arrival and pin every glow at full opacity before
+       the field had faded up. That is the third time this file has paid that
+       lesson — see the removed dim on foundations/colors.html — and the second
+       time in this block.
+
+       The travel is `translate`, not `transform`: a keyframe setting the
+       property would replace the transform ATTRIBUTE rather than compose with
+       it, and half the parts in this system carry one. */
+    .cf-stmt-sensor {
+      animation-name: cf-iso-fade, cf-stmt-collapse;
+      animation-range: cover calc((38 + var(--m) * 10) * 1%)
+                       cover calc((56 + var(--m) * 10) * 1%),
+                       cover calc((64 + var(--m) * 14) * 1%)
+                       cover calc((80 + var(--m) * 14) * 1%);
+      animation-fill-mode: both, forwards;
+      animation-timing-function: var(--ease-out);
+      animation-timeline: --cf-iso, --cf-iso;
+      animation-duration: auto;
+    }
     .cf-statement .cf-iso__ghost {
       animation-name: cf-iso-fade, cf-stmt-scatter;
       animation-range: cover 46% cover 70%,
@@ -2152,6 +2183,12 @@ ul.cf-nav__list {
 /* A part moves with `translate`, not `transform` — see the build's own note:
    half the parts in this system carry a transform ATTRIBUTE, and a keyframe
    that sets the property replaces the attribute instead of composing with it. */
+@keyframes cf-stmt-collapse {
+  to {
+    translate: calc(var(--mx, 0) * 1px) calc(var(--my, 0) * 1px);
+    opacity: 0;
+  }
+}
 @keyframes cf-stmt-scatter {
   to {
     translate: calc(var(--sx, 0) * 1px) calc(var(--sy, 0) * 1px);

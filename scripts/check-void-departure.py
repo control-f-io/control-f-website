@@ -51,9 +51,21 @@ statement unit are the same length and the relationship is exact arithmetic:
      centre x, in the shared basis.
 
   4. THE DEPARTURE IS ON THE RIM. The departure's y -- its drop below the flow
-     box top, which is the void's centre -- equals the ring's radius. 84 and 84.
-     THIS is why the head of the drawing touches the void at all, and it is a
-     coincidence of two numbers in two different SVGs that nothing stated.
+     box top, which is the void's centre -- lands on the inner edge of the
+     emptiness. THIS is why the head of the drawing touches the void at all.
+
+THE VOID IS NO LONGER DRAWN, AND THAT IS THE POINT. It used to be a ring of
+quarter-arcs at radius 84 and this check read the arcs. The ring is now a HOLE
+in the sensor field: sixty-odd glows on the lattice's vertices with nothing
+inside 84 units of the centre, so the absence is made of what is missing rather
+than of a contour around it. Every identity above survived the change because
+none of them was ever about the arcs -- they were about where the emptiness is
+and where the root leaves it -- but identity 4 can no longer be an equality
+between two literals. The inner edge of a hole punched in a lattice is not a
+circle: the nearest instrument the grid allows sits at sqrt(40^2 + 80^2) =
+89.44, not at 84. So the rule is that the departure is INSIDE the emptiness and
+within one instrument's spacing of its edge, which is the same claim the
+equality made and is the strongest one the geometry can support.
 
 Measured on the shipped page, distance from the departure to the rim:
 
@@ -64,7 +76,7 @@ Measured on the shipped page, distance from the departure to the rim:
     1600 x  900    -0.00         |  puts the departure exactly on the rim
     1920 x 1080    -0.00         |
     2560 x 1440    -0.00        /
-    1280 x  720    -3.52        \   the stage's height cap binds, the flow
+    1280 x  720    -3.52        \\  the stage's height cap binds, the flow
     1366 x  768    -3.80         |  narrows and the figure does not, and the
     1440 x  720    +2.35        /   departure slides 0.225 x (figure - measure)
 
@@ -102,10 +114,11 @@ ARC_RE = re.compile(
     r'[ ,]+[-\d.]+[ ,]+[01][ ,]+[01][ ,]+(-?[\d.]+)[ ,]+(-?[\d.]+)'
 )
 
-# The ring the trunk leaves from, and the rule that picks it out of the figure:
-# the largest arc radius in the statement's drawing. The nucleus is 11, the ring
-# is 84; "both rings are drawn as four quarter-arcs split on the diagonals".
+# The field whose hole the trunk leaves from.
 STATEMENT = "cf-iso"
+SENSOR = "cf-stmt-sensor"
+CIRCLE_RE = re.compile(
+    r'<circle\b[^>]*class="([^"]*)"[^>]*\bcx="([-\d.]+)"[^>]*\bcy="([-\d.]+)"', re.S)
 FLOW = "lp-flow"
 FLOW_SEG = "lp-flow__seg"
 
@@ -141,31 +154,29 @@ def show(v):
     return str(int(v)) if v.denominator == 1 else f"{float(v):g}"
 
 
-def find_ring(body):
-    """The void: the largest-radius family of quarter-arcs in the statement.
+def find_void(body):
+    """The void: the hole the sensor field leaves in the middle of itself.
 
-    Centre from the bounding box of the arc endpoints — the four split points
-    are on the diagonals, so their box is centred on the ring — and radius from
-    the arc's own rx, which is exact where the split points are rounded."""
-    arcs = []
-    for x1, y1, rx, ry, x2, y2 in ARC_RE.findall(body):
-        if rational(rx) != rational(ry):
-            continue
-        arcs.append((rational(rx), (rational(x1), rational(y1)),
-                     (rational(x2), rational(y2))))
-    if not arcs:
+    Centre from the bounding box of the instruments — the field is laid out
+    symmetrically about it and culled symmetrically by the hole, so the box is
+    centred on the emptiness. `inner` is the distance to the nearest instrument,
+    which is the hole's edge as the lattice is able to draw it; `spacing` is the
+    nearest-neighbour distance, the grain the edge is quantised to."""
+    pts = [(rational(cx), rational(cy)) for cls, cx, cy in CIRCLE_RE.findall(body)
+           if SENSOR in cls.split()]
+    if len(pts) < 8:
         return None, []
-    radius = max(a[0] for a in arcs)
-    family = [a for a in arcs if a[0] == radius]
-    pts = [p for a in family for p in a[1:]]
     cx = (min(p[0] for p in pts) + max(p[0] for p in pts)) / 2
     cy = (min(p[1] for p in pts) + max(p[1] for p in pts)) / 2
-    return (cx, cy, radius), pts
+    inner = min(((p[0] - cx) ** 2 + (p[1] - cy) ** 2) for p in pts)
+    spacing = min(((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+                  for i, a in enumerate(pts) for b in pts[i + 1:])
+    return (cx, cy, inner, spacing), pts
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="The trunk departs from the void's rim, and 84 == 84 is why.")
+        description="The trunk departs from the rim of the hole in the sensor field.")
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
@@ -189,11 +200,14 @@ def main():
     s_w, s_h = rational(s_vb.split()[2]), rational(s_vb.split()[3])
     f_w = rational(f_vb.split()[2])
 
-    ring, pts = find_ring(s_body)
-    if ring is None:
-        print("void departure: the statement draws no ring — the void is gone")
+    void, pts = find_void(s_body)
+    if void is None:
+        print(f"void departure: the statement draws no .{SENSOR} field — the void is gone")
         return 1
-    cx, cy, radius = ring
+    cx, cy, inner2, spacing2 = void
+    inner = Fraction(inner2).limit_denominator(10 ** 6) ** Fraction(1, 2) \
+        if False else float(inner2) ** 0.5
+    spacing = float(spacing2) ** 0.5
 
     segs = []
     for classes, d in PATH_RE.findall(f_body):
@@ -205,14 +219,17 @@ def main():
     # The departure, by the same definition check-flow-terminals.py uses.
     dep = sorted({s[0] for s in segs}, key=lambda p: (p[1], p[0]))[0]
 
-    # 0. the split points really are on the ring the arcs declare
-    for p in pts:
-        off2 = (p[0] - cx) ** 2 + (p[1] - cy) ** 2
-        off = abs(Fraction(off2).limit_denominator(10 ** 6) - radius ** 2)
-        if off > ROUND_TOL * radius * 2:
+    # 0. the field is symmetric about the hole, which is what makes its
+    #    bounding box the void's centre rather than merely its middle
+    mean_x = sum(p[0] for p in pts) / len(pts)
+    mean_y = sum(p[1] for p in pts) / len(pts)
+    for name, mean, box in (("x", mean_x, cx), ("y", mean_y, cy)):
+        if abs(float(mean - box)) > 0.5:
             findings.append(
-                f"the ring's split point ({show(p[0])}, {show(p[1])}) is not on the "
-                f"radius {show(radius)} the arc declares — the void is not a circle")
+                f"the field's mean {name} is {float(mean):g} and its box centre is "
+                f"{show(box)} — the instruments are not laid out symmetrically about "
+                f"the hole, so the box is not the void's centre and everything "
+                f"measured from it below is measured from the wrong point")
 
     # 1. shared basis
     if s_w != f_w:
@@ -224,7 +241,7 @@ def main():
     # 2. `top: 50%` lands the flow's y 0 on the void's centre
     if cy * 2 != s_h:
         findings.append(
-            f"the ring's centre y is {show(cy)} of a {show(s_h)}-unit viewBox, so the "
+            f"the field's centre y is {show(cy)} of a {show(s_h)}-unit viewBox, so the "
             f"figure's midpoint is {show(s_h / 2)} — .lp-flow is placed `top: 50%` and "
             f"its y 0 therefore lands {show(abs(cy - s_h / 2))} units off the void's centre")
     if not re.search(r"\.lp-flow,\s*\.lp-flow-data\s*\{[^}]*?\btop:\s*50%", text, re.S):
@@ -239,21 +256,31 @@ def main():
             f"the trunk departs at x {show(dep[0])} and the void's centre is x "
             f"{show(cx)} — {show(abs(dep[0] - cx))} units off plumb")
 
-    # 4. on the rim
-    if dep[1] != radius:
+    # 4. on the rim: inside the emptiness, and within one instrument's spacing
+    #    of its inner edge. Not an equality any more — see the header.
+    drop = float(dep[1])
+    if drop > inner + 1e-9:
         findings.append(
             f"the trunk departs {show(dep[1])} units below the void's centre and the "
-            f"ring's radius is {show(radius)} — the head of the drawing "
-            f"{'stops ' + show(radius - dep[1]) + ' units short of' if dep[1] < radius else 'overshoots'}"
-            f" the rim it is supposed to leave from. A root leaves from somewhere.")
+            f"nearest instrument is at {inner:.2f} — the head of the drawing leaves "
+            f"from inside the field instead of from the hole in it. A root leaves "
+            f"from somewhere.")
+    elif inner - drop > spacing + 1e-9:
+        findings.append(
+            f"the trunk departs {show(dep[1])} units below the void's centre and the "
+            f"nearest instrument is at {inner:.2f} — a gap of {inner - drop:.2f}, wider "
+            f"than the field's own {spacing:.2f} spacing, so the departure floats in "
+            f"open wash rather than sitting on the edge of the emptiness.")
 
     if args.verbose:
         print(f"  statement viewBox  {show(s_w)} x {show(s_h)}")
         print(f"  flow viewBox       {show(f_w)} x {show(rational(f_vb.split()[3]))}")
-        print(f"  void ring          centre ({show(cx)}, {show(cy)})  radius {show(radius)}")
+        print(f"  void (field hole)  centre ({show(cx)}, {show(cy)})  inner edge {inner:.2f}")
+        print(f"  instruments        {len(pts)}   nearest-neighbour spacing {spacing:.2f}")
         print(f"  figure midpoint    {show(s_h / 2)}   (`top: 50%` puts flow y 0 here)")
         print(f"  trunk departure    ({show(dep[0])}, {show(dep[1])})")
-        print(f"  drop below centre  {show(dep[1])}  vs rim {show(radius)}")
+        print(f"  drop below centre  {show(dep[1])}  vs inner edge {inner:.2f}  "
+              f"(slack {inner - float(dep[1]):.2f} of {spacing:.2f} allowed)")
 
     if findings:
         print(f"\nvoid departure: {len(findings)} finding(s)")
@@ -261,8 +288,9 @@ def main():
             print(f"  {f}")
         return 1
     print(f"void departure OK — the trunk leaves x {show(dep[0])} plumb under the void's "
-          f"centre and {show(dep[1])} units below it, onto a rim of {show(radius)}, both "
-          f"drawings on a {show(s_w)}-unit basis")
+          f"centre and {show(dep[1])} units below it, onto an inner edge at {inner:.2f} "
+          f"({len(pts)} instruments, {spacing:.2f} apart), both drawings on a "
+          f"{show(s_w)}-unit basis")
     return 0
 
 
