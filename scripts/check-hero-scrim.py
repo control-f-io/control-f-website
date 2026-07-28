@@ -176,7 +176,21 @@ def main():
     crossover_px = (cmax_px / 2.0) / (0.5 - float(vw_arm.group(1)) / 100.0) if vw_arm else 0.0
 
     # ---- the weight -------------------------------------------------------
-    stops = re.findall(r"rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)", scrim_raw)
+    # The plateau's alpha is --scrim-depth now and not a literal typed twice —
+    # check-hero-contrast.py deepens it at or below 56.25rem, where cover puts
+    # the square artwork's dark band under the 11 px kicker. So the stops are
+    # resolved through the token before the weight is judged, and the weight is
+    # judged at EVERY value the token takes: a floor that only held at the wide
+    # value would leave the narrow one free to drop under the measurements.
+    depths = [float(v) for v in re.findall(r"--scrim-depth\s*:\s*([\d.]+)", css)]
+    if not depths:
+        findings.append("--scrim-depth is gone. --hero-scrim's plateau reads its "
+                        "alpha from that token, and without it the weight below "
+                        "cannot be resolved at all.")
+    def resolve(a):
+        return depths if a.strip() == "var(--scrim-depth)" else [float(a)]
+    stops = re.findall(r"rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,"
+                       r"\s*((?:var\([^()]*\)|[^()])+)\)", scrim_raw)
     if len(stops) != 3:
         findings.append("--hero-scrim has %d colour stops, not the 3 this check and the "
                         "note above it describe (full, full at the reach, out at twice it)."
@@ -187,24 +201,35 @@ def main():
             findings.append("--hero-scrim mixes %d tints. The scrim is CF-Grau and nothing "
                             "else — the note in tokens.css is explicit that white would "
                             "frost it and black would bruise it." % len(tints))
-        alphas = [float(s[3]) for s in stops]
-        if alphas[2] != 0.0:
+        try:
+            resolved = [resolve(s[3]) for s in stops]
+        except ValueError:
+            resolved = None
+        if resolved is None or not depths:
+            alphas = None
+        else:
+            # every combination the media queries can produce; today two
+            alphas = [min(resolved[0]), min(resolved[1]), max(resolved[2])]
+        if alphas is None:
+            findings.append("--hero-scrim's stops no longer resolve to numbers: %r"
+                            % [s[3] for s in stops])
+        elif alphas[2] != 0.0:
             findings.append("--hero-scrim's last stop is alpha %.3f, not 0. The scrim has to "
                             "be OUT at twice the reach, or it greys the artwork's best "
                             "corner for no reader." % alphas[2])
-        if alphas[0] != alphas[1]:
+        if alphas is not None and sorted(resolve(stops[0][3])) != sorted(resolve(stops[1][3])):
             findings.append("--hero-scrim's first two stops are %.3f and %.3f. They are the "
                             "plateau and have to be equal — a ramp starting at the corner "
                             "is not the material this token describes."
-                            % (alphas[0], alphas[1]))
-        if alphas[0] < MEASURED_AT_ALPHA - 1e-9:
+                            % (min(resolve(stops[0][3])), min(resolve(stops[1][3]))))
+        if alphas is not None and min(resolve(stops[0][3])) < MEASURED_AT_ALPHA - 1e-9:
             findings.append("--hero-scrim is at alpha %.3f, below the %.2f every contrast "
                             "figure in its own note was measured at. Lowering it invalidates "
                             "the whole table silently and nothing in CI can re-derive it: "
                             "the backdrop is 360 frames of H.264 and neither the browser CI "
                             "runs nor the bundled ffmpeg will decode one. Raise it back, or "
                             "re-measure with a decoder and rewrite the table."
-                            % (alphas[0], MEASURED_AT_ALPHA))
+                            % (min(resolve(stops[0][3])), MEASURED_AT_ALPHA))
 
     # ---- the term and its projection --------------------------------------
     shift = re.search(
@@ -268,8 +293,10 @@ def main():
         return 1
 
     if args.verbose:
-        print("  --angle-a %.2fdeg  sin %.4f   --container-max %.0f px   alpha %.2f"
-              % (angle_deg, sin_a, cmax_px, float(stops[0][3])))
+        print("  --angle-a %.2fdeg  sin %.4f   --container-max %.0f px   "
+              "alpha %s (--scrim-depth)"
+              % (angle_deg, sin_a, cmax_px,
+                 "/".join("%.2f" % d for d in sorted(set(depths)))))
         print("  %6s  %8s  %14s  %10s   %s"
               % ("width", "gutter", "column shift", "reach +", "headline, worst of 360"))
         for w, g, cs, added in rows:
@@ -277,9 +304,10 @@ def main():
                   % (w, g, cs, added, MEASURED_HEADLINE[w], HEADLINE_FLOOR))
         print()
 
-    print("hero scrim: plateau follows the column at sin(%.2fdeg) = %.4f, weight %.2f, "
+    print("hero scrim: plateau follows the column at sin(%.2fdeg) = %.4f, weight %s, "
           "%d widths checked, %.0f px added at 2560 and 0 at the 1440 frame."
-          % (angle_deg, sin_a, float(stops[0][3]), len(rows), rows[-1][3]))
+          % (angle_deg, sin_a, "/".join("%.2f" % d for d in sorted(set(depths))),
+             len(rows), rows[-1][3]))
     return 0
 
 

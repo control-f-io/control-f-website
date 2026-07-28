@@ -460,6 +460,30 @@ name: Design system checks
 # decoder and 360 screenshots per viewport to reproduce is exactly the kind
 # that gets invalidated by a one-line change four screens away — which is how
 # the figures this replaced came to be wrong in the first place.
+#
+# The hero contrast is the thirty-sixth and the other half of that pair. The
+# check above holds the scrim's geometry and stops there on purpose; this one
+# carries the photometry, reduced to the only thing the arithmetic needs, and
+# recomputes the ratios themselves. What it caught is the axis the geometry
+# check cannot have: its register is widths, correctly — "heights are
+# irrelevant to the reach" — but they are not irrelevant to the ARTWORK.
+# .cf-hero__media covers with a 1080 px square, so which part of that square
+# lands under the type is decided by the box's ASPECT. Sampled at frames rather
+# than widths, the 11 px kicker read 4.03:1 at 375 x 812 and 4.37:1 at 768 x 800
+# against a 4.5:1 floor the width-only table put at 6.08 and above — nine
+# failing frames, the poster among them, so it failed before a frame of the loop
+# had decoded and for the reduced-motion reader who is shown nothing else.
+#
+# The cliff is 56.25rem, where .cf-hero__action leaves the flow and the media
+# box goes from 567 px tall to 624: 4.15:1 at 900 x 800 and 13.25:1 at
+# 1024 x 768, a factor of three across 124 px with nothing gradual between. So
+# --scrim-depth is 0.5 at and below that threshold and 0.42 above it, and the
+# check recomputes every ratio from the tokens: the angle, the reach with its
+# column term and the gutter's own clamp, both depths, the scrim's colour, and
+# --hero-dissolve, which masks the ::after along with the artwork under it. Each
+# row carries its sample points' Pareto frontier rather than one pixel, because
+# the worst COMPOSITED pixel is not the darkest and which one binds depends on
+# the very number a person retuning this would be changing.
 
 on:
   push:
@@ -468,7 +492,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not thirty-five. All thirty-five checks are a few hundred
+  # One job, not thirty-seven. All thirty-seven checks are a few hundred
   # milliseconds of stdlib python; a second runner would cost more to start
   # than any of them takes to run, and a reader looking at a red tick wants
   # every answer on one page.
@@ -483,7 +507,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: thirty-five
+      # Each check runs even when an earlier one has already failed: thirty-seven
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -626,6 +650,10 @@ jobs:
       - name: Hero scrim geometry
         if: '!cancelled()'
         run: python3 scripts/check-hero-scrim.py
+
+      - name: Hero contrast
+        if: '!cancelled()'
+        run: python3 scripts/check-hero-contrast.py
 
       # The thirty-fourth, and the third of the same set. Flow terminals holds
       # the root to "no free ends" inside its own viewBox; Contour box puts the
