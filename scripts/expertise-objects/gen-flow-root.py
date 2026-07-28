@@ -59,6 +59,7 @@ is one stroke at twice the weight and worse than the crossing it was reached
 for. scripts/check-flow-crossings.py asserts the result on the paste.
 """
 
+from collections import Counter
 from fractions import Fraction as F
 
 RAIL = F(620)          # the frame's top rail, in flow units
@@ -464,10 +465,47 @@ for x1, y1, x2, y2, d in segments:
 # stage below it, 1 on the one below that. Nearest third r 3, middle third
 # r 2, last third r 1. Held on the shipped markup by check-flow-crossings.py,
 # which also has the ladder.
-NODE_POINTS = [
-    (F(330), F(150)), (F(420), F(195)), (F(480), F(255)), (F(60), F(330)),
-    (F(720), F(345)), (F(0), F(450)), (F(970), F(470)), (F(600), F(495)),
-]
+#
+# THE POINT LIST WAS STILL TYPED, AND THAT IS THIS FINDING -- the same one, one
+# level up. The radius stopped being read off the picture; WHICH POINTS GET A
+# DOT never did, and the eight above were read off the picture exactly the way
+# the radii had been. Measured on the paste this replaces: the root has fifteen
+# junctions and seven of them carried a node, and the eighth node was not on a
+# junction at all. (480, 255) is a BEND -- one stroke in, one stroke out, the
+# middle taproot changing from 45deg to 63.43deg -- and it carried r 3, the
+# largest dot in the drawing, on the one marked point in it where nothing
+# divides. Meanwhile (150, 240) and (530, 355), both real splits and both
+# NEARER the void than four of the dots that were drawn, carried nothing. The
+# one guard on any of it is the assert below, whose message says "is not a
+# junction" and whose test is membership in DIST -- and DIST holds every point
+# that starts a stroke, bends included. It has never been able to fail.
+#
+# In this system that is not untidiness. foundations/illustration.html: "a node
+# marks a point the construction actually depends on", which is the sentence
+# check-flow-crossings.py reads the other way round to prove a crossing with
+# nothing on it means NOT CONNECTED. Marking seven of fifteen divisions and one
+# non-division spends the drawing's one word for "here it divides" at random,
+# in the one drawing whose whole subject is data dividing.
+#
+# SO THE POINTS ARE DERIVED TOO, from the same number the radius is: every
+# junction whose run is in the r 3 or r 2 band, which is level < 2 -- the
+# nearest two thirds. The fringe carries none, and does not want one: out there
+# the root is thinning to twigs and a dot every few units would read as texture
+# rather than as construction.
+#
+# THE COUNT IS THE COROBORATION, not the rule. The manual says "eight is a lot
+# for one object; twelve is too many", so eleven is the most this drawing may
+# carry -- and level < 2 selects exactly eleven of the fifteen junctions, with
+# the other four at 2.06, 2.32, 2.34 and 2.85. The two cuts agree on this
+# geometry; the assert holds the count so they cannot silently stop agreeing
+# when the geometry moves. Held on the shipped markup by check-flow-nodes.py.
+outdeg = Counter((x1, y1) for x1, y1, _, _, _ in segments)
+NODE_POINTS = sorted((p for p, n in outdeg.items()
+                      if n >= 2 and float(level(DIST[p])) < 2),
+                     key=lambda p: (p[1], p[0]))
+assert len(NODE_POINTS) <= 11, (
+    f"{len(NODE_POINTS)} nodes -- the manual's ceiling is eleven "
+    f'("eight is a lot for one object; twelve is too many")')
 
 
 def radius(l):
@@ -476,7 +514,7 @@ def radius(l):
 
 print()
 for nx, ny in NODE_POINTS:
-    assert (nx, ny) in DIST, f"node at ({nx}, {ny}) is not a junction"
+    assert outdeg[(nx, ny)] >= 2, f"node at ({nx}, {ny}) is not a junction"
     l = level(DIST[(nx, ny)])
     print(f'<circle class="lp-flow__node" style="--l:{l}" '
           f'cx="{num(nx)}" cy="{num(ny)}" r="{radius(float(l))}"/>')
