@@ -1590,7 +1590,43 @@ ul.cf-nav__list {
   bottom: var(--space-12);
   z-index: 1;
 }
-@media (max-width: 48.75rem) {
+/* THE FOLD IS 56.25rem AND NOT 48.75rem, AND THE 90 px BETWEEN THEM WERE THE
+   BUG. The line above hangs this box off the hero's bottom edge at the column
+   inset; .cf-hero__kicker one rule up is `width: fit-content` on the same
+   bottom band, and nothing reserves the horizontal room the action takes. So
+   from the width where the action starts floating up to the width where the
+   hero is finally wide enough to hold both, the kicker's last words run UNDER
+   the glass — under a backdrop-filter, which does not merely stack them, it
+   smears them.
+
+   The fold used to be 48.75rem because that is where the NAV collapses, and
+   the action was folded with it. But 48.75rem is a measurement of the nav's
+   links, not of this row: measured on this page, at a 16 px default the kicker
+   ends at x=560 and the action's left edge does not clear it until 870. The
+   band and the worst overlap in it, by the reader's own default font size:
+
+     browser default   overlapping widths   worst overlap
+     16 px             781 – 869            70 px at 790
+     20 px             971 – 1089           94 px at 980
+     24 px             1171 – 1309         109 px at 1180
+
+   It gets WIDER and WORSE with larger type, which is the failure mode the
+   register's rem rule exists for: the kicker is mono at --text-xs and grows
+   with the reader while the gutter it sits in is 5.5vw and does not.
+
+   56.25rem IS AN EXISTING REGISTER ENTRY, not a new number — the same width
+   the page-header figure is dropped at and the consent banner goes single
+   column at. A second consumer for a number the register already carries, the
+   way 44rem carries .grid--early and 48rem carries .cf-logo-wall. It clears
+   the band at every default measured, with the slack constant because the
+   threshold scales with the type that widens the kicker: 31 px at a 16 px
+   default, 36 at 20 px, 41 at 24 px.
+
+   Below it the action is the form it has always been below 48.75rem — in the
+   flow, under the kicker, on the container's gutter. That form now covers 120
+   px more of the ladder rather than being a new one. → tokens.css, THE
+   BREAKPOINT REGISTER */
+@media (max-width: 56.25rem) {
   /* Dropped back into the flow it has to pick up the container's gutter, or it
      sits a gutter-width left of the headline it belongs to. */
   .cf-hero__action {
@@ -4580,6 +4616,41 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-display);
   margin-bottom: var(--space-6);
+  /* `anywhere` AND NOT THE NET'S `break-word`, and the difference is the whole
+     reason this line exists. The net in base.css covers this element already —
+     computed overflow-wrap here is break-word, inherited correctly, and it does
+     not stop the overflow. Measured on the landing page at a 16 px default with
+     one real compound (Grundstücksverkehrsgenehmigungszuständigkeits-
+     übertragungsverordnung, 66 characters) substituted for this line:
+
+       viewport   track   this <p>   document scrollWidth
+       320         280      1150      1170   (+850 sideways)
+       375         328      1165      1185   (+810)
+       768         405      1437      1480   (+712)
+       1280        405      1437      1788   (+508)
+
+     The floors are not the fault and adding another does not help: at 320 the
+     grid is already the single minmax(0, 1fr) column the 48.75rem rule below
+     gives it, the track measures 280 and the grid item measures 280. Both
+     floors the manual names are in place and the <p> inside them still computes
+     1149.95 px wide. min-width: 0 on the item changes nothing — measured.
+
+     What overflows is this element's MIN-CONTENT, and break-word is defined not
+     to shrink it: it opens a break opportunity when a word cannot fit a line,
+     while leaving the intrinsic minimum at the width of the unbroken word.
+     `anywhere` shrinks the intrinsic minimum too, which is the only property of
+     the two that reaches this. scripts/check-wrap-net.py says so in as many
+     words — "`anywhere` also shrinks min-content ... a component that has
+     chosen `anywhere` is covered, not flagged" — so this is the choice the net
+     is written to allow, taken by the one component that needs it.
+
+     NOTHING MOVES AT THE REAL STRING. "Jetzt Projekt starten!" has spaces in
+     it, so its min-content is its longest word either way, and the track is
+     max-content sized wherever there is room. Measured across the ladder before
+     and after: the title box is 280 / 328 / 405 / 405 px at 320 / 375 / 768 /
+     1280, identical in both states. → base.css, THE WRAP NET;
+     foundations/layout.html#intrinsic-minimum */
+  overflow-wrap: anywhere;
 }
 .cf-footer__meta {
   display: flex;
