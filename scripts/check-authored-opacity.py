@@ -331,28 +331,31 @@ def main():
                     f"declaration never renders. Route the keyframe's endpoint through a "
                     f"custom property instead of a literal.")
 
-    # 3. A resting property declared in markup that no opacity keyframe reads.
+    # 3. A resting property declared in markup that nothing reaching this
+    #    element reads. The property is only meaningful where a keyframe that
+    #    ACTUALLY APPLIES here resolves its endpoint through it -- an element
+    #    that runs a different opacity keyframe, or none, states an intensity
+    #    that renders as nothing. Deliberately not softened by whether the
+    #    property is read somewhere else on the page: somewhere else is the
+    #    whole failure this file is about.
     read_anywhere = set()
-    for _cls, _names, _sel, _label in animated:
-        pass
     for values in keyframes.values():
         for v in values:
             prop, _fb = read_var(v)
             if prop:
                 read_anywhere.add(prop)
     for rel, line, tag, classes, prop in custom_elems:
-        if prop not in read_anywhere and prop not in governed:
+        if prop not in read_anywhere:
             continue
         hits = keyframes_reaching(classes, animated, keyframes)
         if any(prop in endpoints(values)[1] for _n, values, _s in hits):
             continue
-        if any(prop == p for p in governed) and hits:
-            continue
+        reached = ", ".join(sorted({n for n, _v, _s in hits})) or "no opacity keyframe"
         findings.append(
             f"{rel}:{line}: <{tag} class=\"{' '.join(sorted(classes))}\"> sets {prop}, "
-            f"which is what an opacity keyframe reads, but no opacity keyframe reaches "
-            f"this element. The property is inert — the intensity it states renders as "
-            f"nothing.")
+            f"which is what an opacity keyframe reads its endpoint from — but what "
+            f"reaches this element is {reached}, and that does not read {prop}. The "
+            f"property is inert: the intensity it states renders as nothing.")
 
     if not pairings:
         print("authored opacity: nothing on the shipping surface both states an "
