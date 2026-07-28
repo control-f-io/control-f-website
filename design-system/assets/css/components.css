@@ -4691,10 +4691,35 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    FOOTER
    Black. Isometric logo object, one CTA, then a mono meta row.
    -------------------------------------------------------------------------- */
+/* THE LAST BLOCK PAYS FOR THE LAST SCREEN. base.css reserves the consent
+   banner in the scroll port — `scroll-padding-bottom` on <html> — which moves
+   every focused control the page can still scroll for out from behind the
+   notice. It cannot move the ones in the final viewport, because there the
+   document has run out of scroll: measured on patterns/landing-page.html with
+   the scroll-padding alone, 11 / 10 / 10 / 10 stops at 375 / 768 / 1280 / 1440
+   were still entirely behind the banner, and all of them were this footer's —
+   its ten links, the contact button and the wordmark.
+
+   The only thing that adds scroll at the end of a document is height at the end
+   of a document, so the reservation is the same term added to the padding that
+   is already there. It is ADDED and not substituted: --space-8 is the footer's
+   own bottom rhythm and is unchanged, and the banner's height is a strip on top
+   of it that exists exactly as long as the banner does. Fallback 0px, so every
+   page without the banner — and this page one decision later — measures what it
+   always did, to the pixel.
+
+   ON THE FOOTER AND NOT ON body, which is what makes it invisible: the footer
+   is --surface-inverse and the body is --surface-base, so the same padding on
+   body would open a strip of light wash under a black footer on every first
+   visit. Growing the footer's own box grows the footer's own black.
+
+   After both halves, first visit, banner up: 0 of 45 / 45 / 50 / 50 shipping
+   tab stops entirely hidden, at 375 / 768 / 1280 / 1440.
+   → base.css html; scripts/check-scroll-reserve.py */
 .cf-footer {
   background: var(--surface-inverse);
   color: var(--text-inverse);
-  padding-block: var(--space-24) var(--space-8);
+  padding-block: var(--space-24) calc(var(--space-8) + var(--cf-consent-height, 0px));
 }
 /* For pages whose last section is .section--flush and so carries no bottom
    padding of its own. Keeps the gap before the footer identical on every page
@@ -4942,6 +4967,30 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 @media print {
   .cf-consent,
   dialog { display: none; }
+  /* AND THE SPACE IT WAS RESERVED, which `display: none` does not give back.
+     --cf-consent-height is an INLINE property on <html>, written by
+     cf-consent.js, and an inline custom property outranks any rule that would
+     zero it from here — so the reservation has to be revoked at its READER,
+     which is this declaration.
+
+     WHAT LOOKS LIKE IT ALREADY HANDLES IT, AND DOES NOT. Hiding the banner
+     resizes it to zero, the file's ResizeObserver fires, and the property is
+     republished as 0px: measured under Chromium's print emulation, the property
+     does read 0px without this line. That is a script racing a paint, and it is
+     load-bearing in neither direction it can fail. cf-consent.js says in its own
+     words that where there is no ResizeObserver "the fix degrades to the first
+     measurement" — the screen one — and a real print snapshot is not obliged to
+     wait for an observer callback either. The correction has to be in the
+     cascade, where it cannot arrive late.
+
+     .cf-footer buys the document's last screen of scroll with its own bottom
+     padding, which is the right trade on a viewport and meaningless on paper:
+     paper has no scroll, and the layer being cleared is the one the block above
+     has just removed from the sheet. Left in, a reader printing on a first
+     visit gets 144 to 334 px of extra black under the footer — the same
+     opaque plate, in the same place, that the block above exists to stop.
+     → base.css html; scripts/check-scroll-reserve.py */
+  .cf-footer { padding-block-end: var(--space-8); }
 }
 /* Entry state. Removed on the frame after insertion, so the banner rises into
    place; with reduced motion the durations collapse to 1 ms and it just is. */

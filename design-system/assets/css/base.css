@@ -51,6 +51,41 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  /* WHERE A TAB PRESS PUTS THE THING IT JUST FOCUSED. The note below this rule
+     already establishes the mechanism — "Chromium scrolls a focused element
+     into view, so on a page this tall EVERY Tab to an off-screen control is one
+     of these journeys" — and measured how LONG the journey takes. It never
+     asked where it lands.
+
+     It lands against the bottom edge. The scroll is `nearest`, and a control
+     entered from above is nearest when its bottom meets the viewport's bottom.
+     That edge is where `[data-cf-consent-banner]` is fixed, and the banner is
+     144 px at 1280 and 1440, 233 at 768 and 334 at 375 — 41 % of a 375 x 812
+     screen. So every Tab to an off-screen control parked that control behind
+     the notice. Counted on patterns/landing-page.html, first visit, banner up,
+     under `reduce` so the scroll is instant and the count is exact — stops
+     whose own CENTRE returns the banner from elementFromPoint, i.e. entirely
+     hidden, which is the wording of WCAG 2.2 SC 2.4.11 (AA):
+
+       375 x 812    30 of 45 stops        768 x 1024   20 of 45
+       1280 x 800   11 of 50              1440 x 900   11 of 50
+
+     This is check-consent-clearance.py's finding one layer out. That check
+     reserves the banner in the HERO's height, because the hero hangs its call
+     to action off its own bottom edge; the same edge, for the same reason,
+     needs reserving in the SCROLL PORT, because every focused control is hung
+     off it too. Same published number, same `0px` fallback so a page with no
+     banner reserves nothing, same three links that break silently.
+
+     ON html AND NOT ON body, which is the silent one: scroll-padding acts on
+     the scroll CONTAINER, and <html> is the scrolling element on every page
+     here. Moved to body it parses, computes and does nothing at all.
+
+     scroll-padding cannot help the last screen of the document, because there
+     the page has no scroll left to give — .cf-footer pays that half in its own
+     bottom padding. After both: 0 of 45 / 45 / 50 / 50 shipping stops hidden.
+     → components.css .cf-footer; scripts/check-scroll-reserve.py */
+  scroll-padding-bottom: var(--cf-consent-height, 0px);
 }
 /* AND THE ONE MOTION ON THIS SITE THAT DID NOT ASK. Every animation in the
    three stylesheets is gated on `prefers-reduced-motion: no-preference` —
