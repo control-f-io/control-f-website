@@ -8,7 +8,7 @@ drawing except the one Daniel asked of the shipped page:
     "the lines are messy still — this needs to be not random but
      mathematically correct based on the ratios and winkel in the design system"
 
-THE WINKEL WERE ALREADY HELD. check-flow-terminals.py enumerates all forty-two
+THE WINKEL WERE ALREADY HELD. check-flow-terminals.py enumerates all forty-one
 segments and holds every one to 0, 26.57, 45, 63.43 or 90 degrees, the five
 foundations/geometry.html publishes. Measured on the paste this check was
 written against, the count off that set is ZERO, and has been since the drawing
@@ -55,11 +55,26 @@ constraint, not of any ratio. gen-flow-root.py writes those three chains out by
 hand for exactly this reason.
 
 So the SKELETON is the union of the three paths from the void to (0, 620),
-(600, 620) and (1200, 620) -- sixteen segments, computed here by walking the
+(600, 620) and (1200, 620) -- fifteen segments, computed here by walking the
 drawing, never listed -- and everything else is GROWN. The rule is asserted on
 the grown segments only, and the skeleton's own count is asserted too, because a
 skeleton that quietly grew a fourth pinned arrival would move the boundary this
 check reasons across.
+
+THAT COUNT WAS SIXTEEN AND IS NOW FIFTEEN, and this assertion is what caught the
+change that made it so, which is the assertion working rather than failing. The
+right taproot's first flat run was written as two collinear steps, FR 70 then FR
+80, to put a junction at (560, 265) for a branch to leave from -- the same
+reason the middle taproot's long steep run is broken at (530, 355), which does
+shed one. Nothing ever left (560, 265) and nothing can: all four seedings of
+grow() decline it for want of room, and a branch there would be the twelfth node
+in a drawing whose stated ceiling is eleven. Two collinear strokes drawn end to
+end are one stroke, so it was a division that divided nothing -- invisible on
+the page, a branch point in the markup. The two steps are one FR 150 now. No
+coordinate moved, no --l or --u on any other stroke changed, and the skeleton is
+one segment shorter because the drawing has one fewer place where nothing
+happens. The three pinned ARRIVALS are still three, which is what this
+assertion is really guarding.
 
 AND THE FRINGE ANGLES, in the same sweep, because they are the other half of the
 same sentence and are also stated only in a comment:
@@ -223,10 +238,10 @@ def check_drawing(name, cls, body, view_box, ratio, verbose):
 
     pinned, void = skeleton_of(segs, rail, pins)
     findings = []
-    if len(pinned) != 16:
+    if len(pinned) != 15:
         findings.append(
             f"{name}: the three pinned chains cover {len(pinned)} segments, not the "
-            f"16 gen-flow-root.py writes out — the boundary between what the ratio "
+            f"15 gen-flow-root.py writes out — the boundary between what the ratio "
             f"governs and what the frame's verticals govern has moved"
         )
 
