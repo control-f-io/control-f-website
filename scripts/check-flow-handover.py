@@ -5,7 +5,7 @@ check-flow-terminals.py holds the root to "no free ends" INSIDE its own box:
 every segment of .lp-flow arrives on the rail, at the void, or on another
 segment, in the drawing's own 1200 x 620 units. It cannot see the one join that
 is not inside any box — the seam where the flow hands the reader over to the
-lectern. The flow's fourteen terminals stop at the bottom of ITS viewBox; the
+lectern. The flow's sixteen terminals stop at the bottom of ITS viewBox; the
 frame's six hairlines start at the top of THEIRS; the two are separate SVGs, in
 separate sections of the page, on separate unit bases, and every previous fix at
 this seam has been made by hand against a screenshot.
@@ -67,14 +67,14 @@ frame top minus flow bottom:
     1024 x  900   +140.14
     1920 x 1080   +171.58        an ordinary desktop
 
-At 1920 x 1080 all fourteen terminals stop in 172 px of empty wash with no rail
+At 1920 x 1080 all sixteen terminals stop in 172 px of empty wash with no rail
 under any of them, which is a screenshot of the thing this system says it does
 not ship. It is not fixable by moving a box: the flow's height is locked to its
 width by aspect-ratio (the ratio is what makes the x arrivals exact), its top is
 locked to the void it leaves, and a box with one degree of freedom cannot serve
 two arrivals — the same over-determination .lp-flow's own note works through for
 the horizontal axis and resolves by keeping the arrival and letting the
-departure drift on the void's rim. Bottom-anchoring the box trades the fourteen
+departure drift on the void's rim. Bottom-anchoring the box trades the sixteen
 free ends at the rail for one free end at the void, 167 px below its rim at
 1920 x 1080, which is a different bug and not a fix.
 
