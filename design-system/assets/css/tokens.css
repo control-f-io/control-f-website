@@ -385,19 +385,46 @@
      would have greyed the top of the picture for no reader.
 
      0.42 at the corner is a measured floor, not a chosen weight. Sampled on
-     the rendered page with the type hidden, at 375 / 768 / 1280 / 1920, the
-     worst backdrop pixel anywhere inside each element's box:
+     the rendered page with the type hidden, the worst backdrop pixel anywhere
+     inside each element's box — ACROSS ALL 360 FRAMES OF THE LOOP, which is
+     the part that had never been done:
 
-                     before      after (3 lines)   floor
-       headline      1.74:1      4.08–6.26:1       3:1    (display, large text)
-       kicker+rule   2.26:1      8.99–15.33:1      4.5:1  (11 px mono, body)
+                    375     768    1280    1440    1920    2560   floor
+       headline    3.28    3.15    3.51    3.41    3.47    3.55    3:1
+       kicker      6.08    9.64   14.65   15.12   16.41   14.10    4.5:1
 
-     The headline is the binding one, and it is deliberately carrying about
-     36 % over its floor rather than sitting on it. Every number above is
-     one frame of a loop, and the next frame is not obliged to be as kind; a
-     scrim tuned to exactly 3:1 on whichever frame happened to be decoded
-     would be a measurement rather than a guarantee. Much past 0.42 and it
-     starts taking the picture instead of the risk.
+     THE ROW ABOVE USED TO READ "1.74:1 before, 4.08–6.26:1 after" AND BOTH
+     HALVES OF IT WERE ONE FRAME. It was frame 61 of 360 — the frame that
+     ships as hero-poster.jpg, which is the only one a browser will hand you
+     with the loop paused, and the reason the sample was taken there. This
+     paragraph said so itself, in the sentence that used to follow: "Every
+     number above is one frame of a loop, and the next frame is not obliged
+     to be as kind", and closed by pricing that risk at "about 36 % over its
+     floor". Decoded and measured, all 360 of them, the loop is not as kind
+     and the margin was not 36 %:
+
+       headline, worst frame of the loop, before the reach was fixed below
+         375  3.28   768  3.15   1280  3.51   1440  3.41   1920  2.91
+         2560  1.65
+
+     — two failures against a 3:1 floor, and the published figure for 1920
+     was 6.26 against a true 2.91, wrong by a factor of 2.15. The un-scrimmed
+     artwork is understated by the same single-frame error: the note above
+     records it reaching rgb(48,55,59) behind the headline, and across the
+     loop it reaches rgb(8,8,16) at 768 — 1.05:1, not 1.74:1.
+
+     Both failures are one geometric fault and neither is about the weight,
+     which is why 0.42 is unchanged and every figure at and below the 1440
+     frame is byte-identical to what it was. See --scrim-reach.
+
+     The headline is still the binding one and 768 is now the tight width at
+     3.15, on 5 % rather than 36 %. That is a fact about this artwork at that
+     crop, not about the reach — 768 takes the 39rem plateau whole — so the
+     only lever there is the weight, and much past 0.42 it starts taking the
+     picture instead of the risk. Held by scripts/check-hero-scrim.py, which
+     re-derives the reach from --angle-a and the layout tokens rather than
+     trusting this table: a table measured with a decoder nothing in CI has
+     is exactly the kind that rots quietly.
 
      THE "after" COLUMN WAS RE-MEASURED when .cf-hero__body stopped clamping
      itself to 44ch. That clamp resolved in the wrapper's own 14 px font, so
@@ -425,9 +452,17 @@
      plateau does NOT cover all four, and is not asked to: 39rem = 624 px is
      where the scrim is still at full strength, and past it the falloff is
      shallow enough that the corner still sits at 0.37 of full alpha at 768
-     and 0.21 at 1920 — which is the arithmetic behind the measured 4.08:1
-     and 6.26:1 above. It is the contrast column that is binding here, not the
+     and 0.21 at 1920. It is the contrast column that is binding here, not the
      projection; the projection only says which corner to go and sample.
+
+     AND THE PROJECTION IS THE PART THAT GOES WRONG, above the crossover.
+     943 px at 1920 is not the corner moving because the viewport is wider —
+     it is the corner moving because the COLUMN is, by half of every pixel
+     past --container-max. Carry the same arithmetic one width further and
+     the corner projects past 1248 px, which is 2 × 624: the far end of the
+     falloff, where the scrim is not weak but ZERO. Measured at 2560 with the
+     old fixed reach, the headline read 1.65:1 — the artwork with nothing on
+     it at all. That is what the second term of --scrim-reach answers.
      Measured with percentage stops in place instead, the headline read
      4.46:1 at 1280 but only 3.58:1 at 768 — the same column and the same
      artwork, failed by a shorter gradient line.
@@ -446,7 +481,27 @@
                       rgba(0, 0, 0, 0.134)    93.6%,
                       transparent            100%);
 
-  --scrim-reach: min(39rem, 62%);
+  /* THE PLATEAU FOLLOWS THE COLUMN, because above --container-max the column
+     stops being anchored to the gutter and the scrim was still assuming it
+     was. See the note above: "the column is anchored to the left gutter …
+     so it stays about the same size while the line grows". That premise is
+     true up to a viewport of 1438.2 and false above it — at exactly the
+     crossover --column-inset's own note names, three tokens down: "once it
+     has hit --container-max the container stops and centres, so the column
+     moves inward while --gutter stays put … 80 px at the 1440 frame, 240 at
+     1920, 560 at 2560". The hero's CTA and its pause switch already take
+     --column-inset for that reason. The scrim is the third full-bleed layer
+     that has to line up with the column and the one that did not take it.
+
+     The second term is that displacement projected onto the axis: the column
+     slides right by (100vw − --container-max) / 2 − --gutter, and sin(63.43°)
+     = 0.8944 of every pixel of that lands on the gradient line. 100vw and not
+     100 %, because a percentage inside a gradient stop is a percentage of the
+     LINE — the trap the note above is about. It is zero at and below 1438.2,
+     so nothing at or under the 1440 frame moves. */
+  --scrim-reach: calc(min(39rem, 62%)
+                      + 0.8944 * max(0px, (100vw - var(--container-max)) / 2
+                                          - var(--gutter)));
   --hero-scrim: linear-gradient(var(--angle-a),
                       rgba(207, 207, 207, 0.42) 0,
                       rgba(207, 207, 207, 0.42) var(--scrim-reach),

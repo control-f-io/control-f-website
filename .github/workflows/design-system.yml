@@ -425,6 +425,41 @@ name: Design system checks
 # from 67 % of its ink at the centred moment to 78 % while its part mean barely
 # moved. The script resolves the cubic-bezier out of tokens.css and the lengths
 # out of the markup's own `d`, so both halves are computed rather than recorded.
+# The hero scrim is the thirty-fifth, and the first whose subject a check in
+# this directory already tried and could not reach. check-contrast.py
+# recomputes every pair the token file's guarantees rest on; it cannot
+# recompute this one, because the backdrop is not a colour but twelve seconds
+# of H.264, and a contrast figure taken over a video is a figure taken over one
+# frame unless somebody decodes all three hundred and sixty. Nobody had.
+# tokens.css published "headline 4.08–6.26:1" over 375 / 768 / 1280 / 1920 and
+# priced the risk it was carrying at "about 36 % over its floor"; decoded, the
+# loop's own worst frame reads 3.28 / 3.15 / 3.51 / 3.41 / 2.91, and 1.65 at
+# 2560. Two of those are under the 3:1 WCAG 1.4.3 sets for large text, and the
+# published figure at 1920 was wrong by a factor of 2.15. The sample had been
+# taken on frame 61 — which is hero-poster.jpg, the only frame a browser will
+# hand you with the loop paused, and therefore the only one anybody was ever
+# going to measure.
+#
+# The fault is geometry and not weight, which is the part a script can hold.
+# The scrim's plateau was a constant, chosen on the premise that "the column is
+# anchored to the left gutter … so it stays about the same size while the line
+# grows". True to 1438.2 and false above it: past --container-max the container
+# centres and the column slides right by half of every further pixel — the fact
+# --column-inset exists to carry, in its own words, "80 px at the 1440 frame,
+# 240 at 1920, 560 at 2560" — so the headline's far corner walks out past twice
+# the plateau, where the scrim is not weak but zero. The hero's CTA and its
+# pause switch already take --column-inset; the scrim was the third full-bleed
+# layer that has to line up with the column and the one that did not.
+#
+# So the photometry stays in the comment as a dated measurement and the
+# ARITHMETIC it was taken under is what runs here: the reach still carries the
+# column's displacement, spelled with the tokens rather than the lengths they
+# hold today; its coefficient is still sin(--angle-a), recomputed rather than
+# compared against the literal that ships; and the weight has not been nudged
+# below the value the table was measured at. A guarantee whose evidence costs a
+# decoder and 360 screenshots per viewport to reproduce is exactly the kind
+# that gets invalidated by a one-line change four screens away — which is how
+# the figures this replaced came to be wrong in the first place.
 
 on:
   push:
@@ -433,7 +468,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # One job, not thirty-one. All thirty-one checks are a few hundred
+  # One job, not thirty-five. All thirty-five checks are a few hundred
   # milliseconds of stdlib python; a second runner would cost more to start
   # than any of them takes to run, and a reader looking at a red tick wants
   # every answer on one page.
@@ -448,7 +483,7 @@ jobs:
       - name: Spacing scale
         run: python3 scripts/check-spacing-scale.py
 
-      # Each check runs even when an earlier one has already failed: thirty-one
+      # Each check runs even when an earlier one has already failed: thirty-five
       # independent facts about the same commit are more useful than the first
       # one.
       - name: Gradient family
@@ -588,3 +623,6 @@ jobs:
       - name: Contour box
         if: '!cancelled()'
         run: python3 scripts/check-contour-box.py
+      - name: Hero scrim geometry
+        if: '!cancelled()'
+        run: python3 scripts/check-hero-scrim.py
