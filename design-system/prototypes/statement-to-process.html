@@ -31,19 +31,25 @@
                    acts 1 and 2 reads it in `contain` percentages,
                    which map linearly to scroll pixels. No cover-of-
                    subject arithmetic, no per-viewport fitting.
-       ONE
-       DRAWING     the field and the root are laid out as one static
-                   column inside the stage, sized BY the stage
-                   (--sp-measure) so the whole drawing always fits
-                   the viewport it plays in. No anchor(), no second
-                   trunk, no camera pan.
+       TWO
+       LAYERS      the field is the stage's full-bleed backdrop
+                   (gen-proto-field.py owns it); the root is a static
+                   column above it, sized BY the stage (--sp-measure)
+                   so it always fits the viewport it plays in. The two
+                   meet at one measured point — the trunk's head,
+                   published as --ux/--uy by the aim script. No
+                   anchor(), no second trunk, no camera pan.
 
      THE SCRIPT, in contain % of the track:
-        4 - 16    the lattice resolves
-        8 - 30    ACT 1: the sensors fade in, staggered by --m
-       34 - 46    the field collapses into the departure (--m stagger)
+        4 - 14    the lattice resolves, full bleed
+        6 - 26    ACT 1a: the sensors stream in from the four corners
+                  to their crossings (--m stagger, core first)
+       26 - 36    ACT 1b: arrived, the field pulses twice in place
+       36 - 48    ACT 1c: the field converges on the trunk's head
+                  (--ux/--uy, published at runtime), core first
        36 - 88    ACT 2: the root draws, front = head + l*c, exactly
-                  the algebra check-flow-chain.py holds
+                  the algebra check-flow-chain.py holds — the light
+                  leaves the trunk as the first sensors arrive on it
        90 -100    still: the finished drawing holds one beat
        then the stage releases and ACT 3 is the cards' own .cf-pin
        below, unchanged, with the lectern frame drawn on its entry.
@@ -70,7 +76,17 @@
     align-items: center;
   }
   .sp-drawing { min-width: 0; }
-  .sp-drawing .cf-iso, .sp-drawing .lp-flow { display: block; width: 100%; height: auto; }
+  .sp-drawing .lp-flow { display: block; width: 100%; height: auto; }
+  /* THE GROUND LAYER. The field is the stage's backdrop, not the figure's
+     first row: absolutely placed under the content (the container is the
+     positioned sibling above it), stretched to the stage and cropped by its
+     own `slice`, so the lattice reaches every corner at every admitted
+     viewport. In the fallback tier the stage is ordinary flow and the layer
+     simply papers its box — nothing depends on the pin. */
+  .sp-stage { position: relative; }
+  .sp-field { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .sp-stage > .container { position: relative; }
+  .sp-field__lattice { opacity: .26; }
   /* The root draws rails ON its viewBox boundary; SVG clips to its viewport
      by default, so without this the outermost strokes lose half their weight
      — the rule .cf-page-header__figure writes out in components.css. */
@@ -84,15 +100,12 @@
   .lp-flow__seg { stroke: var(--border-strong); }
   .lp-flow__light { stroke-width: 2; }
   .lp-flow__node { fill: var(--border-strong); }
-  /* The flow's own top 84 units are the trunk's approach — empty band before
-     the first ink. Tuck it under the field so the two read as one column:
-     84/1200 of the shared width. */
-  .sp-root { margin-block-start: calc(var(--sp-measure) * -0.07); }
-  /* The drawing is field (288u) over root (620u) on a 1200u basis: 0.7567
-     of its width in height. Sizing it off the viewport's height is what
-     guarantees the whole of it fits the stage — the fault the landing page
-     carried for a day was a drawing 1.07x its viewport. */
-  .sp-drawing { --sp-measure: min(100%, calc((100vh - 14rem) * 1.25)); width: var(--sp-measure); position: relative; }
+  /* The drawing is the root alone now — the field moved to the stage's own
+     backdrop — 620u on a 1200u basis: 0.5167 of its width in height. Sizing
+     it off the viewport's height is what guarantees the whole of it fits the
+     stage — the fault the landing page carried for a day was a drawing
+     1.07x its viewport. */
+  .sp-drawing { --sp-measure: min(100%, calc((100vh - 12rem) * 1.9)); width: var(--sp-measure); position: relative; }
   /* The root's numerals are placed over the flow box by the label law's own
      --x/--y (flow units of 1200 x 620) with --tx/--ty clearances. The flow
      box is the last child, so the values' container matches it exactly. */
@@ -108,6 +121,13 @@
   }
   @container (min-width: 56rem) {
     .sp-stage__inner { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+    /* PLACED, NOT AUTO-FLOWED. The component's own tiers span the figure
+       across the row, so without an explicit column each the figure took
+       both tracks, the drawing resolved its min(100%, …) against the whole
+       container, and the root's right branches ran 330 px through the
+       claim's copy. One track each, one shared row. */
+    .sp-stage__inner > .cf-statement__figure { grid-column: 1; grid-row: 1; }
+    .sp-stage__inner > .cf-statement__text { grid-column: 2; grid-row: 1; }
   }
 
   /* ---- fallback: no timelines / reduced motion / under the gate ----
@@ -139,28 +159,54 @@
 
       /* Every animated part inside a sticky stage MUST read the track's
          timeline: a sticky subject's own view() freezes at one value — the
-         same fact .cf-pin documents — so the component defaults on --cf-iso
-         are re-declared here onto --sp, full lists, because animation-name
-         is a replacement and not an addition. */
-      .sp-stage .cf-iso__scene { animation: none; }
-      .sp-stage .cf-statement .cf-iso__ghost {
-        animation-name: cf-iso-fade;
-        animation-timeline: --sp;
-        animation-range: contain 4% contain 16%;
-        animation-fill-mode: both;
-        animation-duration: auto;
-        animation-timing-function: var(--ease-out);
-      }
-      .sp-stage .cf-stmt-sensor {
-        animation-name: cf-iso-fade, cf-stmt-collapse;
+         same fact .cf-pin documents. The field's parts are this page's own
+         (sp-field-*), declared in full lists because animation-name is a
+         replacement and not an addition; components.css's cf-stmt rules key
+         --cf-iso, which does not exist on this svg, and are overridden
+         here wholesale rather than left to an inactive timeline. */
+      .sp-field__lattice {
+        opacity: 0;
+        --iso-rest: .26;
+        /* the ground's dimmed weight while the root has the stage — the
+           keyframe reads the property, so the number renders (the contract
+           check-authored-opacity.py holds) */
+        --sp-ground-dim: .1;
+        animation-name: cf-iso-fade, sp-ground-recede;
         animation-timeline: --sp, --sp;
-        animation-range: contain calc((8 + var(--m) * 10) * 1%)
-                         contain calc((20 + var(--m) * 10) * 1%),
-                         contain calc((34 + var(--m) * 6) * 1%)
-                         contain calc((40 + var(--m) * 6) * 1%);
+        animation-range: contain 4% contain 14%,
+                         contain 36% contain 48%;
         animation-fill-mode: both, forwards;
         animation-duration: auto;
-        animation-timing-function: var(--ease-out);
+        animation-timing-function: var(--ease-out), linear;
+      }
+      /* THE SENSOR'S THREE VERBS, one property ledger. `translate` belongs
+         to the stream (corner -> crossing) and then to the merge (crossing
+         -> trunk head): the merge is later in the list, so its forwards
+         fill takes the property over exactly at its own window and not
+         before. `scale`/`opacity` swell in the pulse and die in the merge
+         the same way. transform-box: fill-box puts the origin on the glow
+         itself; lengths stay user units, the same fact the root's strokes
+         ride. The merge target is (--ux,--uy) — published on the svg by
+         the aim script below, falling back to the authored focus — minus
+         the glow's own crossing, so one keyframe serves all 25. */
+      .sp-field .cf-stmt-sensor {
+        transform-box: fill-box;
+        transform-origin: 50% 50%;
+        /* the swell over rest and the flare in flight, declared here and
+           only read by the keyframes — same contract as --sp-ground-dim */
+        --sp-peak: calc(var(--iso-rest, 1) + 0.25);
+        --sp-flare: calc(var(--iso-rest, 1) + 0.35);
+        animation-name: sp-field-arrive, sp-field-pulse, sp-field-merge;
+        animation-timeline: --sp, --sp, --sp;
+        animation-range: contain calc((6 + var(--m) * 12) * 1%)
+                         contain calc((14 + var(--m) * 12) * 1%),
+                         contain calc((26 + var(--m) * 2) * 1%)
+                         contain calc((34 + var(--m) * 2) * 1%),
+                         contain calc((36 + var(--m) * 6) * 1%)
+                         contain calc((42 + var(--m) * 6) * 1%);
+        animation-fill-mode: both, both, forwards;
+        animation-duration: auto;
+        animation-timing-function: var(--ease-out), ease-in-out, var(--ease-out);
       }
 
       /* ---- the root: same range algebra the chain check holds ---- */
@@ -711,6 +757,34 @@
   @keyframes lp-frame-draw { from { scale: 0; } to { scale: 1; } }
   @keyframes lp-frame-in { from { opacity: 0; } to { opacity: 1; } }
   @keyframes lp-flow-out { to { opacity: 0; } }
+  /* The field's three verbs. The stream opens beyond the glow's nearest
+     corner (--fx/--fy, generated) and lands on its crossing at rest weight;
+     the pulse swells a quarter above rest and back, twice, in place; the
+     merge runs every glow to one point — the trunk's head in field units —
+     and puts it out. All lengths are user units (fill-box does not change
+     that), so the generated numbers land exactly. */
+  @keyframes sp-field-arrive {
+    from { translate: calc(var(--fx) * 1px) calc(var(--fy) * 1px); opacity: 0; }
+    to { translate: 0 0; opacity: var(--iso-rest, 1); }
+  }
+  @keyframes sp-field-pulse {
+    0%, 50%, 100% { opacity: var(--iso-rest, 1); scale: 1; }
+    25%, 75% { opacity: var(--sp-peak, 1); scale: 1.12; }
+  }
+  @keyframes sp-field-merge {
+    /* The glow BRIGHTENS through the flight and dies only on arrival: the
+       field's light concentrates as it converges, which is the story. A
+       linear fade across the whole run had the field invisible while it
+       was still mid-screen — the merge un-telling itself. */
+    45%, 80% { opacity: var(--sp-flare, 1); }
+    to {
+      translate: calc((var(--ux, 352) - var(--cx)) * 1px)
+                 calc((var(--uy, 312) - var(--cy)) * 1px);
+      scale: .25;
+      opacity: 0;
+    }
+  }
+  @keyframes sp-ground-recede { to { opacity: var(--sp-ground-dim, 1); } }
 </style>
 </head>
 <body class="page-wash">
@@ -724,268 +798,212 @@
   <!-- ACT 1 + 2: one sticky stage, one timeline -->
   <section class="sp-track">
     <div class="sp-stage">
+      <!-- THE GROUND, FULL BLEED. The field left the figure column on the
+           review of 2026-07-28 — "make the grid cover the whole screen" —
+           and became the stage's own backdrop: a 1600 x 900 box the stage
+           crops with `slice`, so the lattice reaches every corner of every
+           admitted viewport and the glows have room to stand apart
+           (nearest neighbours 204.9 units — the old field packed them at
+           44.7 and was told so). Contents are GENERATED, NOT TYPED:
+           scripts/gen-proto-field.py owns both groups, states the law
+           (supergrid on lattice crossings, radius/opacity/ramp falling
+           away from the focus over the trunk), and --check holds the
+           shipped markup to it. -->
+      <svg class="sp-field" viewBox="0 0 1600 900" fill="none"
+           preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <!-- A SENSOR IS A HOT CORE IN A COOL HALO — the system's one light
+               ramp used as a glow: lime centre, Glas ring, CF-Grau falloff,
+               the last stop to nothing. Same two ramps the statement field
+               carries, restated here because ids do not cross documents. -->
+          <radialGradient id="cf-stmt-sensor-hot">
+            <stop stop-color="#E1FF00"/>
+            <stop offset="0.061" stop-color="#DBFC60"/>
+            <stop offset="0.32" stop-color="#C5EBE2"/>
+            <stop offset="0.68" stop-color="#CFCFCF"/>
+            <stop offset="1" stop-color="#CFCFCF" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="cf-stmt-sensor-halo">
+            <stop stop-color="#C5EBE2"/>
+            <stop offset="0.55" stop-color="#CFCFCF"/>
+            <stop offset="1" stop-color="#CFCFCF" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <!-- THE LATTICE. Both 2:1 families and the level step, edge to edge —
+             the whole angle vocabulary this drawing is allowed
+             (foundations/geometry.html: 0, 26.57, 45, 63.43, 90). -->
+        <g class="sp-field__lattice" stroke="#000" stroke-width="1" stroke-dasharray="1 4">
+          <line x1="1584" y1="0" x2="1600" y2="8"/>
+          <line x1="1520" y1="0" x2="1600" y2="40"/>
+          <line x1="1456" y1="0" x2="1600" y2="72"/>
+          <line x1="1392" y1="0" x2="1600" y2="104"/>
+          <line x1="1328" y1="0" x2="1600" y2="136"/>
+          <line x1="1264" y1="0" x2="1600" y2="168"/>
+          <line x1="1200" y1="0" x2="1600" y2="200"/>
+          <line x1="1136" y1="0" x2="1600" y2="232"/>
+          <line x1="1072" y1="0" x2="1600" y2="264"/>
+          <line x1="1008" y1="0" x2="1600" y2="296"/>
+          <line x1="944" y1="0" x2="1600" y2="328"/>
+          <line x1="880" y1="0" x2="1600" y2="360"/>
+          <line x1="816" y1="0" x2="1600" y2="392"/>
+          <line x1="752" y1="0" x2="1600" y2="424"/>
+          <line x1="688" y1="0" x2="1600" y2="456"/>
+          <line x1="624" y1="0" x2="1600" y2="488"/>
+          <line x1="560" y1="0" x2="1600" y2="520"/>
+          <line x1="496" y1="0" x2="1600" y2="552"/>
+          <line x1="432" y1="0" x2="1600" y2="584"/>
+          <line x1="368" y1="0" x2="1600" y2="616"/>
+          <line x1="304" y1="0" x2="1600" y2="648"/>
+          <line x1="240" y1="0" x2="1600" y2="680"/>
+          <line x1="176" y1="0" x2="1600" y2="712"/>
+          <line x1="112" y1="0" x2="1600" y2="744"/>
+          <line x1="48" y1="0" x2="1600" y2="776"/>
+          <line x1="0" y1="8" x2="1600" y2="808"/>
+          <line x1="0" y1="40" x2="1600" y2="840"/>
+          <line x1="0" y1="72" x2="1600" y2="872"/>
+          <line x1="0" y1="104" x2="1592" y2="900"/>
+          <line x1="0" y1="136" x2="1528" y2="900"/>
+          <line x1="0" y1="168" x2="1464" y2="900"/>
+          <line x1="0" y1="200" x2="1400" y2="900"/>
+          <line x1="0" y1="232" x2="1336" y2="900"/>
+          <line x1="0" y1="264" x2="1272" y2="900"/>
+          <line x1="0" y1="296" x2="1208" y2="900"/>
+          <line x1="0" y1="328" x2="1144" y2="900"/>
+          <line x1="0" y1="360" x2="1080" y2="900"/>
+          <line x1="0" y1="392" x2="1016" y2="900"/>
+          <line x1="0" y1="424" x2="952" y2="900"/>
+          <line x1="0" y1="456" x2="888" y2="900"/>
+          <line x1="0" y1="488" x2="824" y2="900"/>
+          <line x1="0" y1="520" x2="760" y2="900"/>
+          <line x1="0" y1="552" x2="696" y2="900"/>
+          <line x1="0" y1="584" x2="632" y2="900"/>
+          <line x1="0" y1="616" x2="568" y2="900"/>
+          <line x1="0" y1="648" x2="504" y2="900"/>
+          <line x1="0" y1="680" x2="440" y2="900"/>
+          <line x1="0" y1="712" x2="376" y2="900"/>
+          <line x1="0" y1="744" x2="312" y2="900"/>
+          <line x1="0" y1="776" x2="248" y2="900"/>
+          <line x1="0" y1="808" x2="184" y2="900"/>
+          <line x1="0" y1="840" x2="120" y2="900"/>
+          <line x1="0" y1="872" x2="56" y2="900"/>
+          <line x1="0" y1="8" x2="16" y2="0"/>
+          <line x1="0" y1="40" x2="80" y2="0"/>
+          <line x1="0" y1="72" x2="144" y2="0"/>
+          <line x1="0" y1="104" x2="208" y2="0"/>
+          <line x1="0" y1="136" x2="272" y2="0"/>
+          <line x1="0" y1="168" x2="336" y2="0"/>
+          <line x1="0" y1="200" x2="400" y2="0"/>
+          <line x1="0" y1="232" x2="464" y2="0"/>
+          <line x1="0" y1="264" x2="528" y2="0"/>
+          <line x1="0" y1="296" x2="592" y2="0"/>
+          <line x1="0" y1="328" x2="656" y2="0"/>
+          <line x1="0" y1="360" x2="720" y2="0"/>
+          <line x1="0" y1="392" x2="784" y2="0"/>
+          <line x1="0" y1="424" x2="848" y2="0"/>
+          <line x1="0" y1="456" x2="912" y2="0"/>
+          <line x1="0" y1="488" x2="976" y2="0"/>
+          <line x1="0" y1="520" x2="1040" y2="0"/>
+          <line x1="0" y1="552" x2="1104" y2="0"/>
+          <line x1="0" y1="584" x2="1168" y2="0"/>
+          <line x1="0" y1="616" x2="1232" y2="0"/>
+          <line x1="0" y1="648" x2="1296" y2="0"/>
+          <line x1="0" y1="680" x2="1360" y2="0"/>
+          <line x1="0" y1="712" x2="1424" y2="0"/>
+          <line x1="0" y1="744" x2="1488" y2="0"/>
+          <line x1="0" y1="776" x2="1552" y2="0"/>
+          <line x1="0" y1="808" x2="1600" y2="8"/>
+          <line x1="0" y1="840" x2="1600" y2="40"/>
+          <line x1="0" y1="872" x2="1600" y2="72"/>
+          <line x1="8" y1="900" x2="1600" y2="104"/>
+          <line x1="72" y1="900" x2="1600" y2="136"/>
+          <line x1="136" y1="900" x2="1600" y2="168"/>
+          <line x1="200" y1="900" x2="1600" y2="200"/>
+          <line x1="264" y1="900" x2="1600" y2="232"/>
+          <line x1="328" y1="900" x2="1600" y2="264"/>
+          <line x1="392" y1="900" x2="1600" y2="296"/>
+          <line x1="456" y1="900" x2="1600" y2="328"/>
+          <line x1="520" y1="900" x2="1600" y2="360"/>
+          <line x1="584" y1="900" x2="1600" y2="392"/>
+          <line x1="648" y1="900" x2="1600" y2="424"/>
+          <line x1="712" y1="900" x2="1600" y2="456"/>
+          <line x1="776" y1="900" x2="1600" y2="488"/>
+          <line x1="840" y1="900" x2="1600" y2="520"/>
+          <line x1="904" y1="900" x2="1600" y2="552"/>
+          <line x1="968" y1="900" x2="1600" y2="584"/>
+          <line x1="1032" y1="900" x2="1600" y2="616"/>
+          <line x1="1096" y1="900" x2="1600" y2="648"/>
+          <line x1="1160" y1="900" x2="1600" y2="680"/>
+          <line x1="1224" y1="900" x2="1600" y2="712"/>
+          <line x1="1288" y1="900" x2="1600" y2="744"/>
+          <line x1="1352" y1="900" x2="1600" y2="776"/>
+          <line x1="1416" y1="900" x2="1600" y2="808"/>
+          <line x1="1480" y1="900" x2="1600" y2="840"/>
+          <line x1="1544" y1="900" x2="1600" y2="872"/>
+          <line x1="0" y1="16" x2="1600" y2="16"/>
+          <line x1="0" y1="48" x2="1600" y2="48"/>
+          <line x1="0" y1="80" x2="1600" y2="80"/>
+          <line x1="0" y1="112" x2="1600" y2="112"/>
+          <line x1="0" y1="144" x2="1600" y2="144"/>
+          <line x1="0" y1="176" x2="1600" y2="176"/>
+          <line x1="0" y1="208" x2="1600" y2="208"/>
+          <line x1="0" y1="240" x2="1600" y2="240"/>
+          <line x1="0" y1="272" x2="1600" y2="272"/>
+          <line x1="0" y1="304" x2="1600" y2="304"/>
+          <line x1="0" y1="336" x2="1600" y2="336"/>
+          <line x1="0" y1="368" x2="1600" y2="368"/>
+          <line x1="0" y1="400" x2="1600" y2="400"/>
+          <line x1="0" y1="432" x2="1600" y2="432"/>
+          <line x1="0" y1="464" x2="1600" y2="464"/>
+          <line x1="0" y1="496" x2="1600" y2="496"/>
+          <line x1="0" y1="528" x2="1600" y2="528"/>
+          <line x1="0" y1="560" x2="1600" y2="560"/>
+          <line x1="0" y1="592" x2="1600" y2="592"/>
+          <line x1="0" y1="624" x2="1600" y2="624"/>
+          <line x1="0" y1="656" x2="1600" y2="656"/>
+          <line x1="0" y1="688" x2="1600" y2="688"/>
+          <line x1="0" y1="720" x2="1600" y2="720"/>
+          <line x1="0" y1="752" x2="1600" y2="752"/>
+          <line x1="0" y1="784" x2="1600" y2="784"/>
+          <line x1="0" y1="816" x2="1600" y2="816"/>
+          <line x1="0" y1="848" x2="1600" y2="848"/>
+          <line x1="0" y1="880" x2="1600" y2="880"/>
+        </g>
+        <!-- THE SENSORS. Each carries its crossing (--cx/--cy), its run in
+             from beyond its nearest corner (--fx/--fy), its slot (--m) and
+             its rest weight (--iso-rest). The merge target --ux/--uy is
+             published on the svg at runtime — the trunk lives in another
+             coordinate system — with the focus as the fallback. -->
+        <g class="sp-field__sensors">
+          <circle class="cf-stmt-sensor" style="--cx:320;--cy:408;--fx:-443.4;--fy:-565.4;--m:0.1;--iso-rest:0.6" cx="320" cy="408" r="37.5" fill="url(#cf-stmt-sensor-hot)"/>
+          <circle class="cf-stmt-sensor" style="--cx:448;--cy:248;--fx:-623;--fy:-344.9;--m:0.1;--iso-rest:0.6" cx="448" cy="248" r="37.1" fill="url(#cf-stmt-sensor-hot)"/>
+          <circle class="cf-stmt-sensor" style="--cx:192;--cy:248;--fx:-314.4;--fy:-406.1;--m:0.2;--iso-rest:0.5" cx="192" cy="248" r="35.7" fill="url(#cf-stmt-sensor-hot)"/>
+          <circle class="cf-stmt-sensor" style="--cx:320;--cy:88;--fx:-512.8;--fy:-141;--m:0.2;--iso-rest:0.5" cx="320" cy="88" r="34.4" fill="url(#cf-stmt-sensor-hot)"/>
+          <circle class="cf-stmt-sensor" style="--cx:576;--cy:408;--fx:-739.2;--fy:-523.6;--m:0.2;--iso-rest:0.5" cx="576" cy="408" r="33.9" fill="url(#cf-stmt-sensor-hot)"/>
+          <circle class="cf-stmt-sensor" style="--cx:448;--cy:568;--fx:-608.7;--fy:451.1;--m:0.2;--iso-rest:0.5" cx="448" cy="568" r="33.2" fill="url(#cf-stmt-sensor-hot)"/>
+          <circle class="cf-stmt-sensor" style="--cx:192;--cy:568;--fx:-292.1;--fy:505.1;--m:0.3;--iso-rest:0.5" cx="192" cy="568" r="32.5" fill="url(#cf-stmt-sensor-hot)"/>
+          <circle class="cf-stmt-sensor" style="--cx:64;--cy:408;--fx:-95;--fy:-605.6;--m:0.3;--iso-rest:0.5" cx="64" cy="408" r="32.4" fill="url(#cf-stmt-sensor-hot)"/>
+          <circle class="cf-stmt-sensor" style="--cx:576;--cy:88;--fx:-773.7;--fy:-118.2;--m:0.3;--iso-rest:0.5" cx="576" cy="88" r="32.1" fill="url(#cf-stmt-sensor-hot)"/>
+          <circle class="cf-stmt-sensor" style="--cx:704;--cy:248;--fx:-892.6;--fy:-314.5;--m:0.3;--iso-rest:0.5" cx="704" cy="248" r="31.1" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:64;--cy:88;--fx:-181.6;--fy:-249.7;--m:0.3;--iso-rest:0.5" cx="64" cy="88" r="30.9" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:320;--cy:728;--fx:-496.2;--fy:266.7;--m:0.4;--iso-rest:0.5" cx="320" cy="728" r="29.6" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:704;--cy:568;--fx:-884.9;--fy:417.3;--m:0.4;--iso-rest:0.4" cx="704" cy="568" r="29.1" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:576;--cy:728;--fx:-767.6;--fy:229.2;--m:0.4;--iso-rest:0.4" cx="576" cy="728" r="28.2" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:832;--cy:408;--fx:944.6;--fy:-501.8;--m:0.4;--iso-rest:0.4" cx="832" cy="408" r="27.8" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:64;--cy:728;--fx:-133.7;--fy:359.4;--m:0.5;--iso-rest:0.4" cx="64" cy="728" r="27.4" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:832;--cy:88;--fx:966.7;--fy:-110.8;--m:0.5;--iso-rest:0.4" cx="832" cy="88" r="26.8" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:960;--cy:248;--fx:826.5;--fy:-320.3;--m:0.5;--iso-rest:0.4" cx="960" cy="248" r="24.7" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:832;--cy:728;--fx:963.2;--fy:215.7;--m:0.6;--iso-rest:0.4" cx="832" cy="728" r="24.1" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:1088;--cy:88;--fx:709.1;--fy:-121.9;--m:0.7;--iso-rest:0.3" cx="1088" cy="88" r="20.8" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:1088;--cy:728;--fx:701.6;--fy:235.7;--m:0.8;--iso-rest:0.3" cx="1088" cy="728" r="18.9" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:1216;--cy:248;--fx:552;--fy:-356.5;--m:0.8;--iso-rest:0.3" cx="1216" cy="248" r="18.4" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:1344;--cy:88;--fx:445.1;--fy:-153;--m:0.9;--iso-rest:0.2" cx="1344" cy="88" r="14.6" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:1344;--cy:728;--fx:422;--fy:283.5;--m:1;--iso-rest:0.2" cx="1344" cy="728" r="13.2" fill="url(#cf-stmt-sensor-halo)"/>
+          <circle class="cf-stmt-sensor" style="--cx:1472;--cy:248;--fx:219.7;--fy:-425.7;--m:1;--iso-rest:0.2" cx="1472" cy="248" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
+        </g>
+      </svg>
       <div class="container">
       <div class="cf-statement sp-stage__inner">
         <figure class="cf-statement__figure sp-drawing" aria-hidden="true">
-          <svg class="cf-iso" viewBox="0 0 1200 288" fill="none"
-               preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-            <defs>
-              <!-- The field thins out instead of stopping at a column edge, so the
-                   claim stands in the part of the frame the data never reached
-                   rather than merely beside a drawing. -->
-              <linearGradient id="cf-stmt-reach" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/>
-                <stop offset="0.09" stop-color="#FFFFFF"/>
-                <stop offset="0.32" stop-color="#FFFFFF"/>
-                <stop offset="0.54" stop-color="#FFFFFF" stop-opacity="0"/>
-              </linearGradient>
-              <!-- and a falloff from the void outwards, so the lattice has an extent
-                   of its own instead of four edges cut by the frame. -->
-              <radialGradient id="cf-stmt-halo" cx="330" cy="144" r="320" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#FFFFFF"/>
-                <stop offset="0.55" stop-color="#FFFFFF"/>
-                <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
-              </radialGradient>
-              <mask id="cf-stmt-field"><rect width="1200" height="288" fill="url(#cf-stmt-reach)"/></mask>
-              <mask id="cf-stmt-extent"><rect width="1200" height="288" fill="url(#cf-stmt-halo)"/></mask>
-                          <!-- A SENSOR IS A HOT CORE IN A COOL HALO, which is this system's one
-                   ramp used as a glow rather than as a surface: lime is the centre,
-                   Glas is the pale ring, CF-Grau is what both fall away to, and the
-                   last stop takes it to nothing. The reference this field was drawn
-                   from is built the same way in another palette — a hot dot inside a
-                   cold ring, merging into fields where the dots crowd — so the shape
-                   was already ours and only the hues had to come home.
-
-                   Two ramps, not a hundred and forty-five: the hot one carries the
-                   full lime leg with the oklab waypoint at 19 % of it, and the halo
-                   one starts at Glas and is what the quiet majority of the field is
-                   drawn with. Which one a sensor gets is its own intensity; radius
-                   and opacity do the rest. -->
-              <radialGradient id="cf-stmt-sensor-hot">
-                <stop stop-color="#E1FF00"/>
-                <stop offset="0.061" stop-color="#DBFC60"/>
-                <stop offset="0.32" stop-color="#C5EBE2"/>
-                <stop offset="0.68" stop-color="#CFCFCF"/>
-                <stop offset="1" stop-color="#CFCFCF" stop-opacity="0"/>
-              </radialGradient>
-              <radialGradient id="cf-stmt-sensor-halo">
-                <stop stop-color="#C5EBE2"/>
-                <stop offset="0.55" stop-color="#CFCFCF"/>
-                <stop offset="1" stop-color="#CFCFCF" stop-opacity="0"/>
-              </radialGradient>
-</defs>
-            <!-- Both masks sit outside .cf-iso__scene on purpose: the scene travels in
-                 on arrival, and a vignette that travelled with it would be a window
-                 sliding across the page.
-
-                 DISASSEMBLY. Every part below carries --sx/--sy and --scat-in: where
-                 it goes when the figure takes itself apart on the way out, and when.
-                 One rule at every scale — a piece leaves along a 2:1 diagonal by
-                 twice-across-once-down of its own size, a signal retreats along its
-                 own angle by half its own length — which is what makes the scatter
-                 read as the same drawing coming apart rather than debris. The masks
-                 stay put, so the pieces dissolve into the same fades that bound the
-                 field. → components.css, "the statement takes itself apart" -->
-            <g mask="url(#cf-stmt-field)"><g mask="url(#cf-stmt-extent)">
-            <g class="cf-iso__scene">
-              <!-- THE LATTICE. Both 2:1 families and the level step, the whole of the
-                   angle vocabulary this drawing is allowed — geometry.html: every
-                   diagonal on the site is 0, 26.57, 45 or 63.43 degrees. 1-4 is the
-                   line type the manual assigns to a lattice, in as many words.
-
-                   It is cut by the void and nothing is drawn inside it. The absence
-                   has to be legible or the figure has no argument: run the lattice
-                   through and the one idea in the drawing disappears into its own
-                   ground. On exit it does not travel — ground does not scatter, it
-                   goes dark last.
-
-                   ITS OPACITY IS NOT HERE ANY MORE, and it never worked when it
-                   was: `opacity=".26"` stood on this tag and `cf-iso-fade` ended
-                   `to {opacity:1}`, so the animation origin outranked the
-                   presentation attribute and this field shipped at FULL contour
-                   strength on every frame of every scroll. The root drawing is
-                   superimposed on this figure, and at 1440 x 900 that put a dash
-                   of luminance 0.0341 through the "12 480" label — 1.37:1
-                   against the numeral's own ink, which is to say the ground and
-                   the figure were the same mark, and the ground was the darker.
-                   It is one number in components.css now,
-                   `.cf-statement .cf-iso__ghost { --iso-rest: .26 }`, governing
-                   the keyframe's endpoint and the un-animated path alike. -->
-              <g class="cf-iso__ghost" style="--sx:0;--sy:0;--scat-in:58%" stroke="#000" stroke-width="1" stroke-dasharray="1 4">
-                <line x1="1136" y1="0" x2="1200" y2="32"/>
-                <line x1="1072" y1="0" x2="1200" y2="64"/>
-                <line x1="1008" y1="0" x2="1200" y2="96"/>
-                <line x1="944" y1="0" x2="1200" y2="128"/>
-                <line x1="880" y1="0" x2="1200" y2="160"/>
-                <line x1="816" y1="0" x2="1200" y2="192"/>
-                <line x1="752" y1="0" x2="1200" y2="224"/>
-                <line x1="688" y1="0" x2="1200" y2="256"/>
-                <line x1="624" y1="0" x2="1200" y2="288"/>
-                <line x1="560" y1="0" x2="1136" y2="288"/>
-                <line x1="496" y1="0" x2="1072" y2="288"/>
-                <line x1="432" y1="0" x2="1008" y2="288"/>
-                <line x1="368" y1="0" x2="944" y2="288"/>
-                <line x1="304" y1="0" x2="880" y2="288"/>
-                <line x1="240" y1="0" x2="816" y2="288"/>
-                <line x1="176" y1="0" x2="304.15" y2="64.08"/>
-                <line x1="409.45" y1="116.72" x2="752" y2="288"/>
-                <line x1="112" y1="0" x2="274.28" y2="81.14"/>
-                <line x1="413.72" y1="150.86" x2="688" y2="288"/>
-                <line x1="48" y1="0" x2="256.11" y2="104.05"/>
-                <line x1="406.29" y1="179.15" x2="624" y2="288"/>
-                <line x1="0" y1="8" x2="246.94" y2="131.47"/>
-                <line x1="389.86" y1="202.93" x2="560" y2="288"/>
-                <line x1="0" y1="40" x2="248.47" y2="164.24"/>
-                <line x1="362.73" y1="221.36" x2="496" y2="288"/>
-                <line x1="0" y1="72" x2="282.34" y2="213.17"/>
-                <line x1="303.26" y1="223.63" x2="432" y2="288"/>
-                <line x1="0" y1="104" x2="368" y2="288"/>
-                <line x1="0" y1="136" x2="304" y2="288"/>
-                <line x1="0" y1="168" x2="240" y2="288"/>
-                <line x1="0" y1="200" x2="176" y2="288"/>
-                <line x1="0" y1="232" x2="112" y2="288"/>
-                <line x1="0" y1="264" x2="48" y2="288"/>
-                <line x1="0" y1="8" x2="16" y2="0"/>
-                <line x1="0" y1="40" x2="80" y2="0"/>
-                <line x1="0" y1="72" x2="144" y2="0"/>
-                <line x1="0" y1="104" x2="208" y2="0"/>
-                <line x1="0" y1="136" x2="272" y2="0"/>
-                <line x1="0" y1="168" x2="336" y2="0"/>
-                <line x1="0" y1="200" x2="400" y2="0"/>
-                <line x1="0" y1="232" x2="256.19" y2="103.91"/>
-                <line x1="342.21" y1="60.89" x2="464" y2="0"/>
-                <line x1="0" y1="264" x2="246.05" y2="140.97"/>
-                <line x1="377.95" y1="75.03" x2="528" y2="0"/>
-                <line x1="16" y1="288" x2="250.39" y2="170.8"/>
-                <line x1="399.21" y1="96.4" x2="592" y2="0"/>
-                <line x1="80" y1="288" x2="264.02" y2="195.99"/>
-                <line x1="411.18" y1="122.41" x2="656" y2="0"/>
-                <line x1="144" y1="288" x2="287.31" y2="216.34"/>
-                <line x1="413.49" y1="153.26" x2="720" y2="0"/>
-                <line x1="208" y1="288" x2="328.05" y2="227.98"/>
-                <line x1="398.35" y1="192.82" x2="784" y2="0"/>
-                <line x1="272" y1="288" x2="848" y2="0"/>
-                <line x1="0" y1="16" x2="1200" y2="16"/>
-                <line x1="0" y1="48" x2="1200" y2="48"/>
-                <line x1="0" y1="80" x2="275.59" y2="80"/>
-                <line x1="384.41" y1="80" x2="1200" y2="80"/>
-                <line x1="0" y1="112" x2="252.33" y2="112"/>
-                <line x1="407.67" y1="112" x2="1200" y2="112"/>
-                <line x1="0" y1="144" x2="246" y2="144"/>
-                <line x1="414" y1="144" x2="1200" y2="144"/>
-                <line x1="0" y1="176" x2="252.33" y2="176"/>
-                <line x1="407.67" y1="176" x2="1200" y2="176"/>
-                <line x1="0" y1="208" x2="275.59" y2="208"/>
-                <line x1="384.41" y1="208" x2="1200" y2="208"/>
-                <line x1="0" y1="240" x2="1200" y2="240"/>
-                <line x1="0" y1="272" x2="1200" y2="272"/>
-              </g>
-              <!-- THE SENSOR FIELD. Sixty-nine glows on the isometric lattice's own
-                   vertices — 2:1 spacing, so every instrument sits where two
-                   construction lines already cross, and the drawing keeps its grid even
-                   where it reads as weather. They are wider than the spacing on
-                   purpose: a field that merges where it crowds is the whole look, and
-                   separate circles were the first version's fault.
-
-                   GENERATED, NOT TYPED. scripts/gen-stmt-field.py draws the lattice
-                   above and every circle below, from three constants and no table: the
-                   lattice is the 2:1 isometry, the rim is that same 2:1 as an extent,
-                   and a glow's radius is the product of a rise out of the void's own
-                   84-unit radius and a fall to nothing at the field's. The hundred and
-                   forty-five hand-picked radii this replaces were the reason the
-                   drawing was 871 px tall against 810 px of viewport — the field's
-                   extent was an outcome of the largest of them rather than a decision.
-                   scripts/check-figure-fits.py holds the result.
-
-                   THE MIDDLE IS QUIET, NOT MISSING. A hole was cut here once and it
-                   read as a white disc laid over the drawing — an edge, which is the
-                   one thing a field of glows must not have. The instruments in the
-                   middle are floored rather than culled now: small, cool, halo only,
-                   rising to hot as the field spreads and falling away again at its
-                   rim. The sentence still gets what it needs — nothing is found at
-                   the centre — out of intensity instead of out of absence.
-
-                   AND THE FIELD COLLAPSES INTO THE LINE. On scroll every glow travels
-                   to the root's departure at 330 228 and goes out as it arrives —
-                   nearest first, the far edge of the field last — while the root
-                   grows downward out of the point they are arriving at. The
-                   measurement becomes the measurement's route. --mx/--my is where
-                   each one goes and --m is its slot; the component only says THAT the
-                   field collapses. -->
-              <g class="cf-stmt-field">
-                <circle class="cf-stmt-sensor" style="--mx:0;--my:4;--m:0;--iso-rest:0.1" cx="330" cy="224" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:0;--my:-36;--m:0.1;--iso-rest:0.2" cx="330" cy="264" r="16.9" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:40;--my:-16;--m:0.2;--iso-rest:0.2" cx="290" cy="244" r="18.4" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-40;--my:-16;--m:0.2;--iso-rest:0.2" cx="370" cy="244" r="18.4" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:0;--my:44;--m:0.2;--iso-rest:0.1" cx="330" cy="184" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:40;--my:24;--m:0.2;--iso-rest:0.1" cx="290" cy="204" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-40;--my:24;--m:0.2;--iso-rest:0.1" cx="370" cy="204" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:40;--my:64;--m:0.3;--iso-rest:0.1" cx="290" cy="164" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-40;--my:64;--m:0.3;--iso-rest:0.1" cx="370" cy="164" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:80;--my:4;--m:0.3;--iso-rest:0.3" cx="250" cy="224" r="23.9" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-80;--my:4;--m:0.3;--iso-rest:0.3" cx="410" cy="224" r="23.9" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:0;--my:84;--m:0.3;--iso-rest:0.1" cx="330" cy="144" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:80;--my:-36;--m:0.3;--iso-rest:0.2" cx="250" cy="264" r="17.7" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-80;--my:-36;--m:0.3;--iso-rest:0.2" cx="410" cy="264" r="17.7" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:80;--my:44;--m:0.3;--iso-rest:0.2" cx="250" cy="184" r="15.7" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-80;--my:44;--m:0.3;--iso-rest:0.2" cx="410" cy="184" r="15.7" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:40;--my:104;--m:0.4;--iso-rest:0.1" cx="290" cy="124" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-40;--my:104;--m:0.4;--iso-rest:0.1" cx="370" cy="124" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:80;--my:84;--m:0.4;--iso-rest:0.1" cx="250" cy="144" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-80;--my:84;--m:0.4;--iso-rest:0.1" cx="410" cy="144" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:120;--my:-16;--m:0.4;--iso-rest:0.3" cx="210" cy="244" r="23.4" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-120;--my:-16;--m:0.4;--iso-rest:0.3" cx="450" cy="244" r="23.4" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:120;--my:24;--m:0.5;--iso-rest:0.4" cx="210" cy="204" r="34.9" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-120;--my:24;--m:0.5;--iso-rest:0.4" cx="450" cy="204" r="34.9" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:0;--my:124;--m:0.5;--iso-rest:0.1" cx="330" cy="104" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:120;--my:64;--m:0.5;--iso-rest:0.5" cx="210" cy="164" r="42.7" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-120;--my:64;--m:0.5;--iso-rest:0.5" cx="450" cy="164" r="42.7" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:80;--my:124;--m:0.5;--iso-rest:0.2" cx="250" cy="104" r="15.7" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-80;--my:124;--m:0.5;--iso-rest:0.2" cx="410" cy="104" r="15.7" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:40;--my:144;--m:0.6;--iso-rest:0.1" cx="290" cy="84" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-40;--my:144;--m:0.6;--iso-rest:0.1" cx="370" cy="84" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:120;--my:104;--m:0.6;--iso-rest:0.5" cx="210" cy="124" r="42.7" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-120;--my:104;--m:0.6;--iso-rest:0.5" cx="450" cy="124" r="42.7" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:160;--my:4;--m:0.6;--iso-rest:0.3" cx="170" cy="224" r="29.1" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-160;--my:4;--m:0.6;--iso-rest:0.3" cx="490" cy="224" r="29.1" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:0;--my:164;--m:0.6;--iso-rest:0.1" cx="330" cy="64" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:160;--my:44;--m:0.6;--iso-rest:0.5" cx="170" cy="184" r="40.6" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-160;--my:44;--m:0.6;--iso-rest:0.5" cx="490" cy="184" r="40.6" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:160;--my:84;--m:0.7;--iso-rest:0.6" cx="170" cy="144" r="52.0" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-160;--my:84;--m:0.7;--iso-rest:0.6" cx="490" cy="144" r="52.0" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:80;--my:164;--m:0.7;--iso-rest:0.3" cx="250" cy="64" r="23.9" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-80;--my:164;--m:0.7;--iso-rest:0.3" cx="410" cy="64" r="23.9" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:120;--my:144;--m:0.7;--iso-rest:0.4" cx="210" cy="84" r="34.9" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-120;--my:144;--m:0.7;--iso-rest:0.4" cx="450" cy="84" r="34.9" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:40;--my:184;--m:0.7;--iso-rest:0.2" cx="290" cy="44" r="18.4" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-40;--my:184;--m:0.7;--iso-rest:0.2" cx="370" cy="44" r="18.4" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:200;--my:24;--m:0.7;--iso-rest:0.4" cx="130" cy="204" r="34.9" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-200;--my:24;--m:0.7;--iso-rest:0.4" cx="530" cy="204" r="34.9" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:160;--my:124;--m:0.7;--iso-rest:0.5" cx="170" cy="104" r="40.6" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-160;--my:124;--m:0.7;--iso-rest:0.5" cx="490" cy="104" r="40.6" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:0;--my:204;--m:0.8;--iso-rest:0.2" cx="330" cy="24" r="16.9" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:200;--my:64;--m:0.8;--iso-rest:0.5" cx="130" cy="164" r="46.3" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-200;--my:64;--m:0.8;--iso-rest:0.5" cx="530" cy="164" r="46.3" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:80;--my:204;--m:0.8;--iso-rest:0.2" cx="250" cy="24" r="17.7" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-80;--my:204;--m:0.8;--iso-rest:0.2" cx="410" cy="24" r="17.7" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:120;--my:184;--m:0.8;--iso-rest:0.3" cx="210" cy="44" r="23.4" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-120;--my:184;--m:0.8;--iso-rest:0.3" cx="450" cy="44" r="23.4" fill="url(#cf-stmt-sensor-halo)"/>
-                <circle class="cf-stmt-sensor" style="--mx:200;--my:104;--m:0.8;--iso-rest:0.5" cx="130" cy="124" r="46.3" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-200;--my:104;--m:0.8;--iso-rest:0.5" cx="530" cy="124" r="46.3" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:160;--my:164;--m:0.8;--iso-rest:0.3" cx="170" cy="64" r="29.1" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-160;--my:164;--m:0.8;--iso-rest:0.3" cx="490" cy="64" r="29.1" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:240;--my:44;--m:0.9;--iso-rest:0.5" cx="90" cy="184" r="40.6" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-240;--my:44;--m:0.9;--iso-rest:0.5" cx="570" cy="184" r="40.6" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:200;--my:144;--m:0.9;--iso-rest:0.4" cx="130" cy="84" r="34.9" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-200;--my:144;--m:0.9;--iso-rest:0.4" cx="530" cy="84" r="34.9" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:240;--my:84;--m:0.9;--iso-rest:0.6" cx="90" cy="144" r="52.0" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-240;--my:84;--m:0.9;--iso-rest:0.6" cx="570" cy="144" r="52.0" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:240;--my:124;--m:1;--iso-rest:0.5" cx="90" cy="104" r="40.6" fill="url(#cf-stmt-sensor-hot)"/>
-                <circle class="cf-stmt-sensor" style="--mx:-240;--my:124;--m:1;--iso-rest:0.5" cx="570" cy="104" r="40.6" fill="url(#cf-stmt-sensor-hot)"/>
-              </g>
-            </g>
-            </g></g>
-          </svg>
           <div class="sp-root">
 <!-- THE FLOW, a root. The data leaves the void and grows downward until
                it is the frame the next section is built in. Not a bus and seven
@@ -1726,6 +1744,36 @@
     </div>
   </section>
 </main>
+<script>
+/* THE AIM. The merge runs every glow to the trunk's head, and the trunk
+   lives in another coordinate system: the flow svg in the figure column,
+   laid out by the container grid, while the field is the stage's full-bleed
+   backdrop under its own slice crop. No one number maps the two at every
+   viewport, so the point is measured: the trunk's head (330, 84 in flow
+   units) through the flow's screen matrix, back through the field's inverse,
+   published as --ux/--uy in field units. Both matrices are read in the same
+   frame, so the scroll offset in each cancels. The keyframe's fallback is
+   the authored focus (352, 312) — right at the design ratio, near enough
+   everywhere else that a scriptless render still merges into the drawing
+   rather than into empty ground. Re-aimed on resize and on load (fonts
+   move the column). */
+(() => {
+  const field = document.querySelector('.sp-field');
+  const flow = document.querySelector('.sp-root .lp-flow');
+  if (!field || !flow || !field.getScreenCTM) return;
+  const aim = () => {
+    const f = field.getScreenCTM();
+    const g = flow.getScreenCTM();
+    if (!f || !g) return;
+    const p = new DOMPoint(330, 84).matrixTransform(g).matrixTransform(f.inverse());
+    field.style.setProperty('--ux', p.x.toFixed(1));
+    field.style.setProperty('--uy', p.y.toFixed(1));
+  };
+  aim();
+  addEventListener('resize', aim);
+  addEventListener('load', aim);
+})();
+</script>
 <script src="../assets/js/cf-pin-gate.js"></script>
 <a class="ds-back" href="../index.html">&larr; Design System</a>
 </body>
