@@ -80,8 +80,14 @@ LANDING = ROOT / "design-system/prototypes/statement-to-process.html"
 # the cards' pin begins, so the relay coupling is gone by construction. What
 # the tails still owe: they resolve inside the track (< 100), the light leads
 # the contour, and these recorded values move only on purpose.
-CONTOUR_LANDS = 82.05       # 42 + 3.0805 * 13, the head plus the longest walk
-FADE_ENDS = 84.05           # the light's fade, six points behind its draw
+# RE-RECORDED FOR THE BALANCED TREE (2026-07-28, second review). The grown
+# root's longest walk was l+u = 3.0805 on c = 13: contour landed 82.05, fade
+# ended 84.05. The balanced construction's longest walk is the dive strokes'
+# l+u = 3.74, and c came down to 12 so the landing stays inside the act:
+# 42 + 3.74 * 12 = 86.88, fade two points of head behind at 88.88 — still
+# before the 89 the page's script gives the closing still.
+CONTOUR_LANDS = 86.88       # 42 + 3.74 * 12, the head plus the longest walk
+FADE_ENDS = 88.88           # the light's fade, six points behind its draw
 CARD_LIME = 11.5            # contain %, card 01's fill-opacity leaving 0
 TOL = 0.02                  # two decimal places, plus the rounding under them
 
