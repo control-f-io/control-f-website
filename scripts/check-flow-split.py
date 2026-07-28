@@ -45,10 +45,18 @@ means moves with it, from reflection to the four identities below.
      the constraint the growth is written around and the one part of the
      old identity 2 that survives it.
 
-  4. THE CROWN DIVIDES ONCE, INTO THREE. Exactly one stroke enters the crown
-     and exactly three leave it: the mirrored pair of reaches and the centre
-     taproot. Every other junction divides into two. A second trifurcation is
-     a redesign, not a drift.
+  4. NOTHING SHEDS MORE THAN THREE, AND THE CROWN TAKES ONE. This clause was
+     "the crown divides once, into three; every other junction into two", and
+     that was true of a written-out construction with seven divisions in it.
+     On a grown root it is a claim about the growth rule rather than about the
+     drawing, and the growth rule does not make it: a limb leaving a point
+     that already carries a continuation and a branch is a THREE-way division,
+     and a root has those. What is worth holding is the ceiling — four strokes
+     out of one point is a star, and the eye stops reading it as a division —
+     and the crown's own identity, which is not its shape: it is where the
+     TRUNK ends. The trunk is the one stroke nothing arrives at — it leaves
+     the void — so the crown is its far end, it sheds three, and it is the
+     first division the reader meets.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
@@ -169,22 +177,43 @@ def main():
             f"— the lectern's verticals stand up out of those three "
             f"(check-flow-handover.py)")
 
-    # ---- 4. the crown divides once, into three ---------------------------
-    out_count = Counter(s[0] for s in segs)
-    in_count = Counter(s[1] for s in segs)
-    crowns = [p for p, n in out_count.items() if n >= 3]
-    if len(crowns) != 1:
+    # ---- 4. nothing sheds more than three, and the crown takes one -------
+    out_count = Counter(s_[0] for s_ in segs)
+    stars = [p for p, n in out_count.items() if n > 3]
+    if stars:
         findings.append(
-            f"{len(crowns)} junction(s) shed three or more strokes "
-            f"({[(show(x), show(y)) for x, y in crowns]}) — the construction has "
-            f"exactly one crown, and a second trifurcation is a redesign")
+            f"{len(stars)} junction(s) shed four or more strokes "
+            f"({[(show(x), show(y)) for x, y in stars]}) — three is the ceiling; "
+            f"four roots leaving one point is a star and stops reading as a "
+            f"division")
+    forks = sorted((p for p, n in out_count.items() if n == 3), key=lambda p: p[1])
+    # THE CROWN IS WHERE THE TRUNK ENDS, and that is the only thing that picks
+    # it out. "It takes one stroke and sheds three" does not: every three-way
+    # division mid-limb has a continuation arriving at it and looks identical.
+    # The trunk is the one stroke with nothing above it — it leaves the void —
+    # so the crown is its far end, and the drawing has exactly one.
+    starts = {s_[0] for s_ in segs}
+    ends = {s_[1] for s_ in segs}
+    trunks = [s_ for s_ in segs if s_[0] not in ends]
+    crowns = []
+    if len(trunks) != 1:
+        findings.append(
+            f"{len(trunks)} stroke(s) leave a point nothing arrives at — a root "
+            f"has one trunk, out of the void")
     else:
-        crown = crowns[0]
-        if out_count[crown] != 3 or in_count[crown] != 1:
+        crown = trunks[0][1]
+        crowns = [crown]
+        if out_count[crown] != 3:
             findings.append(
-                f"the crown at ({show(crown[0])}, {show(crown[1])}) takes "
-                f"{in_count[crown]} stroke(s) and sheds {out_count[crown]} — the "
-                f"trunk enters once and the two reaches and the taproot leave")
+                f"the trunk ends at ({show(crown[0])}, {show(crown[1])}), which "
+                f"sheds {out_count[crown]} stroke(s) — the crown divides into "
+                f"three: the two reaches and the centre taproot")
+        elif forks and forks[0] != crown:
+            findings.append(
+                f"the shallowest three-way division is at ({show(forks[0][0])}, "
+                f"{show(forks[0][1])}) and the trunk ends at ({show(crown[0])}, "
+                f"{show(crown[1])}) — the crown is where the trunk ends and it "
+                f"is the first division the reader meets")
 
     if args.verbose:
         print(f"  {len(segs)} strokes, {len(feet)} feet on the rail")
@@ -201,7 +230,7 @@ def main():
     print(f"flow split OK — {len(segs)} strokes balanced about x {show(WIDTH / 2)} "
           f"({left} left, {right} right), {len(feet)} feet on {len(set(gaps))} "
           f"distinct gaps with none inside {show(CLEAR)} units, the three pinned "
-          f"arrivals present, and one crown dividing into three")
+          f"arrivals present, {len(forks)} three-way division(s) and one crown")
     return 0
 
 
