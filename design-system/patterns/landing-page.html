@@ -306,19 +306,76 @@
         animation-range: contain calc(var(--i) * 25% + 0.5%) contain calc(var(--i) * 25% + 4%),
                          contain calc(var(--i) * 25% + 0.5%) contain calc(var(--i) * 25% + 12%);
       }
+      /* THE BUILD'S HEAD IS ONE POINT BEHIND THE PLAN'S, AND CARD 01 HAS NO
+         PLAN. 1.5 is not a free constant: the ghosts open the quarter at 0.5
+         and the solids arrive one point later, into geometry that is already
+         standing. Every card was given that head, and one of the four has no
+         ghosts at all — card 01's object is eleven forms, no plan, no trace —
+         so its quarter opened by waiting a point for something that never
+         comes.
+
+         WHAT THAT COST, at the one seam this page is built around. The frame's
+         relay finishes and the chrome lands together at entry 100 %, which IS
+         contain 0; the plate's crossfade reaches opacity 1 at contain 0.41 %
+         (cf-pin-step holds from 11 % of a range that opens at -3); and the
+         first form used to arrive at contain 1.5 %. Sampled every 4 px at
+         1440 x 900 over every animated part on the page — opacity, both scale
+         axes, fill-opacity and stroke-dashoffset, 235 parts — the summed
+         change was EXACTLY ZERO from y 1626 to y 1682:
+
+           1440 x 900   contain 0.42 -> 1.50 %   62 px
+           1280 x 800   contain 0.42 -> 1.50 %   56 px
+           1024 x 720   contain 0.42 -> 1.50 %   50 px
+
+         It is the only still anywhere between the flow's first stroke and the
+         end of card 01's reveal, and it is at the worst possible place: the
+         stage has just taken the scroll, so the page is not moving EITHER —
+         and what stands there is a finished empty rectangle with 01 02 03 04
+         lit over it. That is the exact picture the note on .lp-proc-index
+         calls the tell that a stage was assembled rather than assembling, and
+         the paragraph on the frame says in as many words that "the build takes
+         over at contain 0". It took over a point and a half later.
+
+         The other three quarters have no such gap: their ghosts start 0.09 of
+         a point after their plate lands, which is 5 px and not a still.
+
+         SO THE HEAD IS A VARIABLE AND THE PLAN IS WHAT SETS IT. A card with no
+         ghosts takes the plan's own slot — its forms ARE the first thing on the
+         stage, so they open the quarter the way a plan would. `:not(:has())` is
+         the whole point: it reads the drawing rather than the card's index, so
+         the day the craft lane gives card 01 a plan the head goes back to 1.5
+         with nothing here to remember. The window TRANSLATES rather than
+         stretches — 6.5 points wide either way — so card 01's parts arrive at
+         the same rate as every other card's; only the whole build sits one
+         point earlier. The stagger, the trace and node windows, the 62 % hold
+         and the reveal's end at 15.5 are all untouched.
+         scripts/check-quarter-opening.py holds it. */
+      .lp-proc-steps { --build-head: 1.5; }
+      .lp-proc-steps .cf-pin__step:not(:has(.cf-iso__ghost)) { --build-head: 0.5; }
       .lp-proc-steps .cf-iso__form {
         animation-name: cf-iso-build;
-        animation-range: contain calc(var(--i) * 25% + 1.5% + var(--stage, 0) * 2.2%)
-                         contain calc(var(--i) * 25% + 8% + var(--stage, 0) * 2.2%);
+        animation-range: contain calc(var(--i) * 25% + var(--build-head) * 1% + var(--stage, 0) * 2.2%)
+                         contain calc(var(--i) * 25% + (var(--build-head) + 6.5) * 1% + var(--stage, 0) * 2.2%);
       }
       /* Two animations, like the build mode it re-times: the arrival on
-         the part's own stage, the fill last of all. */
+         the part's own stage, the fill last of all.
+
+         The arrival reads --build-head with the forms — it is a part of the
+         same drawing arriving on the same stage, and a light left behind at
+         1.5 while its stage-mates moved to 0.5 is a piece finishing after the
+         junction it belongs to. The FILL does not move: 11.5 is the number the
+         flow's own light pass is written against — the last lit flow stroke is
+         a thousand pixels of scroll before card 01's lime, and that clearance
+         is what makes one lit element per screen true here
+         (→ foundations/colors.html#one-per-screen, and the .lp-flow__light
+         note above, which carries the sweep). It is a beat of the reveal
+         rather than a beat of the build, and the build is what moved. */
       .lp-proc-steps .cf-iso__light {
         animation-name: cf-iso-light, cf-iso-build;
         animation-timeline: --cf-pin, --cf-pin;
         animation-range: contain calc(var(--i) * 25% + 11.5%) contain calc(var(--i) * 25% + 15%),
-                         contain calc(var(--i) * 25% + 1.5% + var(--stage, 0) * 2.2%)
-                         contain calc(var(--i) * 25% + 8% + var(--stage, 0) * 2.2%);
+                         contain calc(var(--i) * 25% + var(--build-head) * 1% + var(--stage, 0) * 2.2%)
+                         contain calc(var(--i) * 25% + (var(--build-head) + 6.5) * 1% + var(--stage, 0) * 2.2%);
       }
 
       /* THE FRAME ASSEMBLES ON ENTRY, out of the same scroll that takes the
