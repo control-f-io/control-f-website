@@ -1201,15 +1201,40 @@
 
   <!-- 01 · Hero -->
   <header class="cf-hero">
+    <!-- The switch comes FIRST so the ~ selectors below it can reach the media
+         box and, through it, the video and the still. It is the mechanism, not
+         a decoration: the loop runs 12 s and repeats forever, which is exactly
+         what WCAG 2.2.2 asks for a control over, and prefers-reduced-motion is
+         a default rather than the reader-facing mechanism that criterion
+         requires. No script — checking the box hides the loop and shows the
+         still, which is the third of the criterion's own three verbs.
+
+         AND IT IS OUT HERE, BESIDE .cf-hero__media AND NOT INSIDE IT. The pair
+         used to open that box. The box is a stacking context on purpose — it
+         is what keeps the artwork and the scrim under the type without the
+         type having to say so — and it held the control down along with them:
+         at 375 x 812 the headline's box reaches the plate, so all three of the
+         plate's hit-test points returned h1.cf-hero__title and the one control
+         WCAG 2.2.2 asks for could not be pressed on a phone. Nothing looked
+         wrong; the type has no background. Out here the plate ranks against
+         the type directly. Full reasoning over .cf-hero__still-toggle in
+         components.css. → scripts/check-pointer-reach.py -->
+    <input class="cf-hero__still-toggle" type="checkbox" id="cf-hero-still">
+    <label class="cf-hero__still" for="cf-hero-still" data-theme="inverse">
+      <!-- Two marks, one per state; CSS shows whichever names the next action.
+           Both are drawn on sanctioned angles: the bars are 90°, and the play
+           triangle is 13 across by 13 tall about its own apex — dx 2 / dy 1 on
+           both edges, so it is the isometric angle rather than a generic 30°. -->
+      <svg class="cf-hero__still-mark cf-hero__still-mark--pause" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="6" y="5.5" width="4" height="13" vector-effect="non-scaling-stroke"/>
+        <rect x="14" y="5.5" width="4" height="13" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <svg class="cf-hero__still-mark cf-hero__still-mark--play" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M6 5.5 L19 12 L6 18.5 Z" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <span class="visually-hidden">Hintergrundvideo anhalten</span>
+    </label>
     <div class="cf-hero__media">
-      <!-- The switch comes FIRST so the two ~ selectors below it can reach the
-           video and the still. It is the mechanism, not a decoration: the loop
-           runs 12 s and repeats forever, which is exactly what WCAG 2.2.2 asks
-           for a control over, and prefers-reduced-motion is a default rather
-           than the reader-facing mechanism that criterion requires. No script —
-           checking the box hides the loop and shows the still, which is the
-           third of the criterion's own three verbs. -->
-      <input class="cf-hero__still-toggle" type="checkbox" id="cf-hero-still">
       <!-- THE SOURCE IS GATED, AND THE GATE IS THE POINT. components.css sets
            `.cf-hero__media video { display: none }` under prefers-reduced-motion
            and shows the still instead — but `display: none` does not stop a
@@ -1234,20 +1259,6 @@
       <!-- Shown instead of the loop under prefers-reduced-motion, and whenever
            the switch above is checked. -->
       <img src="../assets/img/hero-poster.jpg" alt="" aria-hidden="true">
-      <label class="cf-hero__still" for="cf-hero-still" data-theme="inverse">
-        <!-- Two marks, one per state; CSS shows whichever names the next action.
-             Both are drawn on sanctioned angles: the bars are 90°, and the play
-             triangle is 13 across by 13 tall about its own apex — dx 2 / dy 1 on
-             both edges, so it is the isometric angle rather than a generic 30°. -->
-        <svg class="cf-hero__still-mark cf-hero__still-mark--pause" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <rect x="6" y="5.5" width="4" height="13" vector-effect="non-scaling-stroke"/>
-          <rect x="14" y="5.5" width="4" height="13" vector-effect="non-scaling-stroke"/>
-        </svg>
-        <svg class="cf-hero__still-mark cf-hero__still-mark--play" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M6 5.5 L19 12 L6 18.5 Z" vector-effect="non-scaling-stroke"/>
-        </svg>
-        <span class="visually-hidden">Hintergrundvideo anhalten</span>
-      </label>
     </div>
     <div class="container">
       <div class="cf-hero__body">

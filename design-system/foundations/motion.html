@@ -1252,15 +1252,35 @@ python3 scripts/check-iso-motion.py</pre>
       That is not minimalism for its own sake: a scripted control is absent for readers with
       scripting off, who are disproportionately the readers relying on the mechanism.
     </p>
-    <pre class="docs-code"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"cf-hero__media"</span><span class="tag">&gt;</span>
-  <span class="com">&lt;!-- first, so the two ~ selectors can reach both media elements --&gt;</span>
+    <pre class="docs-code"><span class="tag">&lt;header</span> <span class="attr">class</span>=<span class="val">"cf-hero"</span><span class="tag">&gt;</span>
+  <span class="com">&lt;!-- first, so the ~ selectors can reach the media box --&gt;</span>
   <span class="tag">&lt;input</span> <span class="attr">class</span>=<span class="val">"cf-hero__still-toggle"</span> <span class="attr">type</span>=<span class="val">"checkbox"</span> <span class="attr">id</span>=<span class="val">"cf-hero-still"</span><span class="tag">&gt;</span>
-  <span class="tag">&lt;video</span> … <span class="attr">autoplay muted loop playsinline</span><span class="tag">&gt;&lt;/video&gt;</span>
-  <span class="tag">&lt;img</span> <span class="attr">src</span>=<span class="val">"…/hero-poster.jpg"</span> <span class="attr">alt</span>=<span class="val">""</span><span class="tag">&gt;</span>
   <span class="tag">&lt;label</span> <span class="attr">class</span>=<span class="val">"cf-hero__still"</span> <span class="attr">for</span>=<span class="val">"cf-hero-still"</span> <span class="attr">data-theme</span>=<span class="val">"inverse"</span><span class="tag">&gt;</span>…<span class="tag">&lt;/label&gt;</span>
-<span class="tag">&lt;/div&gt;</span></pre>
-    <pre class="docs-code">.cf-hero__still-toggle:checked ~ video { <span class="attr">display</span>: <span class="val">none</span>; }
-.cf-hero__still-toggle:checked ~ img   { <span class="attr">display</span>: <span class="val">block</span>; }</pre>
+  <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"cf-hero__media"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;video</span> … <span class="attr">autoplay muted loop playsinline</span><span class="tag">&gt;&lt;/video&gt;</span>
+    <span class="tag">&lt;img</span> <span class="attr">src</span>=<span class="val">"…/hero-poster.jpg"</span> <span class="attr">alt</span>=<span class="val">""</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/header&gt;</span></pre>
+    <pre class="docs-code">.cf-hero__still-toggle:checked ~ .cf-hero__media video { <span class="attr">display</span>: <span class="val">none</span>; }
+.cf-hero__still-toggle:checked ~ .cf-hero__media img   { <span class="attr">display</span>: <span class="val">block</span>; }</pre>
+    <p>
+      <strong>The switch is beside the media box, not inside it, and that is a fix rather
+      than a preference.</strong> <code>.cf-hero__media</code> is a stacking context on
+      purpose — it is what holds the artwork and the reading scrim under the type without
+      the type having to state an order. It held the control down with them. A
+      <code>z-index</code> written inside that box only ranks against the video and the
+      scrim; against the headline the whole subtree is one layer, underneath. Nothing looked
+      wrong, because the type has no background — but <code>.cf-hero__body</code> is
+      <code>width: fit-content</code> on the headline's longest line, so the h1's box runs
+      the full column on every line including the short ones, and wherever it reached the
+      plate the h1 took the click. At 375&nbsp;×&nbsp;812 — the width where the hero runs
+      short and the headline climbs to the plate's band — all three hit-test points on the
+      plate returned <code>h1.cf-hero__title</code>. The one control 2.2.2 asks for was
+      unreachable by pointer on a phone and worked fine from the keyboard, which is why it
+      survived. Out beside the media box the plate ranks against the type directly, at 2
+      against 1; the geometry is identical, since both boxes resolve against the same
+      padding box. → <code>scripts/check-pointer-reach.py</code>
+    </p>
     <p>
       <strong>Which of the criterion's three verbs this is, stated plainly: hide.</strong>
       <code>display: none</code> removes the video from the presentation; it does not pause
