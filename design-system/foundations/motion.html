@@ -162,7 +162,8 @@ for t in ['fast','base','slow','scene']:
           <li>Let lime appear <em>through</em> movement: an edge lights up as it is reached.</li>
           <li>Shift the arrow 4 px right on hover. That is the standard feedback.</li>
           <li>Give <code>:focus-visible</code> whatever <code>:hover</code> gets. Every state pair in <code>components.css</code> names both.</li>
-          <li>On scroll, animate position and opacity only — never scale.</li>
+          <li>On scroll, animate position and opacity only — never scale an <em>object</em>. The one exception is a straight stroke that grows from one end, which is a scale about that end and the only draw that survives <code>vector-effect: non-scaling-stroke</code>; <code>scripts/check-iso-motion.py</code> enforces that it is done that way and not with a dash.</li>
+          <li>Keep the whole of it under the hand: three pixels of travel per pixel of scroll, at the curve's steepest. → <a href="#scrub">A part may not outrun the hand</a></li>
         </ul>
       </div>
       <div class="docs-rule docs-rule--dont">
@@ -295,6 +296,59 @@ for t in ['fast','base','slow','scene']:
       finished at the moment it is centred. They are shared by every pattern page and
       retiming them is a change to the whole system rather than to one page, so it is stated
       here rather than done quietly on the way past.
+    </div>
+
+    <h3 id="scrub">A part may not outrun the hand</h3>
+    <p>
+      The rule above is about <em>when</em> a build happens. This one is about <em>how
+      fast</em>, and it is the same finding one step out: an assembly driven by scroll range
+      rather than by a duration has no speed of its own, so the reader's hand is the
+      transport — and how far a part moves for each pixel the page moves is an authored
+      quantity like any other. Nothing had ever been held to it, and one animation on the
+      landing page was thirteen times over everything else there.
+    </p>
+    <p>
+      <strong>The ceiling is three pixels of travel for each pixel of scroll, at the timing
+      function's steepest.</strong> At 3 to 1 a 100 px wheel notch throws a part a third of a
+      screen, which is the edge of reading as a scrub rather than as a cut. A scatter is the
+      one kind of motion here allowed to move faster than the hand at all; everything that
+      builds is under 1.2.
+    </p>
+    <p>
+      It is arithmetic and not a measurement wherever the range is <code>exit</code>, because
+      the <code>exit</code> phase spans the subject's own height and a drawing's travel
+      vectors are in the same viewBox units as that height — so the render scale cancels and
+      the ratio is the same number at every viewport. The statement figure's farthest part
+      travels <code>hypot(393.12, 196.56)</code> = 439.5 units in a window of
+      <code>0.40 × 420</code> = 168, which is 2.62. Then the curve multiplies it:
+      <strong>an eased curve's steepest slope is the factor by which the rendered state
+      outruns the linear range position</strong>, and for <code>--ease-out</code> —
+      <code>cubic-bezier(0, 0, .2, 1)</code> — that factor is exactly 5, at <code>t = 0</code>,
+      which is where an exit starts. 13.08, and the part was 83 % gone by the middle of its
+      own window.
+    </p>
+    <p>
+      How it got there is worth as much as the number. <code>animation-name</code> is a
+      replacement and not an addition, so a rule that adds a second animation has to restate
+      every list on it in full — and that rule restated name, range and fill-mode and not
+      <code>animation-timing-function</code>, so the exit silently took the
+      <code>--ease-out</code> the isometric family sets for its fades. <strong>The curve is
+      the one list it is easiest to forget, because omitting it is the only one that renders
+      as something rather than as nothing.</strong> The fix is
+      <code>animation-timing-function: var(--ease-out), linear</code>: the arrival keeps the
+      token that is for objects that fly in and stay, and the departure takes the same
+      <code>linear</code> the flow's two passes take, for the reason stated there — scroll
+      position IS the draw. <code>scripts/check-scrub-rate.py</code> holds the ceiling and
+      catches both shapes of the omission, the missing list and the short one that cycles.
+    </p>
+    <div class="docs-note">
+      <strong>Held: every part of the statement figure that carries an exit vector, in both
+      files that ship the drawing.</strong> The <code>cover</code> and <code>contain</code>
+      families are not held, and cannot be by arithmetic: their phases span
+      <code>vh + h</code> and <code>pinH − vh</code>, so their rate depends on the viewport
+      and a static script has no number to state. They were measured in Chromium instead —
+      the highest is card 01's tallest build part at 1.14 CSS px per px of scroll, 155 units
+      over 374 px of the pinned track.
     </div>
 
     <h3 id="build">An object that is assembled, not delivered</h3>

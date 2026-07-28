@@ -2047,10 +2047,48 @@ ul.cf-nav__list {
     .cf-statement .cf-iso__scene {
       animation-range: cover 34% cover 54%;
     }
+    /* THE SCATTER OUTRAN THE HAND BY THIRTEEN TO ONE, and the timing function is
+       the whole of it. Every list on this rule is restated in full because
+       animation-name is a replacement — and the one list that was NOT restated
+       is animation-timing-function, so cf-stmt-scatter inherited the --ease-out
+       the block above sets for the whole isometric family. That is right for a
+       fade and wrong for this, and the arithmetic says so without a browser:
+
+         travel  hypot(393.12, 196.56) = 439.5 units, the farthest part's --sx/--sy
+         window  40 % of `exit`, and `exit` spans the figure's OWN HEIGHT — 420 of
+                 the same units. 0.40 x 420 = 168 units of scroll.
+
+       Both quantities are in the drawing's units, so the ratio is a pure number
+       and the same at every viewport: 2.62 px of travel per px of scroll. Then
+       --ease-out multiplies it. cubic-bezier(0, 0, .2, 1) has dy/dx = 5 exactly
+       at t = 0 (6s - 6s² over 1.2s + 1.2s², as s goes to 0), so the part leaves
+       at 13.1 px per px and is 83 % of the way gone by the middle of its own
+       window. Measured at 1440 x 900 in 20 px steps, which averages across that
+       start and so reads under it: 5.8 units of travel per px of scroll, against
+       1.14 CSS px/px for the next fastest thing on the page — card 01's tallest
+       build part, 155 units over 374 px of the pinned track. Ten to one.
+
+       On a page whose whole grammar is that scroll position IS the state, a part
+       that moves thirteen times faster than the hand is not scrubbed, it is
+       flung — and it is the transition INTO the section the page is built round.
+
+       linear, therefore, on the second animation only. It is the same division
+       the flow's two passes are written on one file over: "linear on both,
+       because scroll position IS the draw". The fade keeps --ease-out: it is an
+       object arriving, which is what that token is for. After: a constant 2.62
+       px per px through the window, at every viewport, in both directions.
+
+       NOT fixed by widening the window, and that is deliberate. --scat-in runs
+       28 to 58 and the last part already ends at exit 98 %, two points before
+       the figure's last pixel leaves the top — there is no room in `exit` to
+       spend, and the leads are per-part markup that the drawing's own lane
+       owns. The curve is this file's, and the curve is what was wrong.
+       scripts/check-scrub-rate.py holds the ceiling. */
     .cf-statement .cf-iso__ghost {
       animation-name: cf-iso-fade, cf-stmt-scatter;
       animation-range: cover 46% cover 70%,
                        exit var(--scat-in, 30%) exit calc(var(--scat-in, 30%) + 40%);
+      animation-timing-function: var(--ease-out), linear;
       animation-fill-mode: both, forwards;
     }
   }
