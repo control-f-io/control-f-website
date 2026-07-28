@@ -108,6 +108,69 @@ check here is:
      height: at 568 x 320 it engaged at 224 px and left 12. The value must
      subtract var(--nav-height), so whatever else it takes, the other fixed
      layer is not it.
+
+THE SIXTH LINK, AND IT IS A THIRD CONSUMER RATHER THAN A SIXTH TEST OF THE
+FIRST. Everything above is about the hero. The banner is fixed to the viewport's
+bottom edge, so it lands on whatever else is pinned to that edge, and the
+landing page pins a second thing there: the "Was wir machen" stage, `position:
+sticky` at `height: 100vh`, with an index above the card and a progress hairline
+under it. Its card is sized off the viewport HEIGHT — `calc((100vh - 13rem) * 2)`,
+the derivation check-pin-measure.py declines to judge — and 100vh was read raw.
+
+Measured on patterns/landing-page.html, first load, the stage stuck:
+
+    viewport      bar buried   card foot buried   elementFromPoint at the bar's centre
+    1280 x  720      99.4            82.4         the banner's "Datenschutzerklärung"
+    1366 x  768      99.4            82.4         the banner's body copy
+    1280 x  800      88.2            71.2         the banner's plate
+    1024 x  720      81.4            64.4         the banner's plate
+    1440 x  900      73.4            56.4         the banner's plate
+    1024 x  768      57.4            40.4         the banner's plate
+    1280 x  900      38.2            21.2         the banner's plate
+    1024 x  900       0               0           the bar
+    1920 x 1080       0               0           the bar
+
+Seven of nine sizes the gate admits, and the two clear ones are 900 and 1080 —
+the heights anyone checks at, which is the same reason the width half of this
+stage's chrome went unseen (see check-pin-measure.py's table, whose zeroes are
+the same two rows). The bar is the only element on the stage that says the
+section scrubs at all; on seven sizes the middle of it belongs to the banner.
+
+  6. THE STAGE RESERVES THE LAYER OVER ITS FOOT, in both terms, because the
+     card's size and the stage's box are two different declarations that have
+     to agree:
+
+       --lp-measure          the card's width, derived from the viewport height
+       .lp-proc-stage's      the stage's own box, so the trio is centred in
+         block axis          what is left rather than in the whole screen
+
+     Both must read var(--cf-consent-height, 0px), and both must be FLOORED at
+     the gate's own min-height — read out of the page's own @media prelude here,
+     not typed, so the floor cannot drift from the gate it is a floor for.
+
+     The floor is load-bearing and is the one part of this that is not obvious.
+     The card's height is max(width / 2, the copy), and the copy is the taller
+     column below about 1000 px of card, so past that crossover narrowing the
+     card makes it TALLER. An unfloored reservation therefore crops the card
+     against the stage's own clip — 90.7 px at 1280 x 720 with the banner up,
+     measured — which is a worse picture than the one it was fixing. Floored,
+     the reservation is paid in full at and above 820 px of viewport, tapers to
+     nothing at the gate's floor, and is byte-identical to the unreserved
+     rendering wherever the banner is not up, because max() against a 0px
+     fallback is the expression it replaced.
+
+     It also has to be the BLOCK SIZE and not padding, for the mirror image of
+     the reason link 4 gives for the hero: the inner is height: 100% of the
+     sticky box with align-content: center, so shortening the box lifts the
+     trio while padding inside it would push the same content into the same
+     banner.
+
+  7. The 0px fallback rule (link 2) reaches page-local <style> blocks as well.
+     It used to read assets/css/ only, which is the boundary check-grid-tracks
+     .py draws and the one check-page-local-tracks.py exists because of: the
+     three consumers of this property are now two stylesheet rules and two
+     page-local ones, and a page-local read with a non-zero fallback would
+     reserve the banner's space on every visit after the banner is gone.
 """
 import re
 import sys
@@ -193,17 +256,34 @@ else:
                 )
 
 # ---- 2 · every read of the property falls back to 0px ---------------------
-for css in sorted(CSS.glob("*.css")):
-    text = strip_comments(css.read_text(encoding="utf-8"))
-    for m in re.finditer(r"var\(\s*%s\s*(?:,([^()]*))?\)" % re.escape(PROP), text):
-        fallback = (m.group(1) or "").strip()
-        if fallback != "0px":
-            failures.append(
-                "%s: var(%s) falls back to %r, not `0px`. The property exists only "
-                "while the banner does; any other fallback reserves space on every "
-                "page that never shows one."
-                % (css.name, PROP, fallback or "(no fallback)")
-            )
+#          — in the sheets AND in the page-local blocks (link 7)
+STYLE_BLOCK = re.compile(r"<style[^>]*>(.*?)</style>", re.S | re.I)
+
+
+def property_reads():
+    """(where, fallback) for every var(--cf-consent-height, …) that ships."""
+    for css in sorted(CSS.glob("*.css")):
+        text = strip_comments(css.read_text(encoding="utf-8"))
+        for m in re.finditer(r"var\(\s*%s\s*(?:,([^()]*))?\)" % re.escape(PROP), text):
+            yield css.name, (m.group(1) or "").strip()
+    for page in sorted((ROOT / "design-system").rglob("*.html")):
+        if "prototypes" in page.parts:
+            continue
+        for block in STYLE_BLOCK.findall(page.read_text(encoding="utf-8")):
+            text = strip_comments(block)
+            for m in re.finditer(r"var\(\s*%s\s*(?:,([^()]*))?\)" % re.escape(PROP),
+                                 text):
+                yield str(page.relative_to(ROOT)), (m.group(1) or "").strip()
+
+
+for where, fallback in property_reads():
+    if fallback != "0px":
+        failures.append(
+            "%s: var(%s) falls back to %r, not `0px`. The property exists only "
+            "while the banner does; any other fallback reserves space on every "
+            "page that never shows one."
+            % (where, PROP, fallback or "(no fallback)")
+        )
 
 # ---- 3 · the script sets it AND takes it away -----------------------------
 if not JS.exists():
@@ -328,6 +408,110 @@ else:
             "70vh engaged at 568 x 320 and left 12 px of page between the two of them."
             % (SHORT, " ".join(cap_value.group(1).split()))
         )
+
+# ---- 6 · the pinned stage reserves the layer over its foot ----------------
+PAGE = ROOT / "design-system" / "patterns" / "landing-page.html"
+STAGE_SEL = ".lp-proc-stage"
+MEASURE = "--lp-measure"
+# The block axis, in both spellings — a stage shortened by either is shortened
+# the same amount, the way check-pin-measure.py reads the inline one.
+BLOCK_SIZE = re.compile(r"(?<![-\w])(?:height|block-size)\s*:\s*([^;]+)", re.I)
+
+if not PAGE.exists():
+    failures.append("missing %s" % PAGE.relative_to(ROOT))
+else:
+    page_css = "\n".join(STYLE_BLOCK.findall(PAGE.read_text(encoding="utf-8")))
+    page_css = strip_comments(page_css)
+
+    # The floor is the gate's own min-height, read rather than typed. The gate
+    # is the one prelude on this page carrying both a min-width and a
+    # min-height — .cf-pin's, adopted from here.
+    gate = re.search(r"@media[^{]*\(\s*min-height\s*:\s*([\d.]+rem)\s*\)", page_css)
+    if not gate:
+        failures.append(
+            "landing-page.html: no @media prelude with a min-height, so there is no "
+            "gate to floor the stage's reservation against. The floor cannot be "
+            "typed here — it has to be the number the gate admits the stage at."
+        )
+        floor = None
+    else:
+        floor = gate.group(1)
+
+    def page_rule_bodies(text, selector):
+        """Every `selector { … }` in a page block, at any indent, joined.
+
+        rule_body() above anchors at column 0 for the sheets; a page-local
+        block is indented inside <style>, and this page declares the stage
+        twice — the measure pass-through and the grid. Both are the rule.
+        """
+        out = []
+        for m in re.finditer(r"(?m)^\s*" + re.escape(selector) + r"\s*\{", text):
+            i, depth = m.end(), 1
+            while i < len(text) and depth:
+                if text[i] == "{":
+                    depth += 1
+                elif text[i] == "}":
+                    depth -= 1
+                i += 1
+            out.append(text[m.end(): i - 1])
+        return "\n".join(out)
+
+    def reserves(value):
+        return re.search(r"var\(\s*%s\s*,\s*0px\s*\)" % re.escape(PROP), value)
+
+    def floored(value):
+        return floor and re.search(r"max\(\s*%s\s*," % re.escape(floor), value)
+
+    consumers = [
+        (MEASURE, re.search(r"%s\s*:\s*([^;]+)" % re.escape(MEASURE), page_css),
+         "the card's width is derived from the viewport height, so it has to be "
+         "derived from the part of it the reader can see"),
+        (STAGE_SEL + " block axis",
+         BLOCK_SIZE.search(page_rule_bodies(page_css, STAGE_SEL)),
+         "the stage's own box has to end where the banner begins, or the trio is "
+         "centred in a screen 144 px of which is not there"),
+    ]
+    for name, found, why in consumers:
+        if not found:
+            failures.append(
+                "landing-page.html: no %s declaration in the page's <style> block. "
+                "%s." % (name, why[0].upper() + why[1:])
+            )
+            continue
+        value = " ".join(found.group(1).split())
+        if not reserves(value):
+            failures.append(
+                "landing-page.html %s does not reserve the consent banner.\n"
+                "    %s\n"
+                "    The banner is fixed to the viewport's bottom edge and this stage "
+                "is pinned to the same edge — %s. Without a var(%s, 0px) term the "
+                "banner buries the progress bar on seven of the nine viewports the "
+                "gate admits, and elementFromPoint at the middle of the bar returns "
+                "the banner." % (name, value, why, PROP)
+            )
+        elif not floored(value):
+            failures.append(
+                "landing-page.html %s reserves the banner without flooring at the "
+                "gate's own min-height (%s).\n    %s\n"
+                "    The card's height is max(width / 2, the copy) and the copy is "
+                "the taller column below about 1000 px of card, so past that "
+                "crossover an unfloored reservation makes the card TALLER and the "
+                "stage's clip crops it — 90.7 px at 1280 x 720, measured. Write the "
+                "reservation as max(%s, …)." % (name, floor or "?", value, floor or "?")
+            )
+    # a cap on the box, not padding inside it — the mirror of link 4
+    stage_body = page_rule_bodies(page_css, STAGE_SEL)
+    for prop in ("padding-block-end", "padding-bottom", "padding-block", "padding"):
+        for d in re.finditer(r"(?m)^\s*%s\s*:\s*([^;]+);" % re.escape(prop),
+                             stage_body):
+            if PROP in d.group(1):
+                failures.append(
+                    "landing-page.html %s: `%s` reads %s. The inner is height: 100%% "
+                    "of the sticky box with align-content: center, so the reservation "
+                    "has to shorten the BOX — padding inside it pushes the same trio "
+                    "into the same banner while measuring as applied."
+                    % (STAGE_SEL, prop, PROP)
+                )
 
 if failures:
     print("check-consent-clearance.py: %d problem(s)\n" % len(failures))
