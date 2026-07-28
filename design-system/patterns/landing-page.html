@@ -340,9 +340,56 @@
       .lp-proc-plate .cf-process__figure { border-color: transparent; }
       .lp-frame {
         position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
+        /* ON THE BORDER BOX, NOT THE PADDING BOX, and this is the whole
+           difference between a contour that replaces a border and one that
+           stands just inside where the border was. `inset: 0` on an absolutely
+           positioned child resolves against its containing block's PADDING box,
+           and .lp-proc-plate is a .cf-process, which carries
+           `border: var(--stroke-1) solid`. The border-color is given up to this
+           frame two rules above; the border-WIDTH stays, so the padding box is
+           1 px inside the border box on every side, and so was this drawing.
+
+           Measured at device scale 8, reading the ink off the render rather
+           than the DOM: at 1920x1080 the plate's border box began at x 320.00
+           and the frame's left vertical painted centred on 320.94. The flow
+           overhead — same container, same width, so its box IS the plate's
+           border box — dropped its leftmost terminal at exactly 320.00. Two
+           lines that the markup note below calls the same line, 0.94 px apart,
+           at every viewport (L +1.00 R +1.00 T +1.00 B +1.00 at 1440, 1920 and
+           1280 alike). Same at the right vertical and both top corners.
+
+           Cancelling the border width puts the frame's box back on the plate's
+           border box, which is where the border it replaced was and where the
+           flow lands. The three sibling cards keep their own transparent
+           borders on that same outer boundary, so the contour now stands on
+           theirs too. Written against the token rather than as -1px because it
+           is that border being cancelled, not a coincidence about its size.
+
+           AND max-width HAS TO GO WITH IT. base.css:151 resets
+           `img, svg, video { display: block; max-width: 100% }`, and for an
+           absolutely positioned box that 100 % is the containing block's
+           padding box — the very box being escaped. With the insets alone the
+           left edge moved to 79.98 and the right stayed at 1357.98: the cap
+           held the width at 1278 and the negative left simply slid the old box
+           1 px left, which is a worse drawing than the one being fixed, since
+           it makes the two verticals disagree with each other as well as with
+           the flow.
+
+           AND THE SIZE IS STATED RATHER THAN LEFT TO THE INSETS, because an
+           <svg> is a REPLACED element and a replaced element resolves an auto
+           size from its intrinsic ratio before it resolves it from opposing
+           insets. With `inset` alone and no width or height, this box came out
+           1280 x 640: the width followed the two insets, and the height came
+           from the viewBox's own 1000 / 500 — 1280 / 2 — so `bottom: -1px` was
+           simply dropped as over-constrained and the base rail stayed 1 px
+           inside the plate while the other three had moved out. Three sides
+           fixed and one not is the state this check exists to make impossible.
+           Both percentages are of the containing block's padding box, which is
+           the box being escaped, so both add the border back twice. */
+        inset: calc(var(--stroke-1) * -1);
+        width: calc(100% + var(--stroke-1) * 2);
+        height: calc(100% + var(--stroke-1) * 2);
+        max-width: none;
         pointer-events: none;
         /* THE BORDER WEIGHED LESS THAN THE LINE DIVIDING IT, and it is the one
            thing about this frame that is not the frame's own doing. Four of the
@@ -370,7 +417,8 @@
            drawing in the system whose whole geometry sits on its extremes, and
            it was the one that never declared it. Nothing here overflows but
            those four half-strokes: the plate does not crop, so they land exactly
-           where the border they replaced stood. */
+           where the border they replaced stood — which they do since the inset
+           above cancels that border's width, and did not before it. */
         overflow: visible;
       }
       /* Statics only on the shared selector — an `animation` shorthand here
