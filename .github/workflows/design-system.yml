@@ -1356,3 +1356,32 @@ jobs:
       - name: Flow axes
         if: '!cancelled()'
         run: python3 scripts/check-flow-axes.py
+      # The sixty-ninth, and the second at anchor positioning's silent failure
+      # mode -- the one check-anchor-positioning.py's own docstring was written
+      # about and had no clause that could see. That check reads a declaration
+      # on its own: does the name resolve, is the name used, is the use guarded.
+      # Whether the element is ABSOLUTELY POSITIONED when the cascade is done is
+      # not a property of any one declaration, and an anchor is acceptable to
+      # nothing else.
+      #
+      # It shipped. .lp-proc-head is `position: absolute` inside the @supports
+      # that anchors the "Was wir machen" rule to the drawing, and 476 lines
+      # further down the same file, inside the same gate, at the same
+      # specificity -- one class, no narrowing -- stood `position: relative`,
+      # written to give the ::after hairline a containing block. Later rule,
+      # equal specificity, so it won. `top` computed to 0px and `width` to auto.
+      # Measured at 1440 x 900: the rule that is meant to be the drawing's
+      # horizon rendered 1280.02 px wide against the drawing's 1096, sat 315.6
+      # px below the rim it names, and EIGHT strokes of the root crossed it, at
+      # x 181.3, 272.3, 395.6, 690.1, 724.2, 868.2, 950.4 and 984.1. Zero after
+      # the fix, at all eight viewports the gate admits. Nothing failed: every
+      # other check in the repository passed and the only report was a screenshot.
+      #
+      # So the invariant is about the winner, not the declaration: for every
+      # selector that reads anchor() or anchor-size(), the `position` that WINS
+      # the cascade must be absolute or fixed. Proven failing on the
+      # reintroduction -- putting `position: relative` back on the lower
+      # .lp-proc-head rule names all three rules and which one wins.
+      - name: Anchor position cascade
+        if: '!cancelled()'
+        run: python3 scripts/check-anchor-position-cascade.py

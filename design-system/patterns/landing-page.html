@@ -1300,6 +1300,21 @@
          timelines this whole gate already needs. Without it the header stays
          where it is today — unruled and in the drawing — which is no worse
          than it was, and the drawing is hidden entirely outside the gate. */
+      /* THE HEADER'S BASE `position`, AND IT HAS TO BE ON THIS SIDE OF THE
+         @supports. .lp-proc-head::after — the hairline that draws itself, far
+         below in this file — is absolutely positioned against this box, so the
+         box needs to be a containing block in BOTH tiers. In the anchored tier
+         the block below makes it `absolute`, which is a containing block and is
+         also the only `position` an anchor is acceptable to. In the tier with
+         view timelines and without anchor positioning, this is the one that
+         supplies it. Written HERE rather than beside the ::after because the
+         two rules have equal specificity and the later one wins: from below the
+         @supports, `relative` overrides `absolute` and every anchor() on this
+         header falls back to the static position, silently. It shipped that way
+         and is written up at the ::after. Held by
+         scripts/check-anchor-position-cascade.py. */
+      .lp-proc-head { position: relative; }
+
       @supports (anchor-name: --lp-flow-box) and (top: anchor(--lp-flow-box bottom)) {
         .lp-flow { anchor-name: --lp-flow-box; }
         .cf-statement__text { anchor-name: --lp-statement-text; }
@@ -1919,8 +1934,35 @@
          the label row trapped between them. → scripts/check-head-rule.py, which
          reads the edge off the cascade and fails if the animated edge and the
          bordered edge are not the same one. */
+      /* NO `position` HERE, AND THAT IS THE WHOLE POINT OF THE RULE ABOVE IT.
+         This block sits 476 lines BELOW the @supports that anchors this header
+         to the drawing, at the same specificity, so anything it says about
+         `position` wins the cascade — and `position: relative`, which is what
+         it used to say, is not `absolute`. An anchor is only acceptable to an
+         ABSOLUTELY positioned element; a relatively positioned one is an
+         ordinary in-flow box, so `top`, `left` and `width` up there all became
+         invalid at computed-value time and the header rendered at its static
+         position, at its static width, with no error anywhere. Measured at
+         1440 x 900 before this commit: `top` computed to 0px, the rule spanned
+         1280.02 px against the drawing's 1096, it stood 315.6 px BELOW the rim
+         it names, and eight strokes of the root crossed it. The failure is
+         written out verbatim in check-anchor-positioning.py's own docstring —
+         "the header dropped 250 px to its static position and drew a
+         full-measure hairline through the middle of the root" — as the story of
+         how that check came to exist, and the check had no clause that could
+         see it. It has one now: scripts/check-anchor-position-cascade.py
+         resolves `position` over the whole cascade for every selector that
+         reads an anchor, and fails when the winner is not absolute or fixed.
+
+         WHAT `position: relative` WAS FOR is the ::after below, which needs a
+         positioned ancestor for its `inset-inline: 0` and its top hairline. In
+         the anchored tier `position: absolute` is that ancestor already. In the
+         tier with view timelines and no anchor positioning nothing else
+         supplies one, so the declaration moves UP the file, above the
+         @supports, where it is the base the anchored tier overrides instead of
+         the override that silently unmakes it. → the .lp-proc-head rule that
+         stands immediately before that @supports. */
       .lp-proc-head {
-        position: relative;
         border-block-start-color: transparent;
         view-timeline-name: --lp-head;
         view-timeline-axis: block;
