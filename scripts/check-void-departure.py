@@ -118,7 +118,8 @@ ARC_RE = re.compile(
 STATEMENT = "cf-iso"
 SENSOR = "cf-stmt-sensor"
 CIRCLE_RE = re.compile(
-    r'<circle\b[^>]*class="([^"]*)"[^>]*\bcx="([-\d.]+)"[^>]*\bcy="([-\d.]+)"', re.S)
+    r'<circle\b[^>]*class="([^"]*)"[^>]*\bcx="([-\d.]+)"[^>]*\bcy="([-\d.]+)"'
+    r'[^>]*\br="([-\d.]+)"[^>]*\bopacity="([-\d.]+)"', re.S)
 FLOW = "lp-flow"
 FLOW_SEG = "lp-flow__seg"
 
@@ -155,23 +156,34 @@ def show(v):
 
 
 def find_void(body):
-    """The void: the hole the sensor field leaves in the middle of itself.
+    """The void: the quietest place in the sensor field.
 
-    Centre from the bounding box of the instruments — the field is laid out
-    symmetrically about it and culled symmetrically by the hole, so the box is
-    centred on the emptiness. `inner` is the distance to the nearest instrument,
-    which is the hole's edge as the lattice is able to draw it; `spacing` is the
-    nearest-neighbour distance, the grain the edge is quantised to."""
-    pts = [(rational(cx), rational(cy)) for cls, cx, cy in CIRCLE_RE.findall(body)
-           if SENSOR in cls.split()]
-    if len(pts) < 8:
+    There is no hole to measure any more — a hole was cut here once and read as
+    a disc laid over the drawing, so the middle is floored instead of culled and
+    the emptiness is made of intensity. Centre from the bounding box of the
+    instruments, which are laid out symmetrically about it. `field` is every
+    instrument with the weight it actually carries: its opacity and its radius,
+    which together are how much of the drawing it is."""
+    field = [(rational(cx), rational(cy), float(r), float(op))
+             for cls, cx, cy, r, op in CIRCLE_RE.findall(body) if SENSOR in cls.split()]
+    if len(field) < 8:
         return None, []
-    cx = (min(p[0] for p in pts) + max(p[0] for p in pts)) / 2
-    cy = (min(p[1] for p in pts) + max(p[1] for p in pts)) / 2
-    inner = min(((p[0] - cx) ** 2 + (p[1] - cy) ** 2) for p in pts)
-    spacing = min(((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
-                  for i, a in enumerate(pts) for b in pts[i + 1:])
-    return (cx, cy, inner, spacing), pts
+    xs, ys = [p[0] for p in field], [p[1] for p in field]
+    cx = (min(xs) + max(xs)) / 2
+    cy = (min(ys) + max(ys)) / 2
+    return (cx, cy, field), field
+
+
+def intensity(px, py, field):
+    """How much ink the field puts at a point. A linear stand-in for the radial
+    ramp — exact enough to rank places against each other, which is all that is
+    asked of it, and it needs no colour maths to do it."""
+    total = 0.0
+    for x, y, r, op in field:
+        d = ((float(x) - px) ** 2 + (float(y) - py) ** 2) ** 0.5
+        if d < r:
+            total += op * (1.0 - d / r)
+    return total
 
 
 def main():
@@ -204,10 +216,7 @@ def main():
     if void is None:
         print(f"void departure: the statement draws no .{SENSOR} field — the void is gone")
         return 1
-    cx, cy, inner2, spacing2 = void
-    inner = Fraction(inner2).limit_denominator(10 ** 6) ** Fraction(1, 2) \
-        if False else float(inner2) ** 0.5
-    spacing = float(spacing2) ** 0.5
+    cx, cy, field = void
 
     segs = []
     for classes, d in PATH_RE.findall(f_body):
@@ -221,8 +230,8 @@ def main():
 
     # 0. the field is symmetric about the hole, which is what makes its
     #    bounding box the void's centre rather than merely its middle
-    mean_x = sum(p[0] for p in pts) / len(pts)
-    mean_y = sum(p[1] for p in pts) / len(pts)
+    mean_x = sum(p[0] for p in field) / len(field)
+    mean_y = sum(p[1] for p in field) / len(field)
     for name, mean, box in (("x", mean_x, cx), ("y", mean_y, cy)):
         if abs(float(mean - box)) > 0.5:
             findings.append(
@@ -256,31 +265,33 @@ def main():
             f"the trunk departs at x {show(dep[0])} and the void's centre is x "
             f"{show(cx)} — {show(abs(dep[0] - cx))} units off plumb")
 
-    # 4. on the rim: inside the emptiness, and within one instrument's spacing
-    #    of its inner edge. Not an equality any more — see the header.
-    drop = float(dep[1])
-    if drop > inner + 1e-9:
+    # 4. THE ROOT LEAVES FROM THE QUIETEST PLACE IN THE FIELD. Not a rim any
+    #    more -- there is no hole to have one. The claim that survived the
+    #    change is the one that mattered: the departure is not in the middle of
+    #    a hot cluster. Measured against the field's own instruments as the
+    #    sample set, so the bar moves with the drawing instead of being a
+    #    literal somebody has to remember to update.
+    dep_i = intensity(float(dep[0]), float(dep[1]), field)
+    samples = sorted(intensity(float(x), float(y), field) for x, y, _, _ in field)
+    median = samples[len(samples) // 2]
+    quiet = samples[max(0, len(samples) // 5)]      # the field's quietest fifth
+    if dep_i > quiet:
         findings.append(
-            f"the trunk departs {show(dep[1])} units below the void's centre and the "
-            f"nearest instrument is at {inner:.2f} — the head of the drawing leaves "
-            f"from inside the field instead of from the hole in it. A root leaves "
-            f"from somewhere.")
-    elif inner - drop > spacing + 1e-9:
-        findings.append(
-            f"the trunk departs {show(dep[1])} units below the void's centre and the "
-            f"nearest instrument is at {inner:.2f} — a gap of {inner - drop:.2f}, wider "
-            f"than the field's own {spacing:.2f} spacing, so the departure floats in "
-            f"open wash rather than sitting on the edge of the emptiness.")
+            f"the field puts {dep_i:.2f} of ink at the departure and its quietest "
+            f"fifth is under {quiet:.2f} (median {median:.2f}) — the root leaves out "
+            f"of a bright part of the field instead of out of the quiet in the "
+            f"middle of it. A root leaves from somewhere.")
 
     if args.verbose:
         print(f"  statement viewBox  {show(s_w)} x {show(s_h)}")
         print(f"  flow viewBox       {show(f_w)} x {show(rational(f_vb.split()[3]))}")
-        print(f"  void (field hole)  centre ({show(cx)}, {show(cy)})  inner edge {inner:.2f}")
-        print(f"  instruments        {len(pts)}   nearest-neighbour spacing {spacing:.2f}")
+        print(f"  void (field low)   centre ({show(cx)}, {show(cy)})   instruments {len(field)}")
+        print(f"  ink at departure   {intensity(float(dep[0]), float(dep[1]), field):.2f}")
         print(f"  figure midpoint    {show(s_h / 2)}   (`top: 50%` puts flow y 0 here)")
         print(f"  trunk departure    ({show(dep[0])}, {show(dep[1])})")
-        print(f"  drop below centre  {show(dep[1])}  vs inner edge {inner:.2f}  "
-              f"(slack {inner - float(dep[1]):.2f} of {spacing:.2f} allowed)")
+        _s = sorted(intensity(float(x), float(y), field) for x, y, _, _ in field)
+        print(f"  field ink          quietest fifth < {_s[len(_s)//5]:.2f}   "
+              f"median {_s[len(_s)//2]:.2f}   brightest {_s[-1]:.2f}")
 
     if findings:
         print(f"\nvoid departure: {len(findings)} finding(s)")
@@ -288,9 +299,8 @@ def main():
             print(f"  {f}")
         return 1
     print(f"void departure OK — the trunk leaves x {show(dep[0])} plumb under the void's "
-          f"centre and {show(dep[1])} units below it, onto an inner edge at {inner:.2f} "
-          f"({len(pts)} instruments, {spacing:.2f} apart), both drawings on a "
-          f"{show(s_w)}-unit basis")
+          f"centre and {show(dep[1])} units below it, into the quiet of a "
+          f"{len(field)}-instrument field, both drawings on a {show(s_w)}-unit basis")
     return 0
 
 
