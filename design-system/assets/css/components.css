@@ -5944,10 +5944,47 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
       animation-timeline: --cf-pin;
       animation-range: contain calc(var(--i) * 25%) contain calc((var(--i) + 1) * 25%);
     }
+    /* THE NUMERAL IS LIT WHILE ITS CARD IS ON THE STAGE, and for as long as
+       this stage has existed it was lit for rather less than that.
+
+       The mark ran the QUARTER — `contain 25i% -> 25(i+1)%` — with
+       cf-pin-mark reaching --text-primary at 14 % of it and leaving at 86 %.
+       The card runs a range three points WIDER at each end and reaches full
+       opacity at 11 % of that, which is 0.41 of a point into its quarter. Two
+       different ranges, two different literals, and the arithmetic falls out:
+
+         card i fully opaque   contain 25i + 0.41  ..  25i + 24.59
+         mark i at primary     contain 25i + 3.50  ..  25i + 21.50
+
+       So the numeral arrived 3.09 points after the card it names and left 3.09
+       points before it, and between one mark going dark and the next lighting
+       there was a seven-point band with NOTHING at --text-primary — centred
+       exactly on the quarter boundary, where all four numerals are --text-muted
+       to the integer while a card stands fully opaque behind them. The index is
+       the one element on this stage whose whole job is to say which of the four
+       you are looking at, and it said none of them. Swept at 20 px, counting a
+       mark as lit within a quarter of the primary-to-muted range:
+
+         landing    1440 x 900   1020 px of 5760   17.7 %   160 / 280 / 280 / 300
+         landing    1280 x 800    900 px of 5120   17.6 %   140 / 240 / 260 / 260
+         expertise  1440 x 900   1040 px of 5760   18.1 %   160 / 300 / 280 / 300
+         expertise  1280 x 800    920 px of 5120   18.0 %   140 / 280 / 260 / 240
+
+       The first band of each row is the worst of the four, because it is not a
+       handover: it is the stage pinning. The reader arrives, the page stops,
+       card 01 is complete — and the index over it names nothing for 160 px.
+
+       THE FIX IS TO STOP WRITING IT TWICE. The mark takes the step's range and
+       the step's two literals, so "lit" and "on the stage" are the same
+       interval by construction rather than by two numbers agreeing. The cards
+       cross over at the quarter boundary with both at 0.88; the numerals now
+       cross there too, both half-way between the two inks over 0.82 of a point
+       — 47 px, the same gesture, instead of 280 px of nothing.
+       scripts/check-pin-name.py holds the two bands to each other. */
     .cf-pin__mark {
       animation: cf-pin-mark linear both;
       animation-timeline: --cf-pin;
-      animation-range: contain calc(var(--i) * 25%) contain calc((var(--i) + 1) * 25%);
+      animation-range: contain calc(var(--i) * 25% - 3%) contain calc((var(--i) + 1) * 25% + 3%);
     }
     .cf-pin__bar::after {
       animation: cf-pin-bar linear both;
@@ -6085,17 +6122,20 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   from { opacity: 0; translate: 0 var(--space-4); }
   to   { opacity: 1; translate: 0 0; }
 }
+/* The two literals are cf-pin-step's, on cf-pin-step's range, which is the
+   whole of the fix recorded over .cf-pin__mark: the numeral is at --text-primary
+   over exactly the interval its card is at opacity 1. */
 @keyframes cf-pin-mark {
   0%, 100% { color: var(--text-muted); }
-  14%, 86% { color: var(--text-primary); }
+  11%, 89% { color: var(--text-primary); }
 }
 @keyframes cf-pin-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 /* The last quarter's pair, written to the shape cf-values-item-last already
    uses: the same arrivals, with the handover cut off the end. Read them against
-   the two above — the arrival halves are identical literals (11 %, 14 %) so the
-   last step arrives exactly like the other three, and only the return to
-   nothing is gone. There is no cf-pin-copy-hold-last, because a keyframe set
+   the two above — the arrival halves are identical literals (11 % in both now,
+   see .cf-pin__mark) so the last step arrives exactly like the other three, and
+   only the return to nothing is gone. There is no cf-pin-copy-hold-last, because a keyframe set
    that holds one value for a whole range is an animation that does nothing: the
    last copy runs `animation-name: none` and is simply present, the same move
    .cf-iso--build .cf-iso__scene makes.
@@ -6106,7 +6146,7 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 }
 @keyframes cf-pin-mark-last {
   0%        { color: var(--text-muted); }
-  14%, 100% { color: var(--text-primary); }
+  11%, 100% { color: var(--text-primary); }
 }
 
 /* --------------------------------------------------------------------------
