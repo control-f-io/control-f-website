@@ -1775,6 +1775,34 @@
   </div>
 </dialog>
 
+<!-- HERE AND NOT AT THE END OF THE BODY, and the difference is 0.32341 of
+     cumulative layout shift at 375 x 812.
+
+     This file's hero reads --cf-consent-height:
+     `min-height: min(92vh, 56rem, calc(100vh - var(--cf-consent-height, 0px)))`
+     in components.css, added so the banner cannot bury the kicker and the one
+     call to action. Nothing publishes that property but cf-consent.js, which
+     can only publish it by measuring a banner that exists — and from the end
+     of the body it did that one frame after the browser had already painted
+     the hero at 92vh. Measured, first visit, nothing stored: the hero went
+     747 -> 501 px at 375 x 812, 2 ms after first contentful paint, and the
+     entire document under it came up 246 px. CLS 0.32341 there, 0.09053 at
+     768, 0.03016 at 1280, 0.02675 at 1440. Zero on every return visit, which
+     is why it survived this long: it is only ever on the first load.
+
+     The banner and its dialog are the first two things in the body, so a tag
+     placed right after them runs while the parser is still ~40 lines above
+     <header class="cf-hero"> — the banner is shown, measured and published
+     before the hero has a box to paint. Same four measurements after the
+     move: 0.000 / 0.011 / 0.000 / 0.000.
+
+     It is where cf-nav.js sits in the head and for the same reason, stated in
+     that file's own header: a script the first paint depends on runs before
+     the first paint or it does not work. Not `defer`, for the same reason —
+     defer is exactly the frame this is moving out of.
+     → cf-consent.js boot(); scripts/check-consent-paint-order.py -->
+<script src="../assets/js/cf-consent.js"></script>
+
 <svg class="cf-sprite" aria-hidden="true">
   <symbol id="cf-arrow" viewBox="0 0 600 480"><g transform="translate(600,0) scale(-1,1)">
     <path d="M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 327.317C183.155 328.422 183.155 331.578 185.367 332.683L476.422 478.211C478.675 479.337 481.325 479.337 483.578 478.211L594.633 422.683C596.845 421.578 596.845 418.422 594.633 417.317L425.367 332.683Z"/>
@@ -3144,7 +3172,6 @@
 </footer>
 
 <nav aria-label="Zur Dokumentation"><a class="ds-back" href="../index.html">← Design System</a></nav>
-<script src="../assets/js/cf-consent.js"></script>
 <script src="../assets/js/cf-sight.js" defer></script>
 <!-- "Was wir machen" is the one section on this page with two shapes rather
      than one width, and the two are 6901 px and 2209 px of the same section at
