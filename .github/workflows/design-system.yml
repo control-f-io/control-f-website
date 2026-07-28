@@ -805,3 +805,31 @@ jobs:
       - name: Pointer reach
         if: '!cancelled()'
         run: python3 scripts/check-pointer-reach.py
+
+      # The forty-fifth, and check-pin-handover.py read from the other end. That
+      # one holds the tail of a pinned track: the last quarter has no exit,
+      # because there is no next quarter to hand over to. This holds the head:
+      # a quarter does not open on a still. The plate crosses in and lands at
+      # contain 0.41 % of its quarter, and something has to be moving by then —
+      # on a pinned stage the reader's wheel moves nothing else, so a gap
+      # between the plate landing and the first part starting is the one still
+      # on a scrubbed page that reads as a fault and not as a hold.
+      #
+      # It broke the way these break. The landing page's build head is 1.5
+      # because the ghosts open a quarter at 0.5 and the solids arrive a point
+      # later, into geometry already standing — and card 01 has no ghosts, so
+      # its quarter opened by waiting a point for something that never comes.
+      # 62 px at 1440 x 900 in which every animated property on the page was
+      # bit-identical, at the one seam the whole page is built around: the frame
+      # finished, 01 02 03 04 lit over an empty rectangle, nothing moving.
+      # Every frame of it rendered exactly as authored.
+      #
+      # The families are read off the MARKUP rather than off the stylesheet,
+      # which is the whole of why this catches it: a check that took the ghost
+      # window on trust would have read 0.5 for a card that has no ghosts and
+      # passed. Expertise is held to the same rule for the same reason Werte is
+      # in the handover check — it shares .cf-pin, and a fix to the mechanism
+      # that only ever gets verified on one of its two pages is half a fix.
+      - name: Quarter opening
+        if: '!cancelled()'
+        run: python3 scripts/check-quarter-opening.py
