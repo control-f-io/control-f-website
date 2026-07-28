@@ -1116,7 +1116,21 @@
   </ul>
 </nav>
 
-<main id="inhalt">
+<!-- tabindex="-1" IS WHAT MAKES THE SKIP LINK MOVE THE READER and not only the
+     viewport. Without it, Enter on the page's first tab stop set the hash and
+     left document.activeElement on <body> — measured at 375 and 1440, on a
+     fresh load, after a mouse dismissal of the consent banner, and after a
+     scroll-and-click, six runs out of six. <main> is not focusable, so the
+     fragment had nothing to hand the focus to; Chromium's starting-point
+     rescue moved the NEXT Tab into main and moved no focus at all, which is
+     the reason this read as working for as long as it did.
+
+     The other half of the fix is in base.css, immediately under the ring:
+     [tabindex] is a term in the ring's list, the skip is a KEYBOARD
+     activation, so main matches :focus-visible and the attribute on its own
+     paints the system's 2 px ring around 10,892 px of document. Neither half
+     ships alone. → scripts/check-skip-target.py -->
+<main id="inhalt" tabindex="-1">
 
   <!-- 01 · Hero -->
   <header class="cf-hero">

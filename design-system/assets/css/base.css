@@ -193,6 +193,58 @@ a:not([class]) {
   outline-offset: 2px;
 }
 
+/* AND THE ONE ELEMENT THE RING ABOVE MUST NOT REACH, which is why the skip
+   link's target could not simply be given the attribute that makes it work.
+
+   The skip link is the first tab stop on all fourteen pattern pages and the
+   only control on any of them that exists for one reader. Measured on the
+   landing page at 375 and 1440, over three sequences — a fresh load, a load
+   where the consent banner was dismissed by mouse first, and a reader who had
+   scrolled and clicked before reaching for it — pressing Enter on it set
+   location.hash to #inhalt and left document.activeElement on <body>. Every
+   time. <main id="inhalt"> is not a focusable element, so there was nothing
+   for the fragment to give the focus to.
+
+   IT LOOKED LIKE IT WORKED, and that is the whole of why it lasted. Chromium
+   moves the SEQUENTIAL FOCUS NAVIGATION STARTING POINT to the fragment's
+   target even when the target cannot hold focus, so the next Tab does land
+   inside <main> — verified in all six runs above. What does not move is
+   focus. A screen reader in focus mode follows document.activeElement and not
+   a starting point no API exposes, so the reader who pressed the one control
+   built for them was told nothing had happened; the starting point is also a
+   rescue rather than a guarantee, discarded by the next click, and one engine
+   implementing it is not the platform agreeing to.
+
+   THE ATTRIBUTE ALONE SHIPS A SECOND DEFECT, and it is a bigger one than the
+   first. tabindex="-1" on <main> makes the fragment move focus for real —
+   measured, document.activeElement becomes MAIN#inhalt at 375, 768, 1280 and
+   1440, on all fourteen pages that carry the link — and
+   [tabindex] is a term in the ring's list one rule up. Because the skip was
+   activated FROM THE KEYBOARD, main then matches :focus-visible: measured
+   `2px solid` around the whole of <main>, which on the landing page is a
+   rectangle 10,892 px tall at 1440. The reader who skips is handed a box
+   drawn around the entire document.
+
+   So the pair is the fix and neither half of it is optional. This rule is the
+   second half: an element whose tabindex is -1 is BY DEFINITION out of the
+   tab order, which is the definition of not being a control, and the ring
+   names controls. Nothing is taken away from a reader here — the skip's
+   feedback is the viewport moving and the next Tab drawing the ring on the
+   first real control inside main. Written as its own rule and not as a
+   :not() inside the list above, because the list above is the system's ONE
+   focus indicator and check-focus-ring.py holds it to being one — a second
+   `:where(...):focus-visible` rule in this file is that check's failure, and
+   correctly so.
+
+   NO :where() ON THIS ONE, which is the difference between a rule that wins
+   and a rule that ties. The indicator wraps its list in :where() so it carries
+   the specificity of :focus-visible alone, (0,1,0). A bare attribute selector
+   with the same pseudo-class is (0,2,0) and takes it outright — in any order,
+   under any later reshuffle of this file, and without the tie that would make
+   the fix depend on which of two lines a hand happened to move first.
+   → scripts/check-skip-target.py */
+[tabindex="-1"]:focus-visible { outline: none; }
+
 /* A BARE <strong> WAS NOT BOLD, and it took a page about marked text to notice.
    Body copy is --weight-light, 300. The UA default for strong is `bolder`,
    which is RELATIVE: against 300 it resolves to 400, one step on a variable
