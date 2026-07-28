@@ -501,11 +501,45 @@ def data(x1, y1, x2, y2):
 # scale. Lime at the tip, CF-Grau trailing into the junction the stroke left.
 # Every axis is its own stroke\'s line, so the gradient\'s angle is a brand
 # angle without anything typing one.
+# AND A SECOND AXIS FOR THE LEAVES, ON THE SAME RAMP, STRETCHED.
+#
+# The ramp puts lime at 0, the oklab waypoint at 0.061 and Glas at 0.32, which
+# on a route's own axis means the lime leg is the first six per cent of the
+# stroke. That is right for a route: the front is a moving tip and what the
+# reader sees of the colour is a point of light travelling down a grey line.
+#
+# It is wrong for a leaf, which is the one stroke that KEEPS its light. Six per
+# cent of a 90-unit dive is five screen pixels, so the settled shimmer was a
+# speck at the very end of each foot — "cant see the shimmer leaves", which is
+# the only test this kind of light has to pass.
+#
+# So a leaf reads the same stops across a longer axis: three times its own
+# length, which puts Glas at the stroke's far end and the waypoint at 18 % of
+# it. Nothing about the family changes — same #lp-flow-ramp,
+# same four stops, same oklab path, one href — only how much of the leg lands
+# on this particular stroke. The lime is at the foot, where the data arrives.
+# THREE, NOT 3.125. The reciprocal of the ramp's Glas stop is 1 / 0.32 =
+# 3.125, which would land Glas exactly on the stroke's far end. Three lands it
+# at 0.333 of the stroke instead — four units further out on the longest leaf,
+# which is under a pixel — and it keeps every endpoint on the same rational
+# grid the rest of the drawing is built on. 3.125 does not: the coordinates
+# come out with four decimals, `num()` prints six significant figures, and the
+# rounding put three of the eighteen leaf axes at 63.44 degrees, which is not
+# one of the five angles. A stretch that cannot be written exactly is a stretch
+# that fails the angle check for arithmetic reasons rather than geometric ones.
+LEAF_STRETCH = F(3)
+
 print()
 for i, (x1, y1, x2, y2, d) in enumerate(segments):
     print(f'<linearGradient id="lp-flow-ax-{i:02d}" href="#lp-flow-ramp" '
           f'gradientUnits="userSpaceOnUse" x1="{num(x2)}" y1="{num(y2)}" '
           f'x2="{num(x1)}" y2="{num(y1)}"/>')
+    if y2 == RAIL:
+        ex = x2 + (x1 - x2) * LEAF_STRETCH
+        ey = y2 + (y1 - y2) * LEAF_STRETCH
+        print(f'<linearGradient id="lp-flow-lf-{i:02d}" href="#lp-flow-ramp" '
+              f'gradientUnits="userSpaceOnUse" x1="{num(x2)}" y1="{num(y2)}" '
+              f'x2="{num(ex)}" y2="{num(ey)}"/>')
 
 # THE LEAVES ARE THE STROKES THAT LAND ON THE RAIL, and they are marked in the
 # markup rather than found in CSS because there is no selector for "ends at
@@ -516,10 +550,12 @@ for i, (x1, y1, x2, y2, d) in enumerate(segments):
 print()
 for i, (x1, y1, x2, y2, d) in enumerate(segments):
     o = "0 0" if x2 >= x1 else "100% 0"
-    leaf = " lp-flow__leaf" if y2 == RAIL else ""
-    print(f'<path class="lp-flow__light{leaf}" style="--o:{o};--l:{level(d)};'
+    leaf = y2 == RAIL
+    print(f'<path class="lp-flow__light{" lp-flow__leaf" if leaf else ""}" '
+          f'style="--o:{o};--l:{level(d)};'
           f'--u:{extent(d, x1, y1, x2, y2)}" '
-          f'stroke="url(#lp-flow-ax-{i:02d})" d="{data(x1, y1, x2, y2)}"/>')
+          f'stroke="url(#lp-flow-{"lf" if leaf else "ax"}-{i:02d})" '
+          f'd="{data(x1, y1, x2, y2)}"/>')
 
 print()
 for x1, y1, x2, y2, d in segments:
@@ -931,6 +967,8 @@ for (px, py), v in LABELLED.items():
             f"leaving it reach the rail with nothing labelled on them: "
             f"{sorted(escaped)} — the sum says those carry zero")
 
+SEP = " "   # see the note at the values' own print loop below
+
 # ---------------------------------------------------------------- the readings
 #
 # WHAT THE ROOT IS CARRYING, AT THE END WHERE IT IS CARRYING IT FROM. The
@@ -965,37 +1003,117 @@ READINGS = [
 ]
 
 
-def fringe_strokes(n):
-    """The n deepest strokes, one per limb, spread across the width.
+def label_side_box(px, py, chars, side):
+    """The reading's box on one side of its own stroke, plus that side's offset."""
+    x1, y1, x2, y2 = own_stroke(px, py)
+    dx, dy = float(x2 - x1), float(y2 - y1)
+    length = math.hypot(dx, dy)
+    left = (dy / length, -dx / length)
+    sx, sy = left if side == "left" else (-left[0], -left[1])
+    return label_box(px, py, sx, sy, chars), (CLEARANCE * sx, CLEARANCE * sy), (x1, y1, x2, y2)
 
-    Deepest first, then a stroke is only taken if its midpoint is clear of
-    every reading already placed by a full label's width — otherwise the
-    readings crowd into whichever corner the root happens to be busiest in,
-    which is the fringe, which is all of them.
+
+def boxes_overlap(a, b, pad):
+    return not (a[2] + pad < b[0] or b[2] + pad < a[0]
+                or a[3] + pad < b[1] or b[3] + pad < a[1])
+
+
+def place_reading(px, py, chars, placed):
+    """The first side that clears everything, or None.
+
+    THE LAW GREW TWO CLAUSES, AND BOTH WERE FOUND ON THE RENDER RATHER THAN IN
+    THE FILE. It used to check one thing — is this box 12 px from a stroke it
+    does not name — and then take the right side whether or not the right side
+    was any better, because there was no third answer. Two consequences shipped:
+
+      A LABEL COLLIDED WITH ANOTHER LABEL. Nothing measured that at all. The
+      strokes are what the law was written about, and a numeral is not a
+      stroke, so "246 kW" could be placed perfectly against every line in the
+      drawing and land on top of "12.4 bar".
+
+      A LABEL LEFT THE DRAWING. The two outermost feet stand ON the walls, at
+      x 0 and x 1200, so a numeral on the outside of either one has its box
+      entirely outside the box — half of "74 °C" was off the left edge of the
+      figure, which is not a clearance failure, it is a label that is not in
+      the picture.
+
+    So a side has to clear three things now — the strokes, the labels already
+    placed, and the walls — and if neither side does, the answer is None and
+    the caller tries a different stroke. A reading that cannot be placed
+    legibly is one the drawing does not carry; there are eight of them and
+    nineteen feet to choose from.
     """
-    span = max(len(r) for r in READINGS) * LABEL_ADVANCE / FLOOR_SCALE
-    taken, out = [], []
-    for x1, y1, x2, y2, d in sorted(segments, key=lambda s: -s[4]):
+    for side in ("left", "right"):
+        box, off, own = label_side_box(px, py, chars, side)
+        if box[0] < 0 or box[2] > 1200 or box[1] < 0 or box[3] > float(RAIL):
+            continue
+        gap = min(box_gap(s_[:4], box) for s_ in segments if s_[:4] != own) * FLOOR_SCALE
+        if gap < CLEARANCE:
+            continue
+        if any(boxes_overlap(box, b, CLEARANCE / FLOOR_SCALE) for b in placed):
+            continue
+        return side, off, box, gap
+    return None
+
+
+def value_boxes():
+    """The eight rate numerals' boxes, so a reading can keep off them too.
+
+    They are placed first and by a law of their own, so from the reading's
+    point of view they are simply furniture that is already in the room. This
+    is the clause whose absence put "246 kW" on top of its neighbour: the
+    reading law could see every stroke in the drawing and none of the writing.
+    """
+    out = []
+    for x, y, v in VALUES:
+        text = f"{v // 1000}{SEP}{v % 1000:03d}" if v >= 1000 else str(v)
+        dx, dy, side, _, _ = offsets(x, y, len(text))
+        b, _, _ = label_side_box(x, y, len(text), side)
+        out.append(b)
+    return out
+
+
+def fringe_readings(texts):
+    """One reading per limb, deepest first, spread across the width.
+
+    Deepest first because the fringe is where the sensors are; spread because
+    otherwise every reading lands in whichever corner the root is busiest in,
+    which is the fringe, which is all of them. A candidate that cannot be
+    placed legibly is skipped and the next one tried — see place_reading.
+    """
+    span = max(len(t) for t in texts) * LABEL_ADVANCE / FLOOR_SCALE * 0.7
+    taken, placed, out = [], value_boxes(), []
+    for x1, y1, x2, y2, d in sorted(segments, key=lambda s_: -s_[4]):
+        if len(out) == len(texts):
+            break
         mx = float(x1 + x2) / 2
         if any(abs(mx - t) < span for t in taken):
             continue
+        # a third of the way down, which keeps the numeral off both the
+        # junction it leaves and the foot it lands on
+        px, py = x1 + (x2 - x1) / 3, y1 + (y2 - y1) / 3
+        got = place_reading(px, py, len(texts[len(out)]), placed)
+        if got is None:
+            continue
+        side, off, box, gap = got
         taken.append(mx)
-        out.append((x1, y1, x2, y2))
-        if len(out) == n:
-            break
-    return sorted(out, key=lambda s: float(s[0]))
+        placed.append(box)
+        out.append((px, py, side, off, gap))
+    return out
 
+
+PLACED_READINGS = fringe_readings(READINGS)
+assert len(PLACED_READINGS) == len(READINGS), (
+    f"only {len(PLACED_READINGS)} of {len(READINGS)} readings could be placed "
+    f"clear of the strokes, the other labels and the walls")
 
 print()
-for (x1, y1, x2, y2), text in zip(fringe_strokes(len(READINGS)), READINGS):
-    # a third of the way down, which keeps the numeral off both the junction it
-    # leaves and the foot it lands on
-    px, py = x1 + (x2 - x1) / 3, y1 + (y2 - y1) / 3
-    dx, dy, side, left_gap, gap = offsets(px, py, len(text))
+for (px, py, side, (ox, oy), gap), text in zip(PLACED_READINGS, READINGS):
     print(f'<span class="t-label lp-flow__read" style="--x:{num(px)};--y:{num(py)};'
-          f'--tx:{dx};--ty:{dy};--l:{level(run_to(px, py))}">{text}</span>')
+          f'--tx:{css_offset(ox, "x")};--ty:{css_offset(oy, "y")};'
+          f'--l:{level(run_to(px, py))}">{text}</span>')
     print(f'  <!-- {side:>5}: own stroke {CLEARANCE:.2f} px, nearest other '
-          f'{gap:.2f} px at the gate floor; the left offers {left_gap:.2f} -->')
+          f'{gap:.2f} px at the gate floor, clear of every label already set -->')
 
 
 print()
@@ -1007,7 +1125,6 @@ print()
 # sets `white-space: nowrap`, so the break the no-break space was insuring
 # against cannot happen, and an insurance that no longer does any work is one
 # more thing for a hand edit to get wrong.
-SEP = " "
 for x, y, v in VALUES:
     text = f"{v // 1000}{SEP}{v % 1000:03d}" if v >= 1000 else str(v)
     dx, dy, side, left_gap, gap = offsets(x, y, len(text))

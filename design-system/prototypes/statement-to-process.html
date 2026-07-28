@@ -23,7 +23,7 @@
      of it showed a split field, orphan junction dots and a missing
      root. The layers were the bug. It is one mechanism now:
 
-       ONE STAGE   .sp-track is the scroll budget (400vh), .sp-stage
+       ONE STAGE   .sp-track is the scroll budget (640vh), .sp-stage
                    is position: sticky for its whole length — a real
                    hold, not a translate ramp cancelling scroll.
        ONE
@@ -180,8 +180,22 @@
     @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
       main { --lp-measure: calc((max(45rem, 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }
       /* ---- ACT 1 + 2: the track and the stage ---- */
+      /* 640vh, NOT 400. Nothing about the SCRIPT changed — every window is
+         still a contain-percent and the acts still divide the track the same
+         way. What changed is how many pixels a point of it is worth: at 400vh
+         the root's 49 strokes drew across 36-89 % of four screens, about 1.6
+         screens for the whole tree, and the reading of it was the plainest
+         kind of evidence — "the tree is generated too fast". At 640vh the same
+         53 points are 2.8 screens, so a stroke that had 26 px of wheel now has
+         42, and the closing still is two thirds of a screen instead of a third.
+
+         The track's height is the one honest place to spend that. Slowing the
+         ranges would have shortened the still or overrun the release; slowing
+         the easing would have made the front lurch. Scroll length is the only
+         variable that changes the SPEED of everything at once without changing
+         the order of anything. */
       .sp-track {
-        height: 400vh;
+        height: 640vh;
         view-timeline-name: --sp;
         view-timeline-axis: block;
       }
@@ -211,7 +225,20 @@
          above still holds and nothing overlaps. */
       .sp-stage__inner { grid-template-columns: 1fr; }
       .sp-stage__inner > .cf-statement__figure { grid-column: 1; grid-row: 1; }
-      .sp-drawing { --sp-measure: min(100%, calc((100vh - 8rem) * 1.9)); }
+      /* THE HEADER'S HEIGHT COMES OUT OF THE DRAWING'S, so the feet land ON
+         the rule instead of behind the words. --sp-head-band is the whole
+         bottom band: the title's line box at --text-h2, the component's
+         padding-bottom, and one rung of air under the rule. Measured at the
+         gate floor and again at 1920 where the clamp is at its top; 5.5rem
+         covers both. The drawing gives the band up rather than overlapping it,
+         which is the only arrangement in which nineteen drops can be seen to
+         arrive at a line. */
+      .sp-stage > .container { --sp-head-band: 5.5rem; }
+      .sp-drawing { --sp-measure: min(100%, calc((100vh - 8rem - var(--sp-head-band)) * 1.9)); }
+      /* Flush to the drawing: the rule IS the drawing's baseline now, so the
+         component's own bottom margin would be a gap between the feet and the
+         thing they land on. */
+      .sp-head { margin-bottom: 0; margin-top: var(--space-3); }
       .sp-stage__inner > .cf-statement__text {
         grid-column: 1;
         grid-row: 1;
@@ -330,11 +357,11 @@
          of sensors producing data ended with nothing on it still producing
          anything.
 
-         So a leaf does not fade to nothing. It settles to --arrive-light-peak
-         and then breathes, on the same two tokens the system already spends
-         on "the one thing on screen that is honestly still happening": the
-         2.4 s --arrive-period and the 0.18 ceiling that keeps a light a
-         moment rather than a surface (tokens.css, THE WAIT). The lime ramp is
+         So a leaf does not fade to nothing. It settles to --leaf-peak and then
+         breathes on --arrive-period, the 2.4 s the system already spends on
+         "the one thing on screen that is honestly still happening" — slow on
+         purpose, because a fast loop reads as impatience (tokens.css, THE
+         WAIT). The amplitude is this page's own; see --leaf-peak below. The lime ramp is
          already on the stroke — this only decides how much of it reaches a
          pixel — so what shimmers is the gradient itself, brightest at the tip
          where the lime stop sits and trailing into Glas at the junction above.
@@ -356,6 +383,48 @@
          Inside the reduced-motion gate with everything else on this page, so
          a reader who has asked for stillness gets a drawing that is finished
          and still. ------------------------------------------------------ */
+      /* --leaf-peak, AND IT IS NOT --arrive-light-peak. The first pass reused
+         that token and the shimmer could not be seen: 0.18 of a ramp that is
+         mostly CF-Grau, times a 0.35-1 swing, is 0.06 to 0.18 of a mid grey
+         over a light wash — "cant see the shimmer leaves", which is the whole
+         test a light like this has to pass.
+
+         The token was the wrong one to borrow. --arrive-light-peak is capped
+         at 0.18 because in THAT pattern a light band crosses a dashed ghost
+         contour and lightens it, and tokens.css works the contrast out: past
+         0.52 the ghost fails. Here nothing is crossed. The leaf's own contour
+         is drawn underneath at full weight by .lp-flow__seg and stays there,
+         so raising this can only add lime over the wash — it cannot take
+         contrast off anything.
+
+         0.5 is chosen against that same arithmetic anyway, one notch inside
+         the 0.52 the ceiling row gives, so the number is defensible by a
+         measurement this system already has rather than by a fresh sweep. With
+         the 0.3-1 swing a leaf sits between 0.15 and 0.5 of the ramp.
+
+         The other half of being visible is not amplitude but WHICH PART OF THE
+         RAMP lands on the stroke — see LEAF_STRETCH in gen-flow-root.py. */
+      .sp-stage { --leaf-peak: 0.55; }
+      /* AND IT IS WIDER THAN THE STROKE IT LIGHTS, which is the third thing
+         that had to change and the one that decides whether this reads as
+         lime at all.
+
+         A route's light is 2 px over a 1 px contour, so it very nearly covers
+         it — right for a front, where the point is a travelling tip and the
+         contour behind it has not been drawn yet. On a settled leaf it is
+         wrong twice over. Composited on top of --border-strong the lime comes
+         out olive, because half-opacity yellow over black is olive; and if it
+         is raised until it is not, it has replaced the contour with a colour
+         that has almost no contrast against the wash — #E1FF00 on the page
+         wash is about 1.2:1, which is why --arrive-light-peak is capped where
+         it is.
+
+         6 px is the way out of that pinch: the black hairline stays crisp
+         inside it and the lime sits in the two and a half pixels either side,
+         so the leaf is a lit line rather than a line painted lime. Nothing is
+         covered, nothing loses contrast, and what shimmers is the ramp beside
+         the contour — which is what a light does. */
+      .lp-flow__leaf { stroke-width: 6; }
       .lp-flow__leaf {
         animation: lp-frame-draw linear,
                    sp-leaf-settle linear,
@@ -970,12 +1039,19 @@
 
   @supports (animation-timeline: view()) {
     @media screen and (prefers-reduced-motion: no-preference) {
+      /* ON THE TRACK'S TIMELINE, NOT ITS OWN. The header is inside a sticky
+         stage now, so its own view() would freeze at one value — the fact this
+         whole page is built around. It also does not want its own clock: the
+         rule is what the root arrives at, so it has to draw WHILE the root is
+         arriving, and the only thing that knows when that is, is --sp.
+
+         The windows sit at the end of act 2, after the contour has landed at
+         86.88 and inside the still that runs to 100. At 640vh that is about
+         two thirds of a screen of scroll for the rule and the two words,
+         pinned, with nothing else moving — which is the difference between an
+         animation and a thing that has already happened by the time you look
+         up. */
       .sp-head {
-        view-timeline-name: --sp-head;
-        view-timeline-axis: block;
-        /* the rule is drawn by the pseudo-element below, so the component's
-           own border would be a second, undrawn copy of it standing there
-           full-length before the draw begins */
         border-bottom-color: transparent;
         position: relative;
       }
@@ -987,8 +1063,8 @@
         background: var(--border-strong);
         transform-origin: left;
         animation: sp-head-rule linear both;
-        animation-timeline: --sp-head;
-        animation-range: entry 30% entry 92%;
+        animation-timeline: --sp;
+        animation-range: contain 76% contain 93%;
       }
       /* THE WIPE IS A CLIP, NOT A MASK AND NOT A WIDTH. A width animation
          reflows the flex row and drags the count across the page as the title
@@ -999,20 +1075,20 @@
       .sp-head__title, .sp-head__count {
         clip-path: inset(0 var(--wipe) 0 0);
         animation: sp-head-wipe linear both;
-        animation-timeline: --sp-head;
+        animation-timeline: --sp;
       }
       /* The title leads and the count follows it in: the label is the subject
          and the count is what the subject turns out to be, so reading order is
          arrival order. Both inside the rule's own range, so the line is never
-         longer than the words standing on it. */
-      .sp-head__title { animation-range: entry 32% entry 74%; }
-      .sp-head__count { animation-range: entry 58% entry 96%; }
+         shorter than the words standing on it. */
+      .sp-head__title { animation-range: contain 78% contain 88%; }
+      .sp-head__count { animation-range: contain 86% contain 96%; }
     }
   }
   @keyframes sp-head-rule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @keyframes sp-head-wipe { from { --wipe: 100%; } to { --wipe: 0%; } }
-  @keyframes sp-leaf-settle { to { opacity: var(--arrive-light-peak); } }
-  @keyframes sp-leaf-shimmer { from { stroke-opacity: .35; } to { stroke-opacity: 1; } }
+  @keyframes sp-leaf-settle { to { opacity: var(--leaf-peak); } }
+  @keyframes sp-leaf-shimmer { from { stroke-opacity: .28; } to { stroke-opacity: 1; } }
   @keyframes sp-ground-recede { to { opacity: var(--sp-ground-dim, 1); } }
 </style>
 </head>
@@ -1370,7 +1446,12 @@
                #lp-flow-ramp, and every axis def inherits them with href — so
                check-gradient-family.py has exactly one stop list to recompute
                and there is no second place for the near rake's waypoint to
-               drift. The axes cannot be shared the way the frame's two were:
+               drift. Eighteen of them have a SECOND def, lp-flow-lf-NN, on the
+               same ramp with the same href and three times the length — the
+               leaves, the one stroke in this drawing that keeps its light
+               after the front has gone by, so the lime leg is spread across
+               them instead of compressed into six per cent of their tips.
+               The axes cannot be shared the way the frame's two were:
                the frame's five strokes all began at a coordinate origin, and
                these forty-nine begin at thirty-two different junctions. Each
                axis is its own stroke's line, which is how the gradient's angle
@@ -1416,6 +1497,7 @@
               <linearGradient id="lp-flow-ax-02" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="600" y1="380" x2="600" y2="280"/>
               <linearGradient id="lp-flow-ax-03" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="600" y1="490" x2="600" y2="380"/>
               <linearGradient id="lp-flow-ax-04" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="600" y1="620" x2="600" y2="490"/>
+              <linearGradient id="lp-flow-lf-04" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="600" y1="620" x2="600" y2="230"/>
               <linearGradient id="lp-flow-ax-05" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="540" y1="230" x2="600" y2="170"/>
               <linearGradient id="lp-flow-ax-06" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="360" y1="320" x2="540" y2="230"/>
               <linearGradient id="lp-flow-ax-07" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="300" y1="380" x2="360" y2="320"/>
@@ -1423,6 +1505,7 @@
               <linearGradient id="lp-flow-ax-09" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="60" y1="530" x2="120" y2="470"/>
               <linearGradient id="lp-flow-ax-10" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="0" y1="560" x2="60" y2="530"/>
               <linearGradient id="lp-flow-ax-11" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="0" y1="620" x2="0" y2="560"/>
+              <linearGradient id="lp-flow-lf-11" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="0" y1="620" x2="0" y2="440"/>
               <linearGradient id="lp-flow-ax-12" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="660" y1="230" x2="600" y2="170"/>
               <linearGradient id="lp-flow-ax-13" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="840" y1="320" x2="660" y2="230"/>
               <linearGradient id="lp-flow-ax-14" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="900" y1="380" x2="840" y2="320"/>
@@ -1430,36 +1513,52 @@
               <linearGradient id="lp-flow-ax-16" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1140" y1="530" x2="1080" y2="470"/>
               <linearGradient id="lp-flow-ax-17" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1200" y1="560" x2="1140" y2="530"/>
               <linearGradient id="lp-flow-ax-18" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1200" y1="620" x2="1200" y2="560"/>
+              <linearGradient id="lp-flow-lf-18" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1200" y1="620" x2="1200" y2="440"/>
               <linearGradient id="lp-flow-ax-19" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="432.5" y1="445" x2="540" y2="230"/>
               <linearGradient id="lp-flow-ax-20" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="257.5" y1="620" x2="432.5" y2="445"/>
+              <linearGradient id="lp-flow-lf-20" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="257.5" y1="620" x2="782.5" y2="95"/>
               <linearGradient id="lp-flow-ax-21" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="537.5" y1="550" x2="432.5" y2="445"/>
               <linearGradient id="lp-flow-ax-22" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="572.5" y1="620" x2="537.5" y2="550"/>
+              <linearGradient id="lp-flow-lf-22" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="572.5" y1="620" x2="467.5" y2="410"/>
               <linearGradient id="lp-flow-ax-23" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="517.5" y1="590" x2="537.5" y2="550"/>
               <linearGradient id="lp-flow-ax-24" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="487.5" y1="620" x2="517.5" y2="590"/>
+              <linearGradient id="lp-flow-lf-24" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="487.5" y1="620" x2="577.5" y2="530"/>
               <linearGradient id="lp-flow-ax-25" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="277.5" y1="485" x2="360" y2="320"/>
               <linearGradient id="lp-flow-ax-26" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="142.5" y1="620" x2="277.5" y2="485"/>
+              <linearGradient id="lp-flow-lf-26" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="142.5" y1="620" x2="547.5" y2="215"/>
               <linearGradient id="lp-flow-ax-27" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="240" y1="500" x2="300" y2="380"/>
               <linearGradient id="lp-flow-ax-28" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="120" y1="620" x2="240" y2="500"/>
+              <linearGradient id="lp-flow-lf-28" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="120" y1="620" x2="480" y2="260"/>
               <linearGradient id="lp-flow-ax-29" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="162.5" y1="555" x2="120" y2="470"/>
               <linearGradient id="lp-flow-ax-30" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="97.5" y1="620" x2="162.5" y2="555"/>
+              <linearGradient id="lp-flow-lf-30" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="97.5" y1="620" x2="292.5" y2="425"/>
               <linearGradient id="lp-flow-ax-31" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="35" y1="580" x2="60" y2="530"/>
               <linearGradient id="lp-flow-ax-32" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="75" y1="620" x2="35" y2="580"/>
+              <linearGradient id="lp-flow-lf-32" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="75" y1="620" x2="-45" y2="500"/>
               <linearGradient id="lp-flow-ax-33" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="17.5" y1="595" x2="0" y2="560"/>
               <linearGradient id="lp-flow-ax-34" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="42.5" y1="620" x2="17.5" y2="595"/>
+              <linearGradient id="lp-flow-lf-34" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="42.5" y1="620" x2="-32.5" y2="545"/>
               <linearGradient id="lp-flow-ax-35" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="757.5" y1="425" x2="660" y2="230"/>
               <linearGradient id="lp-flow-ax-36" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="952.5" y1="620" x2="757.5" y2="425"/>
+              <linearGradient id="lp-flow-lf-36" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="952.5" y1="620" x2="367.5" y2="35"/>
               <linearGradient id="lp-flow-ax-37" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="647.5" y1="535" x2="757.5" y2="425"/>
               <linearGradient id="lp-flow-ax-38" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="690" y1="620" x2="647.5" y2="535"/>
+              <linearGradient id="lp-flow-lf-38" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="690" y1="620" x2="562.5" y2="365"/>
               <linearGradient id="lp-flow-ax-39" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="627.5" y1="575" x2="647.5" y2="535"/>
               <linearGradient id="lp-flow-ax-40" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="672.5" y1="620" x2="627.5" y2="575"/>
+              <linearGradient id="lp-flow-lf-40" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="672.5" y1="620" x2="537.5" y2="485"/>
               <linearGradient id="lp-flow-ax-41" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="915" y1="470" x2="840" y2="320"/>
               <linearGradient id="lp-flow-ax-42" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1065" y1="620" x2="915" y2="470"/>
+              <linearGradient id="lp-flow-lf-42" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1065" y1="620" x2="615" y2="170"/>
               <linearGradient id="lp-flow-ax-43" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1042.5" y1="545" x2="1080" y2="470"/>
               <linearGradient id="lp-flow-ax-44" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1117.5" y1="620" x2="1042.5" y2="545"/>
+              <linearGradient id="lp-flow-lf-44" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1117.5" y1="620" x2="892.5" y2="395"/>
               <linearGradient id="lp-flow-ax-45" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1167.5" y1="585" x2="1140" y2="530"/>
               <linearGradient id="lp-flow-ax-46" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1132.5" y1="620" x2="1167.5" y2="585"/>
+              <linearGradient id="lp-flow-lf-46" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1132.5" y1="620" x2="1237.5" y2="515"/>
               <linearGradient id="lp-flow-ax-47" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1182.5" y1="595" x2="1200" y2="560"/>
               <linearGradient id="lp-flow-ax-48" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1157.5" y1="620" x2="1182.5" y2="595"/>
+              <linearGradient id="lp-flow-lf-48" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1157.5" y1="620" x2="1232.5" y2="545"/>
               <!-- the stem's axis, in the stem's own user space and written the
                    same way round as the other forty-one: far end (the crown,
                    y 100) back to the origin (the rim, y 0), so lime sits at the
@@ -1473,51 +1572,51 @@
             <path class="lp-flow__light" style="--o:0 0;--l:0.36;--u:0.46" stroke="url(#lp-flow-ax-01)" d="M600 170V280"/>
             <path class="lp-flow__light" style="--o:0 0;--l:0.82;--u:0.41" stroke="url(#lp-flow-ax-02)" d="M600 280V380"/>
             <path class="lp-flow__light" style="--o:0 0;--l:1.23;--u:0.46" stroke="url(#lp-flow-ax-03)" d="M600 380V490"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:1.69;--u:0.54" stroke="url(#lp-flow-ax-04)" d="M600 490V620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:1.69;--u:0.54" stroke="url(#lp-flow-lf-04)" d="M600 490V620"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:0.36;--u:0.25" stroke="url(#lp-flow-ax-05)" d="M600 170L540 230"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:0.61;--u:0.75" stroke="url(#lp-flow-ax-06)" d="M540 230L360 320"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:1.36;--u:0.25" stroke="url(#lp-flow-ax-07)" d="M360 320L300 380"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:1.61;--u:0.75" stroke="url(#lp-flow-ax-08)" d="M300 380L120 470"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:2.36;--u:0.24" stroke="url(#lp-flow-ax-09)" d="M120 470L60 530"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:2.6;--u:0.25" stroke="url(#lp-flow-ax-10)" d="M60 530L0 560"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:2.85;--u:0.25" stroke="url(#lp-flow-ax-11)" d="M0 560V620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:2.85;--u:0.25" stroke="url(#lp-flow-lf-11)" d="M0 560V620"/>
             <path class="lp-flow__light" style="--o:0 0;--l:0.36;--u:0.25" stroke="url(#lp-flow-ax-12)" d="M600 170L660 230"/>
             <path class="lp-flow__light" style="--o:0 0;--l:0.61;--u:0.75" stroke="url(#lp-flow-ax-13)" d="M660 230L840 320"/>
             <path class="lp-flow__light" style="--o:0 0;--l:1.36;--u:0.25" stroke="url(#lp-flow-ax-14)" d="M840 320L900 380"/>
             <path class="lp-flow__light" style="--o:0 0;--l:1.61;--u:0.75" stroke="url(#lp-flow-ax-15)" d="M900 380L1080 470"/>
             <path class="lp-flow__light" style="--o:0 0;--l:2.36;--u:0.24" stroke="url(#lp-flow-ax-16)" d="M1080 470L1140 530"/>
             <path class="lp-flow__light" style="--o:0 0;--l:2.6;--u:0.25" stroke="url(#lp-flow-ax-17)" d="M1140 530L1200 560"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:2.85;--u:0.25" stroke="url(#lp-flow-ax-18)" d="M1200 560V620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:2.85;--u:0.25" stroke="url(#lp-flow-lf-18)" d="M1200 560V620"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:0.61;--u:0.89" stroke="url(#lp-flow-ax-19)" d="M540 230L432.5 445"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:1.5;--u:0.73" stroke="url(#lp-flow-ax-20)" d="M432.5 445L257.5 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:1.5;--u:0.73" stroke="url(#lp-flow-lf-20)" d="M432.5 445L257.5 620"/>
             <path class="lp-flow__light" style="--o:0 0;--l:1.5;--u:0.44" stroke="url(#lp-flow-ax-21)" d="M432.5 445L537.5 550"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:1.94;--u:0.29" stroke="url(#lp-flow-ax-22)" d="M537.5 550L572.5 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:1.94;--u:0.29" stroke="url(#lp-flow-lf-22)" d="M537.5 550L572.5 620"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:1.94;--u:0.17" stroke="url(#lp-flow-ax-23)" d="M537.5 550L517.5 590"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:2.11;--u:0.12" stroke="url(#lp-flow-ax-24)" d="M517.5 590L487.5 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:2.11;--u:0.12" stroke="url(#lp-flow-lf-24)" d="M517.5 590L487.5 620"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:1.36;--u:0.68" stroke="url(#lp-flow-ax-25)" d="M360 320L277.5 485"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:2.04;--u:0.56" stroke="url(#lp-flow-ax-26)" d="M277.5 485L142.5 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:2.04;--u:0.56" stroke="url(#lp-flow-lf-26)" d="M277.5 485L142.5 620"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:1.61;--u:0.5" stroke="url(#lp-flow-ax-27)" d="M300 380L240 500"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:2.11;--u:0.49" stroke="url(#lp-flow-ax-28)" d="M240 500L120 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:2.11;--u:0.49" stroke="url(#lp-flow-lf-28)" d="M240 500L120 620"/>
             <path class="lp-flow__light" style="--o:0 0;--l:2.36;--u:0.35" stroke="url(#lp-flow-ax-29)" d="M120 470L162.5 555"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:2.71;--u:0.27" stroke="url(#lp-flow-ax-30)" d="M162.5 555L97.5 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:2.71;--u:0.27" stroke="url(#lp-flow-lf-30)" d="M162.5 555L97.5 620"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:2.6;--u:0.21" stroke="url(#lp-flow-ax-31)" d="M60 530L35 580"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:2.81;--u:0.17" stroke="url(#lp-flow-ax-32)" d="M35 580L75 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:2.81;--u:0.17" stroke="url(#lp-flow-lf-32)" d="M35 580L75 620"/>
             <path class="lp-flow__light" style="--o:0 0;--l:2.85;--u:0.15" stroke="url(#lp-flow-ax-33)" d="M0 560L17.5 595"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:3;--u:0.1" stroke="url(#lp-flow-ax-34)" d="M17.5 595L42.5 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:3;--u:0.1" stroke="url(#lp-flow-lf-34)" d="M17.5 595L42.5 620"/>
             <path class="lp-flow__light" style="--o:0 0;--l:0.61;--u:0.81" stroke="url(#lp-flow-ax-35)" d="M660 230L757.5 425"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:1.42;--u:0.81" stroke="url(#lp-flow-ax-36)" d="M757.5 425L952.5 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:1.42;--u:0.81" stroke="url(#lp-flow-lf-36)" d="M757.5 425L952.5 620"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:1.42;--u:0.46" stroke="url(#lp-flow-ax-37)" d="M757.5 425L647.5 535"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:1.88;--u:0.35" stroke="url(#lp-flow-ax-38)" d="M647.5 535L690 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:1.88;--u:0.35" stroke="url(#lp-flow-lf-38)" d="M647.5 535L690 620"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:1.88;--u:0.16" stroke="url(#lp-flow-ax-39)" d="M647.5 535L627.5 575"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:2.04;--u:0.19" stroke="url(#lp-flow-ax-40)" d="M627.5 575L672.5 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:2.04;--u:0.19" stroke="url(#lp-flow-lf-40)" d="M627.5 575L672.5 620"/>
             <path class="lp-flow__light" style="--o:0 0;--l:1.36;--u:0.62" stroke="url(#lp-flow-ax-41)" d="M840 320L915 470"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:1.98;--u:0.62" stroke="url(#lp-flow-ax-42)" d="M915 470L1065 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:1.98;--u:0.62" stroke="url(#lp-flow-lf-42)" d="M915 470L1065 620"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:2.36;--u:0.31" stroke="url(#lp-flow-ax-43)" d="M1080 470L1042.5 545"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:2.67;--u:0.31" stroke="url(#lp-flow-ax-44)" d="M1042.5 545L1117.5 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:0 0;--l:2.67;--u:0.31" stroke="url(#lp-flow-lf-44)" d="M1042.5 545L1117.5 620"/>
             <path class="lp-flow__light" style="--o:0 0;--l:2.6;--u:0.23" stroke="url(#lp-flow-ax-45)" d="M1140 530L1167.5 585"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:2.83;--u:0.15" stroke="url(#lp-flow-ax-46)" d="M1167.5 585L1132.5 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:2.83;--u:0.15" stroke="url(#lp-flow-lf-46)" d="M1167.5 585L1132.5 620"/>
             <path class="lp-flow__light" style="--o:100% 0;--l:2.85;--u:0.15" stroke="url(#lp-flow-ax-47)" d="M1200 560L1182.5 595"/>
-            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:3;--u:0.1" stroke="url(#lp-flow-ax-48)" d="M1182.5 595L1157.5 620"/>
+            <path class="lp-flow__light lp-flow__leaf" style="--o:100% 0;--l:3;--u:0.1" stroke="url(#lp-flow-lf-48)" d="M1182.5 595L1157.5 620"/>
 
             <path class="lp-flow__seg lp-flow__trunk" style="--o:0 0;--l:0;--u:0.36" d="M600 84V170"/>
             <path class="lp-flow__seg" style="--o:0 0;--l:0.36;--u:0.46" d="M600 170V280"/>
@@ -1600,22 +1699,22 @@
             <circle class="lp-flow__node" style="--l:1.94" cx="537.5" cy="550" r="2"/>
           </svg>
           <div class="lp-flow-data" aria-hidden="true">
-            <span class="t-label lp-flow__read" style="--x:25.8333;--y:603.333;--tx:calc(-100% - 8.485px);--ty:8.485px;--l:3.03">74 °C</span>
-              <!-- right: own stroke 12.00 px, nearest other 0.00 px at the gate floor; the left offers 0.00 -->
-            <span class="t-label lp-flow__read" style="--x:140.833;--y:576.667;--tx:calc(-100% - 8.485px);--ty:calc(-100% - 8.485px);--l:2.8">12.4 bar</span>
-              <!-- right: own stroke 12.00 px, nearest other 2.10 px at the gate floor; the left offers 0.00 -->
-            <span class="t-label lp-flow__read" style="--x:280;--y:420;--tx:calc(-100% - 10.733px);--ty:calc(-100% - 5.367px);--l:1.77">246 kW</span>
-              <!-- right: own stroke 12.00 px, nearest other 0.00 px at the gate floor; the left offers 0.00 -->
-            <span class="t-label lp-flow__read" style="--x:507.5;--y:600;--tx:calc(-100% - 8.485px);--ty:calc(-100% - 8.485px);--l:2.15">1 480 rpm</span>
-              <!-- right: own stroke 12.00 px, nearest other 16.10 px at the gate floor; the left offers 0.00 -->
-            <span class="t-label lp-flow__read" style="--x:642.5;--y:590;--tx:calc(-100% - 8.485px);--ty:8.485px;--l:2.11">318 K</span>
-              <!-- right: own stroke 12.00 px, nearest other 0.00 px at the gate floor; the left offers 0.00 -->
-            <span class="t-label lp-flow__read" style="--x:965;--y:520;--tx:calc(-100% - 8.485px);--ty:8.485px;--l:2.19">4.2 mm/s</span>
-              <!-- right: own stroke 12.00 px, nearest other 0.00 px at the gate floor; the left offers 6.46 -->
-            <span class="t-label lp-flow__read" style="--x:1067.5;--y:570;--tx:8.485px;--ty:calc(-100% - 8.485px);--l:2.77">96 %</span>
-              <!--  left: own stroke 12.00 px, nearest other 18.19 px at the gate floor; the left offers 18.19 -->
-            <span class="t-label lp-flow__read" style="--x:1174.17;--y:603.333;--tx:calc(-100% - 8.485px);--ty:calc(-100% - 8.485px);--l:3.03">51 Hz</span>
-              <!-- right: own stroke 12.00 px, nearest other 0.00 px at the gate floor; the left offers 0.00 -->
+            <span class="t-label lp-flow__read" style="--x:140.833;--y:576.667;--tx:calc(-100% - 8.485px);--ty:calc(-100% - 8.485px);--l:2.8">74 °C</span>
+              <!-- right: own stroke 12.00 px, nearest other 19.48 px at the gate floor, clear of every label already set -->
+            <span class="t-label lp-flow__read" style="--x:1100;--y:490;--tx:8.485px;--ty:calc(-100% - 8.485px);--l:2.44">12.4 bar</span>
+              <!--  left: own stroke 12.00 px, nearest other 23.67 px at the gate floor, clear of every label already set -->
+            <span class="t-label lp-flow__read" style="--x:507.5;--y:600;--tx:calc(-100% - 8.485px);--ty:calc(-100% - 8.485px);--l:2.15">246 kW</span>
+              <!-- right: own stroke 12.00 px, nearest other 16.10 px at the gate floor, clear of every label already set -->
+            <span class="t-label lp-flow__read" style="--x:661.667;--y:563.333;--tx:10.733px;--ty:calc(-100% - 5.367px);--l:1.99">1 480 rpm</span>
+              <!--  left: own stroke 12.00 px, nearest other 16.51 px at the gate floor, clear of every label already set -->
+            <span class="t-label lp-flow__read" style="--x:240;--y:410;--tx:calc(-100% - 5.367px);--ty:calc(-100% - 10.733px);--l:1.86">318 K</span>
+              <!-- right: own stroke 12.00 px, nearest other 40.17 px at the gate floor, clear of every label already set -->
+            <span class="t-label lp-flow__read" style="--x:960;--y:410;--tx:5.367px;--ty:calc(-100% - 10.733px);--l:1.86">4.2 mm/s</span>
+              <!--  left: own stroke 12.00 px, nearest other 50.94 px at the gate floor, clear of every label already set -->
+            <span class="t-label lp-flow__read" style="--x:374.167;--y:503.333;--tx:8.485px;--ty:8.485px;--l:1.74">96 %</span>
+              <!--  left: own stroke 12.00 px, nearest other 42.54 px at the gate floor, clear of every label already set -->
+            <span class="t-label lp-flow__read" style="--x:822.5;--y:490;--tx:8.485px;--ty:calc(-100% - 8.485px);--l:1.69">51 Hz</span>
+              <!--  left: own stroke 12.00 px, nearest other 20.05 px at the gate floor, clear of every label already set -->
             <span class="t-label lp-flow__val" style="--x:600;--y:120;--tx:12px;--ty:-50%;--l:0.15">8 400</span>
               <!--  left: own stroke 12.00 px, nearest other 33.08 px at the gate floor; the left offers 33.08 -->
             <span class="t-label lp-flow__val" style="--x:600;--y:197.5;--tx:calc(-100% - 12px);--ty:-50%;--l:0.47">2 000</span>
@@ -1645,26 +1744,35 @@
           </p>
         </div>
       </div>
+
+      <!-- THE RULE THE ROOT LANDS ON, INSIDE THE STAGE.
+           It was in the cards' section, one rung of padding below the stage,
+           and two things went wrong with that, neither visible in a still. The
+           drawing's feet stand ON the stage's bottom edge (#235), so the header
+           sat 16 px under the fold at the moment the stage released: the last
+           band of the fringe and the title were never on screen together, and
+           the tree's own feet were what the title covered as the page scrolled
+           on.
+
+           And the title could not be SEEN to arrive. Its wipe was on its own
+           view timeline over `entry`, and `entry` on a 46 px-tall element is a
+           46 px window — the whole gesture happened inside two notches of a
+           wheel. That is not a fast animation, it is one nobody can catch.
+
+           Both are one mistake: this rule is part of the drawing, not the next
+           section's furniture. Nineteen drops arrive on it, so it belongs in
+           the box they land in, on the timeline they are drawn by, at the end
+           of the act they finish. -->
+      <div class="cf-section-header sp-head">
+        <h2 class="cf-section-header__label sp-head__title" id="prozess">Was wir machen</h2>
+        <span class="cf-section-header__count sp-head__count">In vier Schritten</span>
+      </div>
       </div>
     </div>
   </section>
 
   <!-- ACT 3: the cards, on .cf-pin from components.css -->
   <section class="section" aria-labelledby="prozess">
-    <div class="container">
-      <!-- THE HANDOVER LINE. The root's twenty-odd drops land on this rule, so
-           it is the first thing after the drawing and it is written as a title
-           rather than as a caption: the section label was 11 px of mono under a
-           660 px drawing, which is a footnote where the page needs a heading.
-           Both halves are display type now, and both arrive the way the reader
-           is already reading — left to right, wiped rather than faded, on the
-           rule's own draw. Page-local: .cf-section-header is a shipped
-           component and this is one section's treatment of it. -->
-      <div class="cf-section-header sp-head">
-        <h2 class="cf-section-header__label sp-head__title" id="prozess">Was wir machen</h2>
-        <span class="cf-section-header__count sp-head__count">In vier Schritten</span>
-      </div>
-    </div>
     <div class="cf-pin">
       <div class="cf-pin__stage">
         <div class="container cf-pin__inner lp-proc-stage">
