@@ -10,32 +10,45 @@ were derived by walking the drawing and exempted, and the skeleton's count
 Daniel's first review of the drawing — "not random but mathematically correct
 based on the ratios and winkel in the design system".
 
-THE GROWTH RULE IS RETIRED, BY REVIEW. 2026-07-28, second review: "remove
-overlapping branches from the tree, make it branch equally". The grown root
-was chosen limb by limb around its own obstacles, so no two limbs matched and
-three terminals landed mid-stroke on their siblings — legal arrivals under
-"no free ends", but the eye reads a T into another branch as overlap. The
-drawing is now one WRITTEN-OUT symmetric construction (the balanced-
-construction section of gen-flow-root.py): trunk to the crown, two mirrored
-fans, a centre taproot, eight dives landing on the rail. Nothing is grown, so
-there is no ratio to recompute — what "branch equally" means is now stated
-here, as the three identities the construction rests on:
+THE GROWTH RULE IS BACK, BY REVIEW. 2026-07-28, third review: "more arms,
+and actually go back to the procedural generated graph". The symmetric
+construction the second review asked for did remove every overlap, and what
+it left was eighteen strokes and nine feet at exactly 150 units apart —
+a truss. It read as a diagram of a tree rather than as a root, which is the
+thing symmetry cannot help doing: reflection is not balance, it is one half
+drawn twice.
 
-  1. THE DRAWING IS ITS OWN MIRROR. For every stroke, the stroke reflected
-     about the trunk's line (x -> 1200 − x) is also in the drawing. One
-     asymmetric limb anywhere fails twice — once as itself, once as the hole
-     where its mirror should be.
+So the root is grown again, and the three faults the second review named are
+answered inside the growth rule instead of by deleting it — a branch commits
+both legs or neither, a clearance test refuses a step that merely comes NEAR
+another stroke, and a step may not land on a point that already exists, which
+is what kept two limbs from merging into a cycle. What "branches equally"
+means moves with it, from reflection to the four identities below.
 
-  2. THE FEET ARE EQUALLY SPACED. Exactly nine arrivals on the rail, at
-     x = 0, 150, 300, …, 1200 — every 150, no gaps, no doubles. The three
-     the lectern is pinned to (flow 0, 600, 1200 = frame 0, 500, 1000,
-     check-flow-handover.py's seam) are the outermost pair and the centre.
+  1. THE TWO HALVES CARRY THE SAME MASS. Equal strokes either side of the
+     trunk's line, to within a tenth — that is balance, and it is what the
+     mirror was a much stronger claim than. A drawing can satisfy it with two
+     halves that look nothing alike, which is the entire point. The tolerance
+     is a fraction and not a count on purpose: the growth stops a limb where
+     the box runs out of room, and the two sides do not run out at the same
+     stroke. One limb of difference is the rule working; five would be a side
+     the seeds forgot.
 
-  3. THE CROWN DIVIDES ONCE, INTO THREE. Exactly one stroke enters the crown
-     (the trunk out of the void) and exactly three leave it: the mirrored
-     pair of reaches and the centre taproot. Every other junction divides
-     into exactly two. A construction this regular has no second trifurcation
-     to offer — one appearing is a redesign, not a drift.
+  2. THE FEET ARE UNEVENLY SPACED, AND NO TWO ARE CLOSER THAN THE
+     CLEARANCE. The truss's identity was "every 150"; this one's is the
+     opposite, and it is not the absence of a law. Sixteen or more arrivals,
+     no two within CLEAR units of each other, and at least four distinct
+     gaps — a root that lands its feet on a pitch is a comb.
+
+  3. THE THREE PINNED FEET ARE PRESENT. x 0, 600 and 1200 — flow to frame
+     0, 500, 1000, the seam check-flow-handover.py holds. Those three are
+     the constraint the growth is written around and the one part of the
+     old identity 2 that survives it.
+
+  4. THE CROWN DIVIDES ONCE, INTO THREE. Exactly one stroke enters the crown
+     and exactly three leave it: the mirrored pair of reaches and the centre
+     taproot. Every other junction divides into two. A second trifurcation is
+     a redesign, not a drift.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
@@ -55,7 +68,10 @@ PAGE = ROOT / "design-system" / "prototypes" / "statement-to-process.html"
 
 WIDTH = Fraction(1200)      # the shared basis; the mirror is x -> WIDTH - x
 RAIL = Fraction(620)
-FOOT_PITCH = Fraction(150)  # identity 2: nine feet, every 150
+PINNED = (Fraction(0), Fraction(600), Fraction(1200))   # identity 3
+MIN_FEET = 16              # identity 2: a grown root fills its rail
+MIN_GAPS = 4               # identity 2: distinct gaps between feet
+CLEAR = Fraction(14)       # identity 2, and gen-flow-root.py's own CLEAR
 
 SVG_RE = re.compile(r'<svg\b[^>]*class="([^"]*)"[^>]*viewBox="([^"]*)"(.*?)</svg>', re.S)
 PATH_RE = re.compile(r'<path\b[^>]*class="([^"]*)"[^>]*\bd="([^"]*)"', re.S)
@@ -113,31 +129,47 @@ def main():
 
     findings = []
 
-    # ---- 1. the drawing is its own mirror --------------------------------
-    def norm(seg):
-        (x1, y1), (x2, y2) = seg
-        return tuple(sorted([(x1, y1), (x2, y2)]))
+    # ---- 1. the two halves carry the same mass ---------------------------
+    def side(seg):
+        mid = (seg[0][0] + seg[1][0]) / 2
+        return 0 if mid < WIDTH / 2 else (1 if mid > WIDTH / 2 else None)
 
-    have = {norm(s) for s in segs}
-    for seg in segs:
-        (x1, y1), (x2, y2) = seg
-        mirror = norm(((WIDTH - x1, y1), (WIDTH - x2, y2)))
-        if mirror not in have:
-            findings.append(
-                f"the stroke ({show(x1)}, {show(y1)}) -> ({show(x2)}, {show(y2)}) "
-                f"has no mirror about x {show(WIDTH / 2)} — the root does not "
-                f"branch equally")
-
-    # ---- 2. the feet are equally spaced ----------------------------------
-    feet = sorted({p[0] for s in segs for p in s if p[1] == RAIL})
-    want = [FOOT_PITCH * k for k in range(int(WIDTH / FOOT_PITCH) + 1)]
-    if feet != want:
+    left = sum(1 for s_ in segs if side(s_) == 0)
+    right = sum(1 for s_ in segs if side(s_) == 1)
+    if abs(left - right) > max(2, round((left + right) * 0.1)):
         findings.append(
-            f"the rail carries {len(feet)} arrivals at {[show(f) for f in feet]} — "
-            f"the construction lands {len(want)}, every {show(FOOT_PITCH)} units "
-            f"from {show(want[0])} to {show(want[-1])}")
+            f"{left} strokes left of the trunk and {right} right of it — the two "
+            f"halves are meant to carry the same mass, which is the claim that "
+            f"replaced the mirror, not a weaker version of it")
 
-    # ---- 3. the crown divides once, into three ---------------------------
+    # ---- 2. the feet are unevenly spaced, and never crowded --------------
+    feet = sorted({p[0] for s_ in segs for p in s_ if p[1] == RAIL})
+    gaps = [feet[i + 1] - feet[i] for i in range(len(feet) - 1)]
+    if len(feet) < MIN_FEET:
+        findings.append(
+            f"the rail carries {len(feet)} arrivals — a grown root lands at least "
+            f"{MIN_FEET}, and below that the drawing is a bus again")
+    tight = [(feet[i], feet[i + 1]) for i, g in enumerate(gaps) if g < CLEAR]
+    if tight:
+        where = ", ".join(f"{show(a)}/{show(b)}" for a, b in tight)
+        findings.append(
+            f"{len(tight)} pair(s) of feet closer than {show(CLEAR)} units — at "
+            f"{where}. Two feet inside the clearance are one thick foot at 1 px")
+    if len(set(gaps)) < MIN_GAPS:
+        findings.append(
+            f"the feet fall on {len(set(gaps))} distinct gap(s) — a root that "
+            f"lands its feet on a pitch is a comb, and evenly spaced was the "
+            f"truss's identity, not this one's")
+
+    # ---- 3. the three pinned feet are present ----------------------------
+    missing = [x for x in PINNED if x not in feet]
+    if missing:
+        findings.append(
+            f"the rail is missing the pinned arrival(s) at x {', '.join(show(x) for x in missing)} "
+            f"— the lectern's verticals stand up out of those three "
+            f"(check-flow-handover.py)")
+
+    # ---- 4. the crown divides once, into three ---------------------------
     out_count = Counter(s[0] for s in segs)
     in_count = Counter(s[1] for s in segs)
     crowns = [p for p, n in out_count.items() if n >= 3]
@@ -166,9 +198,10 @@ def main():
         for f in findings:
             print(f"  {f}")
         return 1
-    print(f"flow split OK — {len(segs)} strokes mirror about x {show(WIDTH / 2)}, "
-          f"{len(feet)} feet every {show(FOOT_PITCH)} units across the rail, and "
-          f"one crown dividing into three")
+    print(f"flow split OK — {len(segs)} strokes balanced about x {show(WIDTH / 2)} "
+          f"({left} left, {right} right), {len(feet)} feet on {len(set(gaps))} "
+          f"distinct gaps with none inside {show(CLEAR)} units, the three pinned "
+          f"arrivals present, and one crown dividing into three")
     return 0
 
 

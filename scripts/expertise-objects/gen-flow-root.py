@@ -75,6 +75,27 @@ STEPS = {
     "FR": (F(2), F(1)),     "FL": (F(-2), F(1)),
 }
 
+CROWN = F(170)         # where the trunk stops being a trunk
+
+# HOW CLOSE TWO STROKES MAY COME, in drawing units, where they are not joined.
+# At the gate floor the box renders 1024 units wide, so one drawing unit is
+# 0.853 px: 14 units is 12 px of daylight at the smallest the figure gets, and
+# 16 px at 1440. Under about 12 the two strokes stop reading as two, and this
+# is the number that decides how many arms the box will take -- at 18 the root
+# grew 24 limbs and the fringe had room it was not allowed to use.
+CLEAR = F(14)
+
+# HOW DEEP A LIMB MAY DIVIDE. Three generations of grow() below a seed; a
+# fifth puts more line under the rail's last 60 units than the eye separates
+# at 1 px. CLEAR is what actually stops it: a generation with no room simply
+# is not grown, so raising the cap adds arms where there is space for them and
+# nothing where there is not.
+DEPTH = 4
+
+# WHERE A BRANCH DIVIDES ITS REMAINING DROP, cycled by depth and side so no two
+# sibling limbs divide at the same height. See grow().
+RATIOS = (F(5, 8), F(1, 2), F(5, 9), F(3, 5), F(4, 9))
+
 segments = []   # (x1, y1, x2, y2, dist) -- dist is the run from the void to x1
 DIST = {}       # junction -> its run from the void, so a branch inherits it
 
@@ -102,62 +123,272 @@ def walk(x, y, chain):
     return x, y, False
 
 
-# ---------------------------------------------- the balanced construction
-#
-# THE REVIEW OF 2026-07-28 RETIRED THE GROWTH RULE. "remove overlapping
-# branches from the tree, make it branch equally": the grown root was chosen
-# branch by branch around its own obstacles, so no two limbs matched, three
-# terminals landed mid-stroke on their siblings (legal arrivals, but the eye
-# reads a T into another branch as overlap), and the right half carried
-# twice the ink of the left. The whole drawing is now WRITTEN OUT as one
-# symmetric construction — grow(), free(), touches() and the ratio went with
-# the asymmetry they existed to manage.
-#
-# THE LAW. One crown, two mirrored fans, eight equal feet.
-#
-#   TRUNK      V from the void (600, 84) to the crown (600, 170).
-#   CROWN      divides once, into three: the two fans' reaches (F then D,
-#              mirrored) and the centre taproot, V straight to the rail —
-#              the one arrival the frame's middle vertical is pinned to.
-#   REACH      DL/DR 75 out of the crown, then FL/FR 150 to the fan
-#              junction: the 45 leaves the trunk, the flattest angle crosses
-#              the width. Steep-then-flat and not the reverse, because the
-#              flat leg then crosses the interior band x 400-600 — the band
-#              check-flow-density.py floors at 10 %, and the flat-first
-#              order left it at 9.8 with the same junctions either way.
-#   FAN        each junction splits F 75 both ways; each child dives S 150
-#              to the rail. 26.57 spreads, 63.43 lands — and S landing on
-#              y 620 exactly is what set the crown at 170.
-#
-# EIGHT FEET at x 0, 150, 300, 450 | 750, 900, 1050, 1200 — every one a
-# multiple of 150, mirror-symmetric about the trunk, and the outer pair plus
-# the centre taproot are the three arrivals the lectern is pinned to
-# (flow 0, 600, 1200 = frame 0, 500, 1000). Nothing lands on another branch:
-# every terminal is on the rail, which is what "no overlaps" means here.
-#
-# ALL FIVE ANGLES remain the vocabulary: V trunk and taproot, F reaches and
-# fan spreads, D elbows, S dives — 2 + 6 + 2 + 8 of 18 strokes.
+def name_of(kind, side):
+    return "V" if kind == "V" else kind + ("R" if side > 0 else "L")
 
-CROWN = F(170)
+
+def lands(x, y, name, h):
+    """Where a step would actually be drawn: clipped to the rail."""
+    dx, dy = STEPS[name]
+    nx, ny = x + dx * h, y + dy * h
+    if ny > RAIL:
+        t = (RAIL - y) / (ny - y)
+        nx, ny = x + (nx - x) * t, RAIL
+    return nx, ny
+
+
+def touches(x, y, nx, ny):
+    """Does the step (x,y)->(nx,ny) run into something already drawn?
+
+    A ROOT DOES NOT PASS THROUGH ITSELF, and in this system that is not a
+    botanical nicety: the drawing's whole vocabulary is construction, where two
+    lines crossing without a dot on the crossing means "these are not
+    connected". A crossing in a drawing whose entire subject is data merging
+    tells the reader, in the drawing's own language, that it does not.
+
+    A step leaves a junction that already carries strokes, and it may END on
+    another branch. So the parameter is open at the start and CLOSED at the
+    finish: 0 < t < 1 is a crossing, t == 1 is an arrival.
+
+    AND THE PARALLEL CASE IS NOT "no intersection". Two steps leaving the SAME
+    junction on the SAME angle have no crossing point to find, because one lies
+    along the other: one stroke at twice the weight and a limb missing, which
+    is worse than the crossing it was reached for and invisible in a diff. So
+    collinearity is tested first and shares no code with the crossing test.
+    """
+    for x1, y1, x2, y2, _ in segments:
+        det = (nx - x) * (y2 - y1) - (ny - y) * (x2 - x1)
+        if det == 0:
+            if (x1 - x) * (ny - y) - (y1 - y) * (nx - x) != 0:
+                continue
+            lo, hi = min(y, ny), max(y, ny)
+            if min(y1, y2) < hi and max(y1, y2) > lo:
+                return True
+            continue
+        t = ((x1 - x) * (y2 - y1) - (y1 - y) * (x2 - x1)) / det
+        u = ((x1 - x) * (ny - y) - (y1 - y) * (nx - x)) / det
+        if 0 < t < 1 and 0 <= u <= 1:
+            return True
+    return False
+
+
+def free(x, y, name, h, clear=CLEAR):
+    """Is this step clear — inside the box, clear of the drawing, and not
+    crowding it?
+
+    THE FIRST TWO CLAUSES ARE THE OLD TEST. The third is what the grown root
+    was missing and the symmetric one bought by giving up growth: a step that
+    crosses nothing can still run a few units off a sibling for its whole
+    length, and at 1 px two strokes four units apart are one thick stroke that
+    flickers. `touches` answers a topological question; this answers the
+    optical one, and a root that fills a box needs both. CLEAR is in drawing
+    units and is the floor for the whole construction — see its own note.
+    """
+    nx, ny = lands(x, y, name, h)
+    if not (LEFT <= nx <= RIGHT):
+        return False
+    if ny <= y:
+        return False
+    # A ROOT IS A TREE, AND A TREE HAS ONE FEWER JUNCTION THAN IT HAS STROKES.
+    # Two limbs are free to grow toward each other and, on a lattice this
+    # regular, to arrive at exactly the same point — which is not an arrival,
+    # it is a MERGE, and it closes a cycle. The drawing survives it (no free
+    # end, no crossing) and the timing does not: a point reached twice inherits
+    # the run of whichever limb got there first, so everything below it lights
+    # before the other limb has arrived. check-flow-chain.py caught it as
+    # "54 junctions for 53 strokes". The rail is the exception and the only
+    # one: every foot lands on it, and feet are meant to share it.
+    if ny < RAIL and (nx, ny) in DIST:
+        return False
+    if touches(x, y, nx, ny):
+        return False
+    return gap_ok(x, y, nx, ny, clear)
+
+
+def gap_ok(x, y, nx, ny, clear):
+    """No point of this step is within `clear` units of a stroke it does not
+    share an endpoint with. Sampled, not solved: the segment-to-segment
+    distance in exact Fractions needs a square root to compare against a
+    length, and sampling at 5-unit steps on a drawing whose shortest stroke is
+    30 units is finer than the question. Endpoints are exempted because a
+    junction is exactly where two strokes are meant to be at distance zero."""
+    ends = {(x, y), (nx, ny)}
+    span = max(abs(nx - x), abs(ny - y))
+    n = max(2, int(span / 5))
+    c2 = clear * clear
+    for x1, y1, x2, y2, _ in segments:
+        if ends & {(x1, y1), (x2, y2)}:
+            continue
+        for k in range(n + 1):
+            px = x + (nx - x) * F(k, n)
+            py = y + (ny - y) * F(k, n)
+            if _d2_point_seg(px, py, x1, y1, x2, y2) < c2:
+                return False
+    return True
+
+
+def _d2_point_seg(px, py, x1, y1, x2, y2):
+    vx, vy = x2 - x1, y2 - y1
+    wx, wy = px - x1, py - y1
+    vv = vx * vx + vy * vy
+    if vv == 0:
+        return wx * wx + wy * wy
+    t = (wx * vx + wy * vy) / vv
+    t = max(F(0), min(F(1), t))
+    dx, dy = wx - t * vx, wy - t * vy
+    return dx * dx + dy * dy
+
+
+# ------------------------------------------------------- the pinned skeleton
+#
+# THE THREE ARRIVALS THE FRAME IS PINNED TO. flow x 0, 600 and 1200 are frame
+# x 0, 500 and 1000 — the two elements share a 1200-unit basis — so three of
+# the root's feet are not free: they must land exactly on (0, 620), (600, 620)
+# and (1200, 620), where the lectern's three verticals stand up. Those chains
+# are written out; an exact arrival is a constraint and not an outcome.
+#
+# The reach leaves the trunk at 45deg and crosses the width at 26.57deg, and
+# not the reverse: the flat leg then crosses the interior band x 400-600 that
+# check-flow-density.py floors, and steep-first left it under the floor with
+# the same junctions either way.
 
 DIST[(F(600), F(84))] = F(0)
-walk(F(600), F(84), [("V", CROWN - 84)])                  # trunk, out of the void
-walk(F(600), CROWN, [("V", RAIL - CROWN)])                # centre taproot
+walk(F(600), F(84), [("V", CROWN - 84)])                   # trunk, out of the void
+# the centre taproot, broken into runs for the same reason the reach is: a
+# 450-unit vertical with no junction on it is 450 units of drawing nothing can
+# leave from, and the trunk is where a root is busiest.
+walk(F(600), CROWN, [("V", F(110)), ("V", F(100)), ("V", F(110)), ("V", F(130))])
 
 for side in (-1, +1):
-    fname = "FR" if side > 0 else "FL"
-    dname = "DR" if side > 0 else "DL"
-    walk(F(600), CROWN, [(dname, F(75)), (fname, F(150))])    # reach + elbow
-    jx = F(600 + side * 375)
-    for s2 in (-1, +1):
-        f2 = "FR" if s2 > 0 else "FL"
-        walk(jx, CROWN + 225, [(f2, F(75))])                  # the fan spreads
-        cx = jx + s2 * 150
-        for s3 in (-1, +1):
-            walk(cx, CROWN + 300,
-                 [("SR" if s3 > 0 else "SL", F(150))])        # the dive lands
+    d, f = name_of("D", side), name_of("F", side)
+    # THE REACH STEPS, IT DOES NOT RULE. Four collinear 26.57deg runs in a row
+    # are one straight line 500 units long however many strokes it is written
+    # as, and a straight line from the crown to the corner is the one thing a
+    # root never does — it read as a drawn ruler with twigs hung off it. So the
+    # reach alternates 45 and 26.57 all the way down: the steep leg drops, the
+    # flat leg crosses, and the pair repeats. Same two angles the branches use,
+    # same arrival — dx -600, dy 450, exactly (0, 620) — and six junctions
+    # instead of four, spread over the whole descent instead of bunched in its
+    # last third.
+    walk(F(600), CROWN, [(d, F(60)), (f, F(90)), (d, F(60)), (f, F(90)),
+                         (d, F(60)), (f, F(30)), ("V", F(60))])
 
 SKELETON = len(segments)
+
+# --------------------------------------------------------------- the growth
+#
+# BACK TO A GROWN ROOT, and the review that retired growth is answered rather
+# than reversed. The complaint against the first grown root was true —
+# branches chosen one leg at a time around their own obstacles, three terminals
+# landing mid-stroke on a sibling, twice the ink on one side — and the answer
+# then was to write the whole drawing out as one symmetric construction. That
+# fixed the overlaps by removing the thing that made them, and what came out
+# was eighteen strokes, nine feet at exactly 150 units apart, and a drawing
+# that reads as a diagram of a tree rather than as a root: the fans mirror to
+# the unit, so the eye sees a truss.
+#
+# So the growth is back, with the three faults answered directly:
+#
+#   CHOSEN WHOLE, NOT LEG BY LEG. A branch commits both legs or neither, in
+#   the preference order the rule always had. Flipping leg 1 to clear a
+#   crossing is exactly what laid a child along its parent's other leg.
+#
+#   A CLEARANCE, NOT ONLY A CROSSING TEST. free() now also refuses a step that
+#   comes within CLEAR units of a stroke it does not touch. The old rule was
+#   topological and let branches run parallel a few units apart, which at 1 px
+#   is one thick flickering stroke.
+#
+#   BALANCED BY CONSTRUCTION, NOT BY SYMMETRY. The seeds are mirrored, so the
+#   two halves carry the same number of limbs and the same drop budget; what
+#   the growth then does inside each limb is decided by the room it finds, so
+#   the two sides match in mass and differ in detail. That is the difference
+#   between balance and reflection, and it is the whole of what was wrong with
+#   the truss.
+#
+# IT IS STILL NOT RANDOM. foundations/illustration.html: a construction is the
+# same every time it is drawn. There is no RNG here — every choice is a
+# function of the geometry and of the seed list below, so re-running prints
+# byte-identical paths. The irregularity the reader sees is the irregularity of
+# the box, not of a random number.
+
+
+def grow(x, y, kind, depth, side, budget):
+    """One branch: turn a notch, run part of the drop, turn again, meet the
+    rail — then the same again from its own junction, on the other side.
+
+    A BRANCH IS SIZED BY THE DROP IT HAS LEFT, not by its parent's length.
+    Size it by the parent and a branch leaving high has to fall the rest of the
+    way as a vertical, which is a long parallel drop — seven of those was the
+    bus this replaced. Size it by the remaining drop and it lands ON the rail
+    at an angle and shrinks on its own as it nears it.
+
+    A BRANCH ALTERNATES 45 AND 63.43 and never uses the outer two angles.
+    Turning one notch steeper each time ends every branch at 90 and the bottom
+    of the drawing comes out a picket fence; one notch flatter puts 26.57 in
+    the fringe, and 26.57 crosses twice its own drop, which reads as a net.
+    """
+    rem = RAIL - y
+    if depth > DEPTH or rem < 55 or budget <= 0:
+        return
+    a = "S" if kind in ("F", "D") else "D"
+    b = "D" if a == "S" else "S"
+    # WHERE THE BRANCH PUTS ITS OWN JUNCTION, and this is the one number that
+    # makes the feet irregular. A single ratio for every branch is what spaced
+    # the truss's feet at exactly 150: same ratio, same drop, same run, every
+    # time. The ratio is a function of the branch's own depth and side, so
+    # sibling limbs divide at different heights, their children inherit
+    # different remainders, and the feet come out unevenly spaced without one
+    # of them being placed by hand. Still on fives, so the paste stays readable.
+    r = RATIOS[(depth + (1 if side > 0 else 0)) % len(RATIOS)]
+    h1 = F(5) * round(rem * r / 5)
+    h2 = rem - h1
+    if h1 <= 0 or h2 <= 0:
+        return
+    for n1 in (name_of(a, side), name_of(a, -side), "V"):
+        if not free(x, y, n1, h1):
+            continue
+        x1, y1 = lands(x, y, n1, h1)
+        s1 = side if n1 == "V" else (1 if n1.endswith("R") else -1)
+        if y1 >= RAIL:
+            walk(x, y, [(n1, h1)])
+            return
+        n2 = next((n for n in (name_of(b, s1), name_of(b, -s1), "V")
+                   if free(x1, y1, n, h2)), None)
+        if n2 is None:
+            continue
+        walk(x, y, [(n1, h1)])
+        walk(x1, y1, [(n2, h2)])
+        grow(x1, y1, a, depth + 1, -s1, budget - 1)
+        return
+
+
+# THE SEEDS, mirrored about the trunk: every junction on a reach, plus two on
+# the centre taproot. A taproot is bare near the crown and branchy near the
+# tip, so the deeper seeds are given more budget — the number of further
+# generations they may spawn — and the shallow ones one limb only.
+SEEDS = []
+for side in (-1, +1):
+    # every junction on the reach, with the parent's own kind so the branch
+    # alternates off it rather than repeating it. Inward (-side) on the flat
+    # junctions and outward on the steep ones, which is what fills the triangle
+    # between the reach and the taproot instead of hanging everything below the
+    # reach where there is no room left to fall.
+    for (dx, dy), kind, out, depth, budget in [
+        (( 60,  60), "D", -1, 1, 4),
+        ((240, 150), "F", -1, 1, 4),
+        ((300, 210), "D", +1, 1, 4),
+        ((480, 300), "F", -1, 1, 3),
+        ((540, 360), "D", +1, 2, 2),
+        ((600, 390), "F", -1, 2, 2),
+    ]:
+        SEEDS.append((F(600 + side * dx), CROWN + F(dy), kind,
+                      depth, out * side, budget))
+# and the taproot, alternating the side it puts a limb out on
+for dy, side, budget in ((F(110), +1, 4), (F(210), -1, 4), (F(320), +1, 3)):
+    SEEDS.append((F(600), CROWN + dy, "V", 1, side, budget))
+
+for jx, jy, pkind, d, side, budget in SEEDS:
+    grow(jx, jy, pkind, d, side, budget)
 
 # ---------------------------------------------------------------- assertions
 
@@ -276,10 +507,17 @@ for i, (x1, y1, x2, y2, d) in enumerate(segments):
           f'gradientUnits="userSpaceOnUse" x1="{num(x2)}" y1="{num(y2)}" '
           f'x2="{num(x1)}" y2="{num(y1)}"/>')
 
+# THE LEAVES ARE THE STROKES THAT LAND ON THE RAIL, and they are marked in the
+# markup rather than found in CSS because there is no selector for "ends at
+# y 620". They are the only part of the drawing that keeps its light: the rest
+# of the root fades to contour behind the front, and the feet go on glimmering
+# — see .lp-flow__leaf on the page. A leaf is where the data actually enters,
+# so it is the one place a light that never quite goes out is saying something.
 print()
 for i, (x1, y1, x2, y2, d) in enumerate(segments):
     o = "0 0" if x2 >= x1 else "100% 0"
-    print(f'<path class="lp-flow__light" style="--o:{o};--l:{level(d)};'
+    leaf = " lp-flow__leaf" if y2 == RAIL else ""
+    print(f'<path class="lp-flow__light{leaf}" style="--o:{o};--l:{level(d)};'
           f'--u:{extent(d, x1, y1, x2, y2)}" '
           f'stroke="url(#lp-flow-ax-{i:02d})" d="{data(x1, y1, x2, y2)}"/>')
 
@@ -350,8 +588,20 @@ for x1, y1, x2, y2, d in segments:
 # marks a point the construction depends on" — and on a construction this
 # regular that is EVERY division: the crown and the six fan junctions, seven
 # dots, inside the ceiling with room. The radius keeps the same ladder.
+# ON A GROWN ROOT "EVERY DIVISION" IS TOO MANY AGAIN. The symmetric
+# construction had seven divisions and could mark all of them; this one has
+# nineteen, and a dot on each spends the drawing's one word for "here it
+# divides" until it reads as texture rather than as construction. So the cut
+# goes back to the one the radius is already a function of: level, the run from
+# the void normalised to 0-3, nearest two thirds. That is the same sentence as
+# the ladder — r 3 and r 2 are the bands nearest the subject, and those are the
+# divisions the reader is meant to count; out at the fringe the root is
+# thinning to twigs and a dot every few units is noise. It selects nine of the
+# nineteen, inside the manual's ceiling of eleven with room.
+NODE_LEVEL = 2.0
 outdeg = Counter((x1, y1) for x1, y1, _, _, _ in segments)
-NODE_POINTS = sorted((p for p, n in outdeg.items() if n >= 2),
+NODE_POINTS = sorted((p for p, n in outdeg.items()
+                      if n >= 2 and float(level(DIST[p])) < NODE_LEVEL),
                      key=lambda p: (p[1], p[0]))
 assert len(NODE_POINTS) <= 11, (
     f"{len(NODE_POINTS)} nodes -- the manual's ceiling is eleven "
@@ -474,26 +724,28 @@ LABEL_HEIGHT = 14.30
 FLOOR_SCALE = 0.75948
 CLEARANCE = 12.0
 
-VALUES = [
-    # x, y, value -- the offsets are DERIVED below and no longer typed.
-    # THEY CONSERVE on the balanced tree: the crown divides the source three
-    # ways (12 480 = 5 040 + 2 400 + 5 040 -- the fans match, the taproot
-    # carries the middle), the right fan's junction divides its 5 040
-    # (2 640 + 2 400), and the outer dive pair divides the 2 640
-    # (1 360 + 1 280). All multiples of 80, as every value here has been.
-    # The left fan mirrors the right in geometry, not in figures -- naming
-    # both fans' subdivisions would spend fourteen numerals on a drawing
-    # whose ceiling of marks is what it is; the left stays unquantified
-    # below its reach, and unquantified is not wrong.
-    (F(600), F(120), 12480),
-    (F(425), F(295),  5040),
-    (F(600), F(300),  2400),
-    (F(775), F(295),  5040),
-    (F(1051), F(433), 2640),
-    (F(899), F(433),  2400),
-    (F(1150), F(520), 1360),
-    (F(1100), F(520), 1280),
-]
+# WHERE THE NUMERALS GO IS DERIVED NOW, LIKE EVERY OTHER MARK ON THIS DRAWING.
+# The eight values were a typed list of coordinates, which is the same finding
+# the radius and the node points already went through twice: read off the
+# picture rather than off the number the picture is built from, and the picture
+# moves. It moved — the root is grown again — and eight coordinates that named
+# junctions of the truss now name empty wash.
+#
+# So a value stands on a route LEAVING a marked junction, one quarter of the
+# way along it: the junctions are already chosen (NODE_POINTS, the nearest two
+# thirds of the ladder), and quarter-way is far enough down the stroke to be
+# clear of the dot and near enough to still be reading that stroke rather than
+# the next one. Which junctions get quantified is the ceiling again — the
+# crown, and the two junctions the crown's own limbs divide at — because the
+# manual's ceiling is on marks and a numeral is a mark.
+#
+# AND THE FIGURES ARE COMPUTED BOTTOM-UP, not typed and then checked. A
+# labelled point carries the sum of the labelled points below it, so
+# conservation is how the numbers are MADE rather than a property they are
+# audited for afterwards: the fringe of the label tree gets a base rate and
+# every parent is the sum of its children. There is no arrangement of these
+# numbers that does not balance, which is the difference between a check that
+# can fail and a construction that cannot.
 
 
 def own_stroke(px, py):
@@ -627,6 +879,45 @@ def downstream_labelled(px, py, labelled):
 #
 # A point with NOTHING labelled below it asserts nothing and escapes nothing --
 # the fringe under 3 840 is unquantified, and unquantified is not wrong.
+VALUE_JUNCTIONS = 3        # the crown and the first two divisions under it
+BASE_RATE = F(80)          # every value is a multiple of it, as they always were
+
+
+def outgoing(px, py):
+    return [s for s in segments if (s[0], s[1]) == (px, py)]
+
+
+def value_points():
+    """A point a quarter of the way down every route out of the quantified
+    junctions, in the order the data reaches them."""
+    js = sorted(NODE_POINTS, key=lambda p: DIST[p])[:VALUE_JUNCTIONS]
+    pts = [(F(600), F(120))]                       # the source, on the trunk
+    for jx, jy in js:
+        for x1, y1, x2, y2, _ in outgoing(jx, jy):
+            pts.append((x1 + (x2 - x1) / 4, y1 + (y2 - y1) / 4))
+    return pts
+
+
+PTS = value_points()
+
+
+def _sum_below(p, rest):
+    kids, _ = downstream_labelled(p[0], p[1], set(PTS))
+    return [k for k in kids if k != p]
+
+
+# The fringe of the label tree first, then every parent as the sum of its
+# children — deepest first, so a parent is only ever summed from figures that
+# are already fixed. The base rates step down the fringe by one unit of
+# BASE_RATE each, which is what keeps the sums from all coming out equal and
+# the drawing from claiming a perfectly even split it does not draw.
+_v = {}
+for i, p in enumerate(sorted(PTS, key=lambda q: -q[1])):
+    kids = _sum_below(p, PTS)
+    _v[p] = sum(_v[k] for k in kids) if kids else BASE_RATE * (17 + 2 * i)
+
+VALUES = [(x, y, int(_v[(x, y)])) for x, y in PTS]
+
 LABELLED = {(x, y): v for x, y, v, *_ in VALUES}
 for (px, py), v in LABELLED.items():
     kids, escaped = downstream_labelled(px, py, set(LABELLED))
@@ -639,6 +930,73 @@ for (px, py), v in LABELLED.items():
             f"{len(kids)} labelled value(s), but {len(escaped)} route(s) "
             f"leaving it reach the rail with nothing labelled on them: "
             f"{sorted(escaped)} — the sum says those carry zero")
+
+# ---------------------------------------------------------------- the readings
+#
+# WHAT THE ROOT IS CARRYING, AT THE END WHERE IT IS CARRYING IT FROM. The
+# values above are one quantity — a data rate — and they divide, which is why
+# they are numerals with no unit on them and why every one of them has to add
+# up. The statement over this drawing is "Tausende Sensoren erzeugen Daten",
+# and until now the drawing answered it with eight counts of nothing in
+# particular: the fringe, where the sensors actually are, carried no reading at
+# all.
+#
+# A READING IS NOT A VALUE, and that is the whole reason it is a second class
+# rather than eight more .lp-flow__val. A rate divides: the stream that leaves
+# a junction is the sum of the streams that leave it, and check-flow-values.py
+# holds the drawing to that. A temperature does not. Two 400 °C channels
+# merging do not make 800 °C, and a drawing that let its units into the sum
+# would be asserting exactly that. So the two carry different classes, the
+# check reads only the one that conserves, and the unit is what tells the
+# reader which kind of number they are looking at.
+#
+# WHERE THEY GO: the fringe, one per limb, spread across the width. That is
+# where the sensors are in the drawing's own logic — the far end of the root,
+# furthest from the void — and it is also the emptiest band of the box, which
+# is the one part of this the eye was going to notice first either way.
+#
+# THE FIGURES ARE PLAUSIBLE PLANT VALUES, not decoration: a bearing at 74 °C, a
+# line at 12.4 bar, a drive at 246 kW. They are typed, because a temperature is
+# not derivable from a geometry — but the CHOICE of stroke is not, and neither
+# is the placement, which goes through the same label law as everything else.
+READINGS = [
+    "74 \u00b0C", "12.4 bar", "246 kW", "1 480 rpm", "318 K",
+    "4.2 mm/s", "96 %", "51 Hz",
+]
+
+
+def fringe_strokes(n):
+    """The n deepest strokes, one per limb, spread across the width.
+
+    Deepest first, then a stroke is only taken if its midpoint is clear of
+    every reading already placed by a full label's width — otherwise the
+    readings crowd into whichever corner the root happens to be busiest in,
+    which is the fringe, which is all of them.
+    """
+    span = max(len(r) for r in READINGS) * LABEL_ADVANCE / FLOOR_SCALE
+    taken, out = [], []
+    for x1, y1, x2, y2, d in sorted(segments, key=lambda s: -s[4]):
+        mx = float(x1 + x2) / 2
+        if any(abs(mx - t) < span for t in taken):
+            continue
+        taken.append(mx)
+        out.append((x1, y1, x2, y2))
+        if len(out) == n:
+            break
+    return sorted(out, key=lambda s: float(s[0]))
+
+
+print()
+for (x1, y1, x2, y2), text in zip(fringe_strokes(len(READINGS)), READINGS):
+    # a third of the way down, which keeps the numeral off both the junction it
+    # leaves and the foot it lands on
+    px, py = x1 + (x2 - x1) / 3, y1 + (y2 - y1) / 3
+    dx, dy, side, left_gap, gap = offsets(px, py, len(text))
+    print(f'<span class="t-label lp-flow__read" style="--x:{num(px)};--y:{num(py)};'
+          f'--tx:{dx};--ty:{dy};--l:{level(run_to(px, py))}">{text}</span>')
+    print(f'  <!-- {side:>5}: own stroke {CLEARANCE:.2f} px, nearest other '
+          f'{gap:.2f} px at the gate floor; the left offers {left_gap:.2f} -->')
+
 
 print()
 # A PLAIN SPACE, AND THE THOUSANDS SEPARATOR IS STILL UNBREAKABLE. This emitted
