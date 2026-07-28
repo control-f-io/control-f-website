@@ -243,6 +243,172 @@
          express, since the banner's height is a runtime property. Flagged for a
          designer rather than invented here. */
       main { --lp-measure: calc((max(45rem, 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }
+      /* ------------------------------------------------------------------
+         THE STATEMENT HOLDS WHILE ITS ROOT GROWS. --lp-hold is how much
+         scroll it holds for, and it is the only number in this mechanism.
+
+         WHAT WAS WRONG, measured at 1440 x 900 with the notice dismissed. The
+         root's build runs cover 26 % (the light's first ink) to cover 68 %
+         (the last fade) of --lp-flow, which is 656.8 px of scroll — and over
+         those 656.8 px the drawing travelled 656.8 px, because nothing held
+         it. Its box is 663.91 px tall in a 900 px viewport, so it is entirely
+         on screen only while its top sits in [0, 236.09]:
+
+           scroll   flow top   contour   the reader sees
+             685     +493.4      2 %     the trunk; the bottom 257 px are below the fold
+             942     +236.1     13 %     whole, for the first time
+            1178       -0.0     79 %     whole, for the last time
+            1341     -163.5    100 %     lands with its crown off the top of the screen
+
+         236 px of the build's 657 — 36 % — happen with the whole drawing on
+         screen, and NONE of them happen with it still. That is the brief:
+         "i should be able to see it growing when scrolling".
+
+         WHY IT CANNOT BE A STICKY STAGE, and this is the constraint that had
+         to be settled before anything was written. .lp-flow is stretched
+         between two anchors — the void's centre above and the lectern's rail
+         below (see the @supports block) — so it is NOT in the figure's
+         containing block and does not travel with it. Two measurements settle
+         what may be done to it:
+
+           1. anchor() does not follow a sticky ancestor. .lp-frame is inside
+              .cf-pin__stage; at the pin the frame's top holds at viewport
+              171.0 while .lp-flow's box keeps travelling and its height holds
+              at 663.91. So making the figure sticky leaves the root behind.
+           2. A transform is invisible to BOTH anchor() and view(). Measured
+              at 1440 x 900 with `translate: -50% 250px` forced onto .lp-flow:
+              the box paints 250.0 px lower and the contour's mean scale reads
+              0.2538 / 0.5413 / 0.8280 at scroll 1000 / 1100 / 1200 — the same
+              four decimal places as without it. Layout boxes are what both
+              features read, and the note on .lp-flow's centring records the
+              same fact from the other side: `translate` "is not in it".
+
+         SO THE HOLD IS A DISPLACEMENT, NOT A BOX. The section reserves
+         --lp-hold of scroll above the statement, and every part of the
+         statement carries a scrubbed translate that starts at exactly
+         -(--lp-hold) and ends at exactly 0 across a window exactly --lp-hold
+         px long. Three consequences, and they are why this shape was chosen:
+
+           before the window   translate is -(--lp-hold), which cancels the
+                               reservation exactly: the approach paints where
+                               it painted before this existed
+           inside it           the two rates are equal and opposite, so the
+                               statement stands still — 1.00 px of translate
+                               per 1.00 px of scroll, the same asymmetry
+                               check-seam-travel.py derives, used deliberately
+           after it            translate is 0. The flow's box, the figure's,
+                               the rail's and the seam between them are the
+                               layout they always were, and every number in
+                               check-flow-handover.py and
+                               check-void-departure.py is untouched — neither
+                               reads a transform, and there is no scroll
+                               position at which the released drawing is
+                               anywhere but where it used to be.
+
+         THE WINDOW IS EXACTLY --lp-hold PX LONG BY CONSTRUCTION, at every
+         viewport, and that is what a percentage cannot buy. `cover 50%` is
+         the centred position — the definition of the cover range's midpoint —
+         so `cover calc(50% - var(--lp-hold))` opens exactly --lp-hold px
+         earlier: the percentage resolves against the cover range and the
+         length does not resolve against anything. Had the two ends both been
+         percentages the window would have been 24 % of `100vh + the flow's
+         own height`, and the flow's height is a stretch between two anchors —
+         a number no stylesheet can write. Ending at cover 50 % is what makes
+         the held position the CENTRED one rather than a tuned offset.
+
+         42vh IS THE BUILD'S HEAD, said in the one unit available. The window
+         opens at cover 50 % - 42vh, and the light's first ink is at cover 26.
+         Measured, notice dismissed, at the six viewports the gate admits:
+
+           viewport      flow h   cover range   42vh    opens at   held at
+           1024 x  720    522.0     1242.0      302.4   cover 25.65   99.0
+           1280 x  800    597.8     1397.8      336.0   cover 25.96  101.1
+           1366 x  768    614.3     1382.3      322.6   cover 26.66   76.9
+           1440 x  900    663.9     1563.9      378.0   cover 25.83  118.1
+           1920 x 1080    833.9     1913.9      453.6   cover 26.30  123.1
+           2560 x 1440   1013.9     2453.9      604.8   cover 25.35  213.1
+
+         Within 0.7 of a point of the ink at all six, because the flow's height
+         and the viewport height are the same number twice: --lp-measure is
+         built from 100vh, so the cover range is 1.70 to 1.80 viewports across
+         the whole gate and 42 of them is always 23.3 to 24.4 points of it. The
+         last column is the held position of the drawing's top edge, and every
+         one of the six is (viewport - flow h) / 2 to the tenth of a pixel: the
+         hold ends at cover 50 %, and cover 50 % is the centre.
+
+         THE ONE THING IT COSTS, measured rather than reasoned. While the ramp
+         is running the drawing is up to 42vh above its own layout box, and
+         the lectern's rail — which IS that box's bottom edge — is not. So the
+         PAINTED seam is open by exactly the remaining ramp. For most of it
+         that is invisible, because the rail is still below the fold; the two
+         are on screen together only over the last stretch, and there the gap
+         is closing at 1.00 px per px into 0.00. Swept every 5 px, the window
+         where a nonzero gap and the rail are BOTH on screen:
+
+           viewport      window    gap opens at   lowest ink above the foot
+           1024 x  720    100 px      96.56 px      252.2 px   2.61 x the gap
+           1280 x  800    100 px      97.88 px      268.3 px   2.74 x
+           1366 x  768     75 px      79.78 px      242.1 px   3.03 x
+           1440 x  900    125 px     117.89 px      313.7 px   2.66 x
+           1920 x 1080    125 px     121.51 px      350.1 px   2.88 x
+           2560 x 1440    230 px     212.70 px      529.8 px   2.49 x
+
+         The gap opens at (viewport - flow h) / 2 — the held column above, to
+         the sweep's own 5 px step. It is the centring offset and nothing else,
+         which is why it cannot be tuned smaller by choosing a different 42:
+         the rail is the drawing's layout foot, so it crosses the viewport's
+         bottom edge exactly when the drawing's layout box does, and the ramp
+         still owes whatever it owes to reach centre. What makes it admissible
+         is the last column instead: the rail appears
+         while the contour front is around l = 0.95 of a run that reaches 3.08,
+         so the lowest ink in the drawing is two and a half to three times the
+         gap above the drawing's own foot. Nothing is hanging over the rail
+         because nothing has grown near it yet. Every terminal that does arrive
+         there arrives at cover 66, which is 400 px of scroll after the ramp
+         has finished and the gap has been 0.00 the whole way.
+
+         WHAT IT DOES NOT BUY, so the next run does not go looking. The hold
+         ENDS where the drawing is centred, and the build runs 18 further
+         points of cover after that — the last of the contour and the whole of
+         the fade — released. It cannot be otherwise while the build is timed
+         on .lp-flow's own view(): the held position IS the natural position
+         at the window's end, so holding past centre would hold the crown off
+         the top of the screen. Moving the build onto this window's own
+         timeline is what buys the rest, and it re-derives the two tails the
+         seam and the lime clearance are written at (cover 66 and 68) — the
+         front, the relay and the sweep move together or not at all. That is
+         the next stage, not this one.
+         ------------------------------------------------------------------ */
+      main { --lp-hold: 42vh; timeline-scope: --lp-flow; }
+      /* THE RESERVATION IS ADDED TO THE SECTION'S OWN RHYTHM, NOT WRITTEN OVER
+         IT, and this is the one place the arithmetic actually bit. `.section`
+         is `padding-block: var(--section-gap)`, so `padding-block-start:
+         var(--lp-hold)` REPLACES that top gap rather than adding to it: at
+         1440 x 900 the section reserved 378 px where it had already been
+         reserving 120, and the page below the hero moved down by 258 while
+         the ramp went on displacing the full 378. The seam past the hold was
+         still 0.00 — the ramp returns to zero either way — but through the
+         whole approach the statement painted 120 px HIGHER than its own
+         layout, closing the band between it and the hero by that much at
+         every viewport. Same token, one term added. */
+      .lp-hold { padding-block-start: calc(var(--section-gap) + var(--lp-hold)); }
+      .cf-statement__figure .cf-iso,
+      .cf-statement__text {
+        animation: lp-hold linear both;
+        animation-timeline: --lp-flow;
+        animation-range: cover calc(50% - var(--lp-hold)) cover 50%;
+      }
+      /* The four boxes that are centred with `translate` take the same ramp in
+         the x component they already carry, because `translate` is one
+         property and a keyframe replaces all of it. .lp-flow__stem and
+         .lp-proc-head are named in the @supports block below, where they are
+         the only place they exist. */
+      .lp-flow,
+      .lp-flow-data {
+        animation: lp-hold-c linear both;
+        animation-timeline: --lp-flow;
+        animation-range: cover calc(50% - var(--lp-hold)) cover 50%;
+      }
       .lp-proc-stage { --pin-measure: var(--lp-measure);
         block-size: max(45rem, calc(100% - var(--cf-consent-height, 0px))); }
       /* AND THE SAME FINDING ON THE OTHER AXIS. The note above is about the
@@ -883,9 +1049,17 @@
          value declared on .lp-flow reaches the strokes and the junctions and
          stops one element short of the numerals riding them. Declared on the
          common parent, the whole drawing reads one number. */
+      /* THE SCOPE IS ON `main` NOW, one element out and for one more reader.
+         The paragraph above is unchanged in substance — the name still has to
+         be lifted off the <svg> that declares it, or the numerals, which are
+         its SIBLING and not its descendants, resolve a null timeline. What
+         changed is who else needs it: the statement's copy and the process
+         header hold on the same window as the drawing, and neither is inside
+         .cf-statement__figure. `main` is the nearest element that is an
+         ancestor of all four. Nothing about what --lp-flow MEASURES changes;
+         a wider scope is a wider audience for the same timeline. */
       .cf-statement__figure {
         position: relative;
-        timeline-scope: --lp-flow;
         --flow-c: 11.04;
       }
       /* ONE BOX, DECLARED ONCE, FOR THE DRAWING AND FOR WHAT IT CARRIES. The
@@ -1261,6 +1435,13 @@
           align-self: stretch;
           overflow: visible;
           pointer-events: none;
+          /* Held with the drawing it is the trunk of. Its three insets are
+             read off --lp-flow-box, which is a LAYOUT box and does not move
+             under the ramp — so the stroke would have stayed in the rim while
+             the root it feeds stood still 375 px away. → the hold's own note. */
+          animation: lp-hold-c linear both;
+          animation-timeline: --lp-flow;
+          animation-range: cover calc(50% - var(--lp-hold)) cover 50%;
         }
         .lp-proc-head {
           position: absolute;
@@ -1316,6 +1497,18 @@
           margin: 0;
           padding-block: var(--space-3) 0;
           border-block-start: var(--stroke-1) solid var(--border-strong);
+          /* Held with the drawing, for the reason this row exists at all: it
+             stands ON the drawing's horizon. Both of its `top` terms are
+             anchors — the rim off --lp-flow-box, the floor off
+             --lp-statement-text — and both are layout boxes, so without this
+             the rule would have been drawn through the middle of a root that
+             was standing still 375 px above it. It is named HERE and not with
+             the drawing because outside this block the header is an ordinary
+             section header in flow, belonging to the section below, and
+             holding it there would take it away from its own copy. */
+          animation: lp-hold-c linear both;
+          animation-timeline: --lp-flow;
+          animation-range: cover calc(50% - var(--lp-hold)) cover 50%;
         }
         /* What the header no longer occupies. → the markup note. The label's
            line box is the term that is easy to get wrong: .cf-section-header
@@ -1733,6 +1926,17 @@
      opaque until its window opens, so the from-state is the base style and
      writing it out would be the thing that pins it. */
   @keyframes lp-flow-out { to { opacity: 0; } }
+  /* THE HOLD, IN TWO COPIES BECAUSE `translate` IS ONE PROPERTY. A keyframe
+     replaces the whole of it, so a part that is centred with `translate: -50%
+     0` has to be given its x back in every keyframe or it jumps half its own
+     width sideways the moment the animation applies — and `both` means that
+     is from the top of the document. Both ends are written out for the same
+     reason lp-frame-draw writes both: an implied end taken from the base
+     style is a value the next edit can move without touching this. */
+  @keyframes lp-hold   { from { translate: 0 calc(-1 * var(--lp-hold)); }
+                         to   { translate: 0 0; } }
+  @keyframes lp-hold-c { from { translate: -50% calc(-1 * var(--lp-hold)); }
+                         to   { translate: -50% 0; } }
 
   /* Over .cf-pin's chrome: this stage spaces its index and bar a rung further
      from the card than the Expertise page does — and that rung is now the
@@ -1964,7 +2168,15 @@
   </header>
 
   <!-- 02 · Statement -->
-  <section class="section">
+  <!-- .lp-hold RESERVES THE SCROLL THE STATEMENT STANDS STILL FOR, and it is
+       padding rather than an element because there is nothing to draw: the
+       section's own top edge does not move, everything inside it starts
+       --lp-hold lower, and the ramp on the parts takes exactly that much back
+       until the hold begins. Below the gate — no view timelines, reduced
+       motion, print, or a viewport under 64rem x 45rem — the custom property
+       is never declared, the padding resolves to nothing, and the page is the
+       stacked one it always was. → the rule's own note in the <style> block. -->
+  <section class="section lp-hold">
     <div class="container">
       <div class="cf-statement">
         <div class="cf-statement__figure">
