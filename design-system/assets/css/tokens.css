@@ -417,6 +417,15 @@
      which is why 0.42 is unchanged and every figure at and below the 1440
      frame is byte-identical to what it was. See --scrim-reach.
 
+     AND THE TABLE IS STILL A REGISTER OF WIDTHS, which is the next thing it
+     was short by. The reach is a horizontal displacement, so widths are all it
+     can depend on; the ARTWORK under the type is not, because .cf-hero__media
+     covers with a square and the box's aspect decides which part of that
+     square lands under the type. Re-sampled at frames instead of widths, the
+     kicker's 6.08 at 375 is a 375 x 896; at 375 x 812 it is 4.03 and at
+     768 x 800 it is 4.37, both under the 4.5:1 floor. That is the weight and
+     not the reach, and it is what --scrim-depth below answers.
+
      The headline is still the binding one and 768 is now the tight width at
      3.15, on 5 % rather than 36 %. That is a fact about this artwork at that
      crop, not about the reach — 768 takes the 39rem plateau whole — so the
@@ -502,9 +511,15 @@
   --scrim-reach: calc(min(39rem, 62%)
                       + 0.8944 * max(0px, (100vw - var(--container-max)) / 2
                                           - var(--gutter)));
+  /* How deep the scrim is across the plateau. A token rather than a literal
+     typed twice, so the narrow value below cannot lift one end of the plateau
+     and leave the other — which would turn the flat run into a ramp with
+     nothing in the diff that says so. See the block after --hero-scrim for
+     why it is viewport-conditional. */
+  --scrim-depth: 0.42;
   --hero-scrim: linear-gradient(var(--angle-a),
-                      rgba(207, 207, 207, 0.42) 0,
-                      rgba(207, 207, 207, 0.42) var(--scrim-reach),
+                      rgba(207, 207, 207, var(--scrim-depth)) 0,
+                      rgba(207, 207, 207, var(--scrim-depth)) var(--scrim-reach),
                       rgba(207, 207, 207, 0)    calc(var(--scrim-reach) * 2));
 
   /* ------------------------------------------------------------------
@@ -1119,7 +1134,10 @@
                         indent; the footer CTA folds
        56.25rem / 900   the page-header figure is dropped; the consent
                         banner goes single column; the hero action drops into
-                        the flow.
+                        the flow, and the hero's reading scrim goes to
+                        --scrim-depth 0.5 — the same reflow that moves the
+                        action is what puts the artwork's dark band under the
+                        kicker.
 
                         THE HERO ACTION MOVED HERE FROM 48.75rem ABOVE, and
                         the move is the reason to read this row twice. It was
@@ -2151,6 +2169,67 @@
   /* The dark red is unreadable on black (2.9:1). Same hue, lightened
      until it clears the floor: 12.3:1 on --surface-base here. */
   --feedback-error: #F2B8B5;
+}
+
+/* THE SCRIM GOES DEEPER ON A NARROW HERO, and the reason is the cover crop.
+   The reach fixed the width axis — the plateau follows the column now — but
+   the reach is a horizontal displacement and its own register is widths only,
+   in as many words: "heights are irrelevant to the reach". They are not
+   irrelevant to the ARTWORK. .cf-hero__media covers with a 1080 px square, so
+   which part of that square lands under the type is set by the box's aspect,
+   and the box's aspect is set by the viewport's height as much as its width.
+   At 1280 x 800 the box is 1280 x 656, cover fits the WIDTH, and only the lit
+   middle band of the square is in the hero. At 375 x 812 the box is 375 x 501,
+   cover fits the HEIGHT, and the square's dark top and dark bottom are both in
+   it. Measured raw with the scrim off, the worst pixel under the kicker is
+   rgb(188,193,198) at 1280 x 800 and rgb(37,38,43) at 375 x 812: five times
+   darker under the same 11 px of type.
+
+   So the kicker, alone among the hero's type, is a 4.5:1 element sitting where
+   the artwork is darkest, and 0.42 does not carry it there. Sampled the same
+   way as the table above but at FRAMES rather than widths — the height varied
+   as well as the width — the worst composited pixel under it was:
+
+       375x740   4.03     800x800   4.25     1024x768  13.25
+       375x812   4.03     860x800   4.14     1024x800  13.35
+       375x844   4.01     900x800   4.15     1152x800  13.58
+       375x896   4.44     768x800   4.37     1280x800  13.67
+                          768x1024  8.13     1440x900  14.73
+
+   Nine frames under the 4.5:1 floor, and the poster is among the failing ones
+   — so it fails before a frame of the loop has decoded, and for the
+   prefers-reduced-motion reader who is shown nothing else. It is not a reach
+   problem: the kicker's worst point at 375 x 812 projects to 231 px along the
+   axis where the plateau runs to 347, so that pixel sits under the scrim at
+   its full 0.42 and still reads 4.03:1.
+
+   AND THE CLIFF IS EXACTLY 56.25rem, which is why that is the threshold and
+   not a number picked to cover the failures. 900 x 800 reads 4.15 and
+   1024 x 768 reads 13.25 — a factor of three across 124 px of viewport, with
+   nothing gradual in between. 56.25rem is where .cf-hero__action leaves the
+   flow and floats at the column inset, and the hero's media box goes from
+   567 px tall to 624: below it the kicker sits low in a short hero, on the
+   square's dark bottom band, and above it the hero is tall enough that the
+   kicker is on the lit middle. The breakpoint the hero's own bottom row moved
+   to is the breakpoint its reading floor was already keeping. A second
+   consumer for an existing number, which is what layout.html says that
+   threshold is for.
+
+   Re-derived from the same measured floor the weight always was:
+   rgb(37,38,43) under 0.50 of CF-Grau renders rgb(122,122,129) and clears at
+   4.93:1. It also answers the tight width the note above had to leave — "768
+   is now the tight width at 3.15, on 5 % rather than 36 % ... the only lever
+   there is the weight" — because 768 is below this breakpoint.
+
+   And "much past 0.42 and it starts taking the picture" stays true, which is
+   why the deeper value is not global: at and above 1024 nothing moves, and
+   those are the frames with a picture to take. At 375 the hero is 501 px tall
+   behind five lines of display type, a kicker and the CTA in flow. Only
+   :root: nothing in [data-theme="inverse"] declares --scrim-depth, so there
+   is no per-element declaration for this to fail to reach.
+   → scripts/check-hero-contrast.py */
+@media (max-width: 56.25rem) {
+  :root { --scrim-depth: 0.5; }
 }
 
 @media (prefers-reduced-motion: reduce) {
