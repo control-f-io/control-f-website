@@ -392,6 +392,23 @@ def level(d):
     return num(round(float(3 * d / MAXD), 2))
 
 
+# HOW FAR THIS STROKE CARRIES THE FRONT, in the same currency as level(): the
+# motion lane buys every window with it, so a stroke's window closes on the
+# point its children's windows open on. → the .lp-flow__seg note on the page.
+#
+# THE DIFFERENCE OF THE TWO ROUNDED LEVELS, and not its own rounding of the
+# geometry. What ships is two decimal places, so what has to hold in two
+# decimal places is `parent --l + parent --u == child --l` -- and a child's run
+# IS its parent's run plus the parent's step, so taking both ends through the
+# same level() makes the identity exact in the shipped numbers rather than
+# merely true of the reals behind them. Rounding each independently is off by a
+# hundredth at twenty of the forty-one junctions, which is a whole stroke's
+# stagger at the fringe. scripts/check-flow-chain.py holds it.
+def extent(d, x1, y1, x2, y2):
+    step = max(abs(x2 - x1), abs(y2 - y1))     # Chebyshev, as walk() accumulates
+    return num(round(float(level(d + step)) - float(level(d)), 2))
+
+
 def data(x1, y1, x2, y2):
     if x1 == x2:
         return f"M{num(x1)} {num(y1)}V{num(y2)}"
@@ -416,13 +433,15 @@ for i, (x1, y1, x2, y2, d) in enumerate(segments):
 print()
 for i, (x1, y1, x2, y2, d) in enumerate(segments):
     o = "0 0" if x2 >= x1 else "100% 0"
-    print(f'<path class="lp-flow__light" style="--o:{o};--l:{level(d)}" '
+    print(f'<path class="lp-flow__light" style="--o:{o};--l:{level(d)};'
+          f'--u:{extent(d, x1, y1, x2, y2)}" '
           f'stroke="url(#lp-flow-ax-{i:02d})" d="{data(x1, y1, x2, y2)}"/>')
 
 print()
 for x1, y1, x2, y2, d in segments:
     o = "0 0" if x2 >= x1 else "100% 0"
-    print(f'<path class="lp-flow__seg" style="--o:{o};--l:{level(d)}" d="{data(x1, y1, x2, y2)}"/>')
+    print(f'<path class="lp-flow__seg" style="--o:{o};--l:{level(d)};'
+          f'--u:{extent(d, x1, y1, x2, y2)}" d="{data(x1, y1, x2, y2)}"/>')
 
 # THE NODES. r steps down with distance from the subject, which the manual
 # states and this drawing can honour literally: the two splits are nearest the

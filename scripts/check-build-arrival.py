@@ -163,29 +163,59 @@ def path_length(d):
 
 # --------------------------------------------------------------- ranges ----
 
-# cover calc((A + var(--l) * C) * 1%)  |  cover A%
-COVER_CALC = re.compile(r"cover\s+calc\(\(\s*([\d.]+)\s*\+\s*var\(--l\)\s*\*\s*([\d.]+)\s*\)\s*\*\s*1%\)$")
-COVER_FLAT = re.compile(r"cover\s+([\d.]+)%")
+# A cover position resolves to (base, coefficient on --l, coefficient on --u).
+# Four written forms, all of them shipping somewhere on the page:
+#
+#   cover A%                                   a literal
+#   cover calc((A + var(--l) * C) * 1%)        a stagger with the constant typed
+#   cover calc((A + var(--l) * var(--N)) * 1%) the same, with the constant named
+#   cover calc((A + (var(--l) + var(--u)) * var(--N)) * 1%)
+#                                              a window BOUGHT BY THE STROKE'S
+#                                              OWN RUN — the flow's chain
+#
+# The fourth is why this parser is no longer two regexes. A window whose end
+# reads (l + u)·c closes where its children's windows open, which is the whole
+# of the flow's relay; a scanner that cannot see --u reports "not two cover
+# positions" and measures nothing, which is a check that has stopped checking.
+COVER_FLAT = re.compile(r"cover\s+([\d.]+)%$")
+COVER_CALC = re.compile(
+    r"cover\s+calc\(\(\s*([\d.]+)\s*\+\s*"
+    r"(?:var\(--l\)|\(\s*var\(--l\)\s*\+\s*var\(--u\)\s*\))"
+    r"\s*\*\s*(?:([\d.]+)|var\((--[\w-]+)\))\s*\)\s*\*\s*1%\)$")
 
 
-def parse_cover_pair(decl):
+def read_const(text, name):
+    """The last declared value of a custom property, as a number."""
+    v = None
+    for m in re.finditer(re.escape(name) + r"\s*:\s*([\d.]+)\s*;", text):
+        v = float(m.group(1))
+    return v
+
+
+def parse_cover_pair(decl, text=""):
     """The first two `cover` positions in an animation-range declaration.
 
-    The calc() form nests one level — `calc((28 + var(--l) * 5) * 1%)` — so the
-    scanner has to allow a bracketed group inside the outer one. A `[^)]*` here
-    stops at var(--l)'s own bracket and matches nothing, which is how this was
-    first written and how it silently found no ranges at all.
+    The calc() form nests TWO levels now — `calc((32 + (var(--l) + var(--u)) *
+    var(--flow-c)) * 1%)` — so the scanner allows a bracketed group inside a
+    bracketed group inside the outer one. It was written for one level, and one
+    level stops at var(--l)'s own bracket and matches nothing, which is how this
+    silently found no ranges at all the first time it was written.
     """
     hits = []
-    for m in re.finditer(r"cover\s+(?:calc\(\((?:[^()]|\([^()]*\))*\)\s*\*\s*1%\)|[\d.]+%)", decl):
+    group = r"(?:[^()]|\((?:[^()]|\([^()]*\))*\))*"
+    for m in re.finditer(r"cover\s+(?:calc\(\(" + group + r"\)\s*\*\s*1%\)|[\d.]+%)", decl):
         frag = m.group(0)
         c = COVER_CALC.match(frag)
         if c:
-            hits.append((float(c.group(1)), float(c.group(2))))
+            coef = float(c.group(2)) if c.group(2) else read_const(text, c.group(3))
+            if coef is None:
+                return []                      # a named constant that is not declared
+            on_u = c.group(0).count("--u") > 0
+            hits.append((float(c.group(1)), coef, coef if on_u else 0.0))
             continue
         f = COVER_FLAT.match(frag)
         if f:
-            hits.append((float(f.group(1)), 0.0))
+            hits.append((float(f.group(1)), 0.0, 0.0))
     return hits
 
 
@@ -197,10 +227,15 @@ def rule_body(text, selector):
     return body
 
 
-def progress(start, span_coef, end, end_coef, l, ease):
-    """Rendered progress of one part at the centred moment."""
-    a = start + span_coef * l
-    b = end + end_coef * l
+def progress(start, end, l, u, ease):
+    """Rendered progress of one part at the centred moment.
+
+    `start` and `end` are (base, --l coefficient, --u coefficient) triples, so
+    a window bought by the stroke's own run resolves here rather than at four
+    call sites.
+    """
+    a = start[0] + start[1] * l + start[2] * u
+    b = end[0] + end[1] * l + end[2] * u
     if b <= a:
         return None
     return ease(min(1.0, max(0.0, (CENTRED - a) / (b - a))))
@@ -231,11 +266,11 @@ def check_flow(findings, verbose):
         if not decl:
             findings.append(f"flow: .{cls} has no animation-range")
             continue
-        pairs = parse_cover_pair(decl.group(1))
+        pairs = parse_cover_pair(decl.group(1), text)
         if len(pairs) < 2:
             findings.append(f"flow: .{cls}'s animation-range is not two cover positions")
             continue
-        (a, ac), (b, bc) = pairs[0], pairs[1]
+        a, b = pairs[0], pairs[1]
 
         # every element carrying this class, with its --l and its own `d`.
         # Whole tag first, attributes second: an optional group inside one
@@ -253,13 +288,18 @@ def check_flow(findings, verbose):
                 findings.append(f"flow: a .{cls} carries no --l")
                 continue
             l = float(lm.group(1))
+            um = re.search(r"--u:\s*([\d.]+)", style)
+            if um is None and (a[2] or b[2]):
+                findings.append(f"flow: .{cls}'s window is bought by --u and a part carries none")
+                continue
+            u = float(um.group(1)) if um else 0.0
             w = 1.0
             if weighted:
                 w = path_length(d) if d else None
                 if w is None:
                     findings.append(f"flow: a .{cls} has a `d` this check cannot measure: {d!r}")
                     continue
-            p = progress(a, ac, b, bc, l, LINEAR)
+            p = progress(a, b, l, u, LINEAR)
             if p is None:
                 findings.append(f"flow: .{cls}'s window ends before it starts at --l {l}")
                 continue
@@ -311,14 +351,14 @@ def check_statement(findings, verbose):
         if not decl:
             findings.append(f"statement: `{selector}` has no animation-range")
             continue
-        pairs = parse_cover_pair(decl.group(1))
+        pairs = parse_cover_pair(decl.group(1), css)
         if len(pairs) < 2:
             findings.append(f"statement: `{selector}`'s first range is not two cover positions")
             continue
-        (a, _), (b, _) = pairs[0], pairs[1]
+        a, b = pairs[0], pairs[1]
         n = len(re.findall(rf'class="{cls}"', figure)) or 1
-        p = progress(a, 0.0, b, 0.0, 0.0, ease)
-        results.append((cls, p, n, a, b, role))
+        p = progress(a, b, 0.0, 0.0, ease)
+        results.append((cls, p, n, a[0], b[0], role))
 
     for cls, p, n, a, b, role in results:
         if verbose:

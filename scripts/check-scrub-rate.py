@@ -37,23 +37,35 @@ Confirmed in Chromium at 1440 x 900, sampling the computed `translate` every
 20 px of scroll: 5.8 units of travel per pixel of scroll on that part, which is
 under 13.08 only because a 20 px step averages across the start where the curve
 is steepest. The same part is 83 % of the way gone by the middle of its own
-window. Everything else on the page peaks at 1.14 CSS px per px — card 01's
-tallest build part, 155 units over 374 px of the pinned track at 0.55 render
-scale.
+window. The fastest thing on the page that TRAVELS is card 01's tallest build
+part, at 1.14 CSS px per px — 155 units over 374 px of the pinned track at 0.55
+render scale.
+
+AND TRAVELLING IS THE QUANTITY, WHICH THIS USED TO SAY LESS CAREFULLY. It read
+"everything else on the page peaks at 1.14", and the page has never been within
+reach of that: .lp-frame's relay advances a stroke's TIP at 5.94 px per px and
+has shipped at that number since #201 measured it, and .lp-flow's contour runs
+at 2.69 since #202 bought its windows with the strokes' own runs. A tip
+advancing along a line the reader is watching being drawn is not a part being
+flung across the viewport, and the ceiling below is written for the second — but
+a docstring that quietly counted only the parts it held is how a check comes to
+describe a page it stopped matching.
 
 THE CEILING IS 3, and it is a decision rather than a measurement. A scatter is
 the one thing on this page that is allowed to move faster than the hand at all;
 at 3 to 1 a 100 px wheel notch throws a part a third of a screen, which is the
-edge of reading as a scrub rather than as a cut. Everything the page ships now
-sits at or under 2.62 and everything that is not the scatter is under 1.2.
+edge of reading as a scrub rather than as a cut. Every part that TRANSLATES sits
+at or under 2.62, and every growing stroke — where the ink is laid along its own
+line and not thrown across the page — under 5.94.
 
 WHAT IS HELD AND WHAT IS NOT. Held: every part that carries an exit vector, in
 both files that ship this drawing — the landing page and components/statement
 .html, which is the specimen and drifted from the page once already. Not held:
 the `cover` and `contain` families, whose phase spans are `vh + h` and
 `pinH - vh` and therefore depend on the viewport, so their rate is not a pure
-number and a static script cannot state it. They were measured instead, in the
-run that wrote this, and the highest of them is the 1.14 above.
+number and a static script cannot state it. They were measured instead — 1.14
+for the fastest part that travels, 2.69 for the fastest stroke that grows — and
+re-measured whenever one of them is retimed.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
