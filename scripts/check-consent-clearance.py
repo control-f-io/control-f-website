@@ -410,7 +410,8 @@ else:
         )
 
 # ---- 6 · the pinned stage reserves the layer over its foot ----------------
-PAGE = ROOT / "design-system" / "patterns" / "landing-page.html"
+# The pinned stage this section holds moved to the prototype on 2026-07-28.
+PAGE = ROOT / "design-system" / "prototypes" / "statement-to-process.html"
 STAGE_SEL = ".lp-proc-stage"
 MEASURE = "--lp-measure"
 # The block axis, in both spellings — a stage shortened by either is shortened

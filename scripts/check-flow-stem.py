@@ -70,7 +70,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PAGE = ROOT / "design-system" / "patterns" / "landing-page.html"
+PAGE = ROOT / "design-system" / "prototypes" / "statement-to-process.html"
 
 FLOW_SVG_RE = re.compile(r'<svg class="lp-flow"[^>]*viewBox="([^"]*)"[^>]*>')
 PAR_RE = re.compile(r'<svg class="lp-flow"[^>]*preserveAspectRatio="([^"]*)"')

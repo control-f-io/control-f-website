@@ -88,6 +88,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PATTERNS = ROOT / "design-system" / "patterns"
+# The statement-to-process chain moved to prototypes/ on 2026-07-28;
+# these checks follow the drawing, not the folder.
+PROTOTYPES = ROOT / "design-system" / "prototypes"
 COMPONENTS = ROOT / "design-system" / "assets" / "css" / "components.css"
 
 COMMENT_RE = re.compile(r"/\*.*?\*/", re.S)
@@ -252,7 +255,7 @@ def main():
     comp_rules = rules(COMPONENTS.read_text(encoding="utf-8"))
 
     findings, seams = [], 0
-    for page in sorted(PATTERNS.glob("*.html")):
+    for page in sorted([*PATTERNS.glob("*.html"), *PROTOTYPES.glob("*.html")]):
         f, found = check_page(page, comp_rules, args.verbose)
         findings += f
         seams += 1 if found else 0

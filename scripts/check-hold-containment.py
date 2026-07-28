@@ -106,7 +106,7 @@ import re
 import sys
 from pathlib import Path
 
-PAGE = Path(__file__).resolve().parent.parent / "design-system/patterns/landing-page.html"
+PAGE = Path(__file__).resolve().parent.parent / "design-system/prototypes/statement-to-process.html"
 
 # Ceilings, in points of `cover` on the --lp-flow timeline. Recorded from the
 # page as it ships; the target for every one of them is 0.00.

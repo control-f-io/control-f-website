@@ -60,7 +60,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 COMPONENTS = ROOT / "design-system/assets/css/components.css"
-PAGES = [ROOT / "design-system/patterns/landing-page.html",
+# The landing page gave its pinned stage to prototypes/statement-to-process.html
+# on 2026-07-28; the register follows the stages, not the folder.
+PAGES = [ROOT / "design-system/prototypes/statement-to-process.html",
          ROOT / "design-system/patterns/expertise.html"]
 
 # how close two resolved bands have to be, in points of `contain`. They are
