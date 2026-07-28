@@ -244,6 +244,25 @@
          designer rather than invented here. */
       main { --lp-measure: calc((max(45rem, 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }
       /* ------------------------------------------------------------------
+         THE DRAWING IS TALLER THAN THE SCREEN IT PLAYS ON, AND THAT IS WHY
+         THE HOLD DOES NOT FEEL LIKE ONE. Measured in Chrome 150 at 1440 x 900:
+         the field is 421 px tall, the root's box 664, and from the top of the
+         highest glow to the foot of the root is 866 px against 810 px of
+         viewport below the nav. 1.07x. There is no scroll position at which
+         the whole of it is on screen, so every stage plays with part of itself
+         cut off, and the reader reads that as mess rather than as motion.
+
+         LENGTHENING THE HOLD DOES NOT FIX IT, and this was swept rather than
+         assumed: at 42vh, 70vh, 95vh and 120vh the share of the moving scroll
+         with the drawing wholly on screen went 33 %, 33 %, 26 %, 36 % — noise
+         around a third, because the constraint is the drawing's height and not
+         the hold's length. 42vh is kept for that reason.
+
+         SO THE FIX IS THE DRAWING, NOT THE TIMING: it has to lose about 60 px
+         of height — seven per cent — before any hold can show the whole of it.
+         That is the geometry lane's, and the number to beat is 810 px at
+         1440 x 900 with the nav's 90 px already subtracted.
+
          THE STATEMENT HOLDS WHILE ITS ROOT GROWS. --lp-hold is how much
          scroll it holds for, and it is the only number in this mechanism.
 
