@@ -1929,14 +1929,70 @@ ul.cf-nav__list {
   align-items: center;
   gap: var(--space-8);
 }
-/* The band is 1200 x 420 and `slice`s from its left edge, so a narrow block
-   crops toward the void rather than shrinking the whole scene to a letterbox:
-   at 375 the figure is still 225 px tall and the absence still reads. */
+/* The band is 1200 x 420 and `slice`s, so a narrow block crops rather than
+   shrinking the whole scene to a letterbox — the drawing keeps its scale and
+   the frame keeps a share of it. THE SHARE IS THE WHOLE DECISION, and for as
+   long as this rule existed it was the default one.
+
+   `slice` fills the box and crops the surplus axis; the align keyword says
+   WHICH surplus goes. This box is 420 units tall in every mode, so the crop is
+   always horizontal and the visible window is exactly `420 x ratio` viewBox
+   units wide. That is a CONSTANT, not a ramp: 5/3 shows 700 of 1200 units at
+   320 px and at 1000 px alike, and the only thing a wider viewport buys below
+   the fold is a bigger picture of the same 700 units.
+
+   Which 700 is the question, and the answer has to come from the drawing. The
+   field is masked by #cf-stmt-reach, a userSpaceOnUse ramp over 0–1200 whose
+   last stop is opacity 0 at offset 0.54 — so the data stops at x 648 and
+   x 648–1200 is the void, 552 units, 46 % of the drawing. The void is the
+   subject: the claim set on this band says the sensors produce data and no
+   answers, and the void is where that sentence is true.
+
+   xMin ANCHORED THE LEFT EDGE, which is the end with the data on it. The
+   window was [0, 700]: the whole field, and 52 of the void's 552 units — 9 %
+   of the absence, 7 % of the frame, against 46 % of the frame in the two-column
+   mode the composition was drawn in. Below 56rem of container, which is every
+   phone and every tablet in portrait, the figure was a lattice running edge to
+   edge and thinning slightly at the right, over a sentence about there being
+   nothing there. The picture argued the opposite of its own caption, and it
+   did so at ten of the ten widths on the ladder because the crop never moved.
+
+   xMid ANCHORS THE COMPOSITION INSTEAD. The window is centred on the drawing's
+   own centre, so the field/void boundary lands at 0.5 + 48/(420 x ratio) of the
+   frame — between 54 % and 57 % for ANY ratio, against the 54.0 % the uncropped
+   band puts it at. The anchor alone fixes the share; the ratio is then free to
+   be chosen for the other constraint.
+
+   THE OTHER CONSTRAINT IS THE RING, and it is what moves 5/3 to 2/1. The
+   window's left edge sits at 600 - 210 x ratio. The ring is cx 330 r 84, so its
+   rim is x 246, and 5/3 puts the edge at 250 — four units INSIDE the rim, a
+   frame cutting the one solid object in a drawing whose own #cf-stmt-halo note
+   asks for "an extent of its own instead of four edges cut by the frame". The
+   clearance is the lattice's module: its lines step 64 units, so the edge goes
+   one module clear of the rim at x 182, and 2/1 puts it at 180.
+
+   Measured, below the fold, before and after:
+
+     ratio  align  window        void in frame   ring clearance   figure at 375
+     5/3    xMin   [0, 700]       52 u /  7.4 %   -4 u (cut)       200 px
+     2/1    xMid   [180, 1020]   372 u / 44.3 %   66 u             167 px
+     1200/420      [0, 1200]     552 u / 46.0 %   246 u            117 px
+
+   The third row is the two-column mode, for reference — 44.3 % against 46.0 %
+   is the same composition, which is the point, and it is bought with 33 px of
+   band height on a phone. The 1-unit stroke goes from 0.48 to 0.40 CSS px at
+   375: both sub-pixel, neither a new tier, and the third row's 0.28 is why the
+   crop is not simply dropped.
+
+   scripts/check-slice-crop.py holds the align keyword, the ratio and the void's
+   share to each other, and holds the three copies of the keyword — this
+   component's two instances and the code sample beside one of them — to one
+   value. */
 .cf-statement__figure { min-width: 0; }
 .cf-statement__figure .cf-iso {
   width: 100%;
   height: auto;
-  aspect-ratio: 5 / 3;
+  aspect-ratio: 2 / 1;
 }
 .cf-statement__title {
   font-size: var(--text-h2);
