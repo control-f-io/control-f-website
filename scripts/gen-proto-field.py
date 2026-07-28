@@ -30,7 +30,7 @@ THE LAW. One lattice, one supergrid, one focus.
   bar (glows had to overlap to merge); this field merges at one point at the
   end instead, so the spacing is free to breathe and does.
 
-  THE FOCUS is (352, 312): the crossing that stands over the root trunk's
+  THE FOCUS is (800, 264): the crossing that stands over the root trunk's
   head at the design ratio, this drawing's analogue of the void the old field
   shared with the root. Radius, opacity and the ramp fall out of distance to
   it and nothing else — r = 12 + 28 x (1 - d/d_max), opacity 0.2..0.6 on the
@@ -78,7 +78,7 @@ SUPER_X, SUPER_Y = 256, 160  # the sensors' supergrid
 STAGGER = 128                # odd rows shift half a super-column
 X0, Y0 = 64, 88              # first crossing: x == 0 (mod 32), y == 8 (mod 16)
 XMAX, YMAX = 1536, 812       # sensors keep a glow's reach inside the frame
-FOCUS = (352, 312)           # the trunk's head at the design ratio — a crossing
+FOCUS = (800, 264)           # the trunk's head at the design ratio — a crossing
 CLAIM = (920, 360, 680)      # no sensors right of x in this y band
 R_MAX, R_MIN = 40, 12
 OP_MIN, OP_MAX = 0.2, 0.6

@@ -75,66 +75,8 @@ STEPS = {
     "FR": (F(2), F(1)),     "FL": (F(-2), F(1)),
 }
 
-# One notch steeper / flatter, staying on the five angles. Used by the growth
-# rule: a child leaves its parent by turning exactly one notch, which is the
-# discrete equivalent of the constant branch angle a root actually holds.
-# A direction is a kind and a side, so that "one notch steeper" and "the other
-# way" are two independent moves rather than a lookup with seven holes in it.
-KINDS = ["F", "D", "S", "V"]          # flattest to steepest
-
-
-def turn(kind, notches):
-    return KINDS[max(0, min(len(KINDS) - 1, KINDS.index(kind) + notches))]
-
-
-def name_of(kind, side):
-    return "V" if kind == "V" else kind + ("R" if side > 0 else "L")
-
 segments = []   # (x1, y1, x2, y2, dist) -- dist is the run from the void to x1
 DIST = {}       # junction -> its run from the void, so a branch inherits it
-
-
-def touches(x, y, nx, ny):
-    """Does the step (x,y)->(nx,ny) run into something already drawn?
-
-    A ROOT DOES NOT PASS THROUGH ITSELF, and in this system that is not a
-    botanical nicety: the drawing's whole vocabulary is construction, where two
-    lines crossing without a dot on the crossing means "these are not
-    connected". Three of the grown branches did exactly that -- ran straight
-    over another branch -- so at three points the reader could not tell whether
-    the data merges or passes by, in a drawing whose entire subject is data
-    merging.
-
-    A step leaves a junction that already carries strokes, and it may END on
-    another branch -- that is the arrival "no free ends" is about, and it is
-    the one contact that is wanted. So the parameter is open at the start and
-    CLOSED at the finish: 0 < t < 1 is a crossing, t == 1 is an arrival.
-
-    AND THE PARALLEL CASE IS NOT "no intersection", which is the trap the first
-    version of this fell into: two steps leaving the SAME junction on the SAME
-    angle have no crossing point to find, because one lies along the other. A
-    45deg branch drawn over the first 70 units of its 110-unit sibling is one
-    stroke at twice the weight and a fringe with a limb missing -- worse than
-    the crossing it was reached for, and invisible in a diff. Both branches
-    below were turned into exactly that by a naive flip, so collinearity is
-    tested first and shares no code with the crossing test.
-    """
-    for x1, y1, x2, y2, _ in segments:
-        det = (nx - x) * (y2 - y1) - (ny - y) * (x2 - x1)
-        if det == 0:
-            # parallel. On the same line, and overlapping in more than the one
-            # point they may share?
-            if (x1 - x) * (ny - y) - (y1 - y) * (nx - x) != 0:
-                continue
-            lo, hi = min(y, ny), max(y, ny)
-            if min(y1, y2) < hi and max(y1, y2) > lo:
-                return True
-            continue
-        t = ((x1 - x) * (y2 - y1) - (y1 - y) * (x2 - x1)) / det
-        u = ((x1 - x) * (ny - y) - (y1 - y) * (nx - x)) / det
-        if 0 < t < 1 and 0 <= u <= 1:
-            return True
-    return False
 
 
 def walk(x, y, chain):
@@ -160,193 +102,62 @@ def walk(x, y, chain):
     return x, y, False
 
 
-# ------------------------------------------------------- the pinned skeleton
+# ---------------------------------------------- the balanced construction
 #
-# The trunk leaves the void at 90deg and splits twice, not once: the left
-# taproot at y 150, then the middle and right at y 195. Two bifurcations
-# instead of one trifurcation, because a root bifurcates.
+# THE REVIEW OF 2026-07-28 RETIRED THE GROWTH RULE. "remove overlapping
+# branches from the tree, make it branch equally": the grown root was chosen
+# branch by branch around its own obstacles, so no two limbs matched, three
+# terminals landed mid-stroke on their siblings (legal arrivals, but the eye
+# reads a T into another branch as overlap), and the right half carried
+# twice the ink of the left. The whole drawing is now WRITTEN OUT as one
+# symmetric construction — grow(), free(), touches() and the ratio went with
+# the asymmetry they existed to manage.
+#
+# THE LAW. One crown, two mirrored fans, eight equal feet.
+#
+#   TRUNK      V from the void (600, 84) to the crown (600, 170).
+#   CROWN      divides once, into three: the two fans' reaches (F then D,
+#              mirrored) and the centre taproot, V straight to the rail —
+#              the one arrival the frame's middle vertical is pinned to.
+#   REACH      DL/DR 75 out of the crown, then FL/FR 150 to the fan
+#              junction: the 45 leaves the trunk, the flattest angle crosses
+#              the width. Steep-then-flat and not the reverse, because the
+#              flat leg then crosses the interior band x 400-600 — the band
+#              check-flow-density.py floors at 10 %, and the flat-first
+#              order left it at 9.8 with the same junctions either way.
+#   FAN        each junction splits F 75 both ways; each child dives S 150
+#              to the rail. 26.57 spreads, 63.43 lands — and S landing on
+#              y 620 exactly is what set the crown at 170.
+#
+# EIGHT FEET at x 0, 150, 300, 450 | 750, 900, 1050, 1200 — every one a
+# multiple of 150, mirror-symmetric about the trunk, and the outer pair plus
+# the centre taproot are the three arrivals the lectern is pinned to
+# (flow 0, 600, 1200 = frame 0, 500, 1000). Nothing lands on another branch:
+# every terminal is on the rail, which is what "no overlaps" means here.
+#
+# ALL FIVE ANGLES remain the vocabulary: V trunk and taproot, F reaches and
+# fan spreads, D elbows, S dives — 2 + 6 + 2 + 8 of 18 strokes.
 
-DIST[(F(330), F(84))] = F(0)
-walk(F(330), F(84), [("V", F(66))])                       # trunk, out of the void
+CROWN = F(170)
 
-# left taproot -> (0, 620): flat, then 45, then steep, then the last drop.
-walk(F(330), F(150), [("FL", F(90)), ("DL", F(90)), ("SL", F(120)), ("V", F(170))])
-# the right spine, to the second split
-walk(F(330), F(150), [("FR", F(45))])
-# middle taproot -> (600, 620). Its long steep run is written as two collinear
-# steps: a root branches along a straight length as well as at its bends, and a
-# junction is where a branch can leave from. It does not change the taproot's
-# path by a unit, and (530, 355) does shed a branch, which is the whole of why
-# the break is there.
-#
-# AND THE RIGHT TAPROOT'S FIRST FLAT RUN WAS BROKEN THE SAME WAY AND NOTHING
-# EVER LEFT IT -- see the note on that taproot below. A junction made for a
-# branch that never comes is a division that divides nothing, and two collinear
-# strokes drawn end to end are one stroke: it was invisible on the page and a
-# branch point in the markup.
-walk(F(420), F(195), [("DR", F(60)), ("SR", F(100)), ("SR", F(140)), ("V", F(125))])
-# right taproot -> (1200, 620). 355 of flat and 70 of 45 is the only split of
-# the drop budget that lands on 1200 at all; the lengths taper.
-#
-# ITS LONGEST RUN IS SPLIT TOO, and it is the one the rule above was written
-# for and never reached. 125 of drop at 26.57deg is 250 of width -- the single
-# longest step in the drawing -- and it crossed the emptiest ground on it with
-# no junction anywhere along it, so nothing could leave. Measured on the paste
-# it replaces: of the drawing's 4795 units of ink, the 200-unit band at x
-# 800-1000 held 6.0 % against 27.5 % in the band at the other wall, and the
-# right half held 35.6 % of the whole. A root branches along a straight length;
-# a run this long that does not is the bus this drawing replaced, kept alive in
-# its emptiest quarter. 60 + 65 puts the junction at (840, 405), which is
-# inside that band and leaves 215 of drop under it -- enough for the growth
-# rule to size a branch that lands on the rail rather than one more twig.
-# The taproot's path is not changed by a unit.
-#
-# AND ITS FIRST RUN IS NOT SPLIT ANY MORE, which is the same rule read the
-# other way. 70 + 80 put a junction at (560, 265) for a branch to leave from,
-# and in six generations of this drawing nothing has ever left it. Two
-# collinear strokes drawn end to end are one stroke -- the junction was a
-# branch point in the markup and nothing at all on the page, and the next
-# person to read this file would have counted it as one of the root's
-# divisions. Nothing can ever leave it, for two independent reasons:
-#
-#   1. THERE IS NO ROOM. rem 355 gives legs of 220 and 135, and of the three
-#      leg-1 candidates the rule tries, SL crosses (480, 255)-(530, 355) and V
-#      crosses the middle taproot twice; SR is free to (670, 485), and from
-#      there all three leg-2 candidates cross -- DR through (805, 515)-(740,
-#      580), DL through the middle taproot's last drop, V through (530,
-#      355)-(695, 520). The ground under it belongs to its two neighbours'
-#      branches. All four seedings of grow() were run and all four decline.
-#   2. IT WOULD BE THE TWELFTH NODE. Its run is 296, level 1.03, which is
-#      inside the level < 2 band that takes a dot -- so a branch here makes it
-#      a node, and the manual's ceiling is eleven ("eight is a lot for one
-#      object; twelve is too many"). The assert below already holds that.
-#
-# So the break is removed rather than filled. 70 + 80 becomes 150, and because
-# Chebyshev is additive along a straight line the run at every point past it is
-# the number it always was: no coordinate moves, no --l or --u changes, the
-# node set is the same eleven, and the drawing loses one element of markup and
-# not one unit of ink.
-walk(F(420), F(195), [("FR", F(150)), ("FR", F(60)), ("FR", F(65)),
-                      ("FR", F(80)), ("DR", F(70))])
+DIST[(F(600), F(84))] = F(0)
+walk(F(600), F(84), [("V", CROWN - 84)])                  # trunk, out of the void
+walk(F(600), CROWN, [("V", RAIL - CROWN)])                # centre taproot
+
+for side in (-1, +1):
+    fname = "FR" if side > 0 else "FL"
+    dname = "DR" if side > 0 else "DL"
+    walk(F(600), CROWN, [(dname, F(75)), (fname, F(150))])    # reach + elbow
+    jx = F(600 + side * 375)
+    for s2 in (-1, +1):
+        f2 = "FR" if s2 > 0 else "FL"
+        walk(jx, CROWN + 225, [(f2, F(75))])                  # the fan spreads
+        cx = jx + s2 * 150
+        for s3 in (-1, +1):
+            walk(cx, CROWN + 300,
+                 [("SR" if s3 > 0 else "SL", F(150))])        # the dive lands
 
 SKELETON = len(segments)
-
-# --------------------------------------------------------------- the growth
-#
-# Junctions in the lower half only. A taproot is bare near the crown and
-# branchy near the tip, and it is also the only way to keep the fringe SHORT:
-# a branch leaving at y 300 has 320 units to fall and reads as one more long
-# parallel drop, which is the diagram this replaces. Branch points, ratio and
-# turn are fixed values, so the fan is the same every run.
-
-RATIO = F(5, 8)        # where a branch puts its own junction, in its drop
-
-# A BRANCH IS SIZED BY THE DROP IT HAS LEFT, not by the length of its parent.
-# That is the one rule that makes this a root rather than the bus it replaces.
-# Size a branch by its parent and a branch leaving high has to fall the rest of
-# the way as a vertical, which is a long parallel drop -- seven of those was
-# the old diagram. Size it by the remaining drop and it lands ON the rail at an
-# angle, and shrinks on its own as it gets closer: the fringe is fine near the
-# rail because there is little left to fall there. Self-similar in the sense
-# that matters, which is shape -- the same two turns and the same 5:3 split of
-# whatever drop is left.
-
-
-def lands(x, y, name, h):
-    """Where a step would actually be drawn: clipped to the rail."""
-    dx, dy = STEPS[name]
-    nx, ny = x + dx * h, y + dy * h
-    if ny > RAIL:
-        t = (RAIL - y) / (ny - y)
-        nx, ny = x + (nx - x) * t, RAIL
-    return nx, ny
-
-
-def free(x, y, name, h):
-    """Is this step clear -- inside the box, and clear of everything drawn?
-
-    THE SAME TEST THE WALL ALWAYS GOT, EXTENDED TO THE DRAWING ITSELF. The
-    growth rule has always turned a branch away from a wall; it had no idea the
-    rest of the root was there, so it turned away from the box and walked
-    through its own siblings. Both clauses answer one question -- is there room
-    this way -- and a branch that has to be told twice which obstacles count is
-    the shape of the bug this fixes.
-
-    Measured where the step will be DRAWN, clipped to the rail, because a
-    branch that overshoots the rail cannot cross anything under it.
-    """
-    nx, ny = lands(x, y, name, h)
-    if not (LEFT <= nx <= RIGHT):
-        return False
-    return not touches(x, y, nx, ny)
-
-
-def grow(x, y, kind, depth, side):
-    """One branch: turn a notch, run 5/8 of the drop, turn again, meet the rail.
-
-    Then the same again from its own junction, on the other side. Depth is
-    capped at two generations of this; a third puts more line under the rail's
-    last 60 units than the eye can separate at 1 px.
-    """
-    rem = RAIL - y
-    if depth > 2 or rem < 60:
-        return
-    # A BRANCH ALTERNATES 45 AND 63.43, and never uses the outer two angles.
-    # Both of those were drawn and thrown away. Turning one notch steeper each
-    # time ends every branch at 90, and the bottom of the drawing comes out a
-    # picket fence -- the parallel drops this was meant to be rid of. Turning
-    # one notch flatter each time puts 26.57 in the fringe, and 26.57 crosses
-    # twice its own drop: at 290 units of drop left, a branch 580 wide, which
-    # is wider than the taproot it hangs off. It read as a net, not a root.
-    # The two middle angles are the only ones that descend without sprawling,
-    # and alternating them is a kink rather than a turn -- so a branch stays
-    # legible as a branch at 1 px.
-    a = "S" if kind in ("F", "D") else "D"
-    b = "D" if a == "S" else "S"
-    h1 = F(5) * round(rem * RATIO / 5)  # on fives, so the paste stays readable
-    h2 = rem - h1
-    # A BRANCH IS CHOSEN WHOLE, and that is the second half of the crossing
-    # fix. Turning one leg away from an obstacle, leg by leg, is how the
-    # sibling overlaps got made: leg 1 flipped to clear a crossing and landed
-    # the child on top of the parent's leg 2, which no test of leg 1 alone can
-    # see. So both legs are chosen together and the branch is only committed if
-    # the PAIR fits -- the preference order is the one this rule always had
-    # (the side it wants, then the other side, then straight down), and a
-    # branch with no free pair is simply not grown. A root does not put out a
-    # limb where there is no room for one; drawing it anyway is what left the
-    # drawing saying something untrue about itself.
-    for n1 in (name_of(a, side), name_of(a, -side), "V"):
-        if not free(x, y, n1, h1):
-            continue
-        x1, y1 = lands(x, y, n1, h1)
-        s1 = side if n1 == "V" else (1 if n1.endswith("R") else -1)
-        if y1 >= RAIL:                  # leg 1 already arrived; there is no leg 2
-            walk(x, y, [(n1, h1)])
-            return
-        n2 = next((n for n in (name_of(b, s1), name_of(b, -s1), "V")
-                   if free(x1, y1, n, h2)), None)
-        if n2 is None:                  # the tip has nowhere to go from there
-            continue
-        walk(x, y, [(n1, h1)])
-        walk(x1, y1, [(n2, h2)])
-        grow(x1, y1, a, depth + 1, -s1)
-        return
-
-
-# The seven junctions that carry a branch, and the step that made each of them:
-# lower half only. A taproot is bare near the crown and branchy near the tip.
-for jx, jy, pkind, d, side in [
-    (F(150), F(240), "F", 1, +1),   # left taproot, its first bend
-    (F(60),  F(330), "D", 1, +1),   # left taproot, the 45 junction
-    (F(0),   F(450), "S", 2, +1),   # left taproot, the last corner
-    (F(530), F(355), "S", 2, +1),   # middle taproot, along the steep run
-    (F(600), F(495), "S", 2, -1),   # middle taproot, the last corner
-    (F(720), F(345), "F", 1, -1),   # right taproot, its first bend
-    (F(840), F(405), "F", 1, +1),   # right taproot, along its longest run
-    (F(970), F(470), "F", 1, +1),   # right taproot, second bend
-    (F(1130), F(550), "F", 2, -1),  # right taproot, the tip\'s shoulder
-]:
-    grow(jx, jy, pkind, d, side)
 
 # ---------------------------------------------------------------- assertions
 
@@ -533,9 +344,14 @@ for x1, y1, x2, y2, d in segments:
 # the other four at 2.06, 2.32, 2.34 and 2.85. The two cuts agree on this
 # geometry; the assert holds the count so they cannot silently stop agreeing
 # when the geometry moves. Held on the shipped markup by check-flow-nodes.py.
+# LEVEL < 2 SELECTED ELEVEN OF FIFTEEN JUNCTIONS ON THE GROWN ROOT; on the
+# balanced construction it selects one of seven, because the fans sit deep on
+# purpose. The cut moves to the rule the manual actually states — "a node
+# marks a point the construction depends on" — and on a construction this
+# regular that is EVERY division: the crown and the six fan junctions, seven
+# dots, inside the ceiling with room. The radius keeps the same ladder.
 outdeg = Counter((x1, y1) for x1, y1, _, _, _ in segments)
-NODE_POINTS = sorted((p for p, n in outdeg.items()
-                      if n >= 2 and float(level(DIST[p])) < 2),
+NODE_POINTS = sorted((p for p, n in outdeg.items() if n >= 2),
                      key=lambda p: (p[1], p[0]))
 assert len(NODE_POINTS) <= 11, (
     f"{len(NODE_POINTS)} nodes -- the manual's ceiling is eleven "
@@ -659,37 +475,24 @@ FLOOR_SCALE = 0.75948
 CLEARANCE = 12.0
 
 VALUES = [
-    # x, y, value -- the offsets are DERIVED below and no longer typed
-    (F(330), F(112), 12480),
-    (F(250), F(190),  3840),
-    (F(450), F(225),  3200),
-    # 1 360 RODE THE BRANCH THAT MOVED. It sat at (690, 405) on the branch
-    # leaving (720, 345) down-LEFT, and that branch is the one the crossing
-    # rule turned around: it now leaves down-RIGHT, so its mirror point is
-    # (750, 405) and the old one rides nothing at all. run_to() below would
-    # have caught it -- this is that assertion doing its job on the first run
-    # after the geometry changed under it.
-    (F(500), F(235),  5440),
-    (F(750), F(405),  1360),
-    # 4 080 MOVED ONE JUNCTION BACK, ONTO THE STROKE IT NAMES. It stood at
-    # (860, 415), which is on (840, 405) -> (970, 470) -- past the split at
-    # (840, 405), and that split sheds a six-stroke branch to (907.5, 540)
-    # which lands twice on the lectern's rail. So the number naming the
-    # right-hand half of the (720, 345) split was written on a stroke that
-    # carries only part of it, and `5 440 = 1 360 + 4 080` said the branch in
-    # between carries nothing. (780, 375) is the midpoint of (720, 345) ->
-    # (840, 405), the stroke that actually leaves the split, and it takes the
-    # same treatment 5 440 takes on the same 26.57deg descent.
-    (F(780), F(375),  4080),
-    # AND THE SPLIT IT WAS STANDING PAST IS NOW STATED. Moving 4 080 up alone
-    # would have emptied the lower right of the one quantity it had, so the
-    # division at (840, 405) carries its own two: 2 400 down the 26.57deg run
-    # that feeds three rail arrivals, 1 680 down the 63.43deg dive that feeds
-    # two. Both multiples of 80, like every other value here, and the larger
-    # goes to the branch with more of the lectern under it. This is also the
-    # first quantity the drawing states below y 415 of its 620.
-    (F(900), F(435),  2400),
-    (F(870), F(465),  1680),
+    # x, y, value -- the offsets are DERIVED below and no longer typed.
+    # THEY CONSERVE on the balanced tree: the crown divides the source three
+    # ways (12 480 = 5 040 + 2 400 + 5 040 -- the fans match, the taproot
+    # carries the middle), the right fan's junction divides its 5 040
+    # (2 640 + 2 400), and the outer dive pair divides the 2 640
+    # (1 360 + 1 280). All multiples of 80, as every value here has been.
+    # The left fan mirrors the right in geometry, not in figures -- naming
+    # both fans' subdivisions would spend fourteen numerals on a drawing
+    # whose ceiling of marks is what it is; the left stays unquantified
+    # below its reach, and unquantified is not wrong.
+    (F(600), F(120), 12480),
+    (F(425), F(295),  5040),
+    (F(600), F(300),  2400),
+    (F(775), F(295),  5040),
+    (F(1051), F(433), 2640),
+    (F(899), F(433),  2400),
+    (F(1150), F(520), 1360),
+    (F(1100), F(520), 1280),
 ]
 
 
