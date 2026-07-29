@@ -622,6 +622,14 @@
      browser without view timelines and the printer all get — two framed
      photographs with their words beside them, whole, one under the other.
      ============================================================ */
+  /* THE ACTS' HEADINGS CLEAR THE STICKY BAR. Each act names itself with a
+     visually-hidden <h2> so its <section> has something to be labelled by, and
+     an id is an id: check-arrival.py holds every addressable heading in
+     patterns/ to landing under the nav rather than behind it. Invisible is not
+     the same as unreachable — a skip link or a URL fragment can still put one
+     of these at the top of the viewport. */
+  .act-anchor { scroll-margin-top: calc(var(--nav-height) + var(--space-6)); }
+
   .sp4-track { position: relative; }
   .sp4-stage { display: grid; align-content: center; padding-block: var(--space-16); }
   .sp4-set {
@@ -885,6 +893,34 @@
       opacity: 0;
     }
   }
+  /* ============================================================
+     THE STICKY BAR, RESERVED BY THE PAGES THAT HAVE ONE.
+
+     Every act pins a 100vh stage to top: 0. That is right on a page with
+     nothing above it — the prototype these were built in — and wrong on one
+     with a floating nav: measured on the landing page at 1600 x 900, the
+     root's foot sat below the fold and the source was cut in half by the
+     bottom edge, because 84 px of the stage was under a bar the drawing did
+     not know about.
+
+     :has(), SO THE PAGE ANSWERS FOR ITSELF. The alternative was a page-local
+     override, which is the thing this stylesheet exists to stop, or reserving
+     the bar unconditionally, which would put 84 px of dead ground at the top
+     of the prototype. A stage on a page carrying .cf-nav reserves the nav; a
+     stage on a page without one reserves nothing. It is the same question
+     .cf-pin__inner answers with a flat padding-block, asked in a way that
+     survives being loaded by two pages instead of one.
+
+     PADDING AND NOT A SHORTER STAGE. The stage stays 100vh and the content
+     inside it moves down, which is what .cf-pin does and what act 1's own
+     composition needs: the tree's feet stand on the stage's BOTTOM edge, and
+     that edge is where the next section slides in from. Shorten the box and
+     the feet leave the seam they were drawn to meet.
+     ============================================================ */
+  body:has(.cf-nav) :is(.sp-stage, .sp4-stage, .map-stage) {
+    padding-block-start: calc(var(--nav-height) + var(--space-4));
+  }
+
   @supports (animation-timeline: view()) {
     @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
       main { --lp-measure: calc((max(45rem, 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }

@@ -101,7 +101,7 @@ the five parameters below and nothing else. Re-run it and the same markup comes
 out.
 
     python3 scripts/gen-stmt-field.py --check     # the shipped markup is ours
-    python3 scripts/gen-stmt-field.py --write     # regenerate both copies
+    python3 scripts/gen-stmt-field.py --write     # regenerate the two blocks
     python3 scripts/gen-stmt-field.py --report    # the parameters and what they cost
 """
 
@@ -112,8 +112,15 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-PAGES = [ROOT / "design-system" / "patterns" / "landing-page.html",
-         ROOT / "design-system" / "components" / "statement.html"]
+# ONE CONSUMER NOW. The landing page's statement section left with the five
+# acts (2026-07-29) — acts 1 and 2 draw the same argument as a scroll
+# composition, and the field they draw it on has its own generator. What is
+# left is the component that publishes the specimen.
+# ONE FILE, TWO BLOCKS. This list held the landing page as well until the
+# five acts took the static band off it (2026-07-29); the component specimen
+# is the only copy of the drawing left, and the two blocks below are the
+# ghost lattice and the sensor field inside it.
+PAGES = [ROOT / "design-system" / "components" / "statement.html"]
 
 # ---------------------------------------------------------------- parameters
 #
@@ -365,7 +372,7 @@ def main():
                   f"script generates — re-run with --write")
             rc = 1
     if args.check and rc == 0:
-        print("gen-stmt-field: both copies are the generator's output")
+        print("gen-stmt-field: the ghost and the field are the generator's output")
     return rc
 
 
