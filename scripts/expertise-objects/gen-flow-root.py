@@ -536,6 +536,11 @@ def num(v):
     return str(int(v)) if v == int(v) else f"{v:g}"
 
 
+def exact(v):
+    """Does this coordinate survive the trip through num() unchanged?"""
+    return F(num(v)) == v
+
+
 def level(d):
     return num(round(float(3 * d / MAXD), 2))
 
@@ -1072,7 +1077,7 @@ def place_reading(px, py, chars, placed):
 # sum of the ones below it. Placing first and summing after breaks that circle:
 # the placement is done against the WIDEST numeral this drawing can carry, so
 # any figure that later lands on the point fits the box that was cleared for it.
-VALUE_WIDTH = 6            # "12 480" — six characters including the separator
+VALUE_WIDTH = 8            # "8 400 /s" — eight characters, separator and unit
 
 
 def value_points():
@@ -1165,6 +1170,20 @@ def placeable(groups):
                 # twenty-five other places to stand.
                 if len([q for q in segments if on_segment(px, py, q[:4])]) != 1:
                     continue
+                # AND A POINT THE MARKUP CANNOT SAY IS NOT A POINT. --x/--y go
+                # out through num(), which is %g — six significant figures —
+                # so a coordinate like 483.5625 ships as 483.562 and lands
+                # half a thousandth OFF the stroke it was chosen on.
+                # check-flow-values.py reads the shipped numbers as exact
+                # rationals and asks whether they lie on a segment, and the
+                # answer for that one is no: "a value rides a route; a value
+                # beside one is a callout". This never fired while the numerals
+                # were six characters wide because the search happened to land
+                # on sixteenths that print exactly; widening the box for the
+                # unit moved it onto ones that do not. The invariant was always
+                # there, it was just never stated.
+                if not exact(px) or not exact(py):
+                    continue
                 got = place_reading(px, py, VALUE_WIDTH, trial)
                 if got is not None:
                     hit = ((px, py), got[2])
@@ -1215,26 +1234,45 @@ for (px, py), v in LABELLED.items():
             f"{sorted(escaped)} — the sum says those carry zero")
 
 SEP = " "   # see the note at the values' own print loop below
+# THE RATE CARRIES ITS UNIT, on the review's instruction — "every annotated
+# number on the root should have a Einheit". The note under the readings below
+# argued the opposite and it argued it from the wrong half of the physics: it
+# said a unit in a sum would be asserting that units add, and gave two 400 °C
+# channels not making 800 °C as the reason. That is true of an INTENSIVE
+# quantity and false of an EXTENSIVE one, and a data rate is extensive —
+# 3 520 /s and 3 360 /s and 1 520 /s meeting at a junction genuinely do make
+# 8 400 /s, which is the identity check-flow-values.py already holds every
+# numeral in this drawing to. The unit was never what separated the two
+# classes; conservation was, and it still is.
+#
+# "/s" RATHER THAN "Werte/s". The reading beside it is set in SI symbols — bar,
+# kW, m³/h — and a solidus-per-second is what that vocabulary writes for a
+# count in time. The word belongs in the copy, where there is room to say which
+# count it is, and the copy beside this drawing now does.
+VALUE_UNIT = "/s"
 
 
 # ---------------------------------------------------------------- the readings
 #
 # WHAT THE ROOT IS CARRYING, AT THE END WHERE IT IS CARRYING IT FROM. The
-# values above are one quantity — a data rate — and they divide, which is why
-# they are numerals with no unit on them and why every one of them has to add
-# up. The statement over this drawing is "Tausende Sensoren erzeugen Daten",
+# values above are one quantity — a data rate in /s — and they divide, which is
+# why every one of them has to add up. The statement over this drawing is "Tausende Sensoren erzeugen Daten",
 # and until now the drawing answered it with eight counts of nothing in
 # particular: the fringe, where the sensors actually are, carried no reading at
 # all.
 #
 # A READING IS NOT A VALUE, and that is the whole reason it is a second class
-# rather than eight more .lp-flow__val. A rate divides: the stream that leaves
-# a junction is the sum of the streams that leave it, and check-flow-values.py
-# holds the drawing to that. A temperature does not. Two 400 °C channels
-# merging do not make 800 °C, and a drawing that let its units into the sum
-# would be asserting exactly that. So the two carry different classes, the
-# check reads only the one that conserves, and the unit is what tells the
-# reader which kind of number they are looking at.
+# rather than eight more .lp-flow__val. A rate CONSERVES: the stream that
+# leaves a junction is the sum of the streams that leave it, and
+# check-flow-values.py holds the drawing to that. A temperature does not — two
+# 400 °C channels merging do not make 800 °C.
+#
+# BOTH CARRY A UNIT NOW and the distinction survives that intact, because the
+# distinction was never the unit. It is extensive against intensive: /s and
+# kW add across a junction, °C and bar and Hz do not. So the two keep different
+# classes, the check still reads only the one that conserves, and what tells
+# the reader which kind of number they are looking at is which quantity it is —
+# which is what a unit is for.
 #
 # WHERE THEY GO: the fringe, one per limb, spread across the width. That is
 # where the sensors are in the drawing's own logic — the far end of the root,
@@ -1273,6 +1311,7 @@ def place_values():
     out, boxes = [], []
     for x, y, v in VALUES:
         text = f"{v // 1000}{SEP}{v % 1000:03d}" if v >= 1000 else str(v)
+        text = f"{text}\u00a0{VALUE_UNIT}"
         assert len(text) <= VALUE_WIDTH, f"{text!r} is wider than the box cleared for it"
         got = place_reading(x, y, VALUE_WIDTH, boxes)
         assert got is not None, f"the value at ({x}, {y}) passed placeable() and now cannot be set"

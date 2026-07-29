@@ -188,7 +188,24 @@ def check_drawing(name, cls, svg_body, tail, verbose):
         if val_cls not in names:
             continue
         var = style_vars(style)
-        digits = text.replace(" ", "").replace(" ", "").strip()
+        # A VALUE CARRIES ITS UNIT NOW, on the review of 2026-07-29 — "every
+        # annotated number on the root should have a Einheit" — so the numeral
+        # and the unit are split before the arithmetic and the unit is
+        # REQUIRED rather than tolerated. The generator sets them apart with a
+        # no-break space, which is also what stops a rate wrapping across the
+        # gap between its figure and its /s.
+        #
+        # The unit does not weaken the sum. What separates a value from a
+        # reading was never the presence of a unit; it is extensive against
+        # intensive — /s adds across a junction and °C does not — and this
+        # check still reads only the class that conserves.
+        head, sep, unit = text.strip().rpartition("\u00a0")
+        digits = head.replace(" ", "").replace("\u00a0", "").strip()
+        if not sep or not unit.strip():
+            findings.append(
+                f"{name}: a .{val_cls} reads {text!r} with no unit after it — "
+                f"every annotated number in this drawing carries one")
+            continue
         if not digits.isdigit():
             findings.append(f"{name}: a .{val_cls} reads {text!r}, which is not a number")
             continue
