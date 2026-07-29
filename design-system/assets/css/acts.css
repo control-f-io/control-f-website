@@ -360,6 +360,12 @@
      first render of this rebuild drew forty invisible strokes. */
   .lp-flow :is(path, circle) { vector-effect: non-scaling-stroke; }
   .lp-flow__seg { stroke: var(--border-strong); }
+  /* OUT OF THE FALLBACK ENTIRELY. The feed is an arrival on a timeline;
+     with no timeline to arrive on it would be twenty-six spheres parked on
+     the tips of a finished drawing, which says the opposite of what it is
+     for. The flow tier shows the root complete and still, and a still root
+     is not receiving anything. */
+  .lp-flow-feed { display: none; }
   .lp-flow__light { stroke-width: 2; }
   .lp-flow__node { fill: var(--border-strong); }
   /* THE ORB IS BOUNDED, LIKE EVERY OTHER SHAPE HERE.
@@ -1151,6 +1157,7 @@
          strokes and holds both tails. */
       .sp-stage { --flow-c: 14.96; }
       .lp-flow__trunk { display: block; }
+      .lp-flow-feed { display: block; }
       .lp-flow__seg, .lp-flow__light, .lp-flow__node, .lp-flow__val, .lp-flow__read {
         transform-box: fill-box;
         transform-origin: var(--o, 0 0);
@@ -1269,6 +1276,88 @@
          median gap from each side, so neighbours meet in the middle and the
          wide gaps stay open. The glow rides stroke-opacity with the rest of
          the leaf, so what pools between the feet breathes with them. */
+      /* ------------------------------------------------------------------
+         AND NOW SOMETHING ARRIVES AT THEM.
+
+         The note under this one has said since it was written that a leaf is
+         "the thing data is arriving from and has not stopped arriving from",
+         and the drawing's answer was a light that never quite goes out. That is
+         a leaf saying it is still busy. It is not the data. Twenty-six tips
+         glimmered at a claim the reader had to take on trust, on a page whose
+         whole argument is that thousands of instruments are producing something.
+
+         So spheres come in and are pulled into the tips, for as long as there
+         is scroll left in the act. Each is ACT 1'S SPHERE — the same body, the
+         same ramp, the same black contour, the same painted halo at 2.6x —
+         because the two acts are one sentence: the field converges into the
+         trunk's head, and the same instrument goes on arriving at every leaf
+         while the root grows underneath it. A new object here would have made
+         them two drawings that happen to be adjacent.
+
+         WHEN A LEAF STARTS RECEIVING IS NOT A NEW DECISION. It is the moment
+         that leaf finished drawing — the end of its own light window, the same
+         `36 + (l + u) * c` the three rules below are written in — and it runs
+         to 87, where the act's last stroke lands. A tip cannot be fed before it
+         exists, and nothing here has to be kept in step with anything by hand:
+         move --flow-c and the feed moves with the drawing.
+
+         THE CADENCE IS CONSTANT AND THE COUNT IS NOT. A scroll timeline divides
+         its range by animation-iteration-count, so a fixed count would make a
+         leaf that finished at 38 % pass its spheres slowly and one that finished
+         at 62 % rush them. The count is therefore the leaf's own remaining
+         range over one period — 9 points of the track per sphere — which comes
+         out between 2.8 and 5.5 arrivals a tip, about a hundred across the
+         canopy, and every one of them travelling at the same speed. Fractional
+         counts are exactly right here: the last sphere of a leaf is halfway in
+         when the act ends, which is what "still arriving" looks like.
+
+         THEY DO NOT ARRIVE IN UNISON for the reason the leaves do not breathe
+         in unison, and it costs nothing: the twenty-six windows start at
+         twenty-six different points because the leaves finish at twenty-six
+         different points, so the phase is already spread by the drawing's own
+         geometry.
+
+         THE APPROACH IS THE LEAF'S OWN AXIS, two thirds of its own length out —
+         see FEED_REACH in gen-flow-root.py, which emits the offset rather than
+         the start point so the circles keep the tip as their centre. A sphere
+         therefore comes in ALONG the stroke that is about to absorb it, at one
+         of the drawing's five angles, and one bound for a long taproot leaf
+         comes from further out than one bound for a short fringe tip.
+         ------------------------------------------------------------------ */
+      .lp-flow-feed {
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: sp-feed-in linear both;
+        animation-timeline: --sp;
+        animation-range: contain calc((36 + (var(--l) + var(--u)) * var(--flow-c)) * 1%)
+                         contain 87%;
+        animation-iteration-count:
+          calc((51 - (var(--l) + var(--u)) * var(--flow-c)) / 9);
+      }
+      /* The bead's contour is the root's black, on the same instruction act 1's
+         bead carries it under: "the border should be black like the root
+         system". One user unit, matching the strokes it lands among, and
+         non-scaling with them — .lp-flow :is(path, circle) already sees it. */
+      .lp-flow-feed__bead {
+        stroke: var(--border-strong);
+        stroke-width: 1;
+        /* THE ONE PLACE IN THIS DRAWING WHERE THE STROKE SCALES, and it has to.
+           .lp-flow :is(path, circle) puts non-scaling-stroke on everything,
+           which is right for a drawing being stretched to fit a viewport: the
+           contour is a hairline at every width. It is wrong for an element with
+           a scale of its own. A sphere collapsing to a fifth of itself kept a
+           full-width outline all the way down, so what the reader saw absorbed
+           into the tip was a ring — the contour outliving the body it bounds.
+           Scaled, the outline goes in with the sphere. */
+        vector-effect: none;
+      }
+      /* NO CONTOUR ON THE SPILL, which is the halo's whole point: it is the
+         light the bead throws, and a light with an edge is an object. Stated as
+         a rule rather than left to the absence of one, because .lp-flow
+         :is(path, circle) reaches every circle in the drawing and the next
+         stroke declared up there would otherwise land on this. */
+      .lp-flow-feed__halo { stroke: none; }
+
       .lp-flow__leaf {
         stroke-width: 6;
         --glow-r: 36px;
@@ -2285,6 +2374,28 @@
     from     { scale: 0;    opacity: 0; }
     40%      { scale: 0.35; opacity: 1; }
     to       { scale: 1;    opacity: 1; }
+  }
+  /* IN ALONG THE AXIS, THEN PULLED IN. The sphere starts --dx/--dy out from the
+     tip at nothing, comes up to full size over the first fifth while it is
+     still travelling, CROSSES THE GAP AT FULL SIZE, and in the last fifth is
+     taken into the leaf: it shrinks to a fifth of itself AT the tip rather than
+     fading where it stands, because the tip is meant to be reading it and not
+     losing it.
+
+     THE HOLD AT 80 % IS THE WHOLE READING. Without it there is no second scale
+     keyframe and the browser interpolates straight from 1 at 20 % to 0.2 at
+     100 %, so the sphere shrinks for the entire approach — measured across one
+     iteration: 0.99, 0.78, 0.56, 0.34. A thing that is largest when it is
+     furthest away is receding, which is the exact opposite of what this is for.
+
+     The two ends are both opacity 0, which is what lets an iteration follow an
+     iteration with no seam — a stream rather than a repeat. */
+  @keyframes sp-feed-in {
+    0%   { translate: calc(var(--dx) * 1px) calc(var(--dy) * 1px);
+           scale: 0.4; opacity: 0; }
+    20%  { scale: 1; opacity: 1; }
+    80%  { scale: 1; opacity: 1; }
+    100% { translate: 0 0; scale: 0.2; opacity: 0; }
   }
   @keyframes sp-leaf-settle { to { opacity: var(--leaf-peak); } }
   @keyframes sp-leaf-shimmer { from { stroke-opacity: .28; } to { stroke-opacity: 1; } }
