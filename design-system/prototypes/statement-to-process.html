@@ -1064,11 +1064,24 @@
          on the left and right and was still lime along the other two.
          Matching specificities is the fix; naming the thing you mean is why
          it stays fixed. */
-      .sp4-edge, .sp4-lit {
+      /* THE LIGHT LEADS AND THE CONTOUR FOLLOWS IT, which is the tree's own
+         mechanic and was the thing this frame was missing. The root does not
+         draw its two passes together: .lp-flow__light opens at 36 + l x c and
+         .lp-flow__seg at 42, so the lit front runs six points of the track
+         ahead of the black and you watch a coloured line lay the stroke down
+         with the contour arriving behind it. Drawn in the same window — which
+         is what this did — the 1 px black sits under the 2 px ramp for the
+         whole run and the only colour anywhere is the pixel at the tip. The
+         gradients were there; nothing could see them.
+
+         Four points of lead here against the tree's six, because an edge's
+         window is sixteen points and the root's longest is forty-five: the
+         same fraction of the run, not the same number. */
+      .sp4-edge {
         animation: linear both;
         animation-timeline: --sp4;
-        animation-range: contain calc((var(--t0) + 2 + var(--e) * 2) * 1%)
-                         contain calc((var(--t0) + 12 + var(--e) * 2) * 1%);
+        animation-range: contain calc((var(--t0) + 6 + var(--e) * 2) * 1%)
+                         contain calc((var(--t0) + 16 + var(--e) * 2) * 1%);
       }
       .sp4-edge.sp4-x { animation-name: sp4-draw-x; }
       .sp4-edge.sp4-y { animation-name: sp4-draw-y; }
@@ -1081,18 +1094,35 @@
          root does this to every stroke it has — .lp-flow__light fades and
          .lp-flow__seg remains — and it is the whole reason a frame can arrive
          in lime on a page whose contour colour is CF-Schwarz. */
+      /* THE LIGHT'S VISIBILITY IS AN ANIMATION, NOT A DECLARATION, and that is
+         a fix for a cascade trap this file is shaped to set. The rest state is
+         "off" — no timeline, no front, black contour only — and stating it as
+         `opacity: 0` in the base tier plus `opacity: 1` here does not survive
+         the file's own ordering: the page-local base block is authored AFTER
+         this @supports block, so at equal specificity the base rule wins in
+         BOTH tiers and the ramp never paints at all. Measured on the render:
+         four black edges drawing, no colour anywhere, which is exactly what
+         the review saw.
+         
+         Three animations instead. lp-frame-in carries 0 -> 1 across the same
+         window the edge is drawn in and fills BOTH ways, so the light is off
+         before its edge starts and full while it travels; lp-flow-out then
+         takes it back to 0 behind itself. Nothing depends on which rule the
+         cascade reaches last, and the base tier keeps its opacity: 0 with
+         nothing arguing against it. */
       .sp4-lit {
-        opacity: 1;                 /* lp-flow-out reads this and takes it to 0 */
-        animation-timeline: --sp4, --sp4;
-        animation-timing-function: linear, linear;
+        animation-timeline: --sp4, --sp4, --sp4;
+        animation-timing-function: linear, linear, linear;
         animation-range: contain calc((var(--t0) + 2 + var(--e) * 2) * 1%)
                          contain calc((var(--t0) + 12 + var(--e) * 2) * 1%),
-                         contain calc((var(--t0) + 16 + var(--e) * 2) * 1%)
+                         contain calc((var(--t0) + 2 + var(--e) * 2) * 1%)
+                         contain calc((var(--t0) + 4 + var(--e) * 2) * 1%),
+                         contain calc((var(--t0) + 18 + var(--e) * 2) * 1%)
                          contain calc((var(--t0) + 26 + var(--e) * 2) * 1%);
-        animation-fill-mode: both, forwards;
+        animation-fill-mode: both, both, forwards;
       }
-      .sp4-lit.sp4-x { animation-name: sp4-draw-x, lp-flow-out; }
-      .sp4-lit.sp4-y { animation-name: sp4-draw-y, lp-flow-out; }
+      .sp4-lit.sp4-x { animation-name: sp4-draw-x, lp-frame-in, lp-flow-out; }
+      .sp4-lit.sp4-y { animation-name: sp4-draw-y, lp-frame-in, lp-flow-out; }
 
       .sp4-tick {
         animation: lp-frame-in linear both;
@@ -1728,7 +1758,22 @@
      could contradict its own rule: "the contour is the drawing", and the
      contour is CF-Schwarz. So the base tier paints the black hairline alone
      and the pinned block below turns the light on for the acts that use it. */
-  .sp4-lit  { stroke-width: 2; opacity: 0; }
+  /* SIX, AND THE CONTOUR IS ONE. The light was 2 px — the tree's weight — and
+     the tree's weight is wrong here for a reason that is about length, not
+     about taste. On the root a lit stroke is 20 to 110 units long, so the
+     ramp's coloured leg (lime to Glas is its first 32 %) is most of what you
+     see. A plate's edge is the whole width of the picture, so the same ramp
+     spreads its colour over a few dozen pixels at the tip and spends the rest
+     of the run at #CFCFCF — which, painted at 2 px directly under a 1 px black
+     contour, is invisible. Measured on the render: four black edges drawing,
+     one lime pixel at each tip, and the review said the gradients were
+     missing. They were there; there was nowhere for them to be seen.
+
+     Six under one leaves two and a half px of ramp proud on each side of the
+     contour. The lime tip reads, the Glas leg reads, and the tail — #CFCFCF
+     against the CF-Grau wash — falls away on its own, which is the same
+     falling-away the root's own light does at the end of every stroke. */
+  .sp4-lit  { stroke-width: 6; opacity: 0; }
 
   /* THE TICK is the brand's one diagonal on an otherwise square frame: a 45°
      chamfer across the top-left corner, which is the angle the logo is cut on
@@ -3304,7 +3349,9 @@
        ends on a number and the cards end on a method, and neither is the
        right last thing for a page whose argument is that somebody stands
        behind the numbers. So the act after the four steps is the two
-       people who answer for it and the seven who build it.
+       people who answer for it and the whole team it is built by — the two
+       are in the group photograph as well, which is the point: plate 02 is
+       not the staff, it is everybody, and the copy says "wir" on both.
 
        IT IS THE SAME MACHINE AS THE ROOT, not a new one. One track, one
        sticky stage, one view timeline; the frames are drawn by scale on
@@ -3344,7 +3391,7 @@
           <div class="sp4-say">
             <p class="t-label sp4-mark">01 / Geschäftsführung</p>
             <p class="sp4-say__lead" data-stream-line="0.40 0.24">Daniel Tremer und Simon Deussen</p>
-            <p class="sp4-say__body" data-stream-line="0.52 0.40">Wir haben Control-F gegründet, weil Daten aus der Anlage sich rechnen lassen müssen. Dafür stehen wir mit unseren Namen — von der ersten Messung bis zur Kennzahl im laufenden Betrieb.</p>
+            <p class="sp4-say__body" data-stream-line="0.52 0.40">Wir haben Control-F gegründet, weil Daten aus der Anlage sich rechnen lassen müssen. Wir bauen daran mit — von der ersten Messung bis zur Kennzahl im laufenden Betrieb.</p>
           </div>
 
           <div class="sp4-shot">
@@ -3379,8 +3426,8 @@
         <figure class="sp4-plate" style="--p:1;--ar:2000 / 785" data-stream-stage>
           <div class="sp4-say">
             <p class="t-label sp4-mark">02 / Das Team</p>
-            <p class="sp4-say__lead" data-stream-line="0.40 0.24">Und die, die es bauen</p>
-            <p class="sp4-say__body" data-stream-line="0.52 0.40">Ingenieure, Entwickler, Datenleute — wir arbeiten dort, wo die Anlagen stehen, und bleiben, bis die Zahlen stimmen.</p>
+            <p class="sp4-say__lead" data-stream-line="0.40 0.24">Und das ganze Team</p>
+            <p class="sp4-say__body" data-stream-line="0.52 0.40">Expertinnen und Experten für Daten, Software und Anlagentechnik. Wir bauen selbst, arbeiten auf Augenhöhe und bleiben, bis die Zahlen im Betrieb stimmen.</p>
           </div>
 
           <div class="sp4-shot">
