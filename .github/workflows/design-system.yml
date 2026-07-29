@@ -1439,6 +1439,18 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/gen-proto-field.py --check
 
+      # And so is the root the field collapses into. This one printed its
+      # markup to stdout for a person to move into the page, which left the
+      # one step of "re-run it and the same lines come out" unchecked -- and
+      # the 2026-07-29 flip broke it twice in ways that shipped: a hand paste
+      # overwrote the ramp every gradient in the drawing href's, and a second
+      # dropped .lp-flow__trunk because the generator never emitted the class
+      # the page selects on. Both were invisible in the diff. It carries five
+      # marked blocks and the same --check contract now.
+      - name: Prototype root is generated
+        if: '!cancelled()'
+        run: python3 scripts/expertise-objects/gen-flow-root.py --check
+
       # A value is only authored if nothing outranks it, and a CSS animation
       # outranks the entire author origin -- including an SVG presentation
       # attribute, which sits at the very bottom of it, below every selector and
