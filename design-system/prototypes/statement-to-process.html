@@ -394,6 +394,50 @@
      --x/--y (flow units of 1200 x 620) with --tx/--ty clearances. The flow
      box is the last child, so the values' container matches it exactly. */
   .sp-root { position: relative; }
+  /* ---- THE COPY EITHER SIDE OF THE SOURCE ----
+     It rides .sp-root, which is the flow box exactly, so the two columns are
+     level with the orb at every viewport rather than at one. The orb spans
+     x 566-634 of 1200 and sits at y 84 of 620; the columns stop at 490 and
+     start at 710, which leaves it 76 units of clear ground on each side, and
+     both are centred on its own line.
+
+     THE INNER COLUMN EDGE IS THE ONE THAT IS FIXED. The left block is set
+     ragged-left and the right block ragged-right — that is, each is flush
+     against the source and ragged away from it — because the thing the reader
+     is reading around is the orb, and two blocks ragged towards it would put a
+     different amount of white on either side of the one object the drawing is
+     built on. */
+  .sp-say { position: absolute; inset: 0; pointer-events: none; }
+  .sp-say__act { display: none; }
+  .sp-say__col {
+    position: absolute;
+    top: 13.5%;
+    transform: translateY(-50%);
+    inline-size: 32%;
+  }
+  .sp-say__col--l { right: 59.2%; text-align: right; }
+  .sp-say__col--r { left: 59.2%; }
+  /* THE HEIGHT IS RESERVED BEFORE ANYTHING IS TYPED INTO IT, in em on every
+     streamed line, measured on the settled copy — foundations/motion.html's
+     own note: "a line being typed is a line with no height yet, and four of
+     them growing under each other walk the whole card down the page while the
+     reader is trying to read it". Here they would walk sideways as well: the
+     left column is right-aligned, so a line that grows re-lays every line
+     above it. */
+  .sp-say__lead {
+    margin: 0;
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+    color: var(--text-primary);
+    min-block-size: 2.3em;
+  }
+  .sp-say__body {
+    margin-block-start: var(--space-3);
+    font-size: var(--text-md);
+    line-height: var(--leading-relaxed);
+    color: var(--text-secondary);
+    min-block-size: 7.5em;
+  }
   .lp-flow-data { position: absolute; inset: 0; pointer-events: none; }
   /* A VALUE AND A READING ARE PLACED THE SAME WAY AND SAY DIFFERENT THINGS.
      Both ride a stroke, both are put there by the label law in
@@ -429,7 +473,15 @@
      UPPERCASE rules off --text-xs / --text-sm, and this one is neither off the
      size nor uppercase any more), so nothing has to be added to that file's
      list: the rule stops being uppercase, which is the honest way out. */
-  .lp-flow__read { text-transform: none; }
+  /* THE UNIT IS NOT A WORD, and now BOTH classes owe this declaration. The
+     label ramp uppercases, which is right for a note and wrong for a measure:
+     it prints M³/H for m³/h, KPA for kPa — and, since the rate took a unit on
+     the review of 2026-07-29, "8 400 /S" for 8 400 /s. An SI symbol whose case
+     has been changed is a different quantity, and a capital S is a siemens.
+     .lp-flow__read has carried this since it was written; .lp-flow__val did not
+     need it while it was digits and a space, and needed it the moment it was
+     not. */
+  .lp-flow__read, .lp-flow__val { text-transform: none; }
 
   /* NO SEPARATE OPACITY FOR THE READING, and the reason is a rule this system
      already checks for. The first pass gave it .82 to sit a shade under the
@@ -606,6 +658,20 @@
         animation-duration: auto;
         animation-timing-function: var(--ease-out), linear;
       }
+      /* THE COPY BELONGS TO ACT 2, AND CSS SAYS SO RATHER THAN THE SCRIPT.
+         cf-stream.js is optional by contract — "without the script every line
+         is simply present" — and a line that is simply present is present from
+         the first pixel of the track, over act 1's field, which is not where
+         it belongs. So the block fades up on --sp over the window the trunk
+         leaves the orb in, and leaves with the section. With the script the
+         fade and the typing agree; without it the copy still arrives when the
+         root does, whole. */
+      .sp-say {
+        animation: lp-frame-in linear both;
+        animation-timeline: --sp;
+        animation-range: contain 42% contain 52%;
+      }
+
       /* ---- THE CALLOUT LAYER, INSIDE THE PIN ----
          The layer only exists where the stage is the viewport, because that
          is the premise --sp-u is built on; see its own note above.
@@ -1551,7 +1617,7 @@
   </header>
 
   <!-- ACT 1 + 2: one sticky stage, one timeline -->
-  <section class="sp-track">
+  <section class="sp-track" data-stream>
     <div class="sp-stage">
       <!-- THE GROUND, FULL BLEED. The field left the figure column on the
            review of 2026-07-28 — "make the grid cover the whole screen" —
@@ -2419,24 +2485,76 @@
               <!-- right: own stroke 12.00 px, nearest other 18.18 px at the gate floor, clear of every label already set -->
             <span class="t-label lp-flow__read" style="--x:600;--y:416.667;--tx:calc(-100% - 12px);--ty:-50%;--l:1.3">690 V</span>
               <!-- right: own stroke 12.00 px, nearest other 23.92 px at the gate floor, clear of every label already set -->
-            <span class="t-label lp-flow__val" style="--x:600;--y:144;--tx:12px;--ty:-50%;--l:0.11">8 400</span>
+            <span class="t-label lp-flow__val" style="--x:600;--y:144;--tx:12px;--ty:-50%;--l:0.11">8 400 /s</span>
               <!--  left: own stroke 12.00 px, nearest other 17.40 px at the gate floor, clear of every numeral already set -->
-            <span class="t-label lp-flow__val" style="--x:600;--y:305;--tx:12px;--ty:-50%;--l:0.82">1 520</span>
-              <!--  left: own stroke 12.00 px, nearest other 14.14 px at the gate floor, clear of every numeral already set -->
-            <span class="t-label lp-flow__val" style="--x:585;--y:185;--tx:calc(-100% - 8.485px);--ty:calc(-100% - 8.485px);--l:0.29">3 520</span>
+            <span class="t-label lp-flow__val" style="--x:600;--y:338.75;--tx:12px;--ty:-50%;--l:0.96">1 520 /s</span>
+              <!--  left: own stroke 12.00 px, nearest other 12.88 px at the gate floor, clear of every numeral already set -->
+            <span class="t-label lp-flow__val" style="--x:585;--y:185;--tx:calc(-100% - 8.485px);--ty:calc(-100% - 8.485px);--l:0.29">3 520 /s</span>
               <!-- right: own stroke 12.00 px, nearest other 19.88 px at the gate floor, clear of every numeral already set -->
-            <span class="t-label lp-flow__val" style="--x:630;--y:200;--tx:8.485px;--ty:calc(-100% - 8.485px);--l:0.36">3 360</span>
+            <span class="t-label lp-flow__val" style="--x:630;--y:200;--tx:8.485px;--ty:calc(-100% - 8.485px);--l:0.36">3 360 /s</span>
               <!--  left: own stroke 12.00 px, nearest other 31.27 px at the gate floor, clear of every numeral already set -->
-            <span class="t-label lp-flow__val" style="--x:495;--y:252.5;--tx:calc(-100% - 5.367px);--ty:calc(-100% - 10.733px);--l:0.69">1 840</span>
+            <span class="t-label lp-flow__val" style="--x:495;--y:252.5;--tx:calc(-100% - 5.367px);--ty:calc(-100% - 10.733px);--l:0.69">1 840 /s</span>
               <!-- right: own stroke 12.00 px, nearest other 32.53 px at the gate floor, clear of every numeral already set -->
-            <span class="t-label lp-flow__val" style="--x:513.125;--y:283.75;--tx:10.733px;--ty:5.367px;--l:0.72">1 680</span>
-              <!--  left: own stroke 12.00 px, nearest other 12.58 px at the gate floor, clear of every numeral already set -->
-            <span class="t-label lp-flow__val" style="--x:705;--y:252.5;--tx:5.367px;--ty:calc(-100% - 10.733px);--l:0.69">2 000</span>
+            <span class="t-label lp-flow__val" style="--x:491.625;--y:326.75;--tx:10.733px;--ty:5.367px;--l:0.91">1 680 /s</span>
+              <!--  left: own stroke 12.00 px, nearest other 14.69 px at the gate floor, clear of every numeral already set -->
+            <span class="t-label lp-flow__val" style="--x:705;--y:252.5;--tx:5.367px;--ty:calc(-100% - 10.733px);--l:0.69">2 000 /s</span>
               <!--  left: own stroke 12.00 px, nearest other 32.53 px at the gate floor, clear of every numeral already set -->
-            <span class="t-label lp-flow__val" style="--x:708.75;--y:327.5;--tx:calc(-100% - 10.733px);--ty:5.367px;--l:0.91">1 360</span>
-              <!-- right: own stroke 12.00 px, nearest other 29.19 px at the gate floor, clear of every numeral already set -->
-            
-            
+            <span class="t-label lp-flow__val" style="--x:723.375;--y:356.75;--tx:10.733px;--ty:calc(-100% - 5.367px);--l:1.04">1 360 /s</span>
+              <!--  left: own stroke 12.00 px, nearest other 16.75 px at the gate floor, clear of every numeral already set -->
+          </div>
+
+          <!-- ACT 1'S STAGE, WITH NOTHING TYPED IN IT. cf-stream.js divides
+               the track evenly by the number of [data-stream-stage] it finds,
+               in DOM order, so the act that carries no streamed copy still has
+               to be counted or the act that does would type over the whole
+               track and be finished before the root has grown a stroke. An
+               empty stage is the honest way to say "this act has no copy",
+               and it is why the block below types from 54 % rather than from
+               the first pixel of the scroll. -->
+          <div class="sp-say__act" data-stream-stage aria-hidden="true"></div>
+
+          <!-- ACT 2'S COPY, EITHER SIDE OF THE SOURCE.
+               It rides .sp-root, which is the flow box exactly — the same
+               container the numerals are placed in — so the two columns stay
+               level with the orb at every viewport instead of being level with
+               it at one. 490 and 710 of 1200 leave the orb (566-634) a clear
+               76 units on each side.
+
+               WHY IT IS TYPED. foundations/motion.html: "the copy is typed,
+               not faded", and the engine is the system's own — three data
+               attributes, one pacing, shared with Expertise by construction
+               rather than by somebody keeping two files equal. The four lines
+               are staggered left-then-right because that is the order the root
+               grows into: the reader gets the what before the how.
+
+               EVERY PAIR SUMS TO AT MOST 1, and that is an arithmetic
+               constraint rather than a style. The engine paints a line at
+               (local - from) / span, and `local` is clamped to 1 at the end of
+               the reveal — so a line written "0.56 0.9" reaches p = 0.49 and
+               stops there, half typed, and stays half typed through the whole
+               hold. Measured before the fix: the right column's paragraph
+               ended mid-sentence at every scroll position past 81 %. The four
+               windows below run 0-0.22, 0.10-0.46, 0.40-0.62 and 0.50-0.90,
+               which lands the last character at 78 % of the track — just
+               before the handover title starts its wipe at 78 %.
+
+               WITHOUT THE SCRIPT EVERY LINE IS SIMPLY PRESENT, which is the
+               engine's own contract — so the block still needs a CSS reason to
+               belong to act 2 rather than to the whole track, and it has one
+               below: it fades up on --sp over the same window the trunk leaves
+               the orb in. min-height is declared in em on every streamed line
+               for the reason the manual gives: a line being typed is a line
+               with no height yet, and four of them growing under each other
+               walk the column down the page while the reader is reading. -->
+          <div class="sp-say" data-stream-stage>
+            <div class="sp-say__col sp-say__col--l">
+              <p class="sp-say__lead" data-stream-line="0 0.22">Tausende Sensoren, ein Strom.</p>
+              <p class="sp-say__body" data-stream-line="0.1 0.36">Steuerungen, Zähler und Sensoren liefern achttausendvierhundert Werte je Sekunde. Wir führen sie zusammen, benennen sie und machen aus dem Strom eine Grundlage, auf der sich rechnen lässt.</p>
+            </div>
+            <div class="sp-say__col sp-say__col--r">
+              <p class="sp-say__lead" data-stream-line="0.4 0.22">Die Wurzel ist dieser Strom, von unten gelesen.</p>
+              <p class="sp-say__body" data-stream-line="0.5 0.4">Jede Verzweigung teilt ihn genau auf: was oben ankommt, ist die Summe dessen, was unten gemessen wird. Kein Wert geht verloren, keiner entsteht — und genau das macht ihn abrechenbar.</p>
+            </div>
           </div>
           </div>
         </figure>
@@ -2873,6 +2991,7 @@
 })();
 </script>
 <script src="../assets/js/cf-pin-gate.js"></script>
+<script src="../assets/js/cf-stream.js" defer></script>
 <a class="ds-back" href="../index.html">&larr; Design System</a>
 </body>
 </html>
