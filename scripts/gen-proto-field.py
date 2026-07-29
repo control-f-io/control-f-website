@@ -71,14 +71,40 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PAGE = ROOT / "design-system" / "prototypes" / "statement-to-process.html"
 
+# THE FIELD IS THE SYSTEM'S GROUND, AT THE SYSTEM'S SIZE.
+#
+# It was not. tokens.css draws .cf-ground — the lattice the Expertise page and
+# every other section stands on — as ONE RHOMBUS, 96 x 48 CSS px, the cell
+# foundations/illustration.html builds objects out of and both rungs of the
+# space scale (--space-24 and --space-12). This field was drawn on a 64 x 32
+# cell instead, so the ground under the root was a different lattice from the
+# ground everywhere else on the site: measured at 2000 x 1050 it rendered
+# 80 x 40 px against .cf-ground's 96 x 48, and being a sliced viewBox it was a
+# different size again at every other viewport.
+#
+# MODULE 48, so the cell is 96 x 48 — the system's rhombus, 2:1, on the same
+# two 26.57 deg families. The box is 1600 x 900, so at a 1600 x 900 viewport
+# the slice scale is exactly 1 and the field renders the system's ground at
+# the system's own pixel size. Away from that reference it scales with the
+# stage, which is what a full-bleed backdrop does and what every other unit in
+# this drawing does — but it is now a scaled instance of the right lattice
+# rather than an unrelated one.
+#
+# EVERYTHING THE SENSORS SIT ON MOVES WITH IT. Crossings of y = c + x/2 and
+# y = c - x/2 with c == LINE_C0 (mod MODULE) fall at x == 0 (mod MODULE) and
+# y == LINE_C0 (mod MODULE/2) — so the supergrid, its stagger, the first
+# crossing and the focus are all restated on 48 and 24. The stagger has to be
+# a whole number of MODULEs, not merely half a super-column, or the odd rows
+# leave the lattice: 288 / 2 = 144 = 3 x 48 is why the column is 288 and not
+# the 240 that would have been closer to the old 256.
 WIDTH, HEIGHT = 1600, 900
-MODULE = 32                  # the lattice lines' step, and the phase base
-LINE_C0 = 8                  # c == 8 (mod 32), the statement field's own phase
-SUPER_X, SUPER_Y = 256, 160  # the sensors' supergrid
-STAGGER = 128                # odd rows shift half a super-column
-X0, Y0 = 64, 88              # first crossing: x == 0 (mod 32), y == 8 (mod 16)
-XMAX, YMAX = 1536, 812       # sensors keep a glow's reach inside the frame
-FOCUS = (800, 264)           # the trunk's head at the design ratio — a crossing
+MODULE = 48                  # the lattice lines' step: the system's 96 x 48 cell
+LINE_C0 = 8                  # c == 8 (mod 48), the statement field's own phase
+SUPER_X, SUPER_Y = 288, 168  # the sensors' supergrid, on 48 x 24
+STAGGER = 144                # odd rows shift half a super-column — and 3 x 48
+X0, Y0 = 96, 80              # first crossing: x == 0 (mod 48), y == 8 (mod 24)
+XMAX, YMAX = 1536, 800       # sensors keep a glow's reach inside the frame
+FOCUS = (816, 272)           # the trunk's head at the design ratio — a crossing
 CLAIM = (920, 360, 680)      # no sensors right of x in this y band
 R_MAX, R_MIN = 40, 12
 OP_MIN, OP_MAX = 0.2, 0.6

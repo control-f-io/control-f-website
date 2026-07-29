@@ -695,30 +695,34 @@ for x1, y1, x2, y2, d in segments:
 # marks a point the construction depends on" — and on a construction this
 # regular that is EVERY division: the crown and the six fan junctions, seven
 # dots, inside the ceiling with room. The radius keeps the same ladder.
-# ON A GROWN ROOT "EVERY DIVISION" IS TOO MANY AGAIN. The symmetric
-# construction had seven divisions and could mark all of them; this one has
-# thirty-odd, and a dot on each spends the drawing's one word for "here it
-# divides" until it reads as texture rather than as construction. So the cut
-# goes back to the one the radius is already a function of: level, the run from
-# the void normalised to 0-3. That is the same sentence as the ladder — the
-# bands nearest the subject are the divisions the reader is meant to count; out
-# at the fringe the root is thinning to twigs and a dot every few units is
-# noise.
+# EVERY DIVISION CARRIES A DOT, and this clause has now been written three
+# times — which is worth recording, because each version was right about the
+# drawing in front of it and wrong about the next one.
 #
-# 1.75 AND NOT 2. The cut is the manual's ceiling read backwards: eleven marks
-# is the most this drawing may carry, and as the root grew arms the level-2
-# band went from nine junctions to twelve. Rather than raise the ceiling, the
-# cut moves — which is the honest direction, because the ceiling is a
-# statement about how much a reader can hold and the cut is only a way of
-# choosing. It selects eleven, exactly the ceiling.
-NODE_LEVEL = 1.75
+#   the grown root (15 junctions)     level < 2, eleven marked
+#   the symmetric truss (7)           no cut: every division marked
+#   the regrown root (40)             level < 1.75, eleven marked
+#
+# Each time the argument was the manual's ceiling — "eight is a lot for one
+# object; twelve is too many" — and each time the cut moved to keep eleven.
+#
+# THE CEILING IS ABOUT AN OBJECT AND THIS IS A DIAGRAM. That is the thing the
+# three versions kept missing. foundations/illustration.html sets the ceiling
+# for an isometric OBJECT, where a node is a construction point and the reader
+# is being asked to count how the form is built; eleven is what a form can
+# carry before its marks become texture. The root is not a form. It is a graph
+# whose entire subject is data dividing, and in a graph a division without a
+# dot is not restraint, it is a missing statement: check-flow-crossings.py
+# reads two lines meeting with nothing on the meeting as "these are NOT
+# connected", and the drawing has forty divisions that are.
+#
+# So the cut is gone. A junction is marked because it divides, however deep it
+# sits. The ladder stays and does the work the cut was doing badly — r 3 near
+# the void, r 2 in the middle, r 1 at the fringe — so the marks recede as the
+# root thins instead of stopping dead at a threshold.
 outdeg = Counter((x1, y1) for x1, y1, _, _, _ in segments)
-NODE_POINTS = sorted((p for p, n in outdeg.items()
-                      if n >= 2 and float(level(DIST[p])) < NODE_LEVEL),
+NODE_POINTS = sorted((p for p, n in outdeg.items() if n >= 2),
                      key=lambda p: (p[1], p[0]))
-assert len(NODE_POINTS) <= 11, (
-    f"{len(NODE_POINTS)} nodes -- the manual's ceiling is eleven "
-    f'("eight is a lot for one object; twelve is too many")')
 
 
 def radius(l):
