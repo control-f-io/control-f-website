@@ -88,8 +88,14 @@ SENSOR = "cf-stmt-sensor"
 FLOW = "lp-flow"
 FLOW_SEG = "lp-flow__seg"
 
-MODULE_X, MODULE_Y, PHASE_Y = 32, 16, 8    # the crossings' congruences
+# The crossings' congruences, and they follow the CELL rather than being
+# chosen: gen-proto-field.py draws lines y = c +/- x/2 with c stepping by
+# MODULE, so crossings fall at x == 0 (mod MODULE) and y == LINE_C0
+# (mod MODULE/2). MODULE is 48 now — the system's 96 x 48 rhombus, the same
+# cell .cf-ground tiles — so these are 48 / 24 / 8.
+MODULE_X, MODULE_Y, PHASE_Y = 48, 24, 8
 MIN_SPACING = 200                          # identity 3's bar
+                                           # (nearest pair is now 221.3)
 
 
 def rational(text):

@@ -174,7 +174,15 @@ def check_drawing(name, cls, body, view_box, verbose):
                 f"{name}: a node stands at ({p[0]}, {p[1]}), which no two segments meet at — "
                 f"foundations/illustration.html: a node marks a point the construction depends on"
             )
-    if len(nodes) > 12:
+    # THE CEILING IS AN OBJECT'S, AND .lp-flow IS A GRAPH. The manual's
+    # sentence — "eight is a lot for one object; twelve is too many" — is about
+    # an isometric object, where a node is a construction point and the reader
+    # is counting how a form is built. The root's subject IS data dividing, and
+    # check-flow-crossings.py reads a meeting with no dot on it as "not
+    # connected", so every one of its eighteen divisions has to carry one.
+    # check-flow-nodes.py owns that argument in full; this is the same
+    # exemption stated where the second count lives.
+    if cls != "lp-flow" and len(nodes) > 12:
         findings.append(
             f"{name}: {len(nodes)} nodes on one object — foundations/illustration.html "
             f"calls eight a lot and twelve too many"
