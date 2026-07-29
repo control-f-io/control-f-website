@@ -57,6 +57,18 @@
        then the stage releases and ACT 3 is the cards' own .cf-pin
        below, unchanged, with the lectern frame drawn on its entry.
 
+     ACT 4 comes AFTER the cards, which is where the review put it, and
+     runs on a third timeline, --sp4, 400vh, one plate to each half:
+
+        t0+ 2 - 18   the four edges draw, clockwise from the top-left,
+                     in the family's ramp
+        t0+ 6 - 26   the ramp fades off each edge it has closed, leaving
+                     the CF-Schwarz contour standing
+        t0+12 - 30   the photograph sweeps in under the frame
+        t0+ 4 - 45   the words type in the column beside it
+        t0+45 - 50   the still
+        t0+46 - 52   the plate leaves and the next one has the stage
+
      ACT 4 is a third track with a third timeline, --sp4, 400vh, and
      the two photographic plates divide it in half. Each half runs the
      same five verbs in the same order the drawing above uses — the
@@ -974,31 +986,34 @@
         animation-fill-mode: forwards;
       }
 
-      /* ---- ACT 4: the plates, drawn and swept and typed ---- */
+      /* ---- ACT 4: the plates, drawn and swept and read ---- */
       /*
          ONE OFFSET, EVERY WINDOW. --p is the plate's index and --t0 is the
          half of the track it owns, so every window below is written as
          "--t0 plus a number" and the second plate is the first one moved
-         fifty points along. That is the same construction .lp-flow__seg uses
-         with --l and --flow-c: one constant, one arithmetic, no second copy
-         of the schedule to keep equal to the first.
+         fifty points along. That is the construction .lp-flow__seg uses with
+         --l and --flow-c: one constant, one arithmetic, no second copy of the
+         schedule to keep equal to the first.
 
          THE SCRIPT, in contain % of this track:
 
-            t0+ 2 - 16   the four edges draw, one after another, top-left-
-                         bottom-right, each 2 points behind the last
-            t0+14 - 18   the chamfer tick and the mono mark arrive
-            t0+12 - 28   the photograph sweeps in under the frame
-            t0+24 - 32   the glass rises and settles
-            t0+22 - 45   the copy types onto it (cf-stream.js owns this one —
+            t0+ 2 - 18   the four edges draw, clockwise from the top-left,
+                         each 2 points behind the last — in the family's ramp
+            t0+ 6 - 26   the ramp fades off each edge it has closed, leaving
+                         the CF-Schwarz contour standing
+            t0+14 - 18   the chamfer tick arrives
+            t0+12 - 30   the photograph sweeps in under the frame
+            t0+ 4 - 45   the words type beside it (cf-stream.js owns this one:
                          it divides the track by [data-stream-stage] and the
-                         line windows below are fractions of the stage)
+                         line windows are fractions of the stage)
             t0+45 - 50   the still. Nothing moves while the plate is read.
+            t0+46 - 52   the plate leaves, and the next one has the stage
 
-         The stage is 50 points long and the last five are spent holding,
-         for the reason the stream engine gives about its own hold: a
-         sentence that finishes at the moment it starts leaving cannot be
-         read at all. */
+         THE PLATES ARE STACKED, NOT LAID OUT. Each owns the whole stage, so
+         they are in one grid cell and the first is lifted out as the second
+         arrives. Only the first needs an exit — :last-of-type keeps the team
+         plate standing, because the act ends on it and a section that fades
+         its own last frame out has nothing to hand over. */
       .sp4-track {
         height: 400vh;
         view-timeline-name: --sp4;
@@ -1012,24 +1027,74 @@
         overflow: clip;
         padding-block: 0;
       }
+      /* ONE CELL, BOTH PLATES. And the set is capped so the taller of the two
+         ratios fits the stage: the picture is 8 of 12 columns, so a 5:4 plate
+         is set-width x 8/12 / 1.25 = set-width / 1.875 tall, and capping the
+         set at 1.875 x the height it may spend is what guarantees the
+         composition fits a 100vh stage without either plate being measured
+         against the viewport on its own. */
+      .sp4-set {
+        grid-template-areas: "plate";
+        inline-size: min(100% - 2 * var(--space-8), 76rem, 66vh * 1.875);
+        gap: 0;
+      }
+      .sp4-plate { grid-area: plate; }
+      .sp4-plate:not(:last-of-type) {
+        animation: sp4-plate-out var(--ease-out, ease-out) both;
+        animation-timeline: --sp4;
+        animation-range: contain calc((var(--t0) + 46) * 1%)
+                         contain calc((var(--t0) + 52) * 1%);
+      }
+      @keyframes sp4-plate-out {
+        to { opacity: 0; translate: 0 calc(var(--space-8) * -1); }
+      }
       .sp4-plate { --t0: calc(var(--p) * 50); }
 
-      /* THE EDGES DRAW. scale on one axis from the corner the pen starts at —
-         the horizontals along x, the verticals along y — which is
-         lp-frame-draw's exact verb, and the reason each edge names its own
-         transform-origin up in the base tier. */
-      .sp4-edge {
+      /* THE EDGES DRAW. scale on one axis from the corner the pen starts at,
+         which is lp-frame-draw's exact verb and the reason each path names
+         its own transform-origin. Both passes share the window; only the lit
+         one has somewhere to go afterwards. */
+      /* EACH PATH NAMES ITS OWN AXIS, and it is a class rather than an
+         nth-child for a reason that cost a render. The first pass of this
+         selected the horizontals with `.sp4-frame path:nth-child(4n+1)`,
+         which is (0,2,1) against `.sp4-lit`'s (0,1,0) — so the nth-child rule
+         WON the cascade on animation-name and replaced the light's two-name
+         list with one, silently dropping lp-flow-out from the top and bottom
+         edges. Measured at 44 % of the track: the frame had settled to black
+         on the left and right and was still lime along the other two.
+         Matching specificities is the fix; naming the thing you mean is why
+         it stays fixed. */
+      .sp4-edge, .sp4-lit {
         animation: linear both;
         animation-timeline: --sp4;
         animation-range: contain calc((var(--t0) + 2 + var(--e) * 2) * 1%)
-                         contain calc((var(--t0) + 10 + var(--e) * 2) * 1%);
+                         contain calc((var(--t0) + 12 + var(--e) * 2) * 1%);
       }
-      .sp4-edge--t, .sp4-edge--b { animation-name: sp4-draw-x; }
-      .sp4-edge--l, .sp4-edge--r { animation-name: sp4-draw-y; }
+      .sp4-edge.sp4-x { animation-name: sp4-draw-x; }
+      .sp4-edge.sp4-y { animation-name: sp4-draw-y; }
       @keyframes sp4-draw-x { from { scale: 0 1; } to { scale: 1 1; } }
       @keyframes sp4-draw-y { from { scale: 1 0; } to { scale: 1 1; } }
 
-      .sp4-tick, .sp4-mark {
+      /* AND THE COLOUR PASSES. The ramp is the front, not the frame: it draws
+         the edge and goes out behind itself, four points after that edge has
+         closed, leaving the black hairline that was drawn underneath it. The
+         root does this to every stroke it has — .lp-flow__light fades and
+         .lp-flow__seg remains — and it is the whole reason a frame can arrive
+         in lime on a page whose contour colour is CF-Schwarz. */
+      .sp4-lit {
+        opacity: 1;                 /* lp-flow-out reads this and takes it to 0 */
+        animation-timeline: --sp4, --sp4;
+        animation-timing-function: linear, linear;
+        animation-range: contain calc((var(--t0) + 2 + var(--e) * 2) * 1%)
+                         contain calc((var(--t0) + 12 + var(--e) * 2) * 1%),
+                         contain calc((var(--t0) + 16 + var(--e) * 2) * 1%)
+                         contain calc((var(--t0) + 26 + var(--e) * 2) * 1%);
+        animation-fill-mode: both, forwards;
+      }
+      .sp4-lit.sp4-x { animation-name: sp4-draw-x, lp-flow-out; }
+      .sp4-lit.sp4-y { animation-name: sp4-draw-y, lp-flow-out; }
+
+      .sp4-tick {
         animation: lp-frame-in linear both;
         animation-timeline: --sp4;
         animation-range: contain calc((var(--t0) + 14) * 1%)
@@ -1043,14 +1108,14 @@
          inside it comes to rest, which is the difference between a photograph
          arriving and a box growing.
 
-         clip-path AND NOT height, because the window's height is the plate's
-         and the plate's is fixed by aspect-ratio. Animating the box would
+         clip-path AND NOT height, because the window's height is the shot's
+         and the shot's is fixed by aspect-ratio. Animating the box would
          re-lay the frame it is inside; animating the clip moves nothing. */
       .sp4-win {
         animation: sp4-sweep linear both;
         animation-timeline: --sp4;
         animation-range: contain calc((var(--t0) + 12) * 1%)
-                         contain calc((var(--t0) + 28) * 1%);
+                         contain calc((var(--t0) + 30) * 1%);
       }
       @keyframes sp4-sweep {
         from { clip-path: inset(0 0 100% 0); }
@@ -1060,23 +1125,17 @@
         animation: sp4-settle var(--ease-out, ease-out) both;
         animation-timeline: --sp4;
         animation-range: contain calc((var(--t0) + 12) * 1%)
-                         contain calc((var(--t0) + 34) * 1%);
+                         contain calc((var(--t0) + 36) * 1%);
       }
       @keyframes sp4-settle { from { scale: 1.06; } to { scale: 1; } }
 
-      /* THE GLASS RISES. It is the last thing to arrive because it is the
-         thing that carries the words, and it comes up from the plate's own
-         bottom edge rather than fading: a pane fading in reads as a tint on
-         the photograph, a pane moving reads as a pane. */
-      .sp4-pane {
-        animation: sp4-pane-up var(--ease-out, ease-out) both;
+      /* The mark arrives with the frame it labels; the typed lines below it
+         are cf-stream.js's, and they need the column to be there already. */
+      .sp4-mark {
+        animation: lp-frame-in linear both;
         animation-timeline: --sp4;
-        animation-range: contain calc((var(--t0) + 24) * 1%)
-                         contain calc((var(--t0) + 32) * 1%);
-      }
-      @keyframes sp4-pane-up {
-        from { opacity: 0; translate: 0 var(--space-6); }
-        to   { opacity: 1; translate: 0 0; }
+        animation-range: contain calc((var(--t0) + 4) * 1%)
+                         contain calc((var(--t0) + 10) * 1%);
       }
 
       /* ---- ACT 3: the cards' pinned stage, carried verbatim ---- */
@@ -1592,73 +1651,84 @@
      hidden. Every rule that MOVES anything is inside the pinned block far
      below, so this is what a reduced-motion reader, a narrow viewport, a
      browser without view timelines and the printer all get — two framed
-     photographs with their captions on them, whole.
+     photographs with their words beside them, whole, one under the other.
      ============================================================ */
   .sp4-track { position: relative; }
-  .sp4-stage {
-    display: grid;
-    align-content: center;
-    gap: var(--space-10);
-    padding-block: var(--space-16);
-  }
+  .sp4-stage { display: grid; align-content: center; padding-block: var(--space-16); }
   .sp4-set {
     display: grid;
-    gap: var(--space-10);
+    gap: var(--space-12);
     inline-size: min(100% - 2 * var(--space-6), var(--container-max, 76rem));
     margin-inline: auto;
   }
 
-  /* THE PLATE IS THE FRAME'S BOX, so the four edges have something to be the
-     edges OF. Its aspect ratio is the photograph's own, declared here rather
-     than left to the image, so the frame is drawn at the right shape before a
-     single byte of the picture has arrived — and stays that shape if the
-     picture never does. */
-  .sp4-plate {
-    position: relative;
+  .sp4-plate { margin: 0; display: grid; gap: var(--space-8); align-items: center; }
+
+  /* ---- the words, in their own column ---- */
+  .sp4-mark { margin: 0 0 var(--space-4); color: var(--text-secondary); }
+  .sp4-say__lead {
     margin: 0;
-    padding: var(--space-4);
-    container-type: inline-size;
+    font-size: var(--text-h3);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-snug);
+    color: var(--text-primary);
+    min-block-size: 2.4em;
   }
-  .sp4-plate--lead { aspect-ratio: 5 / 4; }
-  .sp4-plate--team { aspect-ratio: 2000 / 785; }
+  .sp4-say__body {
+    margin-block-start: var(--space-4);
+    max-inline-size: 42ch;
+    font-size: var(--text-lg);
+    line-height: var(--leading-relaxed);
+    color: var(--text-secondary);
+    min-block-size: 7.4em;
+  }
+  .sp4-plate:last-of-type .sp4-say__body { min-block-size: 5.2em; }
 
-  /* THE WASH IS ON THE WINDOW AND NOT ON THE PLATE, which is two things at
-     once. It gives an absent photograph an empty plate to be absent in rather
-     than a broken-image glyph — the window is the picture's own box, so that
-     is where the picture's loading state belongs. And it keeps the plate
-     itself invisible until its act: the window is clipped shut before the
-     sweep, so a wash on the plate would have announced the second plate as a
-     grey rectangle a whole stage before its frame was drawn. Measured on the
-     render at 30 % of the track, which is where it was found.
-
-     The mount — the gap between the frame and the picture — is therefore the
-     page's own surface, which is also the right answer: the root's contours
-     stand on that wash too, and a frame floating on it is the same drawing. */
+  /* ---- the picture and its frame ---- */
+  .sp4-shot { position: relative; aspect-ratio: var(--ar); padding: var(--space-4); }
   .sp4-win {
     block-size: 100%;
     overflow: hidden;
+    /* The wash, so an absent photograph is an empty mount rather than a
+       broken-image glyph, and so the plate itself stays invisible until its
+       act: the window is clipped shut before the sweep, and a wash on the
+       shot would announce the second plate a whole stage early. */
     background: var(--surface-page, var(--grey-050));
   }
-  .sp4-photo {
+  .sp4-photo { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+
+  /* overflow: visible, WHICH check-edge-stroke-clip.py ASKED FOR BY NAME. All
+     eight paths lie ON the viewBox boundary — that is what a frame is — and an
+     <svg> clips to its viewport by default, so each of them would paint at
+     half its declared weight: the 1 px contour at 0.5 and the 2 px light at 1.
+     Nothing looks broken, the frame is just quietly thinner than the tree's
+     own strokes on the same page, which is the kind of drift a hairline never
+     announces. Same reason and same fix as .cf-page-header__figure. */
+  .sp4-frame {
+    position: absolute;
+    inset: 0;
     inline-size: 100%;
     block-size: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  /* THE FOUR EDGES. Absolutely positioned hairlines on the plate's own
-     perimeter, in --border-strong: the same CF-Schwarz the root's contours
-     and the lectern's frame are drawn in, because a contour in this system is
-     one weight and one colour. */
-  .sp4-edge {
-    position: absolute;
-    background: var(--border-strong);
+    overflow: visible;
     pointer-events: none;
   }
-  .sp4-edge--t { inset-block-start: 0; inset-inline: 0; block-size: var(--stroke-1, 1px); transform-origin: 0 0; }
-  .sp4-edge--b { inset-block-end: 0; inset-inline: 0; block-size: var(--stroke-1, 1px); transform-origin: 100% 0; }
-  .sp4-edge--l { inset-inline-start: 0; inset-block: 0; inline-size: var(--stroke-1, 1px); transform-origin: 0 0; }
-  .sp4-edge--r { inset-inline-end: 0; inset-block: 0; inline-size: var(--stroke-1, 1px); transform-origin: 0 100%; }
+  .sp4-frame path {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+    transform-box: fill-box;
+    transform-origin: var(--o, 0 0);
+  }
+  .sp4-edge { stroke: var(--border-strong); stroke-width: 1; }
+  /* THE LIGHT IS OFF UNTIL SOMETHING IS DRIVING IT. The ramp pass is a FRONT,
+     not a frame: it exists while the edge is being drawn and goes out behind
+     itself. Where there is no timeline to move it — reduced motion, below the
+     gate, no view-timeline support, print — there is no front either, and a
+     lime rectangle standing permanently around a photograph is not the
+     settled state of this drawing. It is also the one place the settled state
+     could contradict its own rule: "the contour is the drawing", and the
+     contour is CF-Schwarz. So the base tier paints the black hairline alone
+     and the pinned block below turns the light on for the acts that use it. */
+  .sp4-lit  { stroke-width: 2; opacity: 0; }
 
   /* THE TICK is the brand's one diagonal on an otherwise square frame: a 45°
      chamfer across the top-left corner, which is the angle the logo is cut on
@@ -1676,96 +1746,13 @@
     pointer-events: none;
   }
 
-  /* THE MARK, on the leader the annotation component uses: mono, label size,
-     tracked, sitting outside the frame's top edge so it labels the plate
-     rather than sitting on the picture. */
-  .sp4-mark {
-    position: absolute;
-    inset-block-end: calc(100% + var(--space-2));
-    inset-inline-start: 0;
-    color: var(--text-secondary);
-    white-space: nowrap;
-  }
-
-  /* THE GLASS. --surface-glass and not --surface-glass-thin: the thin tint's
-     30 % is measured against a backdrop the page owns — a lattice on the wash,
-     whose darkest pixel is a hairline. This one sits on a PHOTOGRAPH, with a
-     black hoodie in it, and 46 % white is the tint tokens.css publishes as the
-     floor at which black type still clears 4.5:1 composited over pure black.
-     That is the guarantee this backdrop needs, so it takes the bearing glass. */
-  /* THE PANE IS MEASURED AGAINST ITS PLATE, NOT AGAINST THE VIEWPORT, which
-     is the one thing a fixed type size could not do here. The plates are
-     five and seven columns of a set that is itself capped by the stage's
-     height, so the lead plate is 570 px wide at 1600 and 380 px at 1024 —
-     and a --text-h4 lead with a three-line body is 190 px of pane in a 304 px
-     plate. Measured at 1024 x 720: the caption covered 62 % of the
-     photograph, which is a caption that has eaten the thing it is captioning.
-
-     cqi, so the pane's type is a fraction of the plate's own inline size and
-     the ratio of picture to words is the same at every viewport the gate
-     admits. The clamps hold it inside the type scale at both ends: never
-     below --text-md, which foundations/typography.html publishes as the
-     smallest size allowed for prose, and never above the size it was drawn
-     at. Same for the padding, in the space scale's own steps. */
-  .sp4-pane {
-    position: absolute;
-    inset-inline: 6cqi;
-    inset-block-end: 6cqi;
-    padding: clamp(var(--space-3), 3.2cqi, var(--space-5))
-             clamp(var(--space-4), 4cqi, var(--space-6));
-    background: var(--surface-glass);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    background-image: var(--glass-edge);
-    background-repeat: no-repeat;
-    background-size: 62% var(--stroke-1, 1px);
-    background-position: 0 0;
-  }
-  .sp4-pane__lead {
-    margin: 0;
-    font-size: clamp(var(--text-lg), 4.4cqi, var(--text-h4));
-    font-weight: var(--weight-bold);
-    line-height: var(--leading-snug);
-    color: var(--text-primary);
-    min-block-size: 1.2em;
-  }
-  .sp4-pane__body {
-    margin-block-start: clamp(var(--space-2), 1.6cqi, var(--space-3));
-    max-inline-size: 54ch;
-    font-size: clamp(var(--text-md), 2.9cqi, var(--text-lg));
-    line-height: var(--leading-relaxed);
-    color: var(--text-primary);
-    min-block-size: 4.4em;
-  }
-  /* THE SHALLOW PLATE RESERVES LESS. min-block-size holds the pane's height
-     open before cf-stream.js has typed a character into it, and the two
-     plates do not need the same amount held: 2.55:1 is half the height of
-     5:4 at the same width, so its caption is two lines rather than four and
-     reserving four would have pushed the pane up over a picture that has
-     less picture to spare. */
-  .sp4-plate--team .sp4-pane__body { min-block-size: 2.9em; }
-
   @media (min-width: 64rem) {
-    /* SIDE BY SIDE, FIVE AND SEVEN, AND STAGGERED. The two plates are the two
-       halves of one sentence — "the two of us" and "and the people who build
-       it" — so they stand together rather than under each other, and the
-       column split is the photographs' own: 5:4 wants less width than 2.55:1
-       at the same height. The team plate is dropped by a share of its own
-       height, which is the isometric displacement the rest of this system is
-       composed on and what stops two rectangles reading as a table.
-
-       THE SET'S WIDTH CARRIES THE HEIGHT CONSTRAINT. The tallest plate is the
-       lead one at (width x 5/12) / 1.25 = width / 3, so capping the set at
-       three times the stage's own headroom is what guarantees the composition
-       fits a 100vh stage without either plate being measured against the
-       viewport separately. */
-    .sp4-set {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-      align-items: center;
-      gap: var(--space-8);
-      inline-size: min(100% - 2 * var(--space-8), 76rem, (100vh - 12rem) * 3);
-    }
-    .sp4-plate--team { translate: 0 var(--space-10); }
+    /* WORDS LEFT, PICTURE RIGHT, four columns against eight. The review drew
+       it that way — "text about the picture on the left" — and the split is
+       the photographs' own: at the same height a 5:4 wants two thirds of the
+       width a 2.55:1 does, so the picture takes the larger share and the
+       words take a measure they can hold a line on. */
+    .sp4-plate { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
   }
 
   @keyframes lp-frame-draw { from { scale: 0; } to { scale: 1; } }
@@ -2602,6 +2589,27 @@
                               gradientUnits="userSpaceOnUse"
                               cx="600" cy="586" r="34"/>
               <linearGradient id="lp-flow-ax-stem" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="6" y1="100" x2="6" y2="0"/>
+              <!-- ACT 4'S FOUR AXES, href'ing the same ramp as every other
+                   paint server on this page, so there is no second copy of the
+                   family's stops anywhere and check-gradient-family.py has one
+                   ramp to recompute rather than two. userSpaceOnUse and not
+                   objectBoundingBox for the reason the stem's note gives: a
+                   straight edge has a bounding box with zero extent on one
+                   axis, and an objectBoundingBox gradient on a degenerate box
+                   does not render at all.
+
+                   FOUR AND NOT TWO, because the direction has to follow the
+                   draw. The frame closes clockwise from the top-left, so the
+                   top and left edges grow away from that corner and the bottom
+                   and right edges grow back toward it — and lime belongs at
+                   the moving tip of each, which is the end away from its own
+                   transform-origin. Same rule as the root's axes, four times.
+                   The frame's viewBox is 100 x 100 and stretched, so these are
+                   in its units and not in the plate's pixels. -->
+              <linearGradient id="sp4-ramp-e" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="100" y1="0" x2="0" y2="0"/>
+              <linearGradient id="sp4-ramp-s" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="0" y1="100" x2="0" y2="0"/>
+              <linearGradient id="sp4-ramp-w" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="0" y1="100" x2="100" y2="100"/>
+              <linearGradient id="sp4-ramp-n" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="100" y1="0" x2="100" y2="100"/>
             </defs>
             <!-- Drawn first, so every stroke that leaves it is painted over
                  it and the trunk appears to come OUT of the light rather than
@@ -2920,105 +2928,6 @@
         <h2 class="cf-section-header__label sp-head__title" id="prozess">Was wir machen</h2>
         <span class="cf-section-header__count sp-head__count">In vier Schritten</span>
       </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       ACT 4: WHO BUILT IT.
-       Three acts of construction and not one person in them. The drawing
-       ends on a number, and a number is the wrong last thing for a page
-       whose whole argument is that somebody stands behind the numbers —
-       so the act after the process is the two people who answer for it
-       and the seven who build it.
-
-       IT IS THE SAME MACHINE AS THE ROOT, not a new one. One track, one
-       sticky stage, one view timeline, windows written in contain % off a
-       single per-plate offset; the frames are drawn by scale on that
-       timeline exactly as the lectern's hairlines are, the copy is typed
-       by cf-stream.js exactly as act 2's is, and the plate holds still at
-       the end because a thing being read may not also be moving.
-
-       THE ORDER IS THE DRAWING'S OWN: contour first, then the thing the
-       contour bounds, then the light on it. foundations/illustration.html
-       says an object is a lattice, a contour and one light — so the frame
-       draws before the photograph arrives inside it, and the glass comes
-       up last, over the picture, carrying the words.
-
-       BOTH PHOTOGRAPHS ARE PLACEHOLDERS AND SAY SO ON THEIR FACE. The two
-       pictures were supplied in review and there is no path from there into
-       the repository, so what ships at these paths is a rendered plate
-       carrying "Platzhalter — Foto folgt", the subject and the file's own
-       name and size. They are real JPEGs at the exact dimensions the markup
-       declares, which is what check-links.py requires of any reference — a
-       route is either written or removed, never parked — and it is why
-       replacing them is a drop-in:
-
-           design-system/assets/img/team/geschaeftsfuehrung.jpg   2000 x 1600
-           design-system/assets/img/team/team.jpg                 2000 x  785
-
-       Overwrite either file and nothing here changes: the alt text, the
-       width/height and the plate's aspect-ratio are already the
-       photograph's.
-       ============================================================ -->
-  <section class="sp4-track" data-stream aria-labelledby="wer-wir-sind">
-    <h2 class="visually-hidden" id="wer-wir-sind">Wer wir sind</h2>
-    <div class="sp4-stage">
-      <div class="sp4-set">
-
-        <figure class="sp4-plate sp4-plate--lead" style="--p:0" data-stream-stage>
-          <!-- FOUR EDGES, FOUR DIVS, NOT AN SVG. The lectern draws its frame
-               as hairlines in a viewBox with preserveAspectRatio="none", which
-               is right for a shape whose proportions are fixed; a photographic
-               plate's are not — it is sized by the grid at one viewport and by
-               the image's own ratio at another, and a non-uniformly scaled svg
-               puts the stroke through the same distortion. Four elements each
-               scaled along ONE axis keep every edge a true hairline at every
-               size, and scale from a named corner is the same verb
-               lp-frame-draw already uses. --e is the edge's place in the
-               order, so the frame closes the way a hand draws it: top, left,
-               bottom, right. -->
-          <span class="sp4-edge sp4-edge--t" style="--e:0" aria-hidden="true"></span>
-          <span class="sp4-edge sp4-edge--l" style="--e:1" aria-hidden="true"></span>
-          <span class="sp4-edge sp4-edge--b" style="--e:2" aria-hidden="true"></span>
-          <span class="sp4-edge sp4-edge--r" style="--e:3" aria-hidden="true"></span>
-
-          <span class="sp4-tick" aria-hidden="true"></span>
-          <span class="t-label sp4-mark" aria-hidden="true">01 / Geschäftsführung</span>
-
-          <div class="sp4-win">
-            <img class="sp4-photo" src="../assets/img/team/geschaeftsfuehrung.jpg"
-                 alt="Daniel Tremer und Simon Deussen, die Geschäftsführung von Control-F"
-                 width="2000" height="1600" loading="lazy" decoding="async">
-          </div>
-
-          <figcaption class="sp4-pane">
-            <p class="sp4-pane__lead" data-stream-line="0.44 0.26">Daniel Tremer und Simon Deussen</p>
-            <p class="sp4-pane__body" data-stream-line="0.56 0.4">Wir haben Control-F gegründet, weil Daten aus der Anlage sich rechnen lassen müssen. Dafür stehen wir mit unseren Namen — von der ersten Messung bis zur Kennzahl im laufenden Betrieb.</p>
-          </figcaption>
-        </figure>
-
-        <figure class="sp4-plate sp4-plate--team" style="--p:1" data-stream-stage>
-          <span class="sp4-edge sp4-edge--t" style="--e:0" aria-hidden="true"></span>
-          <span class="sp4-edge sp4-edge--l" style="--e:1" aria-hidden="true"></span>
-          <span class="sp4-edge sp4-edge--b" style="--e:2" aria-hidden="true"></span>
-          <span class="sp4-edge sp4-edge--r" style="--e:3" aria-hidden="true"></span>
-
-          <span class="sp4-tick" aria-hidden="true"></span>
-          <span class="t-label sp4-mark" aria-hidden="true">02 / Das Team</span>
-
-          <div class="sp4-win">
-            <img class="sp4-photo" src="../assets/img/team/team.jpg"
-                 alt="Das Team von Control-F, sieben Personen nebeneinander"
-                 width="2000" height="785" loading="lazy" decoding="async">
-          </div>
-
-          <figcaption class="sp4-pane">
-            <p class="sp4-pane__lead" data-stream-line="0.44 0.26">Und die, die es bauen</p>
-            <p class="sp4-pane__body" data-stream-line="0.56 0.4">Ingenieure, Entwickler, Datenleute — wir arbeiten dort, wo die Anlagen stehen, und bleiben, bis die Zahlen stimmen.</p>
-          </figcaption>
-        </figure>
-
       </div>
     </div>
   </section>
@@ -3389,6 +3298,123 @@
       </div>
     </div>
   </section>
+  <!-- ============================================================
+       ACT 4: WHO BUILT IT, after the process and not before it.
+       Three acts of construction and not one person in them. The drawing
+       ends on a number and the cards end on a method, and neither is the
+       right last thing for a page whose argument is that somebody stands
+       behind the numbers. So the act after the four steps is the two
+       people who answer for it and the seven who build it.
+
+       IT IS THE SAME MACHINE AS THE ROOT, not a new one. One track, one
+       sticky stage, one view timeline; the frames are drawn by scale on
+       that timeline exactly as the lectern's hairlines are, the copy is
+       typed by cf-stream.js exactly as act 2's is, and each plate holds
+       still at the end because a thing being read may not also be moving.
+
+       ONE PLATE AT A TIME, ON THE WHOLE STAGE. The two were side by side
+       for one round and the review asked for the other thing — "continue
+       scroll for the next image" — which is the better composition as
+       well as the clearer instruction: a 5:4 photograph sharing a stage
+       with a 2.55:1 one is two small pictures, and each of them alone is
+       one big one. They are stacked in the same box and the first hands
+       over to the second.
+
+       THE WORDS ARE BESIDE THE PICTURE, NOT ON IT. They sat on a
+       Milchglas pane over the photograph's lower band until the review
+       struck it through. Moving them off is also what the material rule
+       wanted: foundations/materials.html says glass "exists to calm a
+       complex graphic beneath it, never to sit on a flat surface, where
+       it is only a grey box" — so a caption in its own column on the page
+       wash has no business being glass, and is not.
+
+       THE FRAME ARRIVES IN COLOUR AND SETTLES IN BLACK. Two passes per
+       edge: the family's ramp draws the edge and fades once it has
+       closed, the CF-Schwarz hairline draws with it and stays. That is
+       .lp-flow__light and .lp-flow__seg on every stroke of the tree, and
+       it is why "the contour is the drawing" survives a frame that
+       arrives lime.
+       ============================================================ -->
+  <section class="sp4-track" data-stream aria-labelledby="wer-wir-sind">
+    <h2 class="visually-hidden" id="wer-wir-sind">Wer wir sind</h2>
+    <div class="sp4-stage">
+      <div class="sp4-set">
+
+        <figure class="sp4-plate" style="--p:0;--ar:5 / 4" data-stream-stage>
+          <div class="sp4-say">
+            <p class="t-label sp4-mark">01 / Geschäftsführung</p>
+            <p class="sp4-say__lead" data-stream-line="0.40 0.24">Daniel Tremer und Simon Deussen</p>
+            <p class="sp4-say__body" data-stream-line="0.52 0.40">Wir haben Control-F gegründet, weil Daten aus der Anlage sich rechnen lassen müssen. Dafür stehen wir mit unseren Namen — von der ersten Messung bis zur Kennzahl im laufenden Betrieb.</p>
+          </div>
+
+          <div class="sp4-shot">
+            <!-- TWO PASSES PER EDGE, which is the root's own construction and
+                 not a new one. .sp4-lit carries the family's ramp and fades
+                 once it has closed; .sp4-edge is the CF-Schwarz hairline and
+                 stays. It is exactly what .lp-flow__light and .lp-flow__seg do
+                 to every stroke of the tree: the light travels, the contour
+                 remains, and "the contour is the drawing" survives a frame
+                 that arrives in colour. --e is the edge's place in the order,
+                 so the frame closes the way a hand draws it. -->
+            <svg class="sp4-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <path class="sp4-lit sp4-x" style="--o:0 0;--e:0"       stroke="url(#sp4-ramp-e)" d="M0 0H100"/>
+              <path class="sp4-lit sp4-y" style="--o:0 0;--e:1"       stroke="url(#sp4-ramp-s)" d="M0 0V100"/>
+              <path class="sp4-lit sp4-x" style="--o:100% 100%;--e:2" stroke="url(#sp4-ramp-w)" d="M0 100H100"/>
+              <path class="sp4-lit sp4-y" style="--o:100% 100%;--e:3" stroke="url(#sp4-ramp-n)" d="M100 0V100"/>
+              <path class="sp4-edge sp4-x" style="--o:0 0;--e:0"       d="M0 0H100"/>
+              <path class="sp4-edge sp4-y" style="--o:0 0;--e:1"       d="M0 0V100"/>
+              <path class="sp4-edge sp4-x" style="--o:100% 100%;--e:2" d="M0 100H100"/>
+              <path class="sp4-edge sp4-y" style="--o:100% 100%;--e:3" d="M100 0V100"/>
+            </svg>
+            <span class="sp4-tick" aria-hidden="true"></span>
+
+            <div class="sp4-win">
+              <img class="sp4-photo" src="../assets/img/team/geschaeftsfuehrung.jpg"
+                   alt="Daniel Tremer und Simon Deussen, die Geschäftsführung von Control-F"
+                   width="2000" height="1600" loading="lazy" decoding="async">
+            </div>
+          </div>
+        </figure>
+
+        <figure class="sp4-plate" style="--p:1;--ar:2000 / 785" data-stream-stage>
+          <div class="sp4-say">
+            <p class="t-label sp4-mark">02 / Das Team</p>
+            <p class="sp4-say__lead" data-stream-line="0.40 0.24">Und die, die es bauen</p>
+            <p class="sp4-say__body" data-stream-line="0.52 0.40">Ingenieure, Entwickler, Datenleute — wir arbeiten dort, wo die Anlagen stehen, und bleiben, bis die Zahlen stimmen.</p>
+          </div>
+
+          <div class="sp4-shot">
+            <!-- TWO PASSES PER EDGE, which is the root's own construction and
+                 not a new one. .sp4-lit carries the family's ramp and fades
+                 once it has closed; .sp4-edge is the CF-Schwarz hairline and
+                 stays. It is exactly what .lp-flow__light and .lp-flow__seg do
+                 to every stroke of the tree: the light travels, the contour
+                 remains, and "the contour is the drawing" survives a frame
+                 that arrives in colour. --e is the edge's place in the order,
+                 so the frame closes the way a hand draws it. -->
+            <svg class="sp4-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <path class="sp4-lit sp4-x" style="--o:0 0;--e:0"       stroke="url(#sp4-ramp-e)" d="M0 0H100"/>
+              <path class="sp4-lit sp4-y" style="--o:0 0;--e:1"       stroke="url(#sp4-ramp-s)" d="M0 0V100"/>
+              <path class="sp4-lit sp4-x" style="--o:100% 100%;--e:2" stroke="url(#sp4-ramp-w)" d="M0 100H100"/>
+              <path class="sp4-lit sp4-y" style="--o:100% 100%;--e:3" stroke="url(#sp4-ramp-n)" d="M100 0V100"/>
+              <path class="sp4-edge sp4-x" style="--o:0 0;--e:0"       d="M0 0H100"/>
+              <path class="sp4-edge sp4-y" style="--o:0 0;--e:1"       d="M0 0V100"/>
+              <path class="sp4-edge sp4-x" style="--o:100% 100%;--e:2" d="M0 100H100"/>
+              <path class="sp4-edge sp4-y" style="--o:100% 100%;--e:3" d="M100 0V100"/>
+            </svg>
+            <span class="sp4-tick" aria-hidden="true"></span>
+
+            <div class="sp4-win">
+              <img class="sp4-photo" src="../assets/img/team/team.jpg"
+                   alt="Das Team von Control-F, sieben Personen nebeneinander"
+                   width="2000" height="785" loading="lazy" decoding="async">
+            </div>
+          </div>
+        </figure>
+      </div>
+    </div>
+  </section>
+
 </main>
 <script>
 /* THE AIM. The merge runs every glow to the trunk's head, and the trunk
