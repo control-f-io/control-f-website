@@ -72,6 +72,27 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 LANDING = ROOT / "design-system/prototypes/statement-to-process.html"
 
+# ---------------------------------------------------------------- the page CSS
+#
+# A PAGE RESOLVES ITS LINKED STYLESHEETS AND ITS OWN <style>, IN THAT ORDER, and
+# this check has to read what the page resolves rather than what it happens to
+# declare inline. The five acts lived in one prototype's <style> block until they
+# became assets/css/acts.css — two thousand lines cannot stay page-local once a
+# second page wants them — and every check that read only the <style> went blind
+# at that moment. Following the page's own <link> tags means the next stylesheet
+# needs no edit here at all.
+def page_stylesheets(path):
+    html = path.read_text(encoding="utf-8")
+    out = []
+    for m in re.finditer(r'<link[^>]+href="([^"]*assets/css/[^"]+\.css)"', html):
+        sheet = (path.parent / m.group(1)).resolve()
+        if sheet.exists():
+            out.append(sheet.read_text(encoding="utf-8"))
+    out += re.findall(r"<style[^>]*>(.*?)</style>", html, re.S)
+    return "\n".join(out)
+
+
+
 # THE TAILS ARE RECORDED, NOT NAILED, since the 2026-07-28 rebuild. The old
 # truth: the contour had to land at cover 66 because the frame's relay took
 # over there, and the light had to be out by 68 where the lime clearance was
@@ -224,7 +245,7 @@ def main():
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args()
 
-    text = LANDING.read_text(encoding="utf-8")
+    text = LANDING.read_text(encoding="utf-8") + page_stylesheets(LANDING)
     findings = []
 
     segs, err = read(text, "seg")

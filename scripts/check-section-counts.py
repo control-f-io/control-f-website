@@ -81,26 +81,55 @@ COUNT = re.compile(r"^(\d+)(?:\s+von\s+(\d+))?(?:\s+([^\d/]+))?$")
 # the marker is the item, the same shape the team strip's entry already had,
 # and it no longer rests on a tag that carries no class at all.
 REGISTER = {
-    # The landing page's steps lost cf-pin__step when the pinned chain moved
-    # to prototypes/statement-to-process.html (2026-07-28); the exact form
-    # with the closing quote is what keeps the lectern plate out of the count.
-    "prozess": ('<article class="cf-process">', "process step"),
+    # AND THEY GOT IT BACK. The steps lost cf-pin__step when the pinned chain
+    # moved to prototypes/statement-to-process.html (2026-07-28) and the exact
+    # form with the closing quote was what kept the lectern plate out of the
+    # count. The chain came back with the five acts (2026-07-29), so the four
+    # cards are pinned steps again — and cf-pin__step is a better marker than
+    # the bare form was, because the plate has never carried it: it is
+    # `cf-process lp-proc-plate`, which is how it stays out of the count
+    # without anyone relying on a closing quote to do it.
+    "prozess": ('<article class="cf-process cf-pin__step"', "process step"),
     "partner": ('<li class="t-label">', "logo mark"),
     "faq": ('<details class="cf-accordion__item">', "question"),
-    "blog": ('<a class="cf-blog-card', "article card"),
-    "team": ('<li class="cf-team-strip__item">', "team member"),
+    # The blog strip and the team grid left the landing page when the five acts
+    # arrived (2026-07-29): act 4 IS the team, and the page the review asked for
+    # is hero, acts, partners, FAQ, footer. Both components still exist and are
+    # still published; they are simply not sections of this page any more.
 }
 
 HEADER = re.compile(
-    r'<h2 class="cf-section-header__label" id="(?P<id>[^"]+)">.*?'
+    # The class list, not the class. Act 3's header carries .sp-head__title
+    # alongside the label so the rule it lands on can draw with the act; an
+    # exact-match attribute selector stopped seeing it the moment it did.
+    r'<h2 class="cf-section-header__label[^"]*" id="(?P<id>[^"]+)">.*?'
     r'<span class="cf-section-header__count(?P<cls>[^"]*)"(?P<attrs>[^>]*)>'
     r"(?P<text>[^<]*)</span>",
     re.S,
 )
 
 
-def section_body(text, start):
-    """The section a header opens: from its heading to that section's close."""
+def section_body(text, start, hid=None):
+    """The section a header counts for: from its heading to that section's close,
+    or from the section that CLAIMS the heading by aria-labelledby.
+
+    A HEADER AND THE THINGS IT COUNTS CAN BE IN TWO SECTIONS. They were in one
+    for as long as a section opened with its own <h2>, and the five acts broke
+    that: "Was wir machen" is the rule act 2's root LANDS on, so it lives inside
+    that act's stage, while the four cards it counts are the section after it.
+    The heading is still the section's heading — the cards' <section> says so
+    with aria-labelledby — but reading forward from the <h2> stops at the act's
+    own </section> and counts nothing.
+
+    So a header that some section claims is counted in the claiming section, and
+    a header that opens its own is counted where it stands. Both are the same
+    question — how many of the thing is under this heading — asked of the markup
+    that actually answers it.
+    """
+    if hid:
+        m = re.search(r'<section\b[^>]*aria-labelledby\s*=\s*"%s"[^>]*>' % re.escape(hid), text)
+        if m and not (m.start() < start < text.find("</section>", m.end())):
+            start = m.end()
     end = text.find("</section>", start)
     return text[start:end if end != -1 else len(text)]
 
@@ -125,7 +154,7 @@ def audit(verbose):
             continue
 
         marker, noun = REGISTER[hid]
-        items = section_body(text, m.end()).count(marker)
+        items = section_body(text, m.end(), hid).count(marker)
 
         if "aria-hidden" in m.group("attrs"):
             findings.append(

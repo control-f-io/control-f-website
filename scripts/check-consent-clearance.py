@@ -412,6 +412,27 @@ else:
 # ---- 6 · the pinned stage reserves the layer over its foot ----------------
 # The pinned stage this section holds moved to the prototype on 2026-07-28.
 PAGE = ROOT / "design-system" / "prototypes" / "statement-to-process.html"
+
+# ---------------------------------------------------------------- the page CSS
+#
+# A PAGE RESOLVES ITS LINKED STYLESHEETS AND ITS OWN <style>, IN THAT ORDER, and
+# this check has to read what the page resolves rather than what it happens to
+# declare inline. The five acts lived in one prototype's <style> block until they
+# became assets/css/acts.css — two thousand lines cannot stay page-local once a
+# second page wants them — and every check that read only the <style> went blind
+# at that moment. Following the page's own <link> tags means the next stylesheet
+# needs no edit here at all.
+def page_stylesheets(path):
+    html = path.read_text(encoding="utf-8")
+    out = []
+    for m in re.finditer(r'<link[^>]+href="([^"]*assets/css/[^"]+\.css)"', html):
+        sheet = (path.parent / m.group(1)).resolve()
+        if sheet.exists():
+            out.append(sheet.read_text(encoding="utf-8"))
+    out += re.findall(r"<style[^>]*>(.*?)</style>", html, re.S)
+    return "\n".join(out)
+
+
 STAGE_SEL = ".lp-proc-stage"
 MEASURE = "--lp-measure"
 # The block axis, in both spellings — a stage shortened by either is shortened
@@ -421,7 +442,7 @@ BLOCK_SIZE = re.compile(r"(?<![-\w])(?:height|block-size)\s*:\s*([^;]+)", re.I)
 if not PAGE.exists():
     failures.append("missing %s" % PAGE.relative_to(ROOT))
 else:
-    page_css = "\n".join(STYLE_BLOCK.findall(PAGE.read_text(encoding="utf-8")))
+    page_css = page_stylesheets(PAGE)
     page_css = strip_comments(page_css)
 
     # The floor is the gate's own min-height, read rather than typed. The gate

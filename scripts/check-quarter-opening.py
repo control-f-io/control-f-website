@@ -144,8 +144,23 @@ def strip_comments(css):
     return re.sub(r"/\*.*?\*/", "", css, flags=re.S)
 
 
-def style_blocks(html):
-    return "\n".join(m.group(1) for m in re.finditer(r"<style[^>]*>(.*?)</style>", html, re.S))
+def style_blocks(html, path=None):
+    """Everything the page resolves: its linked stylesheets in link order, then
+    its own <style> blocks last.
+
+    IT USED TO BE THE <style> BLOCKS ALONE, and that stopped being the same
+    thing the moment the five acts left one prototype's <style> for
+    assets/css/acts.css — two thousand lines cannot stay page-local once a
+    second page wants them. Following the page's own <link> tags means the next
+    stylesheet needs no edit here."""
+    out = []
+    if path is not None:
+        for m in re.finditer(r'<link[^>]+href="([^"]*assets/css/[^"]+\.css)"', html):
+            sheet = (path.parent / m.group(1)).resolve()
+            if sheet.exists():
+                out.append(sheet.read_text(encoding="utf-8"))
+    out += [m.group(1) for m in re.finditer(r"<style[^>]*>(.*?)</style>", html, re.S)]
+    return "\n".join(out)
 
 
 def rule_body(css, selector):
@@ -420,7 +435,7 @@ def main():
     failures, lines, gaps = [], [], []
     for track in TRACKS:
         page = track["page"]
-        page_css = strip_comments(style_blocks(page.read_text(encoding="utf-8")))
+        page_css = strip_comments(style_blocks(page.read_text(encoding="utf-8"), page))
         parser = Steps()
         parser.feed(page.read_text(encoding="utf-8"))
         if not parser.steps:

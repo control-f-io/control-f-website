@@ -94,7 +94,10 @@ VECTOR = ("--sx", "--sy")
 # component's own page carried a stale --iso-travel for as long as the value
 # lived in one page's stylesheet, and that is the failure this list prevents.
 CARRIERS = [
-    DS / "patterns/landing-page.html",
+# THE STATEMENT FIGURE LEFT THE LANDING PAGE with the five acts (2026-07-29):
+# acts 1 and 2 draw the same argument as a scroll composition, so the static
+# band it replaced is gone from the page and lives on in the component that
+# publishes it. The drawing did not change; where it ships did.
     DS / "components/statement.html",
 ]
 
