@@ -74,7 +74,7 @@ THE RULE, in three parts, all of them the run from the void:
      .cf-iso, where the manual's sentence is about the thing it was written
      for. The flow is exempt by name and by reason, and the reason is (2).
 
-A node's --l is checked too: it is the level of the strokes LEAVING its
+A node's --l is checked too: it is the CLOSE of the strokes leaving its
 junction, which is what puts the dot's fade on the same front as the branches
 it feeds (check-flow-chain.py owns the front; this owns the number the node
 hands it). A dot lighting a beat off its own fork is the #191 failure in
@@ -124,6 +124,7 @@ CIRCLE_RE = re.compile(
     r'[^>]*\bcy="([^"]*)"[^>]*\br="([^"]*)"', re.S)
 CMD_RE = re.compile(r'([MLVH])\s*(-?[\d.]+)(?:[ ,]+(-?[\d.]+))?')
 L_RE = re.compile(r'--l:\s*(-?[\d.]+)')
+U_RE = re.compile(r'--u:\s*(-?[\d.]+)')
 
 
 def rational(text):
@@ -162,23 +163,29 @@ def check_drawing(name, cls, body, verbose):
 
     # ---- the graph: what leaves each point, and at what level ------------
     out_level = {}      # point -> the --l of the strokes leaving it
+    out_close = {}      # point -> where those strokes finish, --l + --u
     out_count = {}      # point -> how many strokes leave it
     seen_points = set()
     for classes, style, d in PATH_RE.findall(body):
         if seg_cls not in classes.split():
             continue
         m = L_RE.search(style)
+        mu = U_RE.search(style)
         level = rational(m.group(1)) if m else None
+        close = level + rational(mu.group(1)) if (level is not None and mu) else None
         for (a, b) in parse_path(d):
             seen_points.add(a)
             seen_points.add(b)
             out_count[a] = out_count.get(a, 0) + 1
             if level is not None:
-                # Every stroke leaving a point carries the same --l — that is
-                # check-flow-chain.py's rule, not this one's. Take the first.
+                # Every stroke leaving a point carries the same --l, and the
+                # same --l + --u with it — that is check-flow-chain.py's rule,
+                # not this one's. Take the first.
                 out_level.setdefault(a, level)
+            if close is not None:
+                out_close.setdefault(a, close)
 
-    junctions = {p: out_level.get(p) for p, n in out_count.items() if n >= 2}
+    junctions = {p: out_close.get(p) for p, n in out_count.items() if n >= 2}
 
     # ---- the nodes -------------------------------------------------------
     nodes = {}
@@ -218,14 +225,21 @@ def check_drawing(name, cls, body, verbose):
                 f"say so")
 
     # ---- 3. the node's --l is its junction's -----------------------------
+    #
+    # THE FRONT ARRIVES FROM BELOW THE JUNCTION NOW. The review of 2026-07-29
+    # turned the root into a confluence, so the strokes written as leaving a
+    # point are the ones that FEED it, and the moment the dot may light is the
+    # moment those strokes finish — their --l plus their --u, not their --l.
+    # Held against the open instead and every node on the drawing lights while
+    # the stroke that reaches it is still growing toward it.
     for p, (level, r) in sorted(nodes.items(), key=lambda kv: (kv[0][1], kv[0][0])):
-        want = out_level.get(p)
+        want = out_close.get(p)
         if want is None or level is None or level == want:
             continue
         findings.append(
             f"{name}: the node at {point(p)} carries --l {show(level)} and the "
-            f"strokes leaving it carry {show(want)} — the dot would light off the "
-            f"front that feeds it (check-flow-chain.py)")
+            f"the strokes feeding it close at {show(want)} — the dot would light off "
+            f"the front that feeds it (check-flow-chain.py)")
 
     # ---- 4. the ceiling, on objects only ---------------------------------
     # The flow is a GRAPH and the manual's sentence is about an isometric

@@ -541,8 +541,118 @@ def exact(v):
     return F(num(v)) == v
 
 
-def level(d):
-    return num(round(float(3 * d / MAXD), 2))
+# ------------------------------------------------------------- the depth ramp
+#
+# LEVEL USED TO BE DISTANCE FROM THE VOID and it is now the SAME FRONT RUN
+# BACKWARDS: how far the front has still to travel, counted from the deepest
+# tip. --l buys every window on the page — the stroke's draw, the light's pass,
+# the node's arrival, the numeral's fade — so while the source was the orb,
+# "how far from the void" was also "how late", and one number did both jobs.
+# Flipped, distance-from-the-void does neither: it would grow the trunk first
+# and the fringe last, which is a delta drawn backwards rather than a
+# confluence.
+#
+# THE LAW IS THE TIME-REVERSAL OF THE ONE IT REPLACES, and it has to be. The
+# drawing's whole motion claim is "one front travels the root at one speed and
+# the strokes are where it happens to be" (check-flow-chain.py). Reverse the
+# picture and the honest reverse of that sentence is one front travelling at
+# the same speed the other way — so a point that stood at run d from the source
+# is reached at SPAN - d, and nothing else about the ramp changes:
+#
+#     open  = level(SPAN - (d + step))      its far end, the fringe side
+#     close = level(SPAN - d)               its near end, the trunk side
+#
+# THE CHAIN STILL CLOSES EXACTLY, which is the test that picked the law. The
+# obvious alternative — "height above the deepest tip", so the whole fringe
+# opens together — is wrong for a reason worth writing down: at a junction
+# whose two branches are different lengths, the parent can only open when the
+# LONGER one has arrived, so the shorter one closes early and the identity
+# `child --l + child --u == parent --l` fails on it. Measured on this drawing:
+# M1140 140 closed at 0.38 where its parent opened at 0.51. Under the reversal
+# every junction closes on the point its parent opens on, exactly, in the two
+# decimal places that ship — because both are level(SPAN - d) for the same d.
+#
+# WHAT IT LOOKS LIKE: the deepest tips light first and the shallow ones later,
+# and every route arrives at the source together. That is the mirror in time of
+# the delta, where the source left first and the fringe finished staggered.
+SPAN = max(d + max(abs(x2 - x1), abs(y2 - y1)) for x1, y1, x2, y2, d in segments)
+
+
+def level(run):
+    """The front's position, 0-3, given how far it has already travelled."""
+    return num(round(float(3 * run / SPAN), 2))
+
+
+def reached(d):
+    """When the front reaches a point standing at run d from the source."""
+    return level(SPAN - d)
+
+
+def num(v):
+    v = float(v)
+    return str(int(v)) if v == int(v) else f"{v:g}"
+
+
+def exact(v):
+    """Does this coordinate survive the trip through num() unchanged?"""
+    return F(num(v)) == v
+
+
+# ------------------------------------------------------------- the depth ramp
+#
+# LEVEL USED TO BE DISTANCE FROM THE VOID and now it is HEIGHT ABOVE THE
+# DEEPEST TIP, which is the same change of mind as the mirror, said in the
+# motion lane instead of in the geometry. --l buys every window on the page:
+# the stroke's draw, the light's pass, the node's arrival, the numeral's fade.
+# While the source was the orb, "how far from the void" was also "how late",
+# and one number did both jobs. Flipped, it does neither correctly — it would
+# grow the trunk first and the fringe last, which is a delta drawn backwards
+# rather than a confluence.
+#
+# HEIGHT, NOT INVERTED DISTANCE. `MAXD - d` is the obvious reading and it is
+# wrong in a way worth writing down: the routes are not the same length (the
+# right taproot is 425 units of drop because 26.57 is the flattest angle the
+# system has), so inverting distance starts every branch at a different moment
+# and starts the SHORT ones late. What has to be true is causal — a stroke may
+# not be drawn before the strokes that feed it — and the quantity that says so
+# is the longest run from this stroke to a tip beneath it:
+#
+#     h(s) = 0 if s ends the route, else len(s) + max(h(child) for child)
+#
+# Every tip has h 0, so the whole fringe starts together; a parent's h exceeds
+# each child's by at least its own length, so a junction is never drawn before
+# everything that arrives at it; and the trunk's h is the longest route in the
+# drawing, so the source is the last thing to appear. Normalised by that same
+# maximum it lands on the 0-3 band radius() and the motion lane already read.
+_KIDS = {}
+for _s in segments:
+    _KIDS.setdefault((_s[0], _s[1]), []).append(_s)
+
+
+def _height(seg, memo={}):
+    key = seg[:4]
+    if key not in memo:
+        step = max(abs(seg[2] - seg[0]), abs(seg[3] - seg[1]))
+        kids = _KIDS.get((seg[2], seg[3]), [])
+        memo[key] = step + (max(_height(k) for k in kids) if kids else F(0))
+    return memo[key]
+
+
+HEIGHT = {s[:4]: _height(s) for s in segments}
+MAXH = max(HEIGHT.values())
+
+
+def height_at(px, py):
+    """The height above the deepest tip of the point (px, py) on its stroke."""
+    for s in segments:
+        if on_segment(px, py, s[:4]):
+            done = max(abs(px - s[0]), abs(py - s[1]))
+            return HEIGHT[s[:4]] - done
+    raise AssertionError(f"the point ({px}, {py}) rides no route")
+
+
+def level(h):
+    return num(round(float(3 * h / MAXH), 2))
 
 
 # HOW FAR THIS STROKE CARRIES THE FRONT, in the same currency as level(): the
@@ -558,11 +668,71 @@ def level(d):
 # hundredth at twenty of the forty-one junctions, which is a whole stroke's
 # stagger at the fringe. scripts/check-flow-chain.py holds it.
 def extent(d, x1, y1, x2, y2):
+    """How far this stroke carries the front, in level()'s own currency.
+
+    THE DIFFERENCE OF THE TWO ROUNDED LEVELS, still, and for the reason the
+    original note gave: what ships is two decimal places, so what has to hold
+    in two decimal places is `parent --l + parent --u == child --l`. Taking
+    both ends through the same reached() makes the identity exact in the
+    shipped numbers rather than nearly true in the geometry behind them.
+    """
     step = max(abs(x2 - x1), abs(y2 - y1))     # Chebyshev, as walk() accumulates
-    return num(round(float(level(d + step)) - float(level(d)), 2))
+    return num(round(float(reached(d)) - float(reached(d + step)), 2))
+
+
+# ---------------------------------------------------------------- the mirror
+#
+# THE DRAWING IS BUILT DOWNWARD AND SHIPPED UPSIDE DOWN, and that sentence is
+# the whole of this change. The review of 2026-07-29: "we have thousand
+# sensors, they merge at the startingpoint of the roots but actually it should
+# be the other way around". It was right, and it was right about the symbolism
+# rather than about the geometry. A single source dividing into nineteen ends
+# is a DELTA. What this page claims — thousands of sensors becoming one answer
+# — is a CONFLUENCE, and the two are the same picture held the other way up.
+#
+# SO NOTHING ABOUT THE CONSTRUCTION MOVES. Every rule below was written in the
+# growing-downward frame — the room test, the taproot pinning, thinning by
+# length, the label law, `downstream is simply larger y` — and every one of
+# them is still true in that frame. A vertical mirror is an isometry: it
+# preserves lengths, it preserves the five angles as a set (they are unsigned),
+# it maps a crossing to a crossing and a terminal to a terminal. There is
+# therefore no version of this that needs the growth rule re-derived, and a
+# version that re-derived it would be a second construction to keep equal to
+# the first. The mirror is applied ON THE WAY OUT, at print(), and the
+# generator's own asserts go on reading the frame they were written for.
+#
+# THE AXIS IS 670 AND NOT 620, and that is the one decision in it. Mirroring
+# about the rail alone would put the fringe on y 0 and leave the orb floating
+# at 536 with 84 units of nothing under it. 670 = RAIL + ORB_C - (-ORB_R)
+# read the short way: it sends the orb's centre to 586 and its lower rim to
+# exactly 620, so the source ARRIVES ON THE RULE the section hands over on
+# rather than hovering above it. The fringe lands on y 50, which is where the
+# orb's own crown used to be — the drawing occupies exactly the band it always
+# did, from the same top edge to the same bottom edge, with the ends swapped.
+MIRROR = RAIL + ORB_C - ORB_R      # 670
+
+
+def my(v):
+    """A y on the way out. Every printed ordinate goes through this."""
+    return MIRROR - v
+
+
+def origin(x1, x2):
+    """transform-origin for the scale-draw, as a corner of the fill-box.
+
+    THE FRONT ENTERS AT THE FRINGE, so a stroke has to grow from the end AWAY
+    from the trunk — (x2, y2) in the construction's own naming, which is the
+    end the mirror puts at the TOP of the box on the page. transform-origin's
+    second component is therefore always the box's top, and the only question
+    is which side x2 is on. It is the exact inverse of the rule this had while
+    the source was the orb, and it had to be: the origin anchors the end that
+    does not move, and the end that does not move is now the other one.
+    """
+    return "0 0" if x2 < x1 else "100% 0"
 
 
 def data(x1, y1, x2, y2):
+    y1, y2 = my(y1), my(y2)
     if x1 == x2:
         return f"M{num(x1)} {num(y1)}V{num(y2)}"
     if y1 == y2:
@@ -570,6 +740,23 @@ def data(x1, y1, x2, y2):
     return f"M{num(x1)} {num(y1)}L{num(x2)} {num(y2)}"
 
 
+# THE AXES, one per stroke, each written TRUNK END -> FRINGE END, which is the
+# reverse of the way they were written while the source was the orb, for the
+# reason given there held the other way up. The scale-draw carries the ramp
+# with it, so whatever colour sits at the path's FAR end from the origin sits
+# at the growing tip at every scale — and the origin moved to the fringe when
+# the drawing became a confluence. Lime therefore has to sit at the trunk end:
+# it is the front, and the front is travelling toward the source.
+#
+# THE LEAVES ARE THE ONE EXCEPTION and keep their ramp pointing the other way,
+# out past the fringe. A leaf is not carrying the front anywhere, it is the
+# place the data ENTERS — the tip a bead collapses into — and what it owes the
+# drawing is a light that stays on there after the front has gone by. That is
+# what the 3x stretch buys, and reversing it would have put the one permanent
+# lime in the drawing at the wrong end of the one stroke that needs it.
+#
+# The original note, on the mechanism, which has not changed:
+#
 # THE AXES, one per stroke, each written FAR END -> ORIGIN. The reason is on
 # the page: a userSpaceOnUse gradient is resolved in the element\'s own user
 # space, so the scale-draw that grows a stroke carries the ramp with it and
@@ -605,17 +792,29 @@ def data(x1, y1, x2, y2):
 # that fails the angle check for arithmetic reasons rather than geometric ones.
 LEAF_STRETCH = F(3)
 
+
+def trunk(i):
+    """.lp-flow__trunk, on segment 0 and nothing else.
+
+    The page has a rule that selects it and check-flow-chain.py asserts one
+    stroke carries it. It was a hand edit on the paste until the flip pasted
+    over it, which is exactly the drift "re-run it and the same lines come out"
+    is a claim against — so the generator emits it now. Segment 0 is the trunk
+    by construction: it is the first thing walk() lays down, out of the void.
+    """
+    return " lp-flow__trunk" if i == 0 else ""
+
 print()
 for i, (x1, y1, x2, y2, d) in enumerate(segments):
     print(f'<linearGradient id="lp-flow-ax-{i:02d}" href="#lp-flow-ramp" '
-          f'gradientUnits="userSpaceOnUse" x1="{num(x2)}" y1="{num(y2)}" '
-          f'x2="{num(x1)}" y2="{num(y1)}"/>')
+          f'gradientUnits="userSpaceOnUse" x1="{num(x1)}" y1="{num(my(y1))}" '
+          f'x2="{num(x2)}" y2="{num(my(y2))}"/>')
     if y2 == RAIL:
         ex = x2 + (x1 - x2) * LEAF_STRETCH
         ey = y2 + (y1 - y2) * LEAF_STRETCH
         print(f'<linearGradient id="lp-flow-lf-{i:02d}" href="#lp-flow-ramp" '
-              f'gradientUnits="userSpaceOnUse" x1="{num(x2)}" y1="{num(y2)}" '
-              f'x2="{num(ex)}" y2="{num(ey)}"/>')
+              f'gradientUnits="userSpaceOnUse" x1="{num(x2)}" y1="{num(my(y2))}" '
+              f'x2="{num(ex)}" y2="{num(my(ey))}"/>')
 
 # THE LEAVES ARE THE STROKES THAT LAND ON THE RAIL, and they are marked in the
 # markup rather than found in CSS because there is no selector for "ends at
@@ -625,18 +824,19 @@ for i, (x1, y1, x2, y2, d) in enumerate(segments):
 # so it is the one place a light that never quite goes out is saying something.
 print()
 for i, (x1, y1, x2, y2, d) in enumerate(segments):
-    o = "0 0" if x2 >= x1 else "100% 0"
+    o = origin(x1, x2)
     leaf = y2 == RAIL
-    print(f'<path class="lp-flow__light{" lp-flow__leaf" if leaf else ""}" '
-          f'style="--o:{o};--l:{level(d)};'
+    print(f'<path class="lp-flow__light{" lp-flow__leaf" if leaf else ""}{trunk(i)}" '
+          f'style="--o:{o};--l:{reached(d + max(abs(x2 - x1), abs(y2 - y1)))};'
           f'--u:{extent(d, x1, y1, x2, y2)}" '
           f'stroke="url(#lp-flow-{"lf" if leaf else "ax"}-{i:02d})" '
           f'd="{data(x1, y1, x2, y2)}"/>')
 
 print()
-for x1, y1, x2, y2, d in segments:
-    o = "0 0" if x2 >= x1 else "100% 0"
-    print(f'<path class="lp-flow__seg" style="--o:{o};--l:{level(d)};'
+for i, (x1, y1, x2, y2, d) in enumerate(segments):
+    o = origin(x1, x2)
+    print(f'<path class="lp-flow__seg{trunk(i)}" '
+          f'style="--o:{o};--l:{reached(d + max(abs(x2 - x1), abs(y2 - y1)))};'
           f'--u:{extent(d, x1, y1, x2, y2)}" d="{data(x1, y1, x2, y2)}"/>')
 
 # THE NODES. r steps down with distance from the subject, which the manual
@@ -737,9 +937,9 @@ def radius(l):
 print()
 for nx, ny in NODE_POINTS:
     assert outdeg[(nx, ny)] >= 2, f"node at ({nx}, {ny}) is not a junction"
-    l = level(DIST[(nx, ny)])
+    l = reached(DIST[(nx, ny)])
     print(f'<circle class="lp-flow__node" style="--l:{l}" '
-          f'cx="{num(nx)}" cy="{num(ny)}" r="{radius(float(l))}"/>')
+          f'cx="{num(nx)}" cy="{num(my(ny))}" r="{radius(float(l))}"/>')
 
 # ------------------------------------------------------------------ the values
 #
@@ -914,12 +1114,12 @@ def offsets(px, py, chars):
     floor, to the nearest stroke the value does NOT name.
     """
     x1, y1, x2, y2 = own_stroke(px, py)
-    dx, dy = float(x2 - x1), float(y2 - y1)
+    dx, dy = float(x2 - x1), -float(y2 - y1)    # the stroke as it ships
     length = math.hypot(dx, dy)
     left = (dy / length, -dx / length)          # the walker's left, (dy, -dx)
     gaps = {}
     for name, (sx, sy) in (("left", left), ("right", (-left[0], -left[1]))):
-        box = label_box(px, py, sx, sy, chars)
+        box = label_box(px, py, sx, -sy, chars)
         gaps[name] = min(box_gap(s[:4], box) for s in segments
                          if s[:4] != (x1, y1, x2, y2)) * FLOOR_SCALE
     side = "left" if gaps["left"] >= CLEARANCE else "right"
@@ -934,6 +1134,10 @@ def css_offset(v, axis):
     The anchor is not a taste either: the box has to grow away from the line,
     so a positive component anchors the near edge at 0 and a negative one at
     -100%. A zero component is the vertical's, and centres.
+
+    BOTH COMPONENTS ARRIVE IN PAGE SPACE. label_side_box names the side from
+    the stroke as it ships rather than as it is built — see the note there —
+    so nothing here has to know which way up the drawing went out.
     """
     if abs(v) < 1e-9:
         return "-50%"
@@ -1019,13 +1223,32 @@ def outgoing(px, py):
 
 
 def label_side_box(px, py, chars, side):
-    """The reading's box on one side of its own stroke, plus that side's offset."""
+    """The reading's box on one side of its own stroke, plus that side's offset.
+
+    A MIRROR SWAPS LEFT AND RIGHT, which is the one thing about this law the
+    flip could not leave alone. Every other rule in this file survived being
+    held upside down untouched, because a vertical mirror is an isometry and
+    preserves what those rules measure: lengths, angles, clearances, whether a
+    box hits a stroke. Handedness is the exception — it is the one quantity a
+    mirror REVERSES — so the walker's left in the construction is the walker's
+    right on the page, and a law whose first clause is "take the left unless it
+    costs you" was choosing the opposite side to the one it named.
+    check-flow-label-law.py recomputes the side from the SHIPPED stroke and
+    said so on three values.
+
+    So the side is named in the frame it ships in: dy is negated before the
+    perpendicular is taken, which makes (sx, sy) a page-space direction and
+    lets the two label prints emit oy as it comes. The clearance test still
+    runs in the construction frame, where the same direction is (sx, -sy) and
+    every distance is identical.
+    """
     x1, y1, x2, y2 = own_stroke(px, py)
-    dx, dy = float(x2 - x1), float(y2 - y1)
+    dx, dy = float(x2 - x1), -float(y2 - y1)         # the stroke as it ships
     length = math.hypot(dx, dy)
     left = (dy / length, -dx / length)
     sx, sy = left if side == "left" else (-left[0], -left[1])
-    return label_box(px, py, sx, sy, chars), (CLEARANCE * sx, CLEARANCE * sy), (x1, y1, x2, y2)
+    return (label_box(px, py, sx, -sy, chars),
+            (CLEARANCE * sx, CLEARANCE * sy), (x1, y1, x2, y2))
 
 
 def boxes_overlap(a, b, pad):
@@ -1359,9 +1582,9 @@ assert len(PLACED_READINGS) >= MIN_READINGS, (
 
 print()
 for (px, py, side, (ox, oy), gap), text in zip(PLACED_READINGS, READINGS):
-    print(f'<span class="t-label lp-flow__read" style="--x:{num(px)};--y:{num(py)};'
+    print(f'<span class="t-label lp-flow__read" style="--x:{num(px)};--y:{num(my(py))};'
           f'--tx:{css_offset(ox, "x")};--ty:{css_offset(oy, "y")};'
-          f'--l:{level(run_to(px, py))}">{text}</span>')
+          f'--l:{reached(run_to(px, py))}">{text}</span>')
     print(f'  <!-- {side:>5}: own stroke {CLEARANCE:.2f} px, nearest other '
           f'{gap:.2f} px at the gate floor, clear of every label already set -->')
 
@@ -1376,8 +1599,8 @@ print()
 # against cannot happen, and an insurance that no longer does any work is one
 # more thing for a hand edit to get wrong.
 for x, y, v, text, side, (ox, oy), gap in PLACED_VALUES:
-    print(f'<span class="t-label lp-flow__val" style="--x:{num(x)};--y:{num(y)};'
+    print(f'<span class="t-label lp-flow__val" style="--x:{num(x)};--y:{num(my(y))};'
           f'--tx:{css_offset(ox, "x")};--ty:{css_offset(oy, "y")};'
-          f'--l:{level(run_to(x, y))}">{text}</span>')
+          f'--l:{reached(run_to(x, y))}">{text}</span>')
     print(f'  <!-- {side:>5}: own stroke {CLEARANCE:.2f} px, nearest other '
           f'{gap:.2f} px at the gate floor, clear of every numeral already set -->')
