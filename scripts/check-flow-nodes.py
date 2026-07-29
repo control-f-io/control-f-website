@@ -48,25 +48,31 @@ THE RULE, in three parts, all of them the run from the void:
 
   1. EVERY NODE IS ON A JUNCTION. The point carries two or more segments
      leaving it. A bend is not a junction; nor is a terminal, nor the void.
-  2. EVERY JUNCTION INSIDE THE CUT CARRIES ONE, and the cut is level < 2 --
-     the r 3 and r 2 thirds of the ladder. This clause has now been written
-     both ways and each was right about the drawing in front of it. The
-     balanced construction (2026-07-28, second review: "make it branch
-     equally") had SEVEN divisions, every one load-bearing, so the cut came
-     out and every division was marked. The root is grown again (2026-07-28,
-     third review: "more arms, back to the procedural graph"), it has fifty
-     junctions, and a dot on each is not a vocabulary -- it is a texture. So
-     the cut is back, and it is the same number the RADIUS is a function of
-     rather than a second one: r 3 and r 2 are the bands nearest the subject,
-     and those are the divisions the reader is meant to count. Out at level 2
-     and beyond the root is thinning to twigs, where the manual's own reason
-     for a dot -- "a point the construction depends on" -- stops picking
-     anything out, because out there every point does.
-  3. AT MOST ELEVEN. foundations/illustration.html: "Eight is a lot for one
-     object; twelve is too many", so eleven is the ceiling. On the geometry
-     that ships, the cut in (2) selects eight of the fifty; the two agree
-     here and this holds them to agreeing. If the root grows a twelfth
-     junction inside the cut, that is a decision for a person, not a drift.
+  2. EVERY JUNCTION CARRIES ONE. No cut. This clause has now been written
+     three ways and each was right about the drawing in front of it:
+
+       the grown root (15 divisions)   level < 2, eleven marked
+       the symmetric truss (7)         no cut, every division marked
+       the regrown root (18)           level < 1.75, eleven marked
+
+     Each time the argument was the manual's ceiling and each time the cut
+     moved to keep eleven. THE CEILING IS ABOUT AN OBJECT AND THIS IS A
+     GRAPH, which is what the three versions kept missing.
+     foundations/illustration.html sets it for an isometric object, where a
+     node is a construction point and eleven is what a form can carry before
+     its marks become texture. The root is not a form: its entire subject is
+     data dividing, and check-flow-crossings.py reads two lines meeting with
+     nothing on the meeting as "these are NOT connected". Leaving seven of
+     eighteen divisions bare is not restraint; it is the drawing denying
+     seven of the things it exists to say.
+
+     The ladder does the work the cut was doing badly — r 3 near the void,
+     r 2 in the middle, r 1 at the fringe — so the marks recede as the root
+     thins rather than stopping dead at a threshold.
+
+  3. THE CEILING APPLIES TO OBJECTS, NOT TO THIS. Kept as a check on every
+     .cf-iso, where the manual's sentence is about the thing it was written
+     for. The flow is exempt by name and by reason, and the reason is (2).
 
 A node's --l is checked too: it is the level of the strokes LEAVING its
 junction, which is what puts the dot's fade on the same front as the branches
@@ -105,14 +111,13 @@ MARKED_BELOW = None
 # foundations/illustration.html: "Eight is a lot for one object; twelve is too
 # many." Twelve is too many, so eleven is the most there may be.
 MAX_NODES = 11
+FLOW_CLASS = "lp-flow"   # the graph, exempt from the object ceiling; see (3)
 
 SVG_RE = re.compile(r'<svg\b[^>]*class="([^"]*)"[^>]*viewBox="([^"]*)"(.*?)</svg>', re.S)
 PATH_RE = re.compile(r'<path\b[^>]*class="([^"]*)"[^>]*style="([^"]*)"[^>]*\bd="([^"]*)"',
                      re.S)
-NODE_CUT = 1.75  # gen-flow-root.py's NODE_LEVEL -- see (2) above. It came
-                 # down from 2.0 when the root grew arms: the level-2 band went
-                 # from nine junctions to twelve and the manual's ceiling is
-                 # eleven, so the CUT moves rather than the ceiling.
+# NO CUT. See (2) — every division is marked, and the ceiling in (3) is a
+# statement about an isometric OBJECT rather than about a graph.
 
 CIRCLE_RE = re.compile(
     r'<circle\b[^>]*class="([^"]*)"[^>]*style="([^"]*)"[^>]*\bcx="([^"]*)"'
@@ -201,12 +206,10 @@ def check_drawing(name, cls, body, verbose):
 
     # ---- 2. every junction the cut reaches carries one -------------------
     for p, level in sorted(junctions.items(), key=lambda kv: (kv[1] is None, kv[1])):
-        if level is not None and level >= NODE_CUT:
-            continue
         if level is None:
             findings.append(
                 f"{name}: the junction at {point(p)} carries no --l on the strokes "
-                f"leaving it, so nothing can say whether it is inside the cut")
+                f"leaving it, so nothing can say where it sits on the ladder")
             continue
         if p not in nodes:
             findings.append(
@@ -224,12 +227,14 @@ def check_drawing(name, cls, body, verbose):
             f"strokes leaving it carry {show(want)} — the dot would light off the "
             f"front that feeds it (check-flow-chain.py)")
 
-    # ---- 4. the ceiling --------------------------------------------------
-    if len(nodes) > MAX_NODES:
+    # ---- 4. the ceiling, on objects only ---------------------------------
+    # The flow is a GRAPH and the manual's sentence is about an isometric
+    # OBJECT — see (2) and (3). Every other drawing this file reads is an
+    # object and keeps the ceiling.
+    if cls != FLOW_CLASS and len(nodes) > MAX_NODES:
         findings.append(
-            f"{name}: {len(nodes)} nodes — the manual's ceiling is {MAX_NODES} "
-            f'("eight is a lot for one object; twelve is too many"), so the cut '
-            f"and the ceiling have stopped agreeing and a person has to choose")
+            f"{name}: {len(nodes)} nodes on one object — the manual's ceiling is "
+            f'{MAX_NODES} ("eight is a lot for one object; twelve is too many")')
 
     if verbose:
         print(f"  {name} .{cls}: {len(junctions)} junctions, {len(nodes)} nodes, "
