@@ -59,9 +59,16 @@ is one stroke at twice the weight and worse than the crossing it was reached
 for. scripts/check-flow-crossings.py asserts the result on the paste.
 """
 
+import argparse
 import math
+import re
+import sys
 from collections import Counter
 from fractions import Fraction as F
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent.parent
+PAGE = ROOT / "design-system" / "prototypes" / "statement-to-process.html"
 
 RAIL = F(620)          # the frame's top rail, in flow units
 LEFT, RIGHT = F(0), F(1200)
@@ -528,9 +535,6 @@ assert not crossings, "a root does not pass through itself"
 # the old bus already spanned, so the flow's timing envelope -- which the
 # motion lane measures and owns -- is the one that was there before.
 
-MAXD = max(d for *_, d in segments)
-
-
 def num(v):
     v = float(v)
     return str(int(v)) if v == int(v) else f"{v:g}"
@@ -586,73 +590,6 @@ def level(run):
 def reached(d):
     """When the front reaches a point standing at run d from the source."""
     return level(SPAN - d)
-
-
-def num(v):
-    v = float(v)
-    return str(int(v)) if v == int(v) else f"{v:g}"
-
-
-def exact(v):
-    """Does this coordinate survive the trip through num() unchanged?"""
-    return F(num(v)) == v
-
-
-# ------------------------------------------------------------- the depth ramp
-#
-# LEVEL USED TO BE DISTANCE FROM THE VOID and now it is HEIGHT ABOVE THE
-# DEEPEST TIP, which is the same change of mind as the mirror, said in the
-# motion lane instead of in the geometry. --l buys every window on the page:
-# the stroke's draw, the light's pass, the node's arrival, the numeral's fade.
-# While the source was the orb, "how far from the void" was also "how late",
-# and one number did both jobs. Flipped, it does neither correctly — it would
-# grow the trunk first and the fringe last, which is a delta drawn backwards
-# rather than a confluence.
-#
-# HEIGHT, NOT INVERTED DISTANCE. `MAXD - d` is the obvious reading and it is
-# wrong in a way worth writing down: the routes are not the same length (the
-# right taproot is 425 units of drop because 26.57 is the flattest angle the
-# system has), so inverting distance starts every branch at a different moment
-# and starts the SHORT ones late. What has to be true is causal — a stroke may
-# not be drawn before the strokes that feed it — and the quantity that says so
-# is the longest run from this stroke to a tip beneath it:
-#
-#     h(s) = 0 if s ends the route, else len(s) + max(h(child) for child)
-#
-# Every tip has h 0, so the whole fringe starts together; a parent's h exceeds
-# each child's by at least its own length, so a junction is never drawn before
-# everything that arrives at it; and the trunk's h is the longest route in the
-# drawing, so the source is the last thing to appear. Normalised by that same
-# maximum it lands on the 0-3 band radius() and the motion lane already read.
-_KIDS = {}
-for _s in segments:
-    _KIDS.setdefault((_s[0], _s[1]), []).append(_s)
-
-
-def _height(seg, memo={}):
-    key = seg[:4]
-    if key not in memo:
-        step = max(abs(seg[2] - seg[0]), abs(seg[3] - seg[1]))
-        kids = _KIDS.get((seg[2], seg[3]), [])
-        memo[key] = step + (max(_height(k) for k in kids) if kids else F(0))
-    return memo[key]
-
-
-HEIGHT = {s[:4]: _height(s) for s in segments}
-MAXH = max(HEIGHT.values())
-
-
-def height_at(px, py):
-    """The height above the deepest tip of the point (px, py) on its stroke."""
-    for s in segments:
-        if on_segment(px, py, s[:4]):
-            done = max(abs(px - s[0]), abs(py - s[1]))
-            return HEIGHT[s[:4]] - done
-    raise AssertionError(f"the point ({px}, {py}) rides no route")
-
-
-def level(h):
-    return num(round(float(3 * h / MAXH), 2))
 
 
 # HOW FAR THIS STROKE CARRIES THE FRONT, in the same currency as level(): the
@@ -793,6 +730,70 @@ def data(x1, y1, x2, y2):
 LEAF_STRETCH = F(3)
 
 
+# ------------------------------------------------------------- the five blocks
+#
+# THE PASTE IS THE SCRIPT'S JOB NOW, and it took three rounds of doing it by
+# hand to make the case. This generator printed its markup to stdout and a
+# person moved it into the page, which is the one step in "re-run it and the
+# same lines come out" that nothing was checking — and the flip broke it twice
+# in ways that shipped: a throwaway paste matched the RAMP's opening tag as if
+# it were an axis and overwrote the four stops every gradient in the drawing
+# href's, and a second one dropped .lp-flow__trunk because the generator did
+# not emit the class the page selects on. Both were invisible in the diff and
+# both were found by rendering.
+#
+# So the markup is collected into five named blocks, the page carries a marker
+# pair per block, and --check re-derives the whole drawing and compares. The
+# blocks are the five runs of generated lines the page holds: the gradient
+# defs, the light pass, the contour pass, the nodes, and the data layer's
+# numerals. Nothing between a pair is hand-written, and everything outside one
+# is — which is a line a reader can see rather than infer.
+BLOCKS = {}
+_open = None
+
+
+def block(name):
+    """Open a named block. Everything emitted after this belongs to it."""
+    global _open
+    _open = name
+    BLOCKS.setdefault(name, [])
+
+
+def emit(line):
+    BLOCKS[_open].append(line)
+
+
+MARK = "gen-flow-root"
+
+
+def splice(text):
+    """Replace every marked block with what this run generated.
+
+    THE CLOSING MARKER IS MATCHED AT THE OPENING MARKER'S OWN INDENT, for the
+    reason gen-proto-field.py gives at its own splice: a lazy body would stop
+    at the first comment that looks like a terminator, and the data layer's
+    numerals each carry a trailing comment of their own. Backreferencing the
+    indent means the match can only end on the marker that closes the block.
+
+    EACH BODY IS ANY RUN OF WHOLE LINES INCLUDING NONE, so a block survives
+    being emptied — which is exactly the state a person leaves behind when they
+    delete generated output to see what is theirs.
+    """
+    total = 0
+    for name, lines in BLOCKS.items():
+        pat = re.compile(
+            r"([ \t]*)(<!-- " + MARK + ": " + name + r" -->\n)"
+            r"((?:.*\n)*?)(\1<!-- " + MARK + ": end " + name + r" -->)")
+
+        def one(m, lines=lines):
+            body = "".join(m.group(1) + l + "\n" for l in lines)
+            return m.group(1) + m.group(2) + body + m.group(4)
+
+        text, n = pat.subn(one, text, count=1)
+        total += n
+    return text, total
+
+
 def trunk(i):
     """.lp-flow__trunk, on segment 0 and nothing else.
 
@@ -804,15 +805,15 @@ def trunk(i):
     """
     return " lp-flow__trunk" if i == 0 else ""
 
-print()
+block("axes")
 for i, (x1, y1, x2, y2, d) in enumerate(segments):
-    print(f'<linearGradient id="lp-flow-ax-{i:02d}" href="#lp-flow-ramp" '
+    emit(f'<linearGradient id="lp-flow-ax-{i:02d}" href="#lp-flow-ramp" '
           f'gradientUnits="userSpaceOnUse" x1="{num(x1)}" y1="{num(my(y1))}" '
           f'x2="{num(x2)}" y2="{num(my(y2))}"/>')
     if y2 == RAIL:
         ex = x2 + (x1 - x2) * LEAF_STRETCH
         ey = y2 + (y1 - y2) * LEAF_STRETCH
-        print(f'<linearGradient id="lp-flow-lf-{i:02d}" href="#lp-flow-ramp" '
+        emit(f'<linearGradient id="lp-flow-lf-{i:02d}" href="#lp-flow-ramp" '
               f'gradientUnits="userSpaceOnUse" x1="{num(x2)}" y1="{num(my(y2))}" '
               f'x2="{num(ex)}" y2="{num(my(ey))}"/>')
 
@@ -822,20 +823,20 @@ for i, (x1, y1, x2, y2, d) in enumerate(segments):
 # of the root fades to contour behind the front, and the feet go on glimmering
 # — see .lp-flow__leaf on the page. A leaf is where the data actually enters,
 # so it is the one place a light that never quite goes out is saying something.
-print()
+block("light")
 for i, (x1, y1, x2, y2, d) in enumerate(segments):
     o = origin(x1, x2)
     leaf = y2 == RAIL
-    print(f'<path class="lp-flow__light{" lp-flow__leaf" if leaf else ""}{trunk(i)}" '
+    emit(f'<path class="lp-flow__light{" lp-flow__leaf" if leaf else ""}{trunk(i)}" '
           f'style="--o:{o};--l:{reached(d + max(abs(x2 - x1), abs(y2 - y1)))};'
           f'--u:{extent(d, x1, y1, x2, y2)}" '
           f'stroke="url(#lp-flow-{"lf" if leaf else "ax"}-{i:02d})" '
           f'd="{data(x1, y1, x2, y2)}"/>')
 
-print()
+block("contour")
 for i, (x1, y1, x2, y2, d) in enumerate(segments):
     o = origin(x1, x2)
-    print(f'<path class="lp-flow__seg{trunk(i)}" '
+    emit(f'<path class="lp-flow__seg{trunk(i)}" '
           f'style="--o:{o};--l:{reached(d + max(abs(x2 - x1), abs(y2 - y1)))};'
           f'--u:{extent(d, x1, y1, x2, y2)}" d="{data(x1, y1, x2, y2)}"/>')
 
@@ -934,11 +935,11 @@ def radius(l):
     return max(1, 3 - int(l))
 
 
-print()
+block("nodes")
 for nx, ny in NODE_POINTS:
     assert outdeg[(nx, ny)] >= 2, f"node at ({nx}, {ny}) is not a junction"
     l = reached(DIST[(nx, ny)])
-    print(f'<circle class="lp-flow__node" style="--l:{l}" '
+    emit(f'<circle class="lp-flow__node" style="--l:{l}" '
           f'cx="{num(nx)}" cy="{num(my(ny))}" r="{radius(float(l))}"/>')
 
 # ------------------------------------------------------------------ the values
@@ -1580,16 +1581,15 @@ assert len(PLACED_READINGS) >= MIN_READINGS, (
     f"be placed clear of the strokes, the other numerals and the frame, and the "
     f"floor is {MIN_READINGS} — the fringe has stopped being annotated")
 
-print()
+block("data")
 for (px, py, side, (ox, oy), gap), text in zip(PLACED_READINGS, READINGS):
-    print(f'<span class="t-label lp-flow__read" style="--x:{num(px)};--y:{num(my(py))};'
+    emit(f'<span class="t-label lp-flow__read" style="--x:{num(px)};--y:{num(my(py))};'
           f'--tx:{css_offset(ox, "x")};--ty:{css_offset(oy, "y")};'
           f'--l:{reached(run_to(px, py))}">{text}</span>')
-    print(f'  <!-- {side:>5}: own stroke {CLEARANCE:.2f} px, nearest other '
-          f'{gap:.2f} px at the gate floor, clear of every label already set -->')
+    emit(f'  <!-- {side:>5}: own stroke {CLEARANCE:.2f} px, nearest other '
+         f'{gap:.2f} px at the gate floor, clear of every label already set -->')
 
 
-print()
 # A PLAIN SPACE, AND THE THOUSANDS SEPARATOR IS STILL UNBREAKABLE. This emitted
 # U+00A0 and the shipped paste carried U+0020, so six of the generator's 125
 # lines did not match the markup it is the source of truth for -- invisible on
@@ -1599,8 +1599,51 @@ print()
 # against cannot happen, and an insurance that no longer does any work is one
 # more thing for a hand edit to get wrong.
 for x, y, v, text, side, (ox, oy), gap in PLACED_VALUES:
-    print(f'<span class="t-label lp-flow__val" style="--x:{num(x)};--y:{num(my(y))};'
+    emit(f'<span class="t-label lp-flow__val" style="--x:{num(x)};--y:{num(my(y))};'
           f'--tx:{css_offset(ox, "x")};--ty:{css_offset(oy, "y")};'
           f'--l:{reached(run_to(x, y))}">{text}</span>')
-    print(f'  <!-- {side:>5}: own stroke {CLEARANCE:.2f} px, nearest other '
-          f'{gap:.2f} px at the gate floor, clear of every numeral already set -->')
+    emit(f'  <!-- {side:>5}: own stroke {CLEARANCE:.2f} px, nearest other '
+         f'{gap:.2f} px at the gate floor, clear of every numeral already set -->')
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--write", action="store_true",
+                    help="splice the five blocks into the prototype")
+    ap.add_argument("--check", action="store_true",
+                    help="fail unless the shipped markup is this run's output")
+    args = ap.parse_args()
+
+    if not (args.write or args.check):
+        for name, lines in BLOCKS.items():
+            print(f"\n<!-- {MARK}: {name} -->")
+            for l in lines:
+                print(l)
+            print(f"<!-- {MARK}: end {name} -->")
+        return 0
+
+    text = PAGE.read_text(encoding="utf-8")
+    new, n = splice(text)
+    if n != len(BLOCKS):
+        print(f"gen-flow-root: found {n} of {len(BLOCKS)} blocks — the markers "
+              f"went stale")
+        return 1
+    if args.write:
+        if new != text:
+            PAGE.write_text(new, encoding="utf-8")
+            print(f"  wrote {PAGE.relative_to(ROOT)}")
+        else:
+            print(f"  {PAGE.relative_to(ROOT)} already current")
+    elif new != text:
+        print("gen-flow-root: the prototype's root is not what this script "
+              "generates — re-run with --write")
+        return 1
+    if args.check:
+        print(f"gen-flow-root: the root is the generator's output "
+              f"({sum(len(v) for v in BLOCKS.values())} lines in "
+              f"{len(BLOCKS)} blocks)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
