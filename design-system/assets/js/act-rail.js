@@ -41,6 +41,16 @@
    aria-current="true" moves with the scroll, on the link the reader is still
    standing on.
 
+   AND IT NO LONGER TOUCHES THE TAB ORDER. It used to set `hidden` alongside the
+   class, so that a rail off screen was also out of the sequence. The intent was
+   right and the effect was that the rail could not be reached by keyboard at
+   all, forwards or backwards: `hidden` is only ever off while the reader is
+   inside the acts, and by then Tab has already passed the rail's own place in
+   the document — the measurements are over .act-rail.is-live in acts.css. So
+   this file writes one thing for the state, `is-live`, and the stylesheet hides
+   the rail by paint and lifts it on :focus-within. A rail nobody can see still
+   catches nothing; a rail somebody Tabs to shows itself.
+
    Optional. A page without .act-rail loads this and does nothing. */
 (function () {
   'use strict';
@@ -101,9 +111,6 @@
     if (on !== live) {
       live = on;
       rail.classList.toggle('is-live', on);
-      /* Out of the tab order when it is not on screen — a rail the reader
-         cannot see is not a rail they should be able to Tab into. */
-      rail.hidden = !on;
     }
     if (!on) return;
 
