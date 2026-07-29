@@ -75,7 +75,12 @@ ROOT = Path(__file__).resolve().parent.parent
 PAGE = ROOT / "design-system" / "prototypes" / "statement-to-process.html"
 
 WIDTH = Fraction(1200)      # the shared basis; the mirror is x -> WIDTH - x
-RAIL = Fraction(620)
+# THE FEET STAND ON THE TOP OF THE DRAWING NOW. The review of 2026-07-29 turned
+# the root over — nineteen ends merging into one source instead of one source
+# dividing into nineteen ends — so the line the feet arrive on moved from the
+# bottom of the flow box to the top of the geometry. It is read off the strokes
+# rather than named as a constant, which is the more honest of the two anyway:
+# the fringe is a fact about the root and 620 was a fact about the frame.
 PINNED = (Fraction(0), Fraction(600), Fraction(1200))   # identity 3
 MIN_FEET = 16              # identity 2: a grown root fills its rail
 MIN_GAPS = 4               # identity 2: distinct gaps between feet
@@ -151,11 +156,12 @@ def main():
             f"replaced the mirror, not a weaker version of it")
 
     # ---- 2. the feet are unevenly spaced, and never crowded --------------
-    feet = sorted({p[0] for s_ in segs for p in s_ if p[1] == RAIL})
+    fringe = min(p[1] for s_ in segs for p in s_)
+    feet = sorted({p[0] for s_ in segs for p in s_ if p[1] == fringe})
     gaps = [feet[i + 1] - feet[i] for i in range(len(feet) - 1)]
     if len(feet) < MIN_FEET:
         findings.append(
-            f"the rail carries {len(feet)} arrivals — a grown root lands at least "
+            f"the fringe carries {len(feet)} arrivals — a grown root lands at least "
             f"{MIN_FEET}, and below that the drawing is a bus again")
     tight = [(feet[i], feet[i + 1]) for i, g in enumerate(gaps) if g < CLEAR]
     if tight:
@@ -173,7 +179,7 @@ def main():
     missing = [x for x in PINNED if x not in feet]
     if missing:
         findings.append(
-            f"the rail is missing the pinned arrival(s) at x {', '.join(show(x) for x in missing)} "
+            f"the fringe is missing the pinned arrival(s) at x {', '.join(show(x) for x in missing)} "
             f"— the lectern's verticals stand up out of those three "
             f"(check-flow-handover.py)")
 
@@ -186,12 +192,17 @@ def main():
             f"({[(show(x), show(y)) for x, y in stars]}) — three is the ceiling; "
             f"four roots leaving one point is a star and stops reading as a "
             f"division")
-    forks = sorted((p for p, n in out_count.items() if n == 3), key=lambda p: p[1])
+    # SORTED BY DEPTH, WHICH IS NOW LARGEST y FIRST. The crown is the division
+    # nearest the source, and the source moved to the bottom of the drawing.
+    forks = sorted((p for p, n in out_count.items() if n == 3), key=lambda p: -p[1])
     # THE CROWN IS WHERE THE TRUNK ENDS, and that is the only thing that picks
     # it out. "It takes one stroke and sheds three" does not: every three-way
     # division mid-limb has a continuation arriving at it and looks identical.
-    # The trunk is the one stroke with nothing above it — it leaves the void —
-    # so the crown is its far end, and the drawing has exactly one.
+    # The trunk is still the one stroke nothing arrives at: the mirror moved
+    # both its ends but not the direction the markup is written in, so a child
+    # still starts where its parent ended and the trunk still starts at the
+    # source. What changed is where that is — the bottom of the box, not the
+    # top — and this test never named a coordinate, so it did not notice.
     starts = {s_[0] for s_ in segs}
     ends = {s_[1] for s_ in segs}
     trunks = [s_ for s_ in segs if s_[0] not in ends]
@@ -199,7 +210,7 @@ def main():
     if len(trunks) != 1:
         findings.append(
             f"{len(trunks)} stroke(s) leave a point nothing arrives at — a root "
-            f"has one trunk, out of the void")
+            f"has one trunk, into the source")
     else:
         crown = trunks[0][1]
         crowns = [crown]
@@ -210,13 +221,13 @@ def main():
                 f"three: the two reaches and the centre taproot")
         elif forks and forks[0] != crown:
             findings.append(
-                f"the shallowest three-way division is at ({show(forks[0][0])}, "
+                f"the division nearest the source is at ({show(forks[0][0])}, "
                 f"{show(forks[0][1])}) and the trunk ends at ({show(crown[0])}, "
                 f"{show(crown[1])}) — the crown is where the trunk ends and it "
                 f"is the first division the reader meets")
 
     if args.verbose:
-        print(f"  {len(segs)} strokes, {len(feet)} feet on the rail")
+        print(f"  {len(segs)} strokes, {len(feet)} feet on the fringe at y {fringe}")
         print(f"  feet: {', '.join(show(f) for f in feet)}")
         if len(crowns) == 1:
             print(f"  crown at ({show(crowns[0][0])}, {show(crowns[0][1])}): "

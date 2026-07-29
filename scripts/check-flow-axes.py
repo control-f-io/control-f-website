@@ -59,13 +59,29 @@ WHAT IS HELD, and each is a way this can rot:
      the angle check below reads both, because a stretched axis on the wrong
      angle is exactly as wrong as a short one.
 
-  2. THE AXIS IS ITS STROKE'S LINE, FAR END BACK TO ORIGIN. Exactly: the def's
-     (x1, y1) is the path's second point and its (x2, y2) is the path's first.
-     The direction is not decoration — a userSpaceOnUse gradient resolves in the
-     element's own user space, so the scale-draw carries the ramp with it and
-     whatever colour sits at the path's far end sits at the growing tip at every
-     scale. Reverse one axis and that stroke grows grey-tipped into lime, alone
-     among forty-one.
+  2. THE AXIS IS ITS STROKE'S LINE, AND IT RUNS THE WAY THE FRONT DOES.
+     Exactly: the def's (x1, y1) is the path's FIRST point and its (x2, y2) the
+     second. The direction is not decoration — a userSpaceOnUse gradient
+     resolves in the element's own user space, so the scale-draw carries the
+     ramp with it and whatever colour sits at the end AWAY from the
+     transform-origin sits at the growing tip at every scale. Reverse one axis
+     and that stroke grows grey-tipped into lime, alone among sixty-five.
+
+     THIS TEST USED TO SAY FAR END BACK TO ORIGIN and it was the same sentence.
+     While the drawing was a delta the strokes grew out of the source, the
+     transform-origin was the path's first point, and the tip was therefore its
+     second — so the ramp had to be written second point first. The review of
+     2026-07-29 turned the root into a confluence: the strokes now grow from
+     the fringe inward, the origin moved to the path's second point, and the
+     tip is its first. One sentence, held the other way up, and the axes come
+     out reversed. It is the same claim about the same mechanism.
+
+     THE LEAVES ARE STILL WRITTEN THE OTHER WAY, out past the fringe, and that
+     is not an inconsistency either. A leaf is not carrying the front anywhere
+     — it is the place the data ENTERS, the tip a sensor collapses into — and
+     what it owes the drawing is a light that stays lit there after the front
+     has gone by. Its ramp is anchored at the entry and stretched away from it,
+     which is what buys that.
 
   3. THEREFORE EVERY AXIS IS ON A BRAND ANGLE, recomputed from the def's own
      four numbers rather than inferred from (2), because that is the sentence
@@ -225,7 +241,7 @@ def check(path, verbose):
         if gid not in axes:
             findings.append(f"{name}: a stroke references #{gid}, which is not defined")
 
-    # ---- 2. the axis is its stroke's line, far end back to origin ---------
+    # ---- 2. the axis is its stroke's line, running with the front --------
     for gid, d in lights:
         if gid not in axes:
             continue
@@ -240,17 +256,17 @@ def check(path, verbose):
                     px2 + (px1 - px2) * LEAF_STRETCH,
                     py2 + (py1 - py2) * LEAF_STRETCH)
         else:
-            want = (px2, py2, px1, py1)
+            want = (px1, py1, px2, py2)
         if axes[gid] != want:
             ax1, ay1, ax2, ay2 = axes[gid]
-            reversed_ = axes[gid] == (px1, py1, px2, py2)
-            why = ("it runs origin -> far end, so this stroke alone grows "
+            reversed_ = axes[gid] == (px2, py2, px1, py1)
+            why = ("it runs against the front, so this stroke alone grows "
                    "grey-tipped into lime" if reversed_ else
                    "it is not this stroke's line at all")
             findings.append(
                 f"{name}: axis #{gid} is ({ax1}, {ay1}) -> ({ax2}, {ay2}) but its "
-                f"stroke is ({px1}, {py1}) -> ({px2}, {py2}); the axis must be the "
-                f"stroke far end back to origin"
+                f"stroke is ({px1}, {py1}) -> ({px2}, {py2}); the axis must run "
+                f"the way the front does, origin last"
                 f"{' x %s' % LEAF_STRETCH if gid.startswith('lp-flow-lf-') else ''}"
                 f" — {why}")
 

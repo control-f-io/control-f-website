@@ -2,7 +2,7 @@
 """Where one drawing ends, the next one starts — and that is a junction.
 
 check-flow-terminals.py holds the root to "no free ends" INSIDE its own box:
-every segment of .lp-flow arrives on the rail, at the void, or on another
+every segment of .lp-flow arrives on the fringe, at the source, or on another
 segment, in the drawing's own 1200 x 620 units. It cannot see the one join that
 is not inside any box — the seam where the flow hands the reader over to the
 lectern. The flow's sixteen terminals stop at the bottom of ITS viewBox; the
@@ -209,33 +209,67 @@ def check_page(page, verbose):
                 f"through — a frame with a free corner is a root with a free end."
             )
 
-    # 2. EVERY DROP LANDS ON THE RAIL, mapped onto the frame's basis.
-    drops = sorted({s[1][0] for s in flow if s[1][1] == rail_y}
-                   | {s[0][0] for s in flow if s[0][1] == rail_y})
-    if not drops:
-        findings.append(f"{page.name}: no flow terminal reaches y {show(rail_y)} at all")
+    # 2. THE SOURCE LANDS ON THE RAIL, mapped onto the frame's basis.
+    #
+    # THIS USED TO BE NINETEEN ARRIVALS AND IT IS NOW ONE. The review of
+    # 2026-07-29 turned the root into a confluence — "the spheres should
+    # collapse into the several endpoints ... and the tree should grow from
+    # top to bottom" — so the fringe moved to the top of the flow box and the
+    # single trunk resolves onto the bottom. What crosses the seam into the
+    # lectern is therefore one thing, the source, and the test is that it
+    # crosses at the right x rather than that nineteen of them do.
+    #
+    # THE ORB IS THE TERMINAL NOW, so it is what gets measured: its centre for
+    # the x, its lower rim for the y. A stroke end cannot stand in for it —
+    # the trunk stops at the orb's TOP rim, 68 units short of the foot, and
+    # the 34 units of light between them are the part of the drawing that
+    # actually touches the rule.
+    orb = re.search(r'<circle\b[^>]*class="[^"]*lp-flow__orb[^"]*"[^>]*'
+                    r'cx="(-?[\d.]+)"\s*cy="(-?[\d.]+)"\s*r="(-?[\d.]+)"', text)
     landed = []
-    for x in drops:
-        fx = x * basis
+    if not orb:
+        findings.append(
+            f"{page.name}: no .lp-flow__orb — the source is what lands on the "
+            f"rail now, and nothing else in the flow reaches y {show(rail_y)}")
+    else:
+        ox, oy, orr = (Fraction(orb.group(i)) for i in (1, 2, 3))
+        if oy + orr != rail_y:
+            findings.append(
+                f"{page.name}: the source's lower rim is at flow y "
+                f"{show(oy + orr)} and the flow's foot is {show(rail_y)} — the "
+                f"drawing either stops above the rule or hangs through it")
+        fx = ox * basis
         landed.append(fx)
         if not (frame_left <= fx <= frame_right):
             findings.append(
-                f"{page.name}: a drop lands at flow x {show(x)}, which is frame x "
-                f"{show(fx)} — outside the top rail's span "
-                f"{show(frame_left)}..{show(frame_right)}. It falls past the lectern."
-            )
+                f"{page.name}: the source stands at flow x {show(ox)}, which is "
+                f"frame x {show(fx)} — outside the top rail's span "
+                f"{show(frame_left)}..{show(frame_right)}. It falls past the lectern.")
 
-    # 3. EVERY VERTICAL CONTINUES A DROP.
+    # 3. THE LECTERN'S INNER VERTICAL CONTINUES IT.
+    #
+    # AND ONLY THE INNER ONE, which is the other half of the same change. The
+    # three taproots used to arrive at flow x 0, 600 and 1200 and the frame's
+    # three verticals stood up out of them; flipped, those three arrivals are
+    # at the TOP of the drawing and the only thing at the bottom is the
+    # source. The outer two verticals are the lectern's own sides — the box
+    # has to have edges whether or not anything lands on them — so what is
+    # held here is the one vertical that is a CONTINUATION rather than an
+    # edge: the middle one, and it has to be fed.
     verticals = sorted({s[0][0] for s in frame
                         if s[0][0] == s[1][0] and min(s[0][1], s[1][1]) == frame_top})
-    for vx in verticals:
-        if vx not in landed:
+    inner = [vx for vx in verticals if frame_left < vx < frame_right]
+    if not inner:
+        findings.append(
+            f"{page.name}: the lectern has no vertical between its own sides — "
+            f"nothing in the frame continues the drawing")
+    for vx in inner:
+        if landed and vx not in landed:
             findings.append(
                 f"{page.name}: the lectern's vertical at frame x {show(vx)} grows down "
-                f"from a point no drop arrives at — the nearest is frame x "
+                f"from a point the source does not arrive at — it stands at frame x "
                 f"{show(min(landed, key=lambda f: abs(f - vx)))}. "
-                f"--a says each vertical continues the drop that lands on it."
-            )
+                f"--a says the inner vertical continues what lands on it.")
 
     if verbose:
         print(f"  {page.name}: flow {flow_vb[2]} units wide, lectern {frame_vb[2]} — "
@@ -272,7 +306,7 @@ def main():
             print(f"  {f}")
         return 1
     print(f"flow handover OK — {seams} seam(s): every lectern endpoint on the lectern, "
-          f"every drop inside the top rail's span, every vertical continuing a drop")
+          f"the source inside the top rail's span, and the inner vertical continuing it")
     return 0
 
 
