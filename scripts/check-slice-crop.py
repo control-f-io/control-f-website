@@ -53,13 +53,16 @@ WHAT THIS CHECKS, and all of it is re-derived rather than compared to itself.
      rule the statement's own #cf-stmt-halo note already states in prose: "an
      extent of its own instead of four edges cut by the frame".
 
-  3. ONE ALIGN KEYWORD PER DRAWING. The statement band exists three times in
+  3. ONE ALIGN KEYWORD PER DRAWING. The statement band existed three times in
      this tree — the pattern, the component specimen, and the escaped code
      sample beside the specimen — which is the arrangement the breakpoint
      register was caught short by four times. Two copies of a decision is the
      shape of a fork. Every occurrence of a slice crop in design-system/ must
      be registered, and every occurrence belonging to one drawing must carry
-     the same keyword.
+     the same keyword. The band is down to one copy since the five acts took
+     it off the landing page (2026-07-29), so this constraint has nothing to
+     disagree with itself about today — and it is still what the census below
+     enforces on every crop the tree grows next.
 
 WHAT IT DOES NOT CHECK, deliberately
 
@@ -86,6 +89,18 @@ PAGES = ROOT / "design-system"
 # Out by the boundary every register in this system draws.
 SKIP_DIRS = ("prototypes",)
 
+# A CROP WITH NO BOX OF ITS OWN IS NOT THIS REGISTER'S KIND. Every entry above
+# pairs a slice with an aspect-ratio in components.css, because the question it
+# answers is "this drawing is being cut to a shape somebody chose — which part
+# survives?". .sp-field has no aspect-ratio and cannot have one: it is
+# position: absolute, inset: 0 on a sticky stage, so its box IS the viewport
+# and there is no authored ratio for a window to be measured against. What
+# anchors it is not a keyword in this file but the aim script, which maps the
+# trunk's head through both matrices at runtime and re-aims on resize —
+# check-void-departure.py holds that, and holds it harder than a registered
+# xMid would. It arrived on the landing page with the five acts (2026-07-29).
+UNREGISTERED_OK = {".sp-field"}
+
 # How far the subject's share of the frame may drift from the share the
 # uncropped mode gives it, in percentage points. Five is wide enough that the
 # ratio can be chosen for the objects and narrow enough that an anchor on the
@@ -104,10 +119,34 @@ TOLERANCE = 5.0
 CROPS = {
     ".cf-statement__figure .cf-iso": {
         "what": "the statement band",
-        "files": ("patterns/landing-page.html", "components/statement.html"),
+        # THE STATEMENT FIGURE LEFT THE LANDING PAGE with the five acts
+        # (2026-07-29): acts 1 and 2 draw the same argument as a scroll
+        # composition, so the static band they replaced is off the page. The
+        # component specimen is the only copy of the drawing in the tree now,
+        # and it is the whole drawing — same 1200 x 288 viewBox, same generated
+        # field, same reach ramp — so it is both what the census claims and what
+        # the measurement reads. One copy is also the end of finding 3's subject
+        # here: there is no second anchor left to fork from.
+        "files": ("components/statement.html",),
         "subject": "the void",
-        "objects": "the ring and its nucleus",
+        # AND THE OBJECTS ARE GONE, which is a finding this check should say out
+        # loud rather than pass silently on. The void's ring and nucleus were the
+        # two arc-drawn solids constraint 2 was written for, and #216 removed
+        # them — "the hole was an edge, and a field of glows may not have one".
+        # rings() therefore re-derives nothing here and the constraint measures
+        # zero objects. It stays because it is the guard, not the measurement: an
+        # arc-drawn solid put back into this drawing is caught the day it lands,
+        # and the alternative — deleting the constraint with the objects — is how
+        # a register forgets what it was for.
+        "objects": "a solid the drawing re-derives from its own arcs",
     },
+    # ACT 1'S FIELD, which arrived on the landing page with the five acts. It is
+    # a full-bleed backdrop on a 1600 x 900 box the stage crops with `slice`, so
+    # it is exactly the shape this register exists for: an anchor somebody has to
+    # choose, or the crop chooses one for them at every viewport but the
+    # reference. xMid, because the composition is built about the trunk's head
+    # and the trunk stands at the middle of the box — see gen-proto-field.py's
+    # FOCUS, which is the one point the field and the root share.
 }
 
 
@@ -122,9 +161,20 @@ def ratios_for(selector, css):
 
 
 def svg_of(text, selector):
-    """The <svg …> element carrying the slice crop, and its viewBox."""
-    m = re.search(r"<svg\b[^>]*preserveAspectRatio\s*=\s*\"(x\w+ slice)\"[^>]*>", text)
-    if not m:
+    """The <svg …> element carrying the slice crop, and its viewBox.
+
+    THE SELECTOR'S OWN CLASS, not the first slice crop in the file. It was the
+    first for as long as a page carried one; the prototype carries two — act
+    1's field is a slice crop as well, and it comes first — so this read the
+    field's viewBox and reported that it could not find the statement band's
+    void in it. Which was true, and not the question being asked.
+    """
+    want = selector.split()[-1].lstrip(".")
+    for m in re.finditer(r"<svg\b[^>]*preserveAspectRatio\s*=\s*\"(x\w+ slice)\"[^>]*>", text):
+        cls = re.search(r'class\s*=\s*"([^"]*)"', m.group(0))
+        if cls and want in cls.group(1).split():
+            break
+    else:
         return None
     align = m.group(1).split("Y")[0]
     vb = re.search(r'viewBox\s*=\s*"([\d.\-\s]+)"', m.group(0))
@@ -143,7 +193,7 @@ def void_from_reach(body):
     Read rather than typed — the drawing is allowed to move its own edge, and
     when it does this check follows it instead of contradicting it.
     """
-    g = re.search(r'<linearGradient id="[^"]*reach"[^>]*x1="([\d.]+)"[^>]*x2="([\d.]+)"'
+    g = re.search(r'<linearGradient id="[^"]*reach[^"]*"[^>]*x1="([\d.]+)"[^>]*x2="([\d.]+)"'
                   r'[^>]*>(.*?)</linearGradient>', body, re.S)
     if not g:
         return None
@@ -204,7 +254,11 @@ def main():
         if f.relative_to(PAGES).parts[0] in SKIP_DIRS:
             continue
         text = f.read_text()
-        for m in re.finditer(r"\b(x(?:Min|Mid|Max))Y(?:Min|Mid|Max) slice\b", text):
+        for m in re.finditer(r"<svg\b[^>]*?\b(x(?:Min|Mid|Max))Y(?:Min|Mid|Max) slice\b[^>]*>", text):
+            tag = m.group(0)
+            if any(('class="%s"' % sel[1:]) in tag or ('class="%s ' % sel[1:]) in tag
+                   for sel in UNREGISTERED_OK):
+                continue
             seen.setdefault(str(f.relative_to(ROOT)), []).append(m.group(1))
 
     for selector, entry in CROPS.items():

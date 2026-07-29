@@ -94,7 +94,11 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-PAGE = ROOT / "design-system" / "patterns" / "landing-page.html"
+# THE STATEMENT FIGURE LEFT THE LANDING PAGE with the five acts (2026-07-29):
+# acts 1 and 2 draw the same argument as a scroll composition, so the static
+# band it replaced is gone from the page and lives on in the component that
+# publishes it. The drawing did not change; where it ships did.
+PAGE = ROOT / "design-system" / "components" / "statement.html"
 CSS = ROOT / "design-system" / "assets" / "css" / "components.css"
 
 SENSOR = "cf-stmt-sensor"

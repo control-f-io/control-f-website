@@ -73,6 +73,10 @@ SHEETS = [
     ROOT / "design-system/assets/css/tokens.css",
     ROOT / "design-system/assets/css/base.css",
     ROOT / "design-system/assets/css/components.css",
+    # The five acts, which left one prototype's <style> block when a second
+    # page wanted them. It is a shipping stylesheet like the three above and
+    # loads after them, so it sits last in the cascade this list resolves.
+    ROOT / "design-system/assets/css/acts.css",
 ]
 
 PROP = "transform-origin"

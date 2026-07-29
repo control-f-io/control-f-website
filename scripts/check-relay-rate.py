@@ -84,6 +84,27 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PAGE = ROOT / "design-system/prototypes/statement-to-process.html"
 
+# ---------------------------------------------------------------- the page CSS
+#
+# A PAGE RESOLVES ITS LINKED STYLESHEETS AND ITS OWN <style>, IN THAT ORDER, and
+# this check has to read what the page resolves rather than what it happens to
+# declare inline. The five acts lived in one prototype's <style> block until they
+# became assets/css/acts.css — two thousand lines cannot stay page-local once a
+# second page wants them — and every check that read only the <style> went blind
+# at that moment. Following the page's own <link> tags means the next stylesheet
+# needs no edit here at all.
+def page_stylesheets(path):
+    html = path.read_text(encoding="utf-8")
+    out = []
+    for m in re.finditer(r'<link[^>]+href="([^"]*assets/css/[^"]+\.css)"', html):
+        sheet = (path.parent / m.group(1)).resolve()
+        if sheet.exists():
+            out.append(sheet.read_text(encoding="utf-8"))
+    out += re.findall(r"<style[^>]*>(.*?)</style>", html, re.S)
+    return "\n".join(out)
+
+
+
 LINE_CLASS = "lp-frame__line"
 RULE_SELECTOR = ".lp-frame__line"
 RATE_PROP = "--relay-rate"
@@ -99,7 +120,7 @@ TOL = 1e-6
 
 def read(path):
     try:
-        return path.read_text(encoding="utf-8")
+        return path.read_text(encoding="utf-8") + page_stylesheets(path)
     except OSError as exc:
         sys.exit(f"check-relay-rate: cannot read {path}: {exc}")
 

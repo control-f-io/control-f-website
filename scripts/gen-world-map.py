@@ -55,6 +55,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "scripts" / "data" / "world-110m.json"
 PAGE = ROOT / "design-system" / "prototypes" / "statement-to-process.html"
+# THE CAMERA'S THREE FRAMINGS ARE CSS, AND THE CSS MOVED. Six of the seven
+# blocks are markup and live in the page; the shots block is three custom
+# properties and went with the acts when they left the prototype's <style> for
+# a stylesheet of their own. One generator, two targets, and the block itself
+# says which one it belongs to.
+ACTS = ROOT / "design-system" / "assets" / "css" / "acts.css"
 MARK = "gen-world-map"
 
 W = 1000.0                    # the Mercator square's width, in map units
@@ -248,9 +254,11 @@ for name, (k, tx, ty) in SHOTS:
 CSS_BLOCKS = {"shots"}
 
 
-def splice(text):
+def splice(text, css=False):
     total = 0
     for name, lines in BLOCKS.items():
+        if (name in CSS_BLOCKS) != css:
+            continue
         o, c = ("/*", "*/") if name in CSS_BLOCKS else ("<!--", "-->")
         pat = re.compile(r"([ \t]*)(" + re.escape(o) + " " + MARK + ": " + name
                          + " " + re.escape(c) + r"\n)"
@@ -288,19 +296,25 @@ def main():
             print(f"<!-- {MARK}: end {name} -->")
         return 0
 
-    text = PAGE.read_text(encoding="utf-8")
-    new, n = splice(text)
-    if n != len(BLOCKS):
-        print(f"gen-world-map: found {n} of {len(BLOCKS)} blocks — the markers went stale")
+    found, stale = 0, False
+    for target, css in ((PAGE, False), (ACTS, True)):
+        text = target.read_text(encoding="utf-8")
+        new, n = splice(text, css=css)
+        found += n
+        if args.write:
+            if new != text:
+                target.write_text(new, encoding="utf-8")
+                print(f"  wrote {target.relative_to(ROOT)}")
+            else:
+                print(f"  {target.relative_to(ROOT)} already current")
+        elif new != text:
+            stale = True
+    if found != len(BLOCKS):
+        print(f"gen-world-map: found {found} of {len(BLOCKS)} blocks — the "
+              f"markers went stale")
         return 1
-    if args.write:
-        if new != text:
-            PAGE.write_text(new, encoding="utf-8")
-            print(f"  wrote {PAGE.relative_to(ROOT)}")
-        else:
-            print(f"  {PAGE.relative_to(ROOT)} already current")
-    elif new != text:
-        print("gen-world-map: the prototype's map is not what this script "
+    if stale:
+        print("gen-world-map: the shipped map is not what this script "
               "generates — re-run with --write")
         return 1
     if args.check:

@@ -85,7 +85,11 @@ CSS = ROOT / "design-system" / "assets" / "css"
 PATTERNS = ROOT / "design-system" / "patterns"
 
 # The three that ship, in cascade order — same set as every check beside this.
-SHIPPING = ("tokens.css", "base.css", "components.css")
+# acts.css is the fourth that ships: the five-act scroll composition, which
+# left one prototype's <style> block when the landing page wanted it too.
+# Its own headings are addressable, so this check has to be able to see the
+# scroll-margin they carry.
+SHIPPING = ("tokens.css", "base.css", "components.css", "acts.css")
 
 COMMENT = re.compile(r"/\*.*?\*/", re.S)
 HEADING = re.compile(r"h[1-6]")

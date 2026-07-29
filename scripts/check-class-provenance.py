@@ -92,7 +92,9 @@ CSS = DS / "assets" / "css"
 # the documentation's own chrome, preview.css is the one rule for the .ds-back
 # link a pattern page carries back into the documentation — the rule that used
 # to ship in fourteen page-local copies.
-SHIPPING = ("tokens.css", "base.css", "components.css")
+# acts.css is the fourth: the five-act scroll composition, which left one
+# prototype's <style> block when the landing page wanted it too. It ships.
+SHIPPING = ("tokens.css", "base.css", "components.css", "acts.css")
 DOCS = "docs.css"
 PREVIEW = "preview.css"
 
@@ -132,6 +134,21 @@ UNRESOLVED_OK = {
     # stylesheet or any page-local block. The foil demo asks for a display size
     # it never gets. → foundations lane.
     ("foundations/sight.html", "h1"): "no .h1 exists anywhere in the tree; the foil demo asks for a size nothing gives it",
+    # THREE HOOKS THAT ARE READ RATHER THAN DRAWN. Each of these names a
+    # position in the markup that a SCRIPT needs and no rule wants: they carry
+    # no declarations because there is nothing to declare, and deleting them to
+    # satisfy this check would break the thing that reads them.
+    #   .lp-proc-index / .lp-proc-bar  check-label-clearance.py's CHROME_SELECTORS
+    #                                  — the pinned chrome whose clearance is
+    #                                    measured past the pin rather than at it
+    #   .sp-field__sensors             gen-proto-field.py's splice target for
+    #                                    the field, matched at its own indent
+    # They arrived on this page with the five acts. A class with a reader is
+    # not an undeclared class, it is a class declared somewhere this check does
+    # not look — and the register is where that gets said out loud.
+    ("patterns/landing-page.html", "lp-proc-index"): "a hook check-label-clearance.py selects on; no rule wants it",
+    ("patterns/landing-page.html", "lp-proc-bar"): "a hook check-label-clearance.py selects on; no rule wants it",
+    ("patterns/landing-page.html", "sp-field__sensors"): "gen-proto-field.py's splice target; no rule wants it",
 }
 
 # Rule 3 exemptions: a literal in a page-local block that is not a token
