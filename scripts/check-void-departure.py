@@ -36,10 +36,22 @@ What survives is the drawing's one load-bearing seam, restated:
      review's "let not bubble it so close together", as a number the supergrid
      guarantees (nearest neighbours hypot(128, 160) = 204.9).
 
-  4. THE AIM AND THE DEPARTURE AGREE. The aim script maps DOMPoint(330, 84),
-     and the flow's actual departure — the topmost segment start, the same
-     definition check-flow-terminals.py uses — is exactly (330, 84). Move the
-     trunk and forget the script, and the field merges into open wash.
+  4. THE AIM IS THE SOURCE'S CENTRE AND THE DEPARTURE IS ITS RIM, one radius
+     apart, plumb. This identity used to be "the aim and the departure are the
+     same point", and that was true while the source was a point. It is a disc
+     now — cx/cy/r on .lp-flow__orb — and the two questions came apart:
+
+       the glows converge on where the light IS      -> the centre
+       the root grows from where the light ENDS      -> the rim
+
+     Aiming at the rim would merge twenty-five glows into the edge of a disc
+     they are supposed to be filling; departing from the centre ran the
+     trunk's first 34 units inside the fill, which is the one place in this
+     drawing where a fill covers a contour. So both points are checked, and
+     checked AGAINST THE ORB rather than against each other: the aim equals
+     (cx, cy), the departure equals (cx, cy + r), and nothing is free to drift
+     without the disc drifting with it. Move the trunk and forget the script,
+     and the field still merges into open wash — this catches that as before.
 
   5. THE FALLBACK IS THE FOCUS, AND THE FOCUS IS A CROSSING. sp-field-merge's
      var(--ux, X)/var(--uy, Y) fallbacks equal gen-proto-field.py's FOCUS, so
@@ -181,16 +193,29 @@ def main():
         print(f"void departure: .{FLOW} carries no .{FLOW_SEG}")
         return 1
     dep = sorted({s[0] for s in segs}, key=lambda p: (p[1], p[0]))[0]
+    orb = re.search(r'<circle\b[^>]*class="[^"]*lp-flow__orb[^"]*"[^>]*'
+                    r'cx="(-?[\d.]+)"\s*cy="(-?[\d.]+)"\s*r="(-?[\d.]+)"', text)
     aim = re.search(r'new DOMPoint\((-?[\d.]+),\s*(-?[\d.]+)\)', text)
+    if not orb:
+        findings.append(
+            "no .lp-flow__orb with cx/cy/r — the source is what both the aim "
+            "and the departure are measured from")
     if not aim:
         findings.append(
             "the aim script no longer maps a DOMPoint — nothing publishes "
             "--ux/--uy and the merge runs on its fallback everywhere")
-    elif (rational(aim.group(1)), rational(aim.group(2))) != dep:
-        findings.append(
-            f"the aim script maps ({aim.group(1)}, {aim.group(2)}) and the flow "
-            f"departs at ({show(dep[0])}, {show(dep[1])}) — the field merges "
-            f"into a point the trunk is not at")
+    if orb and aim:
+        cx, cy, r = (rational(orb.group(i)) for i in (1, 2, 3))
+        if (rational(aim.group(1)), rational(aim.group(2))) != (cx, cy):
+            findings.append(
+                f"the aim script maps ({aim.group(1)}, {aim.group(2)}) and the "
+                f"source's centre is ({show(cx)}, {show(cy)}) — the glows "
+                f"converge on a point the light is not at")
+        if dep != (cx, cy + r):
+            findings.append(
+                f"the flow departs at ({show(dep[0])}, {show(dep[1])}) and the "
+                f"source's rim is ({show(cx)}, {show(cy + r)}) — the trunk "
+                f"either starts inside the fill or hangs off it")
 
     # 5. the fallback is the focus, and the focus is a crossing
     fb = re.search(r'var\(--ux,\s*(-?[\d.]+)\)[\s\S]{0,120}?var\(--uy,\s*(-?[\d.]+)\)', text)
@@ -229,8 +254,9 @@ def main():
             print(f"  {f}")
         return 1
     print(f"void departure OK — {len(sensors)} sensors on crossings, none under "
-          f"{MIN_SPACING} units apart, aimed at the trunk's head ({show(dep[0])}, "
-          f"{show(dep[1])}) with the generator's focus as the fallback")
+          f"{MIN_SPACING} units apart, aimed at the source's centre and departing "
+          f"from its rim ({show(dep[0])}, {show(dep[1])}), with the generator's "
+          f"focus as the fallback")
     return 0
 
 
