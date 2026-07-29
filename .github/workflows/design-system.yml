@@ -1500,3 +1500,54 @@ jobs:
       - name: Authored opacity
         if: '!cancelled()'
         run: python3 scripts/check-authored-opacity.py
+
+      # The first one about a TIER rather than about a drawing. acts.css is written in two tiers on purpose and its own header
+      # says the order is load-bearing; what it does not say is that a
+      # declaration authored in the base tier is a declaration the base tier
+      # ships. The copy either side of the confluence is an overlay -- absolute,
+      # 35 % wide, centred on 74 % of a drawing fitted to the viewport -- and it
+      # was authored in the base tier, so every viewport under 64rem, every
+      # viewport under 45rem tall, every reader with prefers-reduced-motion and
+      # every browser without animation-timeline got the overlay too, over a
+      # drawing 172 px tall at 375 with 220 px of copy in it. Counting label
+      # rects against prose rects over seven scroll positions at 375: 24
+      # collisions before, 2 after, and 5 before and after at 1440 where the
+      # composition is the overlay and is untouched.
+      #
+      # Every existing check on this stage reads the tier that pins -- windows,
+      # ranges and handovers all resolve inside the @supports block, which was
+      # the tier that was correct. The enhanced tier photographs clean and the
+      # degraded tiers are the ones nobody opens.
+      #
+      # Proven failing on three reintroductions: the overlay put back in the base
+      # tier names both selectors, the numeral layer put back to `inset: 0` names
+      # the missing ratio and the bottom edge, and a viewBox changed on one
+      # consumer names that page against the layer's own box.
+      - name: Fallback tier
+        if: '!cancelled()'
+        run: python3 scripts/check-fallback-tier.py
+
+      # The first about whether a control can be REACHED rather than about what
+      # it looks like when it is. The act rail was hidden
+      # with the `hidden` attribute, cleared by act-rail.js while the acts are on
+      # screen -- and `hidden` is only ever off from the scroll positions at
+      # which Tab has already gone past the rail's place in the document, so the
+      # rail could not be reached by keyboard in either direction. Measured at
+      # 1440 x 900: Tab from the hero's call to action landed on the first FAQ
+      # summary, scrollY 0 -> 16 585, five acts skipped in one keypress;
+      # Shift+Tab back from that summary returned to the same button. Forcing
+      # .focus() proved the links themselves were fine.
+      #
+      # A nav that is present, visible, marked with aria-current and unreachable
+      # photographs exactly like a nav that works, which is why nothing caught
+      # it. The three files have to agree, so the check reads all three: no
+      # `hidden` in the markup, no .hidden written by the script, and an opacity
+      # lift that names :focus-within paired with a pointer-events guard that
+      # names both negations.
+      #
+      # Proven failing on four reintroductions: `hidden` back in the markup, the
+      # script assigning .hidden again, the :focus-within lift removed, and the
+      # pointer-events guard removed.
+      - name: Focus reach
+        if: '!cancelled()'
+        run: python3 scripts/check-focus-reach.py
