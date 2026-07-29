@@ -97,7 +97,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 DS = ROOT / "design-system"
 CSS = DS / "assets" / "css"
 
-SHIPPING = ("tokens.css", "base.css", "components.css")
+SHIPPING = ("tokens.css", "base.css", "components.css", "acts.css")
 
 # Every page in the tree, prototypes included — the same boundary
 # check-iso-motion.py draws and for the same reason. This is a fact about a

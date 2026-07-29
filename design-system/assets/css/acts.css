@@ -1,0 +1,2240 @@
+/* ============================================================
+   THE FIVE ACTS — the scroll composition, as a stylesheet.
+
+   IT LIVED IN ONE PAGE'S <style> FOR FIVE ACTS AND THAT IS ONE ACT TOO MANY.
+   Two thousand lines of page-local CSS is not a prototype's working notes any
+   more, it is the composition itself, and the moment a second page wants it
+   the choice is a stylesheet or a copy. A copy of this would be two timings
+   that cannot stay equal — the thing every generator in this repo exists to
+   prevent — so it is a stylesheet, loaded by the prototype it was built in and
+   by the landing page it ships on. One source, two consumers, and the lab and
+   the shipped page cannot drift.
+
+   WHAT IS HERE: acts 1 and 2 (the field and the root, on --sp), act 3's
+   page-local additions to .cf-pin, act 4 (the plates, on --sp4) and act 5
+   (the map, on --map). What is NOT here is anything that names a prototype:
+   the back-link chip and the lab's own page header stay where they were.
+
+   THE BASE TIER COMES FIRST AND THE GATED TIER SECOND, throughout, and that
+   order is load-bearing rather than tidy — see the note above the @supports
+   block. At equal specificity the cascade decides on source order, and a base
+   rule authored after the gated one wins in both tiers. It has cost two
+   defects in this file already.
+   ============================================================ */
+
+  /* ============================================================
+     STATEMENT -> PROZESS, REBUILT CLEAN. 2026-07-28.
+
+     The first version of this page transplanted the landing page's
+     2,174 lines of accreted choreography and inherited every layer
+     of it: a fake hold built from translate ramps, anchor chains
+     stretching one drawing between two sections, a dual trunk/stem
+     tier, and windows in four different units. Daniel's recording
+     of it showed a split field, orphan junction dots and a missing
+     root. The layers were the bug. It is one mechanism now:
+
+       ONE STAGE   .sp-track is the scroll budget (640vh), .sp-stage
+                   is position: sticky for its whole length — a real
+                   hold, not a translate ramp cancelling scroll.
+       ONE
+       TIMELINE    --sp, the track's own view timeline. Every part of
+                   acts 1 and 2 reads it in `contain` percentages,
+                   which map linearly to scroll pixels. No cover-of-
+                   subject arithmetic, no per-viewport fitting.
+       TWO
+       LAYERS      the field is the stage's full-bleed backdrop
+                   (gen-proto-field.py owns it); the root is a static
+                   column above it, sized BY the stage (--sp-measure)
+                   so it always fits the viewport it plays in. The two
+                   meet at one measured point — the trunk's head,
+                   published as --ux/--uy by the aim script. No
+                   anchor(), no second trunk, no camera pan.
+
+     THE SCRIPT, in contain % of the track:
+        4 - 14    the lattice resolves, full bleed
+        6 - 26    ACT 1a: the sensors stream in from the four corners
+                  to their crossings (--m stagger, core first)
+       26 - 36    ACT 1b: arrived, the field pulses twice in place
+       32 - 40    the claim bows out with the field: the statement
+                  dissolves into the drawing that answers it
+       36 - 48    ACT 1c: the field converges on the trunk's head
+                  (--ux/--uy, published at runtime), core first
+       36 - 87    ACT 2: the root draws, front = head + l*c, exactly
+                  the algebra check-flow-chain.py holds — the light
+                  leaves the trunk as the first sensors arrive on it,
+                  the contour lands 86.88, the light fades by 88.88
+       89 -100    still: the finished drawing holds one beat
+       then the stage releases and ACT 3 is the cards' own .cf-pin
+       below, unchanged, with the lectern frame drawn on its entry.
+
+     ACT 4 comes AFTER the cards, which is where the review put it, and
+     runs on a third timeline, --sp4, 400vh, one plate to each half:
+
+        t0+ 2 - 18   the four edges draw, clockwise from the top-left,
+                     in the family's ramp
+        t0+ 6 - 26   the ramp fades off each edge it has closed, leaving
+                     the CF-Schwarz contour standing
+        t0+12 - 30   the photograph sweeps in under the frame
+        t0+ 4 - 45   the words type in the column beside it
+        t0+45 - 50   the still
+        t0+46 - 52   the plate leaves and the next one has the stage
+
+     ACT 5 is a fourth timeline, --map, 500vh, three beats to a
+     third each: the two offices, the markets, the assets, with the
+     camera pulling back between them and holding while each is read.
+
+     None of the five acts overlaps another: different sections,
+     different timelines, and the rule over "Was wir machen" is
+     ordinary flow content that never travels.
+     ============================================================ */
+
+
+  /* ---- the stage's own layout, valid at every tier ---- */
+  .sp-stage__inner {
+    display: grid;
+    gap: var(--space-8);
+    align-items: center;
+  }
+  .sp-drawing { min-width: 0; }
+  .sp-drawing .lp-flow { display: block; width: 100%; height: auto; }
+  /* THE GROUND LAYER. The field is the stage's backdrop, not the figure's
+     first row: absolutely placed under the content (the container is the
+     positioned sibling above it), stretched to the stage and cropped by its
+     own `slice`, so the lattice reaches every corner at every admitted
+     viewport. In the fallback tier the stage is ordinary flow and the layer
+     simply papers its box — nothing depends on the pin. */
+  .sp-stage { position: relative; }
+  .sp-field { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .sp-stage > .container { position: relative; }
+  .sp-field__lattice { opacity: .26; }
+  /* THE BEAD IS BUILT LIKE THE SOURCE IT RUNS INTO. .lp-flow__orb — the body
+     at the trunk's head, two hundred lines below — is a body of the family's
+     ramp with a contour on it and a spill around it. A sensor is the same
+     object at a twentieth of the area, which is the truth of the drawing: act
+     1 is twenty-one of these merging into that one. The contour is what makes
+     the field legible at all (see the ramp's own note in the markup); the
+     spill is the halo circle, generated at 2.6x the bead's own radius, so a
+     hot bead at the focus reaches nearly three times as far as a cool one at
+     the rim.
+
+     THE BEAD IS A <circle> AGAIN. It was a <path> morphing its own `d` for
+     one revision, on the review's ask to leave the sphere shape; the next
+     review took it back — "go back to the spherical design, without border
+     morphing, they are not following the design system". It was right. A
+     lattice, a contour and one light is what an illustration in this system
+     is, and an outline generated from two travelling harmonics is none of the
+     three. The drawing is scrubbed by the reader now and nothing in it is
+     driven by a clock; the only thing that moves on its own is the readout.
+
+     The stroke is in USER UNITS, matching the lattice's own 1, so the beads
+     and the ground they stand on keep one weight through every slice scale.
+
+     AND THE CONTOUR IS THE ROOT'S BLACK, on the review's instruction — "the
+     border should be black like the root system". --border-strong is
+     var(--cf-schwarz), the same token .lp-flow__seg strokes with and
+     .lp-flow__node fills with, so a bead and the drawing it feeds are now
+     bounded in one weight and one colour. This reverses the argument the orb's
+     note below makes for the quieter rgba(0,0,0,0.24) — that a black ring on a
+     light reads as a washer sitting on it. That argument was about the ORB,
+     which is 34 units of nearly white lime at the centre of an empty stage;
+     a bead is a tenth of the area on a busy lattice, and there the quiet ring
+     was losing the fight with the ground behind it. The orb keeps its grey,
+     which is what the review asked for when it asked for the orb. */
+  .cf-stmt-sensor__bead {
+    stroke: var(--border-strong);
+    stroke-width: 1;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  /* ---- THE ORB'S GLOW, AND WHY IT IS NOT var(--glow-light) ----
+
+     --glow-r DOES NOT REACH THE TOKEN, which is why the shadows are built
+     here from the palette rather than read from it. tokens.css declares
+       --glow-r: 12px;
+       --glow-light: drop-shadow(… calc(var(--glow-r) * 0.45) …) …
+     on the same :root rule, and says of the first "--glow-r is the reach, set
+     per element". It is not: a custom property's var()s are substituted at
+     computed-value time ON THE ELEMENT THAT DECLARES IT, so --glow-light's
+     computed value on :root already has 12px baked into it, and every
+     descendant inherits that string. Measured in Chromium 141 on this page,
+     .lp-flow__orb declares --glow-r: 44px and renders
+       drop-shadow(rgba(225,255,0,.5) 0 0 5.4px) drop-shadow(rgba(197,235,226,.6) 0 0 12px)
+     — 5.4 is 12 x 0.45. The override has never had an effect, here or
+     anywhere else in the system that sets --glow-r.
+
+     Declaring the shadow on the ORB fixes it for the orb, because then the
+     substitution happens where --glow-r is in scope. The ratios (0.45, and
+     the two alphas) came from the token as literals, which was a duplication
+     and was named as one. THAT PART IS DONE: tokens.css publishes --glow-core,
+     --glow-lime and --glow-glas now, and the orb reads all three, so nothing
+     here restates a number the palette owns. The rest of this note stands as
+     the diagnosis it always was. The system-wide fix is a different change
+     from this one: it is tokens.css publishing the two shadow COLOURS and
+     every consumer composing its own reach, and it touches every glow on the
+     site. The beads used to share this pair and no longer do — see the halo's
+     own note below for why nothing in the field is filtered at all. */
+  .lp-flow__orb {
+    /* THE RATIO AND THE TWO COLOURS ARE THE PUBLISHED ONES NOW. This used to
+       mix them out of --lime-500 and --glas-500 at 50 % and 60 %, and multiply
+       the reach by a literal 0.45, because tokens.css published only the
+       finished filter and there was nothing else to read. It publishes the
+       parts — --glow-core, --glow-lime, --glow-glas — so the duplication the
+       note above named as one is gone: this is the same light the system
+       draws, at this element's own reach. */
+    --sp-glow-glas: drop-shadow(0 0 var(--glow-r, 12px) var(--glow-glas));
+    --sp-glow-lime:
+      drop-shadow(0 0 calc(var(--glow-r, 12px) * var(--glow-core))
+                  var(--glow-lime));
+  }
+  /* THE HALO IS A PAINTED CIRCLE AND THE BEAD CARRIES NO FILTER, which is a
+     frame budget rather than a preference. A drop-shadow re-rasterizes when
+     its source changes, and the source here is a path being remodelled every
+     frame. Measured at 1600 x 900, twenty-one beads at rest:
+
+       morph + filter   25 fps        filter, no morph   61 fps
+       morph, no filter 61 fps        neither            61 fps
+
+     Neither half is expensive; the pair is. So the spill went onto its own
+     static circle — same radius the drop-shadow reached, same two colours,
+     stops placed on the falloff it drew — and the element that morphs paints
+     flat. It is also the better drawing: a Gaussian over a 1 px black contour
+     smears the contour, and the bead's edge is the thing the review asked to
+     make black. Nothing is filtered in the field now; the orb below still is,
+     and can be, because the orb does not change shape. */
+  .cf-stmt-sensor__halo { pointer-events: none; }
+
+  /* ---- THE CALLOUT LAYER ----
+     components/annotation.html's component, laid over a SLICED backdrop, which
+     is the one thing it was not written for: its --annot-x / --annot-y are
+     documented as fractions of a figure the drawing fills exactly, and this
+     drawing is cropped by the stage rather than fitted to it.
+
+     --sp-u IS THE CONVERSION AND IT NEEDS NO SCRIPT. `xMidYMid slice` scales
+     by max(box width / 1600, box height / 900) and centres what is left, so
+     one field unit is that scale as a CSS length and a crossing is the centre
+     plus its own offset in those units. The generator writes that calc()
+     straight into --annot-x, and the layer is pinned to the drawing at every
+     viewport, in the markup, with nothing measuring anything at runtime.
+
+     IT READS THE STAGE, NOT THE VIEWPORT, and the difference is three tiers.
+     The first version wrote max(1vw / 16, 1vh / 9), which is exact — measured
+     at six viewports from 1024x720 to 3440x1440 the pinned stage is the
+     viewport, box (0,0), size (100vw, 100vh), every time. But it is only the
+     viewport WHILE IT IS PINNED. Under reduced motion, below the gate, and in
+     print the stage is ordinary flow and every one of those calc()s resolves
+     somewhere else — so the layer had to be switched off in exactly the three
+     tiers a reader is most likely to be in for a reason. Twenty-one readings,
+     gone, because someone asked for less motion.
+
+     .sp-annots-fig is `inset: 0` of the stage and carries `container-type:
+     size`, so 1cqw and 1cqh are the stage's own box in every tier. An
+     absolutely-positioned inset box has a definite size without needing its
+     contents, which is the one case where `size` containment is free. The
+     layer is now correct wherever the drawing is.
+
+     THE LEADER IS IN FIELD UNITS AND THE LABEL IS NOT. --annot-u is set in
+     --sp-u so the step scales with the drawing it points at — a leader that
+     stayed 1rem while the lattice grew would be a different fraction of a cell
+     at every viewport. The label is deliberately left alone: it is type, it is
+     set at the system's own label size, and type that scales with a backdrop
+     is type that is 11 px at one viewport only. */
+  .sp-annots-fig {
+    position: absolute;
+    inset: 0;
+    container-type: size;
+    pointer-events: none;
+    /* CLIPPED TO THE STAGE, because the drawing is. The slice crops the field
+       to the stage's box and the notes are positioned in the same units, so a
+       note whose sensor has been cropped away lands outside the stage — over
+       the white below it, pointing at nothing. Measured in the flow tier at
+       2000 x 650: the bottom row's six sensors are outside the crop and their
+       six labels were drawn 25 px under the stage. The annotation specimen
+       says it of its own ground lines — the ground does not end, the view
+       does — and a note is part of the drawing, so it ends where the view
+       does too. */
+    overflow: hidden;
+  }
+  .sp-annots {
+    --sp-u: max(1cqw / 16, 1cqh / 9);
+    --annot-u: calc(22 * var(--sp-u));
+    --annot-node: calc(9 * var(--sp-u));
+    --annot-gap: calc(4.5 * var(--sp-u));
+  }
+  /* The reading is a MEASURE, and the component says a measure goes inside the
+     label so both stand on the one rule: S01 names the instrument, the value
+     is what it is reporting. The label keeps the component's own --text-xs —
+     11 px, mono, uppercase — because that is the size the whole system's
+     labels are and a field of twenty-one is not the place to invent a
+     twenty-second. */
+  /* AND THE FALLBACK TIER GETS A FIELD, which it has not had. components.css
+     animates .cf-stmt-sensor on the --cf-iso timeline, because on the landing
+     page a sensor lives inside a .cf-iso scene that declares one. This page's
+     sensors do not: the field is the STAGE's backdrop and the timeline it
+     reads is --sp. Above the gate that never showed, because the block below
+     re-declares animation-name wholesale. Below it — under 64rem or 45rem,
+     where the stage does not pin — the inherited rule stood: `cf-iso-fade`
+     with `fill-mode: both` on a timeline that does not resolve, which Chrome
+     fills from its `from` keyframe. Every sensor computed opacity 0.
+
+     So the promise three comments up — "the drawing stands complete … nothing
+     is hidden" — was false for the whole field at small viewports, and it was
+     false in the direction nobody checks, because an invisible backdrop looks
+     like a design decision. Clearing the inherited animation here lets the
+     opacity fall back to components.css's own `opacity: var(--iso-rest)`; the
+     gated block re-states everything it needs on top. */
+  .sp-field .cf-stmt-sensor { animation: none; }
+  /* The root draws rails ON its viewBox boundary; SVG clips to its viewport
+     by default, so without this the outermost strokes lose half their weight
+     — the rule .cf-page-header__figure writes out in components.css. */
+  .sp-drawing .lp-flow { overflow: visible; }
+  /* ------------------------------------------------------------------
+     THE ROOT AGAINST THE DESIGN SYSTEM — the audit, and the three places
+     this drawing knowingly leaves it.
+
+     "Does it make sense that the roots are black?" It does, and it is not
+     a preference: foundations/illustration.html states the object in one
+     line — "an object is a lattice, a contour and one light" — and then
+     "the contour is the drawing. A fill is what stops you seeing through
+     the object." The contour is --border-strong, which is CF-Schwarz on
+     the light theme, and the nodes are "filled black dots". A grey root
+     would be a root drawn in the colour reserved for FACES: CF-Grau is
+     also the top of the page wash, so an unlit face "sits at exactly the
+     page's own colour and the object would disappear entirely if the
+     contour were not carrying it". Black is what carries it.
+
+     WHAT THE ROOT FOLLOWS, item by item:
+       angles      all five, and only those — 26 at 45, 20 at 63.43, 6 at
+                   26.57, 13 vertical, recomputed by check-flow-axes.py
+       contour     1 px, non-scaling, --border-strong, one weight
+       line types  solid throughout: every stroke is a real route, which
+                   is the "every edge of every real surface" row
+       nodes       filled black, r 3/2/1, stepping down with the run from
+                   the void, and only on divisions
+       fills       one — the orb, which is a light rather than a surface and
+                   is bounded like everything else (--border-default, see its
+                   own note). No route carries a fill: "fill only to occlude",
+                   and nothing here occludes
+       ramp        one #lp-flow-ramp, href'd by all 83 paint servers, so
+                   check-gradient-family.py has one stop list to recompute
+       labels      the 11 px mono ramp, --text-xs, tabular
+
+     AND THE THREE DEPARTURES, each with its reason:
+
+     1. THE LIGHT IS A FRONT, NOT A FACE. Every .cf-iso in the system lights
+        exactly one ELEMENT and lights it by filling it. This object has no
+        faces to fill: it is a route diagram, and what the light means here
+        is where the data has reached. So the ramp travels — every stroke
+        carries it, one at a time, in the order the front arrives. The rule
+        it keeps is the one underneath "one light per object": at any scroll
+        position the lit region is one, and it is contiguous.
+
+     2. THE FRINGE KEEPS ITS LIGHT. The front fades behind itself
+        everywhere except the twenty-six strokes that land on the rail. A
+        route is a thing data passed through and should go dark; a foot is
+        where data is arriving from and has not stopped. That is a second
+        lit region in the settled drawing, which is the plainest departure
+        on this list, and it is the one the page is FOR — a still root with
+        no light in it is a diagram of a tree, not of a stream.
+
+     3. THE LEAF'S LIGHT IS 6 px, NOT 2. Illustration's rule is "1 px for
+        everything except the trace, which is 2", and this drawing keeps it
+        for every CONTOUR. The light is a second stroke over the contour,
+        and at 2 px it covers it: half-opacity lime over black composites to
+        olive, and the leaf reads as a dirty line rather than a lit one.
+        Measured at both widths on the settled fringe. At 6 the black
+        hairline stays crisp inside and the lime sits in the pixels either
+        side, which is the only arrangement in which the contour and the
+        light are both doing their own job.
+
+     None of the three is available to a .cf-iso, and none of them should
+     become one: they are what a ROUTE drawing needs and an object does
+     not. If a second flow drawing ever wants them, that is the moment the
+     three become a fourth layer contract rather than a note on a
+     prototype. → foundations/illustration.html, foundations/colors.html
+     ------------------------------------------------------------------ */
+  /* The drawing's paint, static and tier-independent: the contour is the
+     border colour, the light is 2 px over its own per-stroke ramp, junctions
+     are filled points, and every stroke holds its weight under the stretch
+     (non-scaling). These lived in the old page block and died with it — the
+     first render of this rebuild drew forty invisible strokes. */
+  .lp-flow :is(path, circle) { vector-effect: non-scaling-stroke; }
+  .lp-flow__seg { stroke: var(--border-strong); }
+  .lp-flow__light { stroke-width: 2; }
+  .lp-flow__node { fill: var(--border-strong); }
+  /* THE ORB IS BOUNDED, LIKE EVERY OTHER SHAPE HERE.
+     It shipped without a contour on the argument that the source is the light
+     the construction is made of rather than a thing the construction contains,
+     and that an outline would draw it as an object. That was the wrong way
+     round: foundations/illustration.html does not say "contour the objects",
+     it says "an object is a lattice, a contour and one light" and "the contour
+     is the drawing". An unbounded disc is the only shape in this figure whose
+     edge is decided by a gradient stop, which is exactly the thing the contour
+     rule exists to prevent — the light falls off and the reader has to guess
+     where the source stops.
+
+     --border-default AND NOT --border-strong, which is the one place this
+     departs from the contour colour, and the reason is what the line is
+     bounding. Every other contour here bounds a ROUTE — an edge of something
+     that would be invisible without it, drawn in CF-Schwarz because it is
+     carrying the whole drawing. This one bounds a LIGHT, which is already the
+     brightest thing on the page: at full strength the black ring reads as a
+     washer sitting on the glow and takes the source's own edge away from it.
+     rgba(0,0,0,0.24) is the system's own quieter rule, the same token the
+     lattice and the section header's hairline use, and it does what a contour
+     has to do here — it says where the disc ends — without competing with
+     what is inside it. */
+  .lp-flow__orb {
+    /* BLACK, ON THE REVIEW'S INSTRUCTION — "make the border of the big sphere
+       black too". The note below argues for the quieter rgba(0,0,0,0.24) on
+       the grounds that a black ring on a light reads as a washer sitting on
+       it; that was a real observation and it is overruled, because the beads
+       the orb absorbs are bounded in CF-Schwarz and a source bounded in a
+       different weight from the twenty-one things that merge into it reads as
+       a different KIND of thing. One drawing, one contour. */
+    stroke: var(--border-strong);
+    --glow-r: 44px;
+    /* THE SAME COMPOSED SHADOW THE BEADS TAKE, and for the same reason: this
+       rule has declared --glow-r: 44px since the source became a body, and
+       until the beads were measured against it, it rendered at 12 — the
+       :root default, baked into --glow-light where that token is declared.
+       See the beads' own note for the substitution rule. Fixing the field and
+       not the orb would have left the drawing with twenty-one lights that
+       glow further than the one they all merge INTO. */
+    filter: var(--sp-glow-lime) var(--sp-glow-glas);
+    /* the circle grows about its own centre; fill-box on a circle is its own
+       bounding box, so `center` is the centre of the disc rather than of the
+       viewBox */
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  /* The drawing is the root alone now — the field moved to the stage's own
+     backdrop — 620u on a 1200u basis: 0.5167 of its width in height. Sizing
+     it off the viewport's height is what guarantees the whole of it fits the
+     stage — the fault the landing page carried for a day was a drawing
+     1.07x its viewport. */
+  .sp-drawing { --sp-measure: min(100%, calc((100vh - 12rem) * 1.9)); width: var(--sp-measure); position: relative; }
+  /* The root's numerals are placed over the flow box by the label law's own
+     --x/--y (flow units of 1200 x 620) with --tx/--ty clearances. The flow
+     box is the last child, so the values' container matches it exactly. */
+  .sp-root { position: relative; }
+  /* ---- THE COPY EITHER SIDE OF THE CONFLUENCE ----
+     It still rides .sp-root, which is the flow box exactly, so the columns
+     track the drawing at every viewport rather than at one. What moved is
+     WHICH part of the drawing they stand beside, and the mirror decided it.
+
+     A CONFLUENCE LEAVES ITS WHITE AT THE BOTTOM. The old placement flanked the
+     source at 13.5 % because that is where the source was and because a delta
+     is narrow at the top; flipped, 13.5 % is the widest band of the fringe and
+     the copy sat straight across nineteen strokes. Measured on the shipped
+     geometry, the drawing occupies
+
+         y 400   x 460 - 740        y 480   x 580 - 620
+         y 440   x 540 - 660        y 500+  x 600 (the trunk alone)
+
+     so the two triangles either side of the converging trunk are the largest
+     clear ground in the figure, and they are clear at every viewport because
+     they are a fact about the construction rather than about the render. The
+     columns are centred on y 74 % and stop at x 420 and 780, which leaves the
+     nearest stroke about 70 units and the nearest numeral about 50.
+
+     THE INNER EDGE IS STILL THE FIXED ONE — left block ragged-left, right
+     block ragged-right, each flush toward the middle — because the thing the
+     reader is reading around is still the axis the drawing resolves onto. */
+  .sp-say { position: absolute; inset: 0; pointer-events: none; }
+  .sp-say__act { display: none; }
+  .sp-say__col {
+    position: absolute;
+    top: 74%;
+    transform: translateY(-50%);
+    inline-size: 35%;
+  }
+  .sp-say__col--l { right: 65%; text-align: right; }
+  .sp-say__col--r { left: 65%; }
+  .sp-say__lead {
+    margin: 0;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-snug);
+    color: var(--text-primary);
+    min-block-size: 2.3em;
+  }
+  .sp-say__body {
+    margin-block-start: var(--space-3);
+    font-size: var(--text-md);
+    line-height: var(--leading-relaxed);
+    color: var(--text-secondary);
+    min-block-size: 7.5em;
+  }
+  .lp-flow-data { position: absolute; inset: 0; pointer-events: none; }
+  /* A VALUE AND A READING ARE PLACED THE SAME WAY AND SAY DIFFERENT THINGS.
+     Both ride a stroke, both are put there by the label law in
+     gen-flow-root.py, and both are real HTML at the label ramp's 11 px so
+     they do not scale with the drawing. What separates them is arithmetic: a
+     .lp-flow__val is a rate and rates DIVIDE, so check-flow-values.py holds
+     every one of them to the sum of the ones below it. A .lp-flow__read is a
+     measurement — 74 °C, 12.4 bar — and measurements do not: two 400 °C
+     channels merging do not make 800 °C, and a drawing that let its units
+     into the sum would be claiming exactly that. So the reading carries the
+     unit, sits at the fringe where the sensors are, and is invisible to the
+     check that adds things up. */
+  .lp-flow__val, .lp-flow__read {
+    position: absolute;
+    left: calc(var(--x) / 1200 * 100%);
+    top: calc(var(--y) / 620 * 100%);
+    translate: var(--tx, 0) var(--ty, 0);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  /* A UNIT IS A SYMBOL, AND SYMBOLS ARE CASE-SENSITIVE. The label ramp
+     uppercases, which is right for every label this system has had until now
+     because they are all words — WAS WIR MACHEN, IHR VORTEIL, 01 / 04. A unit
+     is not a word: kW is kilowatt and KW is nothing, Hz is hertz and HZ is
+     nothing, mm/s is a speed and MM/S is not a symbol in any system. The first
+     render of this shipped "246 KW", "51 HZ" and "4.2 MM/S" on a drawing whose
+     whole subject is instrumentation, which is the one place that is not a
+     typographic preference but a wrong reading.
+
+     So the reading keeps every other property of the ramp — the mono face, the
+     11 px, the tracking, the colour — and drops the case. It is not an
+     exemption from the ramp's SIZE rule (check-label-ramp.py governs mono
+     UPPERCASE rules off --text-xs / --text-sm, and this one is neither off the
+     size nor uppercase any more), so nothing has to be added to that file's
+     list: the rule stops being uppercase, which is the honest way out. */
+  /* THE UNIT IS NOT A WORD, and now BOTH classes owe this declaration. The
+     label ramp uppercases, which is right for a note and wrong for a measure:
+     it prints M³/H for m³/h, KPA for kPa — and, since the rate took a unit on
+     the review of 2026-07-29, "8 400 /S" for 8 400 /s. An SI symbol whose case
+     has been changed is a different quantity, and a capital S is a siemens.
+     .lp-flow__read has carried this since it was written; .lp-flow__val did not
+     need it while it was digits and a space, and needed it the moment it was
+     not. */
+  .lp-flow__read, .lp-flow__val { text-transform: none; }
+
+  /* NO SEPARATE OPACITY FOR THE READING, and the reason is a rule this system
+     already checks for. The first pass gave it .82 to sit a shade under the
+     values; lp-frame-in ends `opacity: 1`, an animation origin outranks an
+     author declaration, and the .82 never reached a pixel —
+     check-authored-opacity.py caught it, which is the finding it exists for.
+     The distinction does not need a second colour anyway: a reading carries a
+     unit and a value does not, and that is the whole of what the reader has
+     to tell apart. */
+  @container (min-width: 56rem) {
+    .sp-stage__inner { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+    /* PLACED, NOT AUTO-FLOWED. The component's own tiers span the figure
+       across the row, so without an explicit column each the figure took
+       both tracks, the drawing resolved its min(100%, …) against the whole
+       container, and the root's right branches ran 330 px through the
+       claim's copy. One track each, one shared row. */
+    .sp-stage__inner > .cf-statement__figure { grid-column: 1; grid-row: 1; }
+    .sp-stage__inner > .cf-statement__text { grid-column: 2; grid-row: 1; }
+  }
+
+  /* ---- fallback: no timelines / reduced motion / under the gate ----
+     The stage does not stick and nothing animates; the drawing stands
+     complete (strokes ship drawn — the animations below only add the
+     build), the cards are the stacked column. Nothing is hidden. */
+  .lp-proc-plate { display: none; }
+  .lp-proc-steps { display: grid; gap: var(--space-12); }
+
+  /* ---- THE READOUT STREAMS, AND IT IS THE ONLY CLOCK ON THE PAGE ----
+     Everything in the stage is scrubbed: the beads arrive, pulse and merge on
+     the track's own timeline, the leaders draw themselves on it, and a reader
+     who stops scrolling sees a still. That is the pinned track's contract and
+     the last revision broke it by putting twenty-one shapes on a timer.
+
+     A NUMBER IS THE ONE THING THAT MAY MOVE ANYWAY, because a live instrument
+     is exactly a number that changes while nothing else does — the review's
+     "change like with the streaming (like in matrix)". Each reading holds
+     STREAM_K generated values stacked in one grid cell, and one keyframe with
+     a hold shows one at a time; the period is the sensor's own and the phase
+     is its own, so twenty-one readouts tick out of step the way a rack of
+     instruments does.
+
+     THE UNIT DOES NOT CHANGE, only the magnitude. An instrument that changes
+     what it MEASURES between frames is not an instrument, it is a slot
+     machine, and the generator holds each sensor to one unit for that reason.
+
+     Outside the reduced-motion gate the first value stands and the rest are
+     not displayed — so a reader who asked for no motion gets a readout, not a
+     blank rule and not six numbers stacked on top of each other. */
+  .sp-stream {
+    display: inline-grid;
+    justify-items: start;
+    /* THE UNIT IS NOT A WORD. .cf-annot__label uppercases, which is right for
+       a note and wrong for a measure: it prints MM/S for mm/s and KPA for kPa,
+       and an SI symbol whose case has been changed is a different quantity.
+       The root's own readings carry this same declaration for the same
+       reason — see .lp-flow__read. */
+    text-transform: none;
+  }
+  .sp-stream > b {
+    grid-area: 1 / 1;
+    font-weight: inherit;
+  }
+  /* SAME SELECTOR ON BOTH SIDES OF THE GATE, and that is not redundancy. The
+     first version paired `.sp-stream > b + b { display: none }` with
+     `.sp-stream > b { display: block }` inside the media query and the second
+     never won: (0,1,2) beats (0,1,1) whatever the source order, so five of
+     every six readings were display:none at all times and the sixth was
+     mid-cycle at opacity 0. Twenty-one labels rendered with a rule, a leader
+     and no number on any of them. */
+  .sp-stream > b + b { display: none; }
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .sp-stream > b,
+    .sp-stream > b + b {
+      display: block;
+      animation: sp-stream var(--sp-period, 3s) linear infinite;
+      animation-delay: calc(var(--sp-period, 3s) * var(--sp-slot) / 6 * -1);
+    }
+  }
+
+  /* ============================================================
+     WHY ACTS 4 AND 5 SIT HERE AND NOT BELOW THE GATE.
+
+     A base tier is only a base if the cascade can see it that way, and at
+     equal specificity the cascade decides on SOURCE ORDER. These two acts
+     were authored after the @supports block that animates them, so every
+     single-class rule they declared beat the single-class rule inside it —
+     the base tier overriding the pinned tier, which is the opposite of what
+     both were written to mean. It cost two defects that shipped:
+
+       .sp4-lit   rest state opacity: 0 here, opacity: 1 in the pinned block.
+                  The base won in BOTH tiers, so the frame's lit front never
+                  painted and the review reported the gradients missing. They
+                  were there; nothing could see them.
+       .map       block-size: auto here, 100 % in the pinned block. The base
+                  won, the svg took its 891 px intrinsic height, and the
+                  legend was pushed to y 902 in a 900 px stage where the clip
+                  ate it.
+
+     Both were patched where they were found — one by driving the value from
+     an animation rather than a declaration, one by going two classes deep —
+     and neither patch addressed the reason. Moving the blocks above the gate
+     does: a rule down there now wins on order, the way it reads as though it
+     should, and the next act does not have to know this story.
+     ============================================================ */
+
+  /* ============================================================
+     ACT 4 — the plates. Base tier first: no timeline, no gate, nothing
+     hidden. Every rule that MOVES anything is inside the pinned block far
+     below, so this is what a reduced-motion reader, a narrow viewport, a
+     browser without view timelines and the printer all get — two framed
+     photographs with their words beside them, whole, one under the other.
+     ============================================================ */
+  .sp4-track { position: relative; }
+  .sp4-stage { display: grid; align-content: center; padding-block: var(--space-16); }
+  .sp4-set {
+    display: grid;
+    gap: var(--space-12);
+    inline-size: min(100% - 2 * var(--space-6), var(--container-max, 76rem));
+    margin-inline: auto;
+  }
+
+  .sp4-plate { margin: 0; display: grid; gap: var(--space-8); align-items: center; }
+
+  /* ---- the words, in their own column ---- */
+  .sp4-mark { margin: 0 0 var(--space-4); color: var(--text-secondary); }
+  .sp4-say__lead {
+    margin: 0;
+    font-size: var(--text-h3);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-snug);
+    color: var(--text-primary);
+    min-block-size: 2.4em;
+  }
+  .sp4-say__body {
+    margin-block-start: var(--space-4);
+    max-inline-size: 42ch;
+    font-size: var(--text-lg);
+    line-height: var(--leading-relaxed);
+    color: var(--text-secondary);
+    min-block-size: 7.4em;
+  }
+  .sp4-plate:last-of-type .sp4-say__body { min-block-size: 5.2em; }
+
+  /* ---- the picture and its frame ---- */
+  .sp4-shot { position: relative; aspect-ratio: var(--ar); padding: var(--space-4); }
+  .sp4-win {
+    block-size: 100%;
+    overflow: hidden;
+    /* The wash, so an absent photograph is an empty mount rather than a
+       broken-image glyph, and so the plate itself stays invisible until its
+       act: the window is clipped shut before the sweep, and a wash on the
+       shot would announce the second plate a whole stage early. */
+    background: var(--surface-page, var(--grey-050));
+  }
+  .sp4-photo { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+
+  /* overflow: visible, WHICH check-edge-stroke-clip.py ASKED FOR BY NAME. All
+     eight paths lie ON the viewBox boundary — that is what a frame is — and an
+     <svg> clips to its viewport by default, so each of them would paint at
+     half its declared weight: the 1 px contour at 0.5 and the 2 px light at 1.
+     Nothing looks broken, the frame is just quietly thinner than the tree's
+     own strokes on the same page, which is the kind of drift a hairline never
+     announces. Same reason and same fix as .cf-page-header__figure. */
+  .sp4-frame {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .sp4-frame path {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+    transform-box: fill-box;
+    transform-origin: var(--o, 0 0);
+  }
+  .sp4-edge { stroke: var(--border-strong); stroke-width: 1; }
+  /* THE LIGHT IS OFF UNTIL SOMETHING IS DRIVING IT. The ramp pass is a FRONT,
+     not a frame: it exists while the edge is being drawn and goes out behind
+     itself. Where there is no timeline to move it — reduced motion, below the
+     gate, no view-timeline support, print — there is no front either, and a
+     lime rectangle standing permanently around a photograph is not the
+     settled state of this drawing. It is also the one place the settled state
+     could contradict its own rule: "the contour is the drawing", and the
+     contour is CF-Schwarz. So the base tier paints the black hairline alone
+     and the pinned block below turns the light on for the acts that use it. */
+  /* SIX, AND THE CONTOUR IS ONE. The light was 2 px — the tree's weight — and
+     the tree's weight is wrong here for a reason that is about length, not
+     about taste. On the root a lit stroke is 20 to 110 units long, so the
+     ramp's coloured leg (lime to Glas is its first 32 %) is most of what you
+     see. A plate's edge is the whole width of the picture, so the same ramp
+     spreads its colour over a few dozen pixels at the tip and spends the rest
+     of the run at #CFCFCF — which, painted at 2 px directly under a 1 px black
+     contour, is invisible. Measured on the render: four black edges drawing,
+     one lime pixel at each tip, and the review said the gradients were
+     missing. They were there; there was nowhere for them to be seen.
+
+     Six under one leaves two and a half px of ramp proud on each side of the
+     contour. The lime tip reads, the Glas leg reads, and the tail — #CFCFCF
+     against the CF-Grau wash — falls away on its own, which is the same
+     falling-away the root's own light does at the end of every stroke. */
+  .sp4-lit  { stroke-width: 6; opacity: 0; }
+
+  /* THE TICK is the brand's one diagonal on an otherwise square frame: a 45°
+     chamfer across the top-left corner, which is the angle the logo is cut on
+     and one of the five the whole system draws. It is what stops the plate
+     reading as a browser default border. */
+  .sp4-tick {
+    position: absolute;
+    inset-block-start: -1px;
+    inset-inline-start: -1px;
+    inline-size: var(--space-6);
+    block-size: var(--stroke-1, 1px);
+    background: var(--border-strong);
+    transform: rotate(45deg);
+    transform-origin: 0 0;
+    pointer-events: none;
+  }
+
+  @media (min-width: 64rem) {
+    /* WORDS LEFT, PICTURE RIGHT, four columns against eight. The review drew
+       it that way — "text about the picture on the left" — and the split is
+       the photographs' own: at the same height a 5:4 wants two thirds of the
+       width a 2.55:1 does, so the picture takes the larger share and the
+       words take a measure they can hold a line on. */
+    .sp4-plate { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
+  }
+
+  /* ============================================================
+     ACT 5 — the map. Base tier: no timeline, no camera, nothing hidden.
+     The world framing is the viewBox, so this is what a reduced-motion
+     reader, a narrow viewport, a browser without view timelines and the
+     printer all get — one world map with everything on it and all three
+     beats of copy under it, whole.
+     ============================================================ */
+  .map-track { position: relative; }
+  .map-stage {
+    display: grid;
+    gap: var(--space-8);
+    inline-size: min(100% - 2 * var(--space-6), var(--container-max, 76rem));
+    margin-inline: auto;
+    padding-block: var(--space-16);
+    align-content: center;
+  }
+  /* THE CROP IS ON THE BOX AND overflow: visible STAYS ON THE SVG, which is
+     two rules doing two different jobs and not one contradicting the other.
+     The camera scales the map group fourteen times at the Germany framing, so
+     everything outside that framing has to be cut — but cutting it at the
+     <svg> would also halve every stroke lying on the viewBox boundary, which
+     is the fault check-edge-stroke-clip.py exists to catch. Clipping the box
+     that CONTAINS the svg crops the camera without touching the viewport the
+     strokes are measured against. */
+  .map-box { position: relative; overflow: clip; }
+  .map { inline-size: 100%; block-size: auto; display: block; overflow: visible; }
+
+  /* THE COASTLINE IS A CONTOUR, at the one weight the whole system draws in,
+     and non-scaling so it stays a hairline while the camera moves. */
+  .map__land {
+    stroke: var(--border-default);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .map__land--market { stroke: var(--border-strong); }
+  /* fill-opacity AND NOT opacity, which check-authored-opacity.py insisted on
+     and was right about. The ramp is meant to sit at half strength so the
+     lattice and the contour stay readable through it — but lp-frame-in ends
+     `opacity: 1`, the animation origin outranks the author origin, and the
+     declaration never rendered at all: the fill arrived at full and the weave
+     under it was gone. fill-opacity is a different property, so the arrival
+     animates the element's opacity and the paint keeps its own strength. */
+  .map__fill  { fill: url(#map-ramp); fill-opacity: 0.5; }
+  .map__weave { fill: url(#map-weave); }
+
+  /* A POINT IS A STROKE, NOT A CIRCLE. There is no vector-effect for a fill,
+     so a <circle> would swell to a blot at the Germany framing and vanish at
+     the world one. A zero-length path with a round linecap draws a dot whose
+     radius IS a stroke width — constant at every camera scale, which is the
+     only thing that lets one set of geometry serve three framings. */
+  .map__dot {
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+  /* A CONTOUR AND ONE LIGHT, on a point as on everything else here. Lime on
+     the CF-Grau wash is the drawing's own colour and its own problem: at 6 px
+     on a light ground it is a smudge, and twenty-seven of them scattered over
+     a world map have to be findable. So an asset point is two strokes — the
+     black contour under the lime — which is illustration.html's sentence at
+     the smallest scale the page draws it. The office points need no ring:
+     they are CF-Schwarz already. */
+  .map__dot--office { stroke: var(--cf-schwarz); stroke-width: 9; }
+  .map__dot--ring   { stroke: var(--border-strong); stroke-width: 8; }
+  .map__dot--asset  { stroke: var(--cf-lime, #E1FF00); stroke-width: 5; }
+
+  .map__tags { position: absolute; inset: 0; pointer-events: none; }
+  .map__tag {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    translate: 12px -50%;
+    white-space: nowrap;
+    color: var(--text-secondary);
+  }
+  .map__tag i { font-style: normal; color: var(--text-muted); }
+  .map__tag i::before { content: " · "; }
+  .map__tag--land { translate: -50% -50%; color: var(--text-primary); }
+
+  .map__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .map__key { display: flex; align-items: center; gap: var(--space-2); }
+  .map__key-dot {
+    inline-size: 8px;
+    block-size: 8px;
+    border-radius: 50%;
+    background: var(--cf-lime, #E1FF00);
+    flex: none;
+  }
+  .map__key-name { color: var(--text-secondary); }
+  .map__key-n { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); }
+
+  .map-beat__mark { margin: 0 0 var(--space-3); color: var(--text-secondary); }
+  .map-beat__lead {
+    margin: 0;
+    font-size: var(--text-h3);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-snug);
+    color: var(--text-primary);
+    min-block-size: 1.3em;
+  }
+  .map-beat__body {
+    margin-block-start: var(--space-3);
+    max-inline-size: 62ch;
+    font-size: var(--text-lg);
+    line-height: var(--leading-relaxed);
+    color: var(--text-secondary);
+    min-block-size: 4.6em;
+  }
+  .map-say { display: grid; gap: var(--space-8); }
+
+  @keyframes lp-frame-draw { from { scale: 0; } to { scale: 1; } }
+  @keyframes lp-frame-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes lp-flow-out { to { opacity: 0; } }
+  /* The field's three verbs. The stream opens beyond the glow's nearest
+     corner (--fx/--fy, generated) and lands on its crossing at rest weight;
+     the pulse swells a quarter above rest and back, twice, in place; the
+     merge runs every glow to one point — the trunk's head in field units —
+     and puts it out. All lengths are user units (fill-box does not change
+     that), so the generated numbers land exactly. */
+  @keyframes sp-field-arrive {
+    from { translate: calc(var(--fx) * 1px) calc(var(--fy) * 1px); opacity: 0; }
+    to { translate: 0 0; opacity: var(--iso-rest, 1); }
+  }
+  @keyframes sp-field-pulse {
+    0%, 50%, 100% { opacity: var(--iso-rest, 1); scale: 1; }
+    25%, 75% { opacity: var(--sp-peak, 1); scale: 1.12; }
+  }
+  @keyframes sp-field-merge {
+    /* The glow BRIGHTENS through the flight and dies only on arrival: the
+       field's light concentrates as it converges, which is the story. A
+       linear fade across the whole run had the field invisible while it
+       was still mid-screen — the merge un-telling itself. */
+    45%, 80% { opacity: var(--sp-flare, 1); }
+    to {
+      translate: calc((var(--ux, 816) - var(--cx)) * 1px)
+                 calc((var(--uy, 272) - var(--cy)) * 1px);
+      scale: .25;
+      opacity: 0;
+    }
+  }
+  @supports (animation-timeline: view()) {
+    @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
+      main { --lp-measure: calc((max(45rem, 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }
+      /* ---- ACT 1 + 2: the track and the stage ---- */
+      /* 640vh, NOT 400. Nothing about the SCRIPT changed — every window is
+         still a contain-percent and the acts still divide the track the same
+         way. What changed is how many pixels a point of it is worth: at 400vh
+         the root's 49 strokes drew across 36-89 % of four screens, about 1.6
+         screens for the whole tree, and the reading of it was the plainest
+         kind of evidence — "the tree is generated too fast". At 640vh the same
+         53 points are 2.8 screens, so a stroke that had 26 px of wheel now has
+         42, and the closing still is two thirds of a screen instead of a third.
+
+         The track's height is the one honest place to spend that. Slowing the
+         ranges would have shortened the still or overrun the release; slowing
+         the easing would have made the front lurch. Scroll length is the only
+         variable that changes the SPEED of everything at once without changing
+         the order of anything. */
+      .sp-track {
+        height: 640vh;
+        view-timeline-name: --sp;
+        view-timeline-axis: block;
+      }
+      .sp-stage {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow: hidden;
+        overflow: clip;
+        display: grid;
+        /* END, NOT CENTER: the tree's eight feet stand on the stage's bottom
+           edge, which at release is exactly where the next section's top
+           slides in — so the drops meet the "Was wir machen" rule and the
+           lectern's verticals rise out of them. The seam the old landing
+           held with check-flow-handover.py, made by layout this time. */
+        align-content: end;
+        padding-block-start: var(--nav-height, 5rem);
+      }
+      /* THE DRAWING TAKES THE WHOLE CONTAINER inside the gate — the frame
+         below is container-wide on the same 1200-unit basis, so the three
+         pinned arrivals (flow 0, 600, 1200 = frame 0, 500, 1000) only line
+         up if the two share a width. The claim stops being a column and
+         becomes an overlay on the canopy's empty upper right, and it LEAVES
+         with the field it belongs to: "Tausende Sensoren erzeugen Daten,
+         aber daraus keine Antworten" is act 1's sentence, and the root is
+         the answer drawing itself. Outside the gate the two-column layout
+         above still holds and nothing overlaps. */
+      .sp-stage__inner { grid-template-columns: 1fr; }
+      .sp-stage__inner > .cf-statement__figure { grid-column: 1; grid-row: 1; }
+      /* THE HEADER'S HEIGHT COMES OUT OF THE DRAWING'S, so the feet land ON
+         the rule instead of behind the words. --sp-head-band is the whole
+         bottom band: the title's line box at --text-h2, the component's
+         padding-bottom, and one rung of air under the rule. Measured at the
+         gate floor and again at 1920 where the clamp is at its top; 5.5rem
+         covers both. The drawing gives the band up rather than overlapping it,
+         which is the only arrangement in which nineteen drops can be seen to
+         arrive at a line. */
+      .sp-stage > .container { --sp-head-band: 5.5rem; }
+      .sp-drawing { --sp-measure: min(100%, calc((100vh - 8rem - var(--sp-head-band)) * 1.9)); }
+      /* Flush to the drawing: the rule IS the drawing's baseline now, so the
+         component's own bottom margin would be a gap between the feet and the
+         thing they land on. */
+      .sp-head { margin-bottom: 0; margin-top: var(--space-3); }
+      .sp-stage__inner > .cf-statement__text {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: end;
+        align-self: start;
+        max-inline-size: 28rem;
+        position: relative;
+        animation: lp-flow-out linear forwards;
+        animation-timeline: --sp;
+        animation-range: contain 32% contain 40%;
+      }
+
+      /* Every animated part inside a sticky stage MUST read the track's
+         timeline: a sticky subject's own view() freezes at one value — the
+         same fact .cf-pin documents. The field's parts are this page's own
+         (sp-field-*), declared in full lists because animation-name is a
+         replacement and not an addition; components.css's cf-stmt rules key
+         --cf-iso, which does not exist on this svg, and are overridden
+         here wholesale rather than left to an inactive timeline. */
+      .sp-field__lattice {
+        opacity: 0;
+        --iso-rest: .26;
+        /* the ground's dimmed weight while the root has the stage — the
+           keyframe reads the property, so the number renders (the contract
+           check-authored-opacity.py holds) */
+        --sp-ground-dim: .1;
+        animation-name: cf-iso-fade, sp-ground-recede;
+        animation-timeline: --sp, --sp;
+        animation-range: contain 4% contain 14%,
+                         contain 36% contain 48%;
+        animation-fill-mode: both, forwards;
+        animation-duration: auto;
+        animation-timing-function: var(--ease-out), linear;
+      }
+      /* THE COPY BELONGS TO ACT 2, AND CSS SAYS SO RATHER THAN THE SCRIPT.
+         cf-stream.js is optional by contract — "without the script every line
+         is simply present" — and a line that is simply present is present from
+         the first pixel of the track, over act 1's field, which is not where
+         it belongs. So the block fades up on --sp over the window the trunk
+         leaves the orb in, and leaves with the section. With the script the
+         fade and the typing agree; without it the copy still arrives when the
+         root does, whole. */
+      .sp-say {
+        animation: lp-frame-in linear both;
+        animation-timeline: --sp;
+        animation-range: contain 42% contain 52%;
+      }
+
+      /* ---- THE CALLOUT LAYER, INSIDE THE PIN ----
+         The layer only exists where the stage is the viewport, because that
+         is the premise --sp-u is built on; see its own note above.
+
+         AND IT READS --sp, NOT view(). components.css drives cf-annot-draw off
+         the set's own view() timeline, which is right for a figure scrolling
+         past and wrong here for the reason .cf-pin documents in one line: a
+         sticky subject's own view() freezes at one value. Every other animated
+         part in this stage reads the track's timeline and so does this.
+
+         WHEN, is the order the two things happen in on paper — the drawing is
+         finished before it is labelled. The beads land by 26 % and pulse
+         through 36 %; the leaders draw over 26-34 %, so a note appears on a
+         sensor that has arrived and is holding still. They leave with the
+         merge: a label pointing at a light that is already halfway to the
+         trunk is a label pointing at nothing. */
+      .sp-annots {
+        /* THE LAYER FADES IN WITH THE LEADERS, and that is not belt and
+           braces. --annot-draw collapses the leader and takes the label's
+           opacity with it, but the ANCHOR is a ::before with a border and it
+           is drawn at every value — correct in the component's own figure,
+           where the drawing is static and the anchor is part of it, and wrong
+           here: for the twenty points of track before the notes are due, the
+           stage carried twenty-one stray diamonds beside twenty-one spheres,
+           with no leader and no word to say what they were. */
+        animation-name: lp-frame-in, cf-annot-draw, lp-flow-out;
+        animation-timeline: --sp, --sp, --sp;
+        animation-range: contain 26% contain 34%,
+                         contain 26% contain 34%,
+                         contain 36% contain 44%;
+        animation-fill-mode: both, both, forwards;
+        animation-duration: auto;
+        animation-timing-function: var(--ease-out), var(--ease-out), linear;
+      }
+
+      /* THE SENSOR'S THREE VERBS, one property ledger. `translate` belongs
+         to the stream (corner -> crossing) and then to the merge (crossing
+         -> trunk head): the merge is later in the list, so its forwards
+         fill takes the property over exactly at its own window and not
+         before. `scale`/`opacity` swell in the pulse and die in the merge
+         the same way. transform-box: fill-box puts the origin on the glow
+         itself; lengths stay user units, the same fact the root's strokes
+         ride. The merge target is (--ux,--uy) — published on the svg by
+         the aim script below, falling back to the authored focus — minus
+         the glow's own crossing, so one keyframe serves all 25. */
+      .sp-field .cf-stmt-sensor {
+        transform-box: fill-box;
+        transform-origin: 50% 50%;
+        /* THE SWELL IS A FRACTION OF THE HEADROOM, not a fixed step, and that
+           is what lets the field rest bright. `rest + 0.25` was safe while the
+           beads rested at 0.2..0.6; at 0.45..0.85 it computes 1.1 for the hot
+           ones, the browser clamps it to 1, and the four brightest sensors in
+           the drawing stop pulsing at all — an animation deleted by a number
+           moving somewhere else, which is exactly the failure mode
+           check-authored-opacity.py exists for. Taking 45 % and 65 % of what
+           is LEFT can never exceed 1 and always leaves a swell to see. */
+        --sp-peak: calc(var(--iso-rest, 1) + (1 - var(--iso-rest, 1)) * 0.45);
+        --sp-flare: calc(var(--iso-rest, 1) + (1 - var(--iso-rest, 1)) * 0.65);
+        animation-name: sp-field-arrive, sp-field-pulse, sp-field-merge;
+        animation-timeline: --sp, --sp, --sp;
+        animation-range: contain calc((6 + var(--m) * 12) * 1%)
+                         contain calc((14 + var(--m) * 12) * 1%),
+                         contain calc((26 + var(--m) * 2) * 1%)
+                         contain calc((34 + var(--m) * 2) * 1%),
+                         contain calc((36 + var(--m) * 6) * 1%)
+                         contain calc((42 + var(--m) * 6) * 1%);
+        animation-fill-mode: both, both, forwards;
+        animation-duration: auto;
+        animation-timing-function: var(--ease-out), ease-in-out, var(--ease-out);
+      }
+
+      /* THE SEAM IS TIGHT. The cards' section keeps its ordinary rhythm
+         outside the gate; inside it, the tree's feet stand on the stage's
+         bottom edge and the section's 126 px of head-padding was 126 px of
+         dead ground between the drops and the rule they land on. One rung
+         keeps the hairline from touching the dives' tips. */
+      .sp-track + .section { padding-block-start: var(--space-4); }
+
+      /* ---- the root: same range algebra the chain check holds ---- */
+      /* THE RATE IS DERIVED FROM THE TREE'S OWN DEPTH, and it moves whenever
+         the tree does. The act gives the root 42 to 89 points of the track,
+         and the drawing's longest walk is whatever its deepest terminal's
+         l + u comes to — 3.0805 on the first grown root, 3.74 on the
+         symmetric truss, 3.11 on the grown root that ships. So the rate is
+         the head divided by the walk: (86.88 - 42) / 3.11 = 14.4309, which
+         lands the last contour at 86.88 and the light's fade at 88.88, both
+         where they have been since the clearance was swept at them and both
+         inside the 89 the still begins at. 14.025 is not a tuned number; it
+         is 44.88 / 3.20. check-flow-chain.py recomputes it from the shipped
+         strokes and holds both tails. */
+      .sp-stage { --flow-c: 14.96; }
+      .lp-flow__trunk { display: block; }
+      .lp-flow__seg, .lp-flow__light, .lp-flow__node, .lp-flow__val, .lp-flow__read {
+        transform-box: fill-box;
+        transform-origin: var(--o, 0 0);
+      }
+      .lp-flow__seg {
+        animation: lp-frame-draw linear both;
+        animation-timeline: --sp;
+        animation-range: contain calc((42 + var(--l) * var(--flow-c)) * 1%)
+                         contain calc((42 + (var(--l) + var(--u)) * var(--flow-c)) * 1%);
+      }
+      .lp-flow__light {
+        animation: lp-frame-draw linear, lp-flow-out linear;
+        animation-timeline: --sp, --sp;
+        animation-range: contain calc((36 + var(--l) * var(--flow-c)) * 1%)
+                         contain calc((36 + (var(--l) + var(--u)) * var(--flow-c)) * 1%),
+                         contain calc((38 + (var(--l) + var(--u)) * var(--flow-c)) * 1%)
+                         contain calc((44 + (var(--l) + var(--u)) * var(--flow-c)) * 1%);
+        animation-fill-mode: both, forwards;
+      }
+      /* ------------------------------------------------------------------
+         THE LEAVES GO ON GLIMMERING, and they are the only thing on this page
+         that does.
+
+         Everywhere else the light is a FRONT: it draws down a stroke, the
+         contour lands behind it, and the light fades out — lp-flow-out, six
+         points behind its own draw. That is the right behaviour for a route,
+         which is a thing data passed through. It is the wrong behaviour for a
+         FOOT, which is the thing data is arriving from and has not stopped
+         arriving from: eighteen strokes end on the rail and every one of them
+         went dark the moment the front had gone by, so a drawing of thousands
+         of sensors producing data ended with nothing on it still producing
+         anything.
+
+         So a leaf does not fade to nothing. It settles to --leaf-peak and then
+         breathes on --arrive-period, the 2.4 s the system already spends on
+         "the one thing on screen that is honestly still happening" — slow on
+         purpose, because a fast loop reads as impatience (tokens.css, THE
+         WAIT). The amplitude is this page's own; see --leaf-peak below. The lime ramp is
+         already on the stroke — this only decides how much of it reaches a
+         pixel — so what shimmers is the gradient itself, brightest at the tip
+         where the lime stop sits and trailing into Glas at the junction above.
+
+         TWO PROPERTIES, NOT ONE, and that is what lets three animations share
+         one element without fighting. The settle owns `opacity` on the scroll
+         timeline; the shimmer owns `stroke-opacity` on the document clock.
+         They multiply, so the leaf sits between 0.06 and 0.18 of the ramp and
+         never brighter — put both on `opacity` and the last one in the list
+         simply wins, which would have the leaf breathing all the way through
+         its own draw.
+
+         AND THEY DO NOT BREATHE IN UNISON. A negative delay off --l — the
+         stroke's own run from the void — starts each leaf at a different
+         phase, so the light moves ACROSS the fringe instead of the whole row
+         blinking. Eighteen strokes pulsing together is a blink; eighteen
+         strokes pulsing out of phase is a root.
+
+         Inside the reduced-motion gate with everything else on this page, so
+         a reader who has asked for stillness gets a drawing that is finished
+         and still. ------------------------------------------------------ */
+      /* --leaf-peak, AND IT IS NOT --arrive-light-peak. The first pass reused
+         that token and the shimmer could not be seen: 0.18 of a ramp that is
+         mostly CF-Grau, times a 0.35-1 swing, is 0.06 to 0.18 of a mid grey
+         over a light wash — "cant see the shimmer leaves", which is the whole
+         test a light like this has to pass.
+
+         The token was the wrong one to borrow. --arrive-light-peak is capped
+         at 0.18 because in THAT pattern a light band crosses a dashed ghost
+         contour and lightens it, and tokens.css works the contrast out: past
+         0.52 the ghost fails. Here nothing is crossed. The leaf's own contour
+         is drawn underneath at full weight by .lp-flow__seg and stays there,
+         so raising this can only add lime over the wash — it cannot take
+         contrast off anything.
+
+         0.5 is chosen against that same arithmetic anyway, one notch inside
+         the 0.52 the ceiling row gives, so the number is defensible by a
+         measurement this system already has rather than by a fresh sweep. With
+         the 0.3-1 swing a leaf sits between 0.15 and 0.5 of the ramp.
+
+         The other half of being visible is not amplitude but WHICH PART OF THE
+         RAMP lands on the stroke — see LEAF_STRETCH in gen-flow-root.py. */
+      .sp-stage { --leaf-peak: 0.55; }
+      /* AND IT IS WIDER THAN THE STROKE IT LIGHTS, which is the third thing
+         that had to change and the one that decides whether this reads as
+         lime at all.
+
+         A route's light is 2 px over a 1 px contour, so it very nearly covers
+         it — right for a front, where the point is a travelling tip and the
+         contour behind it has not been drawn yet. On a settled leaf it is
+         wrong twice over. Composited on top of --border-strong the lime comes
+         out olive, because half-opacity yellow over black is olive; and if it
+         is raised until it is not, it has replaced the contour with a colour
+         that has almost no contrast against the wash — #E1FF00 on the page
+         wash is about 1.2:1, which is why --arrive-light-peak is capped where
+         it is.
+
+         6 px is the way out of that pinch: the black hairline stays crisp
+         inside it and the lime sits in the two and a half pixels either side,
+         so the leaf is a lit line rather than a line painted lime. Nothing is
+         covered, nothing loses contrast, and what shimmers is the ramp beside
+         the contour — which is what a light does. */
+      /* AND IT GLOWS INTO THE GAPS. "add the shimmer between the bottom
+         leaves" — the light was ON the strokes and nowhere else, so a fringe
+         of twenty-five feet read as twenty-five lit lines with dead wash
+         between them, which is a row of markers rather than a root standing in
+         light.
+
+         --glow-light is the answer and it is already in tokens.css: two
+         drop-shadows, lime at 45 % of the reach and Glas at all of it, which
+         is the same ramp this drawing is drawn in. A filter spreads OUTWARD
+         from the ink, so putting it on the leaves puts light in the spaces
+         between them without drawing anything there — nothing is added to the
+         construction, and there is no geometry in the gaps to explain.
+
+         36 px because the fringe's gaps are 15 to 130 units and one unit is
+         0.85 px at the gate floor: 36 px reaches about halfway across a
+         median gap from each side, so neighbours meet in the middle and the
+         wide gaps stay open. The glow rides stroke-opacity with the rest of
+         the leaf, so what pools between the feet breathes with them. */
+      .lp-flow__leaf {
+        stroke-width: 6;
+        --glow-r: 36px;
+        /* Composed here, from tokens.css's three ingredients, for the reason
+           the orb's note gives above: a filter assembled on :root bakes in the
+           :root reach and this asked for 36 px and rendered 12. It is the same
+           two shadows the system's own rule composes — the ratio and the
+           colours are the published ones, so a palette move still moves this. */
+        filter:
+          drop-shadow(0 0 calc(var(--glow-r) * var(--glow-core)) var(--glow-lime))
+          drop-shadow(0 0 var(--glow-r) var(--glow-glas));
+      }
+      .lp-flow__leaf {
+        animation: lp-frame-draw linear,
+                   sp-leaf-settle linear,
+                   sp-leaf-shimmer var(--arrive-period) ease-in-out infinite alternate;
+        animation-timeline: --sp, --sp, auto;
+        animation-range: contain calc((36 + var(--l) * var(--flow-c)) * 1%)
+                         contain calc((36 + (var(--l) + var(--u)) * var(--flow-c)) * 1%),
+                         contain calc((38 + (var(--l) + var(--u)) * var(--flow-c)) * 1%)
+                         contain calc((44 + (var(--l) + var(--u)) * var(--flow-c)) * 1%),
+                         /* `normal`, NOT `auto`. animation-range takes `normal`
+                            or a range name and a length; `auto` is not one of
+                            its keywords, and one invalid item drops the WHOLE
+                            declaration — so all three animations fell back to
+                            animation-range: normal and ran across the entire
+                            track. The leaves were 15 % drawn and glowing at the
+                            top of act 1, which is the drawing lit before it
+                            exists. animation-timeline DOES take `auto` and that
+                            is where the confusion came from: the two lists sit
+                            one under the other and only one of them means the
+                            document clock by that name. */
+                         normal;
+        animation-fill-mode: both, forwards, none;
+        animation-delay: 0s, 0s, calc(var(--l) * -370ms);
+      }
+
+      /* THE SOURCE FILLS AS THE FIELD ARRIVES IN IT.
+         The orb shipped with no animation at all, so it stood at full size in
+         the top left of act 1 — before a single sensor had moved, and next to
+         a claim that says the data has nowhere to go yet. A source that is
+         already full is not a source; it is a decoration that happens to be
+         where one belongs.
+
+         Its window is the field's own convergence, exactly: sp-field-merge
+         runs each glow from its crossing to the trunk's head over
+         36 + m*6 → 42 + m*6, where --m is the sensor's slot, so the last of
+         the twenty-five lands at 48. The orb opens at 36 with the first of
+         them and is full at 50, two points after the last — which is the
+         difference between growing WITH the merge and growing at the same
+         time as it.
+
+         Scale and opacity together, not scale alone: a disc scaling up from
+         zero at full opacity reads as a shape being pushed toward the reader,
+         and this is a light coming on. --ease-out puts most of the growth in
+         the first third, so the orb is present early and then only swells —
+         the same curve every arrival in this system uses. */
+      /* THE SOURCE ARRIVES LAST, which is the mirror said in the motion lane.
+         It filled at 36-50 %, BEFORE the first stroke left it, because it was
+         the thing the root grew out of. It is now the thing the root grows
+         INTO: the trunk's own window closes at 42 + 3 x --flow-c = 85.3 %, so
+         the orb comes on over 84-91 % and the last gesture of the act is
+         nineteen routes having become one light. */
+      .lp-flow__orb {
+        animation: sp-orb-fill linear both;
+        animation-timeline: --sp;
+        animation-range: contain 84% contain 91%;
+      }
+
+      .lp-flow__node {
+        animation: lp-frame-in linear both;
+        animation-timeline: --sp;
+        animation-range: contain calc((43 + var(--l) * var(--flow-c)) * 1%)
+                         contain calc((49 + var(--l) * var(--flow-c)) * 1%);
+      }
+      .lp-flow-data :is(.lp-flow__val, .lp-flow__read) {
+        opacity: 0;
+        animation: lp-frame-in linear both;
+        animation-timeline: --sp;
+        animation-range: contain calc((44 + var(--l) * var(--flow-c)) * 1%)
+                         contain calc((50 + var(--l) * var(--flow-c)) * 1%);
+        animation-fill-mode: forwards;
+      }
+
+      /* ---- ACT 5: the map, and the camera pulling back ---- */
+      /*
+         THE SCRIPT, in contain % of this track. Three stages, one per beat,
+         and cf-stream.js divides the track by [data-stream-stage] so the
+         typed lines below are fractions of their own third.
+
+             2 - 16   the coastline draws, the two office dots arrive
+             4 - 21   beat 01 types (Konstanz, Berlin)
+            26 - 34   THE CAMERA PULLS BACK to Germany + United Kingdom
+            30 - 40   the two markets fill with the ramp
+            36 - 54   beat 02 types
+            58 - 66   THE CAMERA PULLS BACK to the world
+            64 - 76   the asset points arrive, kind by kind
+            68 - 78   the legend
+            70 - 87   beat 03 types
+            87 -100   the still
+
+         THE MOVES SIT BETWEEN THE BEATS AND NEVER UNDER ONE. The labels are
+         HTML positioned as percentages of the map box for their own stage's
+         framing, and a percentage is only exact while the camera is still —
+         so the camera is still for the whole of every reveal and moves only
+         in the gaps. That is not a rhythm choice, it is what makes one set
+         of geometry legal at three scales. */
+      .map-track {
+        height: 500vh;
+        view-timeline-name: --map;
+        view-timeline-axis: block;
+      }
+      .map-stage {
+        position: sticky;
+        top: 0;
+        block-size: 100vh;
+        overflow: clip;
+        padding-block: var(--space-8);
+        /* FLOORED, which check-grid-tracks.py requires of every fr track and
+           which this row needs on its own account: an <svg> with an intrinsic
+           aspect ratio is content with a height, and an unfloored 1fr refuses
+           to go under it. Measured before flooring: the map row took its
+           891 px intrinsic height, the legend was pushed to y 902 in a 900 px
+           stage, and the clip ate it. */
+        grid-template-rows: auto minmax(0, 1fr) auto;
+      }
+      .map-box { block-size: 100%; }
+      .map { block-size: 100%; }
+
+      /* THE CAMERA. Three transforms, generated from the same projection the
+         paths are, applied to the map group about the view box's own origin.
+         Each keyframe holds its framing across the whole beat it belongs to
+         and moves only in the gap before the next, which is why the steps
+         are written as pairs of identical stops rather than as a glide. */
+      /* THE THREE FRAMINGS, generated. They are custom properties and therefore
+         need a rule to live in — declared loose between rules they parse as
+         nothing and the camera silently never moves, which is exactly what the
+         first render showed: the world framing at every stage, and the labels
+         placed for a zoom that had not happened. */
+      .map-track {
+        /* gen-world-map: shots */
+        --cam-de: translate(-7038.85px, -4330.26px) scale(14.25);
+        --cam-dega: translate(-4002.74px, -2440.07px) scale(8.82);
+        --cam-welt: translate(0px, 0px) scale(1);
+        /* gen-world-map: end shots */
+      }
+      .map__cam {
+        transform-box: view-box;
+        transform-origin: 0 0;
+        animation: map-cam var(--ease-out, ease-out) both;
+        animation-timeline: --map;
+        animation-range: contain 0% contain 100%;
+      }
+      @keyframes map-cam {
+        0%, 26%   { transform: var(--cam-de); }
+        34%, 58%  { transform: var(--cam-dega); }
+        66%, 100% { transform: var(--cam-welt); }
+      }
+
+      /* The coastline draws the way every other contour on this page does:
+         one front, one direction, the light leading. There are 161 of them,
+         so they share one window rather than carrying 161 staggers. */
+      .map__land {
+        animation: map-draw linear both;
+        animation-timeline: --map;
+        animation-range: contain 2% contain 16%;
+      }
+      @keyframes map-draw { from { opacity: 0; } to { opacity: 1; } }
+
+      .map__fill, .map__weave {
+        animation: lp-frame-in linear both;
+        animation-timeline: --map;
+        animation-range: contain 30% contain 40%;
+      }
+      .map__dot--office {
+        animation: map-dot var(--ease-out, ease-out) both;
+        animation-timeline: --map;
+        animation-range: contain 10% contain 18%;
+      }
+      /* THE ASSETS ARRIVE KIND BY KIND, in the legend's own order, so the
+         reader can follow which dots belong to which line rather than being
+         handed twenty-seven at once. */
+      .map__dot--asset, .map__dot--ring {
+        animation: map-dot var(--ease-out, ease-out) both;
+        animation-timeline: --map;
+        animation-range: contain calc((64 + var(--n, 0) * 2) * 1%)
+                         contain calc((72 + var(--n, 0) * 2) * 1%);
+      }
+      @keyframes map-dot { from { stroke-width: 0; } }
+
+      .map__tag {
+        animation: lp-frame-in linear both, lp-flow-out linear;
+        animation-timeline: --map, --map;
+        animation-range: contain calc((12 + var(--s) * 32 + var(--i) * 3) * 1%)
+                         contain calc((18 + var(--s) * 32 + var(--i) * 3) * 1%),
+                         contain calc((24 + var(--s) * 32) * 1%)
+                         contain calc((30 + var(--s) * 32) * 1%);
+        animation-fill-mode: both, forwards;
+      }
+      .map__key {
+        animation: lp-frame-in linear both;
+        animation-timeline: --map;
+        animation-range: contain calc((68 + var(--i) * 1.6) * 1%)
+                         contain calc((74 + var(--i) * 1.6) * 1%);
+      }
+
+      /* ONE BEAT ON SCREEN AT A TIME. The three are stacked in one grid cell
+         and each is lifted out as the next arrives — the same construction
+         act 4's plates use, for the same reason: they are three readings of
+         one picture, not three paragraphs. */
+      .map-say { grid-template-areas: "beat"; gap: 0; }
+      .map-beat {
+        grid-area: beat;
+        animation: lp-frame-in linear both, lp-flow-out linear;
+        animation-timeline: --map, --map;
+        animation-range: contain calc((2 + var(--s) * 33) * 1%)
+                         contain calc((8 + var(--s) * 33) * 1%),
+                         contain calc((28 + var(--s) * 33) * 1%)
+                         contain calc((33 + var(--s) * 33) * 1%);
+        animation-fill-mode: both, forwards;
+      }
+      /* THE LAST BEAT ARRIVES AND STAYS, so it takes the in-animation alone
+         rather than restating the pair and hoping the second half is ignored.
+         The act ends on it; a section that fades its own last frame has
+         nothing to hand over. */
+      .map-beat:last-child {
+        animation-name: lp-frame-in;
+        animation-timeline: --map;
+        animation-range: contain 68% contain 74%;
+        animation-fill-mode: both;
+      }
+
+      /* ---- ACT 4: the plates, drawn and swept and read ---- */
+      /*
+         ONE OFFSET, EVERY WINDOW. --p is the plate's index and --t0 is the
+         half of the track it owns, so every window below is written as
+         "--t0 plus a number" and the second plate is the first one moved
+         fifty points along. That is the construction .lp-flow__seg uses with
+         --l and --flow-c: one constant, one arithmetic, no second copy of the
+         schedule to keep equal to the first.
+
+         THE SCRIPT, in contain % of this track:
+
+            t0+ 2 - 18   the four edges draw, clockwise from the top-left,
+                         each 2 points behind the last — in the family's ramp
+            t0+ 6 - 26   the ramp fades off each edge it has closed, leaving
+                         the CF-Schwarz contour standing
+            t0+14 - 18   the chamfer tick arrives
+            t0+12 - 30   the photograph sweeps in under the frame
+            t0+ 4 - 45   the words type beside it (cf-stream.js owns this one:
+                         it divides the track by [data-stream-stage] and the
+                         line windows are fractions of the stage)
+            t0+45 - 50   the still. Nothing moves while the plate is read.
+            t0+46 - 52   the plate leaves, and the next one has the stage
+
+         THE PLATES ARE STACKED, NOT LAID OUT. Each owns the whole stage, so
+         they are in one grid cell and the first is lifted out as the second
+         arrives. Only the first needs an exit — :last-of-type keeps the team
+         plate standing, because the act ends on it and a section that fades
+         its own last frame out has nothing to hand over. */
+      .sp4-track {
+        height: 400vh;
+        view-timeline-name: --sp4;
+        view-timeline-axis: block;
+      }
+      .sp4-stage {
+        position: sticky;
+        top: 0;
+        block-size: 100vh;
+        align-content: center;
+        overflow: clip;
+        padding-block: 0;
+      }
+      /* ONE CELL, BOTH PLATES. And the set is capped so the taller of the two
+         ratios fits the stage: the picture is 8 of 12 columns, so a 5:4 plate
+         is set-width x 8/12 / 1.25 = set-width / 1.875 tall, and capping the
+         set at 1.875 x the height it may spend is what guarantees the
+         composition fits a 100vh stage without either plate being measured
+         against the viewport on its own. */
+      .sp4-set {
+        grid-template-areas: "plate";
+        inline-size: min(100% - 2 * var(--space-8), 76rem, 66vh * 1.875);
+        gap: 0;
+      }
+      .sp4-plate { grid-area: plate; }
+      .sp4-plate:not(:last-of-type) {
+        animation: sp4-plate-out var(--ease-out, ease-out) both;
+        animation-timeline: --sp4;
+        animation-range: contain calc((var(--t0) + 46) * 1%)
+                         contain calc((var(--t0) + 52) * 1%);
+      }
+      @keyframes sp4-plate-out {
+        to { opacity: 0; translate: 0 calc(var(--space-8) * -1); }
+      }
+      .sp4-plate { --t0: calc(var(--p) * 50); }
+
+      /* THE EDGES DRAW. scale on one axis from the corner the pen starts at,
+         which is lp-frame-draw's exact verb and the reason each path names
+         its own transform-origin. Both passes share the window; only the lit
+         one has somewhere to go afterwards. */
+      /* EACH PATH NAMES ITS OWN AXIS, and it is a class rather than an
+         nth-child for a reason that cost a render. The first pass of this
+         selected the horizontals with `.sp4-frame path:nth-child(4n+1)`,
+         which is (0,2,1) against `.sp4-lit`'s (0,1,0) — so the nth-child rule
+         WON the cascade on animation-name and replaced the light's two-name
+         list with one, silently dropping lp-flow-out from the top and bottom
+         edges. Measured at 44 % of the track: the frame had settled to black
+         on the left and right and was still lime along the other two.
+         Matching specificities is the fix; naming the thing you mean is why
+         it stays fixed. */
+      /* THE LIGHT LEADS AND THE CONTOUR FOLLOWS IT, which is the tree's own
+         mechanic and was the thing this frame was missing. The root does not
+         draw its two passes together: .lp-flow__light opens at 36 + l x c and
+         .lp-flow__seg at 42, so the lit front runs six points of the track
+         ahead of the black and you watch a coloured line lay the stroke down
+         with the contour arriving behind it. Drawn in the same window — which
+         is what this did — the 1 px black sits under the 2 px ramp for the
+         whole run and the only colour anywhere is the pixel at the tip. The
+         gradients were there; nothing could see them.
+
+         Four points of lead here against the tree's six, because an edge's
+         window is sixteen points and the root's longest is forty-five: the
+         same fraction of the run, not the same number. */
+      .sp4-edge {
+        animation: linear both;
+        animation-timeline: --sp4;
+        animation-range: contain calc((var(--t0) + 6 + var(--e) * 2) * 1%)
+                         contain calc((var(--t0) + 16 + var(--e) * 2) * 1%);
+      }
+      .sp4-edge.sp4-x { animation-name: sp4-draw-x; }
+      .sp4-edge.sp4-y { animation-name: sp4-draw-y; }
+      @keyframes sp4-draw-x { from { scale: 0 1; } to { scale: 1 1; } }
+      @keyframes sp4-draw-y { from { scale: 1 0; } to { scale: 1 1; } }
+
+      /* AND THE COLOUR PASSES. The ramp is the front, not the frame: it draws
+         the edge and goes out behind itself, four points after that edge has
+         closed, leaving the black hairline that was drawn underneath it. The
+         root does this to every stroke it has — .lp-flow__light fades and
+         .lp-flow__seg remains — and it is the whole reason a frame can arrive
+         in lime on a page whose contour colour is CF-Schwarz. */
+      /* THE LIGHT IS OFF AT REST AND ON WHERE A TIMELINE DRIVES IT. Two
+         declarations, one per tier, which is what this always meant — the
+         third animation that used to carry the same value was there to dodge
+         a source-order fight the base block no longer picks.
+
+         lp-flow-out reads the 1 and takes it to 0 behind the front. Its fill
+         is `forwards` and not `both`, so before its own range it does not
+         apply and the light stands at the value declared here. */
+      .sp4-lit {
+        opacity: 1;
+        animation-timeline: --sp4, --sp4;
+        animation-timing-function: linear, linear;
+        animation-range: contain calc((var(--t0) + 2 + var(--e) * 2) * 1%)
+                         contain calc((var(--t0) + 12 + var(--e) * 2) * 1%),
+                         contain calc((var(--t0) + 18 + var(--e) * 2) * 1%)
+                         contain calc((var(--t0) + 26 + var(--e) * 2) * 1%);
+        animation-fill-mode: both, forwards;
+      }
+      .sp4-lit.sp4-x { animation-name: sp4-draw-x, lp-flow-out; }
+      .sp4-lit.sp4-y { animation-name: sp4-draw-y, lp-flow-out; }
+
+      .sp4-tick {
+        animation: lp-frame-in linear both;
+        animation-timeline: --sp4;
+        animation-range: contain calc((var(--t0) + 14) * 1%)
+                         contain calc((var(--t0) + 18) * 1%);
+      }
+
+      /* THE SWEEP. A clip-path inset opened from the top edge, so the picture
+         arrives the way the front travelled in act 2 — downward, into the
+         frame that is already waiting for it. Paired with a small scale
+         settle on the image itself: the plate does not move, the picture
+         inside it comes to rest, which is the difference between a photograph
+         arriving and a box growing.
+
+         clip-path AND NOT height, because the window's height is the shot's
+         and the shot's is fixed by aspect-ratio. Animating the box would
+         re-lay the frame it is inside; animating the clip moves nothing. */
+      .sp4-win {
+        animation: sp4-sweep linear both;
+        animation-timeline: --sp4;
+        animation-range: contain calc((var(--t0) + 12) * 1%)
+                         contain calc((var(--t0) + 30) * 1%);
+      }
+      @keyframes sp4-sweep {
+        from { clip-path: inset(0 0 100% 0); }
+        to   { clip-path: inset(0 0 0 0); }
+      }
+      .sp4-photo {
+        animation: sp4-settle var(--ease-out, ease-out) both;
+        animation-timeline: --sp4;
+        animation-range: contain calc((var(--t0) + 12) * 1%)
+                         contain calc((var(--t0) + 36) * 1%);
+      }
+      @keyframes sp4-settle { from { scale: 1.06; } to { scale: 1; } }
+
+      /* The mark arrives with the frame it labels; the typed lines below it
+         are cf-stream.js's, and they need the column to be there already. */
+      .sp4-mark {
+        animation: lp-frame-in linear both;
+        animation-timeline: --sp4;
+        animation-range: contain calc((var(--t0) + 4) * 1%)
+                         contain calc((var(--t0) + 10) * 1%);
+      }
+
+      /* ---- ACT 3: the cards' pinned stage, carried verbatim ---- */
+      .lp-proc-stage { --pin-measure: var(--lp-measure);
+        block-size: max(45rem, calc(100% - var(--cf-consent-height, 0px))); }
+      /* AND THE SAME FINDING ON THE OTHER AXIS. The note above is about the
+         chrome running WIDER than the card; this is the chrome drifting AWAY
+         from it as the viewport gets taller, and it is the larger of the two.
+
+         The card has two caps, not one: --pin-measure above, derived from the
+         viewport height, and the container's own width, which the card reaches
+         at a viewport of about 778 at 1280 wide and 848 at 1440. Above that
+         crossover the height cap no longer binds — the card is a fixed size —
+         while .cf-pin__inner's middle row is minmax(0, 1fr) and takes every
+         further pixel of viewport height. .lp-proc-steps then centres the card
+         in a row far taller than it, and the whole surplus lands in the two
+         gaps that are the only thing saying the index and the bar belong to
+         the card. Measured, index to card / card to bar:
+
+           1280 x 720     21 / 37     the composition as designed
+           1280 x 780     22 / 38     the crossover
+           1280 x 900     82 / 98
+           1512 x 982     88 / 104
+           1920 x 1080   137 / 153    an ordinary desktop, 6.5x the design
+           1280 x 1200   232 / 248
+           1920 x 1440   317 / 333    15x
+
+         At 1280 x 1200 the index stands 232 px above the card it numbers and
+         the bar 248 px below it, with the card holding 48 % of the screen and
+         the rest empty wash — 01 over nothing, which is the exact sentence the
+         width fix was written to end. It is also the answer to whether 719 ->
+         720 is the largest discontinuity on this stage: it is not. The gate's
+         own step in card width is 115 px (1139 -> 1024 at 1280 wide); the
+         continuous drift above it is 331 px over the same page's height range.
+         There is no accident at 800 — 800 is simply 22 px into a slide that
+         runs everywhere above the crossover.
+
+         SO THE SURPLUS GOES OUTSIDE THE TRIO INSTEAD OF INSIDE IT. The middle
+         row is sized to the card rather than to the leftovers, and the three
+         rows are centred as one group in the stage's content box, which is
+         what the composition already was at 720 where it was drawn. The gaps
+         are constant at every size the gate admits — 16 / 16 at a 16 px
+         default, 24 / 24 at a 24 px one, because the rung is a rem token and
+         the drift was not.
+
+         minmax(0, min-content) AND NOT `auto`, which reads the same and is
+         not. Both size the row to the card while there is room. When there is
+         not — the card cropped by 16 px with --pin-measure forced off, the
+         only way to reach that state — `auto` grows the trio past the padding
+         box and the index rides up to 76 px, under a nav band that starts at
+         84: the failure .cf-pin__inner's padding exists to prevent. The
+         minmax form stays inside the padding box and lets the card crop
+         symmetrically against the stage's own clip, which is the right thing
+         to lose. Nav clearance is not the part that gives.
+
+         The 13rem chrome is untouched and is now a reservation rather than a
+         measurement: with the surplus outside, the trio needs 181 px at 1280 x
+         720 against the 208 the cap withholds, so the card is 52 px narrower
+         than it could be at the sizes where the height cap binds. Slack, not
+         crop — retuning the derivation is a separate change with its own
+         measurements, and it is stated here so it is not rediscovered as a
+         bug. */
+      .lp-proc-stage {
+        grid-template-rows: auto minmax(0, min-content) auto;
+        align-content: center;
+        /* THE RUNG, DECLARED WHERE IT CAN TAKE EFFECT. It used to be
+           `.lp-proc-index { padding-block-end: var(--space-4) }` and it never
+           once applied: that is (0,1,0) and base.css:150 writes
+           `ol[role="list"] { padding: 0 }` at (0,1,1), so the index's computed
+           padding-bottom was 0 px at every viewport on this page. It is the
+           bug .cf-pin__inner's own note records one property over — `margin-
+           inline: auto` losing to the same selector's `margin: 0`, fixed there
+           by moving to justify-self, "nobody else's property". The same move:
+           the gap between two grid rows is the grid's, and no reset owns it.
+
+           Invisible until now because 21 to 317 px of slack sat in that gap
+           anyway. Remove the slack without this and the index would sit flush
+           on the card's top edge — which is what the first draft of this fix
+           did, and how the dead declaration was found. */
+        row-gap: var(--space-4);
+      }
+      .lp-proc-steps {
+        gap: 0;
+        align-content: center;
+      }
+      /* All five in one grid area — the plate and the four cards — so the
+         frames coincide exactly and every card stretches to the same
+         height, which is what lets the plate's hairline serve them all. */
+      .lp-proc-steps > .cf-process { grid-area: 1 / 1; }
+      .lp-proc-plate { display: grid; }
+      /* The cards give up their chrome to the plate. Not the content —
+         the border and the hairline, which would otherwise dim to
+         three-quarter strength at every handover as two copies crossfade. */
+      .lp-proc-steps > .cf-process:not(.lp-proc-plate) { border-color: transparent; }
+      .lp-proc-steps > .cf-process:not(.lp-proc-plate) .cf-process__figure { border-color: transparent; }
+
+      /* The object's crossfade and the panel's hold are .cf-pin__step and
+         .cf-pin__copy in the markup — the four cards carry both, the plate
+         carries neither, which is what the :not() used to say. The copy
+         arrives line by line, top to bottom, all of it inside the reveal —
+         the last line is up by 10.2 points of the quarter, well before the
+         build finishes at 15.5. */
+      .lp-proc-steps .cf-process__panel > * {
+        animation: cf-pin-copy linear both;
+        animation-timeline: --cf-pin;
+        animation-range: contain calc(var(--i) * 25% + 2% + var(--k, 0) * 1.1%)
+                         contain calc(var(--i) * 25% + 3.6% + var(--k, 0) * 1.1%);
+      }
+      .lp-proc-steps .cf-process__panel > :nth-child(2) { --k: 1; }
+      .lp-proc-steps .cf-process__panel > :nth-child(3) { --k: 2; }
+      .lp-proc-steps .cf-process__panel > :nth-child(4) { --k: 3; }
+      .lp-proc-steps .cf-process__panel > :nth-child(5) { --k: 4; }
+      .lp-proc-steps .cf-process__panel > :nth-child(6) { --k: 5; }
+      .lp-proc-steps .cf-process__panel > :nth-child(7) { --k: 6; }
+
+      /* THE BUILD, RE-TIMED ONTO THE TRACK — the stopped scene, the
+         parts' timeline and the trace and node windows are .cf-pin's.
+         What is this page's is which keyframes the parts run: same parts,
+         same stages, same cf-iso-build — it still reads each part's
+         --build-dx/-dy, so every direction authored in the markup
+         survives. The order is the build's own: ghosts first (the parts
+         arrive out of where the ghosts are), then the forms by stage, the
+         traces, the light, the nodes. The reveal ends at 15.5 of 25 —
+         62 % of the step, the system's hold rule — and the rest of the
+         quarter is a still. → foundations/motion.html#build, #hold */
+      /* NAMED THE WAY components.css NAMES IT, and that is the whole rule.
+         `.lp-proc-steps .cf-iso__ghost` weighs (0,2,0) and the component's
+         `.cf-iso--build .cf-iso__ghost:not(.cf-iso__orbit)` weighs (0,3,0) —
+         the :not() is a class — so the page lost every time and cards 02 and
+         03 kept the component's `cover 2% cover 14%`. On a
+         pinned track that is not a small error: `cover` on --cf-pin is the
+         track's whole 7,560 px sweep, so both plans finished fading up at
+         contain 2.7 %, while card 01 was still building and 22 points of
+         scroll before their own card crossed in. Measured at 1440 x 900: card
+         02's ghosts sat at opacity 1 from y = 1822 to the end of the track.
+         The plan did not come first on those two cards — it was simply always
+         there, and the quarter opened with solids arriving onto nothing that
+         had been drawn. Every other part of the build reads `contain` because
+         its page rule and its component rule weigh the same and this block is
+         later; only the ghost's carries the extra class. So this one is
+         written to the same shape, one class heavier, with the same :not() for
+         the same reason components.css gives: without it this selector takes
+         the orbit's turn away with it. */
+      .lp-proc-steps .cf-iso--build .cf-iso__ghost:not(.cf-iso__orbit) {
+        animation-name: cf-iso-fade;
+        animation-range: contain calc(var(--i) * 25% + 0.5%) contain calc(var(--i) * 25% + 4%);
+      }
+      /* The orbits keep their two animations — fade with the ghosts, turn
+         for longer — excluded from the ghost window above exactly as
+         components.css excludes them from its own. */
+      .lp-proc-steps .cf-iso__orbit {
+        animation-name: cf-iso-fade, cf-iso-orbit;
+        animation-timeline: --cf-pin, --cf-pin;
+        animation-range: contain calc(var(--i) * 25% + 0.5%) contain calc(var(--i) * 25% + 4%),
+                         contain calc(var(--i) * 25% + 0.5%) contain calc(var(--i) * 25% + 12%);
+      }
+      /* THE BUILD'S HEAD IS ONE POINT BEHIND THE PLAN'S, AND CARD 01 HAS NO
+         PLAN. 1.5 is not a free constant: the ghosts open the quarter at 0.5
+         and the solids arrive one point later, into geometry that is already
+         standing. Every card was given that head, and one of the four has no
+         ghosts at all — card 01's object is eleven forms, no plan, no trace —
+         so its quarter opened by waiting a point for something that never
+         comes.
+
+         WHAT THAT COST, at the one seam this page is built around. The frame's
+         relay finishes and the chrome lands together at entry 100 %, which IS
+         contain 0; the plate's crossfade reaches opacity 1 at contain 0.41 %
+         (cf-pin-step holds from 11 % of a range that opens at -3); and the
+         first form used to arrive at contain 1.5 %. Sampled every 4 px at
+         1440 x 900 over every animated part on the page — opacity, both scale
+         axes, fill-opacity and stroke-dashoffset, 235 parts — the summed
+         change was EXACTLY ZERO from y 1626 to y 1682:
+
+           1440 x 900   contain 0.42 -> 1.50 %   62 px
+           1280 x 800   contain 0.42 -> 1.50 %   56 px
+           1024 x 720   contain 0.42 -> 1.50 %   50 px
+
+         It is the only still anywhere between the flow's first stroke and the
+         end of card 01's reveal, and it is at the worst possible place: the
+         stage has just taken the scroll, so the page is not moving EITHER —
+         and what stands there is a finished empty rectangle with 01 02 03 04
+         lit over it. That is the exact picture the note on .lp-proc-index
+         calls the tell that a stage was assembled rather than assembling, and
+         the paragraph on the frame says in as many words that "the build takes
+         over at contain 0". It took over a point and a half later.
+
+         The other three quarters have no such gap: their ghosts start 0.09 of
+         a point after their plate lands, which is 5 px and not a still.
+
+         SO THE HEAD IS A VARIABLE AND THE PLAN IS WHAT SETS IT. A card with no
+         ghosts takes the plan's own slot — its forms ARE the first thing on the
+         stage, so they open the quarter the way a plan would. `:not(:has())` is
+         the whole point: it reads the drawing rather than the card's index, so
+         the day the craft lane gives card 01 a plan the head goes back to 1.5
+         with nothing here to remember. The window TRANSLATES rather than
+         stretches — 6.5 points wide either way — so card 01's parts arrive at
+         the same rate as every other card's; only the whole build sits one
+         point earlier. The stagger, the trace and node windows, the 62 % hold
+         and the reveal's end at 15.5 are all untouched.
+         scripts/check-quarter-opening.py holds it. */
+      .lp-proc-steps { --build-head: 1.5; }
+      .lp-proc-steps .cf-pin__step:not(:has(.cf-iso__ghost)) { --build-head: 0.5; }
+      .lp-proc-steps .cf-iso__form {
+        animation-name: cf-iso-build;
+        animation-range: contain calc(var(--i) * 25% + var(--build-head) * 1% + var(--stage, 0) * 2.2%)
+                         contain calc(var(--i) * 25% + (var(--build-head) + 6.5) * 1% + var(--stage, 0) * 2.2%);
+      }
+      /* Two animations, like the build mode it re-times: the arrival on
+         the part's own stage, the fill last of all.
+
+         The arrival reads --build-head with the forms — it is a part of the
+         same drawing arriving on the same stage, and a light left behind at
+         1.5 while its stage-mates moved to 0.5 is a piece finishing after the
+         junction it belongs to. The FILL does not move: 11.5 is the number the
+         flow's own light pass is written against — the last lit flow stroke is
+         a thousand pixels of scroll before card 01's lime, and that clearance
+         is what makes one lit element per screen true here
+         (→ foundations/colors.html#one-per-screen, and the .lp-flow__light
+         note above, which carries the sweep). It is a beat of the reveal
+         rather than a beat of the build, and the build is what moved. */
+      .lp-proc-steps .cf-iso__light {
+        animation-name: cf-iso-light, cf-iso-build;
+        animation-timeline: --cf-pin, --cf-pin;
+        animation-range: contain calc(var(--i) * 25% + 11.5%) contain calc(var(--i) * 25% + 15%),
+                         contain calc(var(--i) * 25% + var(--build-head) * 1% + var(--stage, 0) * 2.2%)
+                         contain calc(var(--i) * 25% + (var(--build-head) + 6.5) * 1% + var(--stage, 0) * 2.2%);
+      }
+
+      /* THE FRAME ASSEMBLES ON ENTRY, out of the same scroll that takes the
+         statement apart above it. The plate gives up its border the way the
+         steps gave up theirs — the frame is the .lp-frame hairlines from here
+         on, drawn during the section's entry phase and standing for the whole
+         pinned run, 1 px under non-scaling-stroke exactly where the border
+         stood. Entry is the one viewport of travel before the stage pins, so
+         the relay — top across, verticals down, base — finishes as it pins
+         and the build takes over at contain 0.
+
+         ONE PASS, NOT TWO, and this paragraph used to describe the other one.
+         It read "the LIGHT pass draws first at 2 px carrying the near rake; the
+         1 px contour follows six points behind" — which is the flow's
+         construction, and was this frame's until #170 took the colour off it
+         deliberately (see .lp-frame__line: a border is a contour, and a tint on
+         the rectangle that frames everything else is not where lime belongs).
+         The rule stating that survived; the paragraph over it did not, so the
+         file described a mechanism 140 lines above the note recording its
+         removal. Both standing orders on this page are about where the colour
+         goes, which makes a stale account of it the expensive kind of wrong.
+
+         So: six hairlines, one weight, one colour, drawn during entry and
+         standing for the whole pinned run. The whole relay is scrubbed: back
+         up, and the frame un-draws before the statement reassembles. */
+      .lp-proc-plate { position: relative; border-color: transparent; }
+      .lp-proc-plate .cf-process__figure { border-color: transparent; }
+      .lp-frame {
+        position: absolute;
+        /* ON THE BORDER BOX, NOT THE PADDING BOX, and this is the whole
+           difference between a contour that replaces a border and one that
+           stands just inside where the border was. `inset: 0` on an absolutely
+           positioned child resolves against its containing block's PADDING box,
+           and .lp-proc-plate is a .cf-process, which carries
+           `border: var(--stroke-1) solid`. The border-color is given up to this
+           frame two rules above; the border-WIDTH stays, so the padding box is
+           1 px inside the border box on every side, and so was this drawing.
+
+           Measured at device scale 8, reading the ink off the render rather
+           than the DOM: at 1920x1080 the plate's border box began at x 320.00
+           and the frame's left vertical painted centred on 320.94. The flow
+           overhead — same container, same width, so its box IS the plate's
+           border box — dropped its leftmost terminal at exactly 320.00. Two
+           lines that the markup note below calls the same line, 0.94 px apart,
+           at every viewport (L +1.00 R +1.00 T +1.00 B +1.00 at 1440, 1920 and
+           1280 alike). Same at the right vertical and both top corners.
+
+           Cancelling the border width puts the frame's box back on the plate's
+           border box, which is where the border it replaced was and where the
+           flow lands. The three sibling cards keep their own transparent
+           borders on that same outer boundary, so the contour now stands on
+           theirs too. Written against the token rather than as -1px because it
+           is that border being cancelled, not a coincidence about its size.
+
+           AND max-width HAS TO GO WITH IT. base.css:151 resets
+           `img, svg, video { display: block; max-width: 100% }`, and for an
+           absolutely positioned box that 100 % is the containing block's
+           padding box — the very box being escaped. With the insets alone the
+           left edge moved to 79.98 and the right stayed at 1357.98: the cap
+           held the width at 1278 and the negative left simply slid the old box
+           1 px left, which is a worse drawing than the one being fixed, since
+           it makes the two verticals disagree with each other as well as with
+           the flow.
+
+           AND THE SIZE IS STATED RATHER THAN LEFT TO THE INSETS, because an
+           <svg> is a REPLACED element and a replaced element resolves an auto
+           size from its intrinsic ratio before it resolves it from opposing
+           insets. With `inset` alone and no width or height, this box came out
+           1280 x 640: the width followed the two insets, and the height came
+           from the viewBox's own 1000 / 500 — 1280 / 2 — so `bottom: -1px` was
+           simply dropped as over-constrained and the base rail stayed 1 px
+           inside the plate while the other three had moved out. Three sides
+           fixed and one not is the state this check exists to make impossible.
+           Both percentages are of the containing block's padding box, which is
+           the box being escaped, so both add the border back twice. */
+        inset: calc(var(--stroke-1) * -1);
+        width: calc(100% + var(--stroke-1) * 2);
+        height: calc(100% + var(--stroke-1) * 2);
+        max-width: none;
+        pointer-events: none;
+        /* THE BORDER WEIGHED LESS THAN THE LINE DIVIDING IT, and it is the one
+           thing about this frame that is not the frame's own doing. Four of the
+           five strokes ARE the viewBox edge — M0 0H1000 at y=0, M0 500H1000 at
+           y=500, M0 0V500 at x=0, M1000 0V500 at x=1000 — and SVG clips to its
+           viewport by default, so the outer half of each of those four was cut
+           away. The divider at M500 0V500 is interior and kept all of its.
+
+           Measured as ink per stroke, meaned over 40 samples along each, against
+           the interior divider as 1.00x: left 0.63x, right 0.43x, top 0.59x,
+           base 0.47x at 1440x900; 0.62 / 0.43 / 0.59 / 0.45 at 1920x1080; and
+           0.49 / 0.83 / 0.46 / 0.79 at 1280x900. Not one of the four matched the
+           divider, no two of them matched each other, and which edge came out
+           lightest changed with the viewport — because a clipped half-stroke
+           lands wherever the frame's fractional origin puts it on the device
+           grid. With this line: 0.99 / 1.00 / 0.93 / 1.07 at 1440, 0.99 / 1.00 /
+           0.94 / 1.05 at 1920.
+
+           components.css:1697 already states this rule and already pays it, on
+           .cf-page-header__figure, in these words: "The viewBox is the drawing's
+           bounding box, so a 1 px non-scaling contour at the extremes is half
+           outside it. SVG clips to the viewport by default; without this the
+           outermost shell loses half its stroke." .cf-plot__draw and
+           .cf-arrive__object carry it for the same reason. This frame is the one
+           drawing in the system whose whole geometry sits on its extremes, and
+           it was the one that never declared it. Nothing here overflows but
+           those four half-strokes: the plate does not crop, so they land exactly
+           where the border they replaced stood — which they do since the inset
+           above cancels that border's width, and did not before it. */
+        overflow: visible;
+      }
+      /* Statics only on the shared selector — an `animation` shorthand here
+         would outweigh the class rules below ((0,1,1) against (0,1,0)) and
+         its implicit `animation-range: normal` would stretch every draw
+         across the whole timeline. It did, until this was measured: five
+         hairlines creeping in lockstep from one end of the section to the
+         other, and no relay at all.
+
+         THE DRAW IS A SCALE, NOT A DASH, and the line above it is why.
+         A dashed draw was the first version — stroke-dasharray: 1 over
+         pathLength="1", the same maths every .cf-iso__trace uses — and under
+         `vector-effect: non-scaling-stroke` it cannot work: the dash is
+         measured in SCREEN pixels while pathLength normalises in USER units,
+         so the two disagree by exactly the render scale. This frame is a
+         1000 x 500 viewBox stretched to the plate — 1278 x 639 measured at
+         1440 x 900 — so every stroke stopped at 1000 / 1278 = 78.2 % of
+         itself and STAYED there: the top and base rails ended 278 px short of
+         the right vertical, the verticals 139 px above the base, and the
+         lectern the whole pinned stage rests on was never once a closed
+         rectangle, at any scroll position or any viewport. It is the failure
+         components.css records twice — on .cf-iso__trace ("the one stroke in
+         an illustration that may not have it") and on the Werte grid lines
+         ("deliberately NOT under .cf-iso") — reintroduced by the one drawing
+         that is under neither. check-iso-motion.py enforces it generally now.
+
+         A straight stroke grown from one end is a scale about that end, and
+         `transform-box: fill-box` puts the origin exactly at each stroke's own
+         junction: the top and left at (0,0), the divider at (500,0), the right
+         vertical at (1000,0), the base at (0,500) — the relay's --a order read
+         off the geometry rather than authored twice. Scaling the axis a stroke
+         has no extent on is a no-op, so one `scale: 0 -> 1` serves all five and
+         the markup says nothing new. Under non-scaling-stroke the weight
+         ignores the transform, so 2 px and 1 px stay 2 px and 1 px throughout,
+         which the dash version also promised and is the reason it is kept. And
+         it is composited rather than paint-only — the cost components.css
+         charges .cf-iso__trace for, off the biggest element on the stage. */
+      /* STATICS ONLY, AND transform-origin IS NOT ONE — which is the whole of
+         the note above read one declaration further. That note catches the
+         `animation` shorthand for weighing (0,1,1) against the class rule's
+         (0,1,0) and then leaves `transform-origin: 0 0` standing on the same
+         selector, where it wins by the same point against the one property
+         --o exists to vary. Measured: every one of the six lines computed
+         `transform-origin: 0px 0px`, and the one that asks for anything else
+         asked in vain. Five of them declare `--o: 0 0` and were right by
+         coincidence; `M0 0H500` declares `100% 0` and has never once applied.
+
+         WHAT THAT LOOKED LIKE. The rail's left arm is the stroke whose parent
+         junction is the MIDDLE vertical — the point the trunk lands on — so it
+         grows leftward out of the split to the corner, which is what the note
+         below means by "spreads outward from the middle vertical the way the
+         flow spread from its own split". Anchored at 0 0 it grew the other
+         way: out of the top-left corner, rightward, closing on the trunk's
+         landing point LAST. Its window is entry 72-84 %, y 1346 to 1454 at
+         1440 x 900, and through all 108 px of it the rail read as two arms
+         running the SAME way — the left one out of the corner the left
+         vertical had just left, the right one correctly out of the split —
+         with the gap between them, over the trunk, the last thing to shut.
+         Measured at half-draw, y 1400: the arm spanned x 80 to 400 when it
+         should have spanned 400 to 720. The relay ran backwards through its
+         one branching stroke for as long as this drawing has existed.
+
+         So the shared selector keeps the two declarations that are the same
+         for all six and gives up the one that is not. `var(--o, 0 0)` on the
+         class rule below carries the identical default, so a path that never
+         names an end still grows from its own origin.
+         scripts/check-grow-origin.py holds it. */
+      .lp-frame path {
+        fill: none;
+        vector-effect: non-scaling-stroke;
+        transform-box: fill-box;
+      }
+      /* The relay is per stroke: --a is where this stroke's parent junction is
+         reached, so consecutive strokes chain instead of running abreast, and
+         --o is the end it grows FROM. The three verticals grow down from the
+         points the flow's drops land on, in the order the flow reaches them;
+         the top rail then spreads outward from the middle vertical the way the
+         flow spread from its own split; the base closes it last.
+
+         THE WINDOW IS BOUGHT BY THE STROKE'S OWN LENGTH, AND IT USED TO BE A
+         FLAT 12. Six strokes, one window width, and five of the six are 500
+         viewBox units long — so the flat number was right five times and the
+         sixth stroke is the base rail, M0 500H1000, which is 1000. It drew
+         twice the line in the same scroll. Measured as the tip's travel, which
+         is the quantity check-scrub-rate.py is written in:
+
+           1440 x 900    five strokes 5.94 px/px    base 11.85
+           1280 x 800                 5.94                11.87
+           1024 x 720                 5.52 / 5.27         10.55
+           1512 x 982                 5.44                10.86
+           1920 x 1080                4.95                 9.88
+
+         Exactly 2.00x at every viewport, because the ratio is a pure number:
+         12 points per 500 units against 12 per 1000. A relay whose whole
+         premise is that consecutive strokes CHAIN — one line handed on, which
+         is what the paragraph above claims and what --o exists to make true —
+         cannot have its last leg travel at twice the speed of the five that
+         hand over to it. That is not a stagger, it is a different drawing
+         speed on one stroke.
+
+         So the rate is declared once, in points of entry per viewBox unit, and
+         every window is --u x that. .024 is the value the five correct strokes
+         already had (12 / 500); nothing that was right moves, and the base rail
+         goes from 12 points to 24.
+
+         AND THE 24 POINTS GO WHERE THE READER IS, which is the second half of
+         the same finding. The base rail is the one stroke of the six lying on
+         the frame's BOTTOM edge, and during entry that edge is below the fold:
+         the plate's foot only crosses the viewport bottom at entry 90.2 % at
+         1440 x 900 (90.8 at 1280 x 800, 88.9 at the gate floor, 83.5 at
+         1920 x 1080 — it is 812 px under the stage's top, over a viewport).
+         At `entry 80 -> 92` that put 84.4 % of the rail down before its own
+         line had entered the viewport at all, and 90.0 % at 1280 x 800: the
+         reader saw the last tenth of a stroke arrive and the rest was simply
+         already there. → foundations/motion.html#arrival, a build happens
+         where the eye is.
+
+         Ending at entry 100 instead of 92 is the fix and is also what the
+         paragraph on .lp-frame says the relay does — "the relay finishes as it
+         pins and the build takes over at contain 0" — which was true of the
+         frame's five OTHER strokes and eight points early on this one.
+         Measured off the rendered `scale` at the exact scroll where the rail's
+         own line crosses the viewport bottom, before -> after:
+
+           1440 x 900    84.4 -> 58.9 %
+           1280 x 800    90.0 -> 61.7
+           1280 x 848    70.8 -> 52.1
+           1024 x 720    73.1 -> 53.2
+           1512 x 982    56.5 -> 44.9
+           1920 x 1080   28.6 -> 31.0
+
+         The one that rises is the one viewport that was already well under,
+         and it rises because the window widened around a fixed moment of first
+         sight. 1280 x 800 is 1.7 points over the ~60 ceiling and is left
+         there: closing it means narrowing the window, which is the doubled
+         rate coming back.
+
+         AND ENTRY 100 IS NOW THE LAST THING IN THE PHASE, which it was not
+         when this was measured: the chrome used to fade up over `entry 92% ->
+         100%` and #199 moved it past the pin, to an offset in `contain`, so
+         that the index is not lit under a drawing still lying across it. That
+         left the relay's last eight points carrying nothing but the plate's
+         crossfade. They carry the base rail now, and the drawing's last stroke
+         lands on the same pixel of scroll the stage takes the page on.
+
+         --a 80 -> 76 follows from the width and not from taste: the base grows
+         from x 0, the left vertical's foot, which lands at 60 + 12 = 72, so 76
+         keeps the same four points of clearance behind its own junction that
+         the stroke had before. It closes on the bottom-right corner at 100,
+         twenty points after the right vertical put that corner there.
+
+         THE RATE IS UNIFORM IN THE DRAWING'S UNITS, NOT IN PIXELS, and the
+         gap between those is preserveAspectRatio="none": where the plate is
+         not exactly 2:1 the two axes scale differently, so a 500-unit vertical
+         and a 500-unit horizontal render 4.5 % apart at the gate floor (477 px
+         against 456) and identically everywhere the height cap does not bind.
+         The pure number is the one a script can hold and the one the authoring
+         is done in. scripts/check-relay-rate.py holds it, and holds --u
+         against the `d` it claims to measure.
+
+         One stroke weight, one colour. The light pass that used to lead each
+         stroke in the near rake is gone: a border is a contour, and colour on
+         it read as a stray tint on the one element that frames everything
+         else. → foundations/colors.html#one-per-screen for where lime does
+         belong on this page. */
+      .lp-frame { --relay-rate: .024; }
+      .lp-frame__line {
+        stroke: var(--border-strong);
+        transform-origin: var(--o, 0 0);
+        animation: lp-frame-draw linear both;
+        animation-timeline: --cf-pin;
+        animation-range: entry calc(var(--a) * 1%)
+                         entry calc((var(--a) + var(--u) * var(--relay-rate)) * 1%);
+      }
+    }
+  }
+  /* ------------------------------------------------------------------
+     THE HANDOVER LINE — "Was wir machen" / "In vier Schritten".
+
+     PAGE-LOCAL, the line this file's own preamble draws: .cf-section-header
+     ships in components.css and this is one section's treatment of it, the
+     same way .lp-flow-data is one section's treatment of a label.
+
+     WHY IT IS TITLE TYPE AND NOT A LABEL. The component sets both halves in
+     11 px mono because a section header is normally a rule between two blocks
+     of copy. This one is not: it is the seam the root hands the reader over
+     at, directly under 660 px of drawing, and eleven pixels of mono there is a
+     footnote where the page needs a heading. So the two halves take
+     --text-h2, keep the component's own tracking and case, and the rule under
+     them keeps its weight — the hierarchy moves, the vocabulary does not.
+
+     AND IT ARRIVES THE WAY IT IS READ. Left to right, wiped and not faded: a
+     fade is a thing appearing, a wipe is a thing being written, and this line
+     is the sentence the drawing above it has just finished making. The rule
+     draws with it on the same clock and from the same edge, so the underline
+     is always exactly as long as the words standing on it — which is what
+     makes the two read as one gesture rather than as a heading and a border
+     that happen to animate.
+
+     Its own view timeline, not the track's. --sp is scoped to .sp-track and
+     this sits below it in ordinary flow; giving the header its own view() is
+     both simpler than a timeline-scope and more honest — it arrives when the
+     reader arrives at it, which is exactly when the stage has released.
+     ------------------------------------------------------------------ */
+  .sp-head__title, .sp-head__count {
+    font-size: var(--text-h2);
+    line-height: var(--leading-tight);
+  }
+  .sp-head__count { color: var(--text-muted); }
+
+  /* --wipe HAS TO BE REGISTERED OR IT DOES NOT INTERPOLATE. An unregistered
+     custom property animates as a discrete swap at the halfway point, so the
+     wipe would be a cut: 100 % for the first half of its range and 0 % for the
+     second, which reads as the title switching on. Registering it as a
+     <percentage> is what makes it a wipe. */
+  @property --wipe {
+    syntax: "<percentage>";
+    inherits: false;
+    initial-value: 0%;
+  }
+
+  @supports (animation-timeline: view()) {
+    @media screen and (prefers-reduced-motion: no-preference) {
+      /* ON THE TRACK'S TIMELINE, NOT ITS OWN. The header is inside a sticky
+         stage now, so its own view() would freeze at one value — the fact this
+         whole page is built around. It also does not want its own clock: the
+         rule is what the root arrives at, so it has to draw WHILE the root is
+         arriving, and the only thing that knows when that is, is --sp.
+
+         The windows sit at the end of act 2, after the contour has landed at
+         86.88 and inside the still that runs to 100. At 640vh that is about
+         two thirds of a screen of scroll for the rule and the two words,
+         pinned, with nothing else moving — which is the difference between an
+         animation and a thing that has already happened by the time you look
+         up. */
+      .sp-head {
+        border-bottom-color: transparent;
+        position: relative;
+      }
+      .sp-head::after {
+        content: "";
+        position: absolute;
+        inset: auto 0 calc(-1 * var(--stroke-1)) 0;
+        block-size: var(--stroke-1);
+        background: var(--border-strong);
+        transform-origin: left;
+        animation: sp-head-rule linear both;
+        animation-timeline: --sp;
+        animation-range: contain 76% contain 93%;
+      }
+      /* THE WIPE IS A CLIP, NOT A MASK AND NOT A WIDTH. A width animation
+         reflows the flex row and drags the count across the page as the title
+         grows; a mask wants an image. inset() from the right edge inward
+         composites, touches no layout, and leaves the text selectable and the
+         heading whole in the accessibility tree at every frame — the
+         characters are never absent, only unpainted. */
+      .sp-head__title, .sp-head__count {
+        clip-path: inset(0 var(--wipe) 0 0);
+        animation: sp-head-wipe linear both;
+        animation-timeline: --sp;
+      }
+      /* The title leads and the count follows it in: the label is the subject
+         and the count is what the subject turns out to be, so reading order is
+         arrival order. Both inside the rule's own range, so the line is never
+         shorter than the words standing on it. */
+      .sp-head__title { animation-range: contain 78% contain 88%; }
+      .sp-head__count { animation-range: contain 86% contain 96%; }
+    }
+  }
+  @keyframes sp-head-rule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes sp-head-wipe { from { --wipe: 100%; } to { --wipe: 0%; } }
+  /* From nothing, through the ease-out the rest of the system arrives on. The
+     0.35 waypoint at 40 % of the window is what makes it read as filling
+     rather than as inflating: it is a third of the way to full while the first
+     handful of sensors are still on their way in. */
+  @keyframes sp-orb-fill {
+    from     { scale: 0;    opacity: 0; }
+    40%      { scale: 0.35; opacity: 1; }
+    to       { scale: 1;    opacity: 1; }
+  }
+  @keyframes sp-leaf-settle { to { opacity: var(--leaf-peak); } }
+  @keyframes sp-leaf-shimmer { from { stroke-opacity: .28; } to { stroke-opacity: 1; } }
+  @keyframes sp-ground-recede { to { opacity: var(--sp-ground-dim, 1); } }
+
+  /* One value visible at a time, and the switch is INSTANT. The two stops
+     either side of a sixth are 16.66 % and 16.67 %, which is a jump, not a
+     tween: a readout that crossfades between 34 and 41 shows 37 for half of
+     every tick, and 37 is a value the instrument never reported. Written as
+     an explicit pair rather than as steps() so the hold is in the keyframe
+     where it can be read, instead of in a timing function whose behaviour
+     depends on how many intervals the author happened to write. */
+  @keyframes sp-stream {
+    0%, 16.66%   { opacity: 1; }
+    16.67%, 100% { opacity: 0; }
+  }
