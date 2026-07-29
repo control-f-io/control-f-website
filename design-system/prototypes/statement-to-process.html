@@ -90,6 +90,85 @@
   .sp-field { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .sp-stage > .container { position: relative; }
   .sp-field__lattice { opacity: .26; }
+  /* THE BEAD IS BUILT LIKE THE SOURCE IT RUNS INTO. .lp-flow__orb — the body
+     at the trunk's head, forty lines below — is a disc of the family's ramp,
+     bounded by --border-default and lit by --glow-light. A sensor is the same
+     object at a twentieth of the area, which is the truth of the drawing: act
+     1 is twenty-three of these merging into that one. The contour is what
+     makes the field legible at all (see the ramp's own note in the markup);
+     --glow-r arrives per bead from the generator, sized off its radius, so a
+     hot bead at the focus glows nearly twice as far as a cool one at the rim.
+
+     The stroke is in USER UNITS, matching the lattice's own 1, so the beads
+     and the ground they stand on keep one weight through every slice scale. */
+  .cf-stmt-sensor__bead {
+    stroke: var(--border-default);
+    stroke-width: 1;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  /* ---- THE TWO GLOWS, AND WHY THEY ARE NOT var(--glow-light) ----
+
+     LIME IS ON A BUDGET IN A FIELD TOO. --glow-light is two shadows, a lime
+     one at 0.45 of the reach and a Glas one at all of it, and hung on all
+     twenty-one beads it ringed the seventeen that carry no lime anywhere in
+     their ramp — the four-and-seventeen ladder the whole law is built on,
+     erased by a filter. So the lit half goes to the four the ramp calls hot
+     and the rest take the Glas half alone.
+
+     AND --glow-r DOES NOT REACH THE TOKEN, which is why the shadows are built
+     here from the palette rather than read from it. tokens.css declares
+       --glow-r: 12px;
+       --glow-light: drop-shadow(… calc(var(--glow-r) * 0.45) …) …
+     on the same :root rule, and says of the first "--glow-r is the reach, set
+     per element". It is not: a custom property's var()s are substituted at
+     computed-value time ON THE ELEMENT THAT DECLARES IT, so --glow-light's
+     computed value on :root already has 12px baked into it, and every
+     descendant inherits that string. Measured in Chromium 141 on this page,
+     .lp-flow__orb declares --glow-r: 44px and renders
+       drop-shadow(rgba(225,255,0,.5) 0 0 5.4px) drop-shadow(rgba(197,235,226,.6) 0 0 12px)
+     — 5.4 is 12 x 0.45. The override has never had an effect, here or
+     anywhere else in the system that sets --glow-r.
+
+     Declaring the shadow on the BEAD fixes it for the bead, because then the
+     substitution happens where --glow-r is in scope. The ratios (0.45, and
+     the two alphas) are restated from the token, which is a duplication and
+     is named as one; the colours are not — they come from the palette, so a
+     palette move still moves these. The system-wide fix is a different change
+     from this one: it is tokens.css publishing the two shadow COLOURS and
+     every consumer composing its own reach, and it touches every glow on the
+     site. */
+  .cf-stmt-sensor__bead,
+  .lp-flow__orb {
+    --sp-glow-glas:
+      drop-shadow(0 0 var(--glow-r, 12px)
+                  color-mix(in srgb, var(--glas-500) 60%, transparent));
+    --sp-glow-lime:
+      drop-shadow(0 0 calc(var(--glow-r, 12px) * 0.45)
+                  color-mix(in srgb, var(--lime-500) 50%, transparent));
+  }
+  .cf-stmt-sensor__bead { filter: var(--sp-glow-glas); }
+  .cf-stmt-sensor--hot .cf-stmt-sensor__bead {
+    filter: var(--sp-glow-lime) var(--sp-glow-glas);
+  }
+  /* AND THE FALLBACK TIER GETS A FIELD, which it has not had. components.css
+     animates .cf-stmt-sensor on the --cf-iso timeline, because on the landing
+     page a sensor lives inside a .cf-iso scene that declares one. This page's
+     sensors do not: the field is the STAGE's backdrop and the timeline it
+     reads is --sp. Above the gate that never showed, because the block below
+     re-declares animation-name wholesale. Below it — under 64rem or 45rem,
+     where the stage does not pin — the inherited rule stood: `cf-iso-fade`
+     with `fill-mode: both` on a timeline that does not resolve, which Chrome
+     fills from its `from` keyframe. Every sensor computed opacity 0.
+
+     So the promise three comments up — "the drawing stands complete … nothing
+     is hidden" — was false for the whole field at small viewports, and it was
+     false in the direction nobody checks, because an invisible backdrop looks
+     like a design decision. Clearing the inherited animation here lets the
+     opacity fall back to components.css's own `opacity: var(--iso-rest)`; the
+     gated block re-states everything it needs on top. */
+  .sp-field .cf-stmt-sensor { animation: none; }
   /* The root draws rails ON its viewBox boundary; SVG clips to its viewport
      by default, so without this the outermost strokes lose half their weight
      — the rule .cf-page-header__figure writes out in components.css. */
@@ -193,7 +272,14 @@
   .lp-flow__orb {
     stroke: var(--border-default);
     --glow-r: 44px;
-    filter: var(--glow-light);
+    /* THE SAME COMPOSED SHADOW THE BEADS TAKE, and for the same reason: this
+       rule has declared --glow-r: 44px since the source became a body, and
+       until the beads were measured against it, it rendered at 12 — the
+       :root default, baked into --glow-light where that token is declared.
+       See the beads' own note for the substitution rule. Fixing the field and
+       not the orb would have left the drawing with twenty-one lights that
+       glow further than the one they all merge INTO. */
+    filter: var(--sp-glow-lime) var(--sp-glow-glas);
     /* the circle grows about its own centre; fill-box on a circle is its own
        bounding box, so `center` is the centre of the disc rather than of the
        viewBox */
@@ -272,6 +358,41 @@
      build), the cards are the stacked column. Nothing is hidden. */
   .lp-proc-plate { display: none; }
   .lp-proc-steps { display: grid; gap: var(--space-12); }
+
+  /* ---- THE WOBBLE: the one thing on this page a CLOCK drives ----
+     Everything else in the stage is scrubbed by the reader — that is the
+     pinned track's whole contract, and it means a reader who stops scrolling
+     sees a still. A field of instruments that is perfectly still is a field of
+     instruments that is off, so the beads keep a life of their own: a slow,
+     volume-conserving oscillation between prolate and oblate, which is what a
+     drop of liquid held by surface tension actually does and why the review
+     said "like mercury".
+
+     VOLUME IS CONSERVED ON PURPOSE. Each keyframe's two factors multiply to
+     within half a percent of 1 (1.07 x 0.935 = 1.0005, 0.955 x 1.05 = 1.0028),
+     so the bead deforms without breathing bigger and smaller — the difference
+     between a liquid and a balloon, and the difference between this and the
+     scroll's own pulse, which is a change of SIZE and light and belongs to the
+     act rather than to the material.
+
+     IT IS OUTSIDE @supports ON PURPOSE TOO. A browser with no view timelines
+     gets the whole page as a still, and this is the one motion it can still
+     have; it needs no timeline, only a clock. Inside the reduced-motion gate,
+     though, without exception — the period is per bead and there are
+     twenty-three of them, which is a lot of movement to force on a reader who
+     has asked for none.
+
+     --wp and --w are the generator's: the period from the bead's own radius on
+     the r^1.5 surface-tension law, the phase from a coprime stride through the
+     slot order. A NEGATIVE delay starts an animation already underway, so the
+     field is mid-wobble on the first frame instead of twenty-three beads
+     snapping into step at load. */
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .cf-stmt-sensor__bead {
+      animation: sp-bead-wobble var(--wp, 3s) ease-in-out infinite;
+      animation-delay: calc(var(--w, 0) * var(--wp, 3s) * -1);
+    }
+  }
 
   @supports (animation-timeline: view()) {
     @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
@@ -383,10 +504,16 @@
       .sp-field .cf-stmt-sensor {
         transform-box: fill-box;
         transform-origin: 50% 50%;
-        /* the swell over rest and the flare in flight, declared here and
-           only read by the keyframes — same contract as --sp-ground-dim */
-        --sp-peak: calc(var(--iso-rest, 1) + 0.25);
-        --sp-flare: calc(var(--iso-rest, 1) + 0.35);
+        /* THE SWELL IS A FRACTION OF THE HEADROOM, not a fixed step, and that
+           is what lets the field rest bright. `rest + 0.25` was safe while the
+           beads rested at 0.2..0.6; at 0.45..0.85 it computes 1.1 for the hot
+           ones, the browser clamps it to 1, and the four brightest sensors in
+           the drawing stop pulsing at all — an animation deleted by a number
+           moving somewhere else, which is exactly the failure mode
+           check-authored-opacity.py exists for. Taking 45 % and 65 % of what
+           is LEFT can never exceed 1 and always leaves a swell to see. */
+        --sp-peak: calc(var(--iso-rest, 1) + (1 - var(--iso-rest, 1)) * 0.45);
+        --sp-flare: calc(var(--iso-rest, 1) + (1 - var(--iso-rest, 1)) * 0.65);
         animation-name: sp-field-arrive, sp-field-pulse, sp-field-merge;
         animation-timeline: --sp, --sp, --sp;
         animation-range: contain calc((6 + var(--m) * 12) * 1%)
@@ -1117,6 +1244,18 @@
   @keyframes lp-frame-draw { from { scale: 0; } to { scale: 1; } }
   @keyframes lp-frame-in { from { opacity: 0; } to { opacity: 1; } }
   @keyframes lp-flow-out { to { opacity: 0; } }
+  /* THE BEAD'S OWN VERB, and the only one on the page that is not scrubbed.
+     Two axes out of phase: the drop goes wide-and-flat, then tall-and-narrow,
+     then a smaller pair of the same, and back. Four stops rather than two
+     because a two-stop oscillation is a heartbeat and mercury is not one —
+     the uneven return is what reads as a liquid finding its shape again.
+     Every pair multiplies to 1 within half a percent; see the rule's note. */
+  @keyframes sp-bead-wobble {
+    0%, 100% { scale: 1.07 0.935; }
+    27%      { scale: 0.955 1.05; }
+    52%      { scale: 1.035 0.967; }
+    76%      { scale: 0.98 1.021; }
+  }
   /* The field's three verbs. The stream opens beyond the glow's nearest
      corner (--fx/--fy, generated) and lands on its crossing at rest weight;
      the pulse swells a quarter above rest and back, twice, in place; the
@@ -1278,21 +1417,51 @@
       <svg class="sp-field" viewBox="0 0 1600 900" fill="none"
            preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
-          <!-- A SENSOR IS A HOT CORE IN A COOL HALO — the system's one light
-               ramp used as a glow: lime centre, Glas ring, CF-Grau falloff,
-               the last stop to nothing. Same two ramps the statement field
-               carries, restated here because ids do not cross documents. -->
-          <radialGradient id="cf-stmt-sensor-hot">
+          <!-- A SENSOR IS A BEAD OF THE SAME LIGHT THE SOURCE IS MADE OF, and
+               these two ramps are that light read radially at two strengths:
+               hot, which reaches lime at its centre, and cool, which starts at
+               Glas. Restated here rather than href'd because ids do not cross
+               documents; the lime leg keeps the family's waypoint at 19 % of
+               it (0.061 of 0.32), which check-gradient-family.py recomputes.
+
+               THE LAST STOP IS OPAQUE, and that is the change that made the
+               field visible. Both ramps used to end `stop-opacity="0"`, so a
+               bead had no edge and nineteen of the twenty-three were CF-Grau
+               dissolving into a CF-Grau page — foundations/illustration.html's
+               own sentence, run in reverse: "an unlit face sits at exactly the
+               page's own colour and the object would disappear entirely if the
+               contour were not carrying it". Now the ramp ends AT CF-Grau, the
+               contour carries the rim, and the halo that the falloff used to
+               draw is --glow-light, which is what .lp-flow__orb — the body all
+               twenty-three of these converge into — has always used.
+
+               fx/fy PUT THE HIGHLIGHT OFF-CENTRE, up and to the left. That is
+               the one thing that makes a flat disc read as a bead of liquid
+               rather than as a dot, and the direction is not free: Geometry's
+               demo object darkens its RIGHT face, so the system's light comes
+               from the left and every bead in the field is lit from the same
+               side as every solid in it.
+
+               AND THE RIM IS THE SHADED SIDE, #C4C4C4 — not a fourth grey but
+               the third of the three foundations/illustration.html publishes
+               (#DADADA sky, #CFCFCF lit, #C4C4C4 shaded). A sphere lit from
+               one side runs all three across itself, so a ramp that stops at
+               CF-Grau is a ball lit from everywhere, which is the flat disc
+               the first pass rendered. Ending a radial ramp at the shaded
+               value is the same sentence a facetted object says with three
+               fills, said once and continuously. -->
+          <radialGradient id="cf-stmt-sensor-hot" fx="0.38" fy="0.32">
             <stop stop-color="#E1FF00"/>
             <stop offset="0.061" stop-color="#DBFC60"/>
             <stop offset="0.32" stop-color="#C5EBE2"/>
-            <stop offset="0.68" stop-color="#CFCFCF"/>
-            <stop offset="1" stop-color="#CFCFCF" stop-opacity="0"/>
+            <stop offset="0.74" stop-color="#CFCFCF"/>
+            <stop offset="1" stop-color="#C4C4C4"/>
           </radialGradient>
-          <radialGradient id="cf-stmt-sensor-halo">
-            <stop stop-color="#C5EBE2"/>
-            <stop offset="0.55" stop-color="#CFCFCF"/>
-            <stop offset="1" stop-color="#CFCFCF" stop-opacity="0"/>
+          <radialGradient id="cf-stmt-sensor-cool" fx="0.38" fy="0.32">
+            <stop stop-color="#EEF9F6"/>
+            <stop offset="0.42" stop-color="#C5EBE2"/>
+            <stop offset="0.78" stop-color="#CFCFCF"/>
+            <stop offset="1" stop-color="#C4C4C4"/>
           </radialGradient>
         </defs>
         <!-- THE LATTICE. Both 2:1 families and the level step, edge to edge —
@@ -1395,29 +1564,69 @@
              published on the svg at runtime — the trunk lives in another
              coordinate system — with the focus as the fallback. -->
         <g class="sp-field__sensors">
-          <circle class="cf-stmt-sensor" style="--cx:816;--cy:248;--fx:974.7;--fy:-308.3;--m:0;--iso-rest:0.6" cx="816" cy="248" r="39.2" fill="url(#cf-stmt-sensor-hot)"/>
-          <circle class="cf-stmt-sensor" style="--cx:672;--cy:416;--fx:-842.1;--fy:-521.3;--m:0.2;--iso-rest:0.5" cx="672" cy="416" r="33.4" fill="url(#cf-stmt-sensor-hot)"/>
-          <circle class="cf-stmt-sensor" style="--cx:672;--cy:80;--fx:-870.6;--fy:-103.6;--m:0.3;--iso-rest:0.5" cx="672" cy="80" r="32.2" fill="url(#cf-stmt-sensor-hot)"/>
-          <circle class="cf-stmt-sensor" style="--cx:960;--cy:80;--fx:838.5;--fy:-104.8;--m:0.3;--iso-rest:0.5" cx="960" cy="80" r="32.2" fill="url(#cf-stmt-sensor-hot)"/>
-          <circle class="cf-stmt-sensor" style="--cx:528;--cy:248;--fx:-709;--fy:-333;--m:0.3;--iso-rest:0.5" cx="528" cy="248" r="30.6" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:1104;--cy:248;--fx:674.9;--fy:-337.4;--m:0.3;--iso-rest:0.5" cx="1104" cy="248" r="30.6" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:816;--cy:584;--fx:969.5;--fy:390.8;--m:0.4;--iso-rest:0.5" cx="816" cy="584" r="29.9" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:528;--cy:584;--fx:-699.6;--fy:418.7;--m:0.5;--iso-rest:0.4" cx="528" cy="584" r="26.3" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:384;--cy:416;--fx:-519.7;--fy:-563;--m:0.5;--iso-rest:0.4" cx="384" cy="416" r="25.3" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:384;--cy:80;--fx:-579.8;--fy:-120.8;--m:0.5;--iso-rest:0.4" cx="384" cy="80" r="24.7" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:1248;--cy:80;--fx:547;--fy:-124.3;--m:0.5;--iso-rest:0.4" cx="1248" cy="80" r="24.7" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:672;--cy:752;--fx:-867.3;--fy:191;--m:0.6;--iso-rest:0.4" cx="672" cy="752" r="23.8" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:960;--cy:752;--fx:834.9;--fy:193.1;--m:0.6;--iso-rest:0.4" cx="960" cy="752" r="23.8" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:240;--cy:248;--fx:-379.1;--fy:-391.7;--m:0.7;--iso-rest:0.3" cx="240" cy="248" r="21.3" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:1392;--cy:248;--fx:336.5;--fy:-401.2;--m:0.7;--iso-rest:0.3" cx="1392" cy="248" r="21.3" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:384;--cy:752;--fx:-570.6;--fy:219.9;--m:0.7;--iso-rest:0.3" cx="384" cy="752" r="19.1" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:1248;--cy:752;--fx:536.4;--fy:225.5;--m:0.7;--iso-rest:0.3" cx="1248" cy="752" r="19.1" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:240;--cy:584;--fx:-361;--fy:475.3;--m:0.8;--iso-rest:0.3" cx="240" cy="584" r="18.8" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:96;--cy:416;--fx:-141;--fy:-610.9;--m:0.8;--iso-rest:0.3" cx="96" cy="416" r="16.2" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:96;--cy:80;--fx:-249.6;--fy:-208;--m:0.9;--iso-rest:0.3" cx="96" cy="80" r="15.9" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:1536;--cy:80;--fx:188.9;--fy:-236.2;--m:0.9;--iso-rest:0.3" cx="1536" cy="80" r="15.9" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:96;--cy:752;--fx:-204.8;--fy:315.8;--m:1;--iso-rest:0.2" cx="96" cy="752" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
-          <circle class="cf-stmt-sensor" style="--cx:1536;--cy:752;--fx:143.4;--fy:331.6;--m:1;--iso-rest:0.2" cx="1536" cy="752" r="12.0" fill="url(#cf-stmt-sensor-halo)"/>
+          <g class="cf-stmt-sensor cf-stmt-sensor--hot" style="--cx:816;--cy:248;--fx:974.7;--fy:-308.3;--m:0;--iso-rest:0.94;--glow-r:40.8px;--wp:3935ms;--w:0">
+            <circle class="cf-stmt-sensor__bead" cx="816" cy="248" r="25.5" fill="url(#cf-stmt-sensor-hot)"/>
+          </g>
+          <g class="cf-stmt-sensor cf-stmt-sensor--hot" style="--cx:672;--cy:416;--fx:-842.1;--fy:-521.3;--m:0.2;--iso-rest:0.89;--glow-r:35.2px;--wp:3468ms;--w:0.476">
+            <circle class="cf-stmt-sensor__bead" cx="672" cy="416" r="22.0" fill="url(#cf-stmt-sensor-hot)"/>
+          </g>
+          <g class="cf-stmt-sensor cf-stmt-sensor--hot" style="--cx:672;--cy:80;--fx:-870.6;--fy:-103.6;--m:0.3;--iso-rest:0.88;--glow-r:34.1px;--wp:3378ms;--w:0.952">
+            <circle class="cf-stmt-sensor__bead" cx="672" cy="80" r="21.3" fill="url(#cf-stmt-sensor-hot)"/>
+          </g>
+          <g class="cf-stmt-sensor cf-stmt-sensor--hot" style="--cx:960;--cy:80;--fx:838.5;--fy:-104.8;--m:0.3;--iso-rest:0.88;--glow-r:34.1px;--wp:3378ms;--w:0.429">
+            <circle class="cf-stmt-sensor__bead" cx="960" cy="80" r="21.3" fill="url(#cf-stmt-sensor-hot)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:528;--cy:248;--fx:-709;--fy:-333;--m:0.3;--iso-rest:0.86;--glow-r:32.5px;--wp:3258ms;--w:0.905">
+            <circle class="cf-stmt-sensor__bead" cx="528" cy="248" r="20.3" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:816;--cy:584;--fx:969.5;--fy:390.8;--m:0.4;--iso-rest:0.85;--glow-r:31.8px;--wp:3203ms;--w:0.381">
+            <circle class="cf-stmt-sensor__bead" cx="816" cy="584" r="19.9" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:528;--cy:584;--fx:-699.6;--fy:418.7;--m:0.5;--iso-rest:0.82;--glow-r:28.3px;--wp:2943ms;--w:0.857">
+            <circle class="cf-stmt-sensor__bead" cx="528" cy="584" r="17.7" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:384;--cy:416;--fx:-519.7;--fy:-563;--m:0.5;--iso-rest:0.81;--glow-r:27.3px;--wp:2875ms;--w:0.333">
+            <circle class="cf-stmt-sensor__bead" cx="384" cy="416" r="17.1" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:384;--cy:80;--fx:-579.8;--fy:-120.8;--m:0.5;--iso-rest:0.8;--glow-r:26.7px;--wp:2837ms;--w:0.81">
+            <circle class="cf-stmt-sensor__bead" cx="384" cy="80" r="16.7" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:1248;--cy:80;--fx:547;--fy:-124.3;--m:0.5;--iso-rest:0.8;--glow-r:26.7px;--wp:2837ms;--w:0.286">
+            <circle class="cf-stmt-sensor__bead" cx="1248" cy="80" r="16.7" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:672;--cy:752;--fx:-867.3;--fy:191;--m:0.6;--iso-rest:0.79;--glow-r:25.8px;--wp:2775ms;--w:0.762">
+            <circle class="cf-stmt-sensor__bead" cx="672" cy="752" r="16.2" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:960;--cy:752;--fx:834.9;--fy:193.1;--m:0.6;--iso-rest:0.79;--glow-r:25.8px;--wp:2775ms;--w:0.238">
+            <circle class="cf-stmt-sensor__bead" cx="960" cy="752" r="16.2" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:240;--cy:248;--fx:-379.1;--fy:-391.7;--m:0.7;--iso-rest:0.77;--glow-r:23.5px;--wp:2618ms;--w:0.714">
+            <circle class="cf-stmt-sensor__bead" cx="240" cy="248" r="14.7" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:384;--cy:752;--fx:-570.6;--fy:219.9;--m:0.7;--iso-rest:0.75;--glow-r:21.3px;--wp:2479ms;--w:0.19">
+            <circle class="cf-stmt-sensor__bead" cx="384" cy="752" r="13.3" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:1248;--cy:752;--fx:536.4;--fy:225.5;--m:0.7;--iso-rest:0.75;--glow-r:21.3px;--wp:2479ms;--w:0.667">
+            <circle class="cf-stmt-sensor__bead" cx="1248" cy="752" r="13.3" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:240;--cy:584;--fx:-361;--fy:475.3;--m:0.8;--iso-rest:0.75;--glow-r:21.0px;--wp:2461ms;--w:0.143">
+            <circle class="cf-stmt-sensor__bead" cx="240" cy="584" r="13.1" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:96;--cy:416;--fx:-141;--fy:-610.9;--m:0.8;--iso-rest:0.72;--glow-r:18.5px;--wp:2313ms;--w:0.619">
+            <circle class="cf-stmt-sensor__bead" cx="96" cy="416" r="11.6" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:96;--cy:80;--fx:-249.6;--fy:-208;--m:0.9;--iso-rest:0.72;--glow-r:18.2px;--wp:2293ms;--w:0.095">
+            <circle class="cf-stmt-sensor__bead" cx="96" cy="80" r="11.4" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:1536;--cy:80;--fx:188.9;--fy:-236.2;--m:0.9;--iso-rest:0.72;--glow-r:18.2px;--wp:2293ms;--w:0.571">
+            <circle class="cf-stmt-sensor__bead" cx="1536" cy="80" r="11.4" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:96;--cy:752;--fx:-204.8;--fy:315.8;--m:1;--iso-rest:0.68;--glow-r:14.4px;--wp:2089ms;--w:0.048">
+            <circle class="cf-stmt-sensor__bead" cx="96" cy="752" r="9.0" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
+          <g class="cf-stmt-sensor" style="--cx:1536;--cy:752;--fx:143.4;--fy:331.6;--m:1;--iso-rest:0.68;--glow-r:14.4px;--wp:2089ms;--w:0.524">
+            <circle class="cf-stmt-sensor__bead" cx="1536" cy="752" r="9.0" fill="url(#cf-stmt-sensor-cool)"/>
+          </g>
         </g>
       </svg>
       <div class="container">
