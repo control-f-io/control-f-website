@@ -1551,3 +1551,37 @@ jobs:
       - name: Focus reach
         if: '!cancelled()'
         run: python3 scripts/check-focus-reach.py
+
+      # Act 1's stage carries three `inset: 0` layers over one box -- the field,
+      # the notes and the copy -- and `inset: 0` of the stage was the drawing's
+      # box only for as long as the drawing was the only thing in the stage. Once
+      # act 2's copy took a row of its own below the drawing, the stage's box
+      # grew to hold the prose and both ink layers followed it down. Measured on
+      # the shipped render, beads and halos landing on body copy: five objects at
+      # 320, six at 375, four at 600, six at 768, five at 900 -- a 104 px halo
+      # across "Von oben nach unten gelesen." at 375, and at 768 the readouts
+      # "74 °C", "96 %" and "51 Hz" set in the same lines as the prose. Nothing
+      # overflowed, nothing clipped, no console message, every gate green: two
+      # information layers sharing one set of pixels, findable only by looking at
+      # a phone-width render.
+      #
+      # It is the third time the same fault has been written down in this
+      # stylesheet -- .lp-flow-data's own note is the second, and the numeral
+      # layer was fixed there while the ground under it was not. A comment that
+      # has to be written three times is a check that was never written once.
+      #
+      # So the band is held to what it is derived from: the ratio is the flow
+      # svg's viewBox in the viewBox's own two figures, the inner box is
+      # --gutter's, both ink layers read the one band and the copy layer does
+      # not, neither box is resized (the box is the `slice` crop -- shorten it
+      # and every bead on a phone comes out a quarter size), and the whole thing
+      # is released above the register's 64rem, where the copy sits beside the
+      # drawing on purpose.
+      #
+      # Proven failing on seven reintroductions: the notes layer unclipped, both
+      # layers unclipped, the ratio drifted off the viewBox, the box shortened
+      # instead of clipped, the gutter replaced by a literal, the release at
+      # 64rem removed, and the copy layer clipped along with the ink.
+      - name: Ground band
+        if: '!cancelled()'
+        run: python3 scripts/check-ground-band.py
