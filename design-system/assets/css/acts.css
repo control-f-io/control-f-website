@@ -911,15 +911,30 @@
      .cf-pin__inner answers with a flat padding-block, asked in a way that
      survives being loaded by two pages instead of one.
 
-     PADDING AND NOT A SHORTER STAGE. The stage stays 100vh and the content
-     inside it moves down, which is what .cf-pin does and what act 1's own
-     composition needs: the tree's feet stand on the stage's BOTTOM edge, and
-     that edge is where the next section slides in from. Shorten the box and
-     the feet leave the seam they were drawn to meet.
+     A SHORTER STAGE AND NOT PADDING, which is the correction. Padding was the
+     first answer here and it moved the wrong things: an absolutely-positioned
+     child is laid out against its container's PADDING box, so `inset: 0` spans
+     the reserved strip instead of starting below it. Act 1 is three such
+     layers — .sp-field, .sp-annots-fig, .sp-say — and all three stayed exactly
+     where they were, under the bar: the field's top row of sensors and their
+     leader labels were behind the nav, which is the finding this note now
+     records rather than the one it used to claim to have fixed.
+
+     THE BOTTOM EDGE DOES NOT MOVE, which was the objection to a shorter stage
+     and is not one. The stage sticks at top: --act-bar and stands
+     100vh - --act-bar tall, so its foot is at 100vh either way: the tree's
+     eight feet still stand on the seam the next section slides in from, and
+     only the head of the box comes down. One box, so cqh, every percentage,
+     the slice crop and the aim script's matrices all follow it — which is the
+     other half of why padding could not work, since none of those follow a
+     padding strip either.
+
+     --act-bar IS DECLARED IN THE BASE TIER so both tiers can read it, and it
+     is 0 on a page with no .cf-nav — the prototype keeps a 100vh stage at
+     top: 0, unchanged, and reserves nothing.
      ============================================================ */
-  body:has(.cf-nav) :is(.sp-stage, .sp4-stage, .map-stage) {
-    padding-block-start: calc(var(--nav-height) + var(--space-4));
-  }
+  body { --act-bar: 0px; }
+  body:has(.cf-nav) { --act-bar: calc(var(--nav-height) + var(--space-4)); }
 
   @supports (animation-timeline: view()) {
     @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
@@ -946,8 +961,8 @@
       }
       .sp-stage {
         position: sticky;
-        top: 0;
-        height: 100vh;
+        top: var(--act-bar);
+        height: calc(100vh - var(--act-bar));
         overflow: hidden;
         overflow: clip;
         display: grid;
@@ -957,6 +972,16 @@
            lectern's verticals rise out of them. The seam the old landing
            held with check-flow-handover.py, made by layout this time. */
         align-content: end;
+        /* HEAD-ROOM, AND NOT A NAV — the distinction --act-bar made necessary.
+           This has capped the grid's available height since #233, when the
+           stage was a prototype-only box and there was no bar anywhere to
+           reserve; it is 5rem of air above a drawing that is bottom-aligned,
+           not a strip a floating bar sits in. --act-bar reserves the bar, by
+           taking it off the stage's height, and the two compose: on the
+           landing page the drawing keeps the same air above it that it has in
+           the lab, measured from a stage that starts under the nav. Removing
+           this moved the prototype's composition 8 px, which is how it was
+           established that it does something. */
         padding-block-start: var(--nav-height, 5rem);
       }
       /* THE DRAWING TAKES THE WHOLE CONTAINER inside the gate — the frame
@@ -979,7 +1004,9 @@
          which is the only arrangement in which nineteen drops can be seen to
          arrive at a line. */
       .sp-stage > .container { --sp-head-band: 5.5rem; }
-      .sp-drawing { --sp-measure: min(100%, calc((100vh - 8rem - var(--sp-head-band)) * 1.9)); }
+      /* THE STAGE'S HEIGHT, NOT THE VIEWPORT'S: the drawing is fitted to the
+         box it stands in, and that box gave the nav back its bar. */
+      .sp-drawing { --sp-measure: min(100%, calc((100vh - var(--act-bar) - 8rem - var(--sp-head-band)) * 1.9)); }
       /* Flush to the drawing: the rule IS the drawing's baseline now, so the
          component's own bottom margin would be a gap between the feet and the
          thing they land on. */
@@ -1356,8 +1383,8 @@
       }
       .map-stage {
         position: sticky;
-        top: 0;
-        block-size: 100vh;
+        top: var(--act-bar);
+        block-size: calc(100vh - var(--act-bar));
         overflow: clip;
         padding-block: var(--space-8);
         /* FLOORED, which check-grid-tracks.py requires of every fr track and
@@ -1509,8 +1536,8 @@
       }
       .sp4-stage {
         position: sticky;
-        top: 0;
-        block-size: 100vh;
+        top: var(--act-bar);
+        block-size: calc(100vh - var(--act-bar));
         align-content: center;
         overflow: clip;
         padding-block: 0;
