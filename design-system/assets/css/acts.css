@@ -419,38 +419,58 @@
      box is the last child, so the values' container matches it exactly. */
   .sp-root { position: relative; }
   /* ---- THE COPY EITHER SIDE OF THE CONFLUENCE ----
-     It still rides .sp-root, which is the flow box exactly, so the columns
-     track the drawing at every viewport rather than at one. What moved is
-     WHICH part of the drawing they stand beside, and the mirror decided it.
 
-     A CONFLUENCE LEAVES ITS WHITE AT THE BOTTOM. The old placement flanked the
-     source at 13.5 % because that is where the source was and because a delta
-     is narrow at the top; flipped, 13.5 % is the widest band of the fringe and
-     the copy sat straight across nineteen strokes. Measured on the shipped
-     geometry, the drawing occupies
+     TWO TIERS, AND UNTIL NOW ONLY ONE OF THEM WAS WRITTEN. The placement this
+     copy wants — two 35 % columns pinned at 74 % of the drawing's own box — is
+     act 2's composition, and it is correct inside the pinned stage, where the
+     drawing is fitted to the viewport and 471 px tall. It was authored HERE,
+     in the base tier, where the drawing is whatever the flow makes it, and
+     nothing ever took it back. Measured on the shipped page, act 1+2's stage:
 
-         y 400   x 460 - 740        y 480   x 580 - 620
-         y 440   x 540 - 660        y 500+  x 600 (the trunk alone)
+         375 x 812     .sp-root 334 x 172     column 117 wide, 74 % = 127
+         768 x 900     .sp-root 684 x 353     column 239 wide, 74 % = 261
+        1023 x 900     .sp-root 527 x 272     column 184 wide, 74 % = 201
+        1280 x 900     .sp-root 1109 x 573    reduced motion, the same tier
 
-     so the two triangles either side of the converging trunk are the largest
-     clear ground in the figure, and they are clear at every viewport because
-     they are a fact about the construction rather than about the render. The
-     columns are centred on y 74 % and stop at x 420 and 780, which leaves the
-     nearest stroke about 70 units and the nearest numeral about 50.
+     Each column carries a bold lead and a forty-word paragraph — 2.3em plus
+     7.5em of reserved height on its own, 220 px at 375 — inside a 172 px box,
+     over a drawing already carrying nineteen numerals. All three layers shared
+     one top edge (828 on the landing page at 375) and painted through each
+     other: the lead across the fringe, the body through "1 840 /s" and
+     "S16 2565 rpm", the paragraph out of the bottom of its own container and
+     into the section header below it. Not a crop and not a near miss — four
+     things in one place, none of them readable.
 
-     THE INNER EDGE IS STILL THE FIXED ONE — left block ragged-left, right
-     block ragged-right, each flush toward the middle — because the thing the
-     reader is reading around is still the axis the drawing resolves onto. */
-  .sp-say { position: absolute; inset: 0; pointer-events: none; }
-  .sp-say__act { display: none; }
-  .sp-say__col {
-    position: absolute;
-    top: 74%;
-    transform: translateY(-50%);
-    inline-size: 35%;
+     WHO READS THIS TIER: every viewport under 64rem, every viewport under
+     45rem tall, every reader with prefers-reduced-motion set, and every
+     browser without animation-timeline. That is where most of this page is
+     read and all of its degraded states.
+
+     SO THE BASE TIER IS ORDINARY FLOW — the drawing, then the copy under it,
+     as many equal columns as fit. The shape is base.css's .tiles--fit exactly,
+     repeat(auto-fit, minmax(min(<tile>, 100%), 1fr)), restated rather than
+     asked for by class because the gated tier takes this same box back for
+     absolute placement: a utility class the stylesheet has to switch off is a
+     worse dependency than the one declaration it saves. 20rem is the tile, and
+     it is the only fold this needs — two columns fit .sp-root's 684 px at 768
+     (2 x 320 + 32 = 672) and one fits its 334 at 375. The cap is the system's
+     own --measure, for the single-column case at 1023 where the box is 527 px
+     wide and 56ch is the line the reader is given everywhere else.
+
+     THE COLUMNS KEEP THEIR TYPE AND LOSE THEIR PLACEMENT. Same lead, same
+     body, same ink; the ragged inner edge and the pointer-events lift belong to
+     the overlay and go with it. There is no axis to mirror when the drawing is
+     above the copy rather than behind it, and prose the reader can select is
+     worth more than a mirror they cannot see.
+     → the gated placement is in the @supports block, under THE OVERLAY */
+  .sp-say {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+    gap: var(--space-8);
+    margin-block-start: var(--space-12);
   }
-  .sp-say__col--l { right: 65%; text-align: right; }
-  .sp-say__col--r { left: 65%; }
+  .sp-say__act { display: none; }
+  .sp-say__col { min-width: 0; max-inline-size: var(--measure); }
   .sp-say__lead {
     margin: 0;
     font-size: var(--text-lg);
@@ -466,7 +486,29 @@
     color: var(--text-secondary);
     min-block-size: 7.5em;
   }
-  .lp-flow-data { position: absolute; inset: 0; pointer-events: none; }
+  /* THE NUMERAL LAYER IS THE DRAWING'S BOX, AND NOW IT SAYS SO. It was
+     `inset: 0` of .sp-root and that was only ever true by coincidence: the
+     comment above .sp-root says "the flow box is the last child, so the values'
+     container matches it exactly", which held while the last child was the
+     drawing and stopped holding the moment the copy below joined the flow. Both
+     halves of every numeral's placement are percentages of this box —
+     left: calc(--x / 1200 * 100%), top: calc(--y / 620 * 100%) — so a box one
+     column of prose taller drags all nineteen of them down it.
+
+     The drawing's own ratio is the honest containing block, and it is not a
+     guess: the svg is viewBox="0 0 1200 620" at width 100 % / height auto, so
+     its used height IS width x 620/1200 at every tier. Stated as the ratio,
+     this layer and the drawing are the same box by construction rather than by
+     whatever happens to be last in the flow. Identical to the pixel in the
+     gated tier, where .sp-root is the drawing and nothing else — measured
+     against the drawing's own origin, all 18 numerals unmoved to 0.01 px at
+     1024, 1280, 1440 and 1920. */
+  .lp-flow-data {
+    position: absolute;
+    inset: 0 0 auto 0;
+    aspect-ratio: 1200 / 620;
+    pointer-events: none;
+  }
   /* A VALUE AND A READING ARE PLACED THE SAME WAY AND SAY DIFFERENT THINGS.
      Both ride a stroke, both are put there by the label law in
      gen-flow-root.py, and both are real HTML at the label ramp's 11 px so
@@ -1045,7 +1087,35 @@
         animation-duration: auto;
         animation-timing-function: var(--ease-out), linear;
       }
-      /* THE COPY BELONGS TO ACT 2, AND CSS SAYS SO RATHER THAN THE SCRIPT.
+      /* ---- THE OVERLAY ----
+         The copy stops being a column under the drawing and becomes the two
+         blocks either side of the confluence. This is the tier that placement
+         was written for and it is now the only tier that has it; the base tier's
+         own note above says why.
+
+         A CONFLUENCE LEAVES ITS WHITE AT THE BOTTOM. An earlier placement
+         flanked the source at 13.5 % because that is where the source was and
+         because a delta is narrow at the top; flipped, 13.5 % is the widest
+         band of the fringe and the copy sat straight across nineteen strokes.
+         Measured on the shipped geometry, the drawing occupies
+
+             y 400   x 460 - 740        y 480   x 580 - 620
+             y 440   x 540 - 660        y 500+  x 600 (the trunk alone)
+
+         so the two triangles either side of the converging trunk are the
+         largest clear ground in the figure, and they are clear at every
+         viewport in this tier because they are a fact about the construction
+         rather than about the render. The columns are centred on y 74 % and
+         stop at x 420 and 780, which leaves the nearest stroke about 70 units
+         and the nearest numeral about 50.
+
+         THE INNER EDGE IS THE FIXED ONE — left block ragged-left, right block
+         ragged-right, each flush toward the middle — because the thing the
+         reader is reading around is the axis the drawing resolves onto. And
+         --measure is off: 35 % of the stage IS the measure here, and a second
+         cap on top of it would leave the inner edge ragged against nothing.
+
+         THE COPY BELONGS TO ACT 2, AND CSS SAYS SO RATHER THAN THE SCRIPT.
          cf-stream.js is optional by contract — "without the script every line
          is simply present" — and a line that is simply present is present from
          the first pixel of the track, over act 1's field, which is not where
@@ -1054,10 +1124,24 @@
          fade and the typing agree; without it the copy still arrives when the
          root does, whole. */
       .sp-say {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        display: block;
+        margin-block-start: 0;
         animation: lp-frame-in linear both;
         animation-timeline: --sp;
         animation-range: contain 42% contain 52%;
       }
+      .sp-say__col {
+        position: absolute;
+        top: 74%;
+        transform: translateY(-50%);
+        inline-size: 35%;
+        max-inline-size: none;
+      }
+      .sp-say__col--l { right: 65%; text-align: right; }
+      .sp-say__col--r { left: 65%; }
 
       /* ---- THE CALLOUT LAYER, INSIDE THE PIN ----
          The layer only exists where the stage is the viewport, because that
@@ -2414,10 +2498,51 @@
     }
     .act-rail:hover::before,
     .act-rail:focus-within::before { opacity: 1; }
-    /* Off screen until the acts are: act-rail.js sets both, the class for the
-       fade and `hidden` for the tab order, so a rail nobody can see is also a
-       rail nobody can Tab into. */
-    .act-rail.is-live { opacity: 1; }
+    /* OFF SCREEN UNTIL THE ACTS ARE, AND HIDDEN BY PAINT RATHER THAN BY THE
+       TREE. It used to be both: act-rail.js set the class for the fade AND the
+       `hidden` attribute for the tab order, on the argument that a rail nobody
+       can see is not a rail anybody should be able to Tab into. The argument is
+       right and the mechanism made the rail unreachable by keyboard in BOTH
+       directions, because `hidden` is only ever off during the exact scroll
+       range in which Tab has already gone past the rail's place in the document.
+
+       Measured on the shipped page at 1440 x 900, consent accepted:
+
+         forward   focus the hero's "Kennenlernen" and press Tab. The rail's
+                   five links are the next thing in the document — and the
+                   viewport's middle is still in the hero, so `hidden` is on and
+                   they are not in the sequence. Focus lands on the first FAQ
+                   summary, scrollY 0 -> 16 585: five acts and 16 000 px skipped
+                   in one keypress.
+         reverse   focus that same FAQ summary and press Shift+Tab. Back to
+                   "Kennenlernen" at scrollY 3 923. The rail is live and on
+                   screen for that entire jump and is still not in the sequence.
+         paging    PageDown x9 to scrollY 7 083, act 3, rail live at opacity 1,
+                   focus on <body>. Tab goes to the nav's logo — the document's
+                   first stop — because a scroll does not move the sequential
+                   focus starting point. Tabbing on from there reaches the hero
+                   toggle, which scrolls the viewport back to the top, which
+                   turns `hidden` on again before the rail's turn comes.
+
+       Forcing .focus() on a link proved the rail itself was fine: Tab walked
+       01 -> 05 in order and left into the FAQ. It was only ever the attribute.
+
+       So the two states are opacity and pointer-events, and FOCUS IS A REASON
+       TO BE LIVE. Off screen the rail paints nothing and catches nothing — a
+       fixed five-row column in the left margin must not swallow clicks over
+       act 1's full-bleed field — and it is still in the tab order, so the one
+       reader who cannot scroll to it can Tab to it, at which point it is on
+       screen. That is the skip link's own pattern, which this page already
+       opens with. --duration-fast rather than --duration-slow for that arrival:
+       a fade is the rail's character when the scroll brings it, and 480 ms is
+       too long to answer a keypress.
+
+       .act-rail[hidden] stays as the belt: nothing sets it now, and if anything
+       ever does again the rail leaves the layout rather than half-leaving it. */
+    .act-rail.is-live,
+    .act-rail:focus-within { opacity: 1; }
+    .act-rail:focus-within { transition-duration: var(--duration-fast); }
+    .act-rail:not(.is-live):not(:focus-within) { pointer-events: none; }
     .act-rail[hidden] { display: none; }
     .act-rail:hover, .act-rail:focus-within { --act-glyph: 1.5rem; }
 
