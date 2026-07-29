@@ -1942,13 +1942,31 @@
      off while its hue does not, and at any usable radius it reads as a yellow
      cloud around the mark rather than as light coming off it.
 
-     --glow-r is the reach, set per element. Lime takes 45 % of it, so the two
-     stops keep their ratio at every size. The old --glow-lime was a single
-     flat shadow at 32 px, had no consumer in any stylesheet, and is gone. */
-  --glow-r: 12px;
-  --glow-light:
-    drop-shadow(0 0 calc(var(--glow-r) * 0.45) rgba(225, 255, 0, 0.5))
-    drop-shadow(0 0 var(--glow-r) rgba(197, 235, 226, 0.6));
+     --glow-r is the reach, set per element. Lime takes --glow-core of it, so
+     the two stops keep their ratio at every size. The old --glow-lime was a
+     single flat shadow at 32 px, had no consumer in any stylesheet, and is
+     gone.
+
+     THREE INGREDIENTS AND NO COMPOSED TOKEN, which is this block withdrawing
+     a claim it could not keep. --glow-light sat here as the finished filter,
+     with var(--glow-r) inside it and "the reach, set per element" written
+     alongside — and that sentence was never true of it. A custom property's var()s are
+     substituted at computed-value time ON THE ELEMENT THAT DECLARES IT, so
+     --glow-light computed on :root with 12px already baked in, and every
+     descendant inherited that string. Four consumers set --glow-r and none of
+     them ever moved: .cf-icon--light asked for 6, .cf-relay__head for 8,
+     .cf-plot__cap for 12 and the prototype's .lp-flow__leaf for 36, and all
+     four rendered 12. Measured in Chromium 141.
+
+     So what is published is the parts, and the FILTER is composed where it is
+     applied — in a real property, where var(--glow-r) resolves against the
+     element using it and the reach finally works. One selector list in
+     components.css carries the composition for the system's three; a page
+     that draws its own light composes it from these same three names. */
+  --glow-r: 12px;                      /* the default reach */
+  --glow-core: 0.45;                   /* lime's share of it */
+  --glow-lime: rgba(225, 255, 0, 0.5);
+  --glow-glas: rgba(197, 235, 226, 0.6);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.10);
