@@ -150,10 +150,16 @@ def main():
         return 1
 
     # 1. the ground precedes the content, inside the stage
+    # The layer of callouts stands BETWEEN the svg and the container now — it
+    # is the drawing's own annotation and belongs with the drawing, not with
+    # the copy — so the identity is stated as "ground first, content after"
+    # rather than as "ground immediately followed by content". What it holds
+    # is the ORDER, which is what the sentence was always about; making it
+    # adjacency as well was an accident of there being nothing in between.
     if not re.search(
             r'<div class="sp-stage">[\s\S]*?<svg class="sp-field"[^>]*'
             r'viewBox="0 0 1600 900"[^>]*preserveAspectRatio="xMidYMid slice"'
-            r'[\s\S]*?</svg>\s*<div class="container">[\s\S]*?'
+            r'[\s\S]*?</svg>[\s\S]*?<div class="container">[\s\S]*?'
             r'<div class="sp-root">[\s\S]*?lp-flow\b', text):
         findings.append(
             "the stage no longer opens with the full-bleed .sp-field svg "
