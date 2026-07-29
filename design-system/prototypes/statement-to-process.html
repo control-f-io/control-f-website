@@ -592,6 +592,302 @@
     }
   }
 
+  /* ============================================================
+     WHY ACTS 4 AND 5 SIT HERE AND NOT BELOW THE GATE.
+
+     A base tier is only a base if the cascade can see it that way, and at
+     equal specificity the cascade decides on SOURCE ORDER. These two acts
+     were authored after the @supports block that animates them, so every
+     single-class rule they declared beat the single-class rule inside it —
+     the base tier overriding the pinned tier, which is the opposite of what
+     both were written to mean. It cost two defects that shipped:
+
+       .sp4-lit   rest state opacity: 0 here, opacity: 1 in the pinned block.
+                  The base won in BOTH tiers, so the frame's lit front never
+                  painted and the review reported the gradients missing. They
+                  were there; nothing could see them.
+       .map       block-size: auto here, 100 % in the pinned block. The base
+                  won, the svg took its 891 px intrinsic height, and the
+                  legend was pushed to y 902 in a 900 px stage where the clip
+                  ate it.
+
+     Both were patched where they were found — one by driving the value from
+     an animation rather than a declaration, one by going two classes deep —
+     and neither patch addressed the reason. Moving the blocks above the gate
+     does: a rule down there now wins on order, the way it reads as though it
+     should, and the next act does not have to know this story.
+     ============================================================ */
+
+  /* ============================================================
+     ACT 4 — the plates. Base tier first: no timeline, no gate, nothing
+     hidden. Every rule that MOVES anything is inside the pinned block far
+     below, so this is what a reduced-motion reader, a narrow viewport, a
+     browser without view timelines and the printer all get — two framed
+     photographs with their words beside them, whole, one under the other.
+     ============================================================ */
+  .sp4-track { position: relative; }
+  .sp4-stage { display: grid; align-content: center; padding-block: var(--space-16); }
+  .sp4-set {
+    display: grid;
+    gap: var(--space-12);
+    inline-size: min(100% - 2 * var(--space-6), var(--container-max, 76rem));
+    margin-inline: auto;
+  }
+
+  .sp4-plate { margin: 0; display: grid; gap: var(--space-8); align-items: center; }
+
+  /* ---- the words, in their own column ---- */
+  .sp4-mark { margin: 0 0 var(--space-4); color: var(--text-secondary); }
+  .sp4-say__lead {
+    margin: 0;
+    font-size: var(--text-h3);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-snug);
+    color: var(--text-primary);
+    min-block-size: 2.4em;
+  }
+  .sp4-say__body {
+    margin-block-start: var(--space-4);
+    max-inline-size: 42ch;
+    font-size: var(--text-lg);
+    line-height: var(--leading-relaxed);
+    color: var(--text-secondary);
+    min-block-size: 7.4em;
+  }
+  .sp4-plate:last-of-type .sp4-say__body { min-block-size: 5.2em; }
+
+  /* ---- the picture and its frame ---- */
+  .sp4-shot { position: relative; aspect-ratio: var(--ar); padding: var(--space-4); }
+  .sp4-win {
+    block-size: 100%;
+    overflow: hidden;
+    /* The wash, so an absent photograph is an empty mount rather than a
+       broken-image glyph, and so the plate itself stays invisible until its
+       act: the window is clipped shut before the sweep, and a wash on the
+       shot would announce the second plate a whole stage early. */
+    background: var(--surface-page, var(--grey-050));
+  }
+  .sp4-photo { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+
+  /* overflow: visible, WHICH check-edge-stroke-clip.py ASKED FOR BY NAME. All
+     eight paths lie ON the viewBox boundary — that is what a frame is — and an
+     <svg> clips to its viewport by default, so each of them would paint at
+     half its declared weight: the 1 px contour at 0.5 and the 2 px light at 1.
+     Nothing looks broken, the frame is just quietly thinner than the tree's
+     own strokes on the same page, which is the kind of drift a hairline never
+     announces. Same reason and same fix as .cf-page-header__figure. */
+  .sp4-frame {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .sp4-frame path {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+    transform-box: fill-box;
+    transform-origin: var(--o, 0 0);
+  }
+  .sp4-edge { stroke: var(--border-strong); stroke-width: 1; }
+  /* THE LIGHT IS OFF UNTIL SOMETHING IS DRIVING IT. The ramp pass is a FRONT,
+     not a frame: it exists while the edge is being drawn and goes out behind
+     itself. Where there is no timeline to move it — reduced motion, below the
+     gate, no view-timeline support, print — there is no front either, and a
+     lime rectangle standing permanently around a photograph is not the
+     settled state of this drawing. It is also the one place the settled state
+     could contradict its own rule: "the contour is the drawing", and the
+     contour is CF-Schwarz. So the base tier paints the black hairline alone
+     and the pinned block below turns the light on for the acts that use it. */
+  /* SIX, AND THE CONTOUR IS ONE. The light was 2 px — the tree's weight — and
+     the tree's weight is wrong here for a reason that is about length, not
+     about taste. On the root a lit stroke is 20 to 110 units long, so the
+     ramp's coloured leg (lime to Glas is its first 32 %) is most of what you
+     see. A plate's edge is the whole width of the picture, so the same ramp
+     spreads its colour over a few dozen pixels at the tip and spends the rest
+     of the run at #CFCFCF — which, painted at 2 px directly under a 1 px black
+     contour, is invisible. Measured on the render: four black edges drawing,
+     one lime pixel at each tip, and the review said the gradients were
+     missing. They were there; there was nowhere for them to be seen.
+
+     Six under one leaves two and a half px of ramp proud on each side of the
+     contour. The lime tip reads, the Glas leg reads, and the tail — #CFCFCF
+     against the CF-Grau wash — falls away on its own, which is the same
+     falling-away the root's own light does at the end of every stroke. */
+  .sp4-lit  { stroke-width: 6; opacity: 0; }
+
+  /* THE TICK is the brand's one diagonal on an otherwise square frame: a 45°
+     chamfer across the top-left corner, which is the angle the logo is cut on
+     and one of the five the whole system draws. It is what stops the plate
+     reading as a browser default border. */
+  .sp4-tick {
+    position: absolute;
+    inset-block-start: -1px;
+    inset-inline-start: -1px;
+    inline-size: var(--space-6);
+    block-size: var(--stroke-1, 1px);
+    background: var(--border-strong);
+    transform: rotate(45deg);
+    transform-origin: 0 0;
+    pointer-events: none;
+  }
+
+  @media (min-width: 64rem) {
+    /* WORDS LEFT, PICTURE RIGHT, four columns against eight. The review drew
+       it that way — "text about the picture on the left" — and the split is
+       the photographs' own: at the same height a 5:4 wants two thirds of the
+       width a 2.55:1 does, so the picture takes the larger share and the
+       words take a measure they can hold a line on. */
+    .sp4-plate { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
+  }
+
+  /* ============================================================
+     ACT 5 — the map. Base tier: no timeline, no camera, nothing hidden.
+     The world framing is the viewBox, so this is what a reduced-motion
+     reader, a narrow viewport, a browser without view timelines and the
+     printer all get — one world map with everything on it and all three
+     beats of copy under it, whole.
+     ============================================================ */
+  .map-track { position: relative; }
+  .map-stage {
+    display: grid;
+    gap: var(--space-8);
+    inline-size: min(100% - 2 * var(--space-6), var(--container-max, 76rem));
+    margin-inline: auto;
+    padding-block: var(--space-16);
+    align-content: center;
+  }
+  /* THE CROP IS ON THE BOX AND overflow: visible STAYS ON THE SVG, which is
+     two rules doing two different jobs and not one contradicting the other.
+     The camera scales the map group fourteen times at the Germany framing, so
+     everything outside that framing has to be cut — but cutting it at the
+     <svg> would also halve every stroke lying on the viewBox boundary, which
+     is the fault check-edge-stroke-clip.py exists to catch. Clipping the box
+     that CONTAINS the svg crops the camera without touching the viewport the
+     strokes are measured against. */
+  .map-box { position: relative; overflow: clip; }
+  .map { inline-size: 100%; block-size: auto; display: block; overflow: visible; }
+
+  /* THE COASTLINE IS A CONTOUR, at the one weight the whole system draws in,
+     and non-scaling so it stays a hairline while the camera moves. */
+  .map__land {
+    stroke: var(--border-default);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .map__land--market { stroke: var(--border-strong); }
+  /* fill-opacity AND NOT opacity, which check-authored-opacity.py insisted on
+     and was right about. The ramp is meant to sit at half strength so the
+     lattice and the contour stay readable through it — but lp-frame-in ends
+     `opacity: 1`, the animation origin outranks the author origin, and the
+     declaration never rendered at all: the fill arrived at full and the weave
+     under it was gone. fill-opacity is a different property, so the arrival
+     animates the element's opacity and the paint keeps its own strength. */
+  .map__fill  { fill: url(#map-ramp); fill-opacity: 0.5; }
+  .map__weave { fill: url(#map-weave); }
+
+  /* A POINT IS A STROKE, NOT A CIRCLE. There is no vector-effect for a fill,
+     so a <circle> would swell to a blot at the Germany framing and vanish at
+     the world one. A zero-length path with a round linecap draws a dot whose
+     radius IS a stroke width — constant at every camera scale, which is the
+     only thing that lets one set of geometry serve three framings. */
+  .map__dot {
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+  /* A CONTOUR AND ONE LIGHT, on a point as on everything else here. Lime on
+     the CF-Grau wash is the drawing's own colour and its own problem: at 6 px
+     on a light ground it is a smudge, and twenty-seven of them scattered over
+     a world map have to be findable. So an asset point is two strokes — the
+     black contour under the lime — which is illustration.html's sentence at
+     the smallest scale the page draws it. The office points need no ring:
+     they are CF-Schwarz already. */
+  .map__dot--office { stroke: var(--cf-schwarz); stroke-width: 9; }
+  .map__dot--ring   { stroke: var(--border-strong); stroke-width: 8; }
+  .map__dot--asset  { stroke: var(--cf-lime, #E1FF00); stroke-width: 5; }
+
+  .map__tags { position: absolute; inset: 0; pointer-events: none; }
+  .map__tag {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    translate: 12px -50%;
+    white-space: nowrap;
+    color: var(--text-secondary);
+  }
+  .map__tag i { font-style: normal; color: var(--text-muted); }
+  .map__tag i::before { content: " · "; }
+  .map__tag--land { translate: -50% -50%; color: var(--text-primary); }
+
+  .map__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .map__key { display: flex; align-items: center; gap: var(--space-2); }
+  .map__key-dot {
+    inline-size: 8px;
+    block-size: 8px;
+    border-radius: 50%;
+    background: var(--cf-lime, #E1FF00);
+    flex: none;
+  }
+  .map__key-name { color: var(--text-secondary); }
+  .map__key-n { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); }
+
+  .map-beat__mark { margin: 0 0 var(--space-3); color: var(--text-secondary); }
+  .map-beat__lead {
+    margin: 0;
+    font-size: var(--text-h3);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-snug);
+    color: var(--text-primary);
+    min-block-size: 1.3em;
+  }
+  .map-beat__body {
+    margin-block-start: var(--space-3);
+    max-inline-size: 62ch;
+    font-size: var(--text-lg);
+    line-height: var(--leading-relaxed);
+    color: var(--text-secondary);
+    min-block-size: 4.6em;
+  }
+  .map-say { display: grid; gap: var(--space-8); }
+
+  @keyframes lp-frame-draw { from { scale: 0; } to { scale: 1; } }
+  @keyframes lp-frame-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes lp-flow-out { to { opacity: 0; } }
+  /* The field's three verbs. The stream opens beyond the glow's nearest
+     corner (--fx/--fy, generated) and lands on its crossing at rest weight;
+     the pulse swells a quarter above rest and back, twice, in place; the
+     merge runs every glow to one point — the trunk's head in field units —
+     and puts it out. All lengths are user units (fill-box does not change
+     that), so the generated numbers land exactly. */
+  @keyframes sp-field-arrive {
+    from { translate: calc(var(--fx) * 1px) calc(var(--fy) * 1px); opacity: 0; }
+    to { translate: 0 0; opacity: var(--iso-rest, 1); }
+  }
+  @keyframes sp-field-pulse {
+    0%, 50%, 100% { opacity: var(--iso-rest, 1); scale: 1; }
+    25%, 75% { opacity: var(--sp-peak, 1); scale: 1.12; }
+  }
+  @keyframes sp-field-merge {
+    /* The glow BRIGHTENS through the flight and dies only on arrival: the
+       field's light concentrates as it converges, which is the story. A
+       linear fade across the whole run had the field invisible while it
+       was still mid-screen — the merge un-telling itself. */
+    45%, 80% { opacity: var(--sp-flare, 1); }
+    to {
+      translate: calc((var(--ux, 816) - var(--cx)) * 1px)
+                 calc((var(--uy, 272) - var(--cy)) * 1px);
+      scale: .25;
+      opacity: 0;
+    }
+  }
   @supports (animation-timeline: view()) {
     @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
       main { --lp-measure: calc((max(45rem, 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }
@@ -1028,13 +1324,8 @@
            stage, and the clip ate it. */
         grid-template-rows: auto minmax(0, 1fr) auto;
       }
-      /* TWO CLASSES DEEP, DELIBERATELY. This file authors its page-local base
-         block AFTER this @supports block, so a single-class rule here loses to
-         a single-class rule there whatever it says — the same trap that left
-         act 4's light unpainted. .map-stage .map is (0,2,0) and wins on order
-         or against it. */
-      .map-stage .map-box { block-size: 100%; }
-      .map-stage .map { block-size: 100%; }
+      .map-box { block-size: 100%; }
+      .map { block-size: 100%; }
 
       /* THE CAMERA. Three transforms, generated from the same projection the
          paths are, applied to the map group about the view box's own origin.
@@ -1128,9 +1419,16 @@
                          contain calc((33 + var(--s) * 33) * 1%);
         animation-fill-mode: both, forwards;
       }
-      .map-beat:last-child { animation: lp-frame-in linear both;
+      /* THE LAST BEAT ARRIVES AND STAYS, so it takes the in-animation alone
+         rather than restating the pair and hoping the second half is ignored.
+         The act ends on it; a section that fades its own last frame has
+         nothing to hand over. */
+      .map-beat:last-child {
+        animation-name: lp-frame-in;
         animation-timeline: --map;
-        animation-range: contain 68% contain 74%; }
+        animation-range: contain 68% contain 74%;
+        animation-fill-mode: both;
+      }
 
       /* ---- ACT 4: the plates, drawn and swept and read ---- */
       /*
@@ -1240,35 +1538,26 @@
          root does this to every stroke it has — .lp-flow__light fades and
          .lp-flow__seg remains — and it is the whole reason a frame can arrive
          in lime on a page whose contour colour is CF-Schwarz. */
-      /* THE LIGHT'S VISIBILITY IS AN ANIMATION, NOT A DECLARATION, and that is
-         a fix for a cascade trap this file is shaped to set. The rest state is
-         "off" — no timeline, no front, black contour only — and stating it as
-         `opacity: 0` in the base tier plus `opacity: 1` here does not survive
-         the file's own ordering: the page-local base block is authored AFTER
-         this @supports block, so at equal specificity the base rule wins in
-         BOTH tiers and the ramp never paints at all. Measured on the render:
-         four black edges drawing, no colour anywhere, which is exactly what
-         the review saw.
-         
-         Three animations instead. lp-frame-in carries 0 -> 1 across the same
-         window the edge is drawn in and fills BOTH ways, so the light is off
-         before its edge starts and full while it travels; lp-flow-out then
-         takes it back to 0 behind itself. Nothing depends on which rule the
-         cascade reaches last, and the base tier keeps its opacity: 0 with
-         nothing arguing against it. */
+      /* THE LIGHT IS OFF AT REST AND ON WHERE A TIMELINE DRIVES IT. Two
+         declarations, one per tier, which is what this always meant — the
+         third animation that used to carry the same value was there to dodge
+         a source-order fight the base block no longer picks.
+
+         lp-flow-out reads the 1 and takes it to 0 behind the front. Its fill
+         is `forwards` and not `both`, so before its own range it does not
+         apply and the light stands at the value declared here. */
       .sp4-lit {
-        animation-timeline: --sp4, --sp4, --sp4;
-        animation-timing-function: linear, linear, linear;
+        opacity: 1;
+        animation-timeline: --sp4, --sp4;
+        animation-timing-function: linear, linear;
         animation-range: contain calc((var(--t0) + 2 + var(--e) * 2) * 1%)
                          contain calc((var(--t0) + 12 + var(--e) * 2) * 1%),
-                         contain calc((var(--t0) + 2 + var(--e) * 2) * 1%)
-                         contain calc((var(--t0) + 4 + var(--e) * 2) * 1%),
                          contain calc((var(--t0) + 18 + var(--e) * 2) * 1%)
                          contain calc((var(--t0) + 26 + var(--e) * 2) * 1%);
-        animation-fill-mode: both, both, forwards;
+        animation-fill-mode: both, forwards;
       }
-      .sp4-lit.sp4-x { animation-name: sp4-draw-x, lp-frame-in, lp-flow-out; }
-      .sp4-lit.sp4-y { animation-name: sp4-draw-y, lp-frame-in, lp-flow-out; }
+      .sp4-lit.sp4-x { animation-name: sp4-draw-x, lp-flow-out; }
+      .sp4-lit.sp4-y { animation-name: sp4-draw-y, lp-flow-out; }
 
       .sp4-tick {
         animation: lp-frame-in linear both;
@@ -1820,276 +2109,6 @@
         animation-range: entry calc(var(--a) * 1%)
                          entry calc((var(--a) + var(--u) * var(--relay-rate)) * 1%);
       }
-    }
-  }
-  /* ============================================================
-     ACT 4 — the plates. Base tier first: no timeline, no gate, nothing
-     hidden. Every rule that MOVES anything is inside the pinned block far
-     below, so this is what a reduced-motion reader, a narrow viewport, a
-     browser without view timelines and the printer all get — two framed
-     photographs with their words beside them, whole, one under the other.
-     ============================================================ */
-  .sp4-track { position: relative; }
-  .sp4-stage { display: grid; align-content: center; padding-block: var(--space-16); }
-  .sp4-set {
-    display: grid;
-    gap: var(--space-12);
-    inline-size: min(100% - 2 * var(--space-6), var(--container-max, 76rem));
-    margin-inline: auto;
-  }
-
-  .sp4-plate { margin: 0; display: grid; gap: var(--space-8); align-items: center; }
-
-  /* ---- the words, in their own column ---- */
-  .sp4-mark { margin: 0 0 var(--space-4); color: var(--text-secondary); }
-  .sp4-say__lead {
-    margin: 0;
-    font-size: var(--text-h3);
-    font-weight: var(--weight-bold);
-    line-height: var(--leading-snug);
-    color: var(--text-primary);
-    min-block-size: 2.4em;
-  }
-  .sp4-say__body {
-    margin-block-start: var(--space-4);
-    max-inline-size: 42ch;
-    font-size: var(--text-lg);
-    line-height: var(--leading-relaxed);
-    color: var(--text-secondary);
-    min-block-size: 7.4em;
-  }
-  .sp4-plate:last-of-type .sp4-say__body { min-block-size: 5.2em; }
-
-  /* ---- the picture and its frame ---- */
-  .sp4-shot { position: relative; aspect-ratio: var(--ar); padding: var(--space-4); }
-  .sp4-win {
-    block-size: 100%;
-    overflow: hidden;
-    /* The wash, so an absent photograph is an empty mount rather than a
-       broken-image glyph, and so the plate itself stays invisible until its
-       act: the window is clipped shut before the sweep, and a wash on the
-       shot would announce the second plate a whole stage early. */
-    background: var(--surface-page, var(--grey-050));
-  }
-  .sp4-photo { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
-
-  /* overflow: visible, WHICH check-edge-stroke-clip.py ASKED FOR BY NAME. All
-     eight paths lie ON the viewBox boundary — that is what a frame is — and an
-     <svg> clips to its viewport by default, so each of them would paint at
-     half its declared weight: the 1 px contour at 0.5 and the 2 px light at 1.
-     Nothing looks broken, the frame is just quietly thinner than the tree's
-     own strokes on the same page, which is the kind of drift a hairline never
-     announces. Same reason and same fix as .cf-page-header__figure. */
-  .sp4-frame {
-    position: absolute;
-    inset: 0;
-    inline-size: 100%;
-    block-size: 100%;
-    overflow: visible;
-    pointer-events: none;
-  }
-  .sp4-frame path {
-    fill: none;
-    vector-effect: non-scaling-stroke;
-    transform-box: fill-box;
-    transform-origin: var(--o, 0 0);
-  }
-  .sp4-edge { stroke: var(--border-strong); stroke-width: 1; }
-  /* THE LIGHT IS OFF UNTIL SOMETHING IS DRIVING IT. The ramp pass is a FRONT,
-     not a frame: it exists while the edge is being drawn and goes out behind
-     itself. Where there is no timeline to move it — reduced motion, below the
-     gate, no view-timeline support, print — there is no front either, and a
-     lime rectangle standing permanently around a photograph is not the
-     settled state of this drawing. It is also the one place the settled state
-     could contradict its own rule: "the contour is the drawing", and the
-     contour is CF-Schwarz. So the base tier paints the black hairline alone
-     and the pinned block below turns the light on for the acts that use it. */
-  /* SIX, AND THE CONTOUR IS ONE. The light was 2 px — the tree's weight — and
-     the tree's weight is wrong here for a reason that is about length, not
-     about taste. On the root a lit stroke is 20 to 110 units long, so the
-     ramp's coloured leg (lime to Glas is its first 32 %) is most of what you
-     see. A plate's edge is the whole width of the picture, so the same ramp
-     spreads its colour over a few dozen pixels at the tip and spends the rest
-     of the run at #CFCFCF — which, painted at 2 px directly under a 1 px black
-     contour, is invisible. Measured on the render: four black edges drawing,
-     one lime pixel at each tip, and the review said the gradients were
-     missing. They were there; there was nowhere for them to be seen.
-
-     Six under one leaves two and a half px of ramp proud on each side of the
-     contour. The lime tip reads, the Glas leg reads, and the tail — #CFCFCF
-     against the CF-Grau wash — falls away on its own, which is the same
-     falling-away the root's own light does at the end of every stroke. */
-  .sp4-lit  { stroke-width: 6; opacity: 0; }
-
-  /* THE TICK is the brand's one diagonal on an otherwise square frame: a 45°
-     chamfer across the top-left corner, which is the angle the logo is cut on
-     and one of the five the whole system draws. It is what stops the plate
-     reading as a browser default border. */
-  .sp4-tick {
-    position: absolute;
-    inset-block-start: -1px;
-    inset-inline-start: -1px;
-    inline-size: var(--space-6);
-    block-size: var(--stroke-1, 1px);
-    background: var(--border-strong);
-    transform: rotate(45deg);
-    transform-origin: 0 0;
-    pointer-events: none;
-  }
-
-  @media (min-width: 64rem) {
-    /* WORDS LEFT, PICTURE RIGHT, four columns against eight. The review drew
-       it that way — "text about the picture on the left" — and the split is
-       the photographs' own: at the same height a 5:4 wants two thirds of the
-       width a 2.55:1 does, so the picture takes the larger share and the
-       words take a measure they can hold a line on. */
-    .sp4-plate { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
-  }
-
-  /* ============================================================
-     ACT 5 — the map. Base tier: no timeline, no camera, nothing hidden.
-     The world framing is the viewBox, so this is what a reduced-motion
-     reader, a narrow viewport, a browser without view timelines and the
-     printer all get — one world map with everything on it and all three
-     beats of copy under it, whole.
-     ============================================================ */
-  .map-track { position: relative; }
-  .map-stage {
-    display: grid;
-    gap: var(--space-8);
-    inline-size: min(100% - 2 * var(--space-6), var(--container-max, 76rem));
-    margin-inline: auto;
-    padding-block: var(--space-16);
-    align-content: center;
-  }
-  /* THE CROP IS ON THE BOX AND overflow: visible STAYS ON THE SVG, which is
-     two rules doing two different jobs and not one contradicting the other.
-     The camera scales the map group fourteen times at the Germany framing, so
-     everything outside that framing has to be cut — but cutting it at the
-     <svg> would also halve every stroke lying on the viewBox boundary, which
-     is the fault check-edge-stroke-clip.py exists to catch. Clipping the box
-     that CONTAINS the svg crops the camera without touching the viewport the
-     strokes are measured against. */
-  .map-box { position: relative; overflow: clip; }
-  .map { inline-size: 100%; block-size: auto; display: block; overflow: visible; }
-
-  /* THE COASTLINE IS A CONTOUR, at the one weight the whole system draws in,
-     and non-scaling so it stays a hairline while the camera moves. */
-  .map__land {
-    stroke: var(--border-default);
-    stroke-width: 1;
-    vector-effect: non-scaling-stroke;
-  }
-  .map__land--market { stroke: var(--border-strong); }
-  /* fill-opacity AND NOT opacity, which check-authored-opacity.py insisted on
-     and was right about. The ramp is meant to sit at half strength so the
-     lattice and the contour stay readable through it — but lp-frame-in ends
-     `opacity: 1`, the animation origin outranks the author origin, and the
-     declaration never rendered at all: the fill arrived at full and the weave
-     under it was gone. fill-opacity is a different property, so the arrival
-     animates the element's opacity and the paint keeps its own strength. */
-  .map__fill  { fill: url(#map-ramp); fill-opacity: 0.5; }
-  .map__weave { fill: url(#map-weave); }
-
-  /* A POINT IS A STROKE, NOT A CIRCLE. There is no vector-effect for a fill,
-     so a <circle> would swell to a blot at the Germany framing and vanish at
-     the world one. A zero-length path with a round linecap draws a dot whose
-     radius IS a stroke width — constant at every camera scale, which is the
-     only thing that lets one set of geometry serve three framings. */
-  .map__dot {
-    stroke-linecap: round;
-    vector-effect: non-scaling-stroke;
-  }
-  /* A CONTOUR AND ONE LIGHT, on a point as on everything else here. Lime on
-     the CF-Grau wash is the drawing's own colour and its own problem: at 6 px
-     on a light ground it is a smudge, and twenty-seven of them scattered over
-     a world map have to be findable. So an asset point is two strokes — the
-     black contour under the lime — which is illustration.html's sentence at
-     the smallest scale the page draws it. The office points need no ring:
-     they are CF-Schwarz already. */
-  .map__dot--office { stroke: var(--cf-schwarz); stroke-width: 9; }
-  .map__dot--ring   { stroke: var(--border-strong); stroke-width: 8; }
-  .map__dot--asset  { stroke: var(--cf-lime, #E1FF00); stroke-width: 5; }
-
-  .map__tags { position: absolute; inset: 0; pointer-events: none; }
-  .map__tag {
-    position: absolute;
-    left: var(--x);
-    top: var(--y);
-    translate: 12px -50%;
-    white-space: nowrap;
-    color: var(--text-secondary);
-  }
-  .map__tag i { font-style: normal; color: var(--text-muted); }
-  .map__tag i::before { content: " · "; }
-  .map__tag--land { translate: -50% -50%; color: var(--text-primary); }
-
-  .map__legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3) var(--space-6);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .map__key { display: flex; align-items: center; gap: var(--space-2); }
-  .map__key-dot {
-    inline-size: 8px;
-    block-size: 8px;
-    border-radius: 50%;
-    background: var(--cf-lime, #E1FF00);
-    flex: none;
-  }
-  .map__key-name { color: var(--text-secondary); }
-  .map__key-n { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); }
-
-  .map-beat__mark { margin: 0 0 var(--space-3); color: var(--text-secondary); }
-  .map-beat__lead {
-    margin: 0;
-    font-size: var(--text-h3);
-    font-weight: var(--weight-bold);
-    line-height: var(--leading-snug);
-    color: var(--text-primary);
-    min-block-size: 1.3em;
-  }
-  .map-beat__body {
-    margin-block-start: var(--space-3);
-    max-inline-size: 62ch;
-    font-size: var(--text-lg);
-    line-height: var(--leading-relaxed);
-    color: var(--text-secondary);
-    min-block-size: 4.6em;
-  }
-  .map-say { display: grid; gap: var(--space-8); }
-
-  @keyframes lp-frame-draw { from { scale: 0; } to { scale: 1; } }
-  @keyframes lp-frame-in { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes lp-flow-out { to { opacity: 0; } }
-  /* The field's three verbs. The stream opens beyond the glow's nearest
-     corner (--fx/--fy, generated) and lands on its crossing at rest weight;
-     the pulse swells a quarter above rest and back, twice, in place; the
-     merge runs every glow to one point — the trunk's head in field units —
-     and puts it out. All lengths are user units (fill-box does not change
-     that), so the generated numbers land exactly. */
-  @keyframes sp-field-arrive {
-    from { translate: calc(var(--fx) * 1px) calc(var(--fy) * 1px); opacity: 0; }
-    to { translate: 0 0; opacity: var(--iso-rest, 1); }
-  }
-  @keyframes sp-field-pulse {
-    0%, 50%, 100% { opacity: var(--iso-rest, 1); scale: 1; }
-    25%, 75% { opacity: var(--sp-peak, 1); scale: 1.12; }
-  }
-  @keyframes sp-field-merge {
-    /* The glow BRIGHTENS through the flight and dies only on arrival: the
-       field's light concentrates as it converges, which is the story. A
-       linear fade across the whole run had the field invisible while it
-       was still mid-screen — the merge un-telling itself. */
-    45%, 80% { opacity: var(--sp-flare, 1); }
-    to {
-      translate: calc((var(--ux, 816) - var(--cx)) * 1px)
-                 calc((var(--uy, 272) - var(--cy)) * 1px);
-      scale: .25;
-      opacity: 0;
     }
   }
   /* ------------------------------------------------------------------
