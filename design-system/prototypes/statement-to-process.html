@@ -175,20 +175,27 @@
 
      Declaring the shadow on the ORB fixes it for the orb, because then the
      substitution happens where --glow-r is in scope. The ratios (0.45, and
-     the two alphas) are restated from the token, which is a duplication and
-     is named as one; the colours are not — they come from the palette, so a
-     palette move still moves these. The system-wide fix is a different change
+     the two alphas) came from the token as literals, which was a duplication
+     and was named as one. THAT PART IS DONE: tokens.css publishes --glow-core,
+     --glow-lime and --glow-glas now, and the orb reads all three, so nothing
+     here restates a number the palette owns. The rest of this note stands as
+     the diagnosis it always was. The system-wide fix is a different change
      from this one: it is tokens.css publishing the two shadow COLOURS and
      every consumer composing its own reach, and it touches every glow on the
      site. The beads used to share this pair and no longer do — see the halo's
      own note below for why nothing in the field is filtered at all. */
   .lp-flow__orb {
-    --sp-glow-glas:
-      drop-shadow(0 0 var(--glow-r, 12px)
-                  color-mix(in srgb, var(--glas-500) 60%, transparent));
+    /* THE RATIO AND THE TWO COLOURS ARE THE PUBLISHED ONES NOW. This used to
+       mix them out of --lime-500 and --glas-500 at 50 % and 60 %, and multiply
+       the reach by a literal 0.45, because tokens.css published only the
+       finished filter and there was nothing else to read. It publishes the
+       parts — --glow-core, --glow-lime, --glow-glas — so the duplication the
+       note above named as one is gone: this is the same light the system
+       draws, at this element's own reach. */
+    --sp-glow-glas: drop-shadow(0 0 var(--glow-r, 12px) var(--glow-glas));
     --sp-glow-lime:
-      drop-shadow(0 0 calc(var(--glow-r, 12px) * 0.45)
-                  color-mix(in srgb, var(--lime-500) 50%, transparent));
+      drop-shadow(0 0 calc(var(--glow-r, 12px) * var(--glow-core))
+                  var(--glow-lime));
   }
   /* THE HALO IS A PAINTED CIRCLE AND THE BEAD CARRIES NO FILTER, which is a
      frame budget rather than a preference. A drop-shadow re-rasterizes when
@@ -1209,7 +1216,18 @@
          median gap from each side, so neighbours meet in the middle and the
          wide gaps stay open. The glow rides stroke-opacity with the rest of
          the leaf, so what pools between the feet breathes with them. */
-      .lp-flow__leaf { stroke-width: 6; --glow-r: 36px; filter: var(--glow-light); }
+      .lp-flow__leaf {
+        stroke-width: 6;
+        --glow-r: 36px;
+        /* Composed here, from tokens.css's three ingredients, for the reason
+           the orb's note gives above: a filter assembled on :root bakes in the
+           :root reach and this asked for 36 px and rendered 12. It is the same
+           two shadows the system's own rule composes — the ratio and the
+           colours are the published ones, so a palette move still moves this. */
+        filter:
+          drop-shadow(0 0 calc(var(--glow-r) * var(--glow-core)) var(--glow-lime))
+          drop-shadow(0 0 var(--glow-r) var(--glow-glas));
+      }
       .lp-flow__leaf {
         animation: lp-frame-draw linear,
                    sp-leaf-settle linear,
@@ -3307,13 +3325,30 @@
                    against the `d` by scripts/check-relay-rate.py — a hand-typed --u
                    that disagrees with its own stroke is the failure that check
                    exists for. -->
+              <!-- THE ORDER AND THE ORIGINS TURNED OVER WITH THE ROOT.
+                   Three taproots used to arrive at flow x 0, 600 and 1200, and
+                   the lectern's three verticals stood up out of them — all
+                   three growing DOWN from the top rail, because all three were
+                   continuations of a drop. The confluence hands over one
+                   arrival: the source, at flow x 600, which is frame x 500.
+
+                   So only the middle one still continues anything, and it is
+                   the only one that still grows downward out of the point the
+                   drawing puts there. The outer two are the box's own sides
+                   and now say so — they grow UP from the bottom rail, which is
+                   drawn before them for exactly that reason. Left as they were
+                   they hung from two points on the top rail that nothing
+                   arrives at, which is a drawing claiming a join it does not
+                   have. check-flow-handover.py holds the middle one to the
+                   source; this is the other half of that finding, in the
+                   drawing rather than in the check. -->
               <svg class="lp-frame" viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true">
-                <path class="lp-frame__line" style="--a:56;--u:500;--o:0 0"     d="M500 0V500"/>
-                <path class="lp-frame__line" style="--a:60;--u:500;--o:0 0"     d="M0 0V500"/>
-                <path class="lp-frame__line" style="--a:68;--u:500;--o:0 0"     d="M1000 0V500"/>
-                <path class="lp-frame__line" style="--a:72;--u:500;--o:100% 0"  d="M0 0H500"/>
-                <path class="lp-frame__line" style="--a:74;--u:500;--o:0 0"     d="M500 0H1000"/>
-                <path class="lp-frame__line" style="--a:76;--u:1000;--o:0 0"    d="M0 500H1000"/>
+                <path class="lp-frame__line" style="--a:56;--u:500;--o:0 0"      d="M500 0V500"/>
+                <path class="lp-frame__line" style="--a:62;--u:1000;--o:0 0"     d="M0 500H1000"/>
+                <path class="lp-frame__line" style="--a:68;--u:500;--o:0 100%"   d="M0 0V500"/>
+                <path class="lp-frame__line" style="--a:72;--u:500;--o:0 100%"   d="M1000 0V500"/>
+                <path class="lp-frame__line" style="--a:78;--u:500;--o:100% 0"   d="M0 0H500"/>
+                <path class="lp-frame__line" style="--a:80;--u:500;--o:0 0"      d="M500 0H1000"/>
               </svg>
             </article>
             <article class="cf-process cf-pin__step" style="--i:0">
