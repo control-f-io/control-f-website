@@ -68,7 +68,18 @@ from fractions import Fraction as F
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-PAGE = ROOT / "design-system" / "prototypes" / "statement-to-process.html"
+# BOTH COPIES, and until the feed arrived only the prototype was written. The
+# landing page carries the same drawing behind the same five markers — it has
+# since the acts moved onto it — and the generator wrote one of the two, which
+# means "re-run it and the same lines come out" was a claim about half the
+# tree. The flow checks read both pages and hold both to the same laws, so the
+# divergence could not grow large; it could still grow, and a generator that
+# knows about one of its two outputs is the shape every drift in this file's
+# history started as.
+PAGES = [
+    ROOT / "design-system" / "prototypes" / "statement-to-process.html",
+    ROOT / "design-system" / "patterns" / "landing-page.html",
+]
 
 RAIL = F(620)          # the frame's top rail, in flow units
 LEFT, RIGHT = F(0), F(1200)
@@ -942,6 +953,65 @@ for nx, ny in NODE_POINTS:
     emit(f'<circle class="lp-flow__node" style="--l:{l}" '
           f'cx="{num(nx)}" cy="{num(my(ny))}" r="{radius(float(l))}"/>')
 
+# ------------------------------------------------------------------- the feed
+#
+# WHAT ARRIVES AT A LEAF. The drawing has always said that a leaf is where the
+# data enters -- "a leaf is not carrying the front anywhere, it is the place the
+# data ENTERS, the tip a sensor collapses into", which is the sentence
+# .lp-flow__leaf's own note in acts.css opens with -- and nothing arrived. The
+# tips glimmered at something the reader was told about and never shown.
+#
+# So each of them receives spheres, and they are ACT 1'S SPHERE, not a new
+# object: a body of the family's ramp with a black contour on it and a painted
+# halo at 2.6x its radius, which is the construction .cf-stmt-sensor__bead
+# argues for at length in acts.css and gen-proto-field.py builds twenty-one of.
+# The two acts are then one sentence rather than two -- the field converges into
+# the trunk's head, and the same instrument goes on arriving at every tip while
+# the root grows underneath it.
+#
+# THE APPROACH IS THE LEAF'S OWN AXIS, at FEED_REACH of the leaf's own length,
+# which is LEAF_STRETCH's move and for LEAF_STRETCH's reason: a fraction of the
+# stroke is exact in the same rational arithmetic every coordinate here is
+# written in, where a fixed distance along a 26.57 degree axis is not. It also
+# means the approach scales with what it is approaching -- a bead bound for a
+# 247-unit taproot leaf comes from further out than one bound for a 42-unit
+# fringe tip, which is the drawing's own sense of scale rather than a constant
+# imposed on it.
+#
+# The offset is emitted, not the start point: acts.css translates from
+# (--dx, --dy) to nothing, so the group's own cx/cy stay the tip and the tip is
+# where every bead ends up. --l and --u ride along untouched from the leaf the
+# feed belongs to, because when a leaf starts receiving is not a new decision --
+# it is the moment that leaf finished drawing, and acts.css already knows how to
+# say that.
+# ONE LEAF-LENGTH OUT, AND THE BEAD IS SCALE-MATCHED TO ACT 1'S. The first pass
+# had the approach at two thirds and the bead at 10 units, and rendered as a row
+# of small rings hovering over the canopy: at 10 units in a 1200-unit box the
+# lime stop lands inside the first 0.6 of a unit, so what reached the reader was
+# the black contour and a pale disc — the ramp was there and none of it was
+# visible. gen-proto-field.py draws act 1's sensors at 9 to 26 in a 1600-unit
+# box, so 16 here is the same instrument at the same apparent size, which is the
+# whole claim these spheres make. A full leaf-length of approach follows from
+# the same correction: the travel has to be long enough to be read as travel.
+FEED_REACH = F(1)        # of the leaf's own length, along the leaf's own axis
+FEED_R = F(16)           # the bead, in flow units. The orb it feeds is 34.
+FEED_GLOW = FEED_R * F(26) / 10   # 2.6 x the bead — the field's own ratio
+
+block("feed")
+for i, (x1, y1, x2, y2, d) in enumerate(segments):
+    if y2 != RAIL:
+        continue
+    px, py = num(x2), num(my(y2))
+    emit(f'<g class="lp-flow-feed" style="--l:{reached(d + max(abs(x2 - x1), abs(y2 - y1)))};'
+          f'--u:{extent(d, x1, y1, x2, y2)};'
+          f'--dx:{num((x2 - x1) * FEED_REACH)};'
+          f'--dy:{num((my(y2) - my(y1)) * FEED_REACH)}">')
+    emit(f'  <circle class="lp-flow-feed__halo" cx="{px}" cy="{py}" '
+          f'r="{num(FEED_GLOW)}" fill="url(#lp-flow-feed-halo)"/>')
+    emit(f'  <circle class="lp-flow-feed__bead" cx="{px}" cy="{py}" '
+          f'r="{num(FEED_R)}" fill="url(#lp-flow-feed-body)"/>')
+    emit('</g>')
+
 # ------------------------------------------------------------------ the values
 #
 # WHAT THE ROOT IS CARRYING. The drawing said data moves; it did not say how
@@ -1622,27 +1692,30 @@ def main():
             print(f"<!-- {MARK}: end {name} -->")
         return 0
 
-    text = PAGE.read_text(encoding="utf-8")
-    new, n = splice(text)
-    if n != len(BLOCKS):
-        print(f"gen-flow-root: found {n} of {len(BLOCKS)} blocks — the markers "
-              f"went stale")
-        return 1
-    if args.write:
-        if new != text:
-            PAGE.write_text(new, encoding="utf-8")
-            print(f"  wrote {PAGE.relative_to(ROOT)}")
-        else:
-            print(f"  {PAGE.relative_to(ROOT)} already current")
-    elif new != text:
-        print("gen-flow-root: the prototype's root is not what this script "
-              "generates — re-run with --write")
-        return 1
-    if args.check:
-        print(f"gen-flow-root: the root is the generator's output "
+    rc = 0
+    for page in PAGES:
+        text = page.read_text(encoding="utf-8")
+        new, n = splice(text)
+        if n != len(BLOCKS):
+            print(f"gen-flow-root: {page.name}: found {n} of {len(BLOCKS)} "
+                  f"blocks — the markers went stale")
+            rc = 1
+            continue
+        if args.write:
+            if new != text:
+                page.write_text(new, encoding="utf-8")
+                print(f"  wrote {page.relative_to(ROOT)}")
+            else:
+                print(f"  {page.relative_to(ROOT)} already current")
+        elif new != text:
+            print(f"gen-flow-root: {page.relative_to(ROOT)}'s root is not what "
+                  f"this script generates — re-run with --write")
+            rc = 1
+    if args.check and rc == 0:
+        print(f"gen-flow-root: both roots are the generator's output "
               f"({sum(len(v) for v in BLOCKS.values())} lines in "
               f"{len(BLOCKS)} blocks)")
-    return 0
+    return rc
 
 
 if __name__ == "__main__":
