@@ -255,8 +255,28 @@ def _d2_point_seg(px, py, x1, y1, x2, y2):
 # check-flow-density.py floors, and steep-first left it under the floor with
 # the same junctions either way.
 
-DIST[(F(600), F(84))] = F(0)
-walk(F(600), F(84), [("V", CROWN - 84)])                   # trunk, out of the void
+# THE TRUNK LEAVES THE ORB'S RIM, NOT ITS CENTRE.
+#
+# The source is drawn as a disc at (600, 84) with r 34, and the trunk used to
+# start at 84 — the centre — so its top 34 units ran inside the disc and the
+# root appeared to be skewered on the light rather than to come out of it. It
+# also put the drawing's one filled shape on top of its first stroke, which is
+# the one place in this figure where a fill covers a contour.
+#
+# So the void is the rim: 84 + 34. The trunk is 52 units instead of 86, every
+# level downstream shifts with it because level() normalises against the
+# longest run, and nothing else in the construction moves.
+#
+# THE FIELD STILL AIMS AT THE CENTRE, and that is not an inconsistency. The
+# twenty-five sensor glows converge on where the light IS, which is the middle
+# of the disc; the root grows from where the light ENDS, which is its edge.
+# Two different points for two different questions, and the aim script keeps
+# (600, 84) for the first of them.
+ORB_C, ORB_R = F(84), F(34)
+VOID = ORB_C + ORB_R
+
+DIST[(F(600), VOID)] = F(0)
+walk(F(600), VOID, [("V", CROWN - VOID)])                  # trunk, out of the void
 # the centre taproot, broken into runs for the same reason the reach is: a
 # 450-unit vertical with no junction on it is 450 units of drawing nothing can
 # leave from, and the trunk is where a root is busiest.
@@ -1055,7 +1075,10 @@ def value_points():
     """A point a quarter of the way down every route out of the quantified
     junctions, in the order the data reaches them."""
     js = sorted(NODE_POINTS, key=lambda p: DIST[p])[:VALUE_JUNCTIONS]
-    pts = [[(F(600), F(120))]]                     # the source, on the trunk
+    # the source, at the middle of the trunk — a quarter of the way down
+    # a 52-unit stroke would put a six-character numeral 13 units from the
+    # orb's rim, inside its glow
+    pts = [[(F(600), (VOID + CROWN) / 2)]]
     for jx, jy in js:
         pts.append([route_chain(s_) for s_ in outgoing(jx, jy)])
     return pts
