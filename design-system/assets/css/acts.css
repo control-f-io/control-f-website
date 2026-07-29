@@ -1003,7 +1003,16 @@
     padding-inline-start: var(--rail-gutter);
   }
   :is(.sp-field, .sp-annots-fig) { inset-inline-start: var(--rail-gutter); }
-  .sp-field { inline-size: auto; }
+  /* THE WIDTH IS STATED, not left to `auto`. .sp-field carries width: 100 % two
+     hundred lines above, and `inline-size: auto` — which should have let the two
+     insets size the box — did not take: measured at 1440, left 176 with a
+     computed width of 1440 px, so the field's right edge stood at 1616 and
+     176 px of the drawing hung off the frame. The reader's own words for it were
+     "everything is moved too far to the right". A stated width cannot be argued
+     with by an earlier physical longhand, and this is the one it has to be: the
+     containing block is the stage's PADDING box, so 100 % is the whole stage and
+     the gutter has to come off it here as well. */
+  .sp-field { inline-size: calc(100% - var(--rail-gutter)); }
 
   @supports (animation-timeline: view()) {
     @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
