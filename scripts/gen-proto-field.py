@@ -33,12 +33,37 @@ THE LAW. One lattice, one supergrid, one focus.
   THE FOCUS is (800, 264): the crossing that stands over the root trunk's
   head at the design ratio, this drawing's analogue of the void the old field
   shared with the root. Radius, opacity and the ramp fall out of distance to
-  it and nothing else — r = 12 + 28 x (1 - d/d_max), opacity 0.2..0.6 on the
-  same slope quantised to the tenth, the hot lime-core ramp above r 32 —
+  it and nothing else — r = 9 + 17 x (1 - d/d_max), opacity 0.68..0.95 on the
+  same slope quantised to the hundredth, the hot lime-core ramp above r 21 —
   so the field is hottest where the data will funnel and coolest at the rim.
   The exact merge point is measured at runtime (the trunk lives in another
   svg in the column flow) and published as --ux/--uy on the field; the focus
   is the LAW's stand-in and the var()'s fallback.
+
+  A SENSOR IS A BEAD, AND IT IS DRAWN THE WAY THE SOURCE IS DRAWN. It used to
+  be a single soft disc: one radial ramp running to stop-opacity 0 at the rim,
+  no contour, resting between 0.2 and 0.6. Nineteen of the twenty-three had
+  CF-Grau at their centre and CF-Grau is the page wash, so they rendered as
+  smudges the eye could not find — the fault foundations/illustration.html
+  states in one line: "an unlit face sits at exactly the page's own colour and
+  the object would disappear entirely if the contour were not carrying it".
+
+  So the bead is built like .lp-flow__orb, which is the thing all twenty-three
+  of them converge INTO and the only other light in this drawing: a disc
+  filled with the family's ramp, BOUNDED by --border-default, and glowing by
+  --glow-light rather than by a fade to nothing. The ramp now ends OPAQUE at
+  CF-Grau and the contour says where the disc stops; the halo the old stop
+  list drew by hand is the drop-shadow pair the token already owns. The
+  radius here is therefore the BEAD's, not the glow's — 9..26 where it was
+  12..40 — because the reach moved into --glow-r, which is emitted with it.
+
+  AND IT MOVES LIKE THE LIQUID IT IS NAMED FOR. Each bead carries --wp, its
+  own wobble period, and --w, its own phase. The period is NOT decoration: a
+  drop's surface-tension oscillation goes as r^1.5, so the big beads at the
+  focus swing slowly and the small ones at the rim quiver — the field's
+  liveliness is its own size distribution read out loud. The phase is a
+  deterministic stride through the slot order (i * 9 mod n), so no two beads
+  in the shipped field share one and neighbours never breathe in step.
 
   THE APPROACH: each glow belongs to its nearest box corner and opens the act
   200 units beyond it — outside every crop the slice can produce (the widest
@@ -48,11 +73,28 @@ THE LAW. One lattice, one supergrid, one focus.
   to the tenth): the core seeds first and the field grows outward, and the
   merge later runs back in the same order.
 
-  THE CLAIM'S REACH: no sensor stands in x >= 920, 360 <= y <= 680 — the
-  right-column claim's box at the design ratio with a margin — the same
-  argument the old #cf-stmt-reach mask made, made by placement instead of
-  by masking, because a glow behind the claim is contrast debt and a mask
-  over a full-screen field is a window sliding across the page.
+  THE CLAIM'S REACH: no sensor stands in x >= 920, 180 <= y <= 680 — the
+  right-column claim's box, the same argument the old #cf-stmt-reach mask
+  made, made by placement instead of by masking, because a glow behind the
+  claim is contrast debt and a mask over a full-screen field is a window
+  sliding across the page.
+
+  THE BAND USED TO START AT 360, AND THAT WAS NOT THE CLAIM'S BOX. It was the
+  claim's box AT THE DESIGN RATIO, and the claim does not stay there: the
+  field is sliced, so it scales with the viewport, while the text is laid out
+  in CSS pixels and moves the other way. Measured at the eleven viewports the
+  gate admits, the claim's glyph lines run field y 181..569 and the band
+  started 180 units below their top — so the whole upper row of the field sat
+  ON the heading. Two beads did it at eight and four viewports of the eleven,
+  and neither was visible enough for anyone to notice until the beads became
+  bodies. Extending the band to 180 drops exactly those two.
+
+  ONE OVERLAP IS LEFT AND IT IS DELIBERATE. (816, 248) — the largest bead,
+  the one that stands at the focus — touches the heading's first line at
+  1024 x 720 and nowhere else. Reaching it needs x >= 810, which also takes
+  (960, 416) and leaves the field's whole centre-right empty; the drawing
+  would lose its anchor at every viewport to fix one. 1024 x 720 is the
+  gate's own minimum, where the claim wraps at its widest.
 
 DETERMINISTIC. No randomness, no seed: the output is a function of the
 constants below. Re-run it and the same markup comes out.
@@ -105,11 +147,24 @@ STAGGER = 144                # odd rows shift half a super-column — and 3 x 48
 X0, Y0 = 96, 80              # first crossing: x == 0 (mod 48), y == 8 (mod 24)
 XMAX, YMAX = 1536, 800       # sensors keep a glow's reach inside the frame
 FOCUS = (816, 272)           # the trunk's head at the design ratio — a crossing
-CLAIM = (920, 360, 680)      # no sensors right of x in this y band
-R_MAX, R_MIN = 40, 12
-OP_MIN, OP_MAX = 0.2, 0.6
-HOT_AT = 32                  # the lime-core ramp starts here
+CLAIM = (920, 180, 680)      # no sensors right of x in this y band —
+                             # measured, not assumed: see the header
+R_MAX, R_MIN = 26, 9         # the BEAD's radius; the halo is --glow-r below
+# THE BODY IS NEARLY OPAQUE, and that is a second thing the soft version could
+# not be. At 0.2..0.6 the lattice read straight THROUGH every sensor, which is
+# right for a glow and wrong for a bead: a drop of liquid metal occludes what
+# is behind it, and a disc you can see the ground through reads as flat no
+# matter what its ramp does. The ladder does not weaken — it is carried by the
+# radius (9..26, a 3x range), by the ramp, and by --glow-r as well as by this.
+OP_MIN, OP_MAX = 0.68, 0.95
+HOT_AT = 21                  # the lime-core ramp starts here
 REACH = 200                  # how far beyond its corner a stream opens
+GLOW = 1.6                   # --glow-r as a multiple of the bead's radius:
+                             # the Glas shadow reaches 1.6r and the lime one
+                             # 0.45 of that, so the footprint lands close to
+                             # the 40-unit disc the soft version drew
+WOB_MIN, WOB_MAX = 1600, 4000   # ms: the wobble period at r 0 and at R_MAX,
+                                # interpolated on r^1.5 (see the header)
 
 CORNERS = ((0, 0), (WIDTH, 0), (0, HEIGHT), (WIDTH, HEIGHT))
 
@@ -180,17 +235,25 @@ def field():
     d_max = max(d for _, _, d in cand)
     cand.sort(key=lambda p: (p[2], p[0], p[1]))
     rows = []
-    for x, y, d in cand:
+    n = len(cand)
+    stride = next(k for k in range(9, 9 + n) if math.gcd(k, n) == 1)
+    for i, (x, y, d) in enumerate(cand):
         t = 1.0 - d / d_max
         r = R_MIN + (R_MAX - R_MIN) * t
-        op = round(OP_MIN + (OP_MAX - OP_MIN) * t, 1)
+        op = round(OP_MIN + (OP_MAX - OP_MIN) * t, 2)
         m = round(d / d_max, 1)
         cx, cy = min(CORNERS, key=lambda c: math.hypot(c[0] - x, c[1] - y))
         cd = math.hypot(cx - x, cy - y)
         sx = cx + (cx - x) / cd * REACH
         sy = cy + (cy - y) / cd * REACH
-        ramp = "hot" if r >= HOT_AT else "halo"
-        rows.append((x, y, r, op, m, sx - x, sy - y, ramp))
+        ramp = "hot" if r >= HOT_AT else "cool"
+        # the two liquid properties, both functions of the bead and neither of
+        # a random number: the period from its own radius on the r^1.5 law, the
+        # phase from a stride through the slot order that visits every slot
+        # exactly once because the stride is chosen coprime with the count.
+        wp = int(round(WOB_MIN + (WOB_MAX - WOB_MIN) * (r / R_MAX) ** 1.5))
+        w = round((i * stride % n) / n, 3)
+        rows.append((x, y, r, op, m, sx - x, sy - y, ramp, wp, w))
     return rows
 
 
@@ -203,27 +266,53 @@ def lattice_markup(indent):
 
 
 def field_markup(indent):
+    """A group per sensor, one bead inside it.
+
+    THE SPLIT IS A PROPERTY LEDGER, not decoration. The group carries the
+    SCROLL's three verbs — arrive, pulse, merge — which own `translate`,
+    `scale` and `opacity` between them off the track's timeline. The bead
+    carries the CLOCK's one verb, the wobble, which owns `scale` off the
+    document timeline. Two timelines writing one property on one element is a
+    fight the later declaration wins outright; on two elements it is a
+    composition, and the bead goes on wobbling while the field flies.
+    """
     out = []
-    for x, y, r, op, m, fx, fy, ramp in field():
+    for x, y, r, op, m, fx, fy, ramp, wp, w in field():
+        # the modifier is what keeps LIME on a budget. --glow-light is a lime
+        # shadow and a Glas one; hung on all twenty-three it put a yellow ring
+        # around nineteen beads that carry no lime at all, and the hot/cool
+        # ladder the whole law is built on stopped being visible. The four hot
+        # beads take the token; the rest take its Glas half.
+        hot = " cf-stmt-sensor--hot" if ramp == "hot" else ""
         out.append(
-            f'{indent}<circle class="cf-stmt-sensor" '
+            f'{indent}<g class="cf-stmt-sensor{hot}" '
             f'style="--cx:{num(x)};--cy:{num(y)};--fx:{num(fx)};--fy:{num(fy)}'
-            f';--m:{m:g};--iso-rest:{op:g}" '
+            f';--m:{m:g};--iso-rest:{op:g}'
+            f';--glow-r:{r * GLOW:.1f}px;--wp:{wp}ms;--w:{w:g}">\n'
+            f'{indent}  <circle class="cf-stmt-sensor__bead" '
             f'cx="{num(x)}" cy="{num(y)}" r="{r:.1f}" '
-            f'fill="url(#cf-stmt-sensor-{ramp})"/>')
+            f'fill="url(#cf-stmt-sensor-{ramp})"/>\n'
+            f'{indent}</g>')
     return "\n".join(out)
 
 
+# THE CLOSING TAG IS MATCHED AT THE OPENING TAG'S OWN INDENT, and that is not
+# tidiness. `(.*?)(\n\s*</g>)` was fine while a block held nothing but leaf
+# elements; the moment a sensor became a <g> of its own the lazy match stopped
+# at the FIRST sensor's `</g>` and every --write spliced the whole field back
+# in one sensor deep. It ran clean, wrote a file, and --check failed on its own
+# output. Backreferencing the indent means the match can only end on a `</g>`
+# that closes the block itself, whatever is nested inside it.
 LATTICE_RE = re.compile(
-    r'(<g class="sp-field__lattice"[^>]*>\n)(.*?)(\n\s*</g>)', re.S)
+    r'([ \t]*)(<g class="sp-field__lattice"[^>]*>\n)(.*?)(\n\1</g>)', re.S)
 SENSORS_RE = re.compile(
-    r'(<g class="sp-field__sensors">\n)(.*?)(\n\s*</g>)', re.S)
+    r'([ \t]*)(<g class="sp-field__sensors">\n)(.*?)(\n\1</g>)', re.S)
 
 
 def splice(text):
     def one(m, maker):
-        indent = re.match(r"\s*", m.group(2)).group(0).lstrip("\n")
-        return m.group(1) + maker(indent) + m.group(3)
+        indent = re.match(r"\s*", m.group(3)).group(0).lstrip("\n")
+        return m.group(1) + m.group(2) + maker(indent) + m.group(4)
     text, n1 = LATTICE_RE.subn(lambda m: one(m, lattice_markup), text, count=1)
     text, n2 = SENSORS_RE.subn(lambda m: one(m, field_markup), text, count=1)
     return text, n1 + n2
@@ -246,8 +335,11 @@ def main():
               f" — nearest neighbours {dmin:.1f} units")
         print(f"  sensors        {len(rows)}  ({hot} hot)   "
               f"lattice lines {len(lattice())}")
-        print(f"  glow           r {R_MIN}..{R_MAX}  opacity "
+        print(f"  bead           r {R_MIN}..{R_MAX}  opacity "
               f"{OP_MIN:g}..{OP_MAX:g}  hot at r >= {HOT_AT}")
+        print(f"  wobble         {min(r[8] for r in rows)}"
+              f"..{max(r[8] for r in rows)} ms, "
+              f"{len({r[9] for r in rows})} distinct phases")
         if not (args.write or args.check):
             return 0
 
