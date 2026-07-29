@@ -102,9 +102,93 @@
      positioned sibling above it), stretched to the stage and cropped by its
      own `slice`, so the lattice reaches every corner at every admitted
      viewport. In the fallback tier the stage is ordinary flow and the layer
-     simply papers its box — nothing depends on the pin. */
-  .sp-stage { position: relative; }
-  .sp-field { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+     simply papers its box — nothing depends on the pin.
+
+     AND PAPERING ITS BOX IS THE THING THAT STOPPED BEING TRUE, one level up
+     from where .lp-flow-data records the identical fault. That comment reads:
+     `inset: 0` "was only ever true by coincidence … which held while the last
+     child was the drawing and stopped holding the moment the copy below joined
+     the flow". The numeral layer was fixed and the ground it sits on was not.
+     Outside the gate the stage stacks — drawing, then .sp-say, then act 2's
+     claim, then the rule — so `inset: 0` is 901 px of ground at 375 against a
+     172 px drawing, and the surplus 729 px is act 2's copy with act 1's field
+     behind it. Measured on the shipped render, beads and halos landing on the
+     copy: five objects at 320, six at 375, four at 600, six at 768, five at
+     900. The 104 px halo at 375 sits on "Von oben nach unten gelesen." and the
+     two 84 px halos on "rechnen lässt" and "und entwickelt".
+
+     CLIPPED AND NOT SHORTENED, because the box is the crop. `slice` throws the
+     surplus axis away, so the box's ratio is what decides which units survive
+     and at what scale: at 375 the present box is 375 x 901, height binds, and
+     the lattice renders at 1.001 — a bead is the size a bead is. Give the box
+     the drawing's band instead and width binds at 0.234, so every bead on a
+     phone comes out a quarter of the size it has on a desktop, which is the
+     opposite of what a full-bleed ground is for. check-slice-crop.py names this
+     layer in UNREGISTERED_OK for the same reason — "no aspect-ratio and cannot
+     have one" — so the fix must leave the box alone and take the ink.
+
+     THE BAND IS THE DRAWING'S OWN HEIGHT, not a chosen number: .lp-flow is
+     viewBox="0 0 1200 620" at width 100 % of the container's inner box, so its
+     used height IS that width x 620/1200 — the same arithmetic, from the same
+     ratio, that .lp-flow-data's note settles on for the numerals. Below
+     --container-max the inner box is 100vw - 2 gutters. Verified against the
+     rendered svg: 144.7 vs 145 at 320, 172.4 vs 172 at 375, 275.9 vs 276 at
+     600, 353.1 vs 353 at 768, 413.8 vs 414 at 900.
+
+     A HARD EDGE AND NOT A FADE, because there is nothing to fade over: .sp-say
+     opens flush with the flow's foot at every one of those widths, so a band of
+     air below the horizon would be a band of ink on the first line of the copy.
+     The feet stand on the edge, which is where the gated tier's
+     `align-content: end` puts them too.
+
+     WHERE THE STACK IS NOT A STACK this changes nothing that was wrong. Above
+     the 56rem container fold the copy sits BESIDE the drawing and shares its
+     ground on purpose — the arrangement the gate itself uses — and there the
+     band is generous rather than exact, because the drawing is 3fr of the row
+     and not all of it. Nothing overlapped there before (measured 0 at 1023) and
+     nothing does now; the clip only ever removes ground the stack put under
+     prose. Inside the gate it is off altogether. */
+  .sp-stage {
+    position: relative;
+    /* Declared on the stage and not on the layer, because BOTH inset layers
+       read it — see .sp-annots-fig, whose notes end where this view does. */
+    --sp-ground: calc((100vw - var(--gutter) * 2) * 620 / 1200);
+    /* max(), so a band taller than the box never asks for a negative inset. */
+    --sp-ground-clip: inset(0 0 max(0px, 100% - var(--sp-ground)) 0);
+  }
+  .sp-field {
+    position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+    clip-path: var(--sp-ground-clip);
+  }
+  /* THE HORIZON IS THE ONE-COLUMN STACK'S, AND 64rem IS ALREADY THE SYSTEM'S
+     NAME FOR IT. The band above is exact while the drawing is the whole row —
+     verified to the pixel at 320, 375, 600, 768 and 900 — and generous once
+     .cf-statement takes its two-column form, because there the drawing is 3fr
+     of the row and not all of it. Generous is not free: at 1023 the horizon
+     falls 198 px below the drawing's foot, mid-field, and bisects two labels
+     ("S07 95 %", "S06 17.7 bar") that were whole before. So the clip belongs to
+     the stack and has to end where the stack does.
+
+     Where the stack ends is a CONTAINER question — .cf-statement folds at a
+     container of 56rem — and this layer is a sibling of .container, so it
+     cannot ask. The register in tokens.css has already had this argument and
+     recorded the answer: "64rem / 1024 … that fold is the container 56rem
+     above, reached at a viewport of about 1007. A px gate cannot track a rem
+     fold". The pin gate makes exactly this approximation and is registered
+     making it. Reusing the number rather than deriving 62.921rem from the
+     gutter keeps this a second consumer for an existing threshold instead of a
+     new row, and it mis-serves precisely the 1007–1023 window the pin gate
+     already mis-serves — the same 17 px, for the same reason, in the same
+     direction. Two bisected labels in that window; the alternative was 107 px
+     of viewport with a sensor field behind its prose.
+
+     OUTSIDE THE @supports GATE ON PURPOSE, so a reader at 1280 with reduced
+     motion — who is in the flow tier and whose copy sits beside the drawing,
+     not under it — gets the same whole ground a reader at 1280 without it does.
+     → tokens.css "THE BREAKPOINT REGISTER", 64rem */
+  @media (min-width: 64rem) {
+    .sp-stage { --sp-ground-clip: none; }
+  }
   .sp-stage > .container { position: relative; }
   .sp-field__lattice { opacity: .26; }
   /* THE BEAD IS BUILT LIKE THE SOURCE IT RUNS INTO. .lp-flow__orb — the body
@@ -254,6 +338,20 @@
        does — and a note is part of the drawing, so it ends where the view
        does too. */
     overflow: hidden;
+    /* AND THE VIEW MOVED, so this follows it. Outside the gate the ground now
+       ends at the drawing's foot rather than at the stage's — the whole
+       argument is over .sp-field — and this sentence is the reason the same
+       clip belongs here: a note whose bead has been cropped away points at
+       nothing. Measured on the shipped render at 375 before this line, with the
+       field already clipped: five leaders and two labels ("S15", "S16") still
+       stood on act 2's copy, pointing at beads that were no longer drawn.
+
+       CLIPPED AND NOT INSET, for a second reason on top of the field's. This
+       box is `container-type: size` and .sp-annots reads it — 1cqh is the
+       stage's own height in --sp-u — so shrinking it would move every one of
+       the twenty-one notes off the beads it names. The box stays the stage's;
+       only the paint stops at the horizon. */
+    clip-path: var(--sp-ground-clip);
   }
   .sp-annots {
     --sp-u: max(1cqw / 16, 1cqh / 9);
@@ -1037,6 +1135,18 @@
          above still holds and nothing overlaps. */
       .sp-stage__inner { grid-template-columns: 1fr; }
       .sp-stage__inner > .cf-statement__figure { grid-column: 1; grid-row: 1; }
+      /* INSIDE THE GATE THE GROUND IS THE STAGE'S, WHOLE. The base tier clips
+         it to the drawing's band because the stack puts prose under the
+         drawing; here the claim is an overlay on the canopy's empty upper right
+         and there is no prose below anything — the stage IS the drawing's box,
+         which is what the note over .sp-field says was once true everywhere.
+         The convergence needs every corner of it too: sp-field-merge carries
+         all twenty-three beads to --ux/--uy on the trunk's head, and a bead
+         that starts outside a clipped band would appear out of a horizon. The
+         annotation layer goes with it, for the reason its own note gives: the
+         notes end where the view does, and in here the view is the stage.
+         Switched off at 64rem for every tier at once, gate or no gate — see the
+         media query beside .sp-field's own note. */
       /* THE HEADER'S HEIGHT COMES OUT OF THE DRAWING'S, so the feet land ON
          the rule instead of behind the words. --sp-head-band is the whole
          bottom band: the title's line box at --text-h2, the component's
