@@ -2321,13 +2321,35 @@
      question at that moment is "what else is there", and answering it one row
      at a time makes them hunt.
 
-     THE GLYPH IS DRAWN, NOT SCREENSHOT. A miniature of each act would be five
-     more copies of drawings the page already carries once, and the map and the
-     photographs do not survive being 24 px tall. So each act is reduced to the
-     one figure it is about, on the system's own 2:1 isometry: a lattice of
-     sensors, a confluence into a source, four marks, a chamfered plate, a
-     coastline with a point in it. They are the acts' own geometry at 1/60th
-     scale, which is why they read as thumbnails without being pictures.
+     THE GLYPHS COME FROM THE ICON SET, and the first version of this rail did
+     not. A miniature of each act would be five more copies of drawings the page
+     already carries once — and the map and the photographs do not survive being
+     24 px tall — so each act is reduced to the one figure it is about. Which is
+     what the icon set already is, and it publishes a law this rail's first five
+     marks broke in five ways: a 24 box with a 2 px margin, a 1 px contour held
+     at 1 px by vector-effect at EVERY size, only 26.57, 63.43, 45 and 90
+     degrees, anything round drawn as a 2:1 ellipse rather than a circle, and
+     "exactly one place an icon is drawn". Measured on what shipped: the strokes
+     rendered 1.04 px at rest and 1.67 px open, act 5's outline used six angles
+     and not one of them was sanctioned, every dot was a true circle, act 2's
+     source stood 0.5 units outside the live area, and the five marks existed as
+     ten copies across two pages.
+
+     So they are <use> references now:
+
+       01  cf-signal    a reading arriving, a sensor, live data
+       02  cf-node      three arms meeting at a junction, dots at the ends —
+                        the confluence's own geometry, at 90 and 26.57 deg
+       03  cf-layers    the data foundation, a stack
+       04  cf-plate     NEW — the frame act 4 draws at full size, chamfer and
+                        all, because the set had no flat frame: every other
+                        object in it is an isometric solid, and a picture is not
+       05  cf-globe     sites across countries, the whole network
+
+     Four of the five were already in the set and already said what the act
+     says. That is the argument for a set: the mark for "a sensor, live data"
+     is a decision the system made once, and act 1 is not a reason to make it
+     again.
 
      THE TICK IS .cf-pin__bar's. The current act carries a hairline that scales
      in from its left edge — the same move, in the same direction, that the
@@ -2359,11 +2381,13 @@
       z-index: var(--z-sticky);
       translate: 0 -50%;
       /* THE COLLAPSED SIZE, published as a property so the glyph and its
-         hover state are one decision read in two places. 1.25rem is the floor
-         at which the field's seven dots are still seven: below it the cluster
-         closes into a blob and the five glyphs stop being told apart, which is
-         the only thing they exist to do. */
-      --act-glyph: 1.25rem;
+         hover state are one decision read in two places. Both ends are rungs
+         of the icon set's own ladder — components.css sizes .cf-icon at 16,
+         24, 40 and 80, on the 4 px unit — and 16 is the floor it names: "below
+         it the contour and the counters inside the isometric objects stop
+         being readable". A rail at rest is exactly the case that floor was
+         written for. */
+      --act-glyph: 1rem;
       opacity: 0;
       transition: opacity var(--duration-slow) var(--ease-standard);
     }
@@ -2395,7 +2419,7 @@
        rail nobody can Tab into. */
     .act-rail.is-live { opacity: 1; }
     .act-rail[hidden] { display: none; }
-    .act-rail:hover, .act-rail:focus-within { --act-glyph: 2rem; }
+    .act-rail:hover, .act-rail:focus-within { --act-glyph: 1.5rem; }
 
     .act-rail__list {
       display: grid;
@@ -2449,18 +2473,29 @@
       font-variant-numeric: tabular-nums;
     }
 
+    /* THE SIZE, AND NOTHING ELSE. .cf-icon owns the stroke, the caps, the
+       joins and the colour; this rule owns how big the box is and how it gets
+       there. Overriding anything else here would fork the icon set inside one
+       rail, which is the whole reason these are <use> references and not five
+       drawings typed into two pages. */
+    /* TURNED, BECAUSE THE DIRECTION IS THE ACT. cf-node is drawn as a stem
+       rising from two arms — one thing feeding upward out of a junction — and
+       act 2 is the reverse of that by design: the review's own note was that
+       the tree had to be flipped so the sensors collapse DOWNWARD into a
+       single source below them. Half a turn puts the two arms at the top with
+       their dots on them and the stem's dot underneath, which is the
+       confluence exactly. Rotation is the set's own idiom for direction — its
+       four chevrons are one glyph turned 90 degrees four times — so this
+       borrows the mark rather than forking it into a sixth drawing. */
+    .act-rail__glyph--down { rotate: 180deg; }
+
     .act-rail__glyph {
       display: block;
       inline-size: var(--act-glyph);
       block-size: var(--act-glyph);
-      /* The strokes are drawn once at 24 units and never re-weighted: a
-         hairline that thickened as the glyph grew would be a different
-         drawing at each size. */
-      overflow: visible;
       transition: inline-size var(--duration-base) var(--ease-standard),
                   block-size var(--duration-base) var(--ease-standard);
     }
-    .act-rail__glyph path { stroke: currentColor; }
 
     /* THE TITLE IS ALWAYS IN THE DOM and never display: none — a reader on
        assistive technology gets the five titles whether or not a pointer has

@@ -161,6 +161,16 @@
     { id: 'cf-hourglass', label: 'Hourglass', use: 'Downtime, latency, a time window',
       keyline: 'two triangles, 63.43 deg',
       shapes: '<path d="M7 2 L17 2 L12 12 Z"/><path d="M7 22 L17 22 L12 12 Z"/>' },
+    /* The plate the site already draws at full size — .sp4-plate frames both
+       photographs of act 4 this way, and .sp4-tick is the chamfer. It is the
+       brand's one diagonal on an otherwise square frame, which is what stops a
+       rectangle reading as a browser default border, and at 16 px the caption
+       rule is what stops the frame reading as an empty box. The set had no
+       flat frame at all: every other object in this block is an isometric
+       solid, and a picture is not a solid. */
+    { id: 'cf-plate', label: 'Plate', use: 'A framed picture, a portrait, a plate with its caption',
+      keyline: 'square frame 20 x 20, 45 deg chamfer on the top-left vertex, caption rule at 90 deg',
+      shapes: '<path d="M7 2 H22 V22 H2 V7 Z"/><path d="M6 18 H18"/>' },
 
     /* --- Instruments. A mark placed in space. ------------------------- */
     { id: 'cf-node', label: 'Node', use: 'An integration, a connection, three systems meeting',
