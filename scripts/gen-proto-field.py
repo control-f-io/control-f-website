@@ -158,6 +158,15 @@ XMAX, YMAX = 1536, 800       # sensors keep a glow's reach inside the frame
 FOCUS = (816, 272)           # the trunk's head at the design ratio — a crossing
 CLAIM = (920, 180, 680)      # no sensors right of x in this y band —
                              # measured, not assumed: see the header
+# AND THE NOTES KEEP OUT OF A BIGGER BOX THAN THE SENSORS DO. The claim's own
+# box in field units moves with the viewport — measured across the eleven the
+# gate admits it runs x 810..1512, y 181..569 — and the sensors' exclusion is
+# the intersection of that with what the composition can afford to lose,
+# because dropping a sensor costs the drawing an anchor. A note costs nothing
+# to move, so it is held to the UNION instead: no label may land right of 810
+# between 181 and 569 at any admitted viewport, which is what stops S02 from
+# sitting on "erzeugen Daten" at 1024 x 720.
+CLAIM_LABELS = (810, 181, 569)
 R_MAX, R_MIN = 26, 9         # the BEAD's radius; the halo is --glow-r below
 # THE BODY IS NEARLY OPAQUE, and that is a second thing the soft version could
 # not be. At 0.2..0.6 the lattice read straight THROUGH every sensor, which is
@@ -166,7 +175,6 @@ R_MAX, R_MIN = 26, 9         # the BEAD's radius; the halo is --glow-r below
 # matter what its ramp does. The ladder does not weaken — it is carried by the
 # radius (9..26, a 3x range), by the ramp, and by --glow-r as well as by this.
 OP_MIN, OP_MAX = 0.68, 0.95
-HOT_AT = 21                  # the lime-core ramp starts here
 REACH = 200                  # how far beyond its corner a stream opens
 GLOW = 2.6                   # the HALO's radius as a multiple of the bead's.
                              # It was 1.6 and it was a drop-shadow's reach,
@@ -180,32 +188,81 @@ GLOW = 2.6                   # the HALO's radius as a multiple of the bead's.
 WOB_MIN, WOB_MAX = 1600, 4000   # ms: the wobble period at r 0 and at R_MAX,
                                 # interpolated on r^1.5 (see the header)
 
-# ---------------------------------------------------------------- the outline
+# ------------------------------------------------------------- the annotation
 #
-# A DROP IS NOT AN ELLIPSE. The first wobble scaled a <circle> on two axes,
-# which conserves volume and reads as breathing but can only ever produce an
-# ellipse — the review's answer was "even out of the sphere shape". So the bead
-# is a closed curve through N vertices whose radii are a sum of two travelling
-# harmonics, and the animation morphs the `d` property between four states of
-# it. At 100 % the phase has advanced by a full turn, so the loop closes
-# exactly rather than snapping.
+# EVERY SPHERE IS ANNOTATED, and the callout is components/annotation.html's,
+# not a second one invented here: an anchor on the drawing, a leader that is
+# ONE LATTICE STEP on a brand angle, and a note standing on its own rule. The
+# component takes --annot-x / --annot-y as lengths rather than as percentages,
+# so a sliced backdrop can hand it the crossing's own position instead of a
+# fraction of a box that is being cropped.
 #
-# THE HARMONIC ORDERS ARE NOT FREE. Sampling cos(L * theta) at N evenly spaced
-# vertices ALIASES: order N-1 comes back as order 1, and an order-1 term on a
-# closed curve is not a deformation at all, it is a TRANSLATION — the blob
-# would swim off its own lattice crossing while claiming to wobble in place.
-# With N = 6 the safe orders are 2, 3 and 4, and the three pairs of them are
-# the three shape families below. Order 5 is the one that would have moved it.
+# WHICH WAY THE LEADER RUNS IS NOT DECORATION. The manual allows eight — four
+# quadrants on two slopes — and the one this picks per sensor is the one whose
+# LABEL lands furthest from the claim's box and from the frame, because a
+# leader is a line into clear ground and a note over the page's own sentence is
+# not an annotation, it is interference. Ties go to the earlier direction in
+# the list, so the choice is a function of the geometry like everything else.
+ANNOT_DIRS = (("ne", 2, 1), ("nw", 2, 1), ("se", 2, 1), ("sw", 2, 1),
+              ("ne steep", 1, 2), ("nw steep", 1, 2),
+              ("se steep", 1, 2), ("sw steep", 1, 2))
+ANNOT_U = 22                 # the leader's lattice unit, in FIELD units, so
+                             # the step is (44, 22) or (22, 44) — the system's
+                             # 2:1 cell at a size a 21-note layer can carry
+# THE LABEL'S ALLOWANCE IS IN FIELD UNITS AND THE LABEL IS NOT, which is why
+# these two numbers are measured at the SMALLEST scale the gate admits rather
+# than at the reference. The backdrop scales with the slice and the type does
+# not, so a note that is 84 px wide is 84 field units at 1600 x 900 and 105 at
+# 1024 x 720 — and the placement law, scoring 92 everywhere, put S05 on S01 and
+# S07 on S06 at exactly that viewport. Measured on the shipped labels at
+# 1024 x 720 (scale 0.8): widest 84.1 px, tallest 19.3. 84.1 / 0.8 = 105.
+ANNOT_W = 105
+ANNOT_H = 24
+ANNOT_INSET = 48             # how far inside the box a label must stay — one
+                             # MODULE. Not tidiness: the backdrop is SLICED, so
+                             # the box's own edge is not the screen's. The
+                             # widest ratio the gate admits crops 115 units off
+                             # the top and bottom, and scoring against 0..900
+                             # put the whole top row's notes hard on the bezel
+                             # at 2000 x 1050 and off it entirely at 3440. An
+                             # inset makes a note near an edge prefer to point
+                             # INWARD, which is also what a draughtsman does.
 #
-# STILL NOT RANDOM. Every radius is a function of the bead's index, its own
-# radius and the keyframe number — see the module header. Re-running prints
-# byte-identical paths.
-BLOB_N = 6                   # vertices; 6 admits orders 2..4 without aliasing
-BLOB_K = 4                   # keyframe states; the fifth is the first again
-BLOB_FAMILIES = ((2, 3), (2, 4), (3, 4))   # the two harmonic orders per bead
-BLOB_A1, BLOB_A2 = 0.10, 0.05              # their amplitudes, as fractions of r
-
+# THE READINGS ARE A POOL, NOT A RANDOM NUMBER. The review asked for numbers
+# "randomly generated"; what that means in a system whose illustration page
+# opens with "a construction is the same every time it is drawn" is that the
+# reader should not be able to see the rule, not that the file should differ
+# between runs. So each sensor draws a UNIT from the pool by a coprime stride
+# and its own MAGNITUDE from a second one, and the same page comes out byte for
+# byte every time. The units are the ones the root already annotates with —
+# scripts/expertise-objects/gen-flow-root.py's own list — because two
+# vocabularies of unit on one page is two instrument sets.
+UNITS = (
+    ("\u00b0C", 40, 120, 1), ("bar", 2, 26, 1), ("kW", 60, 420, 0),
+    ("rpm", 900, 3200, 0), ("K", 280, 360, 0), ("mm/s", 1, 9, 1),
+    ("%", 40, 99, 0), ("Hz", 47, 53, 1), ("m\u00b3/h", 8, 90, 0),
+    ("V", 380, 720, 0), ("A", 4, 48, 1), ("kPa", 3, 40, 1),
+)
+STREAM_K = 6                 # how many readings a sensor cycles through
+#
 CORNERS = ((0, 0), (WIDTH, 0), (0, HEIGHT), (WIDTH, HEIGHT))
+
+# HOW A FIELD UNIT BECOMES A CSS LENGTH. The backdrop is `xMidYMid slice` over
+# a stage that is exactly the viewport in the pinned tier — measured at six
+# viewports from 1024x720 to 3440x1440, box (0,0) and size (100vw, 100vh)
+# every time — so the slice scale is max(100vw/1600, 100vh/900) and the box is
+# centred. --sp-u is that scale as a length-per-unit, and a crossing's position
+# is the centre plus its own offset in those units. The annotation layer is
+# therefore pinned to the drawing at every viewport without a script measuring
+# anything, which is what lets the callouts ship in the markup.
+# The offset is a NUMBER and --sp-u is the length, in that order: --sp-u is
+# already a length (max(1vw/16, 1vh/9)), and `-6.8px * var(--sp-u)` is a length
+# times a length, which is not a thing calc() can produce. Chromium does not
+# warn — the declaration is simply invalid at computed-value time, the property
+# falls back to its initial 50%/... and every callout stacks at left: 0, top: 0
+# in the corner. Measured: twenty-one <li> at (0, 0) with the labels hanging
+# off the top-left of the viewport.
+POS = "calc(50% + {d} * var(--sp-u))"
 
 
 def num(v):
@@ -256,45 +313,6 @@ def lattice():
     return lines
 
 
-# ---------------------------------------------------------------- the outline
-
-def blob(cx, cy, r, i, k):
-    """One state of one bead's outline, as a closed six-segment cubic path.
-
-    The vertices are Catmull-Rom knots turned into Beziers by the uniform
-    construction (the tangent at a knot is a sixth of the chord across it), so
-    the curve passes THROUGH every radius rather than near it and the shape is
-    the arithmetic rather than an approximation of it.
-
-    EVERY STATE HAS THE SAME COMMAND LIST — one M, six Cs, one Z — because
-    interpolating `d` requires it: mismatched structure makes the browser fall
-    back to a discrete swap and the drop would jump between shapes instead of
-    flowing between them.
-    """
-    l1, l2 = BLOB_FAMILIES[i % len(BLOB_FAMILIES)]
-    # the bead's own place in the turn, so no two blobs are the same blob at a
-    # different moment; the same coprime stride the period and phase use.
-    psi = 2 * math.pi * (k / BLOB_K + (i * 7 % 23) / 23)
-    pts = []
-    for j in range(BLOB_N):
-        th = 2 * math.pi * j / BLOB_N
-        rad = r * (1 + BLOB_A1 * math.cos(l1 * th + psi)
-                     + BLOB_A2 * math.cos(l2 * th - psi))
-        pts.append((cx + rad * math.cos(th), cy + rad * math.sin(th)))
-
-    def at(n):
-        return pts[n % BLOB_N]
-
-    out = [f"M{num(pts[0][0])} {num(pts[0][1])}"]
-    for j in range(BLOB_N):
-        p0, p1, p2, p3 = at(j - 1), at(j), at(j + 1), at(j + 2)
-        c1 = (p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6)
-        c2 = (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6)
-        out.append(f"C{num(c1[0])} {num(c1[1])} {num(c2[0])} {num(c2[1])} "
-                   f"{num(p2[0])} {num(p2[1])}")
-    return "".join(out) + "Z"
-
-
 # --------------------------------------------------------------------- field
 
 def field():
@@ -324,14 +342,13 @@ def field():
         cd = math.hypot(cx - x, cy - y)
         sx = cx + (cx - x) / cd * REACH
         sy = cy + (cy - y) / cd * REACH
-        ramp = "hot" if r >= HOT_AT else "cool"
         # the two liquid properties, both functions of the bead and neither of
         # a random number: the period from its own radius on the r^1.5 law, the
         # phase from a stride through the slot order that visits every slot
         # exactly once because the stride is chosen coprime with the count.
         wp = int(round(WOB_MIN + (WOB_MAX - WOB_MIN) * (r / R_MAX) ** 1.5))
         w = round((i * stride % n) / n, 3)
-        rows.append((x, y, r, op, m, sx - x, sy - y, ramp, wp, w))
+        rows.append((x, y, r, op, m, sx - x, sy - y, wp, w))
     return rows
 
 
@@ -344,78 +361,178 @@ def lattice_markup(indent):
 
 
 def field_markup(indent):
-    """A group per sensor, one bead inside it.
+    """A group per sensor: the halo it spills, then the bead itself.
 
     THE SPLIT IS A PROPERTY LEDGER, not decoration. The group carries the
-    SCROLL's three verbs — arrive, pulse, merge — which own `translate`,
-    `scale` and `opacity` between them off the track's timeline. The bead
-    carries the CLOCK's one verb, the morph, which owns `d` off the document
-    timeline. Two timelines writing one property on one element is a fight the
-    later declaration wins outright; on two elements — and now on two
-    different properties as well — it is a composition, and the bead goes on
-    morphing while the field flies.
+    scroll's three verbs — arrive, pulse, merge — which own `translate`,
+    `scale` and `opacity` between them off the track's timeline. The two
+    children carry paint and geometry and nothing else. Nothing in the field
+    is driven by a clock any more: the drawing is scrubbed by the reader,
+    which is the pinned track's own contract, and the one thing that moves on
+    its own is the readout — see annots_markup.
     """
     out = []
-    for i, (x, y, r, op, m, fx, fy, ramp, wp, w) in enumerate(field()):
-        # the modifier is what keeps LIME on a budget. --glow-light is a lime
-        # shadow and a Glas one; hung on all twenty-one it put a yellow ring
-        # around seventeen beads that carry no lime at all, and the hot/cool
-        # ladder the whole law is built on stopped being visible. The four hot
-        # beads take the token; the rest take its Glas half.
-        hot = " cf-stmt-sensor--hot" if ramp == "hot" else ""
+    for x, y, r, op, m, fx, fy, wp, w in field():
         out.append(
-            f'{indent}<g class="cf-stmt-sensor{hot}" '
+            f'{indent}<g class="cf-stmt-sensor" '
             f'style="--cx:{num(x)};--cy:{num(y)};--fx:{num(fx)};--fy:{num(fy)}'
-            f';--m:{m:g};--iso-rest:{op:g}'
-            f';--wp:{wp}ms;--w:{w:g}">\n'
-            # THE HALO IS PAINTED, NOT FILTERED, AND THAT IS A FRAME BUDGET.
-            # A drop-shadow re-rasterizes whenever its SOURCE changes, and once
-            # the source was a path morphing every frame the two together cost
-            # 25 fps of a 61 fps budget — measured, each alone free:
-            #   morph + filter 25   filter only 61   morph only 61   neither 61
-            # So the spill moved onto its own static circle, which never
-            # changes shape and so never re-rasterizes, and the bead that DOES
-            # change carries no filter at all. It is also the better drawing:
-            # a Gaussian of a black contour smears the contour, and this
-            # leaves it crisp.
+            f';--m:{m:g};--iso-rest:{op:g}">\n'
             f'{indent}  <circle class="cf-stmt-sensor__halo" '
             f'cx="{num(x)}" cy="{num(y)}" r="{r * GLOW:.1f}" '
-            f'fill="url(#cf-stmt-sensor-halo-{ramp})"/>\n'
-            # data-, not cx/cy: a <path> has no cx, and an attribute a renderer
-            # ignores is exactly the kind of decoration on a tag that
-            # check-authored-opacity.py was written about. The crossing is
-            # still stated on the element that draws it, because
-            # check-void-departure.py holds the group's --cx/--cy against it.
-            f'{indent}  <path class="cf-stmt-sensor__bead sp-bead-{i}" '
-            f'data-cx="{num(x)}" data-cy="{num(y)}" data-r="{r:.1f}" '
-            f'd="{blob(x, y, r, i, 0)}" '
-            f'fill="url(#cf-stmt-sensor-{ramp})"/>\n'
+            f'fill="url(#cf-stmt-sensor-halo)"/>\n'
+            f'{indent}  <circle class="cf-stmt-sensor__bead" '
+            f'cx="{num(x)}" cy="{num(y)}" r="{r:.1f}" '
+            f'fill="url(#cf-stmt-sensor-body)"/>\n'
             f'{indent}</g>')
     return "\n".join(out)
 
 
-def shapes_markup(indent):
-    """One keyframe set per bead, and the rule that hangs it on that bead.
+# ---------------------------------------------------------------- the readout
 
-    TWENTY-ONE SETS RATHER THAN ONE, because the review asked for each sphere
-    to morph individually and a single set with per-bead delays is one sphere
-    morphing twenty-one times. Every bead's outline is generated from its own
-    radius, its own shape family and its own place in the turn, so no two are
-    the same curve at a different moment.
+def reading(i, k):
+    """Sensor i's k-th reading, as text.
 
-    The `d` in the MARKUP is state 0, so a browser that animates nothing —
-    print, reduced motion, no CSS animation at all — still gets a drop rather
-    than an empty <path>. The keyframes only take it round.
+    The unit is the sensor's and does not change while it streams — an
+    instrument that changes what it MEASURES between frames is not an
+    instrument. Only the magnitude moves, which is what a live readout does.
+    Both strides are coprime with their pool so every sensor is on a different
+    unit until the pool runs out, and the digits do not cycle in step.
+    """
+    unit, lo, hi, dp = UNITS[(i * 5) % len(UNITS)]
+    span = hi - lo
+    # A LIVE SENSOR JITTERS AROUND ITS OPERATING POINT; it does not sweep its
+    # whole range in six frames. The first pass stepped k linearly and printed
+    # 40.0, 49.2, 58.3, 67.5 — an ascending ramp, which reads as a countdown
+    # rather than as an instrument. So the sensor's BASE is its own draw from
+    # the range and the six readings are a small deviation about it, ordered
+    # by a stride coprime with the modulus so consecutive frames are not
+    # neighbours in value either.
+    # the base is INSET from the range's ends by more than the deviation can
+    # reach, so no reading is ever clamped — a clamp prints the same number
+    # twice in six frames and a readout that repeats is a readout that has
+    # stopped.
+    base = lo + span * (0.12 + 0.76 * ((i * 29 % 89) / 88))
+    dev = span * 0.08 * (((i * 13 + k * 37) % 97) / 96 * 2 - 1)
+    v = base + dev
+    text = f"{v:.{dp}f}"
+    # the manual's own thin space between thousands — the root's values set
+    # "12 480" this way and two conventions for one numeral on one page is one
+    # too many.
+    whole, _, frac = text.partition(".")
+    if len(whole) > 3:
+        whole = whole[:-3] + "\u2009" + whole[-3:]
+    return whole + ("." + frac if frac else "") + "\u00a0" + unit
+
+
+def annot_box(x, y, r, name):
+    """Where the label lands if the leader runs `name`, and where it starts."""
+    quad = name.split()[0]
+    sx = -1 if "w" in quad else 1
+    sy = -1 if quad[0] == "n" else 1
+    mx, my = (1, 2) if "steep" in name else (2, 1)
+    lx, ly = x + sx * ANNOT_U * mx, y + sy * ANNOT_U * my
+    # the component sets a west-running note by its right edge — --annot-align
+    x0 = lx - ANNOT_W if sx < 0 else lx
+    return (x0, ly - ANNOT_H, x0 + ANNOT_W, ly), (sx, sy, mx, my)
+
+
+def _overlap(a, b):
+    return (max(0, min(a[2], b[2]) - max(a[0], b[0]))
+            * max(0, min(a[3], b[3]) - max(a[1], b[1])))
+
+
+def place_annots():
+    """One direction per sensor, chosen greedily against everything already on
+    the drawing — the same shape of law the root's numerals are placed by.
+
+    FOUR CLAUSES, IN ORDER, and the order is the order of harm:
+
+      1. the CLAIM. A note over the page's own sentence is not an annotation,
+         it is interference, and it is the one collision a reader cannot work
+         around by looking somewhere else.
+      2. the FRAME. The backdrop is sliced, so a note that leaves the box is
+         not merely tight, it is cropped — and at which viewport depends on
+         the ratio, which is how a label goes missing on one machine only.
+      3. the OTHER NOTES. Scored against the boxes already placed rather than
+         against all of them, so the pass is one sweep and the earlier sensors
+         — which are the bigger, nearer ones, because field() sorts by
+         distance to the focus — get the clear ground.
+      4. the BEADS themselves, halo and all. A note lying across another
+         sensor names two things at once.
+
+    Ties fall to the earlier direction in ANNOT_DIRS, so the whole placement
+    is a function of the geometry. Scoring all four rather than rejecting on
+    any one means there is always an answer: the least bad direction wins even
+    when the sensor is boxed in, and no sensor can end up unannotated.
+    """
+    rows = field()
+    discs = [(x - r * GLOW, y - r * GLOW, x + r * GLOW, y + r * GLOW)
+             for x, y, r, *_ in rows]
+    cx0, cy0, cy1 = CLAIM_LABELS
+    claim = (cx0, cy0, WIDTH, cy1)
+    placed, out = [], []
+    for i, (x, y, r, *_rest) in enumerate(rows):
+        best, best_score = None, None
+        for k, (name, _mx, _my) in enumerate(ANNOT_DIRS):
+            box, _ = annot_box(x, y, r, name)
+            outside = (max(0, ANNOT_INSET - box[0])
+                       + max(0, box[2] - (WIDTH - ANNOT_INSET))
+                       + max(0, ANNOT_INSET - box[1])
+                       + max(0, box[3] - (HEIGHT - ANNOT_INSET)))
+            score = (_overlap(box, claim),
+                     outside,
+                     sum(_overlap(box, b) for b in placed),
+                     sum(_overlap(box, d) for j, d in enumerate(discs) if j != i),
+                     k)
+            if best_score is None or score < best_score:
+                best, best_score = name, score
+        placed.append(annot_box(x, y, r, best)[0])
+        out.append(best)
+    return out
+
+
+def annots_markup(indent):
+    """One callout per sensor, in components/annotation.html's own component.
+
+    THE ANCHOR IS THE BEAD'S RIM, not its centre. The component draws a small
+    lattice cell where it points, and a lattice cell in the middle of a lit
+    sphere is a mark on top of the thing it is naming. Offset along the
+    leader's own direction by the bead's radius and the cell sits where the
+    line leaves the body, which is where a leader attaches on paper.
+
+    ONE NOTE IS LIT AND THE REST ARE CONTOURED, which is the component's rule
+    verbatim — "at most one per figure, and only when a figure has a subject".
+    This figure has one: the bead at the focus, the one the whole act converges
+    on. The others are drawn in contour like every other annotation in the
+    system.
     """
     out = []
-    for i, (x, y, r, *_rest) in enumerate(field()):
-        states = [blob(x, y, r, i, k) for k in range(BLOB_K)] + [blob(x, y, r, i, 0)]
-        out.append(f"{indent}.sp-bead-{i} {{ animation-name: sp-bead-{i}; }}")
-        out.append(f"{indent}@keyframes sp-bead-{i} {{")
-        for s, d in enumerate(states):
-            pct = round(100 * s / BLOB_K)
-            out.append(f'{indent}  {pct}% {{ d: path("{d}"); }}')
-        out.append(f"{indent}}}")
+    rows = field()
+    dirs = place_annots()
+    for i, (x, y, r, op, m, fx, fy, wp, w) in enumerate(rows):
+        name = dirs[i]
+        quad = name.split()[0]
+        steep = " cf-annot--steep" if "steep" in name else ""
+        lit = " cf-annot--lit" if i == 0 else ""
+        sx = -1 if "w" in quad else 1
+        sy = -1 if quad[0] == "n" else 1
+        mx, my = (1, 2) if steep else (2, 1)
+        # the rim, along the leader's own slope
+        norm = math.hypot(mx, my)
+        ax = x + sx * r * mx / norm
+        ay = y + sy * r * my / norm
+        vals = "".join(
+            f'<b style="--sp-slot:{k}">{reading(i, k)}</b>'
+            for k in range(STREAM_K))
+        out.append(
+            f'{indent}<li class="cf-annot cf-annot--{quad}{steep}{lit}" '
+            f'style="--annot-x:{POS.format(d=num(ax - WIDTH / 2))};'
+            f'--annot-y:{POS.format(d=num(ay - HEIGHT / 2))};'
+            f'--sp-period:{wp}ms">\n'
+            f'{indent}  <span class="cf-annot__label">S{i + 1:02d}'
+            f'<span class="cf-annot__value sp-stream">{vals}</span>'
+            f'</span>\n'
+            f'{indent}</li>')
     return "\n".join(out)
 
 
@@ -424,45 +541,33 @@ def shapes_markup(indent):
 # elements; the moment a sensor became a <g> of its own the lazy match stopped
 # at the FIRST sensor's `</g>` and every --write spliced the whole field back
 # in one sensor deep. It ran clean, wrote a file, and --check failed on its own
-# output. Backreferencing the indent means the match can only end on a `</g>`
-# that closes the block itself, whatever is nested inside it.
-LATTICE_RE = re.compile(
-    r'([ \t]*)(<g class="sp-field__lattice"[^>]*>\n)(.*?)(\n\1</g>)', re.S)
-SENSORS_RE = re.compile(
-    r'([ \t]*)(<g class="sp-field__sensors">\n)(.*?)(\n\1</g>)', re.S)
-# The third block is CSS rather than markup, so it is fenced by comments
-# instead of by a tag. Same shape: an opener, a body this script owns entirely,
-# and a closer that is never inside what it encloses.
-# THE MARKER IS A COMPLETE COMMENT, opened and closed on its own line, and
-# that is not a formatting choice. The first version carried its explanation
-# inside the opener and never wrote the `*/`, so the FIRST `*/` in the file
-# closed it — the one at the end of the CLOSING marker. Everything this script
-# generated was inside one comment. It parsed, it shipped, --check passed
-# (the text was there, byte for byte), and nothing animated: `animationName`
-# read `none` on all twenty-one beads. The prose lives above the marker now.
+# output. Backreferencing the indent means the match can only end on a closing
+# tag that closes the block itself, whatever is nested inside it.
 #
-# The body is matched as ANY RUN OF WHOLE LINES INCLUDING NONE, so the block
-# survives being emptied. A pattern that needs at least one line between the
-# markers cannot regenerate a block somebody has cleared, which is exactly the
-# state a person leaves behind when they delete generated output to see what
-# is theirs.
-SHAPES_RE = re.compile(
-    r"([ \t]*)(/\* == generated: the beads' outlines == \*/\n)"
-    r"((?:.*\n)*?)(\1/\* == end generated == \*/)")
+# EACH BODY IS ANY RUN OF WHOLE LINES INCLUDING NONE, so a block survives being
+# emptied. A pattern that needs at least one line between the markers cannot
+# regenerate a block somebody has cleared, which is exactly the state a person
+# leaves behind when they delete generated output to see what is theirs.
+LATTICE_RE = re.compile(
+    r'([ \t]*)(<g class="sp-field__lattice"[^>]*>\n)((?:.*\n)*?)(\1</g>)')
+SENSORS_RE = re.compile(
+    r'([ \t]*)(<g class="sp-field__sensors">\n)((?:.*\n)*?)(\1</g>)')
+ANNOTS_RE = re.compile(
+    r'([ \t]*)(<ul class="cf-annot-set sp-annots">\n)((?:.*\n)*?)(\1</ul>)')
 
 
 def splice(text):
     def one(m, maker):
-        indent = re.match(r"\s*", m.group(3)).group(0).lstrip("\n")
-        return m.group(1) + m.group(2) + maker(indent) + m.group(4)
-
-    def shapes(m):
         return (m.group(1) + m.group(2)
-                + shapes_markup(m.group(1)) + "\n" + m.group(4))
+                + maker(m.group(1) + "  ") + "\n" + m.group(4))
+
+    def annots(m):
+        return (m.group(1) + m.group(2)
+                + annots_markup(m.group(1) + "  ") + "\n" + m.group(4))
 
     text, n1 = LATTICE_RE.subn(lambda m: one(m, lattice_markup), text, count=1)
     text, n2 = SENSORS_RE.subn(lambda m: one(m, field_markup), text, count=1)
-    text, n3 = SHAPES_RE.subn(shapes, text, count=1)
+    text, n3 = ANNOTS_RE.subn(annots, text, count=1)
     return text, n1 + n2 + n3
 
 
@@ -475,19 +580,26 @@ def main():
 
     if args.report or not (args.write or args.check):
         rows = field()
-        hot = sum(1 for r in rows if r[7] == "hot")
         dmin = min(math.hypot(a[0] - b[0], a[1] - b[1])
                    for i, a in enumerate(rows) for b in rows[i + 1:])
         print(f"  box            {WIDTH} x {HEIGHT}   focus {FOCUS}")
         print(f"  supergrid      {SUPER_X} x {SUPER_Y}, stagger {STAGGER}"
               f" — nearest neighbours {dmin:.1f} units")
-        print(f"  sensors        {len(rows)}  ({hot} hot)   "
+        print(f"  sensors        {len(rows)}   "
               f"lattice lines {len(lattice())}")
         print(f"  bead           r {R_MIN}..{R_MAX}  opacity "
-              f"{OP_MIN:g}..{OP_MAX:g}  hot at r >= {HOT_AT}")
-        print(f"  wobble         {min(r[8] for r in rows)}"
-              f"..{max(r[8] for r in rows)} ms, "
-              f"{len({r[9] for r in rows})} distinct phases")
+              f"{OP_MIN:g}..{OP_MAX:g}  halo {GLOW:g}x")
+        dirs = {}
+        for name in place_annots():
+            dirs[name] = dirs.get(name, 0) + 1
+        print(f"  callouts       {len(rows)}  "
+              + ", ".join(f"{k} {v}" for k, v in sorted(dirs.items())))
+        print(f"  readings       {STREAM_K} per sensor, "
+              f"{len({reading(i, k).split(chr(160))[1] for i in range(len(rows)) for k in range(STREAM_K)})}"
+              f" distinct units")
+        print(f"  stream         {min(r[7] for r in rows)}"
+              f"..{max(r[7] for r in rows)} ms, "
+              f"{len({r[8] for r in rows})} distinct phases")
         if not (args.write or args.check):
             return 0
 
