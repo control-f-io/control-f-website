@@ -2301,3 +2301,186 @@
     0%, 16.66%   { opacity: 1; }
     16.67%, 100% { opacity: 0; }
   }
+
+  /* ============================================================
+     THE ACT RAIL — where you are in the five acts, and a way into any of them.
+
+     THE ACTS ARE 22 000 PX OF SCROLL and nothing said so. A reader who has
+     watched the field converge has no way to see the map without scrolling
+     through the root, the cards and the portraits again, and no way to know
+     that any of them are ahead. The rail is the document's own table of
+     contents for the part of it that is a composition: five marks, one per act,
+     on the left margin where the drawings are not.
+
+     COLLAPSED IT IS AN INDEX AND OPEN IT IS A CONTENTS. At rest each entry is
+     its number and a 1 rem glyph — small enough to sit beside a full-bleed
+     drawing without competing with it. On hover or focus anywhere in the rail
+     the glyphs grow to 1.75 rem and the titles slide out beside them, staggered
+     by 40 ms so the list opens as a list rather than as a block. One hover
+     opens the whole rail, not the entry under the pointer: the reader's
+     question at that moment is "what else is there", and answering it one row
+     at a time makes them hunt.
+
+     THE GLYPH IS DRAWN, NOT SCREENSHOT. A miniature of each act would be five
+     more copies of drawings the page already carries once, and the map and the
+     photographs do not survive being 24 px tall. So each act is reduced to the
+     one figure it is about, on the system's own 2:1 isometry: a lattice of
+     sensors, a confluence into a source, four marks, a chamfered plate, a
+     coastline with a point in it. They are the acts' own geometry at 1/60th
+     scale, which is why they read as thumbnails without being pictures.
+
+     THE TICK IS .cf-pin__bar's. The current act carries a hairline that scales
+     in from its left edge — the same move, in the same direction, that the
+     process track already uses to mark which of its four quarters is up. Two
+     indexes on one page should say "you are here" the same way.
+
+     SCOPED TO screen AND TO THE ACTS' OWN GATE. `position: fixed` is repeated
+     on every sheet of paper (check-print-fixed.py), and a fixed left rail at
+     900 px of width is furniture in the margin the content needs — 64rem is the
+     threshold the acts themselves are pinned behind, so above it there is a
+     composition to navigate and below it there is a page to scroll.
+     ============================================================ */
+  /* OUT OF THE PAGE BELOW THE GATE, AND OUT OF THE TAB ORDER WITH IT. The rail
+     is styled only inside the query below, so without this rule a viewport
+     under 64rem would get the bare <nav><ol> as flow content the moment
+     act-rail.js cleared the `hidden` attribute — an unstyled list of five links
+     in the middle of the page. `display: none` and not `visibility` or an
+     offscreen shift, because a rail that cannot be seen must not be reachable
+     by Tab either, and none of the other three ways of hiding it take the links
+     out of the tab order. */
+  .act-rail { display: none; }
+
+  @media screen and (min-width: 64rem) {
+    .act-rail {
+      display: block;
+      position: fixed;
+      inset-block-start: 50%;
+      inset-inline-start: var(--space-6);
+      z-index: var(--z-sticky);
+      translate: 0 -50%;
+      /* THE COLLAPSED SIZE, published as a property so the glyph and its
+         hover state are one decision read in two places. 1.25rem is the floor
+         at which the field's seven dots are still seven: below it the cluster
+         closes into a blob and the five glyphs stop being told apart, which is
+         the only thing they exist to do. */
+      --act-glyph: 1.25rem;
+      opacity: 0;
+      transition: opacity var(--duration-slow) var(--ease-standard);
+    }
+    /* THE PLATE, AND ONLY WHEN OPEN. The rail stands over a full-bleed drawing
+       — act 1's field runs to every corner and carries its own labels — so an
+       open title lands on a sensor's readout and neither can be read. A raised
+       surface behind the open rail is the system's ordinary answer for chrome
+       over artwork, and it is NOT glass: the landing page already spends both
+       of the blurred layers foundations/materials.html allows it, and a third
+       would be the finding check-glass-budget.py exists to catch.
+
+       Nothing at rest, because at rest there is nothing to protect: five
+       numerals and five 20 px marks in the margin are marginalia, and a plate
+       under them would be the loudest thing on the page. */
+    .act-rail::before {
+      content: "";
+      position: absolute;
+      inset: calc(var(--space-4) * -1) calc(var(--space-5) * -1);
+      background: var(--surface-raised);
+      border-radius: var(--radius-sm);
+      opacity: 0;
+      transition: opacity var(--duration-base) var(--ease-standard);
+      z-index: -1;
+    }
+    .act-rail:hover::before,
+    .act-rail:focus-within::before { opacity: 1; }
+    /* Off screen until the acts are: act-rail.js sets both, the class for the
+       fade and `hidden` for the tab order, so a rail nobody can see is also a
+       rail nobody can Tab into. */
+    .act-rail.is-live { opacity: 1; }
+    .act-rail[hidden] { display: none; }
+    .act-rail:hover, .act-rail:focus-within { --act-glyph: 2rem; }
+
+    .act-rail__list {
+      display: grid;
+      gap: var(--space-4);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    /* THE TARGET STOPS AT ITS OWN CONTENT. Without this the link stretches to
+       the widest row in the list — act 5's title is twice act 2's — and the
+       empty space beside a short entry becomes a hot zone that marks the wrong
+       act when it is clicked. */
+    .act-rail__item { display: grid; justify-items: start; }
+
+    /* TICK, NUMBER, GLYPH, TITLE. The first two columns are a fixed rung and
+       a tabular numeral, so the glyphs stay on one axis as they grow: the
+       third column is `auto` and follows the glyph's own transition rather
+       than being animated itself, which keeps one size in one place. */
+    .act-rail__link {
+      display: grid;
+      grid-template-columns: var(--space-4) auto auto auto;
+      align-items: center;
+      gap: var(--space-3);
+      text-decoration: none;
+      color: var(--text-muted);
+      transition: color var(--duration-base) var(--ease-standard);
+    }
+    /* THE KEYBOARD GETS WHAT THE POINTER GETS. Without :focus-visible here the
+       ring lands on an entry still drawn at the muted tier — the one entry the
+       reader has singled out, and the faintest thing in the rail. */
+    .act-rail__link:hover,
+    .act-rail__link:focus-visible,
+    .act-rail__link[aria-current] { color: var(--text-primary); }
+
+    .act-rail__tick {
+      block-size: var(--stroke-1);
+      background: currentColor;
+      /* FROM THE LEFT, which is the direction the reader arrives from and the
+         direction .cf-pin__bar already grows in. */
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform var(--duration-base) var(--ease-standard);
+    }
+    .act-rail__link[aria-current] .act-rail__tick { transform: scaleX(1); }
+
+    .act-rail__num {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-label);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .act-rail__glyph {
+      display: block;
+      inline-size: var(--act-glyph);
+      block-size: var(--act-glyph);
+      /* The strokes are drawn once at 24 units and never re-weighted: a
+         hairline that thickened as the glyph grew would be a different
+         drawing at each size. */
+      overflow: visible;
+      transition: inline-size var(--duration-base) var(--ease-standard),
+                  block-size var(--duration-base) var(--ease-standard);
+    }
+    .act-rail__glyph path { stroke: currentColor; }
+
+    /* THE TITLE IS ALWAYS IN THE DOM and never display: none — a reader on
+       assistive technology gets the five titles whether or not a pointer has
+       been over the rail, and what the hover changes is only how much room
+       they are given. `clip`, not `hidden`, so a collapsed title is a crop and
+       not a scroll container (check-overflow-clip.py). */
+    .act-rail__label {
+      font-size: var(--text-sm);
+      line-height: var(--leading-snug);
+      white-space: nowrap;
+      overflow: clip;
+      max-inline-size: 0;
+      opacity: 0;
+      transition: max-inline-size var(--duration-base) var(--ease-standard),
+                  opacity var(--duration-base) var(--ease-standard);
+      transition-delay: calc(var(--i) * 40ms);
+    }
+    .act-rail:hover .act-rail__label,
+    .act-rail:focus-within .act-rail__label {
+      max-inline-size: 16rem;
+      opacity: 1;
+    }
+  }
