@@ -440,17 +440,47 @@
 
      THE INNER EDGE IS STILL THE FIXED ONE — left block ragged-left, right
      block ragged-right, each flush toward the middle — because the thing the
-     reader is reading around is still the axis the drawing resolves onto. */
+     reader is reading around is still the axis the drawing resolves onto.
+
+     IT MOVED OUT, from 65 % to 69 %, and the rail's column is why. Reserving
+     176 px for the rail narrows the container, which pulls both blocks in
+     toward a trunk whose value labels have not moved — they are placed in the
+     drawing's own units. Measured at the end of act 2, text boxes against
+     numeral boxes:
+
+                            1024   1280   1440   1920
+       main, no gutter        3      0      0      0
+       gutter, edge at 65     4      3      0      0
+       gutter, edge at 67     2      0      0      0
+       gutter, edge at 69     1      0      0      0   <-
+       gutter, edge at 71     4      0      0      0
+       gutter, edge at 73     4      1      0      0
+
+     69 is the floor of that curve and it is a real floor, not a slope: past it
+     the columns are narrow enough that the body wraps to another line and the
+     block grows down into a different set of numerals, which is the four at 71.
+     So the nudge does not merely pay the gutter back — it leaves the crowding
+     BETTER than main: two of the three collisions the gate floor already had
+     are gone. The one that remains, "38 m³/h" under the left lead at 1024
+     exactly, is the drawing's own label placement and belongs to
+     gen-flow-root.py's lane rather than to this one.
+
+     ONE NUMBER, TWO PLACES, so it cannot drift: the width is whatever is left
+     of the container once the inner edge is set. At 65 % with a 35 % width the
+     pair happened to add to 100 and nothing said they had to — and the first
+     attempt at this moved the edge alone, which overflowed both blocks off the
+     container and made the measurement above read a layout nobody would ship. */
   .sp-say { position: absolute; inset: 0; pointer-events: none; }
   .sp-say__act { display: none; }
+  .sp-say { --sp-say-edge: 69%; }
   .sp-say__col {
     position: absolute;
     top: 74%;
     transform: translateY(-50%);
-    inline-size: 35%;
+    inline-size: calc(100% - var(--sp-say-edge));
   }
-  .sp-say__col--l { right: 65%; text-align: right; }
-  .sp-say__col--r { left: 65%; }
+  .sp-say__col--l { right: var(--sp-say-edge); text-align: right; }
+  .sp-say__col--r { left: var(--sp-say-edge); }
   .sp-say__lead {
     margin: 0;
     font-size: var(--text-lg);
@@ -936,6 +966,45 @@
   body { --act-bar: 0px; }
   body:has(.cf-nav) { --act-bar: calc(var(--nav-height) + var(--space-4)); }
 
+  /* THE RAIL'S COLUMN. 0 where there is no rail — the same shape --act-bar
+     uses for the nav, and for the same reason: one stylesheet, two pages,
+     and neither of them told about the other.
+
+     11rem IS THE OPEN RAIL MEASURED, and the titles were shortened to make it
+     that. Each entry now carries the act's own word — Sensoren, Strom, Prozess,
+     Team, Standorte — instead of its full heading, which took the open rail's
+     right edge from 253 px to 167 px. That is 86 px the drawing keeps, and the
+     drawing needs them: every point the gutter takes is a point the two text
+     columns move in toward the trunk, and they were already crowding the value
+     labels at 1024. 176 px leaves the widest row 9 px of air and costs the
+     composition as little as reserving a column can. */
+  body { --rail-gutter: 0px; }
+  /* Gated on the rail's own gate: below 64rem the rail is display: none, and a
+     column reserved for something that is not there is dead margin. */
+  @media (min-width: 64rem) {
+    body:has(.act-rail) { --rail-gutter: 11rem; }
+  }
+
+  /* WHO READS IT. The stages take it as padding, which is enough for everything
+     inside them that is in flow — the statement column, act 4's set, act 5's
+     beats — and enough for .sp-say, whose inset: 0 is measured against the
+     container the padding has already moved.
+
+     THE TWO FULL-BLEED LAYERS TAKE IT AS AN INSET, because padding cannot move
+     them: an absolutely-positioned child is laid out against its container's
+     PADDING box, which is the finding #257 was about. .sp-field also gives up
+     its width: 100% here — with both insets set, the box's width is the
+     distance between them, and a declared 100% would push the right edge back
+     out past the frame. The two move together and by the same amount, which is
+     what keeps a leader pointing at the sensor it belongs to: the annotation
+     layer is positioned in the field's own units and both boxes are now the
+     same box. */
+  :is(.sp-stage, .sp4-stage, .map-stage) {
+    padding-inline-start: var(--rail-gutter);
+  }
+  :is(.sp-field, .sp-annots-fig) { inset-inline-start: var(--rail-gutter); }
+  .sp-field { inline-size: auto; }
+
   @supports (animation-timeline: view()) {
     @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
       main { --lp-measure: calc((max(45rem, 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }
@@ -972,6 +1041,29 @@
            lectern's verticals rise out of them. The seam the old landing
            held with check-flow-handover.py, made by layout this time. */
         align-content: end;
+        /* AND A RUNG UNDER IT, because `end` meant FLUSH and flush meant gone.
+           Measured on the shipped page, parked at the end of act 2 with the
+           stage still pinned:
+
+             1440 x  900   .sp-head 854 -> 900     viewport bottom 900
+             1920 x 1080   .sp-head 1034 -> 1080   viewport bottom 1080
+             2000 x 1075   .sp-head 1029 -> 1075   viewport bottom 1075
+
+           The rule the tree's feet land on sat with its last pixel row ON the
+           fold at every viewport, and there is always something that eats the
+           last row — a scrollbar's corner, a rounded window, a browser's own
+           chrome, a fractional device ratio. What the reader reported is what
+           that produces: "the tree is too low, i cannot see the text Was Wir
+           Machen". It was not a scroll position and not the drawing's height;
+           it was zero clearance, spent by whatever the viewport spends it on.
+
+           There was 172 px of slack ABOVE the content in the same measurement,
+           so this costs the composition nothing: it moves the whole bottom-
+           aligned group up out of the last rung and leaves the slack where it
+           already was. And it is padding INSIDE the stage, so the stage's own
+           bottom edge does not move — the seam the next section slides in from
+           is where align-content: end put it. */
+        padding-block-end: var(--space-6);
         /* HEAD-ROOM, AND NOT A NAV — the distinction --act-bar made necessary.
            This has capped the grid's available height since #233, when the
            stage was a prototype-only box and there was no bar anywhere to
@@ -2391,29 +2483,21 @@
       opacity: 0;
       transition: opacity var(--duration-slow) var(--ease-standard);
     }
-    /* THE PLATE, AND ONLY WHEN OPEN. The rail stands over a full-bleed drawing
-       — act 1's field runs to every corner and carries its own labels — so an
-       open title lands on a sensor's readout and neither can be read. A raised
-       surface behind the open rail is the system's ordinary answer for chrome
-       over artwork, and it is NOT glass: the landing page already spends both
-       of the blurred layers foundations/materials.html allows it, and a third
-       would be the finding check-glass-budget.py exists to catch.
+    /* NO PLATE, AND NO OVERLAP EITHER — the two halves of the same review.
+       The rail used to raise a --surface-raised panel behind itself on hover,
+       to keep an open title off act 1's full-bleed field. Two findings against
+       it: "dont make it white when hovering over", and the panel was occlusion
+       rather than a fix — it covered the drawing instead of getting out of its
+       way. And at rest, with no panel at all, the field's own beads and their
+       readouts landed on the numerals: "dont have the overlapp".
 
-       Nothing at rest, because at rest there is nothing to protect: five
-       numerals and five 20 px marks in the margin are marginalia, and a plate
-       under them would be the loudest thing on the page. */
-    .act-rail::before {
-      content: "";
-      position: absolute;
-      inset: calc(var(--space-4) * -1) calc(var(--space-5) * -1);
-      background: var(--surface-raised);
-      border-radius: var(--radius-sm);
-      opacity: 0;
-      transition: opacity var(--duration-base) var(--ease-standard);
-      z-index: -1;
-    }
-    .act-rail:hover::before,
-    .act-rail:focus-within::before { opacity: 1; }
+       So the drawing gives the rail a column instead. --rail-gutter is reserved
+       at the rail's OPEN width, not its resting one, because a reservation that
+       only holds until the reader points at it is not a reservation. The field
+       and its annotation layer start after it, the three stages' content starts
+       after it, and the rail then stands on the page's own wash with nothing
+       underneath it to be legible against — which is why it needs no plate to
+       be legible at all. */
     /* Off screen until the acts are: act-rail.js sets both, the class for the
        fade and `hidden` for the tab order, so a rail nobody can see is also a
        rail nobody can Tab into. */
