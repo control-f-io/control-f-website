@@ -209,30 +209,40 @@ def main():
     if not segs:
         print(f"void departure: .{FLOW} carries no .{FLOW_SEG}")
         return 1
-    dep = sorted({s[0] for s in segs}, key=lambda p: (p[1], p[0]))[0]
+    # THE TRUNK ARRIVES, IT NO LONGER DEPARTS. The review of 2026-07-29 turned
+    # the root into a confluence, so the one stroke that touches the source
+    # comes DOWN into it and the point they share is the orb's TOP rim. It is
+    # the bottom-most start rather than the topmost, because the markup still
+    # writes every stroke trunk end first and the trunk end is now the lowest
+    # point in the drawing.
+    dep = sorted({s[0] for s in segs}, key=lambda p: (-p[1], p[0]))[0]
     orb = re.search(r'<circle\b[^>]*class="[^"]*lp-flow__orb[^"]*"[^>]*'
                     r'cx="(-?[\d.]+)"\s*cy="(-?[\d.]+)"\s*r="(-?[\d.]+)"', text)
-    aim = re.search(r'new DOMPoint\((-?[\d.]+),\s*(-?[\d.]+)\)', text)
+    # THE AIM IS NO LONGER A POINT, and that is identity 1 turning over with
+    # the drawing. It mapped one DOMPoint — the trunk's head — because every
+    # glow ran to the source; the flip made the source the destination and the
+    # FRINGE the place data enters, so the aim now maps every foot and gives
+    # each sensor the nearest. What is held here is that it still reads the
+    # feet off the drawing rather than carrying its own copy of them, which is
+    # the same guarantee the single point gave: one source of truth for where
+    # the field is pointing, and it is the flow's own markup.
+    aim = re.search(r'new DOMPoint\(x,\s*y\)\.matrixTransform', text)
+    reads_feet = re.search(r"querySelectorAll\('\.lp-flow__seg'\)", text)
     if not orb:
         findings.append(
             "no .lp-flow__orb with cx/cy/r — the source is what both the aim "
             "and the departure are measured from")
-    if not aim:
+    if not aim or not reads_feet:
         findings.append(
-            "the aim script no longer maps a DOMPoint — nothing publishes "
-            "--ux/--uy and the merge runs on its fallback everywhere")
+            "the aim script no longer maps the flow's own feet — nothing "
+            "publishes --ux/--uy and the merge runs on its fallback everywhere")
     if orb and aim:
         cx, cy, r = (rational(orb.group(i)) for i in (1, 2, 3))
-        if (rational(aim.group(1)), rational(aim.group(2))) != (cx, cy):
+        if dep != (cx, cy - r):
             findings.append(
-                f"the aim script maps ({aim.group(1)}, {aim.group(2)}) and the "
-                f"source's centre is ({show(cx)}, {show(cy)}) — the glows "
-                f"converge on a point the light is not at")
-        if dep != (cx, cy + r):
-            findings.append(
-                f"the flow departs at ({show(dep[0])}, {show(dep[1])}) and the "
-                f"source's rim is ({show(cx)}, {show(cy + r)}) — the trunk "
-                f"either starts inside the fill or hangs off it")
+                f"the flow arrives at ({show(dep[0])}, {show(dep[1])}) and the "
+                f"source's rim is ({show(cx)}, {show(cy - r)}) — the trunk "
+                f"either ends inside the fill or hangs off it")
 
     # 5. the fallback is the focus, and the focus is a crossing
     fb = re.search(r'var\(--ux,\s*(-?[\d.]+)\)[\s\S]{0,120}?var\(--uy,\s*(-?[\d.]+)\)', text)

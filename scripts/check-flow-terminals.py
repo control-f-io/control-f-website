@@ -20,10 +20,10 @@ elements, false of others, and invisible in review because 1 px of hairline at
 
 THE RULE. Every endpoint of every segment must ARRIVE:
 
-  * on the rail          -- y is the bottom of the flow's own box, which is
+  * on the fringe        -- y is the topmost line of the drawing, which is
                             where the frame's top edge is; the drawing hands
                             over there
-  * at the void          -- the single start point the trunk leaves from, which
+  * at the source        -- the single point the trunk arrives at, which
                             is the statement's own circle
   * on another segment   -- the endpoint lies on some other segment of the same
                             drawing, whether at its end or partway along it.
@@ -124,7 +124,6 @@ def angle_of(seg):
 
 def check_drawing(name, cls, body, view_box, verbose):
     seg_cls, node_cls = DRAWINGS[cls]
-    rail = rational(view_box.split()[3])
 
     segs, nodes = [], []
     for classes, d in PATH_RE.findall(body):
@@ -138,10 +137,28 @@ def check_drawing(name, cls, body, view_box, verbose):
     if not segs:
         return [f"{name}: .{cls} carries no .{seg_cls} at all"], 0, 0
 
-    # The void: the one point a segment may start from without another segment
-    # under it. It is the topmost start, and there must be exactly one.
-    tops = sorted({s[0] for s in segs}, key=lambda p: (p[1], p[0]))
-    void = tops[0]
+    # THE DRAWING IS A CONFLUENCE AND BOTH LANDMARKS MOVED, on the review of
+    # 2026-07-29 that turned it over: nineteen ends at the top merging into one
+    # source at the bottom, where it used to be one source at the top dividing
+    # into nineteen ends. Neither is hard-coded here, because neither ever was
+    # — they are read off the strokes, and reading them off the other end is
+    # the whole of this change.
+    #
+    #   THE FRINGE is the y every tip stands on. It was the viewBox's own
+    #   height, the bottom of the flow's box, because that is where the feet
+    #   landed; it is now the topmost y in the drawing, which is where they
+    #   land instead. Taking it from the geometry rather than from the box is
+    #   also the more honest of the two: the fringe is a fact about the root,
+    #   and the box is a fact about the frame around it.
+    #
+    #   THE SOURCE is the one point a segment may arrive at with nothing
+    #   continuing it. It was the topmost START and it is now the bottom-most,
+    #   because a shipped stroke is written trunk end first — the mirror maps
+    #   the construction's (x1, y1) to the LOWER point on the page.
+    ys = [p[1] for s in segs for p in s]
+    fringe = min(ys)
+    bottoms = sorted({s[0] for s in segs}, key=lambda p: (-p[1], p[0]))
+    void = bottoms[0]
 
     for i, seg in enumerate(segs):
         angle = angle_of(seg)
@@ -153,13 +170,13 @@ def check_drawing(name, cls, body, view_box, verbose):
                 f"off the four angles foundations/geometry.html publishes"
             )
         for end, p in (("start", seg[0]), ("end", seg[1])):
-            if p[1] == rail or p == void:
+            if p[1] == fringe or p == void:
                 continue
             if any(on_segment(p, other) for j, other in enumerate(segs) if j != i):
                 continue
             findings.append(
                 f"{name}: segment {i}'s {end} at ({p[0]}, {p[1]}) arrives at nothing — "
-                f"not the rail at y {rail}, not the void at ({void[0]}, {void[1]}), "
+                f"not the fringe at y {fringe}, not the source at ({void[0]}, {void[1]}), "
                 f"and not on any other segment. A root has no free ends."
             )
 
@@ -189,15 +206,15 @@ def check_drawing(name, cls, body, view_box, verbose):
         )
 
     if verbose:
-        on_rail = sum(1 for s in segs if s[1][1] == rail)
+        on_rail = sum(1 for s in segs if s[1][1] == fringe)
         print(f"  {name} .{cls}: {len(segs)} segments, {len(nodes)} nodes, "
-              f"{on_rail} terminals on the rail at y {rail}, void at "
+              f"{on_rail} terminals on the fringe at y {fringe}, source at "
               f"({void[0]}, {void[1]})")
         def show(v):
             return str(int(v)) if v.denominator == 1 else f"{float(v):g}"
         for i, seg in enumerate(segs):
             (x1, y1), (x2, y2) = seg
-            lands = "the rail" if y2 == rail else "another branch"
+            lands = "the fringe" if y2 == fringe else "another branch"
             print(f"    {i:>2}  {angle_of(seg):>5}deg  "
                   f"({show(x1):>7}, {show(y1):>5}) -> ({show(x2):>7}, {show(y2):>5})"
                   f"  lands on {lands}")
@@ -232,7 +249,7 @@ def main():
             print(f"  {f}")
         return 1
     print(f"flow terminals OK — {segs} segments across {drawings} drawing(s), every terminal "
-          f"on the rail, the void or another branch, every segment on a brand angle, "
+          f"on the fringe, the source or another branch, every segment on a brand angle, "
           f"and {nodes} nodes all on junctions")
     return 0
 

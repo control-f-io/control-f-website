@@ -152,27 +152,50 @@ def read(text, kind):
 
 
 def walk(segs):
-    """The run from the void to every stroke's start, Chebyshev, exact."""
-    by_origin = {}
+    """The run from the SOURCE to every stroke's ends, Chebyshev, exact.
+
+    A CONFLUENCE HAS MANY MOUTHS AND ONE SOURCE, and the walk starts at the one
+    rather than the many. That is not the direction the strokes grow — the
+    review of 2026-07-29 turned the drawing over, so --o names the fringe end
+    and every stroke grows inward — but it is the direction the RUN is measured
+    in, and the two have to be told apart.
+
+    The drawing's motion claim is that ONE front travels the root at ONE speed
+    and the strokes are where it happens to be. There is exactly one quantity
+    that can say where a front at one speed has got to, and it is distance from
+    a single point. The fringe is nineteen points at nineteen different depths;
+    measuring from there gives every route its own clock, and a stroke on a
+    short branch would then open at the same instant as one on a long branch
+    that is twice as far from the source. So the run is measured from the
+    source outward, exactly as it was when the source was at the top, and the
+    LEVEL is what got reversed: level = 3 x (SPAN - run) / SPAN, so the deepest
+    tip is 0 and the trunk's near end is 3.
+
+    Walking outward means following tips to origins — a stroke's children are
+    the strokes whose TIP is its ORIGIN — because the markup still writes every
+    stroke trunk end first.
+    """
+    by_tip = {}
     for s in segs:
-        by_origin.setdefault(s["origin"], []).append(s)
-    roots = [s for s in segs
-             if not any(q is not s and q["tip"] == s["origin"] for q in segs)]
-    if len(roots) != 1:
-        return f"the root has {len(roots)} strokes with no parent; a root has one trunk"
-    roots[0]["run"] = F(0)
-    stack = [roots[0]]
+        by_tip.setdefault(s["tip"], []).append(s)
+    mouths = [s for s in segs
+              if not any(q is not s and q["origin"] == s["tip"] for q in segs)]
+    if len(mouths) != 1:
+        return (f"the root has {len(mouths)} strokes with nothing below them; "
+                f"a confluence has one trunk, into the source")
+    mouths[0]["run"] = F(0)
+    stack = [mouths[0]]
     while stack:
         q = stack.pop()
         q["run_end"] = q["run"] + q["step"]
-        for c in by_origin.get(q["tip"], []):
+        for c in by_tip.get(q["origin"], []):
             if c is q or "run" in c:
                 continue
             c["run"] = q["run_end"]
             stack.append(c)
     missing = [s["d"] for s in segs if "run" not in s]
     if missing:
-        return f"{len(missing)} strokes are not reachable from the trunk: {missing[:3]}"
+        return f"{len(missing)} strokes are not reachable from the source: {missing[:3]}"
     return None
 
 
@@ -219,16 +242,21 @@ def main():
     if err:
         findings.append(err)
         return report(findings, args.verbose, None)
-    maxd = max(s["run"] for s in segs)
+    span = max(s["run_end"] for s in segs)
 
     def level(d):
-        return round(float(3 * F(d) / maxd), 2)
+        """Where the front is when it has SPAN - d still to go."""
+        return round(float(3 * F(span - d) / span), 2)
 
+    # A stroke OPENS at its far end from the source — the fringe side, which
+    # the front reaches first — and closes at its near end. run_end is the far
+    # one, so the two are the other way round from the delta's own reading.
     for s in segs:
-        want_l, want_u = level(s["run"]), round(level(s["run_end"]) - level(s["run"]), 2)
+        want_l = level(s["run_end"])
+        want_u = round(level(s["run"]) - level(s["run_end"]), 2)
         if abs(s["l"] - want_l) > 1e-9:
             findings.append(
-                f"{s['d']}: --l is {s['l']}, but its run from the void is "
+                f"{s['d']}: --l is {s['l']}, but its far end stands at run "
                 f"{s['run']} of {maxd}, which is {want_l}")
         if abs(s["u"] - want_u) > 1e-9:
             findings.append(
