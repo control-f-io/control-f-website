@@ -78,9 +78,14 @@ GEN = ROOT / "scripts" / "gen-proto-field.py"
 SVG_RE = re.compile(r'<svg\b[^>]*class="([^"]*)"[^>]*viewBox="([^"]*)"(.*?)</svg>', re.S)
 PATH_RE = re.compile(r'<path\b[^>]*class="([^"]*)"[^>]*\bd="([^"]*)"', re.S)
 CMD_RE = re.compile(r'([MLVH])\s*(-?[\d.]+)(?:[ ,]+(-?[\d.]+))?')
-CIRCLE_RE = re.compile(
-    r'<circle\b[^>]*class="([^"]*)"[^>]*style="([^"]*)"'
-    r'[^>]*\bcx="(-?[\d.]+)"[^>]*\bcy="(-?[\d.]+)"', re.S)
+# A SENSOR IS TWO ELEMENTS NOW, and the pairing is part of what this checks.
+# The group carries the position and the scroll's property ledger; the bead
+# inside it carries the geometry and the clock's. Matching them together means
+# a bead orphaned from its group, or a group emptied of its bead, is a finding
+# rather than a silently uncounted sensor.
+SENSOR_RE = re.compile(
+    r'<g\b[^>]*class="([^"]*)"[^>]*style="([^"]*)"\s*>\s*'
+    r'<circle\b[^>]*\bcx="(-?[\d.]+)"[^>]*\bcy="(-?[\d.]+)"', re.S)
 VAR_RE = re.compile(r'--(cx|cy|fx|fy|m|iso-rest):\s*(-?[\d.]+)')
 
 FIELD = "sp-field"
@@ -158,7 +163,7 @@ def main():
     # 2 + 3. every sensor on a crossing, with its properties telling the truth,
     #        and no two closer than the supergrid's bar
     sensors = []
-    for cls, style, cx, cy in CIRCLE_RE.findall(field_svg[1]):
+    for cls, style, cx, cy in SENSOR_RE.findall(field_svg[1]):
         if SENSOR not in cls.split():
             continue
         v = dict(VAR_RE.findall(style))
