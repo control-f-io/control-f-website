@@ -78,9 +78,43 @@ WHAT IS CHECKED, in acts.css and the pages that load it:
                     as a clip-path; .sp-say, the copy layer, does not.
   clip, not box     neither ink layer takes a height or an aspect-ratio that
                     would move the slice crop.
-  gate off          the band is released above the register's 64rem, so the
-                    pinned tier and the two-column flow tier keep the whole
-                    stage as their ground.
+  gate off          the band is released ONLY inside the pin gate. A bare
+                    `@media (min-width: 64rem)` releasing it is the finding
+                    below.
+  fold band         above 64rem the band is re-derived from the two-column
+                    split rather than dropped, and the split it names is the
+                    one .sp-stage__inner actually declares.
+
+WHAT THE `gate off` CLAUSE USED TO SAY, AND WHY IT WAS WRONG. It read "the band
+is released above the register's 64rem, so the pinned tier and the two-column
+flow tier keep the whole stage as their ground", and acts.css released it with a
+bare `@media (min-width: 64rem) { .sp-stage { --sp-ground-clip: none } }`. Half
+of that sentence is true. Above the fold .cf-statement__text -- act 1's claim --
+does sit beside the drawing in grid column 2, and it was measured clear.
+
+.sp-say -- act 2's four paragraphs -- does not. Its absolute placement over the
+root is declared inside the @supports block, so in every tier that does not pin
+it is ordinary flow INSIDE the figure column, directly under the drawing. One
+release therefore covered two tiers with opposite needs: the pinned stage, which
+has no copy under the drawing and wants the whole ground, and the flow tier
+above 64rem, which has exactly the copy the band exists to uncover.
+
+Measured under prefers-reduced-motion, act 2's copy box screenshotted with and
+without the two ink layers, pixels differing by more than 8/255:
+
+    1024 x 900   11 799 px      1440 x 900    6 930 px
+    1024 x 700   12 372         1600 x 900    6 682
+    1100 x 900   12 098         1920 x 1080   6 332
+    1280 x 900   10 825         768, 375           0   (already clipped)
+
+Zero at every one of them after the band was re-derived, and the same numbers
+within 200 px on prototypes/statement-to-process.html, which shares this sheet.
+
+And the old clause could not have caught it: it searched for a `@media` prelude
+carrying `min-width` and `64rem`, and the pin gate's own prelude carries both.
+Moving the release into the gate -- which is where its own note always said it
+belonged -- left the clause green while the premise under it had been inverted.
+So the clause now asks WHERE the release is, not whether there is one.
 
 Countable in a file, invisible in a render -- the same test the checks beside it
 pass. Run with -v for the resolved band and the viewBoxes it was held to.
@@ -115,13 +149,64 @@ def strip_comments(css):
 
 def declarations_for(selector, css):
     """Every declaration block whose selector list names this selector exactly."""
+    return [body for body, _ in declarations_with_offsets(selector, css)]
+
+
+def declarations_with_offsets(selector, css):
+    """As declarations_for, but each entry is (body, offset of the body).
+
+    The offset is what the `gate off` clause is about: the same declaration is
+    correct inside the pin gate and a defect outside it, so the check has to
+    know where in the file it was written.
+    """
     out = []
     pattern = re.compile(r"([^{}]+)\{([^{}]*)\}", re.S)
     for m in pattern.finditer(css):
         selectors = [s.strip() for s in m.group(1).split(",")]
         if any(s == selector or s.endswith(" " + selector) for s in selectors):
-            out.append(m.group(2))
+            out.append((m.group(2), m.start(2)))
     return out
+
+
+def block_span(css, opener):
+    """(start, end) of the braced body opened by the at-rule matching `opener`.
+
+    Brace-matched rather than regex'd, because the pin gate nests an @media
+    inside an @supports and holds a few hundred declarations.
+    """
+    m = re.search(opener, css)
+    if not m:
+        return None
+    i = css.find("{", m.end() - 1)
+    if i < 0:
+        return None
+    depth = 0
+    for j in range(i, len(css)):
+        if css[j] == "{":
+            depth += 1
+        elif css[j] == "}":
+            depth -= 1
+            if depth == 0:
+                return (i, j)
+    return None
+
+
+def column_split(css):
+    """The figure column's share of .sp-stage__inner, as (numerator, total).
+
+    Read from the grid rather than assumed, because the band above the fold is
+    the drawing's used height and the drawing is that share of the row. Change
+    the grid to 2fr/3fr and the band has to move with it; that is the whole
+    reason this is derived and not typed.
+    """
+    for body, _ in declarations_with_offsets(".sp-stage__inner", css):
+        v = value_of("grid-template-columns", body)
+        if not v:
+            continue
+        frs = [float(x) for x in re.findall(r"(\d+(?:\.\d+)?)fr", v)]
+        if len(frs) == 2:
+            return (frs[0], frs[0] + frs[1])
+    return None
 
 
 def value_of(prop, block):
@@ -254,23 +339,99 @@ def main():
                 f"copy, and prose under the horizon is what the band exists to "
                 f"uncover -- clipping it is the fault inverted.")
 
-    # ---- released above the register's fold ------------------------------
-    released = False
+    # ---- released inside the pin gate, and only there ---------------------
+    gate = block_span(css, r"@supports\s*\(\s*animation-timeline\s*:\s*view\(\)\s*\)")
+    if gate is None:
+        findings.append(
+            "acts.css: no @supports (animation-timeline: view()) block. The "
+            "release of the band is scoped to the pinned tier, and the pinned "
+            "tier is that block.")
+    releases_in, releases_out = 0, 0
+    for body, at in declarations_with_offsets(".sp-stage", css):
+        v = value_of(CLIP, body)
+        if not (v and v.strip() == "none"):
+            continue
+        if gate and gate[0] < at < gate[1]:
+            releases_in += 1
+        else:
+            releases_out += 1
+            line = css[:at].count("\n") + 1
+            findings.append(
+                f"acts.css:{line}: {CLIP} is released outside the pin gate. "
+                f"Only the pinned tier has no copy under the drawing -- .sp-say "
+                f"is placed over the root inside the @supports block and is "
+                f"ordinary flow under it everywhere else, so a release that "
+                f"reaches the flow tier hands the field and all twenty-one "
+                f"callouts back to act 2's four paragraphs. Measured before "
+                f"this clause: 11 799 px of ink on that copy at 1024 x 900 "
+                f"under reduced motion, 6 332 at 1920 x 1080.")
+    if gate and not releases_in:
+        findings.append(
+            f"acts.css: {CLIP} is never released inside the pin gate. There the "
+            f"stage IS the viewport and act 1's field is full bleed by "
+            f"construction; with the flow tier's band left on, the sliced "
+            f"1600 x 900 backdrop is cropped to 387 px of an 800 px stage at "
+            f"1440 x 900 -- 48 % of the screen it was drawn to fill.")
+
+    # ---- and re-derived above the fold rather than dropped ---------------
+    split = column_split(css)
+    if split is None:
+        findings.append(
+            "acts.css: .sp-stage__inner declares no two-track "
+            "grid-template-columns. The band above the fold is the figure "
+            "column's share of the row, and there is no row to read it from.")
+    fold_band = None
     for m in re.finditer(r"@media([^{]*)\{", css):
         prelude = m.group(1)
         if "min-width" not in prelude or RELEASE not in prelude:
             continue
-        tail = css[m.end():m.end() + 4000]
-        for block in declarations_for(".sp-stage", tail):
-            v = value_of(CLIP, block)
-            if v and v.strip() == "none":
-                released = True
-    if not released:
+        if "min-height" in prelude:      # the pin gate, not the fold
+            continue
+        span = block_span(css[m.start():], r"@media")
+        if not span:
+            continue
+        lo, hi = m.start() + span[0], m.start() + span[1]
+        for body, at in declarations_with_offsets(".sp-stage", css):
+            if lo < at < hi:
+                v = value_of(BAND, body)
+                if v:
+                    fold_band = v
+    if fold_band is None:
         findings.append(
-            f"acts.css: {CLIP} is never released at min-width: {RELEASE}. The "
-            f"band belongs to the one-column stack; above the register's "
-            f"{RELEASE} the copy sits beside the drawing and shares its ground "
-            f"on purpose, in the pinned tier and in the flow tier alike.")
+            f"acts.css: {BAND} is not re-derived in a bare @media (min-width: "
+            f"{RELEASE}). Above the fold .cf-statement takes its two-column "
+            f"form and the drawing stops being the whole row, so the one-column "
+            f"band is too tall by the width of the text column -- 198 px at "
+            f"1023, mid-field, through two labels. Dropping the band instead is "
+            f"the defect the clause above catches; the answer is a band for the "
+            f"arrangement that is actually on screen.")
+    elif split:
+        want = f"{split[0]:g} / {split[1]:g}"
+        if want not in re.sub(r"\s+", " ", fold_band):
+            findings.append(
+                f"acts.css: the fold band does not name the column split "
+                f"{want} that .sp-stage__inner declares ({fold_band!r}). The "
+                f"drawing is the figure track's width and the figure track is "
+                f"that share of the row less the gap; re-track the grid and "
+                f"this number moves with it or the horizon lands mid-field "
+                f"again.")
+        for token in ("var(--gutter)", "var(--container-max)", "var(--space-8)"):
+            if token not in fold_band:
+                findings.append(
+                    f"acts.css: the fold band does not read {token} "
+                    f"({fold_band!r}). Its terms are the container's inner box "
+                    f"-- min(100vw - 2 gutters, --container-max) -- less the "
+                    f"grid's own gap. Any other figure is a guess at a number "
+                    f"tokens.css owns.")
+        if ratio:
+            pair = re.findall(r"(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)", fold_band)
+            if not pair or (float(pair[-1][1]), float(pair[-1][0])) != ratio:
+                findings.append(
+                    f"acts.css: the fold band does not end in the drawing's own "
+                    f"{ratio[1]:g} / {ratio[0]:g} ({fold_band!r}). Both bands "
+                    f"are the same svg's used height; they differ only in how "
+                    f"wide the svg is.")
+    released = bool(releases_in) and not releases_out
 
     if args.verbose:
         print(f"band   {BAND}: {band or '-'}")
@@ -280,7 +441,10 @@ def main():
             print(f"  .lp-flow  viewBox 0 0 {w:g} {h:g}   {rel}")
         print(f"ink    {', '.join(INK_LAYERS)}")
         print(f"copy   {COPY_LAYER}")
-        print(f"release at min-width: {RELEASE}: {'yes' if released else 'no'}\n")
+        if split:
+            print(f"split  {split[0]:g} / {split[1]:g}  (figure track of the row)")
+        print(f"fold   {BAND} above {RELEASE}: {fold_band or '-'}")
+        print(f"release inside the pin gate only: {'yes' if released else 'no'}\n")
 
     for f in findings:
         print(f"FINDING     {f}")
@@ -289,7 +453,9 @@ def main():
         return 1
     print(f"OK  the ground band is {boxes[0][1]:g} x {boxes[0][2]:g}'s own ratio "
           f"in --gutter's own terms, both ink layers clip to it, the copy layer "
-          f"does not, neither box is resized, and it is released at {RELEASE}.")
+          f"does not, neither box is resized, it is re-derived above {RELEASE} "
+          f"from the row's own column split, and it is released in the pin gate "
+          f"and nowhere else.")
     return 0
 
 
