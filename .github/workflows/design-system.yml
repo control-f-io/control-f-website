@@ -1585,3 +1585,36 @@ jobs:
       - name: Ground band
         if: '!cancelled()'
         run: python3 scripts/check-ground-band.py
+
+      # The numeral crowding is the same shape one drawing further in, and its
+      # failure is invisible on every screen the design system is looked at.
+      # The root's eighteen readings hold their clearance off their own stroke in
+      # PIXELS -- deliberately, so it survives the box shrinking, and
+      # check-label-clearance.py holds it -- and nothing held the distance from
+      # one numeral to the next. That distance is not a translate: the positions
+      # are proportional, `calc(var(--x) / 1200 * 100%)`, and the type is a
+      # constant 11 px, so the lattice the numerals hang off contracts with the
+      # box while the glyph boxes do not.
+      #
+      # The markup says so itself, eighteen times, and nobody read the last three
+      # words: "nearest other 12.42 px AT THE GATE FLOOR". Solved at one width;
+      # rendered at seven. Measured in Chromium on the shipped page, counting
+      # only pairs whose boxes actually intersect: sixteen at 320, eleven at 375,
+      # seven at 414, two at 640, and three numerals off the plate at 320. On a
+      # phone "690 V", "4.2 mm/s" and "51 Hz" print on top of each other and the
+      # drawing's own claim -- 8 400 /s, the one number act 2's copy names in
+      # words -- sits underneath "3 200 /s". No console message, nothing scrolls
+      # sideways, every other gate green.
+      #
+      # So the layer renders where its law holds, on the drawing's own box rather
+      # than on the viewport, and the crowding floor is recomputed from the
+      # markup instead of trusted: box widths from --text-xs, --leading-normal
+      # and --tracking-label, positions from --x/--y/--tx/--ty, the model checked
+      # against the render at five widths before it was believed.
+      #
+      # Proven failing on four reintroductions: the suppression removed, the
+      # threshold dropped below the floor, the threshold restated in px, and a
+      # second numeral exempted from the suppression.
+      - name: Numeral crowding
+        if: '!cancelled()'
+        run: python3 scripts/check-numeral-crowding.py
