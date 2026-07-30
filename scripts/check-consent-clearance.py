@@ -482,7 +482,38 @@ else:
         return re.search(r"var\(\s*%s\s*,\s*0px\s*\)" % re.escape(PROP), value)
 
     def floored(value):
-        return floor and re.search(r"max\(\s*%s\s*," % re.escape(floor), value)
+        """The reservation's first max() term is the gate's own min-height.
+
+        TWO SHAPES PASS AND NOTHING ELSE DOES. Bare — `max(45rem, …)` — which
+        is what link 6 was written against. Or capped at the viewport —
+        `max(min(45rem, 100vh), …)`, `max(min(45rem, 100%), …)` — which is the
+        same floor with one bound added, and the bound is not optional.
+
+        WHY THE CAPPED FORM HAD TO BECOME LEGAL. `rem` in a declaration is the
+        READER's root font size; `rem` in the @media prelude this floor is read
+        out of is the root's INITIAL font size and nothing else. So the gate's
+        45rem is 720 px at every text size, and the floor's 45rem is 1080 px at
+        a 24 px default and 1440 at 32. The gate admits a 768 px viewport and
+        the floor inside it then asks for 1440 — a floor above the ceiling that
+        clips it, and .cf-pin__stage is `overflow: clip`, so the surplus is cut
+        rather than scrolled. Measured, act 3's twenty copy runs wholly inside
+        the clip: 20/20 at a 16 px root, 9/20 at 24, and 0/20 at 32 — at 200 %
+        text, every word of "Was wir machen" was below the clip.
+
+        It does not weaken link 6 by a pixel. The gate does not apply below a
+        45rem viewport and 45rem is 720 px in the gate, so at the default size
+        min(45rem, 100vh) IS 45rem everywhere this rule can run — the 1280 x 720
+        row link 6 measured is unchanged, and so is every other 16 px row. The
+        cap only ever engages where the uncapped floor was wrong.
+        → scripts/check-rem-floor.py, which requires the cap this accepts
+        """
+        if not floor:
+            return False
+        f = re.escape(floor)
+        bare = re.search(r"max\(\s*%s\s*," % f, value)
+        capped = re.search(r"max\(\s*min\(\s*%s\s*,\s*(?:100vh|100%%)\s*\)\s*," % f,
+                           value)
+        return bool(bare or capped)
 
     consumers = [
         (MEASURE, re.search(r"%s\s*:\s*([^;]+)" % re.escape(MEASURE), page_css),
@@ -519,7 +550,10 @@ else:
                 "the taller column below about 1000 px of card, so past that "
                 "crossover an unfloored reservation makes the card TALLER and the "
                 "stage's clip crops it — 90.7 px at 1280 x 720, measured. Write the "
-                "reservation as max(%s, …)." % (name, floor or "?", value, floor or "?")
+                "reservation as max(%s, …), or as max(min(%s, 100vh), …) so the "
+                "floor cannot itself exceed the box that clips it at a root font "
+                "size above 16 px — see floored()."
+                % (name, floor or "?", value, floor or "?", floor or "?")
             )
     # a cap on the box, not padding inside it — the mirror of link 4
     stage_body = page_rule_bodies(page_css, STAGE_SEL)
