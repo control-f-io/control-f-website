@@ -1174,7 +1174,50 @@
 
   @supports (animation-timeline: view()) {
     @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
-      main { --lp-measure: calc((max(45rem, 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }
+      /* THE FLOOR IS CAPPED AT THE VIEWPORT IT IS A FLOOR FOR, and the min()
+         is the whole of the fix. 45rem is this gate's own `min-height: 45rem`
+         restated as a length so the composition never gets less room than it
+         was drawn in — sound, and written in the one unit that means two
+         different things in the two places it is written.
+
+         In a MEDIA QUERY, `rem` resolves against the root element's INITIAL
+         font size and never against the reader's: `(min-height: 45rem)` is
+         720 px at every text size there has ever been. In a DECLARATION it
+         resolves against the actual root, so the same 45rem is 900 px at a
+         20 px default, 1080 at 24 and 1440 at 32. The gate therefore admits a
+         768 px viewport and the floor inside it then asks for 1440 — a floor
+         720 px above the ceiling that clips it.
+
+         Measured on patterns/landing-page.html, act 3's twenty copy runs
+         (title, subtitle, body, benefit label, benefit, over four cards),
+         counting only the ones wholly inside .cf-pin__stage's clip:
+
+           root   1280x900        1920x1080       1024x768
+            16    20/20  cut 0    20/20  cut 0    20/20  cut 0
+            20    20/20  cut 0    20/20  cut 0    10/20  cut 213   ->  13/20
+            24     9/20  cut 278  20/20  cut 0     2/20  cut 421   ->  10/20
+            32     0/20  cut 684   5/20  cut 491    0/20  cut 776   ->   8/20
+
+         At a 32 px default — 200 % text, WCAG 1.4.4 at level AA — every word
+         of "Was wir machen" was below the clip and the one section that says
+         what the company does rendered as the isometric figure, the index, and
+         nothing else. Nothing errored, nothing scrolled sideways, and no gate
+         caught it, because every check in this repository reads a 16 px root.
+
+         min() IS A NO-OP AT THE DEFAULT SIZE and that is provable rather than
+         hoped: the gate does not apply below a 45rem viewport, 45rem is 720 px
+         in the gate, so at a 16 px root the floor is never above the height it
+         is capped to. Measured row for row above — the 16 px line is identical
+         before and after, at all three viewports.
+
+         What is left is a card cropped SYMMETRICALLY against the stage's own
+         clip instead of pushed out of the bottom of it, which is what the note
+         over .lp-proc-steps's middle row already calls "the right thing to
+         lose". Above about 150 % the honest answer is for act 3 to leave the
+         pinned mode altogether, and no media query can ask that question —
+         see the audit on the pull request that landed this.
+         → scripts/check-rem-floor.py */
+      main { --lp-measure: calc((max(min(45rem, 100vh), 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }
       /* ---- ACT 1 + 2: the track and the stage ---- */
       /* 640vh, NOT 400. Nothing about the SCRIPT changed — every window is
          still a contain-percent and the acts still divide the track the same
@@ -2008,8 +2051,12 @@
       }
 
       /* ---- ACT 3: the cards' pinned stage, carried verbatim ---- */
+      /* The same floor and the same cap as --lp-measure's, 830 lines up, where
+         the reasoning and the measurements are. `100%` here rather than `100vh`
+         because this box has a percentage basis and that basis IS the clip: the
+         floor may not exceed the box that crops it. */
       .lp-proc-stage { --pin-measure: var(--lp-measure);
-        block-size: max(45rem, calc(100% - var(--cf-consent-height, 0px))); }
+        block-size: max(min(45rem, 100%), calc(100% - var(--cf-consent-height, 0px))); }
       /* AND THE SAME FINDING ON THE OTHER AXIS. The note above is about the
          chrome running WIDER than the card; this is the chrome drifting AWAY
          from it as the viewport gets taller, and it is the larger of the two.

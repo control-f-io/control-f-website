@@ -1664,3 +1664,85 @@ jobs:
       - name: Label frame
         if: '!cancelled()'
         run: python3 scripts/check-label-frame.py
+
+      # check-pin-gate.py holds that every page with two shapes loads the cure.
+      # This holds that the cure still works, and for most of a week it did not.
+      #
+      # cf-pin-gate.js keeps the reader's fraction through the band they are
+      # reading, and a band is an element child of <main>. Every term rests on
+      # one line: `rect.top + scrollY`, which turns a viewport rect into a
+      # document position -- true only for an element the flow contains.
+      # `nav.act-rail` is a child of <main> on the landing page and on the
+      # prototype, and above (min-width: 64rem) acts.css makes it
+      # `position: fixed`. Its rect.top is 378 at 1280 x 900 and its height 144,
+      # so `y < top + height` evaluates to `y < scrollY + 522` and is TRUE at
+      # every scroll position past the hero's foot. The rail answered "the
+      # reader is inside me" for the whole document below 828 px, held a
+      # fraction of -3.77, and -- because the correction re-measured the same
+      # fixed element -- put the page back where the browser had already left
+      # it. The cure was a no-op on both pages that carry the composition it
+      # exists for, and it read as working because it loaded, listened on
+      # resize, and called scrollTo: every property check-pin-gate.py asserts
+      # about it was true while it did nothing.
+      #
+      # Measured, 1280 x 900 -> 700 x 900 -> back, round-trip drift on
+      # patterns/landing-page.html: +1812, +5905, +8004, +9604, +11506, +9161,
+      # +6164, +2884, +1391 px at nine start positions -- and four of the nine
+      # clamped to y 21892, the end of the document, so a reader half way
+      # through "Was wir machen" who turned a tablet arrived at the FAQ. With
+      # the guard: +2, +68, -2, 0, 0, 0, 0, +153, 0. patterns/expertise.html,
+      # whose <main> has no out-of-flow child, held its fraction to within 1 px
+      # before and after -- which is what said the fault was the band list and
+      # not the arithmetic.
+      #
+      # Three things are countable: that the band list asks a child whether it
+      # is in flow, that it names both values that are not (`fixed` and
+      # `sticky`), and that the anchor is held as an ELEMENT rather than as an
+      # index into a list whose membership changes across the very reflow it has
+      # to span. The coupling is reported rather than forbidden: the rail is
+      # where it belongs, in <main>, in the tab order after the hero.
+      #
+      # Proven failing on three reintroductions: the position filter removed,
+      # `sticky` dropped from it, and the anchor put back on an index.
+      - name: Band flow
+        if: '!cancelled()'
+        run: python3 scripts/check-band-flow.py
+
+      # `rem` means two different things in the two places this system writes
+      # it, and one number written in both was 720 px on one side and 1440 on
+      # the other.
+      #
+      # In a DECLARATION rem resolves against the root element's actual font
+      # size -- the reader's text-size setting. In a MEDIA QUERY it resolves
+      # against the root's INITIAL font size and never against the reader's, so
+      # `(min-height: 45rem)` is 720 px at every text size there has ever been.
+      # acts.css gated act 3's pinned stage on that query and then restated the
+      # same 45rem as a floor inside it, twice: once on --lp-measure and once on
+      # .lp-proc-stage's block-size. The gate admits a 768 px viewport; at a
+      # 32 px default the floor inside it asks for 1440. .cf-pin__stage is
+      # `height: 100vh; overflow: clip`, so the 672 px surplus is not scrolled,
+      # it is cut.
+      #
+      # Measured on patterns/landing-page.html -- act 3's twenty copy runs
+      # (title, subtitle, body, benefit label, benefit, over four cards),
+      # counting only those wholly inside the stage's clip:
+      #
+      #   root    1280x900        1920x1080       1024x768
+      #    16     20/20 cut   0   20/20 cut   0   20/20 cut   0
+      #    20     20/20 cut   0   20/20 cut   0   10/20 cut 213
+      #    24      9/20 cut 278   20/20 cut   0    2/20 cut 421
+      #    32      0/20 cut 684    5/20 cut 491    0/20 cut 776
+      #
+      # At 200 % text -- WCAG 1.4.4, level AA -- every word of "Was wir machen"
+      # was below the clip, and the one section that says what the company does
+      # rendered as an isometric figure, a row of numerals, and nothing else.
+      # None of the seventy-odd gates here caught it because every one of them
+      # reads a 16 px root. With the floor capped at the box that clips it:
+      # 10/20, 10/20, 11/20, and the 16 px line identical row for row.
+      #
+      # Proven failing on three reintroductions: either declaration reverted,
+      # and the cap moved outside the max() where it reads right and does
+      # nothing.
+      - name: Rem floors
+        if: '!cancelled()'
+        run: python3 scripts/check-rem-floor.py
