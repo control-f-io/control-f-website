@@ -801,8 +801,11 @@
       to 732 — about 150&nbsp;px of scroll carrying two stacked <code>backdrop-filter</code>s.
       It costs nothing measurable; sweeps through the overlap window and through clear page
       give the same 16.7&nbsp;ms median and overlapping p95 ranges. The rule worth keeping is
-      therefore the one that pays — exactly two blurred layers on a <em>shipping</em> page,
-      never a third — not the stronger one the comment used to assert. The scope matters, and
+      therefore the one that pays — two blurred layers <em>composited at once</em> on a
+      <em>shipping</em> page, never a third — not the stronger one the comment used to assert.
+      What the checker counts is elements on a page, which is the conservative reading of that
+      and the right default, because on every page but one every blurred layer is live whenever
+      the page is; <a href="#third-layer">the exception is below</a>. The scope matters, and
       this page is why: it carries four composited plates of its own, the three tint samples
       above and the band in the layer stack below. A documentation page showing a material has
       to be allowed more of it than a page selling something. Four rather than three since the
@@ -817,7 +820,7 @@
       less than naming the spenders. <code>scripts/check-glass-budget.py</code> counts the
       blurred layers on every page in the tree and rewrites the table below, so the number
       here is generated the same way <a href="layout.html#space-scale">the space scale's</a>
-      is. Stamp <code>c4e9629b</code> &mdash; a digest of the rows, so a reader can tell a
+      is. Stamp <code>6c0cc213</code> &mdash; a digest of the rows, so a reader can tell a
       current census from a stale one without reading it.
     </p>
     <table class="docs-table" id="glass-census">
@@ -838,7 +841,7 @@
         <tr><td><code>patterns/karriere.html</code></td><td>shipping</td><td>1</td></tr>
         <tr><td><code>patterns/kontakt-danke.html</code></td><td>shipping</td><td>1</td></tr>
         <tr><td><code>patterns/kontakt.html</code></td><td>shipping</td><td>1</td></tr>
-        <tr><td><code>patterns/landing-page.html</code></td><td>shipping</td><td>2</td></tr>
+        <tr><td><code>patterns/landing-page.html</code></td><td>shipping</td><td>3</td></tr>
         <tr><td><code>patterns/news.html</code></td><td>shipping</td><td>1</td></tr>
         <tr><td><code>patterns/suche-leer.html</code></td><td>shipping</td><td>1</td></tr>
         <tr><td><code>patterns/suche.html</code></td><td>shipping</td><td>1</td></tr>
@@ -869,7 +872,7 @@
       declared; the lit edge is deliberately outside it, because an edge is a contour and not
       a translucency — the paragraph below is what happens to it instead.
     </p>
-    <p>
+    <p id="third-layer">
       <strong>Where the third layer would come from, so it does not.</strong> The budget is
       spent; naming the likely spenders is worth more than a count somebody has to remember.
       The process-card panel and its note block, the value-table rows, the blog-grid cells
@@ -877,6 +880,71 @@
       have it — every one sits on the page wash with nothing complex behind it, where frosting
       has nothing to calm and becomes a grey box. If a genuine third case ever appears,
       something else has to give up its blur first.
+    </p>
+    <p>
+      <strong>One appeared, and it is the act rail's plate.</strong> The landing page reads 3 in
+      the census above and that is not a budget somebody raised. The plate behind the open rail
+      &mdash; <code>.act-rail::before</code> in <code>assets/css/acts.css</code>, an opaque
+      <code>--surface-raised</code> panel until now &mdash; stands over 22&nbsp;000&nbsp;px of
+      composition that carries its own labels, which is the material's definition at the top of
+      this page rather than an exception to it. It was the grey box in reverse: the one surface
+      on the page with something to calm, drawn flat because a count said so.
+    </p>
+    <p>
+      What pays for it is that the plate and the hero CTA <strong>cannot be lit at the same
+      moment</strong>, and the reason is in the stylesheet rather than in this sentence. The
+      plate paints only on <code>:hover</code> / <code>:focus-within</code>; the rail catches
+      neither without <code>pointer-events</code>, which it only has while
+      <code>act-rail.js</code> has set <code>.is-live</code> &mdash; and that is true only while
+      the acts own the viewport, some 4&nbsp;000&nbsp;px below the button. The sticky nav band is
+      the only layer the plate is ever composited with. Two at a time, three on the page, so the
+      count the rule is actually about has not moved. That argument lives as a named page
+      allowance in <code>PAGE_BUDGET</code> in <code>scripts/check-glass-budget.py</code>: no
+      other page inherits it, an entry has to name two layers the CSS keeps apart, and an
+      allowance whose page drops back under the default is itself a finding — a permission that
+      outlives its argument gets read as headroom by whoever comes next.
+    </p>
+    <p>
+      Two smaller decisions on that plate, both of them the rule above rather than taste. It
+      takes the <strong>46&nbsp;% bearing tint and not the thin one</strong>: the thin tint's
+      permission is a measurement on one named backdrop, and this rail crosses five different
+      drawings, so the floor for arbitrary artwork is the one that holds. And it carries
+      <strong>no travelling light</strong>: the other three glass surfaces each end in a lit rim
+      with a band crossing it, and a band scrubbed by scroll here would re-rasterise the blur
+      through the exact scroll range the rail exists to be open during. It gets
+      <code>--glass-border</code> and nothing moves on it.
+    </p>
+    <div class="docs-note">
+      <strong>What the measurement then changed about the type, which was not the plan.</strong>
+      A translucent plate makes the row's backdrop the artwork, and this page's artwork reaches
+      near-black. Swept at 250&nbsp;px steps across the whole act range with the rail open, at
+      1024, 1440 and 1920&nbsp;px, the darkest pixel the plate composites to is
+      <code>rgb(164,165,165)</code> &mdash; act 3's display heading, blurred, crossing behind the
+      rail at 1440. On that stop <code>--text-primary</code> reads 8.50:1,
+      <code>--text-secondary</code> 3.70:1 and <code>--text-muted</code> 1.28:1. At 1920 nothing
+      dark passes the rail at all and secondary would have read 6.70:1, which is exactly the kind
+      of width-shaped near miss a single screenshot certifies as fine. The rail ran on two ink
+      tiers, muted rising to
+      secondary; the second tier does not hold, and secondary only ever held on this material
+      over a backdrop somebody could <em>name</em> &mdash; which is the 6.73:1
+      <code>.cf-info-card__count</code> is measured at, on the one stage that card ships on. So
+      the five <em>titles</em> take black, and the recession moves to the three
+      <code>aria-hidden</code> marks in each row &mdash; the tick, the numeral and the glyph &mdash;
+      where <code>.cf-pin__index</code>'s own exemption already covers a ghosted counter. Which
+      act you are on is still said twice, by the tick and by that row's marks. The 46&nbsp;% floor
+      is derived in <code>tokens.css</code> for <em>black</em> type over a backdrop nobody
+      controls; asking it to carry a second tier over unnameable artwork was asking for a
+      guarantee it never made.
+    </div>
+    <p>
+      <strong>The checker's own scope was the real finding.</strong> <code>acts.css</code> ships
+      &mdash; <code>patterns/landing-page.html</code> loads it &mdash; and it was not in the
+      script's list of shipping stylesheets. A <code>backdrop-filter</code> written there would
+      have landed on the page carrying the tightest budget in the system and been invisible to
+      all five claims: uncounted, free to state its own radius, free to be animated. The script's
+      header is careful that <em>what counts as glass</em> is derived rather than listed, and one
+      list further out was hand-maintained anyway. It is fixed, and it is the part of this change
+      that was not about a single surface.
     </p>
     <p>
       <strong>What those four get instead is not one answer, and this section used to say it
