@@ -1097,7 +1097,38 @@
     color: var(--text-secondary);
     min-block-size: 4.6em;
   }
-  .map-say { display: grid; gap: var(--space-8); }
+  /* FLOORED, and the one column is declared rather than left implicit. A grid
+     with no grid-template-columns has one column of `auto`, and `auto` as a
+     MINIMUM is the item's automatic minimum size — the widest unbreakable thing
+     inside it. That is the fault check-grid-tracks.py exists for, written in
+     base.css twice as prose, arriving here through the door that check does not
+     watch: there is no `fr` in the declaration and no track list to inspect,
+     because the track was never written down.
+
+     The three beats are prose, and German prose is where this bites. Measured
+     at 320 x 812 with a 32 px root — WCAG 1.4.4's 200 % text at the 320 px
+     viewport 1.4.10 names — .map-say's implicit column floored at 298.7 px
+     inside a .map-stage that is 224 px wide (`min(100% - 2 * --space-6, 76rem)`
+     of a 320 px track), so all three beats and every line in them stood 74.7 px
+     past the box. .map-track is `position: relative` with overflow visible, so
+     that reached the document: html.scrollWidth 347 against a clientWidth of
+     320, and the whole page — hero, acts, FAQ, footer — scrolled 27 px
+     sideways at every scroll position.
+
+     The legend was not the cause and looked like it: .map__key's own
+     min-content is 160.6 and .map__legend's is 174, so both could shrink and
+     both were simply given the 298.7 the column had already taken.
+
+     minmax(0, 1fr) is the fix the rest of this system uses and the first of the
+     two check-grid-tracks.py sanctions. Measured after, same sweep, at 320 with
+     roots 16 and 32 and at 375 / 768 / 1280 / 1440: 0 px of horizontal overflow
+     everywhere, and the 16 px render identical.
+
+     WHAT IS LEFT, and it is not this rule's: at a 64 px root — 400 % text,
+     beyond what 1.4.4 asks — the document still scrolls, from components.css's
+     own chrome rather than from the acts. .cf-nav__list unfolded needs 1880 px
+     at 1280, and the consent title and the skip link overflow at 320. */
+  .map-say { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
 
   @keyframes lp-frame-draw { from { scale: 0; } to { scale: 1; } }
   @keyframes lp-frame-in { from { opacity: 0; } to { opacity: 1; } }
