@@ -1367,6 +1367,17 @@ jobs:
       # the cascade must be absolute or fixed. Proven failing on the
       # reintroduction -- putting `position: relative` back on the lower
       # .lp-proc-head rule names all three rules and which one wins.
+      #
+      # AND IT HAD NEVER RUN. The rationale above landed; the two lines that
+      # make it a gate did not, and its comment ran straight into the next
+      # check's. So the sixty-ninth existed as a file and as an argument and
+      # never as a check -- `python3 scripts/check-anchor-position-cascade.py`
+      # passing on a laptop, and CI never asking. It is green today, which is
+      # the only reason wiring it is a one-line change and not a repair.
+      - name: Anchor position cascade
+        if: '!cancelled()'
+        run: python3 scripts/check-anchor-position-cascade.py
+
       # check-flow-chain.py holds the identity that makes one front travel the
       # root. Nothing had read the two windows in the same breath, and so
       # nothing could say the thing the brief asks for -- "stopping when i
@@ -1618,3 +1629,38 @@ jobs:
       - name: Numeral crowding
         if: '!cancelled()'
         run: python3 scripts/check-numeral-crowding.py
+
+      # The numeral crowding was the labels colliding with EACH OTHER. This is
+      # the same layer colliding with the drawing underneath it, and it comes
+      # from one rectangle being mistaken for another.
+      #
+      # Twice in this system a set of labels is too much type to live inside an
+      # <svg>, so it is HTML laid over the drawing at percentages a generator
+      # computed against the VIEWBOX -- and resolved by the browser against the
+      # POSITIONED ANCESTOR. Those are the same rectangle only while nothing has
+      # given the svg a shape of its own. .lp-flow is `height: auto` at every
+      # tier, so its box is its drawing and its eighteen numerals are exact.
+      # .map-box is `block-size: 100%` of a pinned row above the gate, the box
+      # came out between 1.85 and 2.50 wide-per-tall against the drawing's
+      # 1.7943, and preserveAspectRatio="xMidYMid meet" centred the drawing in
+      # the slack while the labels stayed on the box.
+      #
+      # Measured on the shipped page, label anchor minus the point it names:
+      # Konstanz -18.9 px, Berlin +41.3, Deutschland +59.8, United Kingdom
+      # -58.8, at 1440 x 900. It is L * (1 - 2x), so it is zero at the middle of
+      # the drawing, worst at the edges, and flips sign across the centre --
+      # four labels moving four ways by four amounts, which is why it read as
+      # four placement mistakes rather than as one geometry fault. On the page:
+      # KONSTANZ printed through the German border instead of standing beside
+      # its dot, and UNITED KINGDOM sixty pixels west of Britain, in the Irish
+      # Sea. Every gate green, nothing overflowing, and near-invisible at 1920 --
+      # the width a desktop review is most likely to be done at.
+      #
+      # Proven failing on seven reintroductions: the meet box removed, one of
+      # its two axes removed, `container-type: size` dropped off the box the
+      # min()s read, the ratio typed instead of generated, the unsized member
+      # given a height, the placement's divisor drifted off the viewBox, and a
+      # third placed layer added without registering the answer it takes.
+      - name: Label frame
+        if: '!cancelled()'
+        run: python3 scripts/check-label-frame.py
