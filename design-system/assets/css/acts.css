@@ -232,7 +232,36 @@
      — and .sp-say opens --space-12 below that foot at every one of them, so the
      band clears the copy by 48 px rather than by a rounding. The 1007–1023
      window this shares with the pin gate is unchanged: it is the same
-     approximation in the same direction, and now BOTH sides of it clip. */
+     approximation in the same direction, and now BOTH sides of it clip.
+
+     WHAT THIS INHERITS AND DOES NOT FIX, so the next reader does not re-derive
+     it. The fold is a CONTAINER question and this is a MEDIA query, and the two
+     disagree once the root font size moves: `rem` in a media prelude is always
+     16 px, `rem` in the container query is the reader's own. At a 24 px root and
+     1024 wide the container's inner box is 911 px against a 56rem fold that is
+     now 1344, so .sp-stage__inner is ONE column and the drawing is the whole row
+     again — while this rule, keyed on a prelude that still reads 64rem as 1024,
+     hands it the two-column band. Measured, drawing's foot against the band:
+
+       root 16   1024  273 / 272.6    1280  343 / 343.2    1440  387 / 386.9
+       root 24   1024  471 / 267.6    1280  589 / 338.3    1440  601 / 382.4
+       root 32   1024  471 / 262.7    1280  507 / 333.3    1440  507 / 377.5
+
+     So above ~20 px the field and the notes stop short of the drawing's foot
+     rather than past it, and the lower part of the root stands on unlatticed
+     wash. That is the wrong edge of the same approximation, and it is strictly
+     the better half of it: the copy is clear at every root size in the table
+     (.sp-say opens at 543, 661, 673, 567, 603, 603 — below every band above),
+     which is what this clip is for, and the release it replaces put twenty-one
+     opaque callouts on that copy at all three root sizes.
+
+     IT CANNOT BE FIXED WITH A CONTAINER QUERY FROM HERE, for the reason stated
+     70 lines up: .sp-field and .sp-annots-fig are SIBLINGS of .container, which
+     is the query container (base.css, `container: layout / inline-size`), so
+     they are outside the box that knows where the fold is. Closing it means
+     giving the stage a container of its own or moving the ink layers inside
+     .container — a DOM change, not a declaration, and a bigger one than the
+     defect above is worth. → for the gate-boundary lane. */
   @media (min-width: 64rem) {
     .sp-stage {
       --sp-ground: calc(
