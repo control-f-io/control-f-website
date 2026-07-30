@@ -1783,3 +1783,53 @@ jobs:
       - name: Act beats
         if: '!cancelled()'
         run: python3 scripts/check-act-beats.py
+
+      # ---------------------------------------------------------------
+      # Act 2's copy is in the accessibility tree.
+      #
+      # Act 1+2's stage is one .cf-statement: a figure holding the root drawing,
+      # and a text block holding act 1's claim. Act 2's copy -- .sp-say, two
+      # leads and two bodies, 528 characters -- is inside the FIGURE, because
+      # above the gate acts.css places it `position: absolute; inset: 0` of
+      # .sp-root, which is how the two columns stay level with the orb at every
+      # viewport, and .sp-root is that figure's only child.
+      #
+      # The figure carried aria-hidden="true", and it was buying the drawing
+      # nothing: the <svg class="lp-flow"> carries its own, the .lp-flow-data
+      # numeral layer carries its own, and the empty .sp-say__act stage carries
+      # its own. Every decorative child was already declared decorative on its
+      # own element. The one thing the ancestor's copy still reached was the
+      # prose -- and aria-hidden cannot be opted out of from within.
+      #
+      # Measured off Chromium's full AX tree at 1440 x 900 and at 375 x 812, all
+      # four paragraphs were absent from the tree: "Tausende Sensoren, ein
+      # Strom.", "Steuerungen, Zähler und Sensoren liefern achttausendvierhundert
+      # Werte je Sekunde …", "Von oben nach unten gelesen.", "Oben tritt jede
+      # Messung für sich ein …". A screen reader went hero -> act 1's claim ->
+      # "Was wir machen"; the act rail offers a mark labelled "Ein Strom" that
+      # led to four paragraphs nobody could hear. The same fault stood in
+      # prototypes/statement-to-process.html, the lab this act was built in,
+      # which shares acts.css with the shipped page and shared this too.
+      #
+      # No screenshot shows it, at any width or scroll position: aria-hidden
+      # paints nothing. The page renders, scrolls and tabs identically with the
+      # attribute and without it, and the copy is selectable with a mouse either
+      # way. The only instrument that shows it is an accessibility tree, and the
+      # attribute itself reads as correct 600 lines above the prose it silences
+      # -- a figure holding a drawing is exactly the thing that should be hidden,
+      # and it stopped being only that the day prose moved inside it.
+      #
+      # So the gate is not "this figure must not be aria-hidden", which the next
+      # act to put copy inside a drawing would walk straight past. It is that
+      # hiding a subtree is a promise about what is in it: no <p> and no heading
+      # of 25+ characters may sit inside one. A drawing in this system hides
+      # plenty of text -- 19 numerals on the root, 21 readings in the sensor
+      # field, the map's ticks -- and every one is a <span> or a <b> of a few
+      # characters. None is a paragraph, because a paragraph is prose.
+      #
+      # Proven failing on the defect reintroduced in both files at once: all
+      # eight paragraphs reported, at their own line numbers, naming the figure
+      # that hides them.
+      - name: Act copy exposed
+        if: '!cancelled()'
+        run: python3 scripts/check-act-copy-exposed.py

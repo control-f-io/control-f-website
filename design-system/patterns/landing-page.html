@@ -796,7 +796,68 @@
       </div>
       <div class="container">
       <div class="cf-statement sp-stage__inner">
-        <figure class="cf-statement__figure sp-drawing" aria-hidden="true">
+        <!-- NO aria-hidden ON THIS FIGURE, AND IT WAS HIDING PROSE AND NOTHING
+             ELSE. The attribute was here to keep the drawing out of the
+             accessibility tree, which is right — and which is already done
+             three times over INSIDE it, on the elements it is actually about:
+             the .lp-flow drawing carries its own aria-hidden, so does the
+             .lp-flow-data numeral layer, and so does the empty .sp-say__act
+             stage. Every decorative child was already declared decorative on
+             its own element, so this attribute bought the drawing nothing.
+
+             What it still reached was .sp-say — act 2's four paragraphs, 528
+             characters, the copy that says what the confluence MEANS. It is in
+             here because it has to be: above the gate .sp-say is
+             `position: absolute; inset: 0` of .sp-root (acts.css, "THE
+             OVERLAY"), which is how the two columns stay level with the orb at
+             every viewport, and .sp-root is this figure's only child. And
+             aria-hidden on an ancestor cannot be opted out of from within — a
+             hidden subtree is hidden all the way down. Measured off Chromium's
+             full AX tree, at 1440 x 900 and at 375 x 812, before and after:
+
+                                               before    after
+               "Tausende Sensoren, ein Strom."  hidden   exposed
+               "Steuerungen, Zähler und …"      hidden   exposed
+               "Von oben nach unten gelesen."   hidden   exposed
+               "Oben tritt jede Messung …"      hidden   exposed
+               the 19 numerals                  hidden   hidden
+               the root drawing                 hidden   hidden
+
+             So a screen reader went hero → act 1's claim → "Was wir machen",
+             and act 2 was not in the document at all: the act rail offers a
+             mark labelled "Ein Strom" that led to four paragraphs nobody could
+             hear, at every width and in every tier. The same fault stood in
+             prototypes/statement-to-process.html, which is the lab this act was
+             built in, and is fixed there in the same change.
+
+             THE SEQUENCE IS STILL WRONG AND IS NOT FIXED HERE. Because .sp-say
+             rides .sp-root, act 2's copy stands wherever the figure stands, and
+             the figure precedes .cf-statement__text — so the DOM order of the
+             five blocks is act 2's two leads and bodies, THEN act 1's claim, at
+             every width. Above the gate the visual order is right (the claim
+             opens at document y 1003 at 1440 x 900, act 2's overlay at 1350);
+             below it .cf-statement is one column and source order is what the
+             eye gets too: at 375 x 812 the claim stood at y 1339, behind act 2
+             at 967 and 1153.
+
+             Moving .cf-statement__text ahead of the figure fixes the order —
+             both halves are explicitly placed above the 56rem container fold
+             (acts.css `.sp-stage__inner > .cf-statement__figure { grid-column:
+             1; grid-row: 1 }`), so nothing there moves — and it breaks
+             something else, measured: .sp-field and .sp-annots-fig are
+             `inset: 0` of the STAGE with a top-anchored band, --sp-ground, sized
+             to the root drawing's own 620/1200. Put the claim first and the band
+             comes off the drawing and onto the prose. At 375 x 812, 171 of the
+             band's 172 px landed on the claim and 0 px on the drawing; at 768 x
+             900, 134 px on the claim and 187 of 353 on the drawing. That is the
+             fault "Act 1's ground and its notes stop at the drawing's foot"
+             fixed for act 2's copy, reintroduced against act 1's claim.
+
+             The repair is to anchor the band to the drawing's box rather than to
+             the stage's top edge, which is a change to two layers shared by both
+             consumers of acts.css — a redesign of the base tier's stack, not a
+             source-order move, and left for the lane that owns it. -->
+        <figure class="cf-statement__figure sp-drawing">
           <div class="sp-root">
 <!-- THE FLOW, a root. The data leaves the void and grows downward until
                it is the frame the next section is built in. Not a bus and seven
