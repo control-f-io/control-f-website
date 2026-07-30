@@ -49,6 +49,19 @@ WHAT IS CHECKED, and both halves matter.
   parsed and its length recomputed, and a --u that disagrees with its own
   stroke fails.
 
+  BOTH PASSES, AND THEY ARE ONE LINE. The frame draws twice now — .lp-frame__lit
+  carries the family's ramp six points ahead of the black and goes out behind
+  itself, which is the root's own construction and act 4's, returned to this
+  drawing deliberately. That doubled every hand-typed number in the markup, so
+  the census covers both classes and additionally holds each lit stroke to its
+  contour twin: same `d`, same --a, --u and --o, with the lead applied ONCE in
+  the stylesheet as --frame-lead. A pair that disagrees is two lines pretending
+  to be one, and it is invisible at both ends of the window — the frame is
+  identical before the relay and after it, and only the travelling middle is
+  wrong. A contour with no front, or a front with no contour, fails for the same
+  reason: five strokes arriving in the ramp and one sliding in black is not
+  something a screenshot of either end can show.
+
 THE RATE IS IN UNITS, NOT PIXELS, and the difference is real rather than
 pedantic. The frame carries preserveAspectRatio="none", so where the plate is
 not exactly 2:1 the two axes scale by different factors and a 500-unit vertical
@@ -105,8 +118,20 @@ def page_stylesheets(path):
 
 
 
-LINE_CLASS = "lp-frame__line"
-RULE_SELECTOR = ".lp-frame__line"
+# THE RELAY IS DRAWN TWICE, so both passes answer to this. .lp-frame__line is
+# the CF-Schwarz hairline that stays; .lp-frame__lit is the ramp that leads it
+# and goes out behind itself, added when the frame took the root's own
+# construction back. Every lit stroke is its contour's twin — the same --a, --u
+# and --o, with the lead applied once in the stylesheet — so the pair is one
+# line and the census counts twelve strokes at one rate rather than six held and
+# six on trust. The lit pass is exactly where the next wrong --u would have
+# hidden: six lengths hand-typed beside six paths, in two pages, with no
+# rendered difference between a stroke that is 4 % short and one that is not.
+PASSES = (
+    # class in the markup      the rule that buys its window
+    ("lp-frame__line",         ".lp-frame__line"),
+    ("lp-frame__lit",          ".lp-frame__lit"),
+)
 RATE_PROP = "--relay-rate"
 
 # The relay lives entirely inside `entry`, whose last point is the pin's
@@ -125,11 +150,18 @@ def read(path):
         sys.exit(f"check-relay-rate: cannot read {path}: {exc}")
 
 
-def strokes(text):
-    """Every .lp-frame__line in the page, with its style vars and its `d`."""
+def strokes(text, line_class):
+    """Every path carrying `line_class`, with its style vars and its `d`.
+
+    Matched on a class-list member and not on a substring, which matters now
+    that two of the frame's classes share a stem: `lp-frame__line` is not
+    `lp-frame__lit`, but the next pass on this drawing could easily be called
+    `lp-frame__line--lit` and a substring test would count it as a contour.
+    """
     out = []
     for tag in re.findall(r"<path\b[^>]*>", text):
-        if LINE_CLASS not in tag:
+        classes = re.search(r'class="([^"]*)"', tag)
+        if not classes or line_class not in classes.group(1).split():
             continue
         style = re.search(r'style="([^"]*)"', tag)
         d = re.search(r'\bd="([^"]*)"', tag)
@@ -229,44 +261,54 @@ def main():
         rate = float(rate_decl.group(1))
         notes.append(f"{RATE_PROP} = {rate:g} points of entry per viewBox unit")
 
-    # --- the rule derives the window from --u and the rate ------------------
-    body = rule_body(text, RULE_SELECTOR)
-    if body is None:
-        failures.append(f"no `{RULE_SELECTOR}` rule found in {PAGE.name}")
-    else:
+    # --- each pass's rule derives its window from --u and the rate -----------
+    for line_class, selector in PASSES:
+        body = rule_body(text, selector)
+        if body is None:
+            failures.append(f"no `{selector}` rule found in {PAGE.name}")
+            continue
         ranges = re.findall(r"animation-range\s*:([^;]*)", body)
         if not ranges:
-            failures.append(f"`{RULE_SELECTOR}` declares no animation-range")
-        else:
-            decl = " ".join(ranges[-1].split())
-            for want in ("var(--u)", f"var({RATE_PROP})", "var(--a)"):
-                if want not in decl:
-                    failures.append(
-                        f"`{RULE_SELECTOR}`'s animation-range does not read "
-                        f"{want}: {decl!r}. Every window is the stroke's own "
-                        "length times the relay's one rate."
-                    )
-            # A second additive per-stroke term is how a flat window comes back.
-            tail = decl.split("var(--u)", 1)[-1]
-            stray = re.search(r"\+\s*(\d+\.?\d*)\b", tail)
-            if stray:
+            failures.append(f"`{selector}` declares no animation-range")
+            continue
+        decl = " ".join(ranges[-1].split())
+        for want in ("var(--u)", f"var({RATE_PROP})", "var(--a)"):
+            if want not in decl:
                 failures.append(
-                    f"`{RULE_SELECTOR}`'s window adds a bare {stray.group(1)} "
-                    "after the derived term. The window is --u x the rate and "
-                    "nothing else, or the strokes stop sharing a speed."
+                    f"`{selector}`'s animation-range does not read "
+                    f"{want}: {decl!r}. Every window is the stroke's own "
+                    "length times the relay's one rate."
                 )
-            if not args.quiet:
-                notes.append(f"animation-range: {decl}")
+        # A second additive per-stroke term is how a flat window comes back.
+        # READ OFF THE DRAW WINDOW ONLY, which is the first range pair. The lit
+        # pass declares a second range for its fade, and a fade is not a draw:
+        # it is allowed the flat lead the front already runs on, and holding it
+        # to --u x the rate would be demanding that a light take longer to go
+        # out on a long stroke than on a short one.
+        draw = decl.split(",", 1)[0]
+        tail = draw.split("var(--u)", 1)[-1]
+        stray = re.search(r"\+\s*(\d+\.?\d*)\b", tail)
+        if stray:
+            failures.append(
+                f"`{selector}`'s window adds a bare {stray.group(1)} "
+                "after the derived term. The window is --u x the rate and "
+                "nothing else, or the strokes stop sharing a speed."
+            )
+        if not args.quiet:
+            notes.append(f"{selector} animation-range: {decl}")
 
     # --- every stroke: --u true, window uniform, relay inside entry ---------
-    found = strokes(text)
-    if not found:
-        failures.append(f"no .{LINE_CLASS} paths found in {PAGE.name}")
+    found = []
+    for line_class, _ in PASSES:
+        pass_strokes = strokes(text, line_class)
+        if not pass_strokes:
+            failures.append(f"no .{line_class} paths found in {PAGE.name}")
+        found += [(line_class,) + s for s in pass_strokes]
 
     ends = []
-    for tag, vars_, d in found:
+    for line_class, tag, vars_, d in found:
         if vars_ is None or d is None:
-            failures.append(f"a .{LINE_CLASS} has no style or no `d`: {tag}")
+            failures.append(f"a .{line_class} has no style or no `d`: {tag}")
             continue
         if "--u" not in vars_ or "--a" not in vars_:
             failures.append(
@@ -292,20 +334,67 @@ def main():
         if rate is not None:
             a = float(vars_["--a"])
             end = a + declared * rate
-            ends.append((d, end))
+            ends.append((line_class, d, end))
             if not args.quiet:
                 notes.append(
-                    f"  {d:<16} --a {a:<5g} --u {declared:<6g} "
+                    f"  {line_class:<15} {d:<16} --a {a:<5g} --u {declared:<6g} "
                     f"window {declared * rate:>5.1f} pts  "
                     f"entry {a:g} -> {end:g}"
                 )
 
-    for d, end in ends:
+    # THE CEILING IS READ OFF --a, WHICH IS THE CONTOUR'S START ON BOTH PASSES.
+    # The lit twin actually opens --frame-lead points earlier and closes its fade
+    # exactly where its contour lands, so a + u x rate is the last point of the
+    # PAIR either way — the number this ceiling is about.
+    for line_class, d, end in ends:
         if end > ENTRY_CEILING + TOL:
             failures.append(
-                f"`{d}` ends at entry {end:g} %, past {ENTRY_CEILING:g}. "
-                "entry 100 % is the pin's contain 0 — the frame would still be "
-                "drawing under a card that is already building inside it."
+                f"`{d}` ({line_class}) ends at entry {end:g} %, past "
+                f"{ENTRY_CEILING:g}. entry 100 % is the pin's contain 0 — the "
+                "frame would still be drawing under a card that is already "
+                "assembling inside it."
+            )
+
+    # --- the two passes are one line ----------------------------------------
+    # A lit stroke is its contour's twin. The offset between them is the
+    # stylesheet's single --frame-lead, so the markup states each pair's --a,
+    # --u and --o twice and a pair that disagrees is two lines pretending to be
+    # one — the light would lay a stroke down somewhere the hairline never
+    # arrives, or draw at a different speed beside it. Nothing renders wrong at
+    # either end of the window; only the middle is a lie, and only while it is
+    # moving. Matched on `d`, because the geometry is what makes them twins.
+    by_class = {}
+    for line_class, tag, vars_, d in found:
+        if vars_ and d:
+            by_class.setdefault(line_class, {})[d] = vars_
+    contours = by_class.get("lp-frame__line", {})
+    for line_class, geometry in by_class.items():
+        if line_class == "lp-frame__line":
+            continue
+        for d, vars_ in geometry.items():
+            twin = contours.get(d)
+            if twin is None:
+                failures.append(
+                    f"`{d}` is drawn by .{line_class} and by no "
+                    ".lp-frame__line. A front with no contour behind it leaves "
+                    "colour where the drawing's settled state is black."
+                )
+                continue
+            for key in ("--a", "--u", "--o"):
+                if vars_.get(key) != twin.get(key):
+                    failures.append(
+                        f"`{d}` declares {key}:{vars_.get(key)} on "
+                        f".{line_class} and {key}:{twin.get(key)} on its "
+                        ".lp-frame__line twin. The two passes are one stroke; "
+                        "the only difference between them is --frame-lead, and "
+                        "that is declared once in the stylesheet."
+                    )
+    for d in contours:
+        if not any(d in g for c, g in by_class.items() if c != "lp-frame__line"):
+            failures.append(
+                f"`{d}` has a contour and no front. Five of the six strokes "
+                "arriving in the ramp and one sliding in black is the kind of "
+                "gap a screenshot of either end of the relay cannot show."
             )
 
     if failures:
