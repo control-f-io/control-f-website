@@ -186,8 +186,88 @@
      motion — who is in the flow tier and whose copy sits beside the drawing,
      not under it — gets the same whole ground a reader at 1280 without it does.
      → tokens.css "THE BREAKPOINT REGISTER", 64rem */
+  /* AND THE BAND IS RE-DERIVED ABOVE THE FOLD RATHER THAN SWITCHED OFF, because
+     "the copy sits beside the drawing" is true of ONE of the two blocks of copy
+     on this stage and this rule was written against that one.
+
+     .cf-statement__text — act 1's claim — does sit beside the drawing above the
+     fold, in grid column 2, and it was measured clear. .sp-say — act 2's four
+     paragraphs — does not. Its absolute placement over the root is declared
+     inside the @supports block (see THE OVERLAY, ~1400), so in every tier that
+     does not pin it is ordinary flow INSIDE the figure column, directly under
+     the drawing, at every width. `--sp-ground-clip: none` therefore handed the
+     full-bleed field and all twenty-one callouts back to exactly the box that
+     the clip below the fold exists to keep them out of.
+
+     Measured under prefers-reduced-motion, the stage scrolled into view, count
+     of .cf-annot__label boxes intersecting a .sp-say paragraph, and the largest
+     single intersection:
+
+                    before            after
+       1024 x 900   6 labels, 1558 px²   0
+       1024 x 700   6 labels, 1558 px²   0
+       1280 x 900   6 labels, 1558 px²   0
+       1440 x 900   7 labels, 1512 px²   0
+       1920 x 1080  2 labels,  820 px²   0
+
+     At 1440 "S16 2 565 rpm" lands on the lead "Tausende Sensoren, ein Strom."
+     and "S06 17.2 bar" on "Von oben nach unten gelesen." — a mono readout
+     through the middle of a bold line, at full opacity, in the tier a reader
+     chose because they wanted less. The same six land on the same paragraphs in
+     prototypes/statement-to-process.html, which shares this sheet.
+
+     SO THE HORIZON MOVES TO WHERE THE DRAWING'S FOOT ACTUALLY IS. Above the
+     fold .sp-stage__inner is minmax(0,3fr) minmax(0,2fr) with --space-8 between
+     them (~727 in this file), so the drawing is 3/5 of the container's inner box
+     less the gap, and its used height is that width x 620/1200 — the same
+     ratio, from the same viewBox, that the one-column band is built on. The
+     container's inner box is min(100vw - 2 gutters, --container-max), which is
+     the .container rule's own arithmetic and not a new one. Verified against the
+     rendered svg's height, reduced motion:
+
+       1024   272.6 computed   273 rendered      1440   386.9   387
+       1100   293.6            294               1600   386.9   387
+       1280   343.2            343               1920   386.9   387
+
+     — and .sp-say opens --space-12 below that foot at every one of them, so the
+     band clears the copy by 48 px rather than by a rounding. The 1007–1023
+     window this shares with the pin gate is unchanged: it is the same
+     approximation in the same direction, and now BOTH sides of it clip.
+
+     WHAT THIS INHERITS AND DOES NOT FIX, so the next reader does not re-derive
+     it. The fold is a CONTAINER question and this is a MEDIA query, and the two
+     disagree once the root font size moves: `rem` in a media prelude is always
+     16 px, `rem` in the container query is the reader's own. At a 24 px root and
+     1024 wide the container's inner box is 911 px against a 56rem fold that is
+     now 1344, so .sp-stage__inner is ONE column and the drawing is the whole row
+     again — while this rule, keyed on a prelude that still reads 64rem as 1024,
+     hands it the two-column band. Measured, drawing's foot against the band:
+
+       root 16   1024  273 / 272.6    1280  343 / 343.2    1440  387 / 386.9
+       root 24   1024  471 / 267.6    1280  589 / 338.3    1440  601 / 382.4
+       root 32   1024  471 / 262.7    1280  507 / 333.3    1440  507 / 377.5
+
+     So above ~20 px the field and the notes stop short of the drawing's foot
+     rather than past it, and the lower part of the root stands on unlatticed
+     wash. That is the wrong edge of the same approximation, and it is strictly
+     the better half of it: the copy is clear at every root size in the table
+     (.sp-say opens at 543, 661, 673, 567, 603, 603 — below every band above),
+     which is what this clip is for, and the release it replaces put twenty-one
+     opaque callouts on that copy at all three root sizes.
+
+     IT CANNOT BE FIXED WITH A CONTAINER QUERY FROM HERE, for the reason stated
+     70 lines up: .sp-field and .sp-annots-fig are SIBLINGS of .container, which
+     is the query container (base.css, `container: layout / inline-size`), so
+     they are outside the box that knows where the fold is. Closing it means
+     giving the stage a container of its own or moving the ink layers inside
+     .container — a DOM change, not a declaration, and a bigger one than the
+     defect above is worth. → for the gate-boundary lane. */
   @media (min-width: 64rem) {
-    .sp-stage { --sp-ground-clip: none; }
+    .sp-stage {
+      --sp-ground: calc(
+        (min(100vw - var(--gutter) * 2, var(--container-max)) - var(--space-8))
+        * 3 / 5 * 620 / 1200);
+    }
   }
   .sp-stage > .container { position: relative; }
   .sp-field__lattice { opacity: .26; }
@@ -1205,6 +1285,28 @@
 
   @supports (animation-timeline: view()) {
     @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
+      /* AND THE GROUND IS WHOLE IN HERE, SAID BY THE GATE ITSELF. The band's own
+         note 1100 lines up ends "Inside the gate it is off altogether", and
+         until this change nothing in this block said so: the only rule turning
+         the clip off was `@media (min-width: 64rem)`, which the gate happens to
+         imply, so the pinned tier was relying on a declaration written for the
+         flow tier's two-column arrangement. The moment that rule became a band
+         rather than a `none` the pinned stage inherited it, and act 1's
+         full-bleed field — the whole argument for a sliced 1600 x 900 backdrop —
+         was cropped to the top of the viewport:
+
+           1024 x 900   field 273 of 800 px of stage    34 %
+           1280 x 900         343 of 800                43
+           1440 x 900         387 of 800                48
+           1920 x 1080        387 of 980                39
+
+         The band belongs to the STACK, and inside the gate there is no stack:
+         .sp-say is absolutely placed over the root (THE OVERLAY, below) and the
+         stage is the viewport. So the tier that has no copy under the drawing
+         states its own `none`, and the flow tier's arithmetic can change without
+         reaching in here again. */
+      .sp-stage { --sp-ground-clip: none; }
+
       /* THE FLOOR IS CAPPED AT THE VIEWPORT IT IS A FLOOR FOR, and the min()
          is the whole of the fix. 45rem is this gate's own `min-height: 45rem`
          restated as a length so the composition never gets less room than it
