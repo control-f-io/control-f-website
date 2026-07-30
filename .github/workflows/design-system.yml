@@ -1833,3 +1833,21 @@ jobs:
       - name: Act copy exposed
         if: '!cancelled()'
         run: python3 scripts/check-act-copy-exposed.py
+
+      # The website at the repository root is generated from
+      # design-system/patterns/ by scripts/build-site.py — four named edits per
+      # page and nothing else. A pattern page can be edited without the page the
+      # site actually serves changing with it, which is drift of exactly the kind
+      # every other check here exists to stop, so it is held the same way: the
+      # generator rebuilds in memory and compares against what is committed.
+      #
+      # It is also the check that catches a hand-written page appearing at the
+      # root — the outgoing website was nine of those, and this is what keeps a
+      # tenth from arriving unnoticed.
+      #
+      # Last, because a stale root page is a fact about the deploy rather than
+      # about the design system, and the checks above are what a reader has come
+      # for.
+      - name: Site build
+        if: '!cancelled()'
+        run: python3 scripts/build-site.py --check
