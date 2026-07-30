@@ -54,12 +54,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "scripts" / "data" / "world-110m.json"
-PAGE = ROOT / "design-system" / "prototypes" / "statement-to-process.html"
+# BOTH PAGES THAT DRAW THE MAP, AND THE SECOND ONE IS THE ONE THAT SHIPS.
+# This listed the prototype alone. The landing page carries the same six
+# generated blocks -- byte-identical, 62 kB of coastline, points, labels and
+# legend -- spliced in by hand when the acts moved and never read by the script
+# again. So `--check` said "the map is the generator's output" while looking at
+# neither of the two files a reader ever loads it from, and the claim this
+# generator exists to make was true of the lab and unenforced everywhere else.
+# They agree today because nobody has edited one of them yet.
+PAGES = (
+    ROOT / "design-system" / "prototypes" / "statement-to-process.html",
+    ROOT / "design-system" / "patterns" / "landing-page.html",
+)
 # THE CAMERA'S THREE FRAMINGS ARE CSS, AND THE CSS MOVED. Six of the seven
-# blocks are markup and live in the page; the shots block is three custom
-# properties and went with the acts when they left the prototype's <style> for
-# a stylesheet of their own. One generator, two targets, and the block itself
-# says which one it belongs to.
+# blocks are markup and live in the pages; the shots block is the ratio and
+# three custom properties and went with the acts when they left the prototype's
+# <style> for a stylesheet of their own. One generator, three targets, and the
+# block itself says which kind it belongs to.
 ACTS = ROOT / "design-system" / "assets" / "css" / "acts.css"
 MARK = "gen-world-map"
 
@@ -243,6 +254,36 @@ for i, (kind, label, places) in enumerate(ASSETS):
          f'<span class="map__key-n">{len(places)}</span></li>')
 
 block("shots")
+# THE DRAWING'S OWN RATIO, AND IT IS NOT THE BOX'S. A label carries --x/--y as
+# a percentage of the viewBox -- that is what place() computes -- and is
+# positioned as a percentage of .map-box. The two are the same number only
+# while the box has the viewBox's shape. Above the pin gate it does not: the
+# stage gives the map row `minmax(0, 1fr)` of whatever is left after the copy
+# and the legend, preserveAspectRatio="xMidYMid meet" fits the drawing inside
+# that row and centres it, and every label slides off the point it names by
+# half the letterbox. Measured on the shipped page at the Germany framing,
+# label anchor minus the point it names, horizontally:
+#
+#   viewport     box aspect   Konstanz   Berlin   Deutschland   United Kingdom
+#    320- 768      1.7943       0.0       0.0        0.0            0.0
+#   1024x 800      2.3633     -12.4     +27.0      +39.1          -38.4
+#   1280x 900      2.4016     -16.4     +35.8      +51.8          -51.0
+#   1440x 900      2.4952     -18.9     +41.3      +59.8          -58.8
+#   1920x1080      1.8471      -1.9      +4.2       +6.1           -6.0
+#
+# It is L * (1 - 2x) with L the half-letterbox, so it is zero at the middle of
+# the drawing and worst at its edges, and it flips sign across the centre --
+# which is why the four move in different directions and by different amounts
+# and none of it reads as one displacement. Below the gate `.map` takes its
+# intrinsic height, the box IS the drawing, and the drift is 0.0 at every
+# width: the fault only exists where the box is given a height of its own.
+#
+# So acts.css rebuilds `meet` for the label layer, and it needs one number to
+# do it: the ratio the viewBox has. That number is VIEW, which is computed
+# here from LAT_TOP/LAT_BOT, so it is emitted here rather than typed there --
+# a hand-written 1.7943 beside a computed viewBox is two numbers that have to
+# agree with nothing checking that they do.
+emit(f'--map-ar: {VIEW[2] / VIEW[3]:.6f};')
 for name, (k, tx, ty) in SHOTS:
     emit(f'--cam-{name}: translate({num(tx)}px, {num(ty)}px) scale({num(k)});')
 
@@ -296,11 +337,19 @@ def main():
             print(f"<!-- {MARK}: end {name} -->")
         return 0
 
-    found, stale = 0, False
-    for target, css in ((PAGE, False), (ACTS, True)):
+    targets = [(p, False) for p in PAGES] + [(ACTS, True)]
+    # What each target owes: the markup blocks go to every page, the css block
+    # to the stylesheet. Counted per target rather than in one total, so a page
+    # that has lost a marker is named instead of being covered by a page that
+    # still has all six.
+    want = {False: sum(1 for n in BLOCKS if n not in CSS_BLOCKS),
+            True: sum(1 for n in BLOCKS if n in CSS_BLOCKS)}
+    missing, stale = [], False
+    for target, css in targets:
         text = target.read_text(encoding="utf-8")
         new, n = splice(text, css=css)
-        found += n
+        if n != want[css]:
+            missing.append(f"{target.relative_to(ROOT)}: {n} of {want[css]} blocks")
         if args.write:
             if new != text:
                 target.write_text(new, encoding="utf-8")
@@ -309,9 +358,10 @@ def main():
                 print(f"  {target.relative_to(ROOT)} already current")
         elif new != text:
             stale = True
-    if found != len(BLOCKS):
-        print(f"gen-world-map: found {found} of {len(BLOCKS)} blocks — the "
-              f"markers went stale")
+    if missing:
+        print("gen-world-map: the markers went stale —")
+        for m in missing:
+            print(f"  {m}")
         return 1
     if stale:
         print("gen-world-map: the shipped map is not what this script "
@@ -319,7 +369,8 @@ def main():
         return 1
     if args.check:
         print(f"gen-world-map: the map is the generator's output "
-              f"({sum(len(v) for v in BLOCKS.values())} lines in {len(BLOCKS)} blocks)")
+              f"({sum(len(v) for v in BLOCKS.values())} lines in {len(BLOCKS)} blocks, "
+              f"in {len(targets)} files)")
     return 0
 
 
