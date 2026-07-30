@@ -1016,7 +1016,39 @@
   .map__dot--ring   { stroke: var(--border-strong); stroke-width: 8; }
   .map__dot--asset  { stroke: var(--cf-lime, #E1FF00); stroke-width: 5; }
 
-  .map__tags { position: absolute; inset: 0; pointer-events: none; }
+  /* A LABEL BELONGS TO A FRAMING, AND DOWN HERE THERE IS NO FRAMING.
+
+     Each tag carries --x/--y computed for ONE of the camera's three shots —
+     Konstanz and Berlin for the Germany zoom, the two country names for the
+     DACH zoom — and the whole reason that is legal is stated over the camera:
+     "the camera is still for the whole of every reveal and moves only in the
+     gaps". Below the pin gate the camera does not merely hold still, it never
+     exists: `.map__cam`'s animation is inside the @supports, so the transform
+     computes to `none` and the drawing is the WORLD framing at every width.
+
+     The four labels were placed anyway, all four at once — the fill-mode that
+     staggers them is on an animation that has no timeline down here — on a map
+     they were not placed for. Measured at 375 x 812, label anchor against the
+     thing it names: Konstanz 89 px south of its own dot, out past the coast;
+     Berlin 37 px east of Berlin, over Ukraine; DEUTSCHLAND 43 px south of
+     Germany, in the Mediterranean; UNITED KINGDOM 109 px west of Britain, in
+     the Atlantic. The two office dots are 4 px apart there, which is right —
+     Germany is four pixels wide on a 327 px world map — and it is also why no
+     label could have been correct: there is no room for one. At 768: 204, 68,
+     103 and 183 px off.
+
+     So the layer renders in the tier its coordinates mean something in, and
+     nowhere else. Nothing is lost by that: all four names are in the beats'
+     own copy — "Konstanz ist der Hauptsitz, Berlin der zweite Standort", "in
+     der DACH-Region und in Großbritannien" — and those beats DO render down
+     here, as the readable column the fallback tier is built around. A reader
+     on a phone gets the world, the asset points, and the names in prose,
+     instead of four names on the wrong continents.
+
+     Same construction as .lp-flow-data's readings 440 lines up, and for the
+     same reason: a layer whose placement was solved at one framing does not
+     render at the others. → scripts/check-label-frame.py */
+  .map__tags { position: absolute; inset: 0; pointer-events: none; display: none; }
   .map__tag {
     position: absolute;
     left: var(--x);
@@ -1653,8 +1685,50 @@
            stage, and the clip ate it. */
         grid-template-rows: auto minmax(0, 1fr) auto;
       }
-      .map-box { block-size: 100%; }
+      /* THE LABEL LAYER COVERS THE DRAWING, NOT THE BOX, and above the gate
+         those stopped being the same rectangle.
+
+         `.map__tag` is HTML at `left: var(--x)` inside `.map__tags`, which is
+         `inset: 0` on this box — so --x is read as a percentage of the BOX.
+         gen-world-map.place() computes it as a percentage of the VIEWBOX. The
+         two agree only while the box has the drawing's shape, and below the
+         gate they do: `.map` is `block-size: auto`, the svg takes its
+         intrinsic height, and the box is the drawing. Here the row is
+         `minmax(0, 1fr)` of whatever the copy and the legend leave, the box
+         comes out between 1.85 and 2.50 wide-per-tall against the drawing's
+         1.7943, preserveAspectRatio="xMidYMid meet" fits the drawing inside
+         that and centres it — and every label sits half a letterbox off the
+         point it names. Measured, anchor minus point, at 1440 x 900:
+         Konstanz -18.9 px, Berlin +41.3, Deutschland +59.8, United Kingdom
+         -58.8. That is L * (1 - 2x), zero at the middle of the drawing and
+         worst at its edges, sign flipping across the centre, which is why it
+         reads as four unrelated placement mistakes instead of one geometry
+         fault. On the render: KONSTANZ printed through the German border
+         rather than beside its dot, and UNITED KINGDOM sixty pixels west of
+         the country, out in the Irish Sea.
+
+         So the layer is given the box `meet` would give the drawing, and the
+         two `min()`s are that algorithm written out: fit by width unless the
+         height runs out first, then by height. `margin: auto` against
+         `inset: 0` centres what is left over, which is the `xMid`/`YMid` half.
+         --map-ar comes from the generator beside the camera, off the same
+         VIEW the viewBox is printed from.
+
+         `container-type: size` is what lets the width read the height. It is
+         safe HERE and would not be below the gate: it makes the box's own
+         size independent of its contents, and down there the contents are
+         where the height comes from. Above the gate the height is 100 % of a
+         floored grid row and owes the svg nothing. */
+      .map-box { block-size: 100%; container-type: size; }
       .map { block-size: 100%; }
+      .map__tags {
+        /* The camera exists in this block and only in this block, so this is
+           the one tier the tags' framings are true in. */
+        display: revert;
+        inline-size: min(100cqw, 100cqh * var(--map-ar));
+        block-size: min(100cqh, 100cqw / var(--map-ar));
+        margin: auto;
+      }
 
       /* THE CAMERA. Three transforms, generated from the same projection the
          paths are, applied to the map group about the view box's own origin.
@@ -1668,6 +1742,7 @@
          placed for a zoom that had not happened. */
       .map-track {
         /* gen-world-map: shots */
+        --map-ar: 1.794189;
         --cam-de: translate(-7038.85px, -4330.26px) scale(14.25);
         --cam-dega: translate(-4002.74px, -2440.07px) scale(8.82);
         --cam-welt: translate(0px, 0px) scale(1);
