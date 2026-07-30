@@ -106,7 +106,7 @@ are deliberately left out.
 
 **The glass budget** holds `backdrop-filter` — the most expensive thing in the stylesheet —
 to what `foundations/materials.html` states in prose and nothing ran. Three claims: at most
-two blurred layers on a shipping page, every `backdrop-filter` reading `var(--glass-blur)`
+two blurred layers composited at once on a shipping page, every `backdrop-filter` reading `var(--glass-blur)`
 rather than its own radius, and no `animation` or `animation-timeline` on a rule that
 declares one. All three pass the same test: a third blurred layer renders perfectly and
 simply costs more, on the hardware least able to afford it. The page's own census was a
@@ -145,7 +145,30 @@ the selectors of every shipping rule declaring `backdrop-filter` as the definiti
 fourth frosted surface enters the budget by existing rather than by somebody remembering to
 add it — the same reason the light-family script recomputes its waypoint instead of
 comparing against a table of hexes. A selector it cannot count is a finding, never a silent
-skip. The one rule it deliberately does **not** enforce is a transition, and that is a
+skip.
+
+**The list one step further out was hand-maintained anyway, and that is where it broke.**
+Which *stylesheets* count as shipping was three names, and `acts.css` — which
+`patterns/landing-page.html` loads — was not among them. A `backdrop-filter` written there
+would have landed on the page carrying the tightest budget in the system and been invisible
+to every claim above: uncounted, free to state its own radius, free to be animated. Found by
+`.act-rail::before`, the act rail's plate, which is now the fourth blurred surface and is
+glass for the material's own reason — it is the one panel on that page standing over
+artwork, where an opaque plate is the grey box the chapter warns about. It also lands the
+page on three, and **the budget did not move**: the plate paints only on hover or focus,
+which needs the `.is-live` the rail only carries while the acts own the viewport, some
+4 000 px past the hero button it therefore cannot appear beside. That argument is a named
+entry in `PAGE_BUDGET` rather than prose — no other page inherits it, an entry has to name
+two layers the CSS keeps apart, and an allowance whose page drops back under the default
+fails, because a permission that outlives its argument gets read as headroom.
+
+**And it moved the type, which the screenshot would not have.** A translucent plate makes
+each row's backdrop the artwork, and this page's artwork reaches near-black. Swept at 250 px
+steps across the whole act range at three widths, the plate's darkest composite is
+`rgb(164,165,165)`, where `--text-secondary` reads 3.70:1 — so the five titles take black
+and the recession moves to the three `aria-hidden` marks in each row. 46 % is derived as the
+floor for **black** type over a backdrop nobody controls; the second tier the rail used to
+run on was asking that tint for a guarantee it never made. The one rule it deliberately does **not** enforce is a transition, and that is a
 correction to the chapter rather than a gap in the script: *Cost* had said **never move
 anything** on a blurred layer while `.cf-btn--glass` has always travelled its specular
 across its own blurred plate. Measured, that plate is indistinguishable from the same plate

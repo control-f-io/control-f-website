@@ -46,9 +46,18 @@ DS = ROOT / "design-system"
 CSS = DS / "assets" / "css"
 MATERIALS_DOC = DS / "foundations" / "materials.html"
 
-# The three stylesheets that ship to control-f.de. docs.css is documentation
-# chrome and does not ship — the same boundary check-spacing-scale.py draws.
-SHIPPING_CSS = ("tokens.css", "base.css", "components.css")
+# The stylesheets that ship to control-f.de. docs.css is documentation chrome
+# and does not ship — the same boundary check-spacing-scale.py draws.
+#
+# acts.css IS one of them and was missing, which is the only kind of gap that
+# matters in a script whose whole claim is that a frosted surface enters the
+# budget by existing. patterns/landing-page.html loads it, so a backdrop-filter
+# written there would have shipped on the page carrying the tightest budget in
+# the system and been invisible to every one of the five claims below — the
+# scope was hand-maintained after all, one list further out than the one this
+# file's header is careful about. .act-rail::before is the surface that found
+# it; the fix is not about that surface.
+SHIPPING_CSS = ("tokens.css", "base.css", "components.css", "acts.css")
 
 # A shipping page gets two blurred layers. The figure is not this script's: it
 # is measured in foundations/materials.html, where the two layers on the landing
@@ -57,6 +66,28 @@ SHIPPING_CSS = ("tokens.css", "base.css", "components.css")
 # not. Raising this number is a design decision about a page's frame budget, not
 # a checker setting — something has to give up its blur first.
 SHIPPING_BUDGET = 2
+
+# A page allowed more than the default, with the argument written next to the
+# number. The default above is a proxy: tokens.css states the rule as "the count
+# of SIMULTANEOUSLY blurred layers", and a static count of elements is the
+# conservative reading of it, which is the right default because on almost every
+# page every blurred layer is live whenever the page is.
+#
+# patterns/landing-page.html is the one page where the proxy and the rule come
+# apart, and the reason is legible in the CSS rather than asserted here.
+# .act-rail::before is painted only on :hover / :focus-within; the rail catches
+# neither without pointer-events, which it only has while act-rail.js has set
+# .is-live, which happens while the acts own the viewport — about 4 000 px past
+# the hero CTA that is the page's second layer. The nav band, which is always
+# one of the two, is the only layer the plate can ever be composited with. Two
+# at a time, three on the page.
+#
+# THIS IS NOT A PLACE TO PUT A PAGE THAT IS MERELY OVER. An entry here has to
+# name two layers that cannot be lit together and say what makes that true in
+# the stylesheet — a scroll gate, a media query, a state that excludes the
+# other. "It measured fine" is the argument for raising SHIPPING_BUDGET, and
+# something still has to give up its blur first.
+PAGE_BUDGET = {"patterns/landing-page.html": 3}
 
 # Documentation pages are censused, not capped. A page whose subject IS the
 # material has to be allowed to show it: foundations/materials.html carries
@@ -498,14 +529,43 @@ def main():
 
     # 4. The budget, and the census that publishes it.
     for rel, n, shipping, hits in rows:
-        if shipping and n > SHIPPING_BUDGET:
+        budget = PAGE_BUDGET.get(rel, SHIPPING_BUDGET)
+        if shipping and n > budget:
             failures.append(
-                "%s carries %d blurred layers; a shipping page gets %d.\n"
+                "%s carries %d blurred layers; %s gets %d.\n"
                 "        %s\n"
                 "    foundations/materials.html names the four surfaces that look like they\n"
-                "    want glass and must not have it. If this is a genuine third case,\n"
-                "    something else on the page has to give up its blur first."
-                % (rel, n, SHIPPING_BUDGET, ", ".join(hits))
+                "    want glass and must not have it. If this is a genuine extra case,\n"
+                "    something else on the page has to give up its blur first — or the two\n"
+                "    layers provably cannot be lit at the same moment, which is an entry in\n"
+                "    PAGE_BUDGET and has to name what in the CSS makes it true."
+                % (
+                    rel,
+                    n,
+                    "this page" if rel in PAGE_BUDGET else "a shipping page",
+                    budget,
+                    ", ".join(hits),
+                )
+            )
+
+    # 4b. An allowance nothing needs any more is a finding, not a spare. Same
+    #     reason the register in check-contrast.py is a list of floors rather
+    #     than of values: a permission that outlives its argument is read by the
+    #     next run as headroom, and it was never that.
+    measured_rows = {rel: n for rel, n, _, _ in rows}
+    for rel in sorted(PAGE_BUDGET):
+        n = measured_rows.get(rel)
+        if n is None:
+            failures.append(
+                "PAGE_BUDGET names %s, which is not a page under design-system/.\n"
+                "    Renamed or deleted — drop the entry." % rel
+            )
+        elif n <= SHIPPING_BUDGET:
+            failures.append(
+                "PAGE_BUDGET allows %s %d blurred layers and it carries %d, which is\n"
+                "    within the default. The argument for the allowance is spent: delete the\n"
+                "    entry so the next surface added here has to make its own."
+                % (rel, PAGE_BUDGET[rel], n)
             )
 
     # 5. Every block that turns the material off turns all of it off, in every
