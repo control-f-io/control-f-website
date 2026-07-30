@@ -86,10 +86,59 @@
       var t = top(track);
       var h = track.offsetHeight;
       var at = parseFloat(links[i].getAttribute('data-act-at')) || 0;
-      /* max(0, …) so a track shorter than the viewport — which is what every
-         one of them is below the acts' own gate — collapses to its top rather
-         than to a negative offset above it. */
-      stops.push({ link: links[i], y: t + at * Math.max(0, h - v) });
+      /* WHICH ARITHMETIC, ASKED OF THE STYLESHEET RATHER THAN GUESSED FROM THE
+         HEIGHTS — and the difference is whether the rail can name act 1 at all.
+
+         `contain` is a length: h - v, the scroll over which a track taller than
+         the viewport covers it completely. Every fraction quoted in acts.css is
+         a fraction of THAT, which is why this file measures it the same way.
+         It only exists where the track has a timeline. In every degraded tier
+         it does not: the 640vh height and `view-timeline-name` are declared
+         together, inside the same @supports and the same
+         (min-width: 64rem) and (min-height: 45rem) and no-preference gate, so
+         below the gate, under prefers-reduced-motion, and in a browser without
+         animation-timeline the tracks are ordinary blocks a little shorter than
+         the window and h - v is zero or a rounding error.
+
+         This used to read `Math.max(0, h - v)`, which kept the offset from
+         going negative and, in doing so, multiplied every fraction by nothing.
+         Act 2's beat is the only fractional one — contain 36 %, where the
+         confluence begins — so act 2's stop landed on act 1's, and read() takes
+         the LAST stop the reader has passed, which is act 2's. Measured, of the
+         scroll the reader spends INSIDE .sp-track, how much of it the rail spent
+         naming act 1:
+
+                                    before          after
+           375 x 900, below gate     0 of 901 px     324 px  (36.0 %)
+           768 x 900, below gate     0 of 842        304      36.1
+           1023 x 900, below gate    0 of 783        280      35.8
+           320 x 900, below gate     4 of 910        328      36.0
+           375 x 812, below gate    32 of 901        324      36.0
+           1280 x 700, below gate   56 of 856        308      36.0
+           1440 x 900, no timeline   0 of 714        256      35.9
+           1440 x 900, reduced       0 of 714        256      35.9
+           1440 x 900, above gate 1748 of 5760      1748      30.3  unchanged
+
+         Mark 01 was lit only over the half-screen BEFORE act 1's track begins —
+         off read()'s own `i = 0` default, not off a stop — and went out at the
+         moment the reader arrived at the sensor field. Five marks, four
+         reachable: for the whole of the act whose label is "Tausende Sensoren"
+         the rail said "Ein Strom". Above the gate, where the timeline is real,
+         it was always right — which is where it was read, and why this stood.
+         The 30.3 % there is not a discrepancy: contain runs over h - v, so
+         0.36 of it is 0.36 * 4860 / 5760 of the track.
+
+         So the tier decides the arithmetic, and the tier is a computed value
+         rather than an inference: view-timeline-name is `--sp` in exactly the
+         tier the contain fractions are written for and `none` in each one they
+         are not. Where there is no timeline the honest reading of "36 % of the
+         way through" is 36 % of the track's own box — the acts are laid out in
+         it rather than scrubbed across it, and the fraction still lands in act
+         2's copy: 1152 against .sp-say's 1048 at 375 x 900, 1131 against 1229
+         at 768. Above the gate nothing moves, so a beat quoted in acts.css is
+         still the beat this jumps to. → scripts/check-act-beats.py */
+      var budget = getComputedStyle(track).viewTimelineName === 'none' ? h : h - v;
+      stops.push({ link: links[i], y: t + at * Math.max(0, budget) });
       if (first === null) first = t;
       last = t + h;
     }
