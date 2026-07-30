@@ -30,6 +30,18 @@ jobs:
         with:
           enablement: true
 
+      # The pages at the root are generated from design-system/patterns/, and
+      # five routines edit the landing pattern hourly. Rebuilding here — rather
+      # than trusting whatever was committed — is what makes a forgotten
+      # `python3 scripts/build-site.py` cost nothing: the artifact is always
+      # built from the patterns as they stand at this commit. It writes into the
+      # checkout and nothing is pushed back; the design-system workflow is what
+      # keeps the committed copies honest.
+      #
+      # Still no dependencies: stdlib python, same as every check.
+      - name: Build the site from the design system's patterns
+        run: python3 scripts/build-site.py
+
       # The site is plain static files — the repo root is the document root.
       - uses: actions/upload-pages-artifact@v3
         with:
