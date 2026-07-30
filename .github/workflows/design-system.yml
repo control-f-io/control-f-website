@@ -1746,3 +1746,40 @@ jobs:
       - name: Rem floors
         if: '!cancelled()'
         run: python3 scripts/check-rem-floor.py
+
+      # The act rail is five marks and one sentence -- "you are in this act" --
+      # and act-rail.js resolves it by measuring a scroll position per act and
+      # taking the last one the reader has passed. That can only ever name five
+      # acts if the five positions are five different numbers.
+      #
+      # They were not. The beat was taken against `Math.max(0, h - v)`, the
+      # length of `contain`, which is the right span wherever the fractions in
+      # acts.css run -- and acts.css declares the 640vh height and
+      # view-timeline-name together, inside one @supports and one
+      # (min-width: 64rem) and (min-height: 45rem) and no-preference gate. Below
+      # that gate, under reduced motion, and in a browser without
+      # animation-timeline the tracks are ordinary blocks a little SHORTER than
+      # the window, h - v is zero, and act 2's contain 36 % -- the only
+      # fractional beat on the page -- landed exactly on act 1's.
+      #
+      # Measured, of the scroll the reader spends inside .sp-track, how much of
+      # it the rail spent naming act 1: 0 px of 901 at 375 x 900, 0 of 842 at
+      # 768 x 900, 0 of 783 at 1023 x 900, 4 of 910 at 320 x 900, 32 of 901 at
+      # 375 x 812, 56 of 856 at 1280 x 700, and 0 of 714 at 1440 x 900 in both
+      # degraded tiers -- against 1748 of 5760 above the gate, where it was
+      # always right. Four marks of five reachable in the tier most of the page
+      # is read in, correct in the tier it is reviewed in.
+      #
+      # No screenshot shows it: a rail with mark 02 lit is exactly what a rail
+      # looks like when the reader is in act 2. Nothing missing from the DOM,
+      # nothing overflowing, no console message, every other gate green.
+      #
+      # Proven failing on eight reintroductions: the contain length restored as
+      # the only span, the two spans swapped, act 2's fraction set back to 0,
+      # a fraction outside [0, 1), two tracks listed out of document order,
+      # view-timeline-name lifted out of the gate, the gated height dropped
+      # under a viewport, and the span computed but the old expression left in
+      # place.
+      - name: Act beats
+        if: '!cancelled()'
+        run: python3 scripts/check-act-beats.py
