@@ -1598,8 +1598,26 @@ for (px, py, side, (ox, oy), gap), text in zip(PLACED_READINGS, READINGS):
 # sets `white-space: nowrap`, so the break the no-break space was insuring
 # against cannot happen, and an insurance that no longer does any work is one
 # more thing for a hand edit to get wrong.
+# THE HEAD CARRIES A SECOND CLASS, because it is the one numeral that renders at
+# every width. The placement above is solved AT THE GATE FLOOR -- the "nearest
+# other" figure printed beside every span says so -- and the drawing also renders
+# below the gate, in a one-column stage, where the same law puts numerals on top
+# of each other: sixteen intersecting pairs at 320, eleven at 375. So acts.css
+# drops the layer below 56rem of drawing and keeps .lp-flow__head, and
+# scripts/check-numeral-crowding.py holds both halves of that.
+#
+# WHICH ONE IT IS, DERIVED AND NOT NAMED. The head is the confluence: the point
+# every route sums into, which is the largest value in a set that conserves, and
+# the assertion above has already proved the sums balance. Naming a coordinate or
+# a figure here would be one more thing for a re-run to disagree with -- and the
+# unit test is the drawing's own copy, which spells this number out in words.
+HEAD_POINT = max(PLACED_VALUES, key=lambda t: t[2])[:2]
+assert sum(1 for t in PLACED_VALUES if t[2] == max(u[2] for u in PLACED_VALUES)) == 1, (
+    "two values tie for the largest, so the confluence is not identifiable by size")
+
 for x, y, v, text, side, (ox, oy), gap in PLACED_VALUES:
-    emit(f'<span class="t-label lp-flow__val" style="--x:{num(x)};--y:{num(my(y))};'
+    head = " lp-flow__head" if (x, y) == HEAD_POINT else ""
+    emit(f'<span class="t-label lp-flow__val{head}" style="--x:{num(x)};--y:{num(my(y))};'
           f'--tx:{css_offset(ox, "x")};--ty:{css_offset(oy, "y")};'
           f'--l:{reached(run_to(x, y))}">{text}</span>')
     emit(f'  <!-- {side:>5}: own stroke {CLEARANCE:.2f} px, nearest other '
