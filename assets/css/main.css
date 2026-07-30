@@ -40,6 +40,18 @@
   --color-blue: #007ea8;
   --color-cyan: #7df1f7;
 
+  /* Materials — frosted glass, per design-system/foundations/materials.html.
+     White 46 % is the bearing tint, and it is a contrast floor rather than a
+     look: it is the point at which black type still clears 4.5:1 composited
+     over a pure black backdrop, so the guarantee holds whatever the artwork
+     behind the pane is doing. 16 px is the one blur radius in the system —
+     above it the blur reads no better and only costs more — and the edge is a
+     single lit line at white 55 %. Glass is never outlined in black here. */
+  --surface-glass: rgba(255, 255, 255, 0.46);
+  --surface-glass-solid: var(--color-white-smoke);
+  --glass-blur: blur(16px) saturate(1.08);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.55);
+
   /* Typography */
   --font-headline: 'Roboto Mono', monospace;
   --font-body: 'Montserrat', sans-serif;
@@ -55,6 +67,33 @@
   /* Layout */
   --max-width: 1200px;
   --content-width: 800px;
+}
+
+/* When there is no glass. Three cases, and each is answered by redefining the
+   tokens rather than by branching inside every rule that uses them. Each block
+   has to take the WHOLE material away: a tint left translucent once the blur is
+   gone lets the drawing through sharp, which is worse than either the glass or
+   a flat plate. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --glass-blur: none;
+    --surface-glass: var(--surface-glass-solid);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-blur: none;
+    --surface-glass: var(--surface-glass-solid);
+  }
+}
+
+@media (forced-colors: active) {
+  :root {
+    --glass-blur: none;
+    --surface-glass: Canvas;
+    --surface-glass-solid: Canvas;
+  }
 }
 
 /* Reset */
