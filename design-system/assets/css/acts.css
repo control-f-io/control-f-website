@@ -2885,9 +2885,31 @@
      out of the tab order. */
   .act-rail { display: none; }
 
+  /* THE TWO JUMP TARGETS CLEAR THE STICKY BAR, and they are OUTSIDE the gate
+     below on purpose. The rail is desktop-only; #anfang and #abschluss are
+     addresses at every width — a URL anybody can be sent, and the same rule
+     .act-anchor takes above for exactly that reason. check-arrival.py holds
+     addressable HEADINGS to this, which neither of these is; the argument it
+     enforces ("an id in the document flow is an address, whatever else it is
+     for") does not care what tag carries the id.
+
+     ONE IDIOM FOR BOTH, including the one where it overshoots. The hero's top
+     already sits at --nav-height, so this clearance resolves past the document's
+     start and the scroll clamps to 0 — which is precisely what a jump labelled
+     "Zum Seitenanfang" should do, and cheaper than a second value that says the
+     same thing with arithmetic in it. */
+  .cf-hero,
+  .cf-footer { scroll-margin-top: calc(var(--nav-height) + var(--space-6)); }
+
   @media screen and (min-width: 64rem) {
     .act-rail {
-      display: block;
+      /* THREE ROWS AND ONE RHYTHM: the jump to the top, the five acts, the jump
+         to the end. A grid rather than the block this was, so the two jumps sit
+         on the list's own gap instead of on a margin that would have to be kept
+         equal to it by hand. */
+      display: grid;
+      gap: var(--space-4);
+      justify-items: start;
       position: fixed;
       inset-block-start: 50%;
       inset-inline-start: var(--space-6);
@@ -3050,13 +3072,24 @@
        act when it is clicked. */
     .act-rail__item { display: grid; justify-items: start; }
 
-    /* TICK, NUMBER, GLYPH, TITLE. The first two columns are a fixed rung and
-       a tabular numeral, so the glyphs stay on one axis as they grow: the
-       third column is `auto` and follows the glyph's own transition rather
-       than being animated itself, which keeps one size in one place. */
-    .act-rail__link {
+    /* TICK, NUMBER, GLYPH, TITLE. The first two columns are fixed rungs and the
+       second holds a tabular numeral, so the glyphs stay on one axis as they
+       grow: the third column is `auto` and follows the glyph's own transition
+       rather than being animated itself, which keeps one size in one place.
+
+       THE NUMERAL'S COLUMN IS A DECLARED RUNG AND USED TO BE `auto`. It measured
+       13.42 px — two tabular digits of the mono face at --text-xs plus its
+       tracking — which is a number no other rule in this file could name. The
+       two jumps below have to put their chevrons on the SAME axis as the five
+       glyphs and have no numeral of their own to derive it from, so either they
+       repeat 13.42 as a literal or the column stops being content-sized. It is
+       --space-4, the rung above the measurement and the one the tick already
+       takes, which moves the glyph axis right by 2.58 px once and makes the
+       alignment a shared declaration instead of two numbers that have to agree. */
+    .act-rail__link,
+    .act-rail__jump {
       display: grid;
-      grid-template-columns: var(--space-4) auto auto auto;
+      grid-template-columns: var(--space-4) var(--space-4) auto auto;
       align-items: center;
       gap: var(--space-3);
       text-decoration: none;
@@ -3069,6 +3102,66 @@
     .act-rail__link:hover,
     .act-rail__link:focus-visible,
     .act-rail__link[aria-current] { color: var(--text-primary); }
+
+    /* ============================================================
+       THE TWO JUMPS — out of the composition at either end.
+
+       The rail answers "which act am I in" and "take me to another one". It did
+       not answer the two questions a reader inside 22 000 px of scroll asks
+       most: take me back to the top, and take me to the end. Scrolling out of
+       the acts by hand is the whole distance in, again, in the direction you
+       have already read.
+
+       PLAIN ANCHORS, AND THAT IS THE POINT. act-rail.js exists because two of
+       the five acts begin at a scroll position rather than at an element — it
+       selects, marks and intercepts `[data-act-track]` and nothing else. These
+       two have elements: the hero and the footer are boxes with addresses on
+       them, so the platform does the work. No branch in the script, no beat to
+       measure, and with scripting off they are the two entries in the rail that
+       still land exactly where they say. The scroll takes html's own
+       scroll-behavior, smooth by default and `auto` under
+       prefers-reduced-motion, which is the same journey every other in-page
+       link on the site makes.
+
+       NEITHER IS EVER A NO-OP, and that is why they need no disabled state. The
+       rail is only live while the viewport's middle is inside the acts — never
+       within half a screen of the hero, never inside the footer — so at every
+       moment a reader can reach these, both jumps have somewhere to go.
+
+       THE CHEVRON DOUBLES, WHICH THE ICON SET ALREADY MEANT FOR THIS.
+       cf-icons.js gives cf-chevron-double-up the use "Collapse all, back to the
+       top" and cf-chevron-double-down "Expand all, keep reading" — the two
+       marks for travelling past what is next rather than to it, which is the
+       distinction against the singles and the reason the acts' own singles are
+       not borrowed here. Same 63.43° keyline as everything else in the set, and
+       drawn by <use> like the five act glyphs.
+
+       THE TARGET IS 24 PX TALL AND THE GLYPH IS 16. A chevron at rest is one
+       rung of the icon ladder and WCAG 2.5.8's floor is 24, so the row keeps a
+       --space-6 minimum and the glyph centres in it. The other four columns of
+       the shared grid carry the row past 24 px wide on their own.
+
+       They take --act-ink with everything else in the rail: at rest the marks in
+       the margin, one tier up when the plate is behind them, --text-primary on
+       hover and on :focus-visible — which is the pointer feedback the act rows
+       get from the same pair of rules, and the only ink either jump ever needs,
+       because a jump is never "current".
+
+       ONLY ON THE SHIPPED PAGE, unlike every other rule in this file. The lab
+       page shares this stylesheet and has neither a hero nor a footer to jump
+       to, so the two anchors would be addresses that resolve to nothing —
+       patterns/landing-page.html carries the markup and the ids.
+       → foundations/iconography.html, "the four chevrons"
+       ============================================================ */
+    .act-rail__jump {
+      min-block-size: var(--space-6);
+    }
+    .act-rail__jump:hover,
+    .act-rail__jump:focus-visible { color: var(--text-primary); }
+    /* THIRD COLUMN, EXPLICITLY: the chevron is the row's only cell, and auto
+       flow would put it in the first one — under the ticks, half a rung off the
+       axis it exists to stand on. */
+    .act-rail__jump .act-rail__glyph { grid-column: 3; }
 
     .act-rail__tick {
       block-size: var(--stroke-1);
