@@ -52,9 +52,29 @@ THE MUTED RULE. components.css states it in prose at least four times: what
 sits on the page wash is never --text-muted, because 2.0:1. The users that
 remain are each a decision with a documented reason, so — FOREIGN-register
 shape again — they are enumerated, and a new `var(--text-muted)` as a color
-anywhere in the shipping stylesheet or in a pattern page's own <style> block
+anywhere in the shipping stylesheets or in a pattern page's own <style> block
 is a finding until it is either moved to --text-secondary or added here with
-a reason as good as the four below:
+a reason as good as the five below.
+
+"THE SHIPPING STYLESHEETS" IS PLURAL, AND FOR MOST OF THIS RULE'S LIFE THE
+SWEEP READ ONE FILE. The rule was written when components.css was the only
+place a component could be styled, and it went on reading only that file after
+acts.css was split out to carry the landing page's five acts. That is 200 KB
+of shipping CSS — the whole body of the flagship page between the hero and the
+FAQ — inside which the rule was unenforced and, measured on the rendered page
+at 1280 x 800 with the type hidden and the pixels behind each run sampled:
+
+  .lp-flow__val    "1 360 /s"     2.48:1     the rates the drawing's own
+  .lp-flow__read   "74 °C"        2.25:1     arithmetic rests on, and the
+                                             instrument readings beside them
+  .map__tag i      "Hauptsitz"    1.89:1     a place name on the map
+  .map__key-n      the counts     2.43:1     the legend's payload
+  .sp-head__count  "4 Schritte"   2.31:1     32 px, so against a 3:1 floor
+
+Five runs against a 4.5:1 floor (3:1 for the last, which is large text), none
+of them chrome, none registered, none reachable by a check that opens one
+file. base.css is swept too and contributes the one entry that is a definition
+rather than a use. The sweep now reads every stylesheet a pattern page links.
 
   components.css ::placeholder      components/forms.html: the placeholder
                                     supplements the label, never replaces it —
@@ -72,10 +92,14 @@ a reason as good as the four below:
                                     exempts text that is part of a logo or
                                     brand name, and a ghosted logo wall is the
                                     convention the exemption exists for.
+  base.css       .t-muted           the utility's DEFINITION and not a use.
+                                    It is registered rather than special-cased
+                                    because base.css is now swept like the
+                                    other two, and a definition is the one
+                                    shape in that file the rule cannot mean.
 
-`.t-muted` in base.css is the utility's DEFINITION and is not a use. A use of
-that class on a pattern page would be one, and none exists today; the first
-one to arrive answers to this register.
+A USE of `.t-muted` on a pattern page is a finding all the same, and none
+exists today; the first one to arrive answers to this register.
 
 stdlib only, no build step, no dependency — the same contract as the
 seventeen checks beside it.
@@ -93,6 +117,13 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 TOKENS = ROOT / "design-system" / "assets" / "css" / "tokens.css"
 COMPONENTS = ROOT / "design-system" / "assets" / "css" / "components.css"
 PATTERNS = ROOT / "design-system" / "patterns"
+
+# Every stylesheet a pattern page <link>s, and therefore every stylesheet the
+# muted rule has to hold. It was components.css alone for as long as the rule
+# existed, which is why acts.css shipped four unregistered users of the token
+# on the flagship page — see the module docstring.
+CSS = ROOT / "design-system" / "assets" / "css"
+SHIPPING = (CSS / "base.css", CSS / "components.css", CSS / "acts.css")
 
 # -- reading the token file -------------------------------------------------
 
@@ -274,6 +305,7 @@ REGISTER = [
 # The muted rule's exemptions: (file, selector-or-prelude substring, reason).
 # See the module docstring for why each is a decision and not an oversight.
 MUTED_EXEMPT = [
+    ("base.css", ".t-muted", "the utility's DEFINITION, not a use of it"),
     ("components.css", "::placeholder", "supplements the label, never replaces it"),
     ("components.css", ".cf-pin__index", "ghosted chrome; the current step is inked"),
     ("components.css", "cf-pin-mark", "the same chrome's rest state"),
@@ -316,8 +348,9 @@ def audit_muted():
                  "2.0:1 — use --text-secondary, or add this rule to the "
                  "register in scripts/check-contrast.py with a reason."))
 
-    sweep("components.css", COMPONENTS.read_text(encoding="utf-8"),
-          [e for e in MUTED_EXEMPT if e[0] == "components.css"])
+    for path in SHIPPING:
+        sweep(path.name, path.read_text(encoding="utf-8"),
+              [e for e in MUTED_EXEMPT if e[0] == path.name])
 
     for page in sorted(PATTERNS.glob("*.html")):
         text = page.read_text(encoding="utf-8")
