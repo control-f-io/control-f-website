@@ -1640,15 +1640,52 @@
            the box they land in, on the timeline they are drawn by, at the end
            of the act they finish. -->
       <div class="cf-section-header sp-head">
-        <h2 class="cf-section-header__label sp-head__title" id="prozess">Was wir machen</h2>
+        <!-- THE TITLE IS NOT THE ADDRESS, because this one cannot be. Every
+             other act names itself with a `visually-hidden act-anchor` <h2>
+             standing in the document flow at the top of its own track, and a
+             fragment aimed at one of those lands at 108 px — --nav-height plus
+             --space-6, the clearance .act-anchor declares. This heading is the
+             one that cannot: the comment above argues it into .sp-stage, which
+             is `position: sticky` from 64rem up, and scroll-margin-top is
+             computed against the UNSTUCK box. The browser scrolls to the
+             heading's flow position, the stage then sticks, and the heading
+             paints three-quarters of the way down the viewport instead.
+             Measured on this page, the four act addresses, top of the target
+             after the scroll settles:
+
+                             375    768   1280   1440
+               #vom-sensor…  108    108    108    108
+               #prozess      108    108    854    854   <- sticky from 64rem
+               #wer-wir-sind 108    108    108    108
+               #wo-die-daten 108    108    108    108
+
+             854 px at the two commonest desktop widths, on the act rail's own
+             "03 Was wir machen" jump. The declaration was never missing —
+             .cf-section-header__label carries the same clearance the other
+             three do, which is why check-arrival.py reads this heading as
+             covered and passes. A scroll margin cannot reach a target the
+             stage has moved out from under it.
+
+             So the ADDRESS moves to the element that is in the flow — act 3's
+             own <section>, below — and the heading keeps its text, its class
+             and its job as that section's accessible name. Two ids because
+             they are two jobs: `prozess` is where "go to act 3" goes, and
+             `prozess-titel` is what act 3 is called. check-section-counts.py
+             resolves the header to its section through aria-labelledby and is
+             unaffected by which of the two carries which.
+             → scripts/check-sticky-address.py -->
+        <h2 class="cf-section-header__label sp-head__title" id="prozess-titel">Was wir machen</h2>
         <span class="cf-section-header__count sp-head__count">4 Schritte</span>
       </div>
       </div>
     </div>
   </section>
 
-  <!-- ACT 3: the cards, on .cf-pin from components.css -->
-  <section class="section" aria-labelledby="prozess">
+  <!-- ACT 3: the cards, on .cf-pin from components.css.
+       act-anchor for the same reason acts 1+2, 4 and 5 carry it on their own
+       hidden <h2>: this is the element the page's "03 Was wir machen" jump
+       addresses, so it takes the nav clearance the other three take. -->
+  <section class="section act-anchor" id="prozess" aria-labelledby="prozess-titel">
     <div class="cf-pin">
       <div class="cf-pin__stage">
         <div class="container cf-pin__inner lp-proc-stage">
