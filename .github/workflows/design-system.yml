@@ -526,6 +526,36 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-grid-tracks.py
 
+      # The band inset is the grid tracks' neighbour and the same class of
+      # fault one axis over: a measurement the system keeps in one token,
+      # re-derived by hand somewhere the token could not be reached, and
+      # rendering perfectly wrong ever after.
+      #
+      # .container's content box is min(100% - 2 * --gutter, --container-max),
+      # and the two acts that stand outside .container — full-bleed tracks with
+      # sticky stages, so the drawing reaches the edge and the copy does not —
+      # write that min() out longhand. Both wrote --space-6 into it. --gutter is
+      # clamp(1.25rem, 5.5vw, 5rem), a ramp; 24 px is a constant; a constant
+      # crosses a ramp once. So act 4's plates, act 5's map, its legend and its
+      # three beats of prose sat on the page's own margin at a 436 px viewport
+      # and left of it at every other one, by 18 px at 768, 22 at 834, 32 at
+      # 1024 and 49 at 1328 — the page's left edge stepping sideways between
+      # act 3 and act 4 and back again at act 6, by an amount that changed
+      # continuously as the window was dragged.
+      #
+      # That last property is why it needed a script and not a sweep. A fault
+      # with no threshold in it is invisible to the ladder — it is present at
+      # every stop and identical to nothing at any of them — and it is invisible
+      # to check-breakpoints.py, because there is no query to register. Every
+      # screenshot in this repository showed it. None of them named it.
+      #
+      # Proven failing on two reintroductions: --space-6 put back on .map-stage,
+      # and the pinned .sp4-set's exemption kept while the 66vh cap that is its
+      # whole reason was dropped.
+      - name: Band inset
+        if: '!cancelled()'
+        run: python3 scripts/check-band-inset.py
+
       - name: Breakpoint register
         if: '!cancelled()'
         run: python3 scripts/check-breakpoints.py
