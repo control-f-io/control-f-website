@@ -29,7 +29,7 @@ test the other five checks pass — invisible in a render, countable in a file.
 
 WHAT IT CHECKS — the three copies must agree, in both directions:
 
-  live -> register    every width/height threshold in a prelude in the three
+  live -> register    every width/height threshold in a prelude in the
                       shipping stylesheets has a register entry.
   register -> live    every register entry still has a query behind it, so a
                       threshold that was removed does not linger as a row
@@ -57,12 +57,14 @@ WHAT IT DOES NOT CHECK, deliberately:
   layout changes shape, and putting them in the register would make it a list
   of every query rather than a list of every place the system folds.
 
-  Anything outside the three shipping stylesheets. docs.css, per-page <style>
+  Anything outside the shipping stylesheets. docs.css, per-page <style>
   blocks and prototypes/ are out of scope by the same boundary check-grid-
   tracks.py and check-spacing-scale.py draw, and the register itself spends a
   section saying why: they ship nowhere, and governing them would make the
   register look like it governed the documentation chrome. The register's SCOPE
-  list names what lives out there; this script does not police it.
+  list names what lives out there; this script does not police it. acts.css is
+  INSIDE: a page stylesheet ships, so its thresholds are the reader's folds,
+  whoever owns the file — the SHIPPING tuple below tells that story.
 
   Crossovers. A min() or clamp() against a viewport unit also changes layout at
   a specific width, when its arms swap. None is a query, none is in the
@@ -84,8 +86,15 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 CSS = ROOT / "design-system" / "assets" / "css"
 LAYOUT = ROOT / "design-system" / "foundations" / "layout.html"
 
-# The three stylesheets that ship to control-f.de.
-SHIPPING = ("tokens.css", "base.css", "components.css")
+# The stylesheets that ship to control-f.de: the three shared ones, and
+# acts.css — the landing page's own sheet, split out of the page in #256.
+# Its thresholds are folds a reader meets in production, and between the
+# split and this line they were registered nowhere: not here, because this
+# tuple said three, and not in check-local-thresholds.py, because that file
+# reads <style> blocks. A future page sheet must be added here in the same
+# commit that links it; check-local-literals.py discovers page sheets by
+# <link> and is the census that will notice one this list is missing.
+SHIPPING = ("tokens.css", "base.css", "components.css", "acts.css")
 
 # Features that name a length at which the layout changes shape. Everything
 # else in a prelude — prefers-*, forced-colors, print, hover, pointer,
