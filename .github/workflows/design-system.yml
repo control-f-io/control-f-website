@@ -1927,6 +1927,36 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-act-copy-exposed.py
 
+      # acts.css opens by stating its own authoring order -- base tier first,
+      # gated tier second -- calling it load-bearing rather than tidy, and
+      # counting the defects it has already cost: two. A media or supports query
+      # adds no specificity, so a base rule authored after the gated one wins in
+      # BOTH tiers, and the gated declaration it was written to complement is
+      # dead at every width. The author sees a default and an override; the
+      # browser sees the default winning everywhere.
+      #
+      # Nothing read that paragraph. The gated block for acts 1 and 2 is about
+      # 1,500 lines long, so "before the gate" and "after the gate" are not two
+      # places anyone can hold in view at once, and the natural home for a new
+      # base declaration -- beside the other rules for the same selector -- is
+      # on the wrong side of it whenever those rules sit below the gate.
+      #
+      # That is how this check arrived. The landing page's handover line, "Was
+      # wir machen", carries `margin-top: var(--space-3)` in the gated tier and
+      # had nothing in the base tier, so under 64rem it sat 0 px below the
+      # paragraph above it. The other .sp-head declarations are 1,300 lines
+      # further down and 50 lines past the gate's closing brace. Written there,
+      # the fix measured 80 px of margin-top at 834, at 1024 and at 1440 -- the
+      # gated 12 px gone, the rule floating clear of the drawing's feet on the
+      # one tier whose whole composition is the rule being where the feet land.
+      # Third defect, same file, in the change that was quoting the paragraph.
+      #
+      # Proven failing on exactly that: the base rule moved below the gate, both
+      # line numbers reported, the pinned tier measured at 80 px in a browser.
+      - name: Tier order
+        if: '!cancelled()'
+        run: python3 scripts/check-tier-order.py
+
       # The website at the repository root is generated from
       # design-system/patterns/ by scripts/build-site.py — four named edits per
       # page and nothing else. A pattern page can be edited without the page the
