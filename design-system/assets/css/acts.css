@@ -3118,6 +3118,74 @@
     .act-rail:focus-within { transition-duration: var(--duration-fast); }
     .act-rail:not(.is-live):not(:focus-within) { pointer-events: none; }
     .act-rail[hidden] { display: none; }
+
+    /* ============================================================
+       A MARGIN RAIL NEEDS A MARGIN, AND BELOW 96rem THERE IS NOT ONE.
+
+       The rail is 84 px wide — the four columns of .act-rail__link, which are
+       --space-4, --space-4, the glyph at its collapsed --act-glyph, and the
+       collapsed title, with three --space-3 gaps between them — and it is
+       fixed at --space-6 from the viewport's edge, so it ends at 108 px. The
+       page's content starts at --column-inset, which tokens.css derives as
+       max(--gutter, (100% - --container-max) / 2) and which is a function of
+       the viewport all the way up to 1536:
+
+           width   --column-inset   rail ends   the rail is inside the column by
+            1024        56.31          108        51.7
+            1280        70.39          108        37.6
+            1440        80             108        28
+            1536       128             108       -20   the first width that clears
+
+       So from the moment the rail's own gate opened at 64rem until 96rem, the
+       five marks were painted ON the page's first 28 to 52 px of text, and the
+       reader saw it because the acts put text there. Swept at 35 scroll stops
+       per width with getClientRects() over every text run in the viewport, the
+       runs the rail crossed, and by how much:
+
+                                             1024   1280   1440   1536
+           act 1  .cf-annot__label "S08"        4     20      -      -
+           act 1  the field's kPa readings     54     19      -      -
+           act 2  .lp-flow__read "12.4 bar"    38      7      -      -
+           act 2  .cf-stream__text, the copy   25      7     10      -
+           act 3  "Was wir machen", the head   52     38     28      -
+           act 4  .sp4-mark "01 / Geschäfts…"  76     25      -      -
+           act 4  the founders' name and copy  76     25      -      -
+           act 5  .map-beat__mark, all three    -      -     28      -
+
+       Act 4 is the one that cannot be argued about: at 1024 the rail stands in
+       76 of the 84 px it occupies over the copy column, so "01 / Geschäfts-
+       führung", the founders' names and the paragraph under them are all read
+       through five numerals and five glyphs.
+
+       AND IT CANNOT BE FIXED BY MOVING THE RAIL, which is worth writing down
+       so the next hand does not try. Anchored flush at the viewport's edge —
+       inset 0, which is already wrong for a margin mark — the rail still ends
+       at 84 and the column still starts at 56.31, 70.39 and 80: it overlaps at
+       every width below 1424 no matter where it is put. Collapsing the glyph
+       column at rest does not save it either; the grid's three gaps survive
+       the collapse, so the row is still 68 px against a 56 px margin. The rail
+       does not fit, and 96rem is where it starts to: --column-inset is 128
+       there, which leaves the 20 px between it and the rail's 108.
+
+       SO THE TIER MOVES AND THE RAIL DOES NOT. Below 96rem the scroll no
+       longer lifts it — `is-live` keeps setting the class, and the class no
+       longer paints — and :focus-within still does, at which point the rail
+       already brings the glass plate and the five titles with it and is a
+       deliberate overlay rather than ink on ink. That is the same "hidden by
+       paint, lifted on focus" idiom the note above this argues for, one tier
+       wider: a reader who cannot see the rail can still Tab to it and gets all
+       of it, and nobody reads act 4 through it.
+
+       WHAT IS LOST, STATED. Between 64rem and 96rem the passive position
+       indicator is gone for a pointer — the acts still pin there, so those
+       readers have 22 000 px of scroll and no contents unless they Tab. A rail
+       that fits a 56 px margin is a different rail, not a smaller one, and
+       designing it is the responsive lane's, not this one's.
+       → scripts/check-rail-margin.py holds the arithmetic
+       ============================================================ */
+    @media screen and (max-width: 95.999rem) {
+      .act-rail:not(:focus-within) { opacity: 0; pointer-events: none; }
+    }
     .act-rail:hover,
     .act-rail:focus-within {
       --act-glyph: 1.5rem;
@@ -3168,6 +3236,21 @@
     /* THE KEYBOARD GETS WHAT THE POINTER GETS. Without :focus-visible here the
        ring lands on an entry still drawn at the muted tier — the one entry the
        reader has singled out, and the faintest thing in the rail. */
+    /* THE FIVE ACT ROWS ARE 16 PX TALL AND THAT IS NOT THE DEFECT IT LOOKS
+       LIKE. .act-rail__jump takes `min-block-size: var(--space-6)` with WCAG
+       2.5.8 named over it, and the five links next to it do not, which reads
+       like an oversight — the rail's primary targets left at 84 x 16 while the
+       two secondary ones are 84 x 24. It was measured before it was changed.
+       2.5.8's spacing exception clears a target under 24 px when no other
+       target's 24 px circle reaches it, and the rail's rows are 16 px on a
+       --space-4 gap: a 32 px pitch, so the circles sit 8 px apart and every
+       row passes on offset. Giving the links the floor anyway costs the rail
+       40 px of height (224 -> 264 here, 144 -> 184 on the lab page, which has
+       five rows and no jumps), and on the lab page those 40 px reach act 1's
+       field: swept at 31 scroll stops at 1536, the taller rail crossed
+       .cf-annot__label and the field's own readings 13 times where the 144 px
+       rail crossed nothing. A conformant row grown into a drawing is a worse
+       page than a conformant row that was already conformant. Left at 16. */
     .act-rail__link:hover,
     .act-rail__link:focus-visible,
     .act-rail__link[aria-current] { color: var(--text-primary); }
