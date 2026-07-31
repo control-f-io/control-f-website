@@ -27,7 +27,23 @@ diverges the day the token moves — the exact failure class every check in
 this suite exists for, on the one surface none of them read.
 
 WHAT IT CHECKS. Under design-system/patterns/*.html, in page-local <style>
-blocks and style="" attributes, with comments stripped:
+blocks and style="" attributes — and in every PAGE STYLESHEET those pages
+link, with comments stripped:
+
+A page stylesheet is any .css a pattern page links beyond the five shared
+sheets (the three shipping ones, docs.css, preview.css). Today that is
+acts.css: 216 KB of the landing page's five acts, split out of the page in
+the same move that split the acts out of the markup. The split changed where
+the bytes live and not who owns the decisions in them — it is a page-local
+<style> block in a file — but it walked those bytes out of this gate's
+original scope, and out of every other literal gate at the same time, because
+the shipping gates stop at the three sheets they name. Measured on the day
+this scope was widened, the walk had already cost: acts.css carried
+`var(--nav-height, 5rem)` against a token whose value is 5.25rem — a fallback
+that restated the token and got it wrong on the day it was typed — plus two
+token values retyped as fallback hexes and the --radius-full value retyped as
+its literal. A sheet born later is read here from birth: discovery is by
+<link>, not by name.
 
   COLOUR    no colour literal, full stop. Hex and functional notation
             (rgb/hsl/hwb/lab/lch/oklab/oklch/color/color-mix) anywhere a
@@ -86,6 +102,16 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PATTERNS = ROOT / "design-system" / "patterns"
+CSS_DIR = ROOT / "design-system" / "assets" / "css"
+
+# The stylesheets every pattern page may link without making them page-local:
+# the three that ship with their own gates, and the two documentation chromes
+# that never reach control-f.de. Anything ELSE a pattern page links is a page
+# stylesheet and is read here with exactly the gates the in-page blocks get.
+SHARED_SHEETS = frozenset(
+    {"tokens.css", "base.css", "components.css", "docs.css", "preview.css"}
+)
+LINK = re.compile(r'<link[^>]+href="[^"]*?([\w.-]+\.css)"')
 
 # ---------------------------------------------------------------------------
 # Grammar. SPACING_PROP and LENGTH are check-spacing-scale.py's, verbatim, so
@@ -142,12 +168,42 @@ STYLE_ATTR = re.compile(r'style="([^"]*)"')
 
 # ---------------------------------------------------------------------------
 # Justified literals, each with the reason it is not a token. Keep this list
-# short and empty if possible: measured at introduction, the pattern pages
-# needed no entry at all, and every future entry is a colour or scale decision
-# made outside the system that has to argue for itself here.
-#     ("<file>.html", "<property>: <value as written>"): "<the reason>",
+# short: measured at introduction, the pattern pages needed no entry at all,
+# and every future entry is a colour or scale decision made outside the
+# system that has to argue for itself here. Keys are the page's or sheet's
+# bare name and the declaration as written:
+#     ("<file>.html" | "<sheet>.css", "<property>: <value>"): "<the reason>",
+# A row whose declaration no longer exists is reported STALE and fails the
+# run, so the list cannot outlive what it excuses.
 # ---------------------------------------------------------------------------
-ALLOWED = {}
+ALLOWED = {
+    ("acts.css", "animation: sp-stream var(--sp-period, 3s) linear infinite"):
+        "the 3s is the fallback arm of a data pipe, not a clock decision: every "
+        ".sp-stream consumer pipes its own --sp-period inline (21 of 21 today, "
+        "2837–3935ms, distinct on purpose so the streams never phase-lock), and "
+        "the fallback is the authored defence for a consumer that forgets — "
+        "without it a missing pipe paints every label of the stream at once.",
+    ("acts.css", "animation-delay: calc(var(--sp-period, 3s) * var(--sp-slot) / 6 * -1)"):
+        "the same fallback arm, in the same pipe, one line down — the delay must "
+        "default to the same period the duration defaults to or the six slots "
+        "de-sync exactly when the fallback is live.",
+    ("acts.css", "animation-delay: 0s, 0s, calc(var(--l) * -370ms)"):
+        "a phase spread, not a duration: each leaf's shimmer starts -370ms times "
+        "its own --l into an infinite alternate cycle so no two leaves glow in "
+        "step. The clock tokens name how long a gesture takes; this names where "
+        "in an endless one each element stands, per-element, off piped data. "
+        "The 0s pair are list placeholders for the two scroll-driven members.",
+    ("acts.css", "transition-delay: calc(var(--i) * 40ms)"):
+        "the act rail's per-item stagger unit. The clock tokens name whole "
+        "gestures — the label reveal itself takes --duration-base — and 40ms is "
+        "the gap BETWEEN gestures, an off-scale figure by construction: the five "
+        "rows (--i 0–4) top out at 160ms of spread, inside the gesture it staggers.",
+    ("acts.css", "padding-inline: round(var(--gutter), 1px)"):
+        "the 1px is round()'s precision arm, not a length: the gutter is 5.5vw "
+        "snapped to the pixel grid so the stage's hairlines land on it (the "
+        "max-width above it snaps to 2px for the same reason, with the note on "
+        ".lp-proc-stage telling the story). The spacing decision is var(--gutter).",
+}
 
 
 def stripped(css):
@@ -233,6 +289,32 @@ def check_declaration(name, prop, value, findings):
                 )
 
 
+def page_sheets():
+    """{sheet name: [pattern pages that link it]} for every non-shared sheet.
+
+    Discovery is by <link>, not by a list kept here: the sheet this scope was
+    widened for arrived without any checker noticing, and a name typed into
+    this file would just be the next copy of that mistake.
+    """
+    sheets = {}
+    for path in sorted(PATTERNS.glob("*.html")):
+        for m in LINK.finditer(path.read_text()):
+            name = m.group(1)
+            if name not in SHARED_SHEETS:
+                sheets.setdefault(name, []).append(path.name)
+    return sheets
+
+
+def check_sheet(name, css):
+    """All findings for one page stylesheet, plus its declaration count."""
+    findings = []
+    n_decls = 0
+    for m in DECL.finditer("{" + stripped(css)):
+        n_decls += 1
+        check_declaration(name, m.group(1).strip(), m.group(2), findings)
+    return findings, n_decls
+
+
 def check_page(name, html):
     """All findings for one page, plus its census row."""
     findings = []
@@ -297,6 +379,21 @@ def selftest():
             "check-local-literals.py: SELF-TEST FAILED — a gate fired on the clean "
             "fixture: %r. The gate over-reaches; fix the gate." % (found,)
         )
+    # The sheet path runs the same gates over raw CSS — prove it catches a
+    # planted fault too, or widening the scope widened nothing.
+    found, _ = check_sheet("selftest.css", "a { color: #E1FF00; margin: 24px; }")
+    if not any(f[1] == "COLOUR" for f in found) or not any(f[1] == "SPACING" for f in found):
+        sys.exit(
+            "check-local-literals.py: SELF-TEST FAILED — the sheet path did not "
+            "fire on a planted colour and spacing literal. The gate is broken, "
+            "not the sheets; fix the gate."
+        )
+    found, _ = check_sheet("selftest.css", "a { margin: var(--space-4); color: var(--cf-lime); }")
+    if found:
+        sys.exit(
+            "check-local-literals.py: SELF-TEST FAILED — a gate fired on the clean "
+            "sheet fixture: %r. The gate over-reaches; fix the gate." % (found,)
+        )
 
 
 def main():
@@ -312,6 +409,13 @@ def main():
         findings.extend(page_findings)
         census.append((path.name,) + counts)
 
+    sheets = page_sheets()
+    sheet_census = []
+    for name, pages in sorted(sheets.items()):
+        sheet_findings, n_decls = check_sheet(name, (CSS_DIR / name).read_text())
+        findings.extend(sheet_findings)
+        sheet_census.append((name, pages, n_decls))
+
     # An ALLOWED row with no declaration behind it describes an exception the
     # system no longer takes — the same staleness rule the threshold register
     # enforces on its own rows.
@@ -322,6 +426,9 @@ def main():
             for block in STYLE_BLOCK.finditer(html):
                 for m in DECL.finditer("{" + stripped(block.group(1))):
                     live.add((path.name, "%s: %s" % (m.group(1).strip(), m.group(2).strip())))
+        for name in sheets:
+            for m in DECL.finditer("{" + stripped((CSS_DIR / name).read_text())):
+                live.add((name, "%s: %s" % (m.group(1).strip(), m.group(2).strip())))
         for row in sorted(set(ALLOWED) - live):
             findings.append(
                 (row[0], "STALE", row[1], "an ALLOWED row with no declaration behind it. Delete it.")
@@ -332,22 +439,29 @@ def main():
         for name, blocks, decls, attrs in census:
             print("  %-24s %d <style> block(s), %3d declaration(s), %3d style attr(s)"
                   % (name, blocks, decls, attrs))
+        for name, pages, decls in sheet_census:
+            print("  %-24s page stylesheet, %4d declaration(s), linked by %s"
+                  % (name, decls, ", ".join(pages)))
         print()
 
     if findings:
         print("local literals: %d finding(s)\n" % len(findings))
         for name, rule, decl, why in findings:
-            print("  - patterns/%s [%s]\n        %s\n    %s\n" % (name, rule, decl, why))
+            where = "patterns/" + name if name.endswith(".html") else "assets/css/" + name
+            print("  - %s [%s]\n        %s\n    %s\n" % (where, rule, decl, why))
         return 1
 
     n_blocks = sum(c[1] for c in census)
     n_decls = sum(c[2] for c in census)
     n_attrs = sum(c[3] for c in census)
+    n_sheet_decls = sum(c[2] for c in sheet_census)
     print(
         "local literals: %d pages, %d page-local <style> blocks (%d declarations), "
-        "%d style attributes — no colour, spacing, type, radius, shadow or motion "
-        "literal outside the token set; %d justified exception(s)."
-        % (len(census), n_blocks, n_decls, n_attrs, len(ALLOWED))
+        "%d style attributes, %d page stylesheet(s) (%d declarations) — no colour, "
+        "spacing, type, radius, shadow or motion literal outside the token set; "
+        "%d justified exception(s)."
+        % (len(census), n_blocks, n_decls, n_attrs, len(sheet_census), n_sheet_decls,
+           len(ALLOWED))
     )
     return 0
 
