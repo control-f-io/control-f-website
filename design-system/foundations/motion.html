@@ -177,6 +177,32 @@ for t in ['fast','base','slow','scene']:
         </ul>
       </div>
     </div>
+
+    <div class="docs-note">
+      <strong>“No infinite loops other than the hero artwork” is the rule above, and the landing
+      page shipped a hundred and twenty-eight of them.</strong> It is the one entry in that list
+      with no cost you can see: a loop on the document clock renders correctly in every frame,
+      and every screenshot this repository takes is one frame. What it does instead is stop the
+      page ever going still. A <code>view()</code> timeline is free while nobody scrolls — no
+      scroll, no frame, no work, which is why a page carrying eight hundred of them sits at
+      zero. <code>animation-timeline: auto</code> with <code>infinite</code> is the opposite:
+      it runs for the life of the tab, on screen, off screen, or fifteen thousand pixels away.
+      Measured at 1440 × 900, the landing page <em>loaded and then left completely alone</em> —
+      no scrolling, no pointer, no keyboard — spent <strong>1 351 ms of style recalculation in
+      five seconds</strong>, one recalc per frame at 60 Hz, and <strong>2 246 ms of total task
+      time: forty-five per cent of the main thread</strong>. At act 5, with the figure fifteen
+      thousand pixels behind the reader, it measured the same. The count is not what costs and
+      neither is the property: one <code>transform</code> animation on a single empty 4 × 4 px
+      div measured 1 362 ms over the same five seconds, and twenty-six shimmering leaves cost
+      1 375 ms against one leaf’s 1 150. What the page pays for is producing frames at all.
+      <strong>So the only lever is time, and a loop that must exist has to be able to stop.</strong>
+      <code>assets/js/cf-idle.js</code> is that lever — an <code>IntersectionObserver</code> over
+      a box marked <code>data-cf-idle</code>, a viewport of margin on each side, and
+      <code>animation-play-state: paused</code> while it is away, which holds each reading at
+      the value it had instead of restarting the field in unison on arrival.
+      <code>scripts/check-idle-motion.py</code> reads the perpetual animations out of the
+      shipping stylesheets rather than listing them, so a new one enters this rule by existing.
+    </div>
   </section>
 
   <section class="docs-section" id="assembly">
