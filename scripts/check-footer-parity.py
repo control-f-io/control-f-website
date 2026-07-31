@@ -113,6 +113,10 @@ SECTION_OF = {
     # resolves elsewhere as a lie. The ancestor marker is the one value both
     # models agree on — the same treatment karriere-stelle.html gets.
     "karriere-leer.html": "karriere.html",
+    # The same empty-state argument, for the search route: suche-leer.html is
+    # /suche with nothing found, and its footer's Suche link resolves to the
+    # canonical file.
+    "suche-leer.html": "suche.html",
 }
 
 CTA_REGULAR = (
