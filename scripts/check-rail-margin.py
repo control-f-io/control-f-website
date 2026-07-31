@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""The act rail only paints where the page has a margin to paint it in.
+"""The act rail fits the margin it paints in, at every tier it paints at.
 
 The seventy-ninth check, and the second whose subject is the act rail.
 
 WHAT WENT WRONG. The rail is a fixed column of marks in the LEFT MARGIN — five
-acts and two jumps, 84 px wide, held at --space-6 from the viewport's edge, so
-it ends at 108. The margin it was put in is --column-inset, which tokens.css
-derives as max(--gutter, (100% - --container-max) / 2) and which is where every
-container on the page starts its content. The rail's own gate was --space-6 and
-64rem, neither of which knows what --column-inset is, and below 1536 px
---column-inset is smaller than the rail:
+acts and two jumps, held at --space-6 from the viewport's edge. Open, its row is
+four columns and 84 px wide, so it ends at 108. The margin it was put in is
+--column-inset, which tokens.css derives as max(--gutter, (100% - --container-max)
+/ 2) and which is where every container on the page starts its content. The
+rail's own gate was --space-6 and 64rem, neither of which knows what
+--column-inset is, and below 1536 px --column-inset is smaller than the rail:
 
     width   --column-inset   rail ends   inside the content column by
      1024        56.31          108              51.7
@@ -36,41 +36,71 @@ Act 4 at 1024 is the one that cannot be argued about: the rail stands in 76 of
 the 84 px it occupies over the copy column, so a label, two names and the
 paragraph under them are read through five numerals and five glyphs.
 
-AND IT COULD NOT HAVE BEEN FIXED BY MOVING THE RAIL, which is why this check
-holds the tier and not the inset. Flush at the viewport's edge the rail still
-ends at 84 against a column starting at 56.31, 70.39 and 80 — it overlaps at
-every width below 1424 wherever it is put. Collapsing the glyph column at rest
-does not save it either: the row's three --space-3 gaps survive the collapse, so
-it is still 68 px against a 56 px margin. The rail does not fit below 96rem, so
-below 96rem it does not paint.
+AND IT COULD NOT BE FIXED BY MOVING THE RAIL, which is why the first version of
+this check held a TIER and not the inset. Flush at the viewport's edge the rail
+still ends at 84 against a column starting at 56.31, 70.39 and 80 — it overlaps
+at every width below 1424 wherever it is put. Collapsing the glyph column does
+not save it either: the row's three --space-3 gaps survive the collapse, so it
+is still 68 px against a 56 px margin. The rail did not fit below 96rem, so
+below 96rem it did not paint, and this check proved the one tier that was left.
 
-WHAT IS CHECKED. Both stylesheets, comments stripped, because this file's own
-prose quotes the declarations it is about.
+WHAT THAT COST, AND WHY THIS CHECK IS NOW TWO ROWS INSTEAD OF ONE. A rail that
+does not paint is not a rail. Between 64rem and 96rem the acts still pin, so a
+pointer had 18 000 to 23 000 px of scroll and no position indicator at all —
+three of the four commonest desktop widths on the ladder, on the flagship page,
+with act-rail.js running and marking the current act correctly into an element
+at opacity 0. acts.css said so in as many words and left the design open.
 
-  THE FLOOR    acts.css has a rule that stops the rail painting at rest —
-               opacity 0 on .act-rail:not(:focus-within) — inside a max-width
-               media query. The width just past that max-width is the narrowest
-               viewport at which the scroll is allowed to bring the rail in.
+The rail that fits a 56 px margin is the wide rail's FIRST COLUMN: the tick
+alone, at --space-4 from the edge, with the four idle ticks drawn as --space-1
+stubs so the current one has a scale to be long against, and everything else —
+numeral, glyph, title, plate — arriving on :hover and :focus-within exactly as
+it does above 96rem. Two resting geometries, one per tier:
 
-  THE EXTENT   the rail's width is read from its own declarations rather than
-               assumed: .act-rail__link's grid-template-columns, its gap, and
-               the collapsed --act-glyph, all resolved through tokens.css. Plus
-               .act-rail's inset-inline-start. Change any of them and the number
-               this check compares moves with them.
+    tier        inset       resting extent         ends   inset at   clears
+    64–96rem    --space-4   --space-4 (the tick)     32     56.31      24.31
+    96rem+      --space-6   84 (four columns)       108    128         20
 
-  THE MARGIN   --column-inset evaluated at the floor width, out of --gutter's
-               own clamp and --container-max, both read from tokens.css.
+So the invariant this file holds is no longer "the rail is hidden where it does
+not fit". It is THE RAIL FITS WHEREVER IT PAINTS, checked once per tier, and
+that is strictly the stronger claim: the old shape proved one row of that table
+and exempted the other by making it invisible.
 
-  THE VERDICT  the rail's right edge clears --column-inset by at least
-               --space-4, the rung below the inset it already stands on.
+WHAT IS CHECKED. acts.css and tokens.css, comments stripped, because this
+file's own prose quotes the declarations it is about.
 
-WHAT THIS DOES NOT CLAIM. Not that the rail is unreachable below the floor — it
-is lifted by :focus-within at every width and check-focus-reach.py holds that.
-Not that nothing else may overlap the rail: act 1's field is full-bleed and its
-callouts are placed on the drawing rather than in the column, so they can land
-under the rail at any width, and one of them does at 1536. That is the field's
-placement against a fixed element, not the column's, and it is a different
-check than this one.
+  THE TIERS      every media context in which .act-rail declares --act-cols is
+                 a resting geometry, and the narrowest viewport each one
+                 governs is a row of the table. The rail's own gate — the
+                 min-width query that gives .act-rail `display: grid` — is the
+                 floor for a geometry declared outside any width query. Nothing
+                 here is restated: add a third tier to acts.css and a third row
+                 appears, with no edit to this file.
+
+  THE EXTENT     the rail's width at rest is resolved from its own declarations
+                 rather than assumed: --act-cols, .act-rail__link's gap, and
+                 the collapsed --act-glyph for any `auto` column, all resolved
+                 through tokens.css, with the cascade evaluated AT THAT TIER's
+                 floor width. Plus .act-rail's inset-inline-start, same way.
+                 Change any of them and the numbers compared move with them.
+
+  THE MARGIN     --column-inset evaluated at each floor width, out of --gutter's
+                 own clamp and --container-max, both read from tokens.css.
+
+  THE VERDICT    in every tier, the rail's right edge clears --column-inset by
+                 at least --space-4, the rung below the inset the wide rail
+                 stands on.
+
+Reintroduce the bug — drop the narrow tier's --act-cols override, widen it, or
+push either inset out — and this fails, naming the tier, the width and the two
+numbers that no longer clear.
+
+WHAT THIS DOES NOT CLAIM. Not that the rail is reachable — :focus-within lifts
+it at every width and check-focus-reach.py holds that. Not that nothing else
+may overlap the rail: act 1's field is full-bleed and its callouts are placed on
+the drawing rather than in the column, so they can land under the rail at any
+width, and one of them does at 1536. That is the field's placement against a
+fixed element, not the column's, and it is a different check than this one.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
@@ -87,7 +117,9 @@ ACTS = ROOT / "design-system/assets/css/acts.css"
 TOKENS = ROOT / "design-system/assets/css/tokens.css"
 
 ROOT_FONT = 16.0          # base.css never re-roots the rem; --text-* scale off it
-CLEARANCE = "--space-4"   # the rung below the rail's own inset
+CLEARANCE = "--space-4"   # the rung below the inset the wide rail stands on
+RAIL = ".act-rail"
+ROW = (".act-rail__link", ".act-rail__jump")
 
 
 def fail(msg):
@@ -181,12 +213,140 @@ def calc(expr, tokens, width):
 
 
 def declarations(body):
-    return {d.split(":", 1)[0].strip(): d.split(":", 1)[1].strip()
-            for d in body.split(";") if ":" in d}
+    """Top-level `name: value` pairs. Splits on the semicolons outside ()."""
+    out = {}
+    for d in split_semis(body):
+        if ":" in d:
+            name, value = d.split(":", 1)
+            out[name.strip()] = value.strip()
+    return out
+
+
+def split_semis(s):
+    parts, depth, cur = [], 0, ""
+    for ch in s:
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        if ch == ";" and depth == 0:
+            parts.append(cur)
+            cur = ""
+        else:
+            cur += ch
+    parts.append(cur)
+    return [p.strip() for p in parts if p.strip()]
+
+
+def rules(css):
+    """Every style rule in source order, with the @media preludes enclosing it.
+
+    A brace walker rather than a regex, because acts.css nests @media inside
+    @media — the max-width tier that carries the narrow rail lives inside the
+    64rem gate — and an innermost-braces pattern cannot see the outer prelude
+    it is qualified by.
+    """
+    out, stack, i, buf = [], [], 0, ""
+    while i < len(css):
+        ch = css[i]
+        if ch == "{":
+            head = buf.strip()
+            buf = ""
+            if head.startswith("@"):
+                stack.append(head)
+                out.append(None)          # marker: this brace opened an at-rule
+            else:
+                depth, j = 1, i + 1
+                while j < len(css) and depth:
+                    if css[j] == "{":
+                        depth += 1
+                    elif css[j] == "}":
+                        depth -= 1
+                    j += 1
+                out.append((tuple(stack), head, css[i + 1:j - 1]))
+                i = j
+                continue
+        elif ch == "}":
+            buf = ""
+            # Pop the at-rule this brace closes; style rules never reach here,
+            # their bodies were consumed whole above.
+            for k in range(len(out) - 1, -1, -1):
+                if out[k] is None:
+                    del out[k]
+                    if stack:
+                        stack.pop()
+                    break
+            else:
+                if stack:
+                    stack.pop()
+        else:
+            buf += ch
+        i += 1
+    return [r for r in out if r]
+
+
+FEATURE = re.compile(r"\(\s*(min|max)-width\s*:\s*([\d.]+)(rem|px)\s*\)")
+
+
+def width_matches(prelude, width):
+    """Does this @media prelude admit `width`? Non-width features are ignored."""
+    for kind, num, unit in FEATURE.findall(prelude):
+        edge = float(num) * (ROOT_FONT if unit == "rem" else 1)
+        if kind == "min" and width < edge:
+            return False
+        if kind == "max" and width > edge:
+            return False
+    return True
+
+
+def edges(prelude_stack, gate):
+    """Every viewport width at which this media context could start governing.
+
+    Its own min-widths, and — because a `max-width` tier SHADOWS the geometry
+    declared outside it — the width just past each of its max-widths, which is
+    where the shadowed geometry becomes the resting one. 95.999rem is
+    "everything below 96rem"; the edge is the next whole pixel up.
+    """
+    out = {gate}
+    for prelude in prelude_stack:
+        for kind, num, unit in FEATURE.findall(prelude):
+            edge = float(num) * (ROOT_FONT if unit == "rem" else 1)
+            if kind == "min":
+                out.add(max(edge, gate))
+            else:
+                past = float(int(edge) + 1) if edge != int(edge) else edge + 1.0
+                out.add(max(past, gate))
+    return out
+
+
+def deref(value, scope, depth=8):
+    """Follow a whole-value `var(--x)` to what it names. Track lists stay lists."""
+    v = value.strip()
+    for _ in range(depth):
+        m = re.fullmatch(r"var\(\s*(--[\w-]+)\s*\)", v)
+        if not m or m.group(1) not in scope:
+            return v
+        v = scope[m.group(1)].strip()
+    raise ValueError(f"{value!r} points at itself")
+
+
+def resolve(rs, width, targets):
+    """The declarations a bare selector in `targets` carries at `width`."""
+    out = {}
+    for stack, head, body in rs:
+        if not all(width_matches(p, width) for p in stack):
+            continue
+        if not any(s.strip() in targets for s in head.split(",")):
+            continue
+        out.update(declarations(body))
+    return out
 
 
 def main():
-    argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("-v", "--verbose", action="store_true",
+                    help="print every tier, not only the failures")
+    args = ap.parse_args()
 
     tokens = {}
     for name, value in re.findall(r"(--[\w-]+)\s*:\s*([^;{}]+);",
@@ -197,77 +357,103 @@ def main():
             return fail(f"tokens.css no longer declares {required} — this check "
                         f"reads the rail's margin out of it")
 
-    acts = strip_comments(ACTS.read_text(encoding="utf-8"))
+    rs = rules(strip_comments(ACTS.read_text(encoding="utf-8")))
 
-    # ---- the floor: the width just past the max-width that stops the paint ----
-    floor = None
-    for m in re.finditer(r"@media[^{]*?\(\s*max-width\s*:\s*([\d.]+)(rem|px)\s*\)([^{]*)\{(.*?)\n\s*\}",
-                         acts, flags=re.S):
-        block = m.group(4)
-        if not re.search(r"\.act-rail(?![\w_-])[^{}]*\{[^{}]*opacity\s*:\s*0\s*[;}]", block):
+    # ---- the gate: the min-width the rail becomes a grid at ----------------
+    gate = None
+    for stack, head, body in rs:
+        if RAIL not in [s.strip() for s in head.split(",")]:
             continue
-        w = float(m.group(1)) * (ROOT_FONT if m.group(2) == "rem" else 1)
-        floor = w if floor is None else min(floor, w)
-    if floor is None:
-        return fail("no max-width media query in acts.css sets the rail's "
-                    "opacity to 0, so the scroll lifts the rail at every width "
-                    "its 64rem gate opens at — including the ones whose "
-                    "--column-inset is narrower than the rail, where the marks "
-                    "land on the acts' own text. See the table above.")
-    # 95.999rem is "everything below 96rem"; the floor is the next width up.
-    floor = float(int(floor) + 1) if floor != int(floor) else floor + 1.0
+        if not re.search(r"display\s*:\s*grid", body):
+            continue
+        here = None
+        for prelude in stack:
+            for kind, num, unit in FEATURE.findall(prelude):
+                if kind == "min":
+                    e = float(num) * (ROOT_FONT if unit == "rem" else 1)
+                    here = e if here is None else max(here, e)
+        if here is not None:
+            gate = here if gate is None else min(gate, here)
+    if gate is None:
+        return fail("no min-width media query in acts.css lays .act-rail out as "
+                    "a grid, so this check cannot tell which viewports the rail "
+                    "exists at — and a rail that exists at every width is one "
+                    "that stands in a margin the phone does not have")
 
-    # ---- the extent: read off the rail's own declarations ----
-    rail_decls, link_decls = {}, {}
-    for terms, body in ((t.strip(), b) for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", acts)
-                        for t in [m.group(1)] for b in [m.group(2)]):
-        last = terms.split(",")[-1].strip()
-        if last == ".act-rail":
-            rail_decls.update(declarations(body))
-        if last in (".act-rail__link", ".act-rail__jump"):
-            link_decls.update(declarations(body))
+    # ---- the tiers: one per resting geometry -------------------------------
+    tiers = []
+    for stack, head, body in rs:
+        if RAIL not in [s.strip() for s in head.split(",")]:
+            continue
+        if "--act-cols" not in declarations(body):
+            continue
+        for low in edges(stack, gate):
+            if low not in tiers:
+                tiers.append(low)
+    if not tiers:
+        return fail("no rule in acts.css declares --act-cols on .act-rail, so "
+                    "the rail's resting width is typed into .act-rail__link's "
+                    "grid-template-columns and cannot be resolved per tier. The "
+                    "rail has two resting geometries — see the table above — and "
+                    "a check that can only see one of them proves the wrong one.")
 
-    try:
-        inset = px(rail_decls["inset-inline-start"], tokens)
-        gap = px(link_decls["gap"], tokens)
-        glyph = px(rail_decls["--act-glyph"], tokens)
-        cols = link_decls["grid-template-columns"].split()
-    except (KeyError, ValueError) as exc:
-        return fail(f"cannot read the rail's own geometry out of acts.css "
-                    f"({exc}); this check sizes the rail from its declarations "
-                    f"rather than from a number typed here")
+    rows, worst = [], 0
+    for low in sorted(tiers):
+        decls = resolve(rs, low, {RAIL})
+        row = resolve(rs, low, set(ROW))
+        # The rail publishes properties of its own — --act-glyph, --act-cols and
+        # the open geometry --act-cols points back at — so a name resolved here
+        # may live on .act-rail rather than in tokens.css. The rail's own
+        # declarations shadow the tokens for the length of this tier.
+        scope = dict(tokens)
+        scope.update({k: v for k, v in decls.items() if k.startswith("--")})
+        try:
+            inset = px(decls["inset-inline-start"], scope)
+            glyph = px(decls["--act-glyph"], scope)
+            gap = px(row["gap"], scope)
+            cols = deref(decls["--act-cols"], scope).split()
+        except (KeyError, ValueError) as exc:
+            return fail(f"cannot read the rail's own geometry out of acts.css at "
+                        f"{low:.0f} px ({exc}); this check sizes the rail from its "
+                        f"declarations rather than from a number typed here")
 
-    widths = []
-    for c in cols:
-        widths.append(glyph if c == "auto" else px(c, tokens))
-    # the fourth column is the collapsed title: `auto` over a clipped label,
-    # which measures 0 at rest. The third is the glyph.
-    widths[-1] = 0.0
-    extent = sum(widths) + gap * (len(widths) - 1)
-    right = inset + extent
+        # the last column is the collapsed title: `auto` over a clipped label,
+        # which measures 0 at rest. Any other `auto` is the glyph.
+        widths = [glyph if c == "auto" else px(c, scope) for c in cols]
+        if len(widths) > 1:
+            widths[-1] = 0.0
+        extent = sum(widths) + gap * (len(widths) - 1)
+        right = inset + extent
 
-    # ---- the margin at the floor ----
-    column_inset = px(tokens["--column-inset"], tokens, floor) if "--column-inset" in tokens \
-        else max(px(tokens["--gutter"], tokens, floor),
-                 (floor - px(tokens["--container-max"], tokens)) / 2)
-    clearance = px(tokens[CLEARANCE], tokens)
-    have = column_inset - right
+        column_inset = px(tokens["--column-inset"], tokens, low) if "--column-inset" in tokens \
+            else max(px(tokens["--gutter"], tokens, low),
+                     (low - px(tokens["--container-max"], tokens)) / 2)
+        clearance = px(tokens[CLEARANCE], tokens)
+        have = column_inset - right
+        rows.append((low, len(widths), inset, extent, right, column_inset, have))
+        if have < clearance:
+            return fail(
+                f"the rail paints at rest from {low:.0f} px up in {len(widths)} "
+                f"column{'s' if len(widths) != 1 else ''}, where the content "
+                f"column starts at {column_inset:.2f} px and the rail ends at "
+                f"{right:.0f} ({inset:.0f} inset + {extent:.0f} wide). That leaves "
+                f"{have:.2f} px between them, short of the {clearance:.0f} px "
+                f"({CLEARANCE}) this asks for, so the rail's marks are painted "
+                f"inside the acts' own text column. Either narrow that tier's "
+                f"--act-cols or drop its inset a rung — moving the rail left does "
+                f"not work on its own, see the note in acts.css.")
+        worst = have if not worst else min(worst, have)
 
-    if have < clearance:
-        return fail(
-            f"the rail is allowed to paint from {floor:.0f} px up, where the "
-            f"content column starts at {column_inset:.2f} px and the rail ends "
-            f"at {right:.0f} ({inset:.0f} inset + {extent:.0f} wide). That "
-            f"leaves {have:.2f} px between them, short of the {clearance:.0f} px "
-            f"({CLEARANCE}) this asks for, so the rail's marks are painted "
-            f"inside the acts' own text column. Either raise the width at which "
-            f"the rail is lifted or narrow the rail — moving it left does not "
-            f"work, see the note in acts.css.")
-
-    print(f"OK  the act rail paints from {floor:.0f} px up, where the content "
-          f"column starts at {column_inset:.2f} px and the rail's {extent:.0f} px "
-          f"of marks end at {right:.0f} — {have:.2f} px of margin between them, "
-          f"clear of the {clearance:.0f} px floor")
+    if args.verbose:
+        print("  tier      cols  inset  extent  ends  --column-inset  clears")
+        for low, n, inset, extent, right, ci, have in rows:
+            print(f"  {low:>6.0f}    {n:>3}   {inset:>4.0f}  {extent:>6.0f}  "
+                  f"{right:>4.0f}  {ci:>13.2f}  {have:>6.2f}")
+    print(f"OK  the act rail fits its margin in all {len(rows)} tier"
+          f"{'s' if len(rows) != 1 else ''} it paints at — from "
+          + ", ".join(f"{low:.0f} px in {n} column{'s' if n != 1 else ''} "
+                      f"({have:.2f} px clear)" for low, n, _, _, _, _, have in rows)
+          + f" — every one past the {px(tokens[CLEARANCE], tokens):.0f} px floor")
     return 0
 
 
