@@ -1934,6 +1934,27 @@ jobs:
       # every other check here exists to stop, so it is held the same way: the
       # generator rebuilds in memory and compares against what is committed.
       #
+      # `ch` is the advance of the shipped font's zero, and Geist's zero is
+      # 0.6875em — 24 % wider than Helvetica's, whose arithmetic the prose
+      # measure was written with. So for a year the prose track was documented
+      # at 587 px in three places and drawn at 726 by every browser with the
+      # webfont: 90 measured characters per line at a 768 viewport, 100.5 on
+      # datenschutz at 1280, past the top of the 45–90 band tokens.css itself
+      # cites — and no screenshot shows a line that is merely too long.
+      #
+      # The check holds the token's ch value and every px gloss written beside
+      # it — tokens.css, the prose-track comment in components.css, the
+      # article and search docs — to the same derived arithmetic, the way
+      # check-breakpoints.py derives the register's px column rather than
+      # trusting it.
+      #
+      # Proven failing on two reintroductions: the token set back to 66ch with
+      # the docs left at 53, and one gloss set back to the fallback font's
+      # 587 px.
+      - name: Measure gloss
+        if: '!cancelled()'
+        run: python3 scripts/check-measure-gloss.py
+
       # It is also the check that catches a hand-written page appearing at the
       # root — the outgoing website was nine of those, and this is what keeps a
       # tenth from arriving unnoticed.
