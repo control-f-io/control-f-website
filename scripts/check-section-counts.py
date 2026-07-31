@@ -89,7 +89,16 @@ REGISTER = {
     # the bare form was, because the plate has never carried it: it is
     # `cf-process lp-proc-plate`, which is how it stays out of the count
     # without anyone relying on a closing quote to do it.
-    "prozess": ('<article class="cf-process cf-pin__step"', "process step"),
+    # KEYED ON THE HEADING'S id, which is `prozess-titel` and not `prozess`.
+    # The two were the same string until act 3's address had to leave the
+    # heading: .sp-head sits inside .sp-stage, which is sticky from 64rem up,
+    # and a fragment aimed into a stuck box lands where the stage puts it
+    # rather than where scroll-margin-top asks. `prozess` is now act 3's
+    # <section> — the in-flow element the jump addresses — and the heading
+    # keeps the name. section_body() below still finds the section through
+    # aria-labelledby, so the pairing is unchanged; only the key moved.
+    # → scripts/check-sticky-address.py
+    "prozess-titel": ('<article class="cf-process cf-pin__step"', "process step"),
     "partner": ('<li class="t-label">', "logo mark"),
     "faq": ('<details class="cf-accordion__item">', "question"),
     # The blog strip and the team grid left the landing page when the five acts
