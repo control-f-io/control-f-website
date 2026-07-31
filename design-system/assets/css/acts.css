@@ -937,10 +937,52 @@
 
   .sp4-track { position: relative; }
   .sp4-stage { display: grid; align-content: center; padding-block: var(--space-16); }
+  /* THE PAGE MARGIN IS ONE NUMBER, AND --gutter IS IT. This band and .map-stage
+     below are the two acts that stand OUTSIDE .container — they are full-bleed
+     tracks with their own sticky stages, so each re-derives the content box
+     rather than inheriting one. The arithmetic is .container's own, to the
+     letter: base.css gives it `width: 100%; max-width: calc(--container-max +
+     --gutter * 2); padding-inline: --gutter`, whose content box is
+     min(100% - 2 * --gutter, --container-max) — the expression below.
+
+     IT WAS --space-6, and a fixed rung cannot be a page margin. --gutter is
+     `clamp(1.25rem, 5.5vw, 5rem)`: it tracks the viewport between 364 and 1454
+     and pins at either end. A constant 24 px agrees with that ramp at exactly
+     ONE viewport — 5.5vw = 24 at 436 px — and nowhere else. Measured, the left
+     edge of act 5's legend against the left edge of the FAQ and partner
+     headings on the same page:
+
+       viewport   page margin   act 4/5   act stands
+        320        20.0          24        4.0 px INSIDE the page
+        436        24.0          24        0      (the one width it agrees)
+        768        42.2          24       18.2 px OUTSIDE
+        834        45.9          24       21.9 px OUTSIDE
+       1024        56.3          24       32.3 px OUTSIDE
+       1328        73.0          24       49.0 px OUTSIDE   <- worst
+       1440        80.0          80        0      (both capped)
+
+     So on every desktop and tablet width from 437 to 1439 the three beats of
+     act 5's copy, its legend, and act 4's plates began left of every other
+     line on the page, by an amount that changed continuously as the window was
+     dragged — 0 to 49 px and back to 0, with no threshold anywhere in it,
+     which is why no breakpoint sweep and no ladder stop could name it. It is
+     the shape a page-local re-derivation of a shared measurement always takes:
+     these rules were written in prototypes/statement-to-process.html, a lab
+     page with no .container in it at all, where a self-contained inset is the
+     only thing that CAN be written and 24 px looks like any other choice. The
+     landing page has .container on every other section, and the substitute and
+     the real thing agreed at one width out of the range.
+
+     NOT A THRESHOLD AND NOT A NEW TOKEN — the register stays the length it
+     was. --gutter is the token the page already keeps this number in, and the
+     prototype gets the same ramp for free: it has no .container to disagree
+     with, so the only thing that changes there is that its bands now breathe
+     with the viewport the way every band on the site does.
+     → scripts/check-band-inset.py, base.css .container, tokens.css --gutter */
   .sp4-set {
     display: grid;
     gap: var(--space-12);
-    inline-size: min(100% - 2 * var(--space-6), var(--container-max, 76rem));
+    inline-size: min(100% - 2 * var(--gutter), var(--container-max, 76rem));
     margin-inline: auto;
   }
 
@@ -1060,10 +1102,16 @@
      beats of copy under it, whole.
      ============================================================ */
   .map-track { position: relative; }
+  /* THE SAME MARGIN AS EVERY OTHER LINE ON THE PAGE — see the note over
+     .sp4-set for the measurements and for why a fixed rung cannot be one.
+     This band carries the case that shows it: .map__legend and the three
+     .map-beat runs are ordinary prose, set under the drawing at every width
+     below the gate and under it inside the gate too, and at 834 they opened
+     21.9 px left of "Partner & Technologien" two sections down. */
   .map-stage {
     display: grid;
     gap: var(--space-8);
-    inline-size: min(100% - 2 * var(--space-6), var(--container-max, 76rem));
+    inline-size: min(100% - 2 * var(--gutter), var(--container-max, 76rem));
     margin-inline: auto;
     padding-block: var(--space-16);
     align-content: center;
