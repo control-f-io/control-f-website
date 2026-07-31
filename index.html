@@ -941,7 +941,46 @@
              consumers of acts.css — a redesign of the base tier's stack, not a
              source-order move, and left for the lane that owns it. -->
         <figure class="cf-statement__figure sp-drawing">
-          <div class="sp-root">
+          <!-- data-cf-idle="0px", AND THE VALUE IS THE WHOLE POINT. The fringe's
+               twenty-six leaves shimmer on the DOCUMENT clock — the third
+               animation in .lp-flow__leaf's list, `infinite alternate` — and
+               until now the only box gating them was .sp-track, four levels up
+               and 5 760 px tall. That box's top edge stands 138 px ABOVE the
+               fold at scrollY=0, so it intersects before the reader has
+               scrolled at all and cf-idle.js took `data-idle` straight back
+               off. The gate was open at the top of the page, which is where
+               every reader starts.
+
+               Measured at 1440 x 900, loaded and left completely alone at the
+               hero — no scroll, no pointer, no keyboard, four seconds:
+
+                 as shipped               2 601 ms task / 4 000    65 % of a core
+                                          1 509 ms of it style recalc
+                                          240 recalcs — one per frame, 60 Hz
+                 the shimmer paused           1.0 ms                0.0 %
+                 the 26 leaves removed        0.7 ms                0.0 %
+                 the same page at 1280    2 560 ms                 64 %
+                 at 768                       1.5 ms                0.0 %
+                 at 375                       1.1 ms                0.0 %
+
+               Two thirds of a core, for the life of the tab, for twenty-six
+               paths that at that moment are `scale: 0` — zero pixels wide,
+               nothing painted — and 77 px below the fold. 768 and 375 are the
+               same document with no fringe in the tier, which is what makes the
+               attribution exact rather than inferred. Cancelling the other 128
+               perpetual animations instead leaves 32 % standing; cancelling
+               this one alone leaves nothing, because it is the one that is not
+               composited and so the one that forces the frame the others are
+               then walked in.
+
+               .sp-root is the flow box exactly and no more, and 0px is its own
+               margin because there is nothing here to be seen starting: the
+               shimmer is a sine with a per-leaf phase offset, and lp-frame-draw
+               holds every leaf at scale 0 until contain 36 % of this track —
+               thousands of pixels after the box has arrived. The readouts keep
+               the viewport of lead-in they need, on .sp-track, untouched.
+               → assets/js/cf-idle.js, scripts/check-idle-reach.py -->
+          <div class="sp-root" data-cf-idle="0px">
 <!-- THE FLOW, a root. The data leaves the void and grows downward until
                it is the frame the next section is built in. Not a bus and seven
                drops any more: a trunk that bifurcates twice, three taproots, and
@@ -2084,7 +2123,21 @@
        photograph — which is exactly where the people at the ends of the line
        are standing. 2000 x 773, and nothing is cropped.
        ============================================================ -->
-  <section class="sp4-track" data-stream aria-labelledby="wer-wir-sind">
+  <!-- data-cf-idle, and it was missing here and on the map for as long as the
+       gate has existed. cf-stream.js builds one .cf-stream__caret per
+       [data-stream] track, and components.css pauses it under [data-idle] with
+       the note "the last two go the same way as the other 126". They did not:
+       the only marked box on the page was act 1+2's .sp-track, and these two
+       carets are not inside it. Measured at 1440 x 900 they stand at document
+       y 13 643 and 16 982, in this act and in the map — five and nine thousand
+       pixels outside the box that was supposed to hold them still. The pause
+       rule matched nothing, on every load, since it was written.
+
+       check-idle-motion.py passed it because its page half asks only that SOME
+       box carries the attribute and the script is loaded, which was true. The
+       containment is the half that was missing, and it is now its own check.
+       → scripts/check-idle-reach.py -->
+  <section class="sp4-track" data-cf-idle data-stream aria-labelledby="wer-wir-sind">
     <h2 class="visually-hidden act-anchor" id="wer-wir-sind">Wer wir sind</h2>
     <div class="sp4-stage">
       <div class="sp4-set">
@@ -2197,7 +2250,9 @@
        (public domain), vendored and simplified so CI can re-derive it
        offline. Re-run it and the same paths come out; --check says so.
        ============================================================ -->
-  <section class="map-track" data-stream aria-labelledby="wo-die-daten">
+  <!-- data-cf-idle: the second of the two carets, for the reason given over
+       .sp4-track. → scripts/check-idle-reach.py -->
+  <section class="map-track" data-cf-idle data-stream aria-labelledby="wo-die-daten">
     <h2 class="visually-hidden act-anchor" id="wo-die-daten">Wo die Daten herkommen</h2>
     <div class="map-stage">
 

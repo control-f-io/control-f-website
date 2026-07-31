@@ -2287,6 +2287,30 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-idle-motion.py
 
+      # And the half of that rule the one above cannot see. It asks whether the
+      # stylesheet pauses every perpetual animation and whether the page marks a
+      # box and loads the script. All three were true of the landing page while
+      # the gate reached two of its three subjects.
+      #
+      # cf-stream.js gives every [data-stream] track a caret, components.css
+      # pauses it under [data-idle] with the note "the last two go the same way
+      # as the other 126", and the page had three such tracks with the mark on
+      # one. Measured at 1440 x 900, the two unreached carets stand at document
+      # y 13 643 and 16 982 — five and nine thousand pixels outside the only box
+      # that could ever have held them still. The rule matched nothing on every
+      # load since the day it was written, and the suite said the page passed.
+      #
+      # A pause rule that reaches nothing is the same cost as no pause rule and
+      # none of the evidence: the stylesheet reads as gated. Countable in a
+      # file, invisible in every frame.
+      #
+      # Proven failing on two reintroductions: the mark dropped from the act 4
+      # track, which is the fault exactly as it shipped, and the mark dropped
+      # from act 1+2's track, which unreaches the twenty-one sensor labels too.
+      - name: Idle reach
+        if: '!cancelled()'
+        run: python3 scripts/check-idle-reach.py
+
       # It is also the check that catches a hand-written page appearing at the
       # root — the outgoing website was nine of those, and this is what keeps a
       # tenth from arriving unnoticed.

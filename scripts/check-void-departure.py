@@ -177,11 +177,16 @@ def main():
     # rather than as "ground immediately followed by content". What it holds
     # is the ORDER, which is what the sentence was always about; making it
     # adjacency as well was an accident of there being nothing in between.
+    # The three boxes are matched by their class and not by one exact spelling
+    # of their start tag. The sentence is about ORDER; an attribute added to any
+    # of them — .sp-root took data-cf-idle="0px" when the fringe's shimmer got
+    # its own gate — changes nothing about which box is under which, and a
+    # checker that fails on it is reporting its own regex.
     if not re.search(
-            r'<div class="sp-stage">[\s\S]*?<svg class="sp-field"[^>]*'
+            r'<div class="sp-stage"[^>]*>[\s\S]*?<svg class="sp-field"[^>]*'
             r'viewBox="0 0 1600 900"[^>]*preserveAspectRatio="xMidYMid slice"'
-            r'[\s\S]*?</svg>[\s\S]*?<div class="container">[\s\S]*?'
-            r'<div class="sp-root">[\s\S]*?lp-flow\b', text):
+            r'[\s\S]*?</svg>[\s\S]*?<div class="container"[^>]*>[\s\S]*?'
+            r'<div class="sp-root"[^>]*>[\s\S]*?lp-flow\b', text):
         findings.append(
             "the stage no longer opens with the full-bleed .sp-field svg "
             "(1600 x 900, sliced) before the container holding .sp-root — "
