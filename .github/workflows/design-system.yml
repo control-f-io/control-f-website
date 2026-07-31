@@ -564,6 +564,21 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-markup.py
 
+      # The accessibility check above holds the references — aria-labelledby
+      # must name an id that exists — but it finds attributes by their names,
+      # so an attribute whose NAME is misspelled never enters any rule: the
+      # one-L aria-labeledby is not a broken reference, it is nothing at all.
+      # Browsers agree; an unknown ARIA token is no error, no warning, no
+      # console line, just an attribute no accessibility tree ever reads. So
+      # the vocabulary itself is held: every role a concrete ARIA role, every
+      # aria-* an attribute ARIA defines, every enumerated value in its set —
+      # and no focusable element inside an aria-hidden subtree, where Tab
+      # still stops but the accessibility tree says nothing is there.
+      # Proven failing on all five classes seeded across two pages.
+      - name: ARIA vocabulary
+        if: '!cancelled()'
+        run: python3 scripts/check-aria-vocabulary.py
+
       - name: Class provenance
         if: '!cancelled()'
         run: python3 scripts/check-class-provenance.py
