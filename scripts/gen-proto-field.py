@@ -8,9 +8,30 @@ the opposite composition in three clauses — the grid should cover the whole
 screen, the gradient dots should STREAM FROM THE CORNERS into their grid
 positions and then pulse and merge, and the glows should stop crowding
 ("let not bubble it so close together"). That is a different drawing with a
-different law, and scripts/gen-stmt-field.py keeps owning the landing/statement
-copies unchanged; this file owns only
-design-system/prototypes/statement-to-process.html.
+different law, and scripts/gen-stmt-field.py keeps owning the statement
+component's copy unchanged.
+
+TWO PAGES, AND THE SECOND ONE SHIPS. This file was written for the prototype
+and named for it, and then the five acts were ported to
+design-system/patterns/landing-page.html and took the drawing with them —
+lattice, sensors and callouts, 220 lines, byte for byte. The port copied the
+markup and the sentence that stands over it ("Contents are GENERATED, NOT
+TYPED ... --check holds the shipped markup to it") and did not copy the
+ownership: PAGE was one path, so --check read the prototype and the shipping
+page's field was held to nothing.
+
+Measured on main before this change, by moving one sensor's crossing
+(--cx:816 -> 800) and one lattice line (x1 1520 -> 1500) in landing-page.html
+and running the whole suite — 105 check-* scripts plus all four generators'
+--check: 0 failures. The lab was gated and the page was not, which is the
+inversion of what the two files are for. The landing page also carries the
+acts' only shipping copy of this drawing, so a hand edit there is a hand edit
+to production with the sentence above it still claiming a generator.
+
+PAGES is the list now, which is the shape scripts/gen-stmt-field.py already
+uses for the same reason, and both files are spliced and checked in one pass.
+The two copies were identical on the day this landed; the point is that they
+stay that way by construction rather than by anyone remembering.
 
 THE LAW. One lattice, one supergrid, one focus.
 
@@ -120,7 +141,12 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-PAGE = ROOT / "design-system" / "prototypes" / "statement-to-process.html"
+# The lab and the shipping page, in that order. Both carry the same three
+# marked blocks and both are held to this script's output — see the header.
+PAGES = [
+    ROOT / "design-system" / "prototypes" / "statement-to-process.html",
+    ROOT / "design-system" / "patterns" / "landing-page.html",
+]
 
 # THE FIELD IS THE SYSTEM'S GROUND, AT THE SYSTEM'S SIZE.
 #
@@ -603,23 +629,30 @@ def main():
         if not (args.write or args.check):
             return 0
 
-    text = PAGE.read_text(encoding="utf-8")
-    new, n = splice(text)
-    if n != 3:
-        print(f"gen-proto-field: found {n} of 3 blocks — the markers went stale")
-        return 1
-    if args.write:
-        if new != text:
-            PAGE.write_text(new, encoding="utf-8")
-            print(f"  wrote {PAGE.relative_to(ROOT)}")
-        else:
-            print(f"  {PAGE.relative_to(ROOT)} already current")
-    elif new != text:
-        print("gen-proto-field: the prototype's field is not what this script "
-              "generates — re-run with --write")
+    stale = 0
+    for page in PAGES:
+        rel = page.relative_to(ROOT)
+        text = page.read_text(encoding="utf-8")
+        new, n = splice(text)
+        if n != 3:
+            print(f"gen-proto-field: {rel}: found {n} of 3 blocks — "
+                  f"the markers went stale")
+            return 1
+        if args.write:
+            if new != text:
+                page.write_text(new, encoding="utf-8")
+                print(f"  wrote {rel}")
+            else:
+                print(f"  {rel} already current")
+        elif new != text:
+            print(f"gen-proto-field: {rel}'s field is not what this script "
+                  f"generates — re-run with --write")
+            stale += 1
+    if stale:
         return 1
     if args.check:
-        print("gen-proto-field: the field is the generator's output")
+        print(f"gen-proto-field: the field is the generator's output "
+              f"in {len(PAGES)} pages")
     return 0
 
 
