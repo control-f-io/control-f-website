@@ -2191,6 +2191,32 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-stream-reserve.py
 
+      # The idle-motion check is the eighty-eighth, and the fourth whose subject
+      # is what a page costs rather than what it looks like. The other three
+      # count blurred layers, hold the scroll timelines to `screen`, and keep
+      # the keyframes off layout properties. This one holds the OTHER clock.
+      #
+      # A view timeline is free while nobody scrolls; an `infinite` animation on
+      # the document clock runs for the life of the tab. The landing page
+      # shipped 128 of them -- 126 sensor readings, two carets -- inside act 1,
+      # which is 2 300 px of a 22 931 px document. Measured at 1440 x 900 with
+      # the page loaded and then left completely alone: 1 351 ms of style
+      # recalculation in five seconds, one recalc per frame at 60 Hz, 2 246 ms
+      # of total task time. Forty-five per cent of the main thread, at act 5 as
+      # much as at act 1, for a readout that is not on the screen.
+      #
+      # It is invisible in every screenshot the repository takes, because a
+      # screenshot is one frame and every frame of it is correct. It is exactly
+      # countable in a file, which is what this is.
+      #
+      # Proven failing on four reintroductions: the pause rule deleted from
+      # acts.css, the script tag deleted from the landing page, the mark deleted
+      # from the section, and a new perpetual animation added on a fresh
+      # selector with no gate.
+      - name: Idle motion
+        if: '!cancelled()'
+        run: python3 scripts/check-idle-motion.py
+
       # It is also the check that catches a hand-written page appearing at the
       # root — the outgoing website was nine of those, and this is what keeps a
       # tenth from arriving unnoticed.
