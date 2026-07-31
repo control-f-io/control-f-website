@@ -719,14 +719,12 @@
     font-weight: var(--weight-bold);
     line-height: var(--leading-snug);
     color: var(--text-primary);
-    min-block-size: 2.3em;
   }
   .sp-say__body {
     margin-block-start: var(--space-3);
     font-size: var(--text-md);
     line-height: var(--leading-relaxed);
     color: var(--text-secondary);
-    min-block-size: 7.5em;
   }
   /* THE NUMERAL LAYER IS THE DRAWING'S BOX, AND NOW IT SAYS SO. It was
      `inset: 0` of .sp-root and that was only ever true by coincidence: the
@@ -996,7 +994,6 @@
     font-weight: var(--weight-bold);
     line-height: var(--leading-snug);
     color: var(--text-primary);
-    min-block-size: 2.4em;
   }
   .sp4-say__body {
     margin-block-start: var(--space-4);
@@ -1004,9 +1001,7 @@
     font-size: var(--text-lg);
     line-height: var(--leading-relaxed);
     color: var(--text-secondary);
-    min-block-size: 7.4em;
   }
-  .sp4-plate:last-of-type .sp4-say__body { min-block-size: 5.2em; }
 
   /* ---- the picture and its frame ---- */
   .sp4-shot { position: relative; aspect-ratio: var(--ar); padding: var(--space-4); }
@@ -1248,7 +1243,6 @@
     font-weight: var(--weight-bold);
     line-height: var(--leading-snug);
     color: var(--text-primary);
-    min-block-size: 1.3em;
   }
   .map-beat__body {
     margin-block-start: var(--space-3);
@@ -1256,7 +1250,6 @@
     font-size: var(--text-lg);
     line-height: var(--leading-relaxed);
     color: var(--text-secondary);
-    min-block-size: 4.6em;
   }
   /* FLOORED, and the one column is declared rather than left implicit. A grid
      with no grid-template-columns has one column of `auto`, and `auto` as a
@@ -1435,6 +1428,66 @@
          states its own `none`, and the flow tier's arithmetic can change without
          reaching in here again. */
       .sp-stage { --sp-ground-clip: none; }
+
+      /* THE TYPEWRITER'S RESERVED BOXES, IN THE TIER THAT TYPES. Six
+         min-block-sizes hold act 2's, act 4's and act 5's copy runs still
+         while cf-stream.js writes them character by character: without them
+         the line count grows as characters land and the composition steps
+         down the screen under the reader. They were declared on the base
+         rules, which is every tier — and cf-stream.js runs in exactly one.
+         Its own header says so: "It refuses to run unless the pinned layout
+         is actually active — no support for scroll-driven animations,
+         reduced motion, or a viewport below the consumer's own gate", and
+         the consumer's own gate is the two lines directly above this. In
+         every other tier the copy is whole markup at rest, nothing reflows,
+         and the reservation is the height of a sentence that is not coming.
+
+         WHAT IT COST, measured as box height minus the same box's natural
+         height with the floor lifted, JavaScript on, at rest:
+
+                                          320   375   768  1023   1440
+           .sp-say__lead   x2 (2.3em)      36    36    36    36     —
+           .sp4-say__lead  "Und das ganze
+                            Team" (2.4em)  30    30    30    30     —
+           .sp4-say__lead  plate 01         —     —    30    30     —
+           .sp4-say__body  x2 (7.4/5.2em)   —     —    63    63     —
+           .map-beat__body x2 (4.6em)       —     —    54    54     —
+           page total                      66    66   213   213      0
+
+         The 1440 column is the gate met, where every one of those floors is
+         load-bearing and stays. The visible fault was act 4's second plate:
+         "Und das ganze Team" is one line in a box reserving two, so on a
+         phone the heading stood 30 px clear of the paragraph it heads while
+         the plate above it — a two-line name — had none. Two plates, one
+         section, two different rhythms, and the difference was which
+         headline happened to wrap.
+
+         AND THE GATED TIERS DO NOT MOVE, which is the whole test of whether
+         this is the right gate. patterns/landing-page.html, document height,
+         before -> after:
+
+           320x812     8767 -> 8688      1024x900   22758 -> 22758
+           375x812     8429 -> 8347      1440x900   22931 -> 22931
+           768x812     8900 -> 8686      1920x1080  27375 -> 27375
+           1023x900    8119 -> 7822
+           1440x900 reduce  8595 -> 8504
+           1440x700 (short) 8395 -> 8304
+
+         Every tier without a timeline is shorter by the air it was holding;
+         every tier with one is identical to the byte.
+
+         components.css has the system's only other instance of this device,
+         .cf-values__title/__body on ueber-uns, and it has been inside its own
+         @supports block since it was written — same reason, stated in its own
+         comment. This is that rule, put back where that one already is.
+         → cf-stream.js header; scripts/check-stream-reserve.py */
+      .sp-say__lead  { min-block-size: 2.3em; }
+      .sp-say__body  { min-block-size: 7.5em; }
+      .sp4-say__lead { min-block-size: 2.4em; }
+      .sp4-say__body { min-block-size: 7.4em; }
+      .sp4-plate:last-of-type .sp4-say__body { min-block-size: 5.2em; }
+      .map-beat__lead { min-block-size: 1.3em; }
+      .map-beat__body { min-block-size: 4.6em; }
 
       /* THE FLOOR IS CAPPED AT THE VIEWPORT IT IS A FLOOR FOR, and the min()
          is the whole of the fix. 45rem is this gate's own `min-height: 45rem`
