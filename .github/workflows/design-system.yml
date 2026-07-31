@@ -1610,6 +1610,40 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-fallback-tier.py
 
+      # The second about a TIER, and its subject is the one above's opposite: not
+      # a declaration that reaches a tier it was not written for, but a drawing
+      # that never reaches a tier at all. cf-icons.js is the one file the icon
+      # set is drawn in and it appends the sprite at the foot of <body>, so a
+      # <use href="#cf-signal"> is a promise that a script will keep. Where the
+      # script does not run, SVG gives a use element with an unresolvable
+      # reference no shadow tree: no box, no fallback, no console line.
+      #
+      # Eight of the fourteen pattern pages had already inlined the symbols they
+      # point at. Three had not -- landing-page.html 7 of 8, expertise.html 4 of
+      # 5, news.html 1 of 2. Measured on the landing page at 1440 x 900 with
+      # JavaScript off and the act rail lifted by :focus-within, which below
+      # 96rem is the only way that rail is ever seen: both .act-rail__jump
+      # controls painted 80 and 82 px of ink with the script and 0 without, and
+      # their label is a .visually-hidden span, so each was a 92 x 24 px link in
+      # the tab order that took the focus ring, scrolled the page, and showed
+      # nothing. The five act rows kept a numeral and a title and lost a mark.
+      #
+      # The tier it breaks in is the one nobody reviews in: with the script
+      # running the sprite is complete before the first frame anyone sees, so the
+      # holed page and the whole page are pixel-identical in any browser opened
+      # to look at them.
+      #
+      # Scope is patterns/ and not the tree: components/ and foundations/ are the
+      # documentation, and foundations/iconography.html builds its <use> elements
+      # from the set at runtime -- a page whose subject is the script cannot be
+      # asked to work without it.
+      #
+      # Proven failing on the defect reintroduced: dropping the single
+      # <symbol id="cf-globe"> names act 5's glyph at its own line.
+      - name: Icon sprite
+        if: '!cancelled()'
+        run: python3 scripts/check-icon-sprite.py
+
       # The first about whether a control can be REACHED rather than about what
       # it looks like when it is. The act rail was hidden
       # with the `hidden` attribute, cleared by act-rail.js while the acts are on
