@@ -30,9 +30,47 @@
    up un-types the text.
 
    It refuses to run unless the pinned layout is actually active — no support
-   for scroll-driven animations, reduced motion, or a viewport under 820 px all
-   mean the section is in its stacked state, where every stage is on screen at
-   once and typing one of them would be nonsense. It re-checks on resize.
+   for scroll-driven animations, reduced motion, or a viewport below the
+   consumer's own gate all mean the section is in its stacked state, where
+   every stage is on screen at once and typing one of them would be nonsense.
+   It re-checks on resize.
+
+   AND IT ASKS THE TRACK RATHER THAN RESTATING THE GATE. This used to test
+   `matchMedia('(min-width: 820px)')` against a constant with "keep in step
+   with the media queries in components.css" beside it, and the three
+   consumers had already walked away from it in three different directions:
+
+     .cf-values__track   ueber-uns     no-preference and (min-width: 51.25rem)
+     .cf-pin             expertise     no-preference and (min-width: 64rem)
+                                                     and (min-height: 45rem)
+     .sp-track/.sp4-track/.map-track   landing, acts.css — the same 64rem x 45rem
+
+   51.25rem IS the 820 this named, converted when the register took the
+   threshold in — so the constant was stale in units as well as in value: at a
+   24 px root the gate it mirrors waits for 1230 px and this still engaged at
+   820. Neither of the other two has ever been 820, and NEITHER OF THE THREE
+   HEIGHT TERMS WAS HERE AT ALL.
+
+   What that cost, measured on the landing page before this: at any viewport
+   whose width cleared 820 while the track's own gate did not — 860 x 900,
+   1000 x 800, 1023 x 760, 1280 x 700, 1440 x 719 — build() emptied act 2's
+   four paragraphs into their streamed spans and run() then bailed on
+   `travel <= 0`, so the 481 characters of "Tausende Sensoren, ein Strom." and
+   the three lines under it were never written back. Zero characters on screen,
+   at every scroll position, for the whole life of the page. The a11y twin
+   still carried the sentence, so it was sighted readers only, and 1366 x 768 —
+   a viewport height of about 660 once the browser takes its chrome — is
+   squarely inside the band.
+
+   So the question is asked of the element that answers it. A track's tall
+   height and its `view-timeline-name` are declared in the SAME rule inside the
+   SAME gate — all three consumers are written that way — so a computed
+   view-timeline-name that is not `none` means precisely "this track is tall,
+   pinned, and scrubbing", in whatever units and with whatever height term that
+   consumer wrote, and it folds in @supports and reduced-motion for free
+   because the declaration sits inside those too. act-rail.js reads the same
+   property for the same reason; the note over `budget` there carries the
+   measurements.
 
    MARKUP, all data attributes, so no class name is baked in here:
 
@@ -56,16 +94,18 @@
   var LINE = '[data-stream-line]';
   var REVEAL = 0.62;          /* of a stage; the rest is the hold */
   var DEFAULT_LINE = [0.14, 0.72];
-  var MIN_WIDTH = 820;        /* keep in step with the media queries in components.css */
 
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function smoothstep(x) { return x * x * (3 - 2 * x); }
 
-  function pinned() {
-    if (!window.matchMedia) return false;
-    if (!(window.CSS && CSS.supports && CSS.supports('animation-timeline', 'view()'))) return false;
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
-    return matchMedia('(min-width: ' + MIN_WIDTH + 'px)').matches;
+  /* Per track, and computed rather than restated — see the header. `typeof`
+     and not a bare `!== 'none'`: a browser with no view-timeline-name at all
+     returns undefined for it, and undefined is not 'none', so the loose test
+     would read "pinned" in exactly the tier that has no timelines to pin
+     with. */
+  function pinned(track) {
+    var name = getComputedStyle(track).viewTimelineName;
+    return typeof name === 'string' && name !== '' && name !== 'none';
   }
 
   function num(v, fallback) {
@@ -133,7 +173,21 @@
     /* The same interval the CSS `contain` range covers: the stretch over which
        the track fully covers the viewport, which is exactly the sticky travel. */
     var travel = r.height - window.innerHeight;
-    if (travel <= 0) return;
+    /* A TRACK WITH NO TRAVEL IS SHOWN WHOLE, NOT LEFT BLANK. build() has
+       already emptied every line into its streamed span by the time this runs,
+       so `return` here does not mean "leave it alone" — it means the copy
+       stays at nought characters until something else writes it back, and the
+       only thing that does is teardown() on a resize that flips the gate.
+       That is how 481 characters of act 2 went missing whenever the gate this
+       file tested disagreed with the gate that sets the track's height, and it
+       is worth keeping the direction of the failure right even now that the
+       two agree: whole is the readable state, blank is not. */
+    if (travel <= 0) {
+      state.parts.forEach(function (lines) {
+        lines.forEach(function (line) { paint(line, 1); });
+      });
+      return;
+    }
     var progress = clamp(-r.top / travel, 0, 1);
 
     var n = state.parts.length;
@@ -177,12 +231,12 @@
       function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(frame); } }
 
       function sync() {
-        if (pinned() && !state) {
+        if (pinned(track) && !state) {
           state = build(track);
           if (!state) return;
           window.addEventListener('scroll', onScroll, { passive: true });
           run(state);
-        } else if (!pinned() && state) {
+        } else if (!pinned(track) && state) {
           window.removeEventListener('scroll', onScroll);
           teardown(state);
           state = null;

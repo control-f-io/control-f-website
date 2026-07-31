@@ -1041,6 +1041,31 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-pin-gate.py
 
+      # And the other half of that gate: the pages declare it, and a script
+      # decided separately whether it was on. cf-stream.js gated the typewriter
+      # on a `MIN_WIDTH = 820` constant carrying "keep in step with the media
+      # queries in components.css", and nothing does keep a constant in step.
+      # Its three consumers had moved to 51.25rem (ueber-uns) and to
+      # 64rem x 45rem (expertise, and the landing page's three act tracks);
+      # 51.25rem IS that same 820 after check-local-thresholds.py's register
+      # took it in, so the number was stale in units as well as in value, and
+      # not one of the three height terms was ever in the script.
+      #
+      # Between the two gates the engine emptied the copy into its streamed
+      # spans and then bailed out of writing it back, because an unpinned track
+      # has no travel to scrub against. Measured on the landing page at
+      # 860 x 900, 1000 x 800, 1023 x 760, 1280 x 700 and 1440 x 719 — and on a
+      # 1366 x 768 laptop once the browser has its chrome — act 2's four
+      # paragraphs were 0 of 481 characters at every scroll position, for the
+      # whole life of the page. The .visually-hidden twin still carried them,
+      # so the page read correctly to assistive technology and to nobody else.
+      #
+      # The gate is one declaration now and it is read off the element that
+      # carries it. This counts that no shipping script has grown a second copy.
+      - name: Script gates
+        if: '!cancelled()'
+        run: python3 scripts/check-script-gates.py
+
       # The scroll port reserves the layer fixed over its bottom edge. Chromium
       # scrolls a newly focused off-screen element into view with `nearest`
       # alignment, so every forward Tab parks its control against the viewport's
