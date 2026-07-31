@@ -75,9 +75,12 @@ WHAT IT DOES NOT CHECK, deliberately
   thresholds, which is the one part of that scope the other does not reach, and
   says so here rather than leaving the next reader to diff them.
 
-  The three shipping stylesheets. check-breakpoints.py owns those, keeps both
-  copies of their register in step, and is stricter — no px threshold at all.
-  This file governs only what that one names as out of scope.
+  The shipping stylesheets — the three shared ones and acts.css, the landing
+  page's own sheet. check-breakpoints.py owns those, keeps both copies of
+  their register in step, and is stricter — no px threshold at all. A page
+  stylesheet registers there rather than here because its thresholds ship:
+  page-local ownership does not make a fold any less the reader's. This file
+  governs only what that one names as out of scope.
 
   prototypes/. Declared not-yet-system by the README, with their own
   unreconciled styling, and out of scope by the same boundary every other check
