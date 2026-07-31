@@ -1560,6 +1560,56 @@
       /* THE STAGE'S HEIGHT, NOT THE VIEWPORT'S: the drawing is fitted to the
          box it stands in, and that box gave the nav back its bar. */
       .sp-drawing { --sp-measure: min(100%, calc((100vh - var(--act-bar) - 8rem - var(--sp-head-band)) * 1.9)); }
+      /* AND CENTRED IN IT, WHICH IS THE HALF THE MEASURE CANNOT BUY.
+         Fourteen lines up this block says the arrivals "only line up if the
+         two share a width" — and then sizes the drawing off the viewport's
+         HEIGHT, which is a width the container has no say in. min(100%, …)
+         takes the second branch on every laptop, the figure is a grid item
+         with a definite width, and a definite width in a grid area is START
+         aligned. So the drawing hung on the container's left edge while the
+         card below it was centred, and the source — the single point the
+         whole root resolves to, and the point the lectern's inner vertical
+         is written to continue — stood half the shortfall to the left of
+         that vertical. Measured on the shipped page, gate on, consent
+         dismissed, source x against inner-vertical x in page pixels:
+
+           viewport      drawing   container   source    vertical   short by
+           1024 x  900     911.38    911.38     512.00     512.00      0.00
+           1280 x  900    1109.59   1139.22     625.19     640.00     14.81
+           1280 x  800     919.59   1139.22     530.19     640.00    109.81
+           1280 x  720     767.59   1139.22     454.19     640.00    185.81
+           1366 x  768     858.80   1215.75     504.52     683.00    178.48
+           1440 x  900    1109.59   1280.02     634.78     720.00     85.22
+           1440 x  720     767.59   1280.02     463.78     720.00    256.22
+           1600 x  900    1109.59   1280.00     714.80     800.00     85.20
+           1920 x 1080    1280.00   1280.00     960.00     960.00      0.00
+           2560 x 1440    1280.00   1280.00    1280.00    1280.00      0.00
+
+         Three zeros and they are the three sizes where the height cap does
+         not bind — 1920 and 2560 are tall and 1024's container is already
+         narrower than the cap. Every other row is a laptop, and 85 px is
+         what the trunk ends in mid-air by at the size this drawing was
+         tuned at. Same shape as .cf-pin__inner's own note in
+         components.css, one element further up the seam: the card narrowed
+         and centred while its chrome stayed flush, and nobody had asked
+         what the DRAWING did.
+
+         THE WIDTHS DO NOT HAVE TO MATCH AND SHOULD NOT BE MADE TO. The
+         drawing is fitted to the stage's height on purpose — that is what
+         keeps the whole of it on screen — so the arrival cannot rest on a
+         shared width. It rests on a shared CENTRE, which the geometry
+         already provides: the source sits at flow x 600 of 1200 and the
+         inner vertical at frame x 500 of 1000, both the exact middle of
+         their own viewBox, and the card's row is centred in this same
+         container. Centre the drawing and the two land on each other at
+         every viewport the gate admits, whatever --sp-measure resolves to.
+         scripts/check-seam-centre.py holds all four of those facts.
+
+         justify-self AND NOT margin-inline, for the reason
+         .cf-pin__inner's note gives about the same fix: a margin here is
+         (0,1,0) against base.css's own figure margin and the cascade is
+         not the place to settle a join. */
+      .sp-drawing { justify-self: center; }
       /* Flush to the drawing: the rule IS the drawing's baseline now, so the
          component's own bottom margin would be a gap between the feet and the
          thing they land on. */

@@ -191,8 +191,17 @@ def check_page(page, verbose):
         return [], False
 
     findings = []
-    # The two boxes are the same width — .lp-flow reads --lp-measure and the
-    # card takes it as --pin-measure — so one basis maps the other.
+    # THE TWO BOXES ARE NOT THE SAME WIDTH, and this line said they were. The
+    # claim was ".lp-flow reads --lp-measure and the card takes it as
+    # --pin-measure" — the card does, the drawing never did. It is sized by
+    # --sp-measure, its own function of the viewport's height, and measured on
+    # the shipped page the two render 1109.59 px and 1280 px at 1440 x 900.
+    # What the basis below actually is, therefore, is a map between the two
+    # viewBoxes' PROPORTIONS, which is all this file uses it for: every clause
+    # here asks where a point sits along its own box, and a proportion answers
+    # that whatever the box measures. Where the two boxes land in PAGE pixels
+    # is a different question, it was open by 85 px at the size this seam was
+    # tuned at, and scripts/check-seam-centre.py is what closed it.
     basis = frame_vb[2] / flow_vb[2]
     rail_y = flow_vb[3]          # the foot of the flow's own box
     frame_top = frame_vb[1]      # the frame's top rail
@@ -275,11 +284,16 @@ def check_page(page, verbose):
         print(f"  {page.name}: flow {flow_vb[2]} units wide, lectern {frame_vb[2]} — "
               f"basis {show(basis)}")
         print(f"    {len(frame)} hairlines, {len(frame) * 2} endpoints, all on the frame")
-        print(f"    {len(drops)} drops at flow y {show(rail_y)}:")
-        for x in drops:
-            fx = x * basis
-            mark = "  <- vertical" if fx in verticals else ""
-            print(f"      flow x {show(x):>7}  ->  frame x {show(fx):>7}{mark}")
+        # ONE ARRIVAL, NOT NINETEEN, and this loop was still printing the
+        # nineteen. `drops` went out with the confluence rewrite of 2026-07-29
+        # — clause 2 above says so in full — and the verbose branch kept the
+        # name, so `-v` raised NameError while the plain run exited 0 and CI,
+        # which runs it plain, stayed green. A check that cannot be asked to
+        # explain itself is a check nobody re-reads.
+        print(f"    {len(landed)} arrival(s) at flow y {show(rail_y)}:")
+        for fx in landed:
+            mark = "  <- inner vertical" if fx in verticals else "  <- on no vertical"
+            print(f"      the source  ->  frame x {show(fx):>7}{mark}")
 
     return findings, True
 

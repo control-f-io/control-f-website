@@ -821,6 +821,29 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-flow-handover.py
 
+      # And the one that reads the sentence Flow handover rests on. Its whole
+      # argument for checking the seam in viewBox units is "both drawings are
+      # the same width by construction", and on the shipped page they are not:
+      # the card's row is capped by --pin-measure and the drawing by
+      # --sp-measure, two different functions of the viewport's HEIGHT, and the
+      # drawing — a grid item with a definite width, so start aligned — hung on
+      # the container's left edge while the card centred. The source ended
+      # 85.22 px left of the hairline written to continue it at 1440 x 900 and
+      # 256.22 px at 1440 x 720, and every check in this file passed on it,
+      # because the three sizes where the height cap does not bind are 1024,
+      # 1920 and 2560 — the sizes anyone checks at. Same fault
+      # .cf-pin__inner's own note records one element down the seam, which
+      # fixed the three rows it was looking at and never asked what the drawing
+      # did. The widths do not have to match and should not be made to: the
+      # source is at the flow viewBox's middle and the inner vertical at the
+      # frame viewBox's middle, so a shared CENTRE lands them on each other at
+      # every viewport, whatever the two measures resolve to. This holds all
+      # four of those facts — the two geometries and the two justify-self
+      # declarations that put the boxes on one axis.
+      - name: Seam centre
+        if: '!cancelled()'
+        run: python3 scripts/check-seam-centre.py
+
       # The fourth of that set, and the one that says the other three are all
       # measured at the same instant. Flow terminals, Contour box and Flow
       # handover each read the seam at one scroll position, and every number
