@@ -2138,3 +2138,45 @@ jobs:
       - name: Site build
         if: '!cancelled()'
         run: python3 scripts/build-site.py --check
+
+  # A second job, and the header of the first says why for a year there was
+  # only one: every static check is a few hundred milliseconds of stdlib
+  # python, so a second runner would cost more to start than any of them takes
+  # to run. This check breaks both premises at once — it needs a real browser,
+  # ~90 seconds of it, and a dependency the repository otherwise refuses — so
+  # it pays for the runner it needs instead of making ninety fast checks wait
+  # behind a Chromium download.
+  #
+  # What it gates is the one fault surface no file can show: the pages RUN.
+  # Every pattern page is served, visited twice (default, and with
+  # prefers-reduced-motion: reduce emulated), scrolled end to end and read
+  # back — console errors and warnings, uncaught exceptions, failed requests
+  # and 4xx/5xx responses, ids duplicated by script after load, and anything
+  # still animating for a reader who asked for reduce. The classic member of
+  # the class: a script demoed on one page, shipped to eleven, whose
+  # querySelector returns null everywhere but home — renders fine, throws
+  # silently, visible in no diff and no screenshot.
+  #
+  # CF_REQUIRE_BROWSER is the honesty latch: without a browser the script
+  # SKIPS with exit 0, so a routine's local gate loop survives a machine that
+  # has none — but here, where the browser was just installed, a skip must be
+  # a failure or the gate could be dodged by breaking the install step.
+  #
+  # Proven failing on reintroduced instances of all four classes: a
+  # querySelector-miss dereference, a request for a file that is not there,
+  # an unguarded infinite keyframe loop under reduce, and a duplicate id
+  # appended by script.
+  runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the browser
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Runtime console
+        env:
+          CF_REQUIRE_BROWSER: "1"
+        run: python3 scripts/check-runtime.py
