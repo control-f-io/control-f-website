@@ -2879,39 +2879,85 @@ ul.cf-info-card__chips {
      59–69 at 375 and 54 at 768 — a different rhythm on every row of every width.
      Centred, --space-12 is the real distance between two marks everywhere.
 
-     THE THRESHOLD IS NOT A NEW ONE. Seven marks plus six gaps need 767.2 px of
-     wall; binary-searched, the wall wraps at a container of 767.2 and holds one
-     line at 768.1. 48rem — 768 px, already in the register for .cf-value-row —
-     lands inside that 0.9 px window, so the number the design needs is a number
-     the system had. Above it the wall is one line and justifying it to the
+     THE THRESHOLD IS NOT A NEW ONE. Seven marks plus six gaps need 617.0 px —
+     329.0 of type and 288 of gap. A size query measures the CONTENT box, and
+     .container's content box IS this wall's width, so the number the query
+     wants and the number measured on the wall are the same number: the wall
+     wraps at 616.78 and holds one line at 617.69. 44rem — 704 px, already in
+     the register for .subdivide and .grid--early — is the register's first
+     number above that. Above it the wall is one line and justifying it to the
      measure IS the design; below it there is always a remainder.
+
+     IT WAS 48rem, AND THE NUMBER WENT STALE UNDER IT WITHOUT MOVING. The
+     paragraph this replaces measured the same seven marks at 767.2 px and put
+     the threshold at 768 inside a 0.9 px window — correct when it was written.
+     What it did not survive is the marks getting SMALLER. They are stand-in
+     text until the wordmark files land, and patterns/landing-page.html declared
+     them by restating .t-label by hand at --text-lg; the fix that gave them the
+     real class put them on --text-xs, where every other mono label in the
+     system sits. 16 px to 11 px is 0.6875, and 767.2 x 0.6875 = 527.5 of type
+     plus the six gaps that did not change — 615.5 predicted, 617.0 measured.
+     The wall's one-line width fell 150 px and the query that asks about it did
+     not, and nothing in the diff that shrank the type mentioned a breakpoint.
+
+     WHAT THAT COST, and it is the band this rule was written to have no band
+     in. From a wall of 617.69 to 768 — a viewport of 694 to 862, 168 px of the
+     ladder — the wall was a single line of seven marks with no remainder to
+     strand, and it was centred anyway. The air the threshold exists to spend
+     sat at the two ends instead: 0.4 px each at 694, 75.2 px each at 862. A
+     fifth of the measure, on the widest tablet in portrait, under a rule whose
+     own next sentence says justifying a line with nothing left over IS the
+     design.
+
+     44rem DOES NOT CLOSE THAT BAND, IT HALVES IT, AND THE REMAINDER IS ON
+     PURPOSE. 704 clears the trip point by 86.3 px, reached at a viewport of
+     791, so a viewport of 694 to 790 is still one line and still centred — 96
+     px against 168, and 43.1 px of unspent measure at each end at the top of it
+     against 75.2. The register has nothing between 34.625rem and 44rem, so
+     closing the band exactly would mean minting a threshold at about 38.6rem.
+     That is the one thing this particular number must not have: its trip point
+     is a STRING, it has already moved once by 150 px without any query being
+     edited, and a threshold minted two pixels above a string measurement is the
+     one that strands a mark the day the wordmark files land. The register's
+     existing number, clearing by 86 px on the safe side of an asymmetric error,
+     is the better trade — and stating the residual band is how the next reader
+     gets to disagree with that.
 
      It asks the CONTAINER, per the rule in the register: .container is the query
      container named `layout`, so the wall reads the room it is actually in. A
      wall placed outside a .container matches nothing and stays centred, which is
      the safe half of the pair.
 
-     RE-MEASURE THIS ONE WHEN THE TYPEFACES LAND, and it is the only threshold in
-     the register that needs saying of. assets/fonts/ is empty on purpose —
-     base.css says to drop the .woff2 files in — so every page in this repository
-     currently renders in fallback faces, and 767.2 px is the width of seven mono
-     words in a fallback mono. Nearly every other threshold here is a container
-     query whose trip point is a box, not a string, and does not move when the
-     fonts arrive. This one is a string. If Geist Mono sets wider than the
-     fallback, the one-line width climbs past 768 and this query justifies a row
-     that has already wrapped — which is exactly the bug above, confined to a
-     band.
+     RE-MEASURE THIS ONE WHENEVER THE MARKS CHANGE, and it is the only threshold
+     in the register that needs saying of. Every other one here is a container
+     query whose trip point is a box; this one's is a STRING — 617.0 px is the
+     width of seven mono words set in a fallback mono at --text-xs. Three things
+     move it and only one of them was written down before: the .woff2 files
+     landing in assets/fonts/ (empty on purpose — base.css says to drop them
+     in), the wordmark SVGs replacing the stand-in text, and the type scale the
+     stand-ins are set on. It was the third that moved, from inside the same
+     file that declares the stand-ins, and nothing connected the two edits.
 
-     THE ERROR IS ASYMMETRIC AND THAT IS WHY 48rem AND NOT LOWER. A threshold set
+     No script holds this. The invariant is real — the threshold must sit at or
+     above the width where the wall holds one line — but the width is a rendered
+     string in a font this repository does not ship, so it cannot be counted out
+     of a file the way the other checks in scripts/ count theirs. It has to be
+     measured in a browser, and this paragraph is where the last measurement is
+     recorded so the next one has something to disagree with.
+
+     THE ERROR IS ASYMMETRIC AND THAT IS WHY 44rem AND NOT LOWER. A threshold set
      too high only centres a row that could have been justified, which costs some
-     air at the ends. Too low strands a mark. If the re-measurement is ambiguous,
-     round up. → foundations/mobile.html#logo-wall */
+     air at the ends — which is what 48rem had been doing across 170 px of the
+     ladder. Too low strands a mark, which is the bug at the top of this note.
+     44rem keeps 86.3 px on the safe side, which is what buys the room for the
+     real marks to be wider than the stand-ins without stranding one. If the
+     re-measurement is ambiguous, round up. → foundations/mobile.html#logo-wall */
   justify-content: center;
   gap: var(--space-12);
   /* The section header above owns the air; the section owns the air below. */
   padding-block: 0;
 }
-@container layout (min-width: 48rem) {
+@container layout (min-width: 44rem) {
   .cf-logo-wall { justify-content: space-between; }
 }
 .cf-logo-wall img {
