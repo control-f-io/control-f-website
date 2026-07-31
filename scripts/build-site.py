@@ -82,6 +82,7 @@ SHIP = {
     "suche.html": "suche.html",
     "suche-leer.html": "suche-leer.html",
     "karriere.html": "karriere.html",
+    "karriere-leer.html": "karriere-leer.html",
     "karriere-stelle.html": "karriere-stelle.html",
     "kontakt.html": "kontakt.html",
     "kontakt-danke.html": "kontakt-danke.html",
