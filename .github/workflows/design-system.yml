@@ -1563,6 +1563,42 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-focus-reach.py
 
+      # The rail's sibling, and the other half of the same element's story: that
+      # one holds whether the rail can be REACHED, this one whether the page has
+      # anywhere to put it. It is 84 px of fixed marks held at --space-6 from the
+      # viewport's edge, so it ends at 108, and the content column starts at
+      # --column-inset -- 56.31 px at 1024, 70.39 at 1280, 80 at 1440, and not
+      # until 1536 does it clear the rail at 128. The rail's gate was 64rem and
+      # knew none of that, so for the whole 64rem-to-96rem band the five numerals
+      # and five glyphs were painted on the acts' own text.
+      #
+      # Swept at 35 scroll stops per width with getClientRects() over every
+      # painted text run: act 3's "Was wir machen" crossed by 52 px at 1024, 38
+      # at 1280, 28 at 1440; act 5's three .map-beat__mark labels by 28 at 1440;
+      # and act 4 worst of all, the rail standing in 76 of its 84 px over "01 /
+      # Geschaeftsfuehrung", the founders' names and the paragraph under them.
+      # Every gate was green and the console was silent the whole time -- two
+      # information layers sharing one set of pixels again, findable only by
+      # looking at the render.
+      #
+      # Moving the rail does not fix it and the check says so rather than
+      # inviting the attempt: flush at the viewport's edge it still ends at 84
+      # against a column starting at 56, and collapsing the glyph column leaves
+      # the row at 68 because the grid's three gaps survive the collapse. So the
+      # tier moves instead -- below 96rem the scroll no longer paints the rail
+      # and :focus-within still does -- and the check holds the tier against the
+      # arithmetic, reading the rail's width out of its own grid declaration and
+      # the margin out of --gutter's clamp, so a change to either moves the
+      # number this compares.
+      #
+      # Proven failing on three reintroductions: the tier removed altogether
+      # (the state before it), the tier set one breakpoint low at 79.999rem
+      # (-37.60 px, which is the browser's own 70.39 measurement), and the rail
+      # widened past its margin by a --act-glyph of 2.5rem.
+      - name: Rail margin
+        if: '!cancelled()'
+        run: python3 scripts/check-rail-margin.py
+
       # Act 1's stage carries three `inset: 0` layers over one box -- the field,
       # the notes and the copy -- and `inset: 0` of the stage was the drawing's
       # box only for as long as the drawing was the only thing in the stage. Once

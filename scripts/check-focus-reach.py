@@ -137,13 +137,37 @@ def main():
         if decls.get("opacity") == "1":
             lifts += rail_terms
         if decls.get("pointer-events") == "none":
-            if all(":not(.is-live)" in t and ":not(:focus-within)" in t for t in rail_terms):
+            # THE GUARANTEE IS "NEVER DISARMED WHILE PAINTED", NOT ONE SELECTOR
+            # SHAPE. :not(:focus-within) is required of every such rule and is
+            # not negotiable — it is the half that keeps a rail the reader has
+            # Tabbed to from being a dead focus stop. What may vary is how the
+            # rule knows the rail is unpainted. Two ways are honest:
+            #
+            #   BY THE SCROLL   :not(.is-live) as well, which is the pairing the
+            #                   sheet shipped with: the rule matches only the
+            #                   state the opacity rules leave at 0.
+            #   BY ITS OWN HAND opacity: 0 in the SAME rule, which is stricter
+            #                   than the first because the hiding and the
+            #                   disarming cannot then drift apart — one selector
+            #                   does both, so there is no state where one applies
+            #                   and the other does not. This is the shape the
+            #                   sub-96rem tier takes, where `is-live` still runs
+            #                   and deliberately no longer paints.
+            #
+            # A rule with neither still fails, and so does one that hides on
+            # :not(.is-live) alone: that would take the rail away from the reader
+            # who Tabbed to it, which is the trap this file exists over.
+            has_focus_guard = all(":not(:focus-within)" in t for t in rail_terms)
+            knows_unpainted = (all(":not(.is-live)" in t for t in rail_terms)
+                               or decls.get("opacity") == "0")
+            if has_focus_guard and knows_unpainted:
                 guard = True
             else:
                 bad |= fail(f"`pointer-events: none` on `{', '.join(rail_terms)}` "
-                            f"is not guarded by both :not(.is-live) and "
-                            f":not(:focus-within), so it would kill the rail in "
-                            f"a state the reader can see it in.")
+                            f"does not carry :not(:focus-within), or carries it "
+                            f"without either :not(.is-live) or an `opacity: 0` of "
+                            f"its own, so it would kill the rail in a state the "
+                            f"reader can see it in.")
 
     if not any(".is-live" in t for t in lifts):
         bad |= fail("no rule lifts .act-rail to opacity 1 on .is-live — the "
