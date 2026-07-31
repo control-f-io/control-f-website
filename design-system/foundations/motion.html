@@ -18,6 +18,66 @@
   .motion-box:hover i.d-slow  { transform:var(--iso-transform); transition-duration:var(--duration-slow); }
   .motion-box:hover i.d-scene { transform:var(--iso-transform); transition-duration:var(--duration-scene); transition-timing-function:var(--ease-out); }
   .motion-demo figcaption { margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--text-muted); }
+
+  /* THE LIT FRONT — the landing page's lectern, in miniature and unchanged in
+     every ratio that matters: the same six strokes in the same relay order, the
+     same --relay-rate of .024, the same six-point lead, the same 6 px over 1 px.
+     Two things are the specimen's own. The range is this figure's `cover`
+     rather than the pinned stage's `entry`, because there is no pin here and a
+     relay keyed to one would never run; and --a is rebased so the relay opens
+     at cover 50 % — the frame draws as the figure crosses the middle of the
+     viewport, which is where the reader is looking. Everything the section
+     below states in prose is measurable off these rules. */
+  /* 44rem x 16rem is 2.75:1 against the plate's own 2:1 — near enough that the
+     relay reads as the shape it is on the page, and short enough that the whole
+     of it is on screen while it draws. preserveAspectRatio="none" stretches the
+     viewBox, which is what the lectern does too; non-scaling-stroke is why the
+     weights survive it. overflow is visible because every stroke sits on the
+     box's own extremes and half of each would otherwise be clipped away. */
+  .motion-lit__frame { display:block; width:100%; max-width:44rem; margin-inline:auto; height:16rem; overflow:visible; }
+  .motion-lit__frame path { fill:none; vector-effect:non-scaling-stroke; transform-box:fill-box; transform-origin:var(--o,0 0); }
+  /* The settled state, and the only state below: a black contour, no light.
+     A lime rectangle standing permanently around a specimen is not what this
+     page is documenting — see the section's last paragraph. */
+  .motion-lit__line { stroke:var(--border-strong); stroke-width:1; }
+  .motion-lit__lit  { stroke-width:6; opacity:0; }
+  .motion-lit figcaption { margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--text-muted); }
+  @keyframes motion-lit-draw { from { scale:0; } to { scale:1; } }
+  @keyframes motion-lit-out  { to { opacity:0; } }
+  @supports (animation-timeline: view()) {
+    @media screen and (prefers-reduced-motion: no-preference) {
+      /* ONE TIMELINE FOR THE SIX, WHICH IS THE WHOLE RELAY. Written as
+         `animation-timeline: view()` first, and it scrambles the order: view()
+         is the ELEMENT'S OWN timeline, and a stroke's box is its own geometry —
+         the top rail is a zero-height box at y 0, the base a zero-height box at
+         y 500 — so six strokes of one drawing entered the viewport at six
+         different scroll positions and each drew against its own. Measured, the
+         arms were 0.46 drawn while the sides they hand off from were still at 0.
+         The production stages carry a named timeline for the same reason
+         (--sp, --sp4, --cf-pin); this figure carries its own. */
+      .motion-lit { view-timeline-name: --motion-lit; }
+      .motion-lit__line, .motion-lit__lit { --rate:.024; --lead:6; }
+      .motion-lit__line {
+        animation: motion-lit-draw linear both;
+        animation-timeline: --motion-lit;
+        animation-range: cover calc(var(--a) * 1%)
+                         cover calc((var(--a) + var(--u) * var(--rate)) * 1%);
+      }
+      /* The front leads by --lead and is out as its twin lands: the fade opens
+         where its own draw closes and ends on the contour's arrival, which is
+         the frame's rule rather than the root's hold-then-out. */
+      .motion-lit__lit {
+        opacity:1;
+        animation: motion-lit-draw linear, motion-lit-out linear;
+        animation-timeline: --motion-lit, --motion-lit;
+        animation-range: cover calc((var(--a) - var(--lead)) * 1%)
+                         cover calc((var(--a) - var(--lead) + var(--u) * var(--rate)) * 1%),
+                         cover calc((var(--a) - var(--lead) + var(--u) * var(--rate)) * 1%)
+                         cover calc((var(--a) + var(--u) * var(--rate)) * 1%);
+        animation-fill-mode: both, forwards;
+      }
+    }
+  }
 </style>
 </head>
 <body class="docs" data-root="../">
@@ -208,7 +268,8 @@ for t in ['fast','base','slow','scene']:
   <section class="docs-section" id="assembly">
     <h2>The isometric assembly</h2>
     <p>
-      The one composed piece of motion in the system, and it carries no script at all. An
+      The first of the two composed pieces of motion in the system — <a href="#lit-front">a
+      line drawn by a light</a> is the other — and it carries no script at all. An
       isometric object assembles as it scrolls into view: the body travels in along 26.57°,
       the dashed reference geometry resolves after it, the signal line draws itself, and
       lime arrives last. Scroll the
@@ -978,6 +1039,190 @@ python3 scripts/check-iso-motion.py</pre>
       <code>pathLength="1"</code> and the class, and set <code>--trace-weight</code> on the
       frame to its viewBox width over the width it renders at. Do not put
       <code>non-scaling-stroke</code> back on it.
+    </p>
+  </section>
+
+  <section class="docs-section" id="lit-front">
+    <h2>A line drawn by a light</h2>
+    <p>
+      The second composed piece of motion, and the one the landing page is mostly built
+      out of. <strong>A line in this system is not laid down finished. It is drawn twice:
+      a lit front carrying the light family's ramp goes first, and the 1 px black contour
+      lands behind it.</strong> The front is a fact about the drawing happening — it exists
+      while a line is being drawn and it is gone by the time the line is there. What stands
+      while the reader reads is black.
+    </p>
+    <p>
+      Scroll the figure below. Six strokes, drawn in the order the data reached them —
+      the middle vertical, the base, the two sides, then the top rail spreading outward
+      from the middle — each with its own lit twin six points ahead of it.
+    </p>
+    <figure class="docs-demo docs-demo--flat motion-lit">
+      <svg class="motion-lit__frame" viewBox="0 0 1000 500" preserveAspectRatio="none" fill="none" aria-hidden="true">
+        <defs>
+          <!-- The family's ramp, stop for stop as patterns/landing-page.html
+               declares it: lime, the waypoint at 19 % of the lime leg, Glas,
+               CF-Grau. One per direction — a linear gradient does not read the
+               axis it is constant on, so the two outer verticals share one. -->
+          <linearGradient id="motion-lit-ramp">
+            <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+          </linearGradient>
+          <linearGradient id="motion-lit-mid"   href="#motion-lit-ramp" gradientUnits="userSpaceOnUse" x1="500" y1="500" x2="500" y2="0"/>
+          <linearGradient id="motion-lit-base"  href="#motion-lit-ramp" gradientUnits="userSpaceOnUse" x1="1000" y1="500" x2="0" y2="500"/>
+          <linearGradient id="motion-lit-side"  href="#motion-lit-ramp" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="500"/>
+          <linearGradient id="motion-lit-arm-w" href="#motion-lit-ramp" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="500" y2="0"/>
+          <linearGradient id="motion-lit-arm-e" href="#motion-lit-ramp" gradientUnits="userSpaceOnUse" x1="1000" y1="0" x2="500" y2="0"/>
+        </defs>
+        <!-- The lights are drawn BEFORE the contours, so the black paints over
+             the colour and cannot cover it: 6 px under 1 px leaves two and a
+             half proud on each side. --a is the stroke's start in points of the
+             range, --u its length in viewBox units, --o the junction it grows
+             out of. Each pair shares all three; that is what makes them one
+             line rather than two. -->
+        <path class="motion-lit__lit"  style="--a:50;--u:500;--o:0 0"    stroke="url(#motion-lit-mid)"   d="M500 0V500"/>
+        <path class="motion-lit__lit"  style="--a:56;--u:1000;--o:0 0"   stroke="url(#motion-lit-base)"  d="M0 500H1000"/>
+        <path class="motion-lit__lit"  style="--a:62;--u:500;--o:0 100%" stroke="url(#motion-lit-side)"  d="M0 0V500"/>
+        <path class="motion-lit__lit"  style="--a:66;--u:500;--o:0 100%" stroke="url(#motion-lit-side)"  d="M1000 0V500"/>
+        <path class="motion-lit__lit"  style="--a:72;--u:500;--o:100% 0" stroke="url(#motion-lit-arm-w)" d="M0 0H500"/>
+        <path class="motion-lit__lit"  style="--a:74;--u:500;--o:0 0"    stroke="url(#motion-lit-arm-e)" d="M500 0H1000"/>
+        <path class="motion-lit__line" style="--a:50;--u:500;--o:0 0"    d="M500 0V500"/>
+        <path class="motion-lit__line" style="--a:56;--u:1000;--o:0 0"   d="M0 500H1000"/>
+        <path class="motion-lit__line" style="--a:62;--u:500;--o:0 100%" d="M0 0V500"/>
+        <path class="motion-lit__line" style="--a:66;--u:500;--o:0 100%" d="M1000 0V500"/>
+        <path class="motion-lit__line" style="--a:72;--u:500;--o:100% 0" d="M0 0H500"/>
+        <path class="motion-lit__line" style="--a:74;--u:500;--o:0 0"    d="M500 0H1000"/>
+      </svg>
+      <figcaption>Six strokes, twelve passes, one relay — the lectern of <em>Was wir machen</em></figcaption>
+    </figure>
+    <p>
+      Three drawings ship it, on one pair of keyframes — a draw and a fade out. They differ
+      in weight, in which phase they spend, and in what the front does once its own stroke
+      has landed:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Front</th><th>Drawing</th><th>Weight</th><th>Lead</th><th>The fade</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>.lp-flow__light</code></td>
+          <td>the root — every route out of the void</td>
+          <td>2 px over 1 px</td>
+          <td>6 points of a 45-point <code>contain</code> walk</td>
+          <td>holds 2 points, then goes out over 6 — it ends 2 points <em>after</em> its contour lands</td>
+        </tr>
+        <tr>
+          <td><code>.sp4-lit</code></td>
+          <td><em>Wer wir sind</em> — four edges per plate</td>
+          <td>6 px over 1 px</td>
+          <td>4 points of a 16-point edge window</td>
+          <td>holds 6 points, then goes out over 8</td>
+        </tr>
+        <tr>
+          <td><code>.lp-frame__lit</code></td>
+          <td>the lectern the process cards stand on</td>
+          <td>6 px over 1 px</td>
+          <td>6 points of a 36-point <code>entry</code> relay</td>
+          <td>exactly the lead, opening as its own draw closes and out as the contour lands</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 id="lit-pair">Two strokes, one line</h3>
+    <p>
+      The pair is not two elements that happen to agree. Both carry the same
+      <code>--a</code>, the same <code>--u</code> and the same <code>--o</code> — the start,
+      the length in viewBox units, and the junction the stroke grows out of — and the front
+      is offset from the contour by the stylesheet's single lead. Nothing else may differ.
+      <strong>A pair that disagrees on any of the three is two lines pretending to be one,
+      and it is invisible at both ends of the window:</strong> at rest they are one black
+      hairline, and while they are drawing the eye reads the colour, not the geometry under
+      it. <code>scripts/check-relay-rate.py</code> reads every lit stroke against its
+      contour twin, and fails a front without a contour or a contour without a front.
+    </p>
+    <p>
+      The lights are drawn <em>before</em> the contours in document order, so the black
+      paints over the colour. It cannot cover it — that is the whole reason the two weights
+      differ — and what survives is a rim of ramp on each side of the black, until the fade
+      takes it.
+    </p>
+
+    <h3 id="lit-weight">The weight is decided by the stroke, not by taste</h3>
+    <p>
+      The ramp's coloured leg is its first 32 %: lime to Glas, and CF-Grau for the rest.
+      A front has to be wide enough that the leg can be <em>seen</em> under the contour that
+      is painting over it. On the root a lit stroke is 20 to 110 units long and 2 px is
+      enough. On a plate edge or a frame rail — the whole width of the drawing — 2 px of
+      ramp under a 1 px contour is a gradient nobody can see, so both of those are
+      <strong>6 px, which leaves two and a half proud on each side</strong>.
+    </p>
+
+    <h3 id="lit-lead">The lead is a fraction of the run it leads</h3>
+    <p>
+      Six points on the root, four on a plate edge, six on the frame — and none of the three
+      is borrowed from another. A lead is a proportion: the root's longest walk is 45 points
+      of <code>contain</code>, an edge's window is 16, the frame's relay is 36 points of
+      <code>entry</code>. The frame takes the root's six because its run is near enough the
+      same length, not because the root has six.
+    </p>
+    <p>
+      <strong>And the lead is flat across the relay, not per stroke.</strong> The front runs
+      six points ahead of the black through the whole chain rather than six points ahead
+      within each stroke — which is what makes six strokes handing off to each other read as
+      one travelling line instead of six lines each with a bright end.
+    </p>
+
+    <h3 id="lit-draw">The draw is a scale, not a dash</h3>
+    <p>
+      The obvious mechanism is the one <a href="#travel">the trace</a> uses:
+      <code>pathLength="1"</code>, <code>stroke-dasharray: 1</code>, animate the offset. It
+      cannot work here and the failure is silent. <strong>A dash is measured in screen
+      pixels while <code>pathLength</code> normalises in user units,</strong> so under
+      <code>vector-effect: non-scaling-stroke</code> the two disagree by exactly the render
+      scale. The frame is a 1000 × 500 viewBox stretched to the plate — 1278 × 639 at
+      1440 × 900 — so every stroke stopped at 1000 / 1278 = 78.2 % of itself and stayed
+      there: the rails ended 278 px short of the right vertical, and the lectern the whole
+      pinned stage rests on was never once a closed rectangle.
+    </p>
+    <p>
+      A straight stroke grown from one end is a <em>scale about that end</em>, and
+      <code>transform-box: fill-box</code> puts the origin at each stroke's own junction.
+      One <code>scale: 0 → 1</code> serves all six; scaling the axis a stroke has no extent
+      on is a no-op, so the markup says nothing new. The weight ignores the transform under
+      non-scaling-stroke, so 6 px and 1 px stay 6 px and 1 px throughout.
+    </p>
+    <pre class="docs-code">.lp-frame__line { <span class="attr">stroke</span>: <span class="val">var(--border-strong)</span>; <span class="attr">transform-origin</span>: <span class="val">var(--o, 0 0)</span>; }
+.lp-frame__lit  { <span class="attr">stroke-width</span>: <span class="val">6</span>; <span class="attr">transform-origin</span>: <span class="val">var(--o, 0 0)</span>; }
+
+<span class="com">/* the contour: its own window, at the relay's one rate */</span>
+.lp-frame__line {
+  <span class="attr">animation-range</span>: <span class="val">entry calc(var(--a) * 1%)</span>
+                   <span class="val">entry calc((var(--a) + var(--u) * var(--relay-rate)) * 1%)</span>;
+}
+<span class="com">/* the front: the same window, --frame-lead points earlier, and out again */</span>
+.lp-frame__lit {
+  <span class="attr">animation</span>: <span class="val">lp-frame-draw linear, lp-flow-out linear</span>;
+  <span class="attr">animation-range</span>: <span class="val">entry calc((var(--a) - var(--frame-lead)) * 1%)</span> <span class="com">…</span>;
+}</pre>
+
+    <h3 id="lit-out">The light is gone before the reader arrives</h3>
+    <p>
+      This is the rule the other three exist to protect. <strong>Lime is one lit element per
+      object</strong> (<a href="colors.html#one-per-screen">Colors › one per screen</a>), and
+      a front is not an exception to it — it is a thing that happens and then stops
+      happening. Measured on the lectern at 1024, 1440 and 1920: at the moment the last
+      hairline lands, every lit stroke is at opacity 0. No lime stands around the cards while
+      they are being read. The frame's fade is exactly its lead for that reason and no other
+      — <code>entry</code> 100 is <code>contain</code> 0, the moment the stage takes the
+      scroll and the cards start building inside the frame, so nothing may still be going out
+      when the pin takes over.
+    </p>
+    <p>
+      It follows that <strong>where nothing is driving the front, there is no front.</strong>
+      The base tier paints the black hairline alone and the scroll-driven block turns the
+      light on: reduced motion, no view-timeline support, print, and every width below the
+      gate get the settled drawing, which is a black contour. A lime rectangle standing
+      permanently around a photograph is not the settled state of anything here — see
+      <a href="#reduced">Reduced motion</a>, where that is the same rule stated for the
+      assembly.
     </p>
   </section>
 
