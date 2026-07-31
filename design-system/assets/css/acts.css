@@ -2190,6 +2190,57 @@
          floor may not exceed the box that crops it. */
       .lp-proc-stage { --pin-measure: var(--lp-measure);
         block-size: max(min(45rem, 100%), calc(100% - var(--cf-consent-height, 0px))); }
+      /* AND THE STAGE'S BOX LANDS ON WHOLE PIXELS, because six of the hairlines
+         on it are drawn ON that box's edges and a hairline is the one thing a
+         fraction of a pixel is visible in.
+
+         The plate gave up its border to .lp-frame — the note 250 lines down says
+         so and records the 0.94 px the frame stood off the border box before
+         #204 cancelled it. What that fix did not ask is what the SAME contour
+         then paints, and the answer is not the same at every edge of the same
+         rectangle. `.container` places this box with two fractional terms:
+         `--gutter` is `clamp(1.25rem, 5.5vw, 5rem)`, so 5.5vw below the 1454 px
+         where it clamps, and `max-width` is `--container-max + 2 * --gutter`,
+         so the centring margin above it carries the same fraction. Under
+         --container-max the box therefore starts at 5.5vw exactly: 56.31 at
+         1024, 70.39 at 1280.
+
+         Read off the render at device scale 1, mid-pinned-run, as the number of
+         pixel columns the vertical is spread across and the darkest of them
+         (ground is 225):
+
+           1024 x 768   left 56.31  2px 106.8   mid 512.00  3px 102.8   right  967.69  3px 116.8
+           1280 x 800   left 70.39  2px 103.5   mid 640.00  3px 116.4   right 1209.61  3px  92.4
+           1440 x 900   left 79.98  2px 100.8   mid 719.99  2px 100.8   right 1360.00  2px 100.4
+
+         At 1440 the three verticals of one frame are the same line three times.
+         At 1280 the middle rail is spread over three columns at 116.4 while the
+         right is spread over three at 92.4 — a quarter of the contour's ink
+         between one side of the rectangle and the other, and the base rail is
+         123.3 against a top rail of 74.8. That is not a stroke the eye reads as
+         one weight, and it is the same class of finding as the corner that does
+         not close: the drawing is right and the ink is not.
+
+         SO THE BOX IS ROUNDED, NOT THE STROKE. Both terms .container places it
+         with, in the pinned tier only, restated here as the container's own
+         expressions inside round() so a change to the container breaks the
+         check rather than quietly un-rounding the frame. The step on the
+         max-width is 2 px because that width is HALVED into the centring
+         margin — round to 1 px and the margin is back on a half. Measured
+         after: 56/512/968 at 1024, 70/640/1210 at 1280, all two columns, the
+         spread within one frame down from 24.0 levels to 1.0 at 1280 and from
+         14.0 to 0.7 at 1024. 1440, 1512 and 1920 are byte-for-byte what they
+         were — above --container-max the placement is (100vw - 1280)/2, which
+         never had a fraction in it.
+
+         The rounding does not travel to the tiers below the gate: there the
+         cards keep their own 1 px borders, which the browser snaps to the pixel
+         grid itself, and there is no .lp-frame to be off it.
+         → scripts/check-plate-grid.py */
+      .lp-proc-stage {
+        max-width: round(calc(var(--container-max) + var(--gutter) * 2), 2px);
+        padding-inline: round(var(--gutter), 1px);
+      }
       /* AND THE SAME FINDING ON THE OTHER AXIS. The note above is about the
          chrome running WIDER than the card; this is the chrome drifting AWAY
          from it as the viewport gets taller, and it is the larger of the two.
