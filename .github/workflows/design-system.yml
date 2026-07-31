@@ -609,6 +609,25 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-aria-vocabulary.py
 
+      # The three checks above read what a page tells the reader and the
+      # accessibility tree; none read what it tells its own two required
+      # scripts. cf-consent.js answers five action words and two category
+      # tokens, cf-nav.js wires a toggle to whatever id aria-controls names
+      # — and every failure in that contract is silent: a typo'd action is a
+      # button no dispatch answers, a typo'd category is a checkbox never
+      # read and never written, and an aria-controls pointing at the WRONG
+      # existing id passes ARIA-REF while the script wires the menu to an
+      # element the stylesheet never watches. A browser sweep of all fifteen
+      # pattern pages verified the wiring live — console, focus contract,
+      # tab walk, first and return visits — but CI has no browser, so this
+      # holds the countable shadow of that sweep: the vocabulary is read
+      # from the scripts themselves, and every live page owes the whole
+      # contract. Proven failing on all seven rules seeded across three
+      # pages.
+      - name: Script contract
+        if: '!cancelled()'
+        run: python3 scripts/check-script-contract.py
+
       - name: Class provenance
         if: '!cancelled()'
         run: python3 scripts/check-class-provenance.py
