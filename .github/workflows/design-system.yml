@@ -553,6 +553,17 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-a11y.py
 
+      # Every check above reads what the pages say; none read their grammar,
+      # because every parser here and in every browser recovers from broken
+      # markup by guessing. A dropped </div> renders identically on the day
+      # it is dropped and differently three commits later. The one grammar
+      # fault the first full-validator sweep found — UTF-8 bytes escaped one
+      # numeric reference at a time, mojibake fossilised at export — sat in
+      # a file for months with fourteen green checks beside it.
+      - name: Markup grammar
+        if: '!cancelled()'
+        run: python3 scripts/check-markup.py
+
       - name: Class provenance
         if: '!cancelled()'
         run: python3 scripts/check-class-provenance.py
