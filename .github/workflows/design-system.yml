@@ -2242,6 +2242,24 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-touch-floor.py
 
+      # foundations/mobile.html is the measured record of what the pattern
+      # pages do on the way down to a phone, and its counts have gone stale
+      # four times the same way — a page lands in patterns/ and the record
+      # silently stops covering the section. Each time a reader found it,
+      # because a count in prose binds nothing. This holds the record to the
+      # directory: one target-size table row per pattern page, and every
+      # typed count on the page — "all N pattern pages", "N page-widths",
+      # "N measurements" — equal to what the directory implies. The answer
+      # to a failure is a re-run of the matrix, never arithmetic; the check
+      # says so in its own failure text.
+      #
+      # Proven failing on the fourth staleness it was written against:
+      # karriere-leer present in patterns/ and absent from the record, plus
+      # four counts one page behind.
+      - name: Mobile coverage
+        if: '!cancelled()'
+        run: python3 scripts/check-mobile-coverage.py
+
       # A floor held under a paragraph so a typewriter can fill it without the
       # page stepping down under the reader. cf-stream.js runs in exactly one
       # tier and says so in its own header; acts.css declared all six of its
