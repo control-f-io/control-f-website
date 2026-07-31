@@ -220,13 +220,40 @@
                ICONS.map(symbol).join('') +
                '</svg>';
 
+  /* THE TWO WAYS OF INCLUDING THIS SET ARE NOT EXCLUSIVE, and the header above
+     has offered both from the start: "Include it once per page, or paste the
+     markup it prints on foundations/iconography.html straight after <body>."
+     A page that needs a glyph before this file has run has to do BOTH — paste
+     the symbol so the first paint has it, and load the script so everything
+     else on the page still resolves — and doing both used to put two elements
+     with the same id in one document.
+
+     What that cost, on the landing page: seven ids twice over (the act rail's
+     five marks and its two double chevrons), invalid markup, and a <use> whose
+     target depends on which copy comes first in document order — this host is
+     inserted at the top of <body> and a pasted sprite sits below it, so the
+     script's drawing silently won every reference the page had already
+     answered for itself.
+
+     So a symbol the document already carries is not injected. The page's own
+     copy is the authority: it is the one that was there for the first frame,
+     and it is the one that is still there when this file is blocked, cached
+     stale or switched off. SPRITE keeps the whole set — iconography.html
+     prints it as the paste-in block, and a partial one would teach the wrong
+     thing — and the filtering happens here, once, against the live document. */
   function inject() {
     if (document.getElementById('cf-icon-sprite')) return;
+    var missing = ICONS.filter(function (icon) {
+      return !document.getElementById(icon.id);
+    });
+    if (!missing.length) return;
     var host = document.createElement('div');
     host.id = 'cf-icon-sprite';
     host.setAttribute('aria-hidden', 'true');
     host.style.display = 'none';
-    host.innerHTML = SPRITE;
+    host.innerHTML = '<svg aria-hidden="true" style="display:none">' +
+                     missing.map(symbol).join('') +
+                     '</svg>';
     document.body.insertBefore(host, document.body.firstChild);
   }
 
