@@ -1161,7 +1161,49 @@ ul.cf-nav__list {
   color: var(--grey-000);
   background: rgba(255, 255, 255, 0.14);
 }
-.cf-nav :focus-visible { outline-color: var(--cf-lime); }
+/* LIME PLUS AN INNER RING, AND THE INNER RING IS THE HALF THAT WAS MISSING.
+
+   This rule takes the bar's indicator off --focus-ring, and the reason is the
+   bar's own plate: black, so the system's black ring would land on black. Lime
+   was the right answer for the five links, because their ring falls INSIDE
+   .cf-nav__list's black plate — measured 18.51:1 on both edges at 1280 and
+   1440. It was not the right answer for the two controls that stand on their
+   own plate with nothing under them but the page: .cf-logo at every width, and
+   .cf-nav__toggle below 48.75rem.
+
+   The ring is 2 px at outline-offset 2 px, so BOTH of its edges land 2-4 px
+   outside the border box — on the hero, which is a video nobody controls and
+   whose dominant hue is this brand's lime. Measured against the poster, worst
+   edge of eight sampled per control:
+
+     .cf-logo         1.24:1 at 375   1.32 at 768   1.28 at 1280   1.40 at 1440
+     .cf-nav__toggle  1.28:1 at 375   1.06 at 768   (not shown above 48.75rem)
+
+   The floor is 3:1 (WCAG 1.4.11). Nothing there is close to it, and the 1.06
+   is the control sitting over the artwork's lime passage — the indicator and
+   the backdrop are the same colour.
+
+   THE FIX IS THE ONE THIS FILE ALREADY WROTE, over .cf-btn--glass: a two-tone
+   ring whose internal boundary is the guaranteed edge. box-shadow fills the
+   offset — black from the border box to 2 px — and the lime outline sits from
+   2 to 4 px on top of it. Black against lime is 18.51:1 and that boundary is
+   INTERNAL to the indicator, so no frame of the video can reach it. The outer
+   lime/artwork edge still varies and still carries the dark frames; it is no
+   longer the only edge there is.
+
+   ON THE WHOLE BAR AND NOT ON THE TWO. The links do not need it — their plate
+   already gives them an edge — but black on black paints nothing, costs
+   nothing, and means the guarantee does not depend on which of the bar's
+   controls happens to sit inside the list plate today. One rule, the same one
+   that made the colour lime in the first place.
+
+   Dropped in forced-colors mode along with every other box-shadow, where the
+   outline survives and the system takes over — same as .cf-btn--glass.
+   → scripts/check-focus-ring-edge.py */
+.cf-nav :focus-visible {
+  outline-color: var(--cf-lime);
+  box-shadow: 0 0 0 var(--stroke-2) var(--cf-schwarz);
+}
 .cf-nav__toggle { display: none; }
 
 /* The open menu already used --radius-sm while the closed bar was a pill, so
@@ -5938,9 +5980,26 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    the ring says where the reader is, the lift says the plate is a control. */
 .cf-hero__still:hover,
 .cf-hero__still-toggle:focus-visible ~ .cf-hero__still { background: var(--surface-raised); }
+/* --focus-ring RESOLVES TO LIME HERE, because the label carries
+   data-theme="inverse" — and the label stands on the hero. Measured against
+   the poster, worst of eight edges sampled: 1.18:1 at 375, 1.15 at 768,
+   1.00 at 1280, 1.01 at 1440. The 1.00 is not a rounding: at 1280 the plate's
+   top-right corner sits over the artwork's lime passage and the ring is
+   rgb(225,255,0) against rgb(225,254,99). The one control WCAG 2.2.2 asks
+   this page for, and on a wide screen a keyboard reader cannot see where they
+   are on it.
+
+   The plate is black (--surface-base under inverse, lifted to
+   --surface-raised on focus), so the black inner ring is invisible against
+   the plate and that is the point: what it buys is the black/lime boundary at
+   2 px, 18.51:1, internal to the indicator and out of the video's reach. Same
+   two-tone construction as .cf-btn--glass and .cf-nav, and for the same
+   reason — a single tone over an artwork has nothing it can guarantee.
+   → scripts/check-focus-ring-edge.py */
 .cf-hero__still-toggle:focus-visible ~ .cf-hero__still {
   outline: var(--stroke-2) solid var(--focus-ring);
   outline-offset: 2px;
+  box-shadow: 0 0 0 var(--stroke-2) var(--cf-schwarz);
 }
 .cf-hero__still-mark {
   width: 1.25rem;
