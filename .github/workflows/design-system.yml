@@ -2109,6 +2109,27 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-footer-parity.py
 
+      # Two routes open by answering "how many?" — Suche and Karriere each
+      # claim a number in the page header about the register below it, and
+      # since the empty states shipped there are four files carrying 0, 0, 4
+      # and 6 by hand. In production the count and the register come from one
+      # query (components/vacancy.html, Before launch); in this repository
+      # they are hand-typed places in one file that a single edit does not
+      # reach together, and a wrong claim renders exactly like a right one.
+      # check-section-counts.py holds this fault class on the landing page
+      # alone, by its own scope note — the route pages had no gate. The
+      # second clause is the empty state itself: zero and the inline empty
+      # block imply each other, because a register at zero must be drawn,
+      # not omitted.
+      #
+      # Proven failing on the defect reintroduced: karriere-leer.html's claim
+      # bumped to 4 over an empty register reported both clauses — the count
+      # against the items, and the filled claim against the standing empty
+      # block.
+      - name: Register counts
+        if: '!cancelled()'
+        run: python3 scripts/check-register-count.py
+
       # The website at the repository root is generated from
       # design-system/patterns/ by scripts/build-site.py — four named edits per
       # page and nothing else. A pattern page can be edited without the page the

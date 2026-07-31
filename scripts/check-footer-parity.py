@@ -106,6 +106,13 @@ CONTACT_PAGES = {"kontakt.html", "kontakt-danke.html"}
 SECTION_OF = {
     "blog-artikel.html": "news.html",
     "karriere-stelle.html": "karriere.html",
+    # Not a child page but the same route in its empty state. In production
+    # the reader at an empty /karriere is *on* the page the link names, but
+    # in this file-per-state tree the canonical file is a different document,
+    # and check-links.py rightly reads aria-current="page" on a link that
+    # resolves elsewhere as a lie. The ancestor marker is the one value both
+    # models agree on — the same treatment karriere-stelle.html gets.
+    "karriere-leer.html": "karriere.html",
 }
 
 CTA_REGULAR = (
