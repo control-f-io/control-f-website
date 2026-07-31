@@ -890,6 +890,29 @@
       animation: sp-stream var(--sp-period, 3s) linear infinite;
       animation-delay: calc(var(--sp-period, 3s) * var(--sp-slot) / 6 * -1);
     }
+
+    /* HELD WHILE NOBODY IS LOOKING AT THEM. These 126 animations — twenty-one
+       labels, six readings each — are on the document clock and `infinite`,
+       which means they run for the life of the tab whether act 1 is on screen
+       or fifteen thousand pixels away. Measured at 1440 x 900 on a page loaded
+       and then left completely alone: 1351 ms of style recalculation in five
+       seconds, one recalc per frame at 60 Hz, 2246 ms of total task time — 45 %
+       of the main thread, on a still page, for a readout nobody can see.
+       Cancelling these 126 took it to 319 ms.
+
+       PAUSED AND NOT STOPPED, which is why this is `animation-play-state` and
+       not `animation: none`. Each reading is held at the value it had, so the
+       field the reader comes back to is the field they left; and the phase
+       offsets in the delay above — what makes twenty-one labels tick out of
+       step instead of blinking in unison — survive, which they would not if
+       the animations were dropped and re-created on arrival.
+
+       The attribute is written by assets/js/cf-idle.js, an IntersectionObserver
+       with a viewport of margin on each side, so the field has been ticking for
+       a full screen before its first pixel arrives. With that file absent the
+       attribute is never written and this rule never matches: the page runs
+       exactly as it did. → scripts/check-idle-motion.py */
+    [data-idle] :is(.sp-stream > b, .sp-stream > b + b) { animation-play-state: paused; }
   }
 
   /* ============================================================
@@ -2003,6 +2026,18 @@
         animation-fill-mode: both, forwards, none;
         animation-delay: 0s, 0s, calc(var(--l) * -370ms);
       }
+
+      /* THE THIRD ONE ONLY. The leaf's list is draw, settle, shimmer, and the
+         first two are on --sp: a view timeline does not tick unless the reader
+         scrolls, so it already costs nothing while the page is still and there
+         is nothing to hold. The shimmer is the one on the document clock, and
+         it breathes for the life of the tab whether the root has been drawn yet
+         or not — for the whole of the page above act 1 the leaves are not even
+         on screen, and the fringe is a light on a drawing that does not exist.
+         `animation-play-state` is a list like the rest of them, so the pause
+         lands on the shimmer and leaves the two scrubbed animations alone.
+         → assets/js/cf-idle.js, and the note over .sp-stream */
+      [data-idle] .lp-flow__leaf { animation-play-state: running, running, paused; }
 
       /* THE SOURCE FILLS AS THE FIELD ARRIVES IN IT.
          The orb shipped with no animation at all, so it stood at full size in
