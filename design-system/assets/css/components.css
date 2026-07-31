@@ -1238,6 +1238,25 @@ ul.cf-nav__list {
     align-items: stretch;
   }
 
+  /* THE ROWS THE TOGGLE DISCLOSES MEET THE SAME FLOOR THE TOGGLE DOES.
+
+     The toggle's note below settles what a primary control on a phone is owed:
+     2.75rem, the 44 px touch convention (WCAG 2.5.5, Apple's HIG). What the
+     toggle opens is six more of exactly that — the only rows that reach any
+     other page — and they kept the bar's desktop metric instead: 11 px mono
+     inside --space-2 padding, a 32 px row, six of them 4 px apart, in the
+     panel and in the no-script stacked list alike. Measured at 375 on every
+     pattern page: toggle 44, each row it discloses 32. One rule serves both
+     folded states, because they are the same six rows drawn in and out of
+     flow. Above 48.75rem the links are the bar again and this reaches
+     nothing — the bar's height is spoken for by --nav-height, and a pointer
+     is not a fingertip. → scripts/check-touch-floor.py */
+  .cf-nav__link {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
   /* THE ONE PANEL IN THE SYSTEM THAT OPENS AND CLOSES, and until now the only
      state change on the site that simply appeared: measured at 375 px, the
      frame 60 ms after the click and the frame 560 ms after it were
@@ -1296,6 +1315,20 @@ ul.cf-nav__list {
     clip-path: inset(-4px -4px 100% -4px);
     transition: clip-path var(--duration-slow) var(--ease-standard),
                 display   var(--duration-slow) var(--ease-standard) allow-discrete;
+    /* Six 2.75rem rows plus the plate's padding put the open panel at 302 px,
+       and the bar above it holds 84. A portrait phone has room to spare; the
+       same phone on its side is 375 tall, and 84 + 302 leaves the Kontakt row
+       starting 11 px past the bottom of the screen with no way to reach it —
+       the panel is out of flow, so the page's own scroll never brings it up.
+       So the panel scrolls inside itself, which is the rule the system
+       already applies to any box bigger than the room it is given. The ring
+       slop the clip-path holds (4 px) sits 9 px inside the padding edge where
+       this scrollport clips, so no focus ring is cut by it. vh first and dvh
+       on top: the dynamic unit tracks the browser chrome a phone collapses,
+       and where it does not exist the older unit errs only that much tall. */
+    max-height: calc(100vh - var(--nav-height) - var(--space-2));
+    max-height: calc(100dvh - var(--nav-height) - var(--space-2));
+    overflow-y: auto;
   }
   [data-cf-nav] .cf-nav__list[data-open="true"] {
     display: flex;
