@@ -68,7 +68,39 @@
    MARKED, NOT GUESSED. A figure opts in with data-cf-idle, the same way a track
    opts into the copy stream by carrying the class the stream looks for. This
    file has no list of class names in it and nothing to keep in step.
-   → scripts/check-idle-motion.py */
+
+   AND THE MARGIN IS THE FIGURE'S, because one margin was right for one of the
+   two things this file gates and wrong for the other.
+
+   A viewport of lead-in is the readouts' requirement: they are TEXT, and a
+   ticker that starts while the reader is looking at it is a ticker seen
+   starting. The root's fringe has no such requirement — it is a sine on
+   stroke-opacity with a per-leaf phase offset, and for the whole first third
+   of its own track it is held at `scale: 0` by an animation on the scroll
+   timeline. There is nothing to see start, because there is nothing drawn.
+
+   Given one margin, the two shared the readouts' — and the fringe's marked box
+   was act 1+2's whole 5 760 px track, whose top edge stands 138 px ABOVE the
+   fold at scrollY=0. So the gate was open at the top of the page, and stayed
+   open: measured at 1440 x 900, loaded and left alone at the hero,
+
+     as shipped                     2 601 ms of task in 4 000 — 65 % of a core
+                                    1 509 ms of it style recalc, 240 recalcs,
+                                    one per frame at 60 Hz
+     shimmer alone paused               1.0 ms                    0.0 %
+     all 26 leaves display:none         0.7 ms                    0.0 %
+     at 1280                        2 560 ms                     64 %
+     at 768 and at 375                  1.5 ms                    0.0 %
+
+   Two thirds of a core, forever, for twenty-six paths that are `scale: 0`,
+   zero pixels wide and 77 px below the fold. The 375 and 768 columns are the
+   same page with no fringe in that tier at all, which is what makes the
+   attribution exact.
+
+   The value on the attribute is the rootMargin for that figure and nothing
+   else; empty keeps the readouts' viewport of lead-in. Figures are grouped by
+   margin, so the usual page still builds one observer.
+   → scripts/check-idle-motion.py, scripts/check-idle-reach.py */
 
 (function () {
   'use strict';
@@ -79,17 +111,40 @@
   var figures = document.querySelectorAll('[data-cf-idle]');
   if (!figures.length) return;
 
-  /* A whole viewport of margin in each direction. The observer fires on the
-     approach rather than on the arrival, so a reader scrolling at any speed
-     meets a figure that has been running for at least a screen — the tick is
-     never seen starting. */
-  var observer = new window.IntersectionObserver(function (entries) {
+  /* A whole viewport of margin in each direction, unless the figure names its
+     own. The observer fires on the approach rather than on the arrival, so a
+     reader scrolling at any speed meets a figure that has been running for at
+     least a screen — the tick is never seen starting. A figure with nothing to
+     be seen starting says so on its own attribute; see the block header. */
+  var DEFAULT_MARGIN = '100% 0px 100% 0px';
+
+  function callback(entries) {
     for (var i = 0; i < entries.length; i++) {
       var el = entries[i].target;
       if (entries[i].isIntersecting) el.removeAttribute('data-idle');
       else el.setAttribute('data-idle', '');
     }
-  }, { rootMargin: '100% 0px 100% 0px' });
+  }
+
+  /* One observer per distinct margin, not one per figure: a page that names no
+     margin anywhere builds exactly the single observer this file always built.
+     An unparseable value throws from the constructor rather than silently
+     observing at some other distance, so it is caught and the figure falls back
+     to the default — a gate that is too generous is the behaviour this file
+     started from, and a page that fails to boot is not. */
+  var observers = {};
+  function observerFor(margin) {
+    if (!observers[margin]) {
+      try {
+        observers[margin] = new window.IntersectionObserver(callback, { rootMargin: margin });
+      } catch (e) {
+        observers[margin] = observers[DEFAULT_MARGIN] ||
+          (observers[DEFAULT_MARGIN] =
+            new window.IntersectionObserver(callback, { rootMargin: DEFAULT_MARGIN }));
+      }
+    }
+    return observers[margin];
+  }
 
   for (var i = 0; i < figures.length; i++) {
     /* IDLE UNTIL TOLD OTHERWISE, so a figure that is off screen at load has
@@ -109,6 +164,6 @@
        lets every figure on the page run from load until the first callback,
        including the ones fifteen thousand pixels away, which is the fault. */
     figures[i].setAttribute('data-idle', '');
-    observer.observe(figures[i]);
+    observerFor(figures[i].getAttribute('data-cf-idle') || DEFAULT_MARGIN).observe(figures[i]);
   }
 }());
