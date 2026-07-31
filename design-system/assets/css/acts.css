@@ -3318,6 +3318,23 @@
          being readable". A rail at rest is exactly the case that floor was
          written for. */
       --act-glyph: 1rem;
+      /* THE RESTING COLUMNS, published for the same reason --act-glyph is:
+         the rail has two resting widths now — four columns where there is a
+         margin to hold them and one where there is not — and the row that
+         draws them must read the decision rather than repeat it. The four are
+         the tick, the numeral, the glyph and the collapsed title; the note on
+         .act-rail__link below has the arithmetic for each. The narrow tier's
+         single column and the argument for it are at the foot of this file.
+
+         TWO NAMES, BECAUSE THE OPEN RAIL IS THE SAME RAIL AT BOTH TIERS. The
+         four columns are the geometry of an OPEN rail — which is what the wide
+         tier rests at and what both tiers hover to — so they are written once,
+         under a name the narrow tier can point back at rather than a literal
+         it would have to keep equal by hand. --act-cols is the resting one and
+         the only one .act-rail__link reads.
+         → scripts/check-rail-margin.py resolves both, per tier */
+      --act-cols-open: var(--space-4) var(--space-4) auto auto;
+      --act-cols: var(--act-cols-open);
       /* THE MARKS' TIER — the tick, the numeral and the glyph, which are the
          three aria-hidden spans in every row and not the title. Published beside
          the glyph size because it is switched by the same two states, in the
@@ -3446,7 +3463,9 @@
     .act-rail[hidden] { display: none; }
 
     /* ============================================================
-       A MARGIN RAIL NEEDS A MARGIN, AND BELOW 96rem THERE IS NOT ONE.
+       A MARGIN RAIL NEEDS A MARGIN, AND BELOW 96rem THERE IS NOT ONE —
+       NOT ONE 84 px WIDE. The rail that fits the one there is, is at the
+       foot of this file; this note is why it had to be a different rail.
 
        The rail is 84 px wide — the four columns of .act-rail__link, which are
        --space-4, --space-4, the glyph at its collapsed --act-glyph, and the
@@ -3493,25 +3512,33 @@
        does not fit, and 96rem is where it starts to: --column-inset is 128
        there, which leaves the 20 px between it and the rail's 108.
 
-       SO THE TIER MOVES AND THE RAIL DOES NOT. Below 96rem the scroll no
-       longer lifts it — `is-live` keeps setting the class, and the class no
-       longer paints — and :focus-within still does, at which point the rail
-       already brings the glass plate and the five titles with it and is a
-       deliberate overlay rather than ink on ink. That is the same "hidden by
-       paint, lifted on focus" idiom the note above this argues for, one tier
-       wider: a reader who cannot see the rail can still Tab to it and gets all
-       of it, and nobody reads act 4 through it.
+       SO THE TIER MOVED AND THE RAIL DID NOT, WHICH WAS THE CORRECT HALF OF
+       THE ANSWER. Below 96rem the scroll no longer lifted it — `is-live`
+       kept setting the class, and the class no longer painted — and
+       :focus-within still did, at which point the rail already brings the glass
+       plate and the five titles with it and is a deliberate overlay rather than
+       ink on ink. Nobody read act 4 through it, which was the fault this
+       answered, and it is still true of everything below.
 
-       WHAT IS LOST, STATED. Between 64rem and 96rem the passive position
-       indicator is gone for a pointer — the acts still pin there, so those
-       readers have 22 000 px of scroll and no contents unless they Tab. A rail
-       that fits a 56 px margin is a different rail, not a smaller one, and
-       designing it is the responsive lane's, not this one's.
-       → scripts/check-rail-margin.py holds the arithmetic
+       WHAT IT COST, WHICH THAT NOTE STATED AND LEFT OPEN. Between 64rem and
+       96rem the passive position indicator was gone for a pointer — the acts
+       still pin there, so those readers had 18 000 to 23 000 px of scroll and
+       no contents unless they Tab. Measured on the shipped page, scrolled into
+       act 4, before the rail at the foot of this file existed:
+
+           width   document   .act-rail   act-rail.js  what a pointer had
+            1024    22 758     opacity 0   is-live      nothing
+            1280    22 864     opacity 0   is-live      nothing
+            1440    22 931     opacity 0   is-live      nothing
+            1536    22 971     opacity 1   is-live      the whole rail
+
+       Three of the four most common desktop widths on the ladder, on the page
+       this system's flagship is, running the script that marks the current act
+       correctly and painting none of it. "A rail that fits a 56 px margin is a
+       different rail, not a smaller one" was the right sentence and it was
+       written as a hand-off. THE DIFFERENT RAIL IS AT THE FOOT OF THIS FILE.
+       → scripts/check-rail-margin.py holds the arithmetic, both tiers
        ============================================================ */
-    @media screen and (max-width: 95.999rem) {
-      .act-rail:not(:focus-within) { opacity: 0; pointer-events: none; }
-    }
     .act-rail:hover,
     .act-rail:focus-within {
       --act-glyph: 1.5rem;
@@ -3552,7 +3579,7 @@
     .act-rail__link,
     .act-rail__jump {
       display: grid;
-      grid-template-columns: var(--space-4) var(--space-4) auto auto;
+      grid-template-columns: var(--act-cols);
       align-items: center;
       gap: var(--space-3);
       text-decoration: none;
@@ -3617,7 +3644,11 @@
        THE TARGET IS 24 PX TALL AND THE GLYPH IS 16. A chevron at rest is one
        rung of the icon ladder and WCAG 2.5.8's floor is 24, so the row keeps a
        --space-6 minimum and the glyph centres in it. The other four columns of
-       the shared grid carry the row past 24 px wide on their own.
+       the shared grid carry the row past 24 px wide on their own — WHERE THERE
+       ARE FOUR. Below 96rem the resting rail is one column and this row is
+       16 x 24, which stands on 2.5.8's spacing exception at a 40 px pitch,
+       exactly as the five act rows two paragraphs above it do at 32. See "THE
+       NARROW TIER'S RAIL" at the foot of this file.
 
        They take --act-ink with everything else in the rail: at rest the marks in
        the margin, one tier up when the plate is behind them, --text-primary on
@@ -3730,5 +3761,120 @@
     .act-rail:focus-within .act-rail__label {
       max-inline-size: 16rem;
       opacity: 1;
+    }
+
+    /* ============================================================
+       THE NARROW TIER'S RAIL — 64rem to 96rem, where the margin is 56 to 80 px
+       and the four-column rail is 84.
+
+       LAST IN THE FILE BECAUSE IT OVERRIDES THE MARKS, and the marks are
+       declared above it at the same specificity. A block placed where the
+       argument for it is — up at "A MARGIN RAIL NEEDS A MARGIN" — would lose
+       the tick's own `transform` and the glyph's own `display` to source order,
+       silently and only in this tier. The argument stays there; the rules are
+       here.
+
+       IT IS THE WIDE RAIL'S FIRST COLUMN AND NOTHING ELSE. Not a smaller rail
+       — a rail whose resting state is the one mark that answers the one
+       question a reader inside 22 000 px of scroll asks passively: which of
+       these five am I in. The numeral, the act glyph and the title all answer
+       "which five ARE there", and that is a question with a control attached —
+       so they arrive with the control, on :hover and on :focus-within, where
+       the plate and the overlay the note above argues for arrive too. Nothing
+       about the open rail changes in this tier; only what is standing there
+       before it is opened.
+
+       THE ARITHMETIC, WHICH IS THE WHOLE REASON THE COLUMN IS ONE:
+
+           tier      inset       resting extent          ends   inset at   clears
+           64–96rem  --space-4   --space-4 (the tick)      32     56.32      24.32
+           96rem+    --space-6   84 (four columns)        108    128         20
+
+       --column-inset is max(--gutter, (100% - --container-max) / 2) and binds
+       at 1024, where --gutter's 5.5vw resolves to 56.32 — the narrowest margin
+       either tier ever stands in. 24.32 px of clearance there, against the
+       --space-4 floor scripts/check-rail-margin.py holds both rows to. That is
+       the check's own `-v` table, printed from these declarations.
+
+       THE INSET DROPS A RUNG WITH THE MARGIN. --space-6 here would end the
+       rail at 40 and clear 56.32 by 16.32 — 0.32 px over the floor, which is a
+       number that passes rather than a number that was chosen, and one
+       --gutter revision from being neither. The rail's inset is a share of the
+       margin it stands in; the margin is 56 to 80 px here against 128 above,
+       so the share is the rung below.
+
+       THE IDLE TICKS ARE A QUARTER, AND THE QUARTER IS --space-1 OF THE
+       COLUMN'S --space-4. Above this tier the four idle ticks are scaleX(0)
+       and only the current one is drawn, because the numerals beside them
+       already say there are five. Alone in the margin one 16 px rule is a mark
+       with no scale — it cannot say "the fourth of five", only "here". A 4 px
+       stub at each of the other four gives the current tick something to be
+       long against, on the transform the component already animates and at the
+       ink it already recedes at: --act-ink for the four, --text-primary for the
+       one, which is 1.28:1 and 8.50:1 over the worst backdrop the sweep in
+       .act-rail__label found. Length is the signal and length survives a
+       backdrop nobody controls.
+
+       THE TWO JUMPS COME DOWN ONTO THE TICK'S AXIS. Their chevron is their
+       whole visible content — a hidden label and a <use> — so it cannot be the
+       thing that is dropped, and column 3 does not exist here. `grid-column: 1`
+       puts it where the numerals' column went, which is the axis every other
+       mark in this rail is already on.
+
+       THEIR TARGET IS 16 x 24 AND THAT IS THE SAME EXCEPTION THE FIVE ROWS
+       TAKE. The note on .act-rail__jump above says the other four columns
+       "carry the row past 24 px wide on their own", which is true where there
+       are four. Here there is one, so the jumps stand on WCAG 2.5.8's spacing
+       exception exactly as the 16 px act rows three paragraphs above it do: a
+       24 px row on a --space-4 gap is a 40 px pitch, and 40 px of offset clears
+       the 24 px circle with 16 to spare. Undersized on one axis, cleared on
+       offset, and the arithmetic is the same arithmetic.
+
+       POINTER-EVENTS COME BACK, which they could not while the rail was 84 px
+       of invisible fixed column over act 4's copy. At 32 px the rail's box ends
+       24.32 px short of the first character on the page, so there is nothing
+       for it to swallow — and it must be hittable or :hover cannot open it,
+       which is where the other three quarters of the rail live in this tier.
+       .is-live still gates it: off screen the rail catches nothing, and that
+       rule is above and unchanged.
+       ============================================================ */
+    @media screen and (max-width: 95.999rem) {
+      .act-rail {
+        --act-cols: var(--space-4);
+        inset-inline-start: var(--space-4);
+      }
+      .act-rail:hover,
+      .act-rail:focus-within {
+        --act-cols: var(--act-cols-open);
+      }
+
+      /* The two marks that answer "which five are there" — dropped from the
+         resting column, restored with the title they belong to. `display`
+         rather than a width, because a cell in a grid with one column is a new
+         implicit column and the rail would still be 84 px wide with nothing
+         in it. The title needs no rule: it is `max-inline-size: 0` at rest at
+         every width and stays in the DOM for a reader who is not looking. */
+      .act-rail__num,
+      .act-rail__link .act-rail__glyph { display: none; }
+      .act-rail:hover .act-rail__num,
+      .act-rail:focus-within .act-rail__num { display: block; }
+      .act-rail:hover .act-rail__link .act-rail__glyph,
+      .act-rail:focus-within .act-rail__link .act-rail__glyph { display: block; }
+
+      .act-rail__jump .act-rail__glyph { grid-column: 1; }
+      .act-rail:hover .act-rail__jump .act-rail__glyph,
+      .act-rail:focus-within .act-rail__jump .act-rail__glyph { grid-column: 3; }
+
+      /* A quarter of --space-4 is --space-1: the scale's own smallest rung and
+         the unit the whole scale is built on. [aria-current] takes it back to
+         scaleX(1) from the rule above — higher specificity, later in the file
+         than this one is not required and is true anyway. */
+      .act-rail__tick { transform: scaleX(.25); }
+      .act-rail:hover .act-rail__tick,
+      .act-rail:focus-within .act-rail__tick { transform: scaleX(0); }
+      .act-rail:hover .act-rail__link[aria-current] .act-rail__tick,
+      .act-rail:focus-within .act-rail__link[aria-current] .act-rail__tick {
+        transform: scaleX(1);
+      }
     }
   }
