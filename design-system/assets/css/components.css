@@ -3458,12 +3458,32 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
 
 /* The plate is the whole state here, and forced-colours throws backgrounds
    away. Highlight/HighlightText is the pair the mode reserves for exactly
-   this — "the selected one of a set". */
+   this — "the selected one of a set" — and it is not the pair used below.
+
+   HighlightText DOES NOT PAINT. Measured in Chromium 141's forced-colors
+   mode (the emulation this system is checked against, scripts/check-
+   runtime.py): a bare `color: HighlightText` on plain text, with or without
+   a `background: Highlight` beside it, produces zero visible glyphs — the
+   box takes its background and border, the text takes its layout box, and
+   no ink lands. SelectedItem/SelectedItemText, the newer pair for the same
+   meaning, fails identically. Every other system pair tried paints —
+   Mark/MarkText, ButtonFace/ButtonText, Canvas/CanvasText, GrayText,
+   LinkText — so this is not forced-colors mode itself losing fidelity, it
+   is these two keywords specifically.
+
+   Mark/MarkText is the substitute, not chosen for its own meaning but
+   because it is the nearest working pair already load-bearing in this
+   system — base.css reaches for it under the identical constraint, for the
+   current-search-match state, with the identical reasoning: "the system
+   value has to be named rather than left to the mode". "Currently matched"
+   and "currently selected" are not the same fact, but a wrong-but-legible
+   pair beats a correct-but-invisible one, and the page's own aria-current
+   is what still carries the true meaning for assistive tech either way. */
 @media (forced-colors: active) {
   .cf-pagination__page[aria-current] {
-    background: Highlight;
-    border-color: Highlight;
-    color: HighlightText;
+    background: Mark;
+    border-color: Mark;
+    color: MarkText;
   }
 }
 
@@ -4040,8 +4060,13 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    It lands on the same inverted plate that hover lands on, which is safe here
    precisely because the two can never be the same element. */
 .cf-article__tag[aria-current] { background: var(--cf-schwarz); color: var(--grey-000); }
+/* Mark/MarkText, not Highlight/HighlightText — see the identical selected
+   state on .cf-pagination__page[aria-current], which measures why: a bare
+   `color: HighlightText` paints no glyphs in Chromium 141's forced-colors
+   mode, on this element or in isolation, and Mark/MarkText is the nearest
+   pair that does. */
 @media (forced-colors: active) {
-  .cf-article__tag[aria-current] { background: Highlight; color: HighlightText; }
+  .cf-article__tag[aria-current] { background: Mark; color: MarkText; }
 }
 
 /* --------------------------------------------------------------------------
