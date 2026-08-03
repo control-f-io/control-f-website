@@ -130,7 +130,16 @@ ACTS = ROOT / "design-system" / "assets" / "css" / "acts.css"
 TREE = ROOT / "design-system"
 
 # The stage's ink layers -- drawn things inset to .sp-stage, which the band owns.
-INK_LAYERS = (".sp-field", ".sp-annots-fig")
+#
+# .sp-stage::before IS THE THIRD, AND IT ARRIVED WITHOUT A STYLESHEET. The stage
+# carries .cf-ground now: base.css draws the isometric floor on a pseudo-element
+# at `position: absolute; inset: 0` of its originating element, so dropping the
+# class on the stage created exactly the layer this file's header describes --
+# ink at `inset: 0` of a box that grew to hold act 2's prose. Nothing in acts.css
+# had to say `position: absolute` for that to happen, which is the point: a class
+# from another file can open the same hole a rule can, and the clause below is
+# what closes it. acts.css clips it to var(--sp-ground-clip) beside the other two.
+INK_LAYERS = (".sp-field", ".sp-annots-fig", ".sp-stage::before")
 # The stage's copy layer. Prose is what the band exists to get out from under;
 # clipping it would be the fault inverted.
 COPY_LAYER = ".sp-say"

@@ -36,11 +36,28 @@ stay that way by construction rather than by anyone remembering.
 THE LAW. One lattice, one supergrid, one focus.
 
   THE LATTICE is the same 2:1 isometry at the same phase as the statement
-  field — lines y = +-x/2 + c and the level step, c and y on the 32-module,
-  the whole angle vocabulary the system allows (foundations/geometry.html:
-  0, 26.57, 45, 63.43, 90) — drawn edge to edge over a 1600 x 900 box that
-  the stage crops with `slice`, so the ground reaches every corner of every
-  viewport instead of stopping at a column edge.
+  field — lines y = +-x/2 + c, c on the module — and IT IS NO LONGER DRAWN
+  HERE. It is what the sensors are laid on, not something this file inks.
+
+  THIS FILE USED TO EMIT IT: eighty-nine <line> elements in a
+  <g class="sp-field__lattice">, #000 at stroke-dasharray 1 4, the group
+  dimmed to .26 in acts.css. That was a second implementation of .cf-ground —
+  base.css's "THE FIELD — the isometric lattice as a surface", the material
+  every other section of the site stands on, Expertise included. The note
+  under MODULE below records the day the two were reconciled in GEOMETRY and
+  says what that left: "it is now a scaled instance of the right lattice
+  rather than an unrelated one" — a scaled instance, in a sliced viewBox, at
+  a weight arrived at by eye, of a material whose own ink has a measured
+  contrast ceiling behind it (tokens.css 8b: 10 % black, the darkest
+  --text-secondary may cross at 4.5:1). One lattice, drawn twice, was one
+  drawing too many. The pages carry .cf-ground on .sp-stage now and the
+  <g> is gone from both.
+
+  WHAT STAYS HERE IS THE MATHS, because the sensors need it: MODULE, LINE_C0
+  and the congruences below still say where a crossing is, check-void-
+  departure.py still holds every bead to one, and .cf-ground tiles the same
+  96 x 48 cell those crossings are the corners of. clip() and lattice() are
+  gone with the markup they existed to produce; --report counts what is left.
 
   THE SENSORS sit on lattice intersections and nowhere else: crossings of the
   two diagonal families are x == 0 (mod 32), y == 8 (mod 16), and every glow
@@ -298,47 +315,6 @@ def num(v):
     return f"{v:g}"
 
 
-# ------------------------------------------------------------------- lattice
-
-def clip(p, q):
-    (x1, y1), (x2, y2) = p, q
-    dx, dy = x2 - x1, y2 - y1
-    t0, t1 = 0.0, 1.0
-    for pk, qk in ((-dx, x1), (dx, WIDTH - x1), (-dy, y1), (dy, HEIGHT - y1)):
-        if pk == 0:
-            if qk < 0:
-                return None
-            continue
-        t = qk / pk
-        if pk < 0:
-            t0 = max(t0, t)
-        else:
-            t1 = min(t1, t)
-    if t0 >= t1 - 1e-12:
-        return None
-    return ((x1 + t0 * dx, y1 + t0 * dy), (x1 + t1 * dx, y1 + t1 * dy))
-
-
-def lattice():
-    """Down-right family, down-left family, then the level step — the order
-    the statement field has always drawn them in."""
-    lines = []
-    for sign in (+1, -1):
-        lo = -WIDTH // 2 - MODULE if sign > 0 else 0
-        hi = HEIGHT if sign > 0 else HEIGHT + WIDTH // 2 + MODULE
-        c = LINE_C0 + MODULE * math.ceil((lo - LINE_C0) / MODULE)
-        while c < hi:
-            seg = clip((0.0, float(c)), (float(WIDTH), c + sign * WIDTH / 2))
-            if seg:
-                lines.append(seg)
-            c += MODULE
-    y = MODULE // 2
-    while y <= HEIGHT - MODULE // 2:
-        lines.append(((0.0, float(y)), (float(WIDTH), float(y))))
-        y += MODULE
-    return lines
-
-
 # --------------------------------------------------------------------- field
 
 def field():
@@ -379,12 +355,6 @@ def field():
 
 
 # -------------------------------------------------------------------- markup
-
-def lattice_markup(indent):
-    return "\n".join(
-        f'{indent}<line x1="{num(p[0])}" y1="{num(p[1])}" '
-        f'x2="{num(q[0])}" y2="{num(q[1])}"/>' for p, q in lattice())
-
 
 def field_markup(indent):
     """A group per sensor: the halo it spills, then the bead itself.
@@ -574,8 +544,12 @@ def annots_markup(indent):
 # emptied. A pattern that needs at least one line between the markers cannot
 # regenerate a block somebody has cleared, which is exactly the state a person
 # leaves behind when they delete generated output to see what is theirs.
-LATTICE_RE = re.compile(
-    r'([ \t]*)(<g class="sp-field__lattice"[^>]*>\n)((?:.*\n)*?)(\1</g>)')
+# TWO BLOCKS NOW, NOT THREE. LATTICE_RE stood at the head of this list and
+# matched a <g class="sp-field__lattice"> that no page has any more — the floor
+# is .cf-ground, drawn by base.css from tokens (see THE LAW). A splice pattern
+# kept alive past its markup is worse than a dead one: `n != 3` below would
+# have failed every run with "the markers went stale", which is this file's
+# message for somebody having edited generated output by hand.
 SENSORS_RE = re.compile(
     r'([ \t]*)(<g class="sp-field__sensors">\n)((?:.*\n)*?)(\1</g>)')
 ANNOTS_RE = re.compile(
@@ -591,10 +565,9 @@ def splice(text):
         return (m.group(1) + m.group(2)
                 + annots_markup(m.group(1) + "  ") + "\n" + m.group(4))
 
-    text, n1 = LATTICE_RE.subn(lambda m: one(m, lattice_markup), text, count=1)
-    text, n2 = SENSORS_RE.subn(lambda m: one(m, field_markup), text, count=1)
-    text, n3 = ANNOTS_RE.subn(annots, text, count=1)
-    return text, n1 + n2 + n3
+    text, n1 = SENSORS_RE.subn(lambda m: one(m, field_markup), text, count=1)
+    text, n2 = ANNOTS_RE.subn(annots, text, count=1)
+    return text, n1 + n2
 
 
 def main():
@@ -612,7 +585,7 @@ def main():
         print(f"  supergrid      {SUPER_X} x {SUPER_Y}, stagger {STAGGER}"
               f" — nearest neighbours {dmin:.1f} units")
         print(f"  sensors        {len(rows)}   "
-              f"lattice lines {len(lattice())}")
+              f"cell {MODULE * 2} x {MODULE} (.cf-ground's own)")
         print(f"  bead           r {R_MIN}..{R_MAX}  opacity "
               f"{OP_MIN:g}..{OP_MAX:g}  halo {GLOW:g}x")
         dirs = {}
@@ -634,8 +607,8 @@ def main():
         rel = page.relative_to(ROOT)
         text = page.read_text(encoding="utf-8")
         new, n = splice(text)
-        if n != 3:
-            print(f"gen-proto-field: {rel}: found {n} of 3 blocks — "
+        if n != 2:
+            print(f"gen-proto-field: {rel}: found {n} of 2 blocks — "
                   f"the markers went stale")
             return 1
         if args.write:
