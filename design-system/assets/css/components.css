@@ -920,6 +920,26 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 .cf-logo img, .cf-logo svg { height: 1.25rem; width: auto; }
 .cf-logo--bare { padding: 0; background: none; border-radius: 0; }
 
+/* THE PLATE IS --surface-inverse, A SOLID background-color, AND FORCED
+   COLOURS OVERRIDES THOSE WITHOUT BEING ASKED — tokens.css only has to name
+   the glass tokens explicitly because gradients compute to `none` in this
+   mode and would otherwise vanish outright; a plain background-color like
+   this one is repainted Canvas by the browser regardless of what this file
+   says, the same way .cf-footer's is. The mark on that plate is a fixed
+   white asset with no idea what is under it, so on the light high-contrast
+   theme (Canvas: white) it sits Canvas-on-Canvas. Measured in Chromium at
+   1280 x 900 with the mode active and colour-scheme light: the mark's own
+   pixels and the plate's, sampled either side of it, both read
+   rgb(255, 255, 255) — no contrast at all, the mark gone. Under a dark
+   high-contrast theme (colour-scheme dark, Canvas: black) the same white
+   mark reads rgb(255, 255, 255) against a rgb(0, 0, 0) plate, 21:1, exactly
+   as designed — so only the light theme needs correcting, and inverting a
+   pure-white asset there lands it on black, which is CanvasText's own colour
+   without shipping a second file to hold it. */
+@media (forced-colors: active) and (prefers-color-scheme: light) {
+  .cf-logo img { filter: invert(1); }
+}
+
 /* --------------------------------------------------------------------------
    NAVIGATION
    Logo plate left, link plate right, mono uppercase links, both opaque —
