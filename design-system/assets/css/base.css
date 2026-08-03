@@ -1495,11 +1495,21 @@ hr {
    tokens.css claiming the shallow rake "spreads it across the whole line"
    was describing the intent, not the paint.
 
-   fit-content and not max-content: it resolves to min(max-content,
-   available), so a short headline shrink-wraps and a long one still wraps
-   and fills its column exactly as before. It lives inside @supports because
-   outside it nothing is clipped and shrinking the box would be a layout
-   change for no reason.
+   fit-content(100%), NOT THE BARE KEYWORD, and that parenthesis is load-
+   bearing. The intent has always been min(max-content, available), so a
+   short headline shrink-wraps and a long one still wraps and fills its
+   column — but the bare `fit-content` keyword does not compute that on a
+   plain in-flow block, on either engine: measured in isolation, a
+   fit-content h3 in a 100 px box rendered at its full 277.84 px max-content
+   width on Chromium 141 and WebKit alike, identically to `width:
+   max-content`. `fit-content(100%)` — the function, with an explicit
+   stretch basis — is what actually clamps to the containing block, and
+   ships the same 100 px. Found on expertise.html's info-card titles at an
+   enlarged root font size: "Maschinenbau" at 42 px sat 290 px wide in a
+   164 px card, ink and box both past the card's edge, on a page whose own
+   grid track was floored correctly around it. It lives inside @supports
+   because outside it nothing is clipped and shrinking the box would be a
+   layout change for no reason.
 
    THIS CLASS IS NOT THE ONLY CONSUMER OF --gradient-foil, and the other one
    inverts both rules above on purpose:
@@ -1558,7 +1568,7 @@ hr {
 
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .text-foil {
-    width: fit-content;
+    width: fit-content(100%);
     background-image: var(--foil-image);
     -webkit-background-clip: text;
     background-clip: text;
