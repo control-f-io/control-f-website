@@ -145,19 +145,36 @@ section scrubs at all; on seven sizes the middle of it belongs to the banner.
          block axis          what is left rather than in the whole screen
 
      Both must read var(--cf-consent-height, 0px), and both must be FLOORED at
-     the gate's own min-height — read out of the page's own @media prelude here,
-     not typed, so the floor cannot drift from the gate it is a floor for.
+     the gate's own min-height LESS the banner's own height — the gate read out
+     of the page's own @media prelude here, not typed, so the floor cannot
+     drift from the gate it is a floor for.
 
      The floor is load-bearing and is the one part of this that is not obvious.
      The card's height is max(width / 2, the copy), and the copy is the taller
      column below about 1000 px of card, so past that crossover narrowing the
      card makes it TALLER. An unfloored reservation therefore crops the card
-     against the stage's own clip — 90.7 px at 1280 x 720 with the banner up,
-     measured — which is a worse picture than the one it was fixing. Floored,
-     the reservation is paid in full at and above 820 px of viewport, tapers to
-     nothing at the gate's floor, and is byte-identical to the unreserved
-     rendering wherever the banner is not up, because max() against a 0px
-     fallback is the expression it replaced.
+     against the stage's own clip — 286.7 px at 1280 x 720 behind a 333 px
+     banner, 241.8 at a 20 px root — which is a worse picture than the one it
+     was fixing.
+
+     AND THE SUBTRACTION IS THE REST OF IT, because for its first two revisions
+     this floor was the gate itself and a floor at the gate is a reservation
+     never paid. max() takes the larger of "the room the reader can see"
+     (100vh - banner) and "the room this was drawn in" (min(45rem, 100vh)), and
+     between the gate's floor and 45rem + the banner the second is larger — so
+     the whole band from 720 to 864 px of viewport reserved nothing, which the
+     revision that introduced it recorded as "tapers to nothing at the gate's
+     floor" without noticing that 1280 x 720 is that floor and is also the
+     commonest laptop viewport there is. Every non-zero row of the table above
+     was still non-zero after the fix that was supposed to clear it. Floored at
+     45rem - 9rem the reservation is paid in full at every height the gate
+     admits, all nine rows go to zero, and the clip still cuts nothing; 9rem is
+     the banner at every width above 900, where its copy stops re-wrapping.
+
+     It stays byte-identical to the unreserved rendering wherever the banner is
+     not up, because max() against a 0px fallback is the expression it
+     replaced, and byte-identical at every root font size above 16 px, because
+     36rem caps against the viewport there for the same reason 45rem did.
 
      It also has to be the BLOCK SIZE and not padding, for the mirror image of
      the reason link 4 gives for the hero: the inner is height: 100% of the
@@ -482,38 +499,70 @@ else:
         return re.search(r"var\(\s*%s\s*,\s*0px\s*\)" % re.escape(PROP), value)
 
     def floored(value):
-        """The reservation's first max() term is the gate's own min-height.
+        """The first max() term is the gate's min-height LESS the banner, capped.
 
-        TWO SHAPES PASS AND NOTHING ELSE DOES. Bare — `max(45rem, …)` — which
-        is what link 6 was written against. Or capped at the viewport —
-        `max(min(45rem, 100vh), …)`, `max(min(45rem, 100%), …)` — which is the
-        same floor with one bound added, and the bound is not optional.
+        ONE SHAPE PASSES NOW: `max(min(45rem - 9rem, 100vh), …)`, or the same
+        with `100%` where the box has a percentage basis. Both shapes that
+        preceded it fail, and they fail because each of them was measured.
 
-        WHY THE CAPPED FORM HAD TO BECOME LEGAL. `rem` in a declaration is the
-        READER's root font size; `rem` in the @media prelude this floor is read
-        out of is the root's INITIAL font size and nothing else. So the gate's
-        45rem is 720 px at every text size, and the floor's 45rem is 1080 px at
-        a 24 px default and 1440 at 32. The gate admits a 768 px viewport and
-        the floor inside it then asks for 1440 — a floor above the ceiling that
-        clips it, and .cf-pin__stage is `overflow: clip`, so the surplus is cut
-        rather than scrolled. Measured, act 3's twenty copy runs wholly inside
-        the clip: 20/20 at a 16 px root, 9/20 at 24, and 0/20 at 32 — at 200 %
-        text, every word of "Was wir machen" was below the clip.
+        BARE — `max(45rem, …)` — was link 6 as written. The cap had to be added
+        because `rem` in a declaration is the READER's root font size while
+        `rem` in the @media prelude this floor is read out of is the root's
+        INITIAL size: the gate's 45rem is 720 px at every text size, the
+        floor's is 1080 px at a 24 px default and 1440 at 32, and
+        .cf-pin__stage is `overflow: clip`, so the surplus is cut rather than
+        scrolled. Act 3's twenty copy runs wholly inside the clip: 20/20 at a
+        16 px root, 9/20 at 24, 0/20 at 32.
 
-        It does not weaken link 6 by a pixel. The gate does not apply below a
-        45rem viewport and 45rem is 720 px in the gate, so at the default size
-        min(45rem, 100vh) IS 45rem everywhere this rule can run — the 1280 x 720
-        row link 6 measured is unchanged, and so is every other 16 px row. The
-        cap only ever engages where the uncapped floor was wrong.
+        CAPPED AT THE GATE — `max(min(45rem, 100vh), …)` — fixed that and left
+        the reservation unpaid. The floor and the reservation are competing
+        terms of one max(): `100vh - banner` is the room the reader can see,
+        `min(45rem, 100vh)` is the room the composition was drawn in, and
+        between the gate's floor and 45rem + the banner the floor is the larger
+        of the two. Link 6's own sentence for this was "tapers to nothing at
+        the gate's floor". 1280 x 720 is where it tapers to nothing and is the
+        commonest laptop viewport there is. Measured, banner up, stage stuck,
+        16 px root — px of the bar behind the banner, and what elementFromPoint
+        returns at its middle:
+
+            viewport      capped at 45rem      less the banner
+            1280 x  720      99.4  banner          0  bar
+            1024 x  720      81.4  banner          0  bar
+            1366 x  768      51.4  banner          0  bar
+            1024 x  768      33.4  banner          0  bar
+            1280 x  800      19.4  banner          0  bar
+            1280 x  900       0    bar             0  bar
+            1024 x  900       0    bar             0  bar
+            1920 x 1080       0    bar             0  bar
+
+        The stage's clip cuts 0 px in both columns at every row, so the crop
+        the floor exists to prevent is not what paying the reservation costs.
+        It is what dropping the floor costs, which is a third shape and also
+        fails here: unfloored, a 333 px banner takes the card to 358 px wide
+        and 1543 tall and the clip cuts 286.7, and a 20 px root at 1280 x 720
+        cuts 241.8.
+
+        WHY THE SUBTRAHEND IS NOT READ FROM ANYWHERE. --cf-consent-height is
+        the banner's real height and the reservation still reads it. 9rem is a
+        floor's constant: the banner is 144 px at every width this gate admits,
+        because its copy stops re-wrapping above 900, and where the real banner
+        is taller the floor stops the reservation early instead of tracking it.
+        So this checks that a positive rem is subtracted from the gate's own
+        threshold, and does not check which one — a floor that drifts to 8 or
+        10rem is a taste, a floor that is the gate itself is the bug above.
         → scripts/check-rem-floor.py, which requires the cap this accepts
         """
         if not floor:
             return False
         f = re.escape(floor)
-        bare = re.search(r"max\(\s*%s\s*," % f, value)
-        capped = re.search(r"max\(\s*min\(\s*%s\s*,\s*(?:100vh|100%%)\s*\)\s*," % f,
-                           value)
-        return bool(bare or capped)
+        m = re.search(
+            r"max\(\s*min\(\s*%s\s*-\s*([\d.]+)rem\s*,\s*(?:100vh|100%%)\s*\)\s*," % f,
+            value)
+        if not m:
+            return False
+        # A subtraction of nothing is the capped-at-the-gate shape spelled
+        # longer, and a subtraction of the whole gate is no floor at all.
+        return 0 < float(m.group(1)) < float(floor[:-3])
 
     consumers = [
         (MEASURE, re.search(r"%s\s*:\s*([^;]+)" % re.escape(MEASURE), page_css),
@@ -549,11 +598,17 @@ else:
                 "    The card's height is max(width / 2, the copy) and the copy is "
                 "the taller column below about 1000 px of card, so past that "
                 "crossover an unfloored reservation makes the card TALLER and the "
-                "stage's clip crops it — 90.7 px at 1280 x 720, measured. Write the "
-                "reservation as max(%s, …), or as max(min(%s, 100vh), …) so the "
-                "floor cannot itself exceed the box that clips it at a root font "
-                "size above 16 px — see floored()."
-                % (name, floor or "?", value, floor or "?", floor or "?")
+                "stage's clip crops it — 286.7 px at 1280 x 720 behind a 333 px "
+                "banner, measured. But the floor may not BE the gate either: at "
+                "the gate's own floor that leaves the reservation unpaid and the "
+                "banner buries the progress bar by 99.4 px at 1280 x 720, which is "
+                "the row this link was written for. Write it as "
+                "max(min(%s - <n>rem, 100vh), …), n the banner's own height in rem "
+                "— 9rem, it is 144 px at every width this gate admits — so the "
+                "floor is the gate restated in the room the banner leaves, and is "
+                "still capped against the box that clips it at a root font size "
+                "above 16 px. See floored()."
+                % (name, floor or "?", value, floor or "?")
             )
     # a cap on the box, not padding inside it — the mirror of link 4
     stage_body = page_rule_bodies(page_css, STAGE_SEL)
