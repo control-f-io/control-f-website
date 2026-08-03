@@ -461,6 +461,24 @@
        only the paint stops at the horizon. */
     clip-path: var(--sp-ground-clip);
   }
+  /* A container-type:size BOX TAKES THE WHOLE SHEET DOWN WITH IT, not only
+     its own field. Chromium's real print pipeline — page.pdf(), Ctrl+P, not
+     emulateMedia('print') alone, which never leaves the screen compositor and
+     so never shows this — drops the ENTIRE document to a blank raster once
+     this element is anywhere in the tree. Measured on the shipped page: nine
+     pages, zero extractable characters, from the headline down through the
+     footer. Hiding only .sp-annots-fig restored all nine pages to real text —
+     2 898 characters of it, every act's copy, the FAQ, the footer. Removing
+     just `container-type: size` (keeping the clip-path and the overflow both
+     in place) fixed it exactly as completely, which is what narrows the fault
+     to that one declaration and clears the clip-path and the 21 children it
+     sizes of blame. The readings are cycling mock data with nothing to say on
+     a still sheet regardless — the same reasoning .cf-ground::before is
+     withdrawn under (base.css) — so the field goes with it rather than
+     shipping a page that prints nothing at all. */
+  @media print {
+    .sp-annots-fig { display: none; }
+  }
   .sp-annots {
     --sp-u: max(1cqw / 16, 1cqh / 9);
     --annot-u: calc(22 * var(--sp-u));
