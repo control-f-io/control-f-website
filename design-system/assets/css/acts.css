@@ -150,8 +150,9 @@
      prose. Inside the gate it is off altogether. */
   .sp-stage {
     position: relative;
-    /* Declared on the stage and not on the layer, because BOTH inset layers
-       read it — see .sp-annots-fig, whose notes end where this view does. */
+    /* Declared on the stage and not on the layer, because ALL THREE inset
+       layers read it — see .sp-annots-fig, whose notes end where this view
+       does, and .sp-stage::before, which is the floor they stand on. */
     --sp-ground: calc((100vw - var(--gutter) * 2) * 620 / 1200);
     /* max(), so a band taller than the box never asks for a negative inset. */
     --sp-ground-clip: inset(0 0 max(0px, 100% - var(--sp-ground)) 0);
@@ -160,6 +161,24 @@
     position: absolute; inset: 0; width: 100%; height: 100%; display: block;
     clip-path: var(--sp-ground-clip);
   }
+  /* THE FLOOR, AND IT IS base.css's AND NOT THIS FILE'S. The markup carries
+     .cf-ground on the stage now; everything that draws the lattice — the two
+     rakes, the 96 x 48 cell, the 10 % ink ceiling and its theme flip — is the
+     material's, declared once in base.css against tokens.css section 8b. What
+     is left here is the one thing the material cannot know: WHERE THIS STAGE'S
+     GROUND ENDS.
+
+     IT IS A THIRD INK LAYER INSET TO .sp-stage, so it takes the band for
+     exactly the reason the other two do. .cf-ground::before is
+     `position: absolute; inset: 0` of its originating element, which is the
+     stage — the same box, and the same box that grew to hold act 2's prose
+     when the copy moved out from under the drawing. Unclipped, the floor ran
+     under those four paragraphs at every width below the pin gate: the fault
+     check-ground-band.py exists for, arriving through a new layer rather than
+     through a new stylesheet. It is in that script's INK_LAYERS beside
+     .sp-field and .sp-annots-fig, and the release inside the pin gate reaches
+     it through the same custom property. */
+  .sp-stage::before { clip-path: var(--sp-ground-clip); }
   /* THE HORIZON IS THE ONE-COLUMN STACK'S, AND 64rem IS ALREADY THE SYSTEM'S
      NAME FOR IT. The band above is exact while the drawing is the whole row —
      verified to the pixel at 320, 375, 600, 768 and 900 — and generous once
@@ -270,7 +289,16 @@
     }
   }
   .sp-stage > .container { position: relative; }
-  .sp-field__lattice { opacity: .26; }
+  /* `.sp-field__lattice { opacity: .26 }` STOOD HERE AND IS GONE WITH THE
+     GROUP IT DIMMED. It was the drawn lattice's whole answer to "how dark may
+     a floor be", arrived at by eye against black dashes: check-authored-opacity
+     .py's own header measured what it bought — 0.339 rendered luminance under
+     the root's numerals, 3.39:1 from the figure standing on it — and had to be
+     written to make it render at all, because a keyframe was overruling it.
+     The material asks the question the other way round and answers it with a
+     contrast floor: --field-ink is 10 % black because 12 % puts
+     --text-secondary at 4.51:1 on CF-Grau and 16 % fails it outright
+     (tokens.css 8b). One number, measured, in the file that owns the ink. */
   /* THE BEAD IS BUILT LIKE THE SOURCE IT RUNS INTO. .lp-flow__orb — the body
      at the trunk's head, two hundred lines below — is a body of the family's
      ramp with a contour on it and a spill around it. A sensor is the same
@@ -1767,14 +1795,33 @@
          (sp-field-*), declared in full lists because animation-name is a
          replacement and not an addition; components.css's cf-stmt rules key
          --cf-iso, which does not exist on this svg, and are overridden
-         here wholesale rather than left to an inactive timeline. */
-      .sp-field__lattice {
+         here wholesale rather than left to an inactive timeline.
+
+         THE FLOOR ARRIVES AND THEN STEPS BACK, and it is the same two beats it
+         always ran — they have simply moved from the <g> that used to draw the
+         lattice onto .cf-ground's own layer. base.css animates that pseudo only
+         under .cf-ground--lit, which this stage is not, so there is nothing
+         here to override: the material draws, this schedules.
+
+         NO --iso-rest ANY MORE. cf-iso-fade ends `opacity: var(--iso-rest, 1)`
+         and the group used to set .26 there, because a #000 dash at full
+         strength was 3.8x too dark to stand a numeral on. The floor's ink is
+         now 10 % black BEFORE any opacity is applied, which is where
+         tokens.css measured the ceiling, so the fallback is the right value
+         and the property has nothing left to say.
+
+         --sp-ground-dim CARRIES THE OLD INK ACROSS, and it is .26 where it was
+         .1 because the number it multiplies changed. The drawn lattice receded
+         to .1 of its own .26, which put 2.6 % black on the pixels a dash
+         covered; .26 of the material's 10 % ink lands on the same 2.6 %. The
+         floor under the root is a little more present than it was, because the
+         line is continuous now where the dash covered one pixel in five — that
+         is the same trade the arrival makes and it is the point of the change,
+         not a side effect of it. The keyframe reads the property rather than a
+         literal — the contract check-authored-opacity.py holds. */
+      .sp-stage::before {
         opacity: 0;
-        --iso-rest: .26;
-        /* the ground's dimmed weight while the root has the stage — the
-           keyframe reads the property, so the number renders (the contract
-           check-authored-opacity.py holds) */
-        --sp-ground-dim: .1;
+        --sp-ground-dim: .26;
         animation-name: cf-iso-fade, sp-ground-recede;
         animation-timeline: --sp, --sp;
         animation-range: contain 4% contain 14%,
