@@ -1807,6 +1807,16 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-fallback-tier.py
 
+      # Which tier a browser lands in, rather than what is written in one. The
+      # gate used to name `animation-timeline: view()` alone, and Firefox has
+      # that and has never had `animation-range` — so it passed into the pinned
+      # tier and ran all 898 of the landing page's animations over the whole
+      # timeline at once, because every range resolved to the empty string. The
+      # gate has to name every feature the block behind it needs.
+      - name: Range gate
+        if: '!cancelled()'
+        run: python3 scripts/check-range-gate.py
+
       # The second about a TIER, and its subject is the one above's opposite: not
       # a declaration that reaches a tier it was not written for, but a drawing
       # that never reaches a tier at all. cf-icons.js is the one file the icon
