@@ -54,7 +54,9 @@ section rule below it, the pin section's padding and the stage's own centring,
 and the last of those is a function of viewport height by design (see the
 .lp-proc-stage note: the trio is centred in the stage, so the card's top slides
 half a pixel for every pixel of viewport). Measured in that tier at scroll
-positions before the pin engages, frame top minus flow bottom:
+positions before the pin engages, frame top minus flow bottom — THESE NINE ARE
+HISTORY, kept because the fix was argued from them; the current nine are eight
+paragraphs down:
 
     1440 x  900     +1.58        the size the drawing was tuned at
     1280 x  768     +6.92
@@ -80,34 +82,68 @@ departure drift on the void's rim. Bottom-anchoring the box ON ITS OWN trades th
 sixteen free ends at the rail for one free end at the void, 167 px below its rim
 at 1920 x 1080, which is a different bug and not a fix.
 
-AND THAT IS WHY #207 SHIPPED THE BOTTOM ANCHOR WITH A STROKE TO ABSORB IT, so
-the paragraph above is now the fallback's account and not the page's. .lp-flow
-is bound between the void and the rail, .lp-flow__stem crosses the stretch as a
-stroke placed in page pixels, and every row of the table above goes to 0.00 —
-which makes this axis four declarations in one file rather than a sum of layout
-terms, and therefore countable after all. scripts/check-seam-anchor.py reads
-them: the rail is nameable, .lp-flow's `bottom` is an anchor on THAT name, the
-box is told to stretch to it, and the numerals take the same foot. Measured by
-making each edit and reloading, `align-self: stretch` alone is worth 171.58 px
-at 1920 x 1080 and 351.58 at 2560 x 1440, and every check in this repository —
-this one included — passed on that state.
+THE PARAGRAPH THAT USED TO STAND HERE SAID THAT WAS FIXED, AND IT WAS NOT. It
+read: #207 shipped a bottom anchor with .lp-flow__stem crossing the stretch as
+a stroke placed in page pixels, "every row of the table above goes to 0.00",
+and two named scripts in scripts/ — a seam-anchor one and a seam-travel one —
+held the two axes between them. Three claims, none of them true of anything
+that has ever been on main. Neither script exists; `git log -S` finds their
+names only in this docstring, in the commit that added this file, and they are
+deliberately not written out again here, because a name in this position is
+what a reader takes for a gate. .lp-flow__stem exists
+nowhere in any page or stylesheet either: the stem tier "was removed with the
+chain (2026-07-28)", which scripts/check-flow-chain.py records at its own
+section 3a, and this file was never told. The removal left the stem's axis
+gradient, #lp-flow-ax-stem, declared on both pages and drawn by nothing, which
+is the fingerprint a deleted stroke leaves and the thing that made this
+findable at all. Nothing on this page has ever crossed the seam.
 
-AND EVERY ROW OF THAT TABLE IS A PRE-PIN NUMBER. .lp-frame sits inside
-.cf-pin__stage, which is `position: sticky; top: 0`; .lp-flow sits in static
-flow one section up. While the stage is still travelling the gap is flat, which
-is what the nine rows record. From the scroll position the stage sticks at, the
-frame holds against the viewport and the flow does not, so the gap opens at
-1.00 px per px of scroll — at 1440 x 900, the one size the table records the
-seam as MADE at, 1.58 px becomes 61.70 at 60 px past the pin and 161.70 at
-160 px, with the flow's bottom still on screen at viewport y 9.3 throughout.
-scripts/check-seam-travel.py holds that second number, derived from the sticky
-asymmetry rather than measured, and the .lp-flow note carries both tables.
+SO HERE IS THE SEAM AS IT ACTUALLY MEASURES TODAY, and the numbers are worse
+than the ones the fix was written against, because the drawing was inverted
+after them: the source is now the drawing's FOOT — one orb at flow x 600 — and
+its rim is the last ink .lp-flow puts down. The frame's top rail is the first
+ink .lp-frame puts down. Measured on the shipped page, consent dismissed, at
+the scroll position where the two come closest, frame top minus flow bottom:
+
+    1280 x  720    218.59
+    1366 x  768    218.59
+    1280 x  800    229.59
+    1440 x  900    244.59
+    1600 x  900    244.59
+    1024 x  768    258.42
+    1280 x  900    279.59
+    1920 x 1080    334.59
+    2560 x 1440    514.59
+
+Every row a pre-pin number, and the closest either side ever gets. Below 64rem
+there is no row because there is no frame: the pin's stacked fallback draws no
+lectern, so there is no seam to open.
+
+THE OTHER AXIS IS EXACT, which is what makes the vertical read as a fault
+rather than as a composition. The orb's centre and the frame's mid vertical
+are the same x to 0.02 px at every one of those nine sizes — 719.98 against
+720.00 at 1440, 960.00 against 960.00 at 1920 — so the drawing is aimed
+straight down the line it does not reach.
+
+AND THE GAP TRAVELS. .lp-frame sits inside .cf-pin__stage, `position: sticky;
+top: 0`; .lp-flow sits one section up. While the stage is still travelling the
+gap is flat, which is what the nine rows record. From the scroll position the
+stage sticks at, the frame holds against the viewport and the flow does not,
+so the gap opens at 1.00 px per px of scroll. Measured at 1440 x 900: 244.59
+at the closest approach, 263.66 at 20 px past the pin, 543.66 at 300 px,
+1443.66 at 1200 px — exactly +1 px per px, three samples, no rounding.
 
 So the trunk has to absorb it, which is the drawing's FORM: how the route
 branches and where it terminates. That belongs to the craft lane, and BOTH
 tables are the measurement it needs — the second one constrains the answer,
 because a stretch that lands on the rail at one scroll position still comes
 apart at 1.00 px per px unless the two sides travel together.
+
+AND THE REASON THIS SURVIVED IS THE CITATION, not the geometry. Two scripts
+that were never written were named here as the gates for it, and a name is
+indistinguishable from a gate to anybody reading rather than running. That is
+now countable: scripts/check-cited-gates.py fails when a check names a
+sibling check that does not exist.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
