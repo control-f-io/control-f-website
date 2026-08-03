@@ -191,6 +191,33 @@
         animation-timeline: --cf-pin;
         animation-range: contain 0% contain 100%;
       }
+      /* THE PLATE TAKES --cf-pin FOR ITS OWN SLIDE, THREE LINES UP, AND ITS
+         RIM NEVER DID. components.css's .cf-info-card--glass::before ships
+         cf-info-card-rim on the element's own view() — its comment there
+         already names this page: "The plate on patterns/expertise.html
+         overrides the timeline — it sits inside a sticky-pinned stage" — but
+         no override was ever written, so the rim kept the component default.
+
+         Measured rather than assumed: Chromium 1194 does not stall it at a
+         single value the way that comment predicts — .cf-pin__stage is
+         sticky, but view() on a descendant of a stuck box keeps computing
+         progress off the box's un-stuck position, so the rim's
+         background-position DOES keep moving, across the box's whole un-stuck
+         travel — which is most of .cf-pin's 6660 px at 1440x900, not the one
+         viewport a "pass" is written for. Sampled across card 01's own 25% of
+         the track alone, the rim crossed -49.9% to +9.2% of its 240-point
+         sweep (-70% to 170%) — under a quarter of the crossing in the whole
+         window that card is on screen, so what should read as one light
+         passing over the card in a beat instead reads as no motion at all.
+
+         --cf-pin over the pin's own 0%-100%, the same fix the plate took for
+         ex-pane above: one crossing timed to the track the reader is actually
+         scrubbing, instead of a view() that never sees this element travel
+         through a viewport of its own. */
+      .ex-plate.cf-info-card--glass::before {
+        animation-timeline: --cf-pin;
+        animation-range: contain 0% contain 100%;
+      }
       /* The cards give up their own surface to the plate. Not the material —
          they never had it — the plain card back, which would otherwise sit on
          the glass and hide it. Padding stays: it is what insets the copy. */
