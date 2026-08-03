@@ -518,37 +518,56 @@
       that a 24 px circle centred on it touches no other target's circle. Every element
       under 24 px is an inline text link — footer meta, legal lines, the address — or
       the footer's wordmark, 139 × 20 on every page since the footers were unified, and
-      every one of them clears the circle test, checked pairwise against every other
-      control on the page, at 320 and 768 as well as 375, because a wrap point moves
-      targets past each other and a single width cannot see that. A wrapped inline link
-      is measured as its line boxes rather than its bounding box, which unions the lines
-      and manufactures overlaps that exist in no reader's hand. Forty-eight page-widths,
-      zero failures. The closest pair anywhere is 24.1 px, on <code>impressum</code> at
-      375 — the note below is that pair's history, and it is worth reading before
+      every one of them clears the circle test, or is exempted as a target inside a
+      sentence, checked pairwise against every other control on the page, at 320 and 768
+      as well as 375, because a wrap point moves targets past each other and a single
+      width cannot see that. A wrapped inline link is measured as its line boxes rather
+      than its bounding box, which unions the lines and manufactures overlaps that exist
+      in no reader's hand. Forty-eight page-widths, zero failures. The closest pair
+      anywhere is on <code>impressum</code> at 375 and 390, and it is the one pair in the
+      whole sweep whose circle-test verdict depends on which rendering engine measures
+      it — the note below is that pair's history, and it is worth reading before
       trusting the margin.
     </p>
     <div class="docs-note">
       <strong>The <code>impressum</code> pair: a recorded failure that unrecorded
-      itself.</strong> An earlier run of this test found two links in a single sentence —
-      <em>Datenschutzerklärung</em> and <em>Kontaktformular</em> — wrapped onto
-      consecutive lines at 375, both starting at the left margin, their centres
-      <strong>23.87 px</strong> apart against a requirement of 24. It was recorded rather
-      than fixed, because the arithmetic said it could not be fixed here:
-      <code>.t-body-sm</code> is 12 px on a 17.4 px line box, two links on consecutive
-      lines are 17.4 px apart vertically whatever else is done to them, and the criterion
-      exempts a target "in a sentence or whose size is otherwise constrained by the
-      line-height of non-target text" — which is exactly what these two are. Prose is not
-      a toolbar.
+      itself, then came back as weather on one engine.</strong> An earlier run of this
+      test found two links in a single sentence — <em>Datenschutzerklärung</em> and
+      <em>Kontaktformular</em> — wrapped onto consecutive lines at 375, both starting at
+      the left margin, their centres <strong>23.87 px</strong> apart against a
+      requirement of 24. It was recorded rather than fixed, because the arithmetic said
+      it could not be fixed here: <code>.t-body-sm</code> is 12 px on a 17.4 px line box,
+      two links on consecutive lines are 17.4 px apart vertically whatever else is done
+      to them, and the criterion exempts a target "in a sentence or whose size is
+      otherwise constrained by the line-height of non-target text" — which is exactly
+      what these two are. Prose is not a toolbar.
       <br><br>
-      <strong>Re-measured with the full fifteen-page run, the same pair still sits at
-      24.1 px and clears outright.</strong> Nobody fixed it: the copy around it moved and
-      the sentence wraps differently than when the note was written, which is exactly the
-      behaviour the note predicted — a wrap point moves targets past each other. The
-      margin is a tenth of a pixel and it is held by where a German sentence happens to
-      break in a fallback face, so the honest reading is unchanged: this pair passes by
-      the inline-sentence exemption, and the 24.1 is weather. If a future re-measurement
-      puts it under 24 again, that is not a regression to fix; it is this note coming
-      back around.
+      <strong>Re-measured with the full fifteen-page run on Chromium, the same pair sat
+      at 24.1 px and cleared outright.</strong> Nobody fixed it: the copy around it moved
+      and the sentence wraps differently than when the note was written, which is exactly
+      the behaviour the note predicted — a wrap point moves targets past each other. The
+      margin was a tenth of a pixel and it was held by where a German sentence happens to
+      break in a fallback face — which is also why it does not hold across engines.
+      <br><br>
+      <strong>On WebKit the same markup, same width, same fallback face measures
+      23.83 px — under the line again.</strong> Chromium and WebKit shape that fallback
+      face's glyphs at very slightly different advance widths, so
+      <em>Datenschutzerklärung</em>'s line box is 119.73–119.78 px wide depending on
+      engine and the second line's flush-left start moves with it. The vertical gap is
+      engine-independent — 17.39 px, the line-height's own arithmetic, unmoved — so the
+      whole swing rides on that one horizontal component: 16.68 px on Chromium,
+      16.29 px on WebKit, both at 375 and at 390, the only two of the four checked widths
+      where both lines start flush left. Checked on both engines at 320, 360, 375, 390
+      and 414 to find the exact widths it recurs at, rather than trusting one sample.
+      <br><br>
+      <strong>The verdict does not move, because it never depended on the number.</strong>
+      This pair passes on both engines by the inline-sentence exemption regardless of
+      which side of 24 the circle test lands — 24.1 or 23.83 is weather, not a compliance
+      question, exactly as the note before this one argued. What moved is only which
+      engine you'd have to be measuring on to see the number the old note asserted as
+      universal. If a future re-measurement puts both engines on the same side of 24
+      again, that is not a fix landing; it is a fallback face changing out from under
+      both of them at once.
     </div>
     <p>
       Every plate-shaped control clears <strong>48 px</strong>, because
