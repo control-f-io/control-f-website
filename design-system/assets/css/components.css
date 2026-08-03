@@ -6969,8 +6969,22 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
      four gaps between them come to 18u: 288 px at the floor, which fits
      inside a 375 px viewport's 20 px gutters with 47 px to spare, and 576 px
      at the cap. Five is therefore the practical ceiling for a figure that has
-     to survive a phone; a wider frame takes more. */
-  --plot-u: clamp(1rem, 3.4vw, 2rem);
+     to survive a phone; a wider frame takes more.
+
+     THE FLOOR WAS 1rem, AND rem IS THE READER'S SETTING HERE, NOT THE
+     SYSTEM'S. Every other length this figure is measured against — the
+     viewport, --gutter — is px or vw and does not move when a reader sets
+     their browser's default text size above 16 px, but 1rem does: at a 20 px
+     default the floor became 20 px (18u = 360, against a 280 px content
+     column at 320 px wide) and at 24 px it became 24 px (18u = 432). Measured
+     on blog-artikel at 320 px wide, root 20/24, both engines: the document
+     scrolled sideways 65 px and 142 px, identically on Chromium and WebKit,
+     because the fault is arithmetic rather than a rendering difference. Type
+     is meant to answer the reader's own setting; a fixed-count geometric
+     drawing sized in the same unit is not, so the floor and cap are px, the
+     same convention --gutter and --section-gap already use, and the 288/576
+     px figures above hold at every root size rather than only at 16. */
+  --plot-u: clamp(16px, 3.4vw, 32px);
   --plot-rise: calc(var(--plot-u) * 6);
   margin: 0;
   /* Room for the tallest number to hang above its cap. */
