@@ -2873,8 +2873,8 @@ ul.cf-info-card__chips {
      there was no last line to strand, which is why a rule that was wrong at
      three of the four widths this system tests looked right every time anybody
      opened it. Every figure in this paragraph is the wall AS TEXT — 862 is
-     1111 now that the marks are artwork, binary-searched: one line at a
-     viewport of 1111, wrapping at 1110 — and the paragraph is kept as the
+     1222 now that the marks are artwork, binary-searched: one line at a
+     viewport of 1222, wrapping at 1221 — and the paragraph is kept as the
      record of why the rule below is `center` with `space-between` as the
      exception, which is a fact about wrapping and not about any one width.
 
@@ -2951,26 +2951,41 @@ ul.cf-info-card__chips {
      the number does not move when a font lands or a type scale is edited.
 
      THE MEASUREMENT. Seven marks at the 2.5rem height below are 132.70, 86.14,
-     174.61, 46.72, 150.89, 15.19 and 94.27 px — 700.52 — and six --space-12 gaps
-     are 288, so the wall holds one line at 988.52 px and wraps below it. A size
+     174.61, 60.72, 150.89, 99.41 and 94.27 px — 798.74 — and six --space-12 gaps
+     are 288, so the wall holds one line at 1086.73 px and wraps below it. A size
      query measures the CONTENT box and .container's content box IS the wall's
-     width, so that is the number the query wants: 988.52 px is 61.78rem, and
-     64rem is the register's first number at or above it. Binary-searched on the
-     shipped page: the wall holds one line from a viewport of 1111 and the query
-     engages at 1151, where the container's content box reaches 1024.41.
+     width, so that is the number the query wants: 1086.73 px is 67.92rem, and
+     72rem is the register's first number at or above it.
 
-     THE ERROR IS STILL ASYMMETRIC, AND 64rem IS STILL THE SAFE SIDE. Too high
-     only centres a row that could have been justified, which costs air at the
-     ends — at most 35.5 px across the whole 988.52-to-1024 band, which is a
-     viewport of 1111 to 1150, 39 px of the ladder. Too low strands
-     a mark on a justified last line, which is the bug at the top of this note.
-     If a re-measurement is ambiguous, round up. → foundations/mobile.html#logo-wall */
+     IT WAS 64rem FOR ONE RELEASE, and the 98.21 px that moved it are the two
+     marks the first pass got wrong: Azure shipped as the glyph ALONE — a bare
+     A, 15.19 px wide, next to six marks that all say their own name — and Spark
+     shipped at the rule's own answer, which is the one place the rule
+     under-reads (see the height note below). Naming the brand and matching its
+     neighbours cost 84.22 px on Azure and 14.00 on Spark, and the wall stopped
+     fitting above 64rem. This is the event the register says re-measure for:
+     the SET changed.
+
+     THE ERROR IS STILL ASYMMETRIC, AND 72rem IS THE SAFE SIDE OF IT. 68rem is
+     1088 and clears 1086.73 by 1.27 px, which is the shape the register warns
+     about — and the warning is weaker than it was, because the trip point is a
+     sum of declared boxes now rather than a rendered string, so the number is
+     the same in every browser. It is not gone: those box widths are fractional
+     (132.70, 86.14, …), sub-pixel rounding differs between engines and zoom
+     levels, and 1.27 px is inside that. 72rem clears by 65.27 px instead. What
+     it costs is the 1086.73-to-1152 band — a viewport of about 1223 to 1294 —
+     centred where it could have been justified, at most 32.6 px an end, which
+     is the cheap half of an asymmetric error: too low strands a mark on a
+     justified last line, which is the bug at the top of this note. If a
+     re-measurement is ambiguous, round up. Binary-searched on the shipped page:
+     one line from a viewport of 1222, query engaging at 1295.
+     → foundations/mobile.html#logo-wall */
   justify-content: center;
   gap: var(--space-12);
   /* The section header above owns the air; the section owns the air below. */
   padding-block: 0;
 }
-@container layout (min-width: 64rem) {
+@container layout (min-width: 72rem) {
   .cf-logo-wall { justify-content: space-between; }
 }
 /* 2.5rem, AND IT IS DERIVED FROM THE FILES RATHER THAN CHOSEN AGAINST THEM.
@@ -2987,6 +3002,19 @@ ul.cf-info-card__chips {
    carries a number per logo is a wall nobody can add an eighth mark to. The
    equalising is done once, in the files, where it can be measured and re-derived
    for the whole set; nothing about a particular brand is allowed in here.
+
+   SIX OF THE SEVEN ARE ON THE RULE AND SPARK IS NOT, which is worth knowing from
+   here because it is the kind of thing that reads as a mistake. Median column
+   ink-extent stands in for x-height on the assumption that most columns of a
+   wordmark are letter STEMS. That holds for six upright faces and fails for
+   Apache Spark, whose wordmark is a script with a tall S, a k ascender and a p
+   descender — most of its columns span ascender to descender, so the median
+   over-reads its x-height and the rule scales the mark down to compensate for a
+   height it does not have. Shipped it at the rule's own answer and "Spark" read
+   visibly smaller than "kafka" and "Azure" beside it. It carries a stated x1.30
+   correction, chosen against its neighbours rather than in isolation; the
+   arithmetic and the trial are in assets/img/partner/README.md. One exception,
+   named, is the honest form — six marks quietly nudged to taste is not.
 
    grayscale(1) STAYS THOUGH THE FILES ARE ALREADY ONE INK. It costs nothing and
    it is the guard: the day somebody commits a mark straight from a press kit,

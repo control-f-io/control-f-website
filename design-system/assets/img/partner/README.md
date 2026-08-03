@@ -12,15 +12,17 @@ only works if the FILES are the thing that has been made equal.
 
 They are not equal as shipped. A brand delivers its mark in its own box: Hetzner's
 is an all-caps wordmark whose caps fill the box top to bottom, Databricks' is a
-stacked lockup with the wordmark under the glyph, Azure's is a glyph with no type
-at all. Set those three to the same height and the Hetzner caps render three times
-the size of the Databricks wordmark. Measured on the shipped sources at a 200 px
-box, the height of the letterforms ran 58 px (Kafka) to 149 px (Azure) — a 2.6x
-spread inside a stylesheet that thinks it is drawing one size.
+stacked lockup with the wordmark under the glyph, Kafka's is a tall glyph column
+with a small word beside it. Set those three to the same height and the Hetzner
+caps render three times the size of the Databricks wordmark. Measured on the
+sources at a 200 px box, the height of the letterforms ran 58 px (Kafka) to
+124 px (Hetzner) — a 2.1x spread inside a stylesheet that thinks it is drawing
+one size.
 
 ## The rule
 
-**Every mark is scaled so the median column ink-extent is 0.29 of its box.**
+**Every mark is scaled so the median column ink-extent is 0.29 of its box** — six
+of the seven. Spark is the one exception and it is named below.
 
 The median column ink-extent is the measurable stand-in for x-height: render the
 mark, take each column of pixels that has ink in it, measure top-to-bottom extent,
@@ -39,10 +41,32 @@ sets it because its glyph column is the tallest thing on the wall relative to it
 type. Every other mark is padded DOWN to it, so no mark is ever scaled past its
 own box and nothing is clipped.
 
-At the wall's 2.5rem box that puts every mark's x-height at 11.6 px — which is
+### The one exception: Spark, ×1.30
+
+The rule stands in for x-height on the assumption that **most columns of a
+wordmark are letter stems**. That holds for six upright faces. It fails for
+Apache Spark, whose wordmark is a script with a tall `S`, a `k` ascender and a
+`p` descender: most of its columns span ascender to descender, so the median
+over-reads its x-height and the rule scales the mark down to compensate for a
+height it does not have. Shipped at the rule's own answer (`k` 0.607) and
+"Spark" read visibly smaller than "kafka" and "Azure" either side of it — which
+is what came back from review.
+
+Spark therefore carries a stated **×1.30** correction: `k` 0.789. The factor was
+chosen by rendering 1.15 / 1.30 / 1.45 in a row with Kafka, Azure and Kubernetes
+and reading them against each other — 1.15 still short, 1.45 slightly over —
+rather than by looking at Spark on its own, because "the same size" is a
+statement about neighbours.
+
+One exception, named, with the failure mode written down, is the honest form.
+Six marks quietly nudged to taste is not: if a second script face joins the wall
+and needs the same correction, that is the point to fix the measure rather than
+add a second exception.
+
+At the wall's 2.5rem box the rule puts a mark's x-height at 11.6 px — which is
 `--text-xs`, 11 px, the size of the mono labels the marks replaced and of every
-other label on the page. The box height follows from the rule; it is not a
-separate taste.
+other label on the page. (Spark's is 14.8 px, by its stated correction above.)
+The box height follows from the rule; it is not a separate taste.
 
 ## What was done to each file
 
@@ -67,14 +91,16 @@ width. The only file published as SVG is the stacked lockup, and a stacked locku
 in a row renders its wordmark at a third of the line. Nothing was redrawn: both
 paths are the brand's, moved.
 
+`k` marked × is the rule's answer with a stated correction applied — see above.
+
 | mark | k | box (units) | source | licence at source |
 |---|---|---|---|---|
 | databricks | 0.523 | 132.2 × 39.85 | Wikimedia Commons, `Databricks-logo.svg` | Public domain (trademark) |
 | kafka | 1.000 | 112.0 × 52.00 | Wikimedia Commons, `Apache_kafka_wordtype.svg` | Apache-2.0 (trademark) |
 | stackit | 0.505 | 112.6 × 25.79 | stackit.de, inline header mark | trademark, © Schwarz Digits |
-| spark | 0.607 | 412.9 × 353.5 | Wikimedia Commons, `Apache_Spark_logo.svg` | Apache-2.0 (trademark) |
+| spark | 0.789 × | 412.9 × 271.9 | Wikimedia Commons, `Apache_Spark_logo.svg` | Apache-2.0 (trademark) |
 | kubernetes | 0.637 | 500.6 × 132.7 | Wikimedia Commons, `Kubernetes_logo.svg` | Public domain (trademark) |
-| azure | 0.358 | 88.0 × 231.6 | Wikimedia Commons, `Microsoft_Azure.svg` | Public domain (trademark) |
+| azure | 0.716 | 52.9 × 21.29 | Wikimedia Commons, `Microsoft_Azure_Logo.svg` | Public domain (trademark) |
 | hetzner | 0.289 | 181.5 × 76.99 | hetzner.com, `hetzner-logo.svg` | trademark, © Hetzner Online GmbH |
 
 Every one of these is a **trademark of its owner**, used nominatively to name a
@@ -92,7 +118,14 @@ new reference and every other `k` moves with it.
 
 Then **re-measure the wall's one-line width**, because it is the trip point for
 the container query in `components.css` and it is not derivable from anything
-else. Seven marks and six `--space-12` gaps are 988.52 px today, which is why the
-query sits at the register's 64rem. With text stand-ins that width was a rendered
-STRING and the register said no script could hold it; with marks it is a sum of
-boxes, and any browser gives the same number.
+else. Seven marks and six `--space-12` gaps are 1086.73 px today, which is why
+the query sits at 72rem. With text stand-ins that width was a rendered STRING and
+the register said no script could hold it; with marks it is a sum of boxes, and
+any browser gives the same number.
+
+**This has already caught one release.** The first pass shipped Azure as the
+glyph *alone* — a bare A, 15.19 px wide, next to six marks that each say their
+own name — and Spark at the rule's uncorrected answer. Fixing both added 98.21 px
+to the wall and moved the query from 64rem to 72rem. Take a full-set screenshot
+and look at it: the two faults that got through were a mark that did not name its
+brand and a mark that was the wrong size, and neither is visible in a number.
