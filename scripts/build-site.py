@@ -78,6 +78,7 @@ SHIP = {
     "expertise.html": "expertise.html",
     "ueber-uns.html": "ueber-uns.html",
     "news.html": "news.html",
+    "news-thema.html": "news-thema.html",
     "blog-artikel.html": "blog-artikel.html",
     "suche.html": "suche.html",
     "suche-leer.html": "suche-leer.html",
