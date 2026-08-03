@@ -963,6 +963,39 @@
     [data-idle] :is(.sp-stream > b, .sp-stream > b + b) { animation-play-state: paused; }
   }
 
+  /* THE OBSERVER NEVER SEES THIS FIELD LEAVE, for most of the track's own
+     scroll. `data-cf-idle` is carried by .sp-track — 5760 px, NOT sticky — so
+     the IntersectionObserver in cf-idle.js tracks THAT box against the
+     viewport, and .sp-track intersects the viewport for the whole of its own
+     640vh contain range: every scroll position a reader can be at while still
+     inside act 1 or act 2. But .sp-annots, the box these 126 readouts live in,
+     fades to opacity 0 by about contain 40% — its own crossfade into act 2's
+     confluence — and stays there for the rest of the track. `[data-idle]`
+     never arrives, because the box it is asked about (.sp-track) never
+     geometrically leaves; the readouts just keep ticking, unseen, for
+     whatever is left of the reader's time on this stage.
+
+     Measured at 1440 x 900: ten small scroll steps at contain 70%, .sp-annots
+     at opacity 0, data-idle on none of the 126:
+
+       as shipped                     278.70 ms of style recalc
+       the same 126 force-paused       72.19 ms                  (-74 %)
+
+     A finer-grained mark does not reach this. Every descendant of .sp-stage
+     shares .sp-track's own problem: fixed at the same screen position for the
+     whole 640vh scroll, because the STAGE is what is sticky, not any one
+     figure in it. IntersectionObserver reports box position against the
+     viewport; it has no way to know one box now sits behind another that has
+     gone opaque in front of it. Closing this needs a second gate driven by
+     scroll position rather than geometry — the way act-rail.js and
+     cf-stream.js already read contain% off this same timeline — not a
+     smaller margin on the one this file already runs. Left open: it is a
+     second mechanism beside the one this file documents at length, and that
+     is a call for whoever owns the idle contract, not a drive-by CSS fix.
+     check-idle-motion.py's contract only checks that the stylesheet pause
+     rule and the JS file both exist, which they do; it has no way to see a
+     box that is geometrically present but visually gone. */
+
   /* ============================================================
      WHY ACTS 4 AND 5 SIT HERE AND NOT BELOW THE GATE.
 
