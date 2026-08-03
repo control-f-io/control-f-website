@@ -182,11 +182,20 @@ def main():
     # of them — .sp-root took data-cf-idle="0px" when the fringe's shimmer got
     # its own gate — changes nothing about which box is under which, and a
     # checker that fails on it is reporting its own regex.
+    # AND THE CLASS IS MATCHED INSIDE THE ATTRIBUTE, not as the whole of it,
+    # which is what the paragraph above always claimed and the pattern did not
+    # do. `class="sp-stage"` is an exact spelling of an attribute VALUE, so the
+    # stage acquiring a second class -- .cf-ground, when the drawn lattice was
+    # replaced by the system's own floor -- read as "the ground is not under the
+    # drawing" while nothing about the order had moved. Same fault the sentence
+    # names for start tags, one attribute in.
     if not re.search(
-            r'<div class="sp-stage"[^>]*>[\s\S]*?<svg class="sp-field"[^>]*'
+            r'<div class="[^"]*\bsp-stage\b[^"]*"[^>]*>[\s\S]*?'
+            r'<svg class="sp-field"[^>]*'
             r'viewBox="0 0 1600 900"[^>]*preserveAspectRatio="xMidYMid slice"'
-            r'[\s\S]*?</svg>[\s\S]*?<div class="container"[^>]*>[\s\S]*?'
-            r'<div class="sp-root"[^>]*>[\s\S]*?lp-flow\b', text):
+            r'[\s\S]*?</svg>[\s\S]*?<div class="[^"]*\bcontainer\b[^"]*"[^>]*>'
+            r'[\s\S]*?<div class="[^"]*\bsp-root\b[^"]*"[^>]*>[\s\S]*?lp-flow\b',
+            text):
         findings.append(
             "the stage no longer opens with the full-bleed .sp-field svg "
             "(1600 x 900, sliced) before the container holding .sp-root — "
