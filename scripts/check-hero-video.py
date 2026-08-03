@@ -22,6 +22,11 @@ both states — 1,890,957 total, of which 995,398 was hero-abstract-art.mp4 —
 for a reader whose own operating-system setting says they will not be shown a
 frame of it. 53 % of the page, spent on the one reader who asked for less.
 
+That share is 69 % since 2026-08-03: the artwork was replaced and the file went
+from 995,398 bytes to 3,328,598 of a 4,798,744-byte page. The -v figure below
+is read off the files as they ship, so it moves with them and this paragraph
+does not have to be trusted for the check to be right.
+
 `preload="none"` does not fix it and looks like it should, which is the part
 worth writing down. autoplay overrides the hint: measured, the mp4 was still
 requested in both states with preload="none" on the element. What does fix it
