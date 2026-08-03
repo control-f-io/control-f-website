@@ -6866,6 +6866,42 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   50%      { opacity: 0; }
 }
 
+/* THE STREAM NEVER RUNS ON PAPER, AND THE EMPTY SPAN IS WHAT SHIPS.
+   cf-stream.js paints .cf-stream__text from window scroll position — run()
+   reads track.getBoundingClientRect() against a scroll listener. A real print
+   render (page.pdf(), not emulateMedia; see .sp-annots-fig's own print note
+   for why that distinction is load-bearing) never scrolls and never fires
+   `scroll`, so every track is frozen at whatever build() left it: characters
+   painted to zero, because `progress` at DOMContentLoaded clamps to 0 for any
+   track still below the fold. Measured on a real print (page.pdf()) of
+   expertise.html's four cards and ueber-uns.html's six values: every
+   .cf-info-card__title, __sub, __body, __ask and every value's heading and
+   copy printed blank — illustration, tag lists and the mark the only
+   survivors, because none of those are behind this engine.
+
+   THE FIX READS THE TWIN cf-stream.js ALREADY WRITES. prepare() splits each
+   line into two spans, in this order: .cf-stream__text (aria-hidden, the one
+   a print render catches empty) then a plain .visually-hidden sibling
+   carrying el's original full sentence for assistive tech. Print wants that
+   same whole sentence, so it hides the first and restores the second — no JS
+   change, no new element, the fallback text already exists in the DOM. The
+   sibling combinator is exact: cf-stream.js appends nothing else between the
+   two, on any of its three consumers (acts.css's tracks, .cf-values__track,
+   .cf-pin). */
+@media print {
+  .cf-stream__text { display: none; }
+  .cf-stream__text + .visually-hidden {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+  .cf-stream__caret { display: none; }
+}
+
 @keyframes cf-values-item {
   0%   { opacity: 0; }
   12%  { opacity: 1; }
