@@ -21,6 +21,14 @@ at 1920 was wrong by a factor of 2.15, and the frame the sample came from is
 frame 61 — hero-poster.jpg, the only frame a browser hands you with the loop
 paused, and therefore the only one anyone was ever going to measure.
 
+Everything in that paragraph is history: the artwork was replaced on
+2026-08-03 and the poster is cut from frame 1 of the loop that shipped with it
+rather than frame 61 of the one before. What survives the swap is the shape of
+the fault — a figure taken from the one frame a paused browser will hand you —
+and MEASURED_HEADLINE below, which was re-derived against the new render at the
+weight it ships at. The reach is unchanged and so is every claim about it: it
+is geometry, and geometry does not know which render it is aimed at.
+
 THE FAULT IS GEOMETRY, NOT WEIGHT, and that is why this script exists rather
 than a bigger number. --hero-scrim rises along --angle-a from the bottom-left
 corner, full strength for --scrim-reach and out at twice it. The reach was a
@@ -93,7 +101,9 @@ TOKENS = ROOT / "design-system" / "assets" / "css" / "tokens.css"
 # The weight the table in tokens.css was measured at. A floor, not the value:
 # the check reads the live one and only objects to it going DOWN, because every
 # measured figure is monotone in it and only one direction can invalidate them.
-MEASURED_AT_ALPHA = 0.42
+# 0.42 until 2026-08-03, when the hero artwork was replaced with a different
+# render of the same motion and the figures below were re-derived against it.
+MEASURED_AT_ALPHA = 0.46
 
 # Viewports the reach is evaluated at. The three below the crossover prove the
 # term contributes nothing there; the three above it are where it does the work
@@ -104,8 +114,18 @@ REGISTER = [375, 768, 1280, 1440, 1920, 2560]
 # The measured worst frame of the loop, per width, after the reach was fixed.
 # Documentation, not an assertion: nothing in CI can re-derive it. Printed by
 # -v so the figure and the arithmetic that carries it stay in one place.
-MEASURED_HEADLINE = {375: 3.28, 768: 3.15, 1280: 3.51,
-                     1440: 3.41, 1920: 3.47, 2560: 3.55}
+#
+# RE-DERIVED 2026-08-03 against the artwork that shipped that day, at the
+# heights check-hero-contrast.py's register already carries — 375 x 812,
+# 768 x 800, 1280 x 800, 1440 x 900, and 1920 x 1080 / 2560 x 1440 above them,
+# because the ARTWORK under the type depends on the box's aspect and a width
+# alone does not name a frame. Every figure is the worst of all 361 (poster
+# plus 360), composited the way that register is: --hero-dissolve fading the
+# artwork into the page wash, then the scrim at the alpha the point's own
+# distance along the axis gives it. The previous set — 3.28 / 3.15 / 3.51 /
+# 3.41 / 3.47 / 3.55 — belongs to the render this one replaced.
+MEASURED_HEADLINE = {375: 3.83, 768: 3.81, 1280: 3.45,
+                     1440: 3.54, 1920: 3.53, 2560: 3.53}
 HEADLINE_FLOOR = 3.0
 
 REM = 16.0

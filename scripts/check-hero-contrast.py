@@ -12,7 +12,7 @@ the only thing the arithmetic needs, and recomputes the ratios themselves.
 WHAT THE GEOMETRY CHECK CANNOT SEE. Its register is widths — correctly, in its
 own words: "heights are irrelevant to the reach -- it is a horizontal
 displacement projected onto the axis". They are not irrelevant to the ARTWORK.
-.cf-hero__media covers with a 1080 px square, so which part of that square
+.cf-hero__media covers with a 1440 px square, so which part of that square
 lands under the type is decided by the box's ASPECT, and the box's aspect
 moves with the viewport's height as much as with its width. That axis had
 never been sampled, and on it the 11 px kicker was failing AA:
@@ -28,7 +28,12 @@ above. The cliff is 56.25rem, where .cf-hero__action leaves the flow and the
 media box goes from 567 px tall to 624: below it the kicker sits low in a
 short hero on the square's dark bottom band, above it the hero is tall enough
 that the kicker is on the lit middle. --scrim-depth answers it, and this
-script is what keeps the answer true.
+script is what keeps the answer true. It answered it a second time on
+2026-08-03: a new render of the artwork put three of those same kicker frames
+back under the floor at the depths that had held them — 4.48 at 375 x 812,
+4.38 at 768 x 800, 4.45 at 900 x 800 — with the 1024 x 768 headline resting on
+3.00, and the depths went to 0.54 and 0.46. The table above is the old render's
+and is kept because it is what the cliff was found on.
 
 WHAT THIS KNOWS THAT A SCREENSHOT CANNOT. The failure was 4.03:1 where 4.5:1
 was required: about six levels of grey under an 11 px line, on some frames of
@@ -37,19 +42,36 @@ visible, and it is barely photographable — you have to hide the type, hold the
 loop still, and already know which frame and which frame size to hold it at.
 It is exactly computable, and this computes it.
 
-HOW THE REGISTER IS BUILT, and how to rebuild it. Each `art` triple is the
-rendered page with the type set to transparent and .cf-hero__media::after's
-background removed, screenshotted at that frame, once per artwork — the poster
-plus 24 frames of the loop at 2 fps — keeping the darkest value each sample
-point ever took. Sample points are the glyph runs themselves, from
-Range.getClientRects(), and a point is dropped if elementFromPoint puts
-anything opaque between the type and the artwork, so the pause switch and the
-logo plate cannot be mistaken for a dark backdrop. `media` is
-.cf-hero__media's own box at that frame, a layout fact this file cannot derive
-and therefore records. Same shape as check-contrast.py's register and the
-breakpoint register: hand-kept, its value not that it is complete but that
-what is on it can never rot silently. Re-measure when the artwork, the poster,
-the hero's geometry or the type's size changes; nothing else moves it.
+HOW THE REGISTER IS BUILT, and how to rebuild it. Each `art` triple is what one
+sample point reads against with the scrim taken off — the poster plus 24 frames
+of the loop at 2 fps, keeping the darkest value the point ever took. Sample
+points are the glyph runs themselves, from Range.getClientRects(), and a point
+is dropped if elementFromPoint puts anything opaque between the type and the
+artwork, so the pause switch and the logo plate cannot be mistaken for a dark
+backdrop. `media` is .cf-hero__media's own box at that frame, a layout fact
+this file cannot derive and therefore records. Same shape as check-contrast.py's
+register and the breakpoint register: hand-kept, its value not that it is
+complete but that what is on it can never rot silently. Re-measure when the
+artwork, the poster, the hero's geometry or the type's size changes; nothing
+else moves it.
+
+REBUILT 2026-08-03, when the artwork was replaced, and by halves rather than by
+screenshot, which is worth writing down because the halves are separately
+checkable and a screenshot is not. GEOMETRY from the browser — the rects, the
+media box, the occlusion test, at each viewport in the register — and
+PHOTOMETRY here, from the loop decoded at the size the browser draws it, which
+for cover on a square is max(mw, mh) with the box a centred crop of it. The
+join between them is --hero-dissolve: below --dissolve-start the mask thins the
+media box out, so what the kicker reads against down there is the artwork faded
+into the page wash, and `art` is that composite, not the raw pixel. Two things
+say the model is right rather than merely plausible. Inverting it on the OLD
+artwork at the four register points where the mask is thin enough to solve
+cleanly returns the same wash — rgb(238-241, 241-245, 242-244) — at four
+different viewports. And run whole against the old artwork it reproduces the
+register it replaced: 11.14 against a published 11.11 at 1024 x 768, 11.86
+against 11.82 at 1280 x 800, 12.76 against 12.71 at 1440 x 900, 6.76 against
+6.76 at 768 x 1024. A rebuild that cannot reproduce the numbers it is
+overwriting has no standing to overwrite them.
 
 WHY SEVERAL POINTS PER ROW AND NOT THE DARKEST ONE. The worst COMPOSITED pixel
 is not the darkest: the scrim's alpha falls along its axis, so a lighter pixel
@@ -101,67 +123,74 @@ REM = 16.0
 
 REGISTER = [
     ((375, 812), ".cf-hero__title", 3.0, (375, 501), [
-        ((26, 26, 30), 123, 84, "f012"),
-        ((34, 33, 42), 329, 248, "f023"),
+        ((13, 14, 20), 120, 84, "f012"),
+        ((27, 27, 33), 327, 245, "f023"),
+        ((25, 24, 32), 327, 248, "f023"),
+        ((24, 24, 33), 327, 251, "f023"),
+        ((22, 22, 27), 327, 269, "f024"),
     ]),
     ((375, 812), ".cf-hero__kicker", 4.5, (375, 501), [
-        ((37, 38, 43), 181, 346, "f005"),
+        ((20, 24, 31), 24, 370, "f023"),
     ]),
     ((375, 896), ".cf-hero__title", 3.0, (375, 562), [
-        ((27, 28, 33), 261, 321, "f023"),
-        ((35, 36, 41), 329, 354, "f023"),
+        ((15, 15, 18), 138, 191, "f024"),
+        ((17, 17, 19), 297, 336, "f024"),
+        ((27, 27, 33), 327, 351, "f023"),
     ]),
     ((375, 896), ".cf-hero__kicker", 4.5, (375, 562), [
-        ((46, 47, 49), 27, 426, "f024"),
-        ((53, 52, 62), 39, 432, "f024"),
+        ((33, 38, 50), 24, 425, "f023"),
+        ((49, 52, 54), 36, 431, "f024"),
     ]),
     ((768, 800), ".cf-hero__title", 3.0, (768, 567), [
-        ((26, 30, 34), 568, 267, "f023"),
-        ((31, 31, 32), 582, 255, "f023"),
-        ((31, 32, 37), 596, 251, "f023"),
+        ((8, 10, 12), 277, 182, "f024"),
+        ((25, 23, 27), 598, 250, "f023"),
+        ((20, 20, 24), 592, 253, "f023"),
+        ((19, 19, 23), 589, 256, "f023"),
     ]),
     ((768, 800), ".cf-hero__kicker", 4.5, (768, 567), [
-        ((45, 47, 52), 365, 425, "f005"),
+        ((29, 29, 35), 367, 427, "f006"),
+        ((41, 42, 43), 379, 433, "f006"),
     ]),
     ((768, 1024), ".cf-hero__title", 3.0, (768, 791), [
-        ((18, 19, 24), 358, 539, "f006"),
-        ((31, 32, 37), 589, 499, "f023"),
-        ((34, 33, 40), 596, 503, "f023"),
-        ((40, 38, 50), 596, 483, "f023"),
-        ((41, 41, 53), 596, 475, "f023"),
+        ((16, 16, 16), 538, 474, "f024"),
+        ((28, 30, 38), 598, 477, "f023"),
+        ((19, 19, 24), 598, 504, "f023"),
     ]),
     ((768, 1024), ".cf-hero__kicker", 4.5, (768, 791), [
-        ((117, 119, 130), 190, 648, "f024"),
+        ((111, 111, 121), 193, 648, "poster"),
     ]),
     ((900, 800), ".cf-hero__title", 3.0, (900, 567), [
-        ((31, 31, 45), 346, 240, "f023"),
-        ((34, 38, 42), 634, 275, "f023"),
-        ((39, 40, 45), 642, 270, "f023"),
-        ((44, 44, 56), 642, 255, "f022"),
+        ((5, 11, 16), 302, 175, "f024"),
+        ((30, 30, 35), 644, 270, "f023"),
+        ((26, 27, 37), 641, 273, "f023"),
+        ((26, 27, 41), 644, 273, "f023"),
     ]),
     ((900, 800), ".cf-hero__kicker", 4.5, (900, 567), [
-        ((40, 40, 52), 519, 423, "f023"),
+        ((26, 27, 36), 374, 424, "f006"),
+        ((28, 28, 31), 527, 424, "f024"),
     ]),
     ((1024, 768), ".cf-hero__title", 3.0, (1024, 624), [
-        ((28, 29, 34), 649, 387, "f023"),
+        ((17, 17, 20), 645, 380, "f023"),
     ]),
     ((1024, 768), ".cf-hero__kicker", 4.5, (1024, 624), [
-        ((182, 187, 191), 183, 560, "f023"),
-        ((184, 187, 191), 190, 562, "f023"),
+        ((179, 183, 186), 189, 561, "f023"),
     ]),
     ((1280, 800), ".cf-hero__title", 3.0, (1280, 656), [
-        ((31, 31, 49), 399, 449, "f011"),
-        ((33, 45, 49), 589, 354, "f011"),
+        ((23, 33, 42), 590, 353, "f011"),
+        ((18, 24, 38), 578, 359, "f011"),
+        ((0, 9, 16), 473, 412, "f011"),
     ]),
     ((1280, 800), ".cf-hero__kicker", 4.5, (1280, 656), [
-        ((188, 193, 198), 113, 592, "f010"),
+        ((187, 190, 192), 110, 593, "f011"),
     ]),
     ((1440, 900), ".cf-hero__title", 3.0, (1440, 756), [
-        ((34, 33, 42), 448, 519, "f010"),
-        ((30, 39, 43), 591, 444, "f011"),
+        ((23, 27, 35), 602, 438, "f011"),
+        ((20, 23, 38), 596, 441, "f011"),
+        ((18, 21, 34), 590, 444, "f011"),
+        ((15, 18, 29), 566, 456, "f011"),
     ]),
     ((1440, 900), ".cf-hero__kicker", 4.5, (1440, 756), [
-        ((197, 201, 203), 94, 692, "f010"),
+        ((196, 199, 200), 92, 693, "f011"),
     ]),
 ]
 
