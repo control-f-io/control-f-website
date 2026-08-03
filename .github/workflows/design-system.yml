@@ -571,6 +571,29 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-line-types.py
 
+      # The line-type gate's twin, for the same markup's other literal. A
+      # drawing's geometry lives in the page and a presentation attribute
+      # cannot resolve a token, so the whole illustration palette ships as
+      # hand-typed hexes — fill="#CFCFCF", stop-color="#E1FF00" — on the one
+      # surface no literal gate reads: check-local-literals.py stops at CSS
+      # and says so, check-gradient-family.py reads stops only for the lime
+      # ramp's geometry. foundations/illustration.html states the palette as
+      # a closed set (two registers, the foundation trio, one lit ramp, the
+      # contour), and until this check that set was held by hand — while
+      # eleven stop-colors under prototypes/ already carry #E0FF02, the
+      # export lime the palette decision rejected, one paste from a shipping
+      # page. Scope is patterns/ alone, the same boundary as
+      # check-registered.py; the register is written twice and the script
+      # holds its copy to the foundations page and tokens.css, the
+      # check-breakpoints.py defence.
+      #
+      # Proven failing on five reintroductions: #E0FF02 in a stop, a named
+      # colour, a var() fallback smuggling a hex, an alpha channel, and the
+      # script's own register parting from the documented copy.
+      - name: Paint register
+        if: '!cancelled()'
+        run: python3 scripts/check-paint-register.py
+
       - name: Links
         if: '!cancelled()'
         run: python3 scripts/check-links.py
