@@ -117,6 +117,10 @@ SECTION_OF = {
     # /suche with nothing found, and its footer's Suche link resolves to the
     # canonical file.
     "suche-leer.html": "suche.html",
+    # And the filtered-state argument, for the news route: news-thema.html is
+    # /news with a topic in the query string, and its footer's News link
+    # resolves to the canonical file.
+    "news-thema.html": "news.html",
 }
 
 CTA_REGULAR = (
