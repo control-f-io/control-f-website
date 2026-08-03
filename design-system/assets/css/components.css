@@ -8077,11 +8077,28 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    contrast failure being fixed; it is a mode that has asked for certainty
    being given the finished annotation instead of a frame of one. The lit rung
    loses its ramp here too, which is correct: it is emphasis, and emphasis is
-   what this mode is allowed to drop. */
+   what this mode is allowed to drop.
+
+   What is NOT allowed to drop is the rung itself. .cf-annot--lit::before
+   carries "the one the reader is on" (this file's own words, above) entirely
+   as a gradient background-image, and forced colours computes every gradient
+   to `none` — measured on the landing page, the lit node's background-image
+   comes back identical to a contoured node's: `none`. Same border, same
+   colour, same box: the two rungs this component exists to tell apart become
+   one. Highlight/HighlightText is the pair the mode reserves for exactly this
+   — "the selected one of a set" — same as .cf-pagination__page[aria-current]
+   above. A fill rather than a border swap because the anchor's border is
+   already spoken for (--border-strong, shared by every rung on
+   .cf-annot::before) and forced colours honours a system-colour fill even
+   though it discards an author one. */
 @media (forced-colors: active) {
   .cf-annot-set {
     animation: none;
     --annot-draw: 1;
+  }
+  .cf-annot--lit::before {
+    background-color: Highlight;
+    border-color: Highlight;
   }
 }
 
