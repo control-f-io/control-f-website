@@ -80,6 +80,18 @@ COUNT = re.compile(r"^(\d+)(?:\s+von\s+(\d+))?(?:\s+([^\d/]+))?$")
 # and a reader who cannot see the wall should be told how many there are — so
 # the marker is the item, the same shape the team strip's entry already had,
 # and it no longer rests on a tag that carries no class at all.
+#
+# AND IT IS THE <img>, NOT THE <li>, NOW THAT THE MARKS ARE ARTWORK. It read
+# '<li class="t-label">' — the stand-in TEXT's own class — so the day the
+# wordmark files landed and the items stopped being labels, the count went to
+# zero under a header still announcing seven. That is the marker doing its job:
+# it is a literal on purpose, and a literal that no longer matches is a finding
+# rather than a silent recount. Pointing it at the <li> alone would have been
+# the cheap fix and the wrong one: '<li>' is the emptiest possible marker, and
+# the wall is a component whose items have been three different shapes in three
+# releases. The <img> is the thing this section is a count OF, it is what the
+# header's 7 promises a reader, and — unlike the class the items used to carry
+# — it cannot be present without a mark being drawn.
 REGISTER = {
     # AND THEY GOT IT BACK. The steps lost cf-pin__step when the pinned chain
     # moved to prototypes/statement-to-process.html (2026-07-28) and the exact
@@ -99,7 +111,7 @@ REGISTER = {
     # aria-labelledby, so the pairing is unchanged; only the key moved.
     # → scripts/check-sticky-address.py
     "prozess-titel": ('<article class="cf-process cf-pin__step"', "process step"),
-    "partner": ('<li class="t-label">', "logo mark"),
+    "partner": ('<img src="../assets/img/partner/', "logo mark"),
     "faq": ('<details class="cf-accordion__item">', "question"),
     # The blog strip and the team grid left the landing page when the five acts
     # arrived (2026-07-29): act 4 IS the team, and the page the review asked for

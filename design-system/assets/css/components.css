@@ -2869,9 +2869,14 @@ ul.cf-info-card__chips {
      Seven marks wrap to 6 + 1 at a 768 px viewport, and the one mark left over
      sat flush left with 614.9 px of empty row beside it — 90 % of the wall. At
      375 it was 3 + 3 + 1 and 265.1 px, at 320 2 + 2 + 2 + 1 and 211.4 px. None
-     of it is visible above 862, where the seven fit on one line and there is no
-     last line to strand, which is why a rule that is wrong at three of the four
-     widths this system tests looked right every time anybody opened it.
+     of it was visible above 862, where the seven stand-ins fit on one line and
+     there was no last line to strand, which is why a rule that was wrong at
+     three of the four widths this system tests looked right every time anybody
+     opened it. Every figure in this paragraph is the wall AS TEXT — 862 is
+     1111 now that the marks are artwork, binary-searched: one line at a
+     viewport of 1111, wrapping at 1110 — and the paragraph is kept as the
+     record of why the rule below is `center` with `space-between` as the
+     exception, which is a fact about wrapping and not about any one width.
 
      The same declaration also meant the gap token never governed. space-between
      stretches each row to the measure, so the 48 px written here was only ever a
@@ -2928,40 +2933,67 @@ ul.cf-info-card__chips {
      wall placed outside a .container matches nothing and stays centred, which is
      the safe half of the pair.
 
-     RE-MEASURE THIS ONE WHENEVER THE MARKS CHANGE, and it is the only threshold
-     in the register that needs saying of. Every other one here is a container
-     query whose trip point is a box; this one's is a STRING — 617.0 px is the
-     width of seven mono words set in a fallback mono at --text-xs. Three things
-     move it and only one of them was written down before: the .woff2 files
-     landing in assets/fonts/ (empty on purpose — base.css says to drop them
-     in), the wordmark SVGs replacing the stand-in text, and the type scale the
-     stand-ins are set on. It was the third that moved, from inside the same
-     file that declares the stand-ins, and nothing connected the two edits.
+     RE-MEASURE THIS ONE WHENEVER THE MARKS CHANGE. It was 44rem and it is 64rem,
+     and the move is the thing the paragraph below always said would happen:
+     "the wordmark SVGs replacing the stand-in text" was one of the three events
+     listed as able to move this number, and it is the one that did.
 
-     No script holds this. The invariant is real — the threshold must sit at or
-     above the width where the wall holds one line — but the width is a rendered
-     string in a font this repository does not ship, so it cannot be counted out
-     of a file the way the other checks in scripts/ count theirs. It has to be
-     measured in a browser, and this paragraph is where the last measurement is
-     recorded so the next one has something to disagree with.
+     THE TRIP POINT IS A BOX AGAIN, WHICH IS THE REAL NEWS. What stood here said
+     this was "the only threshold in the register that needs saying of ... every
+     other one is a container query whose trip point is a box; this one's is a
+     STRING", 617.0 px being seven mono words set in a fallback mono at
+     --text-xs — so it moved when the type scale moved, from inside the same file
+     that declared the stand-ins, with nothing connecting the two edits. That is
+     over. The marks are seven SVGs with declared boxes, normalised to a shared
+     optical height before they were committed
+     (assets/img/partner/README.md), so the wall's one-line width is a sum of
+     boxes and a gap that is a token: every browser gives the same number, and
+     the number does not move when a font lands or a type scale is edited.
 
-     THE ERROR IS ASYMMETRIC AND THAT IS WHY 44rem AND NOT LOWER. A threshold set
-     too high only centres a row that could have been justified, which costs some
-     air at the ends — which is what 48rem had been doing across 170 px of the
-     ladder. Too low strands a mark, which is the bug at the top of this note.
-     44rem keeps 86.3 px on the safe side, which is what buys the room for the
-     real marks to be wider than the stand-ins without stranding one. If the
-     re-measurement is ambiguous, round up. → foundations/mobile.html#logo-wall */
+     THE MEASUREMENT. Seven marks at the 2.5rem height below are 132.70, 86.14,
+     174.61, 46.72, 150.89, 15.19 and 94.27 px — 700.52 — and six --space-12 gaps
+     are 288, so the wall holds one line at 988.52 px and wraps below it. A size
+     query measures the CONTENT box and .container's content box IS the wall's
+     width, so that is the number the query wants: 988.52 px is 61.78rem, and
+     64rem is the register's first number at or above it. Binary-searched on the
+     shipped page: the wall holds one line from a viewport of 1111 and the query
+     engages at 1151, where the container's content box reaches 1024.41.
+
+     THE ERROR IS STILL ASYMMETRIC, AND 64rem IS STILL THE SAFE SIDE. Too high
+     only centres a row that could have been justified, which costs air at the
+     ends — at most 35.5 px across the whole 988.52-to-1024 band, which is a
+     viewport of 1111 to 1150, 39 px of the ladder. Too low strands
+     a mark on a justified last line, which is the bug at the top of this note.
+     If a re-measurement is ambiguous, round up. → foundations/mobile.html#logo-wall */
   justify-content: center;
   gap: var(--space-12);
   /* The section header above owns the air; the section owns the air below. */
   padding-block: 0;
 }
-@container layout (min-width: 44rem) {
+@container layout (min-width: 64rem) {
   .cf-logo-wall { justify-content: space-between; }
 }
+/* 2.5rem, AND IT IS DERIVED FROM THE FILES RATHER THAN CHOSEN AGAINST THEM.
+   It was 1.75rem, which was the box the stand-in TEXT reserved — a mono label at
+   --text-xs with its line box round it — and a height picked to match a string
+   has nothing to say about artwork. The marks are normalised so the median
+   column ink-extent, which is x-height, is 0.29 of each file's box
+   (assets/img/partner/README.md). At 1.75rem that renders every wordmark on the
+   wall at an 8.1 px x-height: smaller than any type this system sets, under a
+   heading in 11 px mono. 2.5rem puts it at 11.6 px, which is --text-xs — the
+   size of the labels the marks replaced, and of every other label on the page.
+
+   ONE HEIGHT FOR SEVEN MARKS IS THE CONTRACT AND IT IS LOAD-BEARING. A wall that
+   carries a number per logo is a wall nobody can add an eighth mark to. The
+   equalising is done once, in the files, where it can be measured and re-derived
+   for the whole set; nothing about a particular brand is allowed in here.
+
+   grayscale(1) STAYS THOUGH THE FILES ARE ALREADY ONE INK. It costs nothing and
+   it is the guard: the day somebody commits a mark straight from a press kit,
+   this is what stops a full-colour logo from being the only coloured thing on a
+   grey wall. The tone is opacity's, not the filter's. */
 .cf-logo-wall img {
-  height: 1.75rem;
+  height: 2.5rem;
   width: auto;
   filter: grayscale(1);
   opacity: 0.38;
