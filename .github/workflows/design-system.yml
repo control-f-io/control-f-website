@@ -559,6 +559,23 @@ jobs:
       - name: Breakpoint register
         if: '!cancelled()'
         run: python3 scripts/check-breakpoints.py
+
+      # The register's other half: the seven clamp() tokens that move
+      # continuously rather than at a threshold. Their record is written four
+      # times across foundations/mobile.html and foundations/layout.html, and
+      # every number in it — floors, ceilings, "floor binds below 364",
+      # "stops growing at 1454.5", 25 computed sizes — is a derivation from
+      # tokens.css that looks like a measurement. A retuned ramp moves the
+      # true answers and no screenshot at any width shows the pages still
+      # carrying the old ones, which is the same staleness the overflow count
+      # on mobile.html suffered four recorded times before it got its gate.
+      # Everything is re-derived from the live declarations, never compared
+      # string-to-string. Proven failing on nine reintroductions, including
+      # 4.9vw retuned to 5vw and a rhythm ceiling moved from 1920 to 1440.
+      - name: Fluid record
+        if: '!cancelled()'
+        run: python3 scripts/check-fluid-record.py
+
       - name: Overflow crops
         if: '!cancelled()'
         run: python3 scripts/check-overflow-clip.py
