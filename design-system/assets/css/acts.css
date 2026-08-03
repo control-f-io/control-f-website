@@ -1559,7 +1559,62 @@
          pinned mode altogether, and no media query can ask that question —
          see the audit on the pull request that landed this.
          → scripts/check-rem-floor.py */
-      main { --lp-measure: calc((max(min(45rem, 100vh), 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }
+      /* AND THE FLOOR IS THE GATE'S OWN THRESHOLD LESS THE BANNER, which is the
+         one term of this expression that was never measured against the layer
+         it is competing with.
+
+         The reservation and the floor are both right and they were written to
+         beat each other. `100vh - banner` is the room the reader can see;
+         `min(45rem, 100vh)` is the room the composition was drawn in. max()
+         takes the larger, so at every height between the gate's floor and
+         45rem + the banner the floor wins and the reservation is not paid at
+         all — check-consent-clearance.py's link 6 says so in its own words,
+         "tapers to nothing at the gate's floor", and 1280 x 720 is where it
+         tapers to nothing. It is also the commonest laptop viewport there is.
+
+         Measured on patterns/landing-page.html, first load, the stage stuck,
+         banner up, at a 16 px root — px of the bar and of the card's foot
+         behind the banner, and what elementFromPoint returns at the bar's
+         middle:
+
+           viewport      bar buried        card foot buried     at the bar
+           1280 x 720    99.4 ->  0        82.4 -> 42.1         banner -> bar
+           1024 x 720    81.4 ->  0        64.4 -> 39.4         banner -> bar
+           1366 x 768    51.4 ->  0        34.4 ->  0           banner -> bar
+           1024 x 768    33.4 ->  0        16.4 ->  0           banner -> bar
+           1280 x 800    19.4 ->  0         2.4 ->  0           banner -> bar
+           1280 x 900     0                 0                   bar
+           1024 x 900     0                 0                   bar
+           1920 x 1080    0                 0                   bar
+
+         Nothing is cropped in either column — the stage's clip cuts 0 px at
+         every row before and after — so the crop the floor exists to prevent
+         is not the price of paying the reservation. It is the price of paying
+         it UNFLOORED, which is a different expression and still wrong: drop
+         the floor entirely and a 333 px banner takes the card to 358 px wide
+         and 1543 tall and the clip cuts 286.7 of it, and a 20 px root at
+         1280 x 720 cuts 241.8. The floor is load-bearing. It was standing in
+         the wrong place.
+
+         9rem IS THE BANNER, and it is a floor's constant rather than a
+         synchronised one. The banner is 144 px at every width this gate
+         admits — 1024, 1280, 1366, 1440, 1512, 1920, measured, because its
+         copy stops re-wrapping above 900 — so 45rem - 9rem is the gate's own
+         floor restated in the room the banner leaves. It does not have to
+         track the real banner and must not: --cf-consent-height still carries
+         that, and where the real banner is TALLER than 9rem the floor simply
+         stops the reservation early. At 232 px the card holds 736 px and 20
+         of its 22 copy runs instead of collapsing to 560 and 15; at 333 px it
+         holds the same 736 instead of the 358 that cropped.
+
+         BYTE-IDENTICAL WHEREVER THE BANNER IS NOT UP, unchanged: with the
+         property unset the reservation is 100vh, which is never below a floor
+         capped at 100vh, so max() returns 100vh exactly as before. Identical
+         too at every root font size above 16 px — 36rem caps to 100vh there
+         for the same reason 45rem did, so the rem-floor rows above stand.
+         → scripts/check-consent-clearance.py link 6, which now requires the
+           subtraction and fails on either shape that preceded it */
+      main { --lp-measure: calc((max(min(45rem - 9rem, 100vh), 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }
       /* ---- ACT 1 + 2: the track and the stage ---- */
       /* 640vh, NOT 400. Nothing about the SCRIPT changed — every window is
          still a contain-percent and the acts still divide the track the same
@@ -2458,9 +2513,14 @@
       /* The same floor and the same cap as --lp-measure's, 830 lines up, where
          the reasoning and the measurements are. `100%` here rather than `100vh`
          because this box has a percentage basis and that basis IS the clip: the
-         floor may not exceed the box that crops it. */
+         floor may not exceed the box that crops it. The 9rem the floor subtracts
+         is the banner, for the reason given there — and it has to be subtracted
+         in BOTH places or the two disagree: this box is what lifts the trio off
+         the banner and --lp-measure is what sizes the card that has to fit in
+         the lifted box. Floor one and not the other and the card is drawn for a
+         screen the box no longer occupies. */
       .lp-proc-stage { --pin-measure: var(--lp-measure);
-        block-size: max(min(45rem, 100%), calc(100% - var(--cf-consent-height, 0px))); }
+        block-size: max(min(45rem - 9rem, 100%), calc(100% - var(--cf-consent-height, 0px))); }
       /* AND THE STAGE'S BOX LANDS ON WHOLE PIXELS, because six of the hairlines
          on it are drawn ON that box's edges and a hairline is the one thing a
          fraction of a pixel is visible in.
