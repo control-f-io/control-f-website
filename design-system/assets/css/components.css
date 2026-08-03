@@ -5151,6 +5151,36 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   padding-bottom: var(--space-24);
 }
 .cf-footer__mark { width: 12.5rem; opacity: 0.9; }
+/* THE MARK IS A FIXED RASTER-LIKE ASSET ON A PLATE FORCED COLOURS REPAINTS
+   OUT FROM UNDER IT, the same mismatch .cf-logo carries in the nav (see that
+   rule's own note) and for the same reason: .cf-footer's background is
+   `var(--surface-inverse)`, a plain background-color, and forced-colors mode
+   repaints that to Canvas regardless of what this file says, while an <img>'s
+   own pixels are exempt from the mode and keep the colours the file was
+   exported with — here `stroke="#FFFFFF"` on both isometric diamonds, at
+   0.85 and 0.5 opacity, plus a `fill="#E1FF00"` arrow.
+
+   Measured in Chromium with the mode active and colour-scheme light: the
+   lattice's own rasterised pixels read rgb(255, 255, 255) at alpha 162/255
+   (the 0.85 layer) and the footer plate under it reads rgb(255, 255, 255)
+   solid — white stroke over white Canvas composites to white, so both
+   diamonds vanish and only the arrow (rgb(225, 255, 0), enough luminance
+   apart from white to stay visible) is left floating with no lattice to
+   give it scale. Under a dark high-contrast theme (colour-scheme dark,
+   Canvas: black) the same white stroke reads rgb(0, 0, 0) plate beneath it —
+   unchanged from this component's ordinary near-black plate — so only the
+   light theme needs correcting.
+
+   Inverting the whole asset there restores the lattice (white → CanvasText's
+   own black) at the cost of the arrow's colour (rgb(225, 255, 0) inverts to
+   rgb(30, 0, 255), a blue): the same trade this mode already makes elsewhere
+   in this file when a component's refinement is dropped so its shape reads
+   at all — .cf-annot--lit gives up its ramp for Highlight above, .rule gives
+   up its dash ratio in base.css. A blue arrow inside a legible lattice beats
+   a lime arrow with no lattice around it. */
+@media (forced-colors: active) and (prefers-color-scheme: light) {
+  .cf-footer__mark { filter: invert(1); }
+}
 .cf-footer__title {
   font-family: var(--font-display);
   font-size: var(--text-display-2);
