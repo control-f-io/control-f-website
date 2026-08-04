@@ -2070,15 +2070,53 @@ ul.cf-nav__list {
    214 px at 1440. The rule itself sits --space-3 plus one mono line above the
    header's own content edge, so that much of the drop is already paid for.
 
-   Upward the object is free to overflow: it passes behind a transparent nav
-   bar, clear of both pills, which is what the mockup does too. Downward it
-   would run 42 px into the value table's top border.
+   BOTH ENDS OF THE REACH HAVE TO BE PAID FOR, and this rule used to pay only
+   the bottom one. The note here claimed the top was free — "it passes behind
+   a transparent nav bar, clear of both pills" — and the nav bar is not
+   transparent. It is a glass sheet: --glass-blur behind it, a lit rim along
+   its bottom edge. Measured in Chromium at 1440 x 900 the bar's box ends at
+   89.9 and the figure's box begins at 63.9, so the top 26 px of the drawing —
+   the crown of the outer shell and of the wide one behind it — sat under the
+   blur, and the rim cut across them. The one thing the drawing is composed
+   around is the reach above the axis being equal to the reach below it; a
+   quarter of the upper reach veiled is the one way to break that read.
+
+   The mockup does not do this either, and it is measured rather than
+   remembered: on ueber-uns.jpg (1200 wide) the nav plates run y 16..49 inside
+   equal air, so the bar's box ends at 65, and the topmost mark of the drawing
+   is at y 75 — the page rule is at 253.5 and the reach is 0.3658 x 488, which
+   lands on the same 75. Ten pixels of clearance at 1200, twelve at 1440.
+   --space-3, and it is the same --space-3 the bottom already names.
+
+   Upward the room is bought with the header's own top padding, because the
+   rule is the figure's axis and cannot move without it. Between the header's
+   top edge and the rule sit the title — one line, so exactly
+   --text-display-1 x --leading-tight — and the rule's own --space-6. What is
+   left of the reach after those two is what the padding owes:
+
+     padding-top = reach - title - --space-6 + --space-3
+
+   under a floor of --space-24, the padding every other page header carries.
+   The two arms meet where the reach has eaten all of the 96: below that width
+   the floor gives MORE than 12 px of clearance and above it exactly 12, so the
+   clearance never drops below the mockup's and never steps. Crossover is a
+   content column of 1036 px, a 1165 px viewport. Measured, the clearance comes
+   out at 12.5 rather than 12 at every width from there up, because the figure
+   is centred on the rule's CENTRE and half of --stroke-1 is below its top
+   edge — half a pixel the rule pays out of the reach, not a rounding.
+
+   → scripts/check-figure-clearance.py holds all of this, at every width and
+   both scrollbar widths, with the reach recomputed from the figure's viewBox.
+
+   Downward the object would run 42 px into the value table's top border.
 
    The header is full-bleed, so its own 100 % is the window, not the column —
    the exact case --column-inset was added for. Two of them off the window is
    the column, and the reach is a fraction of that. */
 .cf-page-header:has(.cf-page-header__figure) {
   --cf-figure-reach: calc(0.1672 * (100% - 2 * var(--column-inset)));
+  padding-top: max(var(--space-24), calc(var(--cf-figure-reach)
+    - var(--text-display-1) * var(--leading-tight) - var(--space-6) + var(--space-3)));
   padding-bottom: calc(var(--cf-figure-reach) - var(--space-3) - var(--space-4) + var(--space-16));
 }
 
@@ -2096,12 +2134,16 @@ ul.cf-nav__list {
 @media (max-width: 56.25rem) {
   .cf-page-header { padding-block: var(--space-16) var(--space-12); }
   .cf-page-header .cf-page-header__figure { display: none; }
-  /* :has() matches on the element existing, not on it being painted, so both
-     the gap in the rule and the room reserved below it outlive the object
-     they were cut for. Same specificity as the rules above, later in the
-     file, so these win. */
+  /* :has() matches on the element existing, not on it being painted, so the
+     gap in the rule and the room reserved on both sides of it outlive the
+     object they were cut for. Same specificity as the rules above, later in
+     the file, so these win — and they have to, because the padding rule above
+     is (0,2,0) and the padding-block reset three lines up is (0,1,0). */
   .cf-page-header__rule:has(.cf-page-header__figure) { background: var(--border-strong); }
-  .cf-page-header:has(.cf-page-header__figure) { padding-bottom: var(--space-12); }
+  .cf-page-header:has(.cf-page-header__figure) {
+    padding-top: var(--space-16);
+    padding-bottom: var(--space-12);
+  }
 }
 
 /* --------------------------------------------------------------------------
