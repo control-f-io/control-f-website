@@ -1689,6 +1689,42 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-figure-fits.py
 
+      # The one above measures a drawing against the viewport. This one measures
+      # the other drawing against the bar over it, and it is the same shape of
+      # fault one neighbour further out: the figure was correct, the nav was
+      # correct, and the sentence that said they did not collide was written
+      # before the nav was glass.
+      #
+      # Uber uns hangs the demon core off the page rule, and the rule is its
+      # axis, so it reaches as far above the rule as below. components.css
+      # reserved room for the reach BELOW -- a padding-bottom derived from the
+      # column -- and for the reach above it reserved nothing, on the strength
+      # of a comment: "it passes behind a transparent nav bar, clear of both
+      # pills, which is what the mockup does too". Measured in Chromium at
+      # 1440 x 900, the bar's box ends at 89.95 and the figure's box began at
+      # 63.90: 26 px of the drawing under --glass-blur, with the lit rim
+      # .cf-nav::after paints cutting across the crown of both shells. The
+      # mockup does not do this -- on ueber-uns.jpg the nav plates run y 16..49
+      # inside equal air and the drawing's topmost mark is at y 75, ten pixels
+      # clear at a 1200 frame.
+      #
+      # So the top is now paid for the way the bottom always was, and the check
+      # holds the whole stack above the rule -- padding, title line box, rule
+      # gap, half the rule's own stroke -- against the reach, at every integer
+      # width from the figure's gate to 2560 and at both scrollbar widths, with
+      # the reach recomputed from the viewBox in the markup rather than trusted
+      # to the 0.1672 the sheet ships. Five measured widths are reproduced from
+      # the same arithmetic to a tenth of a pixel.
+      #
+      # Proven failing on five reintroductions: the padding-top dropped (the
+      # state before the fix, -28.24 px at 1439), the clearance dropped a rung
+      # to --space-1, the viewBox grown with the coefficient left behind, the
+      # figure lifted off `top: 50%` so the rule stops being its axis, and the
+      # rule's own margin narrowed under a padding that was sized around it.
+      - name: Figure clearance
+        if: '!cancelled()'
+        run: python3 scripts/check-figure-clearance.py
+
       # And the field it measures is GENERATED now, so the markup cannot drift
       # from the law that produced it. The hundred and forty-five hand-picked
       # radii this replaces were the reason the drawing was too tall: its extent
