@@ -4489,6 +4489,30 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   text-transform: uppercase;
   color: var(--text-secondary);
 }
+/* THE FOURTH LINE, and only the grid has room for it. Name and role say who a
+   person is and leave open the thing a portrait wall is actually asked: what
+   do they work on. The strip cannot carry it — a 56 px round avatar in a
+   120 px cell has no third register — so this is grid-only in practice while
+   staying under the shared .cf-person prefix, the same way __name and __role
+   are typography both forms happen to share rather than a promise both use.
+
+   PROSE, NOT CHIPS. The note over .cf-info-card__chips rules out a fifth way
+   of drawing a small bordered label in this system, and a focus is a sentence
+   anyway: "Historians, Steuerungen und Feldbusse als lückenlose Zeitreihen" is
+   a claim, and the same words as three chips are a tag cloud.
+
+   --text-md and not --text-sm, because the scale writes "14 — smallest size
+   allowed for prose" against that rung and this is prose. The hairline over it
+   is --border-default, not the --border-strong the cells are ruled with: it
+   divides two registers inside one cell and must not read as a cell edge. */
+.cf-person__focus {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: var(--stroke-1) solid var(--border-default);
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+}
 
 /* The strip is a scroll box wrapping a list, for the same reason
    .cf-table__scroll is a scroll box wrapping a table: the box carries
@@ -4556,33 +4580,62 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   filter: grayscale(1);
 }
 
-/* Photo, name, role. The three lines have to sit on the same baselines right
-   across a row — a portrait wall whose role labels stagger reads as a mistake,
-   and it only takes one name that wraps to two lines. The card boxes are equal
-   height already (grid stretch), so nothing looks wrong until real names land,
-   and the README says real names are still to come.
+/* Photo, name, role, focus. The four lines have to sit on the same baselines
+   right across a row — a portrait wall whose role labels stagger reads as a
+   mistake, and it only takes one name that wraps to two lines. The card boxes
+   are equal height already (grid stretch), so nothing looks wrong until real
+   names land, and the README says real names are still to come.
 
-   Each card spans three row tracks of the parent and adopts them with
+   Each card spans four row tracks of the parent and adopts them with
    `subgrid`, so a two-line name grows that track for every card in the row at
    once. Without it, a single wrapped name pushes its own role label 21 px below
-   its neighbours' and nothing else moves. */
-/* The track minimum is not free to move. Six people is the shipping count, and
-   a ruled field only looks right when the column count divides it — 6, 3, 2 or
-   1. In a full .container (1280 content) the count is floor(1280 / minimum), so
-   anything under 11.43rem buys a seventh column and anything over 13.33rem
-   loses the sixth: the usable window is 11.5rem to 13.3rem and this sits at the
-   bottom of it. That is deliberate. A minimum low in the window puts the
-   unavoidable 4-and-5-column band at roughly 830 to 1240 rather than 935 to
-   1400, which keeps 1280 — the reference content width, and one of the widths
-   this system is tested at — on a clean single row.
+   its neighbours' and nothing else moves. The fourth track is the focus line,
+   and it is the one that most needs the shared track: the six texts do not
+   wrap to the same number of lines, so its rule would otherwise be drawn at
+   six different heights across a row of six cells. */
+/* THE FIELD IS THREE WIDE AT THE REFERENCE NOW, NOT SIX, and that is what
+   settles the open question the docs page has carried since the grid was
+   written: the mockup draws 294 px cells and this grid drew 213, because the
+   track minimum was pinned to keep all six people on one row at 1280. Six on
+   one row is what made the cell too small to be the mockup's. A cell wide
+   enough to hold a portrait and a line of prose under it cannot also be a
+   sixth of 1280, so the row count is what gives.
 
-   The band cannot be closed, only moved. Between 3 columns and 6 the count has
-   to pass through 4 and 5, and at those two counts six cards leave a gap in the
-   last row. Fixed column counts would avoid it, but jumping 3 to 6 halves the
-   card width at the breakpoint, which is worse than the gap. */
+   The divisor rule the old minimum was chosen for is kept, not dropped. Six
+   people is still the shipping count and a ruled field still only looks right
+   when the column count divides it — 6, 3, 2 or 1 — and every count this
+   minimum produces is one of those: 3 above 1008 of content, 2 from 673, 1
+   below. Four and five never appear, so the ragged last row the old comment
+   called unavoidable is now avoided outright rather than moved out of the way
+   of 1280. What that costs is the single row, and what it buys is a cell that
+   doubles: 426.3 px at the 1440 frame against 213.2, with the portrait at
+   297.4 against 148.2.
+
+   ONE RUNG, AND THE WINDOW IT HAS TO LAND IN IS 16 PX WIDE. Two constraints
+   close on it from either side, and the count that satisfies both exists only
+   because the field is allowed to wrap. Three columns at a full .container
+   wants a minimum ABOVE 1279 / 4, or the fourth track fits and the row goes
+   ragged; two columns at a 768 viewport — 683 of content, and one of the four
+   widths this system is tested at — wants one at or BELOW 682 / 2, or the
+   field drops to a single 683 px card with a 478 px portrait in it. That is
+   319.75 px to 341 px, and 21rem is 336: sixteen pixels clear of the ragged
+   edge and five clear of the single-card one.
+
+   THE 1279 AND THE 682 ARE NOT TYPOS. The field draws border-left on the grid
+   and border-right on each cell, so what the tracks divide is the content
+   width minus one. Every boundary in this component sits a pixel above where
+   the plain floor(content / minimum) puts it — measured, not derived: three
+   columns start at 1009 of content, two at 673. Reading it the other way is
+   how the first pass at this rule put a 527.5 px cell where a 351 was
+   expected.
+
+   SWEPT RATHER THAN SPOT-CHECKED. Every content width from 300 to 1280:
+   3 columns above 1008, 2 from 673, 1 below, and 4 and 5 do not occur at any
+   width. So the ragged last row the old comment called unavoidable is now
+   absent from the whole range rather than merely moved off 1280. */
 .cf-team-grid {
   /* The cells are drawn by their own borders, so the tiles must touch. */
-  --tile: 11.5rem;
+  --tile: 21rem;
   --flow: 0;
   border-top: var(--stroke-1) solid var(--border-strong);
   border-left: var(--stroke-1) solid var(--border-strong);
@@ -4596,16 +4649,36 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 
    Measured on mockups/ueber-uns.jpg, where the cell is 294 px and the portrait
    inside it is inset 48 px at the top and on both sides — 205 px of photo in a
-   294 px cell, 70 %. This grid's cells are not the mockup's 294 (the track
-   minimum below explains why it cannot be, and the README flags the wider
-   question for a designer), so the inset cannot be copied across literally.
-   32 px is the number that lands the RATIO where the designer put it: at the
-   1440 reference frame the cell is 213.2 px and the photo comes out 148.2,
-   which is 69.5 % against the plate's 69.7 %. At 16 px it was 84.5 % — a
-   portrait pressed against the rule on both sides with no cell left around
-   it. */
+   294 px cell, 70 %. That 70 % is the thing the designer decided; 48 px is only
+   what it came to at their cell width. The rule above used to carry it as a
+   token anyway — 32 px, the rung that landed 69.5 % at the one cell width the
+   grid then had — with the ratio written out in this comment as the reason.
+   A ratio a comment has to restate at every cell width is a ratio the
+   declaration should be stating itself, and the cell width is a RANGE now
+   rather than one number — swept from 320 to 1280 of content it runs 319.0 px
+   at its narrowest to 671.0 at its widest, over three column counts. At a
+   fixed 32 the 426.3 px cell of the 1440 frame
+   would draw an 85.0 % portrait, which is the exact failure this paragraph was
+   written to record — it was 84.5 % at 16 px, a portrait pressed against the
+   rule with no cell left around it.
+
+   So the inset is the ratio. 15 % of the cell on each side leaves 70 % for the
+   portrait at every width the field can reach, and percentage padding resolves
+   against the grid area's inline size, so it tracks the cell without a query.
+   Measured at the four widths this system is tested at — 1440, 1280, 768,
+   375 — the cell is 426.3, 379.4, 341.3 and 332.8 px and the portrait 297.4,
+   264.6, 237.9 and 231.9. Swept every content width from 300 to 1280 the ratio
+   never leaves 69.69–69.85 %, which is the plate's 69.7. Percentages are outside
+   the spacing scale on purpose and check-spacing-scale.py does not flag them —
+   the scale governs distances between things, and this is a proportion of one
+   thing.
+
+   Block and inline are both 15 % — percentage padding resolves against the
+   inline size on all four sides, so the shorthand stays one value the way it
+   did at 32 px. The mockup only insets the top and the sides; the bottom edge
+   there is set by the name, and here by the focus line under it. */
 .cf-team-grid__item {
-  padding: var(--space-8);
+  padding: 15%;
   border-right: var(--stroke-1) solid var(--border-strong);
   border-bottom: var(--stroke-1) solid var(--border-strong);
 }
@@ -4623,15 +4696,16 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    shipping layout, so a browser without subgrid loses the cross-card alignment
    and nothing else changes.
 
-   row-gap is 0 and the existing margins are left alone on purpose. The two
-   gaps in this card are not equal — 16 under the photo, 4 under the name — and
-   a single row-gap cannot express that. Margins are part of a grid item's outer
-   size, so the tracks size to content plus margin and the card is drawn exactly
-   as before; the only difference is that the three tracks are now shared. */
+   row-gap is 0 and the existing margins are left alone on purpose. The three
+   gaps in this card are not equal — 16 under the photo, 4 under the name, 16
+   over the focus rule — and a single row-gap cannot express that. Margins are
+   part of a grid item's outer size, so the tracks size to content plus margin
+   and the card is drawn exactly as before; the only difference is that the
+   four tracks are now shared. */
 @supports (grid-template-rows: subgrid) {
   .cf-team-grid__item {
     display: grid;
-    grid-row: span 3;
+    grid-row: span 4;
     grid-template-rows: subgrid;
     row-gap: 0;
   }
