@@ -184,7 +184,15 @@
 
                Der andere Ausgang: bei Erfolg antwortet der Server mit
                303 See Other auf kontakt-danke.html (Post/Redirect/Get),
-               damit ein Neuladen die Nachricht nicht noch einmal absendet. -->
+               damit ein Neuladen die Nachricht nicht noch einmal absendet.
+
+               DER SERVER IST worker/index.js. Er läuft für diesen einen Pfad
+               und auch dort nur bei POST; jede andere Seite kommt an ihm
+               vorbei. Er fügt die Übersicht in genau dieses Dokument ein —
+               vor das <form> — und schreibt die Werte zurück in die Felder.
+               Das Formular musste dafür nicht geändert werden: es postet an
+               die eigene Adresse, und das war immer schon die Voraussetzung
+               dafür, dass eine Antwort dieselbe Seite sein kann. -->
 
           <form class="stack flow-8" method="post" action="kontakt.html#fehler" novalidate>
 
@@ -198,19 +206,26 @@
               <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off">
             </div>
 
-            <div class="cf-field">
+            <!-- data-field auf jedem Wrapper: daran findet worker/index.js das
+                 Feld, dem es cf-field--invalid und die Meldung hinzufügen muss.
+                 Es steht auf dem Wrapper und nicht auf dem Eingabefeld, weil
+                 die Klasse dorthin gehört — components.css stylt das Feld über
+                 .cf-field--invalid :is(.cf-field__input, …). Der Name ist der
+                 des name-Attributs eine Zeile tiefer; check-form-contract.py
+                 hält beides aneinander. -->
+            <div class="cf-field" data-field="name">
               <label class="cf-field__label" for="f-name">Name</label>
               <input class="cf-field__input" id="f-name" name="name" type="text"
                      autocomplete="name" placeholder="First and last name" required>
             </div>
 
-            <div class="cf-field">
+            <div class="cf-field" data-field="email">
               <label class="cf-field__label" for="f-mail">Email</label>
               <input class="cf-field__input" id="f-mail" name="email" type="email"
                      autocomplete="email" placeholder="name@company.com" required>
             </div>
 
-            <div class="cf-field">
+            <div class="cf-field" data-field="company">
               <label class="cf-field__label" for="f-firma">
                 Company <span class="cf-field__optional">(optional)</span>
               </label>
@@ -218,7 +233,7 @@
                      autocomplete="organization">
             </div>
 
-            <div class="cf-field">
+            <div class="cf-field" data-field="topic">
               <label class="cf-field__label" for="f-topic">
                 Topic <span class="cf-field__optional">(optional)</span>
               </label>
@@ -235,7 +250,7 @@
               </select>
             </div>
 
-            <div class="cf-field">
+            <div class="cf-field" data-field="message">
               <label class="cf-field__label" for="f-msg">Message</label>
               <textarea class="cf-field__textarea" id="f-msg" name="message" rows="6"
                         placeholder="Worum geht es? Ein paar Sätze genügen." required></textarea>
