@@ -7065,6 +7065,107 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 }
 
 /* --------------------------------------------------------------------------
+   SKIP — the way out of a build, and it is one control everywhere
+
+   A pinned stage holds the reader's scroll for the length of its own track:
+   measured on patterns/landing-page.html at 1440 x 900, 4860 px for acts 1+2,
+   5760 for act 3, 2700 for act 4. That is the composition for a reader who
+   wants it, and a wall for one who does not. This is the way past it — the
+   press lands on the track's own contain end, where the build is finished and
+   the act is still on the stage. The arithmetic and the jump are
+   assets/js/cf-anim-skip.js; what is here is the plate and where it stands.
+
+   ONE PLACE ON THE SCREEN, WHICH IS WHAT MAKES IT ONE CONTROL. Every adopting
+   stage is a full-bleed sticky box, so the plate is absolute inside the stage
+   and takes --column-inset on the end side — the page margin the nav, the hero
+   switch and every .container already stand on, so it lines up with the nav's
+   own furniture at every width. The top is the one number the stages disagree
+   about, because .sp-stage and .sp4-stage stick BELOW the bar (top: --act-bar)
+   and .cf-pin__stage sticks at the viewport's top: the stage that starts under
+   the nav pays the nav's clearance, the two that already start under it pay
+   nothing, and the plate lands on the same screen line in all three. Measured
+   at 1024 x 720, 1280 x 800, 1440 x 900 and 1920 x 1080: 100 px from the
+   viewport's top, right edge on --column-inset, in each of the three acts.
+
+   IT IS .cf-hero__still's PLATE AND NOT A NEW ONE — 2rem square, one 1rem mark,
+   the label carried by .visually-hidden — and that is the whole of what "the
+   same button everywhere" can mean on this page: the hero's pause switch sits
+   at exactly this inset one screen above, so the two motion controls the site
+   has are one object in two places. A LABELLED PILL WAS TRIED FIRST AND DOES
+   NOT FIT. "ANIMATION ÜBERSPRINGEN" with the mark measures 198 x 34: clean at
+   1440 x 900, and standing over the composition at the narrow end of the pinned
+   tier — 1024 x 720, which is the gate's own (min-width: 64rem) and
+   (min-height: 45rem). Measured there: .cf-process's frame ends at 880 and
+   --column-inset at 968, so the pill began at 770 and stood 110 px inside the
+   lectern, over the step title's box for the whole of its own 34 px height,
+   and 12 px into act 2's second column head "Von oben nach unten gelesen.".
+   The 2rem square begins at 936 and clears the lectern by 56 px, that head by
+   76 and the paragraph under it by 49. A control that is furniture at one
+   width and an overlap at the next is not one control, it is one per width.
+
+   AN OPAQUE PLATE, NOT GLASS, for the reason the hero's switch is one — the
+   token file allows two blurred layers on a page and the nav and the consent
+   banner are already both of them. The material here is the raised surface the
+   rest of the page's chrome stands on, rather than the hero switch's black:
+   these stages are the light ground, and a black plate on it would be the
+   loudest object in an act built out of hairlines.
+
+   HIDDEN UNTIL A SCRIPT HAS FOUND A BUILD TO SKIP. `display: none` is the
+   authored state and `.is-live` is written by cf-anim-skip.js only where the
+   track it stands in actually carries a view timeline — below the gate, under
+   prefers-reduced-motion, in a browser without scroll-driven animations and
+   with JS off, the stage is a stacked column that is already in its finished
+   state and this control would move the reader for no reason. The live rule
+   names `screen` for the same reason every animation-timeline in the system
+   does: paper does not scroll, and there is nothing on it to skip.
+   -------------------------------------------------------------------------- */
+.cf-skip {
+  display: none;
+  position: absolute;
+  /* Over the stage's own layers, under nothing: the drawings inside these
+     stages rank at 0 and 1, and the nav is in another stacking context. */
+  z-index: 2;
+  inset-block-start: var(--skip-top, 0px);
+  inset-inline-end: var(--column-inset);
+  /* The hero switch's box, to the pixel: 2rem reads as subordinate to the nav's
+     44 px furniture and still clears WCAG 2.5.8's 24 px target floor by 8. */
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--text-secondary);
+  background: var(--surface-raised);
+  border: var(--stroke-1) solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  /* The control acknowledging a pointer, which is --duration-fast by doctrine.
+     Nothing here is light crossing a surface. */
+  transition: color var(--duration-fast) var(--ease-standard),
+              border-color var(--duration-fast) var(--ease-standard);
+}
+/* The stage that starts at the viewport's top, and the only one that does. */
+.cf-pin__stage .cf-skip { --skip-top: calc(var(--nav-height) + var(--space-4)); }
+
+@media screen {
+  .cf-skip.is-live { display: grid; }
+}
+
+/* Secondary furniture standing on a light ground: there is no plate to deepen,
+   so the state is the ink and the contour — the move .cf-btn--ghost makes for
+   the same reason. The global :focus-visible ring in base.css is the other
+   half and is not restated here. */
+.cf-skip:hover,
+.cf-skip:focus-visible {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+.cf-skip__glyph {
+  /* 16, the icon floor, against an 11 px label — the pairing .cf-btn already
+     ships between its own label and the arrow. */
+  width: 1rem;
+  height: 1rem;
+}
+
+/* --------------------------------------------------------------------------
    VALUES — the mark builds itself out of its own subdivision grid
    The six values, one per stage of a pinned scroll. The mark is assembled in
    the order the manual constructs it: contour first, then the isometric
