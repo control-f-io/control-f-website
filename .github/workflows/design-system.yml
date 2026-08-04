@@ -2588,6 +2588,33 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-idle-reach.py
 
+      # A layout recipe is two halves and only one of them is in the stylesheet.
+      # `--tile` is read in exactly one declaration in the system — .tiles's
+      # grid-template-columns — so a rule that sets it is configuring a class
+      # the MARKUP has to carry. Leave the class off and every term is inert:
+      # the property inherits, computes, shows the authored value in devtools,
+      # and lays nothing out. The element stays block flow.
+      #
+      # patterns/expertise.html shipped four of them, one per field, against a
+      # components.css comment that spells out the markup they need. Measured at
+      # nine viewports in both motion preferences: display block, gap normal,
+      # --tile 13rem and --flow 1.5rem both present and both dead. The two fact
+      # columns stacked with no gap, so each second label sat 0 px under the
+      # chips above it and 12 px over its own — twice as close to the group it
+      # does not belong to. That is what was reported.
+      #
+      # The guard is the half that bites later: .tiles is also min(--tile, 100%)
+      # and min-width: 0, and a 13rem floor is 208 px against a 214 px column at
+      # 320. base.css's own header says this is why it is a class and not a
+      # convention — one term, easy to leave out, invisible until somebody opens
+      # the page at a width nobody tested.
+      #
+      # Proven failing on a reintroduction: the classes removed from one of the
+      # four divs, caught in both the pattern and the generated root page.
+      - name: Tile recipe
+        if: '!cancelled()'
+        run: python3 scripts/check-tile-recipe.py
+
       # The cited gates are the ninety-first, and the only one whose subject is
       # the other ninety. Every check argues its rule in prose, and the strongest
       # move in that prose is the hand-off — "the other axis is held by this
