@@ -5038,6 +5038,166 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 }
 
 /* --------------------------------------------------------------------------
+   CULTURE BAND
+   A photograph and a claim about the place, hairline ruled, the picture
+   changing sides down the band. The Über uns "Wie wir arbeiten" block.
+
+   THE PHOTOGRAPH IS BOUNDED BY THE CELL AND BY NOTHING ELSE, which is
+   foundations/photography.html in as many words: "Photos get no rounded
+   corners (except round avatars), no frame and no shadow. When an image
+   needs to be bounded, the 1 px contour of the surrounding cell does it."
+   So there is no --radius-sm here and no padding in the figure cell — the
+   frame is the same hairline that rules the band, and the picture runs to
+   it. That is the one place this component deliberately differs from
+   .cf-team-grid__photo above, which carries the corner because the mockup
+   draws its five portraits at rx="2" INSET in their cells; a portrait is an
+   object on a plate, and this is a window cut in one.
+
+   THE WIDE TRACK HOLDS THE WIDE PICTURE. Two ratios come out of the shoot —
+   the working frames are 3:2 landscape and the close ones 4:5 — and a band
+   that forced both into one window would crop half of them to fit a rule
+   nobody asked for. Instead the tracks are fixed at 3fr / 2fr for every row
+   and the FIGURE moves: a landscape frame takes the 3fr side, a portrait
+   frame the 2fr side. In the 1280 content column that is 768 x 512 against
+   512 x 640 — two row heights 128 px apart, which reads as rhythm rather
+   than as two components. It also means the picture changes sides on its
+   own, without an :nth-child rule deciding it, because orientation and side
+   are the same fact stated once.
+
+   minmax(0, Nfr) and not a bare Nfr: base.css warns twice that an fr floors
+   at min-content, and the copy cell holds German compound nouns.
+
+   THE FIGURE'S RATIO IS A FLOOR, NOT A BOX. aspect-ratio yields to a
+   definite height, so on a row whose copy runs longer than the picture the
+   cell stretches and the img — width and height 100 % under object-fit:
+   cover — fills the taller cell instead of letterboxing inside it. The
+   check-figure-letterbox.py failure needs a drawing that stops growing
+   while its box does not; a cover crop never stops.
+   -------------------------------------------------------------------------- */
+.cf-culture {
+  /* Same list reset and the same reason as .cf-value-table above: role="list"
+     restores the semantics Safari drops with list-style: none, and must not
+     also be load-bearing for the UA padding inside a hairline frame. */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: var(--stroke-1) solid var(--border-strong);
+  container-type: inline-size;
+}
+.cf-culture__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.cf-culture__row + .cf-culture__row { border-top: var(--stroke-1) solid var(--border-strong); }
+.cf-culture__figure {
+  /* <figure> carries a 40 px UA inline margin that would stand the picture
+     off its own cell wall on both sides. */
+  margin: 0;
+  min-width: 0;
+  /* display: grid so the img can take a definite height off the cell whether
+     that height came from the ratio or from a stretched row. */
+  display: grid;
+  aspect-ratio: var(--ar);
+  border-bottom: var(--stroke-1) solid var(--border-strong);
+}
+.cf-culture__photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* A grid item's automatic minimum size is its CONTENT, and an <img>'s content
+     is its intrinsic box — so the 1067 x 1600 portrait frame pushed its own
+     cell to 449 x 672 and the aspect-ratio above was decoration. Measured at a
+     1265 viewport before this line: figure 449 x 672 against the 449 x 561 the
+     4:5 ratio asks for, with the copy beside it 178 tall. Same automatic
+     minimum, same one-line fix as the fr track lists in base.css. */
+  min-block-size: 0;
+  object-fit: cover;
+  /* Per frame, because a cover crop throws away a real part of a real
+     picture and which part is a decision. The default is the centre; a row
+     states --pos when the faces are not there. Same argument as the align
+     keyword in check-slice-crop.py, one medium over. */
+  object-position: var(--pos, 50% 50%);
+}
+.cf-culture__body {
+  min-width: 0;
+  padding: var(--space-6);
+}
+.cf-culture__title {
+  font-size: var(--text-h4);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+}
+.cf-culture__body p {
+  margin-top: var(--space-3);
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+}
+/* The line stops before the cell does — .cf-value-row__body's note carries the
+   measurement and the same argument for putting the cap on the children rather
+   than on the padded box. --measure is 56ch: in the 2fr track the cell is
+   narrower than that and does the capping itself, and in the 3fr track this is
+   what stops a 673 px cell from setting 90-character lines. */
+.cf-culture__body > * { max-inline-size: var(--measure); }
+
+/* 56rem is the system's two-column threshold — see the breakpoint register in
+   tokens.css. The band splits where every other two-column split on the site
+   splits, and below it each row is a picture with its claim under it. */
+@container (min-width: 56rem) {
+  .cf-culture__row { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+  .cf-culture__figure { border-bottom: 0; }
+  .cf-culture__body {
+    padding: var(--space-8);
+    /* Short copy centres against a 512 px picture; long copy fills the cell
+       and this does nothing. */
+    align-self: center;
+  }
+  /* BOTH CELLS STATE grid-row: 1, and the second one is the load-bearing half.
+     A grid item with a definite COLUMN and an auto row is placed by the sparse
+     auto-placement cursor, which has already moved past the figure — so on the
+     rows where the picture is drawn second the copy fell to a row of its own
+     underneath it, 561 px below where it belongs, and the row grew to hold
+     both. It renders as a paragraph adrift at the bottom of an empty cell,
+     which is exactly what it was. */
+  .cf-culture__row > * { grid-row: 1; }
+  /* Landscape frame: the 3fr side, picture first. */
+  .cf-culture__row--wide > .cf-culture__figure { grid-column: 1; border-right: var(--stroke-1) solid var(--border-strong); }
+  .cf-culture__row--wide > .cf-culture__body   { grid-column: 2; }
+  /* Portrait frame: the 2fr side, so the picture crosses to the right and the
+     copy leads. The figure stays FIRST in the source on both kinds of row —
+     the picture is the subject of the claim beside it, and a reader on a
+     screen reader should meet it in that order whichever side it is drawn on. */
+  .cf-culture__row--tall > .cf-culture__figure { grid-column: 2; border-left: var(--stroke-1) solid var(--border-strong); }
+  .cf-culture__row--tall > .cf-culture__body   { grid-column: 1; }
+}
+
+/* The group shot that closes the team grid. 16:9 and full container width, per
+   the crop table on foundations/photography.html, which sanctions the group
+   frame "only as a section closer" — this is the section it closes.
+
+   The source frame is 3:2, so the cover crop takes 25 % off its height. The
+   studio group stands in the upper two thirds with headroom above it, so the
+   crop is taken at 42 % rather than at the centre: at 50 % it ate the front
+   row's hands and left backdrop above the heads. */
+.cf-team-closer {
+  display: grid;
+  margin-top: var(--space-12);
+  border: var(--stroke-1) solid var(--border-strong);
+  aspect-ratio: 16 / 9;
+}
+.cf-team-closer__photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* The same automatic minimum as .cf-culture__photo, and it bit here too:
+     without it the 3:2 file held the box at 1124 x 750 and the 16:9 above
+     never cropped anything. */
+  min-block-size: 0;
+  object-fit: cover;
+  object-position: 50% 42%;
+}
+
+/* --------------------------------------------------------------------------
    FORM
    Underlined fields, mono labels. No boxes — the hairline is the input.
    -------------------------------------------------------------------------- */
