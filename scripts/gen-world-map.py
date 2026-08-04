@@ -106,9 +106,14 @@ OFFICES = [
     ("Berlin", "Standort", 13.4050, 52.5200),
 ]
 
-# THE MARKETS, filled at stage 2. Two countries, and the ISO codes are the
-# vendored file's own keys so a typo is a KeyError rather than an empty fill.
-MARKETS = ["DEU", "GBR"]
+# THE HOME MARKET, and it is one country. The ISO code is the vendored file's
+# own key so a typo is an AssertionError rather than an empty fill.
+HOME = "DEU"
+
+# EUROPE, as a window in degrees. It classifies and it frames, which is the
+# whole of "Europe first": the second beat's camera is this box, and a country
+# lit by a point inside it is drawn one weight above a country lit outside it.
+EUROPE = (-25.0, 34.0, 45.0, 72.0)     # lon0, lat0, lon1, lat1
 
 # THE ASSETS, illustrative. Each is a TYPE at a place that type is actually
 # found -- ore in the Pilbara, not ore in Bavaria -- so the spread reads as the
@@ -129,8 +134,68 @@ ASSETS = [
 
 # ------------------------------------------------------------------- the shapes
 LAND = json.loads(DATA.read_text(encoding="utf-8"))
-for iso in MARKETS:
-    assert iso in LAND, f"{iso} is not in the vendored geodata"
+assert HOME in LAND, f"{HOME} is not in the vendored geodata"
+
+
+# THE SECOND BEAT IS DERIVED FROM THE THIRD, which is the point of the review
+# note this answers: the markets beat used to name two countries and draw them
+# at one weight, so United Kingdom carried the same lime ramp, the same lattice
+# and the same country label as the home market, and the eleven other countries
+# the next beat puts a point on carried nothing at all.
+#
+# THE RULE IS THE LAND A LATER POINT STANDS ON. Every asset point is tested
+# against the coastlines already vendored here, so adding a point to ASSETS
+# lights its country and nothing has to be kept in step by hand.
+#
+# NINE OF THE TWENTY-SEVEN STAND ON NO LAND, and the count is printed so it
+# cannot drift unnoticed. Six are the offshore kind and the copy says so in as
+# many words ("Schiffe und Offshore-Plattformen auf See") -- those are correct
+# to leave dark. Three are the 110m simplification: a battery point on the
+# Mexican gulf coast, which costs nothing because MEX is lit by its two
+# siblings, and the two aviation hubs at Dubai and Singapore, which cost the
+# drawing ARE. A nearest-coast tolerance would find Dubai at 0.16 degrees --
+# and would find MALAYSIA for Singapore at 0.05, a country this page would then
+# be making a claim about. So the strict test is the honest one, and this is
+# the note that says which country the drawing therefore leaves dark.
+def contains(ring, lon, lat):
+    inside = False
+    for i, (x0, y0) in enumerate(ring):
+        x1, y1 = ring[(i + 1) % len(ring)]
+        if (y0 > lat) != (y1 > lat) and lon < (x1 - x0) * (lat - y0) / (y1 - y0) + x0:
+            inside = not inside
+    return inside
+
+
+def locate(lon, lat):
+    """The ISO code of the country a point stands on, or None for open water."""
+    for iso in sorted(LAND):
+        if any(contains(r, lon, lat) for r in LAND[iso]):
+            return iso
+    return None
+
+
+def in_europe(lon, lat):
+    return EUROPE[0] <= lon <= EUROPE[2] and EUROPE[1] <= lat <= EUROPE[3]
+
+
+# NEAR and FAR, in the drawing's own order -- the reader meets them as the
+# legend's kinds arrive, so the lists are built in that order and not sorted.
+NEAR, FAR = [], []
+for _kind, _label, _places in ASSETS:
+    for _lon, _lat in _places:
+        _iso = locate(_lon, _lat)
+        if _iso is None or _iso == HOME or _iso in NEAR or _iso in FAR:
+            continue
+        (NEAR if in_europe(_lon, _lat) else FAR).append(_iso)
+
+# THE THREE WEIGHTS, and each is one layer more than the one below it. The home
+# market carries the ramp, the lattice and the contour; Europe carries the
+# lattice and the contour; everywhere else carries the contour. So "Deutschland
+# und die ganze Welt" is drawn as a decay and "Europe first" is the middle term
+# of it, rather than either being a sentence the picture does not support.
+LIT = [HOME] + NEAR + FAR              # a stronger contour than the world's
+WEAVE = [HOME] + NEAR                  # the isometric lattice as well
+RAMP = [HOME]                          # and the lime ramp on top of that
 
 
 def ring_path(ring):
@@ -142,6 +207,34 @@ def ring_path(ring):
 
 def country_path(iso):
     return "".join(ring_path(r) for r in LAND[iso])
+
+
+# THE TIER'S INK IS THE TIER. France is lit by a solar point outside Paris, and
+# France's polygon reaches to 54 degrees west, because French Guiana is France
+# -- so lighting the country whole put an 8 x 10 px box of the Europe weight on
+# the north-east shoulder of South America, with no point on it and nothing to
+# explain it. On a drawing whose entire language is "the dark contour is where
+# we are", that is a claim about a place, which is the one thing this act has
+# ruled out in as many words. The Europe tier therefore draws the rings that
+# are IN Europe; the rest of the country falls back to the world's own weight,
+# which is what it is. Ring-level and not country-level, because the alternative
+# -- lighting only the landmass the point stands on -- would leave Northern
+# Ireland dark beside Britain and Tasmania dark beside Australia.
+def lit_rings(iso):
+    if iso in WEAVE:
+        return [r for r in LAND[iso] if all(in_europe(lon, lat) for lon, lat in r)]
+    return list(LAND[iso])
+
+
+def split_rings(iso):
+    """(drawn at the country's own weight, drawn at the world's)."""
+    lit = lit_rings(iso) if iso in LIT else []
+    keep = {id(r) for r in lit}
+    return lit, [r for r in LAND[iso] if id(r) not in keep]
+
+
+def rings_path(rings):
+    return "".join(ring_path(r) for r in rings)
 
 
 def bbox(points):
@@ -172,10 +265,21 @@ def framing(points, pad=PAD):
     return k, tx, ty
 
 
+# THE SECOND SHOT IS EUROPE AND IT IS CLIPPED TO THE WINDOW, which is not a
+# nicety. France's polygon reaches to 54 degrees west, because French Guiana is
+# France; framed off the raw bounding box the "Europe" shot came out at scale
+# 2.37 with the Atlantic and half of South America in it. Clipped to EUROPE it
+# is 4.89, which lands the camera exactly between the Germany zoom's 14.25 and
+# the world's 1.0 -- three steps back, evenly spaced, which is what the act
+# says it does.
+def europe_points(iso):
+    return [merc(lon, lat) for r in LAND[iso] for lon, lat in r if in_europe(lon, lat)]
+
+
 SHOTS = [
-    ("de",    framing(country_points("DEU"))),
-    ("dega",  framing(sum((country_points(i) for i in MARKETS), []))),
-    ("welt",  (1.0, 0.0, 0.0)),
+    ("de",     framing(country_points(HOME))),
+    ("europa", framing(sum((europe_points(i) for i in WEAVE), []))),
+    ("welt",   (1.0, 0.0, 0.0)),
 ]
 
 
@@ -211,13 +315,17 @@ emit(f'<svg class="map" viewBox="{" ".join(num(v) for v in VIEW)}" '
 
 block("coast")
 for iso in sorted(LAND):
-    cls = "map__land map__land--market" if iso in MARKETS else "map__land"
-    emit(f'<path class="{cls}" d="{country_path(iso)}"/>')
+    lit, rest = split_rings(iso)
+    if lit:
+        emit(f'<path class="map__land map__land--market" d="{rings_path(lit)}"/>')
+    if rest:
+        emit(f'<path class="map__land" d="{rings_path(rest)}"/>')
 
 block("fill")
-for iso in MARKETS:
-    emit(f'<path class="map__fill" d="{country_path(iso)}"/>')
-    emit(f'<path class="map__weave" d="{country_path(iso)}"/>')
+for iso in RAMP:
+    emit(f'<path class="map__fill" d="{rings_path(lit_rings(iso))}"/>')
+for iso in WEAVE:
+    emit(f'<path class="map__weave" d="{rings_path(lit_rings(iso))}"/>')
 
 block("points")
 for name, _role, lon, lat in OFFICES:
@@ -240,11 +348,16 @@ for i, (name, role, lon, lat) in enumerate(OFFICES):
     px, py = place(merc(lon, lat), SHOTS[0][1])
     emit(f'<span class="t-label map__tag" style="--s:0;--i:{i};'
          f'--x:{num(px)}%;--y:{num(py)}%">{name}<i>{role}</i></span>')
-for i, iso in enumerate(MARKETS):
-    x0, y0, x1, y1 = bbox(country_points(iso))
-    px, py = place(((x0 + x1) / 2, (y0 + y1) / 2), SHOTS[1][1])
-    emit(f'<span class="t-label map__tag map__tag--land" style="--s:1;--i:{i};'
-         f'--x:{num(px)}%;--y:{num(py)}%">{"Deutschland" if iso == "DEU" else "United Kingdom"}</span>')
+# ONE NAME AT THIS STAGE, AND IT IS THE HOME MARKET'S. The second beat used to
+# print DEUTSCHLAND and UNITED KINGDOM at the same size in the same ink, which
+# is the co-equal reading the review asked to be taken off it. The other eleven
+# countries are not given labels in its place: the drawing already says which
+# they are by weight, the copy names the regions in prose, and eleven names at
+# a Europe framing is a legend, not a map.
+x0, y0, x1, y1 = bbox(country_points(HOME))
+px, py = place(((x0 + x1) / 2, (y0 + y1) / 2), SHOTS[1][1])
+emit(f'<span class="t-label map__tag map__tag--land" style="--s:1;--i:0;'
+     f'--x:{num(px)}%;--y:{num(py)}%">Deutschland</span>')
 
 block("legend")
 for i, (kind, label, places) in enumerate(ASSETS):
@@ -328,8 +441,11 @@ def main():
               f"lat {LAT_BOT}..{LAT_TOP}, Web Mercator")
         for name, (k, tx, ty) in SHOTS:
             print(f"  shot {name:<6} scale {k:8.3f}   translate {num(tx):>10} {num(ty):>8}")
+        _dark = sum(1 for _, _, ps in ASSETS for p in ps if locate(*p) is None)
         print(f"  assets     {sum(len(p) for _, _, p in ASSETS)} points in "
-              f"{len(ASSETS)} kinds; {len(OFFICES)} offices; {len(MARKETS)} markets")
+              f"{len(ASSETS)} kinds; {len(OFFICES)} offices; {_dark} on open water")
+        print(f"  lit        {HOME} + ramp | {' '.join(NEAR)} + lattice | "
+              f"{' '.join(FAR)} | {len(LIT)} of {len(LAND)} countries")
         for name, lines in BLOCKS.items():
             print(f"\n<!-- {MARK}: {name} -->")
             for l in lines:
