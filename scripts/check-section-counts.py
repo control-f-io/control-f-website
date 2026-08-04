@@ -42,8 +42,10 @@ them is aria-hidden, because a counter that carries information stays in the
 accessibility tree and all five of these now do.
 
 The register is the landing page alone: this is the page the counters were
-measured on. patterns/ueber-uns.html carries the same fault (Das Team, 10,
-over six faces) and is not this lane's file — recorded, not fixed.
+measured on. patterns/ueber-uns.html carried the same fault (Das Team, 10,
+over six faces); it is fixed there by removing the counter rather than by
+correcting it to 6 — that page states no headcount at all, on the site
+owner's instruction, and the note beside the header records why.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
