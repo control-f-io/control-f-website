@@ -7034,6 +7034,44 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   50%      { opacity: 0; }
 }
 
+/* THE STREAM NEVER RUNS ON PAPER, AND THE FALLBACK IT ALREADY BUILT WAS NEVER
+   POINTED AT PRINT. cf-stream.js's own prepare() (see its header) exists to
+   type copy from a scroll position: `run()` reads getBoundingClientRect()
+   against a `scroll` listener, and build() empties every line's full sentence
+   into .cf-stream__text up front, character count at zero. A real print
+   render (page.pdf(), not emulateMedia — emulateMedia only swaps which CSS
+   matches and stays on the screen compositor, so it never reproduces this)
+   never scrolls and never fires `scroll`, so paint() never runs past zero and
+   every streamed line prints as the empty span build() left behind.
+
+   prepare() already writes the fix's other half for accessibility: each line
+   is split into .cf-stream__text (streamed, aria-hidden — the one print
+   catches empty) followed immediately by a plain .visually-hidden sibling
+   carrying the line's whole sentence. Print wants that same sentence, so this
+   hides the first and restores the second. The adjacent-sibling combinator is
+   exact because cf-stream.js appends nothing else between the two spans, on
+   any of its four consumers: acts.css's .sp-track/.sp4-track/.map-track
+   (landing page, prototypes/statement-to-process.html), .cf-values__track
+   (ueber-uns.html) and .cf-pin (expertise.html).
+
+   Measured with page.pdf() against the shipped landing page: act 4's two
+   team plates print "01 / Geschäftsführung" / "02 / Das Team" with nothing
+   under either label — headline, body and the reader's own name entirely
+   missing — before this rule, and the full sentence after. */
+@media print {
+  .cf-stream__text { display: none; }
+  .cf-stream__text + .visually-hidden {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+  .cf-stream__caret { display: none; }
+}
+
 @keyframes cf-values-item {
   0%   { opacity: 0; }
   12%  { opacity: 1; }
