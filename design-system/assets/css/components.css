@@ -5196,6 +5196,35 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
     color: var(--cf-schwarz);
   }
 }
+/* THE RULE ABOVE DOES NOT REACH A BUTTON THAT NAMES ITS OWN COLOUR. Two of
+   sixteen pages — kontakt.html, kontakt-danke.html — put .cf-btn--outline
+   in the footer CTA slot instead of the .cf-btn--primary every other page
+   carries there: both offer "Lieber direkt sprechen?" and a phone link,
+   because a reader already on or just past the contact form is the one
+   reader the form itself is no longer the answer for. .cf-btn--primary was
+   checked and cleared when the rule above was written — its label is the
+   foil, not a themed token, so nothing about it depended on the plate.
+   .cf-btn--outline was not: it
+   sets `color: var(--text-primary)` and `border-color: var(--border-strong)`
+   directly, and .cf-footer's own data-theme="inverse" redeclares both to
+   (near-)white for exactly the reason .cf-footer's background rule above
+   has to route around them. Print drops the plate but not the theme scope,
+   so the button keeps asking for white.
+
+   Measured on kontakt-danke.html, printed, before this rule: color
+   rgb(255, 255, 255), border-color rgba(255, 255, 255, 0.72), against the
+   sheet's own white — both at 1:1 contrast, the same "gone, not faint"
+   failure the footer background rule describes, just reached through a
+   property that names its own colour instead of inheriting the section's.
+   var(--cf-schwarz) and not var(--text-primary) for the reason given
+   above: .cf-arrow inside the button is fill: currentColor, so the arrow
+   is carried by the same declaration. */
+@media print {
+  .cf-footer .cf-btn--outline {
+    color: var(--cf-schwarz);
+    border-color: var(--cf-schwarz);
+  }
+}
 /* For pages whose last section is .section--flush and so carries no bottom
    padding of its own. Keeps the gap before the footer identical on every page
    instead of leaving it to a per-page margin.
