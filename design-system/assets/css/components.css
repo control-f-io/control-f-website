@@ -6780,9 +6780,29 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    In rem with the rest of them: whether there is room for a pinned
    three-column stage is a question about how big the type is, so at a 24 px
    default this now waits for 1230 px rather than engaging at 820 with the
-   composition already too tight for it. → foundations/layout.html */
+   composition already too tight for it. → foundations/layout.html
+
+   WIDTH WAS NEVER THE ONLY QUESTION, AND THIS GATE ASKED IT ALONE. The other
+   two consumers of this same mechanism family — .cf-pin (Expertise and the
+   landing page's process, both in cf-stream.js's own accounting) — pair their
+   min-width with `min-height: 45rem`, the register's own note on that
+   threshold: "a stage that must also clear the nav band cannot hold a card
+   worth reading under 45rem of viewport." This track never asked. A width of
+   51.25rem says nothing about a phone turned sideways: iPhone 14 Pro Max
+   landscape (932 x 430), iPhone 14 Pro landscape (852 x 393), Pixel 7
+   landscape (915 x 412) and Galaxy S23 Ultra landscape (915 x 412) all clear
+   820 px wide while standing at less than half of 45rem tall — ordinary
+   phones, held the ordinary way people hold a phone to watch a video or read
+   a wide table, not an edge case. Measured on all four, both Chromium and
+   WebKit: `view-timeline-name` computed to `--cf-values` and `.cf-values__stage`
+   computed `position: sticky` — the seven-viewport scroll hijack this
+   component's own doc-page swears never happens on a phone, running on one,
+   on the exact mechanism the sibling gate was already built to keep it away
+   from. The card the width term protects has nowhere to go at 430 px of
+   height either; the fix is the same term the other two consumers already
+   carry, not a new one. → foundations/mobile.html#order */
 @supports (animation-timeline: view()) and (animation-range: contain 0% contain 100%) {
-  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 51.25rem) {
+  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 51.25rem) and (min-height: 45rem) {
     .cf-values__track {
       --values-stages: 6;
       height: calc((var(--values-stages) + 1) * 100vh);
