@@ -2620,6 +2620,48 @@
       .sp4-lit.sp4-x { animation-name: sp4-draw-x, lp-flow-out; }
       .sp4-lit.sp4-y { animation-name: sp4-draw-y, lp-flow-out; }
 
+      /* SAFARI DROPS ONE OF THESE FOUR, and it is the same bug #339 found and
+         fixed for .lp-flow__leaf, in a second place it does not have the same
+         fix available. Measured on the "n" ramp specifically — the plate's
+         --e:3 edge, sp4-draw-y, transform-origin 100% 100% — with computed
+         styles read from the live element and pixels sampled from the
+         rendered frame, WebKit 26.5 against Chromium at identical scrollY:
+
+           computed (both engines)   opacity 1, stroke url(#sp4-ramp-n),
+                                      stroke-width 6px, visibility visible
+           pixels, that edge         Chromium: (219,252,88) lime,
+                                      (197,234,225) Glas — the ramp, present
+                                      WebKit:   (207,207,207) throughout —
+                                      the page's own grey, the ramp absent
+
+         Repeated across five scroll fractions through the plate's open
+         window: Chromium's right edge carries 35-65 colour-diverged pixels
+         at each sample, WebKit's 0-6. The left edge (--e:1, sp4-draw-x,
+         origin 0 0) is lit in both at every sample — this is not every edge
+         losing the ramp, it is the one whose draw keyframe scales from the
+         far corner failing to keep it, same as #339's leaf.
+
+         #339's fix does not carry: dropping vector-effect there cost 0.5-0.9
+         of the authored 6 px, because .lp-flow's viewBox is close to its own
+         rendered size. .sp4-frame's viewBox is a flat 100 x 100 mapped onto
+         each plate's own box — roughly 700 x 600 px at this viewport, a 7x
+         non-uniform stretch — so the same fix was tried and measured here
+         first: the ramp returns, at a stroke ~20 px wide instead of 6, on an
+         edge already habituated to reading as a hairline. Worse than the
+         defect it repairs, and the ratio is not one number to compensate —
+         it moves with each plate's own --ar and the viewport's own card
+         width, so no static stroke-width correction is safely additive.
+
+         ALSO TRIED, no effect on any of them: will-change (transform, and
+         stroke + opacity) on the path; translateZ(0) on the path and on
+         .sp4-frame; isolation: isolate on .sp4-frame; backface-visibility:
+         hidden on the path; redriving the same two keyframes through the
+         legacy transform: scaleX()/scaleY() instead of the standalone scale
+         property #339 named as the trigger. None returned the colour.
+
+         No code change follows from this. → #339, .lp-flow__leaf's own note
+         above, for the shared root cause */
+
       .sp4-tick {
         animation: lp-frame-in linear both;
         animation-timeline: --sp4;
