@@ -1946,6 +1946,40 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-ground-band.py
 
+      # The same layer's other half, and the one browser nobody here renders.
+      # The notes are placed by --sp-u -- `max(1cqw / 16, 1cqh / 9)`, the slice
+      # scale of the field they name -- and Gecko resolves those units ONCE,
+      # against the stage's height in an earlier pass: the stage still stacked,
+      # before `@container (min-width: 56rem)` folds .cf-statement into two
+      # columns and takes about 390 px out of it. It never resolves them again.
+      # Every note is then placed at a scale the field is not sliced at, and the
+      # error multiplies with the crossing's distance from the centre. Measured
+      # on the shipped page, Firefox 153, all 21 notes wrong at every desktop
+      # width: worst note 218.9 px at 1024, 227.8 at 1280, 304.6 at 1440, 85.3 at
+      # 1920, with nine of the twenty-one labels cut by the frame at 1440 and ten
+      # at 1024 and 1280. A clone of any note appended beside it gets the right
+      # number, any window resize corrects all twenty-one, and making the fold a
+      # media query removes the drift -- three ways of saying it is the stale
+      # pass and not a different box.
+      #
+      # Firefox is the only engine in that tier: it has no scroll-driven
+      # animations, so it never enters the pin gate, and this workflow installs
+      # chromium. The fix is the declaring element carrying `container-type:
+      # size` of its own -- the same box to the pixel, so Chromium and WebKit are
+      # unchanged and the declaration reads as a duplicate. That is exactly what
+      # this check is for: it holds both containers, holds the `position:
+      # absolute; inset: 0` that makes them one box, and registers every rule in
+      # the sheets that writes a container-query unit into a custom property, so
+      # a third one cannot appear without the argument being made again.
+      #
+      # Proven failing on five reintroductions: the inner container removed, the
+      # outer one removed, a third unregistered cq-unit writer added, a
+      # registered writer retired without its entry, and the list inset from the
+      # figure so the two boxes stop being one.
+      - name: Annotation container
+        if: '!cancelled()'
+        run: python3 scripts/check-annot-container.py
+
       # The numeral crowding is the same shape one drawing further in, and its
       # failure is invisible on every screen the design system is looked at.
       # The root's eighteen readings hold their clearance off their own stroke in
