@@ -1319,6 +1319,61 @@ ul.cf-nav__list {
 }
 .cf-nav__toggle { display: none; }
 
+/* --------------------------------------------------------------------------
+   THE LANGUAGE SWITCH
+   One control, hard right, past the link bar and past the toggle: the last
+   thing in the bar because it is the one thing in it that does not move you
+   through the site but between two copies of it.
+
+   IT NAMES WHERE IT GOES, NOT WHERE YOU ARE, and that is the one place this
+   control departs from the bar's own doctrine. Five links and a current-page
+   marker answer "where am I"; a switch with two states would answer it twice,
+   and at 375 px a DE|EN pair is 72 px the bar does not have — the logo plate,
+   the toggle and the gutters already spend it. So the label is the
+   destination, `hreflang` says which language that destination is in, and the
+   aria-label says the whole sentence, because "EN" read aloud on its own is a
+   letter pair and not an offer.
+
+   `lang` ON THE LABEL, because the label is not in the document's language. On
+   the German page it says EN; a German speech synthesiser reads that "eh en".
+   The attribute hands those two letters to the English voice, which is the
+   same reason patterns/karriere.html marks "Data Engineer" and not the whole
+   link around it.
+
+   THE PLATE IS THE LINK BAR'S, MEASURED FROM THE INSIDE. --space-4 and
+   --space-6 are not new numbers: they are ul.cf-nav__list's --space-2 of plate
+   padding plus .cf-nav__link's --space-2 / --space-4 of label padding, added
+   up, because this control is one link that brought its own plate. Same
+   border, same corner, same ink, so the bar reads as three plates of one
+   family rather than two plus a visitor.
+
+   The lit state is the contour and not the fill — .cf-nav__toggle's note above
+   settles why, and for the same reason: a plate standing on the page with no
+   unlit sibling beside it cannot be distinguished by a 1.3:1 wash over its own
+   black. --grey-000 on the border is this component's "on", already carried by
+   .cf-nav__link:hover, by the current-page marker and by the open toggle.
+   -------------------------------------------------------------------------- */
+.cf-nav > .cf-logo { margin-right: auto; }
+
+.cf-nav__lang {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-4) var(--space-6);
+  background: var(--surface-inverse);
+  border: var(--stroke-1) solid var(--border-inverse);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--grey-000);
+  text-decoration: none;
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+.cf-nav__lang:hover,
+.cf-nav__lang:focus-visible { border-color: var(--grey-000); }
+
 /* The open menu already used --radius-sm while the closed bar was a pill, so
    the bar changed shape on the way to the small screen. One corner now. */
 @media (max-width: 48.75rem) {
@@ -1503,6 +1558,29 @@ ul.cf-nav__list {
      .cf-nav__link too; the bar should not answer at two speeds. */
   [data-cf-nav] .cf-nav__toggle[aria-expanded="true"] {
     border-color: var(--grey-000);
+  }
+
+  /* THE SWITCH TAKES THE TOGGLE'S METRIC HERE, AND THE REASON IS THE BAR'S
+     HEIGHT AND NOT THE SWITCH'S.
+
+     Above this width the switch is one .cf-nav__link that brought its own
+     plate, so it measures what the link bar measures — 50 px — and the two
+     stand level. Below it the link bar is out of flow and the tallest thing
+     left in the bar is this plate: 50 px inside --space-5 above and below is
+     90, against a --nav-height of 84. Measured at 375 before this rule: bar
+     89.94, toggle 44, switch 49.94. Six pixels of bar that --nav-height does
+     not know about, and every offset anchored to that token — the sticky top,
+     the open panel's max-height calc, the scroll-margin on every heading —
+     is wrong by them.
+
+     So the two controls that stand alone down here are one control's metric:
+     the toggle's note above derives 2.75rem from the touch floor AND from
+     84 − 40 = 44, and the same arithmetic is what this needs. Same padding,
+     same floor, same 44. The bar is 84 again and the switch clears the touch
+     floor it owes a fingertip either way. */
+  .cf-nav__lang {
+    padding: var(--space-3) var(--space-4);
+    min-height: 2.75rem;
   }
 }
 

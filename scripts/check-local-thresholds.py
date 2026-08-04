@@ -203,6 +203,16 @@ def px_gloss(value):
     n, unit = float(m.group(1)), m.group(2)
     return int(round(n * 16)) if unit in ("rem", "em") else int(round(n))
 
+# The English edition under patterns/en/ is generated, not written —
+# scripts/build-i18n.py builds it from the German page beside it and changes
+# only the words. It carries the same markup, the same classes, the same
+# thresholds and the same glass by construction, so every fact this file
+# keeps is already kept one directory up; asserting it twice would only mean
+# two tables to edit whenever one page changes. `build-i18n.py --check` is
+# what holds the mirror to its source. Same argument check-links.py makes
+# about the generated pages at the repository root.
+GENERATED = "patterns/en/"
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -215,7 +225,7 @@ def main():
 
     for path in sorted(DS.rglob("*.html")):
         rel = path.relative_to(DS).as_posix()
-        if rel.split("/")[0] in EXCLUDED_DIRS:
+        if rel.split("/")[0] in EXCLUDED_DIRS or rel.startswith(GENERATED):
             continue
         css = local_css(path.read_text())
         for pre, line in preludes(css):

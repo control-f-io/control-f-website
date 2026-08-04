@@ -92,6 +92,15 @@ looks the way it does:
   on a reintroduction. Every check in that directory started as a bug that had
   already shipped twice.
 - **Never weaken a check to make a change pass.**
+- **Copy you write exists in two languages.** Every pattern page ships twice —
+  German at the root, English from `design-system/patterns/en/` — and the
+  English edition is generated, not written. If a run changes a word a reader
+  sees, it adds the German → English pair to `design-system/i18n/en.json`, runs
+  `python3 scripts/build-i18n.py`, and commits the regenerated pages with the
+  change. `build-i18n.py --extract` prints exactly what is missing. CI fails on
+  a German string with no entry, which is the point: the alternative is an
+  English page with one German sentence in the middle of it, and no lane reads
+  the other edition's screenshots.
 
 ## Standing orders
 

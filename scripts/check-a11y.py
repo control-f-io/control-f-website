@@ -564,11 +564,23 @@ def audit_page(path, page, injected, strict):
 
     return out
 
+# The English edition under patterns/en/ is generated, not written —
+# scripts/build-i18n.py builds it from the German page beside it and changes
+# only the words. It carries the same markup, the same classes, the same
+# thresholds and the same glass by construction, so every fact this file
+# keeps is already kept one directory up; asserting it twice would only mean
+# two tables to edit whenever one page changes. `build-i18n.py --check` is
+# what holds the mirror to its source. Same argument check-links.py makes
+# about the generated pages at the repository root.
+GENERATED = "patterns/en/"
+
 
 def audit():
     injected = js_ids()
     findings, seen = [], []
     for path in sorted(TREE.rglob("*.html")):
+        if path.relative_to(TREE).as_posix().startswith(GENERATED):
+            continue
         page = Page()
         page.feed(path.read_text(encoding="utf-8"))
         page.close()

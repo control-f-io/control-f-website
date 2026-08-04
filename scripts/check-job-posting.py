@@ -374,6 +374,16 @@ def audit(paths):
 
     return findings, postings, checked
 
+# The English edition under patterns/en/ is generated, not written —
+# scripts/build-i18n.py builds it from the German page beside it and changes
+# only the words. It carries the same markup, the same classes, the same
+# thresholds and the same glass by construction, so every fact this file
+# keeps is already kept one directory up; asserting it twice would only mean
+# two tables to edit whenever one page changes. `build-i18n.py --check` is
+# what holds the mirror to its source. Same argument check-links.py makes
+# about the generated pages at the repository root.
+GENERATED = "patterns/en/"
+
 
 def html_files():
     out = []
@@ -381,7 +391,10 @@ def html_files():
         dirs.sort()
         for name in sorted(names):
             if name.endswith(".html"):
-                out.append(os.path.join(base, name))
+                path = os.path.join(base, name)
+                if os.path.relpath(path, TREE).replace(os.sep, "/").startswith(GENERATED):
+                    continue
+                out.append(path)
     return out
 
 

@@ -49,6 +49,7 @@
             <li><a class="cf-nav__link" href="#">Karriere</a></li>
             <li><a class="cf-nav__link" href="#">Kontakt</a></li>
           </ul>
+          <a class="cf-nav__lang" href="#" hreflang="en" lang="en" aria-label="Switch to English">EN</a>
         </nav>
       </div>
     </div>
@@ -65,7 +66,46 @@
     &lt;<span class="tag">li</span>&gt;&lt;<span class="tag">a</span> <span class="attr">class</span>=<span class="val">"cf-nav__link"</span> <span class="attr">href</span>=<span class="val">"/"</span> <span class="attr">aria-current</span>=<span class="val">"page"</span>&gt;Home&lt;/<span class="tag">a</span>&gt;&lt;/<span class="tag">li</span>&gt;
     …
   &lt;/<span class="tag">ul</span>&gt;
+  &lt;<span class="tag">a</span> <span class="attr">class</span>=<span class="val">"cf-nav__lang"</span> <span class="attr">href</span>=<span class="val">"/en/kontakt"</span> <span class="attr">hreflang</span>=<span class="val">"en"</span> <span class="attr">lang</span>=<span class="val">"en"</span> <span class="attr">aria-label</span>=<span class="val">"Switch to English"</span>&gt;EN&lt;/<span class="tag">a</span>&gt;
 &lt;/<span class="tag">nav</span>&gt;</pre>
+  </section>
+
+  <section class="docs-section" id="language">
+    <h2>The language switch</h2>
+    <p class="t-body measure">
+      Last in the bar and hard right, because it is the one control there that does
+      not move you through the site but between two copies of it. It names where it
+      <em>goes</em>, not where you are — the five links and their current-page marker
+      already answer “where am I”, and at 375 px a DE|EN pair is 72 px the bar does
+      not have once the logo plate, the toggle and the gutters are paid for.
+    </p>
+    <p class="t-body measure">
+      It carries the link bar's plate, measured from the inside: <code>--space-4</code>
+      and <code>--space-6</code> are <code>ul.cf-nav__list</code>'s plate padding plus
+      <code>.cf-nav__link</code>'s label padding, added up, so the switch and the link
+      bar stand level at every width above the fold. Below it the link bar leaves the
+      flow and the switch takes <code>.cf-nav__toggle</code>'s metric instead — 44 px,
+      which is both the touch floor and the arithmetic that keeps the bar at
+      <code>--nav-height</code>.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Attribute</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><code>href</code></td><td>the <em>same</em> page in the other edition, never the other edition's home. It is the one part of the bar that legitimately moves per page — see <code>scripts/check-nav-parity.py</code>, which normalises it away for exactly that reason</td></tr>
+        <tr><td><code>hreflang</code></td><td>names the language at the other end, so the link is typed rather than guessed from its label</td></tr>
+        <tr><td><code>lang</code></td><td>on the label, because the label is not in the document's language. “EN” inside a German document is read “eh en” by a German synthesiser; this hands the two letters to the English voice</td></tr>
+        <tr><td><code>aria-label</code></td><td>the whole sentence. “EN” read on its own is a letter pair, not an offer</td></tr>
+      </tbody>
+    </table>
+    <p class="t-body measure">
+      The head carries the matching pair — <code>&lt;link rel="alternate" hreflang&gt;</code>
+      for both editions, each naming itself as well as the other, because a crawler
+      treats an alternate set as complete only when every member of it says so. The
+      English pages are generated: <code>scripts/build-i18n.py</code> builds
+      <code>patterns/en/</code> from the German pattern beside it and replaces only the
+      words, from <code>design-system/i18n/en.json</code>. It writes both sides of this
+      control, so the two editions cannot disagree about where the other one is.
+    </p>
   </section>
 
   <section class="docs-section" id="behaviour">
