@@ -49,6 +49,12 @@ WHAT IS HELD, read out of the shipping stylesheet:
      sequence the moments is defined by whether the timeline resolves, and
      nothing else is allowed to stand in for it.
 
+  5. THE MIRROR. A flow-only layer (.lp-flow-sources — the static telling of
+     act 1's subject, one bead per canopy entry) must be withdrawn INSIDE the
+     gate, where the real field plays that part, and must render somewhere
+     outside it, or the layer the flow tier's story rests on is dead weight.
+     Same shape as (1)+(2), the other way round.
+
 stdlib only, no build step, no dependency — the same contract as the checks
 beside it.
 
@@ -66,6 +72,10 @@ ACTS = ROOT / "design-system" / "assets" / "css" / "acts.css"
 
 # Act 1's ink: the field of beads and the callout layer that names it.
 ACT_ONE_INK = [".sp-field", ".sp-annots-fig"]
+# The flow tier's own telling: layers that exist BECAUSE the tier cannot
+# sequence the acts, and that must therefore leave when the acts play. The
+# mirror of ACT_ONE_INK: drawn outside the gate, withdrawn inside it.
+FLOW_ONLY = [".lp-flow-sources"]
 # Act 2's drawing, its numerals, and the ground all three tiers stand on.
 MUST_SURVIVE = [".lp-flow", ".lp-flow-data", ".sp-drawing", ".sp-stage", ".cf-ground"]
 
@@ -203,6 +213,18 @@ def main():
             withdrawn.add(layer)
         if any(v != "none" for _, v, _, _ in gated):
             restored.add(layer)
+        # The mirror of FLOW_ONLY's order clause: the gated restoration must
+        # stand LATER than the unconditional withdrawal it overrides, or the
+        # pinned tier inherits the flow tier's none and act 1 is deleted.
+        restores = [o for _, v, o, _ in gated if v != "none"]
+        plain_nones = [o for _, v, o, _ in plain if v == "none"]
+        if restores and plain_nones and max(plain_nones) > max(restores):
+            findings.append(
+                "%s's withdrawal (offset %d) stands after the gated "
+                "restoration (offset %d) that must beat it. Same specificity, "
+                "so the later rule wins and the pinned tier loses act 1's "
+                "ink. Keep the withdrawal before the gate."
+                % (layer, max(plain_nones), max(restores)))
 
     if withdrawn and withdrawn != restored:
         for layer in sorted(withdrawn - restored):
@@ -217,6 +239,49 @@ def main():
                 "it. The two sets have to match: withdrawing one layer and "
                 "restoring two leaves the tier drawing half of act 1 over act "
                 "2's root." % layer)
+
+    # The mirror clause. A flow-only layer is the tier's own telling of the
+    # story the acts tell in time; when the acts play, it has to leave, or the
+    # pinned tier carries a third telling over act 2's ending — the double
+    # exposure again, built the other way round. And it has to actually SHOW
+    # somewhere outside the gate, or the layer is dead weight the next tidy
+    # deletes along with the argument for it.
+    for layer in FLOW_ONLY:
+        mine = [r for r in rules if r[0] == layer]
+        gated = [r for r in mine if r[3] == "gated"]
+        outside = [r for r in mine if r[3] != "gated"]
+        if args.verbose:
+            print("  %-16s outside %-22s gated %s"
+                  % (layer,
+                     ", ".join("%s@%d" % (v, o) for _, v, o, _ in outside) or "-",
+                     ", ".join("%s@%d" % (v, o) for _, v, o, _ in gated) or "-"))
+        if not any(v == "none" for _, v, _, _ in gated):
+            findings.append(
+                "%s is never withdrawn inside the pin gate. It is the flow "
+                "tier's telling of act 1; in the pinned tier the real field "
+                "plays that part, and both at once is the double exposure "
+                "built the other way round." % layer)
+        if not any(v != "none" for _, v, _, _ in outside):
+            findings.append(
+                "%s is never given a visible display outside the pin gate — "
+                "the layer the flow tier's story rests on renders nowhere."
+                % layer)
+        # THE ORDER IS THE CASCADE. Every rule here is one class at (0,1,0),
+        # so source order is the whole decision, and a withdrawal that stands
+        # EARLIER than a conditional non-none it is supposed to beat is not a
+        # withdrawal — the container rule re-shows the layer inside the gate.
+        # Found by adversarial mutation of the shipped file: moving the
+        # @container block after the @supports block flipped the pinned tier
+        # back to the double exposure while both checks stayed green.
+        gated_nones = [o for _, v, o, _ in gated if v == "none"]
+        shown_outside = [o for _, v, o, _ in outside if v != "none"]
+        if gated_nones and shown_outside and max(shown_outside) > max(gated_nones):
+            findings.append(
+                "%s's gated withdrawal (offset %d) stands before a visible "
+                "display it must beat (offset %d). Same specificity, so the "
+                "later rule wins and the pinned tier draws the layer over the "
+                "acts. Keep the gate after every rule that shows the layer."
+                % (layer, max(gated_nones), max(shown_outside)))
 
     for layer in MUST_SURVIVE:
         killed = [r for r in rules
@@ -236,8 +301,10 @@ def main():
         return 1
 
     print("act-moment OK — act 1's %d ink layers are withdrawn outside the pin "
-          "gate and restored inside it, and act 2's drawing, numerals and "
-          "ground survive in every tier." % len(ACT_ONE_INK))
+          "gate and restored inside it, %d flow-only layer%s withdrawn inside "
+          "it, and act 2's drawing, numerals and ground survive in every "
+          "tier." % (len(ACT_ONE_INK), len(FLOW_ONLY),
+                     "" if len(FLOW_ONLY) == 1 else "s"))
     return 0
 
 
