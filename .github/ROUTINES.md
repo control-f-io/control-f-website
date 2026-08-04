@@ -33,6 +33,43 @@ style drift, responsive, bugs — exist at `:07/:19/:31/:43/:55` and are current
 **disabled**. Three of them shipped work before they were turned off, and the
 nine `scripts/check-*.py` files they wrote are still enforcing.
 
+## System design & pages
+
+One more, added 2026-07-30, and it is the first that does not fire into
+`landing-page.html`:
+
+| Fires (UTC) | Lane | Owns |
+|---|---|---|
+| `:11` | system design & pages | `design-system/**` — the chapters, the four stylesheets, the checkers — and every page in `patterns/` except `landing-page.html`, which has five owners already |
+
+Branches are `routine/system-pages-YYYYMMDD-HH`. `:11` keeps the same four
+minutes of clearance from `:07` and `:15` that the existing lanes keep from each
+other.
+
+**It cannot merge its own work, and that is why
+`.github/workflows/routine-merge.yml` exists.** The five lanes above were
+created from the routines UI and their sessions hold a GitHub connector, so `gh`
+and the API are theirs. A routine created from inside a Claude Code session
+cannot inherit that connector — the create call says so — and its sessions come
+up with git and nothing else. Git can push a branch and cannot raise a pull
+request, so this one would stop one step short of `main` every hour. The
+workflow closes that step from inside the repository, where it needs nobody's
+token: a push to `routine/system-pages-**` runs the same forty checks, opens the
+PR from the branch's own commit message, and squash-merges it. A failing gate
+still opens the PR and then leaves it open.
+
+Two consequences worth knowing. The gate is **run** in that workflow rather than
+waited for, because a PR opened with `GITHUB_TOKEN` does not trigger
+`design-system.yml` — waiting for a check that will never start would wait
+forever. And the routine's **commit message is the PR body**: `gh pr create
+--fill` takes both from the commit, so what it measured has to be written there
+rather than typed into a PR form it has no way to reach.
+
+If the connector is ever attached to this routine — recreating it from
+<https://claude.ai/code/routines> is the way — the workflow becomes redundant
+rather than wrong: it would find the PR the session had already opened and merge
+that one.
+
 ## What every one of them is told
 
 The instructions differ by lane, but these are common and are why the commit log

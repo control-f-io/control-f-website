@@ -51,6 +51,12 @@
    820. Neither of the other two has ever been 820, and NEITHER OF THE THREE
    HEIGHT TERMS WAS HERE AT ALL.
 
+   .cf-values__track HAS ONE NOW TOO — `and (min-height: 45rem)`, the same
+   term the other two rows already carried the day this paragraph was written.
+   Asking the track rather than restating the gate is what made that fix free
+   here: this file changed nothing to pick it up, because it was never told
+   the gate's shape in the first place.
+
    What that cost, measured on the landing page before this: at any viewport
    whose width cleared 820 while the track's own gate did not — 860 x 900,
    1000 x 800, 1023 x 760, 1280 x 700, 1440 x 719 — build() emptied act 2's

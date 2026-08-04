@@ -191,6 +191,33 @@
         animation-timeline: --cf-pin;
         animation-range: contain 0% contain 100%;
       }
+      /* THE PLATE TAKES --cf-pin FOR ITS OWN SLIDE, THREE LINES UP, AND ITS
+         RIM NEVER DID. components.css's .cf-info-card--glass::before ships
+         cf-info-card-rim on the element's own view() — its comment there
+         already names this page: "The plate on patterns/expertise.html
+         overrides the timeline — it sits inside a sticky-pinned stage" — but
+         no override was ever written, so the rim kept the component default.
+
+         Measured rather than assumed: Chromium 1194 does not stall it at a
+         single value the way that comment predicts — .cf-pin__stage is
+         sticky, but view() on a descendant of a stuck box keeps computing
+         progress off the box's un-stuck position, so the rim's
+         background-position DOES keep moving, across the box's whole un-stuck
+         travel — which is most of .cf-pin's 6660 px at 1440x900, not the one
+         viewport a "pass" is written for. Sampled across card 01's own 25% of
+         the track alone, the rim crossed -49.9% to +9.2% of its 240-point
+         sweep (-70% to 170%) — under a quarter of the crossing in the whole
+         window that card is on screen, so what should read as one light
+         passing over the card in a beat instead reads as no motion at all.
+
+         --cf-pin over the pin's own 0%-100%, the same fix the plate took for
+         ex-pane above: one crossing timed to the track the reader is actually
+         scrubbing, instead of a view() that never sees this element travel
+         through a viewport of its own. */
+      .ex-plate.cf-info-card--glass::before {
+        animation-timeline: --cf-pin;
+        animation-range: contain 0% contain 100%;
+      }
       /* The cards give up their own surface to the plate. Not the material —
          they never had it — the plain card back, which would otherwise sit on
          the glass and hide it. Padding stays: it is what insets the copy. */
@@ -279,6 +306,43 @@
       .ex-step__copy > *:nth-child(4) { --from: 5.7;  --to: 6.2;  }   /* body   */
       .ex-step__copy > *:nth-child(5) { --from: 11.9; --to: 12.4; }   /* ask    */
       .ex-step__copy > *:nth-child(6) { --from: 13;   --to: 15.5; }   /* facts  */
+
+      /* THE TITLE'S OWN SWING WAS DEAD HERE, AND SILENTLY.
+         .text-foil ships cf-foil-swing, timed off the element's own view() —
+         base.css's "THE RAKE SWINGS". .ex-step__copy > * above and .text-foil
+         tie in specificity (one class each), so cascade order alone decides,
+         and this page's own <style> loads after base.css: the whole
+         `animation` triplet lands on the title from here only, nothing
+         merges. --sight-v (cf-foil-swing's own registered property,
+         initial-value 1) never left that fallback — sampled on #feld-01
+         across the whole pinned track and the approach and exit either side
+         of it, with scroll jumps left to settle rather than caught mid-flight,
+         it read exactly 1 at every point. Not a swing frozen mid-travel: a
+         swing that never started.
+
+         And view() could not have worked here even delivered clean. The
+         title sits three levels inside .cf-pin__stage, sticky for the whole
+         track, which is the fault .cf-pin documents in one line over
+         .cf-iso: "a sticky object never travels through the viewport, so its
+         own view() freezes at one value."
+
+         The fix composes both animations instead of one evicting the other —
+         .cf-iso__orbit already runs two names on one timeline the same way.
+         cf-pin-copy still opens the box (opacity, translate); cf-foil-swing
+         now runs alongside it reading --cf-pin, the track's timeline, over
+         the quarter .cf-pin__copy holds the card for rather than
+         cf-pin-copy's own instant snap-open window. THE RAKE SWINGS already
+         argues the contrast floor holds at every angle the swing passes
+         through, by construction, not only at the partial ranges the other
+         two foil moments happen to sample — so a full quarter's swing here
+         needs no re-measuring under that same argument. */
+      .ex-step__copy > .text-foil {
+        animation-name: cf-pin-copy, cf-foil-swing;
+        animation-timeline: --cf-pin, --cf-pin;
+        animation-range: contain calc(var(--i) * 25% + var(--from) * 1%)
+                         contain calc(var(--i) * 25% + var(--to) * 1%),
+                         contain calc(var(--i) * 25%) contain calc((var(--i) + 1) * 25%);
+      }
 
       /* A LINE BEING TYPED IS A LINE WITH NO HEIGHT YET, and four of them
          growing under each other walks the whole card down the plate. These
