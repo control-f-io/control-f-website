@@ -102,6 +102,13 @@ SHEETS = ["tokens.css", "base.css", "components.css", "acts.css"]
 FRAMES = [
     dict(placed=".lp-flow__val, .lp-flow__read", layer=".lp-flow-data",
          svg="lp-flow", answer="UNSIZED", ratio=None, box=None),
+    # The canopy beads: same drawing, same UNSIZED construction as the
+    # numeral layer one entry up — inset to .sp-root with the viewBox's own
+    # aspect-ratio, so the percentages resolve against the flow box to the
+    # pixel. Only left is driven (--x); the row's top is the canopy constant,
+    # which check-canopy-sources.py holds to the leaves' shared far-end y.
+    dict(placed=".lp-flow__src", layer=".lp-flow-sources",
+         svg="lp-flow", answer="UNSIZED", ratio=None, box=None),
     dict(placed=".map__tag", layer=".map__tags",
          svg="map", answer="FRAMED", ratio="--map-ar", box=".map-box"),
 ]
