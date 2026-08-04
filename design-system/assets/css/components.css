@@ -999,7 +999,33 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    scripted scroll at 1280 px, 95th-percentile frame: 16.9 ms with no glass
    at all, 17.8 ms with no reach, 20.0 ms at a reach of a quarter bar,
    25.1 ms at half a bar. Everything past the kernel is spend with nothing
-   to show for it. */
+   to show for it.
+
+   "ARRIVING THROUGH THE BLUR" DOES NOT HAPPEN FOR TEXT IN WEBKIT 26.5, and
+   this is left unfixed rather than worked around. -webkit-backdrop-filter
+   computes correctly (verified via getComputedStyle: blur(16px) saturate
+   (1.08), identical to Chromium) and non-text backdrops — the tiled ground,
+   a striped gradient — blur as designed. Text glyphs behind this sheet do
+   not: measured on a minimal reproduction (sticky bar, ::before at inset:0,
+   backdrop-filter only, no mask, no isolation, no z-index) and confirmed on
+   this page's own FAQ text and on Expertise's .cf-pin__step title, both
+   render pixel-sharp through the veil where Chromium renders them
+   correctly smeared. Ruled out by direct test, each with no effect: the
+   mask (--glass-lookahead's linear-gradient), z-index: -2 on this pseudo,
+   isolation: isolate on .cf-nav, position: sticky vs fixed on .cf-nav, the
+   view-transition-name relocation two files up (base.css, "THE BAR ITSELF
+   CANNOT CARRY THE NAME"), and forced layer promotion (transform:
+   translateZ(0) / will-change: transform) on the text, on this pseudo, and
+   on .cf-nav itself. The failure tracks specifically with text content —
+   a striped background under the same bar blurs while text laid over that
+   same background does not — which points at how this WebKit build
+   composites glyph layers rather than at anything this stylesheet controls.
+   Not chased further because every candidate fix left to try either
+   degrades Chromium/Firefox's identical, working render or forces every
+   passing text run onto its own compositing layer sitewide on a hunch.
+   Whether this reproduces on real Safari (Playwright's WebKit is a Linux
+   GTK/WPE port, not Apple's Core Animation compositor) is untested here.
+   → a human, with real Safari, decides whether this is worth chasing. */
 .cf-nav::before {
   content: "";
   position: absolute;
