@@ -148,7 +148,7 @@ async function handleSubmit(request, env, ctx, url) {
         items: [{
           target: "direkt",
           field: null,
-          message: "Bitte versuchen Sie es in einigen Minuten noch einmal — oder schreiben Sie uns direkt an info@control-f.de.",
+          message: "Bitte versuchen Sie es in einigen Minuten noch einmal — oder schreiben Sie uns direkt an info@control-f.io.",
         }],
       },
     });
