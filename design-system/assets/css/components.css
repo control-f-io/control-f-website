@@ -765,10 +765,32 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    disappears entirely. Measured, not reasoned about: it renders as a black
    slab with a violet arrow and no text.
 
-   Everything is inside @supports. The unenhanced state is the rule above it,
-   untouched — opaque plate, white label. Nothing to fall back to, because
-   nothing was taken away. */
-@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+   Everything is inside @supports, and the condition names two things, not
+   one. background-clip: text is not the whole trick this rule depends on —
+   the plate needs LAYER 1 clipped to text and LAYER 2 clipped to border-box
+   in the SAME declaration, which is a browser committing to per-layer
+   background-clip, not merely to background-clip: text on its own. Firefox
+   153 parses `background-clip: text, border-box` as valid — CSS.supports
+   reports true, so the query above alone lets it into this block — and then
+   does not honour the split at paint time: every layer clips the same way,
+   the foil paints as an ordinary box fill instead of glyph shapes, and the
+   label, `color: transparent` throughout this block, has nothing underneath
+   it to read. Measured on the shipped 404 page's "Zur Startseite" and on
+   every other .cf-btn--solid on the site, in Firefox: a plain gradient
+   rectangle, no visible character, over the fallback's own black plate —
+   worse than the unenhanced rule above, which this block exists to improve
+   on. `and (not (-moz-appearance: none))` is a second gate for a fact
+   @supports has no direct way to ask: it does not test per-layer clip
+   support, because there is no such feature query — the syntax above is
+   valid everywhere and the failure is in what a layer clip DOES, not in
+   whether it parses. -moz-appearance is a Mozilla-only ident no non-Gecko
+   engine has ever recognised, so `not (-moz-appearance: none)` reads "not
+   Firefox" without asserting anything about what Firefox — or any other
+   engine — supports of the feature actually in question. The unenhanced
+   state is the rule above it, untouched — opaque plate, white label.
+   Nothing to fall back to, because nothing was taken away. */
+@supports ((-webkit-background-clip: text) or (background-clip: text))
+      and (not (-moz-appearance: none)) {
   .cf-btn--solid {
     background-image: var(--gradient-foil), none;
     -webkit-background-clip: text, border-box;
