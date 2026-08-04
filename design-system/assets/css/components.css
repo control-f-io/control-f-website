@@ -1048,6 +1048,51 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    Whether this reproduces on real Safari (Playwright's WebKit is a Linux
    GTK/WPE port, not Apple's Core Animation compositor) is untested here.
    → a human, with real Safari, decides whether this is worth chasing. */
+
+/* NO CAPTURE THIS REPO'S TOOLING CAN TAKE SHOWS GECKO PAINTING THIS BLUR,
+   and the trigger is not the mask, not the reach, not the bar's isolation,
+   not anything else this rule can change — it is the screenshot pipeline
+   itself. Audited 2026-08-04, a team portrait's head under the band at
+   identical scroll offsets, mean per-channel pixel difference between the
+   live sheet and the same sheet with backdrop-filter forced off, measured
+   over glass-on-photo pixels: Chromium 151 reads 31.61 (peak 196), Firefox
+   153 reads 0.00, WebKit 26.5 reads 0.00 — while getComputedStyle returns
+   blur(16px) saturate(1.08) in all three. On a ten-line page with four
+   bars over 6 px stripes — plain blur(16px), this rule's exact hard-stop
+   mask, clip-path in the mask's place, veil and blur together — stripe
+   gradient energy under every bar in Firefox is 36.65 against 36.65 on
+   bare stripes, where Chromium reads 0.21-2.03. The veil alone does paint
+   (35.16 under the veiled bar), so the sheet is present in the capture and
+   only its filter is missing — and real Firefox 153.0.1, run headless with
+   --screenshot on that same page, produces the identical 36.65. That is
+   Bugzilla 1657997, open since 2020 and reconfirmed on Nightly 143:
+   Gecko's snapshot path does not composite backdrop-filter, in any
+   variant, on any page. The screen is a different pipeline — Firefox has
+   shipped working backdrop-filter since 103 — so a Firefox-only fallback
+   here (an opaque veil, a faked blur) would trade the render every real
+   Firefox user sees for one only test tooling looks at. Wrong trade, same
+   shape as the view-transition-name lesson in base.css.
+
+   Ruled out by direct test, each still 0.00 in Firefox: mask-image: none;
+   clip-path: inset(0 0 var(--glass-lookahead) 0) in the mask's place; the
+   reach dropped entirely (height: 100%, no mask); isolation: auto on
+   .cf-nav — the filter-effects-2 backdrop-root suspicion; this mask and
+   that isolation are both inducers on paper, and an inducer on the element
+   itself would legally empty its own backdrop, but removing both changes
+   nothing — translateZ(0); will-change: backdrop-filter; contain: paint on
+   the bar. Headed and headless capture pixel-identically.
+
+   THE PARAGRAPH ABOVE INHERITS THIS CAVEAT. The same audit run on the two
+   WebKit ports available here (26.4/2287 and 26.5/2336, macOS) captures no
+   backdrop-filter either — plain, masked, clipped or veiled, text or
+   stripes behind it (Playwright issue #28363 is the same family) — so a
+   screenshot cannot separate text from non-text backdrops in WebKit: the
+   split that paragraph reads off captures is not observable by this
+   harness today, and its "blurs as designed" gradient does not reproduce
+   on either build. What real Safari and real Firefox put on a real screen
+   is exactly what none of this tooling can photograph.
+   → a human, at an actual window, is the only instrument that closes
+   this one. docs/firefox-audit/2026-08-04/ holds the frames. */
 .cf-nav::before {
   content: "";
   position: absolute;
