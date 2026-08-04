@@ -3514,24 +3514,37 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
    a `background: Highlight` beside it, produces zero visible glyphs — the
    box takes its background and border, the text takes its layout box, and
    no ink lands. SelectedItem/SelectedItemText, the newer pair for the same
-   meaning, fails identically. Every other system pair tried paints —
-   Mark/MarkText, ButtonFace/ButtonText, Canvas/CanvasText, GrayText,
-   LinkText — so this is not forced-colors mode itself losing fidelity, it
-   is these two keywords specifically.
+   meaning, fails identically.
 
-   Mark/MarkText is the substitute, not chosen for its own meaning but
-   because it is the nearest working pair already load-bearing in this
-   system — base.css reaches for it under the identical constraint, for the
-   current-search-match state, with the identical reasoning: "the system
-   value has to be named rather than left to the mode". "Currently matched"
-   and "currently selected" are not the same fact, but a wrong-but-legible
-   pair beats a correct-but-invisible one, and the page's own aria-current
-   is what still carries the true meaning for assistive tech either way. */
+   MARK/MARKTEXT ALSO DOES NOT PAINT, AND ONLY UNDER THE DARK THEME — the gap
+   the previous measurement here missed, because it only checked one. Same
+   Chromium 141, same emulation, `color-scheme: dark` added: `background:
+   Mark; color: MarkText` on `<span aria-current="page">1</span>` renders a
+   solid opaque block the exact size of the glyph's layout box — zero ink,
+   same failure shape as HighlightText, not merely low-contrast. Restating
+   `-webkit-text-fill-color: MarkText` beside it, the fix the rest of this
+   file uses for exactly this class of bug, does not help: the value itself
+   is what fails to paint here, not a missing second declaration. `color-
+   scheme: light` with the identical rule is fine, which is how this shipped
+   unnoticed — the pair was verified once, in the theme that works.
+
+   ButtonFace/ButtonText is the replacement, and it is verified in both:
+   Chromium 141, forced-colors active, `color-scheme` light and dark, `<span
+   aria-current="page">1</span>` and `<span aria-current="page">Telemetrie
+   </span>` (.cf-article__tag below) — legible glyphs, both themes. It is
+   also not a new keyword in this system: .cf-btn--solid already reaches for
+   it under forced colours, in this same file, and restates -webkit-text-
+   fill-color beside it for the reason base.css's ::selection comment gives.
+   "Currently selected" reading as a button face is a smaller mismatch than
+   the "currently matched" one Mark/MarkText was already accepted for below,
+   and the page's own aria-current still carries the true meaning for
+   assistive tech regardless of which system pair paints it. */
 @media (forced-colors: active) {
   .cf-pagination__page[aria-current] {
-    background: Mark;
-    border-color: Mark;
-    color: MarkText;
+    background: ButtonFace;
+    border-color: ButtonFace;
+    color: ButtonText;
+    -webkit-text-fill-color: ButtonText;
   }
 }
 
@@ -4108,13 +4121,21 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    It lands on the same inverted plate that hover lands on, which is safe here
    precisely because the two can never be the same element. */
 .cf-article__tag[aria-current] { background: var(--cf-schwarz); color: var(--grey-000); }
-/* Mark/MarkText, not Highlight/HighlightText — see the identical selected
-   state on .cf-pagination__page[aria-current], which measures why: a bare
-   `color: HighlightText` paints no glyphs in Chromium 141's forced-colors
-   mode, on this element or in isolation, and Mark/MarkText is the nearest
-   pair that does. */
+/* ButtonFace/ButtonText, not Highlight/HighlightText and not Mark/MarkText —
+   see the identical selected state on .cf-pagination__page[aria-current],
+   which measures both failures: a bare `color: HighlightText` paints no
+   glyphs in Chromium 141's forced-colors mode, on this element or in
+   isolation, and `color: MarkText` paints none either once `color-scheme:
+   dark` is added to the same mode — a solid block the size of the word's
+   layout box, not merely low contrast. ButtonFace/ButtonText is the pair
+   measured legible in both themes, and .cf-btn--solid already reaches for
+   it under forced colours elsewhere in this file. */
 @media (forced-colors: active) {
-  .cf-article__tag[aria-current] { background: Mark; color: MarkText; }
+  .cf-article__tag[aria-current] {
+    background: ButtonFace;
+    color: ButtonText;
+    -webkit-text-fill-color: ButtonText;
+  }
 }
 
 /* --------------------------------------------------------------------------
