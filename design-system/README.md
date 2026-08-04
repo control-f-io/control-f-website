@@ -44,7 +44,17 @@ python3 scripts/check-class-provenance.py --report  # the census: who declares w
 python3 scripts/check-viewport-zoom.py         # no page revokes the reader's pinch zoom
 python3 scripts/check-local-thresholds.py      # every page-local threshold is registered, and in rem under patterns/
 python3 scripts/check-local-thresholds.py -v   # print the register
+python3 scripts/build-i18n.py --check          # the English edition matches its German source
+python3 scripts/build-i18n.py --extract        # every German string with no entry in the catalogue
 ```
+
+**The English edition** under `patterns/en/` is generated, not written:
+`scripts/build-i18n.py` builds it from the German pattern beside it and replaces only the
+words, from `i18n/en.json`. Nothing else is duplicated — markup, classes, comments, ids
+and page-local `<style>`/`<script>` come through byte for byte — and none of the checks
+above read it, because every fact they keep is already kept one directory up. Add copy in
+German; run `--extract`; translate what it prints; rebuild. A German string with no entry
+fails the build rather than shipping a German sentence in an English page.
 
 The fifteen checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
