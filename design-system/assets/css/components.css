@@ -964,23 +964,40 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 
 /* --------------------------------------------------------------------------
    NAVIGATION
-   Logo plate left, link plate right, mono uppercase links, both opaque —
-   and the whole bar is one full-bleed sheet of frosted glass.
+   ONE PLATE, CENTRED IN THE BAND: the logo at its left, then the six routes,
+   then the language switch — mono uppercase, opaque — floating on the
+   full-bleed sheet of frosted glass that is still the band itself.
 
-   The mockups are explicit about this and the implementation had it the
-   other way round. Sampled from mockups/landing-page.jpg: the top 80 px of
-   the frame is blurred and desaturated against the hero artwork with a hard
-   edge at its bottom, and both plates inside it read #000. That is the
-   manual's stacking order — Layer 03 (glass) under Layer 02 (opaque) — and
-   it is also the only version that survives a contrast check, because an
-   opaque plate holds its text at 16:1 no matter which frame of the video is
-   playing underneath.
+   THE COMPOSITION IS THE SITE OWNER'S, against a reference frame: "alles in
+   einen Balken, zentriert, Logo links weiß, dann die anderen Punkte, trotzdem
+   natürlich der sicke Glas-Backdrop" (Website Feedback, "Menu, mal so
+   ausprobieren", 2026-08-03). It used to be three plates spread across the
+   full width — logo hard left at --gutter, links and switch hard right — with
+   1 032 px of band between the logo and the links at 1440. One plate now, as
+   wide as its own contents, centred on the viewport.
 
-   Both plates are rectangles with a 2 px corner, not pills. The link bar is
+   THE GLASS IS THE BAND AND NOT THE PLATE, which is what it has always been
+   and is the half of this the reference frame does not settle. The plate is
+   opaque for the reason the section header has carried since the mockups were
+   sampled: it holds its text at 10.6:1 (the dim link ink) and 21:1 (white) no
+   matter which frame of the video is playing underneath, and the video is the
+   one backdrop on this site nobody controls. The reference bar is dark glass —
+   measured off the frame at black 80-85 %, which composites to 7.4-8.5:1 for
+   that same dim ink over a pure-white backdrop. That is a real floor and it is
+   AAA, so this is a design call and not a contrast one; it is the owner's to
+   make, and it is one declaration on .cf-nav__bar the day they make it.
+
+   The plate is a rectangle with a 2 px corner, not a pill. The link bar was
    417 x 41 at rx="2" in the export, where a pill would be rx 20.5 — the
    compressed JPG is what made it look like a capsule, and the vectors settle
-   it. The same 2 px is on the logo plate, on all three CTAs and on the team
-   photos; see the note on the radius tokens.
+   it. The same 2 px is on all three CTAs and on the team photos; see the note
+   on the radius tokens. The reference frame's corner is nearer rx 10 and is
+   deliberately not taken: one corner in this system, and it is 2 px.
+
+   The mockups' sampling of the sheet stands: the top 80 px of the frame is
+   blurred and desaturated against the hero artwork with a hard edge at its
+   bottom, and the plate inside it reads #000. That is the manual's stacking
+   order — Layer 03 (glass) under Layer 02 (opaque).
    -------------------------------------------------------------------------- */
 /* The bar has to stay a POSITIONED element. Three absolutely positioned
    children resolve against it — the glass sheet, the edge, and the mobile
@@ -1003,10 +1020,58 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   isolation: isolate;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
+  justify-content: center;
   min-height: var(--nav-height);
-  padding: var(--space-5) var(--gutter);
+  /* THE BAND IS --nav-height EXACTLY, and it was 89.94 px for as long as the
+     links carried their own plate: --space-5 above and below a 49.94 px plate
+     is 89.94, and min-height never bound. Every offset on the site is written
+     against the token — the sticky top, the panel's max-height, the
+     scroll-margin on every heading, .cf-hero's own negative margin — so six
+     pixels of bar that the token did not know about were six pixels wrong in
+     all of them. The plate is 51.94 px inside --space-2 above and below, which
+     is 67.94 against a floor of 84, so the min-height binds and the band
+     measures what it says it measures — at every width, on every page. */
+  padding: var(--space-2) var(--gutter);
+}
+
+/* THE PLATE. Everything the bar carries is inside it, and it is as wide as
+   that content and no wider — `max-content` rather than a width, so the plate
+   is the sum of its parts and centring is the flex line's job.
+
+   POSITIONED, because the folded panel below resolves against it: the panel
+   used to hang from the band's bottom edge at the band's own gutters, and the
+   plate is now the thing it unfolds from. Relative and never static — see the
+   band's note above for what a static ancestor does to the three absolutely
+   positioned children.
+
+   NOT A CONTAINER WITH `overflow` ON IT. The radius is 2 px and the temptation
+   to clip to it is real; Firefox drops backdrop-filter on a sticky element
+   whose ancestor carries overflow AND border-radius, and it fails silently.
+   Nothing here clips. */
+.cf-nav__bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: max-content;
+  max-width: 100%;
+  padding: var(--space-2);
+  background: var(--surface-inverse);
+  border: var(--stroke-1) solid var(--border-inverse);
+  border-radius: var(--radius-sm);
+}
+/* The lockup is inside the plate now, so it brings no plate of its own: the
+   mark, and the --space-2 that keeps it off the plate's own border. Its
+   `background` and its --space-6 padding were the plate — .cf-logo is a
+   standalone lockup everywhere else it appears and keeps them there. */
+.cf-nav__bar > .cf-logo {
+  padding: 0 var(--space-2);
+  background: none;
+  /* Free space only ever exists on the folded bar, where the plate is wider
+     than logo + toggle + switch; there it puts the two controls hard right,
+     which is where they have always been. Above 48.75 rem the plate is
+     max-content, there is no free space, and this resolves to zero. */
+  margin-right: auto;
 }
 
 /* The glass sheet. It reaches one blur kernel past the bottom of the bar and
@@ -1221,24 +1286,23 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   .cf-nav::after { border-top: var(--stroke-1) solid CanvasText; }
 }
 
-/* QUALIFIED BY ITS TAG, and the padding below is why. base.css:150 resets
-   `ul[role="list"] { padding: 0 }` at (0,1,1); this rule was (0,1,0), so the
-   plate's 8 px inset computed to 0 px on every page in the tree and the pills
-   sat flush against its border. Same reset, same weight, third occurrence —
-   see .cf-pin__inner's note and scripts/check-reset-shadow.py, which runs it
-   now. The class is only ever on a <ul>, and every other rule that touches it
-   is a descendant or attribute selector at (0,2,0) or heavier, so the tie is
-   with base.css alone and source order settles it. */
-ul.cf-nav__list {
+/* THE LIST IS NO LONGER A PLATE — .cf-nav__bar is the plate and this is the
+   run of six routes inside it. The fill, the border, the 2 px corner and the
+   8 px inset all moved there, unchanged; what is left is the row itself.
+
+   Its padding is the one that used to need `ul` to outweigh base.css:150's
+   `ul[role="list"] { padding: 0 }` at (0,1,1) — the 8 px inset that computed
+   to 0 px on every page in the tree until it was qualified, third occurrence
+   of that reset, and scripts/check-reset-shadow.py is what runs it now. There
+   is nothing left here for the reset to shadow, so the tag qualifier goes
+   with it; the folded panel below states its own plate at (0,2,0) and is
+   heavier than the reset on its own. */
+.cf-nav__list {
   display: flex;
   align-items: center;
   gap: var(--space-1);
   margin: 0;
-  padding: var(--space-2);
   list-style: none;
-  background: var(--surface-inverse);
-  border: var(--stroke-1) solid var(--border-inverse);
-  border-radius: var(--radius-sm);
 }
 .cf-nav__link {
   display: block;
@@ -1284,6 +1348,18 @@ ul.cf-nav__list {
    own plate with nothing under them but the page: .cf-logo at every width, and
    .cf-nav__toggle below 48.75rem.
 
+   THE TWO ARE INSIDE THE PLATE NOW, and this whole note is the reason the rule
+   does not change with them. .cf-nav__bar is one plate carrying all four
+   controls, so every ring in the bar falls on black at 18.51:1 — measured at
+   1440, the lockup's ring reaches 358.7..521.5 x 28..60 inside a plate at
+   353.7..1086.3 x 16..67.9, and at 390 the toggle's reaches 16..68 inside a
+   plate at 11..73. The figures below are what the two controls measured when
+   they stood on the artwork, and they are kept because THE COMPOSITION IS THE
+   ONLY THING THAT CHANGED: the plate can be re-cut, the bar can be made glass
+   (see the section header), and a control that leaves the plate takes its
+   1.06:1 back the moment it does. The guarantee lives in the indicator, not in
+   the layout that currently makes it unnecessary.
+
    The ring is 2 px at outline-offset 2 px, so BOTH of its edges land 2-4 px
    outside the border box — on the hero, which is a video nobody controls and
    whose dominant hue is this brand's lime. Measured against the poster, worst
@@ -1307,8 +1383,9 @@ ul.cf-nav__list {
    ON THE WHOLE BAR AND NOT ON THE TWO. The links do not need it — their plate
    already gives them an edge — but black on black paints nothing, costs
    nothing, and means the guarantee does not depend on which of the bar's
-   controls happens to sit inside the list plate today. One rule, the same one
-   that made the colour lime in the first place.
+   controls happens to sit inside a plate today. One rule, the same one that
+   made the colour lime in the first place — and the composition change above
+   is exactly the event it was written to survive.
 
    Dropped in forced-colors mode along with every other box-shadow, where the
    outline survives and the system takes over — same as .cf-btn--glass.
@@ -1321,9 +1398,9 @@ ul.cf-nav__list {
 
 /* --------------------------------------------------------------------------
    THE LANGUAGE SWITCH
-   One control, hard right, past the link bar and past the toggle: the last
-   thing in the bar because it is the one thing in it that does not move you
-   through the site but between two copies of it.
+   One control, last in the plate, past the six routes and past the toggle:
+   the last thing in the bar because it is the one thing in it that does not
+   move you through the site but between two copies of it.
 
    IT NAMES WHERE IT GOES, NOT WHERE YOU ARE, and that is the one place this
    control departs from the bar's own doctrine. Five links and a current-page
@@ -1340,26 +1417,29 @@ ul.cf-nav__list {
    same reason patterns/karriere.html marks "Data Engineer" and not the whole
    link around it.
 
-   THE PLATE IS THE LINK BAR'S, MEASURED FROM THE INSIDE. --space-4 and
-   --space-6 are not new numbers: they are ul.cf-nav__list's --space-2 of plate
-   padding plus .cf-nav__link's --space-2 / --space-4 of label padding, added
-   up, because this control is one link that brought its own plate. Same
-   border, same corner, same ink, so the bar reads as three plates of one
-   family rather than two plus a visitor.
+   IT TAKES THE ROUTES' METRIC NOW, AND IT USED TO TAKE THE LINK PLATE'S.
+   --space-4 / --space-6 were not new numbers either: they were the list
+   plate's --space-2 of padding plus .cf-nav__link's --space-2 / --space-4 of
+   label padding, added up, because the switch was one link that had brought
+   its own plate and the two plates had to stand level. There is one plate
+   now and the switch is inside it, beside the six routes, so the arithmetic
+   that made it 49.94 px tall next to a 33.94 px label is the arithmetic that
+   would now make it the tallest thing in the bar for no reason anybody can
+   see. Same padding as .cf-nav__link, and the row is one row.
 
-   The lit state is the contour and not the fill — .cf-nav__toggle's note above
+   It keeps its contour, and that is the whole of what still separates it
+   from the six. A route is a label on the plate; this is a control on it.
+
+   The lit state is that contour and not a fill — .cf-nav__toggle's note above
    settles why, and for the same reason: a plate standing on the page with no
    unlit sibling beside it cannot be distinguished by a 1.3:1 wash over its own
    black. --grey-000 on the border is this component's "on", already carried by
    .cf-nav__link:hover, by the current-page marker and by the open toggle.
    -------------------------------------------------------------------------- */
-.cf-nav > .cf-logo { margin-right: auto; }
-
 .cf-nav__lang {
   display: inline-flex;
   align-items: center;
-  padding: var(--space-4) var(--space-6);
-  background: var(--surface-inverse);
+  padding: var(--space-2) var(--space-4);
   border: var(--stroke-1) solid var(--border-inverse);
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
@@ -1395,8 +1475,12 @@ ul.cf-nav__list {
      The gate is an attribute on <html> rather than on the bar because it has to
      be true before the bar exists — see the file's own header for why that is
      the load-bearing part. */
-  html:not([data-cf-nav]) .cf-nav {
-    position: relative;
+  /* THE PLATE IS WHERE THE ROWS GO, and the band is where they used to go: the
+     bar wrapped and the list became its second line. One plate now, so the
+     plate wraps and the six rows stack inside it — which is also the only
+     version that keeps them on a black ground with no plate of their own. */
+  html:not([data-cf-nav]) .cf-nav { position: relative; }
+  html:not([data-cf-nav]) .cf-nav__bar {
     flex-wrap: wrap;
     row-gap: var(--space-4);
   }
@@ -1405,6 +1489,15 @@ ul.cf-nav__list {
     flex-direction: column;
     align-items: stretch;
   }
+
+  /* THE PLATE SPANS THE BAND DOWN HERE, and the band gives up its gutter to
+     pay for it. At 320 the six things in the folded bar measure 279.9 px
+     against 280 px of content box — the plate's own 8 px inset and 1 px
+     border are 18 px the band does not have, so the two gutters come down to
+     --space-2 and the plate stands in their place. Measured at 320: the
+     lockup's first pixel lands at 20.05 px, which is the --gutter it stood on
+     before, to a twentieth of a pixel. */
+  .cf-nav { padding-inline: var(--space-2); }
 
   /* THE ROWS THE TOGGLE DISCLOSES MEET THE SAME FLOOR THE TOGGLE DOES.
 
@@ -1463,7 +1556,32 @@ ul.cf-nav__list {
   [data-cf-nav] .cf-nav__list {
     display: none;
     position: absolute;
-    inset: 100% var(--gutter) auto var(--gutter);
+    /* FLUSH WITH THE PLATE IT UNFOLDS FROM. The inset was --gutter on both
+       sides when the panel hung off the band, because the band was
+       full-bleed and the gutter was the only thing putting the panel under
+       the plates rather than under the screen. It hangs off the plate now,
+       and the plate is already inset — repeating the gutter here would inset
+       it twice and stand a narrower panel under a wider bar.
+
+       It carries the plate the bar's own fill can no longer give it: out of
+       flow, so it is over the hero rather than on the black it dropped from.
+       Same fill, same border, same 2 px corner, same 8 px inset — the block
+       that used to be ul.cf-nav__list's, moved here whole. At (0,2,0) it
+       outweighs base.css's `ul[role="list"] { padding: 0 }` on its own.
+
+       The three --stroke-1 terms are the plate's border, which the offsets
+       would otherwise sit inside: a percentage and a zero inset both resolve
+       against the containing block's PADDING box, so `100% 0 auto 0` would
+       stand a panel 2 px narrow, 1 px high, aligned to nothing a reader can
+       see. These put the panel's border box on the plate's border box. */
+    inset: calc(100% + var(--stroke-1))
+           calc(var(--stroke-1) * -1)
+           auto
+           calc(var(--stroke-1) * -1);
+    background: var(--surface-inverse);
+    border: var(--stroke-1) solid var(--border-inverse);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2);
     flex-direction: column;
     align-items: stretch;
     /* Closed is the panel wiped away upward, back under the bar.
@@ -1520,11 +1638,13 @@ ul.cf-nav__list {
     /* 44 px. The label's own metric — 11 px mono inside --space-3 padding —
        lands the plate at 42, and this is the primary control on a phone: the
        only way to reach any other page. 2.75rem is the 44 px touch convention
-       (WCAG 2.5.5, Apple's HIG), and it is also the exact height the bar has
-       to give: --space-5 above and below inside a --nav-height of 5.25rem is
-       84 − 40 = 44, so the bar does not grow and nothing anchored to
-       --nav-height moves. Measured either side of the change: bar 84 px both.
-       Above 48.75rem the toggle is not rendered and this rule reaches
+       (WCAG 2.5.5, Apple's HIG). It was also, exactly, the height the band
+       had to give when the controls stood in it: --space-5 above and below
+       inside a --nav-height of 5.25rem is 84 − 40 = 44. They are in the plate
+       now and the band's padding is --space-2, so the ceiling is 84 − 16 − 18
+       = 50 and the touch floor is what sets this instead; nothing anchored to
+       --nav-height moves either way. Measured either side of the change: band
+       84 px both. Above 48.75rem the toggle is not rendered and this reaches
        nothing. foundations/mobile.html carried this as its open question. */
     min-height: 2.75rem;
     background: var(--surface-inverse);
@@ -1560,24 +1680,24 @@ ul.cf-nav__list {
     border-color: var(--grey-000);
   }
 
-  /* THE SWITCH TAKES THE TOGGLE'S METRIC HERE, AND THE REASON IS THE BAR'S
-     HEIGHT AND NOT THE SWITCH'S.
+  /* THE SWITCH TAKES THE TOGGLE'S METRIC HERE, AND THE REASON IS A FINGERTIP.
 
-     Above this width the switch is one .cf-nav__link that brought its own
-     plate, so it measures what the link bar measures — 50 px — and the two
-     stand level. Below it the link bar is out of flow and the tallest thing
-     left in the bar is this plate: 50 px inside --space-5 above and below is
-     90, against a --nav-height of 84. Measured at 375 before this rule: bar
-     89.94, toggle 44, switch 49.94. Six pixels of bar that --nav-height does
-     not know about, and every offset anchored to that token — the sticky top,
-     the open panel's max-height calc, the scroll-margin on every heading —
-     is wrong by them.
+     Above this width the switch is one more label in the plate and measures
+     what a route measures — 33.94 px, the same row. Below it the six routes
+     are out of flow, and the switch is one of the two controls a phone reader
+     has: it owes a fingertip the same 2.75 rem the toggle's note above
+     derives from WCAG 2.5.5. Same padding, same floor, same 44.
 
-     So the two controls that stand alone down here are one control's metric:
-     the toggle's note above derives 2.75rem from the touch floor AND from
-     84 − 40 = 44, and the same arithmetic is what this needs. Same padding,
-     same floor, same 44. The bar is 84 again and the switch clears the touch
-     floor it owes a fingertip either way. */
+     THE BAND NO LONGER PAYS FOR IT, and that is the part of this note that
+     changed with the plate. This rule was written when the switch stood
+     directly in the band: 49.94 px inside --space-5 above and below is 89.94
+     against a --nav-height of 84, and every offset anchored to that token —
+     the sticky top, the open panel's max-height calc, the scroll-margin on
+     every heading — was wrong by the six pixels. The band's own padding is
+     --space-2 now and min-height is what sets it, so a 44 px control inside
+     the plate's 8 px inset and the band's own is 78 against 84 and the band
+     does not move. Measured at 375 after: band 84, plate 62, toggle 44,
+     switch 44. */
   .cf-nav__lang {
     padding: var(--space-3) var(--space-4);
     min-height: 2.75rem;

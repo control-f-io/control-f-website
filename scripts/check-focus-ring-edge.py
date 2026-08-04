@@ -94,10 +94,12 @@ REGISTER = [
      "components.css derives this one at length: the plate's contrast floor "
      "does not extend past the border box, and the ring starts 2 px past it."),
     (".cf-nav :focus-visible", "root",
-     "the hero video, for the two controls that stand on their own plate",
-     ".cf-logo at every width and .cf-nav__toggle below 48.75rem sit on the "
-     "bar with nothing behind them but the page; the five links fall inside "
-     ".cf-nav__list's black plate and are carried by it."),
+     "the hero video, for any control the bar's plate does not carry",
+     "every control is inside .cf-nav__bar's black plate today and every ring "
+     "in the bar falls on black at 18.51:1; the rule stays two-tone because "
+     ".cf-logo and .cf-nav__toggle measured 1.06-1.40:1 against the artwork "
+     "the day they stood on it, and a plate that is re-cut or made glass "
+     "hands that back."),
     (".cf-hero__still-toggle:focus-visible ~ .cf-hero__still", "inverse",
      "the hero video, on the WCAG 2.2.2 pause control",
      "the label carries data-theme=\"inverse\", so --focus-ring resolves to "
