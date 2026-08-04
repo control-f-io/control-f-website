@@ -657,7 +657,7 @@
       <thead><tr><th>Where</th><th>Value</th><th>On a phone</th></tr></thead>
       <tbody>
         <tr><td>Hero</td><td><code>min-height: min(92vh, 56rem)</code></td><td>747 px on a 812 px screen. 92 rather than 100 on purpose: the page has to show that it continues</td></tr>
-        <tr><td>Consent, short screens</td><td><code>calc(100vh - var(--nav-height) - 3rem - var(--space-6))</code></td><td>only under a 560 px viewport height, i.e. landscape, and a backstop rather than the working state: 219 px against a 191 px banner at 375 tall. It was <code>70vh</code>, which never engaged at all across that band</td></tr>
+        <tr><td>Consent, short screens</td><td><code>calc(100vh - var(--nav-height) - 3rem - var(--space-6))</code>, now with a <code>dvh</code> line on top</td><td>only under a 560 px viewport height, i.e. landscape, and a backstop rather than the working state: 219 px against a 191 px banner at 375 tall. It was <code>70vh</code>, which never engaged at all across that band</td></tr>
         <tr><td>Values track</td><td><code>100vh</code> per stage</td><td><strong>never runs below 820&nbsp;px wide or 720&nbsp;px tall</strong>, so the stage does not exist on a phone — the height half of that is new; see below</td></tr>
       </tbody>
     </table>
@@ -668,12 +668,14 @@
       though the URL bar were collapsed and does not change while the bar slides away, so
       nothing reflows mid-scroll. The cost is that the hero is a little taller than the
       visible screen on first paint, which is the direction of error this layout wants —
-      the hero is meant to run past the fold. The two pinned stages (the values track
-      here, the <a href="motion.html#pinned">Expertise and landing-page builds</a>) also
-      carry <code>dvh</code> on top, for the opposite reason: a stage that is <em>clipped</em>
-      rather than scrolled has no reflow to avoid, so the overshoot has nothing paying for
-      it, and Safari's own toolbar leaves a crop-shaped gap at the true 100vh if nothing
-      tracks it down.
+      the hero is meant to run past the fold. Everything <em>clipped</em> rather than
+      scrolled carries <code>dvh</code> on top for the opposite reason: a clipped box has
+      no reflow to avoid, so an oversized cap has nothing paying for it, and Safari's own
+      toolbar leaves a crop-shaped gap — or, anchored to an edge instead of cropped, lets
+      the box grow past where the cap meant to stop it — if nothing tracks the toolbar
+      down. That is the two pinned stages (the values track here, the
+      <a href="motion.html#pinned">Expertise and landing-page builds</a>) and, since the
+      note below, the consent backstop too.
     </p>
     <div class="docs-note">
       <strong>The width gate was never the only question, and the values track asked it
@@ -694,6 +696,32 @@
       <code>and (min-height: 45rem)</code>, already in the register, so nothing new to add
       there — only a third name beside it. → tokens.css, <code>components.css</code>
       <code>.cf-values__track</code>
+    </div>
+    <div class="docs-note">
+      <strong>The consent backstop asked only half of the question the nav toggle's
+      identical shape already answers.</strong> <code>.cf-nav__list[data-open="true"]</code>
+      is the same mechanism as the short-screen consent block a few pages away in the same
+      file — a <code>max-height</code> cap with <code>overflow-y: auto</code> behind it —
+      and it has carried <code>vh</code> then <code>dvh</code> since the fix that gave the
+      open menu its own scrollport. The consent block copied the cap's arithmetic but not
+      the second line: it capped on <code>100vh</code> alone.
+      <br><br>
+      <code>.cf-consent</code> is <code>position: fixed; inset: auto 0 0 0</code> —
+      bottom-anchored, not in the page's own scroll — so it is the <em>clipped</em> case
+      this section's paragraph now names, not the hero's. <code>vh</code> is the
+      chrome-collapsed viewport, larger than what is on screen while iOS Safari's toolbar
+      is still showing, which it is on the one load this backstop is for: first paint,
+      nothing scrolled yet. A cap sized off the larger figure lets the banner grow taller
+      than the true visible screen, and because the box is anchored to the bottom rather
+      than clipped by an ancestor, the overshoot pushes its <em>top</em> edge up — into the
+      72&nbsp;px of nav-and-button clearance the whole backstop exists to hold open. That is
+      the exact failure this block was written to fix, reopened by the one unit already
+      being reasoned about two sections up.
+      <br><br>
+      Fixed the same way the nav list already had it: <code>max-height: calc(100dvh - ...)</code>
+      declared after the <code>vh</code> line, so a browser with no <code>dvh</code> support
+      keeps the line above unchanged. → <code>components.css</code> <code>.cf-consent</code>,
+      the <code>max-height: 35rem</code> block
     </div>
   </section>
 

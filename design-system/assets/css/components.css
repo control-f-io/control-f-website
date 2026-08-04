@@ -5771,12 +5771,30 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    The terms below are the two things that must survive it — the nav band and
    one control, .cf-btn's own 3rem min-height, plus a rung of air — so the
    backstop leaves 72 px there instead of 12. It is still a backstop and still
-   rarely reached: at 375 tall it sits at 219 against a banner of 191. */
+   rarely reached: at 375 tall it sits at 219 against a banner of 191.
+
+   VH FIRST AND DVH ON TOP, THE SAME PAIR .cf-nav__list[data-open="true"]
+   ALREADY CARRIES FOR THE IDENTICAL SHAPE (max-height cap, overflow-y: auto).
+   This box is bottom-anchored (`.cf-consent`'s own `inset: auto 0 0 0`) and
+   clipped rather than scrolled, which the hero above is not — the hero's own
+   note argues vh alone is right for it because the hero is meant to run past
+   the fold and an oversized `vh` costs it nothing. A clipped, bottom-anchored
+   box is the opposite case, the one the nav list and the two pinned stages
+   already carry dvh for: iOS Safari's `vh` is the chrome-collapsed viewport,
+   larger than what is on screen while the toolbar is still showing — which it
+   is on the one load this banner ever matters for, before anything has been
+   scrolled. A cap sized off the larger figure lets the banner grow taller
+   than the true visible screen and, anchored to the bottom, pushes its top
+   edge up into the 72 px this whole block exists to protect — the failure
+   this backstop was written to prevent, reopened by the one unit that tracks
+   the chrome it was already reasoning about. dvh costs nothing where it is
+   missing: a browser with no dvh support keeps the vh line above it. */
 @media (max-height: 35rem) {
   .cf-consent__inner { padding-block: var(--space-4); }
   .cf-consent__actions .cf-btn--ghost { flex: 0 0 auto; justify-content: center; }
   .cf-consent {
     max-height: calc(100vh - var(--nav-height) - 3rem - var(--space-6));
+    max-height: calc(100dvh - var(--nav-height) - 3rem - var(--space-6));
     overflow-y: auto;
   }
 }
