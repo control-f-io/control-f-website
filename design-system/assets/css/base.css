@@ -1792,6 +1792,38 @@ hr {
 .rule--4 { height: var(--stroke-4); }
 .rule--8 { height: var(--stroke-8); }
 
+/* Every .rule is `border: 0` and painted entirely by background — a solid
+   colour for the plain rule, a repeating-linear-gradient for the three
+   dashed ones. Forced-colors mode drops both: background-color on a generic
+   box is not one of the properties it repaints, and background-image is
+   discarded outright (same reason .cf-nav-rim and .material-glass-edge lose
+   theirs, see below and components.css). Nothing else on the box paints, so
+   the whole line disappears — confirmed on foundations/geometry.html#lines,
+   where all four demonstration swatches went blank.
+
+   Redrawn as a border, the one paint forced-colors keeps, on top since that
+   is the edge `height` already reserves. `border-top-width` is set to the
+   same stroke token that sizes the box, so the stroke-weight ladder
+   (.rule--2/4/8) still reads as a ladder instead of collapsing to one
+   thickness. The exact dash ratios are lost — border-style can't express
+   them, which is the reason this file gives above for using gradients in
+   the first place — but forced-colors is already allowed to drop that
+   register (.cf-annot-set does the same). Solid vs. some-dash vs.
+   finer-dash is preserved with dashed/dotted so the three still read as
+   distinct from each other and from the plain rule. */
+@media (forced-colors: active) {
+  .rule {
+    background: none;
+    border-top: var(--stroke-1) solid CanvasText;
+  }
+  .rule--2 { border-top-width: var(--stroke-2); }
+  .rule--4 { border-top-width: var(--stroke-4); }
+  .rule--8 { border-top-width: var(--stroke-8); }
+  .rule--dashed-2-1 { border-top-style: dashed; }
+  .rule--dashed-1-2,
+  .rule--dashed-1-4 { border-top-style: dotted; }
+}
+
 /* --------------------------------------------------------------------------
    ISOMETRY
    .iso puts a child into the 2:1 projection. .iso-scene gives a group of

@@ -373,6 +373,22 @@
       isometric plot and the Expertise stage, which are their own lanes' calls.
     </div>
     <div class="docs-note">
+      <strong>One of the two lanes has now answered its call.</strong> The isometric
+      plot's <code>--plot-u</code> was <code>clamp(1rem, 3.4vw, 2rem)</code> — a floor in
+      the reader's own unit, on a figure whose fit against the viewport was argued
+      entirely in px and vw. At a 20 px browser default it grew past the column it was
+      measured to fit; at 24 px, further still. Fixed by putting the floor and cap in
+      px, <code>clamp(16px, 3.4vw, 32px)</code>, the same convention every other layout
+      token on this page already uses — the figure keeps its default rendering exactly
+      (16 and 32 are what 1rem and 2rem were at the only root size this page had
+      measured) and stops answering a setting it was never meant to. Re-measured on
+      blog-artikel, both engines, 320/360/390/414 at root 16/20/24: zero overflow. The
+      Expertise stage is still open — its cause is different, a grid track that does not
+      cap the isometric drawing's intrinsic width, compounded by a card title that does
+      not reflow at the largest sizes — and is written up where the fix that changed
+      this page stopped short of it, rather than patched here on a guess.
+    </div>
+    <div class="docs-note">
       <strong>The Expertise stage has answered its call too, and it needed two
       fixes.</strong> <code>.ex-step</code> is a single-column grid below the pinned
       layout's own query, with no <code>grid-template-columns</code> written on it — an
@@ -399,7 +415,8 @@
       <code>base.css</code> now uses the function form with an explicit stretch basis,
       which is what the class's own comment described all along and what the bare
       keyword never did. Re-measured on <code>expertise</code>, both engines,
-      320/360/390/414 at root 16/20/24: zero overflow.
+      320/360/390/414 at root 16/20/24: zero overflow. Both lanes the sweep opened are
+      now closed.
     </div>
     <div class="docs-note">
       <strong>A fourth time: fourteen became fifteen — and the count now has a
@@ -547,37 +564,56 @@
       that a 24 px circle centred on it touches no other target's circle. Every element
       under 24 px is an inline text link — footer meta, legal lines, the address — or
       the footer's wordmark, 139 × 20 on every page since the footers were unified, and
-      every one of them clears the circle test, checked pairwise against every other
-      control on the page, at 320 and 768 as well as 375, because a wrap point moves
-      targets past each other and a single width cannot see that. A wrapped inline link
-      is measured as its line boxes rather than its bounding box, which unions the lines
-      and manufactures overlaps that exist in no reader's hand. Forty-eight page-widths,
-      zero failures. The closest pair anywhere is 24.1 px, on <code>impressum</code> at
-      375 — the note below is that pair's history, and it is worth reading before
+      every one of them clears the circle test, or is exempted as a target inside a
+      sentence, checked pairwise against every other control on the page, at 320 and 768
+      as well as 375, because a wrap point moves targets past each other and a single
+      width cannot see that. A wrapped inline link is measured as its line boxes rather
+      than its bounding box, which unions the lines and manufactures overlaps that exist
+      in no reader's hand. Forty-eight page-widths, zero failures. The closest pair
+      anywhere is on <code>impressum</code> at 375 and 390, and it is the one pair in the
+      whole sweep whose circle-test verdict depends on which rendering engine measures
+      it — the note below is that pair's history, and it is worth reading before
       trusting the margin.
     </p>
     <div class="docs-note">
       <strong>The <code>impressum</code> pair: a recorded failure that unrecorded
-      itself.</strong> An earlier run of this test found two links in a single sentence —
-      <em>Datenschutzerklärung</em> and <em>Kontaktformular</em> — wrapped onto
-      consecutive lines at 375, both starting at the left margin, their centres
-      <strong>23.87 px</strong> apart against a requirement of 24. It was recorded rather
-      than fixed, because the arithmetic said it could not be fixed here:
-      <code>.t-body-sm</code> is 12 px on a 17.4 px line box, two links on consecutive
-      lines are 17.4 px apart vertically whatever else is done to them, and the criterion
-      exempts a target "in a sentence or whose size is otherwise constrained by the
-      line-height of non-target text" — which is exactly what these two are. Prose is not
-      a toolbar.
+      itself, then came back as weather on one engine.</strong> An earlier run of this
+      test found two links in a single sentence — <em>Datenschutzerklärung</em> and
+      <em>Kontaktformular</em> — wrapped onto consecutive lines at 375, both starting at
+      the left margin, their centres <strong>23.87 px</strong> apart against a
+      requirement of 24. It was recorded rather than fixed, because the arithmetic said
+      it could not be fixed here: <code>.t-body-sm</code> is 12 px on a 17.4 px line box,
+      two links on consecutive lines are 17.4 px apart vertically whatever else is done
+      to them, and the criterion exempts a target "in a sentence or whose size is
+      otherwise constrained by the line-height of non-target text" — which is exactly
+      what these two are. Prose is not a toolbar.
       <br><br>
-      <strong>Re-measured with the full fifteen-page run, the same pair still sits at
-      24.1 px and clears outright.</strong> Nobody fixed it: the copy around it moved and
-      the sentence wraps differently than when the note was written, which is exactly the
-      behaviour the note predicted — a wrap point moves targets past each other. The
-      margin is a tenth of a pixel and it is held by where a German sentence happens to
-      break in a fallback face, so the honest reading is unchanged: this pair passes by
-      the inline-sentence exemption, and the 24.1 is weather. If a future re-measurement
-      puts it under 24 again, that is not a regression to fix; it is this note coming
-      back around.
+      <strong>Re-measured with the full fifteen-page run on Chromium, the same pair sat
+      at 24.1 px and cleared outright.</strong> Nobody fixed it: the copy around it moved
+      and the sentence wraps differently than when the note was written, which is exactly
+      the behaviour the note predicted — a wrap point moves targets past each other. The
+      margin was a tenth of a pixel and it was held by where a German sentence happens to
+      break in a fallback face — which is also why it does not hold across engines.
+      <br><br>
+      <strong>On WebKit the same markup, same width, same fallback face measures
+      23.83 px — under the line again.</strong> Chromium and WebKit shape that fallback
+      face's glyphs at very slightly different advance widths, so
+      <em>Datenschutzerklärung</em>'s line box is 119.73–119.78 px wide depending on
+      engine and the second line's flush-left start moves with it. The vertical gap is
+      engine-independent — 17.39 px, the line-height's own arithmetic, unmoved — so the
+      whole swing rides on that one horizontal component: 16.68 px on Chromium,
+      16.29 px on WebKit, both at 375 and at 390, the only two of the four checked widths
+      where both lines start flush left. Checked on both engines at 320, 360, 375, 390
+      and 414 to find the exact widths it recurs at, rather than trusting one sample.
+      <br><br>
+      <strong>The verdict does not move, because it never depended on the number.</strong>
+      This pair passes on both engines by the inline-sentence exemption regardless of
+      which side of 24 the circle test lands — 24.1 or 23.83 is weather, not a compliance
+      question, exactly as the note before this one argued. What moved is only which
+      engine you'd have to be measuring on to see the number the old note asserted as
+      universal. If a future re-measurement puts both engines on the same side of 24
+      again, that is not a fix landing; it is a fallback face changing out from under
+      both of them at once.
     </div>
     <p>
       Every plate-shaped control clears <strong>48 px</strong>, because
@@ -651,20 +687,72 @@
       <thead><tr><th>Where</th><th>Value</th><th>On a phone</th></tr></thead>
       <tbody>
         <tr><td>Hero</td><td><code>min-height: min(92vh, 56rem)</code></td><td>747 px on a 812 px screen. 92 rather than 100 on purpose: the page has to show that it continues</td></tr>
-        <tr><td>Consent, short screens</td><td><code>calc(100vh - var(--nav-height) - 3rem - var(--space-6))</code></td><td>only under a 560 px viewport height, i.e. landscape, and a backstop rather than the working state: 219 px against a 191 px banner at 375 tall. It was <code>70vh</code>, which never engaged at all across that band</td></tr>
-        <tr><td>Values track</td><td><code>100vh</code> per stage</td><td><strong>never runs below 820 px</strong>, so the 100vh stage does not exist on a phone</td></tr>
+        <tr><td>Consent, short screens</td><td><code>calc(100vh - var(--nav-height) - 3rem - var(--space-6))</code>, now with a <code>dvh</code> line on top</td><td>only under a 560 px viewport height, i.e. landscape, and a backstop rather than the working state: 219 px against a 191 px banner at 375 tall. It was <code>70vh</code>, which never engaged at all across that band</td></tr>
+        <tr><td>Values track</td><td><code>100vh</code> per stage</td><td><strong>never runs below 820&nbsp;px wide or 720&nbsp;px tall</strong>, so the stage does not exist on a phone — the height half of that is new; see below</td></tr>
       </tbody>
     </table>
     </div>
     <p>
-      All three are <code>vh</code>, not <code>dvh</code> — deliberately, and it is worth
-      knowing which behaviour that buys. <code>vh</code> is the <em>large</em> viewport:
-      it resolves as though the URL bar were collapsed and does not change while the bar
-      slides away, so nothing reflows mid-scroll. The cost is that the hero is a little
-      taller than the visible screen on first paint, which is the direction of error this
-      layout wants — the hero is meant to run past the fold. <code>dvh</code> would fix
-      the overshoot and pay for it with a relayout on every scroll direction change.
+      All three start from <code>vh</code> — deliberately, and it is worth knowing which
+      behaviour that buys. <code>vh</code> is the <em>large</em> viewport: it resolves as
+      though the URL bar were collapsed and does not change while the bar slides away, so
+      nothing reflows mid-scroll. The cost is that the hero is a little taller than the
+      visible screen on first paint, which is the direction of error this layout wants —
+      the hero is meant to run past the fold. Everything <em>clipped</em> rather than
+      scrolled carries <code>dvh</code> on top for the opposite reason: a clipped box has
+      no reflow to avoid, so an oversized cap has nothing paying for it, and Safari's own
+      toolbar leaves a crop-shaped gap — or, anchored to an edge instead of cropped, lets
+      the box grow past where the cap meant to stop it — if nothing tracks the toolbar
+      down. That is the two pinned stages (the values track here, the
+      <a href="motion.html#pinned">Expertise and landing-page builds</a>) and, since the
+      note below, the consent backstop too.
     </p>
+    <div class="docs-note">
+      <strong>The width gate was never the only question, and the values track asked it
+      alone.</strong> This mechanism has two siblings — <code>.cf-pin</code>, the Expertise
+      and landing-page builds — and both pair their <code>min-width: 64rem</code> with
+      <code>min-height: 45rem</code>, because a stage that must also clear the nav band
+      cannot hold a card worth reading under 45rem of viewport. The values track's own gate
+      was <code>min-width: 51.25rem</code> and nothing else. A width of 820&nbsp;px says
+      nothing about a phone turned sideways: iPhone 14 Pro Max landscape (932&nbsp;×&nbsp;430),
+      iPhone 14 Pro landscape (852&nbsp;×&nbsp;393), Pixel 7 landscape (915&nbsp;×&nbsp;412)
+      and Galaxy S23 Ultra landscape (915&nbsp;×&nbsp;412) all clear 820&nbsp;px wide while
+      standing at under half of 45rem tall — ordinary phones, held the ordinary way people
+      hold a phone to watch something wide. Measured on all four, both Chromium and WebKit:
+      <code>view-timeline-name</code> computed to <code>--cf-values</code> and
+      <code>.cf-values__stage</code> computed <code>position: sticky</code> — the
+      seven-viewport scroll hijack the "Values" row above swears never happens on a phone,
+      running on one. Fixed with the same term the other two consumers already carried:
+      <code>and (min-height: 45rem)</code>, already in the register, so nothing new to add
+      there — only a third name beside it. → tokens.css, <code>components.css</code>
+      <code>.cf-values__track</code>
+    </div>
+    <div class="docs-note">
+      <strong>The consent backstop asked only half of the question the nav toggle's
+      identical shape already answers.</strong> <code>.cf-nav__list[data-open="true"]</code>
+      is the same mechanism as the short-screen consent block a few pages away in the same
+      file — a <code>max-height</code> cap with <code>overflow-y: auto</code> behind it —
+      and it has carried <code>vh</code> then <code>dvh</code> since the fix that gave the
+      open menu its own scrollport. The consent block copied the cap's arithmetic but not
+      the second line: it capped on <code>100vh</code> alone.
+      <br><br>
+      <code>.cf-consent</code> is <code>position: fixed; inset: auto 0 0 0</code> —
+      bottom-anchored, not in the page's own scroll — so it is the <em>clipped</em> case
+      this section's paragraph now names, not the hero's. <code>vh</code> is the
+      chrome-collapsed viewport, larger than what is on screen while iOS Safari's toolbar
+      is still showing, which it is on the one load this backstop is for: first paint,
+      nothing scrolled yet. A cap sized off the larger figure lets the banner grow taller
+      than the true visible screen, and because the box is anchored to the bottom rather
+      than clipped by an ancestor, the overshoot pushes its <em>top</em> edge up — into the
+      72&nbsp;px of nav-and-button clearance the whole backstop exists to hold open. That is
+      the exact failure this block was written to fix, reopened by the one unit already
+      being reasoned about two sections up.
+      <br><br>
+      Fixed the same way the nav list already had it: <code>max-height: calc(100dvh - ...)</code>
+      declared after the <code>vh</code> line, so a browser with no <code>dvh</code> support
+      keeps the line above unchanged. → <code>components.css</code> <code>.cf-consent</code>,
+      the <code>max-height: 35rem</code> block
+    </div>
   </section>
 
   <section class="docs-section" id="not">
@@ -685,7 +773,7 @@
         <ul>
           <li>No separate mobile stylesheet, no mobile-only components, no device sniffing. One page, narrowed.</li>
           <li>Don't hide content on small screens. Decoration may go; copy, links and controls may not.</li>
-          <li>Don't put a scroll hijack on a phone — the values track is gated at 820 for exactly this reason.</li>
+          <li>Don't put a scroll hijack on a phone — the values track is gated at 820&nbsp;px wide <em>and</em> 720&nbsp;px tall for exactly this reason; a width gate alone still let one through sideways.</li>
           <li>Don't add a threshold without writing it into the register in <code>tokens.css</code> in the same commit.</li>
           <li>Never <code>user-scalable=no</code>, and never a <code>maximum-scale</code> under 5.</li>
         </ul>

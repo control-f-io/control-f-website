@@ -461,6 +461,24 @@
        only the paint stops at the horizon. */
     clip-path: var(--sp-ground-clip);
   }
+  /* A container-type:size BOX TAKES THE WHOLE SHEET DOWN WITH IT, not only
+     its own field. Chromium's real print pipeline — page.pdf(), Ctrl+P, not
+     emulateMedia('print') alone, which never leaves the screen compositor and
+     so never shows this — drops the ENTIRE document to a blank raster once
+     this element is anywhere in the tree. Measured on the shipped page: nine
+     pages, zero extractable characters, from the headline down through the
+     footer. Hiding only .sp-annots-fig restored all nine pages to real text —
+     2 898 characters of it, every act's copy, the FAQ, the footer. Removing
+     just `container-type: size` (keeping the clip-path and the overflow both
+     in place) fixed it exactly as completely, which is what narrows the fault
+     to that one declaration and clears the clip-path and the 21 children it
+     sizes of blame. The readings are cycling mock data with nothing to say on
+     a still sheet regardless — the same reasoning .cf-ground::before is
+     withdrawn under (base.css) — so the field goes with it rather than
+     shipping a page that prints nothing at all. */
+  @media print {
+    .sp-annots-fig { display: none; }
+  }
   .sp-annots {
     --sp-u: max(1cqw / 16, 1cqh / 9);
     --annot-u: calc(22 * var(--sp-u));
@@ -944,6 +962,39 @@
        exactly as it did. → scripts/check-idle-motion.py */
     [data-idle] :is(.sp-stream > b, .sp-stream > b + b) { animation-play-state: paused; }
   }
+
+  /* THE OBSERVER NEVER SEES THIS FIELD LEAVE, for most of the track's own
+     scroll. `data-cf-idle` is carried by .sp-track — 5760 px, NOT sticky — so
+     the IntersectionObserver in cf-idle.js tracks THAT box against the
+     viewport, and .sp-track intersects the viewport for the whole of its own
+     640vh contain range: every scroll position a reader can be at while still
+     inside act 1 or act 2. But .sp-annots, the box these 126 readouts live in,
+     fades to opacity 0 by about contain 40% — its own crossfade into act 2's
+     confluence — and stays there for the rest of the track. `[data-idle]`
+     never arrives, because the box it is asked about (.sp-track) never
+     geometrically leaves; the readouts just keep ticking, unseen, for
+     whatever is left of the reader's time on this stage.
+
+     Measured at 1440 x 900: ten small scroll steps at contain 70%, .sp-annots
+     at opacity 0, data-idle on none of the 126:
+
+       as shipped                     278.70 ms of style recalc
+       the same 126 force-paused       72.19 ms                  (-74 %)
+
+     A finer-grained mark does not reach this. Every descendant of .sp-stage
+     shares .sp-track's own problem: fixed at the same screen position for the
+     whole 640vh scroll, because the STAGE is what is sticky, not any one
+     figure in it. IntersectionObserver reports box position against the
+     viewport; it has no way to know one box now sits behind another that has
+     gone opaque in front of it. Closing this needs a second gate driven by
+     scroll position rather than geometry — the way act-rail.js and
+     cf-stream.js already read contain% off this same timeline — not a
+     smaller margin on the one this file already runs. Left open: it is a
+     second mechanism beside the one this file documents at length, and that
+     is a call for whoever owns the idle contract, not a drive-by CSS fix.
+     check-idle-motion.py's contract only checks that the stylesheet pause
+     rule and the JS file both exist, which they do; it has no way to see a
+     box that is geometrically present but visually gone. */
 
   /* ============================================================
      WHY ACTS 4 AND 5 SIT HERE AND NOT BELOW THE GATE.
@@ -1668,6 +1719,16 @@
         position: sticky;
         top: var(--act-bar);
         height: calc(100vh - var(--act-bar));
+        /* dvh on top of vh, the pair .cf-nav__list already pins in
+           components.css and for the same reason: Safari's dynamic toolbar
+           makes 100vh the chrome-collapsed viewport, the largest the address
+           bar ever leaves, so a stage sized off it alone can stand taller
+           than what the reader can see until the bar retracts — and this
+           stage is where the tree's nineteen drops land on --sp-head-band's
+           rule, so the gap is the rule itself going missing. dvh tracks the
+           chrome as it shows and hides; a browser with no dvh keeps the vh
+           line above. */
+        height: calc(100dvh - var(--act-bar));
         overflow: hidden;
         overflow: clip;
         display: grid;
@@ -2123,6 +2184,34 @@
           drop-shadow(0 0 calc(var(--glow-r) * var(--glow-core)) var(--glow-lime))
           drop-shadow(0 0 var(--glow-r) var(--glow-glas));
       }
+      /* SAFARI NEVER PAINTS THIS LEAF, at any scroll position, once `--sp` has
+         driven it — not the gradient stroke, not the glow. Every computed
+         value WebKit reports matches Chromium exactly (stroke url, resolved
+         gradient stops and coordinates, stroke-opacity, opacity, scale) and
+         the same markup painted correctly in an unanimated, static copy of
+         this exact SVG. Removing `animation`, pausing it, or forcing a
+         repaint on the live element does not bring the colour back — only
+         dropping vector-effect does, which points at WebKit's filter-region
+         cache for a non-scaling stroke never invalidating once the element
+         has been driven by a scroll-linked `scale` keyframe (lp-frame-draw),
+         settled or not. `.lp-flow__seg`'s hairline is unaffected because it
+         carries no filter.
+
+         Scoped with the standard `-webkit-hyphens: none` feature query —
+         true only in WebKit/Safari, so Chromium and Firefox keep the
+         viewport-independent 6 px stroke this rule documents above. Losing
+         non-scaling-stroke here means the leaf's width now follows the
+         drawing's own scale (roughly 0.5-0.9 of the authored 6 px across
+         this page's breakpoints) instead of holding it exactly — an accepted
+         trade against the alternative, which is no lime at all.
+
+         `.lp-flow .lp-flow__leaf`, not the bare class: line 585's
+         `.lp-flow :is(path, circle)` is (0,1,1) and outranks a lone
+         `.lp-flow__leaf` at (0,1,0) regardless of source order — the override
+         has to out-specify it, not just come after it. */
+      @supports (-webkit-hyphens: none) {
+        .lp-flow .lp-flow__leaf { vector-effect: none; }
+      }
       .lp-flow__leaf {
         animation: lp-frame-draw linear,
                    sp-leaf-settle linear,
@@ -2239,6 +2328,8 @@
         position: sticky;
         top: var(--act-bar);
         block-size: calc(100vh - var(--act-bar));
+        /* vh first, dvh on top — see the note on .sp-stage, above. */
+        block-size: calc(100dvh - var(--act-bar));
         overflow: clip;
         padding-block: var(--space-8);
         /* FLOORED, which check-grid-tracks.py requires of every fr track and
@@ -2435,6 +2526,8 @@
         position: sticky;
         top: var(--act-bar);
         block-size: calc(100vh - var(--act-bar));
+        /* vh first, dvh on top — see the note on .sp-stage, above. */
+        block-size: calc(100dvh - var(--act-bar));
         align-content: center;
         overflow: clip;
         padding-block: 0;
@@ -2526,6 +2619,48 @@
       }
       .sp4-lit.sp4-x { animation-name: sp4-draw-x, lp-flow-out; }
       .sp4-lit.sp4-y { animation-name: sp4-draw-y, lp-flow-out; }
+
+      /* SAFARI DROPS ONE OF THESE FOUR, and it is the same bug #339 found and
+         fixed for .lp-flow__leaf, in a second place it does not have the same
+         fix available. Measured on the "n" ramp specifically — the plate's
+         --e:3 edge, sp4-draw-y, transform-origin 100% 100% — with computed
+         styles read from the live element and pixels sampled from the
+         rendered frame, WebKit 26.5 against Chromium at identical scrollY:
+
+           computed (both engines)   opacity 1, stroke url(#sp4-ramp-n),
+                                      stroke-width 6px, visibility visible
+           pixels, that edge         Chromium: (219,252,88) lime,
+                                      (197,234,225) Glas — the ramp, present
+                                      WebKit:   (207,207,207) throughout —
+                                      the page's own grey, the ramp absent
+
+         Repeated across five scroll fractions through the plate's open
+         window: Chromium's right edge carries 35-65 colour-diverged pixels
+         at each sample, WebKit's 0-6. The left edge (--e:1, sp4-draw-x,
+         origin 0 0) is lit in both at every sample — this is not every edge
+         losing the ramp, it is the one whose draw keyframe scales from the
+         far corner failing to keep it, same as #339's leaf.
+
+         #339's fix does not carry: dropping vector-effect there cost 0.5-0.9
+         of the authored 6 px, because .lp-flow's viewBox is close to its own
+         rendered size. .sp4-frame's viewBox is a flat 100 x 100 mapped onto
+         each plate's own box — roughly 700 x 600 px at this viewport, a 7x
+         non-uniform stretch — so the same fix was tried and measured here
+         first: the ramp returns, at a stroke ~20 px wide instead of 6, on an
+         edge already habituated to reading as a hairline. Worse than the
+         defect it repairs, and the ratio is not one number to compensate —
+         it moves with each plate's own --ar and the viewport's own card
+         width, so no static stroke-width correction is safely additive.
+
+         ALSO TRIED, no effect on any of them: will-change (transform, and
+         stroke + opacity) on the path; translateZ(0) on the path and on
+         .sp4-frame; isolation: isolate on .sp4-frame; backface-visibility:
+         hidden on the path; redriving the same two keyframes through the
+         legacy transform: scaleX()/scaleY() instead of the standalone scale
+         property #339 named as the trigger. None returned the colour.
+
+         No code change follows from this. → #339, .lp-flow__leaf's own note
+         above, for the shared root cause */
 
       .sp4-tick {
         animation: lp-frame-in linear both;

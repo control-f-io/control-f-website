@@ -765,10 +765,32 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    disappears entirely. Measured, not reasoned about: it renders as a black
    slab with a violet arrow and no text.
 
-   Everything is inside @supports. The unenhanced state is the rule above it,
-   untouched — opaque plate, white label. Nothing to fall back to, because
-   nothing was taken away. */
-@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+   Everything is inside @supports, and the condition names two things, not
+   one. background-clip: text is not the whole trick this rule depends on —
+   the plate needs LAYER 1 clipped to text and LAYER 2 clipped to border-box
+   in the SAME declaration, which is a browser committing to per-layer
+   background-clip, not merely to background-clip: text on its own. Firefox
+   153 parses `background-clip: text, border-box` as valid — CSS.supports
+   reports true, so the query above alone lets it into this block — and then
+   does not honour the split at paint time: every layer clips the same way,
+   the foil paints as an ordinary box fill instead of glyph shapes, and the
+   label, `color: transparent` throughout this block, has nothing underneath
+   it to read. Measured on the shipped 404 page's "Zur Startseite" and on
+   every other .cf-btn--solid on the site, in Firefox: a plain gradient
+   rectangle, no visible character, over the fallback's own black plate —
+   worse than the unenhanced rule above, which this block exists to improve
+   on. `and (not (-moz-appearance: none))` is a second gate for a fact
+   @supports has no direct way to ask: it does not test per-layer clip
+   support, because there is no such feature query — the syntax above is
+   valid everywhere and the failure is in what a layer clip DOES, not in
+   whether it parses. -moz-appearance is a Mozilla-only ident no non-Gecko
+   engine has ever recognised, so `not (-moz-appearance: none)` reads "not
+   Firefox" without asserting anything about what Firefox — or any other
+   engine — supports of the feature actually in question. The unenhanced
+   state is the rule above it, untouched — opaque plate, white label.
+   Nothing to fall back to, because nothing was taken away. */
+@supports ((-webkit-background-clip: text) or (background-clip: text))
+      and (not (-moz-appearance: none)) {
   .cf-btn--solid {
     background-image: var(--gradient-foil), none;
     -webkit-background-clip: text, border-box;
@@ -920,6 +942,26 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 .cf-logo img, .cf-logo svg { height: 1.25rem; width: auto; }
 .cf-logo--bare { padding: 0; background: none; border-radius: 0; }
 
+/* THE PLATE IS --surface-inverse, A SOLID background-color, AND FORCED
+   COLOURS OVERRIDES THOSE WITHOUT BEING ASKED — tokens.css only has to name
+   the glass tokens explicitly because gradients compute to `none` in this
+   mode and would otherwise vanish outright; a plain background-color like
+   this one is repainted Canvas by the browser regardless of what this file
+   says, the same way .cf-footer's is. The mark on that plate is a fixed
+   white asset with no idea what is under it, so on the light high-contrast
+   theme (Canvas: white) it sits Canvas-on-Canvas. Measured in Chromium at
+   1280 x 900 with the mode active and colour-scheme light: the mark's own
+   pixels and the plate's, sampled either side of it, both read
+   rgb(255, 255, 255) — no contrast at all, the mark gone. Under a dark
+   high-contrast theme (colour-scheme dark, Canvas: black) the same white
+   mark reads rgb(255, 255, 255) against a rgb(0, 0, 0) plate, 21:1, exactly
+   as designed — so only the light theme needs correcting, and inverting a
+   pure-white asset there lands it on black, which is CanvasText's own colour
+   without shipping a second file to hold it. */
+@media (forced-colors: active) and (prefers-color-scheme: light) {
+  .cf-logo img { filter: invert(1); }
+}
+
 /* --------------------------------------------------------------------------
    NAVIGATION
    Logo plate left, link plate right, mono uppercase links, both opaque —
@@ -979,7 +1021,33 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    scripted scroll at 1280 px, 95th-percentile frame: 16.9 ms with no glass
    at all, 17.8 ms with no reach, 20.0 ms at a reach of a quarter bar,
    25.1 ms at half a bar. Everything past the kernel is spend with nothing
-   to show for it. */
+   to show for it.
+
+   "ARRIVING THROUGH THE BLUR" DOES NOT HAPPEN FOR TEXT IN WEBKIT 26.5, and
+   this is left unfixed rather than worked around. -webkit-backdrop-filter
+   computes correctly (verified via getComputedStyle: blur(16px) saturate
+   (1.08), identical to Chromium) and non-text backdrops — the tiled ground,
+   a striped gradient — blur as designed. Text glyphs behind this sheet do
+   not: measured on a minimal reproduction (sticky bar, ::before at inset:0,
+   backdrop-filter only, no mask, no isolation, no z-index) and confirmed on
+   this page's own FAQ text and on Expertise's .cf-pin__step title, both
+   render pixel-sharp through the veil where Chromium renders them
+   correctly smeared. Ruled out by direct test, each with no effect: the
+   mask (--glass-lookahead's linear-gradient), z-index: -2 on this pseudo,
+   isolation: isolate on .cf-nav, position: sticky vs fixed on .cf-nav, the
+   view-transition-name relocation two files up (base.css, "THE BAR ITSELF
+   CANNOT CARRY THE NAME"), and forced layer promotion (transform:
+   translateZ(0) / will-change: transform) on the text, on this pseudo, and
+   on .cf-nav itself. The failure tracks specifically with text content —
+   a striped background under the same bar blurs while text laid over that
+   same background does not — which points at how this WebKit build
+   composites glyph layers rather than at anything this stylesheet controls.
+   Not chased further because every candidate fix left to try either
+   degrades Chromium/Firefox's identical, working render or forces every
+   passing text run onto its own compositing layer sitewide on a hunch.
+   Whether this reproduces on real Safari (Playwright's WebKit is a Linux
+   GTK/WPE port, not Apple's Core Animation compositor) is untested here.
+   → a human, with real Safari, decides whether this is worth chasing. */
 .cf-nav::before {
   content: "";
   position: absolute;
@@ -3438,12 +3506,45 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
 
 /* The plate is the whole state here, and forced-colours throws backgrounds
    away. Highlight/HighlightText is the pair the mode reserves for exactly
-   this — "the selected one of a set". */
+   this — "the selected one of a set" — and it is not the pair used below.
+
+   HighlightText DOES NOT PAINT. Measured in Chromium 141's forced-colors
+   mode (the emulation this system is checked against, scripts/check-
+   runtime.py): a bare `color: HighlightText` on plain text, with or without
+   a `background: Highlight` beside it, produces zero visible glyphs — the
+   box takes its background and border, the text takes its layout box, and
+   no ink lands. SelectedItem/SelectedItemText, the newer pair for the same
+   meaning, fails identically.
+
+   MARK/MARKTEXT ALSO DOES NOT PAINT, AND ONLY UNDER THE DARK THEME — the gap
+   the previous measurement here missed, because it only checked one. Same
+   Chromium 141, same emulation, `color-scheme: dark` added: `background:
+   Mark; color: MarkText` on `<span aria-current="page">1</span>` renders a
+   solid opaque block the exact size of the glyph's layout box — zero ink,
+   same failure shape as HighlightText, not merely low-contrast. Restating
+   `-webkit-text-fill-color: MarkText` beside it, the fix the rest of this
+   file uses for exactly this class of bug, does not help: the value itself
+   is what fails to paint here, not a missing second declaration. `color-
+   scheme: light` with the identical rule is fine, which is how this shipped
+   unnoticed — the pair was verified once, in the theme that works.
+
+   ButtonFace/ButtonText is the replacement, and it is verified in both:
+   Chromium 141, forced-colors active, `color-scheme` light and dark, `<span
+   aria-current="page">1</span>` and `<span aria-current="page">Telemetrie
+   </span>` (.cf-article__tag below) — legible glyphs, both themes. It is
+   also not a new keyword in this system: .cf-btn--solid already reaches for
+   it under forced colours, in this same file, and restates -webkit-text-
+   fill-color beside it for the reason base.css's ::selection comment gives.
+   "Currently selected" reading as a button face is a smaller mismatch than
+   the "currently matched" one Mark/MarkText was already accepted for below,
+   and the page's own aria-current still carries the true meaning for
+   assistive tech regardless of which system pair paints it. */
 @media (forced-colors: active) {
   .cf-pagination__page[aria-current] {
-    background: Highlight;
-    border-color: Highlight;
-    color: HighlightText;
+    background: ButtonFace;
+    border-color: ButtonFace;
+    color: ButtonText;
+    -webkit-text-fill-color: ButtonText;
   }
 }
 
@@ -4020,8 +4121,21 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    It lands on the same inverted plate that hover lands on, which is safe here
    precisely because the two can never be the same element. */
 .cf-article__tag[aria-current] { background: var(--cf-schwarz); color: var(--grey-000); }
+/* ButtonFace/ButtonText, not Highlight/HighlightText and not Mark/MarkText —
+   see the identical selected state on .cf-pagination__page[aria-current],
+   which measures both failures: a bare `color: HighlightText` paints no
+   glyphs in Chromium 141's forced-colors mode, on this element or in
+   isolation, and `color: MarkText` paints none either once `color-scheme:
+   dark` is added to the same mode — a solid block the size of the word's
+   layout box, not merely low contrast. ButtonFace/ButtonText is the pair
+   measured legible in both themes, and .cf-btn--solid already reaches for
+   it under forced colours elsewhere in this file. */
 @media (forced-colors: active) {
-  .cf-article__tag[aria-current] { background: Highlight; color: HighlightText; }
+  .cf-article__tag[aria-current] {
+    background: ButtonFace;
+    color: ButtonText;
+    -webkit-text-fill-color: ButtonText;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -5123,6 +5237,63 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   color: var(--text-inverse);
   padding-block: var(--space-24) calc(var(--space-8) + var(--cf-consent-height, 0px));
 }
+/* INK ON PAPER HAS NO PLATE TO SIT ON — the same sentence that governs
+   .cf-btn--solid and .text-foil above, unapplied here until now. The footer
+   is the one section every page ends on, so an unconverted --surface-inverse
+   is not a corner of one page but a full-bleed black sheet at the foot of
+   all fifteen.
+
+   And .text-foil already believed the conversion had happened: its own print
+   rule (base.css, PRINTED FLOOR) forces "Jetzt Projekt starten!" to
+   var(--cf-schwarz), unconditionally, on the assumption that print never
+   leaves a dark plate under it. Nothing here paid that half. Printed to A4
+   through Chromium, patterns/expertise.html: black text, --surface-inverse
+   still black behind it, 0:1 contrast — the headline is not faint, it is
+   gone. --text-inverse-dim on .cf-footer__meta and the white stroke of
+   .cf-footer__mark read the same way, one contrast step short of it.
+
+   var(--cf-schwarz) AND NOT var(--text-primary), because --text-primary is
+   not the light theme's black here: .cf-footer carries data-theme="inverse",
+   and tokens.css redeclares --text-primary to var(--grey-000) inside that
+   scope — the same reason .text-foil's own print rule two files up reaches
+   for the literal and not the semantic name. Asking for "primary text" on an
+   inverse-themed element still answers white; this rule wants the paper's
+   ink regardless of which theme the section was drawn in. */
+@media print {
+  .cf-footer {
+    background: none;
+    color: var(--cf-schwarz);
+  }
+}
+/* THE RULE ABOVE DOES NOT REACH A BUTTON THAT NAMES ITS OWN COLOUR. Two of
+   sixteen pages — kontakt.html, kontakt-danke.html — put .cf-btn--outline
+   in the footer CTA slot instead of the .cf-btn--primary every other page
+   carries there: both offer "Lieber direkt sprechen?" and a phone link,
+   because a reader already on or just past the contact form is the one
+   reader the form itself is no longer the answer for. .cf-btn--primary was
+   checked and cleared when the rule above was written — its label is the
+   foil, not a themed token, so nothing about it depended on the plate.
+   .cf-btn--outline was not: it
+   sets `color: var(--text-primary)` and `border-color: var(--border-strong)`
+   directly, and .cf-footer's own data-theme="inverse" redeclares both to
+   (near-)white for exactly the reason .cf-footer's background rule above
+   has to route around them. Print drops the plate but not the theme scope,
+   so the button keeps asking for white.
+
+   Measured on kontakt-danke.html, printed, before this rule: color
+   rgb(255, 255, 255), border-color rgba(255, 255, 255, 0.72), against the
+   sheet's own white — both at 1:1 contrast, the same "gone, not faint"
+   failure the footer background rule describes, just reached through a
+   property that names its own colour instead of inheriting the section's.
+   var(--cf-schwarz) and not var(--text-primary) for the reason given
+   above: .cf-arrow inside the button is fill: currentColor, so the arrow
+   is carried by the same declaration. */
+@media print {
+  .cf-footer .cf-btn--outline {
+    color: var(--cf-schwarz);
+    border-color: var(--cf-schwarz);
+  }
+}
 /* For pages whose last section is .section--flush and so carries no bottom
    padding of its own. Keeps the gap before the footer identical on every page
    instead of leaving it to a per-page margin.
@@ -5151,6 +5322,55 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   padding-bottom: var(--space-24);
 }
 .cf-footer__mark { width: 12.5rem; opacity: 0.9; }
+/* THE MARK IS A FIXED RASTER-LIKE ASSET ON A PLATE FORCED COLOURS REPAINTS
+   OUT FROM UNDER IT, the same mismatch .cf-logo carries in the nav (see that
+   rule's own note) and for the same reason: .cf-footer's background is
+   `var(--surface-inverse)`, a plain background-color, and forced-colors mode
+   repaints that to Canvas regardless of what this file says, while an <img>'s
+   own pixels are exempt from the mode and keep the colours the file was
+   exported with — here `stroke="#FFFFFF"` on both isometric diamonds, at
+   0.85 and 0.5 opacity, plus a `fill="#E1FF00"` arrow.
+
+   Measured in Chromium with the mode active and colour-scheme light: the
+   lattice's own rasterised pixels read rgb(255, 255, 255) at alpha 162/255
+   (the 0.85 layer) and the footer plate under it reads rgb(255, 255, 255)
+   solid — white stroke over white Canvas composites to white, so both
+   diamonds vanish and only the arrow (rgb(225, 255, 0), enough luminance
+   apart from white to stay visible) is left floating with no lattice to
+   give it scale. Under a dark high-contrast theme (colour-scheme dark,
+   Canvas: black) the same white stroke reads rgb(0, 0, 0) plate beneath it —
+   unchanged from this component's ordinary near-black plate — so only the
+   light theme needs correcting.
+
+   Inverting the whole asset there restores the lattice (white → CanvasText's
+   own black) at the cost of the arrow's colour (rgb(225, 255, 0) inverts to
+   rgb(30, 0, 255), a blue): the same trade this mode already makes elsewhere
+   in this file when a component's refinement is dropped so its shape reads
+   at all — .cf-annot--lit gives up its ramp for Highlight above, .rule gives
+   up its dash ratio in base.css. A blue arrow inside a legible lattice beats
+   a lime arrow with no lattice around it. */
+@media (forced-colors: active) and (prefers-color-scheme: light) {
+  .cf-footer__mark { filter: invert(1); }
+}
+/* THE SAME WHITE-ON-WHITE THE RULE ABOVE ALREADY NAMES, reached by paper
+   instead of by the mode: .cf-footer's own print rule now drops the plate to
+   `none`, which for an <img> is exactly the Canvas repaint above — the
+   asset's pixels are unaffected, so `stroke="#FFFFFF"` sits on a white sheet
+   the same way it sat on light-theme Canvas. Paper has no dark theme to fall
+   back to, so unlike the mode above this is unconditional.
+
+   .cf-logo--bare img RIDES THE SAME PLATE AND THE SAME REMOVAL. .cf-logo's
+   own plate (`background: var(--surface-inverse)`, LOGO LOCKUP above) is
+   what .cf-logo--bare drops — "bare" meaning it never had a plate of its
+   own, only .cf-footer's, which this rule's neighbour has just cleared.
+   cf-logo-horizontal-white.svg is the same all-white export .cf-logo's own
+   forced-colors rule already inverts for exactly this reason; scoped to
+   --bare rather than to .cf-logo so the nav's copy, which keeps its own
+   black plate in print, is untouched. */
+@media print {
+  .cf-footer__mark,
+  .cf-logo--bare img { filter: invert(1); }
+}
 .cf-footer__title {
   font-family: var(--font-display);
   font-size: var(--text-display-2);
@@ -5204,6 +5424,22 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--text-inverse-dim);
+}
+/* --text-inverse-dim is rgba(255, 255, 255, 0.62) — legible dimmed white on
+   .cf-footer's black plate, and against the plate this rule drops to `none`
+   for print (above) it is 62 % white on the sheet's own paper, the address
+   and the link row both under it.
+
+   var(--grey-700) AND NOT var(--text-secondary), for the same reason the
+   rule above reaches for var(--cf-schwarz) instead of var(--text-primary):
+   .cf-footer's data-theme="inverse" redeclares --text-secondary to
+   rgba(255, 255, 255, 0.72) too, so the semantic name still answers white
+   here. --grey-700 is what --text-secondary itself resolves to outside an
+   inverse scope — the system's ordinary dimmed ink, used unscoped for
+   exactly this row's job elsewhere (.cf-page-header__meta, the blog card
+   byline). */
+@media print {
+  .cf-footer__meta { color: var(--grey-700); }
 }
 .cf-footer__links { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .cf-footer__meta a { text-decoration: none; }
@@ -5556,12 +5792,30 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    The terms below are the two things that must survive it — the nav band and
    one control, .cf-btn's own 3rem min-height, plus a rung of air — so the
    backstop leaves 72 px there instead of 12. It is still a backstop and still
-   rarely reached: at 375 tall it sits at 219 against a banner of 191. */
+   rarely reached: at 375 tall it sits at 219 against a banner of 191.
+
+   VH FIRST AND DVH ON TOP, THE SAME PAIR .cf-nav__list[data-open="true"]
+   ALREADY CARRIES FOR THE IDENTICAL SHAPE (max-height cap, overflow-y: auto).
+   This box is bottom-anchored (`.cf-consent`'s own `inset: auto 0 0 0`) and
+   clipped rather than scrolled, which the hero above is not — the hero's own
+   note argues vh alone is right for it because the hero is meant to run past
+   the fold and an oversized `vh` costs it nothing. A clipped, bottom-anchored
+   box is the opposite case, the one the nav list and the two pinned stages
+   already carry dvh for: iOS Safari's `vh` is the chrome-collapsed viewport,
+   larger than what is on screen while the toolbar is still showing — which it
+   is on the one load this banner ever matters for, before anything has been
+   scrolled. A cap sized off the larger figure lets the banner grow taller
+   than the true visible screen and, anchored to the bottom, pushes its top
+   edge up into the 72 px this whole block exists to protect — the failure
+   this backstop was written to prevent, reopened by the one unit that tracks
+   the chrome it was already reasoning about. dvh costs nothing where it is
+   missing: a browser with no dvh support keeps the vh line above it. */
 @media (max-height: 35rem) {
   .cf-consent__inner { padding-block: var(--space-4); }
   .cf-consent__actions .cf-btn--ghost { flex: 0 0 auto; justify-content: center; }
   .cf-consent {
     max-height: calc(100vh - var(--nav-height) - 3rem - var(--space-6));
+    max-height: calc(100dvh - var(--nav-height) - 3rem - var(--space-6));
     overflow-y: auto;
   }
 }
@@ -6261,6 +6515,14 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
       position: sticky;
       top: 0;
       height: 100vh;
+      /* dvh on top of vh, the pair .cf-nav__list already pins above for the
+         same reason: Safari's dynamic toolbar makes 100vh the chrome-
+         collapsed viewport, so a stage sized off it alone can stand taller
+         than what the reader can see until the bar retracts, and the pinned
+         build this stage holds is clipped, not scrolled, so the surplus is
+         cut rather than reachable. dvh tracks the chrome as it shows and
+         hides; a browser with no dvh keeps the vh line above. */
+      height: 100dvh;
       /* clip, not hidden — a crop must not become a scrollport. */
       overflow: hidden;
       overflow: clip;
@@ -6634,9 +6896,29 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    In rem with the rest of them: whether there is room for a pinned
    three-column stage is a question about how big the type is, so at a 24 px
    default this now waits for 1230 px rather than engaging at 820 with the
-   composition already too tight for it. → foundations/layout.html */
+   composition already too tight for it. → foundations/layout.html
+
+   WIDTH WAS NEVER THE ONLY QUESTION, AND THIS GATE ASKED IT ALONE. The other
+   two consumers of this same mechanism family — .cf-pin (Expertise and the
+   landing page's process, both in cf-stream.js's own accounting) — pair their
+   min-width with `min-height: 45rem`, the register's own note on that
+   threshold: "a stage that must also clear the nav band cannot hold a card
+   worth reading under 45rem of viewport." This track never asked. A width of
+   51.25rem says nothing about a phone turned sideways: iPhone 14 Pro Max
+   landscape (932 x 430), iPhone 14 Pro landscape (852 x 393), Pixel 7
+   landscape (915 x 412) and Galaxy S23 Ultra landscape (915 x 412) all clear
+   820 px wide while standing at less than half of 45rem tall — ordinary
+   phones, held the ordinary way people hold a phone to watch a video or read
+   a wide table, not an edge case. Measured on all four, both Chromium and
+   WebKit: `view-timeline-name` computed to `--cf-values` and `.cf-values__stage`
+   computed `position: sticky` — the seven-viewport scroll hijack this
+   component's own doc-page swears never happens on a phone, running on one,
+   on the exact mechanism the sibling gate was already built to keep it away
+   from. The card the width term protects has nowhere to go at 430 px of
+   height either; the fix is the same term the other two consumers already
+   carry, not a new one. → foundations/mobile.html#order */
 @supports (animation-timeline: view()) and (animation-range: contain 0% contain 100%) {
-  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 51.25rem) {
+  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 51.25rem) and (min-height: 45rem) {
     .cf-values__track {
       --values-stages: 6;
       height: calc((var(--values-stages) + 1) * 100vh);
@@ -6650,6 +6932,8 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
       position: sticky;
       top: 0;
       height: 100vh;
+      /* vh first, dvh on top — see the note on .cf-pin__stage, above. */
+      height: 100dvh;
       /* clip, not hidden — a crop must not become a scrollport. */
       overflow: hidden;
       overflow: clip;
@@ -6866,6 +7150,44 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   50%      { opacity: 0; }
 }
 
+/* THE STREAM NEVER RUNS ON PAPER, AND THE FALLBACK IT ALREADY BUILT WAS NEVER
+   POINTED AT PRINT. cf-stream.js's own prepare() (see its header) exists to
+   type copy from a scroll position: `run()` reads getBoundingClientRect()
+   against a `scroll` listener, and build() empties every line's full sentence
+   into .cf-stream__text up front, character count at zero. A real print
+   render (page.pdf(), not emulateMedia — emulateMedia only swaps which CSS
+   matches and stays on the screen compositor, so it never reproduces this)
+   never scrolls and never fires `scroll`, so paint() never runs past zero and
+   every streamed line prints as the empty span build() left behind.
+
+   prepare() already writes the fix's other half for accessibility: each line
+   is split into .cf-stream__text (streamed, aria-hidden — the one print
+   catches empty) followed immediately by a plain .visually-hidden sibling
+   carrying the line's whole sentence. Print wants that same sentence, so this
+   hides the first and restores the second. The adjacent-sibling combinator is
+   exact because cf-stream.js appends nothing else between the two spans, on
+   any of its four consumers: acts.css's .sp-track/.sp4-track/.map-track
+   (landing page, prototypes/statement-to-process.html), .cf-values__track
+   (ueber-uns.html) and .cf-pin (expertise.html).
+
+   Measured with page.pdf() against the shipped landing page: act 4's two
+   team plates print "01 / Geschäftsführung" / "02 / Das Team" with nothing
+   under either label — headline, body and the reader's own name entirely
+   missing — before this rule, and the full sentence after. */
+@media print {
+  .cf-stream__text { display: none; }
+  .cf-stream__text + .visually-hidden {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+  .cf-stream__caret { display: none; }
+}
+
 @keyframes cf-values-item {
   0%   { opacity: 0; }
   12%  { opacity: 1; }
@@ -6969,8 +7291,22 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
      four gaps between them come to 18u: 288 px at the floor, which fits
      inside a 375 px viewport's 20 px gutters with 47 px to spare, and 576 px
      at the cap. Five is therefore the practical ceiling for a figure that has
-     to survive a phone; a wider frame takes more. */
-  --plot-u: clamp(1rem, 3.4vw, 2rem);
+     to survive a phone; a wider frame takes more.
+
+     THE FLOOR WAS 1rem, AND rem IS THE READER'S SETTING HERE, NOT THE
+     SYSTEM'S. Every other length this figure is measured against — the
+     viewport, --gutter — is px or vw and does not move when a reader sets
+     their browser's default text size above 16 px, but 1rem does: at a 20 px
+     default the floor became 20 px (18u = 360, against a 280 px content
+     column at 320 px wide) and at 24 px it became 24 px (18u = 432). Measured
+     on blog-artikel at 320 px wide, root 20/24, both engines: the document
+     scrolled sideways 65 px and 142 px, identically on Chromium and WebKit,
+     because the fault is arithmetic rather than a rendering difference. Type
+     is meant to answer the reader's own setting; a fixed-count geometric
+     drawing sized in the same unit is not, so the floor and cap are px, the
+     same convention --gutter and --section-gap already use, and the 288/576
+     px figures above hold at every root size rather than only at 16. */
+  --plot-u: clamp(16px, 3.4vw, 32px);
   --plot-rise: calc(var(--plot-u) * 6);
   margin: 0;
   /* Room for the tallest number to hang above its cap. */
@@ -8057,11 +8393,28 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    contrast failure being fixed; it is a mode that has asked for certainty
    being given the finished annotation instead of a frame of one. The lit rung
    loses its ramp here too, which is correct: it is emphasis, and emphasis is
-   what this mode is allowed to drop. */
+   what this mode is allowed to drop.
+
+   What is NOT allowed to drop is the rung itself. .cf-annot--lit::before
+   carries "the one the reader is on" (this file's own words, above) entirely
+   as a gradient background-image, and forced colours computes every gradient
+   to `none` — measured on the landing page, the lit node's background-image
+   comes back identical to a contoured node's: `none`. Same border, same
+   colour, same box: the two rungs this component exists to tell apart become
+   one. Highlight/HighlightText is the pair the mode reserves for exactly this
+   — "the selected one of a set" — same as .cf-pagination__page[aria-current]
+   above. A fill rather than a border swap because the anchor's border is
+   already spoken for (--border-strong, shared by every rung on
+   .cf-annot::before) and forced colours honours a system-colour fill even
+   though it discards an author one. */
 @media (forced-colors: active) {
   .cf-annot-set {
     animation: none;
     --annot-draw: 1;
+  }
+  .cf-annot--lit::before {
+    background-color: Highlight;
+    border-color: Highlight;
   }
 }
 
