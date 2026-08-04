@@ -4783,30 +4783,76 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    rule with no cell left around it.
 
    So the inset is the ratio. 15 % of the cell on each side leaves 70 % for the
-   portrait at every width the field can reach, and percentage padding resolves
-   against the grid area's inline size, so it tracks the cell without a query.
-   Measured at the four widths this system is tested at — 1440, 1280, 768,
-   375 — the cell is 426.3, 379.4, 341.3 and 332.8 px and the portrait 297.4,
-   264.6, 237.9 and 231.9. Swept every content width from 300 to 1280 the ratio
-   never leaves 69.69–69.85 %, which is the plate's 69.7. Percentages are outside
+   portrait at every width the field can reach, and a percentage length here
+   resolves against the grid area's inline size, so it tracks the cell without
+   a query. Measured at the four widths this system is tested at — 1440, 1280,
+   768, 375 — the cell is 426.3, 379.4, 341.3 and 332.8 px and the portrait
+   297.7, 264.9, 238.2 and 232.2. Swept every content width from 300 to 1280
+   the ratio never leaves 69.76–69.90 %, which is the plate's 69.7, and no
+   width in that sweep puts a line over the picture. Percentages are outside
    the spacing scale on purpose and check-spacing-scale.py does not flag them —
    the scale governs distances between things, and this is a proportion of one
    thing.
 
-   Block and inline are both 15 % — percentage padding resolves against the
-   inline size on all four sides, so the shorthand stays one value the way it
-   did at 32 px. The mockup only insets the top and the sides; the bottom edge
-   there is set by the name, and here by the focus line under it. */
+   FOUR MARGINS AND NOT A PADDING, and the reason is a Chromium bug this cell
+   walked straight into. The cell is a subgrid spanning four of the parent's
+   row tracks (the rule below), and a subgrid's own padding has to be added to
+   the first and last of those tracks or the tracks cannot fit inside it.
+   Chromium does add it — unless the padding is a PERCENTAGE and the column
+   track is flexible, which is both halves of this component: `padding: 15%`
+   inside .tiles' `minmax(min(var(--tile), 100%), 1fr)`. Under an fr maximum
+   the cell's inline size is not definite while the rows are being sized, the
+   percentage resolves to zero there, and the four shared tracks come out one
+   padding short at the block start. Reduced to a minimum: the same three
+   children, percentage padding, `repeat(3, 1fr)` breaks and `repeat(3, 200px)`
+   does not; a px padding never breaks under either.
+
+   WHAT IT DREW IS THE NAME ON THE PORTRAIT. Measured at 1280 on the shipping
+   page: four tracks summing 482.36 px — the cell's BORDER-box height — laid
+   out inside a 367.55 px content box, so the photo's track is squeezed by
+   exactly the 56.91 px of padding that never reached it, the 330.73 px photo
+   overflows the track, and the name is drawn 40.9 px above the picture's
+   bottom edge. It is 33.9 px at 375 and 52.3 px at 1024; there is no width
+   where the cell is right. Firefox and WebKit size the tracks correctly from
+   this same stylesheet, so the fault was invisible in two engines out of three
+   and visible in the one nearly everyone reads the site in.
+
+   A margin carries the ratio where the padding could not. A grid item's margin
+   is part of its outer size and is measured in the same pass as its content,
+   so the four lines' own margins reach the tracks in every engine. --inset is
+   therefore stated once and spent four times — inline on every line,
+   block-start on the first, block-end on the last — and the portrait asks for
+   what is left, calc(100% - 2 * var(--inset)). That subtraction IS the 70 %
+   this note is about, written as the arithmetic rather than as a second number
+   somebody has to keep in step with the first.
+
+   Measured against the two engines that were already right: Chromium now draws
+   the cell 596.22 px tall at 1280 where Firefox draws 596.20 and WebKit
+   596.17, and the three agree within 0.05 px at 375, 768, 1024, 1280, 1440 and
+   1920. Across those six the insets hold 14.95–15.00 % and the portrait
+   69.79–69.84 %, and neither of the two engines that were already right moves
+   by more than a tenth of a pixel.
+
+   The mockup only insets the top and the sides; the bottom edge there is set
+   by the name, and here by the focus line under it — so the block-end margin
+   goes on :last-child, which is what "the line that closes the cell" means
+   without naming a fourth class. */
 .cf-team-grid__item {
-  padding: 15%;
+  --inset: 15%;
   border-right: var(--stroke-1) solid var(--border-strong);
   border-bottom: var(--stroke-1) solid var(--border-strong);
 }
+.cf-team-grid__item > * { margin-inline: var(--inset); }
+.cf-team-grid__item > :first-child { margin-top: var(--inset); }
+.cf-team-grid__item > :last-child { margin-bottom: var(--inset); }
 /* rx="2" on all five portraits in ueber-uns-full.svg (200 x 300 each). A photo
    is an object with a body of its own, so it takes the system corner; the cell
    around it is structure and stays square. */
 .cf-team-grid__photo {
-  width: 100%;
+  /* The 70 %, as the subtraction rather than as a second number. A replaced
+     element does not stretch to its grid area the way the three <p> above do,
+     so this one has to state the width its margins leave it. */
+  width: calc(100% - 2 * var(--inset));
   aspect-ratio: 4 / 5;
   object-fit: cover;
   border-radius: var(--radius-sm);
@@ -4816,12 +4862,15 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    shipping layout, so a browser without subgrid loses the cross-card alignment
    and nothing else changes.
 
-   row-gap is 0 and the existing margins are left alone on purpose. The three
-   gaps in this card are not equal — 16 under the photo, 4 under the name, 16
-   over the focus rule — and a single row-gap cannot express that. Margins are
-   part of a grid item's outer size, so the tracks size to content plus margin
-   and the card is drawn exactly as before; the only difference is that the
-   four tracks are now shared. */
+   row-gap is 0 and every gap in this card is a margin on purpose. The three
+   interior gaps are not equal — 16 under the photo, 4 under the name, 16 over
+   the focus rule — and a single row-gap cannot express that. Margins are part
+   of a grid item's outer size, so the tracks size to content plus margin and
+   the card is drawn exactly as it is without subgrid; the only difference is
+   that the four tracks are now shared. That same property is what carries the
+   cell's own block inset, for the reason set out above the item rule: a
+   percentage padding on this element would not have reached these tracks in
+   Chromium, and a margin on the lines does. */
 @supports (grid-template-rows: subgrid) {
   .cf-team-grid__item {
     display: grid;
