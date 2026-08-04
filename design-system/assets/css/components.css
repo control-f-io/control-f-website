@@ -5168,6 +5168,34 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   color: var(--text-inverse);
   padding-block: var(--space-24) calc(var(--space-8) + var(--cf-consent-height, 0px));
 }
+/* INK ON PAPER HAS NO PLATE TO SIT ON — the same sentence that governs
+   .cf-btn--solid and .text-foil above, unapplied here until now. The footer
+   is the one section every page ends on, so an unconverted --surface-inverse
+   is not a corner of one page but a full-bleed black sheet at the foot of
+   all fifteen.
+
+   And .text-foil already believed the conversion had happened: its own print
+   rule (base.css, PRINTED FLOOR) forces "Jetzt Projekt starten!" to
+   var(--cf-schwarz), unconditionally, on the assumption that print never
+   leaves a dark plate under it. Nothing here paid that half. Printed to A4
+   through Chromium, patterns/expertise.html: black text, --surface-inverse
+   still black behind it, 0:1 contrast — the headline is not faint, it is
+   gone. --text-inverse-dim on .cf-footer__meta and the white stroke of
+   .cf-footer__mark read the same way, one contrast step short of it.
+
+   var(--cf-schwarz) AND NOT var(--text-primary), because --text-primary is
+   not the light theme's black here: .cf-footer carries data-theme="inverse",
+   and tokens.css redeclares --text-primary to var(--grey-000) inside that
+   scope — the same reason .text-foil's own print rule two files up reaches
+   for the literal and not the semantic name. Asking for "primary text" on an
+   inverse-themed element still answers white; this rule wants the paper's
+   ink regardless of which theme the section was drawn in. */
+@media print {
+  .cf-footer {
+    background: none;
+    color: var(--cf-schwarz);
+  }
+}
 /* For pages whose last section is .section--flush and so carries no bottom
    padding of its own. Keeps the gap before the footer identical on every page
    instead of leaving it to a per-page margin.
@@ -5226,6 +5254,25 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 @media (forced-colors: active) and (prefers-color-scheme: light) {
   .cf-footer__mark { filter: invert(1); }
 }
+/* THE SAME WHITE-ON-WHITE THE RULE ABOVE ALREADY NAMES, reached by paper
+   instead of by the mode: .cf-footer's own print rule now drops the plate to
+   `none`, which for an <img> is exactly the Canvas repaint above — the
+   asset's pixels are unaffected, so `stroke="#FFFFFF"` sits on a white sheet
+   the same way it sat on light-theme Canvas. Paper has no dark theme to fall
+   back to, so unlike the mode above this is unconditional.
+
+   .cf-logo--bare img RIDES THE SAME PLATE AND THE SAME REMOVAL. .cf-logo's
+   own plate (`background: var(--surface-inverse)`, LOGO LOCKUP above) is
+   what .cf-logo--bare drops — "bare" meaning it never had a plate of its
+   own, only .cf-footer's, which this rule's neighbour has just cleared.
+   cf-logo-horizontal-white.svg is the same all-white export .cf-logo's own
+   forced-colors rule already inverts for exactly this reason; scoped to
+   --bare rather than to .cf-logo so the nav's copy, which keeps its own
+   black plate in print, is untouched. */
+@media print {
+  .cf-footer__mark,
+  .cf-logo--bare img { filter: invert(1); }
+}
 .cf-footer__title {
   font-family: var(--font-display);
   font-size: var(--text-display-2);
@@ -5279,6 +5326,22 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--text-inverse-dim);
+}
+/* --text-inverse-dim is rgba(255, 255, 255, 0.62) — legible dimmed white on
+   .cf-footer's black plate, and against the plate this rule drops to `none`
+   for print (above) it is 62 % white on the sheet's own paper, the address
+   and the link row both under it.
+
+   var(--grey-700) AND NOT var(--text-secondary), for the same reason the
+   rule above reaches for var(--cf-schwarz) instead of var(--text-primary):
+   .cf-footer's data-theme="inverse" redeclares --text-secondary to
+   rgba(255, 255, 255, 0.72) too, so the semantic name still answers white
+   here. --grey-700 is what --text-secondary itself resolves to outside an
+   inverse scope — the system's ordinary dimmed ink, used unscoped for
+   exactly this row's job elsewhere (.cf-page-header__meta, the blog card
+   byline). */
+@media print {
+  .cf-footer__meta { color: var(--grey-700); }
 }
 .cf-footer__links { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .cf-footer__meta a { text-decoration: none; }
