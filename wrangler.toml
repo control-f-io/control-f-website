@@ -1,0 +1,97 @@
+# The website as a Worker with static assets.
+#
+# WHY A WORKER AND NOT ONLY STATIC FILES. Every page here is a static file and
+# is served as one. The exception is the contact form: design-system/components/
+# forms.html says of the error summary "It is rendered by the server, not by a
+# script", and patterns/kontakt.html posts to its own URL so that a failed
+# submit lands on that summary without anything running. That needs a server.
+# This is the smallest one that does the job — one route, one method.
+#
+# WHY NOT CLOUDFLARE PAGES. Pages Functions still work, but Cloudflare's own
+# guidance for a project starting today is Workers with static assets, and this
+# is a project starting today. Static asset requests are free either way.
+#
+# THE OTHER DEPLOY STAYS. .github/workflows/deploy.yml keeps publishing the
+# repo root to GitHub Pages. Nothing here replaces it; the cutover is a DNS
+# decision, not a merge. See .github/workflows/deploy-worker.yml.
+
+name = "control-f-website"
+main = "worker/index.js"
+compatibility_date = "2026-08-04"
+
+[assets]
+# dist/, written by scripts/stage-site.py: the sixteen generated pages and
+# design-system/, and nothing else in the repository.
+#
+# NOT the repo root, although that is what GitHub Pages uploads. Wrangler
+# writes its state into .wrangler/ inside the assets directory, so a root
+# assets directory makes it watch what it is writing — `wrangler dev` then
+# reloads without stopping (387 times in two minutes, measured). .assetsignore
+# does not fix it: it governs what is uploaded, not what is watched. Naming
+# the output also means the deploy cannot leak the generator, the checks or
+# the screenshots by forgetting a line.
+directory = "dist"
+binding = "ASSETS"
+
+# The Worker runs for four paths. Everything else — every other page, every
+# stylesheet, font and image, and the whole design system — is served straight
+# from the edge without this code being invoked or billed.
+#
+#   /kontakt.html    the form's POST. A GET reaches the Worker too and is
+#                    passed through to the same static file; that costs one
+#                    invocation per view of the contact page and buys the
+#                    guarantee that the POST cannot be answered by the file.
+#   / and            the two directory indexes, which html_handling = "none"
+#   /design-system   below switches off. The Worker serves them instead.
+#
+# scripts/stage-site.py --check fails if dist/ grows a directory index that
+# is not in this list, so the list cannot quietly fall behind the site.
+run_worker_first = ["/kontakt.html", "/", "/design-system", "/design-system/"]
+
+# Serve the files under the names they have.
+#
+# Every other mode answers /kontakt.html with a 307 to /kontakt — measured,
+# all three of them. That would rewrite the address of every page on the site,
+# and every href between them is written *.html, because that is how these
+# pages have always been served. It would also break the form outright:
+# run_worker_first names /kontakt.html, and a redirect away from that path
+# answers the POST with a 307 instead of running any of this.
+#
+# The cost is the directory indexes — with "none", / and /design-system/ are
+# 404s, because nothing maps a directory to its index.html any more. The
+# Worker does that instead, for the two directories that have one.
+html_handling = "none"
+
+# 404s are a page, not a status line: the repo has one and it is the site's.
+not_found_handling = "404-page"
+
+# The brake on the form. Ten submits per minute per IP, counted at one
+# Cloudflare location — far above a person filling in a form and far below
+# anything worth writing a script for.
+#
+# namespace_id is an identifier chosen here, not one Cloudflare hands out; it
+# only has to stay unique within the account and stable across deploys.
+[[ratelimits]]
+name = "CONTACT_RATE_LIMIT"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 10
+  period = 60
+
+[vars]
+# Where enquiries go, and who they come from. Neither is a secret, so both
+# live here where they can be read and reviewed.
+#
+# CONTACT_FROM must be on a domain verified with the mail provider — a contact
+# form cannot send *as* the person who filled it in without failing SPF and
+# DKIM. Their address goes in Reply-To instead, which worker/mail.js sets, so
+# hitting reply still reaches them.
+CONTACT_FROM = "Kontaktformular <formular@control-f.de>"
+CONTACT_TO = "info@control-f.de"
+
+# RESEND_API_KEY is a secret and is deliberately absent. Set it once with:
+#
+#     npx wrangler secret put RESEND_API_KEY
+#
+# For local development put it in .dev.vars, which .gitignore already covers.

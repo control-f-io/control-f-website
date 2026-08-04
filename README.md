@@ -46,10 +46,52 @@ Most commits on `main` are written by scheduled cloud agents that merge their ow
 pull requests, with no human review gate. What they are, what they have been told,
 and the standing orders that outrank their briefs: [.github/ROUTINES.md](.github/ROUTINES.md).
 
+## The contact form has a server
+
+Every page is a static file except one route. `design-system/components/forms.html`
+says of the error summary "It is rendered by the server, not by a script", and
+`patterns/kontakt.html` posts to its own URL so a failed submit lands on that summary
+with nothing running. [`worker/`](worker/) is that server — one path, one method:
+
+| | |
+|---|---|
+| honeypot filled | `303` → `kontakt-danke.html`, discarded silently |
+| validation fails | `422`, the same page with the summary, the per-field messages and the values already typed |
+| sent | `303` → `kontakt-danke.html` (Post/Redirect/Get, so a reload does not send twice) |
+
+No JavaScript is involved on either path. The form's markup did not change to make
+this work — posting to its own address was always the precondition.
+
+Mail goes out through **Resend**. Its `eu-west-1` region dispatches from Ireland, but
+account data, logs and metadata are stored in the US — a third-country transfer, and
+`datenschutz.html` names it as one. `worker/mail.js` is the only file that knows the
+provider; swapping it for an EU-domiciled one is about twenty lines and would let that
+section shrink.
+
+```bash
+npx wrangler dev --local
+```
+
+Needs `RESEND_API_KEY` in `.dev.vars` (gitignored). `scripts/check-form-contract.py`
+holds the form and the Worker to each other — field names, ids, topics, the honeypot,
+the summary's anchor, two error strings and both routes.
+
 ## Deployment
 
 Every merge to `main` publishes the repo root to GitHub Pages via
 `.github/workflows/deploy.yml`.
+
+`deploy-worker.yml` publishes the same pages to Cloudflare with the Worker in front of
+them. It runs only when the `CLOUDFLARE_ENABLED` variable is set, so it is inert until
+someone turns it on, and **both deploys run in parallel** — the cutover is a DNS change,
+not a merge. Cloudflare serves `dist/`, which `scripts/stage-site.py` fills with the
+sixteen generated pages and `design-system/` and nothing else in the repository.
+
+One difference between the two hosts is configured away: Cloudflare's asset server
+answers `/kontakt.html` with a `307` to `/kontakt` by default, which would rewrite every
+address on the site and break the form outright. `html_handling = "none"` turns that off,
+at the price of the directory indexes — so the Worker serves `/` and `/design-system/`,
+and `stage-site.py --check` fails if a third one ever appears without a route.
 
 - Website: https://control-f-io.github.io/control-f-website/
 - Design system: https://control-f-io.github.io/control-f-website/design-system/
