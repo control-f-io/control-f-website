@@ -17,8 +17,9 @@ measured its three consumers had walked away from it in three directions:
     .cf-values__track   ueber-uns    no-preference and (min-width: 51.25rem)
     .cf-pin             expertise    no-preference and (min-width: 64rem)
                                                    and (min-height: 45rem)
-    .sp-track, .sp4-track, .map-track              landing / acts.css,
-                                                   the same 64rem x 45rem
+    .sp-track           landing                    acts.css, the same
+    .sp4-track          ueber-uns                  64rem x 45rem for all
+    .map-track          expertise                  three
 
 51.25rem IS that 820, converted the day scripts/check-local-thresholds.py's
 register took the threshold in — so the constant was stale in units as well as
