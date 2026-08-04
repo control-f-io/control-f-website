@@ -55,16 +55,22 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "scripts" / "data" / "world-110m.json"
 # BOTH PAGES THAT DRAW THE MAP, AND THE SECOND ONE IS THE ONE THAT SHIPS.
-# This listed the prototype alone. The landing page carries the same six
+# This listed the prototype alone. The shipping page carries the same six
 # generated blocks -- byte-identical, 62 kB of coastline, points, labels and
 # legend -- spliced in by hand when the acts moved and never read by the script
 # again. So `--check` said "the map is the generator's output" while looking at
 # neither of the two files a reader ever loads it from, and the claim this
 # generator exists to make was true of the lab and unenforced everywhere else.
 # They agree today because nobody has edited one of them yet.
+#
+# THE SHIPPING PAGE IS expertise.html NOW. The map was act 5 of the landing
+# page and is section 04 of the expertise page: same markup, same six blocks,
+# under the four fields where the question it answers is the page's own. The
+# prototype keeps it as the lab record, which is why this tuple is still two
+# entries and not one.
 PAGES = (
     ROOT / "design-system" / "prototypes" / "statement-to-process.html",
-    ROOT / "design-system" / "patterns" / "landing-page.html",
+    ROOT / "design-system" / "patterns" / "expertise.html",
 )
 # THE CAMERA'S THREE FRAMINGS ARE CSS, AND THE CSS MOVED. Six of the seven
 # blocks are markup and live in the pages; the shots block is the ratio and
