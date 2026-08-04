@@ -658,19 +658,43 @@
       <tbody>
         <tr><td>Hero</td><td><code>min-height: min(92vh, 56rem)</code></td><td>747 px on a 812 px screen. 92 rather than 100 on purpose: the page has to show that it continues</td></tr>
         <tr><td>Consent, short screens</td><td><code>calc(100vh - var(--nav-height) - 3rem - var(--space-6))</code></td><td>only under a 560 px viewport height, i.e. landscape, and a backstop rather than the working state: 219 px against a 191 px banner at 375 tall. It was <code>70vh</code>, which never engaged at all across that band</td></tr>
-        <tr><td>Values track</td><td><code>100vh</code> per stage</td><td><strong>never runs below 820 px</strong>, so the 100vh stage does not exist on a phone</td></tr>
+        <tr><td>Values track</td><td><code>100vh</code> per stage</td><td><strong>never runs below 820&nbsp;px wide or 720&nbsp;px tall</strong>, so the stage does not exist on a phone — the height half of that is new; see below</td></tr>
       </tbody>
     </table>
     </div>
     <p>
-      All three are <code>vh</code>, not <code>dvh</code> — deliberately, and it is worth
-      knowing which behaviour that buys. <code>vh</code> is the <em>large</em> viewport:
-      it resolves as though the URL bar were collapsed and does not change while the bar
-      slides away, so nothing reflows mid-scroll. The cost is that the hero is a little
-      taller than the visible screen on first paint, which is the direction of error this
-      layout wants — the hero is meant to run past the fold. <code>dvh</code> would fix
-      the overshoot and pay for it with a relayout on every scroll direction change.
+      All three start from <code>vh</code> — deliberately, and it is worth knowing which
+      behaviour that buys. <code>vh</code> is the <em>large</em> viewport: it resolves as
+      though the URL bar were collapsed and does not change while the bar slides away, so
+      nothing reflows mid-scroll. The cost is that the hero is a little taller than the
+      visible screen on first paint, which is the direction of error this layout wants —
+      the hero is meant to run past the fold. The two pinned stages (the values track
+      here, the <a href="motion.html#pinned">Expertise and landing-page builds</a>) also
+      carry <code>dvh</code> on top, for the opposite reason: a stage that is <em>clipped</em>
+      rather than scrolled has no reflow to avoid, so the overshoot has nothing paying for
+      it, and Safari's own toolbar leaves a crop-shaped gap at the true 100vh if nothing
+      tracks it down.
     </p>
+    <div class="docs-note">
+      <strong>The width gate was never the only question, and the values track asked it
+      alone.</strong> This mechanism has two siblings — <code>.cf-pin</code>, the Expertise
+      and landing-page builds — and both pair their <code>min-width: 64rem</code> with
+      <code>min-height: 45rem</code>, because a stage that must also clear the nav band
+      cannot hold a card worth reading under 45rem of viewport. The values track's own gate
+      was <code>min-width: 51.25rem</code> and nothing else. A width of 820&nbsp;px says
+      nothing about a phone turned sideways: iPhone 14 Pro Max landscape (932&nbsp;×&nbsp;430),
+      iPhone 14 Pro landscape (852&nbsp;×&nbsp;393), Pixel 7 landscape (915&nbsp;×&nbsp;412)
+      and Galaxy S23 Ultra landscape (915&nbsp;×&nbsp;412) all clear 820&nbsp;px wide while
+      standing at under half of 45rem tall — ordinary phones, held the ordinary way people
+      hold a phone to watch something wide. Measured on all four, both Chromium and WebKit:
+      <code>view-timeline-name</code> computed to <code>--cf-values</code> and
+      <code>.cf-values__stage</code> computed <code>position: sticky</code> — the
+      seven-viewport scroll hijack the "Values" row above swears never happens on a phone,
+      running on one. Fixed with the same term the other two consumers already carried:
+      <code>and (min-height: 45rem)</code>, already in the register, so nothing new to add
+      there — only a third name beside it. → tokens.css, <code>components.css</code>
+      <code>.cf-values__track</code>
+    </div>
   </section>
 
   <section class="docs-section" id="not">
@@ -691,7 +715,7 @@
         <ul>
           <li>No separate mobile stylesheet, no mobile-only components, no device sniffing. One page, narrowed.</li>
           <li>Don't hide content on small screens. Decoration may go; copy, links and controls may not.</li>
-          <li>Don't put a scroll hijack on a phone — the values track is gated at 820 for exactly this reason.</li>
+          <li>Don't put a scroll hijack on a phone — the values track is gated at 820&nbsp;px wide <em>and</em> 720&nbsp;px tall for exactly this reason; a width gate alone still let one through sideways.</li>
           <li>Don't add a threshold without writing it into the register in <code>tokens.css</code> in the same commit.</li>
           <li>Never <code>user-scalable=no</code>, and never a <code>maximum-scale</code> under 5.</li>
         </ul>
