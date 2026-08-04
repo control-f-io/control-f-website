@@ -479,7 +479,54 @@
   @media print {
     .sp-annots-fig { display: none; }
   }
+  /* THE SECOND CONTAINER IS THE ONE GECKO RE-READS, and it is declared for no
+     other reason. The box above already is one — .sp-annots-fig is `inset: 0`
+     of the stage and `container-type: size`, which is the whole argument of the
+     note two screens up — and this list is `inset: 0` of THAT, so the two boxes
+     are the same box to the pixel. Nothing about --sp-u changes; what changes
+     is which element the twenty-one notes resolve their cqw/cqh against.
+
+     WHAT FIREFOX SHIPS WITHOUT IT. Gecko resolves the units in --sp-u once,
+     against the stage's height in an EARLIER pass — the stage in its stacked
+     arrangement, before `@container (min-width: 56rem)` folds .cf-statement
+     into two columns and takes ~390 px out of it — and never resolves them
+     again. Every note is then placed as if the field were sliced at a scale it
+     is not. Measured on the shipped page, Firefox 153, flow tier, all 21 notes
+     wrong at every desktop width:
+
+                    u used   u correct   worst note   labels cut by the frame
+       1024 x 768   1.1428     0.8433      218.9 px    10 of 21   (7 after)
+       1280 x 800   1.2359     0.9242      227.8       10         (3 after)
+       1440 x 900   1.3167     0.9         304.6        9         (0 after)
+       1920 x 1080  1.3167     1.2          85.3        0         (0 after)
+
+     The u it keeps is max(w/1600, h/900) for a stage 1029, 1112, 1185, 1185 px
+     tall; with the fold disabled the stacked stage measures 1008, 1092, 1165,
+     1165, which is where those numbers come from. So the whole field of notes
+     stands 46 % further from the centre than the beads it names — nine of them
+     off the side of the screen at 1440 — and Chromium and WebKit, which are
+     pinned here and re-resolve anyway, show none of it.
+
+     THREE THINGS SAY IT IS THE STALE PASS AND NOT A DIFFERENT BOX. A clone of
+     any note appended to the same parent gets the right number while the
+     original keeps the wrong one; any resize of the window corrects all
+     twenty-one; and replacing the fold's @container with an @media — decided in
+     the first pass, so the height never moves — removes the drift entirely.
+     None of those is a fix: the first two need a reader to do something, and
+     the third is a viewport threshold standing in for a container fold, which
+     is the trade tokens.css's register exists to refuse.
+
+     WHY THE INNER BOX IS RE-READ AND THE OUTER ONE IS NOT IS GECKO'S BUSINESS
+     and this note does not claim to know it. What is held here is what was
+     measured: 0 of 21 notes off their bead, at 375, 768, 1024, 1280, 1440, 1920
+     and 2560, with and without reduced motion, over three loads each. Chromium
+     and WebKit are unchanged to the pixel — the units are the same units read
+     off the same box — and the print withdrawal above still takes this list
+     with it, because it removes the box that holds it. check-annot-container.py
+     holds both declarations, so the inner one cannot be tidied away as the
+     duplicate it looks like. */
   .sp-annots {
+    container-type: size;
     --sp-u: max(1cqw / 16, 1cqh / 9);
     --annot-u: calc(22 * var(--sp-u));
     --annot-node: calc(9 * var(--sp-u));
