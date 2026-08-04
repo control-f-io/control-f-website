@@ -389,6 +389,36 @@
       this page stopped short of it, rather than patched here on a guess.
     </div>
     <div class="docs-note">
+      <strong>The Expertise stage has answered its call too, and it needed two
+      fixes.</strong> <code>.ex-step</code> is a single-column grid below the pinned
+      layout's own query, with no <code>grid-template-columns</code> written on it — an
+      implicit auto track, whose max is the column's max-content, not the available
+      width. The figure inside carries an explicit <code>width</code> (a specified-size
+      suggestion) that wins over its own <code>max-width: 100%</code> for that
+      max-content contribution, so the track grew to fit the drawing instead of the
+      other way round: measured at a 24 px root default, 320 px wide, the column read
+      388&nbsp;px against 260&nbsp;px available. Floored to <code>minmax(0, 1fr)</code> — the
+      convention <code>.cf-accordion__summary</code>'s own comment in
+      <code>components.css</code> already states for the same reason, and
+      <code>scripts/check-grid-tracks.py</code> holds every <em>written</em> track list
+      to, which this one escaped only because it was never written — the column takes
+      the available width and <code>max-width: 100%</code> finally has something to cap
+      against.
+      <br><br>
+      That alone left 49 of the 98 px. The second cause was <code>.text-foil</code>'s
+      <code>width: fit-content</code>, on the card titles: the bare keyword does not
+      resolve to <code>min(max-content, available)</code> on a plain in-flow block on
+      either engine — Chromium 141 and WebKit both render it identical to <code>width:
+      max-content</code>, ignoring the containing block entirely. Isolated: a
+      <code>fit-content</code> heading in a 100 px box measured 277.84 px on both
+      engines; the same heading as <code>fit-content(100%)</code> measured 100.
+      <code>base.css</code> now uses the function form with an explicit stretch basis,
+      which is what the class's own comment described all along and what the bare
+      keyword never did. Re-measured on <code>expertise</code>, both engines,
+      320/360/390/414 at root 16/20/24: zero overflow. Both lanes the sweep opened are
+      now closed.
+    </div>
+    <div class="docs-note">
       <strong>A fourth time: fourteen became fifteen — and the count now has a
       gate.</strong> <code>karriere-leer</code> landed in the same hour as the footer
       unification, and this page said fourteen while the directory held fifteen. Found by
