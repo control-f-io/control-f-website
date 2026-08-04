@@ -882,6 +882,33 @@
     translate: var(--tx, 0) var(--ty, 0);
     color: var(--text-secondary);
     white-space: nowrap;
+    /* THE SHEET IS NOT HIT-TESTABLE AND THESE ARE, because they are the one
+       thing on it that is not a sheet. .lp-flow-data is `pointer-events: none`
+       for a good reason — it is a 1110 x 573 transparent layer lying over the
+       whole drawing, and a layer that size taking a click is a layer that
+       swallows the page. The eighteen numerals inherited that, and a numeral
+       is TEXT: it is the rate the arithmetic rests on and the reading with its
+       unit, at --text-secondary because the paragraph above insists they ARE
+       the information — and not one of them could be selected, dragged across
+       or copied. Measured at 1440 x 900 with the tree built, elementFromPoint
+       at each numeral's own centre: 0 of 18 returned the numeral, 17 of them
+       the <svg> under it. After this line, 17 of 18 return the numeral. The
+       eighteenth is "74 °C", which has act 1's own claim standing over it —
+       a pre-existing overlap of two layers this line neither makes nor mends,
+       and the only one of the eighteen where the copy wins the hit test.
+
+       The glyph boxes are 34 to 62 px wide and 14 px tall, 6 216 px² of the
+       sheet's 635 730 — under 1 % — so the layer is as transparent to a
+       pointer as it was: 0 of 121 points sampled over it return the sheet, at
+       every viewport measured. Only the text answers.
+
+       AND IT IS SELECTION, NOT INTERACTION. Nothing here gains a hover, a
+       cursor change or a target: the numerals are inside .lp-flow-data's
+       aria-hidden subtree, decorative to a screen reader by the same argument
+       check-act-copy-exposed.py records, and this changes none of that. What
+       it restores is the plainest thing a reader can do to a number on a
+       page, which is take it. → scripts/check-numerals-selectable.py */
+    pointer-events: auto;
   }
   /* A UNIT IS A SYMBOL, AND SYMBOLS ARE CASE-SENSITIVE. The label ramp
      uppercases, which is right for every label this system has had until now
