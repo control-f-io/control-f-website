@@ -112,11 +112,17 @@ REGISTER = {
     # → scripts/check-sticky-address.py
     "prozess-titel": ('<article class="cf-process cf-pin__step"', "process step"),
     "partner": ('<img src="../assets/img/partner/', "logo mark"),
-    "faq": ('<details class="cf-accordion__item">', "question"),
     # The blog strip and the team grid left the landing page when the five acts
     # arrived (2026-07-29): act 4 IS the team, and the page the review asked for
     # is hero, acts, partners, FAQ, footer. Both components still exist and are
     # still published; they are simply not sections of this page any more.
+    # FAQ followed them on 2026-08-04, to patterns/expertise.html, where the
+    # questions stand under the page that answers them — the review's "FAQ auch
+    # zu Expertise". Its counter travelled with it unchanged and is still the
+    # true one ("6 Fragen", six questions); what this register can no longer say
+    # is that it is true, because the register is this one page. The rule the
+    # loop below enforces — a registered id with no header on the page is a
+    # fork — is why the entry goes rather than stays.
 }
 
 HEADER = re.compile(
