@@ -1980,6 +1980,32 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-annot-container.py
 
+      # The same layer, and this time the fault is that it cannot be touched.
+      # .lp-flow-data is `pointer-events: none` because it is a 1110 x 573
+      # transparent sheet over the whole drawing and a sheet that size taking a
+      # click swallows the figure. pointer-events inherits, so all eighteen
+      # numerals on it inherited it and stopped being text a reader can do
+      # anything with: elementFromPoint at each numeral's own centre returned
+      # the numeral 0 of 18 times -- the <svg> underneath 17 of them and act
+      # 1's own claim over the eighteenth -- and a drag across "1 480 rpm"
+      # selected the empty string. Reported from the
+      # site's own review -- "Tree chart: texte separieren, momentan nicht
+      # selektierbar".
+      #
+      # It cannot be seen. The sheet paints the same whether or not it can be
+      # hit, no console message, nothing moves, every gate beside this one
+      # green. So the rule is written down instead: on any `-data` value layer
+      # that refuses the pointer, every rule of that block which declares a
+      # `color` -- ink is what text costs -- must declare its own
+      # pointer-events. Decorative siblings set stroke or fill and are not
+      # asked.
+      #
+      # Proven failing on the reintroduction: the one declaration removed, both
+      # numeral classes reported by name, exit 1.
+      - name: Numerals selectable
+        if: '!cancelled()'
+        run: python3 scripts/check-numerals-selectable.py
+
       # The numeral crowding is the same shape one drawing further in, and its
       # failure is invisible on every screen the design system is looked at.
       # The root's eighteen readings hold their clearance off their own stroke in
