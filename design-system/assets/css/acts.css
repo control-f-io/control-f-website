@@ -2151,6 +2151,34 @@
           drop-shadow(0 0 calc(var(--glow-r) * var(--glow-core)) var(--glow-lime))
           drop-shadow(0 0 var(--glow-r) var(--glow-glas));
       }
+      /* SAFARI NEVER PAINTS THIS LEAF, at any scroll position, once `--sp` has
+         driven it — not the gradient stroke, not the glow. Every computed
+         value WebKit reports matches Chromium exactly (stroke url, resolved
+         gradient stops and coordinates, stroke-opacity, opacity, scale) and
+         the same markup painted correctly in an unanimated, static copy of
+         this exact SVG. Removing `animation`, pausing it, or forcing a
+         repaint on the live element does not bring the colour back — only
+         dropping vector-effect does, which points at WebKit's filter-region
+         cache for a non-scaling stroke never invalidating once the element
+         has been driven by a scroll-linked `scale` keyframe (lp-frame-draw),
+         settled or not. `.lp-flow__seg`'s hairline is unaffected because it
+         carries no filter.
+
+         Scoped with the standard `-webkit-hyphens: none` feature query —
+         true only in WebKit/Safari, so Chromium and Firefox keep the
+         viewport-independent 6 px stroke this rule documents above. Losing
+         non-scaling-stroke here means the leaf's width now follows the
+         drawing's own scale (roughly 0.5-0.9 of the authored 6 px across
+         this page's breakpoints) instead of holding it exactly — an accepted
+         trade against the alternative, which is no lime at all.
+
+         `.lp-flow .lp-flow__leaf`, not the bare class: line 585's
+         `.lp-flow :is(path, circle)` is (0,1,1) and outranks a lone
+         `.lp-flow__leaf` at (0,1,0) regardless of source order — the override
+         has to out-specify it, not just come after it. */
+      @supports (-webkit-hyphens: none) {
+        .lp-flow .lp-flow__leaf { vector-effect: none; }
+      }
       .lp-flow__leaf {
         animation: lp-frame-draw linear,
                    sp-leaf-settle linear,
