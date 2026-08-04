@@ -75,6 +75,7 @@ PATTERNS = ROOT / "design-system" / "patterns"
 # this file has to make.
 SHIP = {
     "landing-page.html": "index.html",
+    "en/landing-page.html": "en/index.html",
     "expertise.html": "expertise.html",
     "ueber-uns.html": "ueber-uns.html",
     "news.html": "news.html",
@@ -90,6 +91,21 @@ SHIP = {
     "datenschutz.html": "datenschutz.html",
     "impressum.html": "impressum.html",
     "404.html": "404.html",
+    "en/expertise.html": "en/expertise.html",
+    "en/ueber-uns.html": "en/ueber-uns.html",
+    "en/news.html": "en/news.html",
+    "en/news-thema.html": "en/news-thema.html",
+    "en/blog-artikel.html": "en/blog-artikel.html",
+    "en/suche.html": "en/suche.html",
+    "en/suche-leer.html": "en/suche-leer.html",
+    "en/karriere.html": "en/karriere.html",
+    "en/karriere-leer.html": "en/karriere-leer.html",
+    "en/karriere-stelle.html": "en/karriere-stelle.html",
+    "en/kontakt.html": "en/kontakt.html",
+    "en/kontakt-danke.html": "en/kontakt-danke.html",
+    "en/datenschutz.html": "en/datenschutz.html",
+    "en/impressum.html": "en/impressum.html",
+    "en/404.html": "en/404.html",
 }
 
 BANNER = (
@@ -106,27 +122,50 @@ BANNER = (
 
 DOCTYPE = "<!DOCTYPE html>\n"
 
-# ASSETS. href, src and poster are the three attributes a pattern page names an
-# asset in; the paths inside the stylesheets are relative to the stylesheet and
-# do not move.
-ASSETS = re.compile(r'(href|src|poster)="\.\./assets/')
+# TWO DEPTHS, ONE SET OF EDITS. A German pattern sits in patterns/ and reaches
+# the assets by `../`; its English twin sits in patterns/en/ and reaches the same
+# files by `../../`. Both land one directory apart at the root too — / and /en/ —
+# so every path edit is the same edit written for the depth of the page it is
+# reading. `up` is that depth, and it is the only thing that differs.
+UP = {"": "../", "en/": "../../"}
+
+
+def assets_re(up):
+    """href, src and poster are the three attributes a pattern page names an
+    asset in; the paths inside the stylesheets are relative to the stylesheet
+    and do not move."""
+    return re.compile(r'(href|src|poster)="%s' % re.escape(up + "assets/"))
+
 
 # HOME. Attribute-anchored, so the prose in a comment that discusses
 # landing-page.html by name still discusses the file that exists.
-HOME = re.compile(r'(href|src)="landing-page\.html')
+#
+# THREE PREFIXES AND NOT ONE, because the landing page is now pointed at from
+# three distances. `landing-page.html` is a sibling — the nav and footer of
+# every page in its own edition. `en/landing-page.html` is the German landing
+# page's language switch, reaching down into the English edition. And
+# `../landing-page.html` is the reverse: every English page's switch, and its
+# hreflang="de" alternate, reaching back up. All three become index.html at the
+# depth they were written at, and a switch that pointed at /en/landing-page.html
+# would 404 on the deploy.
+HOME = re.compile(r'(href|src)="((?:\.\./|en/)?)landing-page\.html')
 
 # PREVIEW and DSBACK. Both are written once per page, identically, by hand. The
 # exact-match requirement is the point: if a page grows a second preview-only
 # link, this stops rather than guesses.
-PREVIEW = re.compile(
-    r'[ \t]*<!-- Preview only: styles the \.ds-back link into the documentation\. Never\n'
-    r'[ \t]*ships — in production the \.ds-back nav is removed and this link with it\. -->\n'
-    r'[ \t]*<link rel="stylesheet" href="\.\./assets/css/preview\.css">\n'
-)
-DSBACK = re.compile(
-    r'\n?[ \t]*<nav aria-label="Zur Dokumentation"><a class="ds-back" '
-    r'href="\.\./index\.html">← Design System</a></nav>\n'
-)
+def preview_re(up):
+    return re.compile(
+        r'[ \t]*<!-- Preview only: styles the \.ds-back link into the documentation\. Never\n'
+        r'[ \t]*ships — in production the \.ds-back nav is removed and this link with it\. -->\n'
+        r'[ \t]*<link rel="stylesheet" href="%scss/preview\.css">\n' % re.escape(up + "assets/")
+    )
+
+
+def dsback_re(up):
+    return re.compile(
+        r'\n?[ \t]*<nav aria-label="[^"]*"><a class="ds-back" '
+        r'href="%s">← Design System</a></nav>\n' % re.escape(up + "index.html")
+    )
 
 
 class BuildError(Exception):
@@ -136,17 +175,21 @@ class BuildError(Exception):
 def transform(text, name):
     """The four edits.
 
-    The two removals go first. Both are written in terms of `../assets/` and
-    `../index.html`, and ASSETS rewrites exactly those — run the other way round,
-    the preview link is rewritten to a path PREVIEW no longer recognises and the
+    The two removals go first. Both are written in terms of the page's own `../`
+    prefix, and ASSETS rewrites exactly those — run the other way round, the
+    preview link is rewritten to a path PREVIEW no longer recognises and the
     documentation chrome ships.
     """
     counts = {}
+    up = UP["en/" if name.startswith("en/") else ""]
+    # The English edition is served from /en/, one directory below the assets'
+    # new home rather than one above it.
+    assets_to = "../design-system/assets/" if name.startswith("en/") else "design-system/assets/"
 
-    text, counts["PREVIEW"] = PREVIEW.subn("", text)
-    text, counts["DSBACK"] = DSBACK.subn("\n", text)
-    text, counts["ASSETS"] = ASSETS.subn(r'\1="design-system/assets/', text)
-    text, counts["HOME"] = HOME.subn(r'\1="index.html', text)
+    text, counts["PREVIEW"] = preview_re(up).subn("", text)
+    text, counts["DSBACK"] = dsback_re(up).subn("\n", text)
+    text, counts["ASSETS"] = assets_re(up).subn(r'\1="%s' % assets_to, text)
+    text, counts["HOME"] = HOME.subn(r'\1="\2index.html', text)
 
     for name_, minimum in (("ASSETS", 1), ("HOME", 1), ("PREVIEW", 1), ("DSBACK", 1)):
         if counts[name_] < minimum:
@@ -187,8 +230,11 @@ def build():
 
 
 def owned_root_html():
-    """The .html files at the repository root, which this script owns all of."""
-    return {p.name for p in ROOT.glob("*.html")}
+    """The .html files this script owns all of: the root, and the English
+    edition one directory below it. Nothing else in the tree is a served page —
+    design-system/ is documentation and is not walked here."""
+    return ({p.name for p in ROOT.glob("*.html")}
+            | {"en/" + p.name for p in (ROOT / "en").glob("*.html")})
 
 
 def main(argv):
@@ -212,6 +258,7 @@ def main(argv):
         if check:
             (missing if current is None else stale).append(dest)
         else:
+            path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text, encoding="utf-8")
             written.append(dest)
 

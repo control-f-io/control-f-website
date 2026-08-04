@@ -2643,6 +2643,22 @@ jobs:
       # Last, because a stale root page is a fact about the deploy rather than
       # about the design system, and the checks above are what a reader has come
       # for.
+      # The English edition under design-system/patterns/en/ is generated the
+      # same way and for the same reason, one step earlier in the chain:
+      # scripts/build-i18n.py builds it from the German pattern beside it and
+      # replaces only the words, from design-system/i18n/en.json. Before the
+      # site build, because the site build ships its output — a stale English
+      # page would otherwise reach the root looking current.
+      #
+      # It also fails on a German string the catalogue has no entry for. That is
+      # the part worth having: an edition that quietly ships one German sentence
+      # in the middle of an English page is the failure nobody reviews, and the
+      # five routines that edit the landing pattern hourly write new sentences
+      # every day.
+      - name: English edition
+        if: '!cancelled()'
+        run: python3 scripts/build-i18n.py --check
+
       - name: Site build
         if: '!cancelled()'
         run: python3 scripts/build-site.py --check

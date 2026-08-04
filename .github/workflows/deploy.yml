@@ -39,6 +39,13 @@ jobs:
       # keeps the committed copies honest.
       #
       # Still no dependencies: stdlib python, same as every check.
+      # The English edition first: build-site.py ships design-system/patterns/en/
+      # as /en/, and that directory is itself generated from the German patterns
+      # by build-i18n.py. Rebuilding both here, in order, is what makes the
+      # deploy independent of whether either was regenerated before the commit.
+      - name: Build the English edition from the German patterns
+        run: python3 scripts/build-i18n.py
+
       - name: Build the site from the design system's patterns
         run: python3 scripts/build-site.py
 

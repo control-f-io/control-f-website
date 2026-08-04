@@ -24,13 +24,22 @@ copy in a browser: the toggle opens, Escape closes and restores focus, and
 the panel folds identically on all fifteen pages today — behaviour parity
 that holds precisely as long as the markup the script reads stays one block.
 
-THE LAWFUL AXES. Two, fewer than the footer needs — the bar is the same
+THE LAWFUL AXES. Three, fewer than the footer needs — the bar is the same
 everywhere by design, which is why anything else is a finding:
 
   ARIA-CURRENT   moves per page, naturally. Whether each copy marks the
                  RIGHT link the RIGHT way is check-a11y.py's CURRENT rule
                  and is not re-judged here; this file only refuses to call
                  the moving marker a fork.
+
+  LANG-HREF      the language switch points at the SAME page in the other
+                 edition — /kontakt offers /en/kontakt, not /en/. That
+                 target therefore moves per page for the same reason
+                 aria-current does, and for the same reason it is not a
+                 fork. Only the href moves: the label, the two language
+                 declarations and the aria-label are the bar's and are
+                 compared like everything else, so a copy that offers the
+                 wrong language, or offers it unlabelled, still fails.
 
   COMMENTS       datenschutz.html and impressum.html each argue in place
                  why their bar carries no aria-current at all — the page is
@@ -88,9 +97,14 @@ def flatten(nav_html):
     return text
 
 
+LANG_HREF = re.compile(r"(<a class=\"cf-nav__lang\" href=\")[^\"]*\"")
+
+
 def normalise(flat):
-    """Remove the one lawful markup axis: the moving aria-current marker."""
-    return re.sub(r"\s+aria-current=\"[^\"]*\"", "", flat)
+    """Remove the two lawful markup axes: the moving aria-current marker, and
+    the language switch's target, which moves with the page it stands on."""
+    flat = re.sub(r"\s+aria-current=\"[^\"]*\"", "", flat)
+    return LANG_HREF.sub(r"\1…\"", flat)
 
 
 def divergence(a, b):

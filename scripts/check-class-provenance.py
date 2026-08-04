@@ -254,9 +254,21 @@ def declarations(body):
         if sep:
             yield prop.strip(), value.strip()
 
+# The English edition under patterns/en/ is generated, not written —
+# scripts/build-i18n.py builds it from the German page beside it and changes
+# only the words. It carries the same markup, the same classes, the same
+# thresholds and the same glass by construction, so every fact this file
+# keeps is already kept one directory up; asserting it twice would only mean
+# two tables to edit whenever one page changes. `build-i18n.py --check` is
+# what holds the mirror to its source. Same argument check-links.py makes
+# about the generated pages at the repository root.
+GENERATED = "patterns/en/"
+
 
 def pages():
     for path in sorted(DS.rglob("*.html")):
+        if path.relative_to(DS).as_posix().startswith(GENERATED):
+            continue
         yield path
 
 
