@@ -98,6 +98,20 @@ REGISTER = {
         "moves, and it is clamped to 14–28 px, so the fault above is bounded "
         "at 14 px on a leader rather than 300 px on a position",
     ),
+    ".lp-flow__src": (
+        "clamp(5px, 1cqi, 8px) — a bead diameter, read off sp-root, the "
+        "drawing's own inline-size container",
+        False,
+        "measured clean where .sp-annots was not: real vs appended-clone "
+        "computed width identical in pref-off AND pref-on Firefox 153 at "
+        "940/960/980/1000 (stacked, slope live), at 1020 (the fold's far "
+        "side, sp-root 890 -> 525 in one pass) and at 1850 (cap). The axis "
+        "the fold moves IS the container's own inline axis, which Gecko "
+        "evidently re-reads; the stale pass kept a *size* container's "
+        "height. Bounded at 3 px of diameter either way, not 300 of "
+        "position — but re-measure before trusting this row for a new "
+        "consumer",
+    ),
 }
 
 # The two boxes the sensor-note layer is made of, outermost first. Named by the
