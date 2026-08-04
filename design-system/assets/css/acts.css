@@ -1833,7 +1833,19 @@
          aber daraus keine Antworten" is act 1's sentence, and the root is
          the answer drawing itself. Outside the gate the two-column layout
          above still holds and nothing overlaps. */
-      .sp-stage__inner { grid-template-columns: 1fr; }
+      /* minmax(0, 1fr) AND NOT 1fr, because the drawing is now wider than the
+         column it stands in. `1fr` is `minmax(auto, 1fr)`, and an auto minimum
+         reads the item's own specified width — so the track grew to the
+         drawing's 1522 px inside a 1280 px container, the grid overflowed to
+         ONE side, and `justify-self: center` twelve rules down had nothing left
+         to centre: measured at 1682 x 1327, the drawing stood 201 to 1723 in a
+         1682 px viewport, its right-hand fringe 45 px off the screen and 121 px
+         of clear ground on the left. Flooring the track at 0 keeps it on the
+         column, the item overflows both sides evenly, and the source lands on
+         the viewport's centre line where the lectern's vertical continues it.
+         Same floor the base tier's own minmax(0,3fr) minmax(0,2fr) carries, and
+         for the same reason. */
+      .sp-stage__inner { grid-template-columns: minmax(0, 1fr); }
       .sp-stage__inner > .cf-statement__figure { grid-column: 1; grid-row: 1; }
       /* INSIDE THE GATE THE GROUND IS THE STAGE'S, WHOLE. The base tier clips
          it to the drawing's band because the stack puts prose under the
@@ -1857,8 +1869,73 @@
          arrive at a line. */
       .sp-stage > .container { --sp-head-band: 5.5rem; }
       /* THE STAGE'S HEIGHT, NOT THE VIEWPORT'S: the drawing is fitted to the
-         box it stands in, and that box gave the nav back its bar. */
-      .sp-drawing { --sp-measure: min(100%, calc((100vh - var(--act-bar) - 8rem - var(--sp-head-band)) * 1.9)); }
+         box it stands in, and that box gave the nav back its bar.
+
+         AND THE PAGE'S INNER BOX IS THE OTHER BRANCH, NOT THE COLUMN'S. The
+         first branch was `100%` — the content box of .sp-stage > .container,
+         which .container caps at --container-max. Both branches were meant to
+         be able to bind: the height one on a laptop, the width one when the
+         drawing would otherwise run off the sides. Above --container-max the
+         width branch stops being a width the viewport has any say in, so past
+         the crossover NEITHER branch tracks the stage and the height fit this
+         rule exists to perform simply stops. The crossover is where the height
+         branch passes 1280: (100vh - 100 - 128 - 88) * 1.9 = 1280 at a 990 px
+         viewport. Every pixel of height above that became dead air at the TOP
+         of the stage, because `align-content: end` stands the feet on the
+         bottom edge and puts the whole surplus in one band over the copy.
+         Measured on the shipped page, stage top to the first thing in it:
+
+           1024 x  720    30 px      1682 x 1327   392 px
+           1280 x  800    36 px      1920 x 1080   145 px
+           1440 x  900    46 px      2560 x 1440   505 px
+
+         The three under the crossover are the air the composition asks for.
+         The three over it are the same air plus everything the drawing did not
+         grow by, and at 1682 x 1327 — the window this was reported from — that
+         is a third of the stage with nothing in it above the copy.
+
+         SO THE WIDTH BRANCH IS THE PAGE'S INNER BOX AND NOT THE COLUMN'S, and
+         inside the gate that is the same answer the rest of the stage already
+         gives: .sp-field, .sp-stage::before and .sp-annots-fig are all
+         `inset: 0` of a full-bleed stage, and --sp-ground-clip is `none` in
+         here (this block, "THE GROUND IS THE STAGE'S, WHOLE"). The drawing was
+         the one layer still held to the column, in the one tier where nothing
+         else is.
+
+         --sp-bleed-stop IS WHERE IT STOPS, AND THE ACT RAIL IS WHAT STOPS IT.
+         The first draft of this took the page's inner box at 100vw - 2 gutters
+         — this file's own expression for it, the one --sp-ground is built on
+         fourteen hundred lines up — and at 1682 x 1327 that put the drawing's
+         left edge on 76 and its outermost leaf straight through the rail's
+         numerals, which stand from --space-6 to 108 (check-rail-margin.py, row
+         "96rem+"). The rail is fixed and the drawing is not, so the drawing is
+         what gives way: the stop is the rail's own extent plus --space-4, the
+         rung that check holds the rail's own clearance to. 24 + 84 + 16 = 124,
+         and the 3 units of ink the fringe carries past the viewBox on each
+         side are 3.6 px at this cap, so the leaf's tip clears the last numeral
+         by 12 px rather than crossing it.
+
+         max(), SO THIS CAN ONLY EVER WIDEN THE DRAWING. 100vw - 248 is NARROWER
+         than the column below about 1530 px of viewport, and a short wide
+         window is exactly where the height branch does not bind — at 1440 x
+         1200 the height branch is 1679 and the column 1280, so a bare bleed
+         stop would have taken 88 px OFF a drawing this rule is here to grow.
+         The width branch is therefore "the column, or the page's inner box
+         outside the rail's margin, whichever is wider", which is >= 100 % at
+         every width by construction.
+
+         THE HEADER STAYS ON THE COLUMN and that is why this moved on the
+         drawing rather than on the container. .sp-head is the other child of
+         that container — "Was wir machen", its count and the rule the nineteen
+         drops land on — and it is the same rule act 3's cards line up under,
+         one section down. Widening the container would have taken the rule and
+         the words out to the gutters with the drawing and broken that. */
+      .sp-drawing {
+        --sp-bleed-stop: calc(var(--space-6) + 84px + var(--space-4));
+        --sp-measure: min(
+          max(100%, calc(100vw - var(--sp-bleed-stop) * 2)),
+          calc((100vh - var(--act-bar) - 8rem - var(--sp-head-band)) * 1.9));
+      }
       /* AND CENTRED IN IT, WHICH IS THE HALF THE MEASURE CANNOT BUY.
          Fourteen lines up this block says the arrivals "only line up if the
          two share a width" — and then sizes the drawing off the viewport's
