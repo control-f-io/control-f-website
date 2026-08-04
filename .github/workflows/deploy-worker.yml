@@ -1,0 +1,53 @@
+name: Deploy the Worker
+
+# The second deploy, alongside deploy.yml. That one publishes the repo root to
+# GitHub Pages and keeps doing so; this one publishes the same root to
+# Cloudflare, with the Worker in front of it that answers the contact form's
+# POST. Both run on every merge, so the two stay identical in content and the
+# cutover is a DNS change rather than a merge.
+#
+# It needs two repository secrets — CLOUDFLARE_API_TOKEN and
+# CLOUDFLARE_ACCOUNT_ID — and does nothing until they exist, so merging this
+# file changes nothing on its own.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Without the token there is nothing to deploy to. Skipping beats failing:
+    # a red cross on every routine's merge would be noise, not a signal.
+    if: vars.CLOUDFLARE_ENABLED == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same reason as in deploy.yml: the root pages are generated from
+      # design-system/patterns/, five routines edit a pattern hourly, and
+      # building here means a forgotten `python3 scripts/build-site.py` cannot
+      # reach production. Still stdlib python, no dependencies.
+      - name: Build the site from the design system's patterns
+        run: python3 scripts/build-site.py
+
+      # Cloudflare needs a directory holding the website and nothing else.
+      # --check right after writing it is not redundant: it is what asserts
+      # that every directory index in the output is a URL the Worker actually
+      # serves, since html_handling = "none" no longer maps one.
+      - name: Collect the website into dist/
+        run: |
+          python3 scripts/stage-site.py
+          python3 scripts/stage-site.py --check
+
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
