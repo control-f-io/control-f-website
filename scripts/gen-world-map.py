@@ -365,12 +365,37 @@ px, py = place(((x0 + x1) / 2, (y0 + y1) / 2), SHOTS[1][1])
 emit(f'<span class="t-label map__tag map__tag--land" style="--s:1;--i:0;'
      f'--x:{num(px)}%;--y:{num(py)}%">Deutschland</span>')
 
+# A KEY, THEN A TALLY, AND ONLY THE KEY CAN CARRY A SWATCH. This block used to
+# be six rows each carrying the same lime dot -- six names against one mark, so
+# no point on the drawing could be assigned to a line, while the two points the
+# map DOES draw differently, the black offices, stood in no row at all. Six
+# marks is not the repair: the drawing has one accent, and two of these kinds
+# already share a coordinate (Dubai is `see` and `luft` 0.2 degrees apart, and
+# so is Singapore), so a per-kind colour would have to put two of them on one
+# dot. What the map draws is TWO marks, and those are what the key states. The
+# kinds keep their names and their counts as the tally of the second one, in a
+# second list under it, without a swatch that would promise a code. The two
+# lists carry one class between them: what tells them apart is the swatch in
+# the first, which is markup, and a modifier that styled nothing would be a
+# name for a difference the stylesheet does not make.
 block("legend")
+emit('<div class="map__legends">')
+emit('  <ul class="map__legend" role="list">')
+for i, (mod, label, n) in enumerate((("office", "Standorte", len(OFFICES)),
+                                     ("asset", "Anlagen",
+                                      sum(len(p) for _, _, p in ASSETS)))):
+    emit(f'    <li class="map__key" style="--i:{i}">'
+         f'<span class="map__key-dot map__key-dot--{mod}" aria-hidden="true"></span>'
+         f'<span class="t-label map__key-name">{label}</span>'
+         f'<span class="map__key-n">{n}</span></li>')
+emit('  </ul>')
+emit('  <ul class="map__legend" role="list">')
 for i, (kind, label, places) in enumerate(ASSETS):
-    emit(f'<li class="map__key" style="--k:{kind};--i:{i}">'
-         f'<span class="map__key-dot" aria-hidden="true"></span>'
+    emit(f'    <li class="map__key" style="--k:{kind};--i:{i + 2}">'
          f'<span class="t-label map__key-name">{label}</span>'
          f'<span class="map__key-n">{len(places)}</span></li>')
+emit('  </ul>')
+emit('</div>')
 
 block("shots")
 # THE DRAWING'S OWN RATIO, AND IT IS NOT THE BOX'S. A label carries --x/--y as
