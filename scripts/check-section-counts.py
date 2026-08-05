@@ -113,7 +113,6 @@ REGISTER = {
     # aria-labelledby, so the pairing is unchanged; only the key moved.
     # → scripts/check-sticky-address.py
     "prozess-titel": ('<article class="cf-process cf-pin__step"', "process step"),
-    "partner": ('<img src="../assets/img/partner/', "logo mark"),
     # The blog strip and the team grid left the landing page when the five acts
     # arrived (2026-07-29): act 4 IS the team, and the page the review asked for
     # is hero, acts, partners, FAQ, footer. Both components still exist and are
@@ -125,6 +124,18 @@ REGISTER = {
     # is that it is true, because the register is this one page. The rule the
     # loop below enforces — a registered id with no header on the page is a
     # fork — is why the entry goes rather than stays.
+    #
+    # AND THE PARTNER WALL FOLLOWED THE FAQ, 2026-08-05, to the same page and by
+    # the same route. Its entry read ("partner", '<img src="../assets/img/partner/',
+    # "logo mark") and was the strictest one here — the <img> is the thing the
+    # header's 7 is a count OF, and it cannot be present without a mark being
+    # drawn. That is exactly why it is worth saying plainly what is lost: the
+    # wall is now the only counted section on either page whose count nothing
+    # holds, and it is the section whose count moves most often, because a wall
+    # of third-party artwork gains and loses marks (tokens.css's 72rem row has
+    # been re-measured twice for that reason already). The counter is true today
+    # — seven marks, seven <li> — and it is true by inspection rather than by
+    # CI until this register learns a second page.
 }
 
 HEADER = re.compile(
