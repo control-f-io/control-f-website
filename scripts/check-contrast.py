@@ -88,10 +88,6 @@ rather than a use. The sweep now reads every stylesheet a pattern page links.
                                     you are — is carried at full contrast.
   components.css cf-pin-mark        the keyframe pair of the same chrome: the
                                     rest state it returns each mark to.
-  landing-page.html .lp-logo-wall   wordmarks in the partner wall. WCAG 1.4.3
-                                    exempts text that is part of a logo or
-                                    brand name, and a ghosted logo wall is the
-                                    convention the exemption exists for.
   base.css       .t-muted           the utility's DEFINITION and not a use.
                                     It is registered rather than special-cased
                                     because base.css is now swept like the
@@ -309,7 +305,15 @@ MUTED_EXEMPT = [
     ("components.css", "::placeholder", "supplements the label, never replaces it"),
     ("components.css", ".cf-pin__index", "ghosted chrome; the current step is inked"),
     ("components.css", "cf-pin-mark", "the same chrome's rest state"),
-    ("landing-page.html", ".lp-logo-wall", "wordmarks — WCAG 1.4.3 logotype exemption"),
+    # The fifth entry was ("landing-page.html", ".lp-logo-wall", "wordmarks —
+    # WCAG 1.4.3 logotype exemption") and it is gone with the rule it exempted,
+    # 2026-08-05. The rule set --text-muted on the partner wall's STAND-IN TEXT
+    # and stopped matching anything the day the wordmark SVGs landed; the wall
+    # itself moved to patterns/expertise.html and draws from .cf-logo-wall,
+    # which sets opacity and grayscale and no colour at all. So this is one
+    # fewer exemption rather than one relocated: an <img> has no --text-muted to
+    # register, and the logotype exemption is not needed to pass a sweep that
+    # only ever looked at type.
 ]
 
 
