@@ -1587,6 +1587,32 @@
   .map__tag i::before { content: " · "; }
   .map__tag--land { translate: -50% -50%; color: var(--text-primary); }
 
+  /* A KEY WITH ONE COLOUR IN IT KEYS NOTHING, and this was six rows of it.
+     Every .map__key-dot was --cf-lime, so the reader was handed six names
+     against one mark and no point on the drawing could be assigned to a line
+     — while the two points the map does draw differently, the CF-Schwarz
+     offices at Konstanz and Berlin, appeared in no row at all. Reported from
+     the page on 2026-08-05.
+
+     SIX MARKS IS NOT THE REPAIR. `--accent` is one lit element per object
+     (foundations/colors.html#one-per-screen) and six hues would be six; the
+     drawn dot is 8 px across at the world framing, which is the framing the
+     fallback tier, the reduced-motion reader and the printer all get; and two
+     of the kinds already share a coordinate — Dubai carries `see` and `luft`
+     0.2° apart and Singapore the same — so a per-kind colour would have to
+     put two of them on one dot.
+
+     So the key states the two marks the map actually draws, at the size it
+     draws them: the office dot is CF-Schwarz at 9, the asset dot lime at 5
+     inside the --border-strong contour at 8, and because both are
+     `vector-effect: non-scaling-stroke` those stroke widths ARE CSS pixels at
+     every camera scale. The swatches are the same two circles at the same two
+     diameters. Every dot on the drawing is now on a line of the key.
+
+     The six kinds keep their names and counts as what they always were — the
+     tally of the 27 the second line counts — in a list of their own under it,
+     without a swatch that would promise a code the drawing does not carry. */
+  .map__legends { display: grid; gap: var(--space-3); }
   .map__legend {
     display: flex;
     flex-wrap: wrap;
@@ -1597,11 +1623,46 @@
   }
   .map__key { display: flex; align-items: center; gap: var(--space-2); }
   .map__key-dot {
-    inline-size: 8px;
-    block-size: 8px;
     border-radius: var(--radius-full);
-    background: var(--cf-lime);
     flex: none;
+  }
+  .map__key-dot--office {
+    inline-size: 9px;
+    block-size: 9px;
+    background: var(--cf-schwarz);
+  }
+  /* THE CONTOUR IS THE DOT'S, not a decoration around a swatch: on the map an
+     asset point is two strokes, lime 5 inside black 8, and box-shadow is what
+     draws that ring here without giving the swatch a border box 3 px wider
+     than the mark it stands for. */
+  .map__key-dot--asset {
+    inline-size: 5px;
+    block-size: 5px;
+    background: var(--cf-lime);
+    box-shadow: 0 0 0 1.5px var(--border-strong);
+  }
+  /* FORCED COLOURS REPAINT THE KEY AND NOT THE DRAWING, which would leave the
+     one two blank gaps. An SVG's own fill and stroke are exempt, so under
+     Windows High Contrast the map still draws the CF-Schwarz office and the
+     lime asset while both swatches here measured rgb(255, 255, 255) — Canvas,
+     on Canvas — with the box-shadow ring dropped as well, exactly the way
+     .rule loses its background in base.css.
+
+     Redrawn with the two paints forced-colors keeps, and with the distinction
+     the drawing makes rather than the colours it makes it in: the office mark
+     is filled CanvasText, the asset mark is a CanvasText ring around Canvas.
+     Filled against hollow is not lime against black, and it does not have to
+     be — it has to tell two marks apart, and it is the same trade base.css
+     takes when the three dashed rules collapse to dashed and dotted. */
+  @media (forced-colors: active) {
+    .map__key-dot--office { background: CanvasText; }
+    .map__key-dot--asset {
+      inline-size: 8px;
+      block-size: 8px;
+      background: Canvas;
+      border: var(--stroke-1) solid CanvasText;
+      box-shadow: none;
+    }
   }
   .map__key-name { color: var(--text-secondary); }
   /* The count is the legend's payload — how many assets stand in that
