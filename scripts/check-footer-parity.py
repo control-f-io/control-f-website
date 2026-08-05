@@ -58,7 +58,7 @@ design-system/patterns/*.html, comments stripped:
                cf-btn--primary / kontakt.html / Kontakt aufnehmen) on every
                page except the two contact pages, which must carry the tel
                form (Lieber direkt sprechen? / cf-btn--outline /
-               tel:+4975311234560 / the number). A third form anywhere is a
+               tel:+49176[redacted] / the number). A third form anywhere is a
                finding either way.
   2. CURRENT   at most one footer link carries aria-current; it is "page"
                iff the href is the page itself, "true" iff SECTION_OF maps
@@ -131,8 +131,8 @@ CTA_REGULAR = (
 )
 CTA_TEL = (
     '<p class="cf-footer__title text-foil">Lieber direkt sprechen?</p>'
-    '<a class="cf-btn cf-btn--outline cf-btn--xwide" href="tel:+4975311234560">'
-    " +49 7531 123456-0 "
+    '<a class="cf-btn cf-btn--outline cf-btn--xwide" href="tel:+49176[redacted]">'
+    " +49 176 [redacted] "
     '<svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></a>'
 )
 
