@@ -21,33 +21,29 @@
    deshalb prüft renderForm() zusätzlich zur Laufzeit, dass die Übersicht
    wirklich eingefügt wurde.
 
-   DIE SELEKTOREN GELTEN FÜR BEIDE AUSGABEN. /en/kontakt.html ist dieselbe
-   Seite mit anderen Wörtern — build-i18n.py fasst weder id noch class noch
-   data-field an —, also braucht diese Datei keine zweite Tabelle. Was sich
-   unterscheidet, sind die Wörter, die sie einsetzt: die Beschriftung in der
-   Übersicht und die Themenliste, über deren Position eine Option wieder
-   ausgewählt wird. Beide kommen aus validate.js, beide je Ausgabe. */
+   ZWEI FORMULARE, EINE MECHANIK. Kontakt und Bewerbung unterscheiden sich in
+   ihren Feldern, ihren Beschriftungen und ihrer Auswahlliste — nicht darin, wie
+   eine Fehlerübersicht in eine Seite kommt. Deshalb steht hier keine Tabelle
+   mehr: renderForm() bekommt die des Formulars übergeben, aus validate.js oder
+   aus apply.js. Vier Ausgaben laufen durch diese Datei, zwei Formulare in je
+   zwei Sprachen, und keine davon steht in ihr.
 
-import { DEFAULT_LOCALE, FIELD_LABELS, TOPICS, summaryTitle } from "./validate.js";
+   DIE SELEKTOREN GELTEN FÜR BEIDE SPRACHEN. Die englische Ausgabe ist dieselbe
+   Seite mit anderen Wörtern — build-i18n.py fasst weder id noch class noch
+   data-field an —, also braucht kein Formular eine zweite Tabelle. */
+
+/* Nichts wird importiert. Diese Datei kannte bis zum Bewerbungsformular die
+   Tabellen des Kontaktformulars; jetzt bekommt sie sie übergeben, weil es zwei
+   Formulare gibt und beide dieselbe Mechanik brauchen. Was sie über ein
+   Formular weiß, steht in den Argumenten von renderForm(). */
 
 const ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
 const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ESCAPES[c]);
 
-/* Welches Eingabefeld zu welchem Feldnamen gehört, und in welchem Wrapper es
-   steckt. Eine Tabelle statt fünf Sonderfällen im Code. */
-const FIELDS = {
-  name:    { input: "#f-name",  wrapper: '[data-field="name"]',    kind: "input" },
-  email:   { input: "#f-mail",  wrapper: '[data-field="email"]',   kind: "input" },
-  company: { input: "#f-firma", wrapper: '[data-field="company"]', kind: "input" },
-  topic:   { input: "#f-topic", wrapper: '[data-field="topic"]',   kind: "select" },
-  message: { input: "#f-msg",   wrapper: '[data-field="message"]', kind: "textarea" },
-};
-
-function summaryHtml(errors, title, locale) {
+function summaryHtml(errors, title, labels) {
   /* Ein Eintrag trägt das Label seines Feldes vorweg — die Übersicht ist ein
      Index auf das Formular. Eine allgemeine Meldung (der Versand ist
      gescheitert) gehört zu keinem Feld und steht deshalb ohne Präfix da. */
-  const labels = FIELD_LABELS[locale] || FIELD_LABELS[DEFAULT_LOCALE];
   const items = errors
     .map((e) => {
       const label = e.field ? labels[e.field] : null;
@@ -71,9 +67,16 @@ function summaryHtml(errors, title, locale) {
 /* Setzt einen einzelnen Wert zurück ins Feld. Ein <input> trägt ihn als
    Attribut, ein <textarea> als Inhalt, ein <select> als selected auf der
    passenden Option — drei Mechanismen, weil HTML drei hat. */
-function refill(rewriter, field, value, locale) {
-  const spec = FIELDS[field];
+function refill(rewriter, fields, options, field, value) {
+  const spec = fields[field];
   if (!spec || !value) return;
+
+  /* Ein <input type="file"> lässt sich nicht zurückschreiben. Kein Browser
+     erlaubt es, und das ist richtig so: eine Seite, die den Dateiwähler eines
+     Lesers vorbelegen könnte, könnte sich selbst Dateien schicken. Wer einen
+     Fehler in einem anderen Feld hatte, muss die Anhänge also erneut wählen —
+     das Formular kündigt es an, damit es keine Überraschung ist. */
+  if (spec.kind === "file") return;
 
   if (spec.kind === "input") {
     rewriter.on(spec.input, {
@@ -101,10 +104,10 @@ function refill(rewriter, field, value, locale) {
      Vor den Themen steht "Bitte wählen", deshalb +2 auf den nullbasierten
      Index: nth-of-type zählt ab 1.
 
-     Die Liste ist die der Ausgabe. Beide haben fünf Themen in derselben
-     Reihenfolge, aber gesucht wird der Wert, der angekommen ist, und der ist
-     in der Sprache des Formulars, auf dem er ausgewählt wurde. */
-  const at = (TOPICS[locale] || TOPICS[DEFAULT_LOCALE]).indexOf(value);
+     Die Liste ist die der Ausgabe und die des Formulars: die Themen des
+     Kontaktformulars oder die Stellen des Bewerbungsformulars, jeweils in der
+     Sprache, in der sie ausgewählt wurden. */
+  const at = options.indexOf(value);
   if (at === -1) return;
   rewriter.on(`${spec.input} option:nth-of-type(${at + 2})`, {
     element(el) { el.setAttribute("selected", ""); },
@@ -117,8 +120,17 @@ function refill(rewriter, field, value, locale) {
    422 für Eingabefehler, 502 wenn der Mailversand gescheitert ist. Beide sind
    kein 200 — ein Fehlversuch darf nicht als Erfolg im Cache oder im Log
    landen. */
-export async function renderForm(assetResponse, { errors = [], values = {}, notice = null, status = 422, locale = DEFAULT_LOCALE }) {
-  const title = notice ? notice.title : summaryTitle(errors.length, locale);
+export async function renderForm(assetResponse, {
+  fields,
+  labels,
+  options = [],
+  title,
+  errors = [],
+  values = {},
+  notice = null,
+  status = 422,
+}) {
+  const heading = notice ? notice.title : title;
   const items = notice ? notice.items : errors;
 
   let injected = false;
@@ -128,13 +140,13 @@ export async function renderForm(assetResponse, { errors = [], values = {}, noti
      Kommentar ankündigt. */
   rewriter.on("form[method='post']", {
     element(el) {
-      el.before(summaryHtml(items, title, locale), { html: true });
+      el.before(summaryHtml(items, heading, labels), { html: true });
       injected = true;
     },
   });
 
   for (const err of errors) {
-    const spec = FIELDS[err.field];
+    const spec = fields[err.field];
     if (!spec) continue;
     const errorId = `${err.target}-error`;
 
@@ -162,7 +174,7 @@ export async function renderForm(assetResponse, { errors = [], values = {}, noti
     });
   }
 
-  for (const [field, value] of Object.entries(values)) refill(rewriter, field, value, locale);
+  for (const [field, value] of Object.entries(values)) refill(rewriter, fields, options, field, value);
 
   const out = rewriter.transform(
     new Response(assetResponse.body, {

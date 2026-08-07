@@ -78,13 +78,36 @@ WRANGLER = ROOT / "wrangler.toml"
 
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 
-# The two editions of the contact page, and the path each one posts to. The
-# English page is generated into patterns/en/ and ships to /en/ at the root;
-# both carry the same relative action, so each posts to its own address.
-EDITIONS = [
-    ("de", PATTERNS / "kontakt.html", "/kontakt.html"),
-    ("en", PATTERNS / "en" / "kontakt.html", "/en/kontakt.html"),
+# Two forms, two editions each — four pages, and every clause below runs
+# against all four. The English pages are generated into patterns/en/ and ship
+# to /en/ at the root.
+#
+# `module` is the file that holds this form's rules, and `options` the table in
+# it that the <select> has to agree with: the contact form offers topics, the
+# application form offers open positions. Everything else about the two is the
+# same shape, which is why one check covers both.
+FORMS = [
+    {
+        "name": "contact",
+        "module": "validate.js",
+        "options": "TOPICS",
+        "editions": [
+            ("de", PATTERNS / "kontakt.html", "/kontakt.html"),
+            ("en", PATTERNS / "en" / "kontakt.html", "/en/kontakt.html"),
+        ],
+    },
+    {
+        "name": "apply",
+        "module": "apply.js",
+        "options": "POSITIONS",
+        "editions": [
+            ("de", PATTERNS / "bewerbung.html", "/bewerbung.html"),
+            ("en", PATTERNS / "en" / "bewerbung.html", "/en/bewerbung.html"),
+        ],
+    },
 ]
+
+EDITIONS = [e for f in FORMS for e in f["editions"]]
 
 # The honeypot's name, written once here and asserted on both sides.
 HONEYPOT = "website"
@@ -104,7 +127,7 @@ LOCALE_TABLES = ("TOPICS", "FIELD_LABELS", "MESSAGES", "SEND_FAILED", "RATE_LIMI
 
 
 class FormReader(HTMLParser):
-    """Pulls the contact form's shape out of the pattern page.
+    """Pulls a form's shape out of the pattern page it stands on.
 
     Only the first <form method="post"> is read — the page has one, and clause
     5 is what keeps it that way.
@@ -125,6 +148,8 @@ class FormReader(HTMLParser):
         self.option_is_prompt = False
         self.option_buf = ""
         self.action = None
+        self.enctype = None
+        self.file_inputs = []            # name= of every <input type="file">
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
@@ -136,6 +161,7 @@ class FormReader(HTMLParser):
                 self.in_form = True
                 self.depth = 0
                 self.action = a.get("action")
+                self.enctype = a.get("enctype")
                 return
 
         if not self.in_form:
@@ -156,6 +182,8 @@ class FormReader(HTMLParser):
             name, ident = a.get("name"), a.get("id")
             if name:
                 self.names[name] = ident
+            if tag == "input" and (a.get("type") or "").lower() == "file" and name:
+                self.file_inputs.append(name)
             if self.stack and name:
                 self.wrappers[self.stack[-1][0]]["names"].append(name)
                 self.wrappers[self.stack[-1][0]]["ids"].append(ident)
@@ -191,7 +219,8 @@ class FormReader(HTMLParser):
             self.stack.pop()
         self.depth -= 1
 
-    def topics(self):
+    def options_list(self):
+        """The <select>'s values: every option that is not the empty prompt."""
         return [o for o in self.options if o]
 
 
@@ -232,21 +261,34 @@ def js_message_keys(text, locale):
 
 
 def js_forms(text):
-    """index.js's FORMS table: route -> (locale, thanks path)."""
+    """index.js's FORMS table: route -> (locale, thanks path).
+
+    Read key by key rather than as one fixed order, because the table grew a
+    `kind` between the two when the application form arrived and a positional
+    pattern would have silently matched nothing — which reads exactly like
+    "no form is routed" and sent this check chasing the wrong fault once.
+    """
     body = js_object(text, "FORMS")
     if body is None:
         return None
     out = {}
-    for row in re.finditer(
-        r'"([^"]+)":\s*\{\s*locale:\s*"(\w+)",\s*thanks:\s*"([^"]+)"', body
-    ):
-        out[row.group(1)] = (row.group(2), row.group(3))
+    for row in re.finditer(r'"([^"]+)":\s*\{([^}]*)\}', body):
+        entry = row.group(2)
+        locale = re.search(r'locale:\s*"(\w+)"', entry)
+        thanks = re.search(r'thanks:\s*"([^"]+)"', entry)
+        if locale and thanks:
+            out[row.group(1)] = (locale.group(1), thanks.group(1))
     return out
 
 
 def js_fields(text):
-    """render.js's FIELDS table: field -> (input selector, wrapper selector)."""
-    m = re.search(r"const FIELDS = \{(.*?)\n\};", text, re.S)
+    """A form module's FIELDS table: field -> (input selector, wrapper selector).
+
+    It used to live in render.js, which owned the one form there was. There are
+    two now and render.js owns neither: it takes the table as an argument, and
+    each form keeps its own beside its rules.
+    """
+    m = re.search(r"export const FIELDS = \{(.*?)\n\};", text, re.S)
     if not m:
         return None
     out = {}
@@ -276,20 +318,15 @@ def js_directories(text):
 
 def audit(verbose):
     findings = []
-    say = lambda msg: findings.append("  kontakt form: %s" % msg)
+    say = lambda msg: findings.append("  forms: %s" % msg)
 
-    validate_js = (WORKER / "validate.js").read_text(encoding="utf-8")
     render_js = (WORKER / "render.js").read_text(encoding="utf-8")
     index_js = (WORKER / "index.js").read_text(encoding="utf-8")
 
-    # 5. THE ANCHOR, worker side. Read once: one render.js serves both editions.
+    # 5. THE ANCHOR, worker side. Read once: one render.js serves every form.
     if 'rewriter.on("form[method=\'post\']"' not in render_js:
         say("render.js no longer selects form[method='post'] — the error "
             "summary has no anchor")
-
-    fields = js_fields(render_js)
-    if fields is None:
-        say("render.js has no readable FIELDS table")
 
     routes = js_forms(index_js)
     if routes is None:
@@ -299,142 +336,170 @@ def audit(verbose):
     readers = {}
     origins = {}
 
-    for locale, pattern, route in EDITIONS:
-        where = pattern.relative_to(ROOT)
-        tell = lambda msg, where=where: findings.append("  %s: %s" % (where, msg))
+    for form in FORMS:
+        module = (WORKER / form["module"]).read_text(encoding="utf-8")
+        fields = js_fields(module)
+        if fields is None:
+            say("worker/%s has no readable FIELDS table" % form["module"])
 
-        if not pattern.exists():
-            tell("does not exist — run python3 scripts/build-i18n.py")
-            continue
+        # 9. THE EDITIONS. Every table this form needs, in every language it
+        # is served in. The option table differs per form; the rest do not.
+        tables = ("FIELDS", form["options"], "FIELD_LABELS", "MESSAGES",
+                  "SEND_FAILED", "RATE_LIMITED", "COUNT_WORDS")
 
-        reader = FormReader()
-        reader.feed(COMMENT.sub("", pattern.read_text(encoding="utf-8")))
-        readers[locale] = reader
+        keysets = {}
 
-        # 5. THE ANCHOR, page side.
-        if reader.forms != 1:
-            tell('render.js inserts the summary before form[method="post"], '
-                 "which matches %d forms on the page — it must match exactly one"
-                 % reader.forms)
+        for locale, pattern, route in form["editions"]:
+            where = pattern.relative_to(ROOT)
+            tell = lambda msg, where=where: findings.append("  %s: %s" % (where, msg))
 
-        # 1. THE FIELD NAMES.
-        for line in reader.bare_wrappers:
-            tell("the .cf-field at line %d carries no data-field, so the Worker "
-                 "cannot mark it invalid" % line)
-
-        for field, info in sorted(reader.wrappers.items()):
-            if len(info["names"]) != 1:
-                tell("data-field=%r wraps %d named controls; it must wrap "
-                     "exactly one" % (field, len(info["names"])))
+            if not pattern.exists():
+                tell("does not exist — run python3 scripts/build-i18n.py")
                 continue
-            if info["names"][0] != field:
-                tell("data-field=%r at line %d wraps a control named %r — the "
-                     "attribute must carry the control's own name"
-                     % (field, info["line"], info["names"][0]))
 
-        # 2. THE IDS.
-        if fields is not None:
-            for field, (selector, wrapper) in sorted(fields.items()):
-                info = reader.wrappers.get(field)
-                if info is None:
-                    tell("render.js knows a field %r that this form does not have"
-                         % field)
+            reader = FormReader()
+            reader.feed(COMMENT.sub("", pattern.read_text(encoding="utf-8")))
+            readers[(form["name"], locale)] = reader
+
+            # 5. THE ANCHOR, page side.
+            if reader.forms != 1:
+                tell('render.js inserts the summary before form[method="post"], '
+                     "which matches %d forms on the page — it must match exactly one"
+                     % reader.forms)
+
+            # 1. THE FIELD NAMES.
+            for line in reader.bare_wrappers:
+                tell("the .cf-field at line %d carries no data-field, so the Worker "
+                     "cannot mark it invalid" % line)
+
+            for field, info in sorted(reader.wrappers.items()):
+                if len(info["names"]) != 1:
+                    tell("data-field=%r wraps %d named controls; it must wrap "
+                         "exactly one" % (field, len(info["names"])))
                     continue
-                want = '[data-field="%s"]' % field
-                if wrapper != want:
-                    tell("render.js selects the %r wrapper as %s, not %s"
-                         % (field, wrapper, want))
-                ident = info["ids"][0] if info["ids"] else None
-                if selector != "#%s" % ident:
-                    tell("render.js selects the %r control as %s, but this form "
-                         "gives it id=%r" % (field, selector, ident))
-            for field in sorted(set(reader.wrappers) - set(fields)):
-                tell("this form has a field %r that render.js does not know — it "
-                     "can never be marked invalid or refilled" % field)
+                if info["names"][0] != field:
+                    tell("data-field=%r at line %d wraps a control named %r — the "
+                         "attribute must carry the control's own name"
+                         % (field, info["line"], info["names"][0]))
 
-        # 3. THE TOPICS, against this edition's own list.
-        topics = js_branch(validate_js, "TOPICS", locale)
-        if topics is None:
-            tell("validate.js has no readable TOPICS branch for %r" % locale)
-        elif reader.topics() != topics:
-            tell("validate.js's %s TOPICS %r do not match this form's options "
-                 "%r — a topic outside the list is dropped on every submit"
-                 % (locale, topics, reader.topics()))
+            # 2. THE IDS.
+            if fields is not None:
+                for field, (selector, wrapper) in sorted(fields.items()):
+                    info = reader.wrappers.get(field)
+                    if info is None:
+                        tell("worker/%s knows a field %r that this form does not "
+                             "have" % (form["module"], field))
+                        continue
+                    want = '[data-field="%s"]' % field
+                    if wrapper != want:
+                        tell("worker/%s selects the %r wrapper as %s, not %s"
+                             % (form["module"], field, wrapper, want))
+                    ident = info["ids"][0] if info["ids"] else None
+                    if selector != "#%s" % ident:
+                        tell("worker/%s selects the %r control as %s, but this form "
+                             "gives it id=%r" % (form["module"], field, selector, ident))
+                for field in sorted(set(reader.wrappers) - set(fields)):
+                    tell("this form has a field %r that worker/%s does not know — it "
+                         "can never be marked invalid or refilled"
+                         % (field, form["module"]))
 
-        # 4. THE HONEYPOT.
-        if HONEYPOT not in reader.names:
-            tell("no %r field — the honeypot the Worker checks is gone" % HONEYPOT)
+            # 3. THE OPTIONS, against this edition's own list.
+            options = js_branch(module, form["options"], locale)
+            if options is None:
+                tell("worker/%s has no readable %s branch for %r"
+                     % (form["module"], form["options"], locale))
+            elif reader.options_list() != options:
+                tell("worker/%s's %s %s %r do not match this form's options %r — a "
+                     "value outside the list is dropped on every submit"
+                     % (form["module"], locale, form["options"], options,
+                        reader.options_list()))
 
-        # The form must reach the Worker route for its own edition, carrying
-        # the #fehler fragment so the browser lands on the summary without a
-        # script. Two shapes are legitimate and the check takes either:
-        #
-        #   kontakt.html#fehler   posting to its own address, which is right
-        #                         once the Worker serves the site itself
-        #   https://…/<route>     posting across origins, which is what the
-        #                         GitHub Pages arrangement needs, since Pages
-        #                         answers a POST with 405
-        #
-        # What is never right is an absolute address whose path is not this
-        # edition's route: an English form pointing at /kontakt.html would be
-        # answered in German, with the German topics, and nothing would look
-        # wrong until someone read the reply.
-        action = reader.action or ""
-        if action == "kontakt.html#fehler":
-            origins.setdefault("self", []).append(str(where))
-        elif action.startswith("https://"):
-            origin, _, rest = action[len("https://"):].partition("/")
-            origins.setdefault("https://" + origin, []).append(str(where))
-            if rest != "%s#fehler" % route.lstrip("/"):
-                tell("the form posts to https://%s/%s, but this edition's route "
-                     "is %s#fehler — the other edition's Worker would answer it, "
-                     "in the other language" % (origin, rest, route.lstrip("/")))
-        else:
-            tell("the form's action is %r — it must be either its own address "
-                 "with the #fehler fragment or an absolute https address ending "
-                 "in this edition's route" % reader.action)
+            # 4. THE HONEYPOT.
+            if HONEYPOT not in reader.names:
+                tell("no %r field — the honeypot the Worker checks is gone" % HONEYPOT)
 
-        # 9. THE EDITIONS. Every table needs this locale.
-        for table in LOCALE_TABLES:
-            if not js_has_branch(validate_js, table, locale):
-                tell("validate.js's %s has no %r branch — this edition would "
-                     "answer in another language, or not at all" % (table, locale))
+            # 9. Every table needs this locale.
+            for table in tables:
+                if table == "FIELDS":
+                    continue
+                if not js_has_branch(module, table, locale):
+                    tell("worker/%s's %s has no %r branch — this edition would "
+                         "answer in another language, or not at all"
+                         % (form["module"], table, locale))
 
-        # The route this edition posts to must be one the Worker answers.
-        if route not in routes:
-            tell("posts to %s, which index.js's FORMS table does not name — the "
-                 "asset server would answer the POST with a 200 and no mail "
-                 "would be sent" % route)
+            keysets[locale] = js_message_keys(module, locale)
 
-    # 4. THE HONEYPOT, worker side.
+            # The form must reach the Worker route for its own edition,
+            # carrying the #fehler fragment. Two shapes are legitimate:
+            # its own address, or an absolute one across origins, which is
+            # what the GitHub Pages arrangement needs since Pages answers a
+            # POST with 405. What is never right is an absolute address whose
+            # path is not this edition's route.
+            action = reader.action or ""
+            own = "%s#fehler" % route.rsplit("/", 1)[-1]
+            if action == own:
+                origins.setdefault("self", []).append(str(where))
+            elif action.startswith("https://"):
+                origin, _, rest = action[len("https://"):].partition("/")
+                origins.setdefault("https://" + origin, []).append(str(where))
+                if rest != "%s#fehler" % route.lstrip("/"):
+                    tell("the form posts to https://%s/%s, but this edition's route "
+                         "is %s#fehler — another form or another language would "
+                         "answer it" % (origin, rest, route.lstrip("/")))
+            else:
+                tell("the form's action is %r — it must be either its own address "
+                     "with the #fehler fragment or an absolute https address ending "
+                     "in this edition's route" % reader.action)
+
+            # A file field only works if the form says so. Without
+            # enctype="multipart/form-data" the browser sends the filename and
+            # not the file, and the Worker cannot tell the difference from a
+            # field that was filled in.
+            if reader.file_inputs and (reader.enctype or "").lower() != "multipart/form-data":
+                tell("the form has %d file field(s) but enctype=%r — without "
+                     "multipart/form-data the browser sends the name of each file "
+                     "and not the file itself"
+                     % (len(reader.file_inputs), reader.enctype))
+
+            if route not in routes:
+                tell("posts to %s, which index.js's FORMS table does not name — the "
+                     "asset server would answer the POST with a 200 and no mail "
+                     "would be sent" % route)
+            elif routes[route][0] != locale:
+                tell("is the %r edition, but index.js answers %s in %r"
+                     % (locale, route, routes[route][0]))
+
+        # 9. The message tables must offer the same keys across languages: a
+        # name present in one branch and missing in the other is a TypeError
+        # on submit.
+        known = {loc: k for loc, k in keysets.items() if k}
+        if len(known) == len(form["editions"]):
+            base_loc, base = next(iter(known.items()))
+            for loc, keys in known.items():
+                for missing in sorted(base - keys):
+                    say("worker/%s's MESSAGES.%s has no %r, which MESSAGES.%s "
+                        "defines — that field's error would throw on submit"
+                        % (form["module"], loc, missing, base_loc))
+                for extra in sorted(keys - base):
+                    say("worker/%s's MESSAGES.%s defines %r, which MESSAGES.%s "
+                        "does not — one edition would say something the other "
+                        "cannot" % (form["module"], loc, extra, base_loc))
+
+    # 4. THE HONEYPOT, worker side. One name, read once, for every form.
     if '"%s"' % HONEYPOT not in index_js:
         say("index.js no longer reads a field named %r" % HONEYPOT)
 
-    # Both editions must post to the SAME place. Half a cutover — one edition
-    # moved to the Worker's own domain and one still pointing at workers.dev —
-    # is the state in which one language's form works and the other's does not.
+    # Every form must post to the SAME place. Half a cutover — one form moved
+    # to the Worker's own domain and one still pointing at workers.dev — is the
+    # state in which one of them works and the other does not.
     if len(origins) > 1:
-        say("the two editions post to different places: %s" % "; ".join(
+        say("the forms post to different places: %s" % "; ".join(
             "%s from %s" % (o, ", ".join(p)) for o, p in sorted(origins.items())))
 
-    # 9. THE EDITIONS. The two message tables must offer the same keys: a name
-    # present in one branch and missing in the other is a TypeError on submit.
-    keysets = {loc: js_message_keys(validate_js, loc) for loc, _, _ in EDITIONS}
-    known = {loc: k for loc, k in keysets.items() if k}
-    if len(known) == len(EDITIONS):
-        base_loc, base = next(iter(known.items()))
-        for loc, keys in known.items():
-            for missing in sorted(base - keys):
-                say("validate.js's MESSAGES.%s has no %r, which MESSAGES.%s "
-                    "defines — that field's error would throw on submit"
-                    % (loc, missing, base_loc))
-            for extra in sorted(keys - base):
-                say("validate.js's MESSAGES.%s defines %r, which MESSAGES.%s "
-                    "does not — one edition would say something the other "
-                    "cannot" % (loc, extra, base_loc))
-
-    # 6. THE MESSAGES.
+    # 6. THE MESSAGES. German only, and only the contact form: the component
+    # pages are the design system's own documentation and are not translated.
     spec = FORMS_DOC.read_text(encoding="utf-8")
+    validate_js = (WORKER / "validate.js").read_text(encoding="utf-8")
     for quote in QUOTED:
         if quote not in validate_js:
             say("validate.js no longer uses the message %r" % quote)
@@ -447,6 +512,11 @@ def audit(verbose):
         for label, path in (("route", route), ("thanks page", thanks)):
             if not (ROOT / path.lstrip("/")).exists():
                 say("index.js's %s %s is not a page the build ships" % (label, path))
+
+    # A route the Worker answers that no form on this site posts to is either a
+    # page that was deleted or a table that was edited on one side only.
+    for route in sorted(set(routes) - {r for _, _, r in EDITIONS}):
+        say("index.js answers %s, but no pattern page posts to it" % route)
 
     # 8. THE WORKER'S REACH.
     first = worker_first()
@@ -468,12 +538,15 @@ def audit(verbose):
                     '"none", so that URL 404s' % path)
 
     if verbose and not findings:
-        for locale, _, route in EDITIONS:
-            reader = readers[locale]
-            print("  %s  %s" % (locale, route))
-            print("      wrappers  %s" % ", ".join(sorted(reader.wrappers)))
-            print("      topics    %s" % ", ".join(reader.topics()))
-            print("      thanks    %s" % routes[route][1])
+        for form in FORMS:
+            for locale, _, route in form["editions"]:
+                reader = readers[(form["name"], locale)]
+                files = ", ".join(reader.file_inputs) or "—"
+                print("  %-8s %s  %s" % (form["name"], locale, route))
+                print("      fields    %s" % ", ".join(sorted(reader.wrappers)))
+                print("      options   %s" % ", ".join(reader.options_list()))
+                print("      files     %s" % files)
+                print("      thanks    %s" % routes[route][1])
         print("  honeypot   %s" % HONEYPOT)
 
     return findings, readers
@@ -489,17 +562,17 @@ def main():
 
     if findings:
         print("\n".join(findings), file=sys.stderr)
-        print("\n%d finding%s between the contact pages and worker/."
+        print("\n%d finding%s between the form pages and worker/."
               % (len(findings), "" if len(findings) == 1 else "s"),
               file=sys.stderr)
         return 1
 
-    fields = len(readers["de"].wrappers) if "de" in readers else 0
-    topics = len(readers["de"].topics()) if "de" in readers else 0
-    print("form contract: %d fields, %d topics and the honeypot agree across "
-          "%d editions and worker/; the summary's anchor matches one form per "
-          "page, every route ships and wrangler.toml runs the Worker for all "
-          "of them." % (fields, topics, len(readers)))
+    fields = sum(len(r.wrappers) for r in readers.values())
+    files = sum(len(r.file_inputs) for r in readers.values())
+    print("form contract: %d pages — %d forms in %d editions — agree with worker/ "
+          "on %d fields and %d file fields; every route ships, is answered in its "
+          "own language and is named in run_worker_first."
+          % (len(readers), len(FORMS), len(readers) // max(len(FORMS), 1), fields, files))
     return 0
 
 

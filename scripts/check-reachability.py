@@ -70,6 +70,7 @@ STATE_OF = {
     "suche-leer.html": "suche.html",
     "karriere-leer.html": "karriere.html",
     "kontakt-danke.html": "kontakt.html",
+    "bewerbung-danke.html": "bewerbung.html",
     # The filtered archive: /news?thema=… is the canonical address, and the
     # chips and tag links that arrive there say so as query strings on the
     # canonical file. A link to the state document would claim a route that
