@@ -5909,8 +5909,15 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    add to a normal .section's. patterns/kontakt.html carried it over a plain
    .section and stood its footer off at 240 where every other page measures 120,
    which nothing caught because neither modifier was written down anywhere but
-   here. Both are on foundations/layout.html now. Change one, check the other. */
-.cf-footer--detached { margin-top: var(--section-gap); }
+   here. Both are on foundations/layout.html now. Change one, check the other.
+
+   THE NUMBER IS --section-gap-sm AND NOT --section-gap, for the reason base.css
+   gives over the rule that takes the same distance off every other page's last
+   section: this edge meets a black plate that has already ended the page and
+   spends 96 px of its own before the CTA, not a second section of content. The
+   two modifiers still make one gap rather than two — it is just a smaller one,
+   and it is the one number all sixteen pages now stand off at. */
+.cf-footer--detached { margin-top: var(--section-gap-sm); }
 /* Mark and copy are one centred lockup, which is how the footer is drawn on
    both plates: on landing-page.jpg the pair runs 334-865 in a 1200 frame and
    on ueber-uns.jpg 404-795 — both centred on 600 to within a pixel, not
@@ -5927,6 +5934,122 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   gap: var(--space-20);
   justify-content: center;
   padding-bottom: var(--space-24);
+}
+/* THE PLATE CATCHES THE LIGHT AS THE READER ARRIVES AT IT. The footer is the
+   site's one conversion CTA and the last block on every route, and it was the
+   only place a reader arrives at a control and nothing happens at all: the
+   button's specular rests off the right edge until a pointer finds it, and on
+   a page this tall a pointer is the one thing that has not moved for the last
+   several screens.
+
+   TWO PARTS, ONE ARRIVAL, both scrubbed by the reader's own hand over the
+   footer's `entry` range — from the moment its first pixel crosses the
+   viewport's bottom edge to the moment its own bottom edge reaches that same
+   edge, which on every page is exactly the document's last screen of scroll.
+   Nothing here is on the document clock, so a footer nobody has scrolled to
+   costs nothing. → scripts/check-idle-motion.py
+
+   THE LIGHT. --cf-specular is the registered percentage :hover and :active
+   already move on this button, and this is that same gesture on that same
+   property rather than a second one: the specular travels in from 150 % — off
+   the right edge, the rest value — crosses the plate at the hover position of
+   64 %, and leaves again by the time the page comes to rest.
+
+   IT ENDS WHERE IT RESTS, and that is the load-bearing part. `animation-fill-
+   mode` is left at `none`, so past the range the declared value is in charge
+   again and the hover state is the reader's. An animation that filled would
+   outrank :hover for the life of the page — animations beat author
+   declarations — and this button would never light under a pointer again.
+   Returning to 150 % is what makes the hand-back invisible: the animated value
+   and the declared one are the same number at the moment the animation stops
+   applying, so there is no step at the boundary to see.
+
+   THE FOIL. .text-foil swings on a line-of-sight model whose vertical term is
+   1 only when the type is at the middle of the screen, and base.css records
+   what that costs this one element — "a headline the reader cannot bring to
+   the centre of the screen is a headline they never look at square on",
+   measured between 90° and 108° here against the designed 116.57°. The footer
+   is the one foil moment on the site that CANNOT reach the middle of a
+   viewport, because there is no document under it left to scroll. So it takes
+   the per-element range that note weighed and set aside: the swing opens over
+   the footer's arrival and stays open, instead of turning back at a rake it
+   never reached.
+
+   --sight-h is untouched, and the two squarenesses multiply rather than add,
+   so cf-sight.js still flattens this headline for a reader sitting off to the
+   side of it and a reader with no script is exactly where they were. Firefox
+   has view() and no animation-range, so the gate hands it the swing base.css
+   already ships rather than half of this one. → base.css THE LINE OF SIGHT;
+   scripts/check-range-gate.py */
+@supports (animation-timeline: view()) and (animation-range: entry 0% entry 100%) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    /* THE TIMELINE IS THE FOOTER'S AND NOT EACH PART'S OWN, which is the whole
+       difference between an arrival and a flick. `animation-timeline: view()`
+       reads the ELEMENT's own view progress: on the button that is a 55 px box
+       whose entry range is 55 px of scroll, so the light crossed it while it
+       was still a sliver at the bottom edge and was over before the label
+       could be read — measured, the sweep finished 236 px of scroll before the
+       button was wholly on screen. A named timeline on .cf-footer gives both
+       parts the same range, and it is the range the reader experiences as
+       arriving at the footer. It needs no timeline-scope: a view-timeline-name
+       is visible to the declaring element's descendants, which both of these
+       are. Same mechanism .cf-pin names one act with. */
+    .cf-footer {
+      view-timeline-name: --cf-footer-arrival;
+      view-timeline-axis: block;
+    }
+    .cf-footer__title {
+      animation-name: cf-footer-foil;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --cf-footer-arrival;
+      animation-range: entry 0% entry 100%;
+    }
+    /* THE RANGE STOPS AT 90 % SO THE BUTTON IS THE READER'S AGAIN AT THE
+       BOTTOM OF THE PAGE. `entry 100%` on this element is the document's own
+       last pixel of scroll: progress arrives at exactly 1 and stays there, and
+       an animation at progress 1 is still in its ACTIVE phase — not its after
+       phase — so it keeps outranking :hover for as long as the reader sits at
+       the foot of the page. Measured: --cf-specular read 150 % under a pointer
+       that should have made it 64 %, on the one control the page is asking
+       them to press. Ending at 90 % puts the timeline past the range while
+       there is still scroll left, which is what puts the declared value —
+       and with it :hover and :active — back in charge. */
+    .cf-footer__cta .cf-btn--primary {
+      animation-name: cf-footer-invite;
+      animation-timing-function: linear;
+      animation-timeline: --cf-footer-arrival;
+      animation-range: entry 0% entry 90%;
+    }
+  }
+}
+@keyframes cf-footer-foil {
+  from { --sight-v: 0; }
+  to   { --sight-v: 1; }
+}
+/* The crossing is late in the range and not at its middle, because the range
+   is the footer's own height in scroll and the button is behind the viewport's
+   bottom edge for the first half of it. Measured, footer height and the point
+   in the range at which the button's own bottom edge clears that edge — twice
+   per viewport, because the consent banner is part of the footer's height on a
+   first visit and the reader who has answered it gets a shorter range:
+
+                  banner up          answered
+     1440 x 900   538 px  43.9 %   394 px  59.9 %
+     1280 x 800   578 px  40.8 %   434 px  54.4 %
+     1024 x 700   578 px  40.8 %   434 px  54.4 %
+      768 x 1024  897 px  45.5 %   664 px  61.5 %
+      390 x 844  1055 px  37.7 %   721 px  55.1 %
+
+   61.5 % is the worst of the ten, so a sweep centred on the range would spend
+   half its travel on a plate the reader cannot see whole. 80 % of an animation
+   that runs to `entry 90%` is 72 % of the footer's own arrival: the light
+   crosses a button that is entirely on screen in every one of the ten, and
+   still has the last fifth of its travel left to leave by. */
+@keyframes cf-footer-invite {
+  from { --cf-specular: 150%; }
+  80%  { --cf-specular: 64%; }
+  to   { --cf-specular: 150%; }
 }
 .cf-footer__mark { width: 12.5rem; opacity: 0.9; }
 /* THE MARK IS A FIXED RASTER-LIKE ASSET ON A PLATE FORCED COLOURS REPAINTS
