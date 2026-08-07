@@ -50,9 +50,10 @@
 
    Kein Skript ist an diesem Weg beteiligt, auf keiner Seite. */
 
-import { sendEnquiry } from "./mail.js";
+import * as apply from "./apply.js";
+import * as contact from "./validate.js";
+import { sendApplication, sendEnquiry } from "./mail.js";
 import { renderForm } from "./render.js";
-import { RATE_LIMITED, SEND_FAILED, validate } from "./validate.js";
 
 /* Die Kontaktseiten, je Ausgabe: der Pfad, an den sie postet, die Sprache, in
    der ihr geantwortet wird, und die Danke-Seite, auf die ein Erfolg umleitet.
@@ -61,8 +62,39 @@ import { RATE_LIMITED, SEND_FAILED, validate } from "./validate.js";
    Check liest diese Tabelle und prüft für jeden Eintrag, dass beide Dateien
    ausgeliefert werden und dass das Formular auf der Seite dazu passt. */
 const FORMS = {
-  "/kontakt.html":    { locale: "de", thanks: "/kontakt-danke.html" },
-  "/en/kontakt.html": { locale: "en", thanks: "/en/kontakt-danke.html" },
+  "/kontakt.html":      { locale: "de", kind: "contact", thanks: "/kontakt-danke.html" },
+  "/en/kontakt.html":   { locale: "en", kind: "contact", thanks: "/en/kontakt-danke.html" },
+  "/bewerbung.html":    { locale: "de", kind: "apply",   thanks: "/bewerbung-danke.html" },
+  "/en/bewerbung.html": { locale: "en", kind: "apply",   thanks: "/en/bewerbung-danke.html" },
+};
+
+/* Was ein Formular ausmacht, an einer Stelle je Art. `kind` in FORMS wählt
+   eine Zeile hier aus, und alles darunter — Validierung, Beschriftungen,
+   Auswahlliste, Versand, Fehlertexte — kommt aus dem Modul, das dazugehört.
+   Der Code darunter kennt den Unterschied nicht mehr.
+
+   `fileFields` ist der einzige Eintrag, der beim Kontaktformular leer ist: es
+   nimmt keine Dateien an, und ein Feld, das nicht in dieser Liste steht, wird
+   aus dem Body nie gelesen. */
+const KINDS = {
+  contact: {
+    module: contact,
+    textFields: ["name", "email", "company", "topic", "message"],
+    fileFields: [],
+    options: (locale) => contact.TOPICS[locale],
+    /* Der Eintrag der Übersicht, wenn kein Feld schuld ist: die Überschrift
+       des Abschnitts, in dem das Formular steht. */
+    failTarget: "schreiben",
+    send: (values, files, env, source) => sendEnquiry(values, env, source),
+  },
+  apply: {
+    module: apply,
+    textFields: ["name", "email", "position", "profile", "portfolio", "message"],
+    fileFields: apply.FILE_FIELDS,
+    options: (locale) => apply.POSITIONS[locale],
+    failTarget: "bewerben",
+    send: sendApplication,
+  },
 };
 
 /* Post/Redirect/Get. 303 und nicht 302: 303 schreibt vor, dass der Browser dem
@@ -130,9 +162,16 @@ export default {
 
 async function handleSubmit(request, env, ctx, url, route) {
   const locale = route.locale;
+  const kind = KINDS[route.kind];
+  const mod = kind.module;
+
   /* Die Bremse. Sie zählt pro IP und pro Minute und steht vor allem anderen,
      damit eine Flut nicht erst geparst und validiert wird. Zehn Absendeversuche
      in einer Minute erreicht kein Mensch, der ein Formular ausfüllt.
+
+     Sie steht bei einer Bewerbung noch aus einem zweiten Grund ganz vorn: erst
+     danach wird der Body gelesen, und der bringt hier bis zu zwölf Megabyte
+     mit. Was abgewiesen wird, wird nicht hochgeladen.
 
      Ohne Binding — etwa in einem lokalen `wrangler dev` ohne Netz — wird nicht
      gebremst statt zu scheitern. */
@@ -140,7 +179,7 @@ async function handleSubmit(request, env, ctx, url, route) {
   if (env.CONTACT_RATE_LIMIT) {
     const { success } = await env.CONTACT_RATE_LIMIT.limit({ key: ip });
     if (!success) {
-      return new Response(RATE_LIMITED[locale], {
+      return new Response(mod.RATE_LIMITED[locale], {
         status: 429,
         headers: { "content-type": "text/plain; charset=utf-8", "retry-after": "60" },
       });
@@ -152,50 +191,75 @@ async function handleSubmit(request, env, ctx, url, route) {
     form = await request.formData();
   } catch {
     /* Kein Formular im Body — das kommt von keinem Browser, der dieses
-       Formular abgeschickt hat. */
+       Formular abgeschickt hat. Bei einer Bewerbung ist es auch die Antwort
+       auf einen Upload, den Cloudflare wegen seiner Größe abgeschnitten hat. */
     return new Response("Bad Request", { status: 400 });
   }
 
   const raw = Object.fromEntries(
-    ["name", "email", "company", "topic", "message", "website"].map((k) => [k, form.get(k) ?? ""]),
+    [...kind.textFields, "website"].map((k) => [k, form.get(k) ?? ""]),
   );
 
-  /* Die Spamfalle aus patterns/kontakt.html: ein Feld namens "website" in einem
-     hidden-Container, das kein Screenreader liest und keine Tastatur erreicht.
-     Ist es ausgefüllt, war es ein Bot.
+  /* Die Spamfalle: ein Feld namens "website" in einem hidden-Container, das
+     kein Screenreader liest und keine Tastatur erreicht. Ist es ausgefüllt, war
+     es ein Bot. Beide Formulare tragen dieselbe.
 
      Die Antwort ist trotzdem die Danke-Seite. Ein Bot, dem man sagt, dass er
      erkannt wurde, wird angepasst; einer, der ein 303 auf die Danke-Seite
      bekommt, hat keinen Anlass dazu. Es wird still verworfen — genau das Wort,
      das im Kommentar des Formulars steht. */
-  if (raw.website.trim() !== "") return seeOther(thanksFor(env, route));
+  if (String(raw.website).trim() !== "") return seeOther(thanksFor(env, route));
 
-  const { values, errors } = validate(raw, locale);
+  /* Die Dateien, sofern dieses Formular welche kennt. form.get() liefert für
+     ein <input type="file"> ein File und für alles andere einen String; was
+     davon brauchbar ist, entscheidet apply.js. */
+  const uploads = {};
+  for (const field of kind.fileFields) uploads[field] = form.get(field);
+
+  const { values, files = {}, errors } = kind.fileFields.length
+    ? mod.validate(raw, uploads, locale)
+    : mod.validate(raw, locale);
+
+  /* Alles, was renderForm() über dieses Formular wissen muss. Einmal gebaut,
+     weil beide Fehlerwege es brauchen. */
+  const page = {
+    fields: mod.FIELDS,
+    labels: mod.FIELD_LABELS[locale],
+    options: kind.options(locale),
+    values,
+  };
 
   if (errors.length > 0) {
-    return renderForm(await loadForm(env, url), { errors, values, status: 422, locale });
+    return renderForm(await loadForm(env, url), {
+      ...page,
+      errors,
+      title: mod.summaryTitle(errors.length, locale),
+      status: 422,
+    });
   }
 
   try {
-    /* Die Adresse der Seite, von der die Anfrage kam, geht mit in die Mail —
-       an ihr ist zu sehen, in welcher Sprache geantwortet werden will. */
-    await sendEnquiry(values, env, `${url.host}${url.pathname}`);
+    /* Die Adresse der Seite, von der es kam, geht mit in die Mail — an ihr ist
+       zu sehen, in welcher Sprache geantwortet werden will. */
+    const attachments = kind.fileFields
+      .filter((field) => files[field])
+      .map((field) => ({ field, label: mod.FIELD_LABELS.de[field], file: files[field] }));
+    await kind.send(values, attachments, env, `${url.host}${url.pathname}`);
   } catch (err) {
     /* Der Grund gehört ins Log, nicht auf die Seite: er kann die
        Mail-Konfiguration verraten, und der Leser kann mit ihm nichts anfangen.
-       Was er stattdessen bekommt, ist der Weg, der noch offen ist — die
-       Adresse, die auf derselben Seite unter "Direkt" steht. */
-    console.error("kontakt: Versand gescheitert", err);
+       Was er stattdessen bekommt, ist der Weg, der noch offen ist. */
+    console.error(`${route.kind}: Versand gescheitert`, err);
     return renderForm(await loadForm(env, url), {
-      values,
+      ...page,
       status: 502,
-      locale,
+      title: mod.SEND_FAILED[locale].title,
       notice: {
-        title: SEND_FAILED[locale].title,
+        title: mod.SEND_FAILED[locale].title,
         items: [{
-          target: "direkt",
+          target: kind.failTarget,
           field: null,
-          message: SEND_FAILED[locale].message,
+          message: mod.SEND_FAILED[locale].message,
         }],
       },
     });
