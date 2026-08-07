@@ -41,6 +41,16 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PATTERNS = ROOT / "design-system" / "patterns"
+
+# THE SPECIMENS, AND NOT THE ARTICLES. patterns/beitrag-*.html is one post of
+# the news archive spliced into blog-artikel.html by scripts/build-articles.py —
+# a piece of content on a documented surface, not a surface. The index is a walk
+# through the system, and a card per published post would turn it into a reading
+# list: the specimen is already carded, and every article is arrived at the way
+# a reader arrives at one, from the archive on patterns/news.html.
+def specimens():
+    return [p for p in sorted(PATTERNS.glob("*.html"))
+            if not p.name.startswith("beitrag-")]
 INDEX = ROOT / "design-system" / "index.html"
 
 # Regions whose contents are documentation, not markup the browser acts on.
@@ -67,7 +77,7 @@ def main():
         cards.setdefault(m.group(1), text.count("\n", 0, m.start()) + 1)
 
     findings = []
-    for path in sorted(PATTERNS.glob("*.html")):
+    for path in specimens():
         target = "patterns/" + path.name
         line = cards.get(target)
         if line is None:
@@ -87,7 +97,7 @@ def main():
         return 1
 
     print("registered: %d pattern pages, every one carded in the section index."
-          % len(list(PATTERNS.glob("*.html"))))
+          % len(specimens()))
     return 0
 
 

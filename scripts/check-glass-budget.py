@@ -352,12 +352,22 @@ class GlassCounter(HTMLParser):
 # about the generated pages at the repository root.
 GENERATED = "patterns/en/"
 
+# The same argument, one page further: patterns/beitrag-*.html is one post of
+# the news archive spliced into blog-artikel.html by scripts/build-articles.py.
+# The glass on it is that page's glass, layer for layer — the consent banner and
+# nothing else — and it arrives there without anybody choosing it. Counted
+# separately, the census would gain a row per published post, every one of them
+# a copy of the row above it, and writing an article would fail this check until
+# somebody re-stamped a number that had not changed in meaning.
+GENERATED_PAGE = re.compile(r"^patterns/beitrag-.+\.html$")
+
 
 def pages():
     for path in sorted(DS.rglob("*.html")):
         if set(p.name for p in path.relative_to(DS).parents) & SKIP_DIRS:
             continue
-        if path.relative_to(DS).as_posix().startswith(GENERATED):
+        rel = path.relative_to(DS).as_posix()
+        if rel.startswith(GENERATED) or GENERATED_PAGE.match(rel):
             continue
         yield path
 

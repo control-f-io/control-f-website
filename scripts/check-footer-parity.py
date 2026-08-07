@@ -138,6 +138,21 @@ SECTION_OF = {
     "news-thema.html": "news.html",
 }
 
+
+def section_of(name):
+    """Which footer link a page marks as its section, or nothing.
+
+    Every published article is a child of News, and there is one per post:
+    scripts/build-articles.py splices content/news/ into blog-artikel.html and
+    writes beitrag-<name>.html. A table with a line per post would be a table
+    edited by whoever writes one, which is the cost the generator exists to
+    remove — and the specimen's own line above is what these pages inherit,
+    because the marker is in the footer they are built from.
+    """
+    if name.startswith("beitrag-"):
+        return "news.html"
+    return SECTION_OF.get(name)
+
 CTA_REGULAR = (
     '<p class="cf-footer__title text-foil">Jetzt Projekt starten!</p>'
     '<a class="cf-btn cf-btn--primary cf-btn--xwide" href="kontakt.html">'
@@ -241,7 +256,7 @@ def audit(path, canon, verbose):
             "is in one place at a time" % (rel, len(marked)))
     for href, _, cur in links:
         want = ("page" if href == name
-                else "true" if SECTION_OF.get(name) == href
+                else "true" if section_of(name) == href
                 else "")
         if (cur or "") != want and name != COMPONENT.name:
             findings.append(

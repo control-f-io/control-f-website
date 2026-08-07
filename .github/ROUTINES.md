@@ -99,6 +99,14 @@ looks the way it does:
   fences has its work overwritten by the next build and fails
   `build-news.py --check` in the meantime. Everything outside them, including
   the composition notes and the topic chips, is authored as usual.
+- **And neither are the article pages.** `patterns/beitrag-*.html` is one post
+  of that archive spliced into `patterns/blog-artikel.html` by
+  `scripts/build-articles.py` — one page per post that carries text, in both
+  editions. They are generated in full and an edit to one is lost on the next
+  build. The specimen is where the reading surface is worked on: everything
+  outside its `article:…` fences is shared by every published article, so a
+  change made there reaches all of them, and the fenced regions are the parts
+  that belong to one particular piece.
 - **Copy you write exists in two languages.** Every pattern page ships twice —
   German at the root, English from `design-system/patterns/en/` — and the
   English edition is generated, not written. If a run changes a word a reader
