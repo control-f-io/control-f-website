@@ -128,7 +128,13 @@ def stage(check):
     DIST.mkdir()
 
     for name in pages:
-        shutil.copy2(ROOT / name, DIST / name)
+        # Not every shipped page sits at the root any more: the English edition
+        # is sixteen pages under en/, and SHIP names them with that prefix.
+        # copy2 does not create the directory it is copying into, so a page in
+        # a subdirectory crashed this loop rather than landing in dist/.
+        dst = DIST / name
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / name, dst)
 
     # The stylesheets, scripts, fonts and images every page loads, plus the
     # documentation, which ships. One copy, the same one the patterns use.
