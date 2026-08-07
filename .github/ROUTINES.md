@@ -92,6 +92,13 @@ looks the way it does:
   on a reintroduction. Every check in that directory started as a bug that had
   already shipped twice.
 - **Never weaken a check to make a change pass.**
+- **The news archive is not markup you edit.** `design-system/patterns/news.html`
+  has four regions fenced by `<!-- news:… -->` comments — the cards, the year
+  axis, the counters and the pagination — and `scripts/build-news.py` writes
+  them from `content/news/`, one file per post. A lane that edits inside those
+  fences has its work overwritten by the next build and fails
+  `build-news.py --check` in the meantime. Everything outside them, including
+  the composition notes and the topic chips, is authored as usual.
 - **Copy you write exists in two languages.** Every pattern page ships twice —
   German at the root, English from `design-system/patterns/en/` — and the
   English edition is generated, not written. If a run changes a word a reader

@@ -15,6 +15,39 @@ python3 -m http.server 8000
 Then open <http://localhost:8000/design-system/>. It also works by opening
 `index.html` directly from disk.
 
+## Add a news post
+
+```bash
+python3 scripts/new-post.py "Neue Anlage in Konstanz ans Netz gegangen" \
+        --title "New plant in Konstanz connected to the grid" \
+        --autor "Henry Beiker" --minuten 3
+sh scripts/build-all.sh
+```
+
+That is the whole job. The first command writes one file under `content/news/`;
+the second lays out the archive, keeps its counters and its year axis true,
+translates what it generated, and rewrites the pages that ship. Both titles are
+required — the site ships in two languages and a half-translated page is what
+the catalogue exists to prevent — and the build says so rather than guessing.
+
+The post file is five lines and readable on its own:
+
+```
+datum:   2026-08-07          required, YYYY-MM-DD. Sorts the archive.
+autor:   Henry Beiker        optional. Only the lead card has room to show it.
+minuten: 3                   optional. Reading time, as the cards state it.
+titel:   Neue Anlage …       required, German.
+title:   New plant …         required, English.
+```
+
+Deleting a post is deleting its file and building again; nothing else has to be
+tidied up after it. **Do not edit the archive in `patterns/news.html`** — the
+four regions fenced by `<!-- news:… -->` are output, and `build-news.py --check`
+fails in CI when they drift from `content/news/`.
+
+Reasoning, and what is deliberately *not* generated, is in the header of
+`scripts/build-news.py`.
+
 ## Check it
 
 ```bash
