@@ -2,49 +2,88 @@
 
    Alles unter dieser Adresse ist eine statische Datei und wird von Cloudflares
    Asset-Auslieferung bedient, ohne dass dieser Code läuft — das regelt
-   run_worker_first in wrangler.toml, das genau einen Pfad nennt. Für
-   /kontakt.html läuft er, und auch dort tut er nur bei POST etwas: ein GET
-   reicht er an dieselbe statische Datei weiter, die jede andere Seite auch
+   run_worker_first in wrangler.toml, das die Pfade einzeln nennt. Für die
+   beiden Kontaktseiten läuft er, und auch dort tut er nur bei POST etwas: ein
+   GET reicht er an dieselbe statische Datei weiter, die jede andere Seite auch
    bekommt.
 
-   DAS FORMULAR MUSSTE DAFÜR NICHT GEÄNDERT WERDEN. Es steht seit jeher auf
-   method="post" action="kontakt.html#fehler" — es postet an die eigene
-   Adresse, weil die Antwort auf einen Fehler dieselbe Seite mit der
-   Fehlerübersicht ist. Genau das ist hier implementiert.
+   ZWEIMAL, WEIL ES DIE SEITE ZWEIMAL GIBT. /kontakt.html und /en/kontakt.html
+   sind dasselbe Formular mit anderen Wörtern, also muss dieser Worker beide
+   beantworten. Er tut es mit demselben Code: was sich unterscheidet, steht in
+   FORMS und in den Tabellen von validate.js.
 
-   DIE ZWEI AUSGÄNGE, beide aus dem Kommentar über dem Formular:
+   Ein POST auf einen Pfad, der hier nicht steht, erreicht diesen Code nicht,
+   sondern die Asset-Auslieferung, und die beantwortet ihn mit der Seite und
+   einem 200 — ein Absenden, das aussieht, als wäre es angekommen, und bei dem
+   nie eine Mail entsteht. Genau das war die englische Seite, bevor sie hier
+   stand.
 
-     Erfolg   303 See Other auf kontakt-danke.html. Post/Redirect/Get, damit ein
-              Neuladen die Nachricht nicht ein zweites Mal sendet.
-     Fehler   422 mit derselben Seite, ergänzt um die Übersicht unter id="fehler"
-              — dem Fragment, das action trägt. Der Browser landet dort von
-              selbst, ohne dass ein Skript läuft.
+   DAS FORMULAR POSTET NICHT MEHR AN DIE EIGENE ADRESSE, und das ist die eine
+   Stelle, an der die Übergangslösung sichtbar wird. Die Website steht auf
+   GitHub Pages, und GitHub Pages beantwortet einen POST mit 405 — auf einem
+   statischen Host gibt es nichts, was ein Formular entgegennähme. Also trägt
+   das Formular dort die absolute Adresse dieses Workers, und der Weg führt
+   über zwei Origins:
+
+     Erfolg   303 See Other auf die Danke-Seite von SITE_ORIGIN — also zurück
+              auf die Seite, von der der Leser kam. Post/Redirect/Get, damit
+              ein Neuladen die Nachricht nicht ein zweites Mal sendet.
+     Fehler   422 mit derselben Seite, ergänzt um die Übersicht unter
+              id="fehler" — dem Fragment, das action trägt. Der Browser landet
+              dort von selbst, ohne dass ein Skript läuft. Diese Seite ist die
+              Kopie DIESES Workers, unter seiner Adresse: eine Fehlerübersicht
+              muss serverseitig in das Dokument geschrieben werden, und das
+              kann nur der Server tun, der den POST bekommen hat.
+
+   Der Preis ist also, dass ein Leser mit einem Tippfehler im Formular auf der
+   workers.dev-Adresse landet. Das ist kein Fehler dieser Datei, sondern der
+   Grund, warum die Umstellung auf eine eigene Domain in wrangler.toml
+   vorbereitet steht: sobald sie kommt, sind beide Origins derselbe, SITE_ORIGIN
+   entfällt, und das Formular postet wieder an seine eigene Adresse.
 
    DAZU DIE VERZEICHNIS-INDIZES. wrangler.toml stellt html_handling auf "none",
    damit die Seiten unter ihren eigenen Namen erreichbar bleiben — jeder andere
    Modus beantwortet /kontakt.html mit einem 307 auf /kontakt und würde damit
    jede Adresse der Website ändern und das Formular ganz zerlegen. Der Preis
-   ist, dass "/" und "/design-system/" dann auf nichts zeigen. Die zwei
+   ist, dass "/", "/en/" und "/design-system/" dann auf nichts zeigen. Die drei
    Verzeichnisse, die eine index.html haben, bedient dieser Worker.
 
    Kein Skript ist an diesem Weg beteiligt, auf keiner Seite. */
 
 import { sendEnquiry } from "./mail.js";
 import { renderForm } from "./render.js";
-import { validate } from "./validate.js";
+import { RATE_LIMITED, SEND_FAILED, validate } from "./validate.js";
 
-const FORM_PATH = "/kontakt.html";
-const THANKS_PATH = "/kontakt-danke.html";
+/* Die Kontaktseiten, je Ausgabe: der Pfad, an den sie postet, die Sprache, in
+   der ihr geantwortet wird, und die Danke-Seite, auf die ein Erfolg umleitet.
+   Ein Eintrag hier ist eine Zeile mehr in run_worker_first — ohne sie läuft
+   dieser Worker für den Pfad nicht, und check-form-contract.py sagt es. Der
+   Check liest diese Tabelle und prüft für jeden Eintrag, dass beide Dateien
+   ausgeliefert werden und dass das Formular auf der Seite dazu passt. */
+const FORMS = {
+  "/kontakt.html":    { locale: "de", thanks: "/kontakt-danke.html" },
+  "/en/kontakt.html": { locale: "en", thanks: "/en/kontakt-danke.html" },
+};
 
 /* Post/Redirect/Get. 303 und nicht 302: 303 schreibt vor, dass der Browser dem
    Redirect mit GET folgt, und genau darum geht es. */
 const seeOther = (location) =>
   new Response(null, { status: 303, headers: { location, "cache-control": "no-store" } });
 
+/* Wohin ein Erfolg zurückführt.
+
+   Solange die Website auf GitHub Pages steht, kommt das Formular von dort und
+   nicht von hier: SITE_ORIGIN in wrangler.toml nennt diese Adresse samt
+   Unterverzeichnis, und der Leser landet nach dem Absenden wieder auf ihr. Ohne
+   SITE_ORIGIN bleibt der Pfad relativ, und dann ist die Danke-Seite die dieses
+   Workers — was nach der Umstellung auf eine eigene Domain das Richtige ist. */
+const thanksFor = (env, route) =>
+  env.SITE_ORIGIN ? `${env.SITE_ORIGIN}${route.thanks}` : route.thanks;
+
 /* Die Seite, die der Leser bei einem Fehler sieht, ist die Seite selbst — also
    wird sie hier geholt. Ein GET auf den eigenen Pfad, an die Assets gerichtet,
    nicht an den Worker: es entsteht keine Schleife. */
-const loadForm = (env, url) => env.ASSETS.fetch(new Request(new URL(FORM_PATH, url), { method: "GET" }));
+const loadForm = (env, url) => env.ASSETS.fetch(new Request(new URL(url.pathname, url), { method: "GET" }));
 
 /* Ein Verzeichnis zeigt auf seine index.html — das, was ein gewöhnlicher
    Dateiserver von selbst tut und was html_handling = "none" abschaltet.
@@ -59,13 +98,17 @@ function directoryIndex(request, env, url) {
   return env.ASSETS.fetch(new Request(new URL(`${url.pathname}index.html`, url), request));
 }
 
-const DIRECTORIES = new Set(["/", "/design-system", "/design-system/"]);
+/* Die drei Verzeichnisse mit einer index.html: die Website, die Dokumentation
+   und die englische Ausgabe. stage-site.py --check scheitert, wenn in dist/ ein
+   viertes auftaucht, das hier nicht steht. */
+const DIRECTORIES = new Set(["/", "/design-system", "/design-system/", "/en", "/en/"]);
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    const route = FORMS[url.pathname];
 
-    if (url.pathname !== FORM_PATH) {
+    if (!route) {
       if (DIRECTORIES.has(url.pathname)) return directoryIndex(request, env, url);
       return env.ASSETS.fetch(request);
     }
@@ -81,11 +124,12 @@ export default {
       });
     }
 
-    return handleSubmit(request, env, ctx, url);
+    return handleSubmit(request, env, ctx, url, route);
   },
 };
 
-async function handleSubmit(request, env, ctx, url) {
+async function handleSubmit(request, env, ctx, url, route) {
+  const locale = route.locale;
   /* Die Bremse. Sie zählt pro IP und pro Minute und steht vor allem anderen,
      damit eine Flut nicht erst geparst und validiert wird. Zehn Absendeversuche
      in einer Minute erreicht kein Mensch, der ein Formular ausfüllt.
@@ -96,7 +140,7 @@ async function handleSubmit(request, env, ctx, url) {
   if (env.CONTACT_RATE_LIMIT) {
     const { success } = await env.CONTACT_RATE_LIMIT.limit({ key: ip });
     if (!success) {
-      return new Response("Zu viele Anfragen. Bitte versuchen Sie es in einer Minute erneut.", {
+      return new Response(RATE_LIMITED[locale], {
         status: 429,
         headers: { "content-type": "text/plain; charset=utf-8", "retry-after": "60" },
       });
@@ -124,16 +168,18 @@ async function handleSubmit(request, env, ctx, url) {
      erkannt wurde, wird angepasst; einer, der ein 303 auf die Danke-Seite
      bekommt, hat keinen Anlass dazu. Es wird still verworfen — genau das Wort,
      das im Kommentar des Formulars steht. */
-  if (raw.website.trim() !== "") return seeOther(THANKS_PATH);
+  if (raw.website.trim() !== "") return seeOther(thanksFor(env, route));
 
-  const { values, errors } = validate(raw);
+  const { values, errors } = validate(raw, locale);
 
   if (errors.length > 0) {
-    return renderForm(await loadForm(env, url), { errors, values, status: 422 });
+    return renderForm(await loadForm(env, url), { errors, values, status: 422, locale });
   }
 
   try {
-    await sendEnquiry(values, env);
+    /* Die Adresse der Seite, von der die Anfrage kam, geht mit in die Mail —
+       an ihr ist zu sehen, in welcher Sprache geantwortet werden will. */
+    await sendEnquiry(values, env, `${url.host}${url.pathname}`);
   } catch (err) {
     /* Der Grund gehört ins Log, nicht auf die Seite: er kann die
        Mail-Konfiguration verraten, und der Leser kann mit ihm nichts anfangen.
@@ -143,16 +189,17 @@ async function handleSubmit(request, env, ctx, url) {
     return renderForm(await loadForm(env, url), {
       values,
       status: 502,
+      locale,
       notice: {
-        title: "Ihre Nachricht konnte gerade nicht gesendet werden",
+        title: SEND_FAILED[locale].title,
         items: [{
           target: "direkt",
           field: null,
-          message: "Bitte versuchen Sie es in einigen Minuten noch einmal — oder schreiben Sie uns direkt an info@control-f.io.",
+          message: SEND_FAILED[locale].message,
         }],
       },
     });
   }
 
-  return seeOther(THANKS_PATH);
+  return seeOther(thanksFor(env, route));
 }

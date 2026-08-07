@@ -185,11 +185,31 @@
                und auch dort nur bei POST; jede andere Seite kommt an ihm
                vorbei. Er fügt die Übersicht in genau dieses Dokument ein —
                vor das <form> — und schreibt die Werte zurück in die Felder.
-               Das Formular musste dafür nicht geändert werden: es postet an
-               die eigene Adresse, und das war immer schon die Voraussetzung
-               dafür, dass eine Antwort dieselbe Seite sein kann. -->
 
-          <form class="stack flow-8" method="post" action="kontakt.html#fehler" novalidate>
+               WARUM action EINE FREMDE ADRESSE IST, und zwar vorübergehend.
+               Diese Website steht auf GitHub Pages, solange der Relaunch
+               gebaut wird, und ein statischer Host beantwortet einen POST mit
+               405: dort ist niemand, der ein Formular entgegennimmt. Der
+               Worker läuft deshalb daneben, unter seiner eigenen Adresse, und
+               das Formular postet zu ihm hinüber. Für ein HTML-Formular ist
+               das kein Sonderfall — ein Absenden ist eine Navigation, kein
+               fetch, also ist keine CORS-Freigabe im Spiel und kein Skript
+               nötig.
+
+               Der Preis steht im Klartext hier, damit ihn niemand suchen muss:
+               bei einem Eingabefehler landet der Leser auf der Adresse des
+               Workers, weil nur der Server, der den POST bekommen hat, die
+               Fehlerübersicht in das Dokument schreiben kann. Bei Erfolg führt
+               ein 303 auf die Danke-Seite dieser Website zurück (SITE_ORIGIN
+               in wrangler.toml).
+
+               NACH DER UMSTELLUNG auf die eigene Domain wird hier wieder
+               kontakt.html#fehler stehen: dann ist der Worker diese Website,
+               und das Formular postet wieder an seine eigene Adresse. Die
+               Zeile ist der einzige Ort, an dem die Übergangslösung im Markup
+               steht. -->
+
+          <form class="stack flow-8" method="post" action="https://control-f-website.rapid-silence-2113.workers.dev/kontakt.html#fehler" novalidate>
 
             <!-- Spamfalle. `hidden` heißt: kein Screenreader liest sie, keine
                  Tastatur erreicht sie, kein Autofill füllt sie. Ein Bot, der

@@ -86,6 +86,35 @@ def configured_routes():
     return set(re.findall(r'"([^"]+)"', m.group(1)))
 
 
+def site_origin():
+    """SITE_ORIGIN from wrangler.toml, or None.
+
+    It is set exactly while some OTHER host is the canonical site — today
+    GitHub Pages, which cannot answer the contact form's POST and so sends it
+    across to the Worker. Its presence is therefore the same fact as "this
+    deployment is the second copy of the website", which is what HEADERS below
+    is about.
+    """
+    src = (ROOT / "wrangler.toml").read_text(encoding="utf-8")
+    m = re.search(r'^SITE_ORIGIN = "([^"]+)"', src, re.M)
+    return m.group(1) if m else None
+
+
+# Cloudflare reads _headers out of the assets directory the way Pages does; it
+# is configuration and is not served as a file.
+#
+# WHY: while GitHub Pages is the canonical site, this deployment is a second
+# public copy of the same pages, and a search engine that finds both picks the
+# winner itself. The reader still reaches this copy — the form's error page is
+# served from here — so it has to work; it just must not compete.
+#
+# It is written from site_origin() rather than typed into the repository so the
+# two cannot disagree: at the cutover SITE_ORIGIN goes, this file stops being
+# written, and the site becomes indexable in the same commit. --check holds
+# that, so neither half can be forgotten.
+HEADERS = "/*\n  X-Robots-Tag: noindex\n"
+
+
 def stage(check):
     pages = ship_names()
     missing = [p for p in pages if not (ROOT / p).exists()]
@@ -105,6 +134,23 @@ def stage(check):
             stale.append("design-system/")
         if stale:
             print("stage-site: dist/ is stale — %s" % ", ".join(stale), file=sys.stderr)
+            return 1
+
+        headers = DIST / "_headers"
+        wanted = site_origin() is not None
+        if wanted and not headers.exists():
+            print("stage-site: SITE_ORIGIN is set, so another host is the "
+                  "canonical site, but dist/_headers is missing — this copy "
+                  "would compete with it in search results.", file=sys.stderr)
+            return 1
+        if not wanted and headers.exists():
+            print("stage-site: dist/_headers marks this copy noindex, but "
+                  "SITE_ORIGIN is gone — if this deployment is now the site, "
+                  "that header hides it from search entirely.", file=sys.stderr)
+            return 1
+        if wanted and headers.read_text(encoding="utf-8") != HEADERS:
+            print("stage-site: dist/_headers is not what this script writes.",
+                  file=sys.stderr)
             return 1
 
         served = configured_routes()
@@ -128,11 +174,20 @@ def stage(check):
     DIST.mkdir()
 
     for name in pages:
-        shutil.copy2(ROOT / name, DIST / name)
+        # Not every shipped page sits at the root any more: the English edition
+        # is sixteen pages under en/, and SHIP names them with that prefix.
+        # copy2 does not create the directory it is copying into, so a page in
+        # a subdirectory crashed this loop rather than landing in dist/.
+        dst = DIST / name
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / name, dst)
 
     # The stylesheets, scripts, fonts and images every page loads, plus the
     # documentation, which ships. One copy, the same one the patterns use.
     shutil.copytree(ROOT / "design-system", DIST / "design-system")
+
+    if site_origin() is not None:
+        (DIST / "_headers").write_text(HEADERS, encoding="utf-8")
 
     total = sum(1 for _ in DIST.rglob("*") if _.is_file())
     print("dist built — %d pages, %d files in all." % (len(pages), total))

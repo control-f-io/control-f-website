@@ -31,10 +31,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Same reason as in deploy.yml: the root pages are generated from
-      # design-system/patterns/, five routines edit a pattern hourly, and
-      # building here means a forgotten `python3 scripts/build-site.py` cannot
-      # reach production. Still stdlib python, no dependencies.
+      # Same reason as in deploy.yml, and in the same order: the root pages are
+      # generated from design-system/patterns/, five routines edit a pattern
+      # hourly, and building here means a forgotten `python3
+      # scripts/build-site.py` cannot reach production. Still stdlib python, no
+      # dependencies.
+      #
+      # The English edition first, because build-site.py ships
+      # design-system/patterns/en/ as /en/ and that directory is itself
+      # generated from the German patterns. Without this step the sixteen
+      # English pages would be whatever was last committed — including
+      # /en/kontakt.html, which is one of the two pages the Worker answers.
+      - name: Build the English edition from the German patterns
+        run: python3 scripts/build-i18n.py
+
       - name: Build the site from the design system's patterns
         run: python3 scripts/build-site.py
 
