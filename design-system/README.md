@@ -53,7 +53,9 @@ and pushes the result through the same gate every other change goes through. The
 admin's loop is then one place: write the post, set **Status** to
 `Veröffentlicht`, and it is on the site within the hour.
 
-The database needs six properties, named exactly:
+**The database exists**: [News (Website)](https://app.notion.com/p/3b52e8e3987781138144cfea278747d8),
+under *Branding / Marketing*, seeded with the eighteen posts that were already in
+`content/news/`. Its six properties are the ones the script reads:
 
 | Property | Type | |
 |---|---|---|
@@ -62,16 +64,12 @@ The database needs six properties, named exactly:
 | `Datum` | Date | sorts the archive |
 | `Autor` | Text | optional; only the lead card has room to show it |
 | `Minuten` | Number | optional; reading time |
-| `Status` | Select | only `Veröffentlicht` is imported |
+| `Status` | Select | `Entwurf` → `In Review` → `Veröffentlicht`; only the last is imported |
 
-Then, once:
+What is left is two secrets, under **Settings → Secrets and variables → Actions**:
 
-1. create an **internal integration** at <https://notion.so/my-integrations>;
-2. open the database → **⋯ → Connections** → add it (a 404 from the script is
-   almost always this step);
-3. add `NOTION_TOKEN` (the integration secret) and `NOTION_NEWS_DB` (the 32 hex
-   characters in the database URL) under **Settings → Secrets and variables →
-   Actions**.
+    NOTION_TOKEN     the website_news integration's secret
+    NOTION_NEWS_DB   3b52e8e3-9877-8113-8144-cfea278747d8
 
 Until both secrets exist the workflow exits quietly rather than failing hourly.
 
