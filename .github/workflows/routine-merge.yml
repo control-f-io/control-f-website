@@ -40,6 +40,27 @@ on:
   push:
     branches: ['routine/system-pages-**']
   workflow_dispatch:
+  # AND CALLABLE, because the one push this file cannot see is a workflow's own.
+  #
+  # The rule in the header — "a pull request opened with GITHUB_TOKEN does not
+  # trigger other workflows" — is not about pull requests. It is about the
+  # token, and it applies to a push just as squarely. The routine pushes with a
+  # user credential, so its branches raise this workflow; news-sync.yml pushes
+  # with `github.token`, so its branch sat on the remote with no run against it
+  # and nobody watching. Measured: branch routine/system-pages-news-20260807-2155
+  # pushed at 21:55, zero runs of this workflow for that ref, ninety-six files
+  # of imported archive stranded until somebody opened the PR by hand.
+  #
+  # A caller therefore says which branch it means, instead of relying on an
+  # event that will not arrive. Everything below reads that input when it is
+  # given and the pushed ref when it is not, so the two entrances gate exactly
+  # the same way.
+  workflow_call:
+    inputs:
+      branch:
+        description: The routine branch to gate and merge
+        type: string
+        required: true
 
 # Least privilege that can do the job: write the merge commit, write the PR.
 permissions:
@@ -56,9 +77,14 @@ jobs:
   gate-and-merge:
     runs-on: ubuntu-latest
     steps:
+      # The branch, not the ref that started this. On a push they are the same
+      # string; on a call the caller is sitting on main and the work is on the
+      # branch it names, and a gate run against main would pass without ever
+      # looking at what it is about to merge.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ inputs.branch || github.ref_name }}
 
       # The same forty checks design-system.yml runs, in the same order, with
       # the same python. Every one must pass; the list is globbed rather than
@@ -82,7 +108,7 @@ jobs:
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
-          BRANCH: ${{ github.ref_name }}
+          BRANCH: ${{ inputs.branch || github.ref_name }}
         run: |
           url=$(gh pr list --head "$BRANCH" --state open --json url --jq '.[0].url // empty')
           if [ -z "$url" ]; then
