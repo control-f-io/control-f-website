@@ -218,6 +218,18 @@ export function validate(raw, locale = DEFAULT_LOCALE) {
   return { values, errors };
 }
 
+/* Welches Eingabefeld zu welchem Feldnamen gehört, und in welchem Wrapper es
+   steckt. render.js liest diese Tabelle, statt sie zu besitzen: es gibt zwei
+   Formulare auf dieser Website und nur eine Mechanik, die Fehler in eine Seite
+   schreibt. Die des Bewerbungsformulars steht in apply.js. */
+export const FIELDS = {
+  name:    { input: "#f-name",  wrapper: '[data-field="name"]',    kind: "input" },
+  email:   { input: "#f-mail",  wrapper: '[data-field="email"]',   kind: "input" },
+  company: { input: "#f-firma", wrapper: '[data-field="company"]', kind: "input" },
+  topic:   { input: "#f-topic", wrapper: '[data-field="topic"]',   kind: "select" },
+  message: { input: "#f-msg",   wrapper: '[data-field="message"]', kind: "textarea" },
+};
+
 /* Die Beschriftung, unter der ein Feld in der Übersicht auftaucht. Sie ist das
    Label aus dem Formular, denn die Übersicht ist ein Index auf das Formular und
    muss dessen Wörter benutzen — auf jeder der beiden Seiten die ihren. */

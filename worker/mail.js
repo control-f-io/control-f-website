@@ -58,7 +58,7 @@ function bodyFor(values, source) {
    Die einzige Stelle, die einen Anbieter kennt. Wirft bei jedem Ausgang, der
    keine zugestellte Mail ist — der Aufrufer entscheidet, was der Leser davon
    sieht. */
-async function sendViaResend(env, { from, to, replyTo, subject, text }) {
+async function sendViaResend(env, { from, to, replyTo, subject, text, attachments = [] }) {
   const res = await fetch(RESEND_ENDPOINT, {
     method: "POST",
     headers: {
@@ -74,6 +74,10 @@ async function sendViaResend(env, { from, to, replyTo, subject, text }) {
       reply_to: replyTo,
       subject,
       text,
+      /* Weggelassen, wenn es keine gibt: Resend nimmt ein leeres Array zwar
+         an, aber eine Kontaktanfrage hat keine Anhänge und soll auch keine
+         leere Liste mitschicken. */
+      ...(attachments.length ? { attachments } : {}),
     }),
   });
 
@@ -97,5 +101,101 @@ export async function sendEnquiry(values, env, source) {
     replyTo: values.email,
     subject: subjectFor(values),
     text: bodyFor(values, source),
+  });
+}
+
+/* ---- Bewerbungen ---------------------------------------------------------
+
+   Dieselbe Leitung, ein Anhang mehr. Was eine Bewerbung von einer Anfrage
+   unterscheidet, steht in diesem Abschnitt und nirgends sonst; sendViaResend()
+   oben weiß nicht, welche von beiden es gerade zustellt. */
+
+/* base64, in Blöcken.
+
+   Der naheliegende Einzeiler — btoa(String.fromCharCode(...bytes)) — geht bei
+   einer Datei dieser Größe nicht: das Spread reicht jedes Byte als eigenes
+   Argument weiter, und bei einigen zehntausend Argumenten ist der Stack voll.
+   Der Wert ist bis dahin plausibel, weshalb es an einer kleinen Testdatei nicht
+   auffällt und an einem echten Lebenslauf schon. 0x8000 Bytes pro Block ist die
+   übliche sichere Größe. */
+function base64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  const CHUNK = 0x8000;
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+}
+
+/* Der Dateiname, wie er im Postfach ankommt: "Nachname, Vorname — Lebenslauf"
+   statt "cv_final_v3(2).pdf". Ein Postfach sortiert nach dem, was im Namen
+   steht, und der Name, den ein Anhang mitbringt, ist der des Rechners, von dem
+   er kam.
+
+   Der Name des Absenders wird auf das reduziert, was in einem Dateinamen nichts
+   kaputt macht — kein Schrägstrich, kein Doppelpunkt, kein Steuerzeichen. Die
+   Endung bleibt, wie sie war: sie sagt dem Postfach, womit es zu öffnen ist. */
+function attachmentName(person, label, original) {
+  const dot = original.lastIndexOf(".");
+  const ext = dot === -1 ? "" : original.slice(dot).toLowerCase();
+  const safe = person.replace(/[^\p{L}\p{N} .-]/gu, "").trim().slice(0, 60) || "Bewerbung";
+  return `${safe} — ${label}${ext}`;
+}
+
+function applicationSubject(values) {
+  return `Bewerbung: ${values.position} — ${values.name}`;
+}
+
+/* Der Fließtext. Die Anhänge stehen mit Namen und Größe drin, damit im Postfach
+   auf einen Blick zu sehen ist, was mitgekommen sein sollte — eine Mail, der
+   ein Anhang unterwegs verloren geht, sieht sonst vollständig aus. */
+function applicationBody(values, files, source) {
+  const lines = [
+    `Name:      ${values.name}`,
+    `E-Mail:    ${values.email}`,
+    `Stelle:    ${values.position}`,
+  ];
+  if (values.profile) lines.push(`Profil:    ${withScheme(values.profile)}`);
+  if (values.portfolio) lines.push(`Portfolio: ${withScheme(values.portfolio)}`);
+
+  lines.push("", "Anhänge:");
+  for (const { label, file } of files) {
+    lines.push(`  - ${label}: ${file.name} (${Math.round(file.size / 1024)} kB)`);
+  }
+
+  if (values.message) lines.push("", values.message);
+  lines.push("", "--", `Gesendet über das Bewerbungsformular auf ${source}`);
+  return lines.join("\n");
+}
+
+/* Ein Link ohne Schema ist in einer Nur-Text-Mail nicht anklickbar, und
+   "github.com/name" ist das, was Menschen in ein Feld schreiben. */
+const withScheme = (url) => (/^https?:\/\//i.test(url) ? url : `https://${url}`);
+
+/* files: [{ field, label, file }] — die Datei ist ein File aus formData().
+   Sie wird hier erst gelesen, also so spät wie möglich: eine Bewerbung, die an
+   der Validierung scheitert, hat nie im Speicher gestanden. */
+export async function sendApplication(values, files, env, source) {
+  const to = env.APPLY_TO || env.CONTACT_TO;
+  if (!env.RESEND_API_KEY || !env.CONTACT_FROM || !to) {
+    throw new Error("Mailversand nicht konfiguriert: RESEND_API_KEY, CONTACT_FROM oder APPLY_TO fehlt");
+  }
+
+  const attachments = [];
+  for (const { label, file } of files) {
+    attachments.push({
+      filename: attachmentName(values.name, label, file.name),
+      content: base64(await file.arrayBuffer()),
+    });
+  }
+
+  await sendViaResend(env, {
+    from: env.CONTACT_FROM,
+    to,
+    replyTo: values.email,
+    subject: applicationSubject(values),
+    text: applicationBody(values, files, source),
+    attachments,
   });
 }

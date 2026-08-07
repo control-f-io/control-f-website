@@ -290,10 +290,11 @@ ALT_DE = re.compile(r'(<link rel="alternate" hreflang="de" href=")([a-z0-9-]+\.h
 # so this file has no opinion about which Worker the form talks to, and the
 # cutover changes one line of one pattern page rather than two files.
 #
-# Only kontakt.html has a form, so unlike the four edits above this one is
+# The page name is matched rather than written, so a third form needs no edit
+# here. Only two pages carry one, so unlike the four edits above this one is
 # allowed to match nothing.
-ACTION = re.compile(r'(action="https://[^"]+)/kontakt\.html#fehler"')
-ACTION_EN = r'\1/en/kontakt.html#fehler"'
+ACTION = re.compile(r'(action="https://[^"/]+)/([a-z0-9-]+\.html#fehler")')
+ACTION_EN = r'\1/en/\2'
 
 
 def once(doc, pattern, repl, name, what):
