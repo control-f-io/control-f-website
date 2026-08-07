@@ -8,13 +8,22 @@ name: News from Notion
 # content/news/, and build-news.py lays out the page from those files exactly as
 # it does for a post written with new-post.py. One store, two ways in.
 #
-# IT PUSHES A BRANCH RATHER THAN COMMITTING TO main, and the branch prefix is
-# the one .github/workflows/routine-merge.yml already gates:
-# routine/system-pages-**. So a sync goes through the same forty checks every
-# other change does, arrives as a pull request whose body says what moved, and
-# merges only if it is green. A workflow that pushed straight to main would be
-# the one path into this repository with no gate on it, and it would be the path
-# taken by an unattended job reading an external service.
+# IT PUSHES A BRANCH RATHER THAN COMMITTING TO main, and then CALLS the gate on
+# it: .github/workflows/routine-merge.yml, the same one the hourly routine's
+# branches go through. So a sync takes the same forty checks every other change
+# does, arrives as a pull request whose body says what moved, and merges only if
+# it is green. A workflow that pushed straight to main would be the one path
+# into this repository with no gate on it, and it would be the path taken by an
+# unattended job reading an external service.
+#
+# CALLED AND NOT LEFT TO THE PUSH EVENT, and this cost a run to learn. A push
+# made with GITHUB_TOKEN does not trigger other workflows — the same rule
+# routine-merge.yml states for pull requests, which is about the token and not
+# about the event. This file used to push the branch and say the gate would pick
+# it up; it did not. Branch routine/system-pages-news-20260807-2155 was pushed
+# at 21:55 with the whole archive on it, zero runs started, and it stayed on the
+# remote until a person opened the pull request. The branch is now handed over
+# by name instead of by hope.
 #
 # NOTHING RUNS WITHOUT THE SECRET. NOTION_TOKEN is an internal integration's
 # token, added in Settings → Secrets and variables → Actions, and NOTION_NEWS_DB
@@ -33,8 +42,12 @@ on:
         type: boolean
         default: false
 
+# contents to push the branch; pull-requests because the gate this calls opens
+# and merges one, and a called workflow cannot hold a permission its caller
+# does not.
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: news-sync
@@ -43,6 +56,8 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.push.outputs.branch }}
     steps:
       - uses: actions/checkout@v4
 
@@ -78,6 +93,7 @@ jobs:
 
       - name: Push it, if anything moved
         if: steps.cfg.outputs.ready == 'yes'
+        id: push
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -102,4 +118,21 @@ jobs:
           } > /tmp/msg
           git commit -F /tmp/msg
           git push -u origin "$BR"
-          echo "pushed $BR — routine-merge.yml gates and merges it"
+          # The name is the handover. The next job gates this branch by reading
+          # it, because the push above starts nothing on its own.
+          echo "branch=$BR" >> "$GITHUB_OUTPUT"
+          echo "pushed $BR — the gate job takes it from here"
+
+  # The same gate the routine's own branches go through, called by name. It
+  # runs every scripts/check-*.py against the branch, opens the pull request
+  # from the commit message written above, and squash-merges it if the gate is
+  # green. A red gate leaves the pull request open with the reason on it.
+  gate:
+    needs: sync
+    if: needs.sync.outputs.branch != ''
+    uses: ./.github/workflows/routine-merge.yml
+    with:
+      branch: ${{ needs.sync.outputs.branch }}
+    permissions:
+      contents: write
+      pull-requests: write
