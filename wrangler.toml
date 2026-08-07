@@ -19,6 +19,47 @@ name = "control-f-website"
 main = "worker/index.js"
 compatibility_date = "2026-08-04"
 
+# THE CUTOVER, and why it is four commented lines rather than a route.
+#
+# Uncommenting this is what moves the website onto this Worker. It cannot be
+# done from the repository alone, and it cannot be done first: a custom_domain
+# route requires the zone to be IN this Cloudflare account, and as of
+# 2026-08-07 the account holds exactly one zone, uipilot.ai. control-f.io is
+# delegated to iwantmyname (dns1–3.iwantmyname.com) and www.control-f.io
+# currently serves the old Wix site. Deploying the route before the zone exists
+# fails, and because deploy-worker.yml runs on every merge, it would fail on
+# every merge.
+#
+# The order that works:
+#
+#   1. Add control-f.io as a zone in this Cloudflare account and let the scan
+#      import the existing records. CHECK MX AND THE RESEND DKIM/SPF RECORDS
+#      BY HAND before going further — info@control-f.io is a live mailbox and
+#      the contact form's own sending domain is verified against those records.
+#      An incomplete import breaks company email the moment step 2 lands.
+#   2. Change the nameservers at iwantmyname to the two Cloudflare gives you.
+#      Nothing about the website changes yet; the imported records still point
+#      at Wix.
+#   3. Uncomment the block below and deploy. THIS is the moment the redesign
+#      replaces the Wix site at that address — the DNS record is written by
+#      wrangler, so there is no separate DNS step and no going back through
+#      one either.
+#
+# Until step 3 the Worker answers on its workers.dev address only, GitHub Pages
+# keeps serving control-f-io.github.io/control-f-website/, and the two deploys
+# stay in step because both run on every merge.
+#
+# datenschutz.html already names Cloudflare and GitHub as the two processors
+# that deliver this site, so the cutover does not need a second edit there.
+#
+# [[routes]]
+# pattern = "control-f.io"
+# custom_domain = true
+#
+# [[routes]]
+# pattern = "www.control-f.io"
+# custom_domain = true
+
 [assets]
 # dist/, written by scripts/stage-site.py: the sixteen generated pages and
 # design-system/, and nothing else in the repository.
@@ -33,20 +74,35 @@ compatibility_date = "2026-08-04"
 directory = "dist"
 binding = "ASSETS"
 
-# The Worker runs for four paths. Everything else — every other page, every
+# The Worker runs for seven paths. Everything else — every other page, every
 # stylesheet, font and image, and the whole design system — is served straight
 # from the edge without this code being invoked or billed.
 #
-#   /kontakt.html    the form's POST. A GET reaches the Worker too and is
-#                    passed through to the same static file; that costs one
-#                    invocation per view of the contact page and buys the
-#                    guarantee that the POST cannot be answered by the file.
-#   / and            the two directory indexes, which html_handling = "none"
+#   /kontakt.html    the form's POST, once per edition: the English page carries
+#   /en/kontakt.html the same relative action="kontakt.html#fehler" and so posts
+#                    to its own address. A path missing here is not an error
+#                    anyone sees — the asset server answers the POST with the
+#                    page and a 200, and no mail is ever sent.
+#
+#                    A GET reaches the Worker too and is passed through to the
+#                    same static file; that costs one invocation per view of a
+#                    contact page and buys the guarantee that the POST cannot
+#                    be answered by the file.
+#
+#   /, /en and       the three directory indexes, which html_handling = "none"
 #   /design-system   below switches off. The Worker serves them instead.
 #
 # scripts/stage-site.py --check fails if dist/ grows a directory index that
 # is not in this list, so the list cannot quietly fall behind the site.
-run_worker_first = ["/kontakt.html", "/", "/design-system", "/design-system/"]
+run_worker_first = [
+  "/kontakt.html",
+  "/en/kontakt.html",
+  "/",
+  "/en",
+  "/en/",
+  "/design-system",
+  "/design-system/",
+]
 
 # Serve the files under the names they have.
 #
@@ -87,8 +143,33 @@ namespace_id = "1001"
 # form cannot send *as* the person who filled it in without failing SPF and
 # DKIM. Their address goes in Reply-To instead, which worker/mail.js sets, so
 # hitting reply still reaches them.
-CONTACT_FROM = "Kontaktformular <formular@control-f.de>"
-CONTACT_TO = "info@control-f.de"
+#
+# control-f.io and not control-f.de, on both lines and for two different
+# reasons. CONTACT_TO is the address the site itself publishes — every footer,
+# both contact pages and the Impressum say info@control-f.io, and an enquiry
+# that went anywhere else would land in a mailbox no page names. CONTACT_FROM
+# is the harder constraint: control-f.io is the domain verified in Resend, and
+# a From on any other domain is rejected before it is sent.
+CONTACT_FROM = "Kontaktformular <formular@control-f.io>"
+CONTACT_TO = "info@control-f.io"
+
+# Where a successful submit sends the reader back to.
+#
+# The website is on GitHub Pages and stays there while the redesign is still
+# being built; this Worker exists for the one thing Pages cannot do, which is
+# answer a POST — it replies 405, so the form has never worked there. The form
+# on the Pages site therefore posts across origins to this Worker, and this is
+# the address it came from, subdirectory and all. Without it, a reader who
+# submitted from Pages would be left on workers.dev.
+#
+# NO TRAILING SLASH: the paths in worker/index.js's FORMS table start with one.
+#
+# DELETE THIS LINE AT THE CUTOVER. When the Worker serves the site under its own
+# domain, both origins are the same, the form goes back to posting to its own
+# address, and an absolute redirect would only pin the reader to whatever this
+# string happened to say. worker/index.js falls back to the relative path when
+# it is absent, which is then exactly right.
+SITE_ORIGIN = "https://control-f-io.github.io/control-f-website"
 
 # RESEND_API_KEY is a secret and is deliberately absent. Set it once with:
 #

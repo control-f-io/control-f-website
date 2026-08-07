@@ -19,9 +19,16 @@
    data-field verschwindet, greift der passende Handler still ins Leere — genau
    deshalb hält scripts/check-form-contract.py beide Seiten aneinander, und
    deshalb prüft renderForm() zusätzlich zur Laufzeit, dass die Übersicht
-   wirklich eingefügt wurde. */
+   wirklich eingefügt wurde.
 
-import { FIELD_LABELS, TOPICS, summaryTitle } from "./validate.js";
+   DIE SELEKTOREN GELTEN FÜR BEIDE AUSGABEN. /en/kontakt.html ist dieselbe
+   Seite mit anderen Wörtern — build-i18n.py fasst weder id noch class noch
+   data-field an —, also braucht diese Datei keine zweite Tabelle. Was sich
+   unterscheidet, sind die Wörter, die sie einsetzt: die Beschriftung in der
+   Übersicht und die Themenliste, über deren Position eine Option wieder
+   ausgewählt wird. Beide kommen aus validate.js, beide je Ausgabe. */
+
+import { DEFAULT_LOCALE, FIELD_LABELS, TOPICS, summaryTitle } from "./validate.js";
 
 const ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
 const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ESCAPES[c]);
@@ -36,13 +43,14 @@ const FIELDS = {
   message: { input: "#f-msg",   wrapper: '[data-field="message"]', kind: "textarea" },
 };
 
-function summaryHtml(errors, title) {
+function summaryHtml(errors, title, locale) {
   /* Ein Eintrag trägt das Label seines Feldes vorweg — die Übersicht ist ein
      Index auf das Formular. Eine allgemeine Meldung (der Versand ist
      gescheitert) gehört zu keinem Feld und steht deshalb ohne Präfix da. */
+  const labels = FIELD_LABELS[locale] || FIELD_LABELS[DEFAULT_LOCALE];
   const items = errors
     .map((e) => {
-      const label = e.field ? FIELD_LABELS[e.field] : null;
+      const label = e.field ? labels[e.field] : null;
       const text = label ? `${escapeHtml(label)}: ${escapeHtml(e.message)}` : escapeHtml(e.message);
       return `      <li><a href="#${escapeHtml(e.target)}">${text}</a></li>`;
     })
@@ -63,7 +71,7 @@ function summaryHtml(errors, title) {
 /* Setzt einen einzelnen Wert zurück ins Feld. Ein <input> trägt ihn als
    Attribut, ein <textarea> als Inhalt, ein <select> als selected auf der
    passenden Option — drei Mechanismen, weil HTML drei hat. */
-function refill(rewriter, field, value) {
+function refill(rewriter, field, value, locale) {
   const spec = FIELDS[field];
   if (!spec || !value) return;
 
@@ -91,8 +99,12 @@ function refill(rewriter, field, value) {
      Optionen im Formular, und check-form-contract.py vergleicht beide Listen
      der Reihe nach — die Position ist damit keine Annahme, sondern geprüft.
      Vor den Themen steht "Bitte wählen", deshalb +2 auf den nullbasierten
-     Index: nth-of-type zählt ab 1. */
-  const at = TOPICS.indexOf(value);
+     Index: nth-of-type zählt ab 1.
+
+     Die Liste ist die der Ausgabe. Beide haben fünf Themen in derselben
+     Reihenfolge, aber gesucht wird der Wert, der angekommen ist, und der ist
+     in der Sprache des Formulars, auf dem er ausgewählt wurde. */
+  const at = (TOPICS[locale] || TOPICS[DEFAULT_LOCALE]).indexOf(value);
   if (at === -1) return;
   rewriter.on(`${spec.input} option:nth-of-type(${at + 2})`, {
     element(el) { el.setAttribute("selected", ""); },
@@ -105,8 +117,8 @@ function refill(rewriter, field, value) {
    422 für Eingabefehler, 502 wenn der Mailversand gescheitert ist. Beide sind
    kein 200 — ein Fehlversuch darf nicht als Erfolg im Cache oder im Log
    landen. */
-export async function renderForm(assetResponse, { errors = [], values = {}, notice = null, status = 422 }) {
-  const title = notice ? notice.title : summaryTitle(errors.length);
+export async function renderForm(assetResponse, { errors = [], values = {}, notice = null, status = 422, locale = DEFAULT_LOCALE }) {
+  const title = notice ? notice.title : summaryTitle(errors.length, locale);
   const items = notice ? notice.items : errors;
 
   let injected = false;
@@ -116,7 +128,7 @@ export async function renderForm(assetResponse, { errors = [], values = {}, noti
      Kommentar ankündigt. */
   rewriter.on("form[method='post']", {
     element(el) {
-      el.before(summaryHtml(items, title), { html: true });
+      el.before(summaryHtml(items, title, locale), { html: true });
       injected = true;
     },
   });
@@ -150,7 +162,7 @@ export async function renderForm(assetResponse, { errors = [], values = {}, noti
     });
   }
 
-  for (const [field, value] of Object.entries(values)) refill(rewriter, field, value);
+  for (const [field, value] of Object.entries(values)) refill(rewriter, field, value, locale);
 
   const out = rewriter.transform(
     new Response(assetResponse.body, {

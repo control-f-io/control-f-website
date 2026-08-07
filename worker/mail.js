@@ -6,12 +6,20 @@
    wissen nicht, wer die Mail zustellt.
 
    ZUR REGION. Resend wählt sie pro Domain, nicht pro Aufruf: eine Domain, die
-   im Dashboard auf eu-west-1 (Irland) angelegt ist, versendet aus Irland. Es
-   gibt dafür kein Feld in der API, und deshalb steht hier keins. Wichtiger,
-   und im Code nicht sichtbar: die Region bestimmt nur den Versandweg.
-   Kontodaten, Metadaten und Logs — und damit Name, Adresse und Text jeder
-   Anfrage — liegen laut Resend in den USA. Das ist eine Drittlandsübermittlung
-   und gehört als solche in die Datenschutzerklärung.
+   im Dashboard auf eu-west-1 angelegt ist, versendet aus Irland, eine auf
+   us-east-1 angelegte aus den USA. Es gibt dafür kein Feld in der API, und
+   deshalb steht hier keins — die Region ist eine Eigenschaft des Kontos, die
+   dieser Code weder setzen noch ablesen kann.
+
+   Sie ist trotzdem eine Aussage, die die Website trifft: datenschutz.html
+   nennt den Versandweg beim Namen. Wer die Domain in CONTACT_FROM wechselt
+   oder sie in Resend neu anlegt, ändert damit den Satz in der
+   Datenschutzerklärung mit — nachsehen lässt sich die Region unter
+   https://api.resend.com/domains.
+
+   Unabhängig davon: Kontodaten, Metadaten und Logs — und damit Name, Adresse
+   und Text jeder Anfrage — liegen laut Resend in den USA. Das ist eine
+   Drittlandsübermittlung und gehört als solche in die Datenschutzerklärung.
 
    WAS NICHT IN DIE MAIL GEHÖRT. Keine IP, kein User-Agent, kein Zeitstempel
    über das hinaus, was der Mailserver ohnehin setzt. Für die Beantwortung
@@ -31,14 +39,18 @@ function subjectFor(values) {
 /* Nur-Text, keine HTML-Mail. Die Anfrage ist Fließtext mit vier Angaben davor;
    HTML würde nichts hinzufügen, was ein Postfach nicht schon kann, und wäre
    eine zweite Stelle, an der Nutzereingaben escaped werden müssten. */
-function bodyFor(values) {
+function bodyFor(values, source) {
   const lines = [
     `Name:        ${values.name}`,
     `E-Mail:      ${values.email}`,
   ];
   if (values.company) lines.push(`Unternehmen: ${values.company}`);
   if (values.topic) lines.push(`Thema:       ${values.topic}`);
-  lines.push("", values.message, "", "--", "Gesendet über das Kontaktformular auf control-f.de");
+  /* Die Seite, auf der das Formular stand, statt eines festen Domainnamens.
+     Sie ist auch dann richtig, wenn der Worker unter workers.dev läuft oder
+     die Domain wechselt — und sie sagt, in welcher Sprache geschrieben wurde:
+     eine Anfrage von /en/kontakt.html will eine englische Antwort. */
+  lines.push("", values.message, "", "--", `Gesendet über das Kontaktformular auf ${source}`);
   return lines.join("\n");
 }
 
@@ -74,7 +86,7 @@ async function sendViaResend(env, { from, to, replyTo, subject, text }) {
 }
 /* ------------------------------------------------------------------------ */
 
-export async function sendEnquiry(values, env) {
+export async function sendEnquiry(values, env, source) {
   if (!env.RESEND_API_KEY || !env.CONTACT_FROM || !env.CONTACT_TO) {
     throw new Error("Mailversand nicht konfiguriert: RESEND_API_KEY, CONTACT_FROM oder CONTACT_TO fehlt");
   }
@@ -84,6 +96,6 @@ export async function sendEnquiry(values, env) {
     to: env.CONTACT_TO,
     replyTo: values.email,
     subject: subjectFor(values),
-    text: bodyFor(values),
+    text: bodyFor(values, source),
   });
 }
