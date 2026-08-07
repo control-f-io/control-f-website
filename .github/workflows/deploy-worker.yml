@@ -57,7 +57,51 @@ jobs:
           python3 scripts/stage-site.py
           python3 scripts/stage-site.py --check
 
+      # wranglerVersion IS NOT OPTIONAL HERE, and this is what happens without
+      # it. wrangler-action@v3 installs wrangler@3.90.0 by default, which is
+      # older than two fields this configuration depends on. It does not fail
+      # on them; it prints
+      #
+      #   - Unexpected fields found in assets field: "run_worker_first"
+      #   - Unexpected fields found in top-level field: "ratelimits"
+      #
+      # drops both, deploys, and exits 0. The result is a green tick over a
+      # Worker that never runs for the contact form — Cloudflare's asset server
+      # answers the POST with 405 — and that has no rate limit on it either.
+      # Measured on the deploy of c0a6a9b, which is how this line came to exist.
+      #
+      # Pinned exactly rather than to "4": a floating major would put the same
+      # class of surprise back, one release later, and the failure it produces
+      # is invisible from inside the deploy.
       - uses: cloudflare/wrangler-action@v3
+        id: deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.119.0"
+
+      # The deploy above reports success for a Worker that is not reachable, so
+      # the last step is to ask it something only the Worker can answer.
+      #
+      # The honeypot POST is the right probe: it exercises run_worker_first, the
+      # Worker's routing and the redirect, and it is the one submit path that
+      # sends no mail — worker/index.js discards a filled "website" field
+      # silently and answers 303. A 405 here is the asset server replying
+      # instead of the Worker, which is exactly the state this is here to catch.
+      - name: The Worker answers the form
+        env:
+          URL: ${{ steps.deploy.outputs.deployment-url || 'https://control-f-website.rapid-silence-2113.workers.dev' }}
+        run: |
+          set -euo pipefail
+          for path in /kontakt.html /en/kontakt.html; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --retry 5 --retry-all-errors --retry-delay 5 \
+              -X POST "$URL$path" \
+              --data-raw 'name=Deploy&email=deploy@example.com&message=Deploy check, discarded by the honeypot.&website=x')
+            if [ "$code" != "303" ]; then
+              echo "::error::POST $URL$path answered $code, expected 303."
+              echo "405 means the Worker did not run and Cloudflare's asset server replied —"
+              echo "check that run_worker_first survived, starting with the wrangler version above."
+              exit 1
+            fi
+            echo "  $path -> $code"
+          done
