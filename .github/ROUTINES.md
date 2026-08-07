@@ -70,6 +70,20 @@ If the connector is ever attached to this routine — recreating it from
 rather than wrong: it would find the PR the session had already opened and merge
 that one.
 
+**A second thing uses that gate, and it has to ask for it by name.**
+`.github/workflows/news-sync.yml` imports the news archive from Notion hourly
+and pushes the same `routine/system-pages-**` prefix. Its branches do *not*
+raise `routine-merge.yml` on their own: a push made with `GITHUB_TOKEN` starts
+no workflow, which is the same rule the file already states for pull requests —
+it is about the token, not about the event. The routine's own pushes carry a
+user credential and do trigger it; a workflow's pushes never will. Measured on
+2026-08-07: `routine/system-pages-news-20260807-2155` was pushed at 21:55 with
+ninety-six files of imported archive on it, zero runs started against that ref,
+and it sat on the remote until a person opened the pull request. `news-sync.yml`
+therefore **calls** the gate as a reusable workflow and hands it the branch
+name; `routine-merge.yml` reads `inputs.branch` when it is called and the pushed
+ref when it is not, so both entrances gate identically.
+
 ## What every one of them is told
 
 The instructions differ by lane, but these are common and are why the commit log
