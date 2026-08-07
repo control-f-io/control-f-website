@@ -45,6 +45,50 @@ tidied up after it. **Do not edit the archive in `patterns/news.html`** — the
 four regions fenced by `<!-- news:… -->` are output, and `build-news.py --check`
 fails in CI when they drift from `content/news/`.
 
+### The text, and the page it becomes
+
+Everything after the header's blank line is the post's text, **in both
+languages, divided by `--- en ---` on a line of its own**:
+
+```
+titel:   Wärmepumpen im Winter …
+title:   Heat pumps in winter …
+
+Der erste Absatz ist der Lead — er steht größer.
+
+## Eine Zwischenüberschrift
+
+Text. `**fett**`, `` `code` `` und [Links](news.html) gehen im Absatz,
+`- ` ist eine Liste und `1. ` eine nummerierte.
+
+--- en ---
+
+The first paragraph is the lead — it is set larger.
+
+## A section heading
+
+Text.
+```
+
+A post with text gets its own reading page — `beitrag-<name>.html`, in both
+editions — and its card in the archive links there. `scripts/build-articles.py`
+writes it by splicing the text into the regions of `patterns/blog-artikel.html`
+fenced by `article:…` comments, so the nav, the consent banner, the article
+furniture and the footer are that page's, not a copy of it: **change the reading
+surface once, on the specimen, and every published article has it.** The
+contents rail on the left is built from the `##` headings.
+
+A post **without** text is a listing and stays one: its card is drawn as a
+`<span>` rather than as a link, because a card that opens somebody else's
+article is worse than a card that opens nothing. Eighteen entries carried over
+from the mock-up are in that state — they are a headline and a date, and nothing
+was ever written behind them. Writing the text is what turns any of them into a
+page; nothing else has to change.
+
+`blog-artikel.html` itself stays hand-written. It is the specimen of the reading
+surface and it carries the isometric figure, the plot, the table and the pull
+quote that the markdown above cannot express.
+
 ### …or write it in Notion
 
 `scripts/sync-news-notion.py` imports the archive from a Notion database into
@@ -65,6 +109,15 @@ under *Branding / Marketing*, seeded with the eighteen posts that were already i
 | `Autor` | Text | optional; only the lead card has room to show it |
 | `Minuten` | Number | optional; reading time |
 | `Status` | Select | `Entwurf` → `In Review` → `Veröffentlicht`; only the last is imported |
+
+**What you write inside the page is the article.** German text, a **divider
+block** (type `---` in Notion), then the English text — the same convention the
+post file carries, because the sync writes one into the other. Paragraphs,
+headings, bulleted and numbered lists, bold, code and links come across; a
+quote or callout arrives as a paragraph; anything with no form on the reading
+page — an image, an embed, a table — is left out and named in the run's log. A
+page with no text at all is a listing in the archive and gets no page of its
+own, which is a legitimate state and not an error.
 
 What is left is two secrets, under **Settings → Secrets and variables → Actions**:
 

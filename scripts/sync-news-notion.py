@@ -14,6 +14,26 @@ integration token, which is why this script asks for one.
     NOTION_TOKEN     an internal integration's secret (ntn_… / secret_…)
     NOTION_NEWS_DB   the news database's id, from its URL
 
+AND THE PAGE'S OWN TEXT IS THE ARTICLE. A row's properties are the record; what
+is written inside the page is the piece, and it becomes beitrag-<name>.html —
+one reading page per post, which is what the archive's cards link to.
+scripts/build-articles.py writes it; this only carries the text over.
+
+    German text, a DIVIDER BLOCK, then the English text.
+
+That is the whole convention, and the divider is a block Notion already has
+because the site ships in two languages and a post that exists in one of them
+is a German paragraph in the middle of the English archive. A page with no text
+at all is fine: the post stays a listing in the archive and gets no page, which
+is what the eighteen entries carried over from the mock-up are.
+
+The blocks that survive the trip are the ones the reading surface has a form
+for — paragraph, heading, bulleted and numbered list, quote and callout as
+paragraphs — with bold, code and links inside them. Anything else in the page
+(an image, an embed, a table) is DROPPED WITH A WARNING rather than silently:
+a picture that vanishes between Notion and the site is the kind of loss nobody
+notices until a reader asks about it.
+
 THE DATABASE IT EXPECTS. Five properties, and the names are the German ones the
 post files already use so that the two are read the same way:
 
@@ -67,6 +87,7 @@ POSTS = ROOT / "content" / "news"
 # script's one request two. Pinned deliberately — an API version that follows
 # "latest" is a script that breaks on somebody else's release day.
 API = "https://api.notion.com/v1/databases/%s/query"
+BLOCKS = "https://api.notion.com/v1/blocks/%s/children?page_size=100"
 VERSION = "2022-06-28"
 
 PUBLISHED = "Veröffentlicht"
@@ -124,7 +145,86 @@ def slug(title):
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", s)).strip("-")[:48]
 
 
-def post_from(page):
+# The blocks the reading surface has a form for, and what each becomes in a
+# post file. heading_1 becomes `##` and not `#`: the page's h1 is its title,
+# written by build-articles.py from the Titel property, and a second h1 in the
+# body is a second document. Quotes and callouts arrive as paragraphs — the
+# specimen's pull quote and note are hand-set forms with a citation and a tag,
+# and inventing either from a block that carries neither would be the generator
+# making an editorial claim.
+BLOCK = {
+    "paragraph": "%s",
+    "heading_1": "## %s",
+    "heading_2": "## %s",
+    "heading_3": "### %s",
+    "bulleted_list_item": "- %s",
+    "numbered_list_item": "1. %s",
+    "quote": "%s",
+    "callout": "%s",
+}
+
+
+def rich(runs):
+    """Notion's rich text → the three inline forms a post file carries.
+
+    Bold, code and links, in that order of nesting, and nothing else. Italic,
+    colour and strikethrough have no form in .cf-prose — the stylesheet styles
+    bare HTML by element — so carrying them across would mean inventing markup
+    the design system does not have.
+    """
+    out = []
+    for r in runs or []:
+        t = r.get("plain_text", "")
+        if not t.strip():
+            out.append(t)
+            continue
+        ann = r.get("annotations") or {}
+        if ann.get("code"):
+            t = "`%s`" % t
+        if ann.get("bold"):
+            t = "**%s**" % t
+        href = r.get("href")
+        if href:
+            t = "[%s](%s)" % (t, href)
+        out.append(t)
+    return "".join(out).strip()
+
+
+def body_from(blocks, url, dropped):
+    """A Notion page's children → the two-language text of a post file.
+
+    The divider is the language boundary and it is the only structural block
+    with a meaning here. More than one is refused rather than guessed at: the
+    second could be a section break somebody liked the look of, and choosing
+    for them would publish half an article in the wrong language.
+    """
+    lines, seen_divider = [], 0
+    for b in blocks:
+        kind = b.get("type")
+        if kind == "divider":
+            seen_divider += 1
+            lines.append("--- en ---")
+            continue
+        form = BLOCK.get(kind)
+        if form is None:
+            dropped.setdefault(kind, []).append(url)
+            continue
+        text = rich((b.get(kind) or {}).get("rich_text"))
+        if text:
+            lines.append(form % text)
+    if not lines:
+        return ""
+    if seen_divider != 1:
+        fail("%s has text but %s.\n"
+             "    A post is written in both languages on one page: the German "
+             "text, a divider block, then the English text.\n"
+             "    Type `---` in Notion to make one." % (
+                 url, "no divider block" if not seen_divider
+                 else "%d divider blocks" % seen_divider))
+    return "\n\n".join(lines) + "\n"
+
+
+def post_from(page, text=""):
     """One Notion row → the fields a post file holds, or a reason it cannot be.
 
     A row that is published and unusable is a FAILURE and never a skip. A post
@@ -151,6 +251,8 @@ def post_from(page):
 
     name = "%s-%s.md" % (got["datum"], slug(got["titel"]))
     body = "\n".join("%-8s %s" % (f + ":", got[f]) for f in FIELDS if got[f]) + "\n"
+    if text:
+        body += "\n" + text
     return name, body
 
 
@@ -212,6 +314,27 @@ def fetch(db, token):
         cursor = data.get("next_cursor")
 
 
+def children(page_id, token):
+    """One page's blocks, following the cursor. Four more lines of network."""
+    out, url = [], BLOCKS % page_id
+    while url:
+        req = urllib.request.Request(
+            url, headers={"Authorization": "Bearer " + token,
+                          "Notion-Version": VERSION})
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                data = json.loads(r.read().decode())
+        except urllib.error.HTTPError as e:
+            fail("Notion answered %s for the blocks of %s.\n    %s"
+                 % (e.code, page_id, e.read().decode(errors="replace")[:300]))
+        except urllib.error.URLError as e:
+            fail("cannot reach api.notion.com: %s" % e.reason)
+        out += data.get("results", [])
+        url = ((BLOCKS % page_id) + "&start_cursor=" + data["next_cursor"]
+               if data.get("has_more") else None)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     g = ap.add_mutually_exclusive_group()
@@ -238,9 +361,18 @@ def main():
                  "response: --fixture FILE.")
         rows = fetch(db, token)
 
-    wanted = {}
+    wanted, dropped = {}, {}
     for page in rows:
-        name, body = post_from(page)
+        # The properties decide whether it is published; the page's own blocks
+        # are only fetched for the rows that are, so a database of drafts costs
+        # one request rather than one per draft.
+        name, _ = post_from(page)
+        if not name:
+            continue
+        url = page.get("url", page.get("id", "?"))
+        blocks = (page.get("_blocks", []) if args.fixture
+                  else children(page["id"], token))
+        name, body = post_from(page, body_from(blocks, url, dropped))
         if not name:
             continue
         if name in wanted and wanted[name] != body:
@@ -282,6 +414,9 @@ def main():
         print("  ~ %s" % n)
     for n in removed:
         print("  - %s" % n)
+    for kind, where in sorted(dropped.items()):
+        print("  ! %s block(s) of type %r have no form on the reading page and "
+              "were left out: %s" % (len(where), kind, where[0]), file=sys.stderr)
 
     if args.check:
         if added or changed or removed:
