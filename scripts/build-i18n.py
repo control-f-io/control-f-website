@@ -280,6 +280,21 @@ SWITCH_EN = ('<a class="cf-nav__lang" href="../%s"'
 ALT_EN = re.compile(r'(<link rel="alternate" hreflang="en" href=")en/([a-z0-9-]+\.html">)')
 ALT_DE = re.compile(r'(<link rel="alternate" hreflang="de" href=")([a-z0-9-]+\.html">)')
 
+# ACTION. The contact form posts across origins to the Worker, because the site
+# is on GitHub Pages while the relaunch is being built and Pages answers a POST
+# with 405. That address is absolute, and an absolute address does not re-point
+# itself the way the relative one did: `kontakt.html#fehler` used to mean the
+# English page as soon as it sat in en/, and this one has to be told.
+#
+# The host is deliberately not written here — it is matched and carried over —
+# so this file has no opinion about which Worker the form talks to, and the
+# cutover changes one line of one pattern page rather than two files.
+#
+# Only kontakt.html has a form, so unlike the four edits above this one is
+# allowed to match nothing.
+ACTION = re.compile(r'(action="https://[^"]+)/kontakt\.html#fehler"')
+ACTION_EN = r'\1/en/kontakt.html#fehler"'
+
 
 def once(doc, pattern, repl, name, what):
     doc, n = pattern.subn(repl, doc)
@@ -299,6 +314,10 @@ def structural(doc, name):
 
     doc = once(doc, ALT_EN, r'\1\2', name, 'hreflang="en" alternate')
     doc = once(doc, ALT_DE, r'\1../\2', name, 'hreflang="de" alternate')
+
+    doc, n = ACTION.subn(ACTION_EN, doc)
+    if n > 1:
+        sys.exit("%s: expected at most one cross-origin form action, found %d" % (name, n))
     return doc
 
 

@@ -8,11 +8,9 @@
    bekommt.
 
    ZWEIMAL, WEIL ES DIE SEITE ZWEIMAL GIBT. /kontakt.html und /en/kontakt.html
-   sind dasselbe Formular mit anderen Wörtern. Jede der beiden postet an die
-   eigene Adresse — die englische Seite trägt dasselbe relative
-   action="kontakt.html#fehler" und trifft damit /en/kontakt.html —, also muss
-   dieser Worker beide beantworten. Er tut es mit demselben Code: was sich
-   unterscheidet, steht in FORMS und in den Tabellen von validate.js.
+   sind dasselbe Formular mit anderen Wörtern, also muss dieser Worker beide
+   beantworten. Er tut es mit demselben Code: was sich unterscheidet, steht in
+   FORMS und in den Tabellen von validate.js.
 
    Ein POST auf einen Pfad, der hier nicht steht, erreicht diesen Code nicht,
    sondern die Asset-Auslieferung, und die beantwortet ihn mit der Seite und
@@ -20,18 +18,28 @@
    nie eine Mail entsteht. Genau das war die englische Seite, bevor sie hier
    stand.
 
-   DAS FORMULAR MUSSTE DAFÜR NICHT GEÄNDERT WERDEN. Es steht seit jeher auf
-   method="post" action="kontakt.html#fehler" — es postet an die eigene
-   Adresse, weil die Antwort auf einen Fehler dieselbe Seite mit der
-   Fehlerübersicht ist. Genau das ist hier implementiert.
+   DAS FORMULAR POSTET NICHT MEHR AN DIE EIGENE ADRESSE, und das ist die eine
+   Stelle, an der die Übergangslösung sichtbar wird. Die Website steht auf
+   GitHub Pages, und GitHub Pages beantwortet einen POST mit 405 — auf einem
+   statischen Host gibt es nichts, was ein Formular entgegennähme. Also trägt
+   das Formular dort die absolute Adresse dieses Workers, und der Weg führt
+   über zwei Origins:
 
-   DIE ZWEI AUSGÄNGE, beide aus dem Kommentar über dem Formular:
+     Erfolg   303 See Other auf die Danke-Seite von SITE_ORIGIN — also zurück
+              auf die Seite, von der der Leser kam. Post/Redirect/Get, damit
+              ein Neuladen die Nachricht nicht ein zweites Mal sendet.
+     Fehler   422 mit derselben Seite, ergänzt um die Übersicht unter
+              id="fehler" — dem Fragment, das action trägt. Der Browser landet
+              dort von selbst, ohne dass ein Skript läuft. Diese Seite ist die
+              Kopie DIESES Workers, unter seiner Adresse: eine Fehlerübersicht
+              muss serverseitig in das Dokument geschrieben werden, und das
+              kann nur der Server tun, der den POST bekommen hat.
 
-     Erfolg   303 See Other auf kontakt-danke.html. Post/Redirect/Get, damit ein
-              Neuladen die Nachricht nicht ein zweites Mal sendet.
-     Fehler   422 mit derselben Seite, ergänzt um die Übersicht unter id="fehler"
-              — dem Fragment, das action trägt. Der Browser landet dort von
-              selbst, ohne dass ein Skript läuft.
+   Der Preis ist also, dass ein Leser mit einem Tippfehler im Formular auf der
+   workers.dev-Adresse landet. Das ist kein Fehler dieser Datei, sondern der
+   Grund, warum die Umstellung auf eine eigene Domain in wrangler.toml
+   vorbereitet steht: sobald sie kommt, sind beide Origins derselbe, SITE_ORIGIN
+   entfällt, und das Formular postet wieder an seine eigene Adresse.
 
    DAZU DIE VERZEICHNIS-INDIZES. wrangler.toml stellt html_handling auf "none",
    damit die Seiten unter ihren eigenen Namen erreichbar bleiben — jeder andere
@@ -61,6 +69,16 @@ const FORMS = {
    Redirect mit GET folgt, und genau darum geht es. */
 const seeOther = (location) =>
   new Response(null, { status: 303, headers: { location, "cache-control": "no-store" } });
+
+/* Wohin ein Erfolg zurückführt.
+
+   Solange die Website auf GitHub Pages steht, kommt das Formular von dort und
+   nicht von hier: SITE_ORIGIN in wrangler.toml nennt diese Adresse samt
+   Unterverzeichnis, und der Leser landet nach dem Absenden wieder auf ihr. Ohne
+   SITE_ORIGIN bleibt der Pfad relativ, und dann ist die Danke-Seite die dieses
+   Workers — was nach der Umstellung auf eine eigene Domain das Richtige ist. */
+const thanksFor = (env, route) =>
+  env.SITE_ORIGIN ? `${env.SITE_ORIGIN}${route.thanks}` : route.thanks;
 
 /* Die Seite, die der Leser bei einem Fehler sieht, ist die Seite selbst — also
    wird sie hier geholt. Ein GET auf den eigenen Pfad, an die Assets gerichtet,
@@ -150,7 +168,7 @@ async function handleSubmit(request, env, ctx, url, route) {
      erkannt wurde, wird angepasst; einer, der ein 303 auf die Danke-Seite
      bekommt, hat keinen Anlass dazu. Es wird still verworfen — genau das Wort,
      das im Kommentar des Formulars steht. */
-  if (raw.website.trim() !== "") return seeOther(route.thanks);
+  if (raw.website.trim() !== "") return seeOther(thanksFor(env, route));
 
   const { values, errors } = validate(raw, locale);
 
@@ -183,5 +201,5 @@ async function handleSubmit(request, env, ctx, url, route) {
     });
   }
 
-  return seeOther(route.thanks);
+  return seeOther(thanksFor(env, route));
 }

@@ -297,6 +297,7 @@ def audit(verbose):
         routes = {}
 
     readers = {}
+    origins = {}
 
     for locale, pattern, route in EDITIONS:
         where = pattern.relative_to(ROOT)
@@ -364,13 +365,34 @@ def audit(verbose):
         if HONEYPOT not in reader.names:
             tell("no %r field — the honeypot the Worker checks is gone" % HONEYPOT)
 
-        # The form must post to its own address, or the Worker cannot answer
-        # with this page. Both editions carry the same relative action; on the
-        # English page that resolves to /en/kontakt.html.
-        if reader.action != "kontakt.html#fehler":
-            tell("the form's action is %r — it must post to its own address "
-                 "with the #fehler fragment, or the Worker cannot answer with "
-                 "this page" % reader.action)
+        # The form must reach the Worker route for its own edition, carrying
+        # the #fehler fragment so the browser lands on the summary without a
+        # script. Two shapes are legitimate and the check takes either:
+        #
+        #   kontakt.html#fehler   posting to its own address, which is right
+        #                         once the Worker serves the site itself
+        #   https://…/<route>     posting across origins, which is what the
+        #                         GitHub Pages arrangement needs, since Pages
+        #                         answers a POST with 405
+        #
+        # What is never right is an absolute address whose path is not this
+        # edition's route: an English form pointing at /kontakt.html would be
+        # answered in German, with the German topics, and nothing would look
+        # wrong until someone read the reply.
+        action = reader.action or ""
+        if action == "kontakt.html#fehler":
+            origins.setdefault("self", []).append(str(where))
+        elif action.startswith("https://"):
+            origin, _, rest = action[len("https://"):].partition("/")
+            origins.setdefault("https://" + origin, []).append(str(where))
+            if rest != "%s#fehler" % route.lstrip("/"):
+                tell("the form posts to https://%s/%s, but this edition's route "
+                     "is %s#fehler — the other edition's Worker would answer it, "
+                     "in the other language" % (origin, rest, route.lstrip("/")))
+        else:
+            tell("the form's action is %r — it must be either its own address "
+                 "with the #fehler fragment or an absolute https address ending "
+                 "in this edition's route" % reader.action)
 
         # 9. THE EDITIONS. Every table needs this locale.
         for table in LOCALE_TABLES:
@@ -387,6 +409,13 @@ def audit(verbose):
     # 4. THE HONEYPOT, worker side.
     if '"%s"' % HONEYPOT not in index_js:
         say("index.js no longer reads a field named %r" % HONEYPOT)
+
+    # Both editions must post to the SAME place. Half a cutover — one edition
+    # moved to the Worker's own domain and one still pointing at workers.dev —
+    # is the state in which one language's form works and the other's does not.
+    if len(origins) > 1:
+        say("the two editions post to different places: %s" % "; ".join(
+            "%s from %s" % (o, ", ".join(p)) for o, p in sorted(origins.items())))
 
     # 9. THE EDITIONS. The two message tables must offer the same keys: a name
     # present in one branch and missing in the other is a TypeError on submit.

@@ -153,6 +153,24 @@ namespace_id = "1001"
 CONTACT_FROM = "Kontaktformular <formular@control-f.io>"
 CONTACT_TO = "info@control-f.io"
 
+# Where a successful submit sends the reader back to.
+#
+# The website is on GitHub Pages and stays there while the redesign is still
+# being built; this Worker exists for the one thing Pages cannot do, which is
+# answer a POST — it replies 405, so the form has never worked there. The form
+# on the Pages site therefore posts across origins to this Worker, and this is
+# the address it came from, subdirectory and all. Without it, a reader who
+# submitted from Pages would be left on workers.dev.
+#
+# NO TRAILING SLASH: the paths in worker/index.js's FORMS table start with one.
+#
+# DELETE THIS LINE AT THE CUTOVER. When the Worker serves the site under its own
+# domain, both origins are the same, the form goes back to posting to its own
+# address, and an absolute redirect would only pin the reader to whatever this
+# string happened to say. worker/index.js falls back to the relative path when
+# it is absent, which is then exactly right.
+SITE_ORIGIN = "https://control-f-io.github.io/control-f-website"
+
 # RESEND_API_KEY is a secret and is deliberately absent. Set it once with:
 #
 #     npx wrangler secret put RESEND_API_KEY
