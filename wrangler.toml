@@ -19,6 +19,47 @@ name = "control-f-website"
 main = "worker/index.js"
 compatibility_date = "2026-08-04"
 
+# THE CUTOVER, and why it is four commented lines rather than a route.
+#
+# Uncommenting this is what moves the website onto this Worker. It cannot be
+# done from the repository alone, and it cannot be done first: a custom_domain
+# route requires the zone to be IN this Cloudflare account, and as of
+# 2026-08-07 the account holds exactly one zone, uipilot.ai. control-f.io is
+# delegated to iwantmyname (dns1–3.iwantmyname.com) and www.control-f.io
+# currently serves the old Wix site. Deploying the route before the zone exists
+# fails, and because deploy-worker.yml runs on every merge, it would fail on
+# every merge.
+#
+# The order that works:
+#
+#   1. Add control-f.io as a zone in this Cloudflare account and let the scan
+#      import the existing records. CHECK MX AND THE RESEND DKIM/SPF RECORDS
+#      BY HAND before going further — info@control-f.io is a live mailbox and
+#      the contact form's own sending domain is verified against those records.
+#      An incomplete import breaks company email the moment step 2 lands.
+#   2. Change the nameservers at iwantmyname to the two Cloudflare gives you.
+#      Nothing about the website changes yet; the imported records still point
+#      at Wix.
+#   3. Uncomment the block below and deploy. THIS is the moment the redesign
+#      replaces the Wix site at that address — the DNS record is written by
+#      wrangler, so there is no separate DNS step and no going back through
+#      one either.
+#
+# Until step 3 the Worker answers on its workers.dev address only, GitHub Pages
+# keeps serving control-f-io.github.io/control-f-website/, and the two deploys
+# stay in step because both run on every merge.
+#
+# datenschutz.html already names Cloudflare and GitHub as the two processors
+# that deliver this site, so the cutover does not need a second edit there.
+#
+# [[routes]]
+# pattern = "control-f.io"
+# custom_domain = true
+#
+# [[routes]]
+# pattern = "www.control-f.io"
+# custom_domain = true
+
 [assets]
 # dist/, written by scripts/stage-site.py: the sixteen generated pages and
 # design-system/, and nothing else in the repository.
