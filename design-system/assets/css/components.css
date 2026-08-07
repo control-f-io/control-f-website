@@ -7562,21 +7562,36 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    measured on patterns/landing-page.html at 1440 x 900, 4860 px for acts 1+2,
    5760 for act 3, 2700 for act 4. That is the composition for a reader who
    wants it, and a wall for one who does not. This is the way past it — the
-   press lands on the track's own contain end, where the build is finished and
+   press lands on the next beat of the track, where that build is finished and
    the act is still on the stage. The arithmetic and the jump are
    assets/js/cf-anim-skip.js; what is here is the plate and where it stands.
 
-   ONE PLACE ON THE SCREEN, WHICH IS WHAT MAKES IT ONE CONTROL. Every adopting
-   stage is a full-bleed sticky box, so the plate is absolute inside the stage
-   and takes --column-inset on the end side — the page margin the nav, the hero
-   switch and every .container already stand on, so it lines up with the nav's
-   own furniture at every width. The top is the one number the stages disagree
-   about, because .sp-stage and .sp4-stage stick BELOW the bar (top: --act-bar)
-   and .cf-pin__stage sticks at the viewport's top: the stage that starts under
-   the nav pays the nav's clearance, the two that already start under it pay
-   nothing, and the plate lands on the same screen line in all three. Measured
-   at 1024 x 720, 1280 x 800, 1440 x 900 and 1920 x 1080: 100 px from the
-   viewport's top, right edge on --column-inset, in each of the three acts.
+   IT IS THE ACT RAIL'S OPPOSITE NUMBER AND STANDS WHERE THAT PUTS IT. The two
+   controls a reader has over 22 000 px of acts are "which act am I in" and
+   "finish this one": the rail answers the first from the left margin, fixed,
+   at inset-inline-start: var(--space-6), centred on inset-block-start: 50% with
+   translate: 0 -50%. This is those three declarations mirrored — end instead of
+   start — so the pair is symmetric about the page's centre line and each is 24
+   px from its own edge. → assets/css/acts.css, `.act-rail`
+   → https://app.notion.com/p/3b52e8e39877806c9b4ef2346724bc58
+
+   WHAT IT REPLACED, AND WHY THAT STOPPED WORKING. The plate used to be absolute
+   inside its stage, at --column-inset on the end side and --nav-height + a rung
+   from the top: 100 px from the viewport's top and, at 1440, 80 px from its
+   right edge, in each of the three acts. That is the nav's own margin and it
+   was the right answer while the control was furniture hung off the nav band.
+   It is the wrong one for the rail's counterpart: 80 px is not an edge, the top
+   corner is not where the eye rests during a build, and a control absolute in a
+   sticky stage is a different box in each of the three stages that carry one.
+   Fixed is one box for all three, and the rail's own inset is the measured
+   answer to "how far from the edge" this page already ships.
+
+   WHICH IS WHY THE PLATE WAITS FOR ITS OWN ACT. Absolute inside a stage, only
+   one control could ever be on screen — the stage was the clip. Fixed, all
+   three would stand on the same 24 px of margin at once, so cf-anim-skip.js
+   writes `is-live` while the viewport's MIDDLE is inside that button's track
+   and this rule fades the others out. Identical test, identical name and
+   identical reason to .act-rail.is-live in acts.css.
 
    IT IS .cf-hero__still's PLATE AND NOT A NEW ONE — 2rem square, one 1rem mark,
    the label carried by .visually-hidden — and that is the whole of what "the
@@ -7602,42 +7617,89 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    loudest object in an act built out of hairlines.
 
    HIDDEN UNTIL A SCRIPT HAS FOUND A BUILD TO SKIP. `display: none` is the
-   authored state and `.is-live` is written by cf-anim-skip.js only where the
+   authored state and `.is-gated` is written by cf-anim-skip.js only where the
    track it stands in actually carries a view timeline — below the gate, under
    prefers-reduced-motion, in a browser without scroll-driven animations and
    with JS off, the stage is a stacked column that is already in its finished
-   state and this control would move the reader for no reason. The live rule
+   state and this control would move the reader for no reason. The gated rule
    names `screen` for the same reason every animation-timeline in the system
    does: paper does not scroll, and there is nothing on it to skip.
+
+   TWO CLASSES BECAUSE THERE ARE TWO QUESTIONS, and the rail answers them in the
+   same two ways: `is-gated` is the tier — this control exists at all, so it is
+   laid out — and `is-live` is the reader's position, which is paint. Opacity
+   and pointer-events rather than `display`, because a control that pops into
+   the margin at the first frame of an act is the thing --duration-slow exists
+   to prevent, and a display switch cannot be transitioned.
    -------------------------------------------------------------------------- */
-.cf-skip {
-  display: none;
-  position: absolute;
-  /* Over the stage's own layers, under nothing: the drawings inside these
-     stages rank at 0 and 1, and the nav is in another stacking context. */
-  z-index: 2;
-  inset-block-start: var(--skip-top, 0px);
-  inset-inline-end: var(--column-inset);
-  /* The hero switch's box, to the pixel: 2rem reads as subordinate to the nav's
-     44 px furniture and still clears WCAG 2.5.8's 24 px target floor by 8. */
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  color: var(--text-secondary);
-  background: var(--surface-raised);
-  border: var(--stroke-1) solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  /* The control acknowledging a pointer, which is --duration-fast by doctrine.
-     Nothing here is light crossing a surface. */
-  transition: color var(--duration-fast) var(--ease-standard),
-              border-color var(--duration-fast) var(--ease-standard);
-}
-/* The stage that starts at the viewport's top, and the only one that does. */
-.cf-pin__stage .cf-skip { --skip-top: calc(var(--nav-height) + var(--space-4)); }
+/* The authored state, in every medium, and it is the whole of what paper ever
+   sees of this control. Everything below is `screen`: `position: fixed` in
+   paged media is a box repeated on every sheet rather than one pinned to a
+   viewport, so the rule that declares it may not be reachable from print.
+   → scripts/check-print-fixed.py */
+.cf-skip { display: none; }
 
 @media screen {
-  .cf-skip.is-live { display: grid; }
+  .cf-skip {
+    /* THE RAIL'S THREE DECLARATIONS, MIRRORED. Fixed and not absolute: the same
+       box in all three stages, and the reason the control is now clipped by the
+       reader's position rather than by its stage. */
+    position: fixed;
+    z-index: var(--z-sticky);
+    inset-block-start: 50%;
+    inset-inline-end: var(--space-6);
+    translate: 0 -50%;
+    /* The hero switch's box, to the pixel: 2rem reads as subordinate to the
+       nav's 44 px furniture and still clears WCAG 2.5.8's 24 px target floor
+       by 8. */
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    color: var(--text-secondary);
+    background: var(--surface-raised);
+    border: var(--stroke-1) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    opacity: 0;
+    /* The control acknowledging a pointer, which is --duration-fast by
+       doctrine. Nothing here is light crossing a surface. The arrival is the
+       rail's own --duration-slow: the two fade in together over the same seam. */
+    transition: color var(--duration-fast) var(--ease-standard),
+                border-color var(--duration-fast) var(--ease-standard),
+                opacity var(--duration-slow) var(--ease-standard);
+  }
+  .cf-skip.is-gated { display: grid; }
+  .cf-skip.is-live,
+  .cf-skip:focus-visible { opacity: 1; }
+  /* HIDDEN BY PAINT AND NOT BY THE TREE, which is the correction .act-rail
+     carries above the same declaration: `hidden` on a control whose live range
+     is a scroll position takes it out of the tab order at exactly the moment
+     Tab has already gone past it, in both directions. Pointer-events keep an
+     invisible plate from swallowing a click on the drawing under it; the rule
+     above brings it back the moment a keyboard reaches it, which is the rail's
+     :focus-within in the singular. */
+  .cf-skip.is-gated:not(.is-live) { pointer-events: none; }
+  .cf-skip:focus-visible { pointer-events: auto; }
+}
+
+/* THE MIRROR HAS TO FOLLOW THE RAIL DOWN, and this is the one number that made
+   it a copy rather than a reflection. The rail does not stand at --space-6 at
+   every width: below 96rem it collapses to a single column and pulls in to
+   --space-4, because its 108 px row only fits the page margin once
+   --column-inset reaches its 128 px arm. Measured before this rule existed, at
+   the skip's fixed --space-6: 1024, 1280 and 1440 put the rail 16 px from the
+   left edge and the control 24 px from the right — 8 px of asymmetry across
+   the whole of the pinned tier except 1920 and up, which is the one pair of
+   widths the first draft was checked at.
+
+   95.999rem IS THE RAIL'S OWN QUERY, registered in tokens.css and held by
+   scripts/check-rail-margin.py. It is restated here rather than derived
+   because a media prelude cannot read a custom property — the register's first
+   sentence — and a reflection whose axis is written once is worth the second
+   copy of a number the register already governs.
+   → assets/css/acts.css, `@media screen and (max-width: 95.999rem)` */
+@media screen and (max-width: 95.999rem) {
+  .cf-skip { inset-inline-end: var(--space-4); }
 }
 
 /* Secondary furniture standing on a light ground: there is no plate to deepen,
