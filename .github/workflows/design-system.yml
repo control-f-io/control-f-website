@@ -2692,6 +2692,15 @@ jobs:
       # in the middle of an English page is the failure nobody reviews, and the
       # five routines that edit the landing pattern hourly write new sentences
       # every day.
+      # BEFORE the English edition, because it feeds it. build-news.py writes
+      # the archive into the German pattern page and the post titles into the
+      # catalogue; the edition is built from both. Checked in the order they
+      # run, so a stale archive is reported as a stale archive rather than as
+      # sixteen untranslated strings three steps downstream.
+      - name: News archive
+        if: '!cancelled()'
+        run: python3 scripts/build-news.py --check
+
       - name: English edition
         if: '!cancelled()'
         run: python3 scripts/build-i18n.py --check
