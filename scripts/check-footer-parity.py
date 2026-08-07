@@ -19,14 +19,23 @@ Four are lawful and each has a rule already written down somewhere:
                  karriere-stelle under Karriere) — WAI-ARIA's own distinction,
                  kept correctly on all fourteen pages.
 
-  THE TEL CTA    kontakt.html documents the rule in place: "Der Footer trägt
-                 auf jeder anderen Seite den CTA 'Jetzt Projekt starten' mit
+  THE CONTACT    kontakt.html documents the rule in place: "Der Footer trägt
+  PAGES' CTA     auf jeder anderen Seite den CTA 'Jetzt Projekt starten' mit
                  dem Link hierher. Auf dieser Seite wäre das ein Link auf
-                 sich selbst, also steht hier die andere Hälfte des Angebots:
-                 anrufen statt schreiben." kontakt-danke.html argues the same
-                 swap for the page after the form. Two contact pages, two
-                 documented tel variants, and the rule's own wording — "auf
-                 jeder anderen Seite" — is the fence around them.
+                 sich selbst." kontakt-danke.html argues the same swap for the
+                 page after the form. Two contact pages, two variants, and the
+                 rule's own wording — "auf jeder anderen Seite" — is the fence
+                 around them.
+
+                 It used to be one variant for both, and it was a phone
+                 number: "die andere Hälfte des Angebots: anrufen statt
+                 schreiben". That half is gone — the form is the only way to
+                 reach the company now — so the two pages no longer share a
+                 CTA and neither offers a channel. Each points at what its own
+                 reader can use next: Expertise before writing, Über uns after
+                 sending. They are listed per page below, because two pages
+                 with two different buttons is exactly the shape this file
+                 exists to keep honest.
 
   --DETACHED     kontakt.html again, same comment: "Der Modifier ist für
                  Seiten, deren letzte Sektion .section--flush ist." Checked
@@ -56,9 +65,8 @@ design-system/patterns/*.html, comments stripped:
 
   1. VARIANT   the CTA is the regular form (Jetzt Projekt starten! /
                cf-btn--primary / kontakt.html / Kontakt aufnehmen) on every
-               page except the two contact pages, which must carry the tel
-               form (Lieber direkt sprechen? / cf-btn--outline /
-               tel:+4917644478596 / the number). A third form anywhere is a
+               page except the two contact pages, each of which must carry
+               its own, named in CTA_CONTACT. A third form anywhere is a
                finding either way.
   2. CURRENT   at most one footer link carries aria-current; it is "page"
                iff the href is the page itself, "true" iff SECTION_OF maps
@@ -68,12 +76,19 @@ design-system/patterns/*.html, comments stripped:
   3. DETACHED  cf-footer--detached iff the last <section> inside <main>
                carries section--flush.
   4. PARITY    after normalising the four lawful axes away — aria-current
-               removed, the tel CTA rewritten to the regular one on the
-               pages allowed to carry it, --detached and the footer's id
-               dropped, whitespace collapsed, the docs page's ../patterns/
-               hrefs relativised — every copy is CHARACTER-IDENTICAL to the
-               component's. Whatever the next fork is, it fails here without
-               this file having to predict it.
+               removed, a contact page's own CTA rewritten to the regular
+               one on the pages allowed to carry it, --detached and the
+               footer's id dropped, whitespace collapsed, the docs page's
+               ../patterns/ hrefs relativised — every copy is
+               CHARACTER-IDENTICAL to the component's. Whatever the next
+               fork is, it fails here without this file having to predict it.
+  5. NO CHANNEL no footer carries a tel: or mailto: link. The contact form
+               is the only way to reach the company, and the footer is the
+               one block that appears on all sixteen pages — an address put
+               back here would reopen that door everywhere at once, which is
+               how it came to be everywhere in the first place. The address
+               the law requires is in the Impressum, which every footer
+               links to.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
@@ -94,12 +109,12 @@ COMPONENT = ROOT / "design-system" / "components" / "footer.html"
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 FOOTER = re.compile(r"<footer\b[^>]*>.*?</footer>", re.S)
 
-# The two pages whose footer CTA may not link to kontakt.html, because on
-# them it would be a link to itself (kontakt) or to the form the reader has
-# just sent (kontakt-danke). The rule and its fence are kontakt.html's own
-# comment: the tel variant stands "auf dieser Seite", the regular CTA "auf
-# jeder anderen Seite".
-CONTACT_PAGES = {"kontakt.html", "kontakt-danke.html"}
+# The pages whose footer CTA may not link to kontakt.html, because on them it
+# would be a link to itself (kontakt) or to the form the reader has just sent
+# (kontakt-danke), are the keys of CTA_CONTACT below — the same list as the
+# CTAs themselves, so the set and the markup cannot fall out of step. The rule
+# and its fence are kontakt.html's own comment: the variant stands "auf dieser
+# Seite", the regular CTA "auf jeder anderen Seite".
 
 # Pages that are children of a section a footer link names, and therefore
 # mark that link aria-current="true" rather than "page".
@@ -129,12 +144,24 @@ CTA_REGULAR = (
     " Kontakt aufnehmen "
     '<svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></a>'
 )
-CTA_TEL = (
-    '<p class="cf-footer__title text-foil">Lieber direkt sprechen?</p>'
-    '<a class="cf-btn cf-btn--outline cf-btn--xwide" href="tel:+4917644478596">'
-    " +49 176 44478596 "
-    '<svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></a>'
-)
+# One per contact page, because the two pages answer different questions. The
+# regular CTA would be a self-link on kontakt and a link back to the form the
+# reader just sent on kontakt-danke; what replaces it is not a second channel
+# but the next thing worth reading.
+CTA_CONTACT = {
+    "kontakt.html": (
+        '<p class="cf-footer__title text-foil">Erst sehen, was wir bauen?</p>'
+        '<a class="cf-btn cf-btn--outline cf-btn--xwide" href="expertise.html">'
+        " Expertise "
+        '<svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></a>'
+    ),
+    "kontakt-danke.html": (
+        '<p class="cf-footer__title text-foil">Wer sich bei Ihnen meldet</p>'
+        '<a class="cf-btn cf-btn--outline cf-btn--xwide" href="ueber-uns.html">'
+        " Über uns "
+        '<svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></a>'
+    ),
+}
 
 
 def flatten(footer_html, name):
@@ -155,8 +182,8 @@ def normalise(flat, name):
     flat = re.sub(r'\s+aria-current="(?:page|true)"', "", flat)
     flat = re.sub(r'(<footer\b[^>]*?)\s+id="[^"]*"', r"\1", flat)
     flat = flat.replace(" cf-footer--detached", "")
-    if name in CONTACT_PAGES:
-        flat = flat.replace(CTA_TEL, CTA_REGULAR)
+    if name in CTA_CONTACT:
+        flat = flat.replace(CTA_CONTACT[name], CTA_REGULAR)
     return flat
 
 
@@ -173,22 +200,35 @@ def audit(path, canon, verbose):
 
     # 1. VARIANT — which CTA does the page carry, and which may it.
     has_regular = CTA_REGULAR in flat
-    has_tel = CTA_TEL in flat
-    if name in CONTACT_PAGES:
-        if not has_tel:
+    if name in CTA_CONTACT:
+        if CTA_CONTACT[name] not in flat:
             findings.append(
-                "%s\n    VARIANT  a contact page must carry the tel CTA — the "
-                "regular one is a link to itself" % rel)
+                "%s\n    VARIANT  a contact page carries its own CTA, because "
+                "the regular one would link to itself — and this is not the "
+                "one CTA_CONTACT names for this page" % rel)
     else:
-        if has_tel:
+        foreign = [p for p, cta in CTA_CONTACT.items() if cta in flat]
+        if foreign:
             findings.append(
-                "%s\n    VARIANT  the tel CTA is the contact pages' answer to "
-                "a self-link; this page has no self-link to avoid and owes "
-                "the reader the road to kontakt.html" % rel)
+                "%s\n    VARIANT  this page carries %s's CTA; that variant "
+                "exists only because a contact page cannot link to itself, and "
+                "this page owes the reader the road to kontakt.html"
+                % (rel, foreign[0]))
         elif not has_regular:
             findings.append(
                 "%s\n    VARIANT  the CTA is neither the regular form nor the "
-                "tel form — a third fork of the footer's one button" % rel)
+                "one this page is allowed — a third fork of the footer's one "
+                "button" % rel)
+
+    # 5. NO CHANNEL — the form is the only way to reach the company, and this
+    # block is on every page.
+    for scheme in ("tel:", "mailto:"):
+        if scheme in flat:
+            findings.append(
+                "%s\n    CHANNEL  the footer carries a %s link. Contact runs "
+                "through the form on kontakt.html; the address the law "
+                "requires is in the Impressum, which every footer links to."
+                % (rel, scheme.rstrip(":")))
 
     # 2. CURRENT — the marked link is the right link, marked the right way.
     links = re.findall(
@@ -241,7 +281,7 @@ def audit(path, canon, verbose):
     if verbose and not findings:
         print("  %-42s %s%s" % (
             rel,
-            "tel CTA" if has_tel else "regular CTA",
+            "own CTA" if name in CTA_CONTACT else "regular CTA",
             ", detached" if "cf-footer--detached" in flat else ""))
     return findings
 
@@ -272,7 +312,7 @@ def main():
 
     print("footer parity: %d copies of the footer — the component's and %d "
           "pattern pages' — agree character-for-character outside the four "
-          "lawful axes (aria-current, the contact pages' tel CTA, --detached "
+          "lawful axes (aria-current, the contact pages' own CTA, --detached "
           "over a flush last section, the landing page's anchor)."
           % (len(pages) + 1, len(pages)))
     return 0

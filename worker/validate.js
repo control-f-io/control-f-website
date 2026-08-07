@@ -134,17 +134,28 @@ const MESSAGES = {
 };
 
 /* Was der Leser sieht, wenn nicht seine Eingabe das Problem war, sondern der
-   Versand. Kein Feld ist schuld, also zeigt der Eintrag auf "direkt" — die
-   Überschrift der Spalte daneben, unter der die Adresse steht, die dann noch
-   offen ist. Beide Ausgaben tragen diese id. */
+   Versand.
+
+   ES GIBT KEINEN ZWEITEN WEG MEHR, auf den hier verwiesen werden könnte. Diese
+   Meldung nannte die Adresse aus der Spalte "Direkt" und zeigte auf deren
+   Überschrift; beides ist von der Seite entfernt, weil eine Anfrage über das
+   Formular kommen soll. Ein Verweis auf eine id, die es nicht mehr gibt, wäre
+   ein Link ins Leere gewesen — der Eintrag zeigt jetzt auf "schreiben", die
+   Überschrift über dem Formular selbst, und beide Ausgaben tragen diese id.
+
+   Was der Satz noch verspricht, ist deshalb nur, was er halten kann: dass die
+   Eingaben stehen bleiben und ein zweiter Versuch sich lohnt. Das Impressum
+   steht in jedem Footer und nennt die Adresse für den Fall, dass es länger
+   nicht geht; darauf hier zu zeigen hieße, den Weg wieder aufzumachen, den die
+   Seite gerade geschlossen hat. */
 export const SEND_FAILED = {
   de: {
     title: "Ihre Nachricht konnte gerade nicht gesendet werden",
-    message: "Bitte versuchen Sie es in einigen Minuten noch einmal — oder schreiben Sie uns direkt an info@control-f.io.",
+    message: "Ihre Angaben stehen noch im Formular. Bitte versuchen Sie es in einigen Minuten noch einmal.",
   },
   en: {
     title: "Your message could not be sent just now",
-    message: "Please try again in a few minutes — or write to us directly at info@control-f.io.",
+    message: "Your details are still in the form. Please try again in a few minutes.",
   },
 };
 
