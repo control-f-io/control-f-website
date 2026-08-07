@@ -193,7 +193,7 @@ async function handleSubmit(request, env, ctx, url, route) {
       notice: {
         title: SEND_FAILED[locale].title,
         items: [{
-          target: "direkt",
+          target: "schreiben",
           field: null,
           message: SEND_FAILED[locale].message,
         }],
