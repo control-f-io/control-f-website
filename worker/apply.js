@@ -56,7 +56,7 @@ export const POSITIONS = {
     "Data Engineer (m/f/d)",
     "Machine Learning Engineer (m/f/d)",
     "Solution Engineer Industry (m/f/d)",
-    "Working student Frontend (m/f/d)",
+    "Working Student Frontend (m/f/d)",
     "Speculative application",
   ],
 };
