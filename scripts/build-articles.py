@@ -416,6 +416,19 @@ def page(template, post, posts, edition, total, name):
         if n != 1:
             fail("%s: expected one detached footer to un-detach, found %d" % (name, n))
 
+    # AN EMPTY BYLINE IS NOT AN EMPTY BOX. `.cf-article__byline` carries a
+    # bottom rule and the air under it; with no author inside, what is drawn is
+    # a hairline hanging over the text with nothing above it — read off the
+    # rendered page, where it looks like a rule somebody meant. The whole box
+    # goes, and the prose keeps the section's own spacing.
+    if not byline(post, ""):
+        doc, n = re.subn(
+            r"[ \t]*<div class=\"cf-article__byline\">\s*"
+            + re.escape(FENCE % "byline") + r"\s*"
+            + re.escape(FENCE_END % "byline") + r"\s*</div>\n", "", doc)
+        if n != 1:
+            fail("%s: expected one empty byline box to remove, found %d" % (name, n))
+
     # THE SPECIMEN'S OWN NAME, everywhere it points at itself: the two
     # hreflang alternates, the language switch in the nav, and — on the English
     # page — the `../` back to the German edition. Replaced as a string rather
