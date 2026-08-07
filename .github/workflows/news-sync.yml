@@ -1,0 +1,105 @@
+name: News from Notion
+
+# Notion writes the archive; this brings it over.
+#
+# The admin's loop is one place: write the post in the Notion database, set its
+# Status to "Veröffentlicht", and within the hour it is on the site. Nothing
+# here is a second way to author — scripts/sync-news-notion.py only writes
+# content/news/, and build-news.py lays out the page from those files exactly as
+# it does for a post written with new-post.py. One store, two ways in.
+#
+# IT PUSHES A BRANCH RATHER THAN COMMITTING TO main, and the branch prefix is
+# the one .github/workflows/routine-merge.yml already gates:
+# routine/system-pages-**. So a sync goes through the same forty checks every
+# other change does, arrives as a pull request whose body says what moved, and
+# merges only if it is green. A workflow that pushed straight to main would be
+# the one path into this repository with no gate on it, and it would be the path
+# taken by an unattended job reading an external service.
+#
+# NOTHING RUNS WITHOUT THE SECRET. NOTION_TOKEN is an internal integration's
+# token, added in Settings → Secrets and variables → Actions, and NOTION_NEWS_DB
+# is the database id. Until both exist this job exits without doing anything
+# rather than failing hourly: an unconfigured integration is not a broken build.
+#
+# → design-system/README.md, "Add a news post"
+
+on:
+  schedule:
+    - cron: '25 * * * *'      # between the routines' :11 and :39, clear of both
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Allow a sync that removes most of the archive'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: news-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Is it configured?
+        id: cfg
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_NEWS_DB: ${{ secrets.NOTION_NEWS_DB }}
+        run: |
+          if [ -z "$NOTION_TOKEN" ] || [ -z "$NOTION_NEWS_DB" ]; then
+            echo "NOTION_TOKEN / NOTION_NEWS_DB are not set — nothing to sync."
+            echo "ready=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=yes" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pull the archive from Notion
+        if: steps.cfg.outputs.ready == 'yes'
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_NEWS_DB: ${{ secrets.NOTION_NEWS_DB }}
+        run: |
+          python3 scripts/sync-news-notion.py \
+            ${{ inputs.force && '--force' || '' }}
+
+      # The archive, the English edition and the shipping pages, in the one
+      # order they work in. Committing the sync without them would leave the
+      # store and the pages disagreeing, which build-news.py --check then fails
+      # on — correctly, and after the fact.
+      - name: Rebuild
+        if: steps.cfg.outputs.ready == 'yes'
+        run: sh scripts/build-all.sh
+
+      - name: Push it, if anything moved
+        if: steps.cfg.outputs.ready == 'yes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Notion has nothing this repository does not already have."
+            exit 0
+          fi
+          BR="routine/system-pages-news-$(date -u +%Y%m%d-%H%M)"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BR"
+          git add -A
+          # The commit message is the pull request: routine-merge.yml opens it
+          # with `gh pr create --fill`, so what moved has to be stated here.
+          {
+            printf 'The news archive follows Notion\n\n'
+            printf 'Imported by scripts/sync-news-notion.py from the news database, then\n'
+            printf 'laid out by build-news.py and rebuilt into both editions.\n\n'
+            printf 'Files changed in content/news/:\n\n'
+            git diff --cached --name-status -- content/news | sed 's/^/    /'
+            printf '\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n'
+          } > /tmp/msg
+          git commit -F /tmp/msg
+          git push -u origin "$BR"
+          echo "pushed $BR — routine-merge.yml gates and merges it"

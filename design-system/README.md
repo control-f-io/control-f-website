@@ -45,6 +45,47 @@ tidied up after it. **Do not edit the archive in `patterns/news.html`** — the
 four regions fenced by `<!-- news:… -->` are output, and `build-news.py --check`
 fails in CI when they drift from `content/news/`.
 
+### …or write it in Notion
+
+`scripts/sync-news-notion.py` imports the archive from a Notion database into
+those same files, and `.github/workflows/news-sync.yml` runs it hourly, rebuilds,
+and pushes the result through the same gate every other change goes through. The
+admin's loop is then one place: write the post, set **Status** to
+`Veröffentlicht`, and it is on the site within the hour.
+
+The database needs six properties, named exactly:
+
+| Property | Type | |
+|---|---|---|
+| `Titel` | Title | the German headline |
+| `Title` | Text | the English headline — required, the site ships twice |
+| `Datum` | Date | sorts the archive |
+| `Autor` | Text | optional; only the lead card has room to show it |
+| `Minuten` | Number | optional; reading time |
+| `Status` | Select | only `Veröffentlicht` is imported |
+
+Then, once:
+
+1. create an **internal integration** at <https://notion.so/my-integrations>;
+2. open the database → **⋯ → Connections** → add it (a 404 from the script is
+   almost always this step);
+3. add `NOTION_TOKEN` (the integration secret) and `NOTION_NEWS_DB` (the 32 hex
+   characters in the database URL) under **Settings → Secrets and variables →
+   Actions**.
+
+Until both secrets exist the workflow exits quietly rather than failing hourly.
+
+**Notion wins once it is connected.** The sync makes `content/news/` match what
+the database publishes, so a post written with `new-post.py` and not present
+there is *removed* on the next run. Pick one source. There is a floor under the
+deletions — a sync that would remove most of the archive stops and asks for
+`--force`, because that is what a wrong database id or a renamed Status looks
+like from the script's side — but the rule still holds.
+
+`--dry-run` says what would change without touching anything, and `--fixture
+FILE` runs the whole transform against a saved API response, which is how it is
+tested without a token.
+
 Reasoning, and what is deliberately *not* generated, is in the header of
 `scripts/build-news.py`.
 
