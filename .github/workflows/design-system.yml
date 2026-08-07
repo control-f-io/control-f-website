@@ -2705,6 +2705,15 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/build-i18n.py --check
 
+      # AFTER the English edition, because it splices each post's text into
+      # BOTH editions of blog-artikel.html and the English one is that
+      # edition's output. It also reports a page whose post has gone: an
+      # article unpublished in Notion leaves content/news/, and the page has to
+      # leave with it or the site serves an article the archive stopped listing.
+      - name: Article pages
+        if: '!cancelled()'
+        run: python3 scripts/build-articles.py --check
+
       - name: Site build
         if: '!cancelled()'
         run: python3 scripts/build-site.py --check

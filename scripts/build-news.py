@@ -84,6 +84,14 @@ PER_PAGE = sum(COLUMNS)
 # than rejected, so a later run can add a body without this one having to know.
 REQUIRED = ("datum", "titel", "title")
 
+# WHERE THE GERMAN TEXT ENDS AND THE ENGLISH BEGINS. A post is one file in two
+# languages, the same way its two titles are two fields of one record: the site
+# ships both editions, and a post that exists in one of them is a page with a
+# German paragraph in the middle of the English archive. The divider is what
+# Notion's own divider block imports as, so an admin writing there types
+# nothing — they draw a line.
+DIVIDER = re.compile(r"^ {0,3}-{3,}\s*en\s*-{3,}\s*$", re.M | re.I)
+
 REGION = "<!-- news:%s -->"
 REGION_END = "<!-- /news:%s -->"
 
@@ -97,6 +105,93 @@ def fail(msg):
 # the store
 # --------------------------------------------------------------------------
 
+def blocks(text, where):
+    """A post's text → the blocks it is made of, in order.
+
+    THE SMALLEST GRAMMAR THAT NOTION EMITS, and deliberately no larger. A post
+    is written in an editor — Notion for an admin, a text editor for anyone
+    else — and every form below is one the editor already has a button for:
+    a paragraph, two levels of heading, a bulleted list, a numbered list.
+    Anything richer that an article needs — the isometric figures, the plot,
+    the table, the pull quote — lives in blog-artikel.html, which is written by
+    hand for exactly that reason and is the specimen the generated pages take
+    their furniture from.
+
+    Blocks are separated by a blank line, which is what pressing return twice
+    already does.
+    """
+    out = []
+    for chunk in re.split(r"\n\s*\n", text.strip()):
+        lines = [ln.strip() for ln in chunk.strip().splitlines() if ln.strip()]
+        if not lines:
+            continue
+        if lines[0].startswith("### "):
+            kind, payload = "h3", lines[0][4:].strip()
+        elif lines[0].startswith("## "):
+            kind, payload = "h2", lines[0][3:].strip()
+        elif lines[0].startswith("- ") or re.match(r"\d+\.\s", lines[0]):
+            # A LIST ITEM IS ALLOWED TO BE LONGER THAN A LINE. The marker opens
+            # an item and every line after it that carries none belongs to the
+            # item above — which is how a wrapped file reads to a person, and
+            # the first version of this took a three-line item for a paragraph
+            # and set the whole list as running text.
+            kind = "ul" if lines[0].startswith("- ") else "ol"
+            payload = []
+            for ln in lines:
+                if ln.startswith("- ") or re.match(r"\d+\.\s", ln):
+                    payload.append(re.sub(r"^(?:-|\d+\.)\s*", "", ln))
+                elif payload:
+                    payload[-1] += " " + ln
+        else:
+            kind, payload = "p", " ".join(lines)
+        if kind in ("h2", "h3") and len(lines) > 1:
+            fail("%s: a heading is one line, and this one runs to %d — %r"
+                 % (where, len(lines), lines[0]))
+        out.append((kind, payload))
+    return out
+
+
+def bodies(text, where):
+    """The German and the English text of one post, or (None, None) for neither.
+
+    A POST WITHOUT TEXT IS NOT AN ERROR. content/news/ was seeded from the cards
+    of the mock-up, and eighteen of those entries are a headline and a date and
+    nothing else. They stay in the archive and they get no page: a card that
+    links to somebody else's article is the fault this whole file was written
+    to remove, and a page that says "no text yet" under a claim of six minutes'
+    reading is the same fault one click further in.
+    """
+    if not text.strip():
+        return None, None
+    parts = DIVIDER.split(text)
+    if len(parts) != 2:
+        fail("%s has text but %s.\n"
+             "    A post is written in both languages, in one file: the German "
+             "text, a divider line, then the English text.\n"
+             "    In Notion that divider is the divider block; in a file it is "
+             "`--- en ---` on a line of its own."
+             % (where, "no `--- en ---` divider" if len(parts) < 2
+                else "%d dividers" % (len(parts) - 1)))
+    de, en = (blocks(p, where) for p in parts)
+    if not de or not en:
+        fail("%s has text on only one side of the divider. Both editions ship."
+             % where)
+    for side, bs in (("de", de), ("en", en)):
+        if bs[0][0] != "p":
+            fail("%s: the %s text opens with a %s. The first block is the lead "
+                 "paragraph — it is set larger and it is what the archive and "
+                 "the search results quote." % (where, side, bs[0][0]))
+    heads_de = [k for k, _ in de if k in ("h2", "h3")]
+    heads_en = [k for k, _ in en if k in ("h2", "h3")]
+    if heads_de != heads_en:
+        fail("%s: the two editions are divided differently — German has %s and "
+             "English has %s.\n"
+             "    The contents rail is built from the headings, so a piece with "
+             "four sections in German and three in English is two different "
+             "pieces." % (where, heads_de or "none", heads_en or "none"))
+    return de, en
+
+
 def read_posts():
     """Every post in content/news/, newest first.
 
@@ -108,7 +203,8 @@ def read_posts():
     out = []
     for path in sorted(POSTS.glob("*.md")):
         post = {"file": path.name}
-        for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        head, _, body = path.read_text(encoding="utf-8").partition("\n\n")
+        for n, line in enumerate(head.splitlines(), 1):
             line = line.rstrip()
             if not line:
                 break                      # the header ends at the first blank line
@@ -116,6 +212,7 @@ def read_posts():
                 fail("%s:%d is not `feld: wert` — %r" % (path.name, n, line))
             k, v = line.split(":", 1)
             post[k.strip()] = v.strip()
+        post["text_de"], post["text_en"] = bodies(body, path.name)
         missing = [k for k in REQUIRED if not post.get(k)]
         if missing:
             fail("%s has no %s. Every post needs a date and both titles."
@@ -135,6 +232,23 @@ def read_posts():
 def german(iso):
     y, m, d = iso.split("-")
     return "%s.%s.%s" % (d, m, y)
+
+
+def page_name(post):
+    """The page a post is read on — `beitrag-<name>.html`, or None.
+
+    The name is the post file's own, without its date and its extension, so the
+    URL a reader shares and the file an admin edits carry the same string and
+    neither has to be looked up. `beitrag-` and not `blog-` because
+    blog-artikel.html is the specimen these pages are built from: one prefix
+    means generated, and a page that is not generated is not called one.
+
+    None for a post with no text. scripts/build-articles.py writes a page for
+    every post that has one, and this is where both scripts agree on which.
+    """
+    if not post.get("text_de"):
+        return None
+    return "beitrag-%s.html" % post["file"][11:-3]
 
 
 # --------------------------------------------------------------------------
@@ -167,14 +281,26 @@ def cards(page_posts, indent="          "):
             title = '<span class="cf-blog-card__title">%s</span>' % esc(p["titel"])
             meta_html = ('<span class="cf-blog-card__meta">%s</span>'
                          % esc(" · ".join(meta))) if meta else ""
+            # A CARD IS A LINK WHEN THERE IS SOMETHING BEHIND IT AND NOT
+            # OTHERWISE. Every one of these used to point at blog-artikel.html,
+            # so all eighteen headlines opened the same article about digital
+            # twins — the card said one thing and the page said another, which
+            # is the failure this file exists to stop making with numbers.
+            # A post with text gets its own page and links to it; one of the
+            # mock-up's text-less entries stays a listing, and .cf-blog-card
+            # is written for any element rather than for <a> so the row looks
+            # the same either way. → scripts/build-articles.py
+            href = page_name(p)
+            open_, close = (
+                ('<a class="cf-blog-card%s" href="%s">' % (mod, href), "</a>") if href
+                else ('<span class="cf-blog-card%s cf-blog-card--listing">' % mod, "</span>"))
             if n == 1:
-                lines.append('%s  <a class="cf-blog-card%s" href="blog-artikel.html">' % (indent, mod))
+                lines.append("%s  %s" % (indent, open_))
                 lines.append("%s    %s" % (indent, title))
                 lines.append("%s    %s" % (indent, meta_html))
-                lines.append("%s  </a>" % indent)
+                lines.append("%s  %s" % (indent, close))
             else:
-                lines.append('%s  <a class="cf-blog-card%s" href="blog-artikel.html">%s%s</a>'
-                             % (indent, mod, title, meta_html))
+                lines.append("%s  %s%s%s%s" % (indent, open_, title, meta_html, close))
         lines.append("%s</div>" % indent)
     return "\n".join(lines)
 
@@ -400,7 +526,12 @@ def strings_used_elsewhere():
     # which marks nothing as used and would prune the whole catalogue.
     cat, overrides = mod.load_catalogue()
     before = set(mod.USED)
-    for page in sorted(PAGE.parent.glob("*.html")):
+    # ITS LIST OF PAGES AND NOT A GLOB. The article pages are generated in both
+    # editions by build-articles.py and build-i18n.py never translates them, so
+    # a string that survives only there is unused as far as that file is
+    # concerned — and it fails the build on an entry nothing uses. Keeping one
+    # alive here would be this script arranging for the next one to fail.
+    for page in mod.source_pages():
         if page == PAGE:
             continue
         # missing is collected and dropped: another page's untranslated string

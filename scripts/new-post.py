@@ -18,8 +18,21 @@ be read by a person and by a script:
     titel:   Wärmepumpen im …    required. German — what the reader sees.
     title:   Heat pumps in …     required. English — the other edition.
 
-    (a blank line ends the header; anything after it is the body, which no
-     generator reads yet — the cards link to the article pattern for now.)
+    (a blank line ends the header; everything after it is the text)
+
+THE TEXT IS THE POST'S PAGE. A post that has one gets `beitrag-<name>.html` —
+scripts/build-articles.py splices it into the reading surface of
+blog-artikel.html — and its card in the archive links there. A post with no
+text is a listing and stays one: its card is drawn as a <span>, because a card
+that opens somebody else's article is worse than a card that opens nothing.
+
+It is written in both languages, in this one file, divided by `--- en ---` on a
+line of its own. Paragraphs are separated by a blank line; `## ` is a section
+heading, which is what the contents rail on the left is built from; `- ` is a
+bulleted list and `1. ` a numbered one; `**bold**`, `` `code` `` and
+`[text](page.html)` work inside a paragraph. That is the whole grammar, and it
+is the whole grammar on purpose — it is what Notion's blocks import as, and an
+article that needs more than it belongs on the hand-written specimen.
 
 WHY BOTH TITLES ARE REQUIRED and not defaulted. Every pattern page ships twice
 and build-i18n.py fails on a German string with no English counterpart, on
@@ -65,6 +78,8 @@ def main():
                     help="YYYY-MM-DD (default: today)")
     ap.add_argument("--autor", default="")
     ap.add_argument("--minuten", default="", help="reading time in minutes")
+    ap.add_argument("--text", action="store_true",
+                    help="scaffold the two-language body, so the post gets a page")
     args = ap.parse_args()
 
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.datum):
@@ -84,6 +99,27 @@ def main():
     lines += ["titel:   " + args.titel,
               "title:   " + args.title,
               ""]
+    # The scaffold below is a comment about itself: left as it stands, the post
+    # is a listing in the archive and nothing more, which is a legitimate state
+    # and the one the mock-up's eighteen entries are in. Filled in, the same
+    # file is an article page in both editions.
+    if args.text:
+        lines += ["Der erste Absatz ist der Lead — er steht größer und ist der "
+                  "Satz, den das Archiv und die Suche zitieren.",
+                  "",
+                  "## Erste Zwischenüberschrift",
+                  "",
+                  "Text.",
+                  "",
+                  "--- en ---",
+                  "",
+                  "The first paragraph is the lead — it is set larger and it is "
+                  "the sentence the archive and the search results quote.",
+                  "",
+                  "## First section heading",
+                  "",
+                  "Text.",
+                  ""]
     path.write_text("\n".join(lines), encoding="utf-8")
 
     print("wrote %s" % path.relative_to(ROOT))
@@ -92,14 +128,19 @@ def main():
               "without it,\n  because the site ships in both languages and a "
               "half-translated page is the\n  one thing the catalogue exists to "
               "prevent.")
+    if not args.text:
+        print("\n  It has no text, so it is a listing in the archive and has no "
+              "page of its own.\n  Write the two-language body into the file — "
+              "or start from a scaffold with --text.")
     print("""
   Then:
 
       python3 scripts/build-news.py     # the archive, its counters and its axis
       python3 scripts/build-i18n.py     # the English edition
+      python3 scripts/build-articles.py # the post's own page, both editions
       python3 scripts/build-site.py     # the pages that actually ship
 
-  Or all three, in that order: scripts/build-all.sh""")
+  Or all four, in that order: scripts/build-all.sh""")
     return 0
 
 
