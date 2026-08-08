@@ -36,7 +36,7 @@ Keine dieser Größen erfordert neue Technik. Alle drei erfordern, dass die vorh
 
 Der elektrische Heizstab ist die Stelle, an der eine Wärmepumpe aufhört, eine Wärmepumpe zu sein: Er macht aus einer Kilowattstunde Strom eine Kilowattstunde Wärme, wo der Rest der Anlage drei daraus macht. Das ist im Auslegungsfall richtig und über den Winter verteilt teuer.
 
-Auffällig ist, wie oft er nicht wegen der Kälte anspringt, sondern wegen einer Einstellung — einer zu hoch gesetzten Warmwassertemperatur, einem Legionellen- programm mitten in der Frostperiode, einer Estrich-Trocknung, die nie abgeschaltet wurde. Das sind Fälle, die man in den Daten in einer Stunde findet und ohne Daten über Jahre bezahlt.
+Auffällig ist, wie oft er nicht wegen der Kälte anspringt, sondern wegen einer Einstellung — einer zu hoch gesetzten Warmwassertemperatur, einem Legionellenprogramm mitten in der Frostperiode, einer Estrich-Trocknung, die nie abgeschaltet wurde. Das sind Fälle, die man in den Daten in einer Stunde findet und ohne Daten über Jahre bezahlt.
 
 ## Fazit
 
