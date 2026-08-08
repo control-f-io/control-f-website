@@ -28,11 +28,33 @@ at all is fine: the post stays a listing in the archive and gets no page, which
 is what the eighteen entries carried over from the mock-up are.
 
 The blocks that survive the trip are the ones the reading surface has a form
-for — paragraph, heading, bulleted and numbered list, quote and callout as
-paragraphs — with bold, code and links inside them. Anything else in the page
-(an image, an embed, a table) is DROPPED WITH A WARNING rather than silently:
-a picture that vanishes between Notion and the site is the kind of loss nobody
-notices until a reader asks about it.
+for — paragraph, heading, bulleted and numbered list, image, quote and callout
+as paragraphs — with bold, code and links inside them. Anything else in the
+page (an embed, a table, a video) is DROPPED WITH A WARNING rather than
+silently: something that vanishes between Notion and the site is the kind of
+loss nobody notices until a reader asks about it.
+
+PICTURES ARE DOWNLOADED, NOT LINKED. A Notion-hosted file URL is signed and
+expires within the hour: a page that pointed at one would show the photograph
+to whoever built it and a broken image to everybody after. So the file is
+fetched into design-system/assets/img/news/ and the post names it there — the
+site serves its own assets, which is also the only arrangement its Content
+Security Policy allows.
+
+    <name>-<8 hex>.jpg     the post's name, then the file's own digest
+
+The digest is the file's, so the same picture used twice is stored once and a
+picture that has not changed does not churn the repository on every sync. A
+file nothing names any more is removed, the way an unpublished post's text is.
+
+EVERY PICTURE NEEDS A CAPTION, and it is not decoration: the caption is written
+under the figure AND stands in for the picture for a reader who cannot see it
+(scripts/build-articles.py writes alt="" for exactly this reason). A picture
+with no caption fails the sync rather than shipping as a hole in the page.
+
+The two halves of a post each carry their own image blocks, because each
+carries its own caption. Copy the block below the divider and write the caption
+in English; the file is downloaded once either way.
 
 THE DATABASE IT EXPECTS. Five properties, and the names are the German ones the
 post files already use so that the two are read the same way:
@@ -69,6 +91,7 @@ stdlib only, no build step, no dependency. Same python3 that serves the pages.
 """
 
 import argparse
+import hashlib
 import json
 import os
 import pathlib
@@ -80,6 +103,16 @@ import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 POSTS = ROOT / "content" / "news"
+IMAGES = ROOT / "design-system" / "assets" / "img" / "news"
+
+# The extensions the reading page can draw and check-image-scale.py can read a
+# size out of. Anything else Notion lets somebody drop in a page — a PDF, an
+# HEIC straight off a phone, an SVG — is refused by name rather than written
+# into a post that then fails three scripts downstream.
+SUFFIX = {"jpg": ".jpg", "jpeg": ".jpg", "png": ".png",
+          "webp": ".webp", "gif": ".gif"}
+TYPES = {"image/jpeg": ".jpg", "image/png": ".png",
+         "image/webp": ".webp", "image/gif": ".gif"}
 
 # 2022-06-28 rather than the newest. It is the version whose
 # `/v1/databases/{id}/query` still exists and returns properties in the shape
@@ -190,7 +223,38 @@ def rich(runs):
     return "".join(out).strip()
 
 
-def body_from(blocks, url, dropped):
+def fetch_image(src, stem, url, mode):
+    """One picture into design-system/assets/img/news/, named for the post and
+    its own digest. Returns the path a post file names it by.
+
+    Written only when it is not already there, byte for byte. That is what
+    keeps an hourly job from rewriting the same eight photographs every run and
+    filling the history with binary that did not change.
+    """
+    try:
+        with urllib.request.urlopen(src, timeout=60) as r:
+            data = r.read()
+            ctype = (r.headers.get("Content-Type") or "").split(";")[0].strip()
+    except (urllib.error.HTTPError, urllib.error.URLError) as e:
+        fail("%s: cannot download the picture.\n    %s\n    %s"
+             % (url, getattr(e, "reason", e), src.split("?")[0]))
+
+    ext = SUFFIX.get(src.split("?")[0].rsplit(".", 1)[-1].lower()) or TYPES.get(ctype)
+    if not ext:
+        fail("%s has a picture that is neither JPEG, PNG, WebP nor GIF (%s).\n"
+             "    The reading page draws those four; anything else has to be "
+             "exported before it goes in the page." % (url, ctype or "unknown type"))
+
+    name = "%s-%s%s" % (stem[:40].rstrip("-"),
+                        hashlib.sha1(data).hexdigest()[:8], ext)
+    path = IMAGES / name
+    if mode == "write" and (not path.exists() or path.read_bytes() != data):
+        IMAGES.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    return "news/" + name, len(data)
+
+
+def body_from(blocks, url, dropped, stem="bild", mode="write", pictures=None):
     """A Notion page's children → the two-language text of a post file.
 
     The divider is the language boundary and it is the only structural block
@@ -204,6 +268,24 @@ def body_from(blocks, url, dropped):
         if kind == "divider":
             seen_divider += 1
             lines.append("--- en ---")
+            continue
+        if kind == "image":
+            img = b.get("image") or {}
+            src = ((img.get("external") or {}).get("url")
+                   or (img.get("file") or {}).get("url"))
+            caption = rich(img.get("caption"))
+            if not src:
+                fail("%s has an image block with no file behind it." % url)
+            if not caption:
+                fail("%s has a picture with no caption.\n"
+                     "    The caption is written under the figure and it is "
+                     "also what stands in for the picture for a reader who "
+                     "cannot see it — nothing else on the page says what is in "
+                     "it. Click the image in Notion and add one." % url)
+            path, size = fetch_image(src, stem, url, mode)
+            if pictures is not None:
+                pictures[path] = size
+            lines.append("![%s](%s)" % (caption.replace("]", ""), path))
             continue
         form = BLOCK.get(kind)
         if form is None:
@@ -278,6 +360,37 @@ def write(wanted, mode):
         for n in removed:
             (POSTS / n).unlink()
     return added, changed, removed
+
+
+def sweep(pictures, mode):
+    """Pictures nothing published names any more.
+
+    The other half of "unpublishing in Notion has to mean unpublishing on the
+    site". A post's text is removed when it leaves Veröffentlicht; its
+    photographs are in a second directory and would otherwise stay, shipped
+    with the site, reachable by anybody who kept the address. Only files under
+    design-system/assets/img/news/ are ever touched — that directory is this
+    script's output and nothing else writes to it.
+    """
+    if not IMAGES.is_dir():
+        return []
+    keep = {p.split("/", 1)[1] for p in pictures}
+    gone = sorted(f.name for f in IMAGES.iterdir()
+                  if f.is_file() and f.name not in keep)
+    if mode == "write":
+        for n in gone:
+            (IMAGES / n).unlink()
+    return ["news/" + n for n in gone]
+
+
+def budget():
+    """check-news-images.py's byte ceiling, read from the file that enforces it."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "cf_news_images", pathlib.Path(__file__).with_name("check-news-images.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.MAX_BYTES
 
 
 def fetch(db, token):
@@ -361,7 +474,8 @@ def main():
                  "response: --fixture FILE.")
         rows = fetch(db, token)
 
-    wanted, dropped = {}, {}
+    mode = "report" if (args.dry_run or args.check) else "write"
+    wanted, dropped, pictures = {}, {}, {}
     for page in rows:
         # The properties decide whether it is published; the page's own blocks
         # are only fetched for the rows that are, so a database of drafts costs
@@ -372,7 +486,11 @@ def main():
         url = page.get("url", page.get("id", "?"))
         blocks = (page.get("_blocks", []) if args.fixture
                   else children(page["id"], token))
-        name, body = post_from(page, body_from(blocks, url, dropped))
+        # The picture's filename starts with the post's, so `ls` on the image
+        # directory reads as the archive does. name is `<date>-<slug>.md`; the
+        # date is already in the post's own name and says nothing about a file.
+        name, body = post_from(page, body_from(
+            blocks, url, dropped, stem=name[11:-3], mode=mode, pictures=pictures))
         if not name:
             continue
         if name in wanted and wanted[name] != body:
@@ -405,8 +523,8 @@ def main():
              "    If the archive really is meant to shrink to %d: --force"
              % (going, standing, len(wanted), len(wanted)))
 
-    added, changed, removed = write(
-        wanted, "report" if (args.dry_run or args.check) else "write")
+    added, changed, removed = write(wanted, mode)
+    gone = sweep(pictures, mode)
 
     for n in added:
         print("  + %s" % n)
@@ -414,24 +532,39 @@ def main():
         print("  ~ %s" % n)
     for n in removed:
         print("  - %s" % n)
+    for n in gone:
+        print("  - %s" % n)
     for kind, where in sorted(dropped.items()):
         print("  ! %s block(s) of type %r have no form on the reading page and "
               "were left out: %s" % (len(where), kind, where[0]), file=sys.stderr)
 
+    # The budget is check-news-images.py's and is read from it rather than
+    # repeated: that file is the gate, and a warning here that disagreed with
+    # the gate would be a second opinion nobody asked for. Said now anyway,
+    # because the person who dropped the photograph in is looking at this run
+    # and not at the pull request it will fail an hour from now.
+    for path, size in sorted(pictures.items()):
+        if size > budget():
+            print("  ! %s is %.1f MB — over the %.0f kB a picture on the "
+                  "reading plate is allowed. check-news-images.py fails on it."
+                  % (path, size / 1e6, budget() / 1e3), file=sys.stderr)
+
     if args.check:
-        if added or changed or removed:
+        if added or changed or removed or gone:
             print("\nsync-news: content/news/ is %d file(s) out of step with "
                   "Notion.\n    run: python3 scripts/sync-news-notion.py"
-                  % (len(added) + len(changed) + len(removed)))
+                  % (len(added) + len(changed) + len(removed) + len(gone)))
             return 1
-        print("sync-news: content/news/ matches Notion — %d published post(s)"
-              % len(wanted))
+        print("sync-news: content/news/ matches Notion — %d published post(s), "
+              "%d picture(s)" % (len(wanted), len(pictures)))
         return 0
 
     verb = "would change" if args.dry_run else "synced"
-    print("sync-news: %s — %d published, %d added, %d updated, %d removed"
-          % (verb, len(wanted), len(added), len(changed), len(removed)))
-    if not args.dry_run and (added or changed or removed):
+    print("sync-news: %s — %d published, %d added, %d updated, %d removed, "
+          "%d picture(s)"
+          % (verb, len(wanted), len(added), len(changed), len(removed),
+             len(pictures)))
+    if not args.dry_run and (added or changed or removed or gone):
         print("     then: sh scripts/build-all.sh")
     return 0
 

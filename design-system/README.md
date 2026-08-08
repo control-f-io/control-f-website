@@ -70,6 +70,15 @@ The first paragraph is the lead — it is set larger.
 Text.
 ```
 
+**Pictures** are written the same way: `![Bildunterschrift](news/datei.jpg)`, on
+a line of its own. The file lives in `design-system/assets/img/news/` and is
+drawn as a full-width plate with its caption under a hairline. The caption is
+required — it is also what stands in for the picture for a reader who cannot
+see it, which is why the `<img>` carries `alt=""` and not a repeat of the same
+sentence. `scripts/check-news-images.py` holds the file to the plate it is drawn
+on: **1008–2016 px wide, under 800 kB**, no dangling reference, no file left
+behind by a post that is gone.
+
 A post with text gets its own reading page — `beitrag-<name>.html`, in both
 editions — and its card in the archive links there. `scripts/build-articles.py`
 writes it by splicing the text into the regions of `patterns/blog-artikel.html`
@@ -115,9 +124,23 @@ block** (type `---` in Notion), then the English text — the same convention th
 post file carries, because the sync writes one into the other. Paragraphs,
 headings, bulleted and numbered lists, bold, code and links come across; a
 quote or callout arrives as a paragraph; anything with no form on the reading
-page — an image, an embed, a table — is left out and named in the run's log. A
+page — an embed, a table, a video — is left out and named in the run's log. A
 page with no text at all is a listing in the archive and gets no page of its
 own, which is a legitimate state and not an error.
+
+**Pictures**: drop an image block into the page and **write a caption on it**.
+The sync downloads the file into `design-system/assets/img/news/` and the post
+points at it there — a Notion file URL is signed and expires within the hour, so
+a page that linked to one would show a broken image by lunchtime. The caption is
+not optional: it is printed under the picture and it is what a reader who cannot
+see the picture gets instead.
+
+Put the image in **both halves** — copy the block below the divider and write
+its caption in English. Each edition carries its own caption; the file is
+downloaded once either way, and the build fails if one half has a picture the
+other does not. Keep it between **1008 and 2016 px wide and under 800 kB**
+(the plate it is drawn on is 1008 px); `scripts/check-news-images.py` states
+the numbers and fails the sync's pull request if a photograph misses them.
 
 What is left is two secrets, under **Settings → Secrets and variables → Actions**:
 
