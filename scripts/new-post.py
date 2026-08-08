@@ -29,10 +29,17 @@ that opens somebody else's article is worse than a card that opens nothing.
 It is written in both languages, in this one file, divided by `--- en ---` on a
 line of its own. Paragraphs are separated by a blank line; `## ` is a section
 heading, which is what the contents rail on the left is built from; `- ` is a
-bulleted list and `1. ` a numbered one; `**bold**`, `` `code` `` and
-`[text](page.html)` work inside a paragraph. That is the whole grammar, and it
-is the whole grammar on purpose — it is what Notion's blocks import as, and an
-article that needs more than it belongs on the hand-written specimen.
+bulleted list and `1. ` a numbered one; `![Bildunterschrift](news/datei.jpg)`
+on its own line is a picture, drawn as a full-width plate with its caption
+under it; `**bold**`, `` `code` `` and `[text](page.html)` work inside a
+paragraph. That is the whole grammar, and it is the whole grammar on purpose —
+it is what Notion's blocks import as, and an article that needs more than it
+belongs on the hand-written specimen.
+
+A picture's caption is required, because the `<img>` carries `alt=""` and the
+caption is what stands in for the picture for a reader who cannot see it. The
+file goes in design-system/assets/img/news/ and has to fit the plate it is
+drawn on — scripts/check-news-images.py carries the numbers and the reasons.
 
 WHY BOTH TITLES ARE REQUIRED and not defaulted. Every pattern page ships twice
 and build-i18n.py fails on a German string with no English counterpart, on

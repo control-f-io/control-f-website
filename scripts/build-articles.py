@@ -124,6 +124,25 @@ def fail(msg):
     sys.exit(1)
 
 
+IMG = ROOT / "design-system" / "assets" / "img"
+
+
+def intrinsic(path):
+    """A raster file's real pixel size, read from its header.
+
+    scripts/check-image-scale.py owns this — "no decoder, no dependency" — and
+    it is imported rather than written again because that file is also the one
+    that FAILS on a width/height attribute which disagrees with the file. Two
+    readers of a JPEG header would disagree about a progressive scan exactly
+    once, and the check would be right and the page would be wrong.
+    """
+    spec = importlib.util.spec_from_file_location(
+        "cf_image_scale", pathlib.Path(__file__).with_name("check-image-scale.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.intrinsic(str(path))
+
+
 def store():
     """build-news.py, imported rather than copied.
 
@@ -217,7 +236,7 @@ def wrap(pad, opening, text, closing):
     return "%s%s\n%s\n%s%s" % (pad, opening, body, pad, closing)
 
 
-def prose(bs, pad):
+def prose(bs, edition, pad):
     """The post's text, as the elements .cf-prose styles by name.
 
     The first block is the lead — set larger, and the paragraph the archive and
@@ -232,6 +251,8 @@ def prose(bs, pad):
         elif kind in ("h2", "h3"):
             out.append('%s<%s id="%s">%s</%s>'
                        % (pad, kind, anchor(payload), inline(payload), kind))
+        elif kind == "img":
+            out.append(picture(payload[0], payload[1], edition, pad))
         else:
             tag = "ul" if kind == "ul" else "ol"
             out.append("%s<%s>" % (pad, tag))
@@ -239,6 +260,57 @@ def prose(bs, pad):
                 out.append(wrap(pad + "  ", "<li>", inline(item), "</li>"))
             out.append("%s</%s>" % (pad, tag))
     return "\n".join(out)
+
+
+def picture(path, caption, edition, pad):
+    """One photograph, as a plate: `.cf-prose > figure` runs the full width.
+
+    THREE THINGS ARE WRITTEN AND NONE OF THEM IS A CHOICE MADE HERE.
+
+    `width` and `height` are the file's real pixel dimensions, read from its
+    header. They are the aspect-ratio box the browser reserves before the bytes
+    arrive — an article without them reflows under the reader's eye as each
+    picture lands — and scripts/check-image-scale.py fails on a pair that
+    disagrees with the file, which is what makes them worth writing at all.
+
+    `alt` is empty because the caption is right underneath and says what the
+    picture is. That is the W3C figure pattern, it is what
+    scripts/check-a11y.py means by "write alt="" if it is decorative", and it
+    is why build-news.py refuses a picture with no caption: the alternative is
+    a screen reader reading the same sentence twice, or reading nothing.
+
+    `loading="lazy"` because a picture below the fold in a piece somebody has
+    not started reading is not worth a request yet — every other image on the
+    site that is not the hero carries it for the same reason.
+
+    AND THE PATH IS WRITTEN FOR THE EDITION IT IS ON. Every other asset
+    reference on an English page got its second `../` from build-i18n.py, which
+    never sees this markup: the English article is this text spliced into the
+    already-translated specimen. Written with one `../` it resolved to nothing
+    from patterns/en/, and build-site.py stopped the build for it — "a
+    preview-only reference survived the edits" — which is the check doing its
+    job on a path this file had to write itself.
+    """
+    up = "../../assets/img/" if edition == "en" else "../assets/img/"
+    f = IMG / path
+    if not f.exists():
+        fail("%s does not exist. A post's picture is a file in the repository, "
+             "downloaded from Notion by scripts/sync-news-notion.py — a page "
+             "cannot link to one that is not there." % f.relative_to(ROOT))
+    dims = intrinsic(f)
+    if not dims:
+        fail("%s: cannot read the pixel size out of this file's header. JPEG, "
+             "PNG, WebP and GIF are what scripts/check-image-scale.py reads."
+             % f.relative_to(ROOT))
+    w, h = dims
+    return ("%s<figure>\n"
+            '%s  <img src="%s%s" alt="" width="%d" height="%d"\n'
+            '%s       loading="lazy" decoding="async">\n'
+            "%s\n"
+            "%s</figure>"
+            % (pad, pad, up, path, w, h, pad,
+               wrap(pad + "  ", "<figcaption>", inline(caption), "</figcaption>"),
+               pad))
 
 
 def rail(bs, edition, pad):
@@ -397,7 +469,7 @@ def page(template, post, posts, edition, total, name):
             ("meta", lambda pad: meta_line(post, edition, pad)),
             ("rail", lambda pad: rail(bs, edition, pad)),
             ("byline", lambda pad: byline(post, pad)),
-            ("prose", lambda pad: prose(bs, pad)),
+            ("prose", lambda pad: prose(bs, edition, pad)),
             ("tail", lambda pad: ""),
             ("related", lambda pad: related(post, posts, edition, total, pad))):
         doc = splice(doc, region, body, where)

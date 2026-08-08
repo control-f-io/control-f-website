@@ -1364,6 +1364,22 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-image-scale.py
 
+      # The same argument one directory over, for the pictures that arrive
+      # without anybody in this repository choosing them. An admin drops a
+      # photograph into a Notion page; scripts/sync-news-notion.py downloads it
+      # and scripts/build-articles.py draws it as a plate, and nothing in that
+      # chain looks at the file. What leaves a phone is 4 000 px and four
+      # megabytes. The plate is 1008 px — measured on blog-artikel.html at
+      # 1440, 1920 and 2560, where the container caps before the viewport does —
+      # so a file belongs between 1 x and 2 x it, and under 800 kB.
+      #
+      # It also holds the two states that render correctly and are wrong: a
+      # post naming a picture the repository does not have, and a picture no
+      # post names any more — unpublishing has to take the photographs with it.
+      - name: News pictures
+        if: '!cancelled()'
+        run: python3 scripts/check-news-images.py
+
       # The fifty-ninth, and it is the layer under #204 and #207 rather than a
       # new subject. Every check at this seam — terminals, handover, shared
       # measure, flow stem — is written in the drawing's USER units. Whether the

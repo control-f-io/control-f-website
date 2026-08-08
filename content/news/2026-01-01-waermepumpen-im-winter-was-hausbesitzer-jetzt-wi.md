@@ -12,6 +12,8 @@ Die Kennzahlen, mit denen Wärmepumpen verkauft werden, sind Mittelwerte über e
 
 Der Grund ist Physik und keine Produktqualität. Je kälter die Außenluft, desto größer der Abstand zwischen Quelle und Vorlauf, und desto mehr Strom kostet dieselbe Kilowattstunde Wärme. Dieser Zusammenhang ist bekannt und wird trotzdem selten gemessen — weil dafür zwei Zahlen gleichzeitig aufgezeichnet werden müssen, die in vielen Anlagen an unterschiedlichen Stellen entstehen.
 
+![Das Team von Control-F in Konstanz, wo die Messreihen dieses Beitrags ausgewertet wurden.](news/waermepumpen-im-winter-was-hausbesitzer-65498603.jpg)
+
 ## COP ist eine Momentaufnahme, JAZ ist die Rechnung
 
 Der COP beschreibt einen Betriebspunkt: so viel Wärme je Kilowattstunde Strom, bei dieser Quellentemperatur und diesem Vorlauf. Er ist eine Zahl aus dem Prüfstand. Die Jahresarbeitszahl ist derselbe Quotient über ein volles Jahr echten Betriebs — mit Abtauzyklen, Taktverlusten, Warmwasserbereitung und allem, was sonst passiert.
@@ -34,7 +36,7 @@ Keine dieser Größen erfordert neue Technik. Alle drei erfordern, dass die vorh
 
 Der elektrische Heizstab ist die Stelle, an der eine Wärmepumpe aufhört, eine Wärmepumpe zu sein: Er macht aus einer Kilowattstunde Strom eine Kilowattstunde Wärme, wo der Rest der Anlage drei daraus macht. Das ist im Auslegungsfall richtig und über den Winter verteilt teuer.
 
-Auffällig ist, wie oft er nicht wegen der Kälte anspringt, sondern wegen einer Einstellung — einer zu hoch gesetzten Warmwassertemperatur, einem Legionellen- programm mitten in der Frostperiode, einer Estrich-Trocknung, die nie abgeschaltet wurde. Das sind Fälle, die man in den Daten in einer Stunde findet und ohne Daten über Jahre bezahlt.
+Auffällig ist, wie oft er nicht wegen der Kälte anspringt, sondern wegen einer Einstellung — einer zu hoch gesetzten Warmwassertemperatur, einem Legionellenprogramm mitten in der Frostperiode, einer Estrich-Trocknung, die nie abgeschaltet wurde. Das sind Fälle, die man in den Daten in einer Stunde findet und ohne Daten über Jahre bezahlt.
 
 ## Fazit
 
@@ -49,6 +51,8 @@ A heat pump does not fail in summer. It fails on the twenty coldest days of the 
 The figures heat pumps are sold on are averages over a whole year. Winter is a small share of those hours and a large share of the work: in an average German house, roughly two thirds of the heat demand falls into four months. A system that runs cleanly in October therefore says very little about how it runs in February.
 
 The reason is physics rather than product quality. The colder the outside air, the wider the gap between source and flow temperature, and the more electricity the same kilowatt-hour of heat costs. The relationship is well known and still rarely measured, because measuring it means recording two numbers at the same time that, in many installations, are produced in two different places.
+
+![The Control-F team in Konstanz, where the measurements in this piece were analysed.](news/waermepumpen-im-winter-was-hausbesitzer-65498603.jpg)
 
 ## COP is a snapshot, SPF is the arithmetic
 

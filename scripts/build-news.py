@@ -92,6 +92,18 @@ REQUIRED = ("datum", "titel", "title")
 # nothing — they draw a line.
 DIVIDER = re.compile(r"^ {0,3}-{3,}\s*en\s*-{3,}\s*$", re.M | re.I)
 
+# A PICTURE, written the way every editor writes one: `![caption](path)`. The
+# path is relative to design-system/assets/img/, because that is where the file
+# is and a post file should not have to know how many `../` a pattern page is
+# from its assets — build-articles.py writes that, once, for the page it is on.
+# The file itself is in the repository: scripts/sync-news-notion.py downloads
+# what Notion holds, since a Notion file URL is signed and expires within the
+# hour, and a site that hot-linked one would show a broken image by lunchtime.
+PICTURE = re.compile(r"!\[(.*?)\]\(([^)\s]+)\)")
+
+# Where those files live, and the one place they live.
+IMAGES = ROOT / "design-system" / "assets" / "img" / "news"
+
 REGION = "<!-- news:%s -->"
 REGION_END = "<!-- /news:%s -->"
 
@@ -111,11 +123,11 @@ def blocks(text, where):
     THE SMALLEST GRAMMAR THAT NOTION EMITS, and deliberately no larger. A post
     is written in an editor — Notion for an admin, a text editor for anyone
     else — and every form below is one the editor already has a button for:
-    a paragraph, two levels of heading, a bulleted list, a numbered list.
-    Anything richer that an article needs — the isometric figures, the plot,
-    the table, the pull quote — lives in blog-artikel.html, which is written by
-    hand for exactly that reason and is the specimen the generated pages take
-    their furniture from.
+    a paragraph, two levels of heading, a bulleted list, a numbered list, a
+    picture. Anything richer that an article needs — the isometric figures, the
+    plot, the table, the pull quote — lives in blog-artikel.html, which is
+    written by hand for exactly that reason and is the specimen the generated
+    pages take their furniture from.
 
     Blocks are separated by a blank line, which is what pressing return twice
     already does.
@@ -124,6 +136,22 @@ def blocks(text, where):
     for chunk in re.split(r"\n\s*\n", text.strip()):
         lines = [ln.strip() for ln in chunk.strip().splitlines() if ln.strip()]
         if not lines:
+            continue
+        pic = PICTURE.fullmatch(" ".join(lines))
+        if pic:
+            # THE CAPTION IS NOT OPTIONAL, and the empty-alt below is why. A
+            # figure with a caption beside it does not repeat itself into alt
+            # text — the W3C figure pattern, and what .cf-prose figcaption is
+            # already styled for — so the caption IS the description. Written
+            # nowhere, the picture is a hole in the page for anyone who cannot
+            # see it, and there is no second field to fall back to.
+            path, caption = pic.group(2).strip(), pic.group(1).strip()
+            if not caption:
+                fail("%s: the picture %s has no caption.\n"
+                     "    It is the line under the image and it is also what "
+                     "stands in for the image itself — nothing else on the page "
+                     "says what is in it." % (where, path))
+            out.append(("img", (path, caption)))
             continue
         if lines[0].startswith("### "):
             kind, payload = "h3", lines[0][4:].strip()
@@ -189,6 +217,19 @@ def bodies(text, where):
              "    The contents rail is built from the headings, so a piece with "
              "four sections in German and three in English is two different "
              "pieces." % (where, heads_de or "none", heads_en or "none"))
+    # THE PICTURES ARE IN BOTH EDITIONS OR THE READER OF ONE IS SHOWN LESS.
+    # Each edition carries its own image block, because each carries its own
+    # caption — the caption is the description, and a German sentence under a
+    # photograph on the English page is the fault the catalogue exists to
+    # prevent. The FILE is shared: the same picture in both halves downloads
+    # once and is written once.
+    pics_de = [p for k, (p, _) in ((k, v) for k, v in de if k == "img")]
+    pics_en = [p for k, (p, _) in ((k, v) for k, v in en if k == "img")]
+    if len(pics_de) != len(pics_en):
+        fail("%s: %d picture(s) in the German text and %d in the English.\n"
+             "    Both editions ship, so a picture belongs in both halves — in "
+             "Notion, copy the image block below the divider and write its "
+             "caption in English." % (where, len(pics_de), len(pics_en)))
     return de, en
 
 
