@@ -81,6 +81,19 @@ STATE_OF = {
 # Routes the server reaches on its own; linking to them would be the defect.
 SERVER_ROUTES = {"404.html"}
 
+# THE TEMPLATES, which ship as documentation and are not part of the site's
+# navigation. scripts/build-stellen.py splices one opening of content/jobs/ into
+# karriere-stelle.html and writes stelle-<name>.html; the register on
+# karriere.html links to THOSE, so nothing on the site walks to the template any
+# more — and it must not, because two pages carrying one JobPosting is the
+# duplicate scripts/check-job-posting.py exists to stop. The template is still
+# reachable the way every specimen is, from design-system/index.html, which
+# scripts/check-registered.py requires of it. The canonical page named here is
+# walked in its place, exactly as for a state document.
+SPECIMEN_OF = {
+    "karriere-stelle.html": "karriere.html",
+}
+
 # Regions whose contents are documentation, not markup the browser acts on.
 MASK = re.compile(
     r"<!--.*?-->|<pre\b.*?</pre>|<code\b.*?</code>|<textarea\b.*?</textarea>",
@@ -139,6 +152,16 @@ def main():
 
     findings = []
     for name in sorted(pages):
+        if name in SPECIMEN_OF:
+            canonical = SPECIMEN_OF[name]
+            if canonical not in depth:
+                findings.append((name, "the template for a generated page, and "
+                                 "%s — the page walked in its place — is not "
+                                 "walked either" % canonical))
+            elif args.verbose:
+                print("  %-28s template of %s, walked at depth %d"
+                      % (name, canonical, depth[canonical]))
+            continue
         if name in SERVER_ROUTES:
             if args.verbose:
                 print("  %-28s server route, lawfully un-walked" % name)
@@ -167,18 +190,19 @@ def main():
             print("design-system/patterns/%s\n    %s" % (name, why),
                   file=sys.stderr)
         print("\n%d unreachable route%s on the shipped site. Every pattern "
-              "page is walked from %s, or entered in STATE_OF / SERVER_ROUTES "
-              "with its reason." %
+              "page is walked from %s, or entered in STATE_OF / SPECIMEN_OF / "
+              "SERVER_ROUTES with its reason." %
               (len(findings), "" if len(findings) == 1 else "s", ENTRY),
               file=sys.stderr)
         return 1
 
-    walked = sum(1 for n in pages
-                 if n not in SERVER_ROUTES and n not in STATE_OF)
+    walked = sum(1 for n in pages if n not in SERVER_ROUTES
+                 and n not in STATE_OF and n not in SPECIMEN_OF)
     print("reachability: %d pattern pages — %d walked from %s (max depth %d), "
           "%d server-rendered states whose canonical routes are walked, "
-          "%d server route%s." %
+          "%d template%s walked as the page it writes, %d server route%s." %
           (len(pages), walked, ENTRY, max(depth.values()), len(STATE_OF),
+           len(SPECIMEN_OF), "" if len(SPECIMEN_OF) == 1 else "s",
            len(SERVER_ROUTES), "" if len(SERVER_ROUTES) == 1 else "s"))
     return 0
 

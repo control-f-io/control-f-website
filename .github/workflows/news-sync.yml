@@ -1,12 +1,18 @@
-name: News from Notion
+name: Content from Notion
 
-# Notion writes the archive; this brings it over.
+# Notion writes the archive and the vacancy register; this brings them over.
 #
-# The admin's loop is one place: write the post in the Notion database, set its
-# Status to "Veröffentlicht", and within the hour it is on the site. Nothing
-# here is a second way to author — scripts/sync-news-notion.py only writes
-# content/news/, and build-news.py lays out the page from those files exactly as
-# it does for a post written with new-post.py. One store, two ways in.
+# The admin's loop is one place: write the post in the news database or the
+# opening in the Stellen database, set Status to "Veröffentlicht", and within
+# the hour it is on the site. Nothing here is a second way to author — the two
+# sync scripts only write content/news/ and content/jobs/, and the build lays
+# out the pages from those files exactly as it does for anything written by
+# hand. Two stores, two ways into each.
+#
+# ONE WORKFLOW FOR BOTH, deliberately. Each sync could have its own file, and
+# then two jobs would branch off main in the same minute, each rebuild
+# everything, and the second pull request would need a rebase the moment the
+# first merged. One run, one branch, one gate.
 #
 # IT PUSHES A BRANCH RATHER THAN COMMITTING TO main, and then CALLS the gate on
 # it: .github/workflows/routine-merge.yml, the same one the hourly routine's
@@ -25,12 +31,13 @@ name: News from Notion
 # remote until a person opened the pull request. The branch is now handed over
 # by name instead of by hope.
 #
-# NOTHING RUNS WITHOUT THE SECRET. NOTION_TOKEN is an internal integration's
-# token, added in Settings → Secrets and variables → Actions, and NOTION_NEWS_DB
-# is the database id. Until both exist this job exits without doing anything
-# rather than failing hourly: an unconfigured integration is not a broken build.
+# NOTHING RUNS WITHOUT THE SECRETS. NOTION_TOKEN is an internal integration's
+# token, added in Settings → Secrets and variables → Actions; NOTION_NEWS_DB and
+# NOTION_JOBS_DB are the two database ids. Each store needs the token and its own
+# id, and until a pair exists that store is skipped rather than failed on: an
+# unconfigured integration is not a broken build.
 #
-# → design-system/README.md, "Add a news post"
+# → design-system/README.md, "Add a news post" and "Advertise a position"
 
 on:
   schedule:
@@ -38,7 +45,7 @@ on:
   workflow_dispatch:
     inputs:
       force:
-        description: 'Allow a sync that removes most of the archive'
+        description: 'Allow a sync that removes most of the archive or empties the register'
         type: boolean
         default: false
 
@@ -50,7 +57,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: news-sync
+  group: notion-sync
   cancel-in-progress: false
 
 jobs:
@@ -61,21 +68,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Each store is configured on its own: the news database was connected
+      # first and the Stellen database later, and a repository with one of the
+      # two set up is a normal state rather than a broken one.
       - name: Is it configured?
         id: cfg
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_NEWS_DB: ${{ secrets.NOTION_NEWS_DB }}
+          NOTION_JOBS_DB: ${{ secrets.NOTION_JOBS_DB }}
         run: |
-          if [ -z "$NOTION_TOKEN" ] || [ -z "$NOTION_NEWS_DB" ]; then
-            echo "NOTION_TOKEN / NOTION_NEWS_DB are not set — nothing to sync."
-            echo "ready=no" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=yes" >> "$GITHUB_OUTPUT"
+          news=no; jobs=no
+          if [ -n "$NOTION_TOKEN" ] && [ -n "$NOTION_NEWS_DB" ]; then news=yes; fi
+          if [ -n "$NOTION_TOKEN" ] && [ -n "$NOTION_JOBS_DB" ]; then jobs=yes; fi
+          if [ "$news" = no ] && [ "$jobs" = no ]; then
+            echo "No NOTION_TOKEN with a database id — nothing to sync."
           fi
+          echo "news=$news" >> "$GITHUB_OUTPUT"
+          echo "jobs=$jobs" >> "$GITHUB_OUTPUT"
+          echo "ready=$([ "$news" = yes ] || [ "$jobs" = yes ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
 
       - name: Pull the archive from Notion
-        if: steps.cfg.outputs.ready == 'yes'
+        if: steps.cfg.outputs.news == 'yes'
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_NEWS_DB: ${{ secrets.NOTION_NEWS_DB }}
@@ -83,10 +97,19 @@ jobs:
           python3 scripts/sync-news-notion.py \
             ${{ inputs.force && '--force' || '' }}
 
-      # The archive, the English edition and the shipping pages, in the one
-      # order they work in. Committing the sync without them would leave the
-      # store and the pages disagreeing, which build-news.py --check then fails
-      # on — correctly, and after the fact.
+      - name: Pull the vacancy register from Notion
+        if: steps.cfg.outputs.jobs == 'yes'
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_JOBS_DB: ${{ secrets.NOTION_JOBS_DB }}
+        run: |
+          python3 scripts/sync-jobs-notion.py \
+            ${{ inputs.force && '--force' || '' }}
+
+      # The two stores, the English edition, the pages per item and the shipping
+      # pages, in the one order they work in. Committing a sync without them
+      # would leave the store and the pages disagreeing, which the --check of
+      # each builder then fails on — correctly, and after the fact.
       - name: Rebuild
         if: steps.cfg.outputs.ready == 'yes'
         run: sh scripts/build-all.sh
@@ -101,7 +124,7 @@ jobs:
             echo "Notion has nothing this repository does not already have."
             exit 0
           fi
-          BR="routine/system-pages-news-$(date -u +%Y%m%d-%H%M)"
+          BR="routine/system-pages-notion-$(date -u +%Y%m%d-%H%M)"
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BR"
@@ -109,11 +132,12 @@ jobs:
           # The commit message is the pull request: routine-merge.yml opens it
           # with `gh pr create --fill`, so what moved has to be stated here.
           {
-            printf 'The news archive follows Notion\n\n'
-            printf 'Imported by scripts/sync-news-notion.py from the news database, then\n'
-            printf 'laid out by build-news.py and rebuilt into both editions.\n\n'
-            printf 'Files changed in content/news/:\n\n'
-            git diff --cached --name-status -- content/news | sed 's/^/    /'
+            printf 'The site follows Notion\n\n'
+            printf 'Imported by scripts/sync-news-notion.py and scripts/sync-jobs-notion.py\n'
+            printf 'from the news and Stellen databases, then laid out by build-news.py and\n'
+            printf 'build-jobs.py and rebuilt into both editions.\n\n'
+            printf 'Files changed in content/:\n\n'
+            git diff --cached --name-status -- content | sed 's/^/    /'
             printf '\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n'
           } > /tmp/msg
           git commit -F /tmp/msg
