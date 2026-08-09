@@ -75,7 +75,7 @@ a line of its own. The file lives in `design-system/assets/img/news/` and is
 drawn as a full-width plate with its caption under a hairline. The caption is
 required — it is also what stands in for the picture for a reader who cannot
 see it, which is why the `<img>` carries `alt=""` and not a repeat of the same
-sentence. `scripts/check-news-images.py` holds the file to the plate it is drawn
+sentence. `scripts/check-content-images.py` holds the file to the plate it is drawn
 on: **1008–2016 px wide, under 800 kB**, no dangling reference, no file left
 behind by a post that is gone.
 
@@ -139,7 +139,7 @@ Put the image in **both halves** — copy the block below the divider and write
 its caption in English. Each edition carries its own caption; the file is
 downloaded once either way, and the build fails if one half has a picture the
 other does not. Keep it between **1008 and 2016 px wide and under 800 kB**
-(the plate it is drawn on is 1008 px); `scripts/check-news-images.py` states
+(the plate it is drawn on is 1008 px); `scripts/check-content-images.py` states
 the numbers and fails the sync's pull request if a photograph misses them.
 
 What is left is two secrets, under **Settings → Secrets and variables → Actions**:
@@ -162,6 +162,80 @@ tested without a token.
 
 Reasoning, and what is deliberately *not* generated, is in the header of
 `scripts/build-news.py`.
+
+## Advertise a position
+
+The same pipeline, one register over. `content/jobs/` holds one file per
+opening; `scripts/build-jobs.py` writes the register on `patterns/karriere.html`
+— the entries and the "4 offene Stellen" in the header, which
+`scripts/check-register-count.py` has always held to each other — and
+`scripts/build-stellen.py` writes `stelle-<name>.html` for every opening that
+has an advertisement behind it, in both editions, by splicing it into
+`patterns/karriere-stelle.html`.
+
+**An opening with text gets a page; one without stays a listing** whose title
+links to its own row on the register. That is not new behaviour: `karriere.html`
+shipped exactly that for three of its four entries, with its own note that a
+link to a page which does not exist is the thing that must not ship.
+
+The file is the record, and everything a reader sees is a pair:
+
+```
+kennung:    CF-2026-DE-01            the reference that goes in the subject line
+bereich:    Plattform                area / Area
+titel:      {Data Engineer} (m/w/d)  title / Title
+anriss:     Sie bauen die Strecken … excerpt / Excerpt — the register's two lines
+standort:   Konstanz, hybrid         location / Location  ┐
+anstellung: Festanstellung           employment           │ the register's
+umfang:     Voll- oder Teilzeit      hours                │ four facts
+start:      ab sofort                starts               ┘
+adresse:    Am Seerhein 6, …         address   — optional, the long form
+verguetung: 58.000–72.000 € …        salary    — optional
+gehalt_von: 58000                    gehalt_bis: 72000    — optional, for the JobPosting
+art:        FULL_TIME, PART_TIME     — optional, schema.org's employmentType
+seit:       2026-07-06               frist: 2026-09-30    — datePosted, validThrough
+```
+
+**The braces in a title are not a typo.** `{Data Engineer} (m/w/d)` is two
+languages in one line: the braces mark the English run, so the German page wraps
+it in `lang="en"` and the English page drops them. WCAG 3.1.2, and the rule
+`karriere.html` has carried in a comment since it was written.
+
+The text after the header is the advertisement, in both languages divided by
+`--- en ---`, in the same grammar a post uses: the paragraphs before the first
+heading become **Die Aufgabe**, and each `## heading` and its list becomes one
+block of **Ihre Arbeit und was sie voraussetzt**.
+
+**The JobPosting block is generated with the page** — title, identifier, dates,
+employment type and salary all from the same fields the visible page is drawn
+from, because a structured-data block that says one thing while the page says
+another is the one error a reader cannot see and a search engine acts on.
+`scripts/check-job-posting.py` holds them to each other, and its "one URL per
+opening" rule is why `karriere-stelle.html` now carries a *Musterausschreibung*:
+it is the template, not an opening.
+
+### …or write it in Notion
+
+`scripts/sync-jobs-notion.py` imports the register from a second Notion
+database, and the hourly workflow pulls both stores in one run.
+
+**The database**: [Stellen (Website)](https://app.notion.com/p/3b62e8e3987781e685a0e8e04b83f118),
+under *Hiring*, seeded with the four openings that were already in the register.
+Its properties are the fields above, German and English side by side, plus
+`Status` (`Entwurf` → `In Review` → `Veröffentlicht`). Write the advertisement
+inside the page — German text, a **divider block**, then the English text.
+
+One more secret, beside the two the news sync uses:
+
+    NOTION_JOBS_DB   3b62e8e3-9877-81e6-85a0-e8e04b83f118
+
+Each store is configured on its own: with only `NOTION_NEWS_DB` set, the job
+step is skipped rather than failed on.
+
+**A filled position leaves Notion and leaves the site.** Pull it out of
+`Veröffentlicht` and the next sync removes its file, its register entry and its
+page. An empty result stops the sync instead — the zero state is
+`karriere-leer.html`, which is written by hand — unless `--force` says so.
 
 ## Check it
 

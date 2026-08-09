@@ -151,6 +151,8 @@ def section_of(name):
     """
     if name.startswith("beitrag-"):
         return "news.html"
+    if name.startswith("stelle-"):
+        return "karriere.html"
     return SECTION_OF.get(name)
 
 CTA_REGULAR = (
