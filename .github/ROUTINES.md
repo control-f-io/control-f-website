@@ -54,9 +54,19 @@ cannot inherit that connector — the create call says so — and its sessions c
 up with git and nothing else. Git can push a branch and cannot raise a pull
 request, so this one would stop one step short of `main` every hour. The
 workflow closes that step from inside the repository, where it needs nobody's
-token: a push to `routine/system-pages-**` runs the same forty checks, opens the
-PR from the branch's own commit message, and squash-merges it. A failing gate
-still opens the PR and then leaves it open.
+token: a push to `routine/system-pages-**` runs the same forty checks and
+squash-merges the branch into `main` with its own commit message. A failing gate
+merges nothing and leaves the branch standing, with the reason in the run's job
+summary.
+
+**It merges with git and not with `gh`, because this repository does not let a
+workflow open a pull request.** `gh pr create` answers *"GitHub Actions is not
+permitted to create or approve pull requests"* — the setting under Settings →
+Actions → General, which exists to stop a workflow approving its own work. It
+says nothing about `contents: write`, so the merge itself is unaffected; what is
+lost is the pull request as a record, and the commit message carries that
+instead. The PR is still attempted on every run and skipped when refused, so
+turning the setting on brings it back with no further change.
 
 Two consequences worth knowing. The gate is **run** in that workflow rather than
 waited for, because a PR opened with `GITHUB_TOKEN` does not trigger
