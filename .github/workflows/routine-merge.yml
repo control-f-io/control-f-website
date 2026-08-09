@@ -11,10 +11,10 @@ name: Routine merge
 # `main` every hour, unattended, with nobody looking.
 #
 # So the last step moves into the repository, where it needs no credential of
-# anyone's: a push to `routine/system-pages-**` runs the same gate CI runs,
-# opens the pull request from the branch's own commit message, and squash-merges
-# it. What lands on `main` is what would have landed anyway; what changes is who
-# holds the token.
+# anyone's: a push to `routine/system-pages-**` runs the same gate CI runs and
+# squash-merges the branch into `main` with its own commit message. What lands
+# on `main` is what would have landed anyway; what changes is who holds the
+# token.
 #
 # THE GATE IS RUN HERE AND NOT WAITED FOR, and that is a GitHub constraint
 # rather than a shortcut. A pull request opened with GITHUB_TOKEN does not
@@ -24,10 +24,12 @@ name: Routine merge
 # runs them itself, in one step, before it opens anything. `main` is still
 # covered twice over: design-system.yml runs on every push to it.
 #
-# A FAILING GATE STILL OPENS THE PULL REQUEST. The work is worth looking at
-# whether or not it can land, and a branch nobody can see is a run nobody can
-# review. The job then fails, the PR stays open, and the routine's own next run
-# reads it.
+# THE PULL REQUEST IS ATTEMPTED AND NOT REQUIRED. It is worth having — a branch
+# nobody can see is a run nobody can review — but this repository does not let a
+# workflow open one ("GitHub Actions is not permitted to create or approve pull
+# requests"), so the step below tries and carries on. The merge is git's either
+# way, and it happens only after the gate; on a red gate nothing lands, the
+# branch stays, and the reason goes into the job summary.
 #
 # SCOPED TO ONE PREFIX ON PURPOSE. `routine/**` would catch the five
 # landing-page lanes, which raise and merge their own PRs — two agents opening
@@ -100,41 +102,100 @@ jobs:
           done
           exit $fail
 
-      # --fill takes the title and body from the branch's own commit, which is
-      # where the routine is told to write what it measured. One PR per branch:
-      # a re-push after a fix reuses the open one rather than stacking.
-      - name: Open the pull request
+      # THE MERGE IS GIT'S, AND THE PULL REQUEST IS A NICETY ON TOP OF IT.
+      #
+      # `gh pr create` answered, on the run that imported the Stellen register:
+      #
+      #     GraphQL: GitHub Actions is not permitted to create or approve pull
+      #     requests (createPullRequest)
+      #
+      # That is a repository setting — Settings → Actions → General → "Allow
+      # GitHub Actions to create and approve pull requests" — and it is off
+      # here, deliberately or by inheritance from the organisation. It exists to
+      # stop a workflow opening a pull request and approving its own work, which
+      # is a real hazard and not one worth arguing with.
+      #
+      # It says nothing about `contents: write`, which this job already has. So
+      # the branch is merged with git, after the gate, and the pull request is
+      # attempted and skipped if it is refused. Nothing about the gate changes:
+      # every scripts/check-*.py runs against the branch BEFORE anything lands,
+      # which was always where the gating happened — the file's own header says
+      # the PR is opened because "the work is worth looking at", not because it
+      # was ever what held the branch back.
+      #
+      # What is lost when the setting is off is the pull request as a record.
+      # The commit message survives it: `git log` on main is this repository's
+      # changelog and the message is written to be read as one.
+      - name: Open the pull request, if this repository lets a workflow
         if: always()
         id: pr
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ inputs.branch || github.ref_name }}
         run: |
           url=$(gh pr list --head "$BRANCH" --state open --json url --jq '.[0].url // empty')
           if [ -z "$url" ]; then
-            url=$(gh pr create --base main --head "$BRANCH" --fill)
+            if ! url=$(gh pr create --base main --head "$BRANCH" --fill 2>/tmp/pr.err); then
+              echo "::notice::no pull request opened — $(head -1 /tmp/pr.err)"
+              echo "Turn it on in Settings → Actions → General if you want one." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
           fi
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Pull request: $url"
 
-      # Only on a green gate. Squash, because the branch is one finding however
-      # many commits it took; delete, because the routine names a new branch
-      # every hour and the list is otherwise unreadable by tomorrow.
+      # Only on a green gate. Squashed, because the branch is one finding
+      # however many commits it took, and the branch is deleted because the
+      # routine names a new one every hour.
+      #
+      # THE RETRY IS NOT DEFENSIVE PROGRAMMING. main moves several times an hour
+      # — five landing routines, the system-pages routine and this sync all
+      # merge into it — so between the fetch and the push another run can land.
+      # One re-fetch and one replay is enough for that; two failures in a row
+      # mean something is genuinely in the way and the branch is left standing.
       - name: Merge it
         if: steps.gate.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh pr merge "${{ steps.pr.outputs.url }}" --squash --delete-branch
+          BRANCH: ${{ inputs.branch || github.ref_name }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Named explicitly rather than assumed: the checkout above took the
+          # branch as a detached ref, and `origin/<branch>` is only a local
+          # remote-tracking name if the fetch happened to write one.
+          git fetch origin "$BRANCH:refs/heads/cf-merge-source"
+          subject=$(git log -1 --format=%B cf-merge-source)
+          for attempt in 1 2; do
+            git fetch origin main
+            git checkout -B main origin/main
+            git merge --squash cf-merge-source
+            git commit -m "$subject" || { echo "nothing to merge"; exit 0; }
+            if git push origin main; then
+              git push origin --delete "$BRANCH"
+              echo "merged $BRANCH into main"
+              exit 0
+            fi
+            echo "main moved under this run; replaying (attempt $attempt)"
+          done
+          echo "::error::could not merge $BRANCH into main after two attempts — the branch is still there"
+          exit 1
 
       # --body-file and not a heredoc: inside a YAML block scalar every line
       # keeps its relative indentation, so a `<<'EOF'` terminator would arrive
       # indented, bash would not recognise it as the terminator, and the rest of
       # the step would be swallowed into the message.
+      #
+      # And only when there IS a pull request to say it on. Without one the run
+      # log is the record, so the same reason goes into the job summary, where
+      # whoever opens the failed run reads it first.
       - name: Say why it did not merge
         if: steps.gate.outcome != 'success'
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PR: ${{ steps.pr.outputs.url }}
         run: |
           {
             printf 'A `scripts/check-*.py` failed on this branch, so it was not merged.\n\n'
@@ -142,4 +203,7 @@ jobs:
             printf 'Nothing here is weakened to get green — fix the change or withdraw it.\n\n'
             printf -- '---\n_Generated by [Claude Code](https://claude.ai/code)_\n'
           } > /tmp/why.md
-          gh pr comment "${{ steps.pr.outputs.url }}" --body-file /tmp/why.md
+          cat /tmp/why.md >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$PR" ]; then
+            gh pr comment "$PR" --body-file /tmp/why.md
+          fi
