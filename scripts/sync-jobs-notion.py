@@ -145,6 +145,14 @@ def job_from(page, text=""):
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", got["seit"]):
         fail("%s has Ausgeschrieben %r, which is not a plain date."
              % (url, got["seit"]))
+    # Said here as well as in build-jobs.py, because this is where the person
+    # who wrote the advertisement is looking. An opening with text gets a page,
+    # a page carries a JobPosting block, and a block without validThrough stays
+    # in search results after the position is filled.
+    if text and not got["frist"]:
+        fail("%s has an advertisement and no Frist.\n"
+             "    Set a closing date, or leave the page empty and the opening "
+             "stays a listing in the register." % url)
 
     name = "%s.md" % slug(got["titel"])
     body = "\n".join("%-*s%s" % (WIDTH, f + ":", got[f]) for f, _ in FIELDS if got[f])
