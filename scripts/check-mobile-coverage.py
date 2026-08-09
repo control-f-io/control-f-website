@@ -109,7 +109,7 @@ def line_of(text, pos):
 
 
 def main():
-    # THE SPECIMENS, AND NOT THE ARTICLES. patterns/beitrag-*.html is one post
+    # THE SPECIMENS, AND NOT THE CONTENT. patterns/beitrag-*.html is one post
     # of the news archive spliced into blog-artikel.html by
     # scripts/build-articles.py: same markup, same components, same widths,
     # different words. The record this file holds is a set of MEASUREMENTS, and
@@ -117,7 +117,7 @@ def main():
     # page per post would mean a re-run of the matrix every time somebody
     # publishes, to record the numbers already recorded for the specimen.
     pages = sorted(p.stem for p in PATTERNS.glob("*.html")
-                   if not p.name.startswith("beitrag-"))
+                   if not p.name.startswith(("beitrag-", "stelle-")))
     if not pages:
         print("check-mobile-coverage: no pages found under design-system/patterns/")
         return 1

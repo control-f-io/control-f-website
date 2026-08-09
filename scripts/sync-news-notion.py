@@ -158,6 +158,11 @@ def plain(prop):
         return "" if n is None else ("%d" % n if float(n).is_integer() else str(n))
     if kind in ("select", "status"):
         return ((prop.get(kind) or {}).get("name") or "").strip()
+    if kind == "multi_select":
+        # Comma-separated, because the one field that uses it — a job's
+        # employmentType — is a list in schema.org too and the post files carry
+        # lists that way.
+        return ", ".join(o.get("name", "") for o in prop.get(kind, [])).strip()
     if kind == "people":
         return ", ".join(p.get("name", "") for p in prop.get("people", [])).strip()
     if kind == "formula":
@@ -223,7 +228,7 @@ def rich(runs):
     return "".join(out).strip()
 
 
-def fetch_image(src, stem, url, mode):
+def fetch_image(src, stem, url, mode, into=None):
     """One picture into design-system/assets/img/news/, named for the post and
     its own digest. Returns the path a post file names it by.
 
@@ -245,16 +250,18 @@ def fetch_image(src, stem, url, mode):
              "    The reading page draws those four; anything else has to be "
              "exported before it goes in the page." % (url, ctype or "unknown type"))
 
+    into = into or IMAGES
     name = "%s-%s%s" % (stem[:40].rstrip("-"),
                         hashlib.sha1(data).hexdigest()[:8], ext)
-    path = IMAGES / name
+    path = into / name
     if mode == "write" and (not path.exists() or path.read_bytes() != data):
-        IMAGES.mkdir(parents=True, exist_ok=True)
+        into.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
-    return "news/" + name, len(data)
+    return "%s/%s" % (into.name, name), len(data)
 
 
-def body_from(blocks, url, dropped, stem="bild", mode="write", pictures=None):
+def body_from(blocks, url, dropped, stem="bild", mode="write", pictures=None,
+              into=None):
     """A Notion page's children → the two-language text of a post file.
 
     The divider is the language boundary and it is the only structural block
@@ -282,7 +289,7 @@ def body_from(blocks, url, dropped, stem="bild", mode="write", pictures=None):
                      "also what stands in for the picture for a reader who "
                      "cannot see it — nothing else on the page says what is in "
                      "it. Click the image in Notion and add one." % url)
-            path, size = fetch_image(src, stem, url, mode)
+            path, size = fetch_image(src, stem, url, mode, into)
             if pictures is not None:
                 pictures[path] = size
             lines.append("![%s](%s)" % (caption.replace("]", ""), path))
@@ -362,7 +369,7 @@ def write(wanted, mode):
     return added, changed, removed
 
 
-def sweep(pictures, mode):
+def sweep(pictures, mode, into=None):
     """Pictures nothing published names any more.
 
     The other half of "unpublishing in Notion has to mean unpublishing on the
@@ -372,36 +379,49 @@ def sweep(pictures, mode):
     design-system/assets/img/news/ are ever touched — that directory is this
     script's output and nothing else writes to it.
     """
-    if not IMAGES.is_dir():
+    into = into or IMAGES
+    if not into.is_dir():
         return []
-    keep = {p.split("/", 1)[1] for p in pictures}
-    gone = sorted(f.name for f in IMAGES.iterdir()
+    # ONLY THIS DIRECTORY. content/news/ and content/jobs/ each keep their
+    # pictures in their own folder, and each sync sweeps its own: a sweep that
+    # ranged over both would delete every news picture the moment the job sync
+    # ran, and the reference left behind renders as a broken image.
+    keep = {p.split("/", 1)[1] for p in pictures if p.startswith(into.name + "/")}
+    gone = sorted(f.name for f in into.iterdir()
                   if f.is_file() and f.name not in keep)
     if mode == "write":
         for n in gone:
-            (IMAGES / n).unlink()
-    return ["news/" + n for n in gone]
+            (into / n).unlink()
+    return ["%s/%s" % (into.name, n) for n in gone]
 
 
 def budget():
-    """check-news-images.py's byte ceiling, read from the file that enforces it."""
+    """check-content-images.py's byte ceiling, read from the file that enforces it."""
     import importlib.util
     spec = importlib.util.spec_from_file_location(
-        "cf_news_images", pathlib.Path(__file__).with_name("check-news-images.py"))
+        "cf_content_images", pathlib.Path(__file__).with_name("check-content-images.py"))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod.MAX_BYTES
 
 
 def fetch(db, token):
-    """Every row, following Notion's cursor. Four lines of network."""
+    """Every row of the news database."""
+    return fetch_rows(API % db, token)
+
+
+def fetch_rows(url, token):
+    """Every row of a database, following Notion's cursor. Four lines of
+    network, and the URL is a parameter because scripts/sync-jobs-notion.py
+    reads a second database with the same paging, the same errors and the same
+    hint about a database nobody shared with the integration."""
     out, cursor = [], None
     while True:
         payload = {"page_size": 100}
         if cursor:
             payload["start_cursor"] = cursor
         req = urllib.request.Request(
-            API % db, data=json.dumps(payload).encode(),
+            url, data=json.dumps(payload).encode(),
             headers={"Authorization": "Bearer " + token,
                      "Notion-Version": VERSION,
                      "Content-Type": "application/json"})
@@ -538,7 +558,7 @@ def main():
         print("  ! %s block(s) of type %r have no form on the reading page and "
               "were left out: %s" % (len(where), kind, where[0]), file=sys.stderr)
 
-    # The budget is check-news-images.py's and is read from it rather than
+    # The budget is check-content-images.py's and is read from it rather than
     # repeated: that file is the gate, and a warning here that disagreed with
     # the gate would be a second opinion nobody asked for. Said now anyway,
     # because the person who dropped the photograph in is looking at this run
@@ -546,7 +566,7 @@ def main():
     for path, size in sorted(pictures.items()):
         if size > budget():
             print("  ! %s is %.1f MB — over the %.0f kB a picture on the "
-                  "reading plate is allowed. check-news-images.py fails on it."
+                  "reading plate is allowed. check-content-images.py fails on it."
                   % (path, size / 1e6, budget() / 1e3), file=sys.stderr)
 
     if args.check:

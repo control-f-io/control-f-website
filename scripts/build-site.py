@@ -113,18 +113,21 @@ SHIP = {
 }
 
 
-# AND THE ARTICLE PAGES, WHICH ARE NOT A TABLE because there is one per post
-# and posts arrive without this file being edited. scripts/build-articles.py
-# writes `beitrag-<name>.html` from content/news/ in both editions; they ship
-# under their own names like every other page. Discovered rather than listed:
-# the alternative is a table that has to be edited every time somebody writes a
-# post, which is the cost build-news.py was written to remove.
+# AND THE CONTENT PAGES, WHICH ARE NOT A TABLE because there is one per post
+# and one per opening, and neither arrives by editing this file.
+# scripts/build-articles.py writes `beitrag-<name>.html` from content/news/ and
+# scripts/build-stellen.py writes `stelle-<name>.html` from content/jobs/, both
+# in both editions; they ship under their own names like every other page.
+# Discovered rather than listed: the alternative is a table that has to be
+# edited every time somebody writes a post or advertises a job, which is the
+# cost build-news.py and build-jobs.py were written to remove.
 def ship():
     found = dict(SHIP)
-    for p in sorted(PATTERNS.glob("beitrag-*.html")):
-        found[p.name] = p.name
-    for p in sorted((PATTERNS / "en").glob("beitrag-*.html")):
-        found["en/" + p.name] = "en/" + p.name
+    for prefix in ("beitrag-", "stelle-"):
+        for p in sorted(PATTERNS.glob(prefix + "*.html")):
+            found[p.name] = p.name
+        for p in sorted((PATTERNS / "en").glob(prefix + "*.html")):
+            found["en/" + p.name] = "en/" + p.name
     return found
 
 

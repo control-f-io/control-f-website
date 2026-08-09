@@ -113,6 +113,13 @@ looks the way it does:
   fences has its work overwritten by the next build and fails
   `build-news.py --check` in the meantime. Everything outside them, including
   the composition notes and the topic chips, is authored as usual.
+- **Nor is the vacancy register.** `patterns/karriere.html` has two regions
+  fenced by `<!-- jobs:… -->` — the entries and the count in the page header —
+  and `scripts/build-jobs.py` writes them from `content/jobs/`, one file per
+  opening. `patterns/karriere-stelle.html` is the template the job pages are
+  spliced from and carries a *Musterausschreibung* rather than a real opening:
+  two pages with one JobPosting is the duplicate `check-job-posting.py` exists
+  to stop.
 - **And neither are the article pages.** `patterns/beitrag-*.html` is one post
   of that archive spliced into `patterns/blog-artikel.html` by
   `scripts/build-articles.py` — one page per post that carries text, in both
@@ -120,7 +127,8 @@ looks the way it does:
   build. The specimen is where the reading surface is worked on: everything
   outside its `article:…` fences is shared by every published article, so a
   change made there reaches all of them, and the fenced regions are the parts
-  that belong to one particular piece.
+  that belong to one particular piece. `patterns/stelle-*.html` is the same
+  arrangement for the vacancy register, from `karriere-stelle.html`.
 - **Copy you write exists in two languages.** Every pattern page ships twice —
   German at the root, English from `design-system/patterns/en/` — and the
   English edition is generated, not written. If a run changes a word a reader

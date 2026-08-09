@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Hold the pictures in a news post to the plate they are drawn on.
+"""Hold the pictures in a post or a job advertisement to the plate they are drawn on.
 
 WHERE THEY COME FROM. An admin puts an image block in a Notion page;
-scripts/sync-news-notion.py downloads the file into
-design-system/assets/img/news/ and writes `![caption](news/<file>)` into the
-post; scripts/build-articles.py draws it as a `.cf-prose > figure`. Nobody in
+scripts/sync-news-notion.py and scripts/sync-jobs-notion.py download the file
+into design-system/assets/img/news/ or …/jobs/ and write
+`![caption](news/<file>)` into the post; scripts/build-articles.py and
+scripts/build-stellen.py draw it as a `.cf-prose > figure`. Nobody in
 that chain looks at the file. The photograph that leaves a phone is 4 000 px
 wide and four megabytes, and every step above will carry it to the reader
 without a word.
@@ -36,12 +37,12 @@ TWO MORE THINGS, both of them the kind that renders correctly and is wrong:
              have to go with it — otherwise the archive shrinks and the
              repository does not.
 
-SCOPE is content/news/ and design-system/assets/img/news/. Pictures anywhere
-else in the design system are somebody else's rule: check-image-scale.py holds
+SCOPE is content/news/ and content/jobs/, with their two picture folders.
+Pictures anywhere else in the design system are somebody else's rule: check-image-scale.py holds
 the ones drawn in a fixed box, and there is no plate but this one.
 
-    python3 scripts/check-news-images.py
-    python3 scripts/check-news-images.py -v    # name every picture and its size
+    python3 scripts/check-content-images.py
+    python3 scripts/check-content-images.py -v   # name every picture and its size
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 """
@@ -53,9 +54,9 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-POSTS = ROOT / "content" / "news"
+STORES = (ROOT / "content" / "news", ROOT / "content" / "jobs")
 IMG = ROOT / "design-system" / "assets" / "img"
-NEWS_IMG = IMG / "news"
+FOLDERS = (IMG / "news", IMG / "jobs")
 
 # Measured, not chosen. See the header.
 PLATE = 1008
@@ -78,13 +79,14 @@ def intrinsic(path):
 
 
 def referenced():
-    """Every picture named by a post, and which posts name it."""
+    """Every picture named by a post or an opening, and which names it."""
     out = {}
-    if not POSTS.is_dir():
-        return out
-    for post in sorted(POSTS.glob("*.md")):
-        for m in PICTURE.finditer(post.read_text(encoding="utf-8")):
-            out.setdefault(m.group(2).strip(), []).append(post.name)
+    for store in STORES:
+        if not store.is_dir():
+            continue
+        for item in sorted(store.glob("*.md")):
+            for m in PICTURE.finditer(item.read_text(encoding="utf-8")):
+                out.setdefault(m.group(2).strip(), []).append(item.name)
     return out
 
 
@@ -132,25 +134,27 @@ def main():
             print("  %-52s %5d x %-5d %6.0f kB  %s"
                   % (path, w, h, size / 1e3, where))
 
-    if NEWS_IMG.is_dir():
-        for f in sorted(NEWS_IMG.iterdir()):
+    for folder in FOLDERS:
+        if not folder.is_dir():
+            continue
+        for f in sorted(folder.iterdir()):
             if not f.is_file():
                 continue
             rel = f.relative_to(IMG).as_posix()
             if rel not in used:
                 findings.append(
-                    "ORPHANED  design-system/assets/img/%s is named by no post.\n"
-                    "    A picture outlives its post only when something forgot "
-                    "to remove it — run: python3 scripts/sync-news-notion.py"
-                    % rel)
+                    "ORPHANED  design-system/assets/img/%s is named by nothing "
+                    "in content/.\n    A picture outlives its post only when "
+                    "something forgot to remove it — run the sync for that "
+                    "store." % rel)
 
     if findings:
-        print("news images: %d finding(s)\n" % len(findings), file=sys.stderr)
+        print("content images: %d finding(s)\n" % len(findings), file=sys.stderr)
         for f in findings:
             print("  " + f, file=sys.stderr)
         return 1
 
-    print("news images: %d picture(s) in %d post(s), every one between %d and "
+    print("content images: %d picture(s) in %d file(s), every one between %d and "
           "%d px on a %d px plate and under %.0f kB."
           % (len(used), len({p for ps in used.values() for p in ps}),
              MIN_WIDTH, MAX_WIDTH, PLATE, MAX_BYTES / 1e3))

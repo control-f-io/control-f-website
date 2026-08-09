@@ -14,6 +14,8 @@
 set -e
 cd "$(dirname "$0")/.."
 python3 scripts/build-news.py
+python3 scripts/build-jobs.py
 python3 scripts/build-i18n.py
 python3 scripts/build-articles.py
+python3 scripts/build-stellen.py
 python3 scripts/build-site.py

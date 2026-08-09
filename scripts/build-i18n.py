@@ -79,7 +79,8 @@ CATALOGUE = ROOT / "design-system" / "i18n" / "en.json"
 
 # THE PAGES THIS FILE OWNS: everything in patterns/, except the article pages.
 #
-# scripts/build-articles.py writes `beitrag-<name>.html` in BOTH editions — it
+# scripts/build-articles.py writes `beitrag-<name>.html` and
+# scripts/build-stellen.py writes `stelle-<name>.html`, in BOTH editions — it
 # splices one post's text into the German specimen and the same post's English
 # text into the English specimen this file generates — so those pages arrive
 # translated and there is nothing here to do. Running anyway would be wrong in
@@ -92,7 +93,7 @@ CATALOGUE = ROOT / "design-system" / "i18n" / "en.json"
 # are still in use, and it is read from here rather than rebuilt there: an
 # entry kept alive by an article page and unused on every page this file
 # translates is an entry this file then fails the build over.
-GENERATED = re.compile(r"^beitrag-.+\.html$")
+GENERATED = re.compile(r"^(?:beitrag|stelle)-.+\.html$")
 
 
 def source_pages():
