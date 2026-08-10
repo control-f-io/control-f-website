@@ -346,18 +346,94 @@ def light_disc(gid, x, y, z, r, axis='z'):
     return _ell_tag(p_(x, y, z), rx, ry, ang, f'url(#{gid})', cls='cf-iso__light')
 
 
-def assemble(gid, la, lb, layers, light, nodes, traces, ghost=(), orbits=(), pad=30.0):
+def lime_span_disc(x, y, z, r, axis='z', span=3.0):
+    """Ramp endpoints for a light_disc(). Same arguments, and it exists because
+    the generic corner-to-corner span is wrong for a disc in two ways at once.
+
+    A TRANSFORM IS NEVER A NO-OP ON A GRADIENT. _ell_tag emits the ellipse
+    axis-aligned plus rotate(ang), and a userSpaceOnUse paint server resolves in
+    the user space the referencing element's own transform establishes — so
+    screen-space endpoints arrive at the browser rotated by ang. On an x-axis
+    disc ang is 127.98 deg, which is most of a half-turn: measured by
+    rasterising the shipped ellipse and reading the pixels back, the lightest
+    pixel of this object's light sat 68 % of the way DOWN the disc. The one rule
+    the page states without qualification is that the light comes from above.
+    -> foundations/illustration.html, "A transform is never a no-op on a gradient"
+
+    THE ANCHOR IS THE SILHOUETTE, NOT THE BOUNDING BOX. lime_span() takes the
+    corner of the lit element's lattice bounding box, which for a lit QUAD is a
+    point of the element — the illustration page's own specimen puts t = 0 on
+    two of its quad's vertices — and for a DISC is r*sqrt(2) from the centre,
+    41 % of a radius outside the thing being lit. #E1FF00 was painted where
+    there was nothing to paint on: 0 of 12 830 rendered pixels fell inside the
+    lime leg, and the brightest was #DDFD46. Lime is the light; a lit face that
+    never reaches lime is not lit.
+
+    So: anchor on the ellipse's own vertical extent, which is exactly attained,
+    run straight down (90 deg, a brand angle), and hand both endpoints over in
+    the frame the browser will read them in. `span` is the ramp's length in
+    disc heights — 3.0 puts the disc's own lower edge on 1/3, so it spends the
+    lime -> Glas leg and stops there, which is the near rake."""
+    a, b = _PLANE[axis]
+    rx, ry, ang = _ell(a, b, r)
+    c = p_(x, y, z)
+    t = math.radians(ang)
+    ct, st = math.cos(t), math.sin(t)
+    hh = math.hypot(rx * st, ry * ct)      # the ellipse's exact vertical semi-extent
+    # A screen offset of (0, dy) about the centre, written in the pre-rotation
+    # frame: R(-ang) . (0, dy) = (dy sin, dy cos).
+    def local(dy):
+        return (c[0] + dy * st, c[1] + dy * ct)
+    return local(-hh), local(-hh + 2.0 * hh * span)
+
+
+def window(w, h, at=None, ox=0.0, oy=0.0):
+    """An AUTHORED crop: w x h on `at` — a screen point, normally p_() of the
+    lattice point the drawing is about — or on the centre of what has been drawn
+    so far if `at` is None. Nudged by (ox, oy) screen units. Whatever falls
+    outside is what the frame cuts, which is the point —
+    foundations/illustration.html:
+
+        "The frame is a crop, not a bounding box. An object that fits neatly
+        inside its frame with air all round reads as a sticker; one that is cut
+        by the frame reads as a view into something larger."
+
+    The default in assemble() is the bounding box plus a pad, which can only
+    ever produce the sticker. It stays the default because three of the four
+    objects were composed against it; a drawing that wants the rule takes its
+    window itself and hands it to assemble(crop=...).
+
+    A bounding-box centre is the wrong anchor as soon as the ground is much
+    wider than the machine standing on it, because half of what it averages is
+    floor. Name the point the drawing is about instead. And take the window
+    BEFORE emitting the trace either way: a trace runs off-stage by design, so
+    letting its far end into the point cloud drags the window off the machine
+    and pads the frame with the empty half of a line."""
+    if at is None:
+        xs = [q[0] for q in _PTS]
+        ys = [q[1] for q in _PTS]
+        at = ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0)
+    return (at[0] - w / 2.0 + ox, at[1] - h / 2.0 + oy, w, h)
+
+
+def assemble(gid, la, lb, layers, light, nodes, traces, ghost=(), orbits=(), pad=30.0,
+             crop=None):
     """layers: [(stage, [paths])].  `stage` becomes data-stage on the group,
     which is what the page's build animation reads — the object comes up in
     four passes (foundation, masses, structure, detail) rather than all at once.
 
     --vb-w and --iso-travel are emitted from the same number that produced the
     crop, so a recrop cannot leave the arrival distance behind. See the note in
-    foundations/motion.html#travel."""
-    xs = [q[0] for q in _PTS]
-    ys = [q[1] for q in _PTS]
-    x0, x1, y0, y1 = min(xs) - pad, max(xs) + pad, min(ys) - pad, max(ys) + pad
-    w, h = x1 - x0, y1 - y0
+    foundations/motion.html#travel. That holds for an authored `crop` too: it is
+    the one number both are read off, whether it came from the bounding box or
+    from window()."""
+    if crop is not None:
+        x0, y0, w, h = crop
+    else:
+        xs = [q[0] for q in _PTS]
+        ys = [q[1] for q in _PTS]
+        x0, x1, y0, y1 = min(xs) - pad, max(xs) + pad, min(ys) - pad, max(ys) + pad
+        w, h = x1 - x0, y1 - y0
     out = [f'<svg class="cf-iso" style="--vb-w:{f(w)}; --iso-travel: {f(w / 40)}" '
            f'viewBox="{f(x0)} {f(y0)} {f(w)} {f(h)}" fill="none" aria-hidden="true">',
            '  <defs>' + LIGHT_DEF.format(id=gid, x1=f(la[0]), y1=f(la[1]), x2=f(lb[0]), y2=f(lb[1])) + '</defs>',
