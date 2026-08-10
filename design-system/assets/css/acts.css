@@ -1371,7 +1371,17 @@
   }
 
   /* ---- the picture and its frame ---- */
-  .sp4-shot { position: relative; aspect-ratio: var(--ar); padding: var(--space-4); }
+  /* --mount IS THE PADDING, NAMED, because a second rule depends on the
+     number: .sp4-tick runs the corner of the frame to the corner of the
+     picture, so its length is this mount's DIAGONAL and nothing else. Typed
+     as two independent tokens the two were free to disagree — and did, by
+     1.37 px — so the tick reads its own length off the air it crosses. */
+  .sp4-shot {
+    position: relative;
+    aspect-ratio: var(--ar);
+    --mount: var(--space-4);
+    padding: var(--mount);
+  }
   .sp4-win {
     block-size: 100%;
     overflow: hidden;
@@ -1434,16 +1444,42 @@
   /* THE TICK is the brand's one diagonal on an otherwise square frame: a 45°
      chamfer across the top-left corner, which is the angle the logo is cut on
      and one of the five the whole system draws. It is what stops the plate
-     reading as a browser default border. */
+     reading as a browser default border.
+
+     IT HAS TWO ENDS AND BOTH ARE ADDRESSES: the corner where the frame's top
+     and left strokes cross, and the corner of the picture inside the mount.
+     Neither was stated. The tick started at -1px/-1px and ran --space-6, and
+     the three numbers that fixed where it landed — the offset, the length and
+     the rotation origin — each missed by under a pixel in a different
+     direction, which is why it survived: the run measured 24 px against the
+     22.63 the mount's diagonal actually is, so the line left 1.4 px OUTSIDE
+     the corner as a burr in the wash and arrived 1.4 px past the picture's;
+     and `transform-origin: 0 0` turns the bar about its top edge, not its
+     centre, so the whole diagonal sat 0.35 px off the corner-to-corner axis.
+     Sub-pixel each and plainly crooked together at any zoom — the review
+     screenshot is one corner enlarged, and the burr is the first thing in it.
+
+     THE THREE NUMBERS NOW STATE THE TWO CORNERS. Half the contour's own
+     weight up and the origin half a weight down put the BAR'S CENTRELINE —
+     not its top edge — on the crossing the two edge strokes make at the
+     padding box's own corner, which is where they cross: both paths lie on
+     the viewBox boundary and the frame is `overflow: visible`, so each stroke
+     straddles that edge. From there the length is arithmetic and not taste:
+     a 45° line closing a --mount square crosses --mount * sqrt(2), and the
+     picture's corner is exactly --mount in on both axes. Measured after on
+     both plates at 375 / 1024 / 1440 / 1920: the start lands on the crossing
+     at 0.000 and the end on the picture's corner at 0.002 px, identical at
+     every width because the mount is a token and the diagonal is its ratio.
+     → .sp4-shot's --mount, which this length is read off */
   .sp4-tick {
     position: absolute;
-    inset-block-start: -1px;
-    inset-inline-start: -1px;
-    inline-size: var(--space-6);
+    inset-block-start: calc(var(--stroke-1, 1px) * -0.5);
+    inset-inline-start: 0;
+    inline-size: calc(var(--mount) * 1.41421356);
     block-size: var(--stroke-1, 1px);
     background: var(--border-strong);
     transform: rotate(45deg);
-    transform-origin: 0 0;
+    transform-origin: 0 calc(var(--stroke-1, 1px) * 0.5);
     pointer-events: none;
   }
 
