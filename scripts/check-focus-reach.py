@@ -71,6 +71,7 @@ ROOT = Path(__file__).resolve().parent.parent
 ACTS = ROOT / "design-system/assets/css/acts.css"
 RAIL_JS = ROOT / "design-system/assets/js/act-rail.js"
 PAGES = [ROOT / "design-system/patterns/landing-page.html",
+         ROOT / "design-system/patterns/ueber-uns.html",
          ROOT / "design-system/prototypes/statement-to-process.html"]
 
 
