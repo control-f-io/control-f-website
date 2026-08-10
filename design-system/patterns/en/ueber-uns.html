@@ -29,14 +29,17 @@
 <link rel="stylesheet" href="../../assets/css/tokens.css">
 <link rel="stylesheet" href="../../assets/css/base.css">
 <link rel="stylesheet" href="../../assets/css/components.css">
-<!-- THE PLATES, AND NOTHING ELSE IN HERE. acts.css is the scroll composition
-     the landing page runs on; this page loads it for section 02, whose track,
-     stage, frames and stream windows are all declared there under .sp4* and
-     were never anything but the fourth act's. The acts it also carries are
-     scoped to classes this page does not use — .sp-, .lp-, .map- and
-     .act-rail — so nothing else it declares can reach this document, and the
-     alternative was a second copy of 200 lines of measured CSS that the act
-     and its lab would then have to keep equal. One source, four consumers. -->
+<!-- THE PLATES AND THE RAIL. acts.css is the scroll composition the landing
+     page runs on; this page loads it for section 02, whose track, stage, frames
+     and stream windows are all declared there under .sp4* and were never
+     anything but the fourth act's — and, since the chapter rail below the
+     header, for .act-rail as well. This note used to end "so nothing else it
+     declares can reach this document", with .act-rail named in the list of
+     classes this page does not use; that is one class out of date now, and the
+     rest of the list still holds — .sp-, .lp- and .map- are the three acts that
+     stayed on the pages whose question they answer. The alternative was a
+     second copy of 200 lines of measured CSS that the act, the rail and their
+     lab would then have to keep equal. One source, four consumers. -->
 <link rel="stylesheet" href="../../assets/css/acts.css">
 <!-- Preview only: styles the .ds-back link into the documentation. Never
      ships — in production the .ds-back nav is removed and this link with it. -->
@@ -120,6 +123,41 @@
        <use> at an id this document does not carry paints nothing, and the one
        optional control the act has would be an empty button. -->
   <symbol id="cf-chevron-double-down" viewBox="0 0 24 24"><path vector-effect="non-scaling-stroke" d="M7 10 L12 20 L17 10"/><path vector-effect="non-scaling-stroke" d="M7 4 L12 14 L17 4"/></symbol>
+  <!-- THE CHAPTER RAIL'S FIVE MARKS, inlined for the same reason the chevron
+       above is and stated once here rather than five times. cf-icons.js appends
+       the set at the foot of <body>; a <use> whose symbol is not in the document
+       yet paints nothing, silently, and in the tier where that script never runs
+       it paints nothing at all. The rail's up jump is the worst case of it — its
+       label is a .visually-hidden span, so the glyph is the control's entire
+       visible content and without the symbol it is a link that scrolls the page
+       and shows not one pixel. Verbatim from the set, same 24 box, same
+       non-scaling contour: there is still exactly one place an icon is drawn.
+
+       WHY THESE FOUR FOR THE FOUR CHAPTERS. Each one's documented use is
+       already the chapter's own subject, which is the argument for having a set
+       — the decision is made once in cf-icons.js and this page does not make it
+       again:
+
+         cf-plate    "a portrait, a plate with its caption" — and it was drawn
+                     for this act's rail entry, on the landing page, before the
+                     act moved here. patterns/landing-page.html still records
+                     that, over its own sprite: "cf-plate was drawn for act 4's
+                     entry and left the page's sprite with it — the act it named
+                     is on patterns/ueber-uns.html, which has no rail". It has
+                     one now, and the mark is back under the act it was drawn
+                     for.
+         cf-target   "a goal, a threshold, precision" — the six values
+         cf-house    "a site, a building — one address" — remote-first and the
+                     one long table at the Seerhein, which is what the four
+                     frames under "Wie wir arbeiten" are about
+         cf-node     "a connection, three systems meeting" — the team grid
+
+       → scripts/check-icon-sprite.py holds the count -->
+  <symbol id="cf-chevron-double-up" viewBox="0 0 24 24"><path vector-effect="non-scaling-stroke" d="M7 20 L12 10 L17 20"/><path vector-effect="non-scaling-stroke" d="M7 14 L12 4 L17 14"/></symbol>
+  <symbol id="cf-plate" viewBox="0 0 24 24"><path vector-effect="non-scaling-stroke" d="M7 2 H22 V22 H2 V7 Z"/><path vector-effect="non-scaling-stroke" d="M6 18 H18"/></symbol>
+  <symbol id="cf-target" viewBox="0 0 24 24"><ellipse vector-effect="non-scaling-stroke" cx="12" cy="12" rx="10" ry="5"/><ellipse vector-effect="non-scaling-stroke" cx="12" cy="12" rx="6" ry="3"/><ellipse vector-effect="non-scaling-stroke" cx="12" cy="12" rx="2" ry="1" fill="currentColor"/></symbol>
+  <symbol id="cf-house" viewBox="0 0 24 24"><path vector-effect="non-scaling-stroke" d="M12 5 L20 9 L12 13 L4 9 Z"/><path vector-effect="non-scaling-stroke" d="M12 5 L20 9 L16 5 L8 1 Z"/><path vector-effect="non-scaling-stroke" d="M4 9 L12 13 L16 5 L8 1 Z"/><path vector-effect="non-scaling-stroke" d="M4 9 V16"/><path vector-effect="non-scaling-stroke" d="M12 13 V20"/><path vector-effect="non-scaling-stroke" d="M20 9 V16"/><path vector-effect="non-scaling-stroke" d="M4 16 L12 20 L20 16"/></symbol>
+  <symbol id="cf-node" viewBox="0 0 24 24"><path vector-effect="non-scaling-stroke" d="M12 13 V4"/><path vector-effect="non-scaling-stroke" d="M12 13 L4 17"/><path vector-effect="non-scaling-stroke" d="M12 13 L20 17"/><circle vector-effect="non-scaling-stroke" cx="12" cy="4" r="1.5" fill="currentColor"/><circle vector-effect="non-scaling-stroke" cx="4" cy="17" r="1.5" fill="currentColor"/><circle vector-effect="non-scaling-stroke" cx="20" cy="17" r="1.5" fill="currentColor"/></symbol>
 </svg>
 
 <nav class="cf-nav" aria-label="Main navigation">
@@ -146,7 +184,15 @@
 <main id="inhalt" tabindex="-1">
 
   <!-- 01 · Seitenkopf -->
-  <header class="cf-page-header">
+  <!-- id="anfang" is the chapter rail's up jump, and it is on the page header
+       rather than reusing #inhalt because that id is the skip link's landing
+       point and carries tabindex="-1": a jump inside the page has no business
+       moving focus, which is the same reason act-rail.js does not move it for
+       the four chapters. The clearance is .cf-page-header's line in acts.css,
+       beside the hero's and the footer's — it resolves past the document's
+       start and the scroll clamps to 0, which is precisely what a jump labelled
+       "Zum Seitenanfang" should do. -->
+  <header class="cf-page-header" id="anfang">
 
     <div class="container">
       <div class="cf-page-header__body">
@@ -275,6 +321,95 @@
       </div>
     </div>
   </header>
+
+  <!-- ============================================================
+       THE CHAPTER RAIL. The same component as the landing page's, on the page
+       that had the second-longest reason for one and none of it.
+
+       WHY HERE. This page is four chapters that each say one thing — the two
+       who answer for the company, the six values, the four working
+       photographs, the seven faces — and the first of them is a pinned track
+       that is several screens of scroll on its own. A reader who has watched
+       the plates type themselves out had no way to reach the team except by
+       scrolling past everything between, and no way to know it was there. That
+       is the same argument the landing page's own rail is built on — "the
+       contents page for the part of the document that is a composition" — and
+       it is why the component is loaded rather than copied. The head of this
+       file already makes that case for acts.css itself, which this page has
+       loaded for the plates since act 4 moved here; the rail is the second
+       thing it takes from the same source, and one more consumer of a
+       stylesheet is cheaper than a second rail to keep equal to this one.
+
+       FOUR TRACKS, FOUR BEATS, EVERY ONE OF THEM AT 0. The landing page needs
+       a fraction because two of its acts begin at a scroll position rather
+       than at an element — act 2 at contain 36 % of the track it shares with
+       act 1. Nothing here is like that: each chapter is a box with a top, so
+       every beat is that box's own top and act-rail.js's arithmetic reduces to
+       reading it. The script is still what marks the current chapter, which is
+       a function of scroll against four boxes and is not a declaration.
+
+       AND THE TRACKS ARE THE BOXES THE CHAPTER SHOWS, not the <section>
+       wrappers. .cf-culture and .cf-team-grid are named where their sections
+       are not — `section class="section"` is four elements on this page and
+       document.querySelector would answer with the first — and the difference
+       it costs is one section header of scroll, which is the same honest
+       degradation the landing page's own note describes for its acts 2 and 3.
+
+       EVERY href IS A REAL ADDRESS: the four headings this page already
+       carries, each of them an id that is a URL anybody can be sent, and each
+       already cleared of the sticky bar by .cf-section-header__label or by
+       .act-anchor. With scripting off the rail is four links that land exactly
+       where they say and two jumps that do the same.
+       → assets/css/acts.css, "THE ACT RAIL"; scripts/check-act-beats.py
+       ============================================================ -->
+  <nav class="act-rail" aria-label="Chapter">
+    <a class="act-rail__jump" href="#anfang">
+      <span class="visually-hidden">To the top of the page</span>
+      <svg class="cf-icon act-rail__glyph" aria-hidden="true"><use href="#cf-chevron-double-up"></use></svg>
+    </a>
+    <ol class="act-rail__list" role="list">
+      <li class="act-rail__item" style="--i:0">
+        <a class="act-rail__link" href="#wer-wir-sind"
+           data-act-track=".sp4-track" data-act-at="0">
+          <span class="act-rail__tick" aria-hidden="true"></span>
+          <span class="act-rail__num" aria-hidden="true">01</span>
+          <svg class="cf-icon act-rail__glyph" aria-hidden="true"><use href="#cf-plate"></use></svg>
+          <span class="act-rail__label">Who we are</span>
+        </a>
+      </li>
+      <li class="act-rail__item" style="--i:1">
+        <a class="act-rail__link" href="#werte"
+           data-act-track=".cf-values" data-act-at="0">
+          <span class="act-rail__tick" aria-hidden="true"></span>
+          <span class="act-rail__num" aria-hidden="true">02</span>
+          <svg class="cf-icon act-rail__glyph" aria-hidden="true"><use href="#cf-target"></use></svg>
+          <span class="act-rail__label">Our values</span>
+        </a>
+      </li>
+      <li class="act-rail__item" style="--i:2">
+        <a class="act-rail__link" href="#alltag"
+           data-act-track=".cf-culture" data-act-at="0">
+          <span class="act-rail__tick" aria-hidden="true"></span>
+          <span class="act-rail__num" aria-hidden="true">03</span>
+          <svg class="cf-icon act-rail__glyph" aria-hidden="true"><use href="#cf-house"></use></svg>
+          <span class="act-rail__label">How we work</span>
+        </a>
+      </li>
+      <li class="act-rail__item" style="--i:3">
+        <a class="act-rail__link" href="#team"
+           data-act-track=".cf-team-grid" data-act-at="0">
+          <span class="act-rail__tick" aria-hidden="true"></span>
+          <span class="act-rail__num" aria-hidden="true">04</span>
+          <svg class="cf-icon act-rail__glyph" aria-hidden="true"><use href="#cf-node"></use></svg>
+          <span class="act-rail__label">The team</span>
+        </a>
+      </li>
+    </ol>
+    <a class="act-rail__jump" href="#abschluss">
+      <span class="visually-hidden">To the bottom of the page</span>
+      <svg class="cf-icon act-rail__glyph" aria-hidden="true"><use href="#cf-chevron-double-down"></use></svg>
+    </a>
+  </nav>
 
   <!-- ============================================================
        02 · WER WIR SIND — act 4 of the landing page, on the page whose
@@ -1014,7 +1149,12 @@
   </section>
 </main>
 
-<footer class="cf-footer cf-footer--detached" data-theme="inverse">
+<!-- id="abschluss" is the chapter rail's down jump. The footer is the page's
+     last landmark and the one thing past the four chapters, so the jump out of
+     them lands on it; the clearance is .cf-footer's own line in acts.css, which
+     is outside the rail's gate because an id in the flow is an address at every
+     width whatever else it is for. -->
+<footer class="cf-footer cf-footer--detached" id="abschluss" data-theme="inverse">
   <div class="container">
     <div class="cf-footer__cta">
       <img class="cf-footer__mark" src="../../assets/img/icons/cf-footer-mark.svg" alt="">
@@ -1069,5 +1209,12 @@
      nobody is looking at for the life of the tab.
      → scripts/check-idle-reach.py -->
 <script src="../../assets/js/cf-idle.js" defer></script>
+<!-- The chapter rail's mark and its four jumps. Optional and deferred, the same
+     standing it has on the landing page: without it the rail is still four
+     links and two jumps that land where their hrefs say — what is lost is the
+     "you are here", which is a function of scroll against four boxes and cannot
+     be written as a declaration. It measures on load and on every resize, so
+     nothing it computes can be read before the layout it is computed from. -->
+<script src="../../assets/js/act-rail.js" defer></script>
 </body>
 </html>
