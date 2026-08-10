@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scroll cue — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Components</p>
+    <h1>Scroll cue</h1>
+    <p>
+      The page saying, once, that it continues. A mono label, a hairline dropping from it,
+      and the "keep reading" chevron at the foot of the hairline. A short mark of ink
+      travels the hairline three times and then the object stands still.
+    </p>
+  </header>
+
+  <section class="docs-section" id="demo">
+    <h2>Default</h2>
+    <!-- The framed demo and not --plain, because the ground is part of the
+         object here: every stroke in it is a hairline on the page wash, and a
+         1-2 stem shown on the documentation's own flat white is a different
+         line from the one that ships. -->
+    <div class="docs-demo">
+      <div class="cf-scroll-cue">
+        <span class="cf-scroll-cue__label">Scrollen</span>
+        <span class="cf-scroll-cue__stem"></span>
+        <svg class="cf-icon cf-scroll-cue__glyph"><use href="#cf-chevron-double-down"></use></svg>
+      </div>
+    </div>
+
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-scroll-cue"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;
+  &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-scroll-cue__label"</span>&gt;Scrollen&lt;/<span class="tag">span</span>&gt;
+  &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-scroll-cue__stem"</span>&gt;&lt;/<span class="tag">span</span>&gt;
+  &lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-icon cf-scroll-cue__glyph"</span>&gt;&lt;<span class="tag">use</span> <span class="attr">href</span>=<span class="val">"#cf-chevron-double-down"</span>&gt;&lt;/<span class="tag">use</span>&gt;&lt;/<span class="tag">svg</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+
+    <p>
+      The chevron comes out of the page's own sprite. A page that ships has to inline the
+      symbols it points at — <code>scripts/check-icon-sprite.py</code> — and
+      <code>#cf-chevron-double-down</code> is already on every page that carries a skip plate
+      or the act rail.
+    </p>
+  </section>
+
+  <section class="docs-section" id="when">
+    <h2>When it is warranted</h2>
+    <p>
+      Almost never, and the test is one sentence: <strong>at scroll 0, is anything of the next
+      section on the screen?</strong> If it is, the page already says it continues by
+      continuing, and a cue over the top of that is a label on a thing the reader can see.
+    </p>
+    <p>
+      One page in this system fails that test. <a href="../patterns/ueber-uns.html">Über uns</a>
+      opens with a page header whose bottom padding is as deep as its isometric object hangs,
+      and the section under it is act 4 — a pinned track, which at scroll 0 has built nothing
+      at all. Measured at 1440&nbsp;×&nbsp;900: the header ends at y&nbsp;589 and the remaining
+      311&nbsp;px of viewport are a sticky stage holding its first frame. The page reads as
+      finished at the fold and is 18&nbsp;305&nbsp;px long.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Situation</th><th>Cue?</th></tr></thead>
+      <tbody>
+        <tr><td>The next section peeks above the fold — the landing page, Expertise, News, Karriere</td><td>No. It is already saying it.</td></tr>
+        <tr><td>A pinned stage directly under the header, blank until it is scrolled</td><td>Yes. Über uns is the case.</td></tr>
+        <tr><td>Below the pin gate, where the same stage is a stacked column already in its finished state</td><td>No — and the component hides itself there. See <a href="#anatomy">Anatomy</a>.</td></tr>
+        <tr><td>A short page that ends inside one viewport</td><td>No. There is nothing to scroll to.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <p>
+      At 3×, so the dash period and the travelling mark are legible at reading distance.
+      Everything below is 1&nbsp;px on the page.
+    </p>
+    <div class="docs-demo docs-demo--zoom">
+      <div class="cf-scroll-cue">
+        <span class="cf-scroll-cue__label">Scrollen</span>
+        <span class="cf-scroll-cue__stem"></span>
+        <svg class="cf-icon cf-scroll-cue__glyph"><use href="#cf-chevron-double-down"></use></svg>
+      </div>
+    </div>
+    <table class="docs-table">
+      <thead><tr><th>Property</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Label</td><td>Geist Mono, <code>--text-xs</code>, uppercase, <code>--tracking-label</code>, <code>--text-secondary</code> — the meta row's register, because the cue stands under one</td></tr>
+        <tr><td>Stem</td><td><code>--stroke-1</code> wide, <code>--space-16</code> tall, <code>--presence-faint</code> (1-2) as a vertical <code>repeating-linear-gradient</code> — the construction <code>.rule--dashed-1-2</code> uses for a horizontal line</td></tr>
+        <tr><td>Chevron</td><td><code>.cf-icon</code> at the default 24, in <code>--text-primary</code>. The label says what to do; the chevron is what gets looked at, so it takes the ink</td></tr>
+        <tr><td>Gaps</td><td><code>--space-3</code>, twice. Total height 128&nbsp;px</td></tr>
+        <tr><td>Width</td><td><code>max-content</code> — the object is as wide as the word, and the stem and the chevron are concentric on it</td></tr>
+        <tr><td>Placement</td><td>Not the component's. On Über uns it is <code>.cf-page-header__cue</code>: absolute, <code>inset-block-end: 0</code>, <code>inset-inline-start: var(--column-inset)</code> — the column's left axis, standing on the seam where the next section begins</td></tr>
+        <tr><td>Below 56.25rem</td><td>Hidden, in the same media query that hides the page header's isometric object — the band it stands in is that object's, and below the pin gate there is a photograph under the header instead of a blank stage</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="motion">
+    <h2>Motion</h2>
+    <p>
+      One mark of ink, <code>--space-8</code> tall, travelling the stem from one mark-height
+      above it to one stem-height below it. <code>--duration-slow</code> of delay, then three
+      passes of <code>--duration-scene</code>, <code>linear</code>, and then it is over: 4.08&nbsp;s
+      in total. The gradient is transparent at the top and ink at the bottom, so the leading
+      edge is the solid one and the trail is what fades — an object moving, rather than a dash
+      blinking.
+    </p>
+    <p>
+      <strong>Three passes, and then it stops.</strong> That is the one decision in this
+      component and it is made twice over.
+    </p>
+    <ul>
+      <li>
+        <code>infinite</code> puts an animation on the document clock, which means for the life
+        of the tab. <a href="../foundations/motion.html#principles">Motion</a> states the bill: the
+        landing page's 128 of them cost 1&nbsp;351&nbsp;ms of style recalc in every 5&nbsp;000 —
+        half the main thread — on a page nobody was touching. The top of a page is the worst
+        possible address for that, because it is where a reader who has not decided anything
+        yet is sitting.
+      </li>
+      <li>
+        WCAG 2.2.2 (level A) asks for a mechanism over content that moves automatically for
+        more than five seconds alongside other content. The hero loop is 12&nbsp;s and buys its
+        own switch for exactly this reason. This one finishes inside the criterion's own
+        threshold, so there is no control to put on the page for a thing that has already
+        stopped.
+      </li>
+    </ul>
+    <p>
+      And the timing is honest rather than a dodge: the moment the cue is for is the moment the
+      page arrives. A reader still on this screen after four seconds has read the label, and a
+      label does not stop being legible when the ink stops moving.
+    </p>
+    <p>
+      <strong>No lime.</strong> <a href="../foundations/colors.html">Colors</a> allows one lit
+      element per screen and the screen this stands on has already spent it — the nucleus of the
+      demon core carries the bloom, 300&nbsp;px to the right. So the travelling mark is ink on a
+      light wash, which is the assembly's own construction with the two roles the right way up
+      for the ground it is on: the mark travels, the contour remains.
+    </p>
+  </section>
+
+  <section class="docs-section" id="tiers">
+    <h2>What every other tier is left holding</h2>
+    <p>
+      The settled object is the base tier, not something the animation leaves behind. Under
+      <code>prefers-reduced-motion</code>, in print and in forced colours the mark is never
+      declared at all, and what is left is the hairline, the chevron and the word — a cue that
+      still says scroll, without moving. Same rule the motion chapter states for the assembly:
+      where nothing is driving the front, there is no front.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Tier</th><th>What it gets</th></tr></thead>
+      <tbody>
+        <tr><td>Screen, no preference</td><td>The whole object, three passes of ink</td></tr>
+        <tr><td><code>prefers-reduced-motion: reduce</code></td><td>The settled object. The mark's rule is inside the <code>no-preference</code> gate, so there is nothing to switch off</td></tr>
+        <tr><td>Print</td><td>The settled object. Paper does not scroll, and the mark's rule names <code>screen</code></td></tr>
+        <tr><td>Forced colours</td><td>The stem redrawn as a dotted <code>border-inline-start</code> — <code>background-image</code> is discarded outright, which is the same loss <code>.rule--dashed-*</code> takes and the same answer base.css gives it. The mark is a background image too, and is simply gone: a system palette has no value for a light</td></tr>
+        <tr><td>Below 56.25rem</td><td>Nothing. See <a href="#anatomy">Anatomy</a></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="a11y">
+    <h2>Accessibility</h2>
+    <ul>
+      <li>
+        The whole object is <code>aria-hidden="true"</code>. "Scroll" is not a fact about the
+        page — it is a fact about a viewport, and the reader this would be read to does not have
+        one. The heading structure and the skip link are how a screen reader arrives at what is
+        below.
+      </li>
+      <li>
+        It is not a control and must not become one. A cue that scrolls when clicked is a second
+        thing to explain, a second thing in the tab order, and a target for a gesture nobody
+        makes; the reader already has a wheel, a spacebar and a scrollbar.
+      </li>
+      <li>
+        Nothing here reserves or shifts layout as the page loads — the mark moves inside a box
+        the stem already occupies, and the animation is <code>translate</code> on a
+        pseudo-element.
+      </li>
+    </ul>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Use it where the first screen genuinely ends in air — and prove that with a measurement, not an impression.</li>
+          <li>Stand it on the seam the reader is being sent to, so the chevron points at something real.</li>
+          <li>Let it finish. The settled object is the component; the motion is the introduction.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>No second cue on a page. If two screens both end in air, the layout is the finding.</li>
+          <li>No loop. <code>infinite</code> here is the one thing this component was designed against.</li>
+          <li>No lime, no bounce, no arrow. The chevron in the set already means "keep reading".</li>
+          <li>Don't make it a button, and don't fix it to the viewport — it belongs to a place on the page, not to the reader's window.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- docs.js injects one symbol, #cf-arrow, and this page points at another.
+     Same two lines components/pagination.html and components/search.html carry
+     for the same reason: the documentation may draw its glyph from the set,
+     because the set is what it is documenting. A page that SHIPS may not —
+     scripts/check-icon-sprite.py — and patterns/ueber-uns.html accordingly
+     inlines #cf-chevron-double-down itself. -->
+<script src="../assets/js/cf-icons.js"></script>
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>
