@@ -2318,6 +2318,39 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   padding-bottom: calc(var(--cf-figure-reach) - var(--space-3) - var(--space-4) + var(--space-16));
 }
 
+/* THE ROOM THE REACH BUYS IS EMPTY ON THE LEFT, and on one page that emptiness
+   is the whole of what the reader sees below the fold. The rule above reserves
+   a band as deep as the drawing hangs; the drawing occupies 35.937 % .. 81.641 %
+   of the column, so the first third of that band is air by construction, and
+   the header is the last thing on the page with anything in it. Measured at
+   1440 x 900 on patterns/ueber-uns.html: the header ends at y 589, the section
+   under it is act 4's pinned track, and a pinned track at scroll 0 has drawn
+   nothing yet — 311 px of viewport under a page that looks finished. The cue
+   is what stands in that air and says the page is not.
+
+   THE CUE IS PLACED HERE AND DRAWN ELSEWHERE. Everything about what the object
+   looks like is .cf-scroll-cue in the section below; this is the one rule that
+   knows about this header — the band's floor, and the column's left edge.
+
+   --column-inset RATHER THAN A CONTAINER, for the reason the reach already
+   states three notes up: the header is full-bleed, so a percentage inside it
+   is the window and not the column. That is what the token is for, and it is
+   why the cue is a child of the header rather than of the .container above it
+   — the container's box stops at the meta row, which is the top of this band
+   and not its floor.
+
+   AND THE FLOOR IS THE SEAM, not an inset off it. The header's bottom edge is
+   where the section under it begins, so a cue standing on that edge has its
+   chevron pointing at the thing it is asking the reader to go and find, and
+   the object's own foot marks where the next thing starts. An inset was tried
+   first, at --space-12: it puts the mark in the middle of an empty band, which
+   is the one place in that band that means nothing. */
+.cf-page-header__cue {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: var(--column-inset);
+}
+
 /* Below 900 px the object would sit behind the title instead of beside it.
 
    THE SELECTOR CARRIES THE PARENT DELIBERATELY, and this is a bug fix rather
@@ -2341,6 +2374,186 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   .cf-page-header:has(.cf-page-header__figure) {
     padding-top: var(--space-16);
     padding-bottom: var(--space-12);
+  }
+  /* AND THE CUE GOES WITH THE OBJECT, because the band it stands in is the
+     object's. Two lines above, this tier takes the reserved band back to
+     --space-12; there is no air left to place anything in, and none is needed
+     — the reason the cue exists is a pinned stage that has drawn nothing at
+     scroll 0, and below the pin gate act 4 is a stacked column already in its
+     finished state. The section under the header is showing a photograph, so
+     the page says it continues by continuing. Same parent-carrying selector as
+     the figure's hide directly above, at (0,2,0), and for the same reason. */
+  .cf-page-header .cf-page-header__cue { display: none; }
+}
+
+/* --------------------------------------------------------------------------
+   SCROLL CUE
+   The page saying, once, that it continues. A mono label, a hairline dropping
+   from it, and the "keep reading" chevron at the foot of the hairline; a short
+   mark of ink travels the hairline three times and then the object stands
+   still. Three parts, one of which moves.
+
+   IT IS FURNITURE FOR A HERO THAT ENDS IN AIR, and it is not general licence.
+   A page whose next section is visible under the fold already says it
+   continues, by continuing, and a cue over the top of that is a label on a
+   thing the reader can see. The one page in this system that does not have
+   that is patterns/ueber-uns.html: the header reserves a band as deep as its
+   isometric object hangs, and the section under it is act 4's pinned track,
+   which at scroll 0 has built nothing. Measured at 1440 x 900, that is 311 px
+   of empty viewport below a header that reads as the end of the page.
+
+   THREE PASSES, AND THEN IT STOPS. This is the one decision in the component
+   and it is made twice over.
+
+   The first reason is the bill check-idle-motion.py states in full: an
+   `infinite` animation is on the DOCUMENT clock, which means for the life of
+   the tab, and the landing page's 128 of them cost 1 351 ms of style recalc in
+   every 5 000 — half the main thread — on a page nobody was touching. A cue
+   at the top of a page is the worst possible address for that, because the top
+   of the page is where a reader who has not decided anything yet is sitting.
+
+   The second is WCAG 2.2.2, which is the same rule the hero's still switch
+   exists for: content that moves automatically for MORE THAN FIVE SECONDS
+   alongside other content needs a mechanism to pause, stop or hide it. The
+   hero loop is 12 s and buys its own switch. This one is --duration-slow of
+   delay plus three passes of --duration-scene — 4.08 s — so it is not
+   conformance-relevant at all, and there is no control to put on the page for
+   a thing that has already finished.
+
+   And the timing is honest rather than a dodge: the moment the cue is for is
+   the moment the page arrives. A reader still on this screen after four
+   seconds has read the label, which does not stop being legible when the ink
+   stops moving. What is left is the settled object — hairline, chevron, word —
+   which is a scroll cue drawn the way this system draws everything else.
+
+   NO LIME. foundations/colors.html allows one lit element per screen and this
+   screen has already spent it: the nucleus of the demon core carries the
+   #cf-core-light bloom, 300 px to the right of where this object stands. So
+   the travelling mark is INK on a light wash, which is the same construction
+   the assembly uses — two strokes, one line; the mark travels, the contour
+   remains — with the two roles the right way up for the ground it is on.
+
+   THE SETTLED STATE IS THE BASE TIER, not something the animation leaves
+   behind. Under prefers-reduced-motion, in print and in forced colours the
+   mark is never declared at all, and what is left is the hairline, the chevron
+   and the word — a cue that still says scroll, without moving. Same rule the
+   motion chapter states for the assembly: where nothing is driving the front,
+   there is no front.
+   -------------------------------------------------------------------------- */
+.cf-scroll-cue {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  /* The object is as wide as its widest part — the word — and the hairline and
+     the chevron are concentric on that. A grid cell as wide as the column
+     would centre it in the column instead, which is not where the page's left
+     axis is. */
+  width: max-content;
+}
+
+/* The meta row's type, because that is what a micro-label is set in on this
+   page and the cue stands directly under one. --text-secondary rather than
+   the primary ink: it is an instruction about the page, not part of it, and
+   the meta row's own second span already establishes that rung here. */
+.cf-scroll-cue__label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* THE HAIRLINE, AT --presence-faint. It is a real line rather than reference
+   geometry, so 1-4 is too absent for it; it is also not the drawing's subject,
+   so solid is too present. 1-2 is the rung between, and the vertical gradient
+   is the same construction .rule--dashed-1-2 in base.css realises for a
+   horizontal one, at the same 2-on-4-off the token names — a border-style
+   cannot state a dash ratio, which is the whole reason those three utilities
+   are gradients.
+
+   `clip` AND NOT `hidden`, per scripts/check-overflow-clip.py: the mark starts
+   above this box and leaves below it, so the box has to crop, and a crop that
+   also makes a scrollport is the failure that check exists for. */
+.cf-scroll-cue__stem {
+  position: relative;
+  overflow: clip;
+  width: var(--stroke-1);
+  height: var(--space-16);
+  background: repeating-linear-gradient(180deg,
+    var(--border-strong) 0 2px, transparent 2px 6px);
+}
+
+/* The sprite's own "Expand all, keep reading" mark, which is what this object
+   is asking for in one glyph. The act rail uses it for its jump to the foot of
+   the landing page and the skip plate uses it to leave a build; a third
+   consumer with the same sentence is the reason it is in the set.
+
+   AT THE DEFAULT 24 AND IN THE PRIMARY INK, which is the one place this object
+   departs from the meta row's register. The skip plate draws the same glyph at
+   the 16 px floor and can afford to: it sits inside a bordered 32 px plate on a
+   raised surface, and the plate is what the eye finds. This one stands on the
+   page wash with nothing around it, at the foot of a 1-2 hairline, and 16 px of
+   secondary grey at --stroke-1 measured as the faintest thing on the screen —
+   fainter than the reference geometry of the drawing beside it. The label says
+   what to do and the chevron is what gets looked at; it takes the ink. */
+.cf-scroll-cue__glyph { color: var(--text-primary); }
+
+/* THE MARK, and it is the only part of this that moves.
+
+   `screen` because paper does not scroll and there is nothing on it to cue —
+   the same prelude every animation in this system carries, and the reason
+   check-print-fixed.py has anything to check. `no-preference` because the
+   settled object above is already the whole cue; there is nothing to
+   substitute for a reader who has asked for less.
+
+   A COMET, HEAD DOWN. The gradient is transparent at the top and ink at the
+   bottom, so the leading edge is the solid one and the trail is what fades —
+   an object moving, rather than a dash blinking. `linear` for the same reason
+   .cf-arrive__ghost::after is linear: a light crossing a surface travels at
+   the speed it travels at, and an ease on it reads as the light hesitating.
+
+   THE MARK IS HALF THE STEM, and that is the whole reason the travel can be
+   written as two bare percentages. A percentage in `translate` resolves against
+   the element's OWN box, so -100 % is exactly one mark-height above the stem's
+   top edge and 200 % is exactly two below it — which is the stem's full height
+   when --space-8 is half of --space-16, and the mark is therefore entirely
+   past the crop at both ends. Both keyframe values stay plain percentages for
+   that reason: motion.html's own note, "a calc() in a keyframe does not
+   interpolate", was paid for once on this system's trace and there is no need
+   to find out a second time whether the case it names generalises.
+
+   `both` holds the first of those two through --duration-slow of delay and the
+   second forever after the third pass — which is the settled state the section
+   header describes, reached by arithmetic rather than by a second
+   declaration. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .cf-scroll-cue__stem::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    height: var(--space-8);
+    background: linear-gradient(180deg, transparent, var(--border-strong));
+    animation: cf-scroll-cue-run var(--duration-scene) linear
+               var(--duration-slow) 3 both;
+  }
+}
+@keyframes cf-scroll-cue-run {
+  from { translate: 0 -100%; }
+  to   { translate: 0 200%; }
+}
+
+/* Forced colours discards background-image outright — the same loss
+   .rule--dashed-* and .cf-nav-rim take, and base.css answers it the same way:
+   a border-style the palette does repaint. `dotted` is what that file already
+   maps 1-2 onto, so the two answers agree. The mark is a background-image too
+   and is simply gone, which is correct: a system palette has no value for a
+   light. */
+@media (forced-colors: active) {
+  .cf-scroll-cue__stem {
+    background: none;
+    border-inline-start: var(--stroke-1) dotted;
   }
 }
 
