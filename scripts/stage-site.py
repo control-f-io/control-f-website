@@ -18,8 +18,9 @@ itself. An allowlist cannot leak any of them by forgetting a line.
 
 WHAT THE WEBSITE IS. Two things, and the list is derived, not typed:
 
-  the pages   every name build-site.py ships, read from its own SHIP table, so
-              a page added there appears here without this file changing
+  the pages   every name build-site.py ships, ASKED OF THAT FILE rather than
+              read out of it, so a page added there appears here without this
+              file changing
   design-system/   the assets every page loads, and the documentation, which is
               published and linked from the README as a URL
 
@@ -30,8 +31,8 @@ Nothing else at the root is referenced by any shipped page.
 """
 
 import argparse
-import ast
 import filecmp
+import importlib.util
 import re
 import shutil
 import sys
@@ -42,19 +43,29 @@ DIST = ROOT / "dist"
 
 
 def ship_names():
-    """The shipped page names, read out of build-site.py's SHIP table.
+    """The shipped page names, asked of build-site.py.
 
-    Read as text rather than imported, because the file's name is not a valid
-    identifier. The table is a literal dict, so ast.literal_eval is exact.
+    IT USED TO READ THE `SHIP` LITERAL out of that file with ast.literal_eval,
+    which was exact for as long as the table was the whole list. It stopped
+    being: build-site.py's ship() adds the generated content pages — one per
+    news post with an article, one per opening with an advertisement — because
+    those arrive without anybody editing a table, which is the entire point of
+    generating them.
+    
+    So dist/ held the thirty-eight named pages and none of the generated ones,
+    and the Worker answered /stelle-data-engineer.html with the 404 page while
+    GitHub Pages, which uploads the repository root, served it correctly.
+    Measured on the workers.dev deployment before this was fixed.
+    
+    The function is imported rather than the literal parsed, because a
+    generated list cannot be read as a literal at all — and because the answer
+    then comes from the one place that decides it.
     """
-    src = (ROOT / "scripts" / "build-site.py").read_text(encoding="utf-8")
-    tree = ast.parse(src)
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Assign) and any(
-            isinstance(t, ast.Name) and t.id == "SHIP" for t in node.targets
-        ):
-            return sorted(ast.literal_eval(node.value).values())
-    raise SystemExit("stage-site: no SHIP table in scripts/build-site.py")
+    spec = importlib.util.spec_from_file_location(
+        "cf_build_site", ROOT / "scripts" / "build-site.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return sorted(mod.ship().values())
 
 
 def directory_routes():
