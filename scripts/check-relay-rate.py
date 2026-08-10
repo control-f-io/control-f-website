@@ -62,6 +62,31 @@ WHAT IS CHECKED, and both halves matter.
   reason: five strokes arriving in the ramp and one sliding in black is not
   something a screenshot of either end can show.
 
+  AND A HALVED RAIL DRAWS AS ONE RAIL. Two of this frame's four sides are drawn
+  as two arms meeting at the middle — the base, halved so each arm grows out of
+  the middle vertical's foot instead of out of a corner nothing arrives at, and
+  the top rail, which spreads from the vertical's head the way the flow spreads
+  from its own split. The split is a construction detail. A reader sees one line
+  opening from the middle in both directions, and that only holds if both arms
+  start on the same point of scroll and run at the same rate.
+
+  The top rail did not. It shipped `--a:78` on the west arm against `--a:80` on
+  the east, on both passes, and two points at .024 per unit is 83 units of a
+  500-unit arm — a sixth of the way. Measured in Chromium at 1440 x 900 and at
+  1024 x 900, reading the animated `scale` of both arms while scrolling the pin's
+  entry phase: the west arm led the east by 0.167 at every sample of the draw
+  (0.327 / 0.161, 0.548 / 0.381, 0.768 / 0.601), identically at both widths
+  because the lead is a ratio and not a measurement. On screen at 1440 the rail
+  reached 300 px left of centre and 208 px right of it. It reads as a rail
+  growing crooked, and it is the one fault in this drawing a reader reports
+  without being able to name.
+
+  So: two strokes on one axis, on one line, meeting end to end, must declare the
+  same --a and the same --u. Nothing here says which point of entry a rail may
+  start on — that is `--a`, the relay's order, and it belongs to the eye and to
+  check-relay-chain.py. This says only that a line halved for the drawing's sake
+  is not halved for the reader's.
+
 THE RATE IS IN UNITS, NOT PIXELS, and the difference is real rather than
 pedantic. The frame carries preserveAspectRatio="none", so where the plate is
 not exactly 2:1 the two axes scale by different factors and a 500-unit vertical
@@ -195,6 +220,26 @@ def path_length(d):
         return None
     x, y, axis, to = float(m.group(1)), float(m.group(2)), m.group(3), float(m.group(4))
     return abs(to - (x if axis == "H" else y))
+
+
+def segment(d):
+    """A stroke as (axis, the line it lies on, its span), or None.
+
+    The same narrow grammar path_length() reads, kept as one parse rather than
+    two so a shape this file cannot measure also cannot be silently paired with
+    another one. `M0 0H500` is ("H", 0.0, (0.0, 500.0)): a horizontal at y 0
+    running from x 0 to x 500.
+    """
+    m = re.fullmatch(
+        r"M\s*(-?[\d.]+)[\s,]+(-?[\d.]+)\s*([HV])\s*(-?[\d.]+)",
+        d.strip(),
+    )
+    if not m:
+        return None
+    x, y, axis, to = float(m.group(1)), float(m.group(2)), m.group(3), float(m.group(4))
+    start = x if axis == "H" else y
+    fixed = y if axis == "H" else x
+    return axis, fixed, (min(start, to), max(start, to))
 
 
 def strip_css_comments(text):
@@ -396,6 +441,43 @@ def main():
                 "arriving in the ramp and one sliding in black is the kind of "
                 "gap a screenshot of either end of the relay cannot show."
             )
+
+    # --- a rail drawn as two arms opens as one rail -------------------------
+    # Pairs found from the geometry, not from a list of names: two strokes of
+    # one pass on the same axis and the same line, meeting end to end, are the
+    # halves of a rail somebody split. The split buys the chain — an arm can
+    # grow out of the middle vertical where the whole rail would have grown out
+    # of a corner nothing arrives at — and the reader is owed the rail back, so
+    # the two halves start together and run the same distance. See the module
+    # note for what 78 against 80 measured on the top rail.
+    for line_class, geometry in by_class.items():
+        rails = 0
+        segs = []
+        for d, vars_ in geometry.items():
+            seg = segment(d)
+            if seg:
+                segs.append((seg, d, vars_))
+        for i, (a_seg, a_d, a_vars) in enumerate(segs):
+            for b_seg, b_d, b_vars in segs[i + 1:]:
+                if a_seg[0] != b_seg[0] or abs(a_seg[1] - b_seg[1]) > TOL:
+                    continue
+                (a_lo, a_hi), (b_lo, b_hi) = a_seg[2], b_seg[2]
+                if abs(a_hi - b_lo) > TOL and abs(b_hi - a_lo) > TOL:
+                    continue
+                rails += 1
+                for key in ("--a", "--u"):
+                    if a_vars.get(key) != b_vars.get(key):
+                        failures.append(
+                            f"`{a_d}` and `{b_d}` are the two arms of one rail "
+                            f"on .{line_class} and declare {key}:"
+                            f"{a_vars.get(key)} against {key}:{b_vars.get(key)}. "
+                            "A rail is halved so each arm can grow out of a "
+                            "point the relay has reached, not so that one half "
+                            "can lead the other — the reader sees one line "
+                            "opening from the middle."
+                        )
+        if not args.quiet and segs:
+            notes.append(f"{line_class}: {rails} rail(s) drawn as two arms")
 
     if failures:
         print("check-relay-rate: FAIL")
