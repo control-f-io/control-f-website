@@ -15,6 +15,7 @@ the rails, the ties, the line the units report to and the row itself all
 26.57 deg, and gives the four machines real depth overlap into the bargain.
 """
 
+import math
 import os
 import sys
 
@@ -22,7 +23,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from isolib import (  # noqa: E402
     p_, line, box, plate, quad_t, quad_x, quad_y, seams,
     disc, hoop, cyl, taper, node, orbit, trace, light_quad, light_disc,
-    assemble, reset, FACE_TOP, FACE_L, FACE_R, PLATE_L, PLATE_R,
+    assemble, window, lime_span_disc, reset,
+    FACE_TOP, FACE_L, FACE_R, PLATE_L, PLATE_R,
     ACCENT, DARK,
 )
 
@@ -54,68 +56,188 @@ def lime_span(a, b, reach=2.6):
 
 # ==================================================================== 01
 def maschinenbau():
-    """A generator set on a skid: engine, coupling, generator, switchgear.
-    Rotating assets are the densest telemetry in the portfolio, so this is the
-    object that carries the most machined detail."""
+    """A generating set, drawn from the machine and not from the idea of one:
+    cooler package with its fan, engine under its air cleaners and its exhaust,
+    then the generator on its feet with the terminal box on top and the shaft
+    end lit. Rotating assets are the densest telemetry in the portfolio, so this
+    is the object that carries the most machined detail.
+
+    IT IS CUT, and that is the whole difference in size. The figure is laid out
+    at --vb-w / 112 x --field-unit so that one lattice cell of the drawing is
+    one cell of the ground it stands on, which means the drawing cannot be made
+    bigger by giving it more room: the only way to a bigger machine is to hold
+    the frame where it is and let it cut. So the window is authored — isolib's
+    window(), on the drive end — rather than taken from the bounding box, and
+    the floor runs out of the frame at both ends and at the front. The other
+    three objects on this page still take the bbox plus 30 units of pad and
+    still read as models on trays; that is the next thing to do here, not a
+    difference of intent.
+    -> foundations/illustration.html, "The frame is a crop, not a bounding box"
+
+    THE MACHINE IS A TRAIN ON +x, which is 26.57 deg, so the set, its skid
+    beams, the floor they run on and the trace that reaches them are all on one
+    angle. A row laid across the screen would have put the whole thing on the
+    two directions the system does not own — see the note at the top of this
+    file.
+    """
     reset()
     gid = 'cf-ex-01'
     s0, s1, s2, s3 = [], [], [], []
+    BEAM = 0.5                                                 # top of the skid
+    AXIS = 1.45                                                # the shaft line
+    GR = 0.86                                                  # generator radius
 
-    # ---- 0 · the skid
-    s0 += foundation(-2.7, -1.95, 5.4, 3.9, 0.22, 0.18, 2, 1)
-    for yy in (-1.5, 1.14):                                    # sole rails
-        s0 += box(-2.4, yy, 0.22, 4.8, 0.36, 0.14, FACE_TOP, PLATE_L, PLATE_R)
+    # ---- 0 · the floor, and the skid the set is bolted down to.
+    # LONG IN x AND NARROW IN y. The frame has to cut the object somewhere, and
+    # ground is the right thing to spend on it — but an apron widened in y buys
+    # the cut with two empty corners, because +y is the direction that walks
+    # down-left and takes the near corner with it. Lengthened along the machine's
+    # own axis instead, the same ground is cut at both ends and none of it is
+    # dead: it is the strip the set stands on, running on past the view.
+    # ny=0: the lengthwise seam ran at y = 0, which is the drum's own axis, so
+    # it came out on the drum's lower silhouette — two 26.57 deg lines 0.57 px
+    # apart for 95 px, reading as one contour that thickens. The floor keeps its
+    # two cross seams and loses the one that had nowhere to be.
+    s0 += foundation(-7.5, -1.5, 11.5, 3.0, 0.22, 0.24, 2, 0)
+    for yy in (-1.1, 0.72):                                    # the two skid beams
+        s0 += box(-7.2, yy, 0.22, 10.9, 0.38, 0.28, FACE_TOP, PLATE_L, PLATE_R)
+    s0.append(line(p_(-7.2, 1.1, 0.36), p_(3.7, 1.1, 0.36)))   # the near beam's web
 
-    # ---- 1 · the back band: switchgear, then the engine
-    s1 += box(1.35, -1.8, 0.22, 1.0, 0.55, 1.3)                # switchgear cabinet
-    s1 += seams((1.35, -1.25, 0.28), (1.35, -1.25, 1.46),      # door leaves
-                (2.35, -1.25, 0.28), (2.35, -1.25, 1.46), 1)
-    s1.append(quad_y(-1.25, 1.45, 1.06, 0.35, 0.3, DARK))      # louvres
-    s1.append(quad_y(-1.25, 1.9, 1.06, 0.35, 0.3, DARK))
-    s1.append(quad_x(2.35, -1.75, 0.34, 0.45, 0.12, ACCENT))   # terminal slot
+    # ---- 1 · the back band: the cooler package, then the engine.
+    # The cooler is the FURTHEST BACK thing here and therefore the highest on
+    # screen, not the tallest: at 2:1 an element loses half a unit of screen
+    # height for every unit it moves back. Drawn as deep as the engine it left
+    # the frame through the top before the air cleaners were anywhere near it.
+    s1 += box(-6.6, -1.0, BEAM, 1.35, 2.0, 0.16, FACE_TOP, PLATE_L, PLATE_R)
+    s1 += box(-6.5, -0.9, 0.66, 1.15, 1.8, 1.42)               # cooler core
+    for i in range(1, 5):                                      # the fin pack, seen
+        xx = -6.5 + 1.15 * i / 5.0                             # edge-on. Four across
+        s1.append(line(p_(xx, 0.9, 0.7), p_(xx, 0.9, 2.04)))   # the core at 0.23,
+                                                               # which is 6.9 px
+    s1 += box(-6.6, -1.0, 2.08, 1.35, 2.0, 0.22)               # which is 6.9 px
+    # FACE_R, not FACE_L: this disc lies in the plane x = -5.35, so it is a +x
+    # face and the register gives +x #F6F6F6. It was painted the +y tone to buy
+    # contrast against the near-white face behind it, which is the one thing the
+    # dense register says not to do — the contour does the describing.
+    s1.append(disc(-5.35, 0.0, 1.4, 0.6, 'x', FACE_R))         # fan shroud
+    s1.append(disc(-5.35, 0.0, 1.4, 0.15, 'x', ACCENT))        # fan boss
 
-    s1 += box(-2.25, -1.2, 0.36, 1.95, 2.4, 1.15)              # engine block
-    s1.append(line(p_(-2.25, 1.2, 0.86), p_(-0.3, 1.2, 0.86)))     # crankcase joint
-    s1.append(line(p_(-0.3, 1.2, 0.86), p_(-0.3, -1.2, 0.86)))
-    s1 += seams((-2.25, 1.2, 0.36), (-0.3, 1.2, 0.36),         # bay divisions
-                (-2.25, 1.2, 1.51), (-0.3, 1.2, 1.51), 4)
-    s1.append(quad_y(1.2, -2.05, 0.98, 0.4, 0.4, FACE_TOP))    # access door
-    s1.append(quad_y(1.2, -1.94, 1.09, 0.18, 0.18, DARK))      # sight glass
-    s1.append(quad_y(1.2, -0.95, 0.48, 1.5, 0.22, ACCENT))     # oil gallery
+    s1 += box(-4.2, -0.95, BEAM, 3.25, 1.9, 1.25)              # crankcase
+    s1.append(line(p_(-4.2, 0.95, 1.05), p_(-0.95, 0.95, 1.05)))   # crankcase joint
+    # BELOW THE JOINT, all three of them. The joint at 1.05 divides a crankcase
+    # from a cylinder block, and the cylinder divisions below run from it up. A
+    # door at 1.15 therefore sits on the block, where a division line ran
+    # straight through it 2.7 px from its own edge.
+    s1.append(quad_y(0.95, -4.0, 0.6, 0.5, 0.38, FACE_TOP))    # access door
+    s1.append(quad_y(0.95, -3.87, 0.72, 0.2, 0.18, DARK))      # sight glass
+    s1.append(quad_y(0.95, -3.1, 0.62, 1.45, 0.2, ACCENT))     # oil gallery
 
-    for i in range(4):                                         # cylinder heads
-        s1 += box(-2.1 + i * 0.45, -0.95, 1.51, 0.32, 1.9, 0.3)
-        s1.append(line(p_(-2.1 + i * 0.45 + 0.16, -0.95, 1.81),
-                       p_(-2.1 + i * 0.45 + 0.16, 0.95, 1.81)))
-    s1 += box(-2.15, -0.28, 1.81, 1.78, 0.56, 0.16)            # valve cover
-    s1 += cyl(-1.9, 0.0, 1.97, 'z', 0.95, 0.22)                # exhaust riser
-    for zz in (2.28, 2.62):
-        s1.append(hoop(-1.9, 0.0, zz, 0.22, 'z'))
-    s1 += cyl(-1.9, 0.0, 2.92, 'z', 0.12, 0.26, side=FACE_L)   # stack collar
+    # dx 2.80 ends the deck at x = -1.25, flush with the valve cover above it.
+    # At 2.95 it ended at -1.10, where its front top edge ran tangent to the
+    # generator's far rim — two contours half a pixel apart, which is neither a
+    # join nor a gap.
+    s1 += box(-4.05, -0.95, 1.75, 2.8, 1.9, 0.42)              # head deck
+    # THE DIVISIONS BELONG TO THE HEAD, and stop at it. Run down the block as
+    # well they turned its whole flank into a five-by-two grid of panels — the
+    # brickwork read, one pitch instead of two but still a wall. A crankcase is
+    # one casting; what divides is the cylinders above it. The deck is flush
+    # with the block in y rather than inset by a tenth, so the division and the
+    # block edge below it stay on one line: on a face set back a tenth the same
+    # division lands 5.6 px to the left, which at this size is a misprint.
+    for i in range(1, 6):
+        xx = -4.05 + 2.8 * i / 6.0
+        s1.append(line(p_(xx, 0.95, 1.75), p_(xx, 0.95, 2.17)))
+    s1 += box(-3.9, -0.5, 2.17, 2.65, 1.0, 0.2)                # valve cover
+    for xx in (-3.6, -2.7):                                    # air cleaners
+        s1 += cyl(xx, 0.0, 2.37, 'z', 0.7, 0.25)
+        s1.append(hoop(xx, 0.0, 2.79, 0.25, 'z'))
+    s1 += cyl(-1.5, 0.0, 2.37, 'z', 1.02, 0.155)               # exhaust stack —
+    for zz in (2.72, 3.06):                                    # taller and thinner
+        s1.append(hoop(-1.5, 0.0, zz, 0.155, 'z'))             # than a cleaner, so
+                                                               # it is not a third one
 
-    # ---- 2 · the middle band: coupling and generator
-    s2 += box(-0.38, -0.78, 0.36, 0.68, 1.56, 1.7)             # drive-end housing
-    s2 += seams((-0.38, 0.78, 0.36), (0.3, 0.78, 0.36),
-                (-0.38, 0.78, 2.06), (0.3, 0.78, 2.06), 2)
-    s2.append(quad_t(-0.28, -0.68, 2.06, 0.48, 1.36))
-    for xx in (0.45, 1.6):                                     # generator pedestals
-        s2 += box(xx, -0.75, 0.36, 0.5, 1.5, 0.2, FACE_TOP, PLATE_L, PLATE_R)
-    # far=False: this end runs into the housing, so it has no visible cap
-    s2 += cyl(0.3, 0.0, 1.28, 'x', 2.0, 0.72, far=False)
-    for i in range(7):                                         # cooling ribs
-        s2.append(hoop(0.52 + i * 0.24, 0.0, 1.28, 0.72, 'x'))
-    # ---- 3 · the fittings, nearest of all
-    s3.append(hoop(2.3, 0.0, 1.28, 0.58, 'x'))                 # end flange
-    s3 += box(0.95, -0.34, 1.88, 0.7, 0.68, 0.32)              # terminal box
-    s3.append(quad_t(1.06, -0.23, 2.2, 0.48, 0.46, ACCENT))
+    # ---- 2 · the generator, one drum closed at both ends.
+    # ONE CYLINDER, NOT THREE. cyl(far=False) drops the far cap ELLIPSE and
+    # keeps the crown band, which still ends in a full half-arc and protrudes
+    # 43.93 * r px past the tube's flat cut — 40 px of white, black-outlined
+    # crescent lying over whatever the cylinder was supposed to be running into.
+    # The object this replaces shipped one over its engine block: exactly the
+    # "ellipse nobody could name" the library's own docstring warns about, from
+    # the argument the docstring recommends. Butting a second and third cylinder
+    # on for the flywheel housing and the end shield buys two more of them plus
+    # two 56.31 deg end chords, so the housing and the shield are drawn on the
+    # drum's own end face instead, which is what they are.
+    for xx in (-0.15, 1.2):                                    # generator feet
+        s2 += box(xx, -0.8, BEAM, 0.55, 1.6, 0.16, FACE_TOP, PLATE_L, PLATE_R)
+    # cap=FACE_R: the near cap lies in a plane of constant x, so it is a +x face
+    # and takes the lit-side tone. cyl() defaults it to FACE_TOP, which is the
+    # sky-facing value and is only right for an axis-z cylinder.
+    s2 += cyl(-0.95, 0.0, AXIS, 'x', 3.43, GR, far=True, cap_far=FACE_L, cap=FACE_R)
+    for xx in (-0.62, -0.56):                                  # the drive-end
+        s2.append(hoop(xx, 0.0, AXIS, GR, 'x'))                # flange, a band
+    for i in range(4):                                         # cooling ribs, at
+        s2.append(hoop(0.05 + i * 0.62, 0.0, AXIS, GR, 'x'))   # 0.62 rather than
 
-    ghost = [disc(1.3, 0.0, 1.28, 0.46, 'x')]                  # the rotor, x-ray
-    light = light_disc(gid, 2.3, 0.0, 1.28, 0.5, 'x')
-    la, lb = lime_span((2.3, -0.5, 1.78), (2.3, 0.5, 0.78))
-    nodes = [node(2.3, 0.0, 1.28), node(-1.9, 0.0, 3.04, 3), node(1.3, 0.0, 2.2, 3)]
-    traces = [trace((-4.0, 1.35, 0.22), (-2.7, 1.35, 0.22))]
+    # ---- 3 · the fittings, nearest the reader
+    # The pad is sunk to 2.10, not sat at 2.24. A rectangle laid across a drum
+    # meets it only along one line: at y = +-0.45 the crown has already fallen
+    # to 2.183, so a pad whose underside is at 2.24 rests on its own centre and
+    # holds both its corners in the air.
+    s3 += box(0.35, -0.45, 2.1, 1.0, 0.9, 0.16)                # terminal-box pad
+    s3 += box(0.47, -0.34, 2.26, 0.76, 0.68, 0.38)             # terminal box
+    s3.append(quad_t(0.58, -0.23, 2.64, 0.54, 0.46))
+
+    s3.append(disc(2.48, 0.0, AXIS, 0.7, 'x', FACE_R))         # the end cover
+    # disc(), not hoop(). hoop() draws the half of a circle that faces the
+    # reader, which is right for a rib round the barrel and wrong for a circle
+    # lying IN the end face — that one is wholly visible, and drawn as a hoop it
+    # is an open crescent with two dangling ends across the focal element.
+    s3.append(disc(2.48, 0.0, AXIS, 0.56, 'x'))                # its bolt circle
+
+    # x 1.7 sits between two ribs and clear of the terminal box above it. At 0.8
+    # the ghost ran parallel to the rib at 1.06 for 43 px and its dashes crossed
+    # the box, which stands in front of it — a ghost is drawn over the mass it is
+    # inside, so it has to be inside one.
+    ghost = [disc(1.7, 0.0, AXIS, 0.5, 'x')]                   # the rotor, x-ray
+    orbits = [orbit(-5.35, 0.0, 1.4, 0.38, 'x')]               # the fan, turning
+
+    # lime_span_disc, not lime_span: a lit disc needs its anchor on its own
+    # silhouette AND its endpoints written in the frame the rotate() on the
+    # ellipse establishes. Measured on the version before it, the lightest pixel
+    # of this light sat 68 % of the way DOWN the disc and lime never appeared.
+    # The whole derivation is on the function in isolib.py.
+    light = light_disc(gid, 2.48, 0.0, AXIS, 0.46, 'x')
+    la, lb = lime_span_disc(2.48, 0.0, AXIS, 0.46, 'x')
+
+    # THE WINDOW IS TAKEN HERE, before the trace: see isolib.window(). All four
+    # edges land on lattice lines — (X - 320) / 56 and (Y - 372) / 28 are -7, 4,
+    # -13 and 2 — because illustration.html asks the cut to be deliberate and a
+    # crop arrived at by nudging an offset until it looked right is not. That is
+    # also why the frame is 616 and not 640: 616 is 11 cells, 640 is 11.43, and
+    # a width off the lattice cannot put both vertical edges on one.
+    fw, fh = 616.0, 420.0                                      # 11 cells x 15 rows
+    fx, fy = 320.0 - 56.0 * 7, 372.0 - 28.0 * 13               # the top-left cut
+    crop = window(fw, fh, (fx + fw / 2, fy + fh / 2))
+    # Three nodes, each a place this field's copy names: the shaft end that is
+    # lit, the exhaust outlet, the terminals. The fourth marked one air cleaner
+    # lid and not the other, which is a scatter rather than a construction.
+    nodes = [node(2.48, 0.0, AXIS), node(-1.5, 0.0, 3.39, 3),
+             node(0.85, -0.34, 2.64, 3)]
+    # The trace runs on the OTHER ground axis. Run down +x with the skid it was
+    # parallel to the plate's own chamfer contour and 1.0 unit from it — 0.83
+    # CSS px, which is not a signal arriving, it is that contour getting thicker.
+    # On +y it crosses the empty quarter above the machine instead and lands on
+    # the terminal box, which is where a generator's cables actually leave.
+    #
+    # AND IT ENTERS THE FRAME rather than starting inside it. A stroke that both
+    # begins and ends in open ground reads as a leader line pointing at a part,
+    # not as a signal reaching one. It is cut by the right edge at 8.2 % of its
+    # length, so it carries --trace-from = 1 - 0.082: pathLength normalises
+    # against the DRAWN length, and without it the draw spends a twelfth of its
+    # range off-stage. -> foundations/motion.html, "Why the two ends are authored"
+    traces = [trace((0.85, -3.4, 2.64), (0.85, -0.34, 2.64), frm=0.918)]
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
-                    light, nodes, traces, ghost)
+                    light, nodes, traces, ghost, orbits, crop=crop)
 
 
 # ==================================================================== 02
