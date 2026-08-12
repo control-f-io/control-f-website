@@ -56,7 +56,7 @@ The two halves of a post each carry their own image blocks, because each
 carries its own caption. Copy the block below the divider and write the caption
 in English; the file is downloaded once either way.
 
-THE DATABASE IT EXPECTS. Five properties, and the names are the German ones the
+THE DATABASE IT EXPECTS. Seven properties, and the names are the German ones the
 post files already use so that the two are read the same way:
 
     Titel      title        the German headline
@@ -64,6 +64,10 @@ post files already use so that the two are read the same way:
     Datum      date         sorts the archive
     Autor      rich text    optional; only the lead card shows it
     Minuten    number       optional; reading time
+    Themen     multi-select Telemetrie, Energie, Architektur — the archive's
+                            filter. At least one, and no fourth name: the chips
+                            are a fixed vocabulary and build-news.py refuses a
+                            topic it cannot draw a chip for.
     Status     select       only "Veröffentlicht" is imported
 
 STATUS IS THE WHOLE POINT OF THE FIELD. Notion is a drafting surface: a post
@@ -127,7 +131,7 @@ PUBLISHED = "Veröffentlicht"
 
 # The header this writes, in the order new-post.py writes it, so a file from
 # Notion and a file from the command line are the same file.
-FIELDS = ("datum", "autor", "minuten", "titel", "title")
+FIELDS = ("datum", "autor", "minuten", "themen", "titel", "title")
 
 
 def fail(msg):
@@ -323,18 +327,20 @@ def post_from(page, text=""):
     props = page.get("properties") or {}
     got = {k: plain(props.get(v)) for k, v in
            (("titel", "Titel"), ("title", "Title"), ("datum", "Datum"),
-            ("autor", "Autor"), ("minuten", "Minuten"))}
+            ("autor", "Autor"), ("minuten", "Minuten"), ("themen", "Themen"))}
     status = plain(props.get("Status"))
     url = page.get("url", page.get("id", "?"))
 
     if status != PUBLISHED:
         return None, None
-    for field in ("titel", "title", "datum"):
+    for field in ("titel", "title", "datum", "themen"):
         if not got[field]:
             fail("%s is %s and has no %s.\n"
                  "    Every published post needs a German title, an English "
-                 "title and a date — the site ships in both languages and the "
-                 "archive sorts by date." % (url, PUBLISHED, field.capitalize()))
+                 "title, a date and at least one topic — the site ships in both "
+                 "languages, the archive sorts by date, and a post filed under "
+                 "no topic stands under none of its chips."
+                 % (url, PUBLISHED, field.capitalize()))
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", got["datum"]):
         fail("%s has Datum %r, which is not a plain date." % (url, got["datum"]))
 

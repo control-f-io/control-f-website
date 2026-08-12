@@ -1,6 +1,7 @@
 datum:   2023-11-17
 autor:   Marie Ernø-Møller
 minuten: 2
+themen:  Energie
 titel:   Freiflächenanlagen: Landschaft und Energie
 title:   Ground-mounted solar: landscape and energy
 

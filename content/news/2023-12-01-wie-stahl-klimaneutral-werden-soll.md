@@ -1,6 +1,7 @@
 datum:   2023-12-01
 autor:   Daniel Tremer
 minuten: 2
+themen:  Energie
 titel:   Wie Stahl klimaneutral werden soll
 title:   How steel is meant to become climate-neutral
 

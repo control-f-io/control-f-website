@@ -15,6 +15,8 @@ be read by a person and by a script:
     datum:   2026-02-01          required, YYYY-MM-DD. Sorts the archive.
     autor:   Simon Deussen       optional. Only the lead card has room to show it.
     minuten: 4                   optional. Reading time, as the cards state it.
+    themen:  Energie, Telemetrie required. One or more of Telemetrie, Energie,
+                                 Architektur — the chips on the news archive.
     titel:   Wärmepumpen im …    required. German — what the reader sees.
     title:   Heat pumps in …     required. English — the other edition.
 
@@ -40,6 +42,14 @@ A picture's caption is required, because the `<img>` carries `alt=""` and the
 caption is what stands in for the picture for a reader who cannot see it. The
 file goes in design-system/assets/img/news/ and has to fit the plate it is
 drawn on — scripts/check-content-images.py carries the numbers and the reasons.
+
+WHY THE TOPICS ARE REQUIRED. They are the filter. Each one is a chip on
+news.html and a page of its own — news-thema-<slug>.html, one topic's slice of
+the archive — and a link under the finished article back into it. A post with no
+topic is in the archive and in nobody's filtered view, and no page says so: the
+reader who clicks "Energie" is simply not shown it. The vocabulary is the three
+names the site already works in, and build-news.py refuses a fourth rather than
+minting a chip nobody drew.
 
 WHY BOTH TITLES ARE REQUIRED and not defaulted. Every pattern page ships twice
 and build-i18n.py fails on a German string with no English counterpart, on
@@ -85,6 +95,9 @@ def main():
                     help="YYYY-MM-DD (default: today)")
     ap.add_argument("--autor", default="")
     ap.add_argument("--minuten", default="", help="reading time in minutes")
+    ap.add_argument("--themen", default="",
+                    help="the post's topics, comma separated: Telemetrie, "
+                         "Energie, Architektur")
     ap.add_argument("--text", action="store_true",
                     help="scaffold the two-language body, so the post gets a page")
     args = ap.parse_args()
@@ -103,7 +116,8 @@ def main():
         lines.append("autor:   " + args.autor)
     if args.minuten:
         lines.append("minuten: " + args.minuten)
-    lines += ["titel:   " + args.titel,
+    lines += ["themen:  " + args.themen,
+              "titel:   " + args.titel,
               "title:   " + args.title,
               ""]
     # The scaffold below is a comment about itself: left as it stands, the post
@@ -130,6 +144,11 @@ def main():
     path.write_text("\n".join(lines), encoding="utf-8")
 
     print("wrote %s" % path.relative_to(ROOT))
+    if not args.themen:
+        print("\n  Fill in `themen:` — one or more of Telemetrie, Energie, "
+              "Architektur.\n  They are the chips on the archive and the links "
+              "under the finished article;\n  the build refuses a post that is "
+              "filed under nothing.")
     if not args.title:
         print("\n  Fill in `title:` — the English headline. The build refuses "
               "without it,\n  because the site ships in both languages and a "

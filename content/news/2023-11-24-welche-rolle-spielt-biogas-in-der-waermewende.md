@@ -1,6 +1,7 @@
 datum:   2023-11-24
 autor:   Piet Brömmel
 minuten: 2
+themen:  Energie
 titel:   Welche Rolle spielt Biogas in der Wärmewende?
 title:   What role does biogas play in the heat transition?
 

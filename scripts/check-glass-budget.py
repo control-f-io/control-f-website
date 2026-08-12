@@ -353,14 +353,15 @@ class GlassCounter(HTMLParser):
 GENERATED = "patterns/en/"
 
 # The same argument, one page further: patterns/beitrag-*.html is one post of
-# the news archive spliced into blog-artikel.html, and patterns/stelle-*.html is
-# one opening spliced into karriere-stelle.html.
+# the news archive spliced into blog-artikel.html, patterns/stelle-*.html is
+# one opening spliced into karriere-stelle.html, and patterns/news-thema-*.html
+# is one topic's slice of the archive spliced into news-thema.html.
 # The glass on it is that page's glass, layer for layer — the consent banner and
 # nothing else — and it arrives there without anybody choosing it. Counted
 # separately, the census would gain a row per published post, every one of them
 # a copy of the row above it, and writing an article would fail this check until
 # somebody re-stamped a number that had not changed in meaning.
-GENERATED_PAGE = re.compile(r"^patterns/(?:beitrag|stelle)-.+\.html$")
+GENERATED_PAGE = re.compile(r"^patterns/(?:beitrag|stelle|news-thema)-.+\.html$")
 
 
 def pages():

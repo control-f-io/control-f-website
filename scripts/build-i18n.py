@@ -353,7 +353,16 @@ def build(doc, name, cat, missing):
     doc = once(doc, SWITCH, lambda m: SWITCH_EN % m.group(1), name, ".cf-nav__lang link")
     if not doc.startswith(DOCTYPE):
         sys.exit("%s: does not open with a doctype" % name)
-    return DOCTYPE + BANNER % name + doc[len(DOCTYPE):]
+    rest = doc[len(DOCTYPE):]
+    # A SOURCE THAT IS ITSELF GENERATED CARRIES A NOTICE, and one notice is
+    # replaced rather than added to. patterns/news-thema-<slug>.html is written
+    # by build-news.py and says so; the English edition of it is written from
+    # here and says THAT, because naming news-thema.html on a file this script
+    # did not read would send a reader to the wrong source. Two GENERATED
+    # notices disagreeing about what made the file is worse than none.
+    if rest.lstrip().startswith("<!-- GENERATED"):
+        rest = rest[rest.index("-->") + 4:]
+    return DOCTYPE + BANNER % name + rest
 
 
 def main(argv):

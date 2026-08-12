@@ -1,6 +1,7 @@
 datum:   2024-12-01
 autor:   Daniel Tremer
 minuten: 2
+themen:  Energie
 titel:   Klimaneutrale Industrie: Was braucht die Transformation?
 title:   Climate-neutral industry: what does the transformation need?
 

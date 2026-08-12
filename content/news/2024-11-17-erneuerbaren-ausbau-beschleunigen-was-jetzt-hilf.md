@@ -1,6 +1,7 @@
 datum:   2024-11-17
 autor:   Robin Marzucca
 minuten: 2
+themen:  Energie
 titel:   Erneuerbaren-Ausbau beschleunigen: Was jetzt hilft
 title:   Accelerating the renewables build-out: what helps now
 

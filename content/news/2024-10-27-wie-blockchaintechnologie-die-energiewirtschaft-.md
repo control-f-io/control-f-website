@@ -1,6 +1,7 @@
 datum:   2024-10-27
 autor:   Birk Burghardt
 minuten: 2
+themen:  Energie, Architektur
 titel:   Wie Blockchaintechnologie die Energiewirtschaft verändert
 title:   How blockchain technology is changing the energy industry
 
