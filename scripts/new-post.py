@@ -17,6 +17,12 @@ be read by a person and by a script:
     minuten: 4                   optional. Reading time, as the cards state it.
     themen:  Energie, Telemetrie required. One or more of Telemetrie, Energie,
                                  Architektur — the chips on the news archive.
+    bild:    news/anlage.jpg     optional. The post's title picture: the card in
+                                 the archive is drawn from it. The file lives in
+                                 design-system/assets/img/ and the path is
+                                 relative to it, exactly as a picture in the
+                                 text is written. No caption and no alt text —
+                                 the card's link already reads the headline.
     titel:   Wärmepumpen im …    required. German — what the reader sees.
     title:   Heat pumps in …     required. English — the other edition.
 

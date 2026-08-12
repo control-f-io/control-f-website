@@ -37,7 +37,10 @@ TWO MORE THINGS, both of them the kind that renders correctly and is wrong:
              have to go with it — otherwise the archive shrinks and the
              repository does not.
 
-SCOPE is content/news/ and content/jobs/, with their two picture folders.
+SCOPE is content/news/ and content/jobs/, with their two picture folders. Both
+forms of reference count: a picture in the running text, `![caption](path)`, and
+a post's title picture, the `bild:` line in its header that the archive draws
+its card from.
 Pictures anywhere else in the design system are somebody else's rule: check-image-scale.py holds
 the ones drawn in a fixed box, and there is no plate but this one.
 
@@ -66,6 +69,16 @@ MAX_BYTES = 800_000
 
 PICTURE = re.compile(r"!\[(.*?)\]\(([^)\s]+)\)")
 
+# AND THE TITLE PICTURE, which is a header field rather than a block. A post
+# names the one picture that stands for it — `bild: news/x.jpg`, the Titelbild
+# property in Notion — and the archive draws its card from it. It is the same
+# file in the same folder under the same rules: named and missing is still
+# DANGLING, present and named by nothing is still ORPHANED, and a card is
+# 272 px of a five-column grid, which a file sized for the 1008 px plate covers
+# at every density. A post may use one picture in both places; it is downloaded
+# once, and this counts it once. → scripts/build-news.py
+TITLE_PICTURE = re.compile(r"^bild:\s*(\S+)\s*$", re.M)
+
 
 def intrinsic(path):
     """check-image-scale.py's header reader, imported rather than copied: it is
@@ -85,8 +98,15 @@ def referenced():
         if not store.is_dir():
             continue
         for item in sorted(store.glob("*.md")):
-            for m in PICTURE.finditer(item.read_text(encoding="utf-8")):
+            text = item.read_text(encoding="utf-8")
+            # The header ends at the first blank line, and `bild:` is a field of
+            # it: a line further down that happens to begin with the word is
+            # prose, not a reference.
+            head = text.partition("\n\n")[0]
+            for m in PICTURE.finditer(text):
                 out.setdefault(m.group(2).strip(), []).append(item.name)
+            for m in TITLE_PICTURE.finditer(head):
+                out.setdefault(m.group(1).strip(), []).append(item.name)
     return out
 
 
