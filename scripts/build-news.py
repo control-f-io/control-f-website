@@ -29,13 +29,13 @@ pair of comments this script owns:
     news:themen  the topic filter: the section header and one chip per topic,
                  the chip for the state the reader is in drawn as a <span>
     news:count   the Beiträge header's counter
-    news:grid    the columns, newest first, 1/2/3/6/6, and the year axis under
-                 them — one region, because the track count is a property of
-                 the element around both
-    news:pages   the pagination, or nothing at all when everything fits on one
-                 page. A single page has no "1 of 1" to state and no step to
-                 take, and the page's own note says a step that does nothing is
-                 removed rather than disabled.
+    news:grid    the columns — the lead, then a year each — and the axis under
+                 them. One region, because the track count and the height of
+                 the port are properties of the element around both
+    news:pages   nothing. The archive does not page any more; the fences stay
+                 because the specimen keeps its own drawn pagination between
+                 them and because a region this script owns is one it can fill
+                 again.
 
 Everything else on that page — the section headers, the comments that explain
 the composition — is authored and comes through untouched.
@@ -56,11 +56,21 @@ authored, documented, shipped, and read rather than copied. The chips link to
 them. No script runs, no server is asked, and the state survives being shared,
 bookmarked and reloaded.
 
-THE COLUMNS ARE THE DESIGN'S, NOT AN ARBITRARY CHUNKING. 1 lead, 2, 3, 6, 6 —
-eighteen cards, "von aktuell nach alt und von ausführlich nach knapp", which is
-why the lead card carries its author and the compact ones carry nothing but a
-title. Posts are sorted newest first and poured into that shape in order, so
-the newest post is always the lead and the oldest are always compact.
+A COLUMN IS A YEAR, AND THE COLUMN SCROLLS. The ticks under this grid have read
+Aktuell / 2026 / 2025 / 2024 / 2022–2023 since it was drawn, and until now they
+were labels over whatever eighteen cards happened to land there: the cards were
+poured in by count — 1, 2, 3, 6, 6 — and post nineteen went to page two, under a
+tick that said the same year as page one's.
+
+Now the tick is the truth. The newest post is the lead; every post after it
+stands in the column of its own year; the last column holds every year older
+than the four that fit, which is why its tick is a range. Nothing falls off the
+page — the grid is a port twice the height it used to draw and each column
+scrolls its own year — so the pagination is gone with the pages it counted.
+
+What 1, 2, 3, 6, 6 still says is how a column DRAWS: "von aktuell nach alt und
+von ausführlich nach knapp", which is why the lead card carries its author and a
+picture and the compact ones carry nothing but a title.
 
 BOTH EDITIONS COME OUT OF ONE FILE. Every post carries `titel` and `title`, and
 this script keeps design-system/i18n/en.json in step: the German title is a
@@ -120,11 +130,13 @@ TOPICS = (
 
 BY_NAME = {de.lower(): t for t in TOPICS for de in (t[1],)}
 
-# The design's own shape: one lead, two, three, then two columns of six.
-# Eighteen per page, which is what "18 von 189" claimed and what the five
-# .cf-blog-col--N classes lay out.
-COLUMNS = (1, 2, 3, 6, 6)
-PER_PAGE = sum(COLUMNS)
+# THE FIVE COLUMNS' RANKS, which is their presentation and no longer their
+# length. 1, 2, 3, 6, 6 is what the .cf-blog-col--N classes lay out — the lead
+# card with its author, two columns of cards with a text block, two of single
+# lines — "von aktuell nach alt und von ausführlich nach knapp". How MANY posts
+# stand in a column is the column's year's business now; the rank says how they
+# are drawn. → columns()
+RANKS = (1, 2, 3, 6, 6)
 
 # A field this script reads. Everything else in a post file is ignored rather
 # than rejected, so a later run can add a body without this one having to know.
@@ -467,22 +479,49 @@ def esc(s):
 
 
 def columns(page_posts):
-    """The page's posts poured into the design's shape: [(width, posts), …].
+    """The posts in their columns: [(rank, posts), …] — the lead, then a year each.
 
-    EMPTY COLUMNS ARE NOT DRAWN. A page of the whole archive is full — eighteen
-    cards into 1/2/3/6/6 — but a topic is a slice, and Architektur is four
-    posts. Four cards fill the first three columns and leave two empty <div>s,
-    which is two grid tracks of nothing: the axis under them names an era with
-    no cards over it, and the four cards that exist are squeezed into two fifths
-    of the container. So the shape is the same and the columns that have nothing
-    in them do not exist. grid() sets the track count to match.
+    A COLUMN IS A YEAR, WHICH IS WHAT THE AXIS UNDER IT ALWAYS SAID. The ticks
+    have read Aktuell / 2026 / 2025 / 2024 / 2022–2023 since the grid was drawn,
+    but the cards above them were poured in by count — one, two, three, six,
+    six, eighteen to a page and the rest on page two. The tick was a label over
+    whatever eighteen cards happened to land there, and a year that ran long was
+    split across two pages under two identical ticks.
+
+    Now the tick is the truth. The newest post is the lead; every post after it
+    stands in the column of its own year; and the last column takes every year
+    older than the four that fit, which is what makes its tick a range. Nothing
+    is left off the page — the column scrolls instead, which is the whole point
+    of the port being twice as tall as the tallest column that fits in it.
+    → design-system/components/blog-grid.html
+
+    EMPTY COLUMNS ARE NOT DRAWN. A topic is a slice — Architektur is four posts
+    across three years — and a fifth column with nothing in it is a grid track
+    of nothing under a tick naming an era with no cards over it. grid() sets the
+    track count to what is left.
     """
-    out, i = [], 0
-    for n in COLUMNS:
-        take = page_posts[i:i + n]
-        i += n
-        if take:
-            out.append((n, take))
+    if not page_posts:
+        return []
+    rest = page_posts[1:]
+    years = []                      # [(year, posts)], newest first
+    for p in rest:
+        y = p["datum"][:4]
+        if not years or years[-1][0] != y:
+            years.append((y, []))
+        years[-1][1].append(p)
+    slots = len(RANKS) - 1          # the columns left after the lead
+    buckets = [ps for _y, ps in years[:slots - 1]]
+    # THE LAST COLUMN IS EVERYTHING OLDER, and not the fifth year. An archive
+    # that started in 2022 has more years than columns from its fourth birthday
+    # on, and a column per year would either grow a sixth track — the
+    # composition is five — or drop the oldest posts off the page. "2022–2023"
+    # is that decision already drawn: the tail is one column and its tick is the
+    # range it holds.
+    tail = [p for _y, ps in years[slots - 1:] for p in ps]
+    if tail:
+        buckets.append(tail)
+    out = [(RANKS[0], page_posts[:1])]
+    out += [(RANKS[i + 1], ps) for i, ps in enumerate(buckets) if ps]
     return out
 
 
@@ -510,7 +549,12 @@ def grid(page_posts, indent="      "):
     inner = indent + "  "
     return "\n".join([
         indent + opens,
-        '%s<div class="cf-blog-grid subdivide__row">' % inner,
+        # --port is the fixed-height scroll port: the archive's grid is twice
+        # the height it drew before and each column scrolls its own year. The
+        # Weiterlesen grid under an article uses the same .cf-blog-grid and does
+        # NOT take it — three cards have nothing to scroll, and a port there
+        # would be a fixed height with air under it.
+        '%s<div class="cf-blog-grid cf-blog-grid--port subdivide__row">' % inner,
         cards(cols, inner + "  "),
         "%s</div>" % inner,
         '%s<div class="cf-blog-axis subdivide__row" aria-hidden="true">' % inner,
@@ -638,16 +682,15 @@ def meta_left(posts, topic=None):
         len(posts), "Beitrag" if len(posts) == 1 else "Beiträge", topic[1])
 
 
-def meta(posts, pages, topic=None, indent="          "):
-    """The page header's two mono lines.
+def meta(posts, topic=None, indent="          "):
+    """The page header's mono line.
 
-    The second line only exists when there is more than one page — it answers
-    "which page am I on", and on a single page nobody asked.
+    ONE LINE NOW, WHERE THERE WERE TWO. The right-hand one answered "which page
+    am I on", and there are no pages any more: every post stands in its year's
+    column and the column scrolls. A reader who wants to know how far the
+    archive goes reads the axis under it, which names the years it holds.
     """
-    lines = ["%s<span>%s</span>" % (indent, esc(meta_left(posts, topic)))]
-    if pages > 1:
-        lines.append("%s<span>Seite 1 von %d</span>" % (indent, pages))
-    return "\n".join(lines)
+    return "%s<span>%s</span>" % (indent, esc(meta_left(posts, topic)))
 
 
 def head(topic, indent=""):
@@ -700,26 +743,6 @@ def chips(used, active, indent="      "):
     return "\n".join(out)
 
 
-def page_links(pages):
-    """The numbered links after page 1: (number, aria-label, gap before it).
-
-    ONE DESCRIPTION, READ TWICE. The markup below draws these and derived()
-    translates them, and when each worked it out for itself they disagreed: at
-    two pages the catalogue gained an entry for "Seite 2, letzte Seite" that the
-    markup never drew, and an entry nothing draws fails the next build.
-
-    The gap and the last-page label only appear when they say something. At four
-    pages or fewer every page is already listed, and an ellipsis standing for
-    nothing is a control lying about how far the archive goes.
-    """
-    near = list(range(2, min(4, pages) + 1))
-    out = [(n, "Seite %d" % n, False) for n in near]
-    last = max(near or [1])
-    if pages > last:
-        out.append((pages, "Seite %d, letzte Seite" % pages, pages > last + 1))
-    return out
-
-
 def count(shown, total, indent="        "):
     """The Beiträge header's counter: what stands on this page, of what there is.
 
@@ -730,47 +753,6 @@ def count(shown, total, indent="        "):
     """
     text = str(total) if shown == total else "%d von %d" % (shown, total)
     return '%s<span class="cf-section-header__count">%s</span>' % (indent, text)
-
-
-def pagination(pages, base="news.html", indent="      "):
-    """The design's own shape: 1 2 3 4 … last, then the step, all inside the list.
-
-    Nothing at all on a single page. The page's note about the first page says
-    the step is removed rather than disabled — "ein deaktiviertes Ziel antwortet
-    nicht, wenn man dort ankommt" — and one page of posts is that argument taken
-    to its end: no "Seite 1 von 1" to state and nowhere to step to.
-
-    The gap and the last-page link only appear when they say something. At five
-    pages or fewer every page is already listed, and an ellipsis standing for
-    nothing is a control that lies about how far the archive goes.
-    """
-    if pages <= 1:
-        return ""
-    items = ['<li><span class="cf-pagination__page" aria-current="page">1</span></li>']
-    for n, label, gap_before in page_links(pages):
-        if gap_before:
-            items.append('<li><span class="cf-pagination__gap" aria-hidden="true">…</span></li>')
-        # The step stays inside the page it was taken on: on a topic page every
-        # link is that topic's own file, so the filter survives the page change.
-        # It is the state's own note — the reader must not be put back into the
-        # unfiltered archive by pressing "2".
-        items.append('<li><a class="cf-pagination__page" href="%s?seite=%d" '
-                     'aria-label="%s">%d</a></li>' % (base, n, label, n))
-    out = ['%s<nav class="cf-pagination" aria-label="Beiträge, Seiten">' % indent,
-           '%s  <p class="cf-pagination__status">Seite 1 von %d</p>' % (indent, pages),
-           '%s  <ul class="cf-pagination__list" role="list">' % indent]
-    out += ["%s    %s" % (indent, it) for it in items]
-    out += ['%s    <li>' % indent,
-            '%s      <a class="cf-pagination__step cf-pagination__step--next" '
-            'href="%s?seite=2" rel="next">' % (indent, base),
-            "%s        Weiter" % indent,
-            '%s        <svg class="cf-icon cf-icon--sm" aria-hidden="true">'
-            '<use href="#cf-chevron-right"></use></svg>' % indent,
-            "%s      </a>" % indent,
-            "%s    </li>" % indent,
-            "%s  </ul>" % indent,
-            "%s</nav>" % indent]
-    return "\n".join(out)
 
 
 def splice(html, name, body, where="news.html"):
@@ -801,13 +783,13 @@ def en_meta(iso):
     return "%s %s %s" % (d, MONTHS[int(m) - 1], y)
 
 
-def derived(posts, total, pages, first_year=None, topic=None):
+def derived(posts, total, first_year=None, topic=None):
     """Every string this script writes onto one page, with its English twin.
 
     THE GENERATOR OWNS THE ENTRIES FOR WHAT THE GENERATOR WRITES, and this is
     the half that only showed up when a nineteenth post was added. The titles
     are copy an admin types, so they belong in the post file. The rest of the
-    page's words are *derived* — "19 Beiträge seit 2022", "Seite 1 von 2",
+    page's words are *derived* — "19 Beiträge seit 2022", "8 posts on telemetry",
     "Daniel Tremer · 07.08.2026 · 3 min" — and they change with every post that
     lands. Asking a person to add a catalogue entry for each of them would put
     the cost this script exists to remove back on them, one line further down,
@@ -818,14 +800,17 @@ def derived(posts, total, pages, first_year=None, topic=None):
     only keeps writing them.
     """
     pairs = {}
-    i = 0
-    for width in COLUMNS:
-        for p in posts[i:i + width]:
+    # THE SAME WALK THE MARKUP MAKES, and not a second description of it: which
+    # cards carry a meta line is a property of the column they land in, and
+    # columns() is the one place that decides which column a post lands in. Read
+    # separately, the two disagreed the first time a year ran long.
+    for rank, take in columns(posts):
+        for p in take:
             pairs[p["titel"]] = p["title"]
-            if width > 3:
+            if rank > 3:
                 continue        # a compact card is a title and nothing else
             parts_de, parts_en = [], []
-            if width == 1 and p.get("autor"):
+            if rank == 1 and p.get("autor"):
                 parts_de.append(p["autor"])
                 parts_en.append(p["autor"])      # a name is not translated
             parts_de.append(german(p["datum"]))
@@ -834,7 +819,6 @@ def derived(posts, total, pages, first_year=None, topic=None):
                 parts_de.append("%s min" % p["minuten"])
                 parts_en.append("%s min" % p["minuten"])
             pairs[" · ".join(parts_de)] = " · ".join(parts_en)
-        i += width
     if topic is None:
         pairs["%d Beiträge seit %s" % (total, first_year)] = \
             "%d posts since %s" % (total, first_year)
@@ -849,15 +833,10 @@ def derived(posts, total, pages, first_year=None, topic=None):
               "des Archivs, nach Zeit sortiert." % topic[1]] = \
             "Posts by Control-F on %s — the filtered slice of the archive, " \
             "sorted by date." % topic[3]
-    # A bare number is not copy — build-i18n.py needs two adjacent letters to
-    # call a run translatable — so only the two-number form needs an entry.
-    if len(posts) != total:
-        pairs["%d von %d" % (len(posts), total)] = "%d of %d" % (len(posts), total)
-    if pages > 1:
-        pairs["Seite 1 von %d" % pages] = "Page 1 of %d" % pages
-        for n, label, _ in page_links(pages):
-            pairs[label] = ("Page %d, last page" % n if "letzte" in label
-                            else "Page %d" % n)
+    # The counter is a bare number now — every post the archive has stands on
+    # the page — and a bare number is not copy: build-i18n.py needs two adjacent
+    # letters to call a run translatable. The "18 von 189" form went with the
+    # pagination, and so did "Seite 1 von 11".
     return pairs
 
 
@@ -1009,22 +988,25 @@ def render(template, where, posts, page_posts, total, used, topic, pairs):
     What differs is four strings and which chip is a <span> — and a second
     function would be the place those four quietly became six.
     """
-    pages = (total + PER_PAGE - 1) // PER_PAGE
-    first = page_posts[:PER_PAGE]
-    base = "news.html" if topic is None else thema_name(topic[0])
     doc = template
     if topic is not None:
         # Only the topic page carries a generated head: the archive's title and
         # description are authored, and there is nothing in them that changes
         # when a post lands.
         doc = splice(doc, "head", head(topic), where)
-    doc = splice(doc, "meta", meta(page_posts, pages, topic), where)
+    doc = splice(doc, "meta", meta(page_posts, topic), where)
     doc = splice(doc, "themen", chips(used, topic[0] if topic else None), where)
-    doc = splice(doc, "count", count(len(first), total), where)
-    doc = splice(doc, "grid", grid(first), where)
-    doc = splice(doc, "pages", pagination(pages, base), where)
+    doc = splice(doc, "count", count(total, total), where)
+    doc = splice(doc, "grid", grid(page_posts), where)
+    # NOTHING IN THE PAGINATION REGION, AND NOTHING TO PUT THERE. The archive
+    # does not page any more: the columns are years and they scroll, so there is
+    # no second page to step to and no "Seite 1 von 11" to state. The fences
+    # stay because the specimen keeps its own drawn pagination between them —
+    # that page is where the component is documented — and because a region this
+    # script owns is a region this script can fill again.
+    doc = splice(doc, "pages", "", where)
     pairs.update(derived(
-        first, total, pages,
+        page_posts, total,
         first_year=min(p["datum"][:4] for p in posts) if topic is None else None,
         topic=topic))
     return doc
@@ -1118,8 +1100,6 @@ def main():
         else:
             p.unlink()
 
-    total_pages = len(posts) // PER_PAGE + (1 if len(posts) % PER_PAGE else 0)
-
     if args.check:
         if drift:
             fail("the news archive does not match content/news/:\n%s\n"
@@ -1132,26 +1112,25 @@ def main():
                  % (len(missing), len(stale),
                     "\n".join(["      + " + t for t in missing]
                               + ["      - " + t for t in stale])))
-        print("news OK — %d post(s), %d page(s), %d topic page(s), the archive "
-              "matches content/news/"
-              % (len(posts), total_pages, len(pages_out) - 1))
+        print("news OK — %d post(s), %d topic page(s), the archive matches "
+              "content/news/" % (len(posts), len(pages_out) - 1))
         return 0
 
     note = ""
     if missing or stale:
         note = ", catalogue %+d/%-d" % (len(missing), len(stale))
-    print("news built — %d post(s) over %d page(s), %d topic page(s)%s"
-          % (len(posts), total_pages, len(pages_out) - 1, note))
+    print("news built — %d post(s), %d topic page(s)%s"
+          % (len(posts), len(pages_out) - 1, note))
     for r in written:
         print("  written  %s" % r)
     for p in orphans:
         print("  removed  %s" % p.relative_to(ROOT))
     if args.verbose:
-        for i, p in enumerate(posts[:PER_PAGE]):
-            print("  %2d  %s  %-12s %s"
-                  % (i + 1, p["datum"], ",".join(t[0] for t in p["topics"]), p["titel"]))
-        if len(posts) > PER_PAGE:
-            print("  … %d more on later pages" % (len(posts) - PER_PAGE))
+        for rank, take in columns(posts):
+            print("  column of %d, rank %d:" % (len(take), rank))
+            for p in take:
+                print("    %s  %-12s %s"
+                      % (p["datum"], ",".join(x[0] for x in p["topics"]), p["titel"]))
     print("     then: python3 scripts/build-i18n.py && python3 scripts/build-site.py")
     return 0
 

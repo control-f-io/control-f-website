@@ -3729,6 +3729,68 @@ ul.cf-info-card__chips {
 .cf-blog-col--3 { --rank: 3; }
 .cf-blog-col--6 { --rank: 6; }
 
+/* THE PORT — the archive's own form of the grid, where a column is a year and
+   the year is longer than the box.
+   ------------------------------------------------------------------------
+   The grid used to be as tall as its content and the content was capped at
+   eighteen cards: post nineteen went to a second page under a tick naming the
+   same year as the first. A year does not end because a page does. So the
+   archive's grid is a fixed-height port and each column scrolls its own year;
+   nothing is paged away, and the pagination under it went with the pages.
+
+   36.5rem / 584 px is twice what this grid drew. Measured on news.html at 1440
+   and 1920: 293.66 px, six compact rows stretched to 48.6 each — the six-row
+   tail column set the height, because it was the longest. Twice that is 587.3,
+   and 584 is the number on the 4 px unit under it.
+
+   AND IT IS DELIBERATELY NOT A WHOLE NUMBER OF ROWS. A compact row is 40.59 px
+   of its own accord — 12 + 12 of padding around one line of --text-sm, measured
+   identically at 1024, 1280, 1440 and 1920, because none of those three numbers
+   is fluid. The port's own two hairlines take 2 px of the 584, and the 582 left
+   hold fourteen rows and 14.7 px of the fifteenth: a year with
+   more posts than fit always shows one cut off by the bottom edge, which is the
+   only thing on a static page that says "keep going" before anyone has touched
+   it or hovered anything. A port ending flush on a hairline reads as a list
+   that has ended, and the reader is not told twice.
+
+   Only the archive wears it. The Weiterlesen grid under an article is the same
+   component at three columns and three cards — a port there is a fixed height
+   with air under it. → scripts/build-news.py */
+.cf-blog-grid--port { height: 36.5rem; }
+.cf-blog-grid--port .cf-blog-col {
+  overflow-y: auto;
+  /* A grid item's automatic minimum size is its content: without this the
+     column refuses to be shorter than its cards and the port never clips, so
+     nothing ever scrolls and the grid simply grows past its own height. */
+  min-height: 0;
+  /* The rank's equal 1fr rows are what fills a content-sized column. In a port
+     they would divide 576 px by six and hand each single-line headline 96 px of
+     box to float in, so the rows are the cards' own heights instead and the
+     column fills from the top. What is left over at the bottom of a thin year
+     is that year being thin — which is what an archive looks like. */
+  grid-template-rows: none;
+  grid-auto-rows: min-content;
+  align-content: start;
+}
+/* Except the lead, which is one card and takes the whole port: its picture is
+   written to absorb the slack, and this is the cell the plate draws large. */
+.cf-blog-grid--port .cf-blog-col--1 { grid-auto-rows: minmax(0, 1fr); }
+
+/* FOLDED, THERE IS NO PORT. Below the fold every column spans the whole grid
+   and they stack — a fixed height there would put the entire archive inside one
+   576 px box nested in the page's own scroll, which is the pattern that takes a
+   thumb hostage. The two queries are base.css's two fold widths, read from the
+   same place and for the same reason: 44rem is the primitive's own number and
+   56rem is the one five columns take with .subdivide--late. */
+@container (max-width: 44rem) {
+  .cf-blog-grid--port { height: auto; }
+  .cf-blog-grid--port .cf-blog-col { overflow: visible; }
+}
+@container (max-width: 56rem) {
+  .subdivide--late .cf-blog-grid--port { height: auto; }
+  .subdivide--late .cf-blog-grid--port .cf-blog-col { overflow: visible; }
+}
+
 .cf-blog-card {
   display: flex;
   flex-direction: column;
