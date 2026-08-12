@@ -1,6 +1,7 @@
 datum:   2022-11-03
 autor:   Birk Burghardt
 minuten: 2
+themen:  Energie
 titel:   Speicherpflicht für Neubauten: Kommt sie?
 title:   Mandatory storage for new builds: is it coming?
 

@@ -1,6 +1,7 @@
 datum:   2025-01-01
 autor:   Piet Brömmel
 minuten: 2
+themen:  Energie, Telemetrie
 titel:   Agri-Photovoltaik: Wenn Acker und Solarpanel koexistieren
 title:   Agrivoltaics: when farmland and solar panels coexist
 

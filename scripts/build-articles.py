@@ -413,6 +413,34 @@ def crumb(post, edition, pad):
             % (pad, esc(short)))
 
 
+def tags(post, edition, pad):
+    """The post's topics, each a link into the archive filtered to it.
+
+    THE WAY BACK OUT OF ONE ARTICLE IS THE ARCHIVE NARROWED TO ITS SUBJECT, and
+    it is the reason the topics are on the post at all. The specimen has always
+    drawn three of these chips under the text; every generated page drew none,
+    because a post carried no topic to draw — the region was spliced empty and
+    the reader who had just finished a piece about heat pumps was offered
+    "Alle Beiträge" and nothing else.
+
+    They point at news-thema-<slug>.html, which is where the chips on the
+    archive point too. Not at a query string: the specimen said
+    `news.html?thema=telemetrie` and no server answers that — the site is static
+    files, and the link came back with the whole unfiltered archive.
+
+    In the order the post writes them, which is the writer's order of
+    importance. The archive's own chips are in the vocabulary's order instead;
+    the two are different lists doing different jobs.
+    """
+    news = post["_news"]
+    out = ['%s<ul class="cf-article__tags">' % pad]
+    for slug, de, en, _prose in post["topics"]:
+        out.append('%s  <li><a class="cf-article__tag" href="%s">%s</a></li>'
+                   % (pad, news.thema_name(slug), esc(de if edition == "de" else en)))
+    out.append("%s</ul>" % pad)
+    return "\n".join(out)
+
+
 def related(post, posts, edition, total, pad):
     """Up to three other posts that have a page, newest first.
 
@@ -470,7 +498,7 @@ def page(template, post, posts, edition, total, name):
             ("rail", lambda pad: rail(bs, edition, pad)),
             ("byline", lambda pad: byline(post, pad)),
             ("prose", lambda pad: prose(bs, edition, pad)),
-            ("tail", lambda pad: ""),
+            ("tail", lambda pad: tags(post, edition, pad)),
             ("related", lambda pad: related(post, posts, edition, total, pad))):
         doc = splice(doc, region, body, where)
 

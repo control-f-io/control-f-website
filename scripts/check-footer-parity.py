@@ -149,7 +149,7 @@ def section_of(name):
     remove — and the specimen's own line above is what these pages inherit,
     because the marker is in the footer they are built from.
     """
-    if name.startswith("beitrag-"):
+    if name.startswith("beitrag-") or name.startswith("news-thema-"):
         return "news.html"
     if name.startswith("stelle-"):
         return "karriere.html"

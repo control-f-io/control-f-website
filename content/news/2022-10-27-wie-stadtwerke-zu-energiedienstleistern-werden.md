@@ -1,6 +1,7 @@
 datum:   2022-10-27
 autor:   Simon Deussen
 minuten: 2
+themen:  Energie, Architektur
 titel:   Wie Stadtwerke zu Energiedienstleistern werden
 title:   How municipal utilities are becoming energy service providers
 

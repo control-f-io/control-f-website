@@ -1,6 +1,7 @@
 datum:   2024-11-10
 autor:   Piet Brömmel
 minuten: 2
+themen:  Energie
 titel:   Speicherlösungen im Vergleich: Lithium vs. Redox-Flow
 title:   Storage solutions compared: lithium vs redox flow
 

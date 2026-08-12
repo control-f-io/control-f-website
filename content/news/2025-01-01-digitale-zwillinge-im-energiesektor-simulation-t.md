@@ -1,6 +1,7 @@
 datum:   2025-01-01
 autor:   Daniel Tremer
 minuten: 2
+themen:  Telemetrie, Architektur
 titel:   Digitale Zwillinge im Energiesektor: Simulation trifft Realität
 title:   Digital twins in the energy sector: simulation meets reality
 
