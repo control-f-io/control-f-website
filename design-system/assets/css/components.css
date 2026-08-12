@@ -3774,6 +3774,39 @@ ul.cf-info-card__chips {
    is the affordance, and there is nowhere for this one to arrive. */
 .cf-blog-card--listing { background-image: none; }
 
+/* THE TITLE PICTURE. A post names one — `bild:` in its file, the Titelbild
+   property in Notion — and scripts/build-news.py draws it on the cards that
+   have room for one: the lead and the two- and three-row columns. The single
+   line rows carry none, and that is the archive's own argument about getting
+   terser to the right rather than an omission: a 2rem row would paint a 48 px
+   stamp out of a file sized for a 1008 px plate, which is bytes a reader pays
+   for a picture nobody can read. → scripts/check-image-scale.py
+
+   No alt text, by construction. The picture sits inside the link whose text is
+   the headline; a description of the photograph would have a screen reader
+   read every card twice. → design-system/components/blog-grid.html */
+.cf-blog-card__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  /* The picture takes the slack the text does not need. Without it the card's
+     justify-content: space-between spreads three items down a tall lead cell
+     and the headline floats in the middle of it; with it the cell is a
+     photograph with a headline under it, which is what the plate draws. */
+  flex: 1 1 auto;
+  /* A flex item's automatic minimum size is its content, and an image's content
+     is its intrinsic height — without this the picture cannot shrink below
+     1067 px and every card in the column grows to fit it. */
+  min-height: 0;
+}
+/* A card that carries a picture pays its padding on the text instead of on the
+   box, so the photograph meets the cell's own hairline rather than floating in
+   a 12 px frame. The gap keeps the air between picture and headline. */
+.cf-blog-card--media { padding: 0; }
+.cf-blog-card--media > .cf-blog-card__title { padding-inline: var(--space-3); }
+.cf-blog-card--media > .cf-blog-card__meta { padding: 0 var(--space-3) var(--space-3); }
+
 /* Older entries collapse to a single line — the tail of the subdivision. */
 .cf-blog-card--compact {
   flex-direction: row;
