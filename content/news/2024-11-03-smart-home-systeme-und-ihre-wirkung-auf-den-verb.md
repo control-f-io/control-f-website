@@ -1,6 +1,7 @@
 datum:   2024-11-03
 autor:   Henry Beiker
 minuten: 2
+themen:  Telemetrie, Energie
 titel:   Smart-Home-Systeme und ihre Wirkung auf den Verbrauch
 title:   Smart home systems and their effect on consumption
 

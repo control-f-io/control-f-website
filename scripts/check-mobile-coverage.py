@@ -112,12 +112,15 @@ def main():
     # THE SPECIMENS, AND NOT THE CONTENT. patterns/beitrag-*.html is one post
     # of the news archive spliced into blog-artikel.html by
     # scripts/build-articles.py: same markup, same components, same widths,
-    # different words. The record this file holds is a set of MEASUREMENTS, and
-    # the page's own notes say a count is never updated by arithmetic — so a
-    # page per post would mean a re-run of the matrix every time somebody
-    # publishes, to record the numbers already recorded for the specimen.
+    # different words. patterns/news-thema-<slug>.html is the same relationship
+    # to news-thema.html — one topic's slice of the archive, in the columns the
+    # specimen was measured in. The record this file holds is a set of
+    # MEASUREMENTS, and the page's own notes say a count is never updated by
+    # arithmetic — so a page per post or per topic would mean a re-run of the
+    # matrix every time somebody publishes, to record the numbers already
+    # recorded for the specimen.
     pages = sorted(p.stem for p in PATTERNS.glob("*.html")
-                   if not p.name.startswith(("beitrag-", "stelle-")))
+                   if not p.name.startswith(("beitrag-", "stelle-", "news-thema-")))
     if not pages:
         print("check-mobile-coverage: no pages found under design-system/patterns/")
         return 1

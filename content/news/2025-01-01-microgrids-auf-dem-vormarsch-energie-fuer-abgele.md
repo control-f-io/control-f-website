@@ -1,6 +1,7 @@
 datum:   2025-01-01
 autor:   Robin Marzucca
 minuten: 2
+themen:  Energie, Architektur
 titel:   Microgrids auf dem Vormarsch: Energie für abgelegene Regionen
 title:   Microgrids on the rise: energy for remote regions
 

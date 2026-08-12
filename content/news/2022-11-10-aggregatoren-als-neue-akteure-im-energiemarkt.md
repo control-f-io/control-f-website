@@ -1,6 +1,7 @@
 datum:   2022-11-10
 autor:   Robin Marzucca
 minuten: 2
+themen:  Energie, Telemetrie
 titel:   Aggregatoren als neue Akteure im Energiemarkt
 title:   Aggregators as new players in the energy market
 
