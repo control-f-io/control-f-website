@@ -34,7 +34,9 @@
       <div class="subdivide subdivide--even subdivide--late">
         <div class="cf-blog-grid subdivide__row">
           <div class="cf-blog-col subdivide__col cf-blog-col--1">
-            <a class="cf-blog-card cf-blog-card--lead" href="#">
+            <a class="cf-blog-card cf-blog-card--lead cf-blog-card--media" href="#">
+              <img class="cf-blog-card__image" src="../assets/img/news/waermepumpen-im-winter-was-hausbesitzer-65498603.jpg" alt=""
+                   width="1600" height="1067" loading="lazy" decoding="async">
               <span class="cf-blog-card__title">Wärmepumpen im Winter: Was Hausbesitzer jetzt wissen müssen</span>
               <span class="cf-blog-card__meta">Simon Deussen · 01.01.2026 · 6 min</span>
             </a>
@@ -106,9 +108,9 @@
     <table class="docs-table">
       <thead><tr><th>Column</th><th>Class</th><th>Articles</th><th>Presentation</th></tr></thead>
       <tbody>
-        <tr><td>1 — current</td><td><code>.cf-blog-col--1</code></td><td>1</td><td>large title, author, date, reading time</td></tr>
-        <tr><td>2 — this year</td><td><code>.cf-blog-col--2</code></td><td>2</td><td>title, date, reading time</td></tr>
-        <tr><td>3 — last year</td><td><code>.cf-blog-col--3</code></td><td>3</td><td>title, date, reading time</td></tr>
+        <tr><td>1 — current</td><td><code>.cf-blog-col--1</code></td><td>1</td><td>picture, large title, author, date, reading time</td></tr>
+        <tr><td>2 — this year</td><td><code>.cf-blog-col--2</code></td><td>2</td><td>picture, title, date, reading time</td></tr>
+        <tr><td>3 — last year</td><td><code>.cf-blog-col--3</code></td><td>3</td><td>picture, title, date, reading time</td></tr>
         <tr><td>4 — before that</td><td><code>.cf-blog-col--6</code></td><td>6</td><td>title only, single line</td></tr>
         <tr><td>5 — archive</td><td><code>.cf-blog-col--6</code></td><td>6</td><td>title only, single line</td></tr>
       </tbody>
@@ -117,6 +119,59 @@
       The grid shows 18 articles in total. The counter in the section header names the full
       figure — the jump from 18 visible to 189 available is the invitation into the archive.
     </p>
+  </section>
+
+  <section class="docs-section" id="picture">
+    <h2>The title picture</h2>
+    <p>
+      A post names one picture that stands for it — <code>bild:</code> in its file, the
+      <code>Titelbild</code> property in Notion — and the card is drawn from it:
+      <code>.cf-blog-card--media</code> on the card, an <code>&lt;img&gt;</code> with
+      <code>.cf-blog-card__image</code> as its first child.
+      <code>scripts/build-news.py</code> writes both, and the same call writes the
+      Weiterlesen cards under an article, so the two cannot drift apart.
+    </p>
+    <ul>
+      <li>
+        <strong>Optional, and the layout does not reserve a hole for it.</strong> A card
+        without a picture is the card this grid has always drawn. An archive where half the
+        posts carry a photograph reads as an archive; a row of grey placeholders reads as a
+        fault.
+      </li>
+      <li>
+        <strong>The picture pays the padding.</strong> A card with one drops its own
+        <code>12&nbsp;px</code> box padding and pays it on the title and the meta line
+        instead, so the photograph meets the cell's hairline on three sides. That is what
+        makes the left of the grid read as a wall of pictures rather than as framed stamps.
+      </li>
+      <li>
+        <strong>It takes the slack.</strong> <code>flex: 1 1 auto</code> with
+        <code>min-height: 0</code>: in the tall lead cell the picture grows and the headline
+        sits under it, instead of <code>space-between</code> spreading three items down a
+        column of air. <code>aspect-ratio: 3 / 2</code> is the basis, <code>object-fit:
+        cover</code> the crop.
+      </li>
+      <li>
+        <strong>Columns 4 and 5 carry none.</strong> Those rows are <code>2rem</code> high. A
+        picture in one is a 48&nbsp;px stamp painted from a file sized for the 1008&nbsp;px
+        reading plate — the waste <code>scripts/check-image-scale.py</code> exists to catch,
+        and bytes a reader on a train pays for something nobody can read. Terser to the right
+        is the layout's whole argument; the picture is the first thing to go, not the last.
+      </li>
+      <li>
+        <strong><code>alt=""</code>, always.</strong> The picture sits inside the link whose
+        text is the headline. A description of the photograph makes a screen reader read
+        every card twice, so there is no caption field on the post either — the title is the
+        text alternative, and the <code>&lt;img&gt;</code> steps out of the way.
+      </li>
+      <li>
+        <strong>Its own dimensions on the tag.</strong> <code>width</code> and
+        <code>height</code> come from the file's header, so the box is reserved before the
+        bytes arrive — eighteen cards on one page is eighteen chances to move the grid under
+        the reader. <code>loading="lazy"</code> and <code>decoding="async"</code> for the
+        same page.
+      </li>
+    </ul>
   </section>
 
   <section class="docs-section" id="behaviour">

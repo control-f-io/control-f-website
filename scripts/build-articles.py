@@ -469,10 +469,21 @@ def related(post, posts, edition, total, pad):
         title = p["titel"] if edition == "de" else p["title"]
         date = news.german(p["datum"]) if edition == "de" else news.en_meta(p["datum"])
         line = date + (" · %s min" % p["minuten"] if p.get("minuten") else "")
+        # THE SAME CARD AS THE ARCHIVE'S, PICTURE AND ALL. Weiterlesen is the
+        # blog grid run at three columns, and a card that dropped its picture
+        # here would be a second kind of lead card — the reader arrives at these
+        # three from an archive where the same three posts carry photographs.
+        # build-news.py writes the markup, once, so the two cannot drift; only
+        # the `../` in front of the file differs, because this page is written
+        # into both editions and the English one sits a directory deeper.
+        picture = news.image(p, 1, p2 + "          ",
+                             up="../../assets/img/" if edition == "en" else "../assets/img/")
         out += ['%s      <div class="cf-blog-col subdivide__col cf-blog-col--1">' % p2,
-                '%s        <a class="cf-blog-card cf-blog-card--lead" href="%s">'
-                % (p2, news.page_name(p)),
-                '%s          <span class="cf-blog-card__title">%s</span>' % (p2, esc(title)),
+                '%s        <a class="cf-blog-card cf-blog-card--lead%s" href="%s">'
+                % (p2, " cf-blog-card--media" if picture else "", news.page_name(p))]
+        if picture:
+            out.append(picture)
+        out += ['%s          <span class="cf-blog-card__title">%s</span>' % (p2, esc(title)),
                 '%s          <span class="cf-blog-card__meta">%s</span>' % (p2, esc(line)),
                 "%s        </a>" % p2,
                 "%s      </div>" % p2]

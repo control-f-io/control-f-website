@@ -68,7 +68,19 @@ post files already use so that the two are read the same way:
                             filter. At least one, and no fourth name: the chips
                             are a fixed vocabulary and build-news.py refuses a
                             topic it cannot draw a chip for.
+    Titelbild  files        optional; the one picture the post's card in the
+                            archive is drawn from. The first file is taken —
+                            a card has one picture, and a property holding
+                            three does not say which.
     Status     select       only "Veröffentlicht" is imported
+
+THE TITLE PICTURE IS A PROPERTY AND NOT THE FIRST IMAGE IN THE TEXT. A post can
+open on a diagram that says nothing at card size, a post can carry no picture in
+its text at all and still want a card that is not a rectangle of type, and the
+picture that sells a piece in a grid is a choice somebody makes rather than a
+by-product of where they put the first image block. It is downloaded into the
+same folder under the same name-and-digest rule as the pictures in the text, so
+a post that uses one picture in both places downloads it once and names it once.
 
 STATUS IS THE WHOLE POINT OF THE FIELD. Notion is a drafting surface: a post
 exists there long before it should exist on the website, and a sync without a
@@ -131,7 +143,7 @@ PUBLISHED = "Veröffentlicht"
 
 # The header this writes, in the order new-post.py writes it, so a file from
 # Notion and a file from the command line are the same file.
-FIELDS = ("datum", "autor", "minuten", "themen", "titel", "title")
+FIELDS = ("datum", "autor", "minuten", "themen", "bild", "titel", "title")
 
 
 def fail(msg):
@@ -232,6 +244,25 @@ def rich(runs):
     return "".join(out).strip()
 
 
+def first_file(prop):
+    """A Notion `files` property → the URL of its first file, or "".
+
+    Its own reader rather than a branch of plain(): every other property reduces
+    to the string a post file carries, and this one reduces to an address this
+    script has to fetch before the post file can carry anything. A Notion file
+    URL is signed and expires within the hour, so it is never what is written
+    down. → fetch_image()
+    """
+    if not prop or prop.get("type") != "files":
+        return ""
+    for f in prop.get("files") or []:
+        src = ((f.get("external") or {}).get("url")
+               or (f.get("file") or {}).get("url"))
+        if src:
+            return src
+    return ""
+
+
 def fetch_image(src, stem, url, mode, into=None):
     """One picture into design-system/assets/img/news/, named for the post and
     its own digest. Returns the path a post file names it by.
@@ -317,7 +348,7 @@ def body_from(blocks, url, dropped, stem="bild", mode="write", pictures=None,
     return "\n\n".join(lines) + "\n"
 
 
-def post_from(page, text=""):
+def post_from(page, text="", bild=""):
     """One Notion row → the fields a post file holds, or a reason it cannot be.
 
     A row that is published and unusable is a FAILURE and never a skip. A post
@@ -328,6 +359,10 @@ def post_from(page, text=""):
     got = {k: plain(props.get(v)) for k, v in
            (("titel", "Titel"), ("title", "Title"), ("datum", "Datum"),
             ("autor", "Autor"), ("minuten", "Minuten"), ("themen", "Themen"))}
+    # Not read off the row: it is a downloaded file's path, and main() is where
+    # the download happens, because that is where `mode` decides whether this
+    # run writes anything at all.
+    got["bild"] = bild
     status = plain(props.get("Status"))
     url = page.get("url", page.get("id", "?"))
 
@@ -515,8 +550,18 @@ def main():
         # The picture's filename starts with the post's, so `ls` on the image
         # directory reads as the archive does. name is `<date>-<slug>.md`; the
         # date is already in the post's own name and says nothing about a file.
-        name, body = post_from(page, body_from(
-            blocks, url, dropped, stem=name[11:-3], mode=mode, pictures=pictures))
+        stem = name[11:-3]
+        text = body_from(blocks, url, dropped, stem=stem, mode=mode,
+                         pictures=pictures)
+        # The card's picture, if the row names one. Same folder, same
+        # name-and-digest rule as a picture in the text, so the two are the same
+        # file on disk whenever they are the same file in Notion.
+        bild = ""
+        src = first_file((page.get("properties") or {}).get("Titelbild"))
+        if src:
+            bild, size = fetch_image(src, stem, url, mode)
+            pictures[bild] = size
+        name, body = post_from(page, text, bild=bild)
         if not name:
             continue
         if name in wanted and wanted[name] != body:

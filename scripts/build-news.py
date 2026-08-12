@@ -156,6 +156,22 @@ PICTURE = re.compile(r"!\[(.*?)\]\(([^)\s]+)\)")
 # Where those files live, and the one place they live.
 IMAGES = ROOT / "design-system" / "assets" / "img" / "news"
 
+# THE TITLE PICTURE, and it is a field rather than a block. `bild: news/x.jpg`
+# names the one picture that stands for the whole post — the card in the archive
+# is drawn from it. It is not the first picture of the text: a post can open on
+# a diagram that says nothing at thumbnail size, and a post with no text at all
+# still has a card to fill. In Notion it is the `Titelbild` property, which is
+# how an admin says "this one" without the archive having to guess.
+#
+# NO CAPTION AND alt="". A picture in the running text carries one, because
+# there the caption IS the description and nothing else on the page says what is
+# in the image. On a card the picture sits inside the link whose text is the
+# headline: a screen reader already reads the post's title, and an alt
+# describing the photograph would read the card twice. That is the W3C's own
+# "decorative by context", and it is the reason this field is a path and not a
+# pair. → design-system/components/blog-grid.html
+IMAGE_FIELD = "bild"
+
 REGION = "<!-- news:%s -->"
 REGION_END = "<!-- /news:%s -->"
 
@@ -313,6 +329,7 @@ def read_posts():
         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", post["datum"]):
             fail("%s: datum is %r, not YYYY-MM-DD." % (path.name, post["datum"]))
         post["topics"] = topics(post["themen"], path.name)
+        post["bild"] = title_picture(post, path.name)
         out.append(post)
     if not out:
         fail("content/news/ is empty. scripts/new-post.py writes the first post.")
@@ -357,6 +374,56 @@ def topics(field, where):
              "without one it stands under no chip and no filtered view lists "
              "it." % where)
     return tuple(out)
+
+
+def intrinsic(path):
+    """A raster file's real pixel size, read from its header.
+
+    scripts/check-image-scale.py owns this — "no decoder, no dependency" — and
+    it is imported rather than written again because that file is also the one
+    that FAILS on a width/height attribute which disagrees with the file. Two
+    readers of a JPEG header would disagree about a progressive scan exactly
+    once, and the check would be right and the page would be wrong.
+    """
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "cf_image_scale", pathlib.Path(__file__).with_name("check-image-scale.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.intrinsic(str(path))
+
+
+def title_picture(post, where):
+    """`bild: news/x.jpg` → (path, width, height), or None.
+
+    THE SIZE IS READ HERE AND WRITTEN ONTO THE CARD. An <img> with no width and
+    height reserves no space, so every card below it moves the moment the file
+    arrives — the archive is a grid of eighteen of them and the whole page jumps.
+    The pair has to be the file's own numbers, which is why it is read out of the
+    file rather than typed: scripts/check-image-scale.py fails on a pair that
+    disagrees with the header, and it is right to.
+
+    A named file that is not in the repository is a failure and never a card
+    without a picture. The page would ship an <img> pointing at a 404, which
+    looks like a broken photograph and reads as a broken site — the same finding
+    scripts/check-content-images.py calls DANGLING one level down.
+    """
+    rel = (post.get(IMAGE_FIELD) or "").strip()
+    if not rel:
+        return None
+    path = ROOT / "design-system" / "assets" / "img" / rel
+    if not path.is_file():
+        fail("%s: bild is %r and design-system/assets/img/%s does not exist.\n"
+             "    The path is relative to the image folder, the file belongs in "
+             "the repository — scripts/sync-news-notion.py downloads what Notion "
+             "holds, because a Notion file URL is signed and expires within the "
+             "hour." % (where, rel, rel))
+    size = intrinsic(path)
+    if not size:
+        fail("%s: cannot read the pixel size out of design-system/assets/img/%s. "
+             "JPEG, PNG, WebP and GIF are what scripts/check-image-scale.py "
+             "reads." % (where, rel))
+    return (rel, size[0], size[1])
 
 
 def with_topic(posts, slug):
@@ -453,6 +520,28 @@ def grid(page_posts, indent="      "):
     ])
 
 
+def image(post, width, pad, up="../assets/img/"):
+    """The card's title picture, or nothing at all.
+
+    Nothing on a single-line row and nothing for a post that has no picture: a
+    card without one is the card this grid has always drawn, and the modifier
+    that changes the padding is only worn when there is something to change it
+    for. An archive half of whose posts carry a photograph reads as an archive,
+    not as a fault — which is why the picture is optional and the layout does
+    not reserve a hole for it.
+
+    `loading="lazy"` because eighteen of these stand on one page and five of
+    them are below the fold on every viewport this grid opens at; `decoding`
+    so a large file cannot hold up the paint of the text beside it.
+    """
+    if width > 3 or not post.get("bild"):
+        return ""
+    rel, w, h = post["bild"]
+    return ('%s<img class="cf-blog-card__image" src="%s%s" alt=""\n'
+            '%s     width="%d" height="%d" loading="lazy" decoding="async">'
+            % (pad, up, rel, pad, w, h))
+
+
 def cards(cols, indent="          "):
     """The columns, in the design's own order and modifiers."""
     lines = []
@@ -470,6 +559,20 @@ def cards(cols, indent="          "):
                 if p.get("minuten"):
                     meta.append("%s min" % p["minuten"])
             mod = {1: " cf-blog-card--lead", 6: " cf-blog-card--compact"}.get(n, "")
+            # THE PICTURE STOPS WHERE THE ROOM STOPS, which is the same place
+            # the byline and the date stop. Columns 1 to 3 are cards with a text
+            # block; the last two are single lines 2rem high, and a picture in
+            # one of them is a 48 px stamp painted from a file sized for a
+            # 1008 px plate — "512,000 source pixels for 3,136 painted ones" is
+            # the fault scripts/check-image-scale.py was written for, and it is
+            # bytes a reader on a train pays for a thumbnail nobody can read.
+            # A second, smaller derivative would fix that; there is no image
+            # library in this lane to write one, and inventing a dependency to
+            # put a stamp on a one-line row is the wrong trade.
+            # → design-system/components/blog-grid.html
+            picture = image(p, n, indent + "    ")
+            if picture:
+                mod += " cf-blog-card--media"
             title = '<span class="cf-blog-card__title">%s</span>' % esc(p["titel"])
             meta_html = ('<span class="cf-blog-card__meta">%s</span>'
                          % esc(" · ".join(meta))) if meta else ""
@@ -486,10 +589,13 @@ def cards(cols, indent="          "):
             open_, close = (
                 ('<a class="cf-blog-card%s" href="%s">' % (mod, href), "</a>") if href
                 else ('<span class="cf-blog-card%s cf-blog-card--listing">' % mod, "</span>"))
-            if n == 1:
+            if n == 1 or picture:
                 lines.append("%s  %s" % (indent, open_))
+                if picture:
+                    lines.append(picture)
                 lines.append("%s    %s" % (indent, title))
-                lines.append("%s    %s" % (indent, meta_html))
+                if meta_html:
+                    lines.append("%s    %s" % (indent, meta_html))
                 lines.append("%s  %s" % (indent, close))
             else:
                 lines.append("%s  %s%s%s%s" % (indent, open_, title, meta_html, close))
