@@ -77,10 +77,6 @@ def poly(pts):
     return "M" + " ".join(f"{f(a)} {f(b)}" for a, b in pts) + "Z"
 
 
-def path(pts):
-    return "M" + " ".join(f"{f(a)} {f(b)}" for a, b in pts)
-
-
 def line(a, b):
     return f"M{f(a[0])} {f(a[1])} {f(b[0])} {f(b[1])}"
 
@@ -196,14 +192,49 @@ def disc(x, y, z, r, axis='z', fill=None, cls=None):
     return _ell_tag(p_(x, y, z), rx, ry, ang, fill, cls)
 
 
-def _arc_pts(c, a, b, r, t0, t1, n=14):
-    out = []
-    for i in range(n + 1):
-        t = math.radians(t0 + (t1 - t0) * i / n)
-        out.append((c[0] + math.cos(t) * a[0] * r + math.sin(t) * b[0] * r,
-                    c[1] + math.cos(t) * a[1] * r + math.sin(t) * b[1] * r))
-    _PTS.extend([out[0], out[-1]])
-    return out
+def _on(c, a, b, r, t):
+    """The point at parameter t (degrees) of the circle of radius r in the
+    plane (a, b), centred on the screen point c."""
+    u = math.radians(t)
+    return (c[0] + math.cos(u) * a[0] * r + math.sin(u) * b[0] * r,
+            c[1] + math.cos(u) * a[1] * r + math.sin(u) * b[1] * r)
+
+
+def _arc(c, a, b, r, t0, t1):
+    """One SVG `A` command for the TRUE arc from t0 to t1 — the ellipse, not a
+    chain of chords across it.
+
+    _ell() already gives the projected circle exactly, and disc() has always
+    emitted it as an <ellipse>. Every OPEN arc in the library went out as a
+    polyline instead: a hoop as fourteen segments, a crown band as eight. At
+    the sizes the four objects shipped at that was under a pixel and invisible;
+    at the generator drum's radius the band's segments are 22.5 deg apart and
+    the sagitta is a full CSS pixel, so the one contour that runs the length of
+    the focal element arrives with eight flats in it. The header of this file
+    says the curves are computed and not approximated. They are now.
+
+    The sweep flag is DERIVED, not guessed. A point p on the ellipse has
+    parameter phi = atan2(p.v / ry, p.u / rx) in the frame rotate(ang)
+    establishes, and SVG's sweep = 1 is the direction of increasing phi — so
+    taking phi at the two ends and at the parametric midpoint says which way
+    round the browser has to go, and how far, for any t0, t1 and any of the
+    three lattice planes."""
+    rx, ry, ang = _ell(a, b, r)
+    ct, st = math.cos(math.radians(ang)), math.sin(math.radians(ang))
+
+    def phi(p):
+        dx, dy = p[0] - c[0], p[1] - c[1]
+        return math.atan2((-dx * st + dy * ct) / ry, (dx * ct + dy * st) / rx)
+
+    p0, p1 = _on(c, a, b, r, t0), _on(c, a, b, r, t1)
+    pm = _on(c, a, b, r, (t0 + t1) / 2.0)
+    tau = 2.0 * math.pi
+    f0 = phi(p0)
+    dpos, dmid = (phi(p1) - f0) % tau, (phi(pm) - f0) % tau
+    sweep = 1 if dmid < dpos else 0
+    span = dpos if sweep else tau - dpos
+    large = 1 if span > math.pi else 0
+    return p0, p1, f'A{f(rx)} {f(ry)} {f(ang)} {large} {sweep} {f(p1[0])} {f(p1[1])}'
 
 
 def hoop(x, y, z, r, axis='z', t0=-45.0, t1=135.0):
@@ -211,7 +242,10 @@ def hoop(x, y, z, r, axis='z', t0=-45.0, t1=135.0):
     weld seam. Only the half that faces the viewer, the way a draughtsman
     would draw it — the far half is inside the body."""
     a, b = _PLANE[axis]
-    return path(_arc_pts(p_(x, y, z), a, b, r, t0, t1))
+    c = p_(x, y, z)
+    p0, p1, arc = _arc(c, a, b, r, t0, t1)
+    _PTS.extend([p0, p1])
+    return f'M{f(p0[0])} {f(p0[1])}{arc}'
 
 
 # The default tone of a tube, and the quarter of it that catches the light.
@@ -224,8 +258,11 @@ _SIDE = {'x': FACE_L, 'y': FACE_R, 'z': FACE_R}
 _CROWN = {'x': (45.0, 135.0, FACE_TOP), 'y': (-45.0, 45.0, FACE_TOP), 'z': (45.0, 135.0, FACE_L)}
 
 
-def _band(c0, c1, a, b, r, t0, t1, n=8):
-    return poly(_arc_pts(c0, a, b, r, t0, t1, n) + _arc_pts(c1, a, b, r, t1, t0, n))
+def _band(c0, c1, a, b, r, t0, t1):
+    q0, q1, arc0 = _arc(c0, a, b, r, t0, t1)
+    s0, s1, arc1 = _arc(c1, a, b, r, t1, t0)
+    _PTS.extend([q0, q1, s0, s1])
+    return (f'M{f(q0[0])} {f(q0[1])}{arc0}L{f(s0[0])} {f(s0[1])}{arc1}Z')
 
 
 def cyl(x, y, z, axis, length, r, side=None, cap=FACE_TOP, cap_far=None,
@@ -236,7 +273,18 @@ def cyl(x, y, z, axis, length, r, side=None, cap=FACE_TOP, cap_far=None,
 
     far=False drops the far cap, for a cylinder that runs into a housing. The
     generator's did not, and its ellipse stood out past the coupling guard as a
-    blob nobody could name."""
+    blob nobody could name.
+
+    THE FAR END IS AN ARC, NOT A CHORD, and that is what the sentence above
+    was claiming and not doing. The tube was a quadrilateral: two generatrices
+    and two straight ends. The NEAR end never showed, because the near cap is
+    painted over it — but the far cap is painted UNDER it, so its chord landed
+    as a stroked straight line across the end of every cylinder in all four
+    objects, the true arc still visible below it. A cylinder standing on
+    something read as a lens with a bar across it; the generator drum got a
+    56.31 deg line down its drive end that no edge of the machine explains.
+    With far=False there is no cap to leave an arc on and no end to draw, so
+    the flat cut stays — that IS the cut the housing hides."""
     a, b = _PLANE[axis]
     d = _AXIS[axis]
     s = _STEP[axis]
@@ -252,10 +300,25 @@ def cyl(x, y, z, axis, length, r, side=None, cap=FACE_TOP, cap_far=None,
                     math.cos(t) * a[1] * r + math.sin(t) * b[1] * r))
     rx, ry, ang = _ell(a, b, r)
     base = side or _SIDE[axis]
-    tube = poly([(c0[0] + off[0][0], c0[1] + off[0][1]),
-                 (c1[0] + off[0][0], c1[1] + off[0][1]),
-                 (c1[0] + off[1][0], c1[1] + off[1][1]),
-                 (c0[0] + off[1][0], c0[1] + off[1][1])])
+    corners = [(c0[0] + off[0][0], c0[1] + off[0][1]),
+               (c1[0] + off[0][0], c1[1] + off[0][1]),
+               (c1[0] + off[1][0], c1[1] + off[1][1]),
+               (c0[0] + off[1][0], c0[1] + off[1][1])]
+    if far:
+        # The far end closes over the half of its cap that is turned AWAY from
+        # c1 — the silhouette. Which half that is falls out of the geometry:
+        # take the two candidate midpoints and keep the one further from c1.
+        td = math.degrees(th)
+
+        def _away(e):
+            m = _on(c0, a, b, r, (td + 180.0 + e) / 2.0)
+            return math.hypot(m[0] - c1[0], m[1] - c1[1])
+
+        end = max((td + 360.0, td), key=_away)
+        _, _, arc = _arc(c0, a, b, r, td + 180.0, end)
+        tube = ('M' + " ".join(f"{f(p[0])} {f(p[1])}" for p in corners) + arc + 'Z')
+    else:
+        tube = poly(corners)
     out = []
     if far:
         out.append(_ell_tag(c0, rx, ry, ang, cap_far or base))

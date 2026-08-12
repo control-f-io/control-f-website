@@ -62,17 +62,29 @@ def maschinenbau():
     end lit. Rotating assets are the densest telemetry in the portfolio, so this
     is the object that carries the most machined detail.
 
-    IT IS CUT, and that is the whole difference in size. The figure is laid out
-    at --vb-w / 112 x --field-unit so that one lattice cell of the drawing is
-    one cell of the ground it stands on, which means the drawing cannot be made
+    THE FLOOR IS CUT, THE MACHINE IS NOT, and the difference between those two
+    sentences is the whole of this composition. The figure is laid out at
+    --vb-w / 112 x --field-unit so that one lattice cell of the drawing is one
+    cell of the ground it stands on, which means the drawing cannot be made
     bigger by giving it more room: the only way to a bigger machine is to hold
     the frame where it is and let it cut. So the window is authored — isolib's
-    window(), on the drive end — rather than taken from the bounding box, and
-    the floor runs out of the frame at both ends and at the front. The other
-    three objects on this page still take the bbox plus 30 units of pad and
-    still read as models on trays; that is the next thing to do here, not a
-    difference of intent.
+    window() — rather than taken from the bounding box, and the floor runs out
+    of the frame at both ends and at the front. The other three objects on this
+    page still take the bbox plus 30 units of pad and still read as models on
+    trays; that is the next thing to do here, not a difference of intent.
     -> foundations/illustration.html, "The frame is a crop, not a bounding box"
+
+    WHAT THE CUT MAY TAKE IS GROUND, and only ground. The first version of this
+    frame put its left edge at X = -72 and the cooler package reaches -105.6:
+    34 units of the machine's own back end went off the side, so the fin pack
+    ended in a vertical line no edge of the cooler explains and the top face
+    lost its far corner. A floor that leaves the frame reads as a floor that
+    continues; a MACHINE that leaves it reads as a drawing that did not fit.
+    The frame therefore moved one lattice column left, to -128, and the
+    generator came in to 1.75 so the other end has the same air the cooler
+    now has — 22.4 units against 21.8, which is as near symmetric as a 56-unit
+    column and a 0.01-unit drawing lattice can be. The set is a whole object
+    standing on ground that is not.
 
     THE MACHINE IS A TRAIN ON +x, which is 26.57 deg, so the set, its skid
     beams, the floor they run on and the trace that reaches them are all on one
@@ -167,16 +179,26 @@ def maschinenbau():
     # on for the flywheel housing and the end shield buys two more of them plus
     # two 56.31 deg end chords, so the housing and the shield are drawn on the
     # drum's own end face instead, which is what they are.
-    for xx in (-0.15, 1.2):                                    # generator feet
+    for xx in (-0.15, 1.05):                                   # generator feet
         s2 += box(xx, -0.8, BEAM, 0.55, 1.6, 0.16, FACE_TOP, PLATE_L, PLATE_R)
     # cap=FACE_R: the near cap lies in a plane of constant x, so it is a +x face
     # and takes the lit-side tone. cyl() defaults it to FACE_TOP, which is the
     # sky-facing value and is only right for an axis-z cylinder.
-    s2 += cyl(-0.95, 0.0, AXIS, 'x', 3.43, GR, far=True, cap_far=FACE_L, cap=FACE_R)
-    for xx in (-0.62, -0.56):                                  # the drive-end
+    s2 += cyl(-0.95, 0.0, AXIS, 'x', 2.70, GR, far=True, cap_far=FACE_L, cap=FACE_R)
+    # A BAND HAS TO HAVE A WIDTH. Two hoops round one drum meet at the
+    # silhouette whatever their spacing — that is true of a real band and is
+    # not the fault — but at 0.06 apart the lens between them never opened
+    # past 3.4 units, so the pair read as one contour that thickens and splits
+    # rather than as a flange: the exact artefact the floor's own seam note
+    # further up was written about. 0.16 opens it to 9 units at the widest.
+    for xx in (-0.70, -0.54):                                  # the drive-end
         s2.append(hoop(xx, 0.0, AXIS, GR, 'x'))                # flange, a band
-    for i in range(4):                                         # cooling ribs, at
-        s2.append(hoop(0.05 + i * 0.62, 0.0, AXIS, GR, 'x'))   # 0.62 rather than
+    # Four ribs at 0.42 rather than 0.62: the drum came in from 3.43 to 2.70 so
+    # that the machine ends inside the frame, and a pitch that is not shortened
+    # with it runs the last rib to 1.91 — past the end cover at 1.75, which is
+    # a rib standing in mid-air off the end of the barrel it belongs to.
+    for i in range(4):                                         # cooling ribs
+        s2.append(hoop(0.05 + i * 0.42, 0.0, AXIS, GR, 'x'))
 
     # ---- 3 · the fittings, nearest the reader
     # The pad is sunk to 2.10, not sat at 2.24. A rectangle laid across a drum
@@ -187,18 +209,19 @@ def maschinenbau():
     s3 += box(0.47, -0.34, 2.26, 0.76, 0.68, 0.38)             # terminal box
     s3.append(quad_t(0.58, -0.23, 2.64, 0.54, 0.46))
 
-    s3.append(disc(2.48, 0.0, AXIS, 0.7, 'x', FACE_R))         # the end cover
+    s3.append(disc(1.75, 0.0, AXIS, 0.7, 'x', FACE_R))         # the end cover
     # disc(), not hoop(). hoop() draws the half of a circle that faces the
     # reader, which is right for a rib round the barrel and wrong for a circle
     # lying IN the end face — that one is wholly visible, and drawn as a hoop it
     # is an open crescent with two dangling ends across the focal element.
-    s3.append(disc(2.48, 0.0, AXIS, 0.56, 'x'))                # its bolt circle
+    s3.append(disc(1.75, 0.0, AXIS, 0.56, 'x'))                # its bolt circle
 
-    # x 1.7 sits between two ribs and clear of the terminal box above it. At 0.8
-    # the ghost ran parallel to the rib at 1.06 for 43 px and its dashes crossed
-    # the box, which stands in front of it — a ghost is drawn over the mass it is
-    # inside, so it has to be inside one.
-    ghost = [disc(1.7, 0.0, AXIS, 0.5, 'x')]                   # the rotor, x-ray
+    # x 1.53 sits between the last rib and the end cover, and clear of the
+    # terminal box, which ends at 1.35. At 0.8 the ghost ran parallel to the
+    # rib at 1.06 for 43 px and its dashes crossed the box, which stands in
+    # front of it — a ghost is drawn over the mass it is inside, so it has to
+    # be inside one.
+    ghost = [disc(1.53, 0.0, AXIS, 0.5, 'x')]                  # the rotor, x-ray
     orbits = [orbit(-5.35, 0.0, 1.4, 0.38, 'x')]               # the fan, turning
 
     # lime_span_disc, not lime_span: a lit disc needs its anchor on its own
@@ -206,22 +229,27 @@ def maschinenbau():
     # ellipse establishes. Measured on the version before it, the lightest pixel
     # of this light sat 68 % of the way DOWN the disc and lime never appeared.
     # The whole derivation is on the function in isolib.py.
-    light = light_disc(gid, 2.48, 0.0, AXIS, 0.46, 'x')
-    la, lb = lime_span_disc(2.48, 0.0, AXIS, 0.46, 'x')
+    light = light_disc(gid, 1.75, 0.0, AXIS, 0.46, 'x')
+    la, lb = lime_span_disc(1.75, 0.0, AXIS, 0.46, 'x')
 
     # THE WINDOW IS TAKEN HERE, before the trace: see isolib.window(). All four
-    # edges land on lattice lines — (X - 320) / 56 and (Y - 372) / 28 are -7, 4,
+    # edges land on lattice lines — (X - 320) / 56 and (Y - 372) / 28 are -8, 3,
     # -13 and 2 — because illustration.html asks the cut to be deliberate and a
     # crop arrived at by nudging an offset until it looked right is not. That is
     # also why the frame is 616 and not 640: 616 is 11 cells, 640 is 11.43, and
-    # a width off the lattice cannot put both vertical edges on one.
+    # a width off the lattice cannot put both vertical edges on one. 616 is also
+    # the widest frame the figure's own column will take: the width is
+    # --vb-w / 112 x --field-unit and 12 cells asks 576 px of a 573 px column,
+    # so `max-width: 100%` would bind and the one-cell-to-one-cell registration
+    # would quietly stop being true. The machine was brought inside 11 cells
+    # rather than the frame let out to 12.
     fw, fh = 616.0, 420.0                                      # 11 cells x 15 rows
-    fx, fy = 320.0 - 56.0 * 7, 372.0 - 28.0 * 13               # the top-left cut
+    fx, fy = 320.0 - 56.0 * 8, 372.0 - 28.0 * 13               # the top-left cut
     crop = window(fw, fh, (fx + fw / 2, fy + fh / 2))
     # Three nodes, each a place this field's copy names: the shaft end that is
     # lit, the exhaust outlet, the terminals. The fourth marked one air cleaner
     # lid and not the other, which is a scatter rather than a construction.
-    nodes = [node(2.48, 0.0, AXIS), node(-1.5, 0.0, 3.39, 3),
+    nodes = [node(1.75, 0.0, AXIS), node(-1.5, 0.0, 3.39, 3),
              node(0.85, -0.34, 2.64, 3)]
     # The trace runs on the OTHER ground axis. Run down +x with the skid it was
     # parallel to the plate's own chamfer contour and 1.0 unit from it — 0.83
@@ -231,11 +259,23 @@ def maschinenbau():
     #
     # AND IT ENTERS THE FRAME rather than starting inside it. A stroke that both
     # begins and ends in open ground reads as a leader line pointing at a part,
-    # not as a signal reaching one. It is cut by the right edge at 8.2 % of its
-    # length, so it carries --trace-from = 1 - 0.082: pathLength normalises
-    # against the DRAWN length, and without it the draw spends a twelfth of its
-    # range off-stage. -> foundations/motion.html, "Why the two ends are authored"
-    traces = [trace((0.85, -3.4, 2.64), (0.85, -0.34, 2.64), frm=0.918)]
+    # not as a signal reaching one. So it starts outside the right edge and
+    # carries --trace-from = 1 - (the share of it that is off-stage):
+    # pathLength normalises against the DRAWN length, and without it the draw
+    # spends that share of its range on a line nobody can see.
+    # -> foundations/motion.html, "Why the two ends are authored"
+    #
+    # THE SHARE IS COMPUTED FROM THE CROP, not typed. It was typed once, at
+    # 0.918 for an edge at X = 544; the edge then moved to 488 to stop the
+    # frame cutting the cooler, and a literal cannot know that. Off-stage went
+    # from a twelfth of the line to two fifths of it, and the draw would have
+    # spent the first two fifths of the step's scroll on nothing at all. The
+    # start also came in to y = -2.3 so the line is not mostly off-stage in the
+    # first place — 496.4 against an edge at 488 is the same 8 % it was drawn
+    # to have.
+    ta, tb = (0.85, -2.3, 2.64), (0.85, -0.34, 2.64)
+    xa, xb = p_(*ta)[0], p_(*tb)[0]
+    traces = [trace(ta, tb, frm=round(1.0 - (xa - (crop[0] + crop[2])) / (xa - xb), 3))]
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
                     light, nodes, traces, ghost, orbits, crop=crop)
 
