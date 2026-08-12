@@ -461,10 +461,15 @@ def window(w, h, at=None, ox=0.0, oy=0.0):
         inside its frame with air all round reads as a sticker; one that is cut
         by the frame reads as a view into something larger."
 
-    The default in assemble() is the bounding box plus a pad, which can only
-    ever produce the sticker. It stays the default because three of the four
-    objects were composed against it; a drawing that wants the rule takes its
-    window itself and hands it to assemble(crop=...).
+    NO OBJECT IN objects.py CALLS IT ANY MORE, and the rule it serves is still
+    the rule — for a plate whose frame is 640 units of a card and whose object is
+    positioned inside it by a transform. It is kept for that, and because the
+    argument for taking a window rather than a bbox is written here. What the
+    four Expertise objects learned is narrower and is written on maschinenbau():
+    a figure laid out at --vb-w / 112 x --field-unit cannot buy frame width
+    without spending render scale, so the crop that fits the column is the one
+    the drawing's own extent asks for, and the composing is done by deciding how
+    much ground to draw rather than by deciding how much of it to cut off.
 
     A bounding-box centre is the wrong anchor as soon as the ground is much
     wider than the machine standing on it, because half of what it averages is
@@ -479,6 +484,24 @@ def window(w, h, at=None, ox=0.0, oy=0.0):
     return (at[0] - w / 2.0 + ox, at[1] - h / 2.0 + oy, w, h)
 
 
+def bbox(pad=30.0):
+    """The crop assemble() would take by default — everything registered SO FAR
+    plus `pad` on each side — but taken NOW, which is the whole reason it is a
+    function of its own.
+
+    "Now" matters in exactly one place and it is the same place window()'s last
+    paragraph names: a trace registers its endpoints (see trace()), and an
+    object whose trace enters the frame from off-stage has one endpoint outside
+    the crop by construction. Let assemble() take the bbox at the end and that
+    endpoint is in it, the frame grows to hold a line that was drawn to be cut,
+    and --trace-from — which is computed FROM the crop — is computed from a crop
+    the trace itself moved. Take it before the trace and both stay honest."""
+    xs = [q[0] for q in _PTS]
+    ys = [q[1] for q in _PTS]
+    return (min(xs) - pad, min(ys) - pad,
+            max(xs) - min(xs) + 2 * pad, max(ys) - min(ys) + 2 * pad)
+
+
 def assemble(gid, la, lb, layers, light, nodes, traces, ghost=(), orbits=(), pad=30.0,
              crop=None):
     """layers: [(stage, [paths])].  `stage` becomes data-stage on the group,
@@ -490,13 +513,7 @@ def assemble(gid, la, lb, layers, light, nodes, traces, ghost=(), orbits=(), pad
     foundations/motion.html#travel. That holds for an authored `crop` too: it is
     the one number both are read off, whether it came from the bounding box or
     from window()."""
-    if crop is not None:
-        x0, y0, w, h = crop
-    else:
-        xs = [q[0] for q in _PTS]
-        ys = [q[1] for q in _PTS]
-        x0, x1, y0, y1 = min(xs) - pad, max(xs) + pad, min(ys) - pad, max(ys) + pad
-        w, h = x1 - x0, y1 - y0
+    x0, y0, w, h = crop if crop is not None else bbox(pad)
     out = [f'<svg class="cf-iso" style="--vb-w:{f(w)}; --iso-travel: {f(w / 40)}" '
            f'viewBox="{f(x0)} {f(y0)} {f(w)} {f(h)}" fill="none" aria-hidden="true">',
            '  <defs>' + LIGHT_DEF.format(id=gid, x1=f(la[0]), y1=f(la[1]), x2=f(lb[0]), y2=f(lb[1])) + '</defs>',

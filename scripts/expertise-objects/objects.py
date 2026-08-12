@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from isolib import (  # noqa: E402
     p_, line, box, plate, quad_t, quad_x, quad_y, seams,
     disc, hoop, cyl, taper, node, orbit, trace, light_quad, light_disc,
-    assemble, window, lime_span_disc, reset,
+    assemble, bbox, lime_span_disc, reset,
     FACE_TOP, FACE_L, FACE_R, PLATE_L, PLATE_R,
     ACCENT, DARK,
 )
@@ -62,56 +62,50 @@ def maschinenbau():
     end lit. Rotating assets are the densest telemetry in the portfolio, so this
     is the object that carries the most machined detail.
 
-    THE FLOOR IS CUT, THE MACHINE IS NOT, and the difference between those two
-    sentences is the whole of this composition. The figure is laid out at
-    --vb-w / 112 x --field-unit so that one lattice cell of the drawing is one
-    cell of the ground it stands on, which means the drawing cannot be made
-    bigger by giving it more room: the only way to a bigger machine is to hold
-    the frame where it is and let it cut. So the window is authored — isolib's
-    window() — rather than taken from the bounding box, and the floor runs out
-    of the frame at both ends. The other three objects on this page still take
-    the bbox plus 30 units of pad and still read as models on trays; that is
-    the next thing to do here, not a difference of intent.
-    -> foundations/illustration.html, "The frame is a crop, not a bounding box"
+    NOTHING IS CUT ANY MORE — not the machine, and not the floor either — and
+    that is the fourth answer to one report. #404 authored a window and let the
+    plate run out of it at both ends, on the rule that a frame is a crop and not
+    a bounding box. #405 moved that window a column left, because the cut was
+    taking the cooler and a cut may take ground only. #406 gave it 84 more units
+    of height, because it was also taking the plate's near corner and meeting
+    the right edge there in the one figure this projection never draws, a right
+    angle. Each pass fixed what was reported and each next reading was the same
+    sentence again: the image is cut off. At that point the doctrine is not
+    being misapplied, it is being answered — what the rule promises is a view
+    into something larger, and what a 26.57 deg plate corner ending on a
+    vertical <svg> edge actually delivers, against a page whose ground is a
+    quiet grey lattice, is a drawing that did not fit its box.
 
-    WHAT THE CUT MAY TAKE IS GROUND, and only ground. The first version of this
-    frame put its left edge at X = -72 and the cooler package reaches -105.6:
-    34 units of the machine's own back end went off the side, so the fin pack
-    ended in a vertical line no edge of the cooler explains and the top face
-    lost its far corner. A floor that leaves the frame reads as a floor that
-    continues; a MACHINE that leaves it reads as a drawing that did not fit.
-    The frame therefore moved one lattice column left, to -128, and the
-    generator came in to 1.75 so the other end has the same air the cooler
-    now has — 22.4 units against 21.8, which is as near symmetric as a 56-unit
-    column and a 0.01-unit drawing lattice can be. The set is a whole object
-    standing on ground that is not.
+    THE FLOOR CAME IN; THE FRAME DID NOT GO OUT, and that direction is forced
+    rather than preferred. The figure is laid out at --vb-w / 112 x --field-unit
+    so that one lattice cell of the drawing is one cell of the ground it stands
+    on, and the column it is laid out in is 573 px at every viewport the pinned
+    stage admits, measured — which is 668 viewBox units and no more. The drawing
+    as it stood was 728 wide. Let the frame out to hold it and `max-width: 100%`
+    binds instead of the calc, the object renders at 85 % of the ground's scale,
+    and the one-cell-to-one-cell registration quietly stops being true — the
+    reader sees two lattices at two sizes, which is the fault this page's whole
+    scale derivation exists to avoid. The machine is 571.8 of those 668 units
+    and does not move. The plate was 728 of them, 156 of which was plate lying
+    outside the machine's own two extremes; it is 621.6, of which 49.8 is.
 
-    AND IT MAY ONLY TAKE IT ALONG ONE AXIS. The frame that fixed the left edge
-    was 616 x 420 and it still cut the floor at the FRONT as well: the plate's
-    near corner sat at screen (460, 526) — inside the frame's right edge, below
-    its bottom one — so the bottom edge sliced it off and met the right edge in
-    a 90 deg corner of white against the page's grey lattice. A right angle is
-    the one figure this projection never draws: every edge in here is 26.57 deg
-    or vertical, so the only thing on the page shaped like that corner was the
-    <svg> box itself, and the drawing read as an image that had been cropped
-    rather than as a view into a hall. Reported twice from the rendered page,
-    both times as "the image is cut off".
+    SO THE COMPOSING IS DONE IN WHAT IS DRAWN rather than in what is cut off.
+    The plate holds the set with a lip and stops: 0.25 behind the cooler, 0.20
+    past the end cover, 0.15 outboard of the skid beams — 9.4 units measured
+    across the edge, 8 CSS px at stage size, a lip and not a margin. That is a
+    base frame under a generating set, which is what it is, rather than an
+    apron. The frame is then the bounding box plus 18, taken before the trace
+    (isolib.bbox), and the four edges land where the drawing puts them rather
+    than on lattice rows: a cut had to be deliberate to be read as a cut, so
+    #404 put all four edges on lattice lines and said so. A crop that cuts
+    nothing owes nothing to the lattice.
 
-    So the cut is spent on the two ENDS and nowhere else, which is what the
-    note on the floor below always claimed it was. Two changes buy it, and
-    neither touches the machine:
-
-      the frame is 616 x 504 — 11 lattice columns by 9, both edges still on
-      lattice rows (Y 8 and 512 are s = -13 and 5) — so its bottom edge clears
-      the plate's near corner instead of cutting it;
-
-      and the plate stops at x = 2.5 rather than 4.0, with the skid at 2.2
-      rather than 3.7. That 1.5 units was bare ground past the end of the
-      machine, and it was bare ground pointing at the one corner that had to
-      come inside the frame. Trimmed, the plate's two remaining overhangs are
-      56 units at each end and the skid's are 16.8 at each end — the cut is
-      symmetric, which a cut that is composed can be and a cut that is an
-      accident of where the drawing stopped cannot.
+    THE PAD IS 18 AND THE OTHER THREE TAKE 30, which is the last thing the
+    column budget buys and is worth naming rather than leaving to look like a
+    slip. At 30 this frame is 681.6 units against a 668-unit column and the
+    scale binding above comes straight back. 18 units is 15 CSS px of air at the
+    two diamond points and more everywhere else, because those points are
+    corners of a rhombus and not sides of a box.
 
     THE MACHINE IS A TRAIN ON +x, which is 26.57 deg, so the set, its skid
     beams, the floor they run on and the trace that reaches them are all on one
@@ -127,30 +121,34 @@ def maschinenbau():
     GR = 0.86                                                  # generator radius
 
     # ---- 0 · the floor, and the skid the set is bolted down to.
-    # LONG IN x AND NARROW IN y. The frame has to cut the object somewhere, and
-    # ground is the right thing to spend on it — but an apron widened in y buys
-    # the cut with two empty corners, because +y is the direction that walks
-    # down-left and takes the near corner with it. Lengthened along the machine's
-    # own axis instead, the same ground is cut at both ends and none of it is
-    # dead: it is the strip the set stands on, running on past the view.
+    # A BASE FRAME, NOT AN APRON, and every number in these four lines is the
+    # lip it carries rather than the ground it covers — see the docstring. The
+    # plate's own screen width is (dx + dy) lattice cells, because its two
+    # extreme points are the rhombus corners at (x0, y1) and (x1, y0) and the
+    # projection reads (x - y): 8.8 + 2.3 is 11.1 cells, 621.6 units, and that
+    # number plus twice the pad is what has to clear 668. Widening it in y is
+    # therefore exactly as expensive as lengthening it in x, which is why the
+    # lip is spent where it is seen — 0.25 behind the cooler and 0.20 past the
+    # end cover, where the plate ends AT the machine and a viewer looks, and
+    # 0.15 outboard, where a beam needs an edge under it and not a margin.
     #
-    # dx 10.0, NOT 11.5, and the skid 9.4 rather than 10.9 — see the docstring.
-    # The machine ends at x = 1.75 and the plate used to run to 4.0, so 1.5 of
-    # the 11.5 was ground with nothing on it, carrying the plate's near corner
-    # down to screen Y 526 where the frame had to cut it. At 2.5 the corner is
-    # at 484 and the frame's own bottom edge, 512, clears it: the same plate,
-    # the same machine, the same lattice, and the cut now falls only where the
-    # note above says it should. 2.5 also lands the two end overhangs on one
-    # number, 56 units each, because -7.5 - 1.5 and 2.5 + 1.5 are +-9.0 and
-    # +-4.0 about a frame whose own edges are at +-8 and 3 in (x - y).
+    # The machine occupies x -6.6 to 1.75 and y +-1.0 exactly — the cooler
+    # package sets the back and both flanks, the end cover sets the front — so
+    # there is no slack in here to be found later by measuring again.
     # ny=0: the lengthwise seam ran at y = 0, which is the drum's own axis, so
     # it came out on the drum's lower silhouette — two 26.57 deg lines 0.57 px
     # apart for 95 px, reading as one contour that thickens. The floor keeps its
     # two cross seams and loses the one that had nowhere to be.
-    s0 += foundation(-7.5, -1.5, 10.0, 3.0, 0.22, 0.24, 2, 0)
-    for yy in (-1.1, 0.72):                                    # the two skid beams
-        s0 += box(-7.2, yy, 0.22, 9.4, 0.38, 0.28, FACE_TOP, PLATE_L, PLATE_R)
-    s0.append(line(p_(-7.2, 1.1, 0.36), p_(2.2, 1.1, 0.36)))   # the near beam's web
+    s0 += foundation(-6.85, -1.15, 8.8, 2.3, 0.22, 0.24, 2, 0)
+    # THE BEAMS MOVED WITH THE PLATE, outer flange to +-1.0. Left at +-1.10
+    # under a plate that now ends at +-1.15 they would have shown 2.8 units of
+    # plate outside themselves — 2.4 px, which is the brittle hairline the
+    # foundation's own docstring was written about, and not a lip. At +-1.0 they
+    # also land directly under the cooler's flanks, which is where a skid beam
+    # belongs and is where the load is.
+    for yy in (-1.0, 0.62):                                    # the two skid beams
+        s0 += box(-6.7, yy, 0.22, 8.5, 0.38, 0.28, FACE_TOP, PLATE_L, PLATE_R)
+    s0.append(line(p_(-6.7, 1.0, 0.36), p_(1.8, 1.0, 0.36)))   # the near beam's web
 
     # ---- 1 · the back band: the cooler package, then the engine.
     # The cooler is the FURTHEST BACK thing here and therefore the highest on
@@ -269,30 +267,20 @@ def maschinenbau():
     light = light_disc(gid, 1.75, 0.0, AXIS, 0.46, 'x')
     la, lb = lime_span_disc(1.75, 0.0, AXIS, 0.46, 'x')
 
-    # THE WINDOW IS TAKEN HERE, before the trace: see isolib.window(). All four
-    # edges land on lattice lines — (X - 320) / 56 and (Y - 372) / 28 are -8, 3,
-    # -13 and 5 — because illustration.html asks the cut to be deliberate and a
-    # crop arrived at by nudging an offset until it looked right is not. That is
-    # also why the frame is 616 and not 640: 616 is 11 cells, 640 is 11.43, and
-    # a width off the lattice cannot put both vertical edges on one. 616 is also
-    # the widest frame the figure's own column will take: the width is
-    # --vb-w / 112 x --field-unit and 12 cells asks 576 px of a 573 px column,
-    # so `max-width: 100%` would bind and the one-cell-to-one-cell registration
-    # would quietly stop being true. The machine was brought inside 11 cells
-    # rather than the frame let out to 12.
+    # THE CROP IS TAKEN HERE, before the trace, which is the one thing this
+    # object still does differently from the other three and the reason
+    # isolib.bbox() exists rather than assemble()'s own default: the trace below
+    # enters from off-stage, registers both its endpoints, and would otherwise
+    # pull the right edge out to hold the half of itself that was drawn to be
+    # cut. Everything else about the crop is now the other three objects' —
+    # extent plus a pad, no authored window, nothing outside it.
     #
-    # THE HEIGHT IS NOT UNDER THAT CONSTRAINT and was being rationed as though
-    # it were. Only the WIDTH is read against the column; the height follows it
-    # through `height: auto`, and the row it sits in is 541 px tall at 1440x900
-    # because the copy card sets it, against 360 px of drawing. 420 therefore
-    # bought nothing and cost the front of the floor. At 504 — 18 rows, 9 cells,
-    # the figure 528 x 432 in a row that was already 541 — the bottom edge is at
-    # Y 512 and the plate's near corner at 484, so the frame stops cutting in a
-    # direction it was never meant to cut in. Every other object on this page is
-    # taller than this one still.
-    fw, fh = 616.0, 504.0                                      # 11 cells x 9
-    fx, fy = 320.0 - 56.0 * 8, 372.0 - 28.0 * 13               # the top-left cut
-    crop = window(fw, fh, (fx + fw / 2, fy + fh / 2))
+    # THE HEIGHT IS NOT UNDER THE COLUMN'S CONSTRAINT. Only the WIDTH is read
+    # against it; the height follows through `height: auto`, and the row is
+    # 541 px tall at 1440x900 because the copy card sets it. So the height is
+    # simply what the drawing asks for — 464.4 units, 398 px — and no number
+    # here is rationing it.
+    crop = bbox(18.0)
     # Three nodes, each a place this field's copy names: the shaft end that is
     # lit, the exhaust outlet, the terminals. The fourth marked one air cleaner
     # lid and not the other, which is a scatter rather than a construction.
@@ -316,11 +304,15 @@ def maschinenbau():
     # 0.918 for an edge at X = 544; the edge then moved to 488 to stop the
     # frame cutting the cooler, and a literal cannot know that. Off-stage went
     # from a twelfth of the line to two fifths of it, and the draw would have
-    # spent the first two fifths of the step's scroll on nothing at all. The
-    # start also came in to y = -2.3 so the line is not mostly off-stage in the
-    # first place — 496.4 against an edge at 488 is the same 8 % it was drawn
-    # to have.
-    ta, tb = (0.85, -2.3, 2.64), (0.85, -0.34, 2.64)
+    # spent the first two fifths of the step's scroll on nothing at all.
+    #
+    # The start is at y = -2.75 and follows the right edge for the same reason:
+    # the edge moved again when the plate came in, and a start that does not
+    # move with it is a trace that begins inside the frame — a leader line
+    # pointing at a part. Both ends stay on the -y axis, so the angle is the
+    # one it always was; only the length changes. 521.6 against an edge at
+    # 511.6 is the 7 % it was drawn to have.
+    ta, tb = (0.85, -2.75, 2.64), (0.85, -0.34, 2.64)
     xa, xb = p_(*ta)[0], p_(*tb)[0]
     traces = [trace(ta, tb, frm=round(1.0 - (xa - (crop[0] + crop[2])) / (xa - xb), 3))]
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
