@@ -22,7 +22,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from isolib import (  # noqa: E402
     p_, line, box, plate, quad_t, quad_x, quad_y, seams,
-    disc, hoop, cyl, taper, node, orbit, trace, light_quad, light_disc,
+    disc, hoop, cyl, taper, node, orbit, rotor, trace, light_quad, light_disc,
     assemble, bbox, lime_span_disc, reset,
     FACE_TOP, FACE_L, FACE_R, PLATE_L, PLATE_R,
     ACCENT, DARK,
@@ -396,11 +396,20 @@ def anlagen():
 
 
 # ==================================================================== 03
+# Where the rotor has stopped. rotor()'s docstring has the argument; this is
+# the number it produces. Scanning all 120 distinct positions of a three-blade
+# rotor for the one whose WORST blade is furthest from a brand angle leaves
+# two, 18 deg and 78, tied at 13.2 / 9.9 / 9.0 deg off — they are the same
+# three axes with the blades on opposite ends, and every other position puts
+# some blade closer than 9 deg to a horizontal, a 45 or a 63.43 that it is not
+# on. 78 is the one that reads: one blade up, one out to the right, one down
+# to the left, and none of the three lying along the tower.
+ROTOR_PHASE = 78.0
+
+
 def erneuerbare():
     """Generation, conversion, storage, on one pad — the three things whose
-    telemetry only means anything read against each other. The rotor is drawn
-    as a swept circle rather than as blades: it is a future state, and the
-    system already has a way of saying that."""
+    telemetry only means anything read against each other."""
     reset()
     gid = 'cf-ex-03'
     s0, s1, s2, s3 = [], [], [], []
@@ -408,62 +417,136 @@ def erneuerbare():
     s0 += foundation(-2.9, -2.4, 5.8, 4.8, 0.2, 0.2, 2, 1)
 
     # ---- 1 · the turbine, furthest back
+    #
+    # THE ROTOR IS ON THE NACELLE'S +x END, AND THAT IS THE WHOLE REASON THREE
+    # BLADES CAN BE DRAWN. Two points share a screen position when they differ
+    # by a multiple of (1, 1, 1), so in this projection "further along +x" and
+    # "nearer the viewer" are the same statement. Hang the rotor off the -x end
+    # — which is where a drawing that only had to carry a sweep circle put it —
+    # and the rotor plane is behind both masses: measured at the best of the
+    # 120 azimuths, one blade of three came out wholly inside the silhouette of
+    # the nacelle and the tower, and a three-blade rotor showing two blades is
+    # not a wind turbine, it is a mistake. Turned round, every blade is in
+    # front of everything it crosses, and the machine is the same machine: an
+    # upwind rotor seen from upwind, nacelle behind it, tower behind that.
     wx, wy = -1.95, -1.75
+    hx, hz = wx + 0.15, 2.99                                   # the rotor plane
     s1 += cyl(wx, wy, 0.2, 'z', 0.16, 0.36, side=PLATE_R)      # foundation
     s1 += taper(wx, wy, 0.36, 0.19, 0.12, 2.5, None, FACE_R)
     for zz in (1.1, 1.9):
         s1.append(hoop(wx, wy, zz, 0.19 - (zz - 0.36) / 2.5 * 0.07, 'z'))
-    s1 += box(wx - 0.13, wy - 0.13, 2.86, 0.55, 0.26, 0.24)    # nacelle
-    s1.append(disc(wx - 0.13, wy, 2.98, 0.13, 'x', FACE_TOP))  # hub, on the sweep's axis
+    # The nacelle is SQUARE in section, 0.26 x 0.26, and that is what lets the
+    # spinner be a circle inside a square rather than a circle inside a
+    # rectangle. It was 0.26 x 0.24 under a hub of r 0.13: flush with the end
+    # face's half-width and 0.01 over its half-height, so the one circle in
+    # the drawing that names the machine crossed the edge it sits on, top and
+    # bottom, by a hairline nobody could read as anything but a slip. It still
+    # covers the tower's top rim whole — the rim is the taper's own arc and a
+    # tower has to end under something.
+    s1 += box(hx - 0.55, wy - 0.13, 2.86, 0.55, 0.26, 0.26)    # nacelle
+    s1 += rotor(hx, wy, hz, 0.09, 0.88, 'x', 3, ROTOR_PHASE)   # blades, over both
+    s1.append(disc(hx, wy, hz, 0.11, 'x', FACE_TOP))           # spinner
 
     # ---- 2 · the transformer bay and the electrolyser, middle
-    s2 += box(-1.05, -1.55, 0.2, 1.35, 1.05, 0.18, FACE_TOP, PLATE_L, PLATE_R)
-    s2 += box(-0.9, -1.4, 0.38, 1.05, 0.75, 0.62)              # transformer
-    s2 += seams((-0.9, -0.65, 0.38), (0.15, -0.65, 0.38),      # radiator fins
-                (-0.9, -0.65, 1.0), (0.15, -0.65, 1.0), 5)
-    for xx in (-0.7, -0.4, -0.1):                              # bushings
-        s2 += cyl(xx, -1.05, 1.0, 'z', 0.26, 0.07, side=FACE_L)
+    #
+    # THE BAY STANDS 0.45 OFF THE ELECTROLYSER'S PAD AND USED TO STAND 0.3
+    # OFF IT, which was 0.3 of plate that arrived on screen as two units. The
+    # two pads' facing edges both run along +y and 50.1 x |dx - dz| is the gap
+    # between them, so a 0.3 gap between pads whose tops differ by 0.26 is a
+    # slit narrower than the contour drawing it: the two masses read as one
+    # with a crack in it. Nothing about the bay itself changes — it moves.
+    s2 += box(-1.2, -1.55, 0.2, 1.35, 1.05, 0.18, FACE_TOP, PLATE_L, PLATE_R)
+    s2 += box(-1.05, -1.4, 0.38, 1.05, 0.75, 0.62)             # transformer
+    s2 += seams((-1.05, -0.65, 0.38), (0.0, -0.65, 0.38),      # radiator fins
+                (-1.05, -0.65, 1.0), (0.0, -0.65, 1.0), 5)
+    # ON THE TANK'S OWN CENTRE LINES, x -0.525 and y -1.025 — which are also
+    # the middle radiator fin's. The row used to sit a fortieth of a cell off
+    # in both axes at once, so there was 0.05 more tank to one side of the
+    # bushings than the other, and the middle bushing missed the middle fin by
+    # the same amount.
+    for xx in (-0.825, -0.525, -0.225):                        # bushings
+        s2 += cyl(xx, -1.025, 1.0, 'z', 0.26, 0.07, side=FACE_L)
 
     s2 += box(0.6, -1.85, 0.2, 1.9, 0.95, 0.26, FACE_TOP, PLATE_L, PLATE_R)
-    for xx in (0.95, 1.55, 2.15):
-        s2 += cyl(xx, -1.38, 0.46, 'z', 0.14, 0.31, side=PLATE_R)   # base flange
-        s2 += cyl(xx, -1.38, 0.6, 'z', 1.02, 0.26)
+    for xx in (0.95, 1.55, 2.15):                              # the same, on the pad: -1.375
+        s2 += cyl(xx, -1.375, 0.46, 'z', 0.14, 0.31, side=PLATE_R)  # base flange
+        s2 += cyl(xx, -1.375, 0.6, 'z', 1.02, 0.26)
         for zz in (0.85, 1.2, 1.55):
-            s2.append(hoop(xx, -1.38, zz, 0.26, 'z'))
-    s2 += box(0.75, -1.53, 1.62, 1.6, 0.3, 0.16)               # header
-    s2 += seams((0.75, -1.23, 1.62), (2.35, -1.23, 1.62),
-                (0.75, -1.23, 1.78), (2.35, -1.23, 1.78), 3)
+            s2.append(hoop(xx, -1.375, zz, 0.26, 'z'))
+    s2 += box(0.75, -1.525, 1.62, 1.6, 0.3, 0.16)              # header
+    s2 += seams((0.75, -1.225, 1.62), (2.35, -1.225, 1.62),
+                (0.75, -1.225, 1.78), (2.35, -1.225, 1.78), 3)
 
     # ---- 3 · the bank and the array, nearest
     s3 += box(-2.6, 0.9, 0.2, 2.8, 1.1, 1.05)                  # battery container
     s3 += seams((-2.6, 2.0, 0.2), (0.2, 2.0, 0.2),             # door leaves
                 (-2.6, 2.0, 1.25), (0.2, 2.0, 1.25), 7)
-    s3.append(line(p_(-2.6, 2.0, 1.12), p_(0.2, 2.0, 1.12)))   # cant rail
+    # Both cant rails are the container's own 0.12 inset, which is the inset
+    # the end frame below is already drawn at. The top one was 1.12 — one
+    # hundredth under the frame it turns into at the corner.
+    s3.append(line(p_(-2.6, 2.0, 1.13), p_(0.2, 2.0, 1.13)))   # cant rails
     s3.append(line(p_(-2.6, 2.0, 0.32), p_(0.2, 2.0, 0.32)))
-    s3.append(quad_y(2.0, -2.42, 0.45, 0.3, 0.5, DARK))        # louvres
-    s3.append(quad_y(2.0, -0.12, 0.45, 0.3, 0.5, DARK))
+    # THE THREE PANELS ARE EACH ONE DOOR LEAF WIDE, edge to edge. The front is
+    # eight leaves of 0.35 and the panels were 0.3, which leaves exactly two
+    # ways to place one and both of them are wrong: straddling a joint, which
+    # is what the first louvre and the lit panel did — the louvre by nearly
+    # half a leaf, a vent across a door that cannot open — or centred in a leaf
+    # with 0.025 of door showing down each side, which is a pair of parallel
+    # lines under two screen pixels apart and reads as a printing fault. A
+    # panel that IS the leaf has neither: its two vertical edges are the two
+    # seams, drawn on top of them, and only the top and bottom edges are free,
+    # where there is 0.155 of door to be clear of.
+    leaf = 2.8 / 8.0
+    lv = [-2.6 + leaf * k for k in (0, 3, 7)]                  # leaves 1, 4, 8
+    s3.append(quad_y(2.0, lv[0], 0.475, leaf, 0.5, DARK))      # louvres
+    s3.append(quad_y(2.0, lv[2], 0.475, leaf, 0.5, DARK))
     s3 += seams((-2.6, 0.9, 1.25), (0.2, 0.9, 1.25),
                 (-2.6, 2.0, 1.25), (0.2, 2.0, 1.25), 3)
-    for xx in (-2.15, -0.85):                                  # roof plant
-        s3 += box(xx, 1.2, 1.25, 0.5, 0.5, 0.22)
+    # One unit of roof plant on each of the outer roof seams, x -1.9 and -0.5,
+    # which are symmetric about the container's own centre. The right-hand one
+    # used to stand on -0.6, a tenth off a seam and not symmetric either.
+    #
+    # AND THE UNIT IS 0.7 x 0.5 x 0.14, NOT 0.5 x 0.5 x 0.22, because in this
+    # projection a box's height and its setback SUBTRACT. Two lines that run
+    # along +y, at x1/z1 and x2/z2, land 50.1 x |dx - dz| screen units apart —
+    # so a box 0.25 out from the seam it straddles and 0.22 tall put its top
+    # edge 1.5 units from that seam where the seam surfaces, and 0.3 back from
+    # the roof's own back edge put its back edge 4 units from it. Both of those
+    # are gaps you cannot see and cannot mistake for anything but a doubled
+    # line. Wider and flatter, on the roof-plant proportion 01 and 04 already
+    # use, the same two gaps are 10.5 and 8.
+    for xx in (-2.25, -0.85):                                  # roof plant
+        s3 += box(xx, 1.2, 1.25, 0.7, 0.5, 0.14)
     s3.append(quad_x(0.2, 1.02, 0.32, 0.86, 0.81))             # end frame
     s3 += seams((0.2, 1.02, 0.32), (0.2, 1.02, 1.13),
                 (0.2, 1.88, 0.32), (0.2, 1.88, 1.13), 2)
 
-    s3 += box(0.55, 0.75, 0.2, 2.1, 1.5, 0.14, FACE_TOP, PLATE_L, PLATE_R)   # array
-    s3.append(quad_t(0.67, 0.87, 0.34, 1.86, 1.26))
-    s3.append(quad_t(1.13, 0.87, 0.34, 0.46, 0.63, ACCENT))    # one string, in shade
-    s3 += seams((0.67, 0.87, 0.34), (2.53, 0.87, 0.34),
-                (0.67, 2.13, 0.34), (2.53, 2.13, 0.34), 3)
-    s3 += seams((0.67, 0.87, 0.34), (0.67, 2.13, 0.34),
-                (2.53, 0.87, 0.34), (2.53, 2.13, 0.34), 1)
+    # THE ARRAY IS OFF THE PLATE'S CHAMFER, and it was off it by 0.05 twice —
+    # 0.05 PAST the line on +y and 0.05 SHORT of it on +x. Both of those are
+    # two parallel edges three screen units apart running the length of the
+    # object, which is the one thing a 26.57 deg drawing cannot absorb: a
+    # sliver reads as a misprint, not as a gap. It sits on the container's own
+    # front line at y 2.0 now, and takes the container's 0.1 margin at the
+    # far edge.
+    ax, ay = 0.5, 0.5
+    s3 += box(ax, ay, 0.2, 2.1, 1.5, 0.14, FACE_TOP, PLATE_L, PLATE_R)   # array
+    fx, fy, fw, fh = ax + 0.12, ay + 0.12, 1.86, 1.26          # the panel field
+    s3.append(quad_t(fx, fy, 0.34, fw, fh))
+    # The shaded string IS a cell of the grid below, rather than a rectangle
+    # the same size as one: 1.13 -> 1.59 against a cell of 1.135 -> 1.6.
+    s3.append(quad_t(fx + fw / 4, fy, 0.34, fw / 4, fh / 2, ACCENT))
+    s3 += seams((fx, fy, 0.34), (fx + fw, fy, 0.34),
+                (fx, fy + fh, 0.34), (fx + fw, fy + fh, 0.34), 3)
+    s3 += seams((fx, fy, 0.34), (fx, fy + fh, 0.34),
+                (fx + fw, fy, 0.34), (fx + fw, fy + fh, 0.34), 1)
 
     ghost = []
-    orbits = [orbit(wx - 0.13, wy, 2.98, 0.88, 'x')]           # the sweep, turning
-    light = light_quad(gid, [(-1.72, 2.0, 0.45), (-1.32, 2.0, 0.45),
-                             (-1.32, 2.0, 1.07), (-1.72, 2.0, 1.07)])
-    la, lb = lime_span((-1.72, 2.0, 1.07), (-1.32, 2.0, 0.45))
-    nodes = [node(-1.52, 2.0, 0.76), node(1.55, -1.38, 1.78, 3), node(wx - 0.13, wy, 2.98, 3)]
+    orbits = [orbit(hx, wy, hz, 0.88, 'x')]                    # the sweep the tips travel
+    light = light_quad(gid, [(lv[1], 2.0, 0.475), (lv[1] + leaf, 2.0, 0.475),
+                             (lv[1] + leaf, 2.0, 0.975), (lv[1], 2.0, 0.975)])
+    la, lb = lime_span((lv[1], 2.0, 0.975), (lv[1] + leaf, 2.0, 0.475))
+    nodes = [node(lv[1] + leaf / 2, 2.0, 0.725), node(1.55, -1.375, 1.78, 3),
+             node(hx, wy, hz, 3)]
     traces = [trace((-4.3, -0.3, 0.2), (-2.9, -0.3, 0.2))]
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
                     light, nodes, traces, ghost, orbits)
