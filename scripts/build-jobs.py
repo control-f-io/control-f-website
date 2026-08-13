@@ -152,6 +152,13 @@ def read_jobs():
         if job.get("frist") and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", job["frist"]):
             fail("%s: frist is %r, not YYYY-MM-DD." % (path.name, job["frist"]))
         job["de"], job["en"] = news.bodies(body, path.name)
+        # The register row's picture, if the file names one — the same field in
+        # the same grammar as a post's, resolved by the same reader build-news.py
+        # uses, because one repository owns one rule for a `bild:` line and one
+        # owner of the pixel size an <img> has to agree with. A vacancy without
+        # one is the row this page has always drawn; the layout does not reserve
+        # a hole for a picture an opening may never have.
+        job["bild"] = news.title_picture(job, path.name)
         # A CLOSING DATE IS REQUIRED OF AN OPENING THAT HAS A PAGE, and it is
         # not this repository's rule: components/vacancy.html states it and
         # scripts/check-job-posting.py enforces it — "an opening with no
@@ -221,34 +228,62 @@ def plain_title(job, edition="de"):
 
 
 def entries(jobs, indent="        "):
-    """The register: one <li class="cf-vacancy"> per opening."""
+    """The register: one <li class="cf-vacancy"> per opening.
+
+    An opening whose file names a `bild:` draws it at the start of its row as a
+    square, with the entry's text in a column beside it — the containers
+    .cf-vacancy--image and .cf-vacancy__body that components/vacancy.html
+    documents. One without is the row this page has always drawn, emitted
+    byte-for-byte as before: the layout does not reserve a hole for a picture
+    an opening may never have. → components/vacancy.html
+    """
     out = []
     for job in jobs:
         href = page_name(job) or ("karriere.html#" + anchor(job))
-        out.append('%s<li class="cf-vacancy" id="%s">' % (indent, anchor(job)))
-        out.append('%s  <p class="cf-vacancy__meta"><span>%s</span></p>'
-                   % (indent, esc(job["bereich"])))
-        out.append('%s  <h3 class="cf-vacancy__title">' % indent)
-        out.append('%s    <a class="cf-vacancy__link" href="%s">%s</a>'
-                   % (indent, href, title_html(job, "de")))
-        out.append("%s  </h3>" % indent)
-        out.append('%s  <p class="cf-vacancy__excerpt">' % indent)
+        image = job.get("bild")
+        out.append('%s<li class="cf-vacancy%s" id="%s">'
+                   % (indent, " cf-vacancy--image" if image else "", anchor(job)))
+        if image:
+            rel, w, h = image
+            # The square, from the file's own numbers — the pair is what
+            # build-news.py calls the aspect-ratio box and check-image-scale.py
+            # fails on a pair that disagrees with the file. `alt=""` and no
+            # link, for the rule components/vacancy.html states about the row:
+            # the title beside it is the link whose text is the whole content,
+            # and a description would read the row twice.
+            out.append('%s  <img class="cf-vacancy__image" src="../assets/img/%s" alt=""\n'
+                       '%s       width="%d" height="%d" loading="lazy" decoding="async">'
+                       % (indent, rel, indent, w, h))
+            out.append('%s  <div class="cf-vacancy__body">' % indent)
+        # The three offsets the row uses, one step apart. i1 is the row's own
+        # children; i2 its grandchildren (the title's link, the wrapped text,
+        # a fact); i3 the fact's term and value. The `%s` template is always
+        # the sole indentation, never doubled by literal spaces.
+        pad = "    " if image else "  "
+        i1, i2, i3 = indent + pad, indent + pad + "  ", indent + pad + "    "
+        out.append('%s<p class="cf-vacancy__meta"><span>%s</span></p>' % (i1, esc(job["bereich"])))
+        out.append('%s<h3 class="cf-vacancy__title">' % i1)
+        out.append('%s<a class="cf-vacancy__link" href="%s">%s</a>'
+                   % (i2, href, title_html(job, "de")))
+        out.append("%s</h3>" % i1)
+        out.append('%s<p class="cf-vacancy__excerpt">' % i1)
         # Wrapped the way the page was written by hand: a generated file is
         # read in the repository as often as in a browser, and a paragraph on
         # one 200-character line is a diff nobody can review.
         out.append(textwrap.fill(esc(job["anriss"]), width=96 - len(indent),
-                                 initial_indent=indent + "    ",
-                                 subsequent_indent=indent + "    ",
+                                 initial_indent=i2,
+                                 subsequent_indent=i2,
                                  break_long_words=False, break_on_hyphens=False))
-        out.append("%s  </p>" % indent)
-        out.append('%s  <dl class="cf-vacancy__facts">' % indent)
+        out.append("%s</p>" % i1)
+        out.append('%s<dl class="cf-vacancy__facts">' % i1)
         for term, de, _ in FACTS:
-            out.append('%s    <div class="cf-vacancy__fact">' % indent)
-            out.append('%s      <dt class="cf-vacancy__term">%s</dt>' % (indent, term))
-            out.append('%s      <dd class="cf-vacancy__value">%s</dd>'
-                       % (indent, esc(job[de])))
-            out.append("%s    </div>" % indent)
-        out.append("%s  </dl>" % indent)
+            out.append('%s<div class="cf-vacancy__fact">' % i2)
+            out.append('%s<dt class="cf-vacancy__term">%s</dt>' % (i3, term))
+            out.append('%s<dd class="cf-vacancy__value">%s</dd>' % (i3, esc(job[de])))
+            out.append("%s</div>" % i2)
+        out.append("%s</dl>" % i1)
+        if image:
+            out.append("%s  </div>" % indent)
         out.append("%s</li>" % indent)
         out.append("")   # a blank line between entries, as the page was written
     return "\n".join(out).rstrip()
