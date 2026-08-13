@@ -4604,10 +4604,20 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
    192–288 px derivative of a photograph that has to be 1008 px wide to exist.
    aspect-ratio states the square instead, and the width/height attributes on
    the <img> keep their job — they are the aspect-ratio box, from the file's
-   own numbers. */
+   own numbers.
+
+   THE WIDTH IS FIXED, NOT THE ROW'S OWN HEIGHT, and that is a limit of flex
+   layout rather than a choice: a square whose side tracks a sibling's content
+   height, in CSS alone, is circular — the row's height comes from its
+   tallest child, so the square cannot both take its size from that height and
+   contribute to it. --space-40 is chosen because it sits close to a register
+   row's usual height (title, a two- to three-line excerpt, the facts strip),
+   so the square reads as matched to the text beside it without literally
+   measuring it. align-items: center absorbs the difference on rows whose text
+   runs shorter or longer than that. */
 .cf-vacancy--image {
   flex-direction: row;
-  align-items: flex-start;
+  align-items: center;
   /* The wide gap separates the square from the text; the body's own
      --space-2 below separates the text from itself, so picture and text read
      as two parts of one entry rather than two facts of it. */
@@ -4624,17 +4634,17 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
 }
 .cf-vacancy__image {
   flex: 0 0 auto;
-  width: var(--space-24);
+  width: var(--space-40);
   aspect-ratio: 1 / 1;
   object-fit: cover;
   background: var(--surface-raised);
 }
-/* Under 34rem the square pays 16 px of what a narrow column is short of: the
+/* Under 34rem the square pays some of what a narrow column is short of: the
    row folds the square down instead of letting it crowd the text the reader
    came for. Measured on the row itself, → the container-type above. */
 @container (max-width: 34rem) {
   .cf-vacancy--image { gap: var(--space-3); }
-  .cf-vacancy--image > .cf-vacancy__image { width: var(--space-16); }
+  .cf-vacancy--image > .cf-vacancy__image { width: var(--space-20); }
 }
 
 /* --------------------------------------------------------------------------
