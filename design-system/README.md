@@ -183,6 +183,7 @@ The file is the record, and everything a reader sees is a pair:
 ```
 kennung:    CF-2026-DE-01            the reference that goes in the subject line
 bereich:    Plattform                area / Area
+bild:       jobs/werkshalle.jpg      Titelbild — optional, the square at the row
 titel:      {Data Engineer} (m/w/d)  title / Title
 anriss:     Sie bauen die Strecken … excerpt / Excerpt — the register's two lines
 standort:   Konstanz, hybrid         location / Location  ┐
@@ -205,6 +206,16 @@ The text after the header is the advertisement, in both languages divided by
 `--- en ---`, in the same grammar a post uses: the paragraphs before the first
 heading become **Die Aufgabe**, and each `## heading` and its list becomes one
 block of **Ihre Arbeit und was sie voraussetzt**.
+
+**The square at the row**: a `Titelbild` files property in the Stellen register
+syncs to a `bild:` line and downloads into
+`design-system/assets/img/jobs/` — the register row draws it as a square,
+decorative and unlinked, because in this component the title is the only link.
+It is the one field that is not a pair: there is no English twin, both editions
+draw the same file. And it is drawn only on the register — the job page never
+shows it. Same plate as a news picture (`scripts/check-content-images.py`
+states the numbers), and optional: an opening without one is the row the
+register has always drawn.
 
 **The JobPosting block is generated with the page** — title, identifier, dates,
 employment type and salary all from the same fields the visible page is drawn
