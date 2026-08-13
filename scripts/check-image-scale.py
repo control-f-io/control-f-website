@@ -127,7 +127,18 @@ def fixed_boxes():
 def intrinsic(path):
     """Pixel dimensions from the file header. No decoder, no dependency."""
     with open(path, "rb") as fh:
-        d = fh.read()
+        return intrinsic_bytes(fh.read())
+
+
+def intrinsic_bytes(d):
+    """Pixel dimensions from a header already held in memory, no path needed.
+
+    The bytes variant exists for scripts/sync-news-notion.py: it has the picture
+    as bytes the moment it downloads it, and it fits it to the plate with the
+    same eyes this script fails it with — imported rather than copied, the way
+    check-content-images.py imports intrinsic from here below.
+    → scripts/sync-news-notion.py
+    """
     if d[:2] == b"\xff\xd8":                                    # JPEG
         i = 2
         while i < len(d) - 9:

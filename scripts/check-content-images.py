@@ -5,10 +5,12 @@ WHERE THEY COME FROM. An admin puts an image block in a Notion page;
 scripts/sync-news-notion.py and scripts/sync-jobs-notion.py download the file
 into design-system/assets/img/news/ or …/jobs/ and write
 `![caption](news/<file>)` into the post; scripts/build-articles.py and
-scripts/build-stellen.py draw it as a `.cf-prose > figure`. Nobody in
-that chain looks at the file. The photograph that leaves a phone is 4 000 px
-wide and four megabytes, and every step above will carry it to the reader
-without a word.
+scripts/build-stellen.py draw it as a `.cf-prose > figure`. The photograph
+that leaves a phone is 4 000 px wide and four megabytes — and the sync fits
+it to this plate the moment it downloads it (fit_to_plate(), Pillow, the one
+dependency the workflows install, pinned). So these sanctions are a BACKSTOP,
+not the front door: a LARGE or HEAVY finding means a picture got into the
+repository by hand, past a sync that would have fitted it at the door.
 
 THE PLATE IS 1008 PX. Measured on blog-artikel.html at 1440, 1920 and 2560 —
 `.cf-prose > figure:not(.cf-quote)` is 1008 px at all three, because the
@@ -142,14 +144,18 @@ def main():
         if w > MAX_WIDTH:
             findings.append(
                 "LARGE     design-system/assets/img/%s is %d px wide; the plate "
-                "is %d and twice that is the ceiling.\n    Export it at %d px — "
-                "in Notion, replace the image with a smaller export."
+                "is %d and twice that is the ceiling.\n    The sync fits "
+                "pictures to this window as it imports them — one this wide got "
+                "into the repository another way. Re-run the sync for the "
+                "store, or replace it in Notion with an export at %d px."
                 % (path, w, PLATE, MAX_WIDTH))
         if size > MAX_BYTES:
             findings.append(
                 "HEAVY     design-system/assets/img/%s is %.1f MB; the budget is "
-                "%.0f kB.\n    At %d x %d that is either barely compressed or "
-                "larger than the box." % (path, size / 1e6, MAX_BYTES / 1e3, w, h))
+                "%.0f kB.\n    The sync re-encodes pictures over the budget as "
+                "it imports them — one this heavy got into the repository "
+                "another way. Re-run the sync for the store, or replace it in "
+                "Notion with a smaller file." % (path, size / 1e6, MAX_BYTES / 1e3, w, h))
         if args.verbose:
             print("  %-52s %5d x %-5d %6.0f kB  %s"
                   % (path, w, h, size / 1e3, where))

@@ -88,6 +88,15 @@ jobs:
           echo "jobs=$jobs" >> "$GITHUB_OUTPUT"
           echo "ready=$([ "$news" = yes ] || [ "$jobs" = yes ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
 
+      # The one package the sync has, for the one thing pip is needed for: a
+      # picture that does not fit the plate is resized by fit_to_plate() as it
+      # is imported, instead of failing the gate an hour later. Pinned to the
+      # byte, and deliberately: the digest a fitted file is named by is the
+      # digest of these exact bytes, so a Pillow upgrade that re-encoded
+      # differently would rename every picture on the next run.
+      - name: Install the picture fitter
+        run: python3 -m pip install --quiet "Pillow==12.0.0"
+
       - name: Pull the archive from Notion
         if: steps.cfg.outputs.news == 'yes'
         env:

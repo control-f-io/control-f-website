@@ -51,7 +51,10 @@ ship.
     python3 scripts/sync-jobs-notion.py --check      # fail if they differ
     python3 scripts/sync-jobs-notion.py --fixture f  # read a saved response
 
-stdlib only, no build step, no dependency. Same python3 that serves the pages.
+stdlib, with the one dependency the news sync carried in: the moment a picture
+is outside the plate, the shared fit_to_plate() resizes it with Pillow, pinned
+in .github/workflows/news-sync.yml. Everything above that is stdlib — the same
+python3 that serves the pages.
 """
 
 import argparse
