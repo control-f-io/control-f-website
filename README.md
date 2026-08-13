@@ -142,9 +142,11 @@ that rule for the design system; the generator carries it to the root.
 ## Fragen
 
 - Answered 2026-08-03: the contact address is `info@control-f.io` and the press
-  address `presse@control-f.io`; the phone number is Simon's, `+49 176 [redacted]`
-  — the `+49 7531 123456-0` on the pages was a placeholder. `jobs@` and
-  `datenschutz@` were not named and still write `control-f.de`.
+  address `presse@control-f.io`. `jobs@` and `datenschutz@` were not named and
+  still write `control-f.de`.
+- Answered 2026-08-13: the phone number on Impressum and Datenschutz was
+  Simon's personal mobile, not a company line — removed from the pages (and
+  from this file, and from git history) rather than replaced.
 - host control-f.io or controlf.io or both?
 - Three of these were about the outgoing homepage and the new design has already
   answered them: the header folds into a menu button below 780 px and is a flat bar
