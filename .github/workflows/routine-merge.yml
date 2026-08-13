@@ -64,10 +64,16 @@ on:
         type: string
         required: true
 
-# Least privilege that can do the job: write the merge commit, write the PR.
+# Least privilege that can do the job: write the merge commit, write the PR,
+# and — once the merge is on main — start the deploy that a human merge would
+# have started as a push event. This job pushes with GITHUB_TOKEN, which never
+# raises a push event, so it dispatches the deploy by name; workflow_dispatch
+# and repository_dispatch are the two event kinds the token is allowed to
+# raise at all.
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 
 # One at a time. Two runs merging into main at once is a rebase race, and the
 # routine is hourly — there is never a reason for two.
@@ -175,6 +181,23 @@ jobs:
             if git push origin main; then
               git push origin --delete "$BRANCH"
               echo "merged $BRANCH into main"
+              # THE MERGE JUST PUSHED WITH GITHUB_TOKEN, AND THE DEPLOY IS
+              # TRIGGERED BY THE PUSH EVENT THAT TOKEN NEVER RAISES. A human
+              # merge lands and Deploy to GitHub Pages starts on its own; this
+              # one has to name the workflow — or main gains the content while
+              # the site keeps serving the page before it, which is the same
+              # hour of lag this whole file exists to cancel (see news-sync.yml's
+              # "called and not left to the push event"). Dispatch is one of the
+              # two event kinds the token is allowed to raise, deploy.yml's
+              # concurrency group queues the run behind a busy deploy instead of
+              # killing it, and a failed dispatch cannot un-merge what landed —
+              # so it reports loudly and leaves the merge standing.
+              if gh workflow run "Deploy to GitHub Pages" --ref main 2>/tmp/deploy.err; then
+                echo "dispatched Deploy to GitHub Pages — main is what will be served"
+              else
+                echo "::error::main moved but the deploy was not started — $(head -1 /tmp/deploy.err)"
+                echo "The merge succeeded; run Deploy to GitHub Pages by hand." >> "$GITHUB_STEP_SUMMARY"
+              fi
               exit 0
             fi
             echo "main moved under this run; replaying (attempt $attempt)"

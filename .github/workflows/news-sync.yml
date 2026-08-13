@@ -166,6 +166,11 @@ jobs:
     uses: ./.github/workflows/routine-merge.yml
     with:
       branch: ${{ needs.sync.outputs.branch }}
+    # actions: write because the gate dispatches Deploy to GitHub Pages after
+    # it merges — its merge push uses GITHUB_TOKEN, which never raises the push
+    # event that deploy is triggered by — and a called workflow cannot hold a
+    # permission its caller does not.
     permissions:
       contents: write
       pull-requests: write
+      actions: write
