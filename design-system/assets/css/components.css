@@ -2325,24 +2325,25 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    The rule above reserves a band as deep as the drawing hangs; the drawing
    is centred on the column at 45.703 % wide, so 27.1485 % of that band on
    each side is air by construction, and the header is the last thing on the
-   page with anything in it. The cue anchors to the left edge rather than
-   the drawing's own left edge, which is what keeps it in that air instead
-   of centred under a title it would otherwise collide with. Measured at
-   1440 x 900 on patterns/ueber-uns.html: the header ends at y 589, the section
-   under it is act 4's pinned track, and a pinned track at scroll 0 has drawn
-   nothing yet — 311 px of viewport under a page that looks finished. The cue
-   is what stands in that air and says the page is not.
+   page with anything in it. Measured at 1440 x 900 on patterns/ueber-uns.html:
+   the header ends at y 589, the section under it is act 4's pinned track, and
+   a pinned track at scroll 0 has drawn nothing yet — 311 px of viewport under
+   a page that looks finished. The cue is what stands in that air and says the
+   page is not.
 
    THE CUE IS PLACED HERE AND DRAWN ELSEWHERE. Everything about what the object
    looks like is .cf-scroll-cue in the section below; this is the one rule that
-   knows about this header — the band's floor, and the column's left edge.
+   knows about this header — the band's floor, and its own horizontal centre.
 
-   --column-inset RATHER THAN A CONTAINER, for the reason the reach already
-   states three notes up: the header is full-bleed, so a percentage inside it
-   is the window and not the column. That is what the token is for, and it is
-   why the cue is a child of the header rather than of the .container above it
-   — the container's box stops at the meta row, which is the top of this band
-   and not its floor.
+   CENTRED ON THE HEADER RATHER THAN ON THE COLUMN'S LEFT EDGE — the earlier
+   placement stood at --column-inset, under the drawing's own left edge, on
+   the reasoning that the cue is furniture and the page's reading axis starts
+   there. In the band this cue actually stands in, with the drawing centred
+   above it and nothing else on either side, an edge-anchored mark reads as
+   misplaced rather than aligned: alone in a wide strip of nothing, off to one
+   side. The header is full-bleed, so `left: 50%` centres on the window; the
+   column is centred in the window too, so the two centres are the same point
+   and the cue lands under the drawing it is answering for.
 
    AND THE FLOOR IS THE SEAM, not an inset off it. The header's bottom edge is
    where the section under it begins, so a cue standing on that edge has its
@@ -2353,7 +2354,8 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 .cf-page-header__cue {
   position: absolute;
   inset-block-end: 0;
-  inset-inline-start: var(--column-inset);
+  left: 50%;
+  translate: -50% 0;
 }
 
 /* Below 900 px the object would sit behind the title instead of beside it.
@@ -2450,9 +2452,9 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   justify-items: center;
   gap: var(--space-3);
   /* The object is as wide as its widest part — the word — and the hairline and
-     the chevron are concentric on that. A grid cell as wide as the column
-     would centre it in the column instead, which is not where the page's left
-     axis is. */
+     the chevron are concentric on that. A grid cell as wide as its containing
+     block would size the object to the column instead, and .cf-page-header__cue
+     centres it by its own box, not by a wide cell's midpoint. */
   width: max-content;
 }
 
