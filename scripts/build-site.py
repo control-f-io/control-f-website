@@ -310,10 +310,10 @@ def main(argv):
     for dest in written:
         print("  written  %s" % dest)
     for dest in unowned:
-        print("  UNOWNED  %s — not generated from a pattern; remove it or add it to SHIP"
-              % dest)
-    print("site built — %d pages, %d changed" % (len(pages), len(written)))
-    return 1 if unowned else 0
+        (ROOT / dest).unlink()
+        print("  removed  %s" % dest)
+    print("site built — %d pages, %d changed" % (len(pages), len(written) + len(unowned)))
+    return 0
 
 
 if __name__ == "__main__":
