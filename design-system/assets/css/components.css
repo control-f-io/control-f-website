@@ -2362,7 +2362,12 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   position: absolute;
   inset-block-end: 0;
   left: calc(var(--column-inset) + 0.5503 * (100% - 2 * var(--column-inset)));
-  translate: -50% 0;
+  /* Off the floor by --space-8 rather than on it: flush with inset-block-end
+     the chevron's tip lands exactly on the header/track seam, which reads as
+     the mark colliding with the rule it is pointing past. The band below is
+     311 px of nothing at 1440 x 900 (see the HTML's own comment), so the drop
+     still lands well clear of act 4's pinned stage. */
+  translate: -50% var(--space-8);
 }
 
 /* Below 900 px the object would sit behind the title instead of beside it.
@@ -2453,6 +2458,22 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    and the word — a cue that still says scroll, without moving. Same rule the
    motion chapter states for the assembly: where nothing is driving the front,
    there is no front.
+
+   "THE MOMENT THE CUE IS FOR IS THE MOMENT THE PAGE ARRIVES" ASSUMED ONE
+   ARRIVAL. On patterns/ueber-uns.html a reader who scrolls seventeen thousand
+   pixels down and back up to the header a minute later meets the same settled
+   object a reader four seconds late does — the run already spent. → [data-idle]
+   .cf-scroll-cue__stem::after below cancels the animation while the header is
+   off screen, so `animation-name` goes from none back to cf-scroll-cue-run on
+   every return rather than staying finished: still one bounded 4.08 s run at a
+   time, never the `infinite` this section spent three paragraphs ruling out,
+   just paid again on each arrival instead of only the first. `animation-name`
+   rather than `animation-play-state`, because a paused run holds at its last
+   frame — which for a finished `both` fill is the end state forever — and the
+   point is to replay from the top, not to thaw. Wired through data-cf-idle,
+   the same gate check-idle-motion.py and check-idle-reach.py already hold the
+   landing page's tickers to; unwired instances (components/scroll-cue.html)
+   never carry [data-idle] and keep the rule above exactly as written.
    -------------------------------------------------------------------------- */
 .cf-scroll-cue {
   display: grid;
@@ -2557,6 +2578,14 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   from { translate: 0 -100%; }
   to   { translate: 0 200%; }
 }
+
+/* Cancels the run above rather than pausing it, so the header's return to
+   view is a fresh `animation-name: none` -> `cf-scroll-cue-run` transition —
+   a new animation instance at frame zero, not a held one resuming from
+   wherever `both` had it parked. → the addendum on THE MARK, above, and
+   assets/js/cf-idle.js for what sets and clears [data-idle] and why 0px is
+   the margin on this cue's own data-cf-idle. */
+[data-idle] .cf-scroll-cue__stem::after { animation-name: none; }
 
 /* Forced colours discards background-image outright — the same loss
    .rule--dashed-* and .cf-nav-rim take, and base.css answers it the same way:
