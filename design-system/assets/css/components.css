@@ -2196,15 +2196,17 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    exactly 50 % of the SVG box. Rule and axis are then collinear by
    construction at every width, with nothing to keep in sync by hand.
 
-   The horizontal numbers are the drawing's own, not a grid fraction. In the
-   designer's source the composition spans x 540..1125 of a 1440 page whose
-   content column is 80..1360, which is 35.937 % .. 81.641 % of that column —
-   so 45.703 % wide, inset 18.359 % from the right. Two columns short of the
-   content edge, which is what leaves the last columns to the meta label. */
+   The width is the drawing's own, not a grid fraction — the designer's
+   source composition spans x 540..1125 of a 1440 page whose content column
+   is 80..1360, which is 45.703 % of that column wide. Centred on the column
+   rather than inset from its right edge: an inset held the object to where
+   the source mockup happened to place it, and at the column's full width
+   that read as the drawing floating in the right two thirds with the first
+   third permanently empty. Centred, inset 27.1485 % on both sides. */
 .cf-page-header > .container { position: relative; }
 .cf-page-header__figure {
   position: absolute;
-  right: 18.359%;
+  right: 27.1485%;
   top: 50%;
   translate: 0 -50%;
   width: 45.703%;
@@ -2241,9 +2243,9 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    page header on the site carries an uninterrupted rule. */
 .cf-page-header__rule:has(.cf-page-header__figure) {
   background: linear-gradient(to right,
-    var(--border-strong) 0 35.937%,
-    transparent 35.937% 81.641%,
-    var(--border-strong) 81.641%);
+    var(--border-strong) 0 27.1485%,
+    transparent 27.1485% 72.8515%,
+    var(--border-strong) 72.8515%);
 }
 .cf-page-header__meta {
   display: flex;
@@ -2318,26 +2320,37 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   padding-bottom: calc(var(--cf-figure-reach) - var(--space-3) - var(--space-4) + var(--space-16));
 }
 
-/* THE ROOM THE REACH BUYS IS EMPTY ON THE LEFT, and on one page that emptiness
-   is the whole of what the reader sees below the fold. The rule above reserves
-   a band as deep as the drawing hangs; the drawing occupies 35.937 % .. 81.641 %
-   of the column, so the first third of that band is air by construction, and
-   the header is the last thing on the page with anything in it. Measured at
-   1440 x 900 on patterns/ueber-uns.html: the header ends at y 589, the section
-   under it is act 4's pinned track, and a pinned track at scroll 0 has drawn
-   nothing yet — 311 px of viewport under a page that looks finished. The cue
-   is what stands in that air and says the page is not.
+/* THE ROOM THE REACH BUYS IS EMPTY ON BOTH SIDES OF THE DRAWING, and on one
+   page that emptiness is the whole of what the reader sees below the fold.
+   The rule above reserves a band as deep as the drawing hangs; the drawing
+   is centred on the column at 45.703 % wide, so 27.1485 % of that band on
+   each side is air by construction, and the header is the last thing on the
+   page with anything in it. Measured at 1440 x 900 on patterns/ueber-uns.html:
+   the header ends at y 589, the section under it is act 4's pinned track, and
+   a pinned track at scroll 0 has drawn nothing yet — 311 px of viewport under
+   a page that looks finished. The cue is what stands in that air and says the
+   page is not.
 
    THE CUE IS PLACED HERE AND DRAWN ELSEWHERE. Everything about what the object
    looks like is .cf-scroll-cue in the section below; this is the one rule that
-   knows about this header — the band's floor, and the column's left edge.
+   knows about this header — the band's floor, and its own horizontal position.
 
-   --column-inset RATHER THAN A CONTAINER, for the reason the reach already
-   states three notes up: the header is full-bleed, so a percentage inside it
-   is the window and not the column. That is what the token is for, and it is
-   why the cue is a child of the header rather than of the .container above it
-   — the container's box stops at the meta row, which is the top of this band
-   and not its floor.
+   NOT THE FIGURE'S BOUNDING-BOX CENTRE — that was tried first, at `left: 50%`,
+   and it put the cue's label across the shells' own tangent-arc path: the
+   drawing is not symmetric inside its box, the shells reach to x 857.6 of a
+   539.5..1125.5 viewBox while the reflector starts at x 936.3, so the box's
+   midpoint (832.5) and even the 50 % mark of the CENTRED figure both fall
+   inside the shells' own reach rather than in the gap between the two halves.
+
+   THE GAP IS WHERE THE AXIS ALREADY CROSSES, dotted, from the shells to the
+   reflector — the one place in the composition drawn empty on purpose. Its
+   centre, (857.635 + 936.294) / 2 = 896.965 of the viewBox, is 61.00 % of the
+   figure's own width from its left edge; the figure sits at 27.1485 % ..
+   72.8515 % of the column, so the gap's centre is 27.1485 + 0.6100 * 45.703 =
+   55.03 % of the column — column-inset plus 0.5503 of the space between the
+   two insets, the same construction --cf-figure-reach already uses to turn a
+   column fraction into a full-bleed one. The cue's dotted stem now continues
+   the axis downward instead of crossing the drawing above it.
 
    AND THE FLOOR IS THE SEAM, not an inset off it. The header's bottom edge is
    where the section under it begins, so a cue standing on that edge has its
@@ -2348,7 +2361,13 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 .cf-page-header__cue {
   position: absolute;
   inset-block-end: 0;
-  inset-inline-start: var(--column-inset);
+  left: calc(var(--column-inset) + 0.5503 * (100% - 2 * var(--column-inset)));
+  /* Off the floor by --space-8 rather than on it: flush with inset-block-end
+     the chevron's tip lands exactly on the header/track seam, which reads as
+     the mark colliding with the rule it is pointing past. The band below is
+     311 px of nothing at 1440 x 900 (see the HTML's own comment), so the drop
+     still lands well clear of act 4's pinned stage. */
+  translate: -50% var(--space-8);
 }
 
 /* Below 900 px the object would sit behind the title instead of beside it.
@@ -2439,15 +2458,31 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    and the word — a cue that still says scroll, without moving. Same rule the
    motion chapter states for the assembly: where nothing is driving the front,
    there is no front.
+
+   "THE MOMENT THE CUE IS FOR IS THE MOMENT THE PAGE ARRIVES" ASSUMED ONE
+   ARRIVAL. On patterns/ueber-uns.html a reader who scrolls seventeen thousand
+   pixels down and back up to the header a minute later meets the same settled
+   object a reader four seconds late does — the run already spent. → [data-idle]
+   .cf-scroll-cue__stem::after below cancels the animation while the header is
+   off screen, so `animation-name` goes from none back to cf-scroll-cue-run on
+   every return rather than staying finished: still one bounded 4.08 s run at a
+   time, never the `infinite` this section spent three paragraphs ruling out,
+   just paid again on each arrival instead of only the first. `animation-name`
+   rather than `animation-play-state`, because a paused run holds at its last
+   frame — which for a finished `both` fill is the end state forever — and the
+   point is to replay from the top, not to thaw. Wired through data-cf-idle,
+   the same gate check-idle-motion.py and check-idle-reach.py already hold the
+   landing page's tickers to; unwired instances (components/scroll-cue.html)
+   never carry [data-idle] and keep the rule above exactly as written.
    -------------------------------------------------------------------------- */
 .cf-scroll-cue {
   display: grid;
   justify-items: center;
   gap: var(--space-3);
   /* The object is as wide as its widest part — the word — and the hairline and
-     the chevron are concentric on that. A grid cell as wide as the column
-     would centre it in the column instead, which is not where the page's left
-     axis is. */
+     the chevron are concentric on that. A grid cell as wide as its containing
+     block would size the object to the column instead, and .cf-page-header__cue
+     centres it by its own box, not by a wide cell's midpoint. */
   width: max-content;
 }
 
@@ -2543,6 +2578,14 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   from { translate: 0 -100%; }
   to   { translate: 0 200%; }
 }
+
+/* Cancels the run above rather than pausing it, so the header's return to
+   view is a fresh `animation-name: none` -> `cf-scroll-cue-run` transition —
+   a new animation instance at frame zero, not a held one resuming from
+   wherever `both` had it parked. → the addendum on THE MARK, above, and
+   assets/js/cf-idle.js for what sets and clears [data-idle] and why 0px is
+   the margin on this cue's own data-cf-idle. */
+[data-idle] .cf-scroll-cue__stem::after { animation-name: none; }
 
 /* Forced colours discards background-image outright — the same loss
    .rule--dashed-* and .cf-nav-rim take, and base.css answers it the same way:
@@ -3729,6 +3772,68 @@ ul.cf-info-card__chips {
 .cf-blog-col--3 { --rank: 3; }
 .cf-blog-col--6 { --rank: 6; }
 
+/* THE PORT — the archive's own form of the grid, where a column is a year and
+   the year is longer than the box.
+   ------------------------------------------------------------------------
+   The grid used to be as tall as its content and the content was capped at
+   eighteen cards: post nineteen went to a second page under a tick naming the
+   same year as the first. A year does not end because a page does. So the
+   archive's grid is a fixed-height port and each column scrolls its own year;
+   nothing is paged away, and the pagination under it went with the pages.
+
+   36.5rem / 584 px is twice what this grid drew. Measured on news.html at 1440
+   and 1920: 293.66 px, six compact rows stretched to 48.6 each — the six-row
+   tail column set the height, because it was the longest. Twice that is 587.3,
+   and 584 is the number on the 4 px unit under it.
+
+   AND IT IS DELIBERATELY NOT A WHOLE NUMBER OF ROWS. A compact row is 40.59 px
+   of its own accord — 12 + 12 of padding around one line of --text-sm, measured
+   identically at 1024, 1280, 1440 and 1920, because none of those three numbers
+   is fluid. The port's own two hairlines take 2 px of the 584, and the 582 left
+   hold fourteen rows and 14.7 px of the fifteenth: a year with
+   more posts than fit always shows one cut off by the bottom edge, which is the
+   only thing on a static page that says "keep going" before anyone has touched
+   it or hovered anything. A port ending flush on a hairline reads as a list
+   that has ended, and the reader is not told twice.
+
+   Only the archive wears it. The Weiterlesen grid under an article is the same
+   component at three columns and three cards — a port there is a fixed height
+   with air under it. → scripts/build-news.py */
+.cf-blog-grid--port { height: 36.5rem; }
+.cf-blog-grid--port .cf-blog-col {
+  overflow-y: auto;
+  /* A grid item's automatic minimum size is its content: without this the
+     column refuses to be shorter than its cards and the port never clips, so
+     nothing ever scrolls and the grid simply grows past its own height. */
+  min-height: 0;
+  /* The rank's equal 1fr rows are what fills a content-sized column. In a port
+     they would divide 576 px by six and hand each single-line headline 96 px of
+     box to float in, so the rows are the cards' own heights instead and the
+     column fills from the top. What is left over at the bottom of a thin year
+     is that year being thin — which is what an archive looks like. */
+  grid-template-rows: none;
+  grid-auto-rows: min-content;
+  align-content: start;
+}
+/* Except the lead, which is one card and takes the whole port: its picture is
+   written to absorb the slack, and this is the cell the plate draws large. */
+.cf-blog-grid--port .cf-blog-col--1 { grid-auto-rows: minmax(0, 1fr); }
+
+/* FOLDED, THERE IS NO PORT. Below the fold every column spans the whole grid
+   and they stack — a fixed height there would put the entire archive inside one
+   576 px box nested in the page's own scroll, which is the pattern that takes a
+   thumb hostage. The two queries are base.css's two fold widths, read from the
+   same place and for the same reason: 44rem is the primitive's own number and
+   56rem is the one five columns take with .subdivide--late. */
+@container (max-width: 44rem) {
+  .cf-blog-grid--port { height: auto; }
+  .cf-blog-grid--port .cf-blog-col { overflow: visible; }
+}
+@container (max-width: 56rem) {
+  .subdivide--late .cf-blog-grid--port { height: auto; }
+  .subdivide--late .cf-blog-grid--port .cf-blog-col { overflow: visible; }
+}
+
 .cf-blog-card {
   display: flex;
   flex-direction: column;
@@ -3773,6 +3878,39 @@ ul.cf-info-card__chips {
    What it drops is the light that travels across a card on hover: that light
    is the affordance, and there is nowhere for this one to arrive. */
 .cf-blog-card--listing { background-image: none; }
+
+/* THE TITLE PICTURE. A post names one — `bild:` in its file, the Titelbild
+   property in Notion — and scripts/build-news.py draws it on the cards that
+   have room for one: the lead and the two- and three-row columns. The single
+   line rows carry none, and that is the archive's own argument about getting
+   terser to the right rather than an omission: a 2rem row would paint a 48 px
+   stamp out of a file sized for a 1008 px plate, which is bytes a reader pays
+   for a picture nobody can read. → scripts/check-image-scale.py
+
+   No alt text, by construction. The picture sits inside the link whose text is
+   the headline; a description of the photograph would have a screen reader
+   read every card twice. → design-system/components/blog-grid.html */
+.cf-blog-card__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  /* The picture takes the slack the text does not need. Without it the card's
+     justify-content: space-between spreads three items down a tall lead cell
+     and the headline floats in the middle of it; with it the cell is a
+     photograph with a headline under it, which is what the plate draws. */
+  flex: 1 1 auto;
+  /* A flex item's automatic minimum size is its content, and an image's content
+     is its intrinsic height — without this the picture cannot shrink below
+     1067 px and every card in the column grows to fit it. */
+  min-height: 0;
+}
+/* A card that carries a picture pays its padding on the text instead of on the
+   box, so the photograph meets the cell's own hairline rather than floating in
+   a 12 px frame. The gap keeps the air between picture and headline. */
+.cf-blog-card--media { padding: 0; }
+.cf-blog-card--media > .cf-blog-card__title { padding-inline: var(--space-3); }
+.cf-blog-card--media > .cf-blog-card__meta { padding: 0 var(--space-3) var(--space-3); }
 
 /* Older entries collapse to a single line — the tail of the subdivision. */
 .cf-blog-card--compact {
@@ -4386,6 +4524,13 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
 .cf-vacancy:hover,
 .cf-vacancy:focus-within { background-position: 100% 0; }
 
+/* The row is the container its own fold is measured in: the square below
+   shrinks with the row and not with the viewport, so a register drawn inside a
+   column folds at the same width it folds at full bleed — the argument
+   .cf-pagination makes for its own slots. Results never fold, so this is the
+   vacancy's alone. */
+.cf-vacancy { container-type: inline-size; }
+
 .cf-result__meta,
 .cf-vacancy__meta {
   display: flex;
@@ -4483,6 +4628,66 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
   margin: var(--space-1) 0 0;
   font-size: var(--text-md);
   line-height: var(--leading-normal);
+}
+
+/* THE SQUARE, WHEN AN OPENING HAS A TITELBILD. The modifier lays the row in
+   two — a square photograph at the start, the register's own text in a column
+   beside it — and an opening without one is emitted without either, byte for
+   byte as before. The picture is optional and the layout does not reserve a
+   hole for its absence: an opening with no image is the row this page has
+   always drawn, and the two forms sit next to each other in content/jobs/
+   without the absent image reading as a fault.
+
+   DECORATIVE, by the same rule as the blog card: `alt=""` and no link, because
+   the title beside it is the link whose text is the whole content — a
+   description would have the row read twice. → components/vacancy.html
+
+   A WIDTH AND NO HEIGHT, and deliberately: this rule must never pin both axes,
+   or it joins fixed_boxes() in scripts/check-image-scale.py and demands a
+   192–288 px derivative of a photograph that has to be 1008 px wide to exist.
+   aspect-ratio states the square instead, and the width/height attributes on
+   the <img> keep their job — they are the aspect-ratio box, from the file's
+   own numbers.
+
+   THE WIDTH IS FIXED, NOT THE ROW'S OWN HEIGHT, and that is a limit of flex
+   layout rather than a choice: a square whose side tracks a sibling's content
+   height, in CSS alone, is circular — the row's height comes from its
+   tallest child, so the square cannot both take its size from that height and
+   contribute to it. --space-40 is chosen because it sits close to a register
+   row's usual height (title, a two- to three-line excerpt, the facts strip),
+   so the square reads as matched to the text beside it without literally
+   measuring it. align-items: center absorbs the difference on rows whose text
+   runs shorter or longer than that. */
+.cf-vacancy--image {
+  flex-direction: row;
+  align-items: center;
+  /* The wide gap separates the square from the text; the body's own
+     --space-2 below separates the text from itself, so picture and text read
+     as two parts of one entry rather than two facts of it. */
+  gap: var(--space-4);
+}
+.cf-vacancy--image > .cf-vacancy__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  /* The row's column gap, moved onto the text so it still separates title,
+     excerpt and facts the way it does in an entry without a picture. */
+  gap: var(--space-2);
+}
+.cf-vacancy__image {
+  flex: 0 0 auto;
+  width: var(--space-40);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: var(--surface-raised);
+}
+/* Under 34rem the square pays some of what a narrow column is short of: the
+   row folds the square down instead of letting it crowd the text the reader
+   came for. Measured on the row itself, → the container-type above. */
+@container (max-width: 34rem) {
+  .cf-vacancy--image { gap: var(--space-3); }
+  .cf-vacancy--image > .cf-vacancy__image { width: var(--space-20); }
 }
 
 /* --------------------------------------------------------------------------
@@ -5558,8 +5763,48 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
      copy leads. The figure stays FIRST in the source on both kinds of row —
      the picture is the subject of the claim beside it, and a reader on a
      screen reader should meet it in that order whichever side it is drawn on. */
-  .cf-culture__row--tall > .cf-culture__figure { grid-column: 2; border-left: var(--stroke-1) solid var(--border-strong); }
+  .cf-culture__row--tall > .cf-culture__figure { grid-column: 2; position: relative; }
   .cf-culture__row--tall > .cf-culture__body   { grid-column: 1; }
+  /* THE RULE BELONGS TO THE BOUNDARY, NOT TO THE CELL DRAWN BESIDE IT, and a
+     border cannot say so on this band. The picture changes sides row by row, so
+     a border on the figure changes WHICH SIDE OF THE COLUMN LINE the hairline
+     falls on: `border-right` in a wide row is the last pixel INSIDE track 1,
+     `border-left` in a tall row is the first pixel INSIDE track 2. Same
+     boundary, opposite sides of it, and the line steps sideways at every row.
+
+     Measured at 1440 on a 2x capture before this rule: the vertical hairline
+     stood at x 847 down both wide rows and at x 848 down both tall rows — four
+     1 px jogs from the top of the band to the bottom, and with them a 2 px
+     stagger between the pictures' facing edges (the wide frame ended at 846.8,
+     the tall one began at 848.8). One pixel is not a rounding artefact here:
+     it is the whole stroke, so the eye reads the line as broken rather than as
+     thin. It is what got reported, in those words: "the pictures are not
+     aligned".
+
+     So the tall row draws the rule where the wide row draws it — the last pixel
+     of track 1 — by reaching back across the line for it. `right: 100%` against
+     the figure's own padding box is that pixel stated as a position rather than
+     as a second number: no track width is repeated here, so the rule cannot
+     drift from the 3fr / 2fr split above it. A hairline on a cell's ::before is
+     the construction .cf-subdiv__cell already uses for the same job ("every
+     cell draws its own leading rule"), and it is deliberately NOT a box-shadow:
+     foundations/photography.html gives photographs "no frame and no shadow",
+     and a shadow on a figure is that sentence's exact subject however
+     structural the intent.
+
+     No border-left on the figure any more, so the picture reaches the rule
+     instead of stopping a pixel short of it. Under the global border-box the
+     figure's own box is unchanged either way, so the row heights the band's
+     rhythm is measured in — 511 against 640 — do not move.
+     → scripts/check-band-rule-continuity.py */
+  .cf-culture__row--tall > .cf-culture__figure::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    right: 100%;
+    width: var(--stroke-1);
+    background-color: var(--border-strong);
+  }
 }
 
 /* The group shot that closes the team grid. 16:9 and full container width, per

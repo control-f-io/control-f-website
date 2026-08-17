@@ -121,6 +121,69 @@
     </div>
   </section>
 
+  <section class="docs-section" id="picture">
+    <h2>The title picture</h2>
+    <p>
+      An opening names one picture that stands for it — <code>bild:</code> in its file,
+      the <code>Titelbild</code> property in the Stellen register — and the row is drawn
+      from it: <code>.cf-vacancy--image</code> on the entry, an <code>&lt;img&gt;</code>
+      with <code>.cf-vacancy__image</code> as its first child, and everything the picture
+      is not moved into a <code>&lt;div class="cf-vacancy__body"&gt;</code> beside it.
+      <code>scripts/build-jobs.py</code> writes all three from the same record the sync
+      filled, so the record, the file and the drawing cannot drift apart.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <ul class="cf-vacancies" role="list">
+        <li class="cf-vacancy cf-vacancy--image">
+          <img class="cf-vacancy__image" src="../assets/img/culture/hardware.jpg" alt=""
+               width="1067" height="1600" loading="lazy" decoding="async">
+          <div class="cf-vacancy__body">
+            <p class="cf-vacancy__meta"><span>Plattform</span></p>
+            <h3 class="cf-vacancy__title">
+              <a class="cf-vacancy__link" href="../patterns/karriere.html">Data Engineer (m/w/d)</a>
+            </h3>
+            <p class="cf-vacancy__excerpt">
+              Sie bauen die Strecken, auf denen Anlagendaten ankommen: Anbindung, Modellierung,
+              Qualitätssicherung.
+            </p>
+            <dl class="cf-vacancy__facts">
+              <div class="cf-vacancy__fact">
+                <dt class="cf-vacancy__term">Standort</dt>
+                <dd class="cf-vacancy__value">Konstanz, hybrid</dd>
+              </div>
+              <div class="cf-vacancy__fact">…</div>
+            </dl>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <ul>
+      <li>
+        <strong>Optional, and the layout does not reserve a hole for it.</strong>
+        An opening without one is the row this register has always drawn, so a register
+        where some rows carry a photograph reads as a register — a row of grey squares
+        reads as a fault.
+      </li>
+      <li>
+        <strong>The square.</strong> The picture is drawn exactly square — a width from the
+        space scale and <code>aspect-ratio: 1 / 1</code> with <code>object-fit: cover</code>
+        — <code>96&nbsp;px</code>, and <code>64&nbsp;px</code> once the row drops below
+        34&nbsp;rem. The <code>width</code> and <code>height</code> attributes still carry
+        the pixel size of the file that was downloaded, not of the box drawn.
+      </li>
+      <li>
+        <strong>It is decoration, not content.</strong> <code>alt=""</code>, and it is not a
+        link — <code>.cf-vacancy__link</code> stays the title and only the title, so the
+        row's markup and its reading order do not change when the picture appears.
+      </li>
+      <li>
+        <strong>Only on the register.</strong> The job page never draws it. It is an aid to
+        scanning a list, and on a page describing one opening it would be a second claim on
+        a page whose one lime moment is already taken.
+      </li>
+    </ul>
+  </section>
+
   <section class="docs-section" id="facts">
     <h2>The facts</h2>
     <p>
@@ -191,6 +254,9 @@
       <tbody>
         <tr><td><code>.cf-vacancies</code></td><td>ul</td><td>yes</td><td>The register. <code>role="list"</code> because <code>list-style: none</code> drops list semantics in Safari. Draws the top edge, or gives it up to a <code>.cf-section-header--flush</code> above it.</td></tr>
         <tr><td><code>.cf-vacancy</code></td><td>li</td><td>yes</td><td>One opening. Column stack, <code>--space-6</code> of air above and below, its own bottom hairline, and <code>--sheen-panel</code> travelling across it on hover or focus-within.</td></tr>
+        <tr><td><code>.cf-vacancy--image</code></td><td>li modifier</td><td>with picture</td><td>Rotation to a row: the square on the left, everything else in a <code>.cf-vacancy__body</code> beside it, <code>--space-4</code> between the two.</td></tr>
+        <tr><td><code>.cf-vacancy__image</code></td><td>img</td><td>with picture</td><td>The square. <code>--space-24</code> across, <code>aspect-ratio: 1/1</code>, <code>object-fit: cover</code>, decorative <code>alt=""</code> — <code>--space-16</code> below 34&nbsp;rem.</td></tr>
+        <tr><td><code>.cf-vacancy__body</code></td><td>div</td><td>with picture</td><td>Everything the picture is not. Only on an image row, so the column stack from <code>.cf-vacancy</code> moves in here rather than being written twice.</td></tr>
         <tr><td><code>.cf-vacancy__meta</code></td><td>p</td><td>no</td><td>Mono 11 px uppercase, <code>--text-secondary</code>. The team, and nothing that is already a fact below. A row of <code>&lt;span&gt;</code>s, so a second item needs no separator.</td></tr>
         <tr><td><code>.cf-vacancy__title</code></td><td>h3</td><td>yes</td><td>The role. Display face, <code>--text-h4</code>. A heading level, not a class — pick the level the page's outline needs.</td></tr>
         <tr><td><code>.cf-vacancy__link</code></td><td>a</td><td>yes</td><td>The link is the title and only the title. It underlines on hover and on <code>:focus-visible</code>; the row lights under it either way.</td></tr>
@@ -208,6 +274,7 @@
     <ul>
       <li>The link text is the role title on its own, so it is unique and it makes sense read out of context — which is how a screen reader's link list presents it. No “mehr erfahren”, ever.</li>
       <li>The whole row is not a link. A stretched <code>::after</code> over the entry would make the excerpt and the facts unselectable, and the facts are the part a candidate copies. The row lights on <code>:focus-within</code> instead, so keyboard and pointer get the same feedback.</li>
+      <li>A picture is decoration. When an opening has one it carries <code>alt=""</code> and no link of its own — the title is still the only link, and what a reader who cannot see the picture loses is nothing that is not already in the block beside it.</li>
       <li>The facts are a real <code>&lt;dl&gt;</code>. Assistive technology announces the number of pairs and reads each value with its term attached; four loose spans read as eight unlabelled words.</li>
       <li>Nothing is carried by colour. The mono term is distinguished by face, size, case and position as well as by ink.</li>
       <li>Contrast measured against CF-Grau, the dark end of the page wash, so these are the floors: title and value 13.5:1, mono meta and term <code>--text-secondary</code> 5.9:1, excerpt 5.9:1. The row hairline is a separator, not a UI contour — the structure is in the markup — so it is not load-bearing for the 3:1 floor.</li>
@@ -255,6 +322,14 @@
         written on the page three times and has to exist, or the one lime moment on it is a
         dead end.
       </li>
+      <li>
+        <strong>The square comes from the register.</strong> The <code>Titelbild</code>
+        property of the Stellen database becomes the <code>bild:</code> line and the file
+        under <code>design-system/assets/img/jobs/</code> on the next sync — same plate as
+        a news picture, and <code>scripts/check-content-images.py</code> states the numbers.
+        It is drawn only here; an opening whose page exists but whose register row has no
+        picture is not missing anything.
+      </li>
     </ul>
   </section>
 
@@ -269,6 +344,7 @@
           <li>Write the title so it stands alone in a list of links.</li>
           <li>Replace the whole register with <code>.cf-error--inline</code> when nothing is open.</li>
           <li>Keep the excerpt to what the job is. The company is the section above.</li>
+          <li>Draw the square only when the opening names one picture. An entry without one is the row the register has always drawn.</li>
         </ul>
       </div>
       <div class="docs-rule docs-rule--dont">
@@ -280,6 +356,8 @@
           <li>Don't stretch a link over the entry. It costs the reader the ability to select the facts.</li>
           <li>Don't put a fifth or sixth fact in the strip. That is content for the job page.</li>
           <li>Don't build a filter into the component. Narrowing a list is a server's work, the same as it is for the news overview.</li>
+          <li>Don't link the picture or give it an alt. It is decoration for scanning a list; the title is the link and the block beside it carries the content.</li>
+          <li>Don't draw a placeholder where a picture is missing. A row of grey squares reads as a fault, and this component does not reserve a hole.</li>
         </ul>
       </div>
     </div>

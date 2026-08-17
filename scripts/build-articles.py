@@ -413,6 +413,34 @@ def crumb(post, edition, pad):
             % (pad, esc(short)))
 
 
+def tags(post, edition, pad):
+    """The post's topics, each a link into the archive filtered to it.
+
+    THE WAY BACK OUT OF ONE ARTICLE IS THE ARCHIVE NARROWED TO ITS SUBJECT, and
+    it is the reason the topics are on the post at all. The specimen has always
+    drawn three of these chips under the text; every generated page drew none,
+    because a post carried no topic to draw — the region was spliced empty and
+    the reader who had just finished a piece about heat pumps was offered
+    "Alle Beiträge" and nothing else.
+
+    They point at news-thema-<slug>.html, which is where the chips on the
+    archive point too. Not at a query string: the specimen said
+    `news.html?thema=telemetrie` and no server answers that — the site is static
+    files, and the link came back with the whole unfiltered archive.
+
+    In the order the post writes them, which is the writer's order of
+    importance. The archive's own chips are in the vocabulary's order instead;
+    the two are different lists doing different jobs.
+    """
+    news = post["_news"]
+    out = ['%s<ul class="cf-article__tags">' % pad]
+    for slug, de, en, _prose in post["topics"]:
+        out.append('%s  <li><a class="cf-article__tag" href="%s">%s</a></li>'
+                   % (pad, news.thema_name(slug), esc(de if edition == "de" else en)))
+    out.append("%s</ul>" % pad)
+    return "\n".join(out)
+
+
 def related(post, posts, edition, total, pad):
     """Up to three other posts that have a page, newest first.
 
@@ -441,10 +469,21 @@ def related(post, posts, edition, total, pad):
         title = p["titel"] if edition == "de" else p["title"]
         date = news.german(p["datum"]) if edition == "de" else news.en_meta(p["datum"])
         line = date + (" · %s min" % p["minuten"] if p.get("minuten") else "")
+        # THE SAME CARD AS THE ARCHIVE'S, PICTURE AND ALL. Weiterlesen is the
+        # blog grid run at three columns, and a card that dropped its picture
+        # here would be a second kind of lead card — the reader arrives at these
+        # three from an archive where the same three posts carry photographs.
+        # build-news.py writes the markup, once, so the two cannot drift; only
+        # the `../` in front of the file differs, because this page is written
+        # into both editions and the English one sits a directory deeper.
+        picture = news.image(p, 1, p2 + "          ",
+                             up="../../assets/img/" if edition == "en" else "../assets/img/")
         out += ['%s      <div class="cf-blog-col subdivide__col cf-blog-col--1">' % p2,
-                '%s        <a class="cf-blog-card cf-blog-card--lead" href="%s">'
-                % (p2, news.page_name(p)),
-                '%s          <span class="cf-blog-card__title">%s</span>' % (p2, esc(title)),
+                '%s        <a class="cf-blog-card cf-blog-card--lead%s" href="%s">'
+                % (p2, " cf-blog-card--media" if picture else "", news.page_name(p))]
+        if picture:
+            out.append(picture)
+        out += ['%s          <span class="cf-blog-card__title">%s</span>' % (p2, esc(title)),
                 '%s          <span class="cf-blog-card__meta">%s</span>' % (p2, esc(line)),
                 "%s        </a>" % p2,
                 "%s      </div>" % p2]
@@ -470,7 +509,7 @@ def page(template, post, posts, edition, total, name):
             ("rail", lambda pad: rail(bs, edition, pad)),
             ("byline", lambda pad: byline(post, pad)),
             ("prose", lambda pad: prose(bs, edition, pad)),
-            ("tail", lambda pad: ""),
+            ("tail", lambda pad: tags(post, edition, pad)),
             ("related", lambda pad: related(post, posts, edition, total, pad))):
         doc = splice(doc, region, body, where)
 

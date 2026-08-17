@@ -28,6 +28,9 @@ site ships twice, and the German name is the one the post files already use:
     Ausgeschrieben           the date, and datePosted
     Frist                    optional; the closing date, and validThrough
     Status                   only "Veröffentlicht" is imported
+    Titelbild                files; optional — the square at the register row.
+                             The row is not drawn on the job page; it is drawn
+                             on karriere.html, once, square.
 
 THE BRACES IN A TITLE ARE NOT A TYPO. "{Data Engineer} (m/w/d)" is two
 languages in one line, and the braces mark the English run so the German page
@@ -51,7 +54,10 @@ ship.
     python3 scripts/sync-jobs-notion.py --check      # fail if they differ
     python3 scripts/sync-jobs-notion.py --fixture f  # read a saved response
 
-stdlib only, no build step, no dependency. Same python3 that serves the pages.
+stdlib, with the one dependency the news sync carried in: the moment a picture
+is outside the plate, the shared fit_to_plate() resizes it with Pillow, pinned
+in .github/workflows/news-sync.yml. Everything above that is stdlib — the same
+python3 that serves the pages.
 """
 
 import argparse
@@ -88,8 +94,13 @@ fail = NEWS.fail
 # Notion property → post field, in the order the file writes them. A pair of
 # languages is two properties and two fields, deliberately: one column that
 # somebody has to remember to translate is a column that stays German.
+# `bild` is in the same table so the file writes it in line with the rest, but
+# it is not read off the row by plain(): a files property is not text, and it
+# is the one field main() supplies after downloading the file — the same
+# division sync-news-notion.py draws for its own Titelbild. → job_from()
 FIELDS = (
     ("kennung", "Kennung"), ("bereich", "Bereich"), ("area", "Area"),
+    ("bild", "Titelbild"),
     ("titel", "Titel"), ("title", "Title"),
     ("anriss", "Anriss"), ("excerpt", "Excerpt"),
     ("standort", "Standort"), ("location", "Location"),
@@ -128,10 +139,14 @@ def slug(titel):
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", s)).strip("-")[:48]
 
 
-def job_from(page, text=""):
+def job_from(page, text="", bild=""):
     """One Notion row → the file an opening is, or a reason it cannot be."""
     props = page.get("properties") or {}
-    got = {f: NEWS.plain(props.get(p)) for f, p in FIELDS}
+    # bild is not read off the row: a files property is a download, not text,
+    # and main() is where the download happens, because that is where `mode`
+    # decides whether this run writes anything at all. → FIELDS
+    got = {f: NEWS.plain(props.get(p)) for f, p in FIELDS if f != "bild"}
+    got["bild"] = bild
     status = NEWS.plain(props.get("Status"))
     url = page.get("url", page.get("id", "?"))
 
@@ -214,11 +229,22 @@ def main():
         if not name:
             continue
         url = page.get("url", page.get("id", "?"))
+        stem = name[:-3]
         blocks = (page.get("_blocks", []) if args.fixture
                   else NEWS.children(page["id"], token))
-        name, body = job_from(page, NEWS.body_from(
-            blocks, url, dropped, stem=name[:-3], mode=mode,
-            pictures=pictures, into=IMAGES))
+        text = NEWS.body_from(blocks, url, dropped, stem=stem, mode=mode,
+                              pictures=pictures, into=IMAGES)
+        # The register row's picture, if the row names one. The file starts
+        # with the opening's name, so `ls` on the image directory reads as the
+        # register does. Downloaded into this store's own folder, and the body
+        # pictures sweep their folder the same way — → sweep() in
+        # sync-news-notion.py.
+        bild = ""
+        src = NEWS.first_file((page.get("properties") or {}).get("Titelbild"))
+        if src:
+            bild, size = NEWS.fetch_image(src, stem, url, mode, into=IMAGES)
+            pictures[bild] = size
+        name, body = job_from(page, text, bild=bild)
         if name in wanted and wanted[name] != body:
             fail("two published openings write the same file, %s. Two titles "
                  "that reduce to the same name do this; change one of them."

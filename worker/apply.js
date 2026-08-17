@@ -48,14 +48,14 @@ export const POSITIONS = {
   de: [
     "Data Engineer (m/w/d)",
     "Machine Learning Engineer (m/w/d)",
-    "Solution Engineer Industrie (m/w/d)",
+    "DevOps Engineer (m/w/d)",
     "Werkstudent Frontend (m/w/d)",
     "Initiativbewerbung",
   ],
   en: [
     "Data Engineer (m/f/d)",
     "Machine Learning Engineer (m/f/d)",
-    "Solution Engineer Industry (m/f/d)",
+    "DevOps Engineer (m/f/d)",
     "Working Student Frontend (m/f/d)",
     "Speculative application",
   ],

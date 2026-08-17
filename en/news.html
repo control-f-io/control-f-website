@@ -162,14 +162,27 @@
     </div>
   </header>
 
-  <!-- 02 · Themen. Die Artikel-Seite verlinkt ihre Tags nach
-       /news?thema=… — das ist die Seite, auf der diese Links ankommen,
-       also muss der Filter hier sichtbar sein und der aktive Zustand
-       erkennbar. Das aktive Chip ist ein <span>, kein Link: ein Link auf
-       den Zustand, in dem man schon ist, tut nichts. Serverseitig
-       gefiltert, der Filter IST die URL. -->
+  <!-- 02 · Themen. Die Artikel-Seite verlinkt ihre Tags hierher, und das
+       ist die Seite, auf der diese Links ankommen — also muss der Filter
+       hier sichtbar sein und der aktive Zustand erkennbar. Das aktive Chip
+       ist ein <span>, kein Link: ein Link auf den Zustand, in dem man
+       schon ist, tut nichts.
+
+       DER FILTER IST DIE URL, UND DIE URL IST EINE DATEI. Bis 2026-08-12
+       zeigten diese Chips auf news.html?thema=… — eine Adresse, die
+       niemand bedient: die Seite ist eine statische Datei, ein
+       Query-String ändert an ihr nichts, und wer auf „Energie" klickte,
+       bekam dasselbe ungefilterte Archiv mit „Alle" weiter als aktivem
+       Chip zurück. Der gefilterte Ausschnitt ist jetzt eine eigene Seite
+       je Thema — news-thema-<slug>.html, aus news-thema.html erzeugt —
+       und das Chip zeigt dorthin. Kein Skript, kein Server, ein Link.
+
+       Erzeugt aus content/news/: die Chips sind die Themen, die Beiträge
+       tatsächlich tragen. Ein Chip, hinter dem nichts steht, ist ein
+       Filter auf eine leere Seite. → scripts/build-news.py -->
   <section class="section section--tight" aria-labelledby="themen">
     <div class="container">
+      <!-- news:themen -->
       <div class="cf-section-header">
         <h2 class="cf-section-header__label" id="themen">Topics</h2>
         <span class="cf-section-header__count">4</span>
@@ -177,11 +190,12 @@
       <nav aria-label="Filter by topic">
         <ul class="cf-article__tags" role="list">
           <li><span class="cf-article__tag" aria-current="page">All</span></li>
-          <li><a class="cf-article__tag" href="news.html?thema=telemetrie">Telemetry</a></li>
-          <li><a class="cf-article__tag" href="news.html?thema=energie">Energy</a></li>
-          <li><a class="cf-article__tag" href="news.html?thema=architektur">Architecture</a></li>
+          <li><a class="cf-article__tag" href="news-thema-telemetrie.html">Telemetry</a></li>
+          <li><a class="cf-article__tag" href="news-thema-energie.html">Energy</a></li>
+          <li><a class="cf-article__tag" href="news-thema-architektur.html">Architecture</a></li>
         </ul>
       </nav>
+      <!-- /news:themen -->
     </div>
   </section>
 
@@ -189,6 +203,12 @@
        der Seite: fünf Spalten, 1/2/3/6/6 Zeilen, von aktuell nach alt und
        von ausführlich nach knapp. Der Zähler nennt beide Zahlen — was auf
        dieser Seite steht und was es insgesamt gibt.
+
+       „Von ausführlich nach knapp" gilt auch für das Titelbild: die ersten
+       drei Spalten zeigen es, die beiden Zeilenspalten nicht. Eine 2rem
+       hohe Zeile bekäme einen 48-px-Abzug aus einer Datei, die für die
+       1008-px-Platte exportiert ist — Bytes für ein Bild, das niemand
+       lesen kann. → design-system/components/blog-grid.html
 
        --late, weil fünf Spalten: die Faltbreite gehört zur Spaltenzahl,
        nicht zum Primitiv, und 44rem ist die Zahl für DREI Spalten
@@ -198,11 +218,15 @@
        Worts plus Ellipse — kein gekürzter Titel, ein unbeschrifteter
        Link. → scripts/check-subdivide-late.py -->
 
-  <!-- Die Pagination trägt KEIN --flush, obwohl ein umrandeter Container
-       darüber steht: dazwischen liegt die Zeitachse. --flush setzt voraus,
-       dass die Haarlinie unmittelbar darüber liegt — hier tut sie das nicht,
-       und ohne eigene Linie stünde die Pagination frei im Raum. Ihre eigene
-       Linie schließt stattdessen das Achsenband ab. -->
+  <!-- Keine Pagination mehr, und die Region bleibt trotzdem stehen. Eine
+       Spalte ist ein Jahr, das Raster ist ein Port von 36.5rem — doppelt so
+       hoch wie das, was es vorher zeichnete — und jede Spalte scrollt ihr
+       eigenes Jahr. Damit steht jeder Beitrag auf dieser Seite: es gibt keine
+       zweite Seite, zu der ein Schritt führen könnte, und „Seite 1 von 11"
+       zählte zuletzt Seiten, die es nicht gibt. Die Fences bleiben, weil
+       news-thema.html zwischen ihnen weiter die gezeichnete Pagination
+       trägt — dort ist die Komponente dokumentiert.
+       → design-system/components/blog-grid.html -->
   <section class="section" aria-labelledby="beitraege">
     <div class="container">
       <div class="cf-section-header cf-section-header--flush">
@@ -211,17 +235,24 @@
         <span class="cf-section-header__count">18</span>
         <!-- /news:count -->
       </div>
+      <!-- news:grid -->
       <div class="subdivide subdivide--even subdivide--late">
-        <div class="cf-blog-grid subdivide__row">
-          <!-- news:cards -->
+        <div class="cf-blog-grid cf-blog-grid--port subdivide__row">
           <div class="cf-blog-col subdivide__col cf-blog-col--1">
-            <a class="cf-blog-card cf-blog-card--lead" href="beitrag-waermepumpen-im-winter-was-hausbesitzer-jetzt-wi.html">
+            <a class="cf-blog-card cf-blog-card--lead cf-blog-card--media" href="beitrag-waermepumpen-im-winter-was-hausbesitzer-jetzt-wi.html">
+              <img class="cf-blog-card__image" src="../design-system/assets/img/news/waermepumpen-im-winter-was-hausbesitzer-65498603.jpg" alt=""
+                   width="1600" height="1067" loading="lazy" decoding="async">
               <span class="cf-blog-card__title">Heat pumps in winter: what homeowners need to know now</span>
               <span class="cf-blog-card__meta">Simon Deussen · 01 Jan 2026 · 3 min</span>
             </a>
           </div>
           <div class="cf-blog-col subdivide__col cf-blog-col--2">
-            <a class="cf-blog-card" href="beitrag-energiearmut-in-deutschland-ein-unterschaetztes-.html"><span class="cf-blog-card__title">Energy poverty in Germany – an underrated problem</span><span class="cf-blog-card__meta">01 Jan 2026 · 2 min</span></a>
+            <a class="cf-blog-card cf-blog-card--media" href="beitrag-energiearmut-in-deutschland-ein-unterschaetztes-.html">
+              <img class="cf-blog-card__image" src="../design-system/assets/img/news/energiearmut-in-deutschland-ein-untersch-9de6b221.jpg" alt=""
+                   width="2016" height="2016" loading="lazy" decoding="async">
+              <span class="cf-blog-card__title">Energy poverty in Germany – an underrated problem</span>
+              <span class="cf-blog-card__meta">01 Jan 2026 · 2 min</span>
+            </a>
             <a class="cf-blog-card" href="beitrag-elektroautos-als-puffer-vehicle-to-grid-im-praxi.html"><span class="cf-blog-card__title">Electric cars as a buffer: vehicle-to-grid in practice</span><span class="cf-blog-card__meta">01 Jan 2026 · 2 min</span></a>
           </div>
           <div class="cf-blog-col subdivide__col cf-blog-col--3">
@@ -245,18 +276,16 @@
             <a class="cf-blog-card cf-blog-card--compact" href="beitrag-speicherpflicht-fuer-neubauten-kommt-sie.html"><span class="cf-blog-card__title">Mandatory storage for new builds: is it coming?</span></a>
             <a class="cf-blog-card cf-blog-card--compact" href="beitrag-wie-stadtwerke-zu-energiedienstleistern-werden.html"><span class="cf-blog-card__title">How municipal utilities are becoming energy service providers</span></a>
           </div>
-          <!-- /news:cards -->
         </div>
         <div class="cf-blog-axis subdivide__row" aria-hidden="true">
-          <!-- news:axis -->
           <span class="cf-blog-axis__tick">Now</span>
           <span class="cf-blog-axis__tick">2026</span>
           <span class="cf-blog-axis__tick">2025</span>
           <span class="cf-blog-axis__tick">2024</span>
           <span class="cf-blog-axis__tick">2022–2023</span>
-          <!-- /news:axis -->
         </div>
       </div>
+      <!-- /news:grid -->
 
       <!-- Erste Seite: kein „Zurück“. Der Schritt wird entfernt, nicht
            deaktiviert — ein deaktiviertes Ziel antwortet nicht, wenn man

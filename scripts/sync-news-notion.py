@@ -56,7 +56,24 @@ The two halves of a post each carry their own image blocks, because each
 carries its own caption. Copy the block below the divider and write the caption
 in English; the file is downloaded once either way.
 
-THE DATABASE IT EXPECTS. Five properties, and the names are the German ones the
+EVERY PICTURE IS FITTED TO THE PLATE ON THE WAY IN, NOT REJECTED. The picture
+that leaves a phone is four thousand pixels wide and a few megabytes, and the
+column that will hold it is 1008 px on an 800 kB budget —
+check-content-images.py's numbers, the numbers the gate fails on. A picture
+outside the window used to fail the gate an hour after the run, and the fix
+was in Notion: re-export, re-upload, wait. Now the sync fits it instead, so
+any picture, any size, succeeds: over the ceiling it is scaled down to 2016 px
+(twice the plate is what a retina screen can resolve), under the floor it is
+scaled up to 1008 (the reading column was going to stretch it that far
+anyway), and bytes are then removed by quality before they are removed by
+size, with a PNG that still will not fit dropping to 256 colours. The format
+never changes, and a picture that already fits is stored exactly as it came —
+the digest still names the bytes actually stored, so fitting changes nothing
+but the size and the repository does not churn on a picture fitted once. The
+one dependency this buys is Pillow, pinned by the workflow, and it is imported
+only the moment a picture does not fit. → scripts/check-content-images.py
+
+THE DATABASE IT EXPECTS. Seven properties, and the names are the German ones the
 post files already use so that the two are read the same way:
 
     Titel      title        the German headline
@@ -64,7 +81,23 @@ post files already use so that the two are read the same way:
     Datum      date         sorts the archive
     Autor      rich text    optional; only the lead card shows it
     Minuten    number       optional; reading time
+    Themen     multi-select Telemetrie, Energie, Architektur — the archive's
+                            filter. At least one, and no fourth name: the chips
+                            are a fixed vocabulary and build-news.py refuses a
+                            topic it cannot draw a chip for.
+    Titelbild  files        optional; the one picture the post's card in the
+                            archive is drawn from. The first file is taken —
+                            a card has one picture, and a property holding
+                            three does not say which.
     Status     select       only "Veröffentlicht" is imported
+
+THE TITLE PICTURE IS A PROPERTY AND NOT THE FIRST IMAGE IN THE TEXT. A post can
+open on a diagram that says nothing at card size, a post can carry no picture in
+its text at all and still want a card that is not a rectangle of type, and the
+picture that sells a piece in a grid is a choice somebody makes rather than a
+by-product of where they put the first image block. It is downloaded into the
+same folder under the same name-and-digest rule as the pictures in the text, so
+a post that uses one picture in both places downloads it once and names it once.
 
 STATUS IS THE WHOLE POINT OF THE FIELD. Notion is a drafting surface: a post
 exists there long before it should exist on the website, and a sync without a
@@ -87,11 +120,16 @@ response to a file and run the whole thing against it. The network is four lines
 at the bottom of this file; everything above them is what actually needs
 checking.
 
-stdlib only, no build step, no dependency. Same python3 that serves the pages.
+stdlib, with one dependency and only where it is unavoidable: the moment a
+picture is outside the plate, fit_to_plate() resizes it with Pillow, pinned in
+.github/workflows/news-sync.yml. Everything above that is stdlib — the same
+python3 that serves the pages.
 """
 
 import argparse
 import hashlib
+import importlib
+import io
 import json
 import os
 import pathlib
@@ -127,7 +165,7 @@ PUBLISHED = "Veröffentlicht"
 
 # The header this writes, in the order new-post.py writes it, so a file from
 # Notion and a file from the command line are the same file.
-FIELDS = ("datum", "autor", "minuten", "titel", "title")
+FIELDS = ("datum", "autor", "minuten", "themen", "bild", "titel", "title")
 
 
 def fail(msg):
@@ -228,6 +266,161 @@ def rich(runs):
     return "".join(out).strip()
 
 
+def first_file(prop):
+    """A Notion `files` property → the URL of its first file, or "".
+
+    Its own reader rather than a branch of plain(): every other property reduces
+    to the string a post file carries, and this one reduces to an address this
+    script has to fetch before the post file can carry anything. A Notion file
+    URL is signed and expires within the hour, so it is never what is written
+    down. → fetch_image()
+    """
+    if not prop or prop.get("type") != "files":
+        return ""
+    for f in prop.get("files") or []:
+        src = ((f.get("external") or {}).get("url")
+               or (f.get("file") or {}).get("url"))
+        if src:
+            return src
+    return ""
+
+
+def fit_to_plate(data, ext, url):
+    """The picture to the plate check-content-images.py measures it on: not
+    under 1008 px wide, not over 2016, and under 800 kB.
+
+    A picture that already fits is returned byte for byte — Pillow is not even
+    imported for it, and the digest the file is named by stays the digest of
+    exactly what is stored. Only what is outside the window is touched, and
+    then only as much as the window takes: the format is never changed, a width
+    over the ceiling is scaled to 2016 (what a dpr-2 screen can resolve across
+    a 1008 px plate), a width under the floor is scaled up to 1008 (the reading
+    column stretched it that far anyway), the aspect ratio is kept, and a
+    picture still over budget has bytes removed by quality first and by size
+    only second — the widest picture that fits the budget is the one that
+    ships.
+
+    Pillow is this repository's one dependency, pinned by the workflow so the
+    fitted bytes are the same on every runner, and it is loaded here and
+    nowhere else: the standard library can decode none of the four formats, so
+    there is no resizer without it.
+    """
+    spec = importlib.util.spec_from_file_location(
+        "cf_image_scale",
+        pathlib.Path(__file__).with_name("check-image-scale.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    fit = mod.intrinsic_bytes(data)
+    if fit is None:                       # downloaded bytes and the gate cannot
+        return data                       # agree on a size; the gate's UNREADABLE
+    w, h = fit                            # finding is the one that speaks anyway
+    lo, hi, cap = image_limits()
+    if lo <= w <= hi and len(data) <= cap:
+        return data
+
+    try:
+        from PIL import Image, ImageOps
+    except ImportError:
+        fail("%s has a picture of %d x %d (%d bytes) — outside the plate and "
+             "needs the resizer this import now depends on.\n"
+             "    python3 -m pip install \"Pillow==12.0.0\""
+             % (url, w, h, len(data)))
+
+    im = Image.open(io.BytesIO(data))
+    im.load()                             # decode before seeking between frames
+    resample = getattr(getattr(Image, "Resampling", Image), "LANCZOS")
+
+    # An animation is a pile of frames; a still picture is one. Everything
+    # below treats them the same, except that the orientation has to be baked
+    # into every one of them: exif_transpose() returns a new single-frame
+    # image, so run on the pile it would silently keep only its first frame;
+    # run on each frame in turn it turns a portrait phone photo upright and
+    # lets the tag be dropped with no one painted sideways.
+    frames = []
+    for i in range(getattr(im, "n_frames", 1)):
+        im.seek(i)
+        frames.append(ImageOps.exif_transpose(im.copy()))
+    bw, bh = frames[0].size               # the baked window, what the plate is
+                                          # measured on from here on
+
+    # The widths to try, largest first: the widest picture that meets the byte
+    # budget is what a retina screen can actually use. Never below the floor —
+    # a picture smaller than the plate is refused by the gate, so nothing is
+    # gained by shipping one.
+    if bw > hi:
+        first = hi
+    elif bw < lo:
+        first = lo
+    else:
+        first = bw
+    widths, t = [], first
+    while True:
+        widths.append(t)
+        if t <= lo:
+            break
+        t = max(lo, int(t * 0.8))
+
+    out = io.BytesIO()
+
+    def encode(scaled, cap):
+        """scaled frames → bytes under cap, or None. Quality steps down until
+        the budget holds; a PNG that still will not fit drops to 256 colours,
+        which on a plate the gate budgets at 800 kB is still a photograph."""
+        if ext == ".jpg":
+            base = scaled[0] if scaled[0].mode == "RGB" else scaled[0].convert("RGB")
+            for q in (85, 80, 72, 64, 56, 48, 40, 32, 24, 16):
+                out.seek(0)
+                out.truncate(0)
+                base.save(out, "JPEG", quality=q, optimize=True)
+                if out.tell() <= cap:
+                    return out.getvalue()
+        elif ext == ".webp":
+            for q in (85, 80, 72, 64, 56, 48, 40, 32, 24, 16):
+                out.seek(0)
+                out.truncate(0)
+                scaled[0].save(out, "WEBP", quality=q, method=6)
+                if out.tell() <= cap:
+                    return out.getvalue()
+        elif ext == ".png":
+            out.seek(0)
+            out.truncate(0)
+            scaled[0].save(out, "PNG", optimize=True)
+            if out.tell() <= cap:
+                return out.getvalue()
+            out.seek(0)
+            out.truncate(0)
+            scaled[0].quantize(colors=256).save(out, "PNG", optimize=True)
+            if out.tell() <= cap:
+                return out.getvalue()
+        else:                                     # ".gif"
+            out.seek(0)
+            out.truncate(0)
+            if len(scaled) == 1:
+                scaled[0].save(out, "GIF", optimize=True)
+            else:
+                scaled[0].save(out, "GIF", save_all=True,
+                               append_images=scaled[1:], optimize=True,
+                               disposal=2)
+            if out.tell() <= cap:
+                return out.getvalue()
+        return None
+
+    for tw in widths:
+        if tw == bw:
+            scaled = frames
+        else:
+            nh = max(1, round(bh * tw / bw))
+            scaled = [f.resize((tw, nh), resample) for f in frames]
+        fitted = encode(scaled, cap)
+        if fitted is not None:
+            return fitted
+
+    fail("%s's picture (%d x %d) still misses the %d-byte budget at the %d px "
+         "floor in every format step — fitting does not reach it, and the gate "
+         "fails it the way it would have before fitting existed."
+         % (url, w, h, cap, lo))
+
+
 def fetch_image(src, stem, url, mode, into=None):
     """One picture into design-system/assets/img/news/, named for the post and
     its own digest. Returns the path a post file names it by.
@@ -241,7 +434,7 @@ def fetch_image(src, stem, url, mode, into=None):
             data = r.read()
             ctype = (r.headers.get("Content-Type") or "").split(";")[0].strip()
     except (urllib.error.HTTPError, urllib.error.URLError) as e:
-        fail("%s: cannot download the picture.\n    %s\n    %s"
+        fail("%s: cannot download the picture.\n    %s    %s"
              % (url, getattr(e, "reason", e), src.split("?")[0]))
 
     ext = SUFFIX.get(src.split("?")[0].rsplit(".", 1)[-1].lower()) or TYPES.get(ctype)
@@ -249,6 +442,12 @@ def fetch_image(src, stem, url, mode, into=None):
         fail("%s has a picture that is neither JPEG, PNG, WebP nor GIF (%s).\n"
              "    The reading page draws those four; anything else has to be "
              "exported before it goes in the page." % (url, ctype or "unknown type"))
+
+    # Fitted BEFORE it is named: the digest the name is built from must be the
+    # digest of the bytes stored, or the same picture would earn a second name
+    # the first time it was fitted and this hourly job would churn the
+    # repository with freshly re-encoded binary.
+    data = fit_to_plate(data, ext, url)
 
     into = into or IMAGES
     name = "%s-%s%s" % (stem[:40].rstrip("-"),
@@ -313,7 +512,7 @@ def body_from(blocks, url, dropped, stem="bild", mode="write", pictures=None,
     return "\n\n".join(lines) + "\n"
 
 
-def post_from(page, text=""):
+def post_from(page, text="", bild=""):
     """One Notion row → the fields a post file holds, or a reason it cannot be.
 
     A row that is published and unusable is a FAILURE and never a skip. A post
@@ -323,18 +522,24 @@ def post_from(page, text=""):
     props = page.get("properties") or {}
     got = {k: plain(props.get(v)) for k, v in
            (("titel", "Titel"), ("title", "Title"), ("datum", "Datum"),
-            ("autor", "Autor"), ("minuten", "Minuten"))}
+            ("autor", "Autor"), ("minuten", "Minuten"), ("themen", "Themen"))}
+    # Not read off the row: it is a downloaded file's path, and main() is where
+    # the download happens, because that is where `mode` decides whether this
+    # run writes anything at all.
+    got["bild"] = bild
     status = plain(props.get("Status"))
     url = page.get("url", page.get("id", "?"))
 
     if status != PUBLISHED:
         return None, None
-    for field in ("titel", "title", "datum"):
+    for field in ("titel", "title", "datum", "themen"):
         if not got[field]:
             fail("%s is %s and has no %s.\n"
                  "    Every published post needs a German title, an English "
-                 "title and a date — the site ships in both languages and the "
-                 "archive sorts by date." % (url, PUBLISHED, field.capitalize()))
+                 "title, a date and at least one topic — the site ships in both "
+                 "languages, the archive sorts by date, and a post filed under "
+                 "no topic stands under none of its chips."
+                 % (url, PUBLISHED, field.capitalize()))
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", got["datum"]):
         fail("%s has Datum %r, which is not a plain date." % (url, got["datum"]))
 
@@ -395,14 +600,18 @@ def sweep(pictures, mode, into=None):
     return ["%s/%s" % (into.name, n) for n in gone]
 
 
-def budget():
-    """check-content-images.py's byte ceiling, read from the file that enforces it."""
-    import importlib.util
+def image_limits():
+    """check-content-images.py's plate, read from the file that enforces it:
+    not under 1008 px wide, not over 2016, under 800 kB.
+
+    The gate is the authority on its own numbers — fitting reads them from the
+    same file rather than repeating them, so the two can never disagree. → fit_to_plate()
+    """
     spec = importlib.util.spec_from_file_location(
         "cf_content_images", pathlib.Path(__file__).with_name("check-content-images.py"))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.MAX_BYTES
+    return mod.MIN_WIDTH, mod.MAX_WIDTH, mod.MAX_BYTES
 
 
 def fetch(db, token):
@@ -509,8 +718,18 @@ def main():
         # The picture's filename starts with the post's, so `ls` on the image
         # directory reads as the archive does. name is `<date>-<slug>.md`; the
         # date is already in the post's own name and says nothing about a file.
-        name, body = post_from(page, body_from(
-            blocks, url, dropped, stem=name[11:-3], mode=mode, pictures=pictures))
+        stem = name[11:-3]
+        text = body_from(blocks, url, dropped, stem=stem, mode=mode,
+                         pictures=pictures)
+        # The card's picture, if the row names one. Same folder, same
+        # name-and-digest rule as a picture in the text, so the two are the same
+        # file on disk whenever they are the same file in Notion.
+        bild = ""
+        src = first_file((page.get("properties") or {}).get("Titelbild"))
+        if src:
+            bild, size = fetch_image(src, stem, url, mode)
+            pictures[bild] = size
+        name, body = post_from(page, text, bild=bild)
         if not name:
             continue
         if name in wanted and wanted[name] != body:
@@ -557,17 +776,6 @@ def main():
     for kind, where in sorted(dropped.items()):
         print("  ! %s block(s) of type %r have no form on the reading page and "
               "were left out: %s" % (len(where), kind, where[0]), file=sys.stderr)
-
-    # The budget is check-content-images.py's and is read from it rather than
-    # repeated: that file is the gate, and a warning here that disagreed with
-    # the gate would be a second opinion nobody asked for. Said now anyway,
-    # because the person who dropped the photograph in is looking at this run
-    # and not at the pull request it will fail an hour from now.
-    for path, size in sorted(pictures.items()):
-        if size > budget():
-            print("  ! %s is %.1f MB — over the %.0f kB a picture on the "
-                  "reading plate is allowed. check-content-images.py fails on it."
-                  % (path, size / 1e6, budget() / 1e3), file=sys.stderr)
 
     if args.check:
         if added or changed or removed or gone:

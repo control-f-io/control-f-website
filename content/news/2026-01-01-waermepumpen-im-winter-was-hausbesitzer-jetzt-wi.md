@@ -1,6 +1,8 @@
 datum:   2026-01-01
 autor:   Simon Deussen
 minuten: 3
+themen:  Telemetrie, Energie
+bild:    news/waermepumpen-im-winter-was-hausbesitzer-65498603.jpg
 titel:   Wärmepumpen im Winter: Was Hausbesitzer jetzt wissen müssen
 title:   Heat pumps in winter: what homeowners need to know now
 

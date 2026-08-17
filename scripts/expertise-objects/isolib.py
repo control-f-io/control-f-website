@@ -435,12 +435,64 @@ def taper(x, y, z, r0, r1, h, top=FACE_TOP, side=FACE_R):
     return out
 
 
+# The half-chord of a blade, as (fraction of span, half-chord in lattice units):
+# a narrow root, the shoulder a fifth of the way out, and a tip that is still
+# two contours wide at the size these objects ship at. Under about 0.016 the
+# fill between the two contours closes up and the tip reads as a hairline.
+_BLADE = ((0.0, 0.032), (0.18, 0.06), (1.0, 0.018))
+
+
+def rotor(x, y, z, r0, r1, axis='x', n=3, phase=0.0, fill=FACE_R, prof=_BLADE):
+    """The n blades of a rotor, in the lattice plane normal to `axis`.
+
+    THE PLANE IS ON THE LATTICE. THE AZIMUTH CANNOT BE, and that is a fact
+    about the geometry rather than a licence. A radius at parameter t in an
+    x-plane projects to the screen slope tan(t) - 0.5, so each of the five
+    brand slopes is hit by exactly one t per half-turn — and blades sit
+    360/n apart. At most one of three can land on a brand angle, whatever
+    `phase` is.
+
+    So what `phase` is for is the failure that actually reads: a NEAR miss. A
+    blade four degrees off horizontal looks like a horizontal somebody failed
+    to draw; the same blade ten degrees off looks like a rotor that has turned.
+    The value objects.py passes was picked by scanning all 120 distinct
+    positions — the blade lines repeat every 360/(2n) — for the one whose worst
+    blade is furthest from any brand angle, subject to none of the three being
+    swallowed by the nacelle and none of them grazing the tower's silhouette
+    instead of crossing it.
+
+    The tips land exactly on r1, so an orbit() of the same radius over them is
+    the circle they travel and not a second circle that looks like it."""
+    a, b = _PLANE[axis]
+    c = p_(x, y, z)
+
+    def at(u, v):
+        return (c[0] + u * a[0] + v * b[0], c[1] + u * a[1] + v * b[1])
+
+    span = [(r0 + (r1 - r0) * s, w) for s, w in prof]
+    out = []
+    for i in range(n):
+        t = math.radians(phase + i * 360.0 / n)
+        ct, st = math.cos(t), math.sin(t)
+        pts = [at(rr * ct - w * st, rr * st + w * ct) for rr, w in span]
+        pts += [at(rr * ct + w * st, rr * st - w * ct) for rr, w in reversed(span)]
+        _PTS.extend(pts)
+        out.append(face(poly(pts), fill))
+    return out
+
+
 def orbit(x, y, z, r, axis='z'):
     """A ghost that CIRCULATES. The system's own distinction: a swept circle is
     a path something travels, not a state, and it carries .cf-iso__ghost in
-    addition to .cf-iso__orbit rather than instead of it. A rotor drawn as
-    three blades would be three edges on angles the system does not own; drawn
-    as its sweep it is one curve that turns."""
+    addition to .cf-iso__orbit rather than instead of it.
+
+    IT IS THE PATH, NOT THE THING. This used to stand IN for the wind turbine's
+    rotor, on the argument that three blades would be three edges on angles the
+    lattice does not own. The argument is true about the edges and wrong about
+    the drawing: a reader who cannot find blades cannot name a wind turbine,
+    and being nameable at a glance is the whole job of an object at stage size.
+    rotor() draws the blades; this draws the circle their tips travel, which is
+    what an orbit was for in the first place."""
     a, b = _PLANE[axis]
     rx, ry, ang = _ell(a, b, r)
     return _ell_tag(p_(x, y, z), rx, ry, ang, None,

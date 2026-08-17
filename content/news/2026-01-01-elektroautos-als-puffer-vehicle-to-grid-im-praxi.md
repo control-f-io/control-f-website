@@ -1,6 +1,7 @@
 datum:   2026-01-01
 autor:   Henry Beiker
 minuten: 2
+themen:  Energie, Telemetrie
 titel:   Elektroautos als Puffer: Vehicle-to-Grid im Praxistest
 title:   Electric cars as a buffer: vehicle-to-grid in practice
 

@@ -1,6 +1,8 @@
 datum:   2026-01-01
 autor:   Marie Ernø-Møller
 minuten: 2
+themen:  Energie, Telemetrie
+bild:    news/energiearmut-in-deutschland-ein-untersch-9de6b221.jpg
 titel:   Energiearmut in Deutschland – ein unterschätztes Problem
 title:   Energy poverty in Germany – an underrated problem
 

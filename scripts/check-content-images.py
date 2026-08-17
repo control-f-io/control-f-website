@@ -5,10 +5,12 @@ WHERE THEY COME FROM. An admin puts an image block in a Notion page;
 scripts/sync-news-notion.py and scripts/sync-jobs-notion.py download the file
 into design-system/assets/img/news/ or …/jobs/ and write
 `![caption](news/<file>)` into the post; scripts/build-articles.py and
-scripts/build-stellen.py draw it as a `.cf-prose > figure`. Nobody in
-that chain looks at the file. The photograph that leaves a phone is 4 000 px
-wide and four megabytes, and every step above will carry it to the reader
-without a word.
+scripts/build-stellen.py draw it as a `.cf-prose > figure`. The photograph
+that leaves a phone is 4 000 px wide and four megabytes — and the sync fits
+it to this plate the moment it downloads it (fit_to_plate(), Pillow, the one
+dependency the workflows install, pinned). So these sanctions are a BACKSTOP,
+not the front door: a LARGE or HEAVY finding means a picture got into the
+repository by hand, past a sync that would have fitted it at the door.
 
 THE PLATE IS 1008 PX. Measured on blog-artikel.html at 1440, 1920 and 2560 —
 `.cf-prose > figure:not(.cf-quote)` is 1008 px at all three, because the
@@ -37,7 +39,10 @@ TWO MORE THINGS, both of them the kind that renders correctly and is wrong:
              have to go with it — otherwise the archive shrinks and the
              repository does not.
 
-SCOPE is content/news/ and content/jobs/, with their two picture folders.
+SCOPE is content/news/ and content/jobs/, with their two picture folders. Both
+forms of reference count: a picture in the running text, `![caption](path)`, and
+a post's title picture, the `bild:` line in its header that the archive draws
+its card from.
 Pictures anywhere else in the design system are somebody else's rule: check-image-scale.py holds
 the ones drawn in a fixed box, and there is no plate but this one.
 
@@ -66,6 +71,16 @@ MAX_BYTES = 800_000
 
 PICTURE = re.compile(r"!\[(.*?)\]\(([^)\s]+)\)")
 
+# AND THE TITLE PICTURE, which is a header field rather than a block. A post
+# names the one picture that stands for it — `bild: news/x.jpg`, the Titelbild
+# property in Notion — and the archive draws its card from it. It is the same
+# file in the same folder under the same rules: named and missing is still
+# DANGLING, present and named by nothing is still ORPHANED, and a card is
+# 272 px of a five-column grid, which a file sized for the 1008 px plate covers
+# at every density. A post may use one picture in both places; it is downloaded
+# once, and this counts it once. → scripts/build-news.py
+TITLE_PICTURE = re.compile(r"^bild:\s*(\S+)\s*$", re.M)
+
 
 def intrinsic(path):
     """check-image-scale.py's header reader, imported rather than copied: it is
@@ -85,8 +100,15 @@ def referenced():
         if not store.is_dir():
             continue
         for item in sorted(store.glob("*.md")):
-            for m in PICTURE.finditer(item.read_text(encoding="utf-8")):
+            text = item.read_text(encoding="utf-8")
+            # The header ends at the first blank line, and `bild:` is a field of
+            # it: a line further down that happens to begin with the word is
+            # prose, not a reference.
+            head = text.partition("\n\n")[0]
+            for m in PICTURE.finditer(text):
                 out.setdefault(m.group(2).strip(), []).append(item.name)
+            for m in TITLE_PICTURE.finditer(head):
+                out.setdefault(m.group(1).strip(), []).append(item.name)
     return out
 
 
@@ -122,14 +144,18 @@ def main():
         if w > MAX_WIDTH:
             findings.append(
                 "LARGE     design-system/assets/img/%s is %d px wide; the plate "
-                "is %d and twice that is the ceiling.\n    Export it at %d px — "
-                "in Notion, replace the image with a smaller export."
+                "is %d and twice that is the ceiling.\n    The sync fits "
+                "pictures to this window as it imports them — one this wide got "
+                "into the repository another way. Re-run the sync for the "
+                "store, or replace it in Notion with an export at %d px."
                 % (path, w, PLATE, MAX_WIDTH))
         if size > MAX_BYTES:
             findings.append(
                 "HEAVY     design-system/assets/img/%s is %.1f MB; the budget is "
-                "%.0f kB.\n    At %d x %d that is either barely compressed or "
-                "larger than the box." % (path, size / 1e6, MAX_BYTES / 1e3, w, h))
+                "%.0f kB.\n    The sync re-encodes pictures over the budget as "
+                "it imports them — one this heavy got into the repository "
+                "another way. Re-run the sync for the store, or replace it in "
+                "Notion with a smaller file." % (path, size / 1e6, MAX_BYTES / 1e3, w, h))
         if args.verbose:
             print("  %-52s %5d x %-5d %6.0f kB  %s"
                   % (path, w, h, size / 1e3, where))
