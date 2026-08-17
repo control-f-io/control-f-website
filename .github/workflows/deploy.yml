@@ -49,10 +49,32 @@ jobs:
       - name: Build the site from the design system's patterns
         run: python3 scripts/build-site.py
 
-      # The site is plain static files — the repo root is the document root.
+      # THE ARTIFACT USED TO BE THE REPOSITORY AND IS NOW THE WEBSITE.
+      #
+      # `path: .` uploaded the whole tracked checkout — upload-pages-artifact
+      # excludes .git and .github and nothing else — so the public site served
+      # every file in the repository. Verified by fetching them rather than
+      # assumed: /scripts/build-site.py, /worker/index.js, /wrangler.toml,
+      # /content/jobs/.catalogue.json and /docs/…/*.png all answered 200, and so
+      # did twelve committed editor autosaves until they were deleted.
+      #
+      # stage-site.py already computed the right answer for Cloudflare: the pages
+      # build-site.py ships, asked of that file rather than typed here, plus
+      # design-system/ (the assets every page loads and the documentation, which
+      # is published on purpose). Pages ships the same directory now, which also
+      # makes the two deploys the same bytes instead of two lists that agree by
+      # habit. --surface pages leaves out the _headers file that marks the
+      # Cloudflare copy noindex — this host is the one that must be indexed.
+      #
+      # The URLs do not change: dist/ reproduces the root layout, /en/ included.
+      - name: Collect the website into dist/
+        run: |
+          python3 scripts/stage-site.py --surface pages
+          python3 scripts/stage-site.py --surface pages --check
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: dist
 
       - id: deployment
         uses: actions/deploy-pages@v4

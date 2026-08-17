@@ -94,9 +94,24 @@ jobs:
           fetch-depth: 0
           ref: ${{ inputs.branch || github.ref_name }}
 
-      # The same forty checks design-system.yml runs, in the same order, with
-      # the same python. Every one must pass; the list is globbed rather than
-      # enumerated so a check written by a later run is enforced by existing.
+      # Everything design-system.yml runs, with the same python. Every one must
+      # pass; the check list is globbed rather than enumerated so a check
+      # written by a later run is enforced by existing.
+      #
+      # THE SIX BUILDS ARE PART OF THE GATE AND WERE NOT, WHICH COST A DEPLOY.
+      # This step used to glob scripts/check-*.py and stop there, while the six
+      # `--check` steps lived only in design-system.yml — a workflow that a
+      # GITHUB_TOKEN push never starts. So a branch that changed German copy
+      # without adding the pair to design-system/i18n/en.json passed this gate,
+      # self-merged, and only then went red: on main, in design-system.yml, and
+      # again in deploy.yml, which runs build-i18n.py in WRITE mode before it
+      # uploads and exits 1 on the missing entry. The site stops deploying —
+      # both editions, every page — until somebody repairs the catalogue by
+      # hand. The gate is the only thing standing in front of an unattended
+      # merge, so it has to assert what the deploy will assert.
+      #
+      # In build-all.sh's order, and after the checks so a broken drawing is
+      # still reported when a catalogue entry is also missing.
       - name: The design system's self-checks
         id: gate
         run: |
@@ -104,6 +119,11 @@ jobs:
           for s in scripts/check-*.py; do
             echo "::group::$s"
             if python3 "$s"; then :; else fail=1; echo "::error::$s failed"; fi
+            echo "::endgroup::"
+          done
+          for b in build-news build-jobs build-i18n build-articles build-stellen build-site; do
+            echo "::group::scripts/$b.py --check"
+            if python3 "scripts/$b.py" --check; then :; else fail=1; echo "::error::scripts/$b.py --check failed"; fi
             echo "::endgroup::"
           done
           exit $fail
@@ -192,12 +212,27 @@ jobs:
               # concurrency group queues the run behind a busy deploy instead of
               # killing it, and a failed dispatch cannot un-merge what landed —
               # so it reports loudly and leaves the merge standing.
-              if gh workflow run "Deploy to GitHub Pages" --ref main 2>/tmp/deploy.err; then
-                echo "dispatched Deploy to GitHub Pages — main is what will be served"
-              else
-                echo "::error::main moved but the deploy was not started — $(head -1 /tmp/deploy.err)"
-                echo "The merge succeeded; run Deploy to GitHub Pages by hand." >> "$GITHUB_STEP_SUMMARY"
-              fi
+              #
+              # BOTH DEPLOYS, because there are two and the same token blindness
+              # applies to each. deploy-worker.yml listens for the push event as
+              # well, so before this loop named it the Cloudflare copy sat at the
+              # previous user-credential push after every merge that came through
+              # here — measured on the three Notion syncs of 2026-08-13: stale
+              # for 42 min, 2 h 38 min and 16 min, until an unrelated human merge
+              # raised a push event and carried the content over by accident.
+              # Pages is the serving origin today so the cost was invisible; the
+              # day the DNS cutover makes the Worker the site, an hourly content
+              # import that never reaches it is the whole pipeline silently
+              # failing. It is gated on CLOUDFLARE_ENABLED inside its own file,
+              # so dispatching it when Cloudflare is off costs one skipped run.
+              for wf in "Deploy to GitHub Pages" "Deploy the Worker"; do
+                if gh workflow run "$wf" --ref main 2>/tmp/deploy.err; then
+                  echo "dispatched $wf — main is what will be served"
+                else
+                  echo "::error::main moved but $wf was not started — $(head -1 /tmp/deploy.err)"
+                  echo "The merge succeeded; run \"$wf\" by hand." >> "$GITHUB_STEP_SUMMARY"
+                fi
+              done
               exit 0
             fi
             echo "main moved under this run; replaying (attempt $attempt)"

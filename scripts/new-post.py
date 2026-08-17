@@ -70,6 +70,7 @@ stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
 import argparse
 import datetime
+import importlib.util
 import pathlib
 import re
 import sys
@@ -77,6 +78,21 @@ import unicodedata
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 POSTS = ROOT / "content" / "news"
+
+
+def topics():
+    """The German topic names build-news.py accepts, lowercased.
+
+    Read out of that file rather than repeated in this one: the vocabulary is
+    closed — adding a fourth topic is deliberately a code edit there — and two
+    lists of three names is the shape of drift this repository keeps writing
+    checks about.
+    """
+    spec = importlib.util.spec_from_file_location(
+        "cf_build_news", ROOT / "scripts" / "build-news.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return set(mod.BY_NAME)
 
 
 def slug(title):
@@ -110,6 +126,21 @@ def main():
 
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.datum):
         sys.exit("new-post: --datum is %r, not YYYY-MM-DD." % args.datum)
+
+    # A TOPIC NAME IS CHECKED HERE OR IT IS CHECKED BY THE BUILD, and here is
+    # where the person who typed it is still looking. The vocabulary is three
+    # names and is closed — build-news.py's TOPICS owns it, so it is read from
+    # there rather than restated — and "Energy" or "Telemetry" is the mistake
+    # this catches: an English name on a German field writes a file that scaffolds
+    # cleanly and then fails build-news.py with a topic nothing recognises.
+    if args.themen:
+        known = topics()
+        wrong = [t for t in (x.strip() for x in args.themen.split(",")) if t
+                 and t.lower() not in known]
+        if wrong:
+            sys.exit("new-post: %s is not a topic. The three are %s."
+                     % (", ".join(repr(w) for w in wrong),
+                        ", ".join(sorted(k.title() for k in known))))
 
     POSTS.mkdir(parents=True, exist_ok=True)
     path = POSTS / ("%s-%s.md" % (args.datum, slug(args.titel)))

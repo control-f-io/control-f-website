@@ -89,7 +89,15 @@ def load(name):
 
 
 NEWS = load("sync-news-notion")        # plain(), rich(), body_from(), children(), fetch()
-fail = NEWS.fail
+
+
+# NOT NEWS.fail, WHICH IS WHERE EVERY ERROR THIS SCRIPT PRINTS CLAIMED TO COME
+# FROM. That function prefixes "sync-news: ", so a Stellen sync that stopped on a
+# missing Frist or a register it refused to empty reported it under the archive's
+# name — in a workflow that runs both scripts one after the other, into one log.
+def fail(msg):
+    print("sync-jobs: " + msg, file=sys.stderr)
+    sys.exit(1)
 
 # Notion property → post field, in the order the file writes them. A pair of
 # languages is two properties and two fields, deliberately: one column that
@@ -251,12 +259,35 @@ def main():
                  % name)
         wanted[name] = body
 
-    # NO FLOOR AND NO EMPTY REGISTER. The archive's floor exists because an
-    # empty news page is indistinguishable from a broken query; a register with
-    # nothing in it is an ordinary state a company is in, and karriere-leer.html
-    # is the page written for it. But that page is written by hand, and this
-    # script does not put it in place — so an empty result stops here rather
-    # than silently leaving karriere.html claiming a register it no longer has.
+    # A FLOOR, AND IT IS LOWER THAN THE ARCHIVE'S BECAUSE THE REGISTER IS SMALL.
+    # sync-news-notion.py refuses a sync that removes more than three posts and
+    # more than half the archive; that arithmetic is meaningless against a
+    # register of four. Removing three of four openings clears `going > 3` by
+    # failing it, so the only thing that ever stopped here was the empty result
+    # below — and three of four is exactly what a filtered view or a renamed
+    # Status looks like from in here. These are live job advertisements: the rows
+    # do not vanish, they are simply not the rows, and the next build ships a
+    # register with one opening in it and a page header that agrees.
+    #
+    # More than one AND more than half. Two of four is a plausible fortnight —
+    # two positions filled — and syncs. Three of four is not, and stops.
+    standing = len(list(JOBS.glob("*.md"))) if JOBS.is_dir() else 0
+    going = len([n for n in (p.name for p in JOBS.glob("*.md"))
+                 if n not in wanted]) if JOBS.is_dir() else 0
+    if wanted and going > 1 and going * 2 > standing and not args.force:
+        fail("this would remove %d of the %d openings in content/jobs/ and "
+             "Notion published %d.\n"
+             "    That is what a wrong database id, a renamed Status or a "
+             "filtered view looks like from here, and these are advertisements "
+             "somebody is answering.\n"
+             "    If the register really is meant to shrink to %d: --force"
+             % (going, standing, len(wanted), len(wanted)))
+
+    # AND NO EMPTY REGISTER. A register with nothing in it is an ordinary state a
+    # company is in, and karriere-leer.html is the page written for it. But that
+    # page is written by hand, and this script does not put it in place — so an
+    # empty result stops here rather than silently leaving karriere.html claiming
+    # a register it no longer has.
     if not wanted and not args.force:
         fail("no row in that database is %s.\n"
              "    If the last opening really has been filled: the zero state is "

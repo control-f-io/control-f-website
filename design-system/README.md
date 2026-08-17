@@ -1,10 +1,18 @@
 # Control-F Design System
 
-The implementation of the 2026 brand for the web. Static HTML + CSS, no build step,
-no dependencies.
+The implementation of the 2026 brand for the web. Hand-written HTML + CSS, no
+dependencies — but not "no build step" any more, which this line used to claim:
+the pages under `patterns/` are the source the shipped website is generated from,
+and `scripts/build-all.sh` is the chain that generates it.
 
-Source material: [`control_f_website_new_design/`](../../control_f_website_new_design/)
-— brand manual, logo files, Figma mockups of the Landing Page and Über uns.
+Source material — the brand manual, the logo files and the Figma mockups of the
+Landing Page and Über uns — is **not in this repository**. It is ~194 MB and
+`.gitignore` keeps it out; the path it is expected at, beside the checkout, is
+`control_f_website_new_design/`. This line used to hyperlink that directory,
+which 404s for everyone who does not already have it, including every reader of
+the published copy of this page. The plates that are quoted rather than merely
+referenced live in `assets/source/` and are rendered by
+[`reference.html`](reference.html).
 
 ## Run it
 
@@ -20,6 +28,7 @@ Then open <http://localhost:8000/design-system/>. It also works by opening
 ```bash
 python3 scripts/new-post.py "Neue Anlage in Konstanz ans Netz gegangen" \
         --title "New plant in Konstanz connected to the grid" \
+        --themen "Energie" \
         --autor "Henry Beiker" --minuten 3
 sh scripts/build-all.sh
 ```
@@ -30,14 +39,29 @@ translates what it generated, and rewrites the pages that ship. Both titles are
 required — the site ships in two languages and a half-translated page is what
 the catalogue exists to prevent — and the build says so rather than guessing.
 
-The post file is five lines and readable on its own:
+**`--themen` is required too, and leaving it out of this command used to be what
+this page told you to do.** A post filed under nothing is a card the topic
+filter cannot place, so `build-news.py` refuses it — which means the two
+commands above, written without it, wrote a file and then failed the build on
+it. `new-post.py` prints what is missing when you omit the flag, and it now
+rejects a name outside the vocabulary rather than letting the build find it:
+the three are `Telemetrie`, `Energie`, `Architektur`, and a fourth is
+deliberately a code edit in `build-news.py`.
+
+The post file is six lines and readable on its own:
 
 ```
 datum:   2026-08-07          required, YYYY-MM-DD. Sorts the archive.
 autor:   Henry Beiker        optional. Only the lead card has room to show it.
 minuten: 3                   optional. Reading time, as the cards state it.
+themen:  Energie             required. One or more of Telemetrie, Energie,
+                             Architektur, comma-separated. The chips on the
+                             archive and the links under the finished article.
 titel:   Neue Anlage …       required, German.
 title:   New plant …         required, English.
+bild:    anlage-konstanz.jpg optional. A file in
+                             design-system/assets/img/news/; it becomes the
+                             card's picture and the article's title plate.
 ```
 
 Deleting a post is deleting its file and building again; nothing else has to be
@@ -108,15 +132,17 @@ admin's loop is then one place: write the post, set **Status** to
 
 **The database exists**: [News (Website)](https://app.notion.com/p/3b52e8e3987781138144cfea278747d8),
 under *Branding / Marketing*, seeded with the eighteen posts that were already in
-`content/news/`. Its six properties are the ones the script reads:
+`content/news/`. Its eight properties are the ones the script reads:
 
 | Property | Type | |
 |---|---|---|
 | `Titel` | Title | the German headline |
 | `Title` | Text | the English headline — required, the site ships twice |
 | `Datum` | Date | sorts the archive |
+| `Themen` | Multi-select | **required.** `Telemetrie`, `Energie`, `Architektur` — one or more. A post filed under nothing is a card the topic filter cannot place, and the build refuses it |
 | `Autor` | Text | optional; only the lead card has room to show it |
 | `Minuten` | Number | optional; reading time |
+| `Titelbild` | Files | optional; the card's picture and the article's title plate. The sync downloads it (Notion's URLs expire within the hour), fits it to the plate and names the file after the digest of the bytes it stored |
 | `Status` | Select | `Entwurf` → `In Review` → `Veröffentlicht`; only the last is imported |
 
 **What you write inside the page is the article.** German text, a **divider
