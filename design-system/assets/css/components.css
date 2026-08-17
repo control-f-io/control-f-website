@@ -5763,8 +5763,48 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
      copy leads. The figure stays FIRST in the source on both kinds of row —
      the picture is the subject of the claim beside it, and a reader on a
      screen reader should meet it in that order whichever side it is drawn on. */
-  .cf-culture__row--tall > .cf-culture__figure { grid-column: 2; border-left: var(--stroke-1) solid var(--border-strong); }
+  .cf-culture__row--tall > .cf-culture__figure { grid-column: 2; position: relative; }
   .cf-culture__row--tall > .cf-culture__body   { grid-column: 1; }
+  /* THE RULE BELONGS TO THE BOUNDARY, NOT TO THE CELL DRAWN BESIDE IT, and a
+     border cannot say so on this band. The picture changes sides row by row, so
+     a border on the figure changes WHICH SIDE OF THE COLUMN LINE the hairline
+     falls on: `border-right` in a wide row is the last pixel INSIDE track 1,
+     `border-left` in a tall row is the first pixel INSIDE track 2. Same
+     boundary, opposite sides of it, and the line steps sideways at every row.
+
+     Measured at 1440 on a 2x capture before this rule: the vertical hairline
+     stood at x 847 down both wide rows and at x 848 down both tall rows — four
+     1 px jogs from the top of the band to the bottom, and with them a 2 px
+     stagger between the pictures' facing edges (the wide frame ended at 846.8,
+     the tall one began at 848.8). One pixel is not a rounding artefact here:
+     it is the whole stroke, so the eye reads the line as broken rather than as
+     thin. It is what got reported, in those words: "the pictures are not
+     aligned".
+
+     So the tall row draws the rule where the wide row draws it — the last pixel
+     of track 1 — by reaching back across the line for it. `right: 100%` against
+     the figure's own padding box is that pixel stated as a position rather than
+     as a second number: no track width is repeated here, so the rule cannot
+     drift from the 3fr / 2fr split above it. A hairline on a cell's ::before is
+     the construction .cf-subdiv__cell already uses for the same job ("every
+     cell draws its own leading rule"), and it is deliberately NOT a box-shadow:
+     foundations/photography.html gives photographs "no frame and no shadow",
+     and a shadow on a figure is that sentence's exact subject however
+     structural the intent.
+
+     No border-left on the figure any more, so the picture reaches the rule
+     instead of stopping a pixel short of it. Under the global border-box the
+     figure's own box is unchanged either way, so the row heights the band's
+     rhythm is measured in — 511 against 640 — do not move.
+     → scripts/check-band-rule-continuity.py */
+  .cf-culture__row--tall > .cf-culture__figure::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    right: 100%;
+    width: var(--stroke-1);
+    background-color: var(--border-strong);
+  }
 }
 
 /* The group shot that closes the team grid. 16:9 and full container width, per
