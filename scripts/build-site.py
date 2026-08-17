@@ -20,10 +20,23 @@ apparatus with them.
 
 WHY A GENERATOR AND NOT A COPY. Because a copy of 8 500 lines of HTML, edited
 hourly on one side, is a drift the repository would notice about a week late.
-The root pages are output. `--check` holds them to their source, the way
-check-spacing-scale.py holds the space-scale table to the shipping CSS, and
-deploy.yml runs the generator before it uploads, so what Pages serves is built
-from the patterns as they are at that commit even if someone forgets.
+The root pages are output.
+
+AND SINCE 2026-08-17 THEY ARE NOT COMMITTED, which is the end of the same
+argument rather than a new one. They were tracked for as long as `--check` was
+what held them to their source: 43 pages here, 43 under en/, 43 English patterns
+and 25 generated pattern pages, so every logical page was in git four times and
+70 % of the tracked HTML lines were this script's output. `--check` did hold them
+honest — it was answering the wrong question. The copies did not need to be
+honest; they needed to not be there.
+
+So .gitignore covers them, scripts/check-tracked-outputs.py fails a branch that
+adds one back, and scripts/build-and-verify.sh asserts the half that still
+matters: build, then fail if any *tracked* file moved. `--check` is still here and
+still useful at a desk — it is how you ask whether the tree you are looking at is
+current — but a fresh checkout has no pages for it to compare, so it is no longer
+what CI runs. Both deploys build the whole chain before they stage, so what is
+served is built from the patterns as they are at that commit.
 
 THE FOUR EDITS, and nothing else — no minifying, no rewriting, no template.
 Each one asserts its own count, so a page that stops matching fails the build

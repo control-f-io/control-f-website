@@ -21,13 +21,37 @@ been removed.
 ## The root is generated
 
 Every `.html` file at the root is written by [`scripts/build-site.py`](scripts/build-site.py)
-out of the matching page in `design-system/patterns/`. **Do not edit them.** Edit the
-pattern and rebuild:
+out of the matching page in `design-system/patterns/`, **and none of it is in git.**
+Clone this repository and there is no website in it until you build one:
 
 ```bash
-python3 scripts/build-site.py            # write the root pages
-python3 scripts/build-site.py --check    # fail if any is stale, missing or hand-written
+sh scripts/build-all.sh                  # the whole chain, in the one order that works
+python3 -m http.server 8000              # then it is there
 ```
+
+Until 2026-08-17 the output was committed beside its sources — the 43 pages here, the
+43 under `en/`, the 43 English patterns and the 25 generated pattern pages. 154 files,
+four copies of every logical page, 70 % of the tracked HTML lines. A one-word copy
+change rewrote four files; `grep` answered four times over and one of the answers was
+the source; an hourly Notion import arrived as a ninety-six-file diff nobody read.
+
+What replaced `--check` as the gate:
+
+```bash
+sh scripts/build-and-verify.sh           # build, then fail if a TRACKED file moved
+python3 scripts/check-tracked-outputs.py # fail if generated output is tracked
+```
+
+The first is the one that catches real mistakes now. `en.json`, the fenced regions of
+`patterns/news.html` and `patterns/karriere.html`, and the two `content/*/.catalogue.json`
+ledgers are written by generators and *are* committed — they are the record of which
+strings a build owns, and no build can reconstruct them. Building and then asking git
+whether anything moved is what holds those to their sources, and it catches a stale
+ledger, which comparing output to source never could.
+
+`--check` still exists on every builder and is still the right thing to run at a desk:
+it answers "is the tree in front of me current?". It cannot be the CI gate any more,
+because a fresh checkout has no pages for it to compare.
 
 The patterns cannot simply live at the root: 117 `scripts/check-*.py` read them
 from `design-system/patterns/`, several keyed on that path by string, and the routines run
@@ -35,8 +59,9 @@ against it. So the pattern stays where it is checked and the root holds its ship
 which differs by four edits and nothing else — asset paths, the landing page's name, and
 the two pieces of preview chrome that never ship. The script's own header lists them.
 
-`design-system.yml` runs `--check` on every push, and `deploy.yml` rebuilds before it
-uploads, so a forgotten rebuild is caught in CI and cannot reach production either way.
+`design-system.yml` builds first and then runs the checks — it has to, since two of
+them read pages — and both deploys build the whole chain before they stage, so there is
+no such thing as a forgotten rebuild reaching production.
 
 There is one copy of every stylesheet, script, font and image, in
 `design-system/assets/`. The shipped pages and the documentation load the same files.
@@ -97,6 +122,9 @@ python3 -m http.server 8000    # repo root
 
 - Website: <http://localhost:8000/> · English: <http://localhost:8000/en/>
 - Design system: <http://localhost:8000/design-system/>
+
+The design system is there in a fresh clone; the website is not. `sh scripts/build-all.sh`
+first, or the root is a directory of sources and `/` is a 404.
 
 ## Automation
 

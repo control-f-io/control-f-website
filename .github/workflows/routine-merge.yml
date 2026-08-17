@@ -116,14 +116,24 @@ jobs:
         id: gate
         run: |
           fail=0
+          # THE BUILD FIRST, AND IT IS NOT OPTIONAL ANY MORE. The generated
+          # website is not tracked as of 2026-08-17, so this checkout does not
+          # have a single one of its 154 pages until this runs — and two checks
+          # read pages (check-form-contract.py wants patterns/en/kontakt.html,
+          # check-links.py resolves every href). It is also the gate on the
+          # tracked half: build-and-verify.sh fails if building moved a tracked
+          # file, which is how a German string without its English pair, an edit
+          # inside a news:/jobs: fence, or a stale content ledger is refused
+          # BEFORE the merge. It replaces the six `--check` steps this loop ran,
+          # and asserts more than they could.
+          echo "::group::scripts/build-and-verify.sh"
+          if sh scripts/build-and-verify.sh; then :; else
+            fail=1; echo "::error::the build moved a tracked file, or a builder failed"
+          fi
+          echo "::endgroup::"
           for s in scripts/check-*.py; do
             echo "::group::$s"
             if python3 "$s"; then :; else fail=1; echo "::error::$s failed"; fi
-            echo "::endgroup::"
-          done
-          for b in build-news build-jobs build-i18n build-articles build-stellen build-site; do
-            echo "::group::scripts/$b.py --check"
-            if python3 "scripts/$b.py" --check; then :; else fail=1; echo "::error::scripts/$b.py --check failed"; fi
             echo "::endgroup::"
           done
           exit $fail
