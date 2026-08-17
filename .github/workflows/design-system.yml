@@ -556,6 +556,35 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-band-inset.py
 
+      # The inset's neighbour again, one stroke in. The check above holds a
+      # band's distance from the page edge; this one holds the position of the
+      # hairline INSIDE it, and the fault it names is a single pixel that no
+      # measurement of a box reports.
+      #
+      # A border sits inside the box that declares it, so `grid-column: 1;
+      # border-right` and `grid-column: 2; border-left` are the same column line
+      # drawn one stroke apart. .cf-culture puts the rule on the FIGURE, and the
+      # figure changes sides row by row — the landscape frame takes the 3fr
+      # track, the portrait frame the 2fr one — so the rule swapped sides of the
+      # line every time the picture did. Measured on patterns/ueber-uns.html at
+      # 1440 on a 2x capture: x 847.0 down both wide rows, x 848.0 down both
+      # tall rows, four jogs from the top of the "Wie wir arbeiten" band to the
+      # bottom, and a 2 px stagger between the pictures' own facing edges
+      # underneath it.
+      #
+      # Nothing already here could see it, and that is the point of the entry.
+      # check-grid-tracks.py reads track lists and this is not one; the two
+      # figure checks ask whether a drawing fits its box and both boxes were
+      # exactly right. The geometry was correct and the stroke was on the wrong
+      # side of a line — which is invisible at 1x, invisible in a diff, and the
+      # thing that got reported: "the pictures are not aligned".
+      #
+      # Proven failing on the reintroduced border-left, and passing on the
+      # ::before at right: 100% that replaced it.
+      - name: Band rule continuity
+        if: '!cancelled()'
+        run: python3 scripts/check-band-rule-continuity.py
+
       - name: Breakpoint register
         if: '!cancelled()'
         run: python3 scripts/check-breakpoints.py
