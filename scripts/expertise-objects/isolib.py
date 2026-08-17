@@ -129,6 +129,86 @@ def quad_y(yc, x, z, dx, dz, fill=None):
     return face(d, fill) if fill else d
 
 
+# ---------------------------------------------------------------- profiles
+# A BOX CANNOT SAY "RAKED", and four of the five machines in the fleet object
+# are shaped by exactly one sloped edge: a ship's stem, a fin's leading edge, a
+# crawler track's idler ramp, a boom. Drawn as boxes they are the same drawing
+# five times, which is what the first fleet object was.
+#
+# THE SLOPES ARE STILL BRAND ANGLES, and that is a constraint on the numbers
+# rather than on the primitive. In a vertical plane a step (dx, dz) lands on
+# screen slope 0.5 - dz/dx, so dz/dx of 1, 1.5 and 2.5 give 26.57, 45 and 63.43
+# degrees and nothing else does — a "natural-looking" 40-degree boom is off the
+# system's five angles as surely as a horizontal rule is. Same numbers on the
+# +y side, mirrored. Every profile in objects.py is written from that table.
+#
+# THE STRIPS ARE PAINTED FIRST AND ALL OF THEM. Extruding a profile toward the
+# reader, an edge whose outward normal points away from the viewer extrudes INTO
+# the near face and is covered by it; one that points toward the viewer extrudes
+# clear of it and shows. So there is no visibility test to get wrong: emit every
+# edge's strip, then paint the near face over the lot, and what remains is
+# exactly the silhouette.
+#
+# THE TONE IS COMPUTED FROM THE NORMAL, and that is not a convenience. The
+# register has three values and they mean three DIRECTIONS — sky, lit, turned
+# away — so a sloped strip's tone is a fact about its normal, not a choice at
+# the call site. It is also the one thing hand-assignment gets wrong silently:
+# a member steeper than the camera's own 45 deg shows its UNDERSIDE and hides
+# its top (the top face's normal is (-dz, 0, dx), which turns away exactly when
+# dz > dx), so the excavator's boom was written with its top lit and painted its
+# underside with the sky tone. Nothing rendered wrong; it just read as tin.
+def _tone(n, away):
+    """`n` is (across, up) — the strip's outward normal in its own plane."""
+    if n[1] > abs(n[0]):
+        return FACE_TOP
+    return FACE_R if n[0] > 0 else away
+
+
+def _extrude(pts_a, pts_b, prof, strips, side, away, flip=False):
+    # Shoelace on the profile: the sign says which of an edge's two normals
+    # points out of the body, and every strip's tone depends on that.
+    #
+    # BACK STRIPS PAINT FIRST. A strip whose outward normal turns away from the
+    # camera lies behind the prism's own visible faces (every profile in here is
+    # convex), but strips were emitted in profile order — a back-facing heel cap
+    # could land AFTER the visible face beside it and overpaint it. They cannot
+    # be skipped: their far edges are the silhouette's far boundary. So they go
+    # first, the visible strips and the near face over them. `flip` is for
+    # slab_x, whose profile frame negates its first axis.
+    s = sum(prof[i][0] * prof[(i + 1) % len(prof)][1] - prof[(i + 1) % len(prof)][0] * prof[i][1]
+            for i in range(len(prof)))
+    back, front = [], []
+    for i in range(len(pts_a)):
+        j = (i + 1) % len(pts_a)
+        d = poly([pts_a[i], pts_a[j], pts_b[j], pts_b[i]])
+        e = (prof[j][0] - prof[i][0], prof[j][1] - prof[i][1])
+        nrm = (e[1], -e[0]) if s > 0 else (-e[1], e[0])
+        if strips is None:
+            tone = _tone(nrm, away)
+        else:
+            tone = strips[i] if isinstance(strips, (list, tuple)) else strips
+        toward = (-nrm[0] if flip else nrm[0]) + nrm[1]
+        (front if toward > 1e-9 else back).append(face(d, tone))
+    return back + front + [face(poly(pts_b), side)]
+
+
+def slab_y(y, w, pts, side=FACE_L, strips=None):
+    """A profile in the vertical plane at constant y — pts are (x, z) — given a
+    thickness w along +y. The near face is the +y one, so it takes the shaded
+    tone; the strips take theirs from their own normals."""
+    return _extrude([P(x, y, z) for x, z in pts],
+                    [P(x, y + w, z) for x, z in pts], pts, strips, side, FACE_L)
+
+
+def slab_x(x, w, pts, side=FACE_R, strips=None):
+    """The same, in the vertical plane at constant x — pts are (y, z) — with the
+    thickness on +x, so the near face is the lit one. A strip across this plane
+    can only face the sky or one of the two flanks, and +y is the shaded one."""
+    return _extrude([P(x, y, z) for y, z in pts],
+                    [P(x + w, y, z) for y, z in pts],
+                    [(-a, b) for a, b in pts], strips, side, FACE_L, flip=True)
+
+
 def seams(a, b, c, d, n):
     """n evenly spaced lines across the strip a->b / c->d (lattice triples)."""
     out = []
@@ -370,6 +450,35 @@ def orbit(x, y, z, r, axis='z'):
 def node(x, y, z, r=4):
     c = P(x, y, z)
     return f'<circle class="cf-iso__node" cx="{f(c[0])}" cy="{f(c[1])}" r="{r}" fill="#000" stroke="none"/>'
+
+
+def trace_from(a, b, crop):
+    """--trace-from for a trace that enters the frame from off-stage: 1 minus
+    the share of it that is already behind the edge when it arrives.
+    components.css states that contract at .cf-iso__trace, and the share is what
+    pathLength would otherwise spend on a line nobody can see.
+
+    THE EDGE IS WHICHEVER ONE IT CROSSES. maschinenbau() computed this share
+    from the x coordinates alone, against the crop's right edge, because that is
+    where its own trace comes in — and the moment a trace entered through the
+    TOP instead, that expression returned a share of -0.9 and a --trace-from of
+    1.903: an offset outside the property's range, from arithmetic that had no
+    way to know it was measuring the wrong edge. This clips the segment against
+    all four (Liang-Barsky, entry parameter only) and returns the same 0.926 for
+    the trace that produced the number by hand.
+
+    A trace that starts INSIDE the crop gets 1, the property's own default,
+    which draws the whole path — the honest answer for a line with no off-stage
+    half to skip."""
+    (ax, ay), (bx, by) = p_(*a), p_(*b)
+    x0, y0, w, h = crop
+    dx, dy = bx - ax, by - ay
+    t = 0.0
+    for p, q in ((-dx, ax - x0), (dx, x0 + w - ax),
+                 (-dy, ay - y0), (dy, y0 + h - ay)):
+        if p < 0:
+            t = max(t, q / p)
+    return round(1.0 - t, 3)
 
 
 def trace(a, b, frm=None, to=None):
