@@ -1,15 +1,32 @@
 #!/usr/bin/env python3
-"""The website, collected into dist/ for a deploy that needs a directory.
+"""The website, collected into dist/ for both deploys.
 
-WHY THIS EXISTS. GitHub Pages uploads the repository root and the root is the
-document root, which is why build-site.py writes the pages there and why there
-has never been a build directory. Cloudflare needs one anyway, for a reason
-that has nothing to do with taste: wrangler writes its own state into
-.wrangler/ *inside* the assets directory, so pointing it at the repo root
-makes it watch the directory it is writing to. `wrangler dev` then reloads
+WHY THIS EXISTS. Cloudflare needs a directory holding the website and nothing
+else, for a reason that has nothing to do with taste: wrangler writes its own
+state into .wrangler/ *inside* the assets directory, so pointing it at the repo
+root makes it watch the directory it is writing to. `wrangler dev` then reloads
 forever — measured, not guessed: 387 reloads in two minutes before this script
 existed. .assetsignore does not help; it governs what is uploaded, not what is
 watched.
+
+AND THEN GITHUB PAGES WANTED IT TOO. Pages uploaded the repository root — the
+whole tracked checkout minus .git and .github — because the root is the
+document root and the pages are written there. That published every file in the
+repository: all six generators and every check script, the Worker's source and
+wrangler.toml, the content store with its ledgers, the browser-audit frames, and
+for a while twelve editor autosaves. Verified by fetching them, not assumed:
+/scripts/build-site.py and /worker/index.js answered 200. The Cloudflare copy
+never had that problem because it ships this allowlist, so Pages ships it now as
+well and the two surfaces are the same bytes by construction.
+
+TWO SURFACES, ONE DIRECTORY. The content is identical; the difference is one
+file. `--surface worker` writes dist/_headers, which marks this copy noindex
+while some other host is canonical, and `--check` holds the pairing with
+SITE_ORIGIN. `--surface pages` does not write it: Pages IS the canonical site,
+must be indexable, and does not read _headers anyway. The Worker-only
+assertions — that every directory index is a URL run_worker_first names — are
+checked for the worker surface only, so a Cloudflare routing question can never
+fail the Pages deploy.
 
 Naming the output also makes the deploy say what the website is. The repo root
 holds the generator, the checks, the routines' briefs, the content store and
@@ -27,8 +44,10 @@ WHAT THE WEBSITE IS. Two things, and the list is derived, not typed:
 
 Nothing else at the root is referenced by any shipped page.
 
-    python3 scripts/stage-site.py            # write dist/
-    python3 scripts/stage-site.py --check    # fail if dist/ is missing or stale
+    python3 scripts/stage-site.py                      # write dist/ for the Worker
+    python3 scripts/stage-site.py --check              # fail if dist/ is missing or stale
+    python3 scripts/stage-site.py --surface pages      # write dist/ for GitHub Pages
+    python3 scripts/stage-site.py --surface pages --check
 """
 
 import argparse
@@ -127,7 +146,8 @@ def site_origin():
 HEADERS = "/*\n  X-Robots-Tag: noindex\n"
 
 
-def stage(check):
+def stage(check, surface):
+    worker = surface == "worker"
     pages = ship_names()
     missing = [p for p in pages if not (ROOT / p).exists()]
     if missing:
@@ -149,6 +169,23 @@ def stage(check):
             return 1
 
         headers = DIST / "_headers"
+        if not worker:
+            # Nothing to pair with SITE_ORIGIN here: Pages is the canonical
+            # site. A _headers in this dist/ means it was staged for the Worker,
+            # and uploading that one would publish a stray file — and, read the
+            # other way round, staging for Pages and deploying it to Cloudflare
+            # would drop the noindex that keeps the second copy out of the
+            # results. Each workflow stages its own dist/ from scratch, so this
+            # only fires when the two are mixed up by hand.
+            if headers.exists():
+                print("stage-site: dist/_headers is here, so this dist/ was "
+                      "staged for the Worker — restage with --surface pages.",
+                      file=sys.stderr)
+                return 1
+            print("dist OK — %d pages and the design system, current with the "
+                  "root, staged for GitHub Pages." % len(pages))
+            return 0
+
         wanted = site_origin() is not None
         if wanted and not headers.exists():
             print("stage-site: SITE_ORIGIN is set, so another host is the "
@@ -198,11 +235,12 @@ def stage(check):
     # documentation, which ships. One copy, the same one the patterns use.
     shutil.copytree(ROOT / "design-system", DIST / "design-system")
 
-    if site_origin() is not None:
+    if worker and site_origin() is not None:
         (DIST / "_headers").write_text(HEADERS, encoding="utf-8")
 
     total = sum(1 for _ in DIST.rglob("*") if _.is_file())
-    print("dist built — %d pages, %d files in all." % (len(pages), total))
+    print("dist built for %s — %d pages, %d files in all."
+          % (surface, len(pages), total))
     return 0
 
 
@@ -210,8 +248,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--check", action="store_true",
                     help="fail if dist/ is missing or stale rather than writing it")
+    ap.add_argument("--surface", choices=("worker", "pages"), default="worker",
+                    help="which deploy this dist/ is for (default: worker)")
     args = ap.parse_args()
-    return stage(args.check)
+    return stage(args.check, args.surface)
 
 
 if __name__ == "__main__":
