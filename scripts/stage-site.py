@@ -12,9 +12,10 @@ existed. .assetsignore does not help; it governs what is uploaded, not what is
 watched.
 
 Naming the output also makes the deploy say what the website is. The repo root
-holds the generator, seventy-five checks, the routines' briefs, four
-screenshots kept for comparison against the Figma drawings and the Worker
-itself. An allowlist cannot leak any of them by forgetting a line.
+holds the generator, the checks, the routines' briefs, the content store and
+the Worker itself. An allowlist cannot leak any of them by forgetting a line.
+(The reference frames that used to sit at the root beside them now live under
+docs/design-system-frames/, with the browser audits.)
 
 WHAT THE WEBSITE IS. Two things, and the list is derived, not typed:
 
