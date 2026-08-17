@@ -55,6 +55,7 @@ stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
 import argparse
 import importlib.util
+import json
 import pathlib
 import re
 import sys
@@ -89,20 +90,26 @@ READ = {"de": "%s Min. Lesezeit", "en": "%s min read"}
 CONTENTS = {"de": "Inhalt", "en": "Contents"}
 MORE = {"de": "%d von %d", "en": "%d of %d"}
 
-# WHO WROTE IT. The archive carries an author's name and nothing else, and this
-# is where that name gets the job title ueber-uns.html shows for the same
-# person. They are English titles on both editions, which is how that page
-# already carries them, and lang="en" is what says so. A name that is not here
-# still gets its byline — it gets the name alone, which is what the record has.
-ROLE = {
-    "Simon Deussen":     "Founder &amp; Managing Partner",
-    "Daniel Tremer":     "Managing Partner",
-    "Piet Brömmel":      "Data Engineer",
-    "Henry Beiker":      "Data Engineer",
-    "Robin Marzucca":    "Data Engineer",
-    "Marie Ernø-Møller": "Data Engineer",
-    "Birk Burghardt":    "Data Engineer",
-}
+# WHO WROTE IT. The archive carries an author's name and nothing else, and the
+# name gets the job title ueber-uns.html shows for the same person from
+# content/autoren.json. They are English titles on both editions, which is how
+# that page already carries them, and lang="en" is what says so. A name that is
+# not in the file still gets its byline — it gets the name alone, which is what
+# the record has.
+#
+# IT WAS A DICT IN THIS FILE, AND A COLLEAGUE IS NOT A CODE CHANGE. Seven names
+# with their titles sat here, restating what ueber-uns.html and the team database
+# behind it already hold; hiring somebody meant editing a generator and having
+# that edit reviewed as one. It is a data file beside content/news/ now, read
+# once at import.
+def _roles():
+    src = ROOT / "content" / "autoren.json"
+    if not src.exists():
+        return {}
+    return json.loads(src.read_text(encoding="utf-8")).get("roles", {})
+
+
+ROLE = _roles()
 
 # AND NO PHOTOGRAPH, WHICH IS DELIBERATE AND IS NOT PERMANENT. The byline box is
 # a fixed 3rem, so scripts/check-image-scale.py holds whatever goes in it to a

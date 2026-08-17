@@ -430,7 +430,10 @@ def main():
         for j in jobs:
             print("  %-28s %s  %s" % (j["slug"], j["seit"],
                                       page_name(j) or "(no ad — links to its row)"))
-    print("     then: python3 scripts/build-i18n.py && python3 scripts/build-stellen.py")
+    # This named build-i18n.py and build-stellen.py and stopped, which leaves the
+    # root pages behind: build-site.py is what ships the register a run just
+    # rewrote. build-all.sh is the one complete statement of the order.
+    print("     then: sh scripts/build-all.sh")
     return 0
 
 

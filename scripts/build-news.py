@@ -1131,7 +1131,12 @@ def main():
             for p in take:
                 print("    %s  %-12s %s"
                       % (p["datum"], ",".join(x[0] for x in p["topics"]), p["titel"]))
-    print("     then: python3 scripts/build-i18n.py && python3 scripts/build-site.py")
+    # NOT A SHORTER SEQUENCE TYPED HERE. This line used to name build-i18n.py and
+    # build-site.py and stop, which skips build-articles.py — so a post whose text
+    # had just changed kept yesterday's reading page, and the miss surfaced as a
+    # red --check rather than as anything a person could see. build-all.sh is the
+    # one complete statement of the order and is cheap to re-run.
+    print("     then: sh scripts/build-all.sh")
     return 0
 
 
