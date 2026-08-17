@@ -792,14 +792,25 @@ def flotten():
     # below the wheel and past it on both sides, and the gear read as a post with
     # a washer hung on it. From the wheel's centre up, the wheel is the foot.
     # AND THE WHEELS ROLL THE WAY THE MACHINE DOES: this is the yard's one +y
-    # machine, so its discs lie in the x plane — wheelset's default served the
+    # machine, so its axles lie along x — wheelset's default served the
     # aircraft three of the train's wheels, casters turned 90 deg across the
     # taxi direction, and nothing else in the drawing looked more wrong.
+    # A BARE WHEEL HAS WIDTH. wheelset()'s flat disc serves the train and the
+    # semi because their tyres show as dark slivers half behind a solebar; the
+    # aircraft's hang in the open on their own struts, and a zero-thickness
+    # disc there is a washer leaning on a post — the right plane, no body.
+    # Each wheel is a short drum out the strut's near flank, its hub on the
+    # near cap, and the strut still ends at the axle.
+    def tyre(x0, y, z, w, r):
+        out = cyl(x0, y, z, 'x', w, r, side=ACCENT, cap=ACCENT, cap_far=ACCENT)
+        out.append(disc(x0 + w, y, z, r * 0.34, 'x', FACE_TOP))
+        return out
+
     for ex in (PX - 0.52, PX + 0.52):                          # main gear
         s2 += box(ex - 0.05, -1.37, 0.33, 0.1, 0.1, 0.49)
-        s2 += wheelset(ex + 0.05, -1.32, 0.33, 0.13, 'x')
+        s2 += tyre(ex + 0.05, -1.32, 0.33, 0.1, 0.13)
     s2 += box(PX - 0.05, -0.73, 0.31, 0.1, 0.1, 0.44)          # nose gear
-    s2 += wheelset(PX + 0.05, -0.68, 0.31, 0.11, 'x')
+    s2 += tyre(PX + 0.05, -0.68, 0.31, 0.08, 0.11)
     # A LOW WING IS PAINTED FIRST. The tube's crown (z 1.15) rides above the
     # wing's top face (0.9), so along this camera's ray the fuselage is in front
     # of the wing everywhere they cross — emitted after it, the wing sawed the
@@ -910,10 +921,6 @@ def flotten():
     # tyre: the train's solebar rule, applied to the road.
     TY = 1.4
     s3 += box(2.2, TY + 0.04, 0.38, 0.74, 0.48, 0.14)          # tractor chassis
-    # The legs on the near flank, where legs are seen. At y TY+0.14 the deck's
-    # own footprint occluded every pixel of the leg below its top face, and the
-    # one drawn read as a bollard standing ON the deck.
-    s3 += box(1.78, TY + 0.52, Z, 0.06, 0.06, 0.32)            # landing leg
     s3 += box(0.58, TY, 0.52, 1.74, 0.58, 0.1)                 # trailer deck
     s3 += container(0.66, TY + 0.07, 0.62)
     # 0.34 within the trailer's pair against a 0.30 tyre — the train's spacing
