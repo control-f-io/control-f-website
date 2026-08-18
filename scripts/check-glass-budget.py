@@ -87,7 +87,31 @@ SHIPPING_BUDGET = 2
 # the stylesheet — a scroll gate, a media query, a state that excludes the
 # other. "It measured fine" is the argument for raising SHIPPING_BUDGET, and
 # something still has to give up its blur first.
-PAGE_BUDGET = {"patterns/landing-page.html": 3}
+#
+# patterns/expertise.html is the second entry, and it is a weaker argument than
+# the first — so the number it buys is written here with what it costs and not
+# only with what excludes what.
+#
+# Five of its six are the plate and the four copy cards, and those five ARE
+# excluded from each other by a media query the page already had: inside the
+# pinned gate (64rem x 45rem, view timelines, no reduced-motion) the plate is
+# the material and `.ex-step .cf-info-card` sets backdrop-filter: none on every
+# card; outside it the plate is display: none and each card carries the
+# material instead, because down there there is no plate to stand on and the
+# cards stand on the same full-bleed lattice the plate was put there to calm.
+# So the pinned tier spends the nav and the plate. Two, the rule unchanged.
+#
+# THE FLOW TIER SPENDS THREE, AT THE SEAMS. The four cards are one column, so
+# two of them are on screen together whenever the reader is between steps:
+# measured at 375 x 812, a copy card is about 650 px tall and 349 px of figure
+# and gap separate one from the next, which puts two cards and the navigation
+# band on screen together for 463 px of each roughly 1 050 px step — a third
+# composited layer for about 44 % of that section's scroll, on the hardware
+# this budget exists for. That is the exception this entry buys, it is the
+# first one in the system that is not free, and the cheaper answer it was
+# weighed against is in the page: --surface-glass-solid on the same cards,
+# which is the material's own no-blur stand-in and costs nothing.
+PAGE_BUDGET = {"patterns/landing-page.html": 3, "patterns/expertise.html": 6}
 
 # Documentation pages are censused, not capped. A page whose subject IS the
 # material has to be allowed to show it: foundations/materials.html carries
