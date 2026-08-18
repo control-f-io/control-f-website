@@ -75,12 +75,21 @@ SHIPPING_BUDGET = 2
 #
 # patterns/landing-page.html is the one page where the proxy and the rule come
 # apart, and the reason is legible in the CSS rather than asserted here.
-# .act-rail::before is painted only on :hover / :focus-within; the rail catches
-# neither without pointer-events, which it only has while act-rail.js has set
-# .is-live, which happens while the acts own the viewport — about 4 000 px past
-# the hero CTA that is the page's second layer. The nav band, which is always
-# one of the two, is the only layer the plate can ever be composited with. Two
-# at a time, three on the page.
+# .act-rail--glass::before is painted only on :hover / :focus-within; the rail
+# catches neither without pointer-events, which it only has while act-rail.js
+# has set .is-live, which happens while the acts own the viewport — about 4 000
+# px past the hero CTA that is the page's second layer. The nav band, which is
+# always one of the two, is the only layer the plate can ever be composited
+# with. Two at a time, three on the page.
+#
+# THE PLATE IS A MODIFIER FOR THIS PARAGRAPH'S SAKE. patterns/expertise.html
+# adopted the same rail and could not make the same argument: its second layer
+# is the lectern inside the four-field stage, which is on screen for the whole
+# of the chapter the rail exists to skip, and no gate, query or state in the
+# stylesheet keeps the two apart. Rather than write the entry this comment
+# forbids, the blur moved onto .act-rail--glass — so the plate there is the
+# opaque stand-in tokens.css already swaps in wherever the browser cannot blur,
+# and the census counts what the page actually paints.
 #
 # THIS IS NOT A PLACE TO PUT A PAGE THAT IS MERELY OVER. An entry here has to
 # name two layers that cannot be lit together and say what makes that true in
