@@ -1881,6 +1881,322 @@
   .sp-head { margin-top: var(--section-header-gap); }
 
   @supports (animation-timeline: view()) and (animation-range: contain 0% contain 100%) {
+    /* ============================================================
+       WHAT BOTH DRAWING TIERS SHARE. Two tiers animate this root — the pinned
+       stage below (min-width: 64rem) and (min-height: 45rem), and the flow
+       tier under it — and these two declarations belong to neither. They were
+       authored inside the pinned block because for as long as there was one
+       animated tier, "inside the gate" and "wherever the drawing moves" were
+       the same place. They stopped being the same place when the flow tier
+       started drawing, and a copy of either of them in the second tier is a
+       number that can drift from its twin.
+       ============================================================ */
+    @media screen and (prefers-reduced-motion: no-preference) {
+      /* THE GROW ORIGIN, which is the one thing lp-frame-draw cannot work out
+         for itself: `scale: 0 -> 1` grows about transform-origin, and --o is
+         where each stroke's own drawing END is. fill-box, so the percentage
+         is of the path's own bounding box rather than of the whole viewBox. */
+      .lp-flow__seg, .lp-flow__light, .lp-flow__node, .lp-flow__val, .lp-flow__read {
+        transform-box: fill-box;
+        transform-origin: var(--o, 0 0);
+      }
+      /* --leaf-peak, AND IT IS NOT --arrive-light-peak. The first pass reused
+         that token and the shimmer could not be seen: 0.18 of a ramp that is
+         mostly CF-Grau, times a 0.35-1 swing, is 0.06 to 0.18 of a mid grey
+         over a light wash — "cant see the shimmer leaves", which is the whole
+         test a light like this has to pass.
+
+         The token was the wrong one to borrow. --arrive-light-peak is capped
+         at 0.18 because in THAT pattern a light band crosses a dashed ghost
+         contour and lightens it, and tokens.css works the contrast out: past
+         0.52 the ghost fails. Here nothing is crossed. The leaf's own contour
+         is drawn underneath at full weight by .lp-flow__seg and stays there,
+         so raising this can only add lime over the wash — it cannot take
+         contrast off anything.
+
+         0.5 is chosen against that same arithmetic anyway, one notch inside
+         the 0.52 the ceiling row gives, so the number is defensible by a
+         measurement this system already has rather than by a fresh sweep. With
+         the 0.3-1 swing a leaf sits between 0.15 and 0.5 of the ramp.
+
+         The other half of being visible is not amplitude but WHICH PART OF THE
+         RAMP lands on the stroke — see LEAF_STRETCH in gen-flow-root.py. */
+      .sp-stage { --leaf-peak: 0.55; }
+
+      /* ============================================================
+         ACT 2 WITH NO STAGE UNDER IT — the tree draws on a phone.
+
+         WHAT WAS WRONG. Below the pin gate the root was finished ink. Every
+         stroke of it, both passes, every junction and the source, painted at
+         rest from the first frame — so the one drawing on this site whose
+         whole subject is data ARRIVING was, on the device most readers meet it
+         on, a diagram of a tree. The gated tier's own note calls that out
+         about the settled fringe ("a still root with no light in it is a
+         diagram of a tree, not of a stream"); outside the gate the whole
+         drawing was that.
+
+         Nothing was broken and that is why it stood. The flow tier is a
+         designed tier, not a fallback — check-fallback-tier.py exists to keep
+         it one — and a static drawing is a legitimate thing for it to be. It
+         simply was not a decision anyone had taken: the root's timing was
+         authored inside the pin gate because the pin gate was where scroll
+         time came from, and every viewport under 64rem inherited the absence.
+
+         WHY THE PINNED SCRIPT CANNOT SIMPLY BE POINTED AT A SECOND TIMELINE.
+         --sp is .sp-track's own view timeline and the track is 640vh — 4 860 px
+         of `contain` at 1440 x 900, bought by a sticky stage. There is no
+         sticky stage here: .sp-track is ordinary flow and stands 925 px tall
+         at 390 x 844, 81 px taller than the window it is read in, so its whole
+         `contain` range is those 81 px and the pinned script's 53 points of
+         root would resolve to 43 px of wheel — the tree in a flick. At 430 and
+         up the track is SHORTER than the window and the range is zero: the
+         same fault check-act-beats.py found in the rail's own arithmetic.
+
+         SO THE DRAWING IS ITS OWN TRACK. The subject is .lp-flow, the <svg>
+         itself, and the range is `contain` — which for a subject shorter than
+         the window means exactly "while the whole of it is on screen". That is
+         the honest budget a page with no pin has, it needs no reserved scroll
+         and no second layout, and it is self-fitting: every viewport gives the
+         drawing the whole of its own visible pass and nothing is ever drawn
+         off-screen. Measured, window minus drawing:
+
+           320 x 568    drawing 145 tall    423 px of scroll
+           375 x 812            172         640
+           390 x 844            179         665
+           430 x 932            198         734
+           768 x 1024           353         671
+           1023 x 900           272         628
+           1440 x 700           387         313
+
+         The floor is structural rather than lucky: .sp-drawing is
+         `min(100%, (100vh - 12rem) * 1.9)` wide and the drawing is 620/1200 of
+         that, so its height can never exceed 0.98vh - 188px — the subject is
+         always shorter than the window, and `contain` always has a run.
+
+         WHAT THE WINDOW NEEDS FROM THE PAGE, and it is one sentence: the
+         drawing has to start below the fold. `contain 0%` is the scroll at
+         which the subject has just finished entering, and a subject that is
+         already whole on screen at scroll 0 puts that moment at a NEGATIVE
+         scroll the reader cannot reach — the browser clamps, and the act opens
+         part-drawn. On the landing page the hero is above it and the whole
+         window is reachable at every viewport measured, 320 to 1440.
+         prototypes/statement-to-process.html is the case that shows the edge:
+         the drawing is 215 px down a page with no hero, so a phone opens it at
+         about two thirds of the act with fifty-six of the sixty-five strokes
+         already landed. That is the lab page and it is the page's geometry
+         rather than this tier's, but it is what to look at first if a third
+         consumer ever opens mid-act.
+
+         THE CONSENT BANNER SHORTENS IT AND NOTHING HAS TO KNOW. base.css
+         reserves the banner as `scroll-padding-bottom` on <html>, and a view
+         timeline measures the scrollport that padding leaves: measured at
+         390 x 844 with the banner up, the run is 331 px against 665 with it
+         gone. The pinned tier has to subtract --cf-consent-height by hand for
+         its own reservation (see --lp-measure); this one is simply told.
+
+         AND THE SCRIPT IS THE PINNED ONE, RE-RATED. Same four families, same
+         verbs, same order, same algebra — `head + l * c` to
+         `head + (l + u) * c`, so a stroke still opens on the point its parent
+         closes on and one front still travels the whole root. What changes is
+         c and the four heads, because 100 points of this timeline are 665 px
+         where 100 points of --sp are 4 860, and the offsets that space the
+         four families apart are points rather than pixels. --flow-cf is 24
+         against --flow-c's 14.96: the longest walk is 3.0, so the run is 72
+         points of a 100-point window against 44.88 of the pinned tier's 53.
+         The four heads are the pinned ones re-spaced by the same ratio — the
+         light leads the contour by 10 points here and by 6 there, which is 0.4
+         units of walk in both, so the front runs the same distance ahead of
+         its own black in the drawing's own units.
+
+           contain %      2 - 74   the light draws the root, canopy inward
+                         12 - 84   the contour lands ten points behind it
+                         14 - 91   the junctions fill as the front passes
+                         16 - 95   the numerals light on the strokes they name
+                         18 - 88   the light fades off each stroke it closed
+                         79 - 88   the source fills: the routes are one light
+                         88 -100   the finished drawing holds
+
+         WHICH IS 1.4x THE PINNED RATE PER PIXEL OF INK, not 7x per point. The
+         two tiers are not drawing the same-sized tree: 179 px tall here
+         against 573 in the stage at 1440 x 900, so the honest comparison is
+         scroll spent per pixel of DRAWING. The root's run is 72 points of
+         665 px over a 179 px tree — 2.7 px of wheel for each px of tree —
+         against 44.88 points of 4 860 over 573, which is 3.8. Not quite half
+         again as fast, on a device whose scroll gesture is a thumb, which is
+         the trade this tier is.
+
+         WHAT IS NOT BROUGHT DOWN HERE. Act 1 — the sensor field, its
+         convergence and the annotations — stays withdrawn: .sp-field is
+         `display: none` outside the gate by A TIER WITH NO TIME AXIS's own
+         ruling, .lp-flow-sources is the static telling that replaces it, and
+         act 2's copy stays in flow under the drawing rather than becoming the
+         overlay check-fallback-tier.py forbids here. This tier animates the
+         ROOT and nothing else on the stage moves.
+         ============================================================ */
+      @media not all and (min-width: 64rem) and (min-height: 45rem) {
+        /* THE SUBJECT IS THE DRAWING AND NOT ITS FIGURE. .sp-root is the same
+           box as .sp-drawing and it holds act 2's four paragraphs as well —
+           503 px against the svg's 179 at 390 x 844 — so a timeline on it
+           would be timing the copy's pass and not the tree's.
+
+           AND THE NUMERALS NAME THEIR OWN COPY OF IT, which is a scope rule
+           and not a second decision. A named timeline reaches the element that
+           declares it and that element's DESCENDANTS; .lp-flow-data is the
+           drawing's SIBLING — the numerals are HTML on purpose, see the note
+           over the layer — so `--sp-flow` does not reach them. Measured, the
+           head numeral's animation resolved to a null timeline and stood at
+           opacity 1 through the whole act: the one label on a phone, lit over
+           an empty box, naming a rate no stroke had drawn yet.
+
+           `timeline-scope` on .sp-root is the other way to spell this and it
+           is a THIRD feature behind a gate that names two — the exact shape
+           check-range-gate.py exists for — so it would need its own @supports
+           around one rule. A second view-timeline costs nothing instead,
+           because the two subjects are the same box by construction: the
+           numeral layer is `inset: 0 0 auto 0` of .sp-root carrying the
+           drawing's own aspect-ratio, which is the equality
+           check-fallback-tier.py already holds against the viewBox. Measured
+           at 390 x 844, both boxes: top 510, height 179. */
+        .lp-flow { view-timeline-name: --sp-flow; view-timeline-axis: block; }
+        .lp-flow-data { view-timeline-name: --sp-flow-data; view-timeline-axis: block; }
+
+        /* THE FLOW TIER'S --flow-c, and the pair is what check-flow-chain.py
+           holds: one rate per tier, declared once, with every window in that
+           tier written off it. A typed constant in one of the eight rules
+           below is how the two tiers stop being one drawing. */
+        .sp-stage { --flow-cf: 24; }
+
+        .lp-flow__light {
+          animation: lp-frame-draw linear, lp-flow-out linear;
+          animation-timeline: --sp-flow, --sp-flow;
+          animation-range: contain calc((2 + var(--l) * var(--flow-cf)) * 1%)
+                           contain calc((2 + (var(--l) + var(--u)) * var(--flow-cf)) * 1%),
+                           contain calc((6 + (var(--l) + var(--u)) * var(--flow-cf)) * 1%)
+                           contain calc((16 + (var(--l) + var(--u)) * var(--flow-cf)) * 1%);
+          animation-fill-mode: both, forwards;
+        }
+        .lp-flow__seg {
+          animation: lp-frame-draw linear both;
+          animation-timeline: --sp-flow;
+          animation-range: contain calc((12 + var(--l) * var(--flow-cf)) * 1%)
+                           contain calc((12 + (var(--l) + var(--u)) * var(--flow-cf)) * 1%);
+        }
+
+        /* THE LIGHT IS A SHARE OF THE DRAWING AND NOT A NUMBER OF PIXELS, which
+           is the one place this tier cannot copy the stage's. The pinned leaf
+           is 6 px over a 1 px contour and that is viewport-independent because
+           the pinned drawing is: the stage fits it to the window and it is
+           never far from 1020 px wide. Here the same drawing is 280 px wide at
+           a 320 viewport, 347 on a phone, 684 at 768 and 965 in a short 1440,
+           so one authored pixel width is a different object at each end.
+
+           AND IT IS 1 % AND NOT THE PINNED TIER'S OWN 0.59 %, which is the
+           number that has to be argued, because carrying the proportion across
+           is the obvious thing to do and it does not work. 6 px of 1020 is
+           0.588 %, and 0.588 % of a phone's 347 is 2.0 px — under the 1 px
+           CONTOUR it is supposed to stand either side of, so it is not a thin
+           light, it is no light. The contour does not shrink with the drawing:
+           it is `non-scaling-stroke` at 1 px in every tier, by the
+           illustration foundation's one-weight rule. So the clearance the
+           light has to buy is a fixed 1 px, and buying it out of a smaller
+           drawing costs a larger share. 1 % leaves 1.2 px of ramp proud on each
+           side at 347 and 2.9 at 684 — the same reading at both, which 0.588 %
+           is not.
+
+           .sp-root is the query container (`container-type: inline-size`, for
+           the numeral layer's sake) and .lp-flow is 100 % of it, so 1cqi is
+           1 % of the drawing to the pixel: measured, the svg box and the
+           numeral layer's box are identical at every width in the table the
+           numeral layer's own note keeps.
+
+           AND NO GLOW HERE. The pinned leaf carries the composed drop-shadow
+           pair so the light pools between the feet. Its reach is 36 px at
+           1020 — six times the stroke — and six times this stroke on a phone
+           is 21 px into gaps that are 14 px wide, which is not a fringe
+           standing in light, it is a lime band with a drawing behind it. The
+           feet are close enough at this size to read as a fringe unaided. */
+        .lp-flow__leaf { stroke-width: 1cqi; }
+        /* WEBKIT WILL NOT PAINT A NON-SCALING STROKE A SCROLL TIMELINE HAS
+           SCALED, and the pinned tier's own note further down has half of this
+           finding already: "SAFARI NEVER PAINTS THIS LEAF … only dropping
+           vector-effect does". It attributes that to the filter-region cache
+           for a non-scaling stroke, on the evidence it had — the leaf was the
+           one stroke on the page carrying both a filter and `vector-effect`.
+
+           THIS TIER HAS NO FILTER AND THE LEAF STILL GOES DARK, which narrows
+           it: the trigger is `vector-effect: non-scaling-stroke` on an element
+           lp-frame-draw has driven, and the filter is not part of it. Measured
+           in WebKit 26.5 at 390 x 844, contain 70 %, the same frame four ways:
+           as authored, the fringe is black; with `vector-effect: none`, lime;
+           with the scale keyframe taken out of the leaf's list, lime; and
+           Chromium draws it lime in all of them. `.lp-flow__seg` and the
+           lights that are not leaves are unaffected in both tiers — a leaf is
+           the only stroke still being driven, by the settle, after its own
+           draw has closed.
+
+           AND THE WIDTH IS RESTATED IN THE DRAWING'S OWN UNITS, because
+           dropping `vector-effect` is what changes what `stroke-width` MEANS:
+           an SVG geometry property resolves its length to px and then reads
+           that number as USER UNITS, so `1cqi` would be 3.5 units — 1 px on a
+           phone, under the contour again. 12 is the same 1 % restated: the
+           viewBox is 1200 wide, so 12 units is a hundredth of the drawing at
+           every scale and the two branches render the same stroke. That is the
+           difference from the pinned tier's own workaround, which loses its
+           authored width in WebKit and records the loss. */
+        @supports (-webkit-hyphens: none) {
+          .lp-flow .lp-flow__leaf { vector-effect: none; stroke-width: 12; }
+        }
+        .lp-flow__leaf {
+          animation: lp-frame-draw linear,
+                     sp-leaf-settle linear,
+                     sp-leaf-shimmer var(--arrive-period) ease-in-out infinite alternate;
+          animation-timeline: --sp-flow, --sp-flow, auto;
+          animation-range: contain calc((2 + var(--l) * var(--flow-cf)) * 1%)
+                           contain calc((2 + (var(--l) + var(--u)) * var(--flow-cf)) * 1%),
+                           contain calc((6 + (var(--l) + var(--u)) * var(--flow-cf)) * 1%)
+                           contain calc((16 + (var(--l) + var(--u)) * var(--flow-cf)) * 1%),
+                           normal;
+          animation-fill-mode: both, forwards, none;
+          animation-delay: 0s, 0s, calc(var(--l) * -370ms);
+        }
+        /* The third one only, for the reason the pinned tier's own copy of
+           this line gives: the two scrubbed animations cost nothing while the
+           page is still, and the shimmer is the one on the document clock.
+           cf-idle.js carries no width gate, so [data-idle] lands on .sp-track
+           in this tier exactly as it does in the other. */
+        [data-idle] .lp-flow__leaf { animation-play-state: running, running, paused; }
+
+        .lp-flow__node {
+          animation: lp-frame-in linear both;
+          animation-timeline: --sp-flow;
+          animation-range: contain calc((14 + var(--l) * var(--flow-cf)) * 1%)
+                           contain calc((24 + var(--l) * var(--flow-cf)) * 1%);
+        }
+        /* Only .lp-flow__head is on screen in this tier — the layer's own rule
+           1,600 lines up hides the other seventeen under a 56rem container and
+           the flow tier's drawing never reaches it — so what this window
+           actually times is the rate arriving on the trunk once the root has
+           become one route. --l 2.89 puts it at 85 to 95, which is the same
+           place in the act the pinned tier lights it. */
+        .lp-flow-data :is(.lp-flow__val, .lp-flow__read) {
+          opacity: 0;
+          animation: lp-frame-in linear both;
+          animation-timeline: --sp-flow-data;
+          animation-range: contain calc((16 + var(--l) * var(--flow-cf)) * 1%)
+                           contain calc((26 + var(--l) * var(--flow-cf)) * 1%);
+          animation-fill-mode: forwards;
+        }
+        /* The source arrives last here too: the trunk's own contour closes at
+           84, so the orb opens while that last stroke is still landing and is
+           full four points after it. */
+        .lp-flow__orb {
+          animation: sp-orb-fill linear both;
+          animation-timeline: --sp-flow;
+          animation-range: contain 79% contain 88%;
+        }
+      }
+    }
+
     @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
       /* AND THE GROUND IS WHOLE IN HERE, SAID BY THE GATE ITSELF. The band's own
          note 1100 lines up ends "Inside the gate it is off altogether", and
@@ -2525,10 +2841,6 @@
          strokes and holds both tails. */
       .sp-stage { --flow-c: 14.96; }
       .lp-flow__trunk { display: block; }
-      .lp-flow__seg, .lp-flow__light, .lp-flow__node, .lp-flow__val, .lp-flow__read {
-        transform-box: fill-box;
-        transform-origin: var(--o, 0 0);
-      }
       .lp-flow__seg {
         animation: lp-frame-draw linear both;
         animation-timeline: --sp;
@@ -2584,28 +2896,6 @@
          Inside the reduced-motion gate with everything else on this page, so
          a reader who has asked for stillness gets a drawing that is finished
          and still. ------------------------------------------------------ */
-      /* --leaf-peak, AND IT IS NOT --arrive-light-peak. The first pass reused
-         that token and the shimmer could not be seen: 0.18 of a ramp that is
-         mostly CF-Grau, times a 0.35-1 swing, is 0.06 to 0.18 of a mid grey
-         over a light wash — "cant see the shimmer leaves", which is the whole
-         test a light like this has to pass.
-
-         The token was the wrong one to borrow. --arrive-light-peak is capped
-         at 0.18 because in THAT pattern a light band crosses a dashed ghost
-         contour and lightens it, and tokens.css works the contrast out: past
-         0.52 the ghost fails. Here nothing is crossed. The leaf's own contour
-         is drawn underneath at full weight by .lp-flow__seg and stays there,
-         so raising this can only add lime over the wash — it cannot take
-         contrast off anything.
-
-         0.5 is chosen against that same arithmetic anyway, one notch inside
-         the 0.52 the ceiling row gives, so the number is defensible by a
-         measurement this system already has rather than by a fresh sweep. With
-         the 0.3-1 swing a leaf sits between 0.15 and 0.5 of the ramp.
-
-         The other half of being visible is not amplitude but WHICH PART OF THE
-         RAMP lands on the stroke — see LEAF_STRETCH in gen-flow-root.py. */
-      .sp-stage { --leaf-peak: 0.55; }
       /* AND IT IS WIDER THAN THE STROKE IT LIGHTS, which is the third thing
          that had to change and the one that decides whether this reads as
          lime at all.
