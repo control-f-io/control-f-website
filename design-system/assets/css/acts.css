@@ -1739,12 +1739,49 @@
      asset point is two strokes, lime 5 inside black 8, and box-shadow is what
      draws that ring here without giving the swatch a border box 3 px wider
      than the mark it stands for. */
+  /* A SWATCH IS READ, A MARK IS FOUND, AND THEY DO NOT WANT THE SAME SIZE.
+     These were 5 px — the drawn asset point exactly, contour and all — on the
+     argument that the key should state the mark at the size the map draws it.
+     That argument was wrong the moment the six kinds got six colours. At 5 px
+     inside a 1.5 px contour the ring owns most of the disc and the fill is a
+     speck: Solar & Netz, Schiene and Batterie & Speicher are the pale middle
+     of the arc, and against black at that size all three read as one hollow
+     ring. Reported off the rendered legend, and it is the same fault the note
+     at the top of this block describes — a key whose marks cannot be told
+     apart keys nothing — arriving through size instead of through colour.
+
+     9 px is the office dot's diameter, so the three swatch kinds now sit on
+     one visual weight: a filled black disc, and a filled colour disc inside
+     the contour that says "asset point". The drawing is unchanged; what the
+     key gives up is a literal size match nobody could have measured by eye,
+     and what it buys is the colour actually being visible. */
+  /* THE CONTOUR IS DRAWN INWARD, AND THAT IS A CLIPPING FIX, NOT A STYLE ONE.
+     An outset box-shadow paints OUTSIDE the element's box and takes no layout
+     room for it, so the ring lived 1.5 px beyond the swatch on every side —
+     invisible until the swatch sat flush against an edge that clips. It does:
+     .map__key-name and .map-beat are set to the page margin, so the leftmost
+     key in each list starts exactly on .map-stage's content edge, and the pin
+     tier gives that stage `overflow: clip`. Measured on the shipped page at
+     1680 x 1050: stage edge x 200.0, "Offshore & Schiff" swatch x 200.0, its
+     ring reaching to 198.5 — a crescent sliced off the left of the first mark
+     in the row, and only that one. "Standorte" sits at the same x and survived
+     because it is a flat background with no shadow to lose, which is exactly
+     the asymmetry the report showed.
+
+     THE RENDERING IS UNCHANGED, TO THE PIXEL. 9 px of colour inside a 1.5 px
+     ring painted 12 px across; 12 px of box with the same ring drawn `inset`
+     paints the same 12 px and leaves the same 9 px of colour, because
+     box-sizing is border-box system-wide (base.css). What changes is only that
+     the ink now stops at the box, so no ancestor's clip can reach it and the
+     key's leftmost ink lines up ON the page margin rather than 1.5 px outside
+     it. The office dot keeps its 9 px: it has no ring to lose, and matching it
+     to 12 would be a visual change made for a fault it never had. */
   .map__key-dot--asset,
   .map__key-dot--kind {
-    inline-size: 5px;
-    block-size: 5px;
+    inline-size: 12px;
+    block-size: 12px;
     background: var(--map-k, var(--cf-lime));
-    box-shadow: 0 0 0 1.5px var(--border-strong);
+    box-shadow: inset 0 0 0 1.5px var(--border-strong);
   }
   /* THE SUMMARY ROW CANNOT WEAR ONE KIND'S COLOUR. While every asset point was
      lime, a lime swatch on the "Anlagen" row meant "an asset point" and was
@@ -1785,8 +1822,8 @@
     .map__key-dot--office { background: CanvasText; }
     .map__key-dot--asset,
     .map__key-dot--kind {
-      inline-size: 8px;
-      block-size: 8px;
+      inline-size: 12px;
+      block-size: 12px;
       background: Canvas;
       border: var(--stroke-1) solid CanvasText;
       box-shadow: none;
@@ -3185,7 +3222,7 @@
         /* vh first, dvh on top — see the note on .sp-stage, above. */
         block-size: calc(100dvh - var(--act-bar));
         overflow: clip;
-        padding-block: var(--space-8);
+        padding-block: var(--space-6);
         /* FLOORED, which check-grid-tracks.py requires of every fr track and
            which this row needs on its own account: an <svg> with an intrinsic
            aspect ratio is content with a height, and an unfloored 1fr refuses
@@ -3193,6 +3230,65 @@
            891 px intrinsic height, the legend was pushed to y 902 in a 900 px
            stage, and the clip ate it. */
         grid-template-rows: auto minmax(0, 1fr) auto;
+      }
+
+      /* THE LEGEND MOVES BESIDE THE MAP, BUT ONLY WHERE THAT PAYS.
+
+         THE DRAWING IS HEIGHT-LIMITED IN HERE AND NOWHERE ELSE. The stage is
+         one viewport tall and cannot grow; the copy and the legend take their
+         rows off it; what is left is `minmax(0, 1fr)`, and meet then fits a
+         1.7943 drawing into a box far wider than that. Measured at 1440 x 900
+         before this rule: box 1280 x 486 — 2.63 wide-per-tall — so the drawing
+         scaled to the SHORT axis, came out 873 px wide, and left 203 px of dead
+         ground down each side. A third of the stage's width, spent on nothing.
+
+         SO THE DEAD GROUND IS WHERE THE LEGEND GOES, and the map turns the row
+         it gets back straight into scale: box 1024 x 576, drawing 1024 px wide.
+         +17 % on the linear, +38 % on the area, nothing cropped. It also puts
+         the key beside the thing it keys — stacked under a letterboxed drawing
+         the legend sat flush to the stage's left edge while the map began
+         203 px further in, so the two never lined up and the key read as
+         stranded at the bottom-left of an empty band.
+
+         AND IT IS A LOSS ON A TALL STAGE, WHICH IS WHY THIS IS GATED. Once the
+         drawing is WIDTH-limited the letterbox is gone, there is no dead ground
+         to move into, and the column is taken out of the only axis that was
+         still binding. Writing d for the drawing's width, S for the stage's and
+         H for the height the map row gets when the legend is stacked under it:
+
+             stacked   d = min(S,       1.7943 * H)
+             beside    d = min(S - 256, 1.7943 * (H + 74))    256 = 14rem + gap
+                                                              74  = legend + gap
+
+         which cross where 1.7943 * H reaches S - 256. Measured both ways:
+
+             1440 x  900    stacked  873    beside 1024     beside, +17 %
+             1280 x  800    stacked  723    beside  856     beside, +18 %
+             1920 x 1080    stacked 1225    beside 1024     STACKED, +20 %
+             1024 x  768    stacked  666    beside  656     STACKED
+
+         The query is that crossing in the two terms a media query can actually
+         read. Short stages are where the letterbox forms, and wide ones are
+         where the column is affordable; 1024 fails on width and 1080 on height,
+         which is exactly the pair the table says to leave stacked.
+
+         The column is DEFINITE and not `auto` on purpose: `auto` resolves
+         toward max-content, and .map__legend is a wrap flex whose max-content
+         is all six kinds on one line — around 950 px, which would hand the
+         legend three quarters of the stage. 14rem clears .map__key's own
+         160.6 px min-content, so every row gets a line of its own and the list
+         stacks down the column instead of breaking mid-row. */
+      @media (min-width: 78rem) and (max-height: 60rem) {
+        .map-stage {
+          grid-template-columns: minmax(0, 1fr) 14rem;
+          grid-template-rows: auto minmax(0, 1fr);
+        }
+        .map-say { grid-column: 1 / -1; }
+        .map-box { grid-column: 1; grid-row: 2; }
+        /* Centred against the drawing rather than dropped to the foot of the
+           column: meet centres the drawing in its own box too, so this is the
+           alignment that reads as one object rather than two stacked ones. */
+        .map__legends { grid-column: 2; grid-row: 2; align-self: center; }
       }
       /* THE LABEL LAYER COVERS THE DRAWING, NOT THE BOX, and above the gate
          those stopped being the same rectangle.
