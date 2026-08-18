@@ -365,10 +365,10 @@ def anlagen():
     s2 += box(-0.62, -0.86, 2.2, 3.14, 0.66, 0.14)             # rack beam
     s2 += seams((-0.62, -0.2, 2.2), (2.52, -0.2, 2.2),
                 (-0.62, -0.2, 2.34), (2.52, -0.2, 2.34), 5)
-    s2 += cyl(-0.62, -0.7, 2.51, 'x', 3.14, 0.17, side=FACE_L, cap=None)   # process line
+    s2 += cyl(-0.62, -0.7, 2.51, 'x', 3.14, 0.17, side=FACE_L)             # process line
     for i in range(4):
         s2.append(hoop(-0.15 + i * 0.72, -0.7, 2.51, 0.17, 'x'))
-    s2 += cyl(-0.62, -0.32, 2.45, 'x', 3.14, 0.11, side=FACE_R, cap=None)  # utility line
+    s2 += cyl(-0.62, -0.32, 2.45, 'x', 3.14, 0.11, side=FACE_R)            # utility line
     for i in range(4):
         s2.append(hoop(0.05 + i * 0.72, -0.32, 2.45, 0.11, 'x'))
 
