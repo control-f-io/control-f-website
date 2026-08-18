@@ -132,7 +132,7 @@ python3 scripts/build-site.py
 | 3 | `build-i18n.py` | `patterns/en/` — 21 source pages, translated | nothing; it rewrites whole pages |
 | 4 | `build-articles.py` | `beitrag-<slug>.html` (18 today) in **both** editions | 9 `article:` regions of `blog-artikel.html` and `en/blog-artikel.html` |
 | 5 | `build-stellen.py` | `stelle-<slug>.html` (4 today) in **both** editions | 10 `stelle:` regions of `karriere-stelle.html` and `en/karriere-stelle.html` |
-| 6 | `build-site.py` | the 86 pages at the repository root — 43 German, 43 English | nothing; four textual edits and no template |
+| 6 | `build-site.py` | the 86 shipped pages — 43 German, 43 English. 18 per edition at the root, the other 25 under `blog/`, `stellen/` and `news/thema/` | nothing; four textual edits and no template |
 
 **Why the order cannot be permuted.** Steps 1 and 2 write into
 `design-system/i18n/en.json`, because a generated headline is copy that needs an

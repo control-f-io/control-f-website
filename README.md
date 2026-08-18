@@ -9,11 +9,17 @@ and English under `/en/`.
 
 **And twenty-five more that are generated from content rather than written**: one
 reading page per news post that has text, one Stelle page per opening that has an
-advertisement, and one page per topic in use. Which is why the count in the pattern
-directory is 43 and the count at the root is 86: `ls` sees the written pages and the
-generated ones together, and only the prefix says which is which — `beitrag-`,
-`stelle-` and `news-thema-<slug>` are output. `scripts/README.md` is the table of what
-owns what.
+advertisement, and one page per topic in use. Those ship into folders — `/blog/`,
+`/stellen/` and `/news/thema/`, each mirrored under `/en/` — so the served root holds
+the eighteen written pages and nothing else.
+
+The **patterns stay flat**, and that asymmetry is deliberate. 118 check scripts read
+`design-system/patterns/` with a non-recursive glob and several name a page by string;
+a page moved into a subdirectory there would quietly stop being checked, which is worse
+than an untidy directory. So the folder is a property of the address and the prefix is
+the property of the source: `patterns/beitrag-wie-stahl-….html` is served at
+`/blog/wie-stahl-….html`, and `build-site.py` rewrites every link that points at it.
+`scripts/README.md` is the table of what owns what.
 
 The generation before it — nine hand-written pages against `assets/css/main.css` — has
 been removed.

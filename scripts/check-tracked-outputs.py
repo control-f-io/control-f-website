@@ -58,6 +58,13 @@ RULES = (
     (lambda p: p.startswith("en/") and p.endswith(".html"),
      "the English edition of a shipped page",
      "build-site.py writes it from design-system/patterns/en/."),
+    (lambda p: any(p.startswith(f) or p.startswith("en/" + f)
+                   for f in ("blog/", "stellen/", "news/thema/"))
+     and p.endswith(".html"),
+     "a content page in the folder it ships from",
+     "build-site.py writes it from a flat pattern — patterns/beitrag-<slug>.html "
+     "ships at blog/<slug>.html. The folder is a property of the address; the "
+     "prefix is the property of the source."),
     (lambda p: p.startswith("design-system/patterns/en/"),
      "an English pattern page",
      "build-i18n.py writes it from the German pattern beside it and "
