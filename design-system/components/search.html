@@ -288,17 +288,49 @@
     <h2>Behaviour</h2>
     <ul>
       <li>
-        <strong>No script.</strong> The form is a GET, the server renders the answer, and the
-        page is a page. Nothing here needs the Custom Highlight API — the server knows where
-        the matches are and can wrap them in <code>&lt;mark&gt;</code> as it renders. The
-        registry is for a page searching <em>itself</em>, which is a different job.
+        <strong>A script, because there is no server.</strong> This section shipped saying
+        “no script — the form is a GET, the server renders the answer, and the page is a
+        page”, which is the right design and describes a site this is not. Every address
+        here is a static file on GitHub Pages; the one route with a server behind it is the
+        contact form's <code>POST</code>. So nobody was rendering the answer, and
+        <a href="../patterns/suche.html">/suche</a> drew the same six results for
+        “Telemetrie” whatever was typed into it, for the whole life of the section.
+        <code>assets/js/cf-search.js</code> is what renders it now.
       </li>
       <li>
-        <strong>The server marks the matches, not a script.</strong> Wrapping hits after the
-        fact means walking the DOM and injecting <code>&lt;span&gt;</code>s into text a
-        screen reader is already reading. <code>&lt;mark&gt;</code> in the response is the
-        same drawing with none of that — and it is the semantically correct element, which
-        means <em>relevant to why you are here</em>.
+        <strong>The answer is computed where the pages are, not in the browser.</strong>
+        <code>scripts/build-search-index.py</code> reads the <em>shipped</em> HTML after
+        <code>build-site.py</code> has written it — so the index carries the address the
+        reader will actually be at, not the pattern's — and writes one file per edition
+        under <code>assets/search/</code>. The script fetches, matches and draws. No page
+        is ever parsed in a browser, and nothing walks the DOM of the page it is on.
+      </li>
+      <li>
+        <strong>The script marks the matches, and it marks them as nodes.</strong> The
+        objection to marking after the fact was about injecting into text a screen reader is
+        already reading; nothing here does that. The register is built off-document and put
+        in whole, with <code>&lt;mark class="cf-mark"&gt;</code> created as an element and
+        the copy around it as text nodes — never a string of markup, because the index holds
+        page copy and the query is the reader's, and that is the one injection this
+        component could ever have.
+      </li>
+      <li>
+        <strong>The page ships a worked answer, and it is a fallback rather than a
+        specimen.</strong> With scripting off, <code>/suche</code> is six real hits for a
+        real query with that query in its field. With scripting on, the script writes
+        <code>data-cf-search</code> on <code>&lt;html&gt;</code> from the
+        <code>&lt;head&gt;</code> — before the body is parsed, the same trick
+        <code>cf-nav.js</code> uses — and <code>components.css</code> keeps the claim and
+        the register off the glass until the reader's own answer replaces them.
+      </li>
+      <li>
+        <strong>Every sentence the script draws lives on the page.</strong> The copy is a
+        <code>&lt;template&gt;</code> of <code>[data-key]</code> strings plus one template
+        per block state, so <code>design-system/i18n/en.json</code> still owns the words and
+        <code>build-i18n.py</code> still translates them. A sentence inside the script would
+        be a sentence the catalogue could not see and the extractor could not miss.
+        <code>scripts/check-search-contract.py</code> holds both directions: a key the
+        script asks for and the page has not got, and a string on the page nothing reads.
       </li>
       <li>
         <strong>Escape the query before echoing it.</strong> It appears in three places — the
@@ -307,10 +339,13 @@
         one component in the system where that is true.
       </li>
       <li>
-        <strong>Pagination joins above about four screens.</strong>
-        <a href="pagination.html">Pagination</a>'s own rule. When it does, the step links carry
-        the query as well as the page: <code>?q=…&amp;seite=N</code>, or the term is lost on
-        the first step.
+        <strong>Thirty results, and the page says so when it caps.</strong>
+        <a href="pagination.html">Pagination</a>'s own rule is that it joins above about four
+        screens, and thirty is about there. A query broad enough to pass it is a query to
+        narrow rather than a ranking to read down, so the register states the cap in a line
+        under itself instead. Pagination is still the answer if that changes, and the step
+        links then carry the query as well as the page — <code>?q=…&amp;seite=N</code>, or
+        the term is lost on the first step.
       </li>
       <li>
         <strong>Nothing animates but the sheen.</strong> 480 ms across the result, which drops
@@ -328,7 +363,7 @@
       <li><code>type="search"</code>: the correct role in the accessibility tree, the browser's own clear control, and a magnifier on the soft keyboard. <code>enterkeyhint="search"</code> relabels the return key.</li>
       <li>An <code>&lt;ol&gt;</code> with <code>role="list"</code> — <code>list-style: none</code> drops the role in Safari, and the count on entry is the fastest way to hear how big the answer is.</li>
       <li>Each result's heading is inside the list item, so heading navigation walks the answers. The ordinal is <code>aria-hidden</code>: the list already carries position, and a decorative counter read aloud is noise.</li>
-      <li><strong>No live region on the count</strong>, and that is measured against SC 4.1.3 rather than skipped. The criterion covers status messages that appear <em>without</em> a change of context; this page is a fresh server response, its <code>&lt;title&gt;</code> carries the number, and a live region already in the DOM at load is not announced anyway. A variant that swaps results in without navigating <em>does</em> need one — rendered empty first, then filled.</li>
+      <li><strong>A live region on the count, and this section used to argue the opposite.</strong> It argued it correctly, for a server: a fresh response needs no announcement, its <code>&lt;title&gt;</code> carries the number, and a live region already in the DOM at load is not announced anyway. It then named the exception — “a variant that swaps results in without navigating <em>does</em> need one, rendered empty first, then filled” — and that variant is what ships. The claim span carries <code>role="status"</code>, the register is emptied before it is filled, and the <code>&lt;title&gt;</code> is rewritten with the same number.</li>
       <li>Contrast: <code>--text-secondary</code> on the page wash is 5.9:1, result titles are full ink, and the match's ground line is <code>--border-strong</code>. No text on this page sits on lime, because no match here is lit.</li>
       <li>The sheen is a background travel behind type that never changes colour, so every figure above holds at every frame of it.</li>
     </ul>
@@ -370,12 +405,23 @@
       a page that does not exist is exactly the reader with a query.
     </p>
     <div class="docs-note">
-      <strong>The main navigation does not carry it, and that is a designer's call rather
-      than an oversight.</strong> Both Figma mockups draw a six-item nav bar, the bar is
-      measured to <code>417 × 41</code>, and a seventh item is a change to the drawing rather
-      than to the code. The pattern ships, the 404 links to it, and where a search control
-      belongs in the site chrome — nav, footer, or neither — is settled with the material in
-      front of you.
+      <strong>The main navigation carries it now, and that question is closed.</strong> This
+      note used to say the opposite and to say why: both Figma mockups draw a six-item nav
+      bar, the bar is measured to <code>417 × 41</code>, and a seventh item is a change to
+      the drawing rather than to the code. It left the decision open — “nav, footer, or
+      neither” — and the answer is <em>both</em>. Search is the seventh route, last in the
+      list and before the language switch, because it is the one route that is a way of
+      finding the others; the switch stays last because it is the one control that moves you
+      between editions rather than through the site.
+      <br><br>
+      It is a label on the plate and not a control with a contour, and that follows the bar's
+      own doctrine rather than taste: <code>/suche</code> is a page, the field is on it, and
+      a search box in the chrome would be the second field drawing this system has spent the
+      whole chapter refusing. Measured at 1280 px: the plate goes from 733 px to 802 px and
+      its height does not move — 70 px, which is the label at <code>--text-xs</code> plus
+      the list's <code>--space-1</code> gap. The plate is <code>max-content</code> under a
+      <code>max-width: 100%</code>, so nothing in the drawing had to move to make room, and
+      the folded bar below 780 px carries the seventh link in the panel like the other six.
     </div>
   </section>
 </main>

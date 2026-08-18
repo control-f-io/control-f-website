@@ -4,13 +4,13 @@
 The companion to check-footer-parity.py, and the other half of its argument.
 There is no build step and no include: fifteen pattern pages each carry a
 hand-typed copy of the one component that reaches every other page — the
-cf-nav bar, its logo, its toggle and its six links. The footer earned its
+cf-nav bar, its logo, its toggle and its seven links. The footer earned its
 parity gate after four of its fifteen copies had quietly stopped being the
 same block (#293), and the fix's own docstring names the exposure: a block
 hand-typed once per page, "edited hourly by twelve routines, is the exact
 surface this directory keeps finding forks on". The nav is that surface
 exactly — the same fifteen copies, the same hourly edits — and it is a more
-expensive place to fork than the footer, because below 780 px the bar's six
+expensive place to fork than the footer, because below 780 px the bar's seven
 links are the ONLY way off any page: a copy that loses a link does not render
 wrong, it just strands a phone reader one route short, on one page, invisibly.
 
@@ -43,7 +43,7 @@ everywhere by design, which is why anything else is a finding:
 
   COMMENTS       datenschutz.html and impressum.html each argue in place
                  why their bar carries no aria-current at all — the page is
-                 beside the six routes, not in them. An argument is not
+                 beside the seven routes, not in them. An argument is not
                  markup and is stripped before comparing, on every page.
 
 THE RULES. Two, on every design-system/patterns/*.html:
