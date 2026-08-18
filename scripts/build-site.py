@@ -29,8 +29,10 @@ THE FOUR EDITS, and nothing else — no minifying, no rewriting, no template.
 Each one asserts its own count, so a page that stops matching fails the build
 rather than shipping documentation chrome or a dead link:
 
-  ASSETS   `../assets/…` → `design-system/assets/…`. A pattern page sits one
-           directory below the assets it loads; a root page sits above them.
+  ASSETS   `../assets/…` → `design-system/assets/…`, with one `../` for every
+           directory the shipped page is buried in. A pattern page sits one
+           directory below the assets it loads; a root page sits above them, a
+           page in /blog/ one further down, a page in /en/news/thema/ three.
            The design system's own README already names
            `/design-system/assets/css/tokens.css` as the integration path — this
            is that path, written relative, because the site is served from
@@ -38,10 +40,18 @@ rather than shipping documentation chrome or a dead link:
            One copy of every stylesheet, script, font and image: the shipping
            pages and the documentation load the same files.
 
-  HOME     `landing-page.html` → `index.html`, in href and src. The landing page
-           is the document a directory index serves, and every nav, footer,
-           breadcrumb and search result that points at it has to follow it
-           there.
+  LINKS    Every reference to a pattern page becomes the path that page ships
+           at, written relative to the page doing the pointing. Two things fall
+           out of the one rule. `landing-page.html` → `index.html`, because the
+           landing page is the document a directory index serves and every nav,
+           footer, breadcrumb and search result that points at it has to follow
+           it there. And the content pages move into folders: a pattern named
+           `beitrag-wie-stahl-….html` is served at `/blog/wie-stahl-….html`, so
+           a card on news.html that says `href="beitrag-wie-stahl-….html"` is
+           rewritten to `blog/wie-stahl-….html`, and the same link from
+           `/news/thema/energie.html` two directories down is rewritten to
+           `../../blog/wie-stahl-….html`. A name the ship table does not know is
+           left alone — it is not a page this script ships.
 
   PREVIEW  Drops the preview.css <link> and the comment above it, which says of
            itself: never ships.
@@ -62,6 +72,7 @@ USAGE
     python3 scripts/build-site.py -v         # name every page, not only the changed ones
 """
 
+import posixpath
 import re
 import sys
 from pathlib import Path
@@ -70,9 +81,9 @@ ROOT = Path(__file__).resolve().parents[1]
 PATTERNS = ROOT / "design-system" / "patterns"
 
 # Every pattern ships, under the name the site serves it as. The landing page
-# becomes the directory index; everything else keeps the name the pattern pages
-# already link to each other by, which is why the HOME edit is the only rename
-# this file has to make.
+# becomes the directory index; every other page in this table keeps the name the
+# pattern pages already link to each other by. The content pages are not in this
+# table and do not keep their names — see FOLDER below.
 SHIP = {
     "landing-page.html": "index.html",
     "en/landing-page.html": "en/index.html",
@@ -123,13 +134,26 @@ SHIP = {
 # a table that has to be edited every time somebody writes a post, advertises a
 # job or files the first post under a new topic, which is the cost build-news.py
 # and build-jobs.py were written to remove.
+# AND THEY SHIP INTO FOLDERS, WHICH THE PATTERNS DO NOT. A pattern directory is
+# flat because 118 check scripts read it with a non-recursive glob and several
+# name a page by string; a page moved into a subdirectory there would stop being
+# checked without anything failing, which is the one outcome worse than an
+# untidy directory. So the folder is a property of the address, not of the
+# source: `beitrag-wie-stahl-….html` is written flat beside its siblings and
+# served at /blog/wie-stahl-…html. The prefix was doing the folder's job — it is
+# dropped on the way out, because /blog/beitrag-wie-stahl… says it twice.
+FOLDER = (("beitrag-", "blog/"),
+          ("stelle-", "stellen/"),
+          ("news-thema-", "news/thema/"))
+
+
 def ship():
     found = dict(SHIP)
-    for prefix in ("beitrag-", "stelle-", "news-thema-"):
+    for prefix, folder in FOLDER:
         for p in sorted(PATTERNS.glob(prefix + "*.html")):
-            found[p.name] = p.name
+            found[p.name] = folder + p.name[len(prefix):]
         for p in sorted((PATTERNS / "en").glob(prefix + "*.html")):
-            found["en/" + p.name] = "en/" + p.name
+            found["en/" + p.name] = "en/" + folder + p.name[len(prefix):]
     return found
 
 
@@ -162,18 +186,52 @@ def assets_re(up):
     return re.compile(r'(href|src|poster)="%s' % re.escape(up + "assets/"))
 
 
-# HOME. Attribute-anchored, so the prose in a comment that discusses
-# landing-page.html by name still discusses the file that exists.
+# LINKS, WHICH USED TO BE HOME AND IS THE SAME EDIT GENERALISED. It was written
+# for one rename — `landing-page.html` → `index.html`, because the landing page
+# is the document a directory index serves — and every other page kept the name
+# its siblings already linked it by, so nothing else had to move. That stopped
+# being true when the content pages gained folders: a card on news.html says
+# `href="beitrag-wie-stahl-….html"` and the page it means is served at
+# /blog/wie-stahl-….html, one directory down and one prefix shorter.
 #
-# THREE PREFIXES AND NOT ONE, because the landing page is now pointed at from
-# three distances. `landing-page.html` is a sibling — the nav and footer of
-# every page in its own edition. `en/landing-page.html` is the German landing
-# page's language switch, reaching down into the English edition. And
-# `../landing-page.html` is the reverse: every English page's switch, and its
-# hreflang="de" alternate, reaching back up. All three become index.html at the
-# depth they were written at, and a switch that pointed at /en/landing-page.html
-# would 404 on the deploy.
-HOME = re.compile(r'(href|src)="((?:\.\./|en/)?)landing-page\.html')
+# So the rule is now the general one the rename was an instance of: **every
+# reference to a pattern page becomes the path that page ships at, written
+# relative to the page doing the pointing.** The landing page falls out of it —
+# `landing-page.html` is in the table and the table says `index.html`.
+#
+# Attribute-anchored, so prose in a comment that discusses a page by name still
+# discusses the file that exists. THREE PREFIXES, because a pattern page points
+# at another from three distances: `X.html` is a sibling in its own edition;
+# `en/X.html` is the German page's language switch reaching down into the
+# English edition; `../X.html` is the reverse — every English page's switch and
+# its hreflang="de" alternate, reaching back up. A name the table does not know
+# is left exactly as it was: it is not a page this script ships.
+# The tail is `?query` as well as `#fragment`: the topic pages' pagination points
+# at `news-thema-telemetrie.html?seite=2`, and a rewrite that only understood
+# fragments left those three links pointing at a page that had moved.
+LINK = re.compile(r'(href|src|poster)="((?:\.\./|en/)?)([a-z0-9][a-z0-9-]*\.html)((?:[?#][^"]*)?)"')
+
+
+def links(text, src, table):
+    """Every reference to a pattern page, rewritten to where that page ships."""
+    edition = "en/" if src.startswith("en/") else ""
+    here = posixpath.dirname(table[src])
+
+    def one(m):
+        attr, prefix, name, frag = m.groups()
+        if prefix == "en/":
+            target = "en/" + name
+        elif prefix == "../":
+            # Only an English page reaches up, and what it reaches is the German
+            # edition. A German page has nothing above it to point at.
+            target = name
+        else:
+            target = edition + name
+        if target not in table:
+            return m.group(0)
+        return '%s="%s%s"' % (attr, posixpath.relpath(table[target], here or "."), frag)
+
+    return LINK.subn(one, text)
 
 # PREVIEW and DSBACK. Both are written once per page, identically, by hand. The
 # exact-match requirement is the point: if a page grows a second preview-only
@@ -197,7 +255,7 @@ class BuildError(Exception):
     """An edit did not find what it was written for."""
 
 
-def transform(text, name):
+def transform(text, name, table):
     """The four edits.
 
     The two removals go first. Both are written in terms of the page's own `../`
@@ -207,16 +265,19 @@ def transform(text, name):
     """
     counts = {}
     up = UP["en/" if name.startswith("en/") else ""]
-    # The English edition is served from /en/, one directory below the assets'
-    # new home rather than one above it.
-    assets_to = "../design-system/assets/" if name.startswith("en/") else "design-system/assets/"
+    # HOW FAR THE SHIPPED PAGE SITS FROM THE ROOT, which is not a property of the
+    # pattern any more. A pattern is at one of two depths; the page it becomes is
+    # at one of four — /index.html, /en/index.html or /blog/x.html, and
+    # /en/news/thema/x.html two below that. The assets live at the root either
+    # way, so the answer is one `../` per directory the page is buried in.
+    assets_to = "../" * table[name].count("/") + "design-system/assets/"
 
     text, counts["PREVIEW"] = preview_re(up).subn("", text)
     text, counts["DSBACK"] = dsback_re(up).subn("\n", text)
     text, counts["ASSETS"] = assets_re(up).subn(r'\1="%s' % assets_to, text)
-    text, counts["HOME"] = HOME.subn(r'\1="\2index.html', text)
+    text, counts["LINKS"] = links(text, name, table)
 
-    for name_, minimum in (("ASSETS", 1), ("HOME", 1), ("PREVIEW", 1), ("DSBACK", 1)):
+    for name_, minimum in (("ASSETS", 1), ("LINKS", 1), ("PREVIEW", 1), ("DSBACK", 1)):
         if counts[name_] < minimum:
             raise BuildError(
                 "%s: the %s edit matched %d times, expected at least %d — the pattern "
@@ -240,26 +301,50 @@ def transform(text, name):
     if "../assets/" in text or "ds-back" in text or "preview.css" in text:
         raise BuildError("%s: a preview-only reference survived the edits." % name)
 
+    # A content page's pattern name is not an address. If one survives here it is
+    # a link to /beitrag-….html, which is a 404 — the file moved to /blog/.
+    left = re.search(r'(?:href|src|poster)="(?:\.\./|en/)?'
+                     r'((?:beitrag|stelle|news-thema)-[^"]*\.html)"', text)
+    if left:
+        raise BuildError(
+            "%s: %s is a pattern name and not an address — it ships from a "
+            "folder now, and links() did not rewrite this one."
+            % (name, left.group(1)))
+
     return text
 
 
 def build():
     """Every pattern, transformed. Returns {root filename: text}."""
     pages = {}
-    for src, dest in sorted(ship().items()):
+    table = ship()
+    for src, dest in sorted(table.items()):
         path = PATTERNS / src
         if not path.exists():
             raise BuildError("design-system/patterns/%s does not exist" % src)
-        pages[dest] = transform(path.read_text(encoding="utf-8"), src)
+        pages[dest] = transform(path.read_text(encoding="utf-8"), src, table)
     return pages
 
 
 def owned_root_html():
-    """The .html files this script owns all of: the root, and the English
-    edition one directory below it. Nothing else in the tree is a served page —
-    design-system/ is documentation and is not walked here."""
-    return ({p.name for p in ROOT.glob("*.html")}
-            | {"en/" + p.name for p in (ROOT / "en").glob("*.html")})
+    """The .html files this script owns all of: the root, the English edition one
+    directory below it, and the content folders in both. Nothing else in the tree
+    is a served page — design-system/ is documentation and is not walked here.
+
+    The folders are walked for the same reason the root is: this set is what the
+    unowned sweep subtracts the shipped pages from, so a page that stops being
+    generated — a post unpublished in Notion, a topic whose last post moved — is
+    deleted instead of being served forever. When the content pages moved out of
+    the root, an unwalked folder would have meant every one of them looked
+    unowned-and-invisible rather than owned."""
+    seen = {p.name for p in ROOT.glob("*.html")}
+    seen |= {"en/" + p.name for p in (ROOT / "en").glob("*.html")}
+    for _, folder in FOLDER:
+        for edition in ("", "en/"):
+            here = ROOT / (edition + folder)
+            if here.is_dir():
+                seen |= {edition + folder + p.name for p in here.glob("*.html")}
+    return seen
 
 
 def main(argv):

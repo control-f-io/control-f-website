@@ -43,11 +43,21 @@ jobs:
       # as /en/, and that directory is itself generated from the German patterns
       # by build-i18n.py. Rebuilding both here, in order, is what makes the
       # deploy independent of whether either was regenerated before the commit.
-      - name: Build the English edition from the German patterns
-        run: python3 scripts/build-i18n.py
-
-      - name: Build the site from the design system's patterns
-        run: python3 scripts/build-site.py
+      # ALL SIX, NOT TWO. This ran build-i18n.py and build-site.py, which was
+      # enough while the other four generators' output was committed: the article
+      # pages, the Stelle pages, the topic pages and the archive's own regions
+      # were in the checkout, and build-site.py only had to ship them. None of
+      # that is tracked as of 2026-08-17, so a deploy that builds two of six
+      # publishes a site missing 25 pages per edition — and build-site.py's SHIP
+      # globs the generated patterns, so it would not even notice they were gone.
+      #
+      # build-all.sh is the order, and the order is load-bearing: the archive and
+      # the register write catalogue strings the English edition is built from,
+      # and the article and Stelle pages are spliced from the *translated*
+      # specimens the English edition produces. Still stdlib python, no
+      # dependencies.
+      - name: Build the website from the design system's patterns
+        run: sh scripts/build-all.sh
 
       # THE ARTIFACT USED TO BE THE REPOSITORY AND IS NOW THE WEBSITE.
       #

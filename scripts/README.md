@@ -21,13 +21,20 @@ most.
 
 | Count | What | Who runs it |
 | --- | --- | --- |
-| 117 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
-| 6 | `build-*.py` — the generators, in the order below | `deploy.yml` and `deploy-worker.yml` (two of them, in write mode), `news-sync.yml` (all six via `build-all.sh`), and both gates via `--check` |
+| 118 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
+| 6 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all six, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
 | 1 | `build-all.sh` | `news-sync.yml`, and a human. Nothing else. |
 | 1 | `stage-site.py` — collects the website into `dist/` | both deploys, `--surface pages` and `--surface worker` |
 | 3 | `gen-*.py` — deterministic SVG geometry spliced into pages | `design-system.yml`, `--check` only |
 | 2 | `sync-{news,jobs}-notion.py` — Notion → `content/` | `news-sync.yml`, hourly at `:25` |
 | 2 | `new-post.py`, `new-job.py` — write one file into `content/news/` or `content/jobs/` | nobody. They are human tools. |
+| 1 | `build-and-verify.sh` — build, then fail if a tracked file moved | both gates, as their first step |
+
+**The website is not in the checkout.** Since 2026-08-17 the 154 generated pages —
+43 at the root, 43 under `en/`, 43 English patterns, 25 generated pattern pages —
+are ignored rather than committed. Clone the repository and there is no site in it
+until `sh scripts/build-all.sh` writes one, into exactly the paths it always
+occupied. `check-tracked-outputs.py` fails a branch that adds one back.
 
 Plus two subdirectories:
 
@@ -52,7 +59,7 @@ it skips with exit 0 when no browser is present — except when
 `CF_REQUIRE_BROWSER` is set, which is how the CI job stops a broken install
 step from silently dodging the gate.
 
-### The 117 checks are two different kinds of file wearing one prefix
+### The 118 checks are two different kinds of file wearing one prefix
 
 Roughly half assert a property of the design system: `check-spacing-scale.py`
 holds `foundations/layout.html`'s published `--space-*` table to the shipping
@@ -72,7 +79,7 @@ two groups differently when you clean up.
 ### The prefix is not a taxonomy, and in three places it actively misleads
 
 The first word of a check's name is the subject the author had in mind, not a
-category anyone assigned. 83 distinct first words across 117 files, 68 of them
+category anyone assigned. 84 distinct first words across 118 files, 69 of them
 singletons. Where a prefix does repeat it usually means what it looks like —
 the twelve `check-flow-*.py` are all about the statement-to-process root, the
 four `check-pin-*.py` are all about the pinned-stage scroll contract — and then
@@ -125,7 +132,7 @@ python3 scripts/build-site.py
 | 3 | `build-i18n.py` | `patterns/en/` — 21 source pages, translated | nothing; it rewrites whole pages |
 | 4 | `build-articles.py` | `beitrag-<slug>.html` (18 today) in **both** editions | 9 `article:` regions of `blog-artikel.html` and `en/blog-artikel.html` |
 | 5 | `build-stellen.py` | `stelle-<slug>.html` (4 today) in **both** editions | 10 `stelle:` regions of `karriere-stelle.html` and `en/karriere-stelle.html` |
-| 6 | `build-site.py` | the 86 pages at the repository root — 43 German, 43 English | nothing; four textual edits and no template |
+| 6 | `build-site.py` | the 86 shipped pages — 43 German, 43 English. 18 per edition at the root, the other 25 under `blog/`, `stellen/` and `news/thema/` | nothing; four textual edits and no template |
 
 **Why the order cannot be permuted.** Steps 1 and 2 write into
 `design-system/i18n/en.json`, because a generated headline is copy that needs an
@@ -148,14 +155,39 @@ next build. This works across the language boundary for one specific reason:
 translation and mark the same regions in `patterns/en/`. That is not an
 incidental property. It is what lets steps 4 and 5 exist at all.
 
-**Why CI runs each `--check` instead of running this script.** A page that was
-edited by hand instead of regenerated must *fail*, not be silently rebuilt under
-whoever's commit happens to run next. `build-all.sh` is therefore the human
-entry point and the sync's rebuild step, and the two gates
-(`design-system.yml`, `routine-merge.yml`) run the six `--check`s. Both deploys
-additionally run `build-i18n.py` then `build-site.py` in **write** mode before
-uploading, so a forgotten regeneration costs nothing at the serving edge — the
-artifact is always built from the patterns as they stand at that commit.
+**Why CI builds instead of running the six `--check`s.** It used to run them: a
+page edited by hand instead of regenerated had to *fail* rather than be silently
+rebuilt under whoever's commit ran next. That question needed the output to be
+committed, and since 2026-08-17 it is not — a fresh checkout has none of the 154
+generated pages, so all six `--check`s would report them MISSING for the one
+reason that is expected.
+
+Both gates now run **`scripts/build-and-verify.sh`** as their first step: build
+everything, then fail if any *tracked* file moved. It asserts strictly more than
+the six did, because the files that are still tracked and still generator-written
+are the ones a stale commit actually breaks —
+
+| Tracked, and partly written by a generator | Written by |
+| --- | --- |
+| `design-system/i18n/en.json` | `build-news.py`, `build-jobs.py` (derived strings), and people |
+| `design-system/patterns/news.html` | `build-news.py`, inside `<!-- news:… -->` fences |
+| `design-system/patterns/karriere.html` | `build-jobs.py`, inside `<!-- jobs:… -->` fences |
+| `content/news/.catalogue.json`, `content/jobs/.catalogue.json` | the two builders — the record of which `en.json` keys each owns |
+
+None of those can be reconstructed from the pages, which is why they stay in git,
+and comparing output to source could never see a stale ledger.
+
+**It has to be the first step, not merely an early one.** Measured by taking the
+154 files out of a built tree and running the suite: 114 of the 117 checks did not
+notice. `check-form-contract.py` did — it reads `patterns/en/kontakt.html` and
+`patterns/en/bewerbung.html` — and `check-links.py` reported 70 MISSING
+references. Anything that reads a page must run after the build.
+
+Both deploys run **all six** generators in write mode before staging.
+`build-i18n.py` and `build-site.py` alone was enough while the other four
+generators' output was committed; now it would publish a site missing 25 pages per
+edition, and `build-site.py`'s `SHIP` globs the generated patterns, so it would not
+notice they were gone.
 
 ---
 
@@ -376,18 +408,18 @@ of stdlib python:
 cd "$(git rev-parse --show-toplevel)"
 
 fail=0
+sh scripts/build-and-verify.sh || { fail=1; echo "FAILED the build"; }
 for s in scripts/check-*.py; do
   python3 "$s" || { fail=1; echo "FAILED $s"; }
-done
-for b in build-news build-jobs build-i18n build-articles build-stellen build-site; do
-  python3 "scripts/$b.py" --check || { fail=1; echo "FAILED scripts/$b.py --check"; }
 done
 exit $fail
 ```
 
-That is `routine-merge.yml`'s gate step verbatim, including the order: the
-checks first, so a broken drawing is still reported when a catalogue entry is
-also missing. `check-runtime.py` is in the glob and will skip with exit 0 unless
+That is `routine-merge.yml`'s gate step verbatim, including the order: **the
+build first**, because a fresh checkout has no pages and two of the checks read
+them, and because building is what asserts the tracked half of the tree. Then the
+checks, so a broken drawing is still reported when a catalogue entry is also
+missing. `check-runtime.py` is in the glob and will skip with exit 0 unless
 you have Playwright and set `CF_REQUIRE_BROWSER=1`; the four `gen-*.py`
 `--check`s are wired in `design-system.yml` but are *not* in the glob, so add
 them by hand when you have touched a generated drawing:

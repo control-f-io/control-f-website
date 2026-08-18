@@ -501,6 +501,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # FIRST, BECAUSE THE WEBSITE IS NOT IN THE CHECKOUT ANY MORE.
+      #
+      # The generated pages — the 43 at the root, the 43 under en/, the 43 English
+      # patterns and the 25 generated pattern pages — stopped being tracked on
+      # 2026-08-17. They are written into the same paths they always occupied, by
+      # the same generators, but a fresh checkout does not have them, so anything
+      # that reads a page has to run after this step.
+      #
+      # Measured before moving it, by taking the 154 files out of a built tree and
+      # running the suite: 114 of the 117 checks did not notice. Two did, and they
+      # are the reason this step is here rather than merely somewhere earlier —
+      # check-form-contract.py reads patterns/en/kontakt.html and
+      # patterns/en/bewerbung.html, and check-links.py reported 70 MISSING
+      # references to pages that had not been built. The third was
+      # check-cited-gates.py objecting to a check that was not yet wired, which is
+      # its job.
+      #
+      # It is also the gate on the tracked half of the tree: build-and-verify.sh
+      # builds and then fails if any tracked file moved, which is what holds
+      # en.json, the fenced regions of news.html and karriere.html, and the two
+      # content ledgers to the sources they are derived from. It replaces the six
+      # `--check` steps that used to close this job.
+      - name: Build the website, and fail if building moved a tracked file
+        run: sh scripts/build-and-verify.sh
+
       # No setup-python step and no dependencies on purpose. The scripts are
       # stdlib only, and ubuntu-latest ships python3 — the system has no build
       # step and these checks do not give it one.
@@ -2718,63 +2743,21 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-cited-gates.py
 
-      # It is also the check that catches a hand-written page appearing at the
-      # root — the outgoing website was nine of those, and this is what keeps a
-      # tenth from arriving unnoticed.
+      # THE SIX BUILDERS' --check STEPS WERE HERE AND THE BUILD IS NOW THE FIRST
+      # STEP OF THIS JOB INSTEAD. They asked "does the committed output match its
+      # source?", which was the right question while the output was committed. The
+      # generated website — 154 files, four copies of every page — stopped being
+      # tracked on 2026-08-17, so on this checkout it does not exist until
+      # something builds it, and every one of those steps would have reported it
+      # MISSING. scripts/build-and-verify.sh asks the question that survives:
+      # build, then fail if any *tracked* file moved. That is strictly more than
+      # the six asserted — it also catches a stale ledger, which comparing output
+      # to source never could.
       #
-      # Last, because a stale root page is a fact about the deploy rather than
-      # about the design system, and the checks above are what a reader has come
-      # for.
-      # The English edition under design-system/patterns/en/ is generated the
-      # same way and for the same reason, one step earlier in the chain:
-      # scripts/build-i18n.py builds it from the German pattern beside it and
-      # replaces only the words, from design-system/i18n/en.json. Before the
-      # site build, because the site build ships its output — a stale English
-      # page would otherwise reach the root looking current.
-      #
-      # It also fails on a German string the catalogue has no entry for. That is
-      # the part worth having: an edition that quietly ships one German sentence
-      # in the middle of an English page is the failure nobody reviews, and the
-      # five routines that edit the landing pattern hourly write new sentences
-      # every day.
-      # BEFORE the English edition, because it feeds it. build-news.py writes
-      # the archive into the German pattern page and the post titles into the
-      # catalogue; the edition is built from both. Checked in the order they
-      # run, so a stale archive is reported as a stale archive rather than as
-      # sixteen untranslated strings three steps downstream.
-      - name: News archive
+      # What is left here is the other half of the pair.
+      - name: Tracked outputs
         if: '!cancelled()'
-        run: python3 scripts/build-news.py --check
-
-      # Beside the archive and before the edition, for the same reason: the
-      # register on karriere.html is written from content/jobs/ and its titles
-      # go into the catalogue the edition is built from.
-      - name: Vacancy register
-        if: '!cancelled()'
-        run: python3 scripts/build-jobs.py --check
-
-      - name: English edition
-        if: '!cancelled()'
-        run: python3 scripts/build-i18n.py --check
-
-      # AFTER the English edition, because it splices each post's text into
-      # BOTH editions of blog-artikel.html and the English one is that
-      # edition's output. It also reports a page whose post has gone: an
-      # article unpublished in Notion leaves content/news/, and the page has to
-      # leave with it or the site serves an article the archive stopped listing.
-      - name: Article pages
-        if: '!cancelled()'
-        run: python3 scripts/build-articles.py --check
-
-      # And the job pages, on the same argument one register over: an opening
-      # that leaves content/jobs/ has to take its advertisement with it.
-      - name: Job pages
-        if: '!cancelled()'
-        run: python3 scripts/build-stellen.py --check
-
-      - name: Site build
-        if: '!cancelled()'
-        run: python3 scripts/build-site.py --check
+        run: python3 scripts/check-tracked-outputs.py
 
   # A second job, and the header of the first says why for a year there was
   # only one: every static check is a few hundred milliseconds of stdlib

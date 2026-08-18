@@ -19,6 +19,53 @@ __pycache__/
 .wrangler/
 node_modules/
 
-# dist/ is the website collected for the Cloudflare deploy — output, like the
-# root pages, but unlike them not committed: nothing reads it but wrangler.
+# dist/ is the website collected for both deploys — nothing reads it but the
+# upload steps.
 dist/
+
+# ===========================================================================
+# THE GENERATED WEBSITE. Everything below is written by scripts/build-all.sh out
+# of design-system/patterns/, design-system/i18n/en.json and content/, and none
+# of it was ignored until 2026-08-17: 154 generated HTML files were committed
+# beside their sources, so every logical page existed four times in git and 70 %
+# of the tracked HTML lines were output. A one-word copy change rewrote four
+# files, every grep answered four times over, and an hourly Notion import
+# produced a ninety-six-file diff nobody could read.
+#
+# The generated files still land in exactly these paths when you build — the
+# generators did not move, the layout did not change, and the two deploys stage
+# from the same working tree they always did. Git simply stops carrying the
+# output. scripts/check-tracked-outputs.py fails any branch that adds one back,
+# because the same argument will be made again by somebody who wants to see a
+# diff.
+#
+# Build before you serve: `sh scripts/build-all.sh`.
+# ===========================================================================
+
+# The shipped pages. Every .html at the repository root is build-site.py's, and
+# it deletes any it does not own — there has never been a hand-written one here.
+/*.html
+
+# The English edition of the shipped pages.
+/en/
+
+# The content pages, which ship into folders the patterns do not have: one
+# reading page per post under /blog/, one per opening under /stellen/, one per
+# topic under /news/thema/. build-site.py's FOLDER table is where that mapping
+# lives; these four lines are the same fact written for git. /news/ is listed
+# whole because thema/ is the only thing in it — news.html itself is a root page
+# and is already covered above.
+/blog/
+/stellen/
+/news/
+
+# The English edition of the patterns, written by build-i18n.py out of the
+# German pattern beside it.
+/design-system/patterns/en/
+
+# The generated pattern pages: one reading page per news post that has text, one
+# Stelle page per opening with an advertisement, one page per topic in use.
+# news-thema.html — no slug — is the authored specimen and is NOT matched here.
+/design-system/patterns/beitrag-*.html
+/design-system/patterns/stelle-*.html
+/design-system/patterns/news-thema-*.html
