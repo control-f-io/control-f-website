@@ -82,12 +82,13 @@ RAIL_JS = DS / "assets/js/act-rail.js"
 ACTS_CSS = DS / "assets/css/acts.css"
 # Every consumer of act-rail.js. The landing page ships the acts,
 # prototypes/statement-to-process.html is the lab they were built in, and
-# patterns/ueber-uns.html indexes its four chapters with the same component —
-# four beats, all of them at 0, because every chapter there begins at a box
-# rather than at a fraction of one. A fourth page adopting the rail registers
-# here.
+# patterns/ueber-uns.html and patterns/expertise.html index their four and six
+# chapters with the same component — every beat at 0 on both, because a chapter
+# there begins at a box rather than at a fraction of one. A fifth page adopting
+# the rail registers here.
 PAGES = [DS / "patterns/landing-page.html",
          DS / "patterns/ueber-uns.html",
+         DS / "patterns/expertise.html",
          DS / "prototypes/statement-to-process.html"]
 
 MARK = re.compile(
