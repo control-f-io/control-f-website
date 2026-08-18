@@ -964,7 +964,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 
 /* --------------------------------------------------------------------------
    NAVIGATION
-   ONE PLATE, CENTRED IN THE BAND: the logo at its left, then the six routes,
+   ONE PLATE, CENTRED IN THE BAND: the logo at its left, then the seven routes,
    then the language switch — mono uppercase, opaque — floating on the
    full-bleed sheet of frosted glass that is still the band itself.
 
@@ -1287,7 +1287,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 }
 
 /* THE LIST IS NO LONGER A PLATE — .cf-nav__bar is the plate and this is the
-   run of six routes inside it. The fill, the border, the 2 px corner and the
+   run of seven routes inside it. The fill, the border, the 2 px corner and the
    8 px inset all moved there, unchanged; what is left is the row itself.
 
    Its padding is the one that used to need `ul` to outweigh base.css:150's
@@ -1398,7 +1398,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 
 /* --------------------------------------------------------------------------
    THE LANGUAGE SWITCH
-   One control, last in the plate, past the six routes and past the toggle:
+   One control, last in the plate, past the seven routes and past the toggle:
    the last thing in the bar because it is the one thing in it that does not
    move you through the site but between two copies of it.
 
@@ -1422,7 +1422,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    plate's --space-2 of padding plus .cf-nav__link's --space-2 / --space-4 of
    label padding, added up, because the switch was one link that had brought
    its own plate and the two plates had to stand level. There is one plate
-   now and the switch is inside it, beside the six routes, so the arithmetic
+   now and the switch is inside it, beside the seven routes, so the arithmetic
    that made it 49.94 px tall next to a 33.94 px label is the arithmetic that
    would now make it the tallest thing in the bar for no reason anybody can
    see. Same padding as .cf-nav__link, and the row is one row.
@@ -1683,7 +1683,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   /* THE SWITCH TAKES THE TOGGLE'S METRIC HERE, AND THE REASON IS A FINGERTIP.
 
      Above this width the switch is one more label in the plate and measures
-     what a route measures — 33.94 px, the same row. Below it the six routes
+     what a route measures — 33.94 px, the same row. Below it the seven routes
      are out of flow, and the switch is one of the two controls a phone reader
      has: it owes a fingertip the same 2.75 rem the toggle's note above
      derives from WCAG 2.5.5. Same padding, same floor, same 44.
@@ -4480,6 +4480,34 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
    16rem is the basis at which the field still holds a readable query. */
 .cf-search__field { flex: 1 1 16rem; }
 .cf-search__submit { flex: 0 0 auto; }
+
+/* THE SHIPPED ANSWER IS NOT THE READER'S ANSWER, AND THIS IS THE ONE FRAME IT
+   MUST NOT BE SEEN IN.
+
+   patterns/suche.html ships a worked result set — six hits for "Telemetrie",
+   which check-register-count.py holds to its own claim and which a reader with
+   no scripting gets as an honest, if not personal, page. On a site with a
+   server that is what the server would have replaced before sending. There is
+   no server here, so assets/js/cf-search.js replaces it in the page, and
+   between first paint and that replacement there is a window in which the
+   register on screen answers a question nobody asked.
+
+   The window is closed the way cf-nav.js closes its own: the script writes
+   data-cf-search on <html> from the <head>, BEFORE the body is parsed, so this
+   rule is already matching when the register is laid out. `live` is the script
+   admitting it has not answered yet; `ready` is it having answered, and the
+   rule stops applying with no second declaration to keep in step.
+
+   Two properties, and the difference is what each part costs while hidden. The
+   claim is one span on a two-span meta line, so it goes out by `visibility`
+   and the line keeps its shape. The register is six results tall, so it goes
+   out by `display` — reserving that height for a set that will be a different
+   size is a hole in the page and then a jump, rather than one settle.
+
+   With scripting off nothing writes the attribute, neither rule ever matches,
+   and the page is the specimen. → components/search.html#behaviour */
+html[data-cf-search="live"] [data-cf-search-claim] { visibility: hidden; }
+html[data-cf-search="live"] [data-cf-search-region] { display: none; }
 
 /* THE REGISTER HAS TWO CONSUMERS, AND IT IS DECLARED ONCE.
    .cf-vacancy is the open-position list on patterns/karriere.html, and it is

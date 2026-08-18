@@ -5,7 +5,7 @@ served from the repository root. **Eighteen written pages** — landing page, Ex
 Über uns, News and a topic and an article, Suche and its empty state, Karriere and a
 posting and its empty state, Kontakt and its confirmation, Bewerbung and its
 confirmation, Datenschutz, Impressum, 404 — each in two languages, German at the root
-and English under `/en/`.
+and English under `/en/`. Suche answers for real; see below.
 
 **And twenty-five more that are generated from content rather than written**: one
 reading page per news post that has text, one Stelle page per opening that has an
@@ -144,6 +144,39 @@ That matters in both directions, and [.github/ROUTINES.md](.github/ROUTINES.md) 
 record: what each routine was, what it was told, the trigger ids to check them by — and
 why switching one back on unread is the hazard, since eighteen of the briefs predate the
 generated root and would edit a pattern without ever rebuilding the page that ships.
+
+## The search actually searches
+
+`/suche` is the second route whose behaviour is not entirely in the page, and it
+is the opposite arrangement to the contact form: no server at all, the answer
+computed at build time.
+
+`scripts/build-search-index.py` runs last in `build-all.sh` — after
+`build-site.py`, because a search result carries an **address** and a pattern's
+address is not the page's — and reads the shipped HTML into one index per
+edition, 186 records each: one per page, one per `<h2>` under its `<main>`.
+`design-system/assets/js/cf-search.js` fetches the index, matches, ranks and
+draws the register the pattern already specifies. The index is generated and is
+not tracked, like the pages.
+
+| | |
+|---|---|
+| `?q=` with hits | the register, every match in `<mark class="cf-mark">`, each link carrying a `#:~:text=` fragment that lights the phrase on the page it opens |
+| `?q=` with none | `.cf-error--inline` at `200`, quoting the term back |
+| no `?q=` | the field, and nothing claiming to be an answer |
+| index unreachable | the same inline block, saying so |
+| scripting off | the page as it ships: six real hits for “Telemetrie”, that term in the field |
+
+The match is a **substring**, folded — `Warmepumpe` finds `Wärmepumpe`, and
+`Telemetrie` finds `Telemetriedaten`, which is the property that matters in a
+language that compounds. Every sentence the script draws lives on the page in a
+`<template>`, so `en.json` still owns the copy and `/en/suche` is translated by
+the same generator as everything else. `scripts/check-search-contract.py` holds
+the three pieces together — the hooks and copy keys are read out of the script,
+and every one of the 372 record addresses and anchors is walked.
+
+Search is also the **seventh route in the nav bar**, last before the language
+switch, and in the footer where it already was.
 
 ## The contact form has a server
 

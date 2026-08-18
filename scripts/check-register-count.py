@@ -29,8 +29,18 @@ filled register must not also show it. Either drift — the block deleted
 from an empty page, or an empty page's claim bumped without content —
 renders as a page that looks finished and answers wrong.
 
-WHAT IT CHECKS. For the four register routes, comments, <pre>, <code> and
-<textarea> masked:
+WHAT IT CHECKS. For the four register routes, comments, <pre>, <code>,
+<textarea> AND <template> masked:
+
+<template> IS MASKED FOR THE SAME REASON <pre> IS, and it was added when the
+search page grew one. Its content is inert — not in the document, not
+rendered, not focusable, not announced — until a script clones it, so a
+.cf-error--inline sitting in a template is not the empty state being drawn,
+it is the empty state being kept ready. patterns/suche.html now carries two of
+them, for the zero-results answer and for an index that never arrived, and
+unmasked they made the page look like a register claiming six results while
+also rendering the empty block: STATE's exact finding, on a page where both
+halves are correct.
 
   CLAIM   the page-header meta line carries exactly one "N Treffer" /
           "N offene Stellen" span, and N equals the count of register items
@@ -65,7 +75,8 @@ PATTERNS = ROOT / "design-system" / "patterns"
 
 # Regions whose contents are documentation, not markup the browser acts on.
 MASK = re.compile(
-    r"<!--.*?-->|<pre\b.*?</pre>|<code\b.*?</code>|<textarea\b.*?</textarea>",
+    r"<!--.*?-->|<pre\b.*?</pre>|<code\b.*?</code>|<textarea\b.*?</textarea>"
+    r"|<template\b.*?</template>",
     re.S | re.I,
 )
 
@@ -97,7 +108,12 @@ def audit(name, text, verbose):
     if not meta:
         findings.append("%s: no .cf-page-header__meta line to carry the claim" % name)
         return findings
-    claims = re.findall(r"<span>(\d+)\s+%s\b[^<]*</span>" % re.escape(unit), meta.group(1))
+    # The span may carry attributes and on suche.html it carries two: the hook
+    # cf-search.js rewrites the claim through, and role="status", which is what
+    # announces the new number to a reader who never left the page. Neither
+    # changes what the span says, which is the only thing this rule is about.
+    claims = re.findall(r"<span[^>]*>(\d+)\s+%s\b[^<]*</span>" % re.escape(unit),
+                        meta.group(1))
     if len(claims) != 1:
         findings.append(
             '%s: expected exactly one "N %s" span in the header meta, found %d'

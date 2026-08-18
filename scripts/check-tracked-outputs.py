@@ -80,6 +80,12 @@ RULES = (
      "a generated topic page",
      "build-news.py writes one per topic in use. news-thema.html — no slug — is "
      "the authored specimen and is not this."),
+    (lambda p: p.startswith("design-system/assets/search/"),
+     "a search index",
+     "build-search-index.py writes one per edition out of the shipped pages. It "
+     "is the only generated file under assets/, and it is generated for the same "
+     "reason the pages are: it is derived, and a derived file in git is a copy "
+     "that will one day disagree with what it was derived from."),
 )
 
 

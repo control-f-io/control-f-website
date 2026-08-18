@@ -722,6 +722,18 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-script-contract.py
 
+      # The third behaviour, and the one whose failures hide behind a page that
+      # already looks finished. /suche ships a worked answer — six results for
+      # "Telemetrie", which is also what a reader with no JavaScript gets — and
+      # assets/js/cf-search.js replaces it with the reader's own. Break a hook
+      # and the page keeps drawing the shipped six for every query at every
+      # address. The hooks, the copy keys and the kinds are read out of the
+      # script and out of the built index rather than typed into the check, and
+      # INDEX walks every record's address and anchor: 372 links, both editions.
+      - name: Search contract
+        if: '!cancelled()'
+        run: python3 scripts/check-search-contract.py
+
       - name: Class provenance
         if: '!cancelled()'
         run: python3 scripts/check-class-provenance.py
@@ -2790,6 +2802,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # THE SAME FIRST STEP THE OTHER JOB CARRIES, AND ITS ABSENCE HERE WAS A
+      # SCOPE LOSS NOBODY HAD NOTICED. This job opens the pattern pages in a
+      # browser, which is strictly more than reading them, and it had no build:
+      # it passed on whatever the checkout happened to contain. That was every
+      # page while the generated output was tracked — until 2026-08-17, when 154
+      # files stopped being committed and this glob quietly went from 43 pattern
+      # pages to the 18 written ones. Nothing forced the question, because until
+      # now no pattern page loaded a generated FILE.
+      #
+      # /suche does. cf-search.js fetches assets/search/index-<lang>.json, which
+      # build-search-index.py writes, and an unbuilt checkout answers 404 — two
+      # findings on that page, in both passes, every run. So the build comes
+      # first here for the same reason it comes first over there, and the 25
+      # generated pattern pages are back in the browser's scope where they were
+      # before the output left git. They are shipped pages; /blog/, /stellen/
+      # and /news/thema/ are what a visitor is given.
+      #
+      # build-all.sh and not build-and-verify.sh: this job needs the artefacts,
+      # and whether building moved a TRACKED file is the other job's assertion.
+      # Asserting it twice would mean two jobs going red for one cause.
+      - name: Build the website, because a browser is given pages and not sources
+        run: sh scripts/build-all.sh
 
       - name: Install the browser
         run: |

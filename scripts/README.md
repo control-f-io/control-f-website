@@ -1,7 +1,7 @@
 # scripts/
 
 Everything that generates this website, and everything that refuses to let it
-ship broken. 133 files at this level, this one included, no shared library, no
+ship broken. 137 files at this level, this one included, no shared library, no
 package, no `__init__.py`, no build step: every one is `python3` against the
 standard library and is run by its own path. There are exactly two dependencies
 in the whole directory — Pillow, in `sync-news-notion.py` and nowhere else, and
@@ -21,8 +21,8 @@ most.
 
 | Count | What | Who runs it |
 | --- | --- | --- |
-| 118 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
-| 6 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all six, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
+| 119 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
+| 7 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all seven, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
 | 1 | `build-all.sh` | `news-sync.yml`, and a human. Nothing else. |
 | 1 | `stage-site.py` — collects the website into `dist/` | both deploys, `--surface pages` and `--surface worker` |
 | 3 | `gen-*.py` — deterministic SVG geometry spliced into pages | `design-system.yml`, `--check` only |
@@ -59,7 +59,7 @@ it skips with exit 0 when no browser is present — except when
 `CF_REQUIRE_BROWSER` is set, which is how the CI job stops a broken install
 step from silently dodging the gate.
 
-### The 118 checks are two different kinds of file wearing one prefix
+### The 119 checks are two different kinds of file wearing one prefix
 
 Roughly half assert a property of the design system: `check-spacing-scale.py`
 holds `foundations/layout.html`'s published `--space-*` table to the shipping
@@ -79,7 +79,7 @@ two groups differently when you clean up.
 ### The prefix is not a taxonomy, and in three places it actively misleads
 
 The first word of a check's name is the subject the author had in mind, not a
-category anyone assigned. 84 distinct first words across 118 files, 69 of them
+category anyone assigned. 84 distinct first words across 119 files, 69 of them
 singletons. Where a prefix does repeat it usually means what it looks like —
 the twelve `check-flow-*.py` are all about the statement-to-process root, the
 four `check-pin-*.py` are all about the pinned-stage scroll contract — and then
@@ -123,6 +123,7 @@ python3 scripts/build-i18n.py
 python3 scripts/build-articles.py
 python3 scripts/build-stellen.py
 python3 scripts/build-site.py
+python3 scripts/build-search-index.py
 ```
 
 | # | Script | Writes | Splices into |
@@ -133,6 +134,15 @@ python3 scripts/build-site.py
 | 4 | `build-articles.py` | `beitrag-<slug>.html` (18 today) in **both** editions | 9 `article:` regions of `blog-artikel.html` and `en/blog-artikel.html` |
 | 5 | `build-stellen.py` | `stelle-<slug>.html` (4 today) in **both** editions | 10 `stelle:` regions of `karriere-stelle.html` and `en/karriere-stelle.html` |
 | 6 | `build-site.py` | the 86 shipped pages — 43 German, 43 English. 18 per edition at the root, the other 25 under `blog/`, `stellen/` and `news/thema/` | nothing; four textual edits and no template |
+| 7 | `build-search-index.py` | `assets/search/index-de.json` and `index-en.json` — 186 records per edition, one per page and one per `<h2>` under its `<main>` | nothing; it reads the shipped pages and writes beside the assets |
+
+Step 7 is the odd one and its position is the whole of its argument: it reads the
+**shipped** pages rather than the patterns, because a search result carries an
+address and a pattern's address is not the page's — `beitrag-<slug>.html` is
+served at `/blog/<slug>.html`, and re-deriving that mapping would be
+`build-site.py`'s table written twice. Run it earlier and every link still
+resolves; they just answer the question the site was asking one build ago, which
+is the one failure a search index cannot show you.
 
 **Why the order cannot be permuted.** Steps 1 and 2 write into
 `design-system/i18n/en.json`, because a generated headline is copy that needs an
@@ -183,8 +193,8 @@ notice. `check-form-contract.py` did — it reads `patterns/en/kontakt.html` and
 `patterns/en/bewerbung.html` — and `check-links.py` reported 70 MISSING
 references. Anything that reads a page must run after the build.
 
-Both deploys run **all six** generators in write mode before staging.
-`build-i18n.py` and `build-site.py` alone was enough while the other four
+Both deploys run **all seven** generators in write mode before staging.
+`build-i18n.py` and `build-site.py` alone was enough while the other five
 generators' output was committed; now it would publish a site missing 25 pages per
 edition, and `build-site.py`'s `SHIP` globs the generated patterns, so it would not
 notice they were gone.
@@ -200,6 +210,7 @@ notice they were gone.
 | `news-thema-<slug>.html` | generated, German; translated by `build-i18n.py` | `build-news.py` |
 | `patterns/en/*.html` | generated in full | `build-i18n.py` |
 | every `*.html` at the repository root | generated in full | `build-site.py` |
+| `design-system/assets/search/index-*.json` | generated in full | `build-search-index.py` |
 | `blog-artikel.html` | **authored** specimen — and it ships | a person |
 | `karriere-stelle.html` | **authored** specimen — and it ships | a person |
 | `news-thema.html` | **authored** specimen — and it ships | a person |
@@ -245,7 +256,7 @@ a grep for `import`, and several are outside this repository.
 | `build-jobs.py`, `build-articles.py` | imported by `build-stellen.py` (`JOBS`, `ART`) | the job pages lose the register reader and the splice helpers. |
 | `build-site.py` | imported by `stage-site.py` for `ship()` | `dist/` reverts to a typed list. It used to be one, and the generated content pages were missing from it: the Worker answered `/stelle-data-engineer.html` with the 404 page while Pages served it correctly. |
 | `sync-news-notion.py` | imported by `sync-jobs-notion.py` for `plain()`, `rich()`, `body_from()`, `children()`, `fetch()` | the jobs sync loses the entire Notion transform. |
-| all six `build-*.py` filenames | invoked by literal path from `deploy.yml`, `deploy-worker.yml`, `news-sync.yml` (via `build-all.sh`), `design-system.yml`, `routine-merge.yml`'s hard-coded six-name loop, and each other | the deploy or the gate fails on a missing file, or the gate quietly stops asserting what the deploy asserts. |
+| all seven `build-*.py` filenames | invoked by literal path from `deploy.yml`, `deploy-worker.yml`, `news-sync.yml` (via `build-all.sh`), `design-system.yml`, `routine-merge.yml` (via `build-and-verify.sh`), and each other | the deploy or the gate fails on a missing file, or the gate quietly stops asserting what the deploy asserts. |
 | `content/news/`, `content/jobs/` | `build-news.py`, `build-jobs.py`, both syncs, `check-content-images.py`; each holds a `.catalogue.json` ledger | the stores stop being found and the pages regenerate as empty. |
 | the fence namespaces `news:`, `jobs:`, `article:`, `stelle:` | the four builders match `<!-- ns:name -->` … `<!-- /ns:name -->` by exact string against the specimens | the splice finds no region and the build fails — or, if a fence is half-renamed, splices into the wrong place. |
 | `dist/` | `wrangler.toml`'s `assets.directory = "dist"`, `upload-pages-artifact`'s `path: dist` | neither deploy finds the website. |
@@ -266,6 +277,8 @@ build-jobs.py      → build-news.py, build-i18n.py
 build-articles.py  → check-image-scale.py, build-news.py
 build-stellen.py   → build-jobs.py, build-articles.py
 stage-site.py      → build-site.py
+build-search-index.py → build-site.py         (ship(), for the addresses)
+check-search-contract.py → cf-search.js, assets/search/index-*.json
 sync-news-notion.py→ check-image-scale.py, check-content-images.py
 sync-jobs-notion.py→ sync-news-notion.py
 check-content-images.py   → check-image-scale.py

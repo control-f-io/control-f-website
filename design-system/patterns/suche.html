@@ -34,6 +34,14 @@
      the nav. Moved to the end of the body it still works and the panel flashes
      open on every load below 780 px — see the file's own header. -->
 <script src="../assets/js/cf-nav.js"></script>
+<!-- Und aus demselben Grund im Head: cf-search.js schreibt data-cf-search auf
+     <html>, bevor der Body geparst wird. Diese Seite liefert eine fertige
+     Antwort aus — sechs Treffer für „Telemetrie“, ohne JavaScript genau das,
+     was der Leser bekommt —, und components.css blendet Trefferzahl und
+     Register aus, solange das Attribut „live“ sagt. Am Ende des Bodies geladen
+     würde jede Suche erst sechs falsche Treffer zeichnen und dann die
+     richtigen. -> scripts/check-search-contract.py -->
+<script src="../assets/js/cf-search.js"></script>
 </head>
 <body class="page-wash">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
@@ -119,6 +127,7 @@
       <li><a class="cf-nav__link" href="news.html">News</a></li>
       <li><a class="cf-nav__link" href="karriere.html">Karriere</a></li>
       <li><a class="cf-nav__link" href="kontakt.html">Kontakt</a></li>
+      <li><a class="cf-nav__link" href="suche.html" aria-current="page">Suche</a></li>
     </ul>
     <a class="cf-nav__lang" href="en/suche.html" hreflang="en" lang="en" aria-label="Switch to English">EN</a>
   </div>
@@ -129,7 +138,7 @@
      to hand focus to and document.activeElement stays on <body>. The ring is
      kept off it by the rule under the focus indicator in base.css, which
      carries the measurements. -> scripts/check-skip-target.py -->
-<main id="inhalt" tabindex="-1">
+<main id="inhalt" tabindex="-1" data-cf-search>
 
   <!-- 01 · Seitenkopf. Dieselbe Komponente wie auf jeder Unterseite. Die
        Trefferzahl steht links, der durchsuchte Bestand rechts — die Frage
@@ -149,7 +158,7 @@
         <h1 class="cf-page-header__title">Suche</h1>
         <div class="cf-page-header__rule"></div>
         <p class="cf-page-header__meta">
-          <span>6 Treffer für „Telemetrie“</span>
+          <span role="status" data-cf-search-claim>6 Treffer für „Telemetrie“</span>
           <span>Seiten, Beiträge, Abschnitte</span>
         </p>
       </div>
@@ -205,116 +214,194 @@
     <div class="container">
       <div class="cf-section-header cf-section-header--flush">
         <h2 class="cf-section-header__label" id="treffer">Treffer</h2>
-        <span class="cf-section-header__count">6</span>
+        <span class="cf-section-header__count" data-cf-search-counter>6</span>
       </div>
 
-      <ol class="cf-results" role="list">
-        <li class="cf-result">
-          <p class="cf-result__meta">
-            <span aria-hidden="true">01</span>
-            <span>Seite</span>
-          </p>
-          <h3 class="cf-result__title">
-            <a class="cf-result__link" href="expertise.html#:~:text=Telemetrie%2DAnalytik%20und%20Datenintegration">
-              Expertise — <mark class="cf-mark">Telemetrie</mark>-Analytik und Datenintegration
-            </a>
-          </h3>
-          <p class="cf-result__excerpt">
-            Vier Felder, ein Problem: die Daten liegen an, nur nicht zusammen. Der Weg dahin
-            ist in allen vier derselbe — vom Sensor bis zur Auswertung, ohne Bruchstelle in
-            der Mitte.
-          </p>
-          <p class="cf-result__path">control-f.de/expertise</p>
-        </li>
+      <!-- 04 · Das Register selbst, und der Container darum ist der Griff, an
+           dem cf-search.js es austauscht. Die sechs <li> darin sind die
+           ausgelieferte Antwort auf ?q=Telemetrie: ohne JavaScript ist das die
+           Seite, mit JavaScript ist es das, was für einen Wimpernschlag
+           dastünde, und components.css blendet genau diesen Wimpernschlag aus.
+           Deshalb steht die Zahl hier dreimal — Titel, Kopfzeile, Zähler — und
+           check-register-count.py hält sie zusammen. -->
+      <div data-cf-search-region>
+        <ol class="cf-results" role="list" data-cf-search-results>
+          <li class="cf-result">
+            <p class="cf-result__meta">
+              <span aria-hidden="true">01</span>
+              <span>Seite</span>
+            </p>
+            <h3 class="cf-result__title">
+              <a class="cf-result__link" href="expertise.html#:~:text=Telemetrie%2DAnalytik%20und%20Datenintegration">
+                Expertise — <mark class="cf-mark">Telemetrie</mark>-Analytik und Datenintegration
+              </a>
+            </h3>
+            <p class="cf-result__excerpt">
+              Vier Felder, ein Problem: die Daten liegen an, nur nicht zusammen. Der Weg dahin
+              ist in allen vier derselbe — vom Sensor bis zur Auswertung, ohne Bruchstelle in
+              der Mitte.
+            </p>
+            <p class="cf-result__path">control-f.de/expertise</p>
+          </li>
 
-        <li class="cf-result">
-          <p class="cf-result__meta">
-            <span aria-hidden="true">02</span>
-            <span>Beitrag · 01.01.2025</span>
-          </p>
-          <h3 class="cf-result__title">
-            <a class="cf-result__link" href="blog-artikel.html#:~:text=muss%20die%20Telemetrie%20stimmen">
-              Digitale Zwillinge im Energiesektor: Simulation trifft Realität
-            </a>
-          </h3>
-          <p class="cf-result__excerpt">
-            Das Datenfundament: Bevor irgendetwas simuliert wird, muss die
-            <mark class="cf-mark">Telemetrie</mark> stimmen. In den Projekten, die wir seit
-            2022 begleitet haben, lagen die Probleme fast immer davor.
-          </p>
-          <p class="cf-result__path">control-f.de/news/digitale-zwillinge-im-energiesektor</p>
-        </li>
+          <li class="cf-result">
+            <p class="cf-result__meta">
+              <span aria-hidden="true">02</span>
+              <span>Beitrag · 01.01.2025</span>
+            </p>
+            <h3 class="cf-result__title">
+              <a class="cf-result__link" href="blog-artikel.html#:~:text=muss%20die%20Telemetrie%20stimmen">
+                Digitale Zwillinge im Energiesektor: Simulation trifft Realität
+              </a>
+            </h3>
+            <p class="cf-result__excerpt">
+              Das Datenfundament: Bevor irgendetwas simuliert wird, muss die
+              <mark class="cf-mark">Telemetrie</mark> stimmen. In den Projekten, die wir seit
+              2022 begleitet haben, lagen die Probleme fast immer davor.
+            </p>
+            <p class="cf-result__path">control-f.de/news/digitale-zwillinge-im-energiesektor</p>
+          </li>
 
-        <li class="cf-result">
-          <p class="cf-result__meta">
-            <span aria-hidden="true">03</span>
-            <span>Seite</span>
-          </p>
-          <h3 class="cf-result__title">
-            <a class="cf-result__link" href="ueber-uns.html#:~:text=Big%20Data%2DPlattformen%20f%C3%BCr%20Telemetriedaten">
-              Über uns — eine Datenboutique aus Konstanz
-            </a>
-          </h3>
-          <p class="cf-result__excerpt">
-            Als echte Daten-Nerds bauen wir seit 2022 Big Data-Plattformen für
-            <mark class="cf-mark">Telemetrie</mark>daten in der Industrie.
-          </p>
-          <p class="cf-result__path">control-f.de/ueber-uns</p>
-        </li>
+          <li class="cf-result">
+            <p class="cf-result__meta">
+              <span aria-hidden="true">03</span>
+              <span>Seite</span>
+            </p>
+            <h3 class="cf-result__title">
+              <a class="cf-result__link" href="ueber-uns.html#:~:text=Big%20Data%2DPlattformen%20f%C3%BCr%20Telemetriedaten">
+                Über uns — eine Datenboutique aus Konstanz
+              </a>
+            </h3>
+            <p class="cf-result__excerpt">
+              Als echte Daten-Nerds bauen wir seit 2022 Big Data-Plattformen für
+              <mark class="cf-mark">Telemetrie</mark>daten in der Industrie.
+            </p>
+            <p class="cf-result__path">control-f.de/ueber-uns</p>
+          </li>
 
-        <li class="cf-result">
-          <p class="cf-result__meta">
-            <span aria-hidden="true">04</span>
-            <span>Abschnitt</span>
-          </p>
-          <h3 class="cf-result__title">
-            <a class="cf-result__link" href="expertise.html#:~:text=die%20dichtesten%20Telemetriedaten">
-              Expertise — Maschinenbau
-            </a>
-          </h3>
-          <p class="cf-result__excerpt">
-            Drehzahl, Schwingung, Temperatur, Druck: rotierende Maschinen erzeugen die
-            dichtesten <mark class="cf-mark">Telemetrie</mark>daten im ganzen Portfolio, oft
-            im Millisekundentakt und über Jahre hinweg.
-          </p>
-          <p class="cf-result__path">control-f.de/expertise#maschinenbau</p>
-        </li>
+          <li class="cf-result">
+            <p class="cf-result__meta">
+              <span aria-hidden="true">04</span>
+              <span>Abschnitt</span>
+            </p>
+            <h3 class="cf-result__title">
+              <a class="cf-result__link" href="expertise.html#:~:text=die%20dichtesten%20Telemetriedaten">
+                Expertise — Maschinenbau
+              </a>
+            </h3>
+            <p class="cf-result__excerpt">
+              Drehzahl, Schwingung, Temperatur, Druck: rotierende Maschinen erzeugen die
+              dichtesten <mark class="cf-mark">Telemetrie</mark>daten im ganzen Portfolio, oft
+              im Millisekundentakt und über Jahre hinweg.
+            </p>
+            <p class="cf-result__path">control-f.de/expertise#maschinenbau</p>
+          </li>
 
-        <li class="cf-result">
-          <p class="cf-result__meta">
-            <span aria-hidden="true">05</span>
-            <span>Abschnitt · 01.01.2025</span>
-          </p>
-          <h3 class="cf-result__title">
-            <a class="cf-result__link" href="blog-artikel.html#:~:text=sondern%20an%20der%20Telemetrie%20darunter">
-              Digitale Zwillinge — woran die meisten Projekte scheitern
-            </a>
-          </h3>
-          <p class="cf-result__excerpt">
-            … und genau daran scheitern die meisten Projekte: nicht an der Simulation,
-            sondern an der <mark class="cf-mark">Telemetrie</mark> darunter.
-          </p>
-          <p class="cf-result__path">control-f.de/news/digitale-zwillinge-im-energiesektor</p>
-        </li>
+          <li class="cf-result">
+            <p class="cf-result__meta">
+              <span aria-hidden="true">05</span>
+              <span>Abschnitt · 01.01.2025</span>
+            </p>
+            <h3 class="cf-result__title">
+              <a class="cf-result__link" href="blog-artikel.html#:~:text=sondern%20an%20der%20Telemetrie%20darunter">
+                Digitale Zwillinge — woran die meisten Projekte scheitern
+              </a>
+            </h3>
+            <p class="cf-result__excerpt">
+              … und genau daran scheitern die meisten Projekte: nicht an der Simulation,
+              sondern an der <mark class="cf-mark">Telemetrie</mark> darunter.
+            </p>
+            <p class="cf-result__path">control-f.de/news/digitale-zwillinge-im-energiesektor</p>
+          </li>
 
-        <li class="cf-result">
-          <p class="cf-result__meta">
-            <span aria-hidden="true">06</span>
-            <span>Seite</span>
+          <li class="cf-result">
+            <p class="cf-result__meta">
+              <span aria-hidden="true">06</span>
+              <span>Seite</span>
+            </p>
+            <h3 class="cf-result__title">
+              <a class="cf-result__link" href="expertise.html#:~:text=Cloud%2DTelemetrie%20sowie%20Dateiablagen">
+                Expertise — Häufige Fragen
+              </a>
+            </h3>
+            <p class="cf-result__excerpt">
+              Welche Datenquellen binden Sie an? SPS und Leitsysteme über OPC UA und Modbus,
+              Historians, MES- und ERP-Systeme, Cloud-<mark class="cf-mark">Telemetrie</mark>
+              sowie Dateiablagen.
+            </p>
+            <p class="cf-result__path">control-f.de/expertise#faq</p>
+          </li>
+        </ol>
+      </div>
+
+      <!-- 05 · Die Sprache der Antwort, und sie steht auf der Seite und nicht
+           im Skript. Jede Zeichenkette hier geht durch design-system/i18n/en.json
+           und damit in die englische Ausgabe; ein Satz im JavaScript täte das
+           nicht, und build-i18n.py würde ihn nicht einmal vermissen. Das Skript
+           liest die Tabelle über [data-key] und setzt {n}, {q} und {m} ein.
+
+           <template> wird nicht gerendert: der Inhalt hängt nicht im Dokument,
+           ist nicht fokussierbar, wird nicht vorgelesen und ist für den
+           Suchindex unsichtbar (scripts/build-search-index.py überspringt ihn,
+           sonst beantwortete jede Suche sich selbst). -->
+      <template data-cf-search-tpl="copy">
+        <span data-key="claim">{n} Treffer für „{q}“</span>
+        <span data-key="claim-one">1 Treffer für „{q}“</span>
+        <span data-key="claim-idle">Noch kein Suchbegriff</span>
+        <span data-key="page-title">Suche — Control-F</span>
+        <span data-key="kind-page">Seite</span>
+        <span data-key="kind-post">Beitrag</span>
+        <span data-key="kind-job">Stelle</span>
+        <span data-key="kind-topic">Thema</span>
+        <span data-key="kind-section">Abschnitt</span>
+        <span data-key="capped">Es werden die ersten {m} Treffer gezeigt — ein genauerer Begriff grenzt die Antwort weiter ein.</span>
+      </template>
+
+      <!-- 06 · Null Treffer. Kein Fehlerton und kein 404: die Adresse hat
+           funktioniert, der Index hat funktioniert, die Antwort ist leer. Es
+           ist derselbe Inline-Block wie auf suche-leer.html, weil es derselbe
+           Zustand ist — dort als ausgelieferte Zeichnung, hier als Vorlage für
+           den Begriff, den der Leser tatsächlich eingegeben hat. -->
+      <template data-cf-search-tpl="empty">
+        <div class="cf-error cf-error--inline">
+          <p class="cf-error__code">0 Treffer</p>
+          <h3 class="cf-error__title">Zu „{q}“ steht hier nichts.</h3>
+          <p class="cf-error__body">
+            Der Begriff kommt auf keiner Seite, in keinem Beitrag und in keinem Abschnitt vor.
+            Meist hilft ein kürzerer — die Suche schneidet nicht an Wortgrenzen ab, „Telemetrie“
+            findet also auch „Telemetriedaten“.
           </p>
-          <h3 class="cf-result__title">
-            <a class="cf-result__link" href="expertise.html#:~:text=Cloud%2DTelemetrie%20sowie%20Dateiablagen">
-              Expertise — Häufige Fragen
+          <div class="cf-error__actions">
+            <a class="cf-btn cf-btn--outline" href="news.html">
+              Alle Beiträge zeigen
+              <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
             </a>
-          </h3>
-          <p class="cf-result__excerpt">
-            Welche Datenquellen binden Sie an? SPS und Leitsysteme über OPC UA und Modbus,
-            Historians, MES- und ERP-Systeme, Cloud-<mark class="cf-mark">Telemetrie</mark>
-            sowie Dateiablagen.
+          </div>
+        </div>
+      </template>
+
+      <!-- 07 · Der Index ist nicht angekommen. Das ist der einzige Zustand
+           dieser Seite, der wirklich ein Fehler ist, und er wird deshalb anders
+           benannt und nicht anders gezeichnet: der Leser hat nichts falsch
+           gemacht, der Weg hinaus ist derselbe, und eine Seite, die einen
+           Netzwerkfehler dramatischer zeichnet als eine leere Antwort, hat die
+           beiden verwechselt. -->
+      <template data-cf-search-tpl="error">
+        <div class="cf-error cf-error--inline">
+          <p class="cf-error__code">Kein Index</p>
+          <h3 class="cf-error__title">Die Suche ist gerade nicht erreichbar.</h3>
+          <p class="cf-error__body">
+            Der Suchindex konnte nicht geladen werden — das liegt an uns, nicht an Ihrem
+            Suchbegriff. Laden Sie die Seite neu, oder gehen Sie über das Archiv.
           </p>
-          <p class="cf-result__path">control-f.de/expertise#faq</p>
-        </li>
-      </ol>
+          <div class="cf-error__actions">
+            <a class="cf-btn cf-btn--outline" href="news.html">
+              Alle Beiträge zeigen
+              <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+            </a>
+          </div>
+        </div>
+      </template>
 
       <!-- Keine Pagination. Sechs Treffer sind keine vier Bildschirme, und
            components/pagination.html sagt selbst: darunter zeigt man alles.
