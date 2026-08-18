@@ -97,6 +97,25 @@
       return r.json();
     });
 
+  /* THE REJECTION IS ANSWERED HERE AS WELL, AND THE SECOND ANSWER IS THE ONE
+     THAT MATTERS. The consumer below attaches its own .catch() — it draws the
+     `error` state from it — but it attaches it at DOMContentLoaded, and this
+     fetch starts in the <head>. A promise that rejects before any handler is
+     attached is an UNHANDLED rejection, which the browser reports as an
+     uncaught page error, and check-runtime.py counts one of those as a finding
+     on every pattern page it visits.
+
+     Worse, there is a path where the consumer never attaches one at all: a
+     reader who arrives at /suche with no query gets the field and returns
+     before ever asking the index anything. On that path the fetch is still in
+     flight, and a 404 or a dropped connection would be reported with nobody
+     having asked a question for it to be the answer to.
+
+     `index.then(…)` below starts a NEW chain, so its .catch() still fires and
+     still draws the state. This one only says: the failure is accounted for.
+     Nothing is swallowed that anybody was waiting on. */
+  index.catch(function () {});
+
   /* ---------------------------------------------------------------- folding */
 
   function fold(text) {
