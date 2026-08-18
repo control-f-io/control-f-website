@@ -137,6 +137,22 @@ ASSETS = [
                                        (-97.0, 32.9)]),
 ]
 
+# WHAT THE KEY COUNTS IS NOT WHAT THE DRAWING DRAWS, and that is the whole of
+# this constant. The asset row used to print `len` of the points above -- 27 --
+# which is a true number about a PICTURE and a false one about the business the
+# picture illustrates: the fleet under monitoring is three orders of magnitude
+# larger, and a reader who takes the legend at its word reads the smaller one.
+# The twenty-seven points were never a census; they are six asset TYPES placed
+# where those types are found, which is what the note over ASSETS says.
+#
+# SO THE ROW STATES THE FLEET AND THE DRAWING STAYS ILLUSTRATIVE. It is written
+# as prose and not as a bare numeral because it has to survive the i18n pass:
+# scripts/build-i18n.py keys a run on HAS_WORD -- two consecutive letters -- so
+# "7.000+" carries no word, is never a catalogue key, and would ship German
+# thousands-dot formatting to an English reader as "7.000". "über 7.000" is a
+# key, and en.json turns it into "over 7,000" with the separator English uses.
+MONITORED = "über 7.000"
+
 
 # ------------------------------------------------------------------- the shapes
 LAND = json.loads(DATA.read_text(encoding="utf-8"))
@@ -342,7 +358,7 @@ for n, (kind, _label, places) in enumerate(ASSETS):
         x, y = merc(lon, lat)
         d = f'M{num(x)} {num(y)}h0'
         emit(f'<path class="map__dot map__dot--ring" style="--n:{n}" d="{d}"/>')
-        emit(f'<path class="map__dot map__dot--asset" style="--k:{kind};--n:{n}" d="{d}"/>')
+        emit(f'<path class="map__dot map__dot--asset" data-k="{kind}" style="--n:{n}" d="{d}"/>')
 
 # THE LABELS ARE HTML AND THEY BELONG TO ONE SHOT EACH. The camera holds still
 # while a stage is read, so a label placed for that stage's framing is exact for
@@ -365,35 +381,51 @@ px, py = place(((x0 + x1) / 2, (y0 + y1) / 2), SHOTS[1][1])
 emit(f'<span class="t-label map__tag map__tag--land" style="--s:1;--i:0;'
      f'--x:{num(px)}%;--y:{num(py)}%">Deutschland</span>')
 
-# A KEY, THEN A TALLY, AND ONLY THE KEY CAN CARRY A SWATCH. This block used to
-# be six rows each carrying the same lime dot -- six names against one mark, so
-# no point on the drawing could be assigned to a line, while the two points the
-# map DOES draw differently, the black offices, stood in no row at all. Six
-# marks is not the repair: the drawing has one accent, and two of these kinds
-# already share a coordinate (Dubai is `see` and `luft` 0.2 degrees apart, and
-# so is Singapore), so a per-kind colour would have to put two of them on one
-# dot. What the map draws is TWO marks, and those are what the key states. The
-# kinds keep their names and their counts as the tally of the second one, in a
-# second list under it, without a swatch that would promise a code. The two
-# lists carry one class between them: what tells them apart is the swatch in
-# the first, which is markup, and a modifier that styled nothing would be a
-# name for a difference the stylesheet does not make.
+# TWO LISTS: THE MARKS, THEN THE KINDS, AND NOW BOTH CARRY A SWATCH. The first
+# states the two marks the map has always drawn differently -- the CF-Schwarz
+# offices and the asset point -- and the second names the six kinds. Until now
+# only the first could carry a swatch, because every asset point on the drawing
+# was the same lime and a per-kind swatch would have promised a code the map did
+# not carry. The kinds are coloured now, on the drawing and in the key together,
+# so the promise is kept: `data-k` rides both the dot and the row, and acts.css
+# turns it into one --map-k the stroke and the swatch both read.
+#
+# WHY IT IS AN ATTRIBUTE AND NOT A CUSTOM PROPERTY. This used to emit
+# `style="--k:see"` on both, which no rule in the stylesheet ever read -- CSS
+# cannot select on a custom property's VALUE, so `--k` was a string the markup
+# carried and nothing consumed. An attribute can be selected, which is the whole
+# of the change: the palette lives in acts.css where the rest of the system's
+# colour does, and this script keeps emitting the kind and no hex at all.
+#
+# WHAT THE COLOURS COST, measured rather than asserted -- the palette is six
+# steps off the brand's own spectrum arc and the note over --map-k in acts.css
+# carries the numbers. The short of it: adjacent pairs separate, all-pairs do
+# not, and the drawing is where that bites. Two kinds still share a coordinate
+# (Dubai is `see` and `luft` 0.2 degrees apart, and so is Singapore), so at the
+# world framing those two dots overlap and read as one. That was true when they
+# were both lime and it is true now; what changed is that it is visible. The key
+# is where a kind is decoded, and every swatch there has its name beside it.
+#
+# THE SECOND LIST DROPS ITS COUNTS. They were the tally of the 27 -- 6, 6, 5, 3,
+# 3, 4 -- and against a row that now reads "über 7.000" they would read as a
+# breakdown of it and be wrong by a factor of 260. The split of the real fleet
+# across the six kinds is not a number this repo has, and inventing one to fill
+# a column is the one thing the note over ASSETS forbids.
 block("legend")
 emit('<div class="map__legends">')
 emit('  <ul class="map__legend" role="list">')
 for i, (mod, label, n) in enumerate((("office", "Standorte", len(OFFICES)),
-                                     ("asset", "Anlagen",
-                                      sum(len(p) for _, _, p in ASSETS)))):
+                                     ("asset", "Anlagen", MONITORED))):
     emit(f'    <li class="map__key" style="--i:{i}">'
          f'<span class="map__key-dot map__key-dot--{mod}" aria-hidden="true"></span>'
          f'<span class="t-label map__key-name">{label}</span>'
          f'<span class="map__key-n">{n}</span></li>')
 emit('  </ul>')
 emit('  <ul class="map__legend" role="list">')
-for i, (kind, label, places) in enumerate(ASSETS):
-    emit(f'    <li class="map__key" style="--k:{kind};--i:{i + 2}">'
-         f'<span class="t-label map__key-name">{label}</span>'
-         f'<span class="map__key-n">{len(places)}</span></li>')
+for i, (kind, label, _places) in enumerate(ASSETS):
+    emit(f'    <li class="map__key" data-k="{kind}" style="--i:{i + 2}">'
+         f'<span class="map__key-dot map__key-dot--kind" aria-hidden="true"></span>'
+         f'<span class="t-label map__key-name">{label}</span></li>')
 emit('  </ul>')
 emit('</div>')
 
