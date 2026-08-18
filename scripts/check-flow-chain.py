@@ -44,19 +44,35 @@ WHAT IS HELD HERE, and each of the five is a way the arithmetic can rot:
      twice; a --u that moved on one of them is a head that outruns its own black
      on one route and lags on another.
 
-  4. THE SPEED IS SINGLE-SOURCED. Every `cover` window on the flow's four
-     families is written off --flow-c, which is declared exactly once. A typed
-     constant that creeps back into one rule is how the family drifts apart.
+  4. EACH TIER'S SPEED IS SINGLE-SOURCED, AND EVERY FAMILY IS IN BOTH. The root
+     is drawn by two tiers now — the pinned stage above (min-width: 64rem) and
+     (min-height: 45rem), and the flow tier under it, where the drawing is its
+     own timeline subject — and they cannot share a rate. The stage gives the
+     act 4 860 px of `contain` at 1440 x 900; the flow tier gives it the 665 px
+     the drawing is on screen for at 390 x 844. So there are two rates,
+     --flow-c and --flow-cf, each declared exactly once, and every window in a
+     tier is written off that tier's own. A typed constant that creeps back
+     into one rule is how the family drifts apart; a family whose rule exists
+     in one tier and not the other is how a phone quietly stops drawing the
+     junctions while every number in the file still looks right.
 
-  5. THE TWO TAILS THE SEAM AND THE LIGHT ARE MEASURED AT. The contour lands at
-     cover 66, where the frame's relay is written to take over, and the light's
-     fade ends at 68, which is the number Standing Order 2's clearance was swept
-     at: the last lit flow stroke is 810 to 1650 px of scroll before card 01's
-     lime at contain 11.5 % of its quarter, at every viewport the gate admits.
-     That sweep needs a browser and this script does not have one — so what it
-     holds is the pair of authored numbers the sweep was taken at. Move either
-     and this fails, which is the point: the clearance may be re-measured, but it
-     may not be silently invalidated. → foundations/colors.html#one-per-screen.
+  5. THE TAILS THE SEAM AND THE LIGHT ARE MEASURED AT, per tier. In the pinned
+     stage the contour lands at contain 86.88, where the frame's relay is
+     written to take over, and the light's fade ends at 88.88, which is the
+     number Standing Order 2's clearance was swept at: the last lit flow stroke
+     is 810 to 1650 px of scroll before card 01's lime at contain 11.5 % of its
+     quarter, at every viewport the gate admits. That sweep needs a browser and
+     this script does not have one — so what it holds is the pair of authored
+     numbers the sweep was taken at. Move either and this fails, which is the
+     point: the clearance may be re-measured, but it may not be silently
+     invalidated. → foundations/colors.html#one-per-screen.
+
+     The flow tier's pair is 84 and 88 of its own window, and what they owe is
+     narrower because there is no relay and no card under it: they have to land
+     inside the 100 the drawing is on screen for, and the light has to be out
+     AFTER its own black rather than before it. Both tiers are held to that
+     last one, which is the sentence the whole chain is about — the front
+     leads, the contour follows.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
@@ -107,8 +123,19 @@ def page_stylesheets(path):
 # l+u = 3.74, and c came down to 12 so the landing stays inside the act:
 # 42 + 3.74 * 12 = 86.88, fade two points of head behind at 88.88 — still
 # before the 89 the page's script gives the closing still.
-CONTOUR_LANDS = 86.88       # 42 + 3.74 * 12, the head plus the longest walk
-FADE_ENDS = 88.88           # the light's fade, six points behind its draw
+# AND THERE ARE TWO TIERS OF THEM NOW, one rate each. The pinned stage buys
+# the root 53 points of a 640vh track; the flow tier under the gate has no
+# stage, so the drawing is its own timeline subject and the whole act plays
+# across the `contain` window in which the tree is on screen — 665 px at
+# 390 x 844 against the stage's 5760. Same algebra, same order, same chain;
+# one number for how many points a unit of --l is worth, and it cannot be the
+# same number. Both are recorded here, both move only on purpose, and every
+# window in a tier has to be written off that tier's own rate.
+TIERS = {
+    # rate          the tier it drives      contour lands   the light is out
+    "--flow-c":  dict(label="the pinned stage", contour=86.88, fade=88.88),
+    "--flow-cf": dict(label="the flow tier",    contour=84.00, fade=88.00),
+}
 CARD_LIME = 11.5            # contain %, card 01's fill-opacity leaving 0
 TOL = 0.02                  # two decimal places, plus the rounding under them
 
@@ -220,23 +247,36 @@ def walk(segs):
     return None
 
 
-def cover_tail(body, const, l_plus_u):
+def cover_tail(body, rate, const, l_plus_u):
     """The last `cover`/`contain` position a family's window resolves to."""
     tails = []
     for m in re.finditer(
             r"(?:cover|contain)\s+calc\(\(\s*([\d.]+)\s*\+\s*"
             r"(?:var\(--l\)|\(\s*var\(--l\)\s*\+\s*var\(--u\)\s*\))"
-            r"\s*\*\s*var\(--flow-c\)\s*\)\s*\*\s*1%\)", body):
+            r"\s*\*\s*var\(" + re.escape(rate) + r"\)\s*\)\s*\*\s*1%\)", body):
         on_u = "--u" in m.group(0)
         tails.append(float(m.group(1)) + const * (l_plus_u if on_u else 0))
     return tails
 
 
-def rule_body(text, selector):
-    body = None
-    for m in re.finditer(re.escape(selector) + r"\s*\{([^}]*)\}", text):
-        body = m.group(1)
-    return body
+def rule_bodies(text, selector):
+    """Every rule for one selector, in source order — one per tier.
+
+    THIS RETURNED THE LAST ONE UNTIL THERE WAS MORE THAN ONE TIER, which was
+    the right reading while the root only drew inside the pin gate: a second
+    `.lp-flow__seg { }` in the file was a duplicate, not a tier. The flow tier
+    added one deliberately, and a check that reads the last rule would have
+    gone on holding the pinned tier's numbers and said nothing at all about
+    the four families a phone actually runs.
+    """
+    return [m.group(1)
+            for m in re.finditer(re.escape(selector) + r"\s*\{([^}]*)\}", text)]
+
+
+def tier_of(body):
+    """Which rate a rule's windows are written off, or None."""
+    found = [name for name in TIERS if "var(%s)" % name in body]
+    return found[0] if len(found) == 1 else None
 
 
 def main():
@@ -328,78 +368,114 @@ def main():
                 f"l {s['l']} u {s['u']} — the head would outrun its own black on "
                 f"one route and lag on another")
 
-    # ---- 4. the speed is single-sourced ---------------------------------
-    decls = re.findall(r"--flow-c:\s*([\d.]+)\s*;", text)
-    if len(decls) != 1:
-        findings.append(
-            f"--flow-c is declared {len(decls)} times; the root has one drawing speed")
-        const = float(decls[0]) if decls else 0.0
-    else:
-        const = float(decls[0])
+    # ---- 4. every tier's speed is single-sourced ------------------------
+    rates = {}
+    for name in TIERS:
+        decls = re.findall(re.escape(name) + r":\s*([\d.]+)\s*;", text)
+        if len(decls) != 1:
+            findings.append(
+                f"{name} is declared {len(decls)} times; {TIERS[name]['label']} "
+                f"has one drawing speed")
+        rates[name] = float(decls[0]) if decls else 0.0
 
     # THE READING RIDES THE SAME WINDOW AS THE VALUE, and the two are one rule
     # on the page because they are one behaviour: both are numerals that light
     # where the front reaches the stroke they stand on. They differ in what
     # they SAY -- a value conserves and a reading carries a unit -- which is
     # check-flow-values.py's business, not this file's.
+    #
+    # AND EACH FAMILY IS WRITTEN ONCE PER TIER. Four families times two tiers
+    # is eight rules, and the two things that can go wrong are the same two
+    # they have always been: a window staggered on a typed constant instead of
+    # on its tier's rate, and a family that quietly stops being drawn in one of
+    # the tiers because its rule was edited in the other.
     families = {".lp-flow__seg": "the contour", ".lp-flow__light": "the light",
                 ".lp-flow__node": "the junctions",
                 ".lp-flow-data :is(.lp-flow__val, .lp-flow__read)": "the numerals"}
+    by_tier = {}
     for selector, label in families.items():
-        body = rule_body(text, selector)
-        if body is None:
+        bodies = rule_bodies(text, selector)
+        if not bodies:
             findings.append(f"no rule for `{selector}` — the selector went stale")
             continue
-        decl = re.search(r"animation-range:([^;]*);", body)
-        if not decl:
-            findings.append(f"`{selector}` has no animation-range")
-            continue
-        typed = {m.group(1) for m in re.finditer(r"var\(--l\)\s*\*\s*([\d.]+)", decl.group(1))}
-        for value in sorted(typed):
-            findings.append(
-                f"`{selector}` staggers on a typed {value} instead of on "
-                f"--flow-c — the four families drift apart one rule at a time")
+        seen = set()
+        for body in bodies:
+            decl = re.search(r"animation-range:([^;]*);", body)
+            if not decl:
+                continue                      # a paint-only rule, not a window
+            rate = tier_of(decl.group(1))
+            if rate is None:
+                findings.append(
+                    f"`{selector}` has an animation-range written off no tier's "
+                    f"rate, or off two of them — every window belongs to exactly "
+                    f"one of {', '.join(TIERS)}")
+                continue
+            seen.add(rate)
+            by_tier.setdefault(rate, {})[selector] = body
+            typed = {m.group(1)
+                     for m in re.finditer(r"var\(--l\)\s*\*\s*([\d.]+)", decl.group(1))}
+            for value in sorted(typed):
+                findings.append(
+                    f"`{selector}` staggers on a typed {value} instead of on "
+                    f"{rate} — the four families drift apart one rule at a time")
+        for rate in TIERS:
+            if rate not in seen:
+                findings.append(
+                    f"`{selector}` has no window on {rate}: {TIERS[rate]['label']} "
+                    f"draws the root without {label}")
 
-    # ---- 5. the two tails the measurements were taken at -----------------
+    # ---- 5. the tails each tier's measurements were taken at -------------
     lu = max(round(s["l"] + s["u"], 2) for s in segs)
-    seg_body = rule_body(text, ".lp-flow__seg") or ""
-    light_body = rule_body(text, ".lp-flow__light") or ""
-    tails = cover_tail(seg_body, const, lu)
-    contour = round(max(tails), 2) if tails else None
-    tails = cover_tail(light_body, const, lu)
-    fade = round(max(tails), 2) if tails else None
-    if contour is None or abs(contour - CONTOUR_LANDS) > TOL:
-        findings.append(
-            f"the contour's window does not resolve to cover {CONTOUR_LANDS} "
-            f"(it reads {contour}) — the frame's "
-            f"relay is written to take over there (check-flow-handover.py has the seam)")
-    if fade is None or abs(fade - FADE_ENDS) > TOL:
-        findings.append(
-            f"the light's fade ends at cover {fade}, not {FADE_ENDS} — that is the "
-            f"number the one-lit-element clearance was swept at; re-sweep it before "
-            f"moving it (foundations/colors.html#one-per-screen)")
+    for rate, spec in TIERS.items():
+        const = rates[rate]
+        seg_body = by_tier.get(rate, {}).get(".lp-flow__seg", "")
+        light_body = by_tier.get(rate, {}).get(".lp-flow__light", "")
+        tails = cover_tail(seg_body, rate, const, lu)
+        contour = round(max(tails), 2) if tails else None
+        tails = cover_tail(light_body, rate, const, lu)
+        fade = round(max(tails), 2) if tails else None
+        if contour is None or abs(contour - spec["contour"]) > TOL:
+            findings.append(
+                f"{spec['label']}: the contour's window does not resolve to "
+                f"contain {spec['contour']} (it reads {contour}) — in the pinned "
+                f"stage that is where the frame's relay is written to take over "
+                f"(check-flow-handover.py has the seam), and in the flow tier it "
+                f"is what leaves the finished drawing a still before it goes")
+        if fade is None or abs(fade - spec["fade"]) > TOL:
+            findings.append(
+                f"{spec['label']}: the light's fade ends at contain {fade}, not "
+                f"{spec['fade']} — that is the number the one-lit-element "
+                f"clearance was swept at; re-sweep it before moving it "
+                f"(foundations/colors.html#one-per-screen)")
+        if contour is not None and fade is not None and fade <= contour:
+            findings.append(
+                f"{spec['label']}: the light is out at {fade}, on or before the "
+                f"contour lands at {contour} — the front has to survive its own "
+                f"black")
     # The other end of the clearance is the pinned card's own light, and its
     # rule carries TWO animation-ranges: the fill, which is the lime, and the
     # build the part shares with its stage-mates. Only the first is this
     # number — searching the whole file for the shape finds four other rules'
     # quarters first and reports whichever one it hits.
-    lit = rule_body(text, ".lp-proc-steps .cf-iso__light") or ""
+    lit = (rule_bodies(text, ".lp-proc-steps .cf-iso__light") or [""])[-1]
     lime = re.search(r"animation-range:\s*contain calc\(var\(--i\) \* 25% \+ ([\d.]+)%\)", lit)
     if lime is None or abs(float(lime.group(1)) - CARD_LIME) > TOL:
         findings.append(
             f"card 01's lime no longer opens at contain {CARD_LIME} % of its quarter — "
             f"that is the other end of the same clearance")
 
-    return report(findings, args.verbose,
-                  (len(segs), junctions, const, lu, contour, fade))
+    return report(findings, args.verbose, (len(segs), junctions, lu, rates))
 
 
 def report(findings, verbose, stats):
     if verbose and stats:
-        n, j, c, lu, contour, fade = stats
-        print(f"flow chain: {n} strokes, {j} junctions, --flow-c {c} points per unit of --l")
+        n, j, lu, rates = stats
+        print(f"flow chain: {n} strokes, {j} junctions")
         print(f"  deepest terminal at l + u = {lu:.2f}")
-        print(f"  contour lands cover {contour:.2f} · light's fade ends cover {fade:.2f}")
+        for rate, spec in TIERS.items():
+            print(f"  {spec['label']}: {rate} {rates.get(rate)} points per unit of --l, "
+                  f"contour lands contain {spec['contour']:.2f} · "
+                  f"light out at {spec['fade']:.2f}")
     if findings:
         print(f"flow chain: {len(findings)} finding(s)")
         for f in findings:
@@ -407,8 +483,8 @@ def report(findings, verbose, stats):
         return 1
     if stats:
         print(f"flow chain OK — {stats[1]} junctions, every stroke opening exactly where "
-              f"the one that feeds it closes; both tails on the numbers the seam and the "
-              f"light are measured at")
+              f"the one that feeds it closes; both tiers' tails on the numbers the seam "
+              f"and the light are measured at")
     return 0
 
 
