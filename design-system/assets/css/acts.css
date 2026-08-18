@@ -1755,12 +1755,33 @@
      the contour that says "asset point". The drawing is unchanged; what the
      key gives up is a literal size match nobody could have measured by eye,
      and what it buys is the colour actually being visible. */
+  /* THE CONTOUR IS DRAWN INWARD, AND THAT IS A CLIPPING FIX, NOT A STYLE ONE.
+     An outset box-shadow paints OUTSIDE the element's box and takes no layout
+     room for it, so the ring lived 1.5 px beyond the swatch on every side —
+     invisible until the swatch sat flush against an edge that clips. It does:
+     .map__key-name and .map-beat are set to the page margin, so the leftmost
+     key in each list starts exactly on .map-stage's content edge, and the pin
+     tier gives that stage `overflow: clip`. Measured on the shipped page at
+     1680 x 1050: stage edge x 200.0, "Offshore & Schiff" swatch x 200.0, its
+     ring reaching to 198.5 — a crescent sliced off the left of the first mark
+     in the row, and only that one. "Standorte" sits at the same x and survived
+     because it is a flat background with no shadow to lose, which is exactly
+     the asymmetry the report showed.
+
+     THE RENDERING IS UNCHANGED, TO THE PIXEL. 9 px of colour inside a 1.5 px
+     ring painted 12 px across; 12 px of box with the same ring drawn `inset`
+     paints the same 12 px and leaves the same 9 px of colour, because
+     box-sizing is border-box system-wide (base.css). What changes is only that
+     the ink now stops at the box, so no ancestor's clip can reach it and the
+     key's leftmost ink lines up ON the page margin rather than 1.5 px outside
+     it. The office dot keeps its 9 px: it has no ring to lose, and matching it
+     to 12 would be a visual change made for a fault it never had. */
   .map__key-dot--asset,
   .map__key-dot--kind {
-    inline-size: 9px;
-    block-size: 9px;
+    inline-size: 12px;
+    block-size: 12px;
     background: var(--map-k, var(--cf-lime));
-    box-shadow: 0 0 0 1.5px var(--border-strong);
+    box-shadow: inset 0 0 0 1.5px var(--border-strong);
   }
   /* THE SUMMARY ROW CANNOT WEAR ONE KIND'S COLOUR. While every asset point was
      lime, a lime swatch on the "Anlagen" row meant "an asset point" and was
