@@ -146,9 +146,18 @@
     { id: 'cf-wedge', label: 'Wedge', use: 'A ramp, a run-up, capacity being built',
       keyline: 'a 63.43 deg triangle extruded along the level step',
       shapes: '<path d="M3 20 L9 8 L15 20 Z"/><path d="M9 8 L15 8 L21 20 L15 20"/>' },
+    /* The cube, unaltered, with a gable over it — and the only glyph in the
+       set that was ever drawn THROUGH. It carried the top face's whole rhombus
+       and the far roof slope, both of which a roof of this pitch covers: the
+       far slope's outward normal faces away from the viewer, so what the two
+       extra paths added was the far eave and the far ridge crossing the near
+       slope in an X. At --act-glyph, 16 px, that X is most of the mark. Every
+       other solid here is hidden-line drawn — cf-cube omits its far verticals,
+       cf-cylinder draws the near half of its base arc — and this one now is
+       too: what is left is the near slope, the gable end, and the cube. */
     { id: 'cf-house', label: 'House', use: 'A site, a plant, a building — one address',
-      keyline: 'the cube with a gabled roof; every roof edge is 45 or 63.43 deg',
-      shapes: '<path d="M12 5 L20 9 L12 13 L4 9 Z"/><path d="M12 5 L20 9 L16 5 L8 1 Z"/><path d="M4 9 L12 13 L16 5 L8 1 Z"/><path d="M4 9 V16"/><path d="M12 13 V20"/><path d="M20 9 V16"/><path d="M4 16 L12 20 L20 16"/>' },
+      keyline: 'the cube + a gable: rakes at 63.43 and 45 deg, ridge and eaves at 26.57',
+      shapes: '<path d="M4 10 L12 14 L16 6 L8 2 Z"/><path d="M12 14 L20 10 L16 6"/><path d="M4 10 V18"/><path d="M12 14 V22"/><path d="M20 10 V18"/><path d="M4 18 L12 22 L20 18"/>' },
     { id: 'cf-overlap', label: 'Overlap', use: 'Two readings of the same thing, a correlation, interference',
       keyline: 'three 1:2 rhombi, offset by one level step of 4',
       shapes: '<path d="M8 2 L13 12 L8 22 L3 12 Z"/><path d="M12 2 L17 12 L12 22 L7 12 Z"/><path d="M16 2 L21 12 L16 22 L11 12 Z"/>' },
