@@ -1569,7 +1569,67 @@
      they are CF-Schwarz already. */
   .map__dot--office { stroke: var(--cf-schwarz); stroke-width: 9; }
   .map__dot--ring   { stroke: var(--border-strong); stroke-width: 8; }
-  .map__dot--asset  { stroke: var(--cf-lime); stroke-width: 5; }
+
+  /* THE SIX KINDS, AND THE PALETTE IS THE BRAND'S OWN ARC. Lime -> Weiss ->
+     Glas -> Sky -> Violett is the spectrum declared in tokens.css, and these
+     are six steps taken along it in the order the drawing introduces the kinds.
+     Nothing here is a new colour: every value is a rung of a ramp that already
+     existed, which is what "seven, and no eighth" asks of anything that needs
+     more than one accent.
+
+     THE STEPS ZIGZAG IN LIGHTNESS ON PURPOSE -- .945, .44, .73, .58, .87, .62
+     in OKLab L. Hue alone cannot separate six things in a four-hue palette;
+     lightness can, and it is the channel that survives every kind of colour
+     blindness. Walking the arc at one lightness was tried first and collapsed:
+     the all-500 set put Sky against Glas at dE 8.9 for a normal-vision reader.
+
+     MEASURED, NOT ASSERTED, against the wash the legend sits on (#E1E4E7):
+
+       adjacent pairs   worst Sky 700 <-> Glas 700   dE 15.5 normal,
+                        14.6 protan, 15.0 tritan            -- clears the 15 floor
+       all pairs        worst Violett 500 <-> Sky 700 dE 10.6 normal,
+                        8.3 deutan                          -- does NOT clear it
+       on black         same adjacent worst, dE 15.5        -- clears it
+
+     SO THE KEY IS DECODABLE AND THE DRAWING IS NOT, and the split is deliberate
+     rather than overlooked. The key is an ordered list: a row's only neighbours
+     are the rows above and below it, which is the adjacent-pair case, and every
+     swatch has its name beside it -- so identity there never rests on colour.
+     The map is the all-pairs case, because any two kinds can land next to each
+     other, and no six-value set drawn from these four hue families clears it
+     (the best found was 13.9). What the drawing therefore promises is weaker
+     than the key's: that points differ, and roughly how -- not which is which
+     at a glance. It is an illustrative map of asset TYPES, the copy says so,
+     and no reading on this page depends on telling Schiene from Luftfahrt by
+     hue at 5 px. → the note over the legend block in scripts/gen-world-map.py
+
+     TWO KINDS STILL SHARE A COORDINATE. Dubai carries `see` and `luft` 0.2
+     degrees apart and Singapore the same, so at the world framing each pair is
+     one dot. That was true while both were lime; colour makes it visible
+     instead of silent, and the port and the airport really are ~25 km apart.
+
+     SCOPED, AND ALL SIX AT ONE SPECIFICITY. The rules in this file sit at an
+     indent but not inside a block -- the two spaces are house style, not
+     nesting -- so a bare [data-k="see"] would be a global selector matching
+     anything on any page that ever uses that attribute name. :is() carries the
+     specificity of its most specific argument, so each of the six weighs the
+     same (0,2,0) and their order in this list cannot decide a winner.
+
+     THE FALLBACK IS ON THE var() AND NOT ON A RULE OF ITS OWN, which is the
+     cascade trap this went through once: `.map__key[data-k] { --map-k: lime }`
+     as a default is (0,2,0) and would have beaten nothing here, but the same
+     default written against .map__dot--asset plus .map__key[data-k] outranks a
+     bare attribute rule and would have painted all six lime. var()'s second
+     argument is not a declaration and cannot win a cascade -- it applies only
+     when --map-k was never set, which is exactly the intent. */
+  :is(.map, .map__legends) [data-k="see"]      { --map-k: var(--lime-500); }
+  :is(.map, .map__legends) [data-k="berg"]     { --map-k: var(--lime-800); }
+  :is(.map, .map__legends) [data-k="solar"]    { --map-k: var(--glas-700); }
+  :is(.map, .map__legends) [data-k="bahn"]     { --map-k: var(--sky-700); }
+  :is(.map, .map__legends) [data-k="batterie"] { --map-k: var(--sky-300); }
+  :is(.map, .map__legends) [data-k="luft"]     { --map-k: var(--violett-500); }
+
+  .map__dot--asset  { stroke: var(--map-k, var(--cf-lime)); stroke-width: 5; }
 
   /* A LABEL BELONGS TO A FRAMING, AND DOWN HERE THERE IS NO FRAMING.
 
@@ -1630,24 +1690,32 @@
      offices at Konstanz and Berlin, appeared in no row at all. Reported from
      the page on 2026-08-05.
 
-     SIX MARKS IS NOT THE REPAIR. `--accent` is one lit element per object
-     (foundations/colors.html#one-per-screen) and six hues would be six; the
-     drawn dot is 8 px across at the world framing, which is the framing the
-     fallback tier, the reduced-motion reader and the printer all get; and two
-     of the kinds already share a coordinate — Dubai carries `see` and `luft`
-     0.2° apart and Singapore the same — so a per-kind colour would have to
-     put two of them on one dot.
+     SIX MARKS WAS ONCE REFUSED HERE, AND THE REFUSAL HAS BEEN OVERTAKEN. The
+     argument was that `--accent` is one lit element per object
+     (foundations/colors.html#one-per-screen) and six hues would be six; that
+     the drawn dot is 8 px across at the world framing, which is the framing the
+     fallback tier, the reduced-motion reader and the printer all get; and that
+     two of the kinds share a coordinate — Dubai carries `see` and `luft` 0.2°
+     apart and Singapore the same — so a per-kind colour would put two of them
+     on one dot. The last of those is still true and is now simply visible
+     rather than hidden under one lime. The first is answered by taking the six
+     steps off the brand's own spectrum instead of inventing hues, which is what
+     --map-k does — see the measured note over it, up by .map__dot--asset, for
+     what the palette separates and what it does not.
 
-     So the key states the two marks the map actually draws, at the size it
+     So the key states BOTH: the two marks the map draws, at the size it
      draws them: the office dot is CF-Schwarz at 9, the asset dot lime at 5
      inside the --border-strong contour at 8, and because both are
      `vector-effect: non-scaling-stroke` those stroke widths ARE CSS pixels at
      every camera scale. The swatches are the same two circles at the same two
-     diameters. Every dot on the drawing is now on a line of the key.
+     diameters. Every dot on the drawing is on a line of the key.
 
-     The six kinds keep their names and counts as what they always were — the
-     tally of the 27 the second line counts — in a list of their own under it,
-     without a swatch that would promise a code the drawing does not carry. */
+     And under it, the six kinds, each with the colour its own points carry on
+     the drawing — .map__key-dot--kind is .map__key-dot--asset's geometry
+     exactly, 5 px inside the same 1.5 px contour, because it stands for the
+     same mark. The counts that used to sit on these rows are gone: they were
+     the tally of the 27 the drawing draws, and beside a row that now reads
+     "über 7.000" they would have read as a breakdown of it. */
   .map__legends { display: grid; gap: var(--space-3); }
   .map__legend {
     display: flex;
@@ -1671,12 +1739,24 @@
      asset point is two strokes, lime 5 inside black 8, and box-shadow is what
      draws that ring here without giving the swatch a border box 3 px wider
      than the mark it stands for. */
-  .map__key-dot--asset {
+  .map__key-dot--asset,
+  .map__key-dot--kind {
     inline-size: 5px;
     block-size: 5px;
-    background: var(--cf-lime);
+    background: var(--map-k, var(--cf-lime));
     box-shadow: 0 0 0 1.5px var(--border-strong);
   }
+  /* THE SUMMARY ROW CANNOT WEAR ONE KIND'S COLOUR. While every asset point was
+     lime, a lime swatch on the "Anlagen" row meant "an asset point" and was
+     exact. Now that the kinds are separated, lime is what `see` wears — so that
+     same swatch would have put Offshore & Schiff's mark against the total, two
+     rows apart, with a different meaning each time. It carries the arc the six
+     steps are taken from instead: --gradient-spectrum is the brand's own
+     Lime → Weiss → Glas → Sky → Violett, so the row reads "all of the below"
+     and belongs to no single kind. At 5 px it resolves to a multi-coloured dot
+     rather than to seven readable bands, which is the whole of what it has to
+     say next to a total. */
+  .map__key-dot--asset { background: var(--gradient-spectrum); }
   /* FORCED COLOURS REPAINT THE KEY AND NOT THE DRAWING, which would leave the
      one two blank gaps. An SVG's own fill and stroke are exempt, so under
      Windows High Contrast the map still draws the CF-Schwarz office and the
@@ -1689,10 +1769,22 @@
      is filled CanvasText, the asset mark is a CanvasText ring around Canvas.
      Filled against hollow is not lime against black, and it does not have to
      be — it has to tell two marks apart, and it is the same trade base.css
-     takes when the three dashed rules collapse to dashed and dotted. */
+     takes when the three dashed rules collapse to dashed and dotted.
+
+     THE SIX KIND SWATCHES COLLAPSE ONTO THE ASSET MARK, and there is no sixth
+     paint to give them. forced-colors keeps a system palette, not a brand one,
+     so --map-k's six steps all resolve to the same ink and six identical rings
+     would be six marks that key nothing — the exact fault the note at the top
+     of this block was written about. One ring, repeated, at least says the true
+     thing: each of these rows is an asset kind. The names carry which one, and
+     they always did; the swatch has never been the only thing that told them
+     apart. The gradient on --asset goes too: a linear-gradient is a background
+     image, forced-colors does not repaint it, and it would have been the one
+     swatch here still wearing brand colour. */
   @media (forced-colors: active) {
     .map__key-dot--office { background: CanvasText; }
-    .map__key-dot--asset {
+    .map__key-dot--asset,
+    .map__key-dot--kind {
       inline-size: 8px;
       block-size: 8px;
       background: Canvas;
@@ -1701,9 +1793,10 @@
     }
   }
   .map__key-name { color: var(--text-secondary); }
-  /* The count is the legend's payload — how many assets stand in that
-     category — and it sat at --text-muted, 2.43:1 measured over the legend's
-     own plate at 11 px against a 4.5:1 floor. The mono face and --text-xs are
+  /* The figure is the legend's payload — two locations, and the fleet those
+     locations are watching — and it sat at --text-muted, 2.43:1 measured over
+     the legend's own plate at 11 px against a 4.5:1 floor. The mono face and
+     --text-xs are
      what set it apart from .map__key-name beside it; both now carry the same
      ink, which is the ink the name has always had. */
   .map__key-n { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-secondary); }
