@@ -2,7 +2,6 @@ datum:   2026-06-30
 autor:   Simon Deussen
 minuten: 4
 themen:  Energie, Telemetrie
-bild:    news/batteriespeicher-als-flexibilitaets-asse-adf06955.png
 titel:   Batteriespeicher als Flexibilitäts-Asset: Warum die Zeiten der reinen PV-Anlagen vorbei sind
 title:   Battery storage as a flexibility asset: why the era of pure PV plants is over
 

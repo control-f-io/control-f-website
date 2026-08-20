@@ -2,7 +2,6 @@ datum:   2026-07-27
 autor:   Pressestelle
 minuten: 5
 themen:  Energie, Telemetrie
-bild:    news/drei-milliarden-fuer-ein-netz-das-es-so-9cc77715.png
 titel:   Drei Milliarden für ein Netz, das es so nicht gibt: Was Redispatch kostet und wer dafür zahlt
 title:   Three billion for a grid that does not exist in that form: what redispatch costs and who pays for it
 

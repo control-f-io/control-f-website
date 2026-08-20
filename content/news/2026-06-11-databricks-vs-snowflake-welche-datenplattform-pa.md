@@ -2,7 +2,6 @@ datum:   2026-06-11
 autor:   Pressestelle
 minuten: 4
 themen:  Architektur, Telemetrie
-bild:    news/databricks-vs-snowflake-welche-datenplat-20a85345.png
 titel:   Databricks vs. Snowflake: Welche Datenplattform passt zu welchem Projekt?
 title:   Databricks vs. Snowflake: which data platform fits which project?
 
