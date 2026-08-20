@@ -29,7 +29,7 @@ AND 800 KB, which is what 2016 px of photograph costs at a sensible quality. A
 file over it is either barely compressed or larger than the box, and both are
 paid for by a reader on a train.
 
-TWO MORE THINGS, both of them the kind that renders correctly and is wrong:
+THREE MORE THINGS, all of them the kind that renders correctly and is wrong:
 
   DANGLING   a post that names a picture the repository does not have. The
              page then ships an <img> pointing at a 404, which looks like a
@@ -38,11 +38,25 @@ TWO MORE THINGS, both of them the kind that renders correctly and is wrong:
              Unpublishing a post in Notion removes its text and its pictures
              have to go with it — otherwise the archive shrinks and the
              repository does not.
+  BORROWED   a hand-written page naming a picture in one of those two folders.
+             The folders are the syncs' output and nothing else writes to
+             them: sweep() deletes every file no post still names, so the
+             reference is not wrong today and is one unpublished post away
+             from being wrong. components/blog-grid.html held the heat-pump
+             post's photograph in its demo; the archive came back from Notion
+             on 2026-08-20 without that post, the sweep took the file, and
+             check-links.py failed the merge of a sync that merges its own
+             work. Same shape as the topic pages two specimens named in an
+             href — a hand-written reference cannot survive the archive
+             changing underneath it. A specimen draws its demo from the
+             site's own photography instead: components/vacancy.html does,
+             and its component's real pictures live in …/img/jobs/.
 
-SCOPE is content/news/ and content/jobs/, with their two picture folders. Both
-forms of reference count: a picture in the running text, `![caption](path)`, and
-a post's title picture, the `bild:` line in its header that the archive draws
-its card from.
+SCOPE is content/news/ and content/jobs/, with their two picture folders, and —
+for BORROWED alone — every page in design-system/ that a generator did not
+write. Both forms of reference count: a picture in the running text,
+`![caption](path)`, and a post's title picture, the `bild:` line in its header
+that the archive draws its card from.
 Pictures anywhere else in the design system are somebody else's rule: check-image-scale.py holds
 the ones drawn in a fixed box, and there is no plate but this one.
 
@@ -60,7 +74,8 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 STORES = (ROOT / "content" / "news", ROOT / "content" / "jobs")
-IMG = ROOT / "design-system" / "assets" / "img"
+TREE = ROOT / "design-system"
+IMG = TREE / "assets" / "img"
 FOLDERS = (IMG / "news", IMG / "jobs")
 
 # Measured, not chosen. See the header.
@@ -91,6 +106,67 @@ def intrinsic(path):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod.intrinsic(str(path))
+
+
+def reader(_cache={}):
+    """check-links.py, imported for the two things it already knows how to do.
+
+    readable() blanks the regions of a page that are prose ABOUT markup —
+    components/vacancy.html names …/img/jobs/ inside a <code> and means the
+    folder rather than a file — and references() knows which attributes name a
+    resource. Reading a page a second way here would be a second opinion about
+    what a reference is, and the two would first disagree over exactly those
+    two cases.
+    """
+    if not _cache:
+        spec = importlib.util.spec_from_file_location(
+            "cf_links", pathlib.Path(__file__).with_name("check-links.py"))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _cache["mod"] = mod
+    return _cache["mod"]
+
+
+# A page a generator wrote says so on its second line, and its references to a
+# picture are the store's own — they are rewritten on the next build, which is
+# what makes them safe.
+GENERATED = "<!-- GENERATED"
+
+# The other half of "a generator wrote it": a region inside a page that is
+# otherwise written by hand. news.html and karriere.html each carry a few,
+# and the cards inside them name the archive's pictures.
+FENCED = re.compile(r"<!-- (news|jobs):[a-z-]+ -->.*?<!-- /\1:[a-z-]+ -->", re.S)
+
+SWEPT = re.compile(r"assets/img/(news|jobs)/")
+
+
+def blank(text, start, end):
+    """Positions and line count kept, so a line number still means something."""
+    return text[:start] + re.sub(r"[^\n]", " ", text[start:end]) + text[end:]
+
+
+def borrowed():
+    """Every hand-written reference into a folder the syncs sweep."""
+    links = reader()
+    out = []
+    for path in sorted(TREE.rglob("*.html")):
+        raw = path.read_text(encoding="utf-8")
+        if GENERATED in raw[:400]:
+            continue
+        # readable() keeps the file's length and its lines, so a span found in
+        # the source blanks the same span in the masked copy.
+        text = links.readable(str(path))
+        for m in FENCED.finditer(raw):
+            text = blank(text, m.start(), m.end())
+        for attr, value, line in links.references(str(path), text):
+            if SWEPT.search(value):
+                out.append(
+                    "BORROWED  %s:%d names %s.\n    That folder is a sync's "
+                    "own output and is swept against content/ on every run — "
+                    "the file goes the hour the post does. Draw the demo from "
+                    "the site's own photography instead."
+                    % (path.relative_to(ROOT).as_posix(), line, value))
+    return out
 
 
 def referenced():
@@ -155,7 +231,7 @@ def main():
                 "%.0f kB.\n    The sync re-encodes pictures over the budget as "
                 "it imports them — one this heavy got into the repository "
                 "another way. Re-run the sync for the store, or replace it in "
-                "Notion with a smaller file." % (path, size / 1e6, MAX_BYTES / 1e3, w, h))
+                "Notion with a smaller file." % (path, size / 1e6, MAX_BYTES / 1e3))
         if args.verbose:
             print("  %-52s %5d x %-5d %6.0f kB  %s"
                   % (path, w, h, size / 1e3, where))
@@ -174,6 +250,8 @@ def main():
                     "something forgot to remove it — run the sync for that "
                     "store." % rel)
 
+    findings += borrowed()
+
     if findings:
         print("content images: %d finding(s)\n" % len(findings), file=sys.stderr)
         for f in findings:
@@ -181,7 +259,8 @@ def main():
         return 1
 
     print("content images: %d picture(s) in %d file(s), every one between %d and "
-          "%d px on a %d px plate and under %.0f kB."
+          "%d px on a %d px plate and under %.0f kB, and named by nothing a "
+          "generator did not write."
           % (len(used), len({p for ps in used.values() for p in ps}),
              MIN_WIDTH, MAX_WIDTH, PLATE, MAX_BYTES / 1e3))
     return 0

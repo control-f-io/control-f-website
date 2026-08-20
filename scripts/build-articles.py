@@ -61,6 +61,7 @@ import re
 import sys
 import textwrap
 import unicodedata
+from html import unescape
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PATTERNS = ROOT / "design-system" / "patterns"
@@ -196,18 +197,102 @@ def esc(s):
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def inline(s):
+def register(_cache={}):
+    """check-a11y.py's FOREIGN register, imported rather than repeated.
+
+    The gate is the authority on its own list — the same import
+    sync-news-notion.py makes for the picture plate, and for the same reason. A
+    second copy of thirteen phrases here would be a second opinion about which
+    runs are English, and the first thing the two would disagree about is a
+    phrase somebody adds to the check.
+
+    Read once. It is asked for per text run, and the archive in both editions
+    is a few thousand of them.
+    """
+    if not _cache:
+        spec = importlib.util.spec_from_file_location(
+            "cf_a11y", pathlib.Path(__file__).with_name("check-a11y.py"))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _cache.update(mod.FOREIGN)
+    return _cache
+
+
+TAG = re.compile(r"<[^>]+>")
+
+
+def mark_foreign(fragment, edition):
+    """`lang` on a text run that IS a foreign phrase, because nobody else can put it there.
+
+    THE RULE THIS SERVES is check-a11y.py's FOREIGN: a run that is entirely one
+    of the register's phrases must sit inside an element carrying that
+    language. On a hand-written page somebody types the attribute — the byline
+    below does, the vacancy titles do it from braces in build-jobs.py. On this
+    page the text arrives from Notion, where there is no attribute to type,
+    and the sync merges its own work: the heading `### Predictive Maintenance`
+    came over on 2026-08-20, landed in a German article as a bare <h3>, and
+    failed the gate on a pull request no admin was watching. Nothing they
+    could have written in Notion would have cleared it.
+
+    ONLY A WHOLE RUN, which is exactly the condition the check fails on. The
+    same two words inside a German sentence three paragraphs up are left alone:
+    an English term absorbed into German prose is the exception WCAG 3.1.2
+    states, and marking it would be the same bug pointing the other way — the
+    argument the register's own header makes for matching whole runs.
+
+    AND ONLY WHERE IT IS FOREIGN. The English edition of the same post sets the
+    heading inside `<html lang="en">`, where a span saying `lang="en"` is a
+    mark on the page's own language; `edition` is what keeps it off.
+
+    A post's TITLE is not marked here, and that is a limit rather than an
+    oversight: the title is drawn on four surfaces by three builders — the h1,
+    the archive's card, the topic pages, the search index — and marking the one
+    this file writes would leave the card beside it bare and the gate red all
+    the same. A title that is entirely an English phrase is still the register's
+    to catch and a person's to mark.
+    """
+    out, pos = [], 0
+    for m in TAG.finditer(fragment):
+        out.append(mark_run(fragment[pos:m.start()], edition))
+        out.append(m.group(0))
+        pos = m.end()
+    out.append(mark_run(fragment[pos:], edition))
+    return "".join(out)
+
+
+def mark_run(text, edition):
+    """One run between two tags, wrapped if the register knows it whole.
+
+    Whitespace is collapsed for the lookup the way the check collapses it, and
+    the entities esc() wrote are read back — "CEO &amp; Managing Partner" is
+    the run the register carries as "CEO & Managing Partner". What is written
+    back keeps the run's own leading and trailing space outside the span, so a
+    marked phrase in the middle of a paragraph does not gain one.
+    """
+    run = " ".join(text.split())
+    lang = register().get(unescape(run)) if run else None
+    if lang is None or lang == edition:
+        return text
+    head = text[:len(text) - len(text.lstrip())]
+    tail = text[len(text.rstrip()):]
+    return '%s<span lang="%s">%s</span>%s' % (head, lang, text.strip(), tail)
+
+
+def inline(s, edition):
     """The three inline forms an editor produces: a link, bold, code.
 
     Escaped first and marked up after, so a `&` in a URL is an entity and a
     `<` in the text is not a tag. Nothing here is a general markdown parser —
     it is the set of things Notion's rich text can carry into a paragraph.
+
+    Foreign runs are marked last, when the tags are in place and what is left
+    between them is what a reader — and check-a11y.py — sees as one run.
     """
     out = esc(s)
     out = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", r'<a href="\2">\1</a>', out)
     out = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", out)
     out = re.sub(r"`(.+?)`", r"<code>\1</code>", out)
-    return out
+    return mark_foreign(out, edition)
 
 
 def anchor(text):
@@ -254,17 +339,17 @@ def prose(bs, edition, pad):
     for i, (kind, payload) in enumerate(bs):
         if kind == "p":
             cls = ' class="cf-article__lead"' if i == 0 else ""
-            out.append(wrap(pad, "<p%s>" % cls, inline(payload), "</p>"))
+            out.append(wrap(pad, "<p%s>" % cls, inline(payload, edition), "</p>"))
         elif kind in ("h2", "h3"):
             out.append('%s<%s id="%s">%s</%s>'
-                       % (pad, kind, anchor(payload), inline(payload), kind))
+                       % (pad, kind, anchor(payload), inline(payload, edition), kind))
         elif kind == "img":
             out.append(picture(payload[0], payload[1], edition, pad))
         else:
             tag = "ul" if kind == "ul" else "ol"
             out.append("%s<%s>" % (pad, tag))
             for item in payload:
-                out.append(wrap(pad + "  ", "<li>", inline(item), "</li>"))
+                out.append(wrap(pad + "  ", "<li>", inline(item, edition), "</li>"))
             out.append("%s</%s>" % (pad, tag))
     return "\n".join(out)
 
@@ -316,7 +401,7 @@ def picture(path, caption, edition, pad):
             "%s\n"
             "%s</figure>"
             % (pad, pad, up, path, w, h, pad,
-               wrap(pad + "  ", "<figcaption>", inline(caption), "</figcaption>"),
+               wrap(pad + "  ", "<figcaption>", inline(caption, edition), "</figcaption>"),
                pad))
 
 
@@ -334,7 +419,7 @@ def rail(bs, edition, pad):
            '%s  <p class="cf-article__toc-title" id="inhaltsverzeichnis">%s</p>'
            % (pad, CONTENTS[edition]),
            '%s  <ol class="cf-article__toc">' % pad]
-    out += ['%s    <li><a href="#%s">%s</a></li>' % (pad, anchor(h), inline(h))
+    out += ['%s    <li><a href="#%s">%s</a></li>' % (pad, anchor(h), inline(h, edition))
             for h in heads]
     out += ["%s  </ol>" % pad, "%s</nav>" % pad]
     return "\n".join(out)
