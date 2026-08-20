@@ -65,9 +65,15 @@ bild:    anlage-konstanz.jpg optional. A file in
 ```
 
 Deleting a post is deleting its file and building again; nothing else has to be
-tidied up after it. **Do not edit the archive in `patterns/news.html`** — the
-four regions fenced by `<!-- news:… -->` are output, and `build-news.py --check`
-fails in CI when they drift from `content/news/`.
+tidied up after it — including the last post on a topic: that topic's page is
+removed with it, and so is every link into it. Three pages carry those links —
+the chips on `patterns/news.html` and on `patterns/news-thema.html`, and the tag
+list under the text on `patterns/blog-artikel.html` — and `build-news.py` writes
+all three, because a topic page exists only while a post carries the topic and a
+link to one typed by hand is a 404 waiting for the day it does not. **Do not
+edit the archive in `patterns/news.html`** — the four regions fenced by
+`<!-- news:… -->` are output, and `build-news.py --check` fails in CI when they
+drift from `content/news/`.
 
 ### The text, and the page it becomes
 

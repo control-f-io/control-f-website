@@ -56,6 +56,26 @@ authored, documented, shipped, and read rather than copied. The chips link to
 them. No script runs, no server is asked, and the state survives being shared,
 bookmarked and reloaded.
 
+AND EVERY OTHER LINK INTO THOSE PAGES, WHICH IS WHY THIS SCRIPT WRITES ON THREE
+PAGES AND NOT ONE. A topic page exists only while a post carries the topic —
+that is the paragraph above and it is right — so a link to one written by hand
+is a link that 404s the day the last post on that subject is unpublished. Two
+authored specimens carried three of them each: the chips on news-thema.html and
+the tag list under the text on blog-artikel.html, each naming all three topics
+of the vocabulary because all three had posts on the day they were drawn. On
+2026-08-20 the archive came back from Notion with two posts on two topics and
+the build stopped on `blog-artikel.html: news-thema-telemetrie.html is a pattern
+name and not an address` — build-site.py's guard doing its job, on a link
+nothing had rewritten because the page it named had not moved: it had stopped
+existing. Nobody had touched either specimen; the archive had changed under
+them, which is the one edit a hand-written link cannot survive.
+
+So the rule is the one the chips on news.html were already an instance of:
+EVERY REFERENCE TO A TOPIC PAGE IN design-system/patterns/ IS WRITTEN HERE,
+because this is the only script that knows which of those pages exist. Three
+pages, one fenced region each, and a topic that loses its last post loses the
+links to it in the same run it loses its page. → specimens()
+
 A COLUMN IS A YEAR, AND THE COLUMN SCROLLS. The ticks under this grid have read
 Aktuell / 2026 / 2025 / 2024 / 2022–2023 since it was drawn, and until now they
 were labels over whatever eighteen cards happened to land there: the cards were
@@ -103,6 +123,13 @@ PAGE = PATTERNS / "news.html"
 # The filtered archive's specimen, and the file every topic page is spliced
 # from — the same relationship blog-artikel.html has to beitrag-<name>.html.
 THEMA = PATTERNS / "news-thema.html"
+# The article specimen, which links into the same pages from under its text: a
+# post's topics are its way back into the archive narrowed to them.
+# build-articles.py writes that list for every post page it generates, out of
+# the post's own topics — which are topics in use by definition, so those links
+# cannot dangle. The specimen has no post and its list is the vocabulary, so its
+# list is written here. → specimens()
+ARTICLE = PATTERNS / "blog-artikel.html"
 CATALOGUE = ROOT / "design-system" / "i18n" / "en.json"
 
 # THE TOPICS, WHICH ARE A VOCABULARY AND NOT FREE TEXT.
@@ -186,6 +213,13 @@ IMAGE_FIELD = "bild"
 
 REGION = "<!-- news:%s -->"
 REGION_END = "<!-- /news:%s -->"
+
+# THE OTHER SCRIPT'S FENCES, and not a second set beside them. The tag list
+# under blog-artikel.html's text is `article:tail`, build-articles.py's region
+# on every page it writes — this script fills it on the one page that script
+# reads instead of writes, which is the specimen. One region, one shape, two
+# writers who never meet on the same file. → specimens()
+ARTICLE_REGION = ("<!-- article:%s -->", "<!-- /article:%s -->")
 
 
 def fail(msg):
@@ -755,14 +789,21 @@ def count(shown, total, indent="        "):
     return '%s<span class="cf-section-header__count">%s</span>' % (indent, text)
 
 
-def splice(html, name, body, where="news.html"):
-    """Replace one fenced region, keeping the fences."""
-    start, end = REGION % name, REGION_END % name
+def splice(html, name, body, where="news.html", fences=(REGION, REGION_END)):
+    """Replace one fenced region, keeping the fences.
+
+    A callable body is handed the region's own indentation, which is what a
+    block written at the fence's depth needs and what build-articles.py's
+    splice() already does with the same fences.
+    """
+    start, end = fences[0] % name, fences[1] % name
     m = re.search(re.escape(start) + r".*?" + re.escape(end), html, re.S)
     if not m:
         fail("%s has no %s … %s region. The fences are how this script "
              "knows what it owns; restore them." % (where, start, end))
     pad = re.match(r"[ \t]*", html[html.rfind("\n", 0, m.start()) + 1:m.start()]).group(0)
+    if callable(body):
+        body = body(pad)
     inner = "\n%s\n%s" % (body, pad) if body else "\n%s" % pad
     return html[:m.start()] + start + inner + end + html[m.end():]
 
@@ -856,7 +897,7 @@ def derived(posts, total, first_year=None, topic=None):
 LEDGER = POSTS / ".catalogue.json"
 
 
-def strings_used_elsewhere():
+def strings_used_elsewhere(pages_out):
     """Every catalogue key some OTHER German pattern page actually shows.
 
     build-i18n.py is imported rather than copied: it owns the definition of a
@@ -867,8 +908,18 @@ def strings_used_elsewhere():
     THE PAGES THIS SCRIPT WRITES ARE EXCLUDED — news.html and every
     news-thema-<slug>.html. Their strings are exactly what `pairs` holds, and
     the copy on disk is the version being replaced; counting it would make every
-    retired string look like one still in use. The specimen news-thema.html is
-    NOT excluded: it is authored, it ships, and the words in it are its own.
+    retired string look like one still in use.
+
+    AND THE TWO SPECIMENS ARE READ AS THIS RUN WILL WRITE THEM, which is the
+    same sentence pointed at the pages that are only PARTLY this script's.
+    news-thema.html and blog-artikel.html are authored, they ship, and most of
+    the words in them are their own — so they are counted, not excluded. But one
+    region of each is written by this run, and reading the copy on disk counts
+    the version being replaced: on 2026-08-20 the tag list under the specimen's
+    text still named Energie and Architektur while this run was removing them,
+    both entries were kept as "still in use", and build-i18n.py then stopped on
+    two catalogue entries that match no string on any page. `pages_out` is what
+    is about to be on disk, so it is what is read. → specimens()
     """
     import importlib.util
     spec = importlib.util.spec_from_file_location(
@@ -890,15 +941,18 @@ def strings_used_elsewhere():
     for page in mod.source_pages():
         if page == PAGE or page.name.startswith("news-thema-"):
             continue
+        text = pages_out.get(page)
+        if text is None:
+            text = page.read_text(encoding="utf-8")
         # missing is collected and dropped: another page's untranslated string
         # is that page's problem, and build-i18n.py reports it by name.
-        mod.build(page.read_text(encoding="utf-8"), page.name,
+        mod.build(text, page.name,
                   mod.for_page(cat, overrides, page.name), set())
     used = set(mod.USED) - before
     return used
 
 
-def catalogue(pairs, posts, write):
+def catalogue(pairs, posts, pages_out, write):
     """Add what the page now shows, remove what it no longer shows.
 
     BOTH ENDS, and the second one is not tidiness. build-i18n.py fails on an
@@ -934,7 +988,7 @@ def catalogue(pairs, posts, write):
     # a grep and both are dead — and a dead entry fails the next build. The
     # extractor that decides what "used" means already exists one file over, so
     # this asks it instead of reimplementing its judgement badly.
-    used = strings_used_elsewhere()
+    used = strings_used_elsewhere(pages_out)
 
     stale = sorted(k for k in owned
                    if k in data and k not in pairs and k not in used)
@@ -1012,6 +1066,91 @@ def render(template, where, posts, page_posts, total, used, topic, pairs):
     return doc
 
 
+# --------------------------------------------------------------------------
+# the two specimens, which link into the topic pages by name
+# --------------------------------------------------------------------------
+
+# The chip a filtered page draws for the state the reader is already in. It is
+# the one place the specimen says which topic it is a specimen of.
+CURRENT = re.compile(
+    r'<span class="cf-article__tag" aria-current="page">([^<]*)</span>')
+
+
+def own_topic(html):
+    """The topic news-thema.html draws itself in, read off the page.
+
+    THE SPECIMEN ALREADY SAYS WHICH STATE IT IS A SPECIMEN OF, and it says it
+    in the chip it draws as a <span> — "ein Link auf den Zustand, in dem man
+    schon ist, tut nichts" is that page's own comment and the span is that rule
+    drawn. Reading the topic back out of it is what keeps the two from
+    disagreeing: somebody redrawing the specimen for another topic changes the
+    word they can see, and the chips beside it follow.
+    """
+    m = CURRENT.search(html)
+    name = m.group(1).strip().lower() if m else ""
+    if name not in BY_NAME:
+        fail("design-system/patterns/news-thema.html draws no current chip for "
+             "any of %s.\n"
+             "    It is the specimen of one topic's filtered state, and the "
+             "<span aria-current=\"page\"> is what names that topic — this "
+             "script reads it to write the chips beside it."
+             % ", ".join(t[1] for t in TOPICS))
+    return BY_NAME[name]
+
+
+def tags(topics, pad):
+    """The tag list under an article's text: one link per topic, into the
+    archive filtered to it.
+
+    The markup is build-articles.py's tags(), because this is the page that
+    script reads to write it — the specimen is the template, and a template
+    whose own version of a region is shaped differently from the generated one
+    is a difference that only shows up in a diff nobody runs.
+    """
+    out = ['%s<ul class="cf-article__tags">' % pad]
+    for slug, de, _en, _prose in topics:
+        out.append('%s  <li><a class="cf-article__tag" href="%s">%s</a></li>'
+                   % (pad, thema_name(slug), esc(de)))
+    out.append("%s</ul>" % pad)
+    return "\n".join(out)
+
+
+def specimens(thema, used, pairs):
+    """The two authored pages that name topic pages, holding them to the topic
+    pages that exist. Returns {path: text}.
+
+    ONE REGION EACH AND NOTHING ELSE. Both pages stay what they are — a drawn
+    mock-up of the filtered archive with thirty-seven invented posts in it, and
+    an article with a specimen's text under a specimen's byline. Neither is
+    generated and neither becomes generated here: what is written is the list
+    of links out of them, which is the only thing on either page whose
+    correctness is a property of content/news/ rather than of the drawing.
+    """
+    own = own_topic(thema)
+    # THE ACTIVE CHIP IS A <span>, so the specimen may name a topic that has no
+    # page — and it has to be able to. Which topic it draws is a property of the
+    # drawing; which topics have posts is a property of the archive, and the day
+    # those disagree the specimen must keep its subject rather than lose its
+    # current state. Every chip beside it is a link, and a link cannot.
+    shown = tuple(t for t in TOPICS if t in used or t == own)
+    # And its word is a string this script writes, so this script owns its
+    # entry in the catalogue — including on the day the topic has no posts, when
+    # `pairs` alone would not carry it and build-i18n.py would stop on a German
+    # word with no English one.
+    pairs[own[1]] = own[2]
+    out = {THEMA: splice(thema, "themen",
+                         lambda pad: chips(shown, own[0], pad), THEMA.name)}
+
+    if not ARTICLE.exists():
+        fail("no design-system/patterns/blog-artikel.html to write the tag list "
+             "on. It is the article specimen, it ships as itself, and the tags "
+             "under its text are links into the topic pages.")
+    out[ARTICLE] = splice(ARTICLE.read_text(encoding="utf-8"), "tail",
+                          lambda pad: tags(used, pad), ARTICLE.name,
+                          fences=ARTICLE_REGION)
+    return out
+
+
 def build():
     """Every page this script writes, and every string it puts on them.
 
@@ -1052,6 +1191,11 @@ def build():
             fail("design-system/patterns/news-thema.html does not begin with a "
                  "doctype")
         out[PATTERNS / name] = DOCTYPE + BANNER % topic[1] + doc[len(DOCTYPE):]
+
+    # AND THE PAGES THAT LINK AT THEM FROM OUTSIDE THE ARCHIVE. Last, because
+    # both are read above — news-thema.html as the template every page in the
+    # loop is spliced from, blog-artikel.html as nothing at all until here.
+    out.update(specimens(specimen, used, pairs))
     return posts, out, pairs
 
 
@@ -1075,7 +1219,11 @@ def main():
     args = ap.parse_args()
 
     posts, pages_out, pairs = build()
-    missing, stale = catalogue(pairs, posts, write=not args.check)
+    missing, stale = catalogue(pairs, posts, pages_out, write=not args.check)
+    # The count this reports is the topic pages, which is no longer everything
+    # this script writes minus news.html: two authored specimens are written
+    # too, and they are not a topic and must not be counted as one. → specimens()
+    topics_out = sum(1 for q in pages_out if q.name.startswith("news-thema-"))
 
     written, drift = [], []
     for path, text in sorted(pages_out.items()):
@@ -1113,14 +1261,14 @@ def main():
                     "\n".join(["      + " + t for t in missing]
                               + ["      - " + t for t in stale])))
         print("news OK — %d post(s), %d topic page(s), the archive matches "
-              "content/news/" % (len(posts), len(pages_out) - 1))
+              "content/news/" % (len(posts), topics_out))
         return 0
 
     note = ""
     if missing or stale:
         note = ", catalogue %+d/%-d" % (len(missing), len(stale))
     print("news built — %d post(s), %d topic page(s)%s"
-          % (len(posts), len(pages_out) - 1, note))
+          % (len(posts), topics_out, note))
     for r in written:
         print("  written  %s" % r)
     for p in orphans:

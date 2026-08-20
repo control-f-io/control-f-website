@@ -30,7 +30,9 @@ prefixes cannot notice a fourth.
 WHAT IS STILL TRACKED AND IS NOT A CONTRADICTION. design-system/patterns/news.html
 and karriere.html are authored pages with generated regions inside comment fences;
 blog-artikel.html, karriere-stelle.html and news-thema.html are the authored
-specimens the generated pages are spliced from, and they ship as themselves too.
+specimens the generated pages are spliced from, and they ship as themselves too —
+two of those three have a generated region as well, the one list of links into
+the topic pages, because which of those pages exist is content and not drawing.
 design-system/i18n/en.json and the two content/*/.catalogue.json ledgers are
 written by generators and tracked on purpose — they are the record of which
 strings a build owns, and a build cannot reconstruct them from the pages. The
