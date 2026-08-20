@@ -2,7 +2,7 @@ datum:   2026-05-28
 autor:   Simon Deussen
 minuten: 5
 themen:  Energie, Telemetrie, Architektur
-bild:    news/predictive-maintenance-fuer-kommunale-en-983db427.png
+bild:    news/predictive-maintenance-fuer-kommunale-en-ef733296.png
 titel:   Predictive Maintenance für kommunale Energieversorger: Mit vertikaler Datenintegration handlungsfähig bleiben
 title:   Predictive maintenance for municipal utilities: staying capable of action with vertical data integration
 
