@@ -217,7 +217,7 @@ def task(job, edition, pad):
     for kind, payload in body:
         if kind != "p":
             break
-        out.append(wrap(pad, '<p class="measure">', inline(payload), "</p>"))
+        out.append(wrap(pad, '<p class="measure">', inline(payload, edition), "</p>"))
     return "\n".join(out)
 
 
@@ -246,7 +246,7 @@ def facts(job, edition, pad):
         out.append('%s<div class="cf-contact__row">' % pad)
         out.append('%s  <dt class="cf-contact__term">%s</dt>' % (pad, esc(term)))
         out.append('%s  <dd class="cf-contact__value">%s</dd>'
-                   % (pad, value if value.startswith("<") else inline(value)))
+                   % (pad, value if value.startswith("<") else inline(value, edition)))
         out.append("%s</div>" % pad)
     return "\n".join(out)
 
@@ -258,17 +258,17 @@ def prose(job, edition, pad):
     for kind, payload in body:
         if kind in ("h2", "h3"):
             started = True
-            out.append('%s<h3 id="%s">%s</h3>' % (pad, ART.anchor(payload), inline(payload)))
+            out.append('%s<h3 id="%s">%s</h3>' % (pad, ART.anchor(payload), inline(payload, edition)))
         elif not started:
             continue
         elif kind in ("ul", "ol"):
             tag = "ul" if kind == "ul" else "ol"
             out.append("%s<%s>" % (pad, tag))
             for item in payload:
-                out.append("%s  <li>%s</li>" % (pad, inline(item)))
+                out.append("%s  <li>%s</li>" % (pad, inline(item, edition)))
             out.append("%s</%s>" % (pad, tag))
         elif kind == "p":
-            out.append(wrap(pad, "<p>", inline(payload), "</p>"))
+            out.append(wrap(pad, "<p>", inline(payload, edition), "</p>"))
         elif kind == "img":
             out.append(ART.picture(payload[0], payload[1], edition, pad))
     return "\n".join(out)
