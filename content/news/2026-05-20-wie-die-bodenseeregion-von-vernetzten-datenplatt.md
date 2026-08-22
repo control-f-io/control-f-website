@@ -2,6 +2,7 @@ datum:   2026-05-20
 autor:   Pressestelle
 minuten: 4
 themen:  Telemetrie, Architektur
+bild:    news/wie-die-bodenseeregion-von-vernetzten-da-cb637918.png
 titel:   Wie die Bodenseeregion von vernetzten Datenplattformen profitieren kann
 title:   How the Lake Constance region can benefit from connected data platforms
 

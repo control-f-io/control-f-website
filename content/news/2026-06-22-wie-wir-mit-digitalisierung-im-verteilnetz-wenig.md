@@ -2,6 +2,7 @@ datum:   2026-06-22
 autor:   Simon Deussen
 minuten: 4
 themen:  Energie, Telemetrie, Architektur
+bild:    news/wie-wir-mit-digitalisierung-im-verteilne-b0213362.png
 titel:   Wie wir mit Digitalisierung im Verteilnetz weniger abregeln und mehr leisten können
 title:   How digitalisation in the distribution grid lets us curtail less and deliver more
 
