@@ -507,14 +507,26 @@ def build(fn, title, size=None):
 # the file to arrive at 1. At 2016 px from a 572-unit viewBox the scale is 3.52,
 # which puts that at 1.4 user units.
 #
-# The PNG is named by the digest of its own bytes, the way
-# scripts/sync-news-notion.py names anything it stores, so the file this writes
-# and the file the sync downloads from Notion after the same export is uploaded
-# there are the same file and the next sync is a no-op.
+# NOTHING HERE RUNS BY ITSELF, AND THE EXPORT DOES NOT GO INTO THE SITE.
+#
+# This file used to write its PNGs straight into
+# design-system/assets/img/news/ under the name the sync would give them, so
+# that a picture uploaded to Notion afterwards came back to the same path. Two
+# stores then claimed the same pictures, and the archive was emptied twice
+# working out which one was in charge: once when the sync swept plates the
+# generator had just committed, and once when an upload to Notion failed
+# quietly and the sync read the missing picture as an editorial decision.
+#
+# NOTION IS THE ONE PLACE A PICTURE COMES FROM. This is a drawing tool that is
+# run when somebody asks for it, by hand; the export lands in png/ next to the
+# sources, and a person uploads what they want from there into the post's
+# Titelbild. What the site ships is whatever Notion holds — downloaded, named
+# and swept by scripts/sync-news-notion.py, which is the only writer that image
+# folder has. png/ is not committed for the same reason: a copy in the
+# repository is a second answer to a question that now has one.
 
 SVG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'svg')
-IMAGES = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                      '..', '..', 'design-system', 'assets', 'img', 'news')
+PNG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'png')
 
 EXPORT_W = 2016          # two plates; check-content-images.py's ceiling
 EXPORT_STROKE = 1.4      # see the note above
@@ -575,7 +587,6 @@ def rasterise(svg, stem):
 
 
 def emit_all(check=False):
-    import hashlib
     bad = 0
     size = common_size([fn for fn, _ in OBJECTS.values()])
     os.makedirs(SVG_DIR, exist_ok=True)
@@ -591,9 +602,9 @@ def emit_all(check=False):
             with open(src, 'wb') as fh:
                 fh.write(svg)
         png = rasterise(svg.decode('utf-8'), stem)
-        name = "%s-%s.png" % (stem[:40].rstrip('-'),
-                              hashlib.sha1(png).hexdigest()[:8])
-        path = os.path.join(IMAGES, name)
+        name = stem + '.png'
+        path = os.path.join(PNG_DIR, name)
+        os.makedirs(PNG_DIR, exist_ok=True)
         if not os.path.exists(path) or open(path, 'rb').read() != png:
             with open(path, 'wb') as fh:
                 fh.write(png)

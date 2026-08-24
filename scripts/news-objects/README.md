@@ -10,14 +10,28 @@ python3 scripts/news-objects/objects.py --check   # fail if a drawing has drifte
 python3 scripts/check-news-objects.py             # hold them to the projection
 ```
 
-The vector is the **source**, in `svg/`. What **ships** is a 2016 px PNG in
-`design-system/assets/img/news/`, and that split is not a preference: Notion does
-not render an SVG in a Files property, so the Titelbild came out broken in the
-database and the person choosing the picture could not see the picture. A format
-the CMS cannot display is not a format this pipeline can use. `illustration.html`
-is written about drawings *inline* in a page, where `vector-effect:
-non-scaling-stroke` buys a 1 px contour at every size; it buys nothing through an
-`<img>` the author cannot preview.
+**Nothing here runs by itself, and nothing here decides what a post carries.**
+This is a drawing tool. Run it when somebody wants a plate, take the PNG out of
+`png/`, upload it to the post's `Titelbild` in Notion, and the hourly sync
+brings it to the site the way it brings every other picture. Notion is the one
+place a post's picture comes from; `design-system/assets/img/news/` has exactly
+one writer, `scripts/sync-news-notion.py`, and this file is not it.
+
+That rule was bought twice. While the export wrote into the site's image folder
+under the name the sync would give it, two stores claimed the same pictures: a
+sync swept ten plates the generator had just committed, and later ten uploads
+failed quietly and the sync read the missing pictures as an editorial decision
+and emptied the archive again. One store, one answer.
+
+The vector is the **source**, in `svg/`, and it is committed. The **export** is
+a 2016 px PNG in `png/`, and it is not: it is what a person uploads, and a copy
+in the repository is a second answer to a question that now has one. Why a
+raster at all — Notion does not render an SVG in a Files property, so the
+Titelbild came out broken in the database and the person choosing the picture
+could not see the picture. A format the CMS cannot display is not a format this
+pipeline can use. `illustration.html` is written about drawings *inline* in a
+page, where `vector-effect: non-scaling-stroke` buys a 1 px contour at every
+size; it buys nothing through an `<img>` the author cannot preview.
 
 Two consequences worth knowing:
 
@@ -110,17 +124,16 @@ shows is its flank, and a flank is a flat face, so the ramp climbs it.
 
 ## Where the drawing lives, and where the file goes
 
-`objects.py` is the source. It writes into
-`design-system/assets/img/news/` **under the name the sync would give the
-file** — `<stem>-<sha1[:8]>.svg`, the digest being of the bytes stored, which is
-how `scripts/sync-news-notion.py` stops an hourly job rewriting the same
-pictures every run. Because the name is a function of the bytes, the file this
-writes and the file the sync downloads from Notion after the same drawing is
-uploaded there **are the same file**. Regenerate, upload the result to the post's
-`Titelbild`, and the next sync is a no-op rather than a churn.
+`svg/` is committed and is what `--check` and `check-news-objects.py` read.
+`png/` is the export, one file per post named for its slug, and it is
+gitignored. From there it is a person's job: upload the plate to the post's
+`Titelbild` in Notion, check the picture draws in the property before walking
+away — a Notion upload can fail and leave a name with nothing behind it — and
+the sync does the rest, downloading it, fitting it to the plate and naming it
+after the digest of the bytes it stored.
 
-Notion is still the source of truth for *which* picture a post carries. This
-generator is the source of truth for *what the picture is*.
+Notion is the source of truth for a post's picture. This generator is a way of
+making one, not a way of publishing one.
 
 ## The two things a standalone file has to carry itself
 
