@@ -266,7 +266,7 @@ def rich(runs):
     return "".join(out).strip()
 
 
-def first_file(prop):
+def first_file(prop, url="", stop=None):
     """A Notion `files` property → the URL of its first file, or "".
 
     Its own reader rather than a branch of plain(): every other property reduces
@@ -274,14 +274,42 @@ def first_file(prop):
     script has to fetch before the post file can carry anything. A Notion file
     URL is signed and expires within the hour, so it is never what is written
     down. → fetch_image()
+
+    A PROPERTY HOLDING A FILE THE API WILL NOT ADDRESS IS A FAILURE, NOT AN
+    EMPTY PROPERTY. An upload that never reached status "uploaded" stays in the
+    property as a name with nothing behind it: Notion draws it as a broken
+    picture in the database, and every file entry comes back without a url.
+    Read as "" that is indistinguishable from a post whose author chose no
+    picture, and on 2026-08-22 the difference was ten pictures — the hourly job
+    took `bild:` off all ten posts, swept the plates out of the image folder and
+    finished green. An empty property is an editorial decision and this script
+    follows it; a picture Notion holds and cannot hand over is a broken store,
+    and the run stops on it.
+
+    `stop` is the caller's own fail(), because sync-jobs-notion.py has one for
+    the reason its comment gives: both scripts write into the same log and an
+    error under the wrong name sends the reader to the wrong store.
     """
+    stop = stop or fail
     if not prop or prop.get("type") != "files":
         return ""
-    for f in prop.get("files") or []:
+    files = prop.get("files") or []
+    for f in files:
         src = ((f.get("external") or {}).get("url")
                or (f.get("file") or {}).get("url"))
         if src:
             return src
+    if files:
+        stop("%s holds %d file%s in Titelbild and the API gives an address for "
+             "none of them: %s.\n"
+             "    That is what an upload that never finished looks like from "
+             "here — the database shows it as a broken picture. Attach the "
+             "file again, by dragging it into the property in the browser, and "
+             "check the chip draws before this runs.\n"
+             "    Refusing rather than reading the post as pictureless: that "
+             "reading is what emptied the whole archive once."
+             % (url or "a row", len(files), "" if len(files) == 1 else "s",
+                ", ".join(f.get("name") or "unnamed" for f in files)))
     return ""
 
 
@@ -725,7 +753,7 @@ def main():
         # name-and-digest rule as a picture in the text, so the two are the same
         # file on disk whenever they are the same file in Notion.
         bild = ""
-        src = first_file((page.get("properties") or {}).get("Titelbild"))
+        src = first_file((page.get("properties") or {}).get("Titelbild"), url)
         if src:
             bild, size = fetch_image(src, stem, url, mode)
             pictures[bild] = size
