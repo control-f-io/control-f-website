@@ -248,7 +248,8 @@ def main():
         # pictures sweep their folder the same way — → sweep() in
         # sync-news-notion.py.
         bild = ""
-        src = NEWS.first_file((page.get("properties") or {}).get("Titelbild"))
+        src = NEWS.first_file((page.get("properties") or {}).get("Titelbild"),
+                              url, fail)
         if src:
             bild, size = NEWS.fetch_image(src, stem, url, mode, into=IMAGES)
             pictures[bild] = size
