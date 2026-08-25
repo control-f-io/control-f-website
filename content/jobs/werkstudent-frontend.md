@@ -1,7 +1,7 @@
 kennung:    CF-2026-WS-01
 bereich:    Produkt
 area:       Product
-bild:       jobs/werkstudent-frontend-9de6b221.jpg
+bild:       jobs/werkstudent-frontend-424af5b7.jpg
 titel:      Werkstudent Frontend (m/w/d)
 title:      Working Student Frontend (m/f/d)
 anriss:     Sie bauen an der Oberfläche mit, auf der Betreiber ihre Anlagen lesen. HTML, CSS und so viel JavaScript wie nötig — bei uns ist das erfahrungsgemäß wenig.

@@ -1,6 +1,7 @@
 kennung:    CF-2026-DE-01
 bereich:    Plattform
 area:       Platform
+bild:       jobs/data-engineer-e5d5c643.png
 titel:      {Data Engineer} (m/w/d)
 title:      Data Engineer (m/f/d)
 anriss:     Sie bauen die Strecken, auf denen Anlagendaten ankommen: Anbindung, Modellierung, Qualitätssicherung. Ohne dieses Fundament ist jede Auswertung darüber geraten.

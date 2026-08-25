@@ -1,6 +1,7 @@
 kennung:    CF-2026-ML-01
 bereich:    Analytik
 area:       Analytics
+bild:       jobs/machine-learning-engineer-f4bb27b4.png
 titel:      {Machine Learning Engineer} (m/w/d)
 title:      Machine Learning Engineer (m/f/d)
 anriss:     Modelle für Zustandsüberwachung und vorausschauende Wartung — von der ersten Hypothese bis in den Betrieb, inklusive der Frage, wie man ihnen später ansieht, dass sie noch stimmen.
