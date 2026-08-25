@@ -2,6 +2,7 @@ datum:   2026-07-08
 autor:   Simon Deussen
 minuten: 6
 themen:  Architektur, Energie
+bild:    news/ki-im-netzbetrieb-wie-llm-cluster-gegen-77e4ecb3.png
 titel:   KI im Netzbetrieb: Wie LLM-Cluster gegen den unkontrollierten Datenabfluss helfen – und was noch kommt
 title:   AI in grid operations: how LLM clusters help against uncontrolled data outflow – and what comes next
 

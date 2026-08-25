@@ -2,6 +2,7 @@ datum:   2026-08-14
 autor:   Simon Deussen
 minuten: 5
 themen:  Energie, Architektur
+bild:    news/sieben-tage-fuer-zwei-jahrzehnte-was-die-44cb2fba.png
 titel:   Sieben Tage für zwei Jahrzehnte: Was die WindSeeG-Novelle für Offshore-Wasserstoff bedeutet
 title:   Seven days for two decades: what the WindSeeG amendment means for offshore hydrogen
 
