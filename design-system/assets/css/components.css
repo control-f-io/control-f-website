@@ -2459,6 +2459,11 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    motion chapter states for the assembly: where nothing is driving the front,
    there is no front.
 
+   AND THERE IS NOW ONE TIER BELOW EVEN THAT, which is no object at all: the
+   cue paints in Blink and WebKit and nowhere else. That is a scope decision
+   rather than a capability one — Gecko renders the settled object pixel for
+   pixel — and it is stated in full at the @supports under .cf-scroll-cue.
+
    "THE MOMENT THE CUE IS FOR IS THE MOMENT THE PAGE ARRIVES" ASSUMED ONE
    ARRIVAL. On patterns/ueber-uns.html a reader who scrolls seventeen thousand
    pixels down and back up to the header a minute later meets the same settled
@@ -2476,7 +2481,12 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    never carry [data-idle] and keep the rule above exactly as written.
    -------------------------------------------------------------------------- */
 .cf-scroll-cue {
-  display: grid;
+  /* NOT PAINTED UNTIL AN ENGINE IS NAMED, see the @supports directly below.
+     `grid` is what the object is when it is drawn at all — three rows, centred
+     — and the block below turns it back on; everything else in this rule and in
+     the four that follow is the same either way, because a hidden box costs
+     nothing to have described. */
+  display: none;
   justify-items: center;
   gap: var(--space-3);
   /* The object is as wide as its widest part — the word — and the hairline and
@@ -2484,6 +2494,50 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      block would size the object to the column instead, and .cf-page-header__cue
      centres it by its own box, not by a wide cell's midpoint. */
   width: max-content;
+}
+
+/* THE CUE SHIPS IN TWO ENGINES, and this is a decision about where the object
+   is signed off rather than anything it needs in order to run.
+
+   IT IS NOT A BUG FIX, and that was measured before it was written. On
+   patterns/ueber-uns.html at 1440 x 900, all three engines put the cue's box at
+   54 x 128, x 757-758, y 493, with the stem's 2-on-4-off gradient and
+   cf-scroll-cue-run on the mark: Chromium 151, WebKit 26.5 and Firefox 153
+   render the settled object identically. Gecko draws it as drawn. It is simply
+   not one of the two browsers this object is looked at in, and the cue is the
+   one piece of furniture on the site whose whole job is a nudge — furniture
+   that nudges is exactly what you do not ship into an engine you do not watch.
+
+   AN ALLOW-LIST AND NOT A FIREFOX EXCLUSION. "Everything that is not Gecko"
+   also admits every engine nobody here has ever opened, which is the same
+   licence by a quieter door. So the base tier above is `display: none` and
+   PAINTING is the enhancement: an engine that fails this query — or one too old
+   to have @supports to fail it with — is left with the header exactly as it
+   stood before this component existed. The rule, the meta row, and the band the
+   isometric object hangs into. The page is 18 305 px long there too and says so
+   by scrolling, which is what every other page in this system says it with.
+
+   `-webkit-box-reflect` IS THE DISCRIMINATOR, AND IT WAS PICKED BY MEASUREMENT.
+   CSS.supports in the three engines above: box-reflect is true in Chromium and
+   WebKit, false in Firefox. The obvious alternatives are not — `selector(::-
+   webkit-scrollbar)` and `(-webkit-text-security: none)` are both TRUE in
+   Firefox 153, because Gecko parses a good deal of the -webkit- surface for web
+   compatibility, and `(-webkit-hyphens: none)`, the query acts.css reaches
+   WebKit alone with, is false in Chromium. box-reflect has shipped in WebKit
+   and Blink since Safari 4 and Chrome 4 and Gecko has declined it for the whole
+   of that time, so both ends of the allow-list are one query.
+
+   `and (not (-moz-appearance: none))` is the second half, for the reason
+   .cf-btn--solid carries the same clause 1700 lines up: a Mozilla-only ident no
+   other engine has ever recognised, holding the gate shut if Gecko ever adds a
+   box-reflect alias the way it added the other two.
+
+   AND IT DOES NOT REOPEN THE MOBILE HIDE. That rule is `.cf-page-header
+   .cf-page-header__cue` at (0,2,0) and this one is (0,1,0), so below 56.25rem
+   the cue stays gone in every engine regardless of which of the two comes
+   later in the file. */
+@supports (-webkit-box-reflect: below) and (not (-moz-appearance: none)) {
+  .cf-scroll-cue { display: grid; }
 }
 
 /* The meta row's type, because that is what a micro-label is set in on this
