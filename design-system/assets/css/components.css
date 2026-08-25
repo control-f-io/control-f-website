@@ -5382,10 +5382,51 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    3 columns above 1008, 2 from 673, 1 below, and 4 and 5 do not occur at any
    width. So the ragged last row the old comment called unavoidable is now
    absent from the whole range rather than merely moved off 1280. */
+
+/* THE ROW TRACKS ARE min-content, AND THAT IS A FIREFOX BUG RATHER THAN A
+   PREFERENCE. Gecko feeds the portrait's INTRINSIC height — the pixel height
+   of the file, not the height it is drawn at — into the block-size
+   contribution the subgrid cell makes to this grid, and spreads whatever that
+   leaves over the four shared tracks equally across all four of them. The
+   fault is the FILE, so it is invisible until the lazy portrait arrives: the
+   card is drawn correctly, and then it grows. That is also why no capture in
+   this repo caught it — the grid is far below the fold on the shipping page,
+   so a screenshot run that never scrolls to it never loads a portrait.
+
+   MEASURED IN FIREFOX 154 on patterns/ueber-uns.html at 1440, with the seven
+   portraits loaded. With this line the four tracks are
+   451.97 / 20.8 / 19.95 / 463.2 px; without it they are
+   542.98 / 111.82 / 110.97 / 554.22 — every one of them 91.0 px too tall — and
+   the 16 px this stylesheet asks for under the picture is drawn as 107. The
+   cell goes from 955.9 px to 1320.0.
+
+   91.0 IS NOT AN ARBITRARY NUMBER. simon.jpg is 640 x 800 and the box it is
+   drawn in here is 297.7 x 372.17, so 800 - 372.17 - 63.8 (the 15 % inset the
+   first track already holds) is 364.03, and a quarter of that is the 91.01
+   each track gains. Swept over 375, 768, 1024, 1280 and 1440 the excess per
+   track is 115.0, 112.8, 83.6, 103.0 and 91.0 px, and that same subtraction
+   over four predicts every one of them to a hundredth of a pixel.
+
+   THE ARITHMETIC WAS CHECKED BY CHANGING THE ONLY TERM IN IT. The same card
+   fed a 320 x 400 copy of the same photograph needs no fix at all — an
+   intrinsic height under what the track already holds has nothing to
+   spread — and a 1280 x 1600 copy puts 296.5 px in every track, which is the
+   subtraction run again. Shipping a smaller file is therefore not the fix:
+   640 x 800 is 2 x the 297.7 x 372.17 the widest cell draws, which is the
+   retina file this grid is supposed to have.
+
+   AND IT COSTS THE OTHER TWO ENGINES NOTHING. A block box's min-content block
+   size IS its height, so the tracks min-content produces are the tracks auto
+   produced; Chromium and WebKit never had the fault and do not move. Measured
+   at 375, 768, 1024, 1280 and 1440 — the four widths this system is tested at
+   plus the two-column boundary — all three engines now agree on all four
+   tracks within a tenth of a pixel, and Chromium and WebKit draw the same
+   tracks after this line that they drew before it. */
 .cf-team-grid {
   /* The cells are drawn by their own borders, so the tiles must touch. */
   --tile: 21rem;
   --flow: 0;
+  grid-auto-rows: min-content;
   border-top: var(--stroke-1) solid var(--border-strong);
   border-left: var(--stroke-1) solid var(--border-strong);
 }
