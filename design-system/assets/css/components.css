@@ -5960,7 +5960,17 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    FORM
    Underlined fields, mono labels. No boxes — the hairline is the input.
    -------------------------------------------------------------------------- */
-.cf-field { display: flex; flex-direction: column; gap: var(--space-2); }
+.cf-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  /* WHAT ONE ROW OF A FORM IS TALL: one line of text at the document's own
+     leading, the field's padding twice, and the rule under it — 16 x 1.45 + 24
+     + 1 = 48.2. An <input> arrives at this by itself and never needed it
+     written down. A <select> does, and so does the chevron that has to sit in
+     the middle of one; both are below. */
+  --field-line: calc(var(--text-lg) * var(--leading-relaxed) + 2 * var(--space-3) + var(--stroke-1));
+}
 /* The <legend> of a choice group is named here rather than given its own copy
    of these six declarations: it is the same thing one level up — the name of
    what is being asked — and two rules would let the face of a label and the
@@ -5987,6 +5997,67 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   font-size: var(--text-lg);
   font-weight: var(--weight-light);
   transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+/* THE ONE CONTROL THE OPERATING SYSTEM DRAWS, and while it does, half of the
+   rule above it is advisory. A <select> left at appearance: auto is a native
+   menulist, and a menulist answers to its own UA stylesheet first. Measured on
+   the shipping page, one engine each:
+
+     Chromium   line-height computes to "normal" whatever is declared — set one
+                inline and read it back and it is still "normal" — so the field
+                came out 47.5 px against 48.2 for the inputs beside it.
+     WebKit     padding computes to 0, min-height to the UA's 18 px, and the
+                field came out 25 px. Not three quarters of a pixel: half a
+                field. On patterns/kontakt.html, where two columns of fields
+                stand side by side, THEMA's hairline sat 23.94 px above
+                ZEITRAHMEN's while the three pairs above them were exact, and
+                on patterns/bewerbung.html the position field was a squat box
+                in a column of lines.
+
+   appearance: none hands the box back — padding, min-block-size and leading
+   all apply, and all three engines then measure the same --field-line as the
+   inputs. It also takes the disclosure triangle with it, which is why the
+   markup around a select is not just the select: .cf-field__control below, and
+   the system's own #cf-chevron-down in it. foundations/iconography.html has
+   listed that glyph's use as "expand, open a select" since the set was drawn.
+
+   -webkit-appearance as well as appearance, because Safari answered only to
+   the prefixed property until 15.4 and this is the declaration that decides
+   whether the field has a height at all. */
+.cf-field__select {
+  appearance: none;
+  -webkit-appearance: none;
+  /* Room for the chevron: 16 px of glyph and 8 px of air, so a long option
+     ("Machine Learning Engineer (m/w/d)") stops before it rather than under
+     it. Only the right side — the block padding is the shared rule's. */
+  padding-right: var(--space-6);
+  min-block-size: var(--field-line);
+}
+
+/* The box a select shares with its chevron. Nothing else in this form needs
+   one: every other control draws its whole self.
+
+   The chevron is absolute and aria-hidden, so where it sits in the markup does
+   not matter — which is what makes room for the one thing that also lands in
+   here. worker/render.js writes a field's error message in after the control
+   it belongs to, and for a select that is now inside this box rather than
+   beside it; the second rule is that message keeping the gap it would have had
+   as a child of .cf-field.
+
+   The chevron hangs off the top of the box and not its middle for the same
+   reason: with an error under it the box is two rows tall, and a chevron
+   centred on that would drift down to the message. Half a --field-line from
+   the top is the middle of the select whatever is under it. */
+.cf-field__control { position: relative; }
+.cf-field__control > .cf-field__error { display: block; margin-top: var(--space-2); }
+.cf-field__chevron {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-start: calc(var(--field-line) / 2);
+  transform: translateY(-50%);
+  /* The click belongs to the select underneath. Nothing here is a target. */
+  pointer-events: none;
 }
 
 /* A FILE FIELD IS STILL A LINE, and that is the whole of the design decision.
@@ -6114,12 +6185,32 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 /* "(optional)" rather than an asterisk on everything else. Most fields on a
    contact form are required, so marking the exception is the smaller mark —
    and it needs no legend explaining what a symbol means. Lowercase and in the
-   body face so it reads as a word inside the label, not as a second label. */
+   body face so it reads as a word inside the label, not as a second label.
+
+   AND IT MAY NOT MAKE THE LABEL TALLER. It is a 12 px word inside an 11 px
+   line, and a line box is as tall as its tallest inline box — so at the
+   inherited 1.45 the marker, not the label, decided how tall the label was.
+   Measured on patterns/kontakt.html at 1280, an unmarked label against a
+   marked one:
+
+                     unmarked   marked
+       Chromium        15.94    16.94
+       WebKit          15.94    16.31
+
+   One field, nobody sees it. Two columns of fields beside each other — which
+   is what that page is — and the marked column walks away from the unmarked
+   one a pixel a row: by the fourth pair of hairlines the two columns stood
+   2 px apart in Chromium and 0.75 in WebKit, which is a grid that has stopped
+   being one. --leading-tight puts the marker's own box (12.2 px) back inside
+   the strut, where it decides nothing, and all nine labels measure 15.94. The
+   baseline it sits on is the label's either way, so nothing about the drawing
+   moves. */
 .cf-field__optional {
   margin-left: var(--space-2);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   font-weight: var(--weight-light);
+  line-height: var(--leading-tight);
   letter-spacing: 0;
   text-transform: none;
 }

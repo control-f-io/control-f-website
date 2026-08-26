@@ -63,6 +63,18 @@ export const TOPICS = {
    nicht der Sprache. */
 export const LIMITS = { name: 120, email: 200, company: 160, message: 5000 };
 
+/* Die vier Angaben aus der rechten Spalte teilen sich eine Grenze, weil sie
+   sich alles andere auch teilen: einzeilige Felder, alle optional, keins mit
+   einer eigenen Regel. 300 Zeichen sind rund drei Zeilen — mehr, als in ein
+   <input> sinnvoll hineingeht, und wer mehr zu sagen hat, hat das
+   Nachrichtenfeld daneben. */
+export const DETAIL_LIMIT = 300;
+
+/* Ihre Namen an einer Stelle. Die Reihenfolge ist die der Spalte, und die
+   Fehlerübersicht liest sich in ihr — sie steht unter den vier Pflichtfeldern
+   der linken Spalte, so wie die Spalte rechts davon steht. */
+export const DETAIL_FIELDS = ["asset", "occasion", "data", "timeframe"];
+
 /* Die Mindestlänge der Nachricht. "Hi" ist keine Anfrage, und der Platzhalter
    im Feld verspricht "ein paar Sätze". */
 const MESSAGE_MIN = 10;
@@ -88,12 +100,18 @@ function clean(value, { keepNewlines = false } = {}) {
 }
 
 /* Die Zahlwörter für die Überschrift der Fehlerübersicht. Das Specimen
-   schreibt "Bitte prüfen Sie zwei Angaben" — also ein Wort, keine Ziffer. Mehr
-   als vier Fehler kann dieses Formular nicht haben: es hat vier Felder, die
-   falsch sein können. */
+   schreibt "Bitte prüfen Sie zwei Angaben" — also ein Wort, keine Ziffer.
+
+   ACHT, SEIT DIE RECHTE SPALTE FELDER HAT. Hier stand einmal "mehr als vier
+   Fehler kann dieses Formular nicht haben", und das stimmte, solange es vier
+   Felder gab, die falsch sein konnten. Es sind acht: Name, E-Mail, Unternehmen,
+   Nachricht und die vier Angaben aus der Spalte daneben. Das Thema kommt nicht
+   dazu — ein Wert außerhalb der Liste wird verworfen und nicht gemeldet.
+   Die Liste ist trotzdem kein Zaun: summaryTitle() fällt auf die Ziffer
+   zurück, wenn sie zu kurz ist, statt "undefined Angaben" zu schreiben. */
 const COUNT_WORDS = {
-  de: ["null", "eine", "zwei", "drei", "vier"],
-  en: ["no", "one", "two", "three", "four"],
+  de: ["null", "eine", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht"],
+  en: ["no", "one", "two", "three", "four", "five", "six", "seven", "eight"],
 };
 
 export function summaryTitle(count, locale = DEFAULT_LOCALE) {
@@ -119,6 +137,11 @@ const MESSAGES = {
     messageShort: () => "Bitte schreiben Sie uns etwas mehr — ein paar Sätze genügen.",
     messageLong: (n) =>
       `Ihre Nachricht ist länger als ${n.toLocaleString("de-DE")} Zeichen. Bitte kürzen Sie sie.`,
+    /* Eine Meldung für alle vier Angaben der rechten Spalte, ohne das Feld zu
+       nennen: in der Übersicht steht seine Beschriftung schon davor, und am
+       Feld selbst steht sie eine Zeile darüber. Vier fast gleiche Sätze wären
+       vier Stellen, an denen dieselbe Zahl gepflegt werden müsste. */
+    detailLong: (n) => `Bitte kürzen Sie diese Angabe auf ${n} Zeichen.`,
   },
   en: {
     nameMissing: () => "Please tell us your name.",
@@ -130,6 +153,7 @@ const MESSAGES = {
     messageShort: () => "Please write a little more — a few sentences are enough.",
     messageLong: (n) =>
       `Your message is longer than ${n.toLocaleString("en-GB")} characters. Please shorten it.`,
+    detailLong: (n) => `Please shorten this entry to ${n} characters.`,
   },
 };
 
@@ -182,6 +206,13 @@ export function validate(raw, locale = DEFAULT_LOCALE) {
     message: clean(raw.message, { keepNewlines: true }),
   };
 
+  /* Die vier Angaben der rechten Spalte, in einer Schleife statt vierfach
+     hingeschrieben: sie werden gleich bereinigt, gleich geprüft und gleich
+     gemeldet. Einzeilige Felder, also ohne keepNewlines — ein Zeilenumbruch
+     kann hier nur aus einer Zwischenablage kommen und ist dann Formatierung,
+     kein Inhalt. */
+  for (const field of DETAIL_FIELDS) values[field] = clean(raw[field]);
+
   /* Ein Thema, das nicht aus der Liste stammt, ist kein Fehler des Lesers,
      sondern kein Thema. Geprüft wird gegen die Liste der Ausgabe, auf der das
      Formular stand: "Data foundation" kommt von /en/kontakt.html und von
@@ -215,6 +246,16 @@ export function validate(raw, locale = DEFAULT_LOCALE) {
     fail("message", "f-msg", say.messageLong(LIMITS.message));
   }
 
+  /* Leer ist bei diesen vieren kein Fehler, sondern die Voreinstellung. Das
+     Einzige, was schiefgehen kann, ist Länge — und das Ziel des Eintrags ist
+     die id des Feldes, die in FIELDS steht, damit sie nicht ein zweites Mal
+     hingeschrieben wird. */
+  for (const field of DETAIL_FIELDS) {
+    if (values[field].length > DETAIL_LIMIT) {
+      fail(field, FIELDS[field].input.slice(1), say.detailLong(DETAIL_LIMIT));
+    }
+  }
+
   return { values, errors };
 }
 
@@ -223,27 +264,51 @@ export function validate(raw, locale = DEFAULT_LOCALE) {
    Formulare auf dieser Website und nur eine Mechanik, die Fehler in eine Seite
    schreibt. Die des Bewerbungsformulars steht in apply.js. */
 export const FIELDS = {
-  name:    { input: "#f-name",  wrapper: '[data-field="name"]',    kind: "input" },
-  email:   { input: "#f-mail",  wrapper: '[data-field="email"]',   kind: "input" },
-  company: { input: "#f-firma", wrapper: '[data-field="company"]', kind: "input" },
-  topic:   { input: "#f-topic", wrapper: '[data-field="topic"]',   kind: "select" },
-  message: { input: "#f-msg",   wrapper: '[data-field="message"]', kind: "textarea" },
+  name:      { input: "#f-name",   wrapper: '[data-field="name"]',      kind: "input" },
+  email:     { input: "#f-mail",   wrapper: '[data-field="email"]',     kind: "input" },
+  company:   { input: "#f-firma",  wrapper: '[data-field="company"]',   kind: "input" },
+  topic:     { input: "#f-topic",  wrapper: '[data-field="topic"]',     kind: "select" },
+  message:   { input: "#f-msg",    wrapper: '[data-field="message"]',   kind: "textarea" },
+  /* Die rechte Spalte. Dieselbe Mechanik wie die fünf darüber — der Worker
+     sieht keinen Unterschied zwischen einem Feld links und einem rechts, weil
+     es keinen gibt: sie stehen in demselben <form>. */
+  asset:     { input: "#f-anlage", wrapper: '[data-field="asset"]',     kind: "input" },
+  occasion:  { input: "#f-anlass", wrapper: '[data-field="occasion"]',  kind: "input" },
+  data:      { input: "#f-daten",  wrapper: '[data-field="data"]',      kind: "input" },
+  timeframe: { input: "#f-zeit",   wrapper: '[data-field="timeframe"]', kind: "input" },
 };
 
 /* Die Beschriftung, unter der ein Feld in der Übersicht auftaucht. Sie ist das
    Label aus dem Formular, denn die Übersicht ist ein Index auf das Formular und
-   muss dessen Wörter benutzen — auf jeder der beiden Seiten die ihren. */
+   muss dessen Wörter benutzen — auf jeder der beiden Seiten die ihren.
+
+   ZWEI LESER, EINE TABELLE. render.js nimmt sie für die Fehlerübersicht und
+   mail.js für den Kopf der Mail, und deshalb steht "Thema" darin, obwohl das
+   Thema nie in einer Übersicht auftaucht: ein Wert außerhalb der Auswahlliste
+   wird verworfen und nicht gemeldet. In der Mail steht es. Ein Feld, das in
+   FIELDS steht und hier nicht, wäre eine Zeile "undefined:" im Postfach. */
 export const FIELD_LABELS = {
   de: {
     name: "Name",
     email: "E-Mail",
     company: "Unternehmen",
+    topic: "Thema",
     message: "Nachricht",
+    asset: "Anlage",
+    occasion: "Anlass",
+    data: "Datenlage",
+    timeframe: "Zeitrahmen",
   },
   en: {
     name: "Name",
     email: "Email",
     company: "Company",
+    topic: "Topic",
     message: "Message",
+    asset: "Plant",
+    occasion: "Reason",
+    data: "Data",
+    timeframe: "Timing",
   },
 };
+
