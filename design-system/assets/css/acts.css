@@ -2179,14 +2179,47 @@
            The floor still wins where it binds — max-height cannot cut below
            min-height — so the phone band is untouched at 480 and the crop it
            makes is the one check-ground-band.py measures. */
-        --sp-claim-band: 16rem;
         max-height: calc(100vh - var(--sp-claim-band));
         clip-path: none;
       }
       .sp-field { position: static; }
       .sp-annots-fig { inset: 0 0 auto 0; }
-      /* The ground is the whole stage's, as it is inside the gate. */
-      .sp-stage { --sp-ground-clip: none; }
+      /* The ground is the whole stage's, as it is inside the gate.
+
+         --sp-claim-band IS DECLARED HERE AND NOT ON THE INK LAYERS, which is
+         where it was written and where only one of its two readers could see
+         it. The cap above still reads it by inheritance — .sp-field and
+         .sp-annots-fig are both children of this box — and --sp-band below now
+         reads it too. A custom property inherits down and not up, so the band
+         and the cap that reserves it could not have been one number from the
+         layer's own rule.
+
+         AND --sp-band IS THE FIELD'S OWN HEIGHT, WRITTEN AS A LENGTH. The
+         three declarations on the ink layers give it: `aspect-ratio: 16 / 9`
+         over a box that is the stage's full width, so 9/16 of 100vw = 56.25vw;
+         `min-height: 30rem` is the clamp's floor; and the cap above is its
+         ceiling. Read off the shipped page in Firefox 153 the two agree to the
+         pixel at every width, with each of the three terms binding somewhere
+         in the sweep:
+
+           390 x 844   480 / 480     1280 x 900   644 / 644   (cap)
+           768 x1024   480 / 480     1440 x 900   644 / 644   (cap)
+          1024 x 900   576 / 576     1920 x1080   824 / 824   (cap)
+                       (floor at the first two, aspect at 1024)
+
+         A LENGTH AND NOT A PERCENTAGE, because the two boxes that need it do
+         not share a percentage basis. The field is 100 % of .sp-stage; the
+         grid below is inside .container, which is narrower by two gutters, and
+         a gutter is `clamp(1.25rem, 5.5vw, 5rem)` — so the ratio between the
+         two bases moves with the viewport and no one percentage can be both.
+         In viewport units the question does not arise, and a grid track cannot
+         take a percentage of a block size that is indefinite anyway.
+         → check-ground-band.py holds it to the three declarations above. */
+      .sp-stage {
+        --sp-ground-clip: none;
+        --sp-claim-band: 16rem;
+        --sp-band: clamp(30rem, 56.25vw, calc(100vh - var(--sp-claim-band)));
+      }
 
       /* THE CLAIM STANDS UNDER ITS OWN FIELD AND ABOVE THE ROOT — one column,
          act 1's sentence first, act 2's drawing second, whatever the width.
@@ -2204,6 +2237,72 @@
       /* Type at a measure. Above the fold the claim is 2fr of the stage and the
          column is the measure; in one column it would be the container. */
       .cf-statement__text { max-inline-size: var(--measure); }
+
+      /* AND ABOVE THE FOLD IT STANDS *IN* THE FIELD RATHER THAN UNDER IT.
+         The block above is the narrow answer and stays the narrow answer; this
+         is the wide one, and the two are the same argument at two widths.
+
+         WHAT WAS ON THE SCREEN. The field is a 1600 x 900 drawing sliced into
+         a 16/9 band, and its twenty-one beads are not spread evenly over it:
+         they crowd the top and bottom rows and leave the middle of the right
+         half empty, because that is where act 2's root grows out of them. In
+         the pinned tier act 1's claim occupies exactly that hole — Chromium
+         141 puts .cf-statement__text at x 762, y 997 in a stage that starts at
+         828 — and the claim is act 1's own sentence, so the field and the
+         words are one picture. Outside the gate the claim dropped to the foot
+         of the field instead. Measured on the shipped page at 1280 x 900 in
+         Firefox 153, before this block:
+
+                          claim            what stood beside it
+           field    828 - 1472 px
+           claim    x 70, y 1520, 516 wide  1139 - 516 = 623 px of nothing
+           hole   x 700 - 1280, y 930 - 1330   580 x 400 px of nothing
+
+         Two empty rectangles, one above the other, and the sentence that
+         belongs in the first of them standing under both. Reported from a
+         Firefox window as "there is still an empty space, and the text still
+         at the bottom".
+
+         SO THE CLAIM TAKES THE COLUMN THE PINNED TIER GIVES IT, and the row it
+         takes is the field's own band. Pulling the grid back by --sp-band puts
+         its first row exactly over the field; making that row --sp-band tall
+         puts the second one exactly under it, so the root still stands clear
+         of the last bead and act 2 is still act 2. `align-items: center`, one
+         rule up at the stage's own layout, is what centres the sentence in the
+         band without a second number. After it, at 1280 x 900:
+
+           claim  x 767, y 1055, 443 wide     root  y 1504 (field ends 1472)
+           stage  1867 -> 1630 px             page  5933 -> 5696
+
+         and the claim lands within 6 px of where the pinned tier draws it.
+         Swept at 1024, 1280, 1440, 1920 and 2560: no .cf-annot__label and no
+         .cf-stmt-sensor intersects the claim's box at any of them, which is
+         the one thing this arrangement can get wrong and the reason the fold
+         is the container's 56rem rather than a viewport width — below it the
+         field has no empty half to stand in and the block above still owns the
+         answer.
+
+         THE FIGURE SPANS BOTH TRACKS, DELIBERATELY. It is act 2, it is not
+         beside act 1's sentence, and the one-column note above says why: a
+         root drawn in column 1 with the claim in column 2 is the double
+         exposure in two boxes instead of one. Only the claim moves. That also
+         leaves --sp-ground-clip's own derivation alone, which reads the
+         figure's share of the row.
+         → check-ground-band.py, check-act-moment.py */
+      @container (min-width: 56rem) {
+        .sp-stage__inner {
+          grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+          grid-template-rows: var(--sp-band) auto;
+          margin-block-start: calc(-1 * var(--sp-band));
+        }
+        .sp-stage__inner > .cf-statement__text {
+          grid-column: 2;
+          grid-row: 1;
+          /* The track is the measure here, as it is inside the gate. */
+          max-inline-size: none;
+        }
+        .sp-stage__inner > .cf-statement__figure { grid-column: 1 / -1; grid-row: 2; }
+      }
 
       /* The static telling leaves as the real field arrives — see the note. */
       .lp-flow-sources { display: none; }

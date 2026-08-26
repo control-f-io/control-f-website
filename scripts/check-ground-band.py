@@ -97,6 +97,16 @@ WHAT IS CHECKED, in acts.css and the pages that load it:
   fold band         above 64rem the band is re-derived from the two-column
                     split rather than dropped, and the split it names is the
                     one .sp-stage__inner actually declares.
+  claim row         --sp-band, the length that tier gives the claim's grid row
+                    above the fold, is the ink layers' own three declarations
+                    restated: their min-height as its floor, their aspect-ratio
+                    as its vw term, their max-height as its cap. It has to be a
+                    restatement rather than the thing itself -- a grid track
+                    takes no percentage of an indefinite block size, and the
+                    field's percentage basis (.sp-stage) is not the grid's
+                    (.container, narrower by two gutters that are a clamp of
+                    their own) -- so nothing but this clause holds the two
+                    together.
 
 WHAT THE `gate off` CLAUSE USED TO SAY, AND WHY IT WAS WRONG. It read "the band
 is released above the register's 64rem, so the pinned tier and the two-column
@@ -196,6 +206,9 @@ CAP_RESERVES = re.compile(r"calc\([^)]*-\s*\S")
 COPY_LAYER = ".sp-say"
 BAND = "--sp-ground"
 CLIP = "--sp-ground-clip"
+# The length the no-support tier gives the claim's grid row above the fold. It
+# is the ink layers' own band restated in viewport units -- see the clause.
+CLAIM_ROW = "--sp-band"
 # The register's name for the one-column stack's ceiling. tokens.css: "64rem /
 # 1024 ... that fold is the container 56rem above, reached at a viewport of
 # about 1007. A px gate cannot track a rem fold".
@@ -279,6 +292,29 @@ def column_split(css):
         if len(frs) == 2:
             return (frs[0], frs[0] + frs[1])
     return None
+
+
+def split_top(s):
+    """Split on commas that are not inside parens.
+
+    clamp()'s three terms, one of which is a calc() with a comma-free but
+    paren-heavy body -- `calc(100vh - var(--sp-claim-band))`. A plain split
+    would not break that one today and would the day a term takes min() or a
+    two-argument function, which is exactly the day this clause has to keep
+    working."""
+    out, depth, cur = [], 0, ""
+    for c in s:
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+        if c == "," and depth == 0:
+            out.append(cur)
+            cur = ""
+        else:
+            cur += c
+    out.append(cur)
+    return out
 
 
 def value_of(prop, block):
@@ -463,6 +499,71 @@ def main():
                 f"them two boxes and all twenty-one land off the beads they "
                 f"name. Same sentence as the clip clause, one tier along.")
 
+        # ---- and the claim's row is that same band, written as a length ----
+        # Above the fold this tier stands act 1's claim IN the field rather
+        # than under it: .sp-stage__inner is pulled back by --sp-band and its
+        # first row is --sp-band tall, so the sentence lands in the hole the
+        # beads leave in the right half and the root still starts below the
+        # last one. That only holds while --sp-band IS the ink layers' height.
+        # It cannot BE their height -- a grid track takes no percentage of an
+        # indefinite block size, and the field's basis (.sp-stage) is not the
+        # grid's (.container, narrower by two gutters that are themselves a
+        # clamp) -- so it is restated in viewport units and held here.
+        #
+        # Get it wrong and nothing overflows: the claim slides off the hole
+        # into the beads, or the row stops short and act 2's root is drawn
+        # through act 1's last bead row, which is the double exposure this
+        # tier was built to take apart.
+        want = None
+        ref = bands.get(".sp-field") or {}
+        if ref.get("aspect-ratio") and ref.get("min-height") and ref.get("max-height"):
+            m = re.match(r"^\s*(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)\s*$",
+                         ref["aspect-ratio"])
+            if m:
+                w, h = float(m.group(1)), float(m.group(2))
+                want = (ref["min-height"], f"{h / w * 100:g}vw", ref["max-height"])
+        row = None
+        for body, at in declarations_with_offsets(".sp-stage", css):
+            if not (fallback[0] < at < fallback[1]):
+                continue
+            v = value_of(CLAIM_ROW, body)
+            if v:
+                row = re.sub(r"\s+", " ", v.strip())
+        if want and row is None:
+            findings.append(
+                f"acts.css: the no-support tier declares no {CLAIM_ROW} on "
+                f".sp-stage. Above the fold the claim's grid row is the field's "
+                f"band and the grid is pulled back by it; with no length to "
+                f"pull by, act 1's sentence returns to the foot of its own "
+                f"field and the right half of the field stays the 580 x 400 px "
+                f"of nothing it was.")
+        elif want and row is not None:
+            inner = re.match(r"^clamp\((.*)\)$", row)
+            parts = ([p.strip() for p in split_top(inner.group(1))]
+                     if inner else [])
+            if len(parts) != 3:
+                findings.append(
+                    f"acts.css: {CLAIM_ROW} is {row!r}, which is not a "
+                    f"three-term clamp(). The field's band has a floor, a "
+                    f"ratio and a cap, and the row that has to match it needs "
+                    f"all three or it matches at one width and drifts at the "
+                    f"rest.")
+            else:
+                names = ("floor (min-height)", "ratio (aspect-ratio)",
+                         "cap (max-height)")
+                for name, mine, theirs in zip(names, parts, want):
+                    if re.sub(r"\s+", "", mine) != re.sub(r"\s+", "", theirs):
+                        findings.append(
+                            f"acts.css: {CLAIM_ROW}'s {name} is {mine!r} and "
+                            f"the ink layers' is {theirs!r}. The claim's row "
+                            f"is the field's own height restated as a length; "
+                            f"the two disagree, so the sentence is drawn for a "
+                            f"band the field does not have. Measured in "
+                            f"Firefox 153 while they agree: 480 px at 390 and "
+                            f"768, 576 at 1024, 644 at 1280 and 1440, 824 at "
+                            f"1920 -- floor, ratio and cap each binding "
+                            f"somewhere in that sweep.")
+
     copy_blocks = declarations_for(COPY_LAYER, css)
     for b in copy_blocks:
         if f"var({CLIP})" in (value_of("clip-path", b) or ""):
@@ -596,7 +697,8 @@ def main():
           f"does not, no box is resized outside the no-support tier and inside "
           f"it both take one band with a floor and a cap that leaves the claim "
           f"its room, it is re-derived above {RELEASE} "
-          f"from the row's own column split, and it is released in the pin gate "
+          f"from the row's own column split, {CLAIM_ROW} restates that band's "
+          f"own floor, ratio and cap, and it is released in the pin gate "
           f"and that tier and nowhere else.")
     return 0
 
