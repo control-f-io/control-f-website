@@ -160,8 +160,16 @@
 
   /* Inject the icon sprite so every page can `<use href="#cf-arrow">`.
      In production this block belongs in the page template, right after
-     <body> — see components/buttons.html for the copy-paste version. */
+     <body> — see components/buttons.html for the copy-paste version.
+
+     The chevron is here for one specimen: components/forms.html draws a
+     <select>, and since .cf-field__select went to appearance: none — the only
+     way to give that control a height WebKit will honour — the disclosure mark
+     is the page's to draw and not the operating system's. A specimen that
+     shows the component without it would be showing a different component. */
   var SPRITE =
+    '<symbol id="cf-chevron-down" viewBox="0 0 24 24">' +
+    '<path vector-effect="non-scaling-stroke" d="M4 4 L12 20 L20 4"/></symbol>' +
     '<symbol id="cf-arrow" viewBox="0 0 600 480"><g transform="translate(600,0) scale(-1,1)">' +
     '<path d="M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 ' +
     '596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 ' +

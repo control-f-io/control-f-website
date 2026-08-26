@@ -79,7 +79,13 @@ const FORMS = {
 const KINDS = {
   contact: {
     module: contact,
-    textFields: ["name", "email", "company", "topic", "message"],
+    /* Neun, seit die zweite Spalte der Seite Felder trägt und keine Prosa
+       mehr. Ein Feld, das hier nicht steht, wird aus dem Body nie gelesen —
+       es käme im Browser an, im Worker nicht, und niemand sähe etwas davon.
+       Die Reihenfolge ist die der Seite: erst die linke Spalte, dann die
+       rechte. */
+    textFields: ["name", "email", "company", "topic", "message",
+                 ...contact.DETAIL_FIELDS],
     fileFields: [],
     options: (locale) => contact.TOPICS[locale],
     /* Der Eintrag der Übersicht, wenn kein Feld schuld ist: die Überschrift

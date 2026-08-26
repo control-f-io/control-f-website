@@ -26,6 +26,8 @@
    einer Anfrage braucht es das nicht, und Art. 5 Abs. 1 lit. c DSGVO sagt,
    dass dann auch nichts davon erhoben wird. */
 
+import { DETAIL_FIELDS, FIELD_LABELS } from "./validate.js";
+
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
 /* Der Betreff trägt das Thema, wenn eins gewählt wurde — dann sortiert das
@@ -36,16 +38,54 @@ function subjectFor(values) {
     : `Kontaktanfrage von ${values.name}`;
 }
 
-/* Nur-Text, keine HTML-Mail. Die Anfrage ist Fließtext mit vier Angaben davor;
-   HTML würde nichts hinzufügen, was ein Postfach nicht schon kann, und wäre
-   eine zweite Stelle, an der Nutzereingaben escaped werden müssten. */
+/* Nur-Text, keine HTML-Mail. Die Anfrage ist Fließtext mit einem Kopf aus
+   Angaben davor; HTML würde nichts hinzufügen, was ein Postfach nicht schon
+   kann, und wäre eine zweite Stelle, an der Nutzereingaben escaped werden
+   müssten.
+
+   DER KOPF IST DIE RECHTE SPALTE DER SEITE. Anlage, Anlass, Datenlage und
+   Zeitrahmen sind die vier Angaben, nach denen sonst zurückgeschrieben werden
+   muss; seit sie auf kontakt.html Felder sind und keine Prosa, kommen sie mit
+   und stehen hier über der Nachricht. Jede ist optional, also fehlt jede
+   Zeile, die leer geblieben ist — eine Mail mit "Anlage:" und nichts dahinter
+   sagt weniger als keine Zeile.
+
+   AUF DEUTSCH, AUCH AUS DER ENGLISCHEN AUSGABE. Die Beschriftungen kommen aus
+   FIELD_LABELS.de, weil diese Mail in einem deutschen Postfach gelesen wird und
+   nicht von dem, der sie ausgelöst hat. In welcher Sprache geantwortet werden
+   will, steht unten in der Adresse der Seite.
+
+   DIE VIER STEHEN NICHT NOCH EINMAL HIER, sondern kommen als DETAIL_FIELDS aus
+   validate.js — derselben Liste, aus der das Formular geprüft wird. Eine fünfte
+   Angabe wird dort eingetragen und steht damit auch in der Mail; eine Liste an
+   zwei Stellen wäre eine Angabe, die geprüft wird und nicht ankommt. */
+
+/* Eine Beschriftung auf die Breite der Spalte gebracht: "Anlage:" wird zu
+   "Anlage:      ", damit die Werte in einem Nur-Text-Postfach untereinander
+   stehen. */
+const pad = (label, width) => `${label}:`.padEnd(width);
+
 function bodyFor(values, source) {
-  const lines = [
-    `Name:        ${values.name}`,
-    `E-Mail:      ${values.email}`,
+  const labels = FIELD_LABELS.de;
+  const head = [
+    ["name", values.name],
+    ["email", values.email],
+    ["company", values.company],
+    ["topic", values.topic],
+    ...DETAIL_FIELDS.map((field) => [field, values[field]]),
   ];
-  if (values.company) lines.push(`Unternehmen: ${values.company}`);
-  if (values.topic) lines.push(`Thema:       ${values.topic}`);
+  /* Die Breite der Beschriftungsspalte: das längste Wort, plus Doppelpunkt und
+     ein Leerzeichen. "Unternehmen:" ist mit zwölf Zeichen das längste — aber
+     die Zahl wird gerechnet und nicht getippt, damit eine Angabe mit einem
+     längeren Namen die Spalte nicht schief stellt. */
+  const width = Math.max(...head.map(([field]) => labels[field].length + 2));
+
+  /* Name und E-Mail stehen immer — ohne sie wäre die Anfrage nicht durch die
+     Prüfung gekommen. Alles danach steht, wenn es ausgefüllt wurde. */
+  const lines = head
+    .filter(([, value]) => value)
+    .map(([field, value]) => `${pad(labels[field], width)}${value}`);
+
   /* Die Seite, auf der das Formular stand, statt eines festen Domainnamens.
      Sie ist auch dann richtig, wenn der Worker unter workers.dev läuft oder
      die Domain wechselt — und sie sagt, in welcher Sprache geschrieben wurde:
