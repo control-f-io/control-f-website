@@ -38,7 +38,10 @@ rather than shipping documentation chrome or a dead link:
            is that path, written relative, because the site is served from
            /control-f-website/ and a leading `/` resolves against the host.
            One copy of every stylesheet, script, font and image: the shipping
-           pages and the documentation load the same files.
+           pages and the documentation load the same files. The stylesheets and
+           the scripts also carry `?v=<hash of their own bytes>` — see STAMPED,
+           which is the one thing in this file that is about the cache and not
+           about the path.
 
   LINKS    Every reference to a pattern page becomes the path that page ships
            at, written relative to the page doing the pointing. Two things fall
@@ -72,6 +75,7 @@ USAGE
     python3 scripts/build-site.py -v         # name every page, not only the changed ones
 """
 
+import hashlib
 import posixpath
 import re
 import sys
@@ -182,8 +186,68 @@ UP = {"": "../", "en/": "../../"}
 def assets_re(up):
     """href, src and poster are the three attributes a pattern page names an
     asset in; the paths inside the stylesheets are relative to the stylesheet
-    and do not move."""
-    return re.compile(r'(href|src|poster)="%s' % re.escape(up + "assets/"))
+    and do not move. The tail is captured as well as the prefix, because what
+    the URL ends in is now part of the edit."""
+    return re.compile(r'(href|src|poster)="%s([^"]+)"' % re.escape(up + "assets/"))
+
+
+# WHAT A STALE STYLESHEET LOOKS LIKE, and why the URL carries a hash of the file
+# it points at. A page and the sheet it loads are two files with two caches.
+# Pages serves both under `cache-control: max-age=600` and the <link> named the
+# sheet by a path that never changed, so for the ten minutes after a deploy a
+# returning reader could hold the new markup against the sheet they already had.
+#
+# Not a hypothetical. #465 gave .cf-field__select `appearance: none` and drew the
+# disclosure chevron itself — a .cf-field__control wrapper in the markup, the
+# `position: absolute` that places the glyph in the sheet, both in the one commit
+# — and inside that window the chevron had no rule to place it: it fell to its
+# static position, below the field's hairline at the left edge, under a select
+# still drawing the operating system's own arrow. Two arrows, one of them in the
+# wrong place, from a change that measured correct in Chromium, Firefox 154 and
+# WebKit. The deploy was at 12:00:32 and the report came in at 12:07.
+#
+# A content hash closes the window instead of shortening it: new markup names a
+# URL the old sheet was never cached under, so the pair a reader holds is always
+# the pair that was built together. Eight hex digits of SHA-256, and taken from
+# the bytes rather than from the clock — the same tree builds the same URLs, so
+# `--check` stays an assertion about the patterns and not about when it last ran.
+#
+# STYLESHEETS AND SCRIPTS, AND NOTHING ELSE UNDER assets/. What skews damagingly
+# is the code that knows the shape of the markup, and those are the two kinds
+# that change in the same commit as a page and disagree visibly when they do not.
+# A photograph or a font from ten minutes ago is the same photograph: stamping
+# every image would put a hash in the URL of every picture on the site to fix a
+# problem none of them has. The search index is not here either — cf-search.js
+# fetches it at runtime and this edit only reads attributes.
+#
+# THE DOCUMENTATION KEEPS ITS PLAIN PATHS. design-system/ is the source this
+# script reads; rewriting a <link> inside a pattern on every stylesheet edit
+# would feed the generator's output back into its own input, with five routines
+# editing the landing pattern hourly. The website is the surface with readers
+# and the surface that is stamped.
+STAMPED = (".css", ".js")
+
+
+def stamped(rel, name):
+    """The `?v=` an asset's URL carries, or "" for the kinds that carry none."""
+    if not rel.endswith(STAMPED):
+        return ""
+    path = ROOT / "design-system" / "assets" / rel
+    if not path.exists():
+        raise BuildError(
+            "%s: loads assets/%s, which does not exist — a stylesheet or script "
+            "was renamed and the pattern still names the old one." % (name, rel))
+    return "?v=" + hashlib.sha256(path.read_bytes()).hexdigest()[:8]
+
+
+def assets(text, name, up, assets_to):
+    """Every asset the page loads, moved to where the deploy serves it from and,
+    for the two kinds that have to agree with the markup, stamped."""
+    def one(m):
+        attr, rel = m.groups()
+        return '%s="%s%s%s"' % (attr, assets_to, rel, stamped(rel, name))
+
+    return assets_re(up).subn(one, text)
 
 
 # LINKS, WHICH USED TO BE HOME AND IS THE SAME EDIT GENERALISED. It was written
@@ -274,7 +338,7 @@ def transform(text, name, table):
 
     text, counts["PREVIEW"] = preview_re(up).subn("", text)
     text, counts["DSBACK"] = dsback_re(up).subn("\n", text)
-    text, counts["ASSETS"] = assets_re(up).subn(r'\1="%s' % assets_to, text)
+    text, counts["ASSETS"] = assets(text, name, up, assets_to)
     text, counts["LINKS"] = links(text, name, table)
 
     for name_, minimum in (("ASSETS", 1), ("LINKS", 1), ("PREVIEW", 1), ("DSBACK", 1)):
