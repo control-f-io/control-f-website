@@ -128,7 +128,7 @@ python3 scripts/build-search-index.py
 
 | # | Script | Writes | Splices into |
 | --- | --- | --- | --- |
-| 1 | `build-news.py` | `patterns/news.html`, `news-thema-<slug>.html` (3 today), and the archive's titles into `i18n/en.json` | 5 `news:` regions |
+| 1 | `build-news.py` | `patterns/news.html`, `news-thema-<slug>.html` (3 today, one per topic in use), and the archive's titles into `i18n/en.json` | 5 `news:` regions |
 | 2 | `build-jobs.py` | `patterns/karriere.html`, and the register's strings into `i18n/en.json` | 2 `jobs:` regions |
 | 3 | `build-i18n.py` | `patterns/en/` — 21 source pages, translated | nothing; it rewrites whole pages |
 | 4 | `build-articles.py` | `beitrag-<slug>.html` (18 today) in **both** editions | 9 `article:` regions of `blog-artikel.html` and `en/blog-artikel.html` |
@@ -218,6 +218,7 @@ notice they were gone.
 | `content/news/YYYY-MM-DD-<slug>.md` | the store. One file per post. | `new-post.py`, or the Notion sync |
 | `content/jobs/<slug>.md` | the store. One file per opening. | `new-job.py`, or the Notion sync |
 | `content/autoren.json` | who wrote a post, and the title their byline carries | a person |
+| `content/themen.json` | the topic vocabulary — one entry per chip on the archive's filter, in the order the chips stand | the Notion sync, out of the `Themen` property; the English name by a person |
 
 The three authored specimens are the surfaces the generated pages are made of,
 and they ship as themselves as well — they are documented, linked and read,
@@ -258,6 +259,7 @@ a grep for `import`, and several are outside this repository.
 | `sync-news-notion.py` | imported by `sync-jobs-notion.py` for `plain()`, `rich()`, `body_from()`, `children()`, `fetch()` | the jobs sync loses the entire Notion transform. |
 | all seven `build-*.py` filenames | invoked by literal path from `deploy.yml`, `deploy-worker.yml`, `news-sync.yml` (via `build-all.sh`), `design-system.yml`, `routine-merge.yml` (via `build-and-verify.sh`), and each other | the deploy or the gate fails on a missing file, or the gate quietly stops asserting what the deploy asserts. |
 | `content/news/`, `content/jobs/` | `build-news.py`, `build-jobs.py`, both syncs, `check-content-images.py`; each holds a `.catalogue.json` ledger | the stores stop being found and the pages regenerate as empty. |
+| `content/themen.json` | `build-news.py` (the vocabulary a post's `themen:` is checked against, and the chips), `sync-news-notion.py` (writes it) | no post can be filed and the archive has no filter to draw — both scripts stop rather than guess. |
 | the fence namespaces `news:`, `jobs:`, `article:`, `stelle:` | the four builders match `<!-- ns:name -->` … `<!-- /ns:name -->` by exact string against the specimens | the splice finds no region and the build fails — or, if a fence is half-renamed, splices into the wrong place. |
 | `dist/` | `wrangler.toml`'s `assets.directory = "dist"`, `upload-pages-artifact`'s `path: dist` | neither deploy finds the website. |
 | `"Deploy to GitHub Pages"`, `"Deploy the Worker"` | `routine-merge.yml` runs `gh workflow run "<display name>"` after it merges | main gains content and both surfaces keep serving the previous version. The merge push uses `GITHUB_TOKEN`, which never raises the push event those workflows listen for, so the dispatch by *display name* is the only trigger. |
@@ -283,7 +285,9 @@ sync-news-notion.py→ check-image-scale.py, check-content-images.py
 sync-jobs-notion.py→ sync-news-notion.py
 check-content-images.py   → check-image-scale.py
 check-page-local-tracks.py → check-grid-tracks.py
-new-post.py        → build-news.py            (the topic vocabulary)
+new-post.py        → build-news.py            (the topic vocabulary, which is
+                                               content/themen.json — read
+                                               through the file that reads it)
 new-job.py         → sync-jobs-notion.py      (the slug)
 ```
 

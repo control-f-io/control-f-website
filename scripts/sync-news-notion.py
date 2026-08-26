@@ -81,10 +81,14 @@ post files already use so that the two are read the same way:
     Datum      date         sorts the archive
     Autor      rich text    optional; only the lead card shows it
     Minuten    number       optional; reading time
-    Themen     multi-select Telemetrie, Energie, Architektur — the archive's
-                            filter. At least one, and no fourth name: the chips
-                            are a fixed vocabulary and build-news.py refuses a
-                            topic it cannot draw a chip for.
+    Themen     multi-select the archive's filter, and its options ARE the
+                            vocabulary — this script writes them into
+                            content/themen.json, in the order they stand there,
+                            and build-news.py draws a chip for each one a post
+                            carries. At least one per post. Add an option and
+                            the chip follows; the one thing it cannot bring over
+                            is the English name, because an option is a name, an
+                            id and a colour. → vocabulary()
     Titelbild  files        optional; the one picture the post's card in the
                             archive is drawn from. The first file is taken —
                             a card has one picture, and a property holding
@@ -106,11 +110,26 @@ published state publishes the first sentence somebody types. Anything not
 removed — unpublishing in Notion has to mean unpublishing on the site, or the
 field is decoration.
 
-THIS SCRIPT ONLY WRITES content/news/. It does not touch the pages: build-news.py
-lays out the archive from those files, and it is the same layout whether a post
-arrived from Notion or from new-post.py. One store, two ways in.
+THE FILTER COMES OVER TOO, AND IT USED TO BE A CONSTANT IN A SCRIPT. The chips
+on the archive are the options of the `Themen` property, and until now that list
+lived a second time in build-news.py — three names, with a fourth deliberately a
+code edit there. An admin adding a topic in Notion could therefore tag a post
+with it, watch this script carry the tag over exactly as written, and get a red
+build on a topic nothing could draw a chip for. So the options are read off the
+database and written to content/themen.json, and the archive's filter follows
+the property: add one, rename one, drag one above another, and the chips are
+that. The one thing that does not follow is the English name — a multi-select
+option is a name, an id and a colour, and there is nowhere in it for a
+translation — so a new topic arrives with `en` empty and every run says so until
+somebody writes the word. → vocabulary()
+
+THIS SCRIPT WRITES content/news/ AND content/themen.json, and nothing else. It
+does not touch the pages: build-news.py lays out the archive from those files,
+and it is the same layout whether a post arrived from Notion or from
+new-post.py. One store, two ways in.
 
     python3 scripts/sync-news-notion.py              # write content/news/
+                                                     # and content/themen.json
     python3 scripts/sync-news-notion.py --dry-run    # say what would change
     python3 scripts/sync-news-notion.py --check      # fail if they differ
     python3 scripts/sync-news-notion.py --fixture f  # read a saved response
@@ -118,7 +137,9 @@ arrived from Notion or from new-post.py. One store, two ways in.
 --fixture is how the transform is tested without a token: save one query
 response to a file and run the whole thing against it. The network is four lines
 at the bottom of this file; everything above them is what actually needs
-checking.
+checking. The filter's options come from a second request, so a fixture carries
+them under `_themen` — its own field, the way `_blocks` is — and one saved
+without that key syncs the posts and leaves the vocabulary alone.
 
 stdlib, with one dependency and only where it is unavoidable: the moment a
 picture is outside the plate, fit_to_plate() resizes it with Pillow, pinned in
@@ -142,6 +163,9 @@ import urllib.request
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 POSTS = ROOT / "content" / "news"
 IMAGES = ROOT / "design-system" / "assets" / "img" / "news"
+# The topic vocabulary, which is the second thing this script brings over: the
+# rows are the archive and the `Themen` property is its filter. → vocabulary()
+VOCABULARY = ROOT / "content" / "themen.json"
 
 # The extensions the reading page can draw and check-image-scale.py can read a
 # size out of. Anything else Notion lets somebody drop in a page — a PDF, an
@@ -158,10 +182,18 @@ TYPES = {"image/jpeg": ".jpg", "image/png": ".png",
 # script's one request two. Pinned deliberately — an API version that follows
 # "latest" is a script that breaks on somebody else's release day.
 API = "https://api.notion.com/v1/databases/%s/query"
+# The database itself rather than its rows: this is where the `Themen` property
+# states its options, which is the topic vocabulary. A row only says which of
+# them it carries. → options()
+DATABASE = "https://api.notion.com/v1/databases/%s"
 BLOCKS = "https://api.notion.com/v1/blocks/%s/children?page_size=100"
 VERSION = "2022-06-28"
 
 PUBLISHED = "Veröffentlicht"
+
+# The multi-select whose options are the archive's filter, by the name it has in
+# Notion — read off a row in post_from() and off the database in options().
+TOPICS = "Themen"
 
 # The header this writes, in the order new-post.py writes it, so a file from
 # Notion and a file from the command line are the same file.
@@ -550,7 +582,7 @@ def post_from(page, text="", bild=""):
     props = page.get("properties") or {}
     got = {k: plain(props.get(v)) for k, v in
            (("titel", "Titel"), ("title", "Title"), ("datum", "Datum"),
-            ("autor", "Autor"), ("minuten", "Minuten"), ("themen", "Themen"))}
+            ("autor", "Autor"), ("minuten", "Minuten"), ("themen", TOPICS))}
     # Not read off the row: it is a downloaded file's path, and main() is where
     # the download happens, because that is where `mode` decides whether this
     # run writes anything at all.
@@ -628,6 +660,110 @@ def sweep(pictures, mode, into=None):
     return ["%s/%s" % (into.name, n) for n in gone]
 
 
+# --------------------------------------------------------------------------
+# the filter, which is the other half of the archive
+# --------------------------------------------------------------------------
+
+def vocabulary(names, mode):
+    """content/themen.json made to match the `Themen` property.
+
+    Returns (added, removed, moved, untranslated) — names, so the run can say
+    what happened in the words the admin used in Notion.
+
+    THE LIST IS NOTION'S AND THE ENGLISH IS NOT. Which topics exist, what they
+    are called, and the order they stand in are all properties of that
+    multi-select, and this writes all three over: an option dragged above
+    another moves its chip on the archive, because the chips stand in the
+    vocabulary's order. What Notion has no room for is the English word — an
+    option is a name, an id and a colour — so the `en` a topic already has is
+    KEPT rather than rewritten, and a topic that has none arrives with it empty.
+
+    Kept by slug, which is the German name transliterated, so a topic renamed in
+    Notion is a topic this cannot recognise: it loses the English word with the
+    German one, and it moves to a new address, because the address has the name
+    in it. Both are the honest reading of a rename — /news/thema/telemetrie is
+    the wrong page to serve a topic no longer called that.
+
+    EMPTY IS A REPORT AND NOT A FAILURE, and the failure is build-news.py's on
+    the day a published post carries the topic. Between the two there is a
+    window — the option exists, no post carries it, the site is unchanged — and
+    that window is exactly when somebody can write the word without a red build
+    waiting. The run says so every time, for as long as it is true.
+    """
+    if not VOCABULARY.exists():
+        fail("no content/themen.json to write the topics into.\n"
+             "    It is the archive's filter — one entry per chip — it is "
+             "tracked, and it carries its own note about what the fields mean: "
+             "`git checkout content/themen.json` brings it back rather than "
+             "this script inventing a file with no note in it.")
+    data = json.loads(VOCABULARY.read_text(encoding="utf-8"))
+    have = [t for t in (data.get("themen") or []) if isinstance(t, dict)]
+    known = {t.get("slug"): (t.get("en") or "") for t in have}
+    # The German names as they stood, so a topic that has just left can still be
+    # reported in the word somebody typed in Notion rather than in its slug.
+    named = {t.get("slug"): (t.get("de") or t.get("slug")) for t in have}
+    was = [t.get("slug") for t in have]
+
+    themen, seen = [], {}
+    for name in names:
+        s = slug(name)
+        if not s:
+            fail("the topic %r has no slug — every letter of it is one a file "
+                 "name cannot carry, and the topic's page is a file." % name)
+        if s in seen:
+            fail("the topics %r and %r both slug to %r, so both would be read "
+                 "at /news/thema/%s. Notion allows the two names; one address "
+                 "cannot answer for both." % (seen[s], name, s, s))
+        seen[s] = name
+        themen.append({"slug": s, "de": name, "en": known.get(s, "")})
+
+    data["themen"] = themen
+    text = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+    if mode == "write" and text != VOCABULARY.read_text(encoding="utf-8"):
+        VOCABULARY.write_text(text, encoding="utf-8")
+
+    now = [t["slug"] for t in themen]
+    added = [seen[s] for s in now if s not in was]
+    removed = [named[s] for s in was if s not in now]
+    # Neither added nor removed, and still not the order it was in — which is a
+    # change to the page, since the chips are drawn in this order.
+    moved = [s for s in now if s in was] != [s for s in was if s in now]
+    return added, removed, moved, [t["de"] for t in themen if not t["en"]]
+
+
+def options(db, token):
+    """The `Themen` property's options, in the order they stand in Notion.
+
+    Read off the database and not off the rows. Collecting the distinct tags of
+    the published posts would give the same set most days and the wrong thing on
+    two: it loses the order somebody arranged the options in, and it cannot see
+    a topic that has been invented and not yet used — which is the one state in
+    which writing its English name costs nothing.
+    """
+    data = get(DATABASE % db, token)
+    prop = (data.get("properties") or {}).get(TOPICS)
+    if prop is None:
+        fail("that database has no %r property.\n"
+             "    It is the archive's filter: a multi-select whose options are "
+             "the chips on news.html. Every published post carries at least one "
+             "of them." % TOPICS)
+    if prop.get("type") != "multi_select":
+        fail("%r is a %s property and the filter needs a multi-select.\n"
+             "    Its options are the vocabulary — a closed list somebody picks "
+             "from — and free text would give the archive a chip per spelling."
+             % (TOPICS, prop.get("type")))
+    names = [(o.get("name") or "").strip()
+             for o in (prop.get("multi_select") or {}).get("options", [])]
+    names = [n for n in names if n]
+    if not names:
+        fail("%r has no options, so there is no filter and no post can be filed "
+             "under anything.\n"
+             "    Refusing to empty content/themen.json on that: a property "
+             "renamed or rebuilt in Notion looks exactly like this from here, "
+             "and every post in the archive would stop building." % TOPICS)
+    return names
+
+
 def image_limits():
     """check-content-images.py's plate, read from the file that enforces it:
     not under 1008 px wide, not over 2016, under 800 kB.
@@ -684,6 +820,35 @@ def fetch_rows(url, token):
         cursor = data.get("next_cursor")
 
 
+def get(url, token):
+    """One GET against the API, for the things that are not rows.
+
+    The database object is the only one so far — its `properties` are where the
+    filter's options are stated — and it is one request that does not page,
+    which is why it does not go through fetch_rows(). The two hints are the same
+    two, because they are the same two mistakes.
+    """
+    req = urllib.request.Request(
+        url, headers={"Authorization": "Bearer " + token,
+                      "Notion-Version": VERSION})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        hint = ""
+        if e.code == 404:
+            hint = ("\n    A 404 here is nearly always the database not being "
+                    "SHARED with the integration: open it in Notion, … → "
+                    "Connections → add the integration.")
+        if e.code == 401:
+            hint = "\n    NOTION_TOKEN is not a token this workspace knows."
+        fail("Notion answered %s for %s.%s\n    %s"
+             % (e.code, url.rsplit("/", 1)[-1], hint,
+                e.read().decode(errors="replace")[:400]))
+    except urllib.error.URLError as e:
+        fail("cannot reach api.notion.com: %s" % e.reason)
+
+
 def children(page_id, token):
     """One page's blocks, following the cursor. Four more lines of network."""
     out, url = [], BLOCKS % page_id
@@ -720,6 +885,12 @@ def main():
     if args.fixture:
         raw = json.loads(pathlib.Path(args.fixture).read_text(encoding="utf-8"))
         rows = raw.get("results", raw if isinstance(raw, list) else [])
+        # The options come from a second request, so a saved query response
+        # holds them under a key of this script's own — the same arrangement
+        # `_blocks` already is. A fixture without one syncs the posts and leaves
+        # the vocabulary alone, which is what it means to have saved a response
+        # before this field existed.
+        names = raw.get("_themen") if isinstance(raw, dict) else None
     else:
         token = os.environ.get("NOTION_TOKEN", "").strip()
         db = os.environ.get("NOTION_NEWS_DB", "").strip()
@@ -730,6 +901,7 @@ def main():
                  "    Without a token this can still be run against a saved "
                  "response: --fixture FILE.")
         rows = fetch(db, token)
+        names = options(db, token)
 
     mode = "report" if (args.dry_run or args.check) else "write"
     wanted, dropped, pictures = {}, {}, {}
@@ -792,6 +964,14 @@ def main():
 
     added, changed, removed = write(wanted, mode)
     gone = sweep(pictures, mode)
+    # THE FILTER IS PART OF THE SAME IMPORT. The posts say which topics they
+    # carry; the property says which topics there are, in which order — and a
+    # post can only arrive carrying a topic the property already holds, so the
+    # two are written in one run or the archive spends an hour able to name a
+    # chip it cannot draw. A fixture with no options saved in it leaves the
+    # vocabulary exactly as it is. → vocabulary()
+    new_topics, gone_topics, moved, untranslated = (
+        vocabulary(names, mode) if names is not None else ([], [], False, []))
 
     for n in added:
         print("  + %s" % n)
@@ -801,9 +981,26 @@ def main():
         print("  - %s" % n)
     for n in gone:
         print("  - %s" % n)
+    for n in new_topics:
+        print("  + thema %s" % n)
+    for n in gone_topics:
+        print("  - thema %s" % n)
+    if moved:
+        print("  ~ themen — the chips now stand in the order Notion does")
     for kind, where in sorted(dropped.items()):
         print("  ! %s block(s) of type %r have no form on the reading page and "
               "were left out: %s" % (len(where), kind, where[0]), file=sys.stderr)
+    # STANDING, AND SAID EVERY RUN IT IS TRUE. Notion has nowhere to keep an
+    # English topic name, so this is the only place the fact can be raised, and
+    # the day it starts to matter is the day somebody publishes a post under the
+    # topic — at which point build-news.py stops the build. Said once, at the
+    # moment the option appeared, it would be a line in a log nobody was reading.
+    for n in untranslated:
+        print("  ! the topic %r has no English name in content/themen.json.\n"
+              "      Write the word as it stands inside a sentence — "
+              "\"telemetry\" beside \"Telemetrie\"; the chip is the same word "
+              "with a capital. Until then the archive builds, and stops the day "
+              "a published post carries %r." % (n, n), file=sys.stderr)
 
     if args.check:
         if added or changed or removed or gone:
@@ -811,8 +1008,14 @@ def main():
                   "Notion.\n    run: python3 scripts/sync-news-notion.py"
                   % (len(added) + len(changed) + len(removed) + len(gone)))
             return 1
+        if new_topics or gone_topics or moved:
+            print("\nsync-news: content/themen.json is out of step with the "
+                  "%r property.\n    run: python3 scripts/sync-news-notion.py"
+                  % TOPICS)
+            return 1
         print("sync-news: content/news/ matches Notion — %d published post(s), "
-              "%d picture(s)" % (len(wanted), len(pictures)))
+              "%d picture(s), %d topic(s)"
+              % (len(wanted), len(pictures), len(names or [])))
         return 0
 
     verb = "would change" if args.dry_run else "synced"
@@ -820,7 +1023,8 @@ def main():
           "%d picture(s)"
           % (verb, len(wanted), len(added), len(changed), len(removed),
              len(pictures)))
-    if not args.dry_run and (added or changed or removed or gone):
+    if not args.dry_run and (added or changed or removed or gone
+                             or new_topics or gone_topics or moved):
         print("     then: sh scripts/build-all.sh")
     return 0
 

@@ -48,9 +48,11 @@ promised "der aktive Zustand erkennbar" and news-thema.html drew that state as
 a mock-up with thirty-seven invented posts in it.
 
 So the filter is the URL and the URL is a file. Every post declares its topics
-(`themen: Energie, Telemetrie`, from a vocabulary of three), and this script
-writes one page per topic — `news-thema-<slug>.html`, the posts of that topic
-spliced into the same five regions of design-system/patterns/news-thema.html.
+(`themen: Energie, Telemetrie`, from the vocabulary in content/themen.json —
+the `Themen` property of the Notion database, written out by the sync), and this
+script writes one page per topic — `news-thema-<slug>.html`, the posts of that
+topic spliced into the same five regions of news-thema.html, which lives in
+design-system/patterns/ beside them.
 That specimen is to these pages what blog-artikel.html is to beitrag-*.html:
 authored, documented, shipped, and read rather than copied. The chips link to
 them. No script runs, no server is asked, and the state survives being shared,
@@ -131,31 +133,9 @@ THEMA = PATTERNS / "news-thema.html"
 # list is written here. → specimens()
 ARTICLE = PATTERNS / "blog-artikel.html"
 CATALOGUE = ROOT / "design-system" / "i18n" / "en.json"
-
-# THE TOPICS, WHICH ARE A VOCABULARY AND NOT FREE TEXT.
-#
-# Three names, and they are the three the site already says it works on —
-# expertise.html is built on them and the chips on news.html have carried
-# exactly these words since the page was drawn. A post picks from them; it does
-# not invent one. Free text would give the archive a chip per spelling —
-# "Telemetrie", "telemetrie", "Telemetrik" — and a filter whose controls are
-# typos is worse than none, which is the fault this whole file exists to stop
-# making with numbers.
-#
-# FOUR STRINGS PER TOPIC, because a topic is written in four places and two of
-# them are English. The slug is the file name and never seen; the German name is
-# the chip; the English name is the chip in the other edition; and the English
-# PROSE form is the same word inside a sentence, where the catalogue has always
-# set it lower case — "Posts by Control-F on telemetry" was written by hand in
-# en.json long before anything generated it, and a generator that wrote
-# "on Telemetry" would be a second idiom in the same file.
-TOPICS = (
-    ("telemetrie",  "Telemetrie",  "Telemetry",    "telemetry"),
-    ("energie",     "Energie",     "Energy",       "energy"),
-    ("architektur", "Architektur", "Architecture", "architecture"),
-)
-
-BY_NAME = {de.lower(): t for t in TOPICS for de in (t[1],)}
+# The topic vocabulary, and the reason it is a file rather than a literal is
+# below. → vocabulary()
+VOCABULARY = ROOT / "content" / "themen.json"
 
 # THE FIVE COLUMNS' RANKS, which is their presentation and no longer their
 # length. 1, 2, 3, 6, 6 is what the .cf-blog-col--N classes lay out — the lead
@@ -225,6 +205,121 @@ ARTICLE_REGION = ("<!-- article:%s -->", "<!-- /article:%s -->")
 def fail(msg):
     print("build-news: " + msg)
     sys.exit(1)
+
+
+# --------------------------------------------------------------------------
+# THE TOPICS, WHICH ARE A VOCABULARY AND NOT FREE TEXT — AND NOT A LITERAL HERE
+# --------------------------------------------------------------------------
+#
+# A post picks a topic from a closed list; it does not invent one. Free text
+# would give the archive a chip per spelling — "Telemetrie", "telemetrie",
+# "Telemetrik" — and a filter whose controls are typos is worse than none, which
+# is the fault this whole file exists to stop making with numbers.
+#
+# WHAT CHANGED IS WHERE THE LIST IS KEPT. It was three names written into this
+# file, and a fourth was deliberately a code edit here — which was right while
+# the archive was eighteen cards somebody had drawn, and stopped being right the
+# day the archive started arriving from Notion. The names are not this
+# generator's: they are the options of the `Themen` multi-select on the news
+# database, and adding one there is something an admin does between two posts,
+# in the same window they write the post in. With the list in here, that admin
+# could invent a topic, tag a post with it, watch the sync carry the tag over
+# faithfully — and get a red build on a topic nothing could draw a chip for,
+# whose fix was a pull request against a script.
+#
+# So the vocabulary is content/themen.json, scripts/sync-news-notion.py writes
+# that file out of the property, and this reads it. The same store-and-generator
+# split content/news/ already is, for the same reason: one place to author, one
+# place to lay out, and no third place that has to be edited in step.
+#
+# FOUR STRINGS PER TOPIC, because a topic is written in four places and two of
+# them are English. The slug is the file name and never seen; the German name is
+# the chip; the English name is the chip in the other edition; and the English
+# PROSE form is the same word inside a sentence, where the catalogue has always
+# set it lower case — "Posts by Control-F on telemetry" was written by hand in
+# en.json long before anything generated it, and a generator that wrote
+# "on Telemetry" would be a second idiom in the same file.
+
+
+def vocabulary():
+    """content/themen.json → the topic records, in the order that file lists them.
+
+    THE ORDER IS THE CHIPS' ORDER, and it is Notion's. A filter is a fixed set
+    of controls and a control that moves is a control nobody learns, so the
+    chips stand in the vocabulary's order rather than in each post's — and the
+    vocabulary's order is the order the options stand in on the property, where
+    somebody can drag them into the one they mean.
+
+    TWO ENGLISH FORMS OUT OF ONE STRING. `en` is the word as it stands inside a
+    sentence — "8 posts on telemetry" — and the chip is that word with a capital
+    first letter. One string rather than two because two would be two fields
+    holding the same word, and the day they disagreed the chip and the sentence
+    under it would be about different subjects. Derived in this direction and
+    not the other: capitalising "telemetry" gives "Telemetry", which is what the
+    catalogue has held by hand since before anything generated it, while
+    lower-casing a chip gives "ai act" the first time a topic is a proper noun.
+
+    AN EMPTY `en` IS A TOPIC THE VOCABULARY HOLDS AND THE ARCHIVE CANNOT DRAW,
+    and it is not an error here. It is the state a topic arrives in from Notion,
+    which has nowhere to keep an English name, and a topic no post carries draws
+    no chip and needs none. → build(), where it becomes a failure on the day a
+    published post carries it, and not before.
+    """
+    if not VOCABULARY.exists():
+        fail("no content/themen.json, so there is no vocabulary to file a post "
+             "under.\n"
+             "    It is the topic list — one entry per chip on the archive's "
+             "filter — and scripts/sync-news-notion.py writes it from the "
+             "`Themen` property of the Notion database. It is tracked, so a "
+             "checkout has it; `git checkout content/themen.json` brings it "
+             "back.")
+    try:
+        data = json.loads(VOCABULARY.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        fail("content/themen.json is not readable as JSON: %s" % e)
+    out, seen = [], {}
+    for i, rec in enumerate(data.get("themen") or [], 1):
+        if not isinstance(rec, dict):
+            fail("content/themen.json, entry %d is %r and not a topic. A topic "
+                 "is an object: a slug, a German name, and the English word "
+                 "beside it." % (i, rec))
+        s, de, en = (str(rec.get(k) or "").strip() for k in ("slug", "de", "en"))
+        if not de or not s:
+            fail("content/themen.json, entry %d has %s. A topic is the German "
+                 "name the chip carries and the slug its page is read at, and "
+                 "neither is optional."
+                 % (i, "no slug" if de else ("no name" if s else "neither")))
+        if "," in de:
+            # `themen: Energie, Telemetrie` is a comma-separated line, so a name
+            # with a comma in it is two topics as far as a post file is
+            # concerned. Notion refuses one in an option name for the same
+            # reason; this is the guard for the hand edit that Notion cannot see.
+            fail("content/themen.json: the topic %r has a comma in it.\n"
+                 "    A post lists its topics on one comma-separated line, so "
+                 "that name is two topics the moment it is written down." % de)
+        if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", s):
+            fail("content/themen.json: %r is not a slug.\n"
+                 "    It is a file name — news-thema-%s.html — and an address "
+                 "with a capital, an umlaut or a space in it is one that half "
+                 "the web serves differently from the other half." % (s, s))
+        if s in seen:
+            fail("content/themen.json: %r and %r both slug to %r, so both "
+                 "topics would be read at one address and one of the two pages "
+                 "would be the other's." % (seen[s], de, s))
+        seen[s] = de
+        out.append((s, de, en[:1].upper() + en[1:], en))
+    if not out:
+        fail("content/themen.json lists no topic, so no post can be filed and "
+             "the archive has no filter to draw.\n"
+             "    That is what an emptied `Themen` property in Notion looks "
+             "like from here — every post carries a topic, so it is also what "
+             "no post being buildable looks like.")
+    return tuple(out)
+
+
+TOPICS = vocabulary()
+
+BY_NAME = {t[1].lower(): t for t in TOPICS}
 
 
 # --------------------------------------------------------------------------
@@ -406,10 +501,12 @@ def topics(field, where):
         if not rec:
             fail("%s: %r is not one of the topics.\n"
                  "    The vocabulary is %s — a post picks from it, the chips on "
-                 "news.html are drawn from it, and a fourth name would be a chip "
-                 "nobody drew.\n"
-                 "    Add it to TOPICS in scripts/build-news.py if the site has "
-                 "genuinely grown a fourth field."
+                 "news.html are drawn from it, and a name outside it would be a "
+                 "chip nobody drew.\n"
+                 "    It is content/themen.json, and it is the `Themen` "
+                 "property of the Notion database written out: a topic the site "
+                 "has genuinely grown is added there, and the next sync brings "
+                 "it here."
                  % (where, name, ", ".join(t[1] for t in TOPICS)))
         if rec[0] in seen:
             continue
@@ -1095,7 +1192,17 @@ def own_topic(html):
              "<span aria-current=\"page\"> is what names that topic — this "
              "script reads it to write the chips beside it."
              % ", ".join(t[1] for t in TOPICS))
-    return BY_NAME[name]
+    topic = BY_NAME[name]
+    # AND THE SPECIMEN SHIPS, so its chip is a shipped string in both editions
+    # even on the day no post carries the topic it draws. build() checks the
+    # topics with posts; this is the one that has a chip without them.
+    if not topic[3]:
+        fail("design-system/patterns/news-thema.html is drawn in %r, and "
+             "content/themen.json has no English name for it.\n"
+             "    The specimen ships as itself in both editions, so that chip "
+             "is a string /en/news-thema.html shows — write the English word "
+             "beside the German one, as it stands inside a sentence." % name)
+    return topic
 
 
 def tags(topics, pad):
@@ -1168,6 +1275,32 @@ def build():
         fail("no post carries a topic, so there is no filter to draw.\n"
              "    Every post file has a `themen:` line; the vocabulary is %s."
              % ", ".join(t[1] for t in TOPICS))
+
+    # A TOPIC BEING DRAWN IS A TOPIC THAT NEEDS ITS ENGLISH WORD, and this is
+    # the only moment it does. The vocabulary comes from Notion, where a
+    # multi-select option is a name, an id and a colour and there is nowhere to
+    # put a translation, so a topic invented there arrives with `en` empty —
+    # which is fine and invisible until a published post carries it. From that
+    # post on the site owes four English strings it does not have: the chip on
+    # /en/news.html, the chip under the article, the topic page's title, and the
+    # sentence "8 posts on …" under its header. Falling back to the German word
+    # would put a German chip and a half-German sentence into the English
+    # edition — precisely the page the catalogue exists to prevent — so this
+    # stops instead, and says where the word goes.
+    untranslated = [t for t in used if not t[3]]
+    if untranslated:
+        fail("content/themen.json has no English name for %s, and %s.\n"
+             "    Notion cannot hold one — a multi-select option is a name and "
+             "a colour — so the sync writes the topic with `en` empty and this "
+             "is where it is filled in: the word as it stands INSIDE a "
+             "sentence, \"telemetry\" beside \"Telemetrie\". The chip is that "
+             "word with a capital, so there is only the one to write.\n"
+             "    Until then the English archive would carry a German chip and "
+             "a description reading \"Posts by Control-F on %s\"."
+             % (", ".join(repr(t[1]) for t in untranslated),
+                "a published post carries it"
+                if len(untranslated) == 1 else "published posts carry them",
+                untranslated[0][1]))
 
     # The chip labels are the generator's now, because the vocabulary is: adding
     # a fourth topic must not mean a red build until somebody also writes its

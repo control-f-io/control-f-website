@@ -15,8 +15,8 @@ be read by a person and by a script:
     datum:   2026-02-01          required, YYYY-MM-DD. Sorts the archive.
     autor:   Simon Deussen       optional. Only the lead card has room to show it.
     minuten: 4                   optional. Reading time, as the cards state it.
-    themen:  Energie, Telemetrie required. One or more of Telemetrie, Energie,
-                                 Architektur — the chips on the news archive.
+    themen:  Energie, Telemetrie required. One or more names from
+                                 content/themen.json — the chips on the archive.
     bild:    news/anlage.jpg     optional. The post's title picture: the card in
                                  the archive is drawn from it. The file lives in
                                  design-system/assets/img/ and the path is
@@ -53,9 +53,11 @@ WHY THE TOPICS ARE REQUIRED. They are the filter. Each one is a chip on
 news.html and a page of its own — news-thema-<slug>.html, one topic's slice of
 the archive — and a link under the finished article back into it. A post with no
 topic is in the archive and in nobody's filtered view, and no page says so: the
-reader who clicks "Energie" is simply not shown it. The vocabulary is the three
-names the site already works in, and build-news.py refuses a fourth rather than
-minting a chip nobody drew.
+reader who clicks "Energie" is simply not shown it. The vocabulary is closed and
+it is content/themen.json — the `Themen` property of the Notion news database,
+written out by scripts/sync-news-notion.py — and build-news.py refuses a name
+outside it rather than minting a chip nobody drew. A topic the site has genuinely
+grown is added in Notion, not here.
 
 WHY BOTH TITLES ARE REQUIRED and not defaulted. Every pattern page ships twice
 and build-i18n.py fails on a German string with no English counterpart, on
@@ -83,10 +85,13 @@ POSTS = ROOT / "content" / "news"
 def topics():
     """The German topic names build-news.py accepts, lowercased.
 
-    Read out of that file rather than repeated in this one: the vocabulary is
-    closed — adding a fourth topic is deliberately a code edit there — and two
-    lists of three names is the shape of drift this repository keeps writing
-    checks about.
+    Asked of that file rather than repeated in this one, and it is now a
+    question with a moving answer: the vocabulary is content/themen.json, which
+    scripts/sync-news-notion.py writes out of the `Themen` property of the
+    Notion database. build-news.py reads it, so reading build-news.py is reading
+    it — and a list of names typed here would be stale the first time somebody
+    added a topic in Notion, which is the shape of drift this repository keeps
+    writing checks about.
     """
     spec = importlib.util.spec_from_file_location(
         "cf_build_news", ROOT / "scripts" / "build-news.py")
@@ -118,8 +123,9 @@ def main():
     ap.add_argument("--autor", default="")
     ap.add_argument("--minuten", default="", help="reading time in minutes")
     ap.add_argument("--themen", default="",
-                    help="the post's topics, comma separated: Telemetrie, "
-                         "Energie, Architektur")
+                    help="the post's topics, comma separated. The vocabulary "
+                         "is content/themen.json; a name outside it is "
+                         "rejected here rather than by the build")
     ap.add_argument("--text", action="store_true",
                     help="scaffold the two-language body, so the post gets a page")
     args = ap.parse_args()
@@ -128,17 +134,20 @@ def main():
         sys.exit("new-post: --datum is %r, not YYYY-MM-DD." % args.datum)
 
     # A TOPIC NAME IS CHECKED HERE OR IT IS CHECKED BY THE BUILD, and here is
-    # where the person who typed it is still looking. The vocabulary is three
-    # names and is closed — build-news.py's TOPICS owns it, so it is read from
-    # there rather than restated — and "Energy" or "Telemetry" is the mistake
-    # this catches: an English name on a German field writes a file that scaffolds
-    # cleanly and then fails build-news.py with a topic nothing recognises.
+    # where the person who typed it is still looking. The vocabulary is closed
+    # and it is content/themen.json — the Notion property written out — so it is
+    # read through build-news.py rather than restated, and "Energy" or
+    # "Telemetry" is the mistake this catches: an English name on a German field
+    # writes a file that scaffolds cleanly and then fails build-news.py with a
+    # topic nothing recognises.
     if args.themen:
         known = topics()
         wrong = [t for t in (x.strip() for x in args.themen.split(",")) if t
                  and t.lower() not in known]
         if wrong:
-            sys.exit("new-post: %s is not a topic. The three are %s."
+            sys.exit("new-post: %s is not a topic. The vocabulary is %s — "
+                     "content/themen.json, which follows the `Themen` property "
+                     "in Notion."
                      % (", ".join(repr(w) for w in wrong),
                         ", ".join(sorted(k.title() for k in known))))
 
