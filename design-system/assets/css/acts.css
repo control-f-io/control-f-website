@@ -2144,7 +2144,43 @@
         height: auto;
         aspect-ratio: 16 / 9;
         min-height: 30rem;
-        max-height: 100vh;
+        /* THE CAP RESERVES THE CLAIM, and 100vh was the bug this whole tier
+           was built to fix, one element along. The claim is act 1's sentence —
+           "Tausende Sensoren erzeugen Daten, aber daraus keine Antworten" — and
+           the block below stands it under act 1's field on purpose. A band that
+           may take the WHOLE viewport means the field's own last row and the
+           first line of the claim can never be on screen together, so the
+           sentence has no field to belong to; it enters the view with act 2's
+           root instead, which is the answer drawing, and captions it. Reported
+           from Firefox as "the text is missing and it's over the tree", and it
+           was both: absent from act 1, present over act 2.
+
+           Measured at 16 / 9 with the old cap, field top to claim bottom
+           against the viewport that has to hold it:
+
+             1024 x  720    767 / 720     1440 x  900   1047 /  900
+             1280 x  800    957 / 800     1680 x 1050   1182 / 1050
+             1366 x  768   1005 / 768     1920 x 1080   1317 / 1080
+
+           Six laptops and no viewport in which act 1 is whole. The three
+           narrow sizes pass only because `min-height: 30rem` binds there and
+           the ratio does not — 390 x 844 comes out 700 of 844 — which is the
+           shape of the answer: the band is already the smaller of two rules,
+           and this is the third.
+
+           16rem IS THE CLAIM'S OWN BAND, not a margin of taste: --space-12
+           between the field and the stack (48) plus the claim's tallest
+           measured line box (189 at 1280 and up, where the h2 stands in three
+           lines over a two-line body). 237 px, taken in rem because everything
+           in it is type and a reader who asks for larger type moves both
+           halves. Re-measured with the cap in place, worst clearance 19 px at
+           1440 x 900 and act 1 whole at every size in the table.
+
+           The floor still wins where it binds — max-height cannot cut below
+           min-height — so the phone band is untouched at 480 and the crop it
+           makes is the one check-ground-band.py measures. */
+        --sp-claim-band: 16rem;
+        max-height: calc(100vh - var(--sp-claim-band));
         clip-path: none;
       }
       .sp-field { position: static; }

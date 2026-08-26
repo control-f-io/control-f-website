@@ -85,6 +85,12 @@ WHAT IS CHECKED, in acts.css and the pages that load it:
                     exists, because a band at exactly the field's own ratio
                     is the one box that does not crop and a field that does
                     not crop is a field scaled to the width.
+  cap reserves      that cap subtracts the claim's own band from the viewport
+                    rather than being the viewport. The tier stands act 1's
+                    sentence under act 1's field, and a band free to take the
+                    whole view is a sentence that only ever arrives with act
+                    2's root -- absent from the act it names, captioning the
+                    one it contradicts.
   gate off          the band is released ONLY inside the pin gate or the
                     no-support tier. A bare `@media (min-width: 64rem)`
                     releasing it is the finding below.
@@ -180,6 +186,11 @@ BAND_LAYERS = (".sp-field", ".sp-annots-fig")
 # that make it a CROP rather than a fit. Read as a set: the finding is a layer
 # whose set differs from its twin's, or one with no floor in it.
 BAND_PROPS = ("aspect-ratio", "min-height", "max-height")
+# The cap has to leave the claim room, and the only shape that does is a
+# subtraction inside a calc(): `calc(100vh - <the claim's band>)`. A bare
+# viewport unit passes every other clause here and still orphans act 1's
+# sentence -- see the `cap reserves` clause.
+CAP_RESERVES = re.compile(r"calc\([^)]*-\s*\S")
 # The stage's copy layer. Prose is what the band exists to get out from under;
 # clipping it would be the fault inverted.
 COPY_LAYER = ".sp-say"
@@ -427,6 +438,20 @@ def main():
                     f"219 px of band, the whole 1600 x 900 at 0.24, twenty-one "
                     f"11 px labels inside 390 px. The floor is what makes the "
                     f"height bind and the crop happen.")
+            cap = got.get("max-height")
+            if cap and not CAP_RESERVES.search(cap):
+                findings.append(
+                    f"acts.css: {layer}'s no-support band caps at {cap}, which "
+                    f"is the whole viewport. This tier stands act 1's claim "
+                    f"UNDER act 1's field, so a band that may take every pixel "
+                    f"of the view is a claim that can never be on screen with "
+                    f"the field it names -- it arrives with act 2's root "
+                    f"instead and captions the answer drawing. Measured with "
+                    f"the bare cap, field top to claim bottom against the view "
+                    f"that has to hold it: 767/720 at 1024, 957/800 at 1280, "
+                    f"1005/768 at 1366, 1047/900 at 1440, 1317/1080 at 1920 -- "
+                    f"six laptops and act 1 whole in none of them. Subtract the "
+                    f"claim's own band from the viewport instead.")
         shapes = {layer: tuple(sorted(got.items())) for layer, got in bands.items()}
         if len(set(shapes.values())) > 1:
             detail = "; ".join(f"{layer} {dict(shape) or dict()}"
@@ -569,7 +594,8 @@ def main():
     print(f"OK  the ground band is {boxes[0][1]:g} x {boxes[0][2]:g}'s own ratio "
           f"in --gutter's own terms, both ink layers clip to it, the copy layer "
           f"does not, no box is resized outside the no-support tier and inside "
-          f"it both take one band with a floor, it is re-derived above {RELEASE} "
+          f"it both take one band with a floor and a cap that leaves the claim "
+          f"its room, it is re-derived above {RELEASE} "
           f"from the row's own column split, and it is released in the pin gate "
           f"and that tier and nowhere else.")
     return 0
