@@ -77,10 +77,17 @@ WHAT IS CHECKED, in acts.css and the pages that load it:
   layers            every ink layer inset to .sp-stage carries the shared band
                     as a clip-path; .sp-say, the copy layer, does not.
   clip, not box     neither ink layer takes a height or an aspect-ratio that
-                    would move the slice crop.
-  gate off          the band is released ONLY inside the pin gate. A bare
-                    `@media (min-width: 64rem)` releasing it is the finding
-                    below.
+                    would move the slice crop -- outside the no-support tier,
+                    where the band IS the box on purpose. See THE ONE TIER
+                    THAT SIZES THE INK below.
+  band, not fit     in the no-support tier both ink layers take the SAME
+                    band -- one ratio, one floor, one cap -- and the floor
+                    exists, because a band at exactly the field's own ratio
+                    is the one box that does not crop and a field that does
+                    not crop is a field scaled to the width.
+  gate off          the band is released ONLY inside the pin gate or the
+                    no-support tier. A bare `@media (min-width: 64rem)`
+                    releasing it is the finding below.
   fold band         above 64rem the band is re-derived from the two-column
                     split rather than dropped, and the split it names is the
                     one .sp-stage__inner actually declares.
@@ -116,6 +123,31 @@ Moving the release into the gate -- which is where its own note always said it
 belonged -- left the clause green while the premise under it had been inverted.
 So the clause now asks WHERE the release is, not whether there is one.
 
+THE ONE TIER THAT SIZES THE INK, and why clause 4 now has an exception rather
+than a hole. This file's clause 4 was written against a layer that stays inset
+to the stage and is CLIPPED to the band -- the box is the stage, the crop is
+the band, and a `height` on the layer moves the crop. That is still the whole
+of the base tier and of the flow tier.
+
+The no-support tier is not that arrangement any more. Release Firefox ships
+scroll-driven animations behind a pref that is OFF in 154.0, so every Firefox
+reader is in the tier with no timeline at all -- and that tier was drawing act
+1's claim beside act 2's finished root with no act 1 anywhere, three beats of
+a scroll composition arriving as one block. acts.css now sequences them in
+SPACE there: act 1's field takes a band of its own at the head of the stage,
+sized rather than clipped, with the claim under it and the root under that.
+
+So in that tier the layer's own box IS the band, and the two clauses above
+swap places: sizing it is the fix, and the regression clause 4 names -- "give
+the box the band instead and width binds at 0.234" -- comes back through the
+FLOOR going missing rather than through the height arriving. Measured at 390
+wide with the band left at the field's own 16 / 9 and no floor: 219 px tall,
+the whole 1600 x 900 at 0.24, twenty-one 11 px labels inside 390 px, every one
+overlapping its neighbour. With the 30rem floor: 480 px tall, height binds,
+0.53, and the crop is the middle 732 units. The `band, not fit` clause is that
+floor, and it requires both layers to take the identical band because they are
+one picture -- the same sentence clause 3 makes about the clip.
+
 Countable in a file, invisible in a render -- the same test the checks beside it
 pass. Run with -v for the resolved band and the viewBoxes it was held to.
 """
@@ -140,6 +172,14 @@ TREE = ROOT / "design-system"
 # from another file can open the same hole a rule can, and the clause below is
 # what closes it. acts.css clips it to var(--sp-ground-clip) beside the other two.
 INK_LAYERS = (".sp-field", ".sp-annots-fig", ".sp-stage::before")
+# The two that are one picture: the field of beads and the callouts naming it.
+# .sp-stage::before is the floor under both and is never given a band of its
+# own -- it is the stage's, in every tier.
+BAND_LAYERS = (".sp-field", ".sp-annots-fig")
+# The band the no-support tier sizes the ink with, and the three declarations
+# that make it a CROP rather than a fit. Read as a set: the finding is a layer
+# whose set differs from its twin's, or one with no floor in it.
+BAND_PROPS = ("aspect-ratio", "min-height", "max-height")
 # The stage's copy layer. Prose is what the band exists to get out from under;
 # clipping it would be the fault inverted.
 COPY_LAYER = ".sp-say"
@@ -198,6 +238,18 @@ def block_span(css, opener):
             if depth == 0:
                 return (i, j)
     return None
+
+
+def fallback_span(css):
+    """(start, end) of the @supports block for the tier with no timeline.
+
+    Its own block, not "everything outside the gate": the flow tier is outside
+    the gate too and is a different tier with a different answer -- it has a
+    time axis and spends it on the root. Only a browser that cannot resolve
+    `animation-timeline` at all reaches the rules this span holds.
+    """
+    return block_span(
+        css, r"@supports\s+not\s*\(\s*\(\s*animation-timeline\s*:\s*view\(\s*\)\s*\)")
 
 
 def column_split(css):
@@ -315,20 +367,26 @@ def main():
                     f"in the canvas's own two figures.")
 
     # ---- both ink layers, and only the ink layers ------------------------
+    fallback = fallback_span(css)
     for layer in INK_LAYERS:
-        blocks = declarations_for(layer, css)
+        blocks = declarations_with_offsets(layer, css)
         if not blocks:
             findings.append(f"acts.css: {layer} has no declaration block to read.")
             continue
         clipped = any(f"var({CLIP})" in (value_of("clip-path", b) or "")
-                      for b in blocks)
+                      for b, at in blocks
+                      if not (fallback and fallback[0] < at < fallback[1]))
         if not clipped:
             findings.append(
                 f"acts.css: {layer} does not clip to var({CLIP}). The field and "
                 f"the notes are one picture -- a note whose bead has been "
                 f"clipped away points at nothing -- so every ink layer inset to "
                 f"the stage reads the same band or none of them does.")
-        for b in blocks:
+        for b, at in blocks:
+            # The no-support tier sizes the ink on purpose -- the band IS the
+            # box there, and the `band, not fit` clause below is what holds it.
+            if fallback and fallback[0] < at < fallback[1]:
+                continue
             for prop in ("height", "block-size", "aspect-ratio"):
                 v = value_of(prop, b)
                 if v and v not in ("100%", "auto"):
@@ -339,6 +397,46 @@ def main():
                         f"lattice at 0.234 instead of 1.001 at 375 and every "
                         f"bead on a phone comes out a quarter size. Clip the "
                         f"ink; leave the box.")
+
+    # ---- the band the no-support tier sizes them with --------------------
+    if fallback is None:
+        findings.append(
+            "acts.css: no @supports not ((animation-timeline: view()) and "
+            "(animation-range: ...)) block. Release Firefox is that tier -- the "
+            "pref is off in 154 -- and without it act 1's field, act 1's claim "
+            "and act 2's root arrive as one block with no act 1 drawn at all.")
+    else:
+        bands = {}
+        for layer in BAND_LAYERS:
+            got = {}
+            for b, at in declarations_with_offsets(layer, css):
+                if not (fallback[0] < at < fallback[1]):
+                    continue
+                for prop in BAND_PROPS:
+                    v = value_of(prop, b)
+                    if v:
+                        got[prop] = re.sub(r"\s+", " ", v.strip())
+            bands[layer] = got
+        for layer, got in bands.items():
+            if got.get("aspect-ratio") and not got.get("min-height"):
+                findings.append(
+                    f"acts.css: {layer} takes a band in the no-support tier "
+                    f"with no min-height. A band at the field's own ratio is "
+                    f"the one box that does not crop, and an uncropped field "
+                    f"is a field scaled to the width: measured at 390 wide, "
+                    f"219 px of band, the whole 1600 x 900 at 0.24, twenty-one "
+                    f"11 px labels inside 390 px. The floor is what makes the "
+                    f"height bind and the crop happen.")
+        shapes = {layer: tuple(sorted(got.items())) for layer, got in bands.items()}
+        if len(set(shapes.values())) > 1:
+            detail = "; ".join(f"{layer} {dict(shape) or dict()}"
+                               for layer, shape in shapes.items())
+            findings.append(
+                f"acts.css: the no-support tier's ink layers take different "
+                f"bands ({detail}). The field and the notes are one picture and "
+                f"the notes are placed in the field's own sliced units -- give "
+                f"them two boxes and all twenty-one land off the beads they "
+                f"name. Same sentence as the clip clause, one tier along.")
 
     copy_blocks = declarations_for(COPY_LAYER, css)
     for b in copy_blocks:
@@ -361,6 +459,14 @@ def main():
         if not (v and v.strip() == "none"):
             continue
         if gate and gate[0] < at < gate[1]:
+            releases_in += 1
+        elif fallback and fallback[0] < at < fallback[1]:
+            # The no-support tier releases it for the pinned tier's own reason,
+            # arrived at from the other side: the horizon exists to keep act 1's
+            # ink off act 2's prose, and there the ink is a band that ends above
+            # the claim -- .sp-annots-fig's `overflow: hidden` ends the notes at
+            # the same edge. What the clip would do is stop the lattice half way
+            # down a stage the reader is still inside.
             releases_in += 1
         else:
             releases_out += 1
@@ -462,9 +568,10 @@ def main():
         return 1
     print(f"OK  the ground band is {boxes[0][1]:g} x {boxes[0][2]:g}'s own ratio "
           f"in --gutter's own terms, both ink layers clip to it, the copy layer "
-          f"does not, neither box is resized, it is re-derived above {RELEASE} "
+          f"does not, no box is resized outside the no-support tier and inside "
+          f"it both take one band with a floor, it is re-derived above {RELEASE} "
           f"from the row's own column split, and it is released in the pin gate "
-          f"and nowhere else.")
+          f"and that tier and nowhere else.")
     return 0
 
 
