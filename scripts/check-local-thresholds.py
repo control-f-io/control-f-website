@@ -124,10 +124,6 @@ PX_STRICT_DIRS = ("patterns",)
 # ---------------------------------------------------------------------------
 THRESHOLDS = {
     # -- patterns/ — both pages run one mechanism, and now on one gate --------
-    ("patterns/expertise.html", "(max-width: 28rem)"):
-        "the trace weight steps 1.17 -> 2, where the two weight bands cross. Not a "
-        "layout fold: below it `max-width: 100%` binds instead of the calc, so the "
-        "render scale becomes the column's and falls with the viewport.",
     ("patterns/expertise.html", "(max-height: 53.75rem)"):
         "--field-unit steps 6rem -> 4.5rem so the lattice and the drawing standing on "
         "it shrink as a pair and the object stays one cell per lattice step.",

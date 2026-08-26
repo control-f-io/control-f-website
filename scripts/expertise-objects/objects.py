@@ -28,8 +28,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from isolib import (  # noqa: E402
     p_, line, box, plate, face, poly, quad_t, quad_x, quad_y, seams, slab_x, slab_y,
-    disc, hoop, cyl, taper, node, orbit, rotor, trace, light_quad, light_disc,
-    assemble, bbox, lime_span_disc, reset, trace_from,
+    disc, hoop, cyl, taper, node, orbit, rotor, light_quad, light_disc,
+    assemble, bbox, lime_span_disc, reset,
     FACE_TOP, FACE_L, FACE_R, PLATE_TOP, PLATE_L, PLATE_R,
     ACCENT, DARK,
 )
@@ -100,7 +100,7 @@ def maschinenbau():
     past the end cover, 0.15 outboard of the skid beams — 9.4 units measured
     across the edge, 8 CSS px at stage size, a lip and not a margin. That is a
     base frame under a generating set, which is what it is, rather than an
-    apron. The frame is then the bounding box plus 18, taken before the trace
+    apron. The frame is then the bounding box plus 18, taken before the nodes
     (isolib.bbox), and the four edges land where the drawing puts them rather
     than on lattice rows: a cut had to be deliberate to be read as a cut, so
     #404 put all four edges on lattice lines and said so. A crop that cuts
@@ -114,8 +114,8 @@ def maschinenbau():
     corners of a rhombus and not sides of a box.
 
     THE MACHINE IS A TRAIN ON +x, which is 26.57 deg, so the set, its skid
-    beams, the floor they run on and the trace that reaches them are all on one
-    angle. A row laid across the screen would have put the whole thing on the
+    beams and the floor they run on are all on one angle. A row laid across
+    the screen would have put the whole thing on the
     two directions the system does not own — see the note at the top of this
     file.
     """
@@ -273,12 +273,14 @@ def maschinenbau():
     light = light_disc(gid, 1.75, 0.0, AXIS, 0.46, 'x')
     la, lb = lime_span_disc(1.75, 0.0, AXIS, 0.46, 'x')
 
-    # THE CROP IS TAKEN HERE, before the trace, which is the one thing this
-    # object still does differently from the other three and the reason
-    # isolib.bbox() exists rather than assemble()'s own default: the trace below
-    # enters from off-stage, registers both its endpoints, and would otherwise
-    # pull the right edge out to hold the half of itself that was drawn to be
-    # cut. Everything else about the crop is now the other three objects' —
+    # THE CROP IS TAKEN HERE, before the nodes, and isolib.bbox() exists rather
+    # than assemble()'s own default so that it can be taken early at all. It
+    # was taken here for the trace that used to arrive from off-stage: that
+    # line registered both its endpoints and would otherwise have pulled the
+    # right edge out to hold the half of itself that was drawn to be cut. The
+    # traces came out of all four objects on 2026-08-26 and the call stays
+    # where it was, because moving it now would recrop a drawing nobody asked
+    # to recompose. Everything else about the crop is the other three objects' —
     # extent plus a pad, no authored window, nothing outside it.
     #
     # THE HEIGHT IS NOT UNDER THE COLUMN'S CONSTRAINT. Only the WIDTH is read
@@ -292,36 +294,8 @@ def maschinenbau():
     # lid and not the other, which is a scatter rather than a construction.
     nodes = [node(1.75, 0.0, AXIS), node(-1.5, 0.0, 3.39, 3),
              node(0.85, -0.34, 2.64, 3)]
-    # The trace runs on the OTHER ground axis. Run down +x with the skid it was
-    # parallel to the plate's own chamfer contour and 1.0 unit from it — 0.83
-    # CSS px, which is not a signal arriving, it is that contour getting thicker.
-    # On +y it crosses the empty quarter above the machine instead and lands on
-    # the terminal box, which is where a generator's cables actually leave.
-    #
-    # AND IT ENTERS THE FRAME rather than starting inside it. A stroke that both
-    # begins and ends in open ground reads as a leader line pointing at a part,
-    # not as a signal reaching one. So it starts outside the right edge and
-    # carries --trace-from = 1 - (the share of it that is off-stage):
-    # pathLength normalises against the DRAWN length, and without it the draw
-    # spends that share of its range on a line nobody can see.
-    # -> foundations/motion.html, "Why the two ends are authored"
-    #
-    # THE SHARE IS COMPUTED FROM THE CROP, not typed. It was typed once, at
-    # 0.918 for an edge at X = 544; the edge then moved to 488 to stop the
-    # frame cutting the cooler, and a literal cannot know that. Off-stage went
-    # from a twelfth of the line to two fifths of it, and the draw would have
-    # spent the first two fifths of the step's scroll on nothing at all.
-    #
-    # The start is at y = -2.75 and follows the right edge for the same reason:
-    # the edge moved again when the plate came in, and a start that does not
-    # move with it is a trace that begins inside the frame — a leader line
-    # pointing at a part. Both ends stay on the -y axis, so the angle is the
-    # one it always was; only the length changes. 521.6 against an edge at
-    # 511.6 is the 7 % it was drawn to have.
-    ta, tb = (0.85, -2.75, 2.64), (0.85, -0.34, 2.64)
-    traces = [trace(ta, tb, frm=trace_from(ta, tb, crop))]
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
-                    light, nodes, traces, ghost, orbits, crop=crop)
+                    light, nodes, (), ghost, orbits, crop=crop)
 
 
 # ==================================================================== 02
@@ -395,9 +369,8 @@ def anlagen():
     light = light_disc(gid, cx, cy, 3.94, 0.22, 'z')
     la, lb = lime_span((cx - 0.22, cy - 0.22, 3.94), (cx + 0.22, cy + 0.22, 3.94))
     nodes = [node(cx, cy, 3.94), node(tx, ty, 2.08, 3), node(0.95, -0.53, 2.34, 3)]
-    traces = [trace((4.0, -1.0, 0.2), (2.8, -1.0, 0.2))]
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
-                    light, nodes, traces, ghost)
+                    light, nodes, (), ghost)
 
 
 # ==================================================================== 03
@@ -552,9 +525,8 @@ def erneuerbare():
     la, lb = lime_span((lv[1], 2.0, 0.975), (lv[1] + leaf, 2.0, 0.475))
     nodes = [node(lv[1] + leaf / 2, 2.0, 0.725), node(1.55, -1.375, 1.78, 3),
              node(hx, wy, hz, 3)]
-    traces = [trace((-4.3, -0.3, 0.2), (-2.9, -0.3, 0.2))]
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
-                    light, nodes, traces, ghost, orbits)
+                    light, nodes, (), ghost, orbits)
 
 
 # ==================================================================== 04
@@ -935,10 +907,13 @@ def flotten():
     s3.append(quad_y(TY + 0.58, 2.42, 0.8, 0.32, 0.22, DARK))
     s3.append(line(p_(2.32, TY + 0.58, 0.72), p_(2.92, TY + 0.58, 0.72)))
 
-    # THE CROP IS TAKEN HERE, before the ghost and the trace, for the reason
-    # isolib.bbox() exists: a ghost is what is not there yet and a trace comes
-    # in from off-stage, so both sit outside what the drawing is OF. Let the
-    # frame grow to hold them and the trace no longer enters from anywhere.
+    # THE CROP IS TAKEN HERE, before the ghost, for the reason isolib.bbox()
+    # exists: a ghost is what is not there yet, so it sits outside what the
+    # drawing is OF, and letting the frame grow to hold it would pad the
+    # drawing with the tier that has not been loaded. It was taken before the
+    # trace as well, which arrived through the top of the frame from off-stage;
+    # the traces came out of all four objects on 2026-08-26 and the call stays
+    # where it was, so the crop is the one it always was.
     crop = bbox(30.0)
 
     # A GHOST IS THE NEXT TIER. The stack is four boxes and the fleet is however
@@ -977,18 +952,8 @@ def flotten():
     nodes = [node(LC[0] + CT_L / 2, LC[1] + CT_W / 2, LC[2]),
              node(PX, TAIL + FL, FZ, 3), node(EX + 0.67, EY + 0.23, 1.4, 3),
              node(1.21, TY + 0.29, 1.1, 3)]
-    # The trace comes in on -y, over the one empty quarter of the sky, and lands
-    # on the lit box. It leaves through the TOP of the frame rather than the
-    # side — this stack is the highest thing in the yard — which is what
-    # isolib.trace_from() exists to measure; the x-only expression 01 uses
-    # returned 1.903 here. y = -4.3 puts an eighth of the line off-stage, enough
-    # to arrive from somewhere and not enough to spend the step's scroll on a
-    # line nobody can see.
-    ta = (LC[0] + CT_L / 2, -4.3, LC[2])
-    tb = (LC[0] + CT_L / 2, LC[1] + CT_W / 2, LC[2])
-    traces = [trace(ta, tb, frm=trace_from(ta, tb, crop))]
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
-                    light, nodes, traces, ghost, orbits, crop=crop)
+                    light, nodes, (), ghost, orbits, crop=crop)
 
 
 if __name__ == '__main__':
