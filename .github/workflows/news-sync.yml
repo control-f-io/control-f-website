@@ -5,9 +5,17 @@ name: Content from Notion
 # The admin's loop is one place: write the post in the news database or the
 # opening in the Stellen database, set Status to "Veröffentlicht", and within
 # the hour it is on the site. Nothing here is a second way to author — the two
-# sync scripts only write content/news/ and content/jobs/, and the build lays
-# out the pages from those files exactly as it does for anything written by
-# hand. Two stores, two ways into each.
+# sync scripts only write content/, and the build lays out the pages from those
+# files exactly as it does for anything written by hand. Two stores, two ways
+# into each.
+#
+# THE ARCHIVE'S FILTER COMES OVER WITH IT. The `Themen` multi-select's options
+# are the chips on news.html, and sync-news-notion.py writes them into
+# content/themen.json — so a topic invented in Notion is a chip on the site
+# without a code change. The one thing it cannot bring is the English name: a
+# multi-select option has nowhere to keep one, so a new topic arrives with `en`
+# empty, this run says so, and build-news.py stops the day a published post
+# carries it. → design-system/README.md, "The topics"
 #
 # ONE WORKFLOW FOR BOTH, deliberately. Each sync could have its own file, and
 # then two jobs would branch off main in the same minute, each rebuild

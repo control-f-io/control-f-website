@@ -44,9 +44,10 @@ this page told you to do.** A post filed under nothing is a card the topic
 filter cannot place, so `build-news.py` refuses it — which means the two
 commands above, written without it, wrote a file and then failed the build on
 it. `new-post.py` prints what is missing when you omit the flag, and it now
-rejects a name outside the vocabulary rather than letting the build find it:
-the three are `Telemetrie`, `Energie`, `Architektur`, and a fourth is
-deliberately a code edit in `build-news.py`.
+rejects a name outside the vocabulary rather than letting the build find it.
+The vocabulary is `content/themen.json`, and that file is the `Themen`
+multi-select in Notion written out — **a new topic is added there, not in a
+script.** → [The topics](#the-topics-and-the-one-word-notion-cannot-hold)
 
 The post file is six lines and readable on its own:
 
@@ -54,9 +55,9 @@ The post file is six lines and readable on its own:
 datum:   2026-08-07          required, YYYY-MM-DD. Sorts the archive.
 autor:   Henry Beiker        optional. Only the lead card has room to show it.
 minuten: 3                   optional. Reading time, as the cards state it.
-themen:  Energie             required. One or more of Telemetrie, Energie,
-                             Architektur, comma-separated. The chips on the
-                             archive and the links under the finished article.
+themen:  Energie             required. One or more names from
+                             content/themen.json, comma-separated. The chips on
+                             the archive and the links under the finished article.
 titel:   Neue Anlage …       required, German.
 title:   New plant …         required, English.
 bild:    anlage-konstanz.jpg optional. A file in
@@ -74,6 +75,35 @@ link to one typed by hand is a 404 waiting for the day it does not. **Do not
 edit the archive in `patterns/news.html`** — the four regions fenced by
 `<!-- news:… -->` are output, and `build-news.py --check` fails in CI when they
 drift from `content/news/`.
+
+### The topics, and the one word Notion cannot hold
+
+The chips on the archive are the options of the **`Themen`** multi-select on the
+Notion database, and nothing else. `scripts/sync-news-notion.py` writes them into
+`content/themen.json` on every run — which topics there are, what they are
+called, and the order they stand in, so dragging an option above another moves
+its chip — and `build-news.py` draws a chip for each one a post actually carries,
+with a page and a set of links behind it. **Adding a topic is adding an option in
+Notion.** It used to be a code edit here, which meant an admin could invent a
+topic, tag a post with it, and get a red build whose fix was a pull request.
+
+```json
+{ "slug": "telemetrie", "de": "Telemetrie", "en": "telemetry" }
+```
+
+`slug` is the address the topic is read at — `/news/thema/telemetrie` — so
+renaming a topic in Notion moves its page. `en` is **the one field a person
+writes**, because a multi-select option is a name, an id and a colour and there
+is nowhere in it for a translation. Write the English word *as it stands inside a
+sentence* — “8 posts on telemetry” — and the chip is the same word with a capital
+(`Telemetry`); one string, so the chip and the sentence under it cannot end up
+about different subjects.
+
+A topic invented in Notion arrives here with `en` empty. Nothing breaks: a topic
+no post carries draws no chip, and every sync says the word is missing. The build
+stops the day a **published** post carries it, rather than shipping a German chip
+and a half-German sentence into the English edition — so the window to write it
+is between inventing the topic and publishing under it.
 
 ### The text, and the page it becomes
 
@@ -145,7 +175,7 @@ under *Branding / Marketing*, seeded with the eighteen posts that were already i
 | `Titel` | Title | the German headline |
 | `Title` | Text | the English headline — required, the site ships twice |
 | `Datum` | Date | sorts the archive |
-| `Themen` | Multi-select | **required.** `Telemetrie`, `Energie`, `Architektur` — one or more. A post filed under nothing is a card the topic filter cannot place, and the build refuses it |
+| `Themen` | Multi-select | **required.** One or more. Its options *are* the archive's filter — the sync writes them into `content/themen.json` and the chips follow, so a new topic is a new option here. A post filed under nothing is a card the topic filter cannot place, and the build refuses it. → [The topics](#the-topics-and-the-one-word-notion-cannot-hold) |
 | `Autor` | Text | optional; only the lead card has room to show it |
 | `Minuten` | Number | optional; reading time |
 | `Titelbild` | Files | optional; the card's picture and the article's title plate. The sync downloads it (Notion's URLs expire within the hour), fits it to the plate and names the file after the digest of the bytes it stored |
