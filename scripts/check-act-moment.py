@@ -19,10 +19,34 @@ objects of act 1 standing inside the root's own box:
     1850 x 950   5 beads, 4 leaders (2 crossing a branch), labels S01/S05/S02
      390 x 844   2 beads, label "S03 30.7 A" over the canopy
 
-Firefox is in that tier at every width — it has no scroll-driven animations, so
-it never enters the gate — and so is any reader who asks for less motion, on any
-engine. Nothing rendered wrong. Both layers were exactly where they belong; the
-tier simply has no way to say "and then".
+Firefox is in that tier at every width — Gecko implements scroll-driven
+animations behind `layout.css.scroll-driven-animations.enabled` and 154.0 ships
+with the pref OFF, so it never enters the gate — and so is any reader who asks
+for less motion, on any engine. Nothing rendered wrong. Both layers were exactly
+where they belong; the tier simply has no way to say "and then".
+
+AND ONE OF THOSE TIERS FOUND A WAY, WHICH IS WHY THE HEADLINE ABOVE IS NOT THE
+WHOLE RULE ANY MORE. "May not draw both" was always shorthand for "may not draw
+both IN THE SAME PIXELS": the fault is a double exposure, not a head count. The
+tiers outside the gate are two, not one, and they are not alike —
+
+  THE FLOW TIER has a time axis and spends it on act 2: the root builds as the
+  reader passes it, .lp-flow-sources is its static telling of act 1, and the
+  withdrawal below is exactly right for it.
+
+  THE NO-SUPPORT TIER has no axis at all, and it was reading as "not only the
+  tree": act 1's claim beside act 2's finished root, three beats of a scroll
+  composition arriving as one block, for every Firefox reader at every width.
+  acts.css sequences the acts there in SPACE instead — act 1's field takes a
+  band of its own at the head of the stage, the claim stands under it, the root
+  under that. Both moments are drawn and neither is in the other's pixels.
+
+So the withdrawal clause below is unchanged and still unconditional — a `none`
+that a LATER conditional tier lifts on purpose is still a withdrawal, and the
+flow tier still inherits it — and clause 6 is what holds the tier that lifts it.
+The geometry of the band is check-ground-band.py's `band, not fit` clause; what
+is held here is that lifting it is all-or-nothing and that the tier's own
+stand-in leaves when the real field arrives.
 
 WHAT IS HELD, read out of the shipping stylesheet:
 
@@ -54,6 +78,15 @@ WHAT IS HELD, read out of the shipping stylesheet:
      gate, where the real field plays that part, and must render somewhere
      outside it, or the layer the flow tier's story rests on is dead weight.
      Same shape as (1)+(2), the other way round.
+  6. THE TIER THAT SEQUENCES IN SPACE. If the `@supports not (…)` block — the
+     tier with no timeline — lifts the withdrawal for one of act 1's ink
+     layers, it lifts it for BOTH, and .lp-flow-sources leaves there too. Half
+     of act 1 is the fault of clause (2) one tier along: the callouts without
+     the beads point at nothing, the beads without the callouts are unnamed
+     dots. And the canopy's stand-in row standing under a real field is the
+     third telling clause (5) exists to stop, arriving through the second
+     door. The cascade order is checked with it: both rules have to stand
+     after the ones they override.
 
 stdlib only, no build step, no dependency — the same contract as the checks
 beside it.
@@ -82,6 +115,12 @@ MUST_SURVIVE = [".lp-flow", ".lp-flow-data", ".sp-drawing", ".sp-stage", ".cf-gr
 GATE = re.compile(
     r"@supports\s*\(\s*animation-timeline:\s*view\(\)\s*\)\s*and\s*"
     r"\(\s*animation-range:")
+# The gate's negation — the tier with no timeline at all, which is where every
+# Firefox reader is and where the acts are sequenced in space. Its own block and
+# not "outside the gate": the flow tier is outside the gate too and is a
+# different tier with a different answer.
+NO_SUPPORT = re.compile(
+    r"@supports\s+not\s*\(\s*\(\s*animation-timeline\s*:\s*view\(\s*\)\s*\)")
 
 
 def strip_comments(text):
@@ -116,6 +155,11 @@ def block_spans(text, starts):
 def gate_spans(text):
     """(start, end) of every scroll-driven @supports block."""
     return block_spans(text, [m.start() for m in GATE.finditer(text)])
+
+
+def no_support_spans(text):
+    """(start, end) of every `@supports not (…)` block for that same gate."""
+    return block_spans(text, [m.start() for m in NO_SUPPORT.finditer(text)])
 
 
 def conditional_spans(text):
@@ -283,6 +327,54 @@ def main():
                 "acts. Keep the gate after every rule that shows the layer."
                 % (layer, max(gated_nones), max(shown_outside)))
 
+    # Clause 6. The tier with no timeline may lift the withdrawal, because it
+    # sequences the two moments in space instead of in time — but it lifts it
+    # for the whole picture or for none of it, and its own stand-in has to
+    # leave, for the reasons the gate's restoration gives one line from its own.
+    fb = no_support_spans(text)
+
+    def in_fallback(off):
+        return any(s <= off <= e for s, e in fb)
+
+    lifted = {layer for layer in ACT_ONE_INK
+              if any(v != "none" for sel, v, o, _ in rules
+                     if sel == layer and in_fallback(o))}
+    if lifted:
+        for layer in sorted(set(ACT_ONE_INK) - lifted):
+            findings.append(
+                "%s is not drawn in the `@supports not (…)` tier, which draws "
+                "%s. Half of act 1 is the double exposure's own fault one tier "
+                "along: the callouts without their beads point at nothing, the "
+                "beads without their callouts are unnamed dots."
+                % (layer, ", ".join(sorted(lifted))))
+        for layer in sorted(lifted):
+            mine = [r for r in rules if r[0] == layer]
+            plain_nones = [o for _, v, o, k in mine if k == "plain" and v == "none"]
+            shown_fb = [o for _, v, o, _ in mine if v != "none" and in_fallback(o)]
+            if plain_nones and shown_fb and max(plain_nones) > max(shown_fb):
+                findings.append(
+                    "%s's unconditional withdrawal (offset %d) stands after the "
+                    "no-support tier's restoration (offset %d) that must beat "
+                    "it. Same specificity, so the later rule wins and the tier "
+                    "loses act 1 again." % (layer, max(plain_nones), max(shown_fb)))
+        for layer in FLOW_ONLY:
+            mine = [r for r in rules if r[0] == layer]
+            fb_nones = [o for _, v, o, _ in mine if v == "none" and in_fallback(o)]
+            shown = [o for _, v, o, _ in mine if v != "none" and not in_fallback(o)]
+            if not fb_nones:
+                findings.append(
+                    "%s is never withdrawn in the `@supports not (…)` tier, "
+                    "which now draws act 1's real field. One bead per canopy "
+                    "entry standing on the finished root under a field that has "
+                    "just been drawn is the third telling clause 5 exists to "
+                    "stop, arriving through the second door." % layer)
+            elif shown and max(shown) > max(fb_nones):
+                findings.append(
+                    "%s's no-support withdrawal (offset %d) stands before a "
+                    "visible display it must beat (offset %d). Same "
+                    "specificity, so the later rule wins."
+                    % (layer, max(fb_nones), max(shown)))
+
     for layer in MUST_SURVIVE:
         killed = [r for r in rules
                   if r[0] == layer and r[3] == "plain" and r[1] == "none"]
@@ -300,11 +392,14 @@ def main():
             print("  - " + f)
         return 1
 
-    print("act-moment OK — act 1's %d ink layers are withdrawn outside the pin "
-          "gate and restored inside it, %d flow-only layer%s withdrawn inside "
-          "it, and act 2's drawing, numerals and ground survive in every "
-          "tier." % (len(ACT_ONE_INK), len(FLOW_ONLY),
-                     "" if len(FLOW_ONLY) == 1 else "s"))
+    print("act-moment OK — act 1's %d ink layers are withdrawn unconditionally "
+          "and restored in the pin gate%s, %d flow-only layer%s withdrawn "
+          "wherever the real field plays, and act 2's drawing, numerals and "
+          "ground survive in every tier."
+          % (len(ACT_ONE_INK),
+             " and in the no-support tier that sequences them in space"
+             if lifted else "",
+             len(FLOW_ONLY), "" if len(FLOW_ONLY) == 1 else "s"))
     return 0
 
 
