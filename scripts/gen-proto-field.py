@@ -411,12 +411,44 @@ def reading(i, k):
     dev = span * 0.08 * (((i * 13 + k * 37) % 97) / 96 * 2 - 1)
     v = base + dev
     text = f"{v:.{dp}f}"
-    # the manual's own thin space between thousands — the root's values set
-    # "12 480" this way and two conventions for one numeral on one page is one
-    # too many.
+    # THE SEPARATOR IS A PLAIN SPACE, AND IT IS THE ONE THE ROOT ALREADY USES.
+    # This line asked for "the manual's own thin space between thousands — the
+    # root's values set '12 480' this way and two conventions for one numeral
+    # on one page is one too many". The premise was wrong in the one way that
+    # mattered: the root sets it with U+0020 — gen-flow-root.py's `SEP = " "`,
+    # and every "12 480" written in these generators, their checks and the
+    # expertise-objects README is that character too. So the line arguing
+    # against two conventions was the whole of the second one, and U+2009 was
+    # never used anywhere else on the site.
+    #
+    # WHAT A CHARACTER OUTSIDE THE FONT COSTS. Neither shipped face has a thin
+    # space: Geist and Geist Mono both stop at U+0020 and U+00A0 (the only two
+    # Zs codepoints in either cmap), so every engine drew this one out of a
+    # fallback of its own choosing and no two agreed. Measured on the shipped
+    # page at 1280, .cf-annot__label for S04 and S16 — the only two of the
+    # twenty-one readings big enough to need a separator:
+    #
+    #                    U+2009 advance    "2 870 rpm"    label
+    #     Chromium 141      2.20 px          55.00 px     84.14 px
+    #     Firefox 153       6.62 px          59.42 px     88.62 px
+    #
+    # The other nineteen agree to 0.05 px, which is rounding. These two were
+    # 4.48 px — 5.3 % — wider in Firefox than in the engine the field was
+    # placed in, and the notes are placed against the frame and each other.
+    # It also defeated the element's own declaration: .cf-annot__value is
+    # `font-variant-numeric: tabular-nums`, and a separator at a third of a
+    # cell is the one glyph on the readout that is not on the tabular grid.
+    # And the two editions of this page already disagreed — build-i18n.py's
+    # key_of() collapses \s+, so en.json carries "2 870 rpm" with plain
+    # spaces and /en/ has always shipped the 59.42 px form.
+    #
+    # U+0020 is 600/1000 em in Geist Mono, the same cell as a digit, so the
+    # reading lands on the tabular grid and both engines draw it identically.
+    # It cannot break the numeral: .cf-annot__label is `white-space: nowrap`.
+    # scripts/check-font-coverage.py holds the rule for every page.
     whole, _, frac = text.partition(".")
     if len(whole) > 3:
-        whole = whole[:-3] + "\u2009" + whole[-3:]
+        whole = whole[:-3] + "\u0020" + whole[-3:]
     return whole + ("." + frac if frac else "") + "\u00a0" + unit
 
 

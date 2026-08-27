@@ -2738,6 +2738,29 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-favicon-frame.py
 
+      # The font's coverage is the newest, and it is the first check here whose
+      # subject is the two files in assets/fonts/ rather than the markup or the
+      # CSS. Every other gate in this job can be settled by reading a page. This
+      # one cannot: the text was right, the CSS was right, and the fault was a
+      # codepoint that is not in the face. An engine meeting one of those does
+      # not throw and does not draw a box — it picks a fallback out of whatever
+      # system it is on, and two engines pick differently. U+2009 THIN SPACE
+      # grouped the thousands in two of the landing page's twenty-one sensor
+      # readings and measured 2.20 px in Chromium against 6.62 px in Firefox, so
+      # those two labels were 4.48 px wider in one engine than the other while
+      # the other nineteen agreed to 0.05 px. Nothing overflowed and no capture
+      # looked wrong, which is why it stood.
+      #
+      # The clause is about SEPARATORS and not about every character, because a
+      # missing letter is visible to anyone who opens the page once and a
+      # missing space has no ink to be visible with. Zs comes from unicodedata,
+      # so the fifteen codepoints nobody thought of are held by the same line.
+      #
+      # Proven failing on a reintroduced U+2009 in patterns/landing-page.html.
+      - name: Font coverage
+        if: '!cancelled()'
+        run: python3 scripts/check-font-coverage.py
+
       # The cited gates are the ninety-first, and the only one whose subject is
       # the other ninety. Every check argues its rule in prose, and the strongest
       # move in that prose is the hand-off — "the other axis is held by this
