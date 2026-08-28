@@ -478,7 +478,7 @@ def build(fn, title, size=None):
     and a field is entitled to run off the edge."""
     defs, forms, light, ghost, orbits, nd = fn()
     crop = fit(size=size)
-    return emit(title, crop, defs, [forms], light, ghost, orbits, (), nd,
+    return emit(title, crop, defs, [forms], light, ghost, orbits, nd,
                 underlay=lattice(crop))
 
 

@@ -295,7 +295,7 @@ def maschinenbau():
     nodes = [node(1.75, 0.0, AXIS), node(-1.5, 0.0, 3.39, 3),
              node(0.85, -0.34, 2.64, 3)]
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
-                    light, nodes, (), ghost, orbits, crop=crop)
+                    light, nodes, ghost, orbits, crop=crop)
 
 
 # ==================================================================== 02
@@ -370,7 +370,7 @@ def anlagen():
     la, lb = lime_span((cx - 0.22, cy - 0.22, 3.94), (cx + 0.22, cy + 0.22, 3.94))
     nodes = [node(cx, cy, 3.94), node(tx, ty, 2.08, 3), node(0.95, -0.53, 2.34, 3)]
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
-                    light, nodes, (), ghost)
+                    light, nodes, ghost)
 
 
 # ==================================================================== 03
@@ -526,7 +526,7 @@ def erneuerbare():
     nodes = [node(lv[1] + leaf / 2, 2.0, 0.725), node(1.55, -1.375, 1.78, 3),
              node(hx, wy, hz, 3)]
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
-                    light, nodes, (), ghost, orbits)
+                    light, nodes, ghost, orbits)
 
 
 # ==================================================================== 04
@@ -953,7 +953,7 @@ def flotten():
              node(PX, TAIL + FL, FZ, 3), node(EX + 0.67, EY + 0.23, 1.4, 3),
              node(1.21, TY + 0.29, 1.1, 3)]
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
-                    light, nodes, (), ghost, orbits, crop=crop)
+                    light, nodes, ghost, orbits, crop=crop)
 
 
 if __name__ == '__main__':

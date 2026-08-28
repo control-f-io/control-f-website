@@ -138,7 +138,7 @@ THRESHOLDS = {
         "stays page-local.",
 
     # -- foundations/ — documentation chrome ---------------------------------
-    # Four of these six are px. They are counted rather than failed because
+    # Four of these five are px. They are counted rather than failed because
     # foundations/ is not this lane's, and because a demo page's threshold is
     # about a specimen rather than about a page a reader reads. Each names its
     # owner; the count is printed on every run and cannot grow without an edit
@@ -147,8 +147,6 @@ THRESHOLDS = {
         "the icon grid folds. Already named in tokens.css's SCOPE list, as the example "
         "of a page-local VIEWPORT 48rem colliding with a shipping CONTAINER 48rem — "
         "same figure, unrelated queries, do not reconcile them.",
-    ("foundations/illustration.html", "(max-width:33rem)"):
-        "the single-figure demo drops its caption column.",
     ("foundations/illustration.html", "(max-width:640px)"):
         "PX DEBT — foundations. The illustration plate folds to one column.",
     ("foundations/layout.html", "(max-width:640px)"):

@@ -15,37 +15,20 @@
   .ill-strip figure { margin:0; }
   .ill-frame { border:1px solid var(--border-subtle); background:var(--grey-000); }
   .ill-frame svg { display:block; width:100%; }
-  /* These frames are the smallest the 640-unit drawing is rendered anywhere —
-     121 to 160 px across the four reference widths, scale 0.19 to 0.25. A trace
-     stroked in user units lands at scale x --trace-weight, so the system
-     default of 2 drew them at 0.38 to 0.50 CSS px: a grey line beside 1 px
-     contours. 4.5 is 640/142, the middle of that band. */
-  .ill-frame .cf-iso { --trace-weight: 4.5; }
   .ill-cap { margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs);
              letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--text-secondary); }
   .ill-cap b { display:block; font-weight:var(--weight-medium); text-transform:none; letter-spacing:0;
                font-family:var(--font-sans); font-size:var(--text-md); color:var(--text-primary); }
   .ill-single { width:100%; max-width:26rem; margin-inline:auto; display:block; }
-  /* 640 / 416, the 26 rem cap — 1 CSS px wherever that cap is the one that
-     binds, which is every width with room for it. Narrower than that the
-     column binds instead and the scale falls with it; see the band below. */
-  .ill-single.cf-iso { --trace-weight: 1.54; }
   .ill-label { font-family:var(--font-mono); font-size:20px; fill:var(--text-secondary); }
   .ill-swatch { display:flex; gap:var(--space-4); flex-wrap:wrap; }
   .ill-swatch figure { margin:0; flex:1 1 12rem; }
   .ill-swatch i { display:block; height:5rem; border:1px solid var(--border-strong); }
+  /* Two columns instead of a fit, so both drawings are fluid across this band
+     rather than pinned to a cap. */
   @media (max-width:640px){
     .ill-strip { grid-template-columns:repeat(2,minmax(0,1fr)); }
-    /* Two columns instead of a fit, so both drawings are fluid across this
-       band rather than pinned to a cap — scale 0.15 to 0.40 for the strip and
-       0.16 to 0.28 for the single. One weight cannot land on 1 px across a
-       2.7x ramp; these are the middles of the two bands, at 640/200 and the
-       constant the single carried before. */
-    .ill-frame .cf-iso  { --trace-weight: 3.2; }
   }
-  /* The single's own cap starts binding around 33 rem; under it the column
-     does, and the constant it carried before is the closer number there. */
-  @media (max-width:33rem){ .ill-single.cf-iso { --trace-weight: 2; } }
 </style>
 </head>
 <body class="docs" data-root="../">
@@ -122,13 +105,13 @@
   </section>
 
   <section class="docs-section" id="layers">
-    <h2>The five layers</h2>
+    <h2>The four layers</h2>
     <p>
-      Every object is made of the same five kinds of element, and they have had class names
+      Every object is made of the same four kinds of element, and they have had class names
       since the first card shipped — <code>.cf-iso__*</code> in
       <code>assets/css/components.css</code>. The names are not decoration: the scroll
       assembly, the stroke handling and the reduced-motion fallback all key off them, so an
-      element drawn outside the five gets none of it.
+      element drawn outside the four gets none of it.
     </p>
     <table class="docs-table">
       <thead><tr><th>Class</th><th>Is</th><th>Drawn as</th><th>Arrives at</th></tr></thead>
@@ -138,20 +121,18 @@
         <tr><td><code>.cf-iso__orbit</code></td><td>a ghost that <em>circulates</em> — a path something travels, not a state. Carried in addition to <code>.cf-iso__ghost</code>, never instead of it</td><td>dashed contour, closed</td><td>cover 20–50 %, turning as it fades up — see <a href="motion.html">Motion</a></td></tr>
         <tr><td><code>.cf-iso__form</code></td><td>the body — anything with a surface</td><td>1 px solid contour, grey faces</td><td>with the scene — or, under <code>.cf-iso--build</code>, on its own <code>--stage</code>: cover 5–22 %, +7 % per stage</td></tr>
         <tr><td><code>.cf-iso__light</code></td><td>the one lit element</td><td>the lime ramp, contoured like everything else</td><td>cover 30–48 %</td></tr>
-        <tr><td><code>.cf-iso__trace</code></td><td>the signal reaching the object. <strong>One stroke</strong> — a signal drawn as several strokes is several traces</td><td>2 px solid, round caps, <code>pathLength="1"</code>, plus <code>--trace-from</code> / <code>--trace-to</code> if the crop cuts it and <code>--trace-lead</code> / <code>--trace-span</code> if it is one of several</td><td>cover 18–45 %, drawing itself</td></tr>
         <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>filled black dots, r = 3 / 2 / 1</td><td>cover 35–50 %</td></tr>
       </tbody>
     </table>
     <p>
-      Seven rows for five layers, and both of the extras are worth knowing.
+      Six rows for four layers, and both of the extras are worth knowing.
       <code>__scene</code> is the container, not a layer. <code>__orbit</code> is a
       <em>modifier</em> on <code>__ghost</code> rather than a layer of its own — it is always
       carried alongside it, never instead of it, so an orbit is still drawn as reference
-      geometry and simply also turns. The count of layers is five either way. The
-      order of the five <em>is</em> the material order from
-      <a href="materials.html">Materials</a> — reference geometry and contours (layer 04)
-      before light (layer 05) — with the trace and the nodes as the drawing's own
-      annotation, the illustration's version of the information layer.
+      geometry and simply also turns. The count of layers is four either way. The order of the
+      four <em>is</em> the material order from <a href="materials.html">Materials</a> —
+      reference geometry and contours (layer 04) before light (layer 05) — with the nodes as
+      the drawing's own annotation, the illustration's version of the information layer.
     </p>
 
     <h3>One object, taken apart</h3>
@@ -211,22 +192,6 @@
         <figure>
           <div class="ill-frame">
             <svg class="cf-iso" viewBox="0 0 640 640" fill="none" aria-hidden="true">
-              <!-- Three strokes, three traces, led along the direction of travel — a dash
-                   restarts at every subpath, so as ONE path the visible drawing was over at
-                   cover 33 % of a range running to 45 %. The shaft is reversed from
-                   M200 340H-60 so the signal arrives at the object instead of leaving it,
-                   which moves its 23 % of off-crop length to the START and makes it a
-                   --trace-from. See foundations/motion.html. -->
-              <path class="cf-iso__trace" style="--trace-lead:0%;--trace-span:21%" d="M16 328L40 340L16 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
-              <path class="cf-iso__trace" style="--trace-lead:3%;--trace-span:21%" d="M76 328L100 340L76 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
-              <path class="cf-iso__trace" style="--trace-lead:6%;--trace-span:21%;--trace-from:.77" d="M-60 340H200" stroke="#000" stroke-linecap="round" pathLength="1"/>
-            </svg>
-          </div>
-          <figcaption class="ill-cap"><b>Trace</b>the signal, on 26.57°</figcaption>
-        </figure>
-        <figure>
-          <div class="ill-frame">
-            <svg class="cf-iso" viewBox="0 0 640 640" fill="none" aria-hidden="true">
               <g class="cf-iso__node" fill="#000">
                 <circle cx="440" cy="160" r="3"/><circle cx="500" cy="190" r="3"/>
                 <circle cx="440" cy="220" r="3"/><circle cx="380" cy="190" r="3"/>
@@ -262,15 +227,6 @@
                   <path class="cf-iso__form" d="M500 190L440 220L440 340L500 310Z" fill="#C4C4C4"/>
                   <path class="cf-iso__light" d="M440 160L500 190L440 220L380 190Z" fill="url(#ill-c-light)"/>
                 </g>
-                <!-- Three strokes, three traces, led along the direction of travel — a dash
-                     restarts at every subpath, so as ONE path the visible drawing was over at
-                     cover 33 % of a range running to 45 %. The shaft is reversed from
-                     M200 340H-60 so the signal arrives at the object instead of leaving it,
-                     which moves its 23 % of off-crop length to the START and makes it a
-                     --trace-from. See foundations/motion.html. -->
-                <path class="cf-iso__trace" style="--trace-lead:0%;--trace-span:21%" d="M16 328L40 340L16 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
-                <path class="cf-iso__trace" style="--trace-lead:3%;--trace-span:21%" d="M76 328L100 340L76 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
-                <path class="cf-iso__trace" style="--trace-lead:6%;--trace-span:21%;--trace-from:.77" d="M-60 340H200" stroke="#000" stroke-linecap="round" pathLength="1"/>
                 <g class="cf-iso__node" fill="#000">
                   <circle cx="440" cy="160" r="3"/><circle cx="500" cy="190" r="3"/>
                   <circle cx="440" cy="220" r="3"/><circle cx="380" cy="190" r="3"/>
@@ -280,7 +236,7 @@
               </g>
             </svg>
           </div>
-          <figcaption class="ill-cap"><b>All five</b>in the material order</figcaption>
+          <figcaption class="ill-cap"><b>All four</b>in the material order</figcaption>
         </figure>
       </div>
     </div>
@@ -590,9 +546,8 @@
       </tbody>
     </table>
     <p>
-      Stroke weight is 1 px for everything except the trace, which is 2. Within one object the
-      weight does not vary — depth is carried by node radius and by overlap, never by drawing
-      the near edges fatter.
+      Stroke weight is 1 px throughout. Within one object the weight does not vary — depth is
+      carried by node radius and by overlap, never by drawing the near edges fatter.
     </p>
 
     <h3>Nodes</h3>
@@ -602,30 +557,6 @@
       it and 1 on the one below that. They are not decoration and not a scatter: a node marks a
       point the construction actually depends on. Eight is a lot for one object; twelve is
       too many.
-    </p>
-
-    <h3>Traces</h3>
-    <p>
-      A trace is the one element that is not part of the object: it is the signal arriving.
-      It runs on a brand angle — including 0°, which is the level step — carries chevron heads
-      whose arms are (2u, ±u), and ends at a node on the object it reaches. It is stroked 2 px
-      with round caps, and it carries <code>pathLength="1"</code> so the draw-on animation is
-      independent of how long the path happens to be.
-    </p>
-    <p>
-      <strong>A trace is one stroke.</strong> Where a signal is drawn as several — a shaft plus
-      an arrowhead plus a pair of speed chevrons — each stroke is its own trace, and they are
-      given <code>--trace-lead</code> so they draw in the order the signal travels. This is not
-      tidiness: a dash pattern restarts at every subpath while <code>pathLength</code>
-      normalises the path as a whole, so a five-stroke path finishes as soon as its
-      <em>longest</em> stroke does and spends the rest of its range holding still. Card 03 was
-      losing two thirds of its range to exactly this.
-      → <a href="motion.html#assembly">Motion &gt; A trace is one stroke</a>
-    </p>
-    <p>
-      Write each stroke in the direction the signal moves. A stroke's direction is invisible in
-      the finished drawing and is the whole of the draw, so it is the one place a trace may
-      depart from the source vector without departing from it.
     </p>
   </section>
 
@@ -662,21 +593,13 @@
       much ground each object draws.
       → <code>scripts/expertise-objects/objects.py</code>, <code>maschinenbau()</code>
     </div>
-    <p>
-      <strong>A trace that is cut by the crop has to say so.</strong> The line-drawing is
-      timed against the path's own length, so any stretch of it outside the crop is scroll
-      range spent on a line nobody can see — half the range, on card 02. Give such a trace
-      <code>--trace-from</code> or <code>--trace-to</code>, measured off the settled object,
-      so it draws edge to edge instead of off-stage to off-stage.
-      → <a href="motion.html#assembly">Motion &gt; Why the two ends are authored</a>
-    </p>
     <pre class="docs-code">&lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-iso"</span> <span class="attr">viewBox</span>=<span class="val">"0 0 640 640"</span> <span class="attr">fill</span>=<span class="val">"none"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;
   &lt;<span class="tag">defs</span>&gt;
     &lt;<span class="tag">clipPath</span> <span class="attr">id</span>=<span class="val">"cf-05-frame"</span>&gt;&lt;<span class="tag">rect</span> <span class="attr">width</span>=<span class="val">"640"</span> <span class="attr">height</span>=<span class="val">"640"</span>/&gt;&lt;/<span class="tag">clipPath</span>&gt;
     <span class="com">&lt;!-- one gradient, one rake, one waypoint --&gt;</span>
   &lt;/<span class="tag">defs</span>&gt;
   &lt;<span class="tag">g</span> <span class="attr">clip-path</span>=<span class="val">"url(#cf-05-frame)"</span>&gt;&lt;<span class="tag">g</span> <span class="attr">class</span>=<span class="val">"cf-iso__scene"</span>&gt;&lt;<span class="tag">g</span> <span class="attr">transform</span>=<span class="val">"translate(-80 -192)"</span>&gt;
-    <span class="com">&lt;!-- ghost → form → light → trace → node --&gt;</span>
+    <span class="com">&lt;!-- ghost → form → light → node --&gt;</span>
   &lt;/<span class="tag">g</span>&gt;&lt;/<span class="tag">g</span>&gt;&lt;/<span class="tag">g</span>&gt;
 &lt;/<span class="tag">svg</span>&gt;</pre>
     <p>
@@ -694,10 +617,6 @@
         <code>.cf-iso</code> to every shape inside it. Without it a 640-unit drawing shown at
         352 px puts its contours on screen at 0.55 px. It also pins the dash patterns to
         their px values, which is what keeps a 1-4 ghost a 1-4 ghost.</li>
-      <li><strong>The trace is the exception</strong> and has to be: under non-scaling-stroke
-        the dash is measured in screen px while <code>pathLength</code> normalises against
-        user space, so the line-drawing finishes at 45 % of its range instead of 100 %. It is
-        stroked in user units at width 2 instead.</li>
       <li><strong>One size per set.</strong> <code>.cf-process__figure &gt; svg</code> caps at
         22 rem / 352 px so the four objects read as a sequence rather than four drawings that
         happen to be adjacent.</li>
@@ -718,10 +637,9 @@
     <p>
       An object assembles as it scrolls into view, with no script at all: a view timeline on
       <code>.cf-iso</code> and one animation per layer. The order is the drawing's own logic —
-      the body arrives along 26.57°, the trace starts drawing itself, the reference geometry
-      resolves, the light comes up, and the construction points land last. Ranges are in the
-      table in
-      <a href="#layers">§&nbsp;The five layers</a>; the full account is in
+      the body arrives along 26.57°, the reference geometry resolves, the light comes up, and
+      the construction points land last. Ranges are in the table in
+      <a href="#layers">§&nbsp;The four layers</a>; the full account is in
       <a href="motion.html#assembly">Motion</a>.
     </p>
     <p>
@@ -898,10 +816,10 @@
     <h2>Drawing a new one</h2>
     <p>
       The object below exists only to be evidence: it was drawn from this page and nothing
-      else, after the four cards were already finished. Three columns rise on a plate, a
-      signal arrives along the plate's own axis, and the column that has not been built yet is
-      ghosted in on ground that is already there. The plate runs out of the frame on both
-      sides, which is the crop rule doing its job — the ground does not end, the view does.
+      else, after the four cards were already finished. Three columns rise on a plate, and the
+      column that has not been built yet is ghosted in on ground that is already there. The
+      plate runs out of the frame on both sides, which is the crop rule doing its job — the
+      ground does not end, the view does.
     </p>
     <div class="docs-demo">
       <svg class="cf-iso ill-single" viewBox="0 0 640 640" fill="none" aria-hidden="true">
@@ -932,16 +850,6 @@
             <!-- light: the tallest top face, and nothing else -->
             <path class="cf-iso__light" d="M440 160L500 190L440 220L380 190Z" fill="url(#ill-spec-light)"/>
           </g>
-          <!-- trace: level, chevron arms on (2u, ±u) -->
-          <!-- Three strokes, three traces, led along the direction of travel — a dash
-               restarts at every subpath, so as ONE path the visible drawing was over at
-               cover 33 % of a range running to 45 %. The shaft is reversed from
-               M200 340H-60 so the signal arrives at the object instead of leaving it,
-               which moves its 23 % of off-crop length to the START and makes it a
-               --trace-from. See foundations/motion.html. -->
-          <path class="cf-iso__trace" style="--trace-lead:0%;--trace-span:21%" d="M16 328L40 340L16 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
-          <path class="cf-iso__trace" style="--trace-lead:3%;--trace-span:21%" d="M76 328L100 340L76 352" stroke="#000" stroke-linecap="round" pathLength="1"/>
-          <path class="cf-iso__trace" style="--trace-lead:6%;--trace-span:21%;--trace-from:.77" d="M-60 340H200" stroke="#000" stroke-linecap="round" pathLength="1"/>
           <!-- node: r 3 on the lit face, stepping down with distance -->
           <g class="cf-iso__node" fill="#000">
             <circle cx="440" cy="160" r="3"/><circle cx="500" cy="190" r="3"/>
@@ -960,8 +868,8 @@
       level step of (120, 0) apart, which is <code>e1 − e2</code> at u = 30. Their heights are
       60, 90 and 120 — two, three and four units — and because the row is level, those three
       numbers are what the eye reads off the drawing. Every column's front vertex lands on the
-      plate's own horizontal diagonal, which is also the line the trace arrives on. The
-      gradient axis runs (440, 160) → (470, 220): 63.43°, lime at the top.
+      plate's own horizontal diagonal. The gradient axis runs (440, 160) → (470, 220): 63.43°,
+      lime at the top.
     </p>
 
     <h3>The checklist</h3>
@@ -982,8 +890,6 @@
         frame is the object's rendered width, in which case it is the object's own extent
         plus a pad. <a href="#frame">Both cases</a>.</li>
       <li>Layers carry their <code>.cf-iso__*</code> classes, in the material order.</li>
-      <li>Each trace is one stroke, written in the direction the signal travels, and led with
-        <code>--trace-lead</code> if there are several.</li>
       <li>It reads correctly with animations off, at 352 px, and printed.</li>
     </ol>
 

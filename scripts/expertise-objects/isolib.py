@@ -504,47 +504,6 @@ def node(x, y, z, r=4):
     return f'<circle class="cf-iso__node" cx="{f(c[0])}" cy="{f(c[1])}" r="{r}" fill="#000" stroke="none"/>'
 
 
-def trace_from(a, b, crop):
-    """--trace-from for a trace that enters the frame from off-stage: 1 minus
-    the share of it that is already behind the edge when it arrives.
-    components.css states that contract at .cf-iso__trace, and the share is what
-    pathLength would otherwise spend on a line nobody can see.
-
-    THE EDGE IS WHICHEVER ONE IT CROSSES. maschinenbau() computed this share
-    from the x coordinates alone, against the crop's right edge, because that is
-    where its own trace comes in — and the moment a trace entered through the
-    TOP instead, that expression returned a share of -0.9 and a --trace-from of
-    1.903: an offset outside the property's range, from arithmetic that had no
-    way to know it was measuring the wrong edge. This clips the segment against
-    all four (Liang-Barsky, entry parameter only) and returns the same 0.926 for
-    the trace that produced the number by hand.
-
-    A trace that starts INSIDE the crop gets 1, the property's own default,
-    which draws the whole path — the honest answer for a line with no off-stage
-    half to skip."""
-    (ax, ay), (bx, by) = p_(*a), p_(*b)
-    x0, y0, w, h = crop
-    dx, dy = bx - ax, by - ay
-    t = 0.0
-    for p, q in ((-dx, ax - x0), (dx, x0 + w - ax),
-                 (-dy, ay - y0), (dy, y0 + h - ay)):
-        if p < 0:
-            t = max(t, q / p)
-    return round(1.0 - t, 3)
-
-
-def trace(a, b, frm=None, to=None):
-    """Registered in the crop on purpose: pathLength normalises against the
-    DRAWN length, so a trace that runs outside the frame spends scroll range on
-    a line nobody can see. Keeping it inside keeps the draw linear."""
-    pa, pb = P(*a), P(*b)
-    v = ''
-    if frm is not None:
-        v += f' style="--trace-from:{frm}"'
-    return (f'<line class="cf-iso__trace" x1="{f(pa[0])}" y1="{f(pa[1])}" '
-            f'x2="{f(pb[0])}" y2="{f(pb[1])}" stroke="#000" pathLength="1"{v}/>')
-
-
 # THE WAYPOINT IS DERIVED, NOT TYPED. SVG has no `in oklab`, so a gradient that
 # carries the family's ramp carries the oklab path by hand: one extra stop at
 # 19 % of the LIME LEG, measured from lime. The leg here ends at Glas, so the
@@ -663,7 +622,7 @@ def bbox(pad=30.0):
             max(xs) - min(xs) + 2 * pad, max(ys) - min(ys) + 2 * pad)
 
 
-def assemble(gid, la, lb, layers, light, nodes, traces, ghost=(), orbits=(), pad=30.0,
+def assemble(gid, la, lb, layers, light, nodes, ghost=(), orbits=(), pad=30.0,
              crop=None):
     """layers: [(stage, [paths])].  `stage` becomes data-stage on the group,
     which is what the page's build animation reads — the object comes up in
@@ -697,7 +656,6 @@ def assemble(gid, la, lb, layers, light, nodes, traces, ghost=(), orbits=(), pad
     out += ['    ' + o for o in orbits]
     if light:
         out.append('    ' + light)
-    out += ['    ' + t for t in traces]
     out += ['    ' + n for n in nodes]
     out += ['  </g>', '</svg>']
     return '\n'.join(out)
