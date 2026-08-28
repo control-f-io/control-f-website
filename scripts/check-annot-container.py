@@ -112,6 +112,24 @@ REGISTER = {
         "position — but re-measure before trusting this row for a new "
         "consumer",
     ),
+    ".cf-team-grid__item": (
+        "calc(100cqi / var(--cols) - var(--stroke-1)) — one team cell's "
+        "content box, read off cf-team, the grid's own inline-size container",
+        False,
+        "the declaring element cannot carry a container-type of its own "
+        "without ceasing to be a subgrid, which is the enhancement this card "
+        "is built on — container-type: inline-size on the <li> drops the "
+        "subgrid in Gecko, measured: the three names in a row go from one "
+        "baseline to 453 / 468 / 509. So it is held to the other half of the "
+        "argument instead, a box that does not move under it. cf-team is a "
+        "block in normal flow at the content column's width and nothing "
+        "folds it mid-pass, which is the pass .sp-annots is about. MEASURED, "
+        "Firefox 154, six resizes across all three column counts with no "
+        "reload — 1440->768, 768->1440, 1440->1024, 1024->375, 375->1280, "
+        "1280->1700 — cell, portrait width and both inset edges identical to "
+        "a fresh load at the destination width, to the hundredth of a pixel. "
+        "Re-measure if this grid is ever put inside something that folds",
+    ),
 }
 
 # The two boxes the sensor-note layer is made of, outermost first. Named by the
