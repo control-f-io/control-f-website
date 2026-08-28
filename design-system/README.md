@@ -399,7 +399,7 @@ prose and none of which anything ran:
 |---|---|
 | `--iso-travel` | Every figure that assembles travels `viewBox width / 40` — 2.5 % of its own drawing — resolved the way the cascade does: inline styles, then the component-keyed rules in `components.css`, then the `:root` default. |
 | `--iso-orbit-travel` | A whole multiple of the `--dash-1-4` period, or every orbit settles off the phase the source vector drew. |
-| `pathLength="1"` | On every `.cf-iso__trace`, and `non-scaling-stroke` on none of them. |
+| `pathLength="1"` | On every `.cf-iso__trace`, and `non-scaling-stroke` on none of them. The trace is a retired layer — this holds the ones already drawn. |
 | `.cf-iso__orbit` | Always carries `.cf-iso__ghost` too — an orbit is a ghost that also turns, and the shared rule names the ghost. |
 | one light | At most one `.cf-iso__light` per object. |
 | `screen` | Every `animation-timeline` declaration sits inside a `@media` that names `screen`. |
@@ -1782,10 +1782,16 @@ These were judgement calls, each documented on the relevant page:
 
 `foundations/illustration.html` is the chapter for this, and it is the one to read before
 drawing anything isometric. It states the system the four process objects were built on —
-the lattice and its three steps, the five `.cf-iso__*` layers and the order they stack in,
+the lattice and its three steps, the four `.cf-iso__*` layers and the order they stack in,
 the one-light-per-object budget with the three rakes, the three face greys, the frame as a
 crop rather than a bounding box — and closes with a checklist and a specimen object drawn
 from nothing but those rules.
+
+**There were five layers until 2026-08-28, and `.cf-iso__trace` — the signal arriving from
+off-stage — is the retired one.** Nothing new is drawn with a trace: the chapter sets out
+four, the checklist no longer asks about one, and `isolib`/`isonews` cannot emit one. The
+`--trace-*` machinery below and in `components.css` is kept for the drawings that already
+carry a trace, which are the landing page's statement figure and process cards 01 to 04.
 
 Two things it settles that the source material does not:
 

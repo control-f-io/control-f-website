@@ -11,22 +11,11 @@ measurement: an unlit face IS the ground, and only the contour carries it.
 
 AND THEY ARE STANDALONE FILES, WHICH IS THE REAL DIFFERENCE. Every other
 illustration in this repository is inline SVG under `.cf-iso`, and inherits
-from components.css the two things that make a 1 px contour survive being
-scaled: `vector-effect: non-scaling-stroke` and the trace's own width. A file
-referenced by <img src> inherits nothing from the page it is drawn on, so this
-module inlines both in a <style> the file carries itself. Without it a 600-unit
-drawing in a 300 px card puts its contours on screen at half a pixel.
-
-THE TRACE TAKES non-scaling-stroke HERE, and that is a departure from the
-shipping class with its reason attached. illustration.html makes the trace the
-one exception — "stroked in user units at width 2 instead" — because under
-non-scaling-stroke the dash is measured in screen px while pathLength
-normalises against user space, so the draw-on animation finishes at 45 % of its
-range. There is no draw-on animation in a file loaded through <img>: it cannot
-see a view timeline and the system's own rule is that the finished state is the
-authored state. The exception's cause is absent, so the exception is too, and
-what is left is the intent — a trace that is twice the contour at EVERY render
-size, instead of twice it at one size and 0.9 px at a card's.
+from components.css the thing that makes a 1 px contour survive being scaled:
+`vector-effect: non-scaling-stroke`. A file referenced by <img src> inherits
+nothing from the page it is drawn on, so this module inlines it in a <style>
+the file carries itself. Without it a 600-unit drawing in a 300 px card puts
+its contours on screen at half a pixel.
 
 THE FRAME IS 3:2 AND THAT IS NOT A PREFERENCE EITHER. `.cf-blog-card__image` is
 `aspect-ratio: 3 / 2; object-fit: cover`, so a plate authored at any other ratio
@@ -44,7 +33,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
 import isolib as iso                                            # noqa: E402
 from isolib import (                                            # noqa: E402
     P, p_, f, poly, line, face, box, quad_t, quad_x, quad_y, seams, ladder,
-    disc, hoop, cyl, drum, taper, rotor, orbit, node, trace, window, reset,
+    disc, hoop, cyl, drum, taper, rotor, orbit, node, window, reset,
 )
 
 # ---- the three-grey register. illustration.html, "Contour and fill".
@@ -238,15 +227,13 @@ HEAD = """<svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" viewBox="{vb}" 
 width="{w}" height="{h}" fill="none" role="img">
 <title>{title}</title>
 <style><![CDATA[
-/* components.css gives .cf-iso these two inline; a file referenced by an img
-   element inherits no stylesheet, so it carries them itself. See the header of
-   scripts/news-objects/isonews.py for why the trace is not excluded here.
+/* components.css gives .cf-iso this inline; a file referenced by an img
+   element inherits no stylesheet, so it carries it itself.
    CDATA because this is XML and not HTML: a bare "<" in a CSS comment opens an
    element the parser then waits for the end of, and the whole file fails to
    load rather than losing the comment. */
 .cf-iso path,.cf-iso line,.cf-iso circle,.cf-iso ellipse,.cf-iso polygon\
 {{vector-effect:non-scaling-stroke}}
-.cf-iso__trace{{stroke-width:2;stroke-linecap:round}}
 ]]></style>
 <defs>{defs}</defs>
 <rect x="{x0}" y="{y0}" width="{w0}" height="{h0}" fill="{ground}"/>
@@ -254,10 +241,10 @@ width="{w}" height="{h}" fill="none" role="img">
 
 
 def emit(title, crop, defs, forms, light=None, ghost=(), orbits=(),
-         traces=(), nodes=(), underlay=(), out_w=1200):
+         nodes=(), underlay=(), out_w=1200):
     """One finished plate. The order is the material order illustration.html
-    sets out — reference geometry and contours before light — with the trace
-    and the nodes last, as the drawing's own annotation.
+    sets out — reference geometry and contours before light — with the nodes
+    last, as the drawing's own annotation.
 
     Ghost AFTER the form, not before it: a ghost is either an x-ray of what is
     inside a body or a continuation of what the crop cuts off, and both only
@@ -287,39 +274,7 @@ def emit(title, crop, defs, forms, light=None, ghost=(), orbits=(),
     parts += ['  ' + o for o in orbits]
     if light:
         parts.append('  ' + light)
-    parts += ['  ' + t for t in traces]
     parts += ['  ' + n for n in nodes]
     parts += ['</g>', '</svg>', '']
     return '\n'.join(parts)
 
-
-def chevron(at, axis, back, size=0.26, plane=None):
-    """A trace's head: two arms meeting at the tip, symmetric about the axis of
-    travel, each on a lattice ground step.
-
-    IT IS ONE V, IN ONE PLANE. The first version took its two arms from two
-    DIFFERENT perpendicular axes — for a trace on +x, one arm on y and one on x
-    itself — so what it drew was a tick and a line lying along the shaft, not an
-    arrowhead. The arms belong to a single plane containing the direction of
-    travel, and they leave the tip backwards along it.
-
-    Each arm is one stroke and therefore its own trace: a dash restarts at every
-    subpath while pathLength normalises the path as a whole, so a head drawn as
-    part of its shaft finishes the moment its longest stroke does. The rule is
-    illustration.html's, "a trace is one stroke", and it holds in a static file
-    for the plainer reason that these are separate elements with separate ends.
-    """
-    step = {'x': (1, 0, 0), 'y': (0, 1, 0), 'z': (0, 0, 1)}
-    other = {'x': ('y', 'z'), 'y': ('x', 'z'), 'z': ('x', 'y')}[axis]
-    perp = step[plane or other[0]]
-    s_ = step[axis]
-    d = -1.0 if back else 1.0
-    tip = p_(*at)
-    out = []
-    for sign in (+1.0, -1.0):
-        arm = p_(at[0] - d * s_[0] * size + sign * perp[0] * size,
-                 at[1] - d * s_[1] * size + sign * perp[1] * size,
-                 at[2] - d * s_[2] * size + sign * perp[2] * size)
-        out.append(f'<line class="cf-iso__trace" x1="{f(arm[0])}" y1="{f(arm[1])}" '
-                   f'x2="{f(tip[0])}" y2="{f(tip[1])}" stroke="#000"/>')
-    return out
