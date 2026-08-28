@@ -85,6 +85,16 @@ WHAT IS CHECKED, in acts.css and the pages that load it:
                     exists, because a band at exactly the field's own ratio
                     is the one box that does not crop and a field that does
                     not crop is a field scaled to the width.
+  crop side         and in each of them the crop comes off the half the claim
+                    reserves rather than being split around it. The field is
+                    not a symmetrical drawing -- gen-proto-field.py keeps a
+                    680 x 500 hole in its right middle for act 1's sentence --
+                    and `slice` is symmetrical, so a centred crop spends a
+                    phone's right half on a reservation that in these tiers is
+                    empty. The clause reads the box that moves it: the same
+                    width on the field and on its notes, naming the band and
+                    the same ratio the aspect-ratio beside it states, with the
+                    reset's max-width undone and the stage clipping.
   one band, twice   and the two tiers take the same band as each other. The
                     arrangement is written out twice because it lives in two
                     @supports branches and a media query cannot be shared
@@ -223,6 +233,21 @@ BAND_LAYERS = (".sp-field", ".sp-annots-fig")
 # that make it a CROP rather than a fit. Read as a set: the finding is a layer
 # whose set differs from its twin's, or one with no floor in it.
 BAND_PROPS = ("aspect-ratio", "min-height", "max-height")
+# WHICH SIDE THE CROP COMES OFF, and the two boxes that have to agree on it.
+# The notes are placed from the field's own centre -- `calc(50% + <offset> *
+# var(--sp-u))`, written into the markup by gen-proto-field.py -- so the layer
+# that carries them is only over the drawing while it is the SAME box. The
+# field's <svg> is the one the site's own reset clamps, which is why the pair
+# is read with max-width as well as width. See the `crop side` clause.
+CROP_LAYERS = (".sp-field", ".sp-annots")
+CROP_PROPS = ("width", "max-width")
+# AND THE WIDTH HAS TO HAVE THE STAGE'S OWN IN IT. `max(100%, …)` is what makes
+# the box inert wherever the band is already the field's ratio and there is no
+# crop to move -- above 853 px of width, and under the cap, the two terms are
+# equal to the pixel. A bare `var(--sp-band) * 16 / 9` passes every other test
+# in this clause and hands the stage a field NARROWER than it is at those
+# widths, which is a full-bleed backdrop with bare ground beside it.
+CROP_ROOM = re.compile(r"\bmax\(\s*100%\s*,")
 # The cap has to leave the claim room, and the only shape that does is a
 # subtraction inside a calc(): `calc(100vh - <the claim's band>)`. A bare
 # viewport unit passes every other clause here and still orphans act 1's
@@ -269,6 +294,30 @@ def declarations_for(selector, css):
     return [body for body, _ in declarations_with_offsets(selector, css)]
 
 
+BLOCK = re.compile(r"([^{}]+)\{([^{}]*)\}", re.S)
+_BLOCKS = {}
+
+
+def blocks(css):
+    """(selector list, body, body offset) for every rule in the sheet, once.
+
+    THE SCAN IS THE EXPENSIVE PART OF THIS FILE AND IT DOES NOT DEPEND ON THE
+    SELECTOR. `([^{}]+)\\{([^{}]*)\\}` over 367 kB of stylesheet costs 4.2 s a
+    pass — the pattern's `+` backtracks across every brace-free run, and this
+    stylesheet's longest is 10 351 characters of prose — and each clause below
+    used to ask for a pass of its own. Fourteen clauses, 60 s; the crop clause
+    would have made it twenty-four and 105 s. Only the FILTERING is per
+    selector, so the sheet is scanned once and every clause reads the same
+    list: 4.4 s for the run, and a clause costs what its filter costs.
+    """
+    got = _BLOCKS.get(css)
+    if got is None:
+        got = [([s.strip() for s in m.group(1).split(",")], m.group(2), m.start(2))
+               for m in BLOCK.finditer(css)]
+        _BLOCKS[css] = got
+    return got
+
+
 def declarations_with_offsets(selector, css):
     """As declarations_for, but each entry is (body, offset of the body).
 
@@ -276,13 +325,8 @@ def declarations_with_offsets(selector, css):
     correct inside the pin gate and a defect outside it, so the check has to
     know where in the file it was written.
     """
-    out = []
-    pattern = re.compile(r"([^{}]+)\{([^{}]*)\}", re.S)
-    for m in pattern.finditer(css):
-        selectors = [s.strip() for s in m.group(1).split(",")]
-        if any(s == selector or s.endswith(" " + selector) for s in selectors):
-            out.append((m.group(2), m.start(2)))
-    return out
+    return [(body, at) for selectors, body, at in blocks(css)
+            if any(s == selector or s.endswith(" " + selector) for s in selectors)]
 
 
 def block_span(css, opener):
@@ -406,6 +450,28 @@ def value_of(prop, block):
         return None
     i += len(prop) + 1
     depth = 0
+    for j in range(i, len(block)):
+        c = block[j]
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+        elif c == ";" and depth == 0:
+            return block[i:j].strip()
+    return block[i:].strip()
+
+
+def own_value_of(prop, block):
+    """value_of, with the property's own left edge stated.
+
+    `width:` is a substring of `max-width:`, and value_of takes whichever
+    comes first in the block. The crop clause reads both from the SAME rule,
+    so it cannot leave which one it got to the order they were typed in.
+    """
+    m = re.search(r"(?<![-\w])" + re.escape(prop) + r"\s*:", block)
+    if not m:
+        return None
+    i, depth = m.end(), 0
     for j in range(i, len(block)):
         c = block[j]
         if c == "(":
@@ -686,6 +752,140 @@ def main():
                 f"two boxes and all twenty-one land off the beads they name. "
                 f"Same sentence as the clip clause, one tier along.")
 
+    # ---- and the crop comes off the half the claim reserves ---------------
+    # THE DRAWING IS NOT SYMMETRICAL AND `slice` IS. gen-proto-field.py states
+    # it as CLAIM = (920, 180, 680) -- "no sensor stands in x >= 920,
+    # 180 <= y <= 680 ... because a glow behind the claim is contrast debt" --
+    # which takes seven crossings of the supergrid out and leaves a 680 x 500
+    # hole in the field's right middle for act 1's sentence to stand in. Above
+    # the container's 56rem fold it does stand in it. In THESE tiers it does
+    # not: the claim is a row under the field, and `xMidYMid slice` centres the
+    # crop on the box, whose centre is inside the hole. Measured at 390 x 844
+    # before the box below: the crop ran field x 434..1166, the middle row was
+    # ONE bead with 493 units of nothing to its right, and 6 of the 11 readings
+    # on screen had both a whole label and a whole bead. It reads on a phone as
+    # a gap in the field, which is how it was reported.
+    #
+    # THE FIX IS A BOX AND NOT AN ATTRIBUTE, because preserveAspectRatio is
+    # markup and no tier can reach it from a stylesheet. Give the layer the
+    # drawing's own WIDTH at the band's own height -- var(--sp-band) times the
+    # viewBox's ratio -- and `slice` has no surplus left to centre: the crop is
+    # the whole of it and it comes off the right. 0..731 at the same viewport,
+    # thirteen beads in a 3/2/3/2/3 lattice, 11 whole readings, and identical
+    # in all three engines.
+    #
+    # FOUR WAYS IT REVERTS WITHOUT A RENDER CHANGING, which is the whole reason
+    # this clause exists rather than a fifth paragraph of prose in acts.css:
+    #
+    #   the clamp   base.css's own reset is `img, svg, video { display: block;
+    #               max-width: 100% }`, and it took this box straight back to
+    #               the stage's width the first time the width was written --
+    #               measured, .sp-field still 375 px wide inside a 375 px stage
+    #               with the width declared. Without `max-width: none` beside
+    #               it the width is decoration.
+    #   the notes   .sp-annots is placed from the field's own centre, so it is
+    #               over the drawing only while it is the same box. Widen one
+    #               and not the other and all twenty-one notes stand off the
+    #               beads they name -- the `band, not fit` clause's own
+    #               sentence, one axis along.
+    #   the ratio   the width restates the viewBox's ratio, which the
+    #               aspect-ratio in the same tier already states. Two copies of
+    #               one number is what every other clause in this file is here
+    #               about.
+    #   the clip    a box wider than the stage is a document wider than the
+    #               view: 853 px of scrollWidth inside a 375 px phone without
+    #               a clip on the stage. `clip` and not `hidden`, because
+    #               hidden makes the stage a scroll container and inside the
+    #               pin gate this stage is `position: sticky`.
+    crops = {}
+    for label, spans in tiers.items():
+        if not spans:
+            continue
+        crop_boxes = {}
+        for layer in CROP_LAYERS:
+            props = {}
+            for body, at in declarations_with_offsets(layer, css):
+                if not any(s[0] < at < s[1] for s in spans):
+                    continue
+                for prop in CROP_PROPS:
+                    v = own_value_of(prop, body)
+                    if v:
+                        props[prop] = re.sub(r"\s+", " ", v.strip())
+            crop_boxes[layer] = props
+        stage = {}
+        for body, at in declarations_with_offsets(".sp-stage", css):
+            if not any(s[0] < at < s[1] for s in spans):
+                continue
+            for prop in ("overflow", "overflow-x"):
+                v = own_value_of(prop, body)
+                if v:
+                    stage[prop] = re.sub(r"\s+", " ", v.strip())
+        crops[label] = (crop_boxes, stage)
+
+        crop = crop_boxes[".sp-field"].get("width", "")
+        if not (CROP_ROOM.search(crop) and CLAIM_ROW in crop):
+            findings.append(
+                f"acts.css: .sp-field takes width {crop or '<none>'} in "
+                f"{label}. The crop is centred on the box and the drawing is "
+                f"not centred in it: gen-proto-field.py keeps a 680 x 500 hole "
+                f"in the field's right middle for a claim that in this tier "
+                f"stands UNDER the field, so a centred crop spends a phone's "
+                f"right half on it -- measured at 390 x 844, the middle row was "
+                f"one bead with 493 units of nothing beside it. The box is what "
+                f"moves the crop, and it has to be `max(100%, "
+                f"var({CLAIM_ROW}) * <the viewBox's ratio>)`: the field's own "
+                f"width at the band's own height, so `slice` has no surplus "
+                f"left to centre and the max() is inert wherever there is no "
+                f"crop to move.")
+            continue
+        if crop_boxes[".sp-annots"].get("width") != crop:
+            findings.append(
+                f"acts.css: .sp-annots takes width "
+                f"{crop_boxes['.sp-annots'].get('width') or '<none>'} in {label} "
+                f"against .sp-field's {crop}. The callouts are placed at "
+                f"`calc(50% + <offset> * var(--sp-u))` from the FIELD's own "
+                f"centre, which is 50 % of the field's box and of nothing "
+                f"else, so the two are one box or all twenty-one notes stand "
+                f"off the beads they name.")
+        crop_ratio = (per_tier.get(label, {}).get(".sp-field", {})
+                 .get("aspect-ratio", ""))
+        if crop_ratio and crop_ratio.replace(" ", "") not in crop.replace(" ", ""):
+            findings.append(
+                f"acts.css: .sp-field's crop width in {label} is {crop} while "
+                f"its band is aspect-ratio {crop_ratio}. One is the drawing's width "
+                f"at the band's height and the other is the band's height at "
+                f"the drawing's width -- the same viewBox, written twice. Two "
+                f"copies means a re-drawn field moves the box and not the crop, "
+                f"and the notes go with the one that moved.")
+        if crop_boxes[".sp-field"].get("max-width") != "none":
+            findings.append(
+                f"acts.css: .sp-field takes the crop width in {label} with no "
+                f"`max-width: none` beside it. base.css's own reset is `img, "
+                f"svg, video {{ display: block; max-width: 100% }}` and it "
+                f"clamps this box straight back to the stage: measured, the "
+                f"field still 375 px wide inside a 375 px stage with the width "
+                f"declared and the crop still centred on the hole.")
+        clip = stage.get("overflow-x") or stage.get("overflow")
+        if clip != "clip":
+            findings.append(
+                f"acts.css: .sp-stage does not clip horizontally in {label} "
+                f"(overflow-x {clip or '<none>'}). The field is wider than the "
+                f"stage in this tier and a box wider than the view is a "
+                f"document wider than the view: 853 px of scrollWidth inside a "
+                f"375 px phone without it. `clip` and not `hidden` -- hidden "
+                f"makes this box a scroll container, and inside the pin gate "
+                f"the same element is `position: sticky`.")
+
+    if len(crops) == 2:
+        (la, ca), (lb, cb) = crops.items()
+        if ca != cb:
+            findings.append(
+                f"acts.css: the crop's box differs between the two tiers that "
+                f"size the ink -- {la} {ca}, {lb} {cb}. Same clause as the "
+                f"band's own: one arrangement written twice because two "
+                f"@supports branches cannot share a media query, and two boxes "
+                f"is two crops.")
+
     # AND THE TWO TIERS TAKE THE SAME BAND, which is the clause the second tier
     # brought with it. They are two copies of one arrangement -- act 1's field
     # at the head of the stage, act 1's claim under it, act 2's root under that
@@ -960,7 +1160,8 @@ def main():
           f"in --gutter's own terms, both ink layers clip to it, the copy layer "
           f"does not, no box is resized outside the two tiers that size the "
           f"ink and in each of them both layers take one band -- the same band "
-          f"in both -- with a floor and a cap that leaves the claim its room "
+          f"in both -- taken off the half the claim reserves rather than split "
+          f"around it, with a floor and a cap that leaves the claim its room "
           f"below the fold, releases it above {RELEASE} and stops at the "
           f"beads' own rim either way, it is re-derived above {RELEASE} "
           f"from the row's own column split, {CLAIM_ROW} restates that band's "
