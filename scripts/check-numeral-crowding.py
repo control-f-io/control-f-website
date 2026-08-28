@@ -64,11 +64,11 @@ reproduces the browser's own overlap count at every width in the table above.
 
 THE TWO RULES.
 
-  RULE ONE -- THE THRESHOLD IS SUFFICIENT. acts.css renders the full annotation
-  only above a container width, on .sp-root, which is the drawing's box:
+  RULE ONE -- THE THRESHOLD IS SUFFICIENT. acts.css renders the annotation only
+  above a container width, on .sp-root, which is the drawing's box:
 
       @container sp-root (min-width: 56rem) {
-        .lp-flow-data > :not(.lp-flow__head) { display: revert; }
+        .lp-flow-data > * { display: revert; }
       }
 
   This recomputes the CROWDING FLOOR — the narrowest drawing width at which the
@@ -79,22 +79,31 @@ THE TWO RULES.
   the threshold up to 2000 px, so a threshold that is high enough at its own
   value and wrong above it still fails.
 
-  RULE TWO -- WHAT IS LEFT BELOW THE THRESHOLD IS CLEAR TOO. Below it the layer
-  keeps one numeral, .lp-flow__head, and drops the rest. That numeral is checked
-  at every width from 200 px to the threshold: alone in the layer it cannot
-  collide, so what is really being held is that it stays inside the drawing —
-  it hangs left of the vertical at --x:600 and a wide enough label would put it
-  off the plate. Exactly one numeral may carry the class, because two would
-  reintroduce the pair this file exists to count.
+  RULE TWO -- BELOW THE THRESHOLD THE LAYER IS EMPTY. The suppression takes
+  every child of .lp-flow-data and exempts none, so there is no arithmetic to
+  do down there: nothing is painted, and what is not painted cannot collide or
+  leave the plate. What is held instead is that the exemption stays gone, on
+  both sides of it — in the stylesheet, a suppression written `> *` and not
+  `> :not(...)`; in the markup, no numeral carrying .lp-flow__head, the class
+  that named the exempt one.
 
-WHAT THIS CHECK IS NOT. It says nothing about WHICH numeral is kept, or whether
-a numeral is placed on the right side of its own stroke — that is
-check-flow-label-law.py — or whether the clearance off the stroke is one
-number, which is check-label-clearance.py. The three are only together a
-placement rule. Nor does it look at .sp-annots, act 1's twenty-one sensor
-readings: those are placed by a different law, against a sliced backdrop in
-`1cqh` units, and eleven of them sit outside the viewport at 320. That is a
-finding and it is not this one.
+  Until 2026-08-28 one numeral WAS exempt — 8 400 /s, the value on the trunk,
+  the number act 2's copy also names in words — and this rule was the arithmetic
+  that kept it on the plate at every width from 200 px up. That arithmetic never
+  failed. The picture did: one 11 px numeral hanging off the trunk of a drawing
+  whose other seventeen are gone reads as a label nobody finished taking out
+  rather than as the drawing's own claim, and it is the only type inside the
+  figure at the widths where the figure has the least room for any. The rate
+  still reaches a phone — in the paragraph under the drawing, in words, in both
+  editions.
+
+WHAT THIS CHECK IS NOT. It says nothing about whether a numeral is placed on
+the right side of its own stroke — that is check-flow-label-law.py — or whether
+the clearance off the stroke is one number, which is check-label-clearance.py.
+The three are only together a placement rule. Nor does it look at .sp-annots,
+act 1's twenty-one sensor readings: those are placed by a different law,
+against a sliced backdrop in `1cqh` units, and eleven of them sit outside the
+viewport at 320. That is a finding and it is not this one.
 
 THE TYPE'S BOX IS THE SYSTEM'S OWN NUMBERS, not four more literals in a
 checker: the size is --text-xs, the height is that times --leading-normal, and
@@ -126,7 +135,10 @@ PROTOTYPES = ROOT / "design-system" / "prototypes"
 
 DRAWING_CLASS = "lp-flow"
 NUMERAL_CLASSES = ("lp-flow__val", "lp-flow__read")
-HEAD_CLASS = "lp-flow__head"
+# The class the one exempt numeral used to carry. Nothing declares it any more;
+# it is named here so that its return is a finding rather than a silent
+# re-exemption.
+EXEMPT_CLASS = "lp-flow__head"
 LAYER_CLASS = "lp-flow-data"
 
 # A monospaced face advances 0.6 em; .t-label adds --tracking-label on top.
@@ -142,10 +154,13 @@ TOKEN_RE = re.compile(r"^\s*(--[\w-]+)\s*:\s*([^;]+);", re.M)
 # The rule that reinstates the suppressed numerals, and the width it asks for.
 GUARD_RE = re.compile(
     r"@container\s+sp-root\s*\(\s*min-width\s*:\s*([\d.]+)(rem|px)\s*\)\s*\{"
-    r"[^{}]*\.%s\s*>\s*:not\(\s*\.%s\s*\)[^{}]*\{[^{}]*\}" % (LAYER_CLASS, HEAD_CLASS), re.S)
+    r"[^{}]*\.%s\s*>\s*\*\s*\{[^{}]*\}" % LAYER_CLASS, re.S)
 # The rule that suppresses them in the first place.
 SUPPRESS_RE = re.compile(
-    r"\.%s\s*>\s*:not\(\s*\.%s\s*\)\s*\{[^{}]*display\s*:\s*none" % (LAYER_CLASS, HEAD_CLASS), re.S)
+    r"\.%s\s*>\s*\*\s*\{[^{}]*display\s*:\s*none" % LAYER_CLASS, re.S)
+# A suppression that lets something through: the shape the layer carried until
+# 2026-08-28, and the one way the single numeral comes back.
+EXEMPT_RE = re.compile(r"\.%s\s*>\s*:not\(" % LAYER_CLASS, re.S)
 
 PLAIN_RE = re.compile(r"^(-?\d+(?:\.\d+)?)px$")
 CALC_RE = re.compile(r"^calc\(\s*-100%\s*-\s*(\d+(?:\.\d+)?)px\s*\)$")
@@ -199,7 +214,7 @@ class Numeral:
         self.text = " ".join(text.split()) or "(blank)"
         self.raw = text
         self.classes = classes
-        self.head = HEAD_CLASS in classes
+        self.exempt = EXEMPT_CLASS in classes
         self.w = len(text) * advance
         self.h = line_height
         self.x = float(var["--x"])
@@ -254,9 +269,15 @@ def crowding_floor(numerals, vb_w, vb_h):
 
 def guard_threshold(acts, findings):
     """The width acts.css reinstates the full annotation at, in px."""
+    if EXEMPT_RE.search(acts):
+        findings.append(
+            f"acts.css: the suppression on .{LAYER_CLASS} exempts a child — it is "
+            f"written `> :not(...)` rather than `> *`. That is the shape the layer "
+            f"carried until 2026-08-28, and it puts one numeral back on a phone: "
+            f"alone in the layer, on a drawing whose other seventeen are gone.")
     if not SUPPRESS_RE.search(acts):
         findings.append(
-            f"acts.css: nothing suppresses .{LAYER_CLASS} > :not(.{HEAD_CLASS}) — the "
+            f"acts.css: nothing suppresses .{LAYER_CLASS} > * — the "
             f"drawing renders all its numerals at every width, and below 746 px of "
             f"drawing they intersect. See this file's own table.")
         return None
@@ -264,8 +285,8 @@ def guard_threshold(acts, findings):
     if not m:
         findings.append(
             f"acts.css: the numerals are suppressed but nothing reinstates them inside "
-            f"`@container sp-root (min-width: ...)`, so the drawing never shows more "
-            f"than its head at any width.")
+            f"`@container sp-root (min-width: ...)`, so the drawing carries no "
+            f"annotation at any width and the eighteen values are dead markup.")
         return None
     value, unit = m.group(1), m.group(2)
     if unit != "rem":
@@ -305,14 +326,14 @@ def check_page(page, acts, advance, line_height, verbose):
     findings = []
     threshold = guard_threshold(acts, findings)
 
-    # --- the exempt set ---------------------------------------------------
-    heads = [n for n in numerals if n.head]
-    if len(heads) != 1:
+    # --- RULE TWO, the markup half: no numeral is exempt --------------------
+    exempt = [n for n in numerals if n.exempt]
+    if exempt:
         findings.append(
-            f"{page.name}: {len(heads)} numerals carry .{HEAD_CLASS} and exactly one may — "
-            f"below the threshold the layer keeps them all, and two of them are a pair "
-            f"this file exists to count."
-            + (f" They are: {', '.join(repr(h.text) for h in heads)}." if heads else ""))
+            f"{page.name}: {len(exempt)} numeral(s) carry .{EXEMPT_CLASS} and none may — "
+            f"the suppression takes the whole layer now, so below the threshold that "
+            f"class names nothing, and above it every numeral renders anyway. "
+            f"They are: {', '.join(repr(n.text) for n in exempt)}.")
 
     if threshold is None:
         return findings, len(numerals)
@@ -349,21 +370,15 @@ def check_page(page, acts, advance, line_height, verbose):
                     f"plate. A threshold is a floor, not a window.")
                 break
 
-    # RULE TWO — what renders below the threshold is clear at every width there.
-    if len(heads) == 1:
-        for W in range(SCAN_LO, int(threshold) + 1):
-            e, p = faults(heads, float(W), vb_w, vb_h)
-            if e or p:
-                findings.append(
-                    f"{page.name}: below the threshold the layer keeps {heads[0].text!r}, and "
-                    f"at {W} px of drawing it is {e[0][1] if e else 'colliding'} — the one "
-                    f"numeral a phone is given has to be on the plate.")
-                break
+    # RULE TWO is above and in guard_threshold: below the threshold nothing is
+    # painted, so there is no set here to measure. The widths from SCAN_LO to the
+    # threshold are still scanned — by crowding_floor, on the whole set, which is
+    # how the floor is found in the first place.
 
     if verbose:
         print(f"  {page.name}: {len(numerals)} numerals, viewBox {vb_w:g} x {vb_h:g}, "
               f"crowding floor {floor} px, threshold {threshold:.0f} px, "
-              f"head {heads[0].text!r}" if heads else "no head")
+              f"none exempt below it")
         for W in (280.0, 333.79, 683.5, 911.4, 1109.59):
             e, p = faults(numerals, W, vb_w, vb_h)
             print(f"      W={W:8.2f}  intersecting pairs {len(p):2d}  off the plate {len(e)}")

@@ -845,30 +845,40 @@
      "690 V", "4.2 mm/s" and "51 Hz" are printed on top of each other and the
      drawing's own claim, 8 400 /s, is under "3 200 /s".
 
-     SO THE LAYER RENDERS WHERE ITS LAW HOLDS, AND THE DRAWING KEEPS ITS HEAD
-     EVERYWHERE. 56rem of drawing clears the crowding floor — 746 px, the width
-     below which the first pair intersects, recomputed from the markup by
+     SO THE LAYER RENDERS WHERE ITS LAW HOLDS AND NOWHERE ELSE. 56rem of drawing
+     clears the crowding floor — 746 px, the width below which the first pair
+     intersects, recomputed from the markup by
      scripts/check-numeral-crowding.py — by 150 px, and holds 11.88 px between
      the nearest pair and 12.50 px to the nearest edge, against the 12.60 px the
      law was solved to at the gate floor's own 911.4. It is also the width at which .sp-stage__inner goes
      two-column above, so the annotation arrives with the layout that has room
      for it: a second consumer for an existing number, not a second number.
 
-     The head is the exception and it is the one numeral act 2's copy names —
-     "achttausendvierhundert Werte je Sekunde" is 8 400 /s, the value on the
-     trunk. It sits on the vertical at --x:600, the viewBox's centre, and hangs
-     left of it: at the narrowest admitted drawing width, 280 px, its box is
-     74.30 -> 128.00 of 280 and 115.58 -> 129.88 of 144.67, clear of both edges
-     with nothing else in the layer to collide with. So a phone gets a drawing
-     that still states its own rate, and not seventeen numbers it cannot read.
+     AND THE HEAD GOES WITH THE OTHER SEVENTEEN. Until this change one numeral
+     was exempt — 8 400 /s, the value on the trunk — on the argument that a
+     phone should still get a drawing that states its own rate. The arithmetic
+     was sound: alone in the layer it cannot collide, and at the narrowest
+     admitted drawing width, 280 px, its box is 74.30 -> 128.00 of 280 and
+     115.58 -> 129.88 of 144.67, clear of both edges. The picture was not. A
+     single 11 px numeral hanging off the trunk of a drawing whose other
+     seventeen are gone does not read as the drawing's claim; it reads as the
+     one label nobody finished taking out, and it is the only type inside the
+     figure at the widths where the figure has the least room for any.
+
+     Nothing is lost by dropping it, because the rate was never only here: the
+     paragraph directly under the drawing states it in words in both editions —
+     "achttausendvierhundert Werte je Sekunde", "eight thousand four hundred
+     values a second" — and that sentence is act 2's copy, which is on screen
+     at every width this tier serves. A phone reads the number in the copy and
+     the drawing is a drawing.
 
      aria-hidden is already on .lp-flow-data, so nothing here changes what a
      screen reader is given: the readings were never in the accessibility tree.
      → scripts/check-numeral-crowding.py; check-label-clearance.py holds the
        other half of the placement, the clearance off the stroke itself. */
-  .lp-flow-data > :not(.lp-flow__head) { display: none; }
+  .lp-flow-data > * { display: none; }
   @container sp-root (min-width: 56rem) {
-    .lp-flow-data > :not(.lp-flow__head) { display: revert; }
+    .lp-flow-data > * { display: revert; }
   }
   /* ---- THE COPY EITHER SIDE OF THE CONFLUENCE ----
 
@@ -3349,12 +3359,22 @@
           animation-range: contain calc((14 + var(--l) * var(--flow-cf)) * 1%)
                            contain calc((24 + var(--l) * var(--flow-cf)) * 1%);
         }
-        /* Only .lp-flow__head is on screen in this tier — the layer's own rule
-           1,600 lines up hides the other seventeen under a 56rem container and
-           the flow tier's drawing never reaches it — so what this window
-           actually times is the rate arriving on the trunk once the root has
-           become one route. --l 2.89 puts it at 85 to 95, which is the same
-           place in the act the pinned tier lights it. */
+        /* WHAT THIS WINDOW TIMES IS EITHER EIGHTEEN NUMERALS OR NONE, and which
+           one is not this tier's to know. The layer's own rule 2,500 lines up
+           is a container query on .sp-root — the eighteen above 56rem of
+           drawing, nothing below it — and this tier is every viewport under
+           64rem WIDE or under 45rem TALL, which lands on both sides of that
+           threshold: .sp-root measures 333.75 px at 375x812 and 965.19 px at
+           1280x700, and the second of those renders the full set.
+
+           So the window is written per numeral, off each one's own --l, and it
+           needs no width gate: what is display:none is not painted, and what is
+           painted is timed where the pinned tier times it.
+
+           Until 2026-08-28 one numeral was exempt from the suppression and this
+           note read "only .lp-flow__head is on screen in this tier". The exempt
+           numeral is gone, and the second half of that sentence had never been
+           true — 1280x700 is in this tier and shows all eighteen. */
         .lp-flow-data :is(.lp-flow__val, .lp-flow__read) {
           opacity: 0;
           animation: lp-frame-in linear both;
