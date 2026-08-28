@@ -1598,26 +1598,24 @@ for (px, py, side, (ox, oy), gap), text in zip(PLACED_READINGS, READINGS):
 # sets `white-space: nowrap`, so the break the no-break space was insuring
 # against cannot happen, and an insurance that no longer does any work is one
 # more thing for a hand edit to get wrong.
-# THE HEAD CARRIES A SECOND CLASS, because it is the one numeral that renders at
-# every width. The placement above is solved AT THE GATE FLOOR -- the "nearest
-# other" figure printed beside every span says so -- and the drawing also renders
-# below the gate, in a one-column stage, where the same law puts numerals on top
-# of each other: sixteen intersecting pairs at 320, eleven at 375. So acts.css
-# drops the layer below 56rem of drawing and keeps .lp-flow__head, and
-# scripts/check-numeral-crowding.py holds both halves of that.
+# EVERY NUMERAL IS THE SAME KIND OF NUMERAL, and until 2026-08-28 one of them
+# was not. The placement here is solved AT THE GATE FLOOR -- the "nearest other"
+# figure printed beside every span says so -- and the drawing also renders below
+# the gate, in a one-column stage, where the same law puts numerals on top of
+# each other: sixteen intersecting pairs at 320, eleven at 375. acts.css answers
+# that by dropping the whole layer below 56rem of drawing, and it used to keep
+# one numeral back: the confluence, emitted with a second class, .lp-flow__head,
+# so a phone still got a drawing that stated its own rate.
 #
-# WHICH ONE IT IS, DERIVED AND NOT NAMED. The head is the confluence: the point
-# every route sums into, which is the largest value in a set that conserves, and
-# the assertion above has already proved the sums balance. Naming a coordinate or
-# a figure here would be one more thing for a re-run to disagree with -- and the
-# unit test is the drawing's own copy, which spells this number out in words.
-HEAD_POINT = max(PLACED_VALUES, key=lambda t: t[2])[:2]
-assert sum(1 for t in PLACED_VALUES if t[2] == max(u[2] for u in PLACED_VALUES)) == 1, (
-    "two values tie for the largest, so the confluence is not identifiable by size")
+# It read as an oversight rather than as a claim -- one 11 px number hanging off
+# the trunk with nothing else in the layer -- and the rate is in the copy under
+# the drawing in words, in both editions, so the exemption is gone and so is the
+# class. There is nothing left here to derive: the layer is all of the numerals
+# above the threshold and none of them below it, which is the one thing
+# scripts/check-numeral-crowding.py now has to hold.
 
 for x, y, v, text, side, (ox, oy), gap in PLACED_VALUES:
-    head = " lp-flow__head" if (x, y) == HEAD_POINT else ""
-    emit(f'<span class="t-label lp-flow__val{head}" style="--x:{num(x)};--y:{num(my(y))};'
+    emit(f'<span class="t-label lp-flow__val" style="--x:{num(x)};--y:{num(my(y))};'
           f'--tx:{css_offset(ox, "x")};--ty:{css_offset(oy, "y")};'
           f'--l:{reached(run_to(x, y))}">{text}</span>')
     emit(f'  <!-- {side:>5}: own stroke {CLEARANCE:.2f} px, nearest other '
