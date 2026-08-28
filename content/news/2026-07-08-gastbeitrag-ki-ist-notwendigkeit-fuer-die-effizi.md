@@ -1,7 +1,7 @@
 datum:   2026-07-08
 autor:   Pressestelle
 minuten: 1
-themen:  Energie, Architektur
+themen:  KI, Wasserstoff
 bild:    news/gastbeitrag-ki-ist-notwendigkeit-fuer-di-51f77bff.png
 titel:   Gastbeitrag: KI ist Notwendigkeit für die effiziente Produktion von Wasserstoff
 title:   Guest article: AI is a necessity for the efficient production of hydrogen

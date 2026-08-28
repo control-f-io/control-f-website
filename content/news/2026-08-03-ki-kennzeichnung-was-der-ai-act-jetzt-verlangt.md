@@ -1,7 +1,7 @@
 datum:   2026-08-03
 autor:   Pressestelle
 minuten: 5
-themen:  Architektur, Energie
+themen:  KI, Regulierung
 bild:    news/ki-kennzeichnung-was-der-ai-act-jetzt-ve-28d1ecfb.png
 titel:   KI-Kennzeichnung: Was der AI Act jetzt verlangt
 title:   AI labelling: what the AI Act now requires
