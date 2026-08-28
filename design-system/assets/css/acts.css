@@ -1255,6 +1255,39 @@
        attribute is never written and this rule never matches: the page runs
        exactly as it did. → scripts/check-idle-motion.py */
     [data-idle] :is(.sp-stream > b, .sp-stream > b + b) { animation-play-state: paused; }
+
+    /* AND THE SECOND GATE TAKES THE ANIMATION AWAY, which is the difference
+       between the two and not an inconsistency. `data-dark` is written by the
+       same file, on .sp-annots itself, when that box is not PAINTED — the
+       question the observer above cannot ask, because the box it watches is
+       .sp-track and .sp-track never leaves. See THE OBSERVER NEVER SEES THIS
+       FIELD LEAVE, below, for what that was costing and why the verb here is
+       `none` where the verb above is `paused`. With cf-idle.js absent, or on a
+       browser without checkVisibility, the attribute is never written and this
+       rule never matches: the page runs exactly as it did. */
+    [data-dark] :is(.sp-stream > b, .sp-stream > b + b) { animation-name: none; }
+
+    /* AND THE REST OF THE READINGS GO BACK DOWN WITH IT, which is not tidiness
+       and was found by looking. `display: block` on all six exists only so the
+       animation above can cycle them; the animation is what shows one at a
+       time. Take it away and the six stand in one grid cell at opacity 1 —
+       the same six-deep overprint the note two rules up records shipping once
+       already, for the same reason: a rule that assumes an animation is there.
+
+       IT IS ONE FRAME AND IT IS VISIBLE. The gate reads in requestAnimationFrame
+       and the value it read is applied to the frame after, so entering the
+       window at reading speed there is a frame where the fade has begun and
+       the attribute has not lifted yet. Measured at 390 x 844, scrolling in at
+       12 px a frame: scrollY 488, .sp-annots at opacity 0.299, all twenty-one
+       sensors overprinted. Leaving the window there is none, because the fade
+       is at 0 before the attribute lands.
+
+       The base tier and the reduced-motion tier both already answer "no
+       animation" with "show the first reading"; this is the third place the
+       same answer is needed and it is written the same way. Specificity is
+       (0,2,2) against the (0,1,2) that opened them, which is the arithmetic
+       the note two rules up is about. */
+    [data-dark] .sp-stream > b + b { display: none; }
   }
 
   /* THE OBSERVER NEVER SEES THIS FIELD LEAVE, for most of the track's own
@@ -1283,12 +1316,73 @@
      gone opaque in front of it. Closing this needs a second gate driven by
      scroll position rather than geometry — the way act-rail.js and
      cf-stream.js already read contain% off this same timeline — not a
-     smaller margin on the one this file already runs. Left open: it is a
-     second mechanism beside the one this file documents at length, and that
-     is a call for whoever owns the idle contract, not a drive-by CSS fix.
-     check-idle-motion.py's contract only checks that the stylesheet pause
-     rule and the JS file both exist, which they do; it has no way to see a
-     box that is geometrically present but visually gone. */
+     smaller margin on the one this file already runs.
+
+     ---- CLOSED, AND ON A PHONE IT WAS THE COST OF THE PAGE ----
+
+     `data-cf-paint` on .sp-annots and `data-dark` back on it, written by the
+     same file the paragraph above sends you to. It is not a scroll-position
+     gate in the end: it asks `checkVisibility({ opacityProperty: true })`,
+     which answers the question directly and needs none of the four contain%
+     numbers this file would otherwise have had to lend it. → cf-idle.js, THE
+     SECOND GATE, for that argument and for what follows.
+
+     THE MEASUREMENT ABOVE IS OF A STILL PAGE and every number this system
+     had about these 126 animations was. On a still page a perpetual
+     animation is the thing MAKING the frame, so pausing it removes the frame
+     and everything in it, and -74 % is right. Under a finger the page is
+     producing frames anyway; a paused animation is still an animation on the
+     element, and that frame's style update still walks it. Measured through
+     the acts at 390 x 844, consent answered, CPU throttled 4x, one rAF-paced
+     pass of sixty steps, median of three, with the readouts' resting state
+     left as it then was — all six readings `display: block`:
+
+                                     elements/frame   style recalc
+       as it stood                        517            2 266 ms
+       the same 126 merely PAUSED         491            1 995
+       the same 126 with no animation     136              689
+
+     Pausing bought 5 %. That is the measurement the verb was chosen on, and
+     the reason a reader coming to this from cf-idle.js's header should not
+     expect the two gates to agree about it.
+
+     AND THE RULE BELOW THIS ONE MOVED THE GOALPOSTS, which is worth stating
+     because the table above no longer reproduces on the shipped page. With
+     five readings in six back to `display: none` when the animation goes,
+     105 of the 126 animated boxes leave the frame with them, so `paused` and
+     `none` now measure 170 and 160 over the same band. That is the resting
+     state doing the work, not the pause becoming cheap, and it is exactly why
+     a later edit that "simplifies" this to a play state would look free and
+     would not be. → scripts/check-idle-paint.py, which is the thing that
+     fails.
+
+     WHAT IT WAS COSTING, at 390 x 844: the notes are painted over 250 px of
+     scroll and the readouts were ticking over 3 100 px of it — twelve times
+     the scroll a reader can see them in, across the first half of the
+     document. Over one rAF-paced pass down the whole page, both gates in
+     place:
+
+                          elements/frame        style recalc
+       390 x 844           378  ->  105        3 314 ms  ->  1 207 ms
+       1440 x 844          435  ->  144        4 202     ->  1 981
+
+     Over the acts alone at 390, 513 -> 160 against a floor of 127 with the
+     readouts' animation deleted outright. Every other page in patterns/
+     walks two to six elements a frame.
+
+     AND THE UNISON RESTART THE PAUSE EXISTS TO PREVENT CANNOT BE SEEN HERE.
+     Dropping these animations and re-creating them does put all twenty-one
+     sensors back on their slot-0 reading at once — `animation-delay`
+     staggers the six readings within a sensor, not the sensors against each
+     other — and under the geometric gate that would be visible, because its
+     edges are a viewport of margin around a box that stays put. This gate's
+     two edges are the two instants .sp-annots' own opacity passes through
+     zero. There is nothing drawn to see restart, in either direction.
+
+     check-idle-motion.py's contract is unchanged and still passes: it asks
+     that the stylesheet pause rule and the JS file both exist, which they do.
+     It has no way to see a box that is geometrically present but visually
+     gone — check-idle-paint.py is the one that holds this half. */
 
   /* ============================================================
      WHY ACTS 4 AND 5 SIT HERE AND NOT BELOW THE GATE.
