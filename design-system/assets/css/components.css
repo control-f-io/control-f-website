@@ -5421,12 +5421,47 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    at 375, 768, 1024, 1280 and 1440 — the four widths this system is tested at
    plus the two-column boundary — all three engines now agree on all four
    tracks within a tenth of a pixel, and Chromium and WebKit draw the same
-   tracks after this line that they drew before it. */
+   tracks after this line that they drew before it.
+
+   THAT FIX WAS HALF OF ONE, AND THE OTHER HALF SHIPPED AS A BLANK BAND UNDER
+   THE LAST PERSON — three days, #459 to this. min-content corrected the
+   TRACKS; the grid container went on taking its own block size from the same
+   inflated contributions, and nothing recomputed it from the tracks that were
+   now right. Measured in Firefox 154 at 1440: twelve tracks summing 2 908.35
+   px inside a <ul> drawn 4 001.45 px tall — 1 092.10 px of dead space below
+   the last card, which is 3 x the 364.03 a row group over-contributes. The
+   band is per ROW, so it grew as the cells narrowed and the rows multiplied:
+   1 092.10 px at 1440 and above, 1 236.50 at 1280, 1 337.93 at 1024,
+   1 804.93 at 768 and 3 219.65 at 375, where seven rows of it made the page
+   half again as long as its content. `block-size: min-content` and `fit-content`
+   on the grid do not shrink it — Gecko's min-content block size for this
+   container IS the inflated figure — and neither does align-content,
+   contain, or an explicit grid-template-rows.
+
+   THE CONTRIBUTION IS FIXED AT THE SOURCE NOW, in the cell geometry below:
+   the card's inline size is indefinite while Gecko measures it, so every
+   percentage inside it resolved against nothing, and the two that land in the
+   BLOCK axis are what the container was adding up. --cell is a container
+   length instead, and both halves of the fault go with it — 0.00 px of slack
+   at 375, 768, 1024, 1280, 1440, 1700 and 1920, in all three engines.
+
+   SO THIS LINE NO LONGER CHANGES A MEASUREMENT. With --cell in place,
+   grid-auto-rows: auto draws the same twelve tracks to the hundredth of a
+   pixel at all seven widths in all three engines. It stays because it is the
+   cheap guard on the half that shows in the card: if a contribution is ever
+   wrong again, min-content keeps the wrong number out of the portrait and the
+   three lines under it, and the damage is once more a band this comment
+   already describes how to find. */
 .cf-team-grid {
   /* The cells are drawn by their own borders, so the tiles must touch. */
   --tile: 21rem;
   --flow: 0;
   grid-auto-rows: min-content;
+  /* Named, and read by the two rungs under .cf-team-grid__item. The cell
+     geometry needs the grid's own content box — .container's `layout` is one
+     element out and one border wide, which is a 1 px window at each rung
+     where the ladder and auto-fill would disagree about the column count. */
+  container: cf-team / inline-size;
   border-top: var(--stroke-1) solid var(--border-strong);
   border-left: var(--stroke-1) solid var(--border-strong);
 }
@@ -5464,6 +5499,45 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    the scale governs distances between things, and this is a proportion of one
    thing.
 
+   THE RATIO IS STILL THE THING DECLARED; WHAT CHANGED IS WHAT IT IS A RATIO
+   OF, and the reason is that "the grid area's inline size" is a quantity
+   Gecko does not have while it is measuring this card. .tiles' column is
+   `minmax(min(var(--tile), 100 %), 1fr)`, and under an fr maximum the cell is
+   not definite during intrinsic sizing — the same sentence the Chromium note
+   below is built on. So every percentage in the card resolved against
+   nothing in that pass, and the two that land in the BLOCK axis are the ones
+   that reached the parent: a percentage block margin resolves against the
+   INLINE size, so `margin-top` on the portrait and `margin-bottom` on the
+   focus line went to zero, and the portrait — width: calc(100 % - …) on a
+   replaced element — fell back to the FILE, 640 x 800, and offered 800 px of
+   height for a box drawn 372.17. Isolated: with the portrait alone in
+   container units the card contributes 63.8 px per row too little, with the
+   margins alone it contributes 427.8 too much, and with both it is the
+   364.03 the note above the grid takes apart.
+
+   --cell IS THE SAME NUMBER AS A CONTAINER LENGTH, which is definite in that
+   pass because a container query is answered after its container is laid out.
+   100cqi rides `cf-team`, the grid's own content box, so --cell is one cell's
+   content box and the three declarations under it read exactly as they did:
+   0.15 of it four times over, and the portrait asking for what is left. The
+   column count is the one term cqi cannot supply — hence --cols and the two
+   rungs, which are auto-fill's own arithmetic and not a second opinion about
+   it: gap is 0 here, so the track count is floor(grid / --tile), and 2 x and
+   3 x 21rem are 42 and 63rem exactly. The grid never reaches four columns —
+   the content column stops at 1280 and 4 x 21rem is 1344 — which is the same
+   fact the sweep above records as "4 and 5 do not occur at any width", and
+   the rung to add if that ceiling ever moves.
+
+   MEASURED AGAINST THE GEOMETRY IT REPLACES, at 375, 768, 1024, 1280, 1440,
+   1700 and 1920, in Firefox 154, Chromium and WebKit: same column count, same
+   cell, same portrait width, same left edge for the picture and the prose —
+   nothing moves by more than 0.03 px in any engine at any of the seven, and
+   the ratio at those widths is the same 69.79–69.85 %. Swept finer, every
+   viewport from 300 to 1600 in Firefox: --cols and the count auto-fill
+   actually lays agree at all 651, including both crossings, and the portrait
+   holds 69.73–69.90 % — the band the percentage held. What moves is Firefox,
+   where the dead space under the last card is 0.
+
    FOUR MARGINS AND NOT A PADDING, and the reason is a Chromium bug this cell
    walked straight into. The cell is a subgrid spanning four of the parent's
    row tracks (the rule below), and a subgrid's own padding has to be added to
@@ -5492,9 +5566,12 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    so the four lines' own margins reach the tracks in every engine. --inset is
    therefore stated once and spent four times — inline on every line,
    block-start on the first, block-end on the last — and the portrait asks for
-   what is left, calc(100% - 2 * var(--inset)). That subtraction IS the 70 %
-   this note is about, written as the arithmetic rather than as a second number
-   somebody has to keep in step with the first.
+   what is left, calc(var(--cell) - 2 * var(--inset)). That subtraction IS the
+   70 % this note is about, written as the arithmetic rather than as a second
+   number somebody has to keep in step with the first. (It subtracted from
+   100 % when this paragraph was written; the term is --cell now and the
+   subtraction is unchanged — see the note over the item rule for why the
+   percentage had to go.)
 
    Measured against the two engines that were already right: Chromium now draws
    the cell 596.22 px tall at 1280 where Firefox draws 596.20 and WebKit
@@ -5508,10 +5585,19 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    goes on :last-child, which is what "the line that closes the cell" means
    without naming a fourth class. */
 .cf-team-grid__item {
-  --inset: 15%;
+  --cols: 1;
+  /* One cell's CONTENT box: the grid's content box over the column count,
+     less this cell's own border-right. That subtraction is what keeps the
+     picture's edges on the prose's — without it --cell is the border box and
+     the portrait is drawn 1 px wider than the three lines under it. */
+  --cell: calc(100cqi / var(--cols) - var(--stroke-1));
+  --inset: calc(0.15 * var(--cell));
   border-right: var(--stroke-1) solid var(--border-strong);
   border-bottom: var(--stroke-1) solid var(--border-strong);
 }
+/* auto-fill's own arithmetic, said in the one place cqi cannot reach it. */
+@container cf-team (min-width: 42rem) { .cf-team-grid__item { --cols: 2; } }
+@container cf-team (min-width: 63rem) { .cf-team-grid__item { --cols: 3; } }
 .cf-team-grid__item > * { margin-inline: var(--inset); }
 .cf-team-grid__item > :first-child { margin-top: var(--inset); }
 .cf-team-grid__item > :last-child { margin-bottom: var(--inset); }
@@ -5521,8 +5607,11 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-team-grid__photo {
   /* The 70 %, as the subtraction rather than as a second number. A replaced
      element does not stretch to its grid area the way the three <p> above do,
-     so this one has to state the width its margins leave it. */
-  width: calc(100% - 2 * var(--inset));
+     so this one has to state the width its margins leave it — and it states
+     it against --cell rather than against 100 %, because a percentage here is
+     the term that put 800 px of file into a 372 px box while Gecko was
+     measuring the card. See the note over .cf-team-grid__item. */
+  width: calc(var(--cell) - 2 * var(--inset));
   aspect-ratio: 4 / 5;
   object-fit: cover;
   border-radius: var(--radius-sm);
