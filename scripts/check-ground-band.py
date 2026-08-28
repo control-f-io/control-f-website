@@ -91,6 +91,18 @@ WHAT IS CHECKED, in acts.css and the pages that load it:
                     whole view is a sentence that only ever arrives with act
                     2's root -- absent from the act it names, captioning the
                     one it contradicts.
+  cap floors        and the cap has a floor of its own, because a cap on this
+                    box is a VERTICAL CROP: the box is `slice` at the field's
+                    ratio, so every pixel the cap takes off the height throws
+                    (that / scale) field units off the top and the same off the
+                    bottom. The floor is re-derived from the beads themselves --
+                    the drawing's own margin above its topmost rim and below its
+                    lowest -- and the cap may not admit a crop past it.
+  stack only        the reservation is released above the register's 64rem and
+                    declared below it. Above the fold the claim stands IN the
+                    field's band, in the hole the beads leave in the right half,
+                    where it costs the stage no height; reserving a band for it
+                    there buys nothing and pays for it in crop.
   gate off          the band is released ONLY inside the pin gate or the
                     no-support tier. A bare `@media (min-width: 64rem)`
                     releasing it is the finding below.
@@ -201,6 +213,23 @@ BAND_PROPS = ("aspect-ratio", "min-height", "max-height")
 # viewport unit passes every other clause here and still orphans act 1's
 # sentence -- see the `cap reserves` clause.
 CAP_RESERVES = re.compile(r"calc\([^)]*-\s*\S")
+# The cap's own floor, and the property it reserves for. A cap on this box is a
+# vertical crop, so the cap needs a length below which it stops taking height --
+# `max(<floor>vw, calc(100vh - …))`. The floor is in vw because both terms of the
+# crop are ratios of the same viewport: visible units = viewBox width x
+# (floor / 100), so one number holds at every width or at none.
+CAP_FLOOR = re.compile(r"max\(\s*(\d+(?:\.\d+)?)vw\s*,")
+CLAIM_BAND = "--sp-claim-band"
+# The drawing the crop is measured against: act 1's field, and the beads that
+# ARE act 1. A bead is a <circle class="… cf-stmt-sensor__bead …"> in the
+# field's own units, so its rim is cy -+ r and the margin the crop may eat is
+# the smaller of the two the drawing leaves. Read out of the markup, because a
+# number typed here is a second copy of a decision gen-proto-field.py makes.
+FIELD_SVG = re.compile(
+    r'<svg\b[^>]*\bclass="[^"]*\bsp-field\b[^"]*"[^>]*>.*?</svg>', re.S | re.I)
+BEAD = re.compile(r"<circle\b[^>]*\bcf-stmt-sensor__bead\b[^>]*>", re.I)
+ATTR = {n: re.compile(r'\b%s="\s*([-\d.]+)\s*"' % n, re.I) for n in ("cy", "r")}
+VIEWBOX = re.compile(r'viewBox="\s*0\s+0\s+([\d.]+)\s+([\d.]+)\s*"', re.I)
 # The stage's copy layer. Prose is what the band exists to get out from under;
 # clipping it would be the fault inverted.
 COPY_LAYER = ".sp-say"
@@ -350,6 +379,46 @@ def viewboxes(tree):
     return found
 
 
+def bead_margins(tree):
+    """Every act 1 field in the tree, as (relpath, viewBox w, h, margin).
+
+    `margin` is what a SYMMETRIC vertical crop may eat before it reaches a bead:
+    the smaller of the drawing's own clearance above its topmost rim and below
+    its lowest. Symmetric because the field is `xMidYMid slice` -- the surplus
+    goes off both edges in equal halves -- so the tighter of the two is the one
+    that decides, and it is the top one on this drawing by 73 units.
+
+    Beads and not halos. A halo is a circle of 2.6 x the bead's radius filled
+    with a gradient that reaches zero at its own rim, so its outer ring is
+    already transparent and clipping it costs the drawing nothing anyone can
+    see. A bead is a contour with a fill; a contour cut by the frame is the
+    finding check-slice-crop.py's constraint 2 is written for, arriving here
+    because this band is the box that cuts it.
+
+    prototypes/ is out, by the boundary every register in this system draws.
+    """
+    out = []
+    for path in sorted(tree.rglob("*.html")):
+        if "prototypes" in path.parts:
+            continue
+        raw = path.read_text(encoding="utf-8", errors="replace")
+        for m in FIELD_SVG.finditer(raw):
+            svg = m.group(0)
+            vb = VIEWBOX.search(svg[:svg.find(">") + 1])
+            rims = []
+            for tag in BEAD.findall(svg):
+                cy, r = ATTR["cy"].search(tag), ATTR["r"].search(tag)
+                if cy and r:
+                    rims.append((float(cy.group(1)), float(r.group(1))))
+            if not (vb and rims):
+                continue
+            w, h = float(vb.group(1)), float(vb.group(2))
+            top = min(cy - r for cy, r in rims)
+            bottom = h - max(cy + r for cy, r in rims)
+            out.append((path.relative_to(ROOT).as_posix(), w, h, min(top, bottom)))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("-v", "--verbose", action="store_true")
@@ -399,6 +468,16 @@ def main():
 
     # ---- the ratio against every drawing it claims to describe -----------
     boxes = viewboxes(TREE)
+    # And act 1's own drawing, which the cap's floor is measured against. Its
+    # beads are what a vertical crop reaches first -- see the `cap floors`
+    # clause and bead_margins() above.
+    fields = bead_margins(TREE)
+    if not fields:
+        findings.append(
+            "design-system/: no .sp-field carrying .cf-stmt-sensor__bead "
+            "circles. The cap's floor is the clearance act 1's own drawing "
+            "leaves above its topmost bead, and there is no drawing left to "
+            "read it out of.")
     if not boxes:
         findings.append(
             "design-system/: no .lp-flow with a viewBox in the tree. The band's "
@@ -475,6 +554,43 @@ def main():
                     f"11 px labels inside 390 px. The floor is what makes the "
                     f"height bind and the crop happen.")
             cap = got.get("max-height")
+            # THE CAP IS A CROP, AND THE CROP HAS A FLOOR. Everything the cap
+            # takes off this box comes off the drawing, not off the layout: the
+            # field is `slice`, so a shorter box shows fewer of its own units
+            # rather than smaller ones, half off the top and half off the
+            # bottom. Visible units = viewBox width x (band / 100vw), so a floor
+            # written in vw fixes the crop at every width in one number --
+            # crop a side = (viewBox height - floor/100 x viewBox width) / 2 --
+            # and the drawing's own margin says how large that may be.
+            floor = CAP_FLOOR.search(cap or "")
+            if cap and not floor:
+                findings.append(
+                    f"acts.css: {layer}'s no-support band caps at {cap} with no "
+                    f"floor under it. A cap on this box is a vertical crop and "
+                    f"the drawing has five rows of instruments in it: measured "
+                    f"in Firefox at 2000 x 1175, 100vh - 16rem against "
+                    f"56.25vw is 206 px of crop, 82 field units a side, and the "
+                    f"top row stands at y 80 -- all six beads gone and their six "
+                    f"labels left on the frame's edge pointing at nothing. Floor "
+                    f"the cap with `max(<vw>, …)` at the height where the crop "
+                    f"reaches the topmost rim.")
+            elif floor and fields:
+                have = float(floor.group(1))
+                for rel, w, h, margin in fields:
+                    need = (h - 2 * margin) / w * 100
+                    if have + 1e-9 < need:
+                        crop = (h - have / 100 * w) / 2
+                        findings.append(
+                            f"acts.css: {layer}'s cap floors at {have:g}vw and "
+                            f"{rel} needs {need:.4g}vw. The field is {w:g} x "
+                            f"{h:g} and leaves {margin:g} units above its "
+                            f"topmost bead; a floor of {have:g}vw shows "
+                            f"{have / 100 * w:.4g} of the {h:g} and crops "
+                            f"{crop:.4g} a side, so the frame is drawn through "
+                            f"the rim. The floor is not a taste: it is that "
+                            f"clearance read back out of the beads. Raise it, or "
+                            f"move the row -- the number lives in "
+                            f"gen-proto-field.py's Y0 and R_MAX.")
             if cap and not CAP_RESERVES.search(cap):
                 findings.append(
                     f"acts.css: {layer}'s no-support band caps at {cap}, which "
@@ -498,6 +614,60 @@ def main():
                 f"the notes are placed in the field's own sliced units -- give "
                 f"them two boxes and all twenty-one land off the beads they "
                 f"name. Same sentence as the clip clause, one tier along.")
+
+        # ---- the reservation belongs to the stack, and only to it ----------
+        # THE CAP CLAUSE ABOVE READS A SHAPE AND THIS ONE READS THE NUMBER IN
+        # IT. `calc(100vh - var(--sp-claim-band))` goes on subtracting whatever
+        # that property happens to hold, so the whole `cap reserves` argument can
+        # be defeated without touching a character of the declaration it is
+        # written against -- set the band to zero and the cap is the viewport
+        # again, with the check still passing. It is also the one edit that is
+        # RIGHT above the fold, which is why this is two findings and not one:
+        # the tier stands the claim IN the field's band there, in the hole the
+        # beads leave, where reserving a band for it buys nothing and is paid
+        # for in crop. So the reservation has to exist below 64rem and be
+        # released above it, and neither half may go missing quietly.
+        base, release_at = None, []
+        fold_spans = []
+        for m in re.finditer(r"@media([^{]*)\{", css):
+            prelude = m.group(1)
+            if "min-width" not in prelude or RELEASE not in prelude:
+                continue
+            if "min-height" in prelude:      # the pin gate, not the fold
+                continue
+            span = block_span(css[m.start():], r"@media")
+            if span:
+                fold_spans.append((m.start() + span[0], m.start() + span[1]))
+        for body, at in declarations_with_offsets(".sp-stage", css):
+            if not (fallback[0] < at < fallback[1]):
+                continue
+            v = value_of(CLAIM_BAND, body)
+            if v is None:
+                continue
+            zero = re.match(r"^0[a-z%]*$", v.strip()) is not None
+            if any(lo < at < hi for lo, hi in fold_spans):
+                release_at.append((v.strip(), zero))
+            else:
+                base = v.strip()
+        if base is None or re.match(r"^0[a-z%]*$", base):
+            findings.append(
+                f"acts.css: {CLAIM_BAND} is {base!r} in the no-support tier "
+                f"outside the fold. Below 64rem this tier stands act 1's "
+                f"sentence UNDER act 1's field -- .sp-stage__inner is one "
+                f"column, text in row 1, figure in row 2 -- so a band with "
+                f"nothing reserved under it is the `cap reserves` finding "
+                f"arriving through the property instead of the declaration: "
+                f"the cap reads as a subtraction and subtracts nothing.")
+        if not any(zero for _, zero in release_at):
+            findings.append(
+                f"acts.css: {CLAIM_BAND} is never released in a bare @media "
+                f"(min-width: {RELEASE}) inside the no-support tier. Above the "
+                f"fold the claim stands IN the field's band and costs the stage "
+                f"no height, so the reservation is 256 px of crop bought for a "
+                f"sentence that is not under anything. Measured before the "
+                f"release, vertical crop in field units: 75 at 1024 x 600, 92 "
+                f"at 1440 x 900, 82 at 2000 x 1175 -- against a drawing whose "
+                f"top row of beads stands at y 80.")
 
         # ---- and the claim's row is that same band, written as a length ----
         # Above the fold this tier stands act 1's claim IN the field rather
@@ -680,6 +850,9 @@ def main():
             print(f"ratio  {ratio[1]:g} / {ratio[0]:g}  (h / w)")
         for rel, w, h in boxes:
             print(f"  .lp-flow  viewBox 0 0 {w:g} {h:g}   {rel}")
+        for rel, w, h, margin in fields:
+            print(f"  .sp-field viewBox 0 0 {w:g} {h:g}   bead margin {margin:g}"
+                  f"   cap floor >= {(h - 2 * margin) / w * 100:.4g}vw   {rel}")
         print(f"ink    {', '.join(INK_LAYERS)}")
         print(f"copy   {COPY_LAYER}")
         if split:
@@ -696,7 +869,8 @@ def main():
           f"in --gutter's own terms, both ink layers clip to it, the copy layer "
           f"does not, no box is resized outside the no-support tier and inside "
           f"it both take one band with a floor and a cap that leaves the claim "
-          f"its room, it is re-derived above {RELEASE} "
+          f"its room below the fold, releases it above {RELEASE} and stops at "
+          f"the beads' own rim either way, it is re-derived above {RELEASE} "
           f"from the row's own column split, {CLAIM_ROW} restates that band's "
           f"own floor, ratio and cap, and it is released in the pin gate "
           f"and that tier and nowhere else.")
