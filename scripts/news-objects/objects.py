@@ -85,37 +85,6 @@ def plates(x, y, z, base, th, gap, n, inset):
     return out
 
 
-def axis(a, b):
-    """A construction axis: 1-2 in the line-type table, which is what a centre
-    line is. Not the 1-4 the lattice takes.
-
-    P and not p_, here and in every ghost below. p_ returns the screen point
-    without registering it, which is right for a gradient endpoint and wrong for
-    anything drawn: fit() takes the crop from the registered points, so a ghost
-    written with p_ is a ghost the frame is free to cut."""
-    return f'<path d="{line(P(*a), P(*b))}" stroke-dasharray="2 4"/>'
-
-
-def gline(a, b):
-    return line(P(*a), P(*b))
-
-
-def gquad(x, y, z, dx, dy):
-    """A horizontal square, drawn as reference geometry."""
-    return poly([P(x, y, z), P(x + dx, y, z), P(x + dx, y + dy, z), P(x, y + dy, z)])
-
-
-def gbox(x, y, z, dx, dy, dz):
-    """A cuboid drawn entirely as reference geometry — the three visible faces,
-    unfilled. A state the object is not in: the branch that is there and is not
-    carrying, the bay that is not built."""
-    t, l, r = iso.box_faces(x, y, z, dx, dy, dz)
-    # One path with three subpaths, not three paths: a dash restarts at every
-    # subpath either way, and one element keeps the ghost a single thing in the
-    # markup the way it is a single thing in the drawing.
-    return t + l + r
-
-
 def beam(x, y, z, axis_, length, s=0.28):
     """A member on one lattice axis. Every link in this set is one of these
     rather than a trace: with the arrows gone, what connects two bodies has to
@@ -126,334 +95,200 @@ def beam(x, y, z, axis_, length, s=0.28):
     return box(x, y, z, dx, dy, dz, TOP, SHADE, LIT)
 
 
+# TWO RULES HOLD THIS SET TOGETHER, AND BOTH ARE ARITHMETIC.
+#
+# EVERY EDGE ON A MULTIPLE OF TWO. lattice() draws its two families at constant
+# x and constant y in steps of 2, so a body whose faces sit on even coordinates
+# stands on the drawn grid and one that does not floats a half-cell off it. The
+# lattice is the only thing in the frame a reader can measure the object
+# against; agreeing with it is most of what "aligned" means here.
+#
+# EVERY OBJECT SYMMETRIC UNDER x <-> y. Screen x is (x - y), so swapping the two
+# ground axes mirrors the drawing about the vertical through its centre: a form
+# that survives the swap is bilaterally symmetric on the plate, and one that
+# does not leans. A body centred on the diagonal survives it alone; anything
+# else has to come in a pair, one on each ground axis. That is why the members
+# below are always two, never one.
+#
+# FOUR NODES ON THE LIT FACE, WHICH IS THE SAME RULE AGAIN. The specimen on
+# foundations/illustration.html puts r = 3 on all four corners of the face it
+# lights. Three of the four is not a lighter version of that: it is an
+# asymmetry, and on a square read at 380 px the eye finds the missing corner
+# before it finds the object. Nothing steps down below the lit face here —
+# a plate has one subject and no third stage to mark.
+
+
 # ==================================================================== 01
 def offshore():
-    """WindSeeG: a seven-day consultation window governing two decades of build.
+    """WindSeeG: two decades resting on a seven-day window.
 
-    A load-bearing thinness — mass resting on a member far slighter than itself.
-    A block, one 0.18 flange, and a telescoping stack standing on the flange;
-    the flange is what is lit.
-
-    THE LIT FACE IS THE FLANGE'S TOP AND THE STACK STANDS ON IT. Lighting the
-    flank instead — the obvious move for a member with something on top of it —
-    gave a 0.34-deep band three units long, which at plate size is a bright
-    wedge at one edge and reads as a highlight rather than as a face. The top,
-    painted in its own place in the paint order rather than last, comes out as a
-    lit rim running out from under four courses of mass: small, unambiguous, and
-    the thing everything rests on."""
+    Three concentric slabs, each standing on the one below, and the smallest is
+    lit."""
     reset()
-    forms = box(0.35, 0.35, 0.0, 2.3, 2.3, 0.45, TOP, SHADE, LIT)
-    forms += box(0.0, 0.0, 0.45, 3.0, 3.0, 0.34, TOP, SHADE, LIT)
-    # THE LIT FACE IS EMITTED HERE, INSIDE THE FORM, and that is the whole
-    # composition. emit() paints the light last, which is right when the lit
-    # face is the topmost thing in the drawing and wrong here: what should be
-    # lit is the flange's top, and the stack stands on it. Painted last the ramp
-    # would cover the stack; painted in its own place in the paint order the
-    # stack occludes its middle and what is left is a lit rim running out from
-    # under four courses of mass. One `.cf-iso__light` either way — the budget
-    # is one lit element, not one lit element in a particular tag position.
-    la, lb, light_face = lit_top('n01', 0.0, 0.0, 0.79, 3.0, 3.0, reach=0.78)
-    forms.append(light_face)
-    forms += stack(0.35, 0.35, 0.79, 2.3, 0.6, 4, 0.2)
-    ghost = [
-        axis((1.5, 1.5, 0.0), (1.5, 1.5, 3.9)),
-        gbox(1.15, 1.15, 3.19, 0.7, 0.7, 0.6),          # the course not built
-        gquad(0.0, 0.0, 0.0, 3.0, 3.0),
-    ]
-    nd = [node(0.0, 0.0, 0.79, 3), node(3.0, 0.0, 0.79, 3),
-          node(3.0, 3.0, 0.79, 3), node(0.35, 0.35, 0.79, 2),
-          node(2.65, 2.65, 0.79, 2), node(0.0, 0.0, 0.45, 1)]
-    return light_def('n01', 'near', la, lb), forms, None, ghost, (), nd
+    forms = box(0.0, 0.0, 0.0, 12.0, 12.0, 1.0, TOP, SHADE, LIT)
+    forms += box(2.0, 2.0, 1.0, 8.0, 8.0, 3.0, TOP, SHADE, LIT)
+    forms += box(4.0, 4.0, 4.0, 4.0, 4.0, 3.0, TOP, SHADE, LIT)
+    la, lb, light = lit_top('n01', 4.0, 4.0, 7.0, 4.0, 4.0)
+    nd = [node(4.0, 4.0, 7.0, 3), node(8.0, 4.0, 7.0, 3),
+          node(8.0, 8.0, 7.0, 3), node(4.0, 8.0, 7.0, 3)]
+    return light_def('n01', 'near', la, lb), forms, light, (), (), nd
 
 
 # ==================================================================== 02
 def labelling():
-    """The AI Act's labelling duty: a mark that has to travel with the thing.
+    """The AI Act's labelling duty: the mark is on the thing, or it is nowhere.
 
-    A body, and a smaller body registered into its face. The mark is the lit
-    element, which is the argument of the piece in the property the system
-    spends most carefully: what is required is not a change to the thing but a
-    declaration ON it, and a declaration that is not the thing the eye lands on
-    has not been made.
-
-    The ghost is the same square in the two positions it is not in — above the
-    body, before it is applied, and beside it, where a mark that travels
-    separately ends up."""
+    One body, one square set in the centre of its face, and the square is what
+    is lit."""
     reset()
-    forms = box(0.15, 0.15, 0.0, 2.7, 2.7, 1.1, TOP, SHADE, LIT)
-    forms += box(1.05, 1.05, 1.1, 0.9, 0.9, 0.34, TOP, SHADE, LIT)
-    la, lb, light = lit_top('n02', 1.05, 1.05, 1.44, 0.9, 0.9)
-    ghost = [
-        axis((1.5, 1.5, 1.1), (1.5, 1.5, 2.7)),
-        gbox(1.05, 1.05, 2.05, 0.9, 0.9, 0.34),         # before it is applied
-        gbox(3.35, 1.05, 0.0, 0.9, 0.9, 0.34),          # the mark that did not travel
-        gquad(1.05, 1.05, 1.1, 0.9, 0.9),
-    ]
-    nd = [node(1.05, 1.05, 1.44, 3), node(1.95, 1.05, 1.44, 3),
-          node(1.95, 1.95, 1.44, 3), node(1.05, 1.95, 1.44, 2),
-          node(0.15, 0.15, 1.1, 1), node(2.85, 0.15, 1.1, 1)]
-    return light_def('n02', 'near', la, lb), forms, light, ghost, (), nd
+    forms = box(0.0, 0.0, 0.0, 12.0, 12.0, 5.0, TOP, SHADE, LIT)
+    forms += box(4.0, 4.0, 5.0, 4.0, 4.0, 1.0, TOP, SHADE, LIT)
+    la, lb, light = lit_top('n02', 4.0, 4.0, 6.0, 4.0, 4.0)
+    nd = [node(4.0, 4.0, 6.0, 3), node(8.0, 4.0, 6.0, 3),
+          node(8.0, 8.0, 6.0, 3), node(4.0, 8.0, 6.0, 3)]
+    return light_def('n02', 'near', la, lb), forms, light, (), (), nd
 
 
 # ==================================================================== 03
 def redispatch():
-    """Redispatch: the direct path is closed, and the cost is the detour.
+    """Redispatch: the direct way is closed and the cost is the way round.
 
-    Two masses on one axis, a third standing in the axis between them, and a
-    bridge built over it out of three members — riser, span, riser, each on a
-    lattice axis. The ghost is the straight line that would have been taken.
+    A centre held between two equal masses, and what is lit is the centre — the
+    money is spent in the middle, on the detour, not at either end.
 
-    THE DETOUR IS BUILT AND NOT DRAWN. It was a trace in the first pass, which
-    made the most expensive thing in the piece the one element of the drawing
-    that is not part of the object. Three billion euros a year is infrastructure;
-    infrastructure is form. What is lit is the block at the apex — the money is
-    not spent on the constraint, it is spent on going round it."""
+    The centre is drawn FIRST: depth here is x + y, and at (4, 4) it stands
+    behind both masses."""
     reset()
-    forms = box(-0.6, 0.9, 0.0, 1.2, 1.0, 0.9, TOP, SHADE, LIT)
-    forms += box(3.0, 0.9, 0.0, 1.2, 1.0, 0.9, TOP, SHADE, LIT)
-    forms += box(1.35, 0.75, 0.0, 0.75, 1.3, 1.7, TOP, SHADE, LIT)
-    forms += beam(0.3, 1.25, 0.9, 'z', 1.4, 0.3)
-    forms += beam(3.3, 1.25, 0.9, 'z', 1.4, 0.3)
-    forms += beam(0.3, 1.25, 2.3, 'x', 3.3, 0.3)
-    forms += box(1.75, 1.15, 2.6, 0.5, 0.5, 0.36, TOP, SHADE, LIT)
-    la, lb, light = lit_top('n03', 1.75, 1.15, 2.96, 0.5, 0.5)
-    ghost = [
-        axis((-0.6, 1.4, 0.45), (4.2, 1.4, 0.45)),      # the path not taken
-        gquad(1.35, 0.75, 1.7, 0.75, 1.3),
-    ]
-    nd = [node(1.75, 1.15, 2.96, 3), node(2.25, 1.15, 2.96, 3),
-          node(2.25, 1.65, 2.96, 3), node(0.3, 1.25, 2.3, 2),
-          node(3.6, 1.25, 2.3, 2), node(1.35, 1.4, 0.45, 1)]
-    return light_def('n03', 'near', la, lb), forms, light, ghost, (), nd
+    forms = box(4.0, 4.0, 0.0, 2.0, 2.0, 8.0, TOP, SHADE, LIT)
+    forms += box(0.0, 6.0, 0.0, 4.0, 4.0, 6.0, TOP, SHADE, LIT)
+    forms += box(6.0, 0.0, 0.0, 4.0, 4.0, 6.0, TOP, SHADE, LIT)
+    la, lb, light = lit_top('n03', 4.0, 4.0, 8.0, 2.0, 2.0)
+    nd = [node(4.0, 4.0, 8.0, 3), node(6.0, 4.0, 8.0, 3),
+          node(6.0, 6.0, 8.0, 3), node(4.0, 6.0, 8.0, 3)]
+    return light_def('n03', 'near', la, lb), forms, light, (), (), nd
 
 
 # ==================================================================== 04
 def electrolyser():
-    """Hydrogen under a controller: separation, drawn as object 02's form.
+    """Hydrogen under a controller: separation, drawn as plates.
 
-    Overlapping plates, each finer than the last, on one axis — the shape a
-    proposition about refinement takes, and the only one of these ten that is
-    lifted straight out of the four that ship. What is lit is the finest plate,
-    because that is what the process is for."""
+    Three concentric plates with air between them. The finest is lit."""
     reset()
-    forms = plates(-0.35, -0.35, 0.0, 3.7, 0.2, 0.14, 6, 0.28)
-    la, lb, light = lit_top('n04', 1.05, 1.05, 2.04, 0.5, 0.5)
-    ghost = [
-        axis((1.5, 1.5, 0.0), (1.5, 1.5, 2.9)),
-        gquad(-0.35, -0.35, 0.0, 3.7, 3.7),
-        gquad(1.05, 1.05, 1.7, 0.5, 0.5),
-    ]
-    nd = [node(1.05, 1.05, 2.04, 3), node(1.55, 1.05, 2.04, 3),
-          node(1.55, 1.55, 2.04, 3), node(0.49, 0.49, 1.36, 2),
-          node(-0.35, -0.35, 0.2, 1), node(3.35, -0.35, 0.2, 1)]
-    return light_def('n04', 'near', la, lb), forms, light, ghost, (), nd
+    forms = box(0.0, 0.0, 0.0, 12.0, 12.0, 1.0, TOP, SHADE, LIT)
+    forms += box(2.0, 2.0, 3.0, 8.0, 8.0, 1.0, TOP, SHADE, LIT)
+    forms += box(4.0, 4.0, 6.0, 4.0, 4.0, 1.0, TOP, SHADE, LIT)
+    la, lb, light = lit_top('n04', 4.0, 4.0, 7.0, 4.0, 4.0)
+    nd = [node(4.0, 4.0, 7.0, 3), node(8.0, 4.0, 7.0, 3),
+          node(8.0, 8.0, 7.0, 3), node(4.0, 8.0, 7.0, 3)]
+    return light_def('n04', 'near', la, lb), forms, light, (), (), nd
 
 
 # ==================================================================== 05
 def cluster():
     """An on-premise cluster, drawn as the boundary it is bought for.
 
-    A closed body, its interior drawn as reference geometry — an x-ray of what
-    it holds — with one small body on the skin where the answer leaves, and the
-    path that would carry the corpus out with it drawn entirely in ghost,
-    because it is a state the object is not in.
+    A closed ring and the one thing inside it, which is what is lit.
 
-    THE GATE IS LIT, NOT THE BODY. The argument is not that the cluster is
-    important, it is that exactly one thing crosses the boundary, so the light
-    goes on the one part of the object that lets anything through and the mass
-    it protects stays grey.
-
-    A rack with louvres is an argument about a rack. A body whose only opening is
-    lit, with a dashed run leaving it and stopping, is an argument about a
-    boundary — and it is the same drawing whether the boundary is a server room
-    or a jurisdiction."""
+    BACK TO FRONT, AND THE RING IS WHY. The two walls at low x and low y are
+    behind what they enclose, the other two are in front of it. Painted in any
+    other order the body inside cuts into the near wall and the boundary stops
+    being closed."""
     reset()
-    forms = box(0.0, 0.0, 0.0, 2.9, 2.9, 2.1, TOP, SHADE, LIT)
-    forms.append(quad_t(0.28, 0.28, 2.1, 2.34, 2.34))
-    forms += box(1.15, 1.15, 2.1, 0.6, 0.6, 0.32, TOP, SHADE, LIT)
-    la, lb, light = lit_top('n05', 1.15, 1.15, 2.42, 0.6, 0.6)
-    ghost = [
-        gquad(0.0, 0.0, 0.7, 2.9, 2.9),                 # what it holds
-        gquad(0.0, 0.0, 1.4, 2.9, 2.9),
-        gline((0.97, 0.0, 0.0), (0.97, 0.0, 2.1)),
-        gline((1.93, 0.0, 0.0), (1.93, 0.0, 2.1)),
-        gline((2.9, 0.97, 0.0), (2.9, 0.97, 2.1)),
-        gline((2.9, 1.93, 0.0), (2.9, 1.93, 2.1)),
-        # the outflow that does not happen: a run on +x, and where it would land
-        gbox(2.9, 1.9, 0.9, 1.05, 0.28, 0.28),
-        gbox(3.95, 1.62, 0.0, 0.85, 0.85, 0.5),
-    ]
-    nd = [node(1.15, 1.15, 2.42, 3), node(1.75, 1.15, 2.42, 3),
-          node(1.75, 1.75, 2.42, 3), node(2.9, 1.9, 1.18, 2),
-          node(0.0, 0.0, 2.1, 1), node(2.9, 0.0, 2.1, 1)]
-    return light_def('n05', 'near', la, lb), forms, light, ghost, (), nd
+    forms = box(0.0, 0.0, 0.0, 12.0, 2.0, 4.0, TOP, SHADE, LIT)
+    forms += box(0.0, 2.0, 0.0, 2.0, 10.0, 4.0, TOP, SHADE, LIT)
+    forms += box(4.0, 4.0, 0.0, 4.0, 4.0, 2.0, TOP, SHADE, LIT)
+    forms += box(2.0, 10.0, 0.0, 10.0, 2.0, 4.0, TOP, SHADE, LIT)
+    forms += box(10.0, 2.0, 0.0, 2.0, 8.0, 4.0, TOP, SHADE, LIT)
+    la, lb, light = lit_top('n05', 4.0, 4.0, 2.0, 4.0, 4.0)
+    nd = [node(4.0, 4.0, 2.0, 3), node(8.0, 4.0, 2.0, 3),
+          node(8.0, 8.0, 2.0, 3), node(4.0, 8.0, 2.0, 3)]
+    return light_def('n05', 'near', la, lb), forms, light, (), (), nd
 
 
 # ==================================================================== 06
 def storage():
-    """Storage as a flexibility asset: many small arrivals, one body that holds.
+    """Storage as a flexibility asset: flat arrivals, one body that holds.
 
-    A row of thin plates running into a single tall mass, and the mass is
-    graduated so that a height reads as a quantity. The ghost is the level it
-    reaches — the object drawn in the state it is not in yet, which is the one
-    thing a photograph of a battery container can never show.
-
-    THE ROW IS ON e1 - e2 AND THAT IS NOT A DETAIL. Both ground axes slope
-    26.57 deg on screen, so a row marched along either one loses a unit of drawn
-    height per step, and members meant to be equal are drawn unequal — the trap
-    the plot fell into, where five columns rising 31 to 100 came out with the
-    tallest lower than the shortest. (+1, -1) is still a lattice move and it is
-    the only one that is level."""
+    Two plates on the two ground axes, and the mass they run into is lit."""
     reset()
-    forms = []
-    for i in range(3):
-        forms += box(0.2 + i * LEVEL[0] * 0.7, 1.8 + i * LEVEL[1] * 0.7, 0.0,
-                     0.9, 0.9, 0.2, TOP, SHADE, LIT)
-    forms += box(2.8, 0.3, 0.0, 1.6, 1.6, 1.7, TOP, SHADE, LIT)
-    for i in (1, 2):
-        forms.append(gline((2.8, 1.9, i * 0.55), (4.4, 1.9, i * 0.55)))
-        forms.append(gline((4.4, 0.3, i * 0.55), (4.4, 1.9, i * 0.55)))
-    la, lb, light = lit_top('n06', 2.8, 0.3, 1.7, 1.6, 1.6)
-    ghost = [
-        gquad(2.8, 0.3, 2.4, 1.6, 1.6),                 # the level it reaches
-        gline((2.8, 0.3, 1.7), (2.8, 0.3, 2.4)),
-        gline((4.4, 1.9, 1.7), (4.4, 1.9, 2.4)),
-        axis((0.05, 2.15, 0.1), (3.05, -0.85, 0.1)),    # the level line itself
-    ]
-    nd = [node(2.8, 0.3, 1.7, 3), node(4.4, 0.3, 1.7, 3),
-          node(4.4, 1.9, 1.7, 3), node(0.2, 1.8, 0.2, 1),
-          node(0.9, 1.1, 0.2, 1), node(1.6, 0.4, 0.2, 2)]
-    return light_def('n06', 'near', la, lb), forms, light, ghost, (), nd
+    forms = box(0.0, 4.0, 0.0, 4.0, 4.0, 1.0, TOP, SHADE, LIT)
+    forms += box(4.0, 0.0, 0.0, 4.0, 4.0, 1.0, TOP, SHADE, LIT)
+    forms += box(4.0, 4.0, 0.0, 6.0, 6.0, 6.0, TOP, SHADE, LIT)
+    la, lb, light = lit_top('n06', 4.0, 4.0, 6.0, 6.0, 6.0)
+    nd = [node(4.0, 4.0, 6.0, 3), node(10.0, 4.0, 6.0, 3),
+          node(10.0, 10.0, 6.0, 3), node(4.0, 10.0, 6.0, 3)]
+    return light_def('n06', 'near', la, lb), forms, light, (), (), nd
 
 
 # ==================================================================== 07
 def verteilnetz():
-    """The distribution grid, and the branch that is curtailed.
+    """The distribution grid: a hub and what leaves it.
 
-    A hub with four arms on the lattice's own ground axes, three of them drawn
-    and one of them entirely in ghost. That is the distinction the piece is
-    about and the one a photograph cannot make: a curtailed feeder is not a
-    feeder that is missing, it is a feeder that is there and not being used, and
-    a dashed contour is the only element in the system that means exactly
-    that."""
+    A cross on the lattice's own ground axes, four arms of one length, and the
+    hub is lit. The two near arms are painted after the hub they leave."""
     reset()
-    forms = box(0.85, 0.85, 0.0, 1.3, 1.3, 1.4, TOP, SHADE, LIT)
-    forms += beam(2.15, 1.36, 0.3, 'x', 2.35, 0.32)
-    forms += beam(1.36, 2.15, 0.3, 'y', 2.35, 0.32)
-    forms += beam(-1.35, 1.36, 0.3, 'x', 2.2, 0.32)
-    la, lb, light = lit_top('n07', 0.85, 0.85, 1.4, 1.3, 1.3)
-    ghost = [
-        gbox(1.36, -1.35, 0.3, 0.32, 2.2, 0.32),        # there, and carrying nothing
-        axis((1.5, -1.55, 0.46), (1.5, 4.7, 0.46)),
-        gquad(0.85, 0.85, 0.0, 1.3, 1.3),
-    ]
-    nd = [node(0.85, 0.85, 1.4, 3), node(2.15, 0.85, 1.4, 3),
-          node(2.15, 2.15, 1.4, 3), node(4.5, 1.36, 0.62, 2),
-          node(1.36, 4.5, 0.62, 2), node(-1.35, 1.36, 0.62, 1)]
-    return light_def('n07', 'near', la, lb), forms, light, ghost, (), nd
+    forms = box(0.0, 4.0, 0.0, 4.0, 4.0, 2.0, TOP, SHADE, LIT)
+    forms += box(4.0, 0.0, 0.0, 4.0, 4.0, 2.0, TOP, SHADE, LIT)
+    forms += box(4.0, 4.0, 0.0, 4.0, 4.0, 4.0, TOP, SHADE, LIT)
+    forms += box(8.0, 4.0, 0.0, 4.0, 4.0, 2.0, TOP, SHADE, LIT)
+    forms += box(4.0, 8.0, 0.0, 4.0, 4.0, 2.0, TOP, SHADE, LIT)
+    la, lb, light = lit_top('n07', 4.0, 4.0, 4.0, 4.0, 4.0)
+    nd = [node(4.0, 4.0, 4.0, 3), node(8.0, 4.0, 4.0, 3),
+          node(8.0, 8.0, 4.0, 3), node(4.0, 8.0, 4.0, 3)]
+    return light_def('n07', 'near', la, lb), forms, light, (), (), nd
 
 
 # ==================================================================== 08
 def platforms():
     """Two data platforms, drawn as two ways of building one volume.
 
-    A stack of layers you can count, and a body of revolution you cannot — same
-    footprint, same height, nothing else to tell them apart. The ghost is the
-    footprint they share, which is the honest answer to a headline that asks
-    which is better: what the piece actually answers is what the workload is,
-    and both fit it.
-
-    A DRUM AND NOT A FRUSTUM. A taper's generatrix lands on a screen slope of
-    0.5 - dz/dx, which is a brand angle for dz/dx of 1, 1.5 and 2.5 and for
-    nothing else — so a frustum chosen for its silhouette is a frustum off the
-    grid. A cylinder's sides are vertical, its ends are the 2:1 circle, and the
-    whole body is on the lattice by construction."""
+    Layers you can count and a body you cannot, the same height at mirrored
+    places on the grid. What is lit is the stack."""
     reset()
-    forms = plates(-0.9, 0.3, 0.0, 1.7, 0.24, 0.06, 6, 0.0)
-    forms += drum(2.85, 1.15, 0.0, 0.85, 1.8, top=TOP, side=LIT)
-    forms.append(hoop(2.85, 1.15, 0.9, 0.85))
-    la, lb, light = lit_top('n08', -0.9, 0.3, 1.8, 1.7, 1.7)
-    ghost = [
-        axis((-0.05, 1.15, 0.0), (-0.05, 1.15, 2.4)),
-        axis((2.85, 1.15, 0.0), (2.85, 1.15, 2.4)),
-        gquad(2.0, 0.3, 0.0, 1.7, 1.7),                 # the footprint they share
-        gquad(-0.9, 0.3, 1.8, 1.7, 1.7),
-    ]
-    nd = [node(-0.9, 0.3, 1.8, 3), node(0.8, 0.3, 1.8, 3),
-          node(0.8, 2.0, 1.8, 3), node(2.85, 1.15, 1.8, 2),
-          node(2.0, 0.3, 0.0, 1), node(3.7, 2.0, 0.0, 1)]
-    return light_def('n08', 'near', la, lb), forms, light, ghost, (), nd
+    forms = plates(0.0, 6.0, 0.0, 4.0, 1.0, 0.5, 4, 0.0)
+    forms += drum(8.0, 2.0, 0.0, 2.0, 5.5, top=TOP, side=LIT)
+    la, lb, light = lit_top('n08', 0.0, 6.0, 5.5, 4.0, 4.0)
+    nd = [node(0.0, 6.0, 5.5, 3), node(4.0, 6.0, 5.5, 3),
+          node(4.0, 10.0, 5.5, 3), node(0.0, 10.0, 5.5, 3)]
+    return light_def('n08', 'near', la, lb), forms, light, (), (), nd
 
 
 # ==================================================================== 09
 def maintenance():
-    """Predictive maintenance: a body read on its axis before it fails.
+    """Predictive maintenance: a body read on its axis.
 
-    Object 03's form — a solid of revolution, read on the axis — with an orbit
-    for the path its surface travels and a second profile ghosted inside it for
-    the state it is heading towards. The reading is the whole subject, so the
-    drawing is the body, its axis, and the difference between what it is and
-    what it is becoming.
-
-    THE LIT ELEMENT IS THE HUB AND NOT THE WHOLE END. A drum's top disc is the
-    largest single face here; filled with the ramp it is a lime object rather
-    than a lit one. The hub is 0.42 and it is what the axis passes through — the
-    light lands where the reading is taken.
-
-    The rake is far, because a body of revolution has no flat side to light:
-    card 04 puts lime at 0.9 to 1.0 of a radial ramp for the same reason, and
-    lime_span_disc anchors on the ellipse's own vertical extent rather than on a
-    bounding-box corner so the lit end reaches lime at all."""
+    A solid of revolution and the hub the axis runs through, which is lit. The
+    four nodes are the hub's own cardinal points — a disc has no corners, and
+    the rule is four marks, not four corners."""
     reset()
-    forms = drum(1.5, 1.5, 0.0, 1.5, 2.15, top=TOP, side=LIT)
-    forms.append(hoop(1.5, 1.5, 0.72, 1.5))
-    forms.append(hoop(1.5, 1.5, 1.44, 1.5))
-    forms += drum(1.5, 1.5, 2.15, 0.52, 0.3, top=None, side=LIT)
-    la, lb = iso.lime_span_disc(1.5, 1.5, 2.45, 0.52, axis='z', span=2.6)
-    light = iso.light_disc('n09', 1.5, 1.5, 2.45, 0.52, axis='z')
-    ghost = [
-        axis((1.5, 1.5, -0.7), (1.5, 1.5, 3.3)),
-        disc(1.5, 1.5, 2.15, 1.07),                     # the profile it is becoming
-        gline((0.43, 1.5, 2.15), (0.43, 1.5, 0.18)),
-        gline((2.57, 1.5, 2.15), (2.57, 1.5, 0.18)),
-    ]
-    orb = [orbit(1.5, 1.5, 1.08, 2.15, axis='z')]
-    nd = [node(1.5, 1.5, 2.45, 3), node(2.02, 1.5, 2.45, 3),
-          node(1.5, 1.5, 2.15, 2), node(0.0, 1.5, 1.44, 1),
-          node(1.5, 1.5, 0.0, 1)]
-    return light_def('n09', 'far', la, lb), forms, light, ghost, orb, nd
+    forms = drum(6.0, 6.0, 0.0, 4.0, 5.0, top=TOP, side=LIT)
+    forms += drum(6.0, 6.0, 5.0, 2.0, 1.0, top=None, side=LIT)
+    # The span is in user units, not radii: at 2.6 across a hub of radius 2 the
+    # ramp never leaves lime and the light stops being a moment. Five radii is
+    # what the rest of the set spends.
+    la, lb = iso.lime_span_disc(6.0, 6.0, 6.0, 2.0, axis='z', span=10.0)
+    light = iso.light_disc('n09', 6.0, 6.0, 6.0, 2.0, axis='z')
+    nd = [node(4.0, 6.0, 6.0, 3), node(8.0, 6.0, 6.0, 3),
+          node(6.0, 4.0, 6.0, 3), node(6.0, 8.0, 6.0, 3)]
+    return light_def('n09', 'far', la, lb), forms, light, (), (), nd
 
 
 # ==================================================================== 10
 def region():
-    """A region of connected platforms: three bodies, and what is between them.
+    """A region of connected platforms: what is between them is the subject.
 
-    The links are members on the ground axes and nothing else — with the arrows
-    gone, what joins two sites has to be a thing, and a thing in this projection
-    runs on a lattice axis or it is off the grid. The one ghosted link runs the
-    same way, to the site the network has not reached.
-
-    The lit body is the SMALLEST. What the piece argues is that the benefit is
-    in the network rather than in the size of any participant, and the property
-    this system will not let you spend twice is the light — so it goes on the
-    smallest plate, which is the sentence the drawing can make that a caption
-    would otherwise have to."""
+    A centre and two sites, one on each ground axis, joined by two members of
+    one length. The centre is lit, and it is nearest, so it is painted last."""
     reset()
-    forms = box(-0.9, 0.1, 0.0, 1.8, 1.8, 0.7, TOP, SHADE, LIT)
-    forms += box(2.2, -0.5, 0.0, 1.4, 1.4, 1.25, TOP, SHADE, LIT)
-    forms += box(1.5, 2.4, 0.0, 1.1, 1.1, 0.45, TOP, SHADE, LIT)
-    forms += beam(0.9, 0.75, 0.32, 'x', 1.3)
-    forms += beam(2.35, 0.9, 0.32, 'y', 1.5)
-    la, lb, light = lit_top('n10', 1.5, 2.4, 0.45, 1.1, 1.1)
-    ghost = [
-        gbox(2.6, 2.75, 0.2, 1.3, 0.28, 0.28),          # the link not made
-        gbox(3.9, 2.4, 0.0, 1.0, 1.0, 0.4),             # the site not reached
-        axis((-0.9, 1.0, 0.35), (4.9, 1.0, 0.35)),
-    ]
-    nd = [node(1.5, 2.4, 0.45, 3), node(2.6, 2.4, 0.45, 3),
-          node(2.6, 3.5, 0.45, 3), node(0.9, 0.9, 0.46, 2),
-          node(2.35, 0.9, 0.46, 2), node(-0.9, 0.1, 0.7, 1)]
-    return light_def('n10', 'near', la, lb), forms, light, ghost, (), nd
+    forms = box(0.0, 4.0, 0.0, 4.0, 4.0, 3.0, TOP, SHADE, LIT)
+    forms += box(4.0, 0.0, 0.0, 4.0, 4.0, 3.0, TOP, SHADE, LIT)
+    forms += box(4.0, 8.0, 2.0, 4.0, 2.0, 1.0, TOP, SHADE, LIT)
+    forms += box(8.0, 4.0, 2.0, 2.0, 4.0, 1.0, TOP, SHADE, LIT)
+    forms += box(8.0, 8.0, 0.0, 4.0, 4.0, 6.0, TOP, SHADE, LIT)
+    la, lb, light = lit_top('n10', 8.0, 8.0, 6.0, 4.0, 4.0)
+    nd = [node(8.0, 8.0, 6.0, 3), node(12.0, 8.0, 6.0, 3),
+          node(12.0, 12.0, 6.0, 3), node(8.0, 12.0, 6.0, 3)]
+    return light_def('n10', 'near', la, lb), forms, light, (), (), nd
 
 
 OBJECTS = {
@@ -507,14 +342,26 @@ def build(fn, title, size=None):
 # the file to arrive at 1. At 2016 px from a 572-unit viewBox the scale is 3.52,
 # which puts that at 1.4 user units.
 #
-# The PNG is named by the digest of its own bytes, the way
-# scripts/sync-news-notion.py names anything it stores, so the file this writes
-# and the file the sync downloads from Notion after the same export is uploaded
-# there are the same file and the next sync is a no-op.
+# NOTHING HERE RUNS BY ITSELF, AND THE EXPORT DOES NOT GO INTO THE SITE.
+#
+# This file used to write its PNGs straight into
+# design-system/assets/img/news/ under the name the sync would give them, so
+# that a picture uploaded to Notion afterwards came back to the same path. Two
+# stores then claimed the same pictures, and the archive was emptied twice
+# working out which one was in charge: once when the sync swept plates the
+# generator had just committed, and once when an upload to Notion failed
+# quietly and the sync read the missing picture as an editorial decision.
+#
+# NOTION IS THE ONE PLACE A PICTURE COMES FROM. This is a drawing tool that is
+# run when somebody asks for it, by hand; the export lands in png/ next to the
+# sources, and a person uploads what they want from there into the post's
+# Titelbild. What the site ships is whatever Notion holds — downloaded, named
+# and swept by scripts/sync-news-notion.py, which is the only writer that image
+# folder has. png/ is not committed for the same reason: a copy in the
+# repository is a second answer to a question that now has one.
 
 SVG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'svg')
-IMAGES = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                      '..', '..', 'design-system', 'assets', 'img', 'news')
+PNG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'png')
 
 EXPORT_W = 2016          # two plates; check-content-images.py's ceiling
 EXPORT_STROKE = 1.4      # see the note above
@@ -575,7 +422,6 @@ def rasterise(svg, stem):
 
 
 def emit_all(check=False):
-    import hashlib
     bad = 0
     size = common_size([fn for fn, _ in OBJECTS.values()])
     os.makedirs(SVG_DIR, exist_ok=True)
@@ -591,9 +437,9 @@ def emit_all(check=False):
             with open(src, 'wb') as fh:
                 fh.write(svg)
         png = rasterise(svg.decode('utf-8'), stem)
-        name = "%s-%s.png" % (stem[:40].rstrip('-'),
-                              hashlib.sha1(png).hexdigest()[:8])
-        path = os.path.join(IMAGES, name)
+        name = stem + '.png'
+        path = os.path.join(PNG_DIR, name)
+        os.makedirs(PNG_DIR, exist_ok=True)
         if not os.path.exists(path) or open(path, 'rb').read() != png:
             with open(path, 'wb') as fh:
                 fh.write(png)

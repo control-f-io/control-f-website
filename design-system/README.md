@@ -178,7 +178,7 @@ under *Branding / Marketing*, seeded with the eighteen posts that were already i
 | `Themen` | Multi-select | **required.** One or more. Its options *are* the archive's filter — the sync writes them into `content/themen.json` and the chips follow, so a new topic is a new option here. A post filed under nothing is a card the topic filter cannot place, and the build refuses it. → [The topics](#the-topics-and-the-one-word-notion-cannot-hold) |
 | `Autor` | Text | optional; only the lead card has room to show it |
 | `Minuten` | Number | optional; reading time |
-| `Titelbild` | Files | optional; the card's picture and the article's title plate. The sync downloads it (Notion's URLs expire within the hour), fits it to the plate and names the file after the digest of the bytes it stored |
+| `Titelbild` | Files | optional; the card's picture and the article's title plate. The sync downloads it (Notion's URLs expire within the hour), fits it to the plate and names the file after the digest of the bytes it stored. Upload it here and nowhere else — this property is where a post's picture comes from, and an empty one means the post has none. `scripts/news-objects/` draws the isometric plates on request; what it exports is uploaded by hand |
 | `Status` | Select | `Entwurf` → `In Review` → `Veröffentlicht`; only the last is imported |
 
 **What you write inside the page is the article.** German text, a **divider
