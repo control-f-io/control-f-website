@@ -583,8 +583,17 @@ def flotten():
     a mast — because a shape that has to serve as ship, aircraft, train and
     mining equipment at once ends up serving as none of them, and four copies
     of a shape that means nothing is not four times the meaning. The chips under
-    this field's copy name Flugzeuge, Bergbaugerät, Schiffe and Züge. The
+    this field's copy named Flugzeuge, Bergbaugerät, Schiffe and Züge, and the
     drawing beside them showed none of the four.
+
+    THE CHIPS HAVE SINCE MOVED and the yard has not followed them. They read
+    Baumaschinen, Nutzfahrzeuge, Windparks and BHKW now; of those the yard has
+    the excavator and the semi, and the ship, the aircraft and the train are no
+    longer named under it. What holds the object together in the meantime is the
+    part of it that was never the cast — the container, drawn six times — which
+    is why five machines still read as one fleet. What a redraw would owe this
+    copy is a wind park and a BHKW in two of the four corners, and those two are
+    the first things in this yard that do not run on their own wheels.
 
     SO THE REPETITION MOVED TO WHERE IT IS TRUE. It is not the assets that
     repeat — an operator's aircraft and its trains are not each other — it is
