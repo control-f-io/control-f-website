@@ -2691,6 +2691,42 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-idle-reach.py
 
+      # And the third of the idle checks, which is about the VERB the other two
+      # do not have an opinion on. Both of them, and every measurement behind
+      # them, are of a page that is sitting still: no scroll, no pointer, five
+      # seconds of nothing. On a still page a perpetual animation is the thing
+      # MAKING the browser produce frames, so pausing it removes the frame and
+      # everything in it, and -74 % is right.
+      #
+      # A page under a finger is producing frames anyway, and there a paused
+      # animation is still an animation on the element: the style update that
+      # frame, already scheduled by the scroll, still walks it. Measured through
+      # the acts at 390 x 844 with the CPU throttled 4x, one rAF-paced pass:
+      # 517 elements walked per frame as it stood, 491 with the same 126
+      # readouts merely paused, 136 with the animation taken away. Pausing
+      # bought 5 %. Removing bought 74 %.
+      #
+      # So the paint gate -- [data-cf-paint] in the markup, [data-dark] written
+      # back on it by cf-idle.js when the box is not painted -- must remove. On
+      # the whole landing page at 390 x 844 that is 378 elements a frame before
+      # and 105 after, 3 314 ms of style recalculation and 1 207.
+      #
+      # AND THE SUBSTITUTION NO LONGER MEASURES BADLY, which is why this is a
+      # gate and not a note. The same attribute also puts five readings in six
+      # back to display: none, so 105 of the 126 animated boxes leave the frame
+      # anyway and `paused` now measures 170 against `none` at 160. Anybody who
+      # tries it today finds six per cent and concludes it is free; it is the
+      # resting state carrying the gate. Invisible in every screenshot,
+      # near-invisible in a profile, exactly countable in a file.
+      #
+      # Proven failing on two reintroductions: the rule flipped to
+      # animation-play-state: paused, which is the shape the mistake takes, and
+      # the removing rule deleted outright, which leaves the mark in the markup
+      # and the script running with nothing to answer them.
+      - name: Idle paint
+        if: '!cancelled()'
+        run: python3 scripts/check-idle-paint.py
+
       # A layout recipe is two halves and only one of them is in the stylesheet.
       # `--tile` is read in exactly one declaration in the system — .tiles's
       # grid-template-columns — so a rule that sets it is configuring a class

@@ -100,7 +100,21 @@
    The value on the attribute is the rootMargin for that figure and nothing
    else; empty keeps the readouts' viewport of lead-in. Figures are grouped by
    margin, so the usual page still builds one observer.
-   → scripts/check-idle-motion.py, scripts/check-idle-reach.py */
+
+   AND THERE IS A SECOND GATE IN HERE NOW, because geometry cannot answer the
+   question on a figure inside a pinned stage: the marked box never leaves the
+   viewport, and the readouts it carries have been at opacity 0 for most of
+   that time. It is marked `data-cf-paint`, it writes `data-dark`, and it asks
+   `checkVisibility({ opacityProperty: true })` rather than an observer. Every
+   measurement above is of a STILL page, and on a still page pausing is the
+   whole cure. Under a finger it is worth 5 % where taking the animation away
+   is worth 74 %, which is why the two gates use different verbs. Measured
+   over one rAF-paced pass down the landing page at 390 x 844, CPU throttled
+   4x: 378 elements walked per frame before this gate and 105 after, 3 314 ms
+   of style recalculation and 1 207. The argument and the rest of the numbers
+   are at the foot of this file, where the mechanism is.
+   → scripts/check-idle-motion.py, scripts/check-idle-reach.py,
+     scripts/check-idle-paint.py */
 
 (function () {
   'use strict';
@@ -166,4 +180,155 @@
     figures[i].setAttribute('data-idle', '');
     observerFor(figures[i].getAttribute('data-cf-idle') || DEFAULT_MARGIN).observe(figures[i]);
   }
+}());
+
+
+/* ---- THE SECOND GATE: PAINTED, NOT MERELY PRESENT ----
+
+   ITS OWN BLOCK, and that is the shape of the claim above it: two mechanisms
+   in one file that share a subject and share nothing else. This one needs no
+   IntersectionObserver, observes nothing, and has its own mark; the one above
+   needs no checkVisibility and has its own. A browser or a page that can only
+   have one gets that one, and neither can take the other down.
+
+
+     GEOMETRY IS THE WRONG QUESTION FOR A FIGURE INSIDE A PINNED STAGE, and
+     acts.css has carried the open fault at length under `.sp-stream` since it
+     was found. `data-cf-idle` is on `.sp-track`, which is not sticky and which
+     therefore intersects the viewport for the whole of its own scroll — every
+     position a reader can be at while still inside act 1 or act 2. The box the
+     126 readouts actually live in is `.sp-annots`, which crossfades to opacity
+     0 partway through that and stays there. The observer above never sees it
+     leave, because the box it is asked about never leaves, and
+     IntersectionObserver has no way to report that one box now sits behind
+     another that has gone opaque in front of it.
+
+     Measured on the shipped landing page at 390 x 844, consent answered,
+     Chromium 1194: the notes are painted over 250 px of scroll and the
+     readouts were ticking over 3 100 px of it. Twelve times the scroll a
+     reader can see them in, and it is the first half of the document — the
+     half a reader meets first.
+
+     AND WHAT IT COSTS IS PAID WHILE SCROLLING, which is the part the rest of
+     this file's measurements do not cover and the reason this gate does a
+     different thing to the one above. Every number in this file's header is
+     from a STILL page: no scroll, no frames of its own, so a perpetual
+     animation is the thing making frames happen and pausing it removes the
+     frame and everything in it. A page under a finger is producing frames
+     anyway. A paused animation is still an animation on the element, and the
+     style update that frame — already scheduled by the scroll — still walks
+     it. Measured through the acts at 390 x 844 with the CPU throttled 4x, one
+     rAF-paced pass of sixty steps, median of three, taken with the readouts'
+     resting state as it then was — all six readings `display: block`:
+
+                                   elements/frame   style recalc
+       as it stood                      517           2 266 ms
+       the same 126 merely PAUSED       491           1 995
+       the same 126 with no animation   136             689
+
+     Pausing bought 5 %. Taking the animation away bought 74 %. So this gate
+     removes rather than pauses — `[data-dark]` in acts.css sets
+     `animation-name: none` — and the gate above keeps `paused` for the case it
+     was measured on, where holding each reading at the value it had is worth
+     having and costs nothing.
+
+     THE TABLE DOES NOT REPRODUCE ON THE SHIPPED PAGE ANY MORE, and that is
+     not the table being wrong. acts.css puts five readings in six back to
+     `display: none` under the same attribute, because six readings with no
+     animation to show one at a time is a six-deep overprint; that takes 105
+     of the 126 animated boxes out of the frame as well, and `paused` and
+     `none` then measure 170 and 160 over the same band. The pause did not
+     become cheap — the resting state took the elements away. A later edit
+     that reads those two numbers and simplifies this back to a play state
+     would be reading the wrong pair. scripts/check-idle-paint.py is what
+     fails then.
+
+     THE RESTART IS INVISIBLE HERE AND WOULD NOT BE THERE. Dropping these
+     animations and re-creating them puts all twenty-one sensors back on their
+     slot-0 reading at once — `animation-delay` staggers the six readings
+     within a sensor, not the sensors against each other — and acts.css is
+     right that this must not happen under the geometric gate, whose edges are
+     a viewport of margin around a box that stays put and can therefore flip
+     while the reader is looking straight at a lit field. This gate's edges are
+     the two instants the figure's opacity passes through zero. There is
+     nothing drawn to see restart.
+
+     IT ASKS THE PAGE RATHER THAN CARRYING THE NUMBERS. acts.css states the
+     window twice, in contain%, once per tier: 18 % to 82 % below the pin gate
+     and 26 % to 44 % above it. A scroll-position gate would have to hold all
+     four here, in a second file, with nothing keeping them equal but a third
+     check script — and would be wrong in the tiers that have no timeline at
+     all. `checkVisibility({ opacityProperty: true })` asks for the one fact
+     that actually decides it, so this file has no thresholds in it, needs no
+     breakpoint, and works the same in every tier including the ones the
+     choreography degrades to.
+
+     ONE CALL PER SCROLL FRAME, on one element per marked figure, coalesced to
+     one rAF the way act-rail.js and cf-stream.js coalesce theirs. Measured
+     over one rAF-paced pass down the whole document, CPU throttled 4x:
+
+                          elements/frame        style recalc
+       390 x 844           378  ->  105        3 314 ms  ->  1 207 ms
+       1440 x 844          435  ->  144        4 202     ->  1 981
+
+     Over the acts alone at 390, 513 -> 160 against a floor of 127 with the
+     readouts' animation deleted outright — so the gate gives back all but 33
+     elements a frame of what deleting the figure would. Every other page in
+     patterns/ walks two to six.
+
+     WHAT IT REFUSES, on this file's own terms: no checkVisibility, no work.
+     Safari below 17.4 and Firefox below 125 keep the behaviour they have
+     rather than a worse one, and the geometric gate above is untouched by any
+     of this. → acts.css, under `.sp-stream`;scripts/check-idle-paint.py */
+
+(function () {
+  'use strict';
+
+  if (!window.matchMedia) return;
+  /* Nothing to gate: every animation this reaches is already inside a
+     no-preference block, which is the measurement in the header above. */
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var painted = document.querySelectorAll('[data-cf-paint]');
+  if (!painted.length || !painted[0].checkVisibility) return;
+
+  var dark = [];
+  var ticking = false;
+
+  function read() {
+    ticking = false;
+    for (var i = 0; i < painted.length; i++) {
+      /* opacityProperty is the one that answers this file's question; the
+         other two are named so that a figure withdrawn by any of the three
+         ways this system withdraws things reads the same here. */
+      var lit = painted[i].checkVisibility({
+        opacityProperty: true,
+        visibilityProperty: true,
+        contentVisibilityAuto: true
+      });
+      if (dark[i] === !lit) continue;
+      dark[i] = !lit;
+      if (dark[i]) painted[i].setAttribute('data-dark', '');
+      else painted[i].removeAttribute('data-dark');
+    }
+  }
+
+  function schedule() {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(read);
+  }
+
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule, { passive: true });
+
+  /* DARK UNTIL READ, for the reason the gate above is idle until its first
+     callback: a figure that is not painted at load should have been still
+     since its first frame. The read is in this same task, so a figure that IS
+     painted at load loses nothing by it. */
+  for (var d = 0; d < painted.length; d++) {
+    painted[d].setAttribute('data-dark', '');
+    dark[d] = true;
+  }
+  read();
 }());

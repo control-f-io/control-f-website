@@ -584,8 +584,14 @@ def annots_markup(indent):
 # message for somebody having edited generated output by hand.
 SENSORS_RE = re.compile(
     r'([ \t]*)(<g class="sp-field__sensors">\n)((?:.*\n)*?)(\1</g>)')
+# THE OPENING TAG IS THE MARKER AND ITS ATTRIBUTES ARE NOT THE GENERATOR'S.
+# The list carries `data-cf-paint` for cf-idle.js's paint gate, and a marker
+# pinned to the exact tag would have made adding it a "the markers went stale"
+# failure — on a line this script writes back verbatim from group(2) and has no
+# opinion about. Matching the tag and not its attribute list is the same
+# robustness the indent backreference above buys on the closing tag.
 ANNOTS_RE = re.compile(
-    r'([ \t]*)(<ul class="cf-annot-set sp-annots">\n)((?:.*\n)*?)(\1</ul>)')
+    r'([ \t]*)(<ul class="cf-annot-set sp-annots"[^>]*>\n)((?:.*\n)*?)(\1</ul>)')
 
 
 def splice(text):
