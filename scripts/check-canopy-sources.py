@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """One bead per unique leaf end, nowhere else, at a size the tightest pair holds.
 
-WHAT THE LAYER IS. The flow tier draws one moment of act 1/2 — the finished
-root — and .lp-flow-sources is how that tier still tells the story's subject:
-one sensor bead per unique canopy entry, standing at the far end of the leaf
-stroke that carries its readings down. The markup argues the composition
+WHAT THE LAYER IS. It stands in for act 1 in whichever tier cannot draw it:
+one sensor bead per unique canopy entry, at the far end of the leaf stroke that
+carries its readings down, on a root the reader is otherwise given finished.
+That was the flow tier when this file was written; the flow tier draws the real
+field now, and what is left to the layer is the reader who can resolve a scroll
+timeline, has asked for less motion, and is above 64rem x 45rem — the one tier
+with neither a band nor an axis. check-act-moment.py's clause 5 owns which tier
+that is; what is held here is the layer itself, which has not moved. The markup argues the composition
 (patterns/landing-page.html, THE SOURCES); acts.css argues size, gate and
 light. This check holds the three numbers neither prose can be trusted with.
 

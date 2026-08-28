@@ -2068,6 +2068,32 @@
   const fringe = Math.min(...ends.map(p => p[1]));
   const tips = ends.filter(p => Math.abs(p[1] - fringe) < 1e-6);
 
+  /* AND THE TARGET IS INSIDE THE PICTURE, WHICH IS NOT THE SAME AS INSIDE
+     THE DRAWING. The two boxes are the same box only where the field is the
+     stage's full-bleed backdrop and the root stands in it — the pinned tier.
+     Every other tier sequences the acts in SPACE: the field takes a band at
+     the head of the stage, act 1's claim stands under it and the root under
+     that, so the feet map to a point several hundred units BELOW the field's
+     own 1600 x 900. Measured at 390 x 844, all twenty-one sensors: --uy
+     1399.1 against a viewBox that ends at 900, which is 608 px of flight on a
+     480 px band — the beads did not converge, they dropped through the floor
+     in two frames and the merge told nothing at all.
+
+     So the point is clamped to the field's own viewBox. A foot inside it is
+     untouched, which is the pinned tier unchanged to the digit; a foot below
+     it becomes the point on the bottom edge DIRECTLY ABOVE IT, so the bead
+     still travels toward the branch that will carry it and still arrives
+     where that branch enters the picture — and the merge's own keyframe puts
+     it out exactly there, at the edge, rather than somewhere past it. Seven
+     distinct x among the twenty-one at 390 wide, so it stays a convergence
+     and not a curtain.
+
+     READ OFF THE SVG, not typed: viewBox.baseVal is the same 1600 x 900 the
+     markup states and gen-proto-field.py lays the crossings on, so a field
+     re-drawn on another canvas moves this with it. */
+  const vb = field.viewBox.baseVal;
+  const into = (v, lo, span) => v < lo ? lo : v > lo + span ? lo + span : v;
+
   const aim = () => {
     const f = field.getScreenCTM();
     const g = flow.getScreenCTM();
@@ -2083,8 +2109,8 @@
         const d = (p.x - cx) ** 2 + (p.y - cy) ** 2;
         if (d < bd) { bd = d; best = p; }
       }
-      s.style.setProperty('--ux', best.x.toFixed(1));
-      s.style.setProperty('--uy', best.y.toFixed(1));
+      s.style.setProperty('--ux', into(best.x, vb.x, vb.width).toFixed(1));
+      s.style.setProperty('--uy', into(best.y, vb.y, vb.height).toFixed(1));
     });
   };
   aim();
