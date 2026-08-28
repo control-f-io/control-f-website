@@ -2178,8 +2178,38 @@
 
            The floor still wins where it binds — max-height cannot cut below
            min-height — so the phone band is untouched at 480 and the crop it
-           makes is the one check-ground-band.py measures. */
-        max-height: calc(100vh - var(--sp-claim-band));
+           makes is the one check-ground-band.py measures.
+
+           AND THE CAP HAS A FLOOR OF ITS OWN, because a cap on THIS box is a
+           vertical crop and a vertical crop takes rows of instruments off the
+           drawing. The box is `slice` at 16 / 9: shorten it and the surplus
+           goes off the top and the bottom in equal halves, so every pixel the
+           cap saves costs the field 2 x (that / scale) units of its own height.
+           The field's five rows sit at y 80, 248, 416, 584 and 752, and the
+           topmost bead's rim is 58.7 units off the frame — measured off the
+           generated markup, not assumed — so a crop of 59 units does not trim
+           the top row, it deletes it.
+
+           WHAT THAT LOOKED LIKE. Reported from a Firefox window at 2000 x 1175
+           as bubbles cut off at the top of the field. 100vh - 16rem = 919
+           against 56.25vw = 1125: 206 px of crop, 103 a side, 82 field units —
+           and y 80 is above 82, so all six beads of the top row were gone and
+           the six labels naming them were left standing on the frame's edge,
+           sliced through the middle, pointing at nothing.
+
+           49vw IS THE HEIGHT AT WHICH THE CROP STOPS AT THE RIM. Visible units
+           = 1600 x (band / 100vw), so a band of 49vw shows 784 of the 900 and
+           crops 58 a side against the 58.7 the drawing leaves — 0.7 units of
+           clearance, and the same 0.7 at every width, because both terms are
+           ratios of the same viewport. Above it the cap is the viewport and
+           binds nothing a reader can see; below it the cap would be cutting
+           beads, and this is where it stops. The two clauses swapped: at ratios
+           past 1600 / 784 = 2.04 the band is now taller than the view, so act
+           1's top and bottom rows are no longer on screen together — which is
+           the lesser of the two, because the row that is off screen is still
+           drawn and the reader reaches it by scrolling. A cropped row is not
+           anywhere. → check-ground-band.py re-derives 58.7 from the beads. */
+        max-height: max(49vw, calc(100vh - var(--sp-claim-band)));
         clip-path: none;
       }
       .sp-field { position: static; }
@@ -2218,7 +2248,44 @@
       .sp-stage {
         --sp-ground-clip: none;
         --sp-claim-band: 16rem;
-        --sp-band: clamp(30rem, 56.25vw, calc(100vh - var(--sp-claim-band)));
+        --sp-band: clamp(30rem, 56.25vw, max(49vw, calc(100vh - var(--sp-claim-band))));
+      }
+      /* AND THE RESERVATION IS FOR THE STACK, WHICH IS THE ONLY PLACE THE CLAIM
+         STANDS UNDER THE FIELD. --sp-claim-band was written when it stood there
+         at every width; the block below moved it INTO the field's own band above
+         the fold, into the hole the beads leave in the right half, where it
+         costs the stage no height at all. The cap went on subtracting 16rem for
+         a sentence that is no longer under anything — 256 px of crop bought for
+         nothing, and 256 px of crop on a `slice` box is the top row of the
+         drawing. The two decisions were made one commit apart and only the first
+         one is in the arithmetic.
+
+         64rem IS THE REGISTER'S NAME FOR THE STACK'S CEILING and this is its
+         third consumer, for the reason the second one gives ~2,000 lines up:
+         the fold is a container question, .sp-stage is a sibling of .container
+         and cannot ask it, and "a px gate cannot track a rem fold". It
+         mis-serves the same 1007–1023 window the pin gate and the horizon
+         mis-serve, in the same direction — 17 px of viewport where the claim
+         has already moved into the band and the cap still reserves a band for
+         it. That is the conservative half: the field comes out shorter than it
+         could be there, which is the fault this release fixes rather than the
+         one it could cause. The dangerous direction — the claim under the field
+         with nothing reserved — is unreachable, because the media query opens
+         AFTER the container fold and never before it.
+
+         Measured on the shipped page in the no-support tier, vertical crop in
+         field units, before and after:
+
+           1024 x  600    75 -> 0      1920 x 1080    0 -> 0
+           1440 x  900    92 -> 0      2000 x 1175   82 -> 0
+           1680 x 1050    75 -> 0      2560 x 1080   90 -> 58
+
+         Zero at every ratio at or under 16 / 9, which is every laptop and
+         desktop window on the ladder; at the ultrawide the cap's own floor
+         above is what holds it at 58 and the beads stay whole.
+         → tokens.css "THE BREAKPOINT REGISTER", 64rem; check-ground-band.py */
+      @media (min-width: 64rem) {
+        .sp-stage { --sp-claim-band: 0px; }
       }
 
       /* THE CLAIM STANDS UNDER ITS OWN FIELD AND ABOVE THE ROOT — one column,
@@ -2237,6 +2304,57 @@
       /* Type at a measure. Above the fold the claim is 2fr of the stage and the
          column is the measure; in one column it would be the container. */
       .cf-statement__text { max-inline-size: var(--measure); }
+
+      /* THE SEAM BETWEEN THE TWO ACTS, AND ONLY THIS TIER NEEDS ONE. Every other
+         tier separates them in TIME: the pinned stage converges the beads onto
+         the trunk's head and act 2 is drawn out of what act 1 leaves behind, so
+         the reader watches one become the other and no line has to say so. This
+         tier has no time axis — the note under .sp-annots says it at length —
+         and it answers by separating them in SPACE instead: the field takes a
+         band at the head of the stage and the root stands underneath it.
+
+         WHAT THE SPACE ALONE DID NOT DO. --space-8 of row gap, and on either
+         side of it the same lattice: .cf-ground runs the whole stage, so the
+         field's last bead row, the gap and the root's first branches are all
+         drawn on one continuous grid, and 32 px of that grid is not a boundary,
+         it is more of the same drawing. Asked for from the same Firefox window
+         as the crop above — "add a separator between bubbles and tree" — and
+         the crop is why the ask arrived here rather than earlier: with the top
+         row cut away the field had a hard edge at the top and none at the
+         bottom, so the only edge it had was the one it should not have had.
+
+         IT IS THE SECTION HEADER'S RULE, not a new kind of line. --stroke-1 on
+         --border-strong is what .cf-section-header draws, and .sp-head — the
+         rule the root's nineteen drops land on — is one of those, so act 2 is
+         now bracketed by two of the same line and the reader gets a figure with
+         a top and a bottom instead of a band that fades into the next one.
+
+         AND IT IS THE DRAWING'S WIDTH, WHICH IS THE FIGURE'S. .sp-drawing takes
+         `min(100%, (100vh - 12rem) * 1.9)` and the figure shrinks to it, so a
+         border on the figure is the tree's own top edge at every viewport
+         rather than a length of its own. Measured, figure / .sp-head, both
+         flush left at the gutter:
+
+           768 x 1024   684 / 684     1440 x 900   1280 / 1280
+           1366 x 768  1094 / 1216    2000 x 1175  1280 / 1280
+
+         Equal wherever the `min()` resolves to 100 %, which is every width at
+         which the drawing has the height to fill the container; shorter than
+         .sp-head where the viewport's height is what limits the drawing, and
+         shorter by exactly as much as the tree is. The alternative was the
+         container's width in both cases, and it puts a line 122 px wider than
+         the drawing over a drawing that is not as wide as its own column.
+
+         AND IT IS ACT 2's TOP EDGE RATHER THAN ACT 1's FOOT, which is what puts
+         it on the right side of the claim below the fold. There the stack is
+         field, claim, root — the claim is act 1's sentence and belongs above
+         the line, not under it — and a rule drawn at the field's foot would cut
+         act 1 in half. On the figure it is after the sentence in both
+         arrangements without a second declaration. */
+      .sp-stage__inner > .cf-statement__figure {
+        border-block-start: var(--stroke-1) solid var(--border-strong);
+        padding-block-start: var(--space-8);
+      }
 
       /* AND ABOVE THE FOLD IT STANDS *IN* THE FIELD RATHER THAN UNDER IT.
          The block above is the narrow answer and stays the narrow answer; this
