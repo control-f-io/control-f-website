@@ -30,16 +30,28 @@ WHOLE RULE ANY MORE. "May not draw both" was always shorthand for "may not draw
 both IN THE SAME PIXELS": the fault is a double exposure, not a head count. The
 tiers outside the gate are two, not one, and they are not alike —
 
-  THE FLOW TIER has a time axis and spends it on act 2: the root builds as the
-  reader passes it, .lp-flow-sources is its static telling of act 1, and the
-  withdrawal below is exactly right for it.
-
   THE NO-SUPPORT TIER has no axis at all, and it was reading as "not only the
   tree": act 1's claim beside act 2's finished root, three beats of a scroll
   composition arriving as one block, for every Firefox reader at every width.
   acts.css sequences the acts there in SPACE instead — act 1's field takes a
   band of its own at the head of the stage, the claim stands under it, the root
   under that. Both moments are drawn and neither is in the other's pixels.
+
+  THE FLOW TIER has a time axis and spent it on act 2 alone: the root built as
+  the reader passed it, .lp-flow-sources stood in for act 1, and the withdrawal
+  below was called exactly right for it. It was not. The stand-in is gated at a
+  30rem container and a phone's drawing is 347px, so an iPhone got act 2 growing
+  out of blank ground — no field, no callouts, no stand-in, measured all three
+  `display: none` at 390 x 844 in WebKit 26.5. That tier takes the no-support
+  tier's band as well now, and puts the arrival, the pulse and the convergence
+  back on top of it: two subjects, two view timelines, and the page's own order
+  between them. Both moments drawn, neither in the other's pixels, and the
+  "and then" said in space AND in time.
+
+  THE REDUCED-MOTION TIER above 64rem x 45rem is the one that is still bound by
+  the rule as written: it can resolve a timeline and may not be given one, and
+  neither band's prelude covers its width. .lp-flow-sources is its stand-in and
+  now its only home, which is what clause 5 below is measuring.
 
 So the withdrawal clause below is unchanged and still unconditional — a `none`
 that a LATER conditional tier lifts on purpose is still a withdrawal, and the

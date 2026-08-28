@@ -77,14 +77,19 @@ WHAT IS CHECKED, in acts.css and the pages that load it:
   layers            every ink layer inset to .sp-stage carries the shared band
                     as a clip-path; .sp-say, the copy layer, does not.
   clip, not box     neither ink layer takes a height or an aspect-ratio that
-                    would move the slice crop -- outside the no-support tier,
-                    where the band IS the box on purpose. See THE ONE TIER
-                    THAT SIZES THE INK below.
-  band, not fit     in the no-support tier both ink layers take the SAME
+                    would move the slice crop -- outside the two tiers that
+                    SIZE the ink, where the band IS the box on purpose. See
+                    THE TIERS THAT SIZE THE INK below.
+  band, not fit     in each of those tiers both ink layers take the SAME
                     band -- one ratio, one floor, one cap -- and the floor
                     exists, because a band at exactly the field's own ratio
                     is the one box that does not crop and a field that does
                     not crop is a field scaled to the width.
+  one band, twice   and the two tiers take the same band as each other. The
+                    arrangement is written out twice because it lives in two
+                    @supports branches and a media query cannot be shared
+                    across them; two copies of five declarations is the drift
+                    every other duplicate in this stylesheet is checked for.
   cap reserves      that cap subtracts the claim's own band from the viewport
                     rather than being the viewport. The tier stands act 1's
                     sentence under act 1's field, and a band free to take the
@@ -151,8 +156,8 @@ Moving the release into the gate -- which is where its own note always said it
 belonged -- left the clause green while the premise under it had been inverted.
 So the clause now asks WHERE the release is, not whether there is one.
 
-THE ONE TIER THAT SIZES THE INK, and why clause 4 now has an exception rather
-than a hole. This file's clause 4 was written against a layer that stays inset
+THE TIERS THAT SIZE THE INK, and why clause 4 has an exception rather than a
+hole. This file's clause 4 was written against a layer that stays inset
 to the stage and is CLIPPED to the band -- the box is the stage, the crop is
 the band, and a `height` on the layer moves the crop. That is still the whole
 of the base tier and of the flow tier.
@@ -165,7 +170,17 @@ a scroll composition arriving as one block. acts.css now sequences them in
 SPACE there: act 1's field takes a band of its own at the head of the stage,
 sized rather than clipped, with the claim under it and the root under that.
 
-So in that tier the layer's own box IS the band, and the two clauses above
+AND THERE ARE TWO SUCH TIERS SINCE THE FLOW TIER TOOK THE SAME ARRANGEMENT.
+The flow tier is every viewport under the pin gate that CAN resolve a view
+timeline -- every iPhone from Safari 26, every Android Chrome, every short
+laptop window -- and it was drawing act 2 and nothing else: the field, the
+callouts and the canopy's stand-in row all computed `display: none` at
+390 x 844, so the one drawing on this site whose subject is data arriving
+opened on a phone as a tree growing out of blank ground. It has a time axis,
+so it takes the no-support tier's band and puts the arrival back in it. Same
+five declarations, same floor, same cap; what it adds is when.
+
+So in those tiers the layer's own box IS the band, and the two clauses above
 swap places: sizing it is the fix, and the regression clause 4 names -- "give
 the box the band instead and width binds at 0.234" -- comes back through the
 FLOOR going missing rather than through the height arriving. Measured at 390
@@ -294,15 +309,53 @@ def block_span(css, opener):
 
 
 def fallback_span(css):
-    """(start, end) of the @supports block for the tier with no timeline.
-
-    Its own block, not "everything outside the gate": the flow tier is outside
-    the gate too and is a different tier with a different answer -- it has a
-    time axis and spends it on the root. Only a browser that cannot resolve
-    `animation-timeline` at all reaches the rules this span holds.
-    """
+    """(start, end) of the @supports block for the tier with no timeline."""
     return block_span(
         css, r"@supports\s+not\s*\(\s*\(\s*animation-timeline\s*:\s*view\(\s*\)\s*\)")
+
+
+def flow_spans(css):
+    """Every (start, end) whose prelude is the pin gate's negation, inside the
+    positive @supports.
+
+    THE SECOND TIER THAT SIZES THE INK. This used to be the counter-example in
+    fallback_span's own docstring -- "the flow tier is outside the gate too and
+    is a different tier with a different answer: it has a time axis and spends
+    it on the root". It spends it on BOTH acts now. The band was act 1's answer
+    for a tier that could not sequence the moments at all; a tier that can
+    sequence them and has the band anyway gets the same picture with the time
+    put back in it, which is what a phone running Safari 26 now sees.
+
+    So both spans are exceptions to `clip, not box` and both are held by
+    `band, not fit` -- and by the clause under it, which is new with the second
+    tier: the two bands have to be the SAME band. They are two copies of five
+    declarations in two @supports branches, which cannot share a media query,
+    and two copies of a number is the drift this whole stylesheet is written
+    against.
+
+    Anchored on the media prelude rather than on a comment, and on the
+    NEGATION -- `not all and (min-width) and (min-height)` is the flow tier and
+    the same terms without it are the pinned stage.
+
+    THERE ARE TWO OF THEM AND THAT IS THE POINT, so this returns a list rather
+    than the first. The band is a LAYOUT and sits in the outer one, which the
+    reduced-motion query does not cover; the arrival, the pulse and the
+    convergence sit in the inner one, which it does. Returning `re.search`'s
+    first match would hold whichever half happened to be written first and go
+    green the day somebody swapped them.
+    """
+    out, at = [], 0
+    pat = re.compile(r"@media\s+not all and \(min-width:\s*64rem\)\s*and\s*"
+                     r"\(min-height:\s*45rem\)")
+    while True:
+        m = pat.search(css, at)
+        if not m:
+            return out
+        span = block_span(css[m.start():], pat.pattern)
+        if span is None:
+            return out
+        out.append((m.start() + span[0], m.start() + span[1]))
+        at = out[-1][1]
 
 
 def column_split(css):
@@ -494,6 +547,10 @@ def main():
 
     # ---- both ink layers, and only the ink layers ------------------------
     fallback = fallback_span(css)
+    # THE TIERS THAT SIZE THE INK, and there are two of them now. Both give the
+    # layer its own band as a BOX instead of clipping the stage's, so both are
+    # exceptions to the clause below and both are held by `band, not fit`.
+    sizing = [s for s in [fallback] + flow_spans(css) if s]
     for layer in INK_LAYERS:
         blocks = declarations_with_offsets(layer, css)
         if not blocks:
@@ -501,7 +558,7 @@ def main():
             continue
         clipped = any(f"var({CLIP})" in (value_of("clip-path", b) or "")
                       for b, at in blocks
-                      if not (fallback and fallback[0] < at < fallback[1]))
+                      if not any(s[0] < at < s[1] for s in sizing))
         if not clipped:
             findings.append(
                 f"acts.css: {layer} does not clip to var({CLIP}). The field and "
@@ -509,9 +566,9 @@ def main():
                 f"clipped away points at nothing -- so every ink layer inset to "
                 f"the stage reads the same band or none of them does.")
         for b, at in blocks:
-            # The no-support tier sizes the ink on purpose -- the band IS the
-            # box there, and the `band, not fit` clause below is what holds it.
-            if fallback and fallback[0] < at < fallback[1]:
+            # The two sizing tiers do this on purpose -- the band IS the box
+            # there, and the `band, not fit` clause below is what holds them.
+            if any(s[0] < at < s[1] for s in sizing):
                 continue
             for prop in ("height", "block-size", "aspect-ratio"):
                 v = value_of(prop, b)
@@ -524,35 +581,49 @@ def main():
                         f"bead on a phone comes out a quarter size. Clip the "
                         f"ink; leave the box.")
 
-    # ---- the band the no-support tier sizes them with --------------------
+    # ---- the band the two sizing tiers size them with ---------------------
+    flows = flow_spans(css)
     if fallback is None:
         findings.append(
             "acts.css: no @supports not ((animation-timeline: view()) and "
             "(animation-range: ...)) block. Release Firefox is that tier -- the "
             "pref is off in 154 -- and without it act 1's field, act 1's claim "
             "and act 2's root arrive as one block with no act 1 drawn at all.")
-    else:
+    if not flows:
+        findings.append(
+            "acts.css: no `@media not all and (min-width: 64rem) and "
+            "(min-height: 45rem)` block inside the gate. That is the flow tier "
+            "-- every phone with scroll-driven animations, which is every "
+            "iPhone from Safari 26 -- and it draws act 1 in the same band this "
+            "clause holds.")
+    tiers = {"the no-support tier": [fallback] if fallback else [],
+             "the flow tier": flows}
+    per_tier = {}
+    for label, spans in tiers.items():
+        if not spans:
+            continue
         bands = {}
         for layer in BAND_LAYERS:
             got = {}
             for b, at in declarations_with_offsets(layer, css):
-                if not (fallback[0] < at < fallback[1]):
+                if not any(s[0] < at < s[1] for s in spans):
                     continue
                 for prop in BAND_PROPS:
                     v = value_of(prop, b)
                     if v:
                         got[prop] = re.sub(r"\s+", " ", v.strip())
             bands[layer] = got
+        per_tier[label] = bands
         for layer, got in bands.items():
             if got.get("aspect-ratio") and not got.get("min-height"):
                 findings.append(
-                    f"acts.css: {layer} takes a band in the no-support tier "
-                    f"with no min-height. A band at the field's own ratio is "
-                    f"the one box that does not crop, and an uncropped field "
-                    f"is a field scaled to the width: measured at 390 wide, "
-                    f"219 px of band, the whole 1600 x 900 at 0.24, twenty-one "
-                    f"11 px labels inside 390 px. The floor is what makes the "
-                    f"height bind and the crop happen.")
+                    f"acts.css: {layer} takes a band in {label} with no "
+                    f"min-height. A band at the field's own ratio is the one "
+                    f"box that does not crop, and an uncropped field is a field "
+                    f"scaled to the width: measured at 390 wide, 219 px of "
+                    f"band, the whole 1600 x 900 at 0.24, twenty-one 11 px "
+                    f"labels inside 390 px. The floor is what makes the height "
+                    f"bind and the crop happen.")
             cap = got.get("max-height")
             # THE CAP IS A CROP, AND THE CROP HAS A FLOOR. Everything the cap
             # takes off this box comes off the drawing, not off the layout: the
@@ -593,8 +664,8 @@ def main():
                             f"gen-proto-field.py's Y0 and R_MAX.")
             if cap and not CAP_RESERVES.search(cap):
                 findings.append(
-                    f"acts.css: {layer}'s no-support band caps at {cap}, which "
-                    f"is the whole viewport. This tier stands act 1's claim "
+                    f"acts.css: {layer}'s band in {label} caps at {cap}, which "
+                    f"is the whole viewport. Both tiers stand act 1's claim "
                     f"UNDER act 1's field, so a band that may take every pixel "
                     f"of the view is a claim that can never be on screen with "
                     f"the field it names -- it arrives with act 2's root "
@@ -609,11 +680,31 @@ def main():
             detail = "; ".join(f"{layer} {dict(shape) or dict()}"
                                for layer, shape in shapes.items())
             findings.append(
-                f"acts.css: the no-support tier's ink layers take different "
-                f"bands ({detail}). The field and the notes are one picture and "
-                f"the notes are placed in the field's own sliced units -- give "
-                f"them two boxes and all twenty-one land off the beads they "
-                f"name. Same sentence as the clip clause, one tier along.")
+                f"acts.css: {label}'s ink layers take different bands "
+                f"({detail}). The field and the notes are one picture and the "
+                f"notes are placed in the field's own sliced units -- give them "
+                f"two boxes and all twenty-one land off the beads they name. "
+                f"Same sentence as the clip clause, one tier along.")
+
+    # AND THE TWO TIERS TAKE THE SAME BAND, which is the clause the second tier
+    # brought with it. They are two copies of one arrangement -- act 1's field
+    # at the head of the stage, act 1's claim under it, act 2's root under that
+    # -- written twice because they sit in two @supports branches and a media
+    # query cannot be shared across them. Everything else in this file that
+    # exists twice is held to its twin by a check for the same reason; without
+    # this clause the phone that CAN sequence the acts and the phone that
+    # cannot would drift into two different pictures one edit at a time, and
+    # each would go on passing every clause above on its own.
+    if len(per_tier) == 2:
+        (la, ba), (lb, bb) = per_tier.items()
+        for layer in BAND_LAYERS:
+            if ba.get(layer, {}) != bb.get(layer, {}):
+                findings.append(
+                    f"acts.css: {layer}'s band differs between the two tiers "
+                    f"that size it -- {la} {ba.get(layer, {})}, {lb} "
+                    f"{bb.get(layer, {})}. One arrangement, written twice "
+                    f"because two @supports branches cannot share a media "
+                    f"query; two bands is two pictures.")
 
         # ---- the reservation belongs to the stack, and only to it ----------
         # THE CAP CLAUSE ABOVE READS A SHAPE AND THIS ONE READS THE NUMBER IN
@@ -867,13 +958,14 @@ def main():
         return 1
     print(f"OK  the ground band is {boxes[0][1]:g} x {boxes[0][2]:g}'s own ratio "
           f"in --gutter's own terms, both ink layers clip to it, the copy layer "
-          f"does not, no box is resized outside the no-support tier and inside "
-          f"it both take one band with a floor and a cap that leaves the claim "
-          f"its room below the fold, releases it above {RELEASE} and stops at "
-          f"the beads' own rim either way, it is re-derived above {RELEASE} "
+          f"does not, no box is resized outside the two tiers that size the "
+          f"ink and in each of them both layers take one band -- the same band "
+          f"in both -- with a floor and a cap that leaves the claim its room "
+          f"below the fold, releases it above {RELEASE} and stops at the "
+          f"beads' own rim either way, it is re-derived above {RELEASE} "
           f"from the row's own column split, {CLAIM_ROW} restates that band's "
           f"own floor, ratio and cap, and it is released in the pin gate "
-          f"and that tier and nowhere else.")
+          f"and those tiers and nowhere else.")
     return 0
 
 
