@@ -81,7 +81,8 @@
       section as the reader passes it. Both were built on a line-of-sight model, and both
       read only one of that model's two axes. This chapter is the other axis, the rule that
       governs what may be allowed to move with it, and the one file in the system that
-      measures a reader rather than an element.
+      measures a reader rather than an element — from the pointer on a desk, and from the
+      tilt of the phone in a hand.
     </p>
   </header>
 
@@ -164,14 +165,125 @@
     </div>
   </section>
 
+  <section class="docs-section" id="tilt">
+    <h2>The other reader: the phone</h2>
+    <p>
+      The plan view above has a fixed screen and a reader who moves in front of it, which is
+      a desk. In a hand it is the other way round: the eye stays where it is and the
+      <em>screen</em> turns. The quantity is the same from either end — the angle between
+      the line of sight and the plane of the screen — and for as long as every coarse pointer
+      rested, the surface most readers hold was the one surface on which the brand's north
+      star could not happen. A holographic foil is read by tilting it. A phone in a hand is a
+      sheet being tilted. <code>cf-sight.js</code> now takes the tilt of the device as the
+      reader's line of sight, where the orientation sensor can be read without asking.
+    </p>
+
+    <figure style="margin:0">
+      <svg class="sight-plan" viewBox="0 0 640 260" role="img"
+           aria-label="Section view: two phones under a fixed eye. On the left the screen is square to the sight line, 90 degrees, and the material is drawn head-on at a rake of 116.57 degrees. On the right the screen has been tilted 63.43 degrees, the sight line meets it at 26.57 degrees, and the material flattens to a rake of 90 degrees.">
+        <defs>
+          <!-- The lit face of the material, once per pose. Lime to Glas with
+               the oklab waypoint at 19 % of the leg — see the note in
+               tokens.css. #DBFC60 exists in no source vector; do not drop it. -->
+          <linearGradient id="tilt-lit-square" x1="130" y1="170" x2="210" y2="170" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#E1FF00"/>
+            <stop offset="0.19" stop-color="#DBFC60"/>
+            <stop offset="1" stop-color="#C5EBE2"/>
+          </linearGradient>
+          <linearGradient id="tilt-lit-oblique" x1="452.1" y1="134.2" x2="487.9" y2="205.8" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#E1FF00"/>
+            <stop offset="0.19" stop-color="#DBFC60"/>
+            <stop offset="1" stop-color="#C5EBE2"/>
+          </linearGradient>
+        </defs>
+        <g fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke" opacity="0.55">
+          <!-- The pose the tilted screen departed from: the still, one rung
+               down the presence ladder because it is no longer where the
+               screen is. --presence-near, 4-2 in device pixels under the
+               non-scaling stroke on this group. -->
+          <path d="M430 170 H510" stroke-dasharray="4 2"/>
+          <!-- The readers. Square corners, contour only. Neither moves. -->
+          <rect x="162" y="32" width="16" height="16"/>
+          <rect x="462" y="32" width="16" height="16"/>
+        </g>
+        <!-- The two sight lines. Both are 90°: the eye has not moved, and
+             that is the whole difference from the plan view. -->
+        <path d="M170 48 V162" fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
+        <path d="M470 48 V132" fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
+        <!-- The material, lit: square on the left, turned by --angle-a on the
+             right. The right one is one line at 63.43° — dx 1, dy 2 — through
+             the same centre the still ran through. -->
+        <path d="M130 170 H210" stroke="url(#tilt-lit-square)" stroke-width="4" vector-effect="non-scaling-stroke"/>
+        <path d="M452.1 134.2 L487.9 205.8" stroke="url(#tilt-lit-oblique)" stroke-width="4" vector-effect="non-scaling-stroke"/>
+        <g>
+          <text x="170" y="76" text-anchor="middle" class="is-lit">90°</text>
+          <text x="470" y="76" text-anchor="middle">26.57°</text>
+          <text x="600" y="128" text-anchor="end">63.43° · --angle-a</text>
+          <text x="170" y="222" text-anchor="middle">square</text>
+          <text x="470" y="236" text-anchor="middle">tilted</text>
+          <text x="170" y="248" text-anchor="middle" class="is-lit">rake 116.57°</text>
+          <text x="600" y="248" text-anchor="end">rake 90°</text>
+        </g>
+      </svg>
+      <figcaption class="t-label t-secondary" style="margin-top:var(--space-3)">
+        Section view — the eye stays, the screen turns, the rake follows
+      </figcaption>
+    </figure>
+
+    <p>
+      <strong>The reach is a brand angle, not a number picked for feel.</strong> The plan
+      view flattens the rake to 90° when the sight line has fallen to
+      <code>--angle-b</code>, 26.57°. A sight line makes 26.57° with a plane when the plane
+      has been turned <code>--angle-a</code>, 63.43°, away from square — the two isometric
+      angles are complements. So a phone tilted 63.43° from the pose it is held in shows the
+      foil flat, exactly as a desk reader a half-viewport to the side does, and the script
+      reads the reach out of <code>--angle-a</code> rather than restating it. Move the
+      isometric angle and both ends of this move with it.
+    </p>
+    <pre class="docs-code"><span class="attr">--sight-h</span>       = 1 &minus; min(|tilt| / <span class="val">--angle-a</span>, 1)
+<span class="attr">--field-light-x</span> = 50% &minus; 50% &middot; tilt / <span class="val">--angle-a</span></pre>
+    <p>
+      <strong>The still is wherever the hand settles.</strong> The sensor reports the device
+      against gravity, and nobody reads at a fixed angle to gravity: in a chair the phone is
+      40° off it, in bed it is 90°, and neither reader is looking at the page obliquely.
+      Measured against the sensor's own zero, most readers would be handed the flat 90° rake
+      for the whole page and never see the designed still at all. So the departure is
+      measured against a baseline that follows the hand slowly — a first-order filter with a
+      two-second time constant. A tilt is seen at once and at full size, because the baseline
+      has not moved yet; a phone held still in any pose settles back to 116.57° within a few
+      seconds, because it has. A physical foil stays shifted for as long as it is held
+      tilted; this one does not, and that is the trade, made in favour of the reader who
+      changes posture halfway down a page.
+    </p>
+    <div class="docs-note">
+      <strong>One reader, one light — so exactly one source runs.</strong> The pointer where
+      there is a fine one, the tilt where there is not, and neither where neither holds. A
+      touch laptop with a mouse and a sensor gets the pointer. The two sources write the same
+      two properties over the same two ranges to the same two rest values, so nothing in
+      <code>base.css</code> can tell which one is running, and every argument below about what
+      may answer to sight was made once and covers both.
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>It never asks.</strong> Where a browser gates the orientation sensor behind a
+      permission prompt — Safari on iOS exposes a <code>requestPermission</code> function for
+      exactly this — the source is declined outright and the phone rests, as it always did.
+      A dialog asking to read the motion of the device so that a headline can shimmer is a
+      cost the reader never agreed to pay, and sight is the last layer. Nothing in this
+      system may raise that prompt for atmosphere; a future feature that needs the sensor
+      for a reason a reader would recognise is the only thing that may, and then this file
+      may read what it was granted.
+    </div>
+  </section>
+
   <section class="docs-section" id="demo">
     <h2>Live</h2>
     <p>
-      Move the pointer left and right across the panel. The type is not moving and no colour
-      is changing: the angle the light crosses the letterforms at opens as you come square
-      to them and flattens as you go oblique. Scroll instead of moving sideways and the
-      other axis does the same thing. The readout is the two numbers the foil is currently
-      being drawn with.
+      Move the pointer left and right across the panel — or, on a phone, tilt it left and
+      right in your hand and then hold it still. The type is not moving and no colour is
+      changing: the angle the light crosses the letterforms at opens as you come square to
+      them and flattens as you go oblique. Scroll instead of moving sideways and the other
+      axis does the same thing. The readout is the two numbers the foil is currently being
+      drawn with, and which source is writing the second one.
     </p>
     <div class="docs-demo docs-demo--dark">
       <div class="sight-stage">
@@ -186,10 +298,10 @@
     </dl>
     <div class="docs-note">
       <strong>If the readout says <code>resting</code> and stays there,</strong> this browser
-      or this reader is on one of the fallback paths — a coarse pointer, reduced motion, or
-      no support for scroll-driven animations. That is not a failure state. It is the
-      designed still, and it is what the two shipping pages render for everyone the script
-      declines to run for.
+      or this reader is on one of the fallback paths — a phone whose sensor is behind a
+      prompt or absent, reduced motion, or no support for scroll-driven animations. That is
+      not a failure state. It is the designed still, and it is what the two shipping pages
+      render for everyone the script declines to run for.
     </div>
 
     <h3>The field, on the same source</h3>
@@ -274,9 +386,9 @@
       <thead><tr><th>Property</th><th>Written by</th><th>Range</th><th>Rest</th><th>Moves</th></tr></thead>
       <tbody>
         <tr><td><code>--sight-v</code></td><td><code>view()</code> keyframes</td><td>0 &rarr; 1 &rarr; 0</td><td><code>1</code></td><td>the foil's rake, vertically</td></tr>
-        <tr><td><code>--sight-h</code></td><td><code>cf-sight.js</code></td><td>0 &hellip; 1</td><td><code>1</code></td><td>the foil's rake, horizontally</td></tr>
+        <tr><td><code>--sight-h</code></td><td><code>cf-sight.js</code>, from the pointer or the tilt</td><td>0 &hellip; 1</td><td><code>1</code></td><td>the foil's rake, horizontally</td></tr>
         <tr><td><code>--field-light-y</code></td><td><code>view()</code> keyframes</td><td>&minus;20% &hellip; 120%</td><td><code>50%</code></td><td>the pool, down the section</td></tr>
-        <tr><td><code>--field-light-x</code></td><td><code>cf-sight.js</code></td><td>0% &hellip; 100%</td><td><code>50%</code></td><td>the pool, across the section</td></tr>
+        <tr><td><code>--field-light-x</code></td><td><code>cf-sight.js</code>, from the pointer or the tilt</td><td>0% &hellip; 100%</td><td><code>50%</code></td><td>the pool, across the section</td></tr>
       </tbody>
     </table>
     <p>
@@ -307,9 +419,13 @@
     <table class="docs-table">
       <thead><tr><th>Condition</th><th>Vertical</th><th>Horizontal</th><th>What is rendered</th></tr></thead>
       <tbody>
-        <tr><td>Fine pointer, motion allowed</td><td>runs</td><td>runs</td><td>both axes</td></tr>
-        <tr><td>Coarse pointer (phone, tablet)</td><td>runs</td><td>rests</td><td>the vertical swing, as before</td></tr>
+        <tr><td>Fine pointer, motion allowed</td><td>runs</td><td>runs, from the pointer</td><td>both axes</td></tr>
+        <tr><td>Coarse pointer, a sensor readable without a prompt (Android)</td><td>runs</td><td>runs, from the tilt</td><td>both axes</td></tr>
+        <tr><td>Coarse pointer, sensor behind a permission prompt (iOS) or absent</td><td>runs</td><td>rests</td><td>the vertical swing, as before</td></tr>
+        <tr><td>Fine pointer and a sensor (a touch laptop)</td><td>runs</td><td>runs, from the pointer</td><td>both axes — one source, never two</td></tr>
         <tr><td>Pointer has left the window</td><td>runs</td><td>eases back to rest</td><td>the vertical swing, as before</td></tr>
+        <tr><td>Phone held still, any pose</td><td>runs</td><td>settles to rest</td><td>the vertical swing, within a few seconds</td></tr>
+        <tr><td>Page in the background</td><td>runs</td><td>rests; the still is retaken on return</td><td>the vertical swing, as before</td></tr>
         <tr><td><code>prefers-reduced-motion</code></td><td>rests</td><td>rests</td><td>the designer's 116.57° still</td></tr>
         <tr><td>No scroll-driven animations</td><td>rests</td><td>rests</td><td>the designer's 116.57° still</td></tr>
         <tr><td>Script blocked, deleted or failed</td><td>runs</td><td>rests</td><td>the vertical swing, as before</td></tr>
@@ -329,9 +445,13 @@
   <section class="docs-section" id="cost">
     <h2>What it costs</h2>
     <ul>
-      <li><strong>One passive <code>pointermove</code> listener,</strong> coalesced into a
-        single <code>requestAnimationFrame</code>. A pointer emits far more moves than a
-        frame can use.</li>
+      <li><strong>One passive listener</strong> — <code>pointermove</code> or
+        <code>deviceorientation</code>, never both — coalesced into a single
+        <code>requestAnimationFrame</code>. A pointer emits far more moves than a frame can
+        use, and a sensor reports at sixty a second whether or not the hand has moved.</li>
+      <li><strong>The tilt's baseline is arithmetic on two numbers per reading</strong> and
+        allocates nothing. The reach is read from <code>--angle-a</code> once, when the
+        source starts.</li>
       <li><strong>Only what is on screen is tracked.</strong> One
         <code>IntersectionObserver</code> holds the live set; a page with four foil moments
         measures the one the reader can see.</li>
@@ -339,7 +459,10 @@
         nothing and a still pointer writes nothing at all. The rake takes 1/64 of its swing —
         0.42°, under the width of the antialias on a stop boundary. The pool takes whole
         percent, which is roughly 14 px of a section at 1920 and well inside the falloff of a
-        1152 px ellipse.</li>
+        1152 px ellipse. On the tilt one step of the foil is one degree of the hand, which is
+        under a resting hand's own tremor — so a phone that is merely being held flickers
+        between two adjacent steps, and the damping below turns that into the faint shimmer a
+        held sheet of foil actually has.</li>
       <li><strong>The pool's quantisation is the coarser of the two on purpose.</strong> Its
         property is inherited, so each write invalidates a subtree; the foil's is not, so each
         write invalidates one element.</li>
@@ -368,21 +491,35 @@
       <li><strong>Do not put the source on <code>:root</code>.</strong> An animated inherited
         custom property on the document element restyles the whole document once per frame.
         The measurement is taken per element, on the handful that are on screen.</li>
+      <li><strong>One source at a time.</strong> The pointer or the tilt, decided once from
+        the media queries and re-decided when they change. Two sources on one page is two
+        lights in one room.</li>
+      <li><strong>Never a prompt.</strong> Sight reads what it may read without asking. A
+        permission dialog for a light effect is the reader paying for atmosphere, and the
+        answer the chapter gives that reader is the designed still.</li>
     </ul>
 
-    <h3>Three ways to get it wrong</h3>
+    <h3>Four ways to get it wrong</h3>
     <ol>
       <li><strong>Making it bigger so it reads.</strong> The correct amount of this is the
         amount that is only noticed on the second look. If it cannot be seen at 26.57° of
         rake, the answer is that the reader is looking at the type rather than at the effect,
         which is the right outcome.</li>
-      <li><strong>Adding a tilt.</strong> A card that leans towards the pointer is the
+      <li><strong>Tilting the card.</strong> A card that leans towards the pointer is the
         default in every holographic demo on the web, and it is skeuomorphism: this brand
         does not draw objects in perspective, it constructs them in 2:1 isometry, and an
-        element that rotates has left the lattice.</li>
+        element that rotates has left the lattice. The tilt this chapter reads is the
+        <em>reader's</em> — the phone in the hand — and nothing on the page rotates because
+        of it. Only the angle light crosses the material at.</li>
       <li><strong>Reading a touch as a position.</strong> A finger has no position between
         taps. Driving light from touch coordinates makes the page flinch every time it is
-        scrolled, which is why <code>(pointer: fine)</code> is a gate and not a preference.</li>
+        scrolled, which is why <code>(pointer: fine)</code> gates the pointer source and not
+        a preference. The phone's tilt is not a touch: it is continuous, it exists between
+        taps, and it is exactly what a hand does to a sheet of foil.</li>
+      <li><strong>Measuring the tilt against gravity.</strong> A reader in bed is not looking
+        at the page obliquely. The still is the pose the phone is held in, and the departure
+        from it is the tilt — which is why the baseline follows the hand rather than the
+        sensor's zero, and why a phone held still always returns the designer's rake.</li>
     </ol>
   </section>
 </main>
@@ -416,10 +553,15 @@
       if (key !== last) {
         last = key;
         var moving = v < 0.999 || h < 0.999;
+        /* Which source is writing the horizontal half. The script sets nothing
+           but the two properties, so this is inferred the way the script
+           decides it: a fine pointer is the pointer, anything else that moves
+           the value is the tilt. */
+        var source = h < 0.999 ? (matchMedia('(pointer: fine)').matches ? ' · pointer' : ' · tilt') : '';
         out.v.textContent = v.toFixed(3);
         out.h.textContent = h.toFixed(3);
         out.rake.textContent = (90 + 26.57 * v * h).toFixed(2) + '°';
-        out.state.textContent = moving ? 'tracking' : 'resting';
+        out.state.textContent = moving ? 'tracking' + source : 'resting';
         box.setAttribute('data-state', moving ? 'tracking' : 'resting');
       }
       requestAnimationFrame(tick);

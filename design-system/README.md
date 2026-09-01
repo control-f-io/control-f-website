@@ -1742,8 +1742,27 @@ a material with weight rather than one that teleports between stops.
 Every fallback lands on the designer's own still, and the script gates itself on
 `CSS.supports('animation-timeline', 'view()')` — the same test `base.css` puts on the swing —
 so the stylesheet and the file cannot disagree about whether the vertical half is running.
-Coarse pointers do not get it at all: a finger has no position between taps, and reading a
-touch as a light source makes the page flinch every time it is scrolled.
+A finger does not get it at all: it has no position between taps, and reading a touch as a
+light source makes the page flinch every time it is scrolled.
+
+**The phone gets it from the other end.** On a desk the eye moves and the screen stays; in a
+hand the screen moves and the eye stays, and the angle between the line of sight and the
+plane of the screen is the same quantity read from either side. That angle is the one a
+holographic foil is read by — a foil catalogue is photographed tilting — and for as long as
+every coarse pointer rested, the surface most readers hold was the one surface on which the
+brand's north star could not happen. `cf-sight.js` now has two sources and runs exactly one:
+the pointer where there is a fine one, the **tilt of the device** where there is not and the
+orientation sensor answers without being asked for. The reach is derived, not picked: a sight
+line makes `--angle-b` with a plane tilted `--angle-a` from square, so the phone shows the
+flat 90° rake at 63.43° of tilt exactly as a desk reader a half-viewport to the side does,
+and the script reads the token rather than restating it. The still is wherever the hand
+settles — the departure is measured against a baseline that follows the hand with a
+two-second time constant, because nobody reads at a fixed angle to gravity and a reader in a
+chair or in bed is not looking at the page obliquely. Where a browser gates the sensor behind
+a permission prompt, the source is declined outright: a prompt for atmosphere is a cost the
+reader never agreed to pay, and sight is the last layer. The two properties it writes, their
+ranges, their rest values and the closed list of what may answer to them are unchanged, so
+no contrast figure moved. → `foundations/sight.html#tilt`
 
 ## Vertical rhythm
 
