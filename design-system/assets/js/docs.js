@@ -45,6 +45,7 @@
       { href: 'components/accordion.html',      label: 'Accordion / FAQ' },
       { href: 'components/blog-grid.html',      label: 'Blog Grid' },
       { href: 'components/subdivision-field.html', label: 'Subdivision Field' },
+      { href: 'components/signet.html',         label: 'Signet' },
       { href: 'components/search.html',         label: 'Search & Results' },
       { href: 'components/vacancy.html',        label: 'Vacancy' },
       { href: 'components/pagination.html',     label: 'Pagination' },
