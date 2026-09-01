@@ -832,7 +832,7 @@ python3 scripts/check-iso-motion.py</pre>
   <span class="tag">to</span>   { <span class="attr">stroke-dashoffset</span>: <span class="val">var(--trace-to)</span>; }    <span class="com">/* 0 = fully drawn  */</span>
 }</pre>
 
-    <h3>Why the two ends are authored</h3>
+    <h3 id="crop">Why the two ends are authored</h3>
     <p>
       A trace is a signal arriving from somewhere off-stage, so its path usually runs past
       the edge of the drawing — and <a href="illustration.html">the frame is a crop, not a
@@ -872,10 +872,97 @@ python3 scripts/check-iso-motion.py</pre>
     </table>
     <p>
       The two ends are therefore per-trace: a trace that leaves the crop stops drawing at the
-      edge, and one that enters from outside starts at the edge. Both now spend the whole of
-      <code>cover 18 % → 45 %</code> on the part of the line the reader can see, and the two
-      traces on card 02 — which are one continuous signal passing through the object — finally
-      advance together instead of one waiting for the other.
+      edge, and one that enters from outside starts at the edge. Every trace then spends its
+      range on the part of the line the reader can see rather than on the part the crop threw
+      away.
+    </p>
+    <p>
+      <strong>Neither end is arithmetic anybody does by hand any more.</strong> A crop is the
+      one thing in a drawing that moves without the markup moving —
+      <code>--iso-travel</code> is derived from the viewBox for exactly that reason — and a
+      stale <code>--trace-from</code> renders perfectly.
+      <code>scripts/check-iso-motion.py</code> clips every straight trace against its own
+      frame and recomputes both offsets: 6 of them, to the two decimals they are written to.
+      A <code>&lt;path&gt;</code> trace is out of its reach and stated to be — the visible
+      extent of a straight segment inside a rectangle is arithmetic, and the visible extent
+      of a path is the path maths <code>pathLength</code> exists so that nobody has to do.
+    </p>
+
+    <h3 id="journey">A signal split by its own object is still one signal</h3>
+    <p>
+      Card 02's rack is entered on one side and left on the other, so the designer drew the
+      signal as two lines with the object in between them. The paragraph above this one used
+      to say they were “one continuous signal passing through the object” and then, in the
+      same sentence, that they “advance together”. <strong>Both cannot be true.</strong> One
+      signal crossing a frame is at one place at a time; two strokes on
+      <code>cover 18 % → 45 %</code> each are two lines growing at once, and the far one —
+      the way <em>out</em> of the rack — finished drawing itself before anything had arrived
+      at the near side.
+    </p>
+    <p>
+      So the window is shared out by length, in the order the signal reaches it. The frame is
+      640 units wide and the signal crosses all 640 of them:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Stroke</th><th>Units of the crossing</th><th>Share of the 27 points</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>incoming, x 80 → 288</td><td>208 drawn, from the first unit</td>
+          <td><code>--trace-lead: 0%</code>, <code>--trace-span: 8.78%</code></td>
+        </tr>
+        <tr>
+          <td>inside the rack, x 288 → 467</td><td>179, not drawn at all</td>
+          <td>7.55 points in which the signal is inside the object</td>
+        </tr>
+        <tr>
+          <td>outgoing, x 467 → 720</td><td>253 drawn, 387 units along</td>
+          <td><code>--trace-lead: 16.33%</code>, <code>--trace-span: 10.67%</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      The three shares are <code>27 × 208/640</code>, <code>27 × 179/640</code> and
+      <code>27 × 253/640</code>, and they sum to the window exactly — so the last stroke still
+      lands on the light, which is where the <a href="#trace">lead rule</a> requires every
+      signal to finish. <strong>The dwell is not a pause between two drawings; it is the
+      object.</strong> A rack whose signal crossed it instantly would be a rack that does
+      nothing to what passes through it.
+    </p>
+    <p>
+      What is shared out is the <em>range</em>, not the velocity. Each stroke still carries
+      <code>--ease-out</code> inside its own window, so the signal decelerates into the rack
+      and again out of it — the same “arrive, then settle” every other part of an assembly
+      does. Measured on the landing page at 1280 × 900, walking the pinned track and reading
+      both <code>stroke-dashoffset</code>s off the shipped page:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>scrollY</th><th>outgoing</th><th>incoming</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>8349</td><td>1.000</td><td>0.326</td><td>the near half is drawing</td></tr>
+        <tr><td>8448</td><td>1.000</td><td>0.014</td><td>still nothing on the far side</td></tr>
+        <tr><td>8481</td><td>1.000</td><td>0.000</td><td>arrived at the near plate</td></tr>
+        <tr><td>8613</td><td>0.972</td><td>0.000</td><td>after the dwell, the far half starts</td></tr>
+        <tr><td>8778</td><td>0.462</td><td>0.000</td><td>stopped at the crop edge, .46</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Before this, both columns moved together and both reached their end value in the same
+      frame.
+    </p>
+    <p>
+      This is the same defect card 03's arrow had, on a different card and for a different
+      reason. There, five strokes shared one <code>&lt;path&gt;</code> and the dash restarted
+      at each of them. Here, two strokes shared one window because nothing said they should
+      not. Both read as a drawing appearing in several places at once rather than as a signal
+      arriving — and card 02's was the one the crop table above had already looked straight
+      at and called correct.
+    </p>
+    <p>
+      <code>scripts/check-iso-motion.py</code> derives all four numbers from the geometry:
+      it groups the straight traces on an object that are collinear, point the same way and
+      do not overlap, measures what each one draws inside the crop, and requires the authored
+      lead and span to be that share of the window. Two traces pointing <em>at</em> each other
+      are two signals rather than one split in half, and are deliberately left alone.
     </p>
     <p>
       <strong>Only the endpoints count.</strong> A path that leaves the crop and comes back

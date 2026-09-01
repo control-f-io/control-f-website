@@ -94,6 +94,16 @@ TRAVEL_DIVISOR = 40
 # at that precision rather than exactly.
 TRAVEL_TOLERANCE = 0.005
 
+# --trace-from and --trace-to are dash offsets and are authored to two decimals
+# (.49, .46, .12), so they are compared at that precision. --trace-lead and
+# --trace-span are points of `cover` and are authored to the same (16.33, 8.78).
+TRACE_TOLERANCE = 0.01
+
+# A cross product of two directions taken over coordinates in the hundreds, so
+# the slack is generous in absolute terms and still nowhere near a real angle:
+# the smallest one the system sanctions is 26.57 degrees.
+COLLINEAR_TOLERANCE = 1e-6
+
 # HTML elements that never have an end tag. Without these the ancestor stack
 # below unwinds one element too far on the first <meta> in a document.
 VOID = {
@@ -609,6 +619,204 @@ def normalised_strokes_under_non_scaling():
     return findings, checked
 
 
+def clip_segment(x1, y1, x2, y2, box):
+    """Liang-Barsky. The (t_enter, t_exit) of a segment inside a crop rectangle,
+    as fractions of the segment's own length, or None if it never enters.
+
+    This is what pathLength cannot tell anybody: it normalises against the DRAWN
+    length, and the drawn length includes everything the crop throws away.
+    """
+    x0, y0, x3, y3 = box
+    dx, dy = x2 - x1, y2 - y1
+    t0, t1 = 0.0, 1.0
+    for p, q in ((-dx, x1 - x0), (dx, x3 - x1), (-dy, y1 - y0), (dy, y3 - y1)):
+        if p == 0:
+            if q < 0:
+                return None
+        else:
+            r = q / p
+            if p < 0:
+                if r > t1:
+                    return None
+                t0 = max(t0, r)
+            else:
+                if r < t0:
+                    return None
+                t1 = min(t1, r)
+    return (t0, t1)
+
+
+def line_traces(block):
+    """Every <line class="cf-iso__trace"> in one .cf-iso, measured against the
+    crop that actually applies to it, or None if the frame cannot be resolved.
+
+    ONLY A <line> IS MEASURED HERE, and that is a boundary rather than an
+    omission. The visible extent of a straight segment inside a rectangular crop
+    is arithmetic; the visible extent of a <path> is the path maths pathLength
+    exists so that nobody has to do. Card 03's five traces are paths, and the
+    lead rule in main() is what governs them.
+    """
+    vb = re.search(r'viewBox="\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s*"', block)
+    if not vb:
+        return None
+    vx, vy, vw, vh = (float(g) for g in vb.groups())
+    # The drawing sits inside one translated group; the crop is the viewport,
+    # expressed back in the drawing's own coordinates. More than one distinct
+    # translate and there is no single answer to "where is the edge", which is
+    # reported rather than guessed at.
+    trs = set(re.findall(r'transform="translate\(\s*([-\d.]+)[\s,]+([-\d.]+)\s*\)"', block))
+    if len(trs) > 1:
+        return None
+    tx, ty = (float(v) for v in (trs.pop() if trs else ("0", "0")))
+    box = (vx - tx, vy - ty, vx + vw - tx, vy + vh - ty)
+
+    out = []
+    for m in re.finditer(r"<line\b[^>]*\bcf-iso__trace\b[^>]*>", block):
+        tag = m.group(0)
+        pts = []
+        for name in ("x1", "y1", "x2", "y2"):
+            g = re.search(name + r'="\s*(-?[\d.]+)\s*"', tag)
+            if not g:
+                break
+            pts.append(float(g.group(1)))
+        if len(pts) != 4:
+            continue
+        cut = clip_segment(*pts, box)
+        if cut is None:
+            continue
+        out.append({"tag": tag, "offset": m.start(), "pts": pts, "cut": cut})
+    return out
+
+
+def split_journeys(page_text, rel, window):
+    """Two rules about a straight trace, both re-derived from the drawing.
+
+    1. THE TWO ENDS OF THE DRAW ARE WHERE THE CROP IS. --trace-from is
+       1 - (the fraction already behind the trace when it enters) and
+       --trace-to is (the fraction still to run when it leaves). Both are
+       stated in prose in components.css and both were, until this gate,
+       arithmetic somebody did once by hand beside a drawing that is free to
+       move underneath it. A recrop changes the answer and nothing renders
+       wrong: the line simply draws part of itself off-stage again.
+
+    2. A SIGNAL SPLIT BY ITS OWN OBJECT IS STILL ONE SIGNAL. Where a trace
+       enters an object on one side and leaves it on the other, the drawing is
+       two strokes and the event is one journey across the frame — so the two
+       strokes take the window in proportion to the length each of them draws,
+       in the order they are travelled, and the range between them is the width
+       of the object they are passing through. Drawn on one window each, they
+       are two lines growing at once in opposite directions: the exit draws
+       itself before anything has arrived.
+
+    WHAT IS DELIBERATELY NOT A JOURNEY. Two traces on the same line pointing at
+    each other are two signals, not one split in half, and two whose visible
+    extents overlap are not sequential halves of anything. Both are left alone
+    rather than reported, and the direction test is why the ordering below can
+    be a single scalar along one axis.
+    """
+    findings = []
+    measured = 0
+    for sm in re.finditer(r"<svg\b[^>]*\bcf-iso\b.*?</svg>", page_text, re.S):
+        block = sm.group(0)
+        if "cf-iso__trace" not in block:
+            continue
+        traces = line_traces(block)
+        line_of = lambda off: page_text.count("\n", 0, sm.start() + off) + 1
+        if traces is None:
+            if re.search(r"<line\b[^>]*\bcf-iso__trace\b", block):
+                findings.append(
+                    "%s:%d is a .cf-iso carrying a straight trace whose crop cannot be\n"
+                    "    resolved — no viewBox, or more than one translate inside it. The two\n"
+                    "    ends of a draw ARE the crop, so where the edge is has to have one\n"
+                    "    answer.\n"
+                    "    -> design-system/foundations/motion.html#journey"
+                    % (rel, page_text.count("\n", 0, sm.start()) + 1)
+                )
+            continue
+
+        for t in traces:
+            measured += 1
+            for prop, want in (("--trace-from", 1 - t["cut"][0]),
+                               ("--trace-to", 1 - t["cut"][1])):
+                got = style_number(t["tag"], prop, 1.0 if prop == "--trace-from" else 0.0)
+                if abs(got - want) > TRACE_TOLERANCE:
+                    findings.append(
+                        "%s:%d authors %s: %g where the drawing gives %.4f. The line runs\n"
+                        "    from (%g, %g) to (%g, %g) and is inside its crop from %.4f to\n"
+                        "    %.4f of its own length, so %.4f of the range is spent on a line\n"
+                        "    nobody can see — or taken off one they can. pathLength normalises\n"
+                        "    the DRAWN length, not the visible one, so a recrop moves this\n"
+                        "    number and leaves the markup reading correctly.\n"
+                        "    -> design-system/foundations/motion.html#crop"
+                        % (rel, line_of(t["offset"]), prop, got, want,
+                           t["pts"][0], t["pts"][1], t["pts"][2], t["pts"][3],
+                           t["cut"][0], t["cut"][1], abs(got - want))
+                    )
+
+        # Collinear, same-way, non-overlapping traces are one journey.
+        groups = []
+        for t in traces:
+            x1, y1, x2, y2 = t["pts"]
+            dx, dy = x2 - x1, y2 - y1
+            length = (dx * dx + dy * dy) ** 0.5
+            if not length:
+                continue
+            t["u"] = (dx / length, dy / length)
+            t0, t1 = t["cut"]
+            t["a"] = (x1 + dx * t0, y1 + dy * t0)   # where it starts drawing
+            t["b"] = (x1 + dx * t1, y1 + dy * t1)   # where it stops
+            for g in groups:
+                h = g[0]
+                ux, uy = h["u"]
+                same_way = t["u"][0] * ux + t["u"][1] * uy > 0
+                on_line = abs((x1 - h["pts"][0]) * uy - (y1 - h["pts"][1]) * ux)
+                parallel = abs(t["u"][0] * uy - t["u"][1] * ux)
+                if same_way and parallel < COLLINEAR_TOLERANCE and on_line < 1e-3:
+                    g.append(t)
+                    break
+            else:
+                groups.append([t])
+
+        for g in groups:
+            if len(g) < 2:
+                continue
+            ux, uy = g[0]["u"]
+            for t in g:
+                t["s0"] = t["a"][0] * ux + t["a"][1] * uy
+                t["s1"] = t["b"][0] * ux + t["b"][1] * uy
+            g.sort(key=lambda t: t["s0"])
+            if any(g[i]["s1"] > g[i + 1]["s0"] + 1e-6 for i in range(len(g) - 1)):
+                continue  # overlapping, so not sequential halves of one thing
+            start, end = g[0]["s0"], g[-1]["s1"]
+            total = end - start
+            if total <= 0:
+                continue
+            for t in g:
+                want_lead = window * (t["s0"] - start) / total
+                want_span = window * (t["s1"] - t["s0"]) / total
+                lead = style_number(t["tag"], "--trace-lead", 0.0)
+                span = style_number(t["tag"], "--trace-span", window)
+                if (abs(lead - want_lead) > TRACE_TOLERANCE
+                        or abs(span - want_span) > TRACE_TOLERANCE):
+                    findings.append(
+                        "%s:%d is one stroke of a signal drawn in %d, crossing %g units of\n"
+                        "    frame in all. This stroke starts %g units along and draws %g of\n"
+                        "    them, so its share of the %g-point window is lead %.2f and span\n"
+                        "    %.2f; it authors lead %g and span %g. The strokes are one journey\n"
+                        "    and the window is shared out by length: each takes the share its\n"
+                        "    own drawn length is, in the order it is reached, and the range\n"
+                        "    between two of them is the width of the object the signal is\n"
+                        "    passing through. On a window each they are lines growing at once\n"
+                        "    in different places, and the way out of the object draws itself\n"
+                        "    before anything has arrived at it.\n"
+                        "    -> design-system/foundations/motion.html#journey"
+                        % (rel, line_of(t["offset"]), len(g), total,
+                           t["s0"] - start, t["s1"] - t["s0"], window,
+                           want_lead, want_span, lead, span)
+                    )
+    return findings, measured
+
+
 def main():
     findings = []
     overrides = travel_overrides()
@@ -847,6 +1055,19 @@ def main():
                 )
 
 
+    # --- 5b. a straight trace's two ends, and a signal split by its object --
+    # The lead gate above asks only whether a stroke fits its window. These two
+    # ask what the window and the two dash offsets should BE, derived from the
+    # drawing rather than compared against a literal — which is the one thing
+    # that survives a recrop. See split_journeys().
+    straight = 0
+    if win["trace_span"] is not None:
+        for page in PAGES:
+            f, n = split_journeys(page.read_text(), page.relative_to(ROOT),
+                                  win["trace_span"])
+            findings.extend(f)
+            straight += n
+
     # --- 6. a normalised stroke is not under non-scaling-stroke -------------
     # The rule the trace check above states for one class, checked on every
     # normalised stroke in the tree and against every route the property can
@@ -930,9 +1151,11 @@ def main():
         "to screen.\n"
         "                    timing: %d traces inside the %g-point window, %d stages at or\n"
         "under %d, %d lights filled.\n"
+        "                    %d straight traces starting and stopping at their own crop,\n"
+        "every split signal sharing one window by length.\n"
         "                    %d documented travels quoting the stylesheet they teach."
         % (assembling, normalised, led, win["trace_span"], staged, max_stage, lit,
-           documented)
+           straight, documented)
     )
     return 0
 
