@@ -36,6 +36,37 @@ A track list may also carry a DELIBERATE non-zero floor — .tiles' min(--tile,
 100%), .cf-team-strip__list's 15rem inside a scroll container. Those are floors,
 so they pass: the rule is that a floor was chosen, not that it is zero.
 
+AND THERE IS A SECOND AXIS TO THIS, which the rule above cannot reach because it
+reads track LISTS. A rule that declares `display: grid` and no columns at all
+still has a column: an IMPLICIT one, sized `auto`, and `auto` as a minimum is
+the same min-content floor a bare `fr` carries. The defect is identical and the
+script had nothing to read, so it was invisible — found in the end by sweeping
+the pattern pages at a 24 px browser default rather than by anything here.
+
+The system has fourteen grids that leave their column axis implicit and only one
+of them could overflow, so this is a CENSUS with one GATE inside it rather than
+a rule over all fourteen:
+
+  the gate     a grid whose ROWS are `subgrid` must declare its columns, or
+               guard its items. Both halves are load-bearing. A grid whose own
+               width is free absorbs a wide track by growing; a subgrid stands
+               in a cell whose width its parent has already decided, so the
+               track grows straight THROUGH it. That makes overflow certain
+               rather than possible, which is what makes it checkable.
+               .cf-team-grid__item is the subject: it shipped `display: grid`
+               with `grid-template-rows: subgrid` and no column, and took
+               patterns/ueber-uns.html 320 -> 359 px wide at a 320 px viewport
+               with the browser's default font at 24 px.
+  the census   the other thirteen are printed with their guard status and
+               counted in the summary, and nothing fails on them. Whether an
+               implicit column CAN be squeezed depends on what its children
+               hold — an SVG at grid-area 1/1 cannot produce a min-content
+               wider than its cell and a paragraph of German can — and that is
+               a fact about content, which no amount of reading the stylesheet
+               will settle. Naming a roster of thirteen exemptions would be
+               asserting thirteen judgements this script cannot make. Counting
+               them is the honest half, and the count cannot grow quietly.
+
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
     python3 scripts/check-grid-tracks.py       # check, exit 1 on a finding
@@ -67,6 +98,15 @@ TRACK_PROP = re.compile(
 
 FR = re.compile(r"(?<![\w.-])\d*\.?\d+fr(?![\w-])")
 MIN_ZERO = re.compile(r"min-(?:width|inline-size)\s*:\s*0(?:px|rem|%)?\s*$")
+
+# The implicit-column pass. `display: grid` with no column track list anywhere in
+# the rule leaves the inline axis to one implicit `auto` track.
+GRID_DISPLAY = re.compile(r"(?:inline-)?grid")
+# Anything that states the inline axis. grid-template and grid are the shorthands
+# (`rows / columns`), so either one present means the author said something about
+# columns; grid-auto-columns sizes the implicit ones, which is a floor by another
+# name — .cf-team-strip__list's minmax(15rem, 1fr) is exactly that.
+COLUMN_PROP = re.compile(r"grid-template-columns|grid-template|grid-auto-columns|grid")
 
 
 def blocks(text):
@@ -154,6 +194,29 @@ def guarded_blocks(sheets):
     return found
 
 
+def implicit_column_grids(sheets):
+    """Every rule that makes an element a grid and says nothing about its columns.
+
+    Returns (sheet, line, selector, block, subgrid_rows). `subgrid_rows` is the
+    gate: a card whose row axis comes from its parent stands in a cell it cannot
+    widen, so a min-content floor on its implicit column overflows the page
+    rather than the element. Everything else here is the census.
+    """
+    out = []
+    for name, text in sheets:
+        for line, sel, body in blocks(text):
+            decls = list(declarations(body))
+            if not any(p == "display" and GRID_DISPLAY.fullmatch(v) for p, v in decls):
+                continue
+            if any(COLUMN_PROP.fullmatch(p) for p, _ in decls):
+                continue
+            subgrid_rows = any(
+                p == "grid-template-rows" and v.strip() == "subgrid" for p, v in decls
+            )
+            out.append((name, line, sel, block_of(sel), subgrid_rows))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("-v", "--verbose", action="store_true",
@@ -187,7 +250,29 @@ def main():
                        FR.search(value).group(0), block or "the grid")
                 )
 
+    implicit = implicit_column_grids(sheets)
+    for name, line, sel, block, subgrid_rows in implicit:
+        if not subgrid_rows or block in guarded:
+            continue
+        failures.append(
+            "%s:%d  %s\n"
+            "      display: grid with grid-template-rows: subgrid and no column.\n"
+            "      The implicit column is `auto`, and `auto` as a minimum is min-content —\n"
+            "      the same floor a bare fr carries. This card cannot grow to absorb it:\n"
+            "      its row axis is its parent's, so the track grows through the cell and\n"
+            "      pushes the page sideways. Declare grid-template-columns: minmax(0, 1fr),\n"
+            "      or give %s's items min-width: 0."
+            % (name, line, sel, block or "the grid")
+        )
+
     if args.verbose:
+        print("grids leaving their column axis implicit:\n")
+        for name, line, sel, block, subgrid_rows in implicit:
+            print("  %-16s %-5d %-34s %s"
+                  % (name, line, sel[:34],
+                     "GATED (rows are subgrid)" if subgrid_rows
+                     else ("min-width: 0 on items" if block in guarded else "census only")))
+        print()
         print("track lists carrying fr, as read out of the shipping CSS:\n")
         for name, line, sel, prop, value, ok_track, ok_item in rows:
             print("  %-16s %-5d %-34s %s"
@@ -201,10 +286,13 @@ def main():
             print("  - %s\n" % f)
         return 1
 
-    print("grid tracks: %d fr track lists, %d floored, %d guarded on the item."
+    print("grid tracks: %d fr track lists, %d floored, %d guarded on the item;\n"
+          "             %d implicit columns, %d of them guarded on the item."
           % (len(rows),
              sum(1 for r in rows if r[5]),
-             sum(1 for r in rows if not r[5] and r[6])))
+             sum(1 for r in rows if not r[5] and r[6]),
+             len(implicit),
+             sum(1 for i in implicit if i[3] in guarded)))
     return 0
 
 

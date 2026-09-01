@@ -66,6 +66,11 @@ WHAT IS CHECKED, all of it read out of tokens.css rather than restated here:
                    alpha is not BELOW the value the table was measured at.
                    Raising it only makes every measured figure better;
                    lowering it invalidates every one of them silently.
+  the tint         and that one tint is --wash-stops' opening colour. The
+                   scrim is the page's own surface continued up under the
+                   type, so it is not a grey picked to sit over artwork —
+                   it is whatever the wash already is at that height. Read
+                   out of --wash-stops, never restated here.
   the term         --scrim-reach carries the column's displacement,
                    max(0px, (100vw - --container-max) / 2 - --gutter).
   the projection   its coefficient equals sin(--angle-a). Not 0.8944 as a
@@ -216,11 +221,43 @@ def main():
                         "note above it describe (full, full at the reach, out at twice it)."
                         % len(stops))
     else:
+        # ONE TINT, AND IT IS THE PAGE'S OWN. Counting tints was half the rule
+        # and it let the other half rot. The note in tokens.css gives both in
+        # one breath — "CF-Grau and nothing else. The page's own surface,
+        # bleeding up into the artwork exactly where the type sits" — and the
+        # first sentence is the one this used to check. A single tint is what
+        # stops the scrim reading as a plate laid on top, which is the failure
+        # mode the note names; it says nothing about WHICH tint, and the scrim
+        # spent the interval after --wash-stops became iridescent painting
+        # rgb(207, 207, 207), a grey the page no longer had anywhere.
+        #
+        # So the tint is derived from --wash-stops' FIRST colour rather than
+        # from a literal here. The hero sits at the top of the page and the
+        # scrim is that surface continued upward, so the wash's opening stop is
+        # what it owes — and when the page's grey moves again, this fails
+        # instead of quietly falling out of step a second time.
+        wash_head = re.search(r"--wash-stops\s*:\s*#([0-9A-Fa-f]{6})", css)
+        expected = (tuple(int(wash_head.group(1)[i:i + 2], 16) for i in (0, 2, 4))
+                    if wash_head else None)
         tints = {s[:3] for s in stops}
         if len(tints) != 1:
             findings.append("--hero-scrim mixes %d tints. The scrim is CF-Grau and nothing "
                             "else — the note in tokens.css is explicit that white would "
                             "frost it and black would bruise it." % len(tints))
+        elif expected is None:
+            findings.append("--wash-stops no longer opens on a hex literal, so the tint "
+                            "--hero-scrim owes cannot be derived. The scrim is the page's "
+                            "own surface continued upward; it has to read that colour from "
+                            "somewhere rather than restate it.")
+        else:
+            got = tuple(int(c) for c in tints.pop())
+            if got != expected:
+                findings.append(
+                    "--hero-scrim is rgb%s but the page's own surface at the hero's height "
+                    "is rgb%s — --wash-stops' opening stop. The scrim is that surface "
+                    "bleeding up into the artwork, so it is not a grey chosen to sit over "
+                    "the picture; it is whatever the wash already is where the type sits."
+                    % (got, expected))
         try:
             resolved = [resolve(s[3]) for s in stops]
         except ValueError:

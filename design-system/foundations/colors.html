@@ -712,9 +712,9 @@
         <tr><td><code>--wash-stops</code></td><td>the wash's four stops, without an angle</td><td>the same split as the two foils, so the oklab branch restates nothing</td></tr>
         <tr><td><code>--grain</code></td><td>SVG fractal noise tile</td><td>the second half of the wash's dithering, at 8 %; the same filter is inlined in all three <a href="field.html#wallpaper">wallpapers</a>, at 4 % on the two dark ones. See <a href="#wash">The page wash</a></td></tr>
         <tr><td><code>--hero-dissolve</code></td><td>mask, linear 180°, an <code>(1&nbsp;−&nbsp;t)^1.45</code> falloff over the last 25.6&nbsp;%</td><td>how full-bleed artwork ends — see <a href="#edges">Where artwork meets the page</a></td></tr>
-        <tr><td><code>--hero-scrim</code></td><td>linear 63.43°, CF-Grau at <code>--scrim-depth</code> to nothing</td><td>the light layer under hero type; same section</td></tr>
+        <tr><td><code>--hero-scrim</code></td><td>linear 63.43°, one tint at <code>--scrim-depth</code> to nothing — and that tint is <code>--wash-stops</code>' opening colour, <code>#CFCFD2</code>, not a grey of its own</td><td>the light layer under hero type; same section. Held by <code>scripts/check-hero-scrim.py</code>, which derives the tint from the wash rather than restating it</td></tr>
         <tr><td><code>--scrim-reach</code></td><td><code>min(39rem, 62&nbsp;%)</code> plus the content column's own displacement, projected onto the axis</td><td>how far the scrim holds full before falling off. The second term is zero up to a viewport of 1438.2 and <code>sin(63.43°)</code> of <code>--column-inset&nbsp;−&nbsp;--gutter</code> above it: past <code>--container-max</code> the column centres and slides right, and a constant plateau leaves the headline behind. Held by <code>scripts/check-hero-scrim.py</code></td></tr>
-        <tr><td><code>--scrim-depth</code></td><td>0.42, and 0.5 at or below 56.25&nbsp;rem</td><td>how deep the scrim is across the plateau. The reach answers the width axis; this answers the aspect one, because <code>cover</code> on a square artwork puts a different part of it under the type as the box changes shape. Below the breakpoint the hero's media box is 567&nbsp;px tall and the kicker sits on the square's dark band — 4.03:1 at 375&nbsp;×&nbsp;812 against a 4.5:1 floor. Recomputed by <code>scripts/check-hero-contrast.py</code></td></tr>
+        <tr><td><code>--scrim-depth</code></td><td>0.46, and 0.54 at or below 56.25&nbsp;rem</td><td>how deep the scrim is across the plateau. The reach answers the width axis; this answers the aspect one, because <code>cover</code> on a square artwork puts a different part of it under the type as the box changes shape. Below the breakpoint the hero's media box is 567&nbsp;px tall and the kicker sits on the square's dark band. Both values went up four points when the artwork was replaced on 2026-08-03, which puts the worst row back where the old render had it: <strong>4.77:1</strong> against the 4.5 floor below the cliff and <strong>3.34:1</strong> against the 3.0 one above it, versus 4.42 and 3.29 before the swap. Recomputed by <code>scripts/check-hero-contrast.py</code></td></tr>
       </tbody>
     </table>
   </section>
@@ -781,7 +781,25 @@
     <p>
       CF-Grau and nothing else — the page's own surface, bleeding up into the artwork exactly
       where the type sits. White would frost it and black would bruise it; both would read as a
-      plate laid on top, which is the failure mode this has to avoid. It runs at
+      plate laid on top, which is the failure mode this has to avoid.
+    </p>
+    <p>
+      <strong>The second sentence is the one that decides the number.</strong> This is not a grey
+      chosen to sit over artwork; it is the surface the page already is, continued upward under
+      the type — so it owes whatever the wash is at the height the hero occupies. That stopped
+      being <code>#CFCFCF</code> when <a href="#wash">the wash</a> was given the foil's ramp
+      reversed and opened on <code>#CFCFD2</code> instead, and the scrim was not part of that
+      change: it went on painting the anchor colour the page had beforehand, a flat sheet at
+      46&nbsp;% of a grey the page no longer has anywhere. One tint is what keeps this from
+      reading as a plate, and it says nothing about <em>which</em> — so
+      <code>check-hero-scrim.py</code> now asks both, and reads the answer out of
+      <code>--wash-stops</code> rather than holding a literal of its own. Three levels of blue,
+      OKLab L +0.00089, chroma 0.0041 against the wash's own 0.005 ceiling, and the alpha path
+      untouched to the digit, so every figure in the contrast register holds — with marginally
+      more room than before, not less.
+    </p>
+    <p>
+      It runs at
       <strong>63.43°</strong>, <code>--angle-a</code>, so it rises from the bottom-left corner
       where the text block is and is gone by the top right, where the artwork is at its best and
       the glass button needs something complicated behind it to be worth being glass.
@@ -791,13 +809,23 @@
       that had to be got right rather than merely chosen. A percentage stop is a percentage of
       the gradient <em>line</em>, whose length is 0.894·W&nbsp;+&nbsp;0.447·H — so the same
       38&nbsp;% is 587&nbsp;px in a 1280&nbsp;×&nbsp;896 hero and 402&nbsp;px in a
-      768&nbsp;×&nbsp;828 one. But the scrim has to cover a text column, and a text column is
-      44ch wide and four display lines tall whatever the viewport is. Projecting its far corner
-      onto the 63.43° axis puts it at 578&nbsp;px at 768, 603&nbsp;px at 1280 and 603&nbsp;px at
-      1920 — one number, because the column is one size. With percentage stops the headline read
-      4.46:1 at 1280 but only 3.58:1 at 768; with <code>39rem</code> it reads 4.13 – 4.46:1 at
-      every width. The <code>min(39rem, 62 %)</code> is for phones, where the whole gradient line
-      is 623&nbsp;px and a flat 39rem plateau would sheet the entire picture.
+      768&nbsp;×&nbsp;828 one. But the scrim has to cover a text column, and that column is
+      anchored to the left gutter and capped by its own type, so it stays about the same size
+      while the line grows by 0.894 of every pixel of viewport. A fixed reach, then.
+    </p>
+    <p>
+      <strong>The column is <code>fit-content</code> and no longer 44ch</strong> — it is as wide
+      as the longest line the display face sets, and three lines tall, which is what the markup
+      and the mockup both say. Projecting its far corner onto the 63.43° axis therefore gives
+      four numbers rather than one: 485&nbsp;px at 375, 693&nbsp;px at 768, 720&nbsp;px at 1280
+      and 943&nbsp;px at 1920. The plateau does not cover all four and is not asked to —
+      <code>39rem</code>&nbsp;=&nbsp;624&nbsp;px is where the scrim is still at full strength, and
+      past it the falloff is shallow enough that the corner still sits at 0.37 of full alpha at
+      768 and 0.21 at 1920. It is the contrast column that binds here; the projection only says
+      which corner to go and sample. With percentage stops the headline read 4.46:1 at 1280 but
+      only 3.58:1 at 768 — the same column and the same artwork, failed by a shorter gradient
+      line. The <code>min(39rem, 62 %)</code> is for phones, where the whole gradient line is
+      623&nbsp;px and a flat 39rem plateau would sheet the entire picture.
     </p>
   </section>
 
@@ -841,6 +869,32 @@
       rather than what a URL contains. A page whose light-surface headline and whose footer
       never share a screen may carry one of each, which is the case on both designed pages.
       Two on one screen is one too many.
+    </p>
+    <p>
+      <strong>And the landing page's hero cannot have one at all,</strong> which is worth stating
+      because it is the most obvious place on the site to want one and the answer is measured
+      rather than cautious. <code>check-hero-contrast.py</code> holds that headline to 3:1 and
+      the kicker <em>and the rule that is its border-top</em> to 4.5:1, against a twelve-second
+      loop whose worst sampled backdrops sit at relative luminance 0.108&nbsp;–&nbsp;0.154. Black
+      clears them at 3.15&nbsp;–&nbsp;4.08:1 with little to spare. Every stop of
+      <code>--gradient-foil-ink</code> measured against those same three backdrops:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Stop</th><th>Over the hero's measured backdrops</th></tr></thead>
+      <tbody>
+        <tr><td><code>--glas-800</code></td><td>1.22&nbsp;–&nbsp;1.59:1</td></tr>
+        <tr><td><code>--sky-800</code></td><td>1.66&nbsp;–&nbsp;2.16:1</td></tr>
+        <tr><td><code>--violett-800</code></td><td>1.99&nbsp;–&nbsp;2.58:1</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The <em>lightest</em> stop of the shadow foil is the worst of the three, and the best case
+      of the best stop is still under the 3:1 floor the headline owes, let alone the 4.5:1 the
+      kicker and its rule do. The lit half is further out again — it is light-on-dark and this
+      backdrop is neither. So <strong>the hero takes its light from the scrim underneath the
+      type, not from the type</strong>, and that is a property of the artwork rather than a gap
+      waiting to be closed. Deepening the scrim until a foil cleared would be the plate the
+      <a href="#edges">scrim's own note</a> exists to forbid.
     </p>
 
     <h3>Three places the foil lands, governed differently</h3>

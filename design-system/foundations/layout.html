@@ -1621,6 +1621,63 @@ print(counts)
       scrolling the page sideways the day a real German noun lands in it — on a page that was
       signed off months earlier.
     </div>
+
+    <h3 id="intrinsic-implicit" style="margin-top:var(--space-8)">The column nobody declared</h3>
+    <p>
+      <strong>A grid that declares no columns still has one.</strong> <code>display: grid</code>
+      with only <code>grid-template-rows</code> written leaves the inline axis to a single
+      <em>implicit</em> track, and an implicit track is <code>auto</code> — which in the minimum
+      slot is the same min-content floor a bare <code>fr</code> carries. Everything on this page
+      applies to it word for word. The check above could not see it, and not by an oversight in
+      the script: it reads track <em>lists</em>, and a rule that declares no track list has
+      nothing for it to read.
+    </p>
+    <p>
+      It was found by sweeping all 38 pattern pages, at 25 widths from 320 to 2560, at browser
+      default font sizes of <strong>16, 20 and 24 px</strong> — the third of those because
+      150 % is a common low-vision setting and well inside what WCAG 1.4.4 asks for. At 16 and
+      20 px the system has zero sideways scroll anywhere. At 24 px it had one page, one
+      component, one missing declaration: <code>.cf-team-grid__item</code>, which shipped
+      <code>display: grid</code> with <code>grid-template-rows: subgrid</code> and no column.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Viewport</th><th>Cell</th><th>Widest line</th><th>Document, implicit <code>auto</code></th><th>With <code>minmax(0, 1fr)</code></th></tr></thead>
+      <tbody>
+        <tr><td>320</td><td>258</td><td>289.3</td><td><strong>359</strong> — 39 px of sideways scroll</td><td>320</td></tr>
+        <tr><td>340</td><td>278</td><td>289.3</td><td><strong>362</strong> — 22 px</td><td>340</td></tr>
+        <tr><td>360</td><td>298</td><td>289.3</td><td><strong>365</strong> — 5 px</td><td>360</td></tr>
+        <tr><td>380</td><td>318</td><td>289.3</td><td>380</td><td>380</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>Why this component and no other.</strong> A grid whose own width is free absorbs a
+      wide track by growing — ugly, but not sideways scroll. This card cannot: its row axis is
+      <code>subgrid</code>, so it stands in a cell whose width <code>auto-fill</code> on
+      <code>.cf-team-grid</code> has already decided, and the track grows straight
+      <em>through</em> it. That is what makes the case checkable rather than a matter of taste,
+      and it is the gate the script now carries: <strong>a grid whose rows are
+      <code>subgrid</code> must declare its columns, or guard its items.</strong>
+      <br><br>
+      At a 16 px default the fix changes nothing — the team grid renders byte-for-byte identically
+      at 320, 375, 768 and 1280 — because a single <code>auto</code> column in a grid of definite
+      width already stretches to fill it. <code>minmax(0, 1fr)</code> draws the same card and
+      removes only the minimum that was never wanted.
+    </div>
+    <div class="docs-note">
+      <strong>The rest are counted, not judged.</strong> With the card's column declared,
+      thirteen rules in the shipping CSS still leave their column axis implicit; seven of them
+      are credited by a <code>min-width: 0</code> somewhere in their component, and six —
+      <code>.iso-scene</code>, <code>.cf-scroll-cue</code>, <code>.cf-team-closer</code>,
+      <code>.cf-hero__still</code>, <code>.cf-pin__steps</code> and <code>.cf-pin__inner</code> —
+      are neither declared nor guarded and are all fine today. Whether an implicit column
+      <em>can</em> be squeezed depends on what its children hold: an SVG at
+      <code>grid-area: 1 / 1</code> cannot produce a min-content wider than its cell and a
+      paragraph of German can. That is a fact about content, and no amount of reading the
+      stylesheet settles it — so the script prints the six and fails on none of them. Asserting
+      six exemptions would be asserting six judgements it cannot make; counting them means the
+      number cannot grow quietly. Run <code>python3 scripts/check-grid-tracks.py -v</code> for
+      the census.
+    </div>
   </section>
 
   <section class="docs-section" id="sections">

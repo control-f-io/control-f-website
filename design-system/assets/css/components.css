@@ -6062,12 +6062,45 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    that the four tracks are now shared. That same property is what carries the
    cell's own block inset, for the reason set out above the item rule: a
    percentage padding on this element would not have reached these tracks in
-   Chromium, and a margin on the lines does. */
+   Chromium, and a margin on the lines does.
+
+   THE COLUMN IS DECLARED BECAUSE THE ROWS ARE SUBGRID, and leaving it out was
+   a live overflow. `display: grid` with only the ROW axis stated leaves the
+   column axis implicit, and an implicit column is `auto` — which as a MINIMUM
+   is the item's automatic minimum size, its min-content width. That is exactly
+   the intrinsic-minimum defect check-grid-tracks.py was written for, one axis
+   over: the script reads track LISTS, and a rule that declares no track list
+   at all has nothing for it to read.
+
+   It cannot overflow anywhere else in the system, and the reason is this
+   element's other half. A grid whose own width is free absorbs a wide track by
+   growing. This one cannot: the row axis is subgrid, so the card stands in a
+   cell of .cf-team-grid whose width auto-fill has already decided, and the
+   track grows THROUGH it. Measured on patterns/ueber-uns.html with the
+   browser's default font at 24 px — 150 %, a common low-vision setting and
+   well inside what WCAG 1.4.4 asks for — where the longest word of the focus
+   line stops fitting the 15 % inset:
+
+     viewport   cell   widest line   document      sideways
+       320      258       289.3      320 -> 359       39 px
+       340      278       289.3      340 -> 362       22 px
+       360      298       289.3      360 -> 365        5 px
+       380      318       289.3      380 -> 380          0
+
+   Nothing at a 16 or 20 px default, at any width, on any page — which is why
+   a sweep run at the default alone reported the system clean. The floor costs
+   nothing there: a single `auto` column in a definite-width grid already
+   stretches to fill it, so minmax(0, 1fr) draws the identical card and only
+   removes the minimum that was never wanted. The word wraps inside the cell
+   the way the reset's overflow-wrap always meant it to — break-word does not
+   enter intrinsic track sizing, so it could not help while the track was
+   still floored at min-content. → foundations/layout.html#intrinsic-minimum */
 @supports (grid-template-rows: subgrid) {
   .cf-team-grid__item {
     display: grid;
     grid-row: span 4;
     grid-template-rows: subgrid;
+    grid-template-columns: minmax(0, 1fr);
     row-gap: 0;
   }
 }
