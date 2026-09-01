@@ -30,8 +30,9 @@
     <p>
       A frame, two hairlines, and one black line. The frame states where it starts and
       stops; the trace is drawn into it; three of the eleven values are printed, and the
-      other eight are in the markup as text without being painted. No axis, no ticks, no
-      gridlines, no legend.
+      other eight are in the markup as text without being painted. No vertical rule, no
+      tick, no legend — and no <a href="#scale">scale</a> either, because a figure that
+      prints the three numbers it is about is a figure with nothing left to estimate.
     </p>
 
     <div class="docs-demo docs-demo--plain">
@@ -110,9 +111,12 @@
         <tr><td><code>.cf-line</code></td><td>yes</td><td>A <code>&lt;figure&gt;</code>. Owns <code>--line-max</code>, <code>--line-ratio</code> and <code>--line-node</code>, and is the scroll subject the draw is timed against.</td></tr>
         <tr><td><code>.cf-line__bounds</code></td><td>yes</td><td>The frame's own extent, in words, above its top edge. The only number in the figure that is not a datum — and required, because the floor is not assumed to be zero.</td></tr>
         <tr><td><code>.cf-line__frame</code></td><td>yes</td><td>The box the domain is stretched across. Two hairlines, floor and ceiling, in <code>--border-default</code>. Fixed 2:1. No sides.</td></tr>
+        <tr><td><code>.cf-line__scale</code></td><td>no</td><td>The value axis, as a <code>&lt;ul&gt;</code> inside the frame and before the drawing, so its rules pass under the trace. <code>aria-hidden</code>: it is the instrument, and every value is already in the tree as text. See <a href="#scale">The scale</a>.</td></tr>
+        <tr><td><code>.cf-line__step</code></td><td>with a scale</td><td>One subdivision. Carries <code>--v</code> and holds a bare number; the hairline runs out of it to the frame's right edge. Subdivisions only — the ends are the frame's own two hairlines and are named by <code>.cf-line__bounds</code>.</td></tr>
         <tr><td><code>.cf-line__draw</code></td><td>yes</td><td>The drawing. <code>viewBox="0 0 100 100"</code> and <code>preserveAspectRatio="none"</code>, always — that is what makes <code>x</code> the same number as <code>--t</code>. <code>aria-hidden</code>.</td></tr>
         <tr><td><code>.cf-line__trace</code></td><td>yes</td><td>A <code>&lt;polyline&gt;</code>. Solid, black, 1 px non-scaling. The only black line in the box.</td></tr>
         <tr><td><code>.cf-line__trace--near</code> / <code>--faint</code> / <code>--ghost</code></td><td>no</td><td>The other three rungs of the presence ladder — 2-1, 1-2, 1-4. One trace per rung, four traces at the ceiling and three in practice. See <a href="#three-series">More than two</a>.</td></tr>
+        <tr><td><code>.cf-line__trace--hue</code></td><td>no</td><td>Violett 700. At most one trace in a figure carries it, and it rides <em>with</em> a rung and never instead of one. One hue is the ceiling and that is arithmetic — see <a href="#colour">One hue, and why there cannot be two</a>.</td></tr>
         <tr><td><code>.cf-line__head</code></td><td>no</td><td>Holds the key on the left and the bounds on the right, one line above the ceiling. Only needed when there is a key.</td></tr>
         <tr><td><code>.cf-line__legend</code> / <code>__legend-item</code> / <code>__sample</code></td><td>no</td><td>The key. The sample <em>is</em> a trace — same class, same rung — so one rule paints it and the line it names.</td></tr>
         <tr><td><code>.cf-line__set--quiet</code></td><td>no</td><td>The series is read for its shape, not its numbers: keys and nodes paint, values do not. Every value stays in the accessibility tree. What a figure with three traces normally wants.</td></tr>
@@ -133,7 +137,7 @@
       <thead><tr><th>Property</th><th>Default</th><th>What it does</th></tr></thead>
       <tbody>
         <tr><td><code>--t</code></td><td><code>0</code></td><td>Per point. Where it sits in the domain, 0 to 1. Registered as <code>&lt;number&gt;</code>, clamped on top of that.</td></tr>
-        <tr><td><code>--v</code></td><td><code>0</code></td><td>Per point. Where it sits in the frame, 0 at the floor and 1 at the ceiling. The plot's own property, reused verbatim — one name, one meaning, in both figures.</td></tr>
+        <tr><td><code>--v</code></td><td><code>0</code></td><td>Per point, and per <code>.cf-line__step</code>. Where it sits in the frame, 0 at the floor and 1 at the ceiling. The plot's own property, reused verbatim — one name, one meaning, in both figures, and now on the scale that measures one of them.</td></tr>
         <tr><td><code>--line-max</code></td><td><code>640px</code></td><td>How wide the frame is allowed to get. 640 is 20 × <code>--plot-u</code> at that unit's 32 px ceiling, so a plot and a line in one article are the same width on a desktop. Below it the frame is simply the measure it is given.</td></tr>
         <tr><td><code>--line-ratio</code></td><td><code>2</code></td><td>The frame's aspect. A <em>document-level</em> decision, never a per-figure one, and the only other legal values are <code>1</code> and <code>0.5</code> — see below.</td></tr>
         <tr><td><code>--line-node</code></td><td><code>0.5rem</code></td><td>The anchor cell's box before <code>--iso-transform</code> cuts it. The same 8 px as <code>--annot-node</code>, because it is the same mark.</td></tr>
@@ -148,11 +152,16 @@
     <p>
       One line may be read against one other, and the second is the
       <em>comparison</em> — the plan, the year before, the target — never a peer. It is
-      drawn black and broken: the 1-4 ghost, one rung down the
+      drawn broken: the 1-4 ghost, one rung down the
       <a href="arrival.html#ladder">presence ladder</a>, which is how this system says
-      “less present” everywhere else. Two series is the case that needs no key at all:
-      each names itself at its own last point, which is direct labelling and beats a
-      legend every time. <a href="#three-series">Three is the next section.</a>
+      “less present” everywhere else. It also carries the figure's one hue, and the dash
+      is the half that is load-bearing: the rung is what a reader gets in forced colours,
+      in greyscale and on a monochrome printer, and the tint is what makes the two lines
+      separable at a glance in the crossing region where a duty cycle is hardest to read.
+      One is the ceiling, and <a href="#colour">that is arithmetic</a>. Two series is also
+      the case that needs no key at all: each names itself at its own last point, which is
+      direct labelling and beats a legend every time.
+      <a href="#three-series">Three is the next section.</a>
     </p>
 
     <div class="docs-demo docs-demo--plain">
@@ -160,7 +169,7 @@
         <p class="cf-line__bounds">Rahmen 0 – 100 %</p>
         <div class="cf-line__frame">
           <svg class="cf-line__draw" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <polyline class="cf-line__trace cf-line__trace--ghost" points="0,88 10,81 20,74 30,67 40,60 50,53 60,46 70,39 80,32 90,25 100,18"/>
+            <polyline class="cf-line__trace cf-line__trace--ghost cf-line__trace--hue" points="0,88 10,81 20,74 30,67 40,60 50,53 60,46 70,39 80,32 90,25 100,18"/>
             <polyline class="cf-line__trace" points="0,88 10,85 20,81 30,76 40,73 50,67 60,59 70,45 80,34 90,24 100,16"/>
           </svg>
           <ol class="cf-line__set cf-line__set--ghost">
@@ -221,7 +230,10 @@
       ink: a trace in it reads as annotation rather than as data. The dash costs nothing
       by comparison — black is black at every width — and the 1-4 ghost is the same mark
       <code>.cf-plot__cell</code> and <code>.cf-iso__ghost</code> already carry for the
-      same meaning.
+      same meaning. The <em>hue</em> on the ghost above is the one thing that clears both
+      of those bars at once, and the next section is the measurement that says so — but it
+      arrives on top of the dash and never in place of it, so removing every colour from
+      this figure leaves it exactly as legible as it was before the colour existed.
     </div>
 
     <div class="docs-note">
@@ -242,6 +254,17 @@
       thing is — so three series read honestly only if the three are ordinally related.
       One ordering fits it exactly: <strong>measured, planned, forecast</strong>. Present,
       one rung down, not here yet.
+    </p>
+    <p>
+      <strong>And this figure takes no hue at all</strong>, which is the ceiling showing
+      rather than an omission. The page has room for exactly one coloured trace
+      (<a href="#colour">the arithmetic is below</a>), and the hue's meaning is “the thing
+      the subject is read against”. With two series there is exactly one of those and the
+      tint is unambiguous. With three there are two, and colouring one of them would say
+      the other is a different <em>kind</em> of reference when the only difference between
+      them is a rung. So the three-series figure is drawn in the vocabulary it has, and the
+      moment a figure wants more, the answer is the one it always was:
+      <a href="#small-multiples">four frames</a>.
     </p>
 
     <div class="docs-demo docs-demo--plain">
@@ -370,42 +393,228 @@
       altogether, the way the previous section does.
     </div>
 
-    <div class="docs-note docs-note--warn">
-      <strong>There is no colour here, and that is arithmetic rather than doctrine.</strong>
-      <p>
-        The brand has three accents besides lime, each with a full ramp, so a categorical
-        set is not obviously unavailable — it was measured rather than assumed. Against
-        CF-Grau, the wash's worst end, at the 3:1 this system holds a contour to:
-      </p>
-      <div class="docs-table-scroll">
-      <table class="docs-table">
-        <thead><tr><th>Step</th><th>Hex</th><th>On the wash</th><th></th></tr></thead>
-        <tbody>
-          <tr><td>Glas 500</td><td><code>#C5EBE2</code></td><td>1.21:1</td><td>the brand hue — fails</td></tr>
-          <tr><td>Sky 500</td><td><code>#72B0E2</code></td><td>1.49:1</td><td>the brand hue — fails</td></tr>
-          <tr><td>Violett 500</td><td><code>#7E7FE1</code></td><td>2.24:1</td><td>the brand hue — fails</td></tr>
-          <tr><td>Glas 800</td><td><code>#45524F</code></td><td>5.24:1</td><td>passes</td></tr>
-          <tr><td>Sky 800</td><td><code>#283E4F</code></td><td>7.12:1</td><td>passes</td></tr>
-          <tr><td>Violett 800</td><td><code>#2C2C4F</code></td><td>8.53:1</td><td>passes</td></tr>
-        </tbody>
-      </table>
-      </div>
-      <p>
-        The three steps that carry the hue all fail the page, and the three that clear it
-        are near-blacks that fail against <em>each other</em>: Glas 800 against Sky 800 is
-        <strong>1.36:1</strong>, and Sky 800 against Violett 800 is <strong>1.20:1</strong>.
-        A 1 px stroke gives the eye almost no area to judge a hue on at the best of times;
-        at 1.2:1 apart there is nothing to judge. So this palette cannot make a categorical
-        hairline set — either the colour fails the page or it fails the other colours — and
-        the only way to have one would be to add colours the brand does not have. That is a
-        decision at the token layer and about the brand, not one a chart component gets to
-        make on its own.
-      </p>
-      <p>
-        Which is the same answer the accessibility rule gives for a different reason:
-        nothing here may be encoded in colour alone. Past three series the move is not a
-        fourth line type. It is four frames.
-      </p>
+  </section>
+
+  <section class="docs-section" id="colour">
+    <h2>One hue, and why there cannot be two</h2>
+    <p>
+      The brand has three accents besides lime, each with a full ramp, so a categorical
+      set is not obviously unavailable — it was measured rather than assumed. The
+      measurement came back with a smaller answer than “no” and a more useful one: this
+      page has room for <strong>exactly one</strong> coloured trace, and that ceiling is a
+      property of the page rather than of the palette.
+    </p>
+    <p>
+      The reason the obvious version of this arithmetic goes wrong is that a trace owes
+      <strong>two</strong> debts at once, not one. It owes 3:1 against the
+      <em>page</em> — whose worst end is CF-Grau, relative luminance 0.624 — and it owes
+      3:1 against the <em>black trace</em> it exists to differ from, which is Schwarz at 0.
+      Solve both and the colour's own luminance is pinned into a band:
+    </p>
+
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Bar</th><th>Solves to</th></tr></thead>
+      <tbody>
+        <tr><td>3:1 off the wash's worst end</td><td><code>Y ≤ (0.624 + 0.05) / 3 − 0.05 = <strong>0.175</strong></code></td></tr>
+        <tr><td>3:1 off the black trace</td><td><code>Y ≥ 3 × 0.05 − 0.05 = <strong>0.100</strong></code></td></tr>
+        <tr><td>widest contrast available <em>inside</em> that band</td><td><code>(0.175 + 0.05) / (0.100 + 0.05) = <strong>1.50:1</strong></code></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>
+      Which settles the categorical question outright. Two colours that both clear the page
+      and both clear the black line are under 1.5:1 <em>from each other</em>, and a 1 px
+      stroke gives the eye almost no area to judge a hue on at the best of times. So a
+      second hue is not something this brand happens to lack — growing the brand a
+      categorical ramp would only produce more colours that fail each other. The band is
+      0.075 wide and it holds one step.
+    </p>
+    <p>
+      Of the twenty-eight steps in the four ramps, exactly one lands in it.
+    </p>
+
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Step</th><th>Hex</th><th>On the wash</th><th>From the black trace</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>Glas 500</td><td><code>#C5EBE2</code></td><td>1.21:1</td><td>16.36:1</td><td>the brand hue — fails the page</td></tr>
+        <tr><td>Sky 500</td><td><code>#72B0E2</code></td><td>1.49:1</td><td>9.02:1</td><td>the brand hue — fails the page</td></tr>
+        <tr><td>Violett 500</td><td><code>#7E7FE1</code></td><td>2.24:1</td><td>6.01:1</td><td>the brand hue — fails the page</td></tr>
+        <tr><td>Glas 700</td><td><code>#94B0A9</code></td><td>1.49:1</td><td>9.04:1</td><td>fails the page</td></tr>
+        <tr><td>Sky 700</td><td><code>#5684A9</code></td><td>2.56:1</td><td>5.27:1</td><td>fails the page, and only just</td></tr>
+        <tr><td>Glas 800</td><td><code>#45524F</code></td><td>5.24:1</td><td>2.57:1</td><td>a near-black — fails the trace</td></tr>
+        <tr><td>Sky 800</td><td><code>#283E4F</code></td><td>7.12:1</td><td>1.89:1</td><td>a near-black — fails the trace</td></tr>
+        <tr><td>Violett 800</td><td><code>#2C2C4F</code></td><td>8.53:1</td><td>1.58:1</td><td>a near-black — fails the trace</td></tr>
+        <tr><td><strong>Violett 700</strong></td><td><code>#5F5FA9</code></td><td><strong>3.65:1</strong></td><td><strong>3.70:1</strong></td><td><strong>passes</strong> — Y 0.135, near the middle of the band</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>
+      Everything light enough to carry a hue fails the page; everything dark enough to
+      clear the page is a near-black that fails the trace. Violett 700 sits in the gap, at
+      5.68:1 on the wash's white end and 1.61:1 from grey 700 — so it is not
+      <code>--text-secondary</code> either, which is the trap a grey trace falls into: it
+      would read as annotation rather than as data. That is
+      <code>.cf-line__trace--hue</code>, and there is deliberately no
+      <code>--line-hue</code> property behind it. A knob would read as a choice, and there
+      is no choice to make.
+    </p>
+
+    <div class="docs-note">
+      <strong>It rides <em>with</em> a rung and never instead of one.</strong> Nothing here
+      may be encoded in colour alone, and this component has two reasons beyond the rule.
+      In forced colours every trace is handed to <code>CanvasText</code>, so the hue is
+      gone there and the dash is the whole of what a reader has — which is why the figure
+      with the tint on it is exactly as legible with every colour stripped out. That
+      hand-off is explicit and has to be: forced colours does <em>not</em> touch SVG
+      <code>stroke</code>, so a tinted trace left alone comes through the mode untouched,
+      which looks like the hue working and is the hue escaping.
+      <code>scripts/check-line-trace.py</code>'s <code>RUNGS</code> rule stands untouched
+      on the other side: two traces in one figure may not share a rung, hue or no hue. What
+      the colour buys is the one thing a dash on a hairline is worst at — telling two
+      crossing lines apart at a glance, without stopping to inspect a duty cycle.
+    </div>
+
+    <div class="docs-note">
+      <strong>The hue goes on the reference and never on the subject.</strong> The
+      measurement is the black line: “the contour is black and is the drawing” is older
+      than this component and the trace <em>is</em> the contour. Tinting the comparison
+      says the same thing the rung already says — this is not the measurement — so the two
+      channels agree instead of competing, which is what redundancy is supposed to mean.
+      And it is why a three-series figure takes no hue at all: with two references, one
+      tint has to pick one, and the pick would claim a difference in kind that only a rung
+      separates.
+    </div>
+  </section>
+
+  <section class="docs-section" id="scale">
+    <h2>The scale</h2>
+    <p>
+      Everything above prints the values it is about, and the figure in
+      <a href="#three-series">More than two</a> prints none — which leaves a reader with a
+      shape, a frame and no way to put a number on anything between the ends. That is the
+      case this is for. The frame gets subdivided, each subdivision carries its number, and
+      the reader can read a value off anywhere along the domain.
+    </p>
+    <p>
+      <strong>It is a label rule, which is what makes it legal.</strong>
+      <a href="../foundations/geometry.html#where-lines-go">Geometry</a> admits three kinds
+      of line and calls everything else decoration, and its third kind is “a mono label with
+      the hairline running out of it to the far edge — the line and the word are one mark”.
+      A step is that construction exactly: the number, a gap, the hairline to the frame's
+      right edge. It is <code>.cf-section-header</code>, turned into the frame. The vertical
+      rules stay forbidden for the reason they always were — a rule standing between two
+      points carries no label at its end and closes nothing — so there is still no domain
+      axis, and there still does not need to be. The domain is named at the points it is
+      read at.
+    </p>
+
+    <div class="docs-demo docs-demo--plain">
+      <figure class="cf-line">
+        <p class="cf-line__bounds">Rahmen 0 – 100 % der vertraglichen Höchstlast</p>
+        <div class="cf-line__frame">
+          <ul class="cf-line__scale" aria-hidden="true">
+            <li class="cf-line__step" style="--v:.75">75</li>
+            <li class="cf-line__step" style="--v:.5">50</li>
+            <li class="cf-line__step" style="--v:.25">25</li>
+          </ul>
+          <svg class="cf-line__draw" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <polyline class="cf-line__trace" points="0,56 8.333333,62 16.666667,64 25,54 33.333333,34 41.666667,22 50,26 58.333333,30 66.666667,28 75,12 83.333333,20 91.666667,40 100,53"/>
+          </svg>
+          <ol class="cf-line__set cf-line__set--quiet">
+            <li class="cf-line__point cf-line__point--read cf-line__point--first" style="--t:0;--v:.44">
+              <span class="cf-line__key">00 Uhr</span><span class="cf-line__val">44 %</span>
+              <span class="cf-line__node"></span>
+            </li>
+            <li class="cf-line__point" style="--t:.083333;--v:.38"><span class="cf-line__key">02 Uhr</span><span class="cf-line__val">38 %</span></li>
+            <li class="cf-line__point" style="--t:.166667;--v:.36"><span class="cf-line__key">04 Uhr</span><span class="cf-line__val">36 %</span></li>
+            <li class="cf-line__point" style="--t:.25;--v:.46"><span class="cf-line__key">06 Uhr</span><span class="cf-line__val">46 %</span></li>
+            <li class="cf-line__point" style="--t:.333333;--v:.66"><span class="cf-line__key">08 Uhr</span><span class="cf-line__val">66 %</span></li>
+            <li class="cf-line__point" style="--t:.416667;--v:.78"><span class="cf-line__key">10 Uhr</span><span class="cf-line__val">78 %</span></li>
+            <li class="cf-line__point" style="--t:.5;--v:.74"><span class="cf-line__key">12 Uhr</span><span class="cf-line__val">74 %</span></li>
+            <li class="cf-line__point" style="--t:.583333;--v:.7"><span class="cf-line__key">14 Uhr</span><span class="cf-line__val">70 %</span></li>
+            <li class="cf-line__point" style="--t:.666667;--v:.72"><span class="cf-line__key">16 Uhr</span><span class="cf-line__val">72 %</span></li>
+            <li class="cf-line__point cf-line__point--read" style="--t:.75;--v:.88">
+              <span class="cf-line__key">18 Uhr</span><span class="cf-line__val">88 %</span>
+              <span class="cf-line__node"></span>
+            </li>
+            <li class="cf-line__point" style="--t:.833333;--v:.8"><span class="cf-line__key">20 Uhr</span><span class="cf-line__val">80 %</span></li>
+            <li class="cf-line__point" style="--t:.916667;--v:.6"><span class="cf-line__key">22 Uhr</span><span class="cf-line__val">60 %</span></li>
+            <li class="cf-line__point cf-line__point--read cf-line__point--last" style="--t:1;--v:.47">
+              <span class="cf-line__key">24 Uhr</span><span class="cf-line__val">47 %</span>
+              <span class="cf-line__node"></span>
+            </li>
+          </ol>
+        </div>
+        <figcaption class="cf-line__caption">
+          Lastgang eines Netzgebiets an einem Werktag im Januar, in Prozent der
+          vertraglichen Höchstlast. Die Abendspitze um 18 Uhr liegt bei 88 % und damit
+          höher als der Mittagswert — der Tag hat zwei Spitzen und die zweite ist die
+          teure.
+        </figcaption>
+      </figure>
+    </div>
+
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-line__frame"</span>&gt;
+
+  &lt;!-- before the drawing, so the rules pass UNDER the trace --&gt;
+  &lt;<span class="tag">ul</span> <span class="attr">class</span>=<span class="val">"cf-line__scale"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;
+    &lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-line__step"</span> <span class="attr">style</span>=<span class="val">"--v:.75"</span>&gt;75&lt;/<span class="tag">li</span>&gt;
+    &lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-line__step"</span> <span class="attr">style</span>=<span class="val">"--v:.5"</span>&gt;50&lt;/<span class="tag">li</span>&gt;
+    &lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-line__step"</span> <span class="attr">style</span>=<span class="val">"--v:.25"</span>&gt;25&lt;/<span class="tag">li</span>&gt;
+  &lt;/<span class="tag">ul</span>&gt;
+
+  &lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-line__draw"</span> …&gt;…&lt;/<span class="tag">svg</span>&gt;
+  &lt;<span class="tag">ol</span> <span class="attr">class</span>=<span class="val">"cf-line__set cf-line__set--quiet"</span>&gt;…&lt;/<span class="tag">ol</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+
+    <div class="docs-note">
+      <strong>The ends are not steps, and that is what keeps the scale from being a second
+      copy of anything.</strong> The floor and the ceiling are already drawn — they are the
+      frame's own two hairlines — and already named, by <code>.cf-line__bounds</code>, which
+      stays required and still carries the unit. So the scale prints the
+      <em>subdivisions</em> only, bare, and no figure says a number twice. A step at
+      <code>--v: 0</code> or <code>--v: 1</code> would also put half its numerals outside
+      the frame it is measuring.
+    </div>
+
+    <div class="docs-note">
+      <strong>A scale and a printed value are two answers to the same question, and a
+      figure picks one.</strong> Print three numbers when three numbers are the message;
+      draw a scale when the shape is the message and the reader wants to estimate anywhere
+      along it — then let the set go <code>--quiet</code>, the way the figure above does.
+      This is not a stylistic preference, it is the left edge: a step's number and a
+      <code>--first</code> point's value are both flush left, and at 320 px the frame is
+      136 px tall, so quarter steps sit 34 px apart while a value label is 28 px. An
+      opening value at <code>--v: .12</code> and a step at <code>.25</code> overlap there.
+      Measured, not feared. A figure with a scale does not print its opening value — it has
+      a scale, which is what the reader would have read that number off.
+    </div>
+
+    <div class="docs-note">
+      <strong>Same grey and same weight as the frame's own edges, deliberately.</strong> A
+      subdivision is the same instrument at the same volume as the edges it lies between,
+      and <code>--border-default</code> is already the quietest line the figure draws at
+      1.74:1 on the wash's worst end — a rung below that is not a fainter rule, it is no
+      rule. What separates a subdivision from an edge here is not tint: an edge runs the
+      full width and carries no number, a subdivision stops at one. That is the label-rule
+      distinction drawn rather than asserted, and it is the distinction that survives
+      forced colours, where both go dashed for the reason the frame already did.
+    </div>
+
+    <div class="docs-note">
+      <strong>It is <code>aria-hidden</code>, for the drawing's reason.</strong> The scale
+      is the instrument and not the data: all thirteen values are already in the
+      accessibility tree as text, and the extent is already there as
+      <code>.cf-line__bounds</code>. Exposed, “75 50 25” would read as a fourth series
+      sitting between the real ones. The alignment mechanism is
+      <code>font-variant-numeric: tabular-nums</code> and nothing else — steps with the same
+      digit count set to the same width, so every rule starts at one <code>x</code> without
+      a wrapper element to align them in. A sensible step already has one; a step series
+      that does not is a step series to reconsider.
     </div>
   </section>
 
@@ -670,10 +879,18 @@
       <a href="table.html">table</a>'s argument reused: a rule between two points would be
       neither an edge, nor a division, nor a label rule, and
       <a href="../foundations/geometry.html#where-lines-go">Geometry</a> calls a line that
-      is none of the three decoration. No gridlines, no ticks, no axis. The domain is
-      named where it is read, which is the same direct labelling the plot uses instead of
-      a legend — and the reason neither figure needs one: an axis exists to let you
-      estimate a value, and the values that matter are printed.
+      is none of the three decoration. So there is no domain axis and no tick: the domain
+      is named where it is read, which is the same direct labelling the plot uses instead
+      of a legend.
+      <br><br>
+      <strong>The value scale is the one exception, and it is one because it passes the
+      same test rather than because it was wanted badly enough.</strong> A step is a number
+      with a hairline running out of it to the far edge, which is that page's third kind
+      exactly — the mark <code>.cf-section-header</code> already is. It stays optional for
+      the reason the original argument was right about: an axis exists to let a reader
+      estimate a value, so a figure that prints the values that matter has nothing left to
+      estimate and gets none. <a href="#scale">The scale</a> is for the other figure, the
+      one whose message is a shape.
     </div>
 
     <div class="docs-note">
@@ -735,12 +952,16 @@
           </td>
         </tr>
         <tr>
-          <td>Nothing is encoded in colour</td>
+          <td>Nothing is encoded in colour <em>alone</em></td>
           <td>
-            The two series differ by line type, not by tint, and the caption names which
-            is which in words. There is no lime in this figure at all: a point that has to
-            be lit gets an <a href="annotation.html">annotation</a>, which already owns
-            the lit rung and the lime budget that goes with it.
+            Two series differ by line type first, and the caption names which is which in
+            words. A figure may tint one reference trace Violett 700 — the single hue
+            <a href="#colour">the page has room for</a> — but the tint always arrives on
+            top of a rung and never in place of one, so stripping every colour out leaves
+            the figure exactly as legible. Forced colours does precisely that, which is the
+            test rather than the worry. There is no lime in this figure at all: a point
+            that has to be lit gets an <a href="annotation.html">annotation</a>, which
+            already owns the lit rung and the lime budget that goes with it.
           </td>
         </tr>
         <tr>
@@ -757,14 +978,20 @@
     </div>
 
     <p>
-      Contrast: the trace is <code>--border-strong</code> (black) and the frame is
-      <code>--border-default</code>, both on the page wash. Values are
-      <code>--text-primary</code>; keys and the bounds are <code>--text-secondary</code>,
-      5.9:1 on CF-Grau — never <code>--text-muted</code>, which is 2.0:1 there and is the
-      mistake documented on <a href="../foundations/colors.html">Colour</a>. In forced
-      colours the frame's two hairlines are redrawn dashed, because that mode maps
+      Contrast: the trace is <code>--border-strong</code> (black) and the frame — its two
+      edges and every scale step — is <code>--border-default</code>, both on the page wash.
+      A tinted trace is Violett 700, 3.65:1 on CF-Grau and 3.70:1 from the black it is read
+      against, which is the whole of why it is that step and not another. Values are
+      <code>--text-primary</code>; keys, the bounds and the scale's numbers are
+      <code>--text-secondary</code>, 5.9:1 on CF-Grau — never <code>--text-muted</code>,
+      which is 2.0:1 there and is the mistake documented on
+      <a href="../foundations/colors.html">Colour</a>. In forced colours the frame's
+      hairlines and the scale's are redrawn dashed, because that mode maps
       <code>--border-default</code> and <code>--border-strong</code> onto one ink and
-      would otherwise hand the frame the trace's own weight.
+      would otherwise hand the frame the trace's own weight — and every trace is given
+      <code>CanvasText</code> outright, because that mode does not force SVG
+      <code>stroke</code> and a Schwarz trace on a dark palette is a figure with its
+      measurement missing.
     </p>
   </section>
 
@@ -851,6 +1078,18 @@
           <td>Print a value into another trace. The label's height is fixed and the frame's is not, so a gap that is generous on a desktop is a collision on a phone — and it is the phone that nobody checks.</td>
         </tr>
         <tr>
+          <td>Draw a <a href="#scale">scale</a> when the message is the shape, and let the set go <code>--quiet</code> under it.</td>
+          <td>Add a scale to a figure that already prints its values. They are two answers to the same question — and at 320 px the opening value and the first step land on the same 28 px of the left edge.</td>
+        </tr>
+        <tr>
+          <td>Step the scale in equal digit counts — 25/50/75, 20/40/60/80 — so the rules start at one <code>x</code>.</td>
+          <td>Step it across a digit boundary, or step the ends. <code>.cf-line__bounds</code> names the floor and the ceiling and the frame already draws them.</td>
+        </tr>
+        <tr>
+          <td>Tint the <em>reference</em>, once, on top of its rung, when two lines cross and the dash is hard to follow.</td>
+          <td>Tint the subject, tint two traces, or tint anything in a figure with three series. The page has room for one hue and its meaning is “not the measurement”; a second is under 1.5:1 from the first.</td>
+        </tr>
+        <tr>
           <td>Keep the data clear of the floor and the ceiling.</td>
           <td>Let the trace run along the frame's own edge. It reads as the instrument, not the measurement, and the clip takes the top half of the stroke with it.</td>
         </tr>
@@ -873,14 +1112,16 @@
         to hand, and if the two disagree, the plate wins.
       </li>
       <li>
-        <strong>Colour is answered, not deferred.</strong> The measurement in
-        <a href="#three-series">More than two</a> is the whole of it: this palette cannot
-        make a categorical hairline set, because the steps that carry a hue fail the page
-        and the steps that clear the page are near-blacks 1.2:1 apart from each other.
-        A categorical palette would be new colours, which is a decision at the token layer
-        and about the brand — not one a chart component gets to make on its own. If the
-        brand ever grows one, the place it lands is a modifier beside the rungs, never
-        instead of them: nothing here may be encoded in colour alone.
+        <strong>Colour is answered and closed.</strong>
+        <a href="#colour">One hue, and why there cannot be two</a> is the whole of it, and
+        the answer turned out to be a number rather than a no: a trace that owes 3:1 to the
+        page and 3:1 to the black line it differs from is pinned to a luminance band
+        0.075 wide, and the widest contrast available inside that band is 1.50:1. So a
+        figure may carry one coloured trace and never two, and that ceiling would survive
+        the brand growing a categorical ramp — the second colour would fail the first, not
+        the page. Violett 700 is the one step in the palette that lands in the band. It
+        arrives as <code>.cf-line__trace--hue</code>, a modifier beside the rungs and never
+        instead of them, which is the shape this entry predicted before it was measured.
       </li>
       <li>
         <strong>No area under the trace, and no stack.</strong> The brand draws and does

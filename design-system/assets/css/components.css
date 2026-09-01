@@ -9481,13 +9481,13 @@ a.cf-calendar__day > time,
    SAY where it starts: .cf-line__bounds is required, and it is the only
    number in the figure that is not a datum.
 
-   ONE COLOUR RULE FOR THE WHOLE FIGURE: the frame is grey and the data is
-   black. The frame's floor and ceiling are --border-default hairlines for
-   exactly the reason .cf-plot__caption's rule is — so they do not read as one
-   more edge of the drawing — and every trace in the box is black. A second
-   series is one rung down the presence ladder and not one step down the grey
-   ramp, and that is measured rather than asserted. Grey fails at both ends
-   at once, against CF-Grau, the wash's worst end:
+   ONE COLOUR RULE FOR THE WHOLE FIGURE: the frame is grey, the data is black,
+   and exactly one trace may take the one hue the page has room for. The frame's
+   floor, ceiling and steps are --border-default hairlines for exactly the
+   reason .cf-plot__caption's rule is — so they do not read as one more edge of
+   the drawing. A second series is one rung down the presence ladder and not one
+   step down the grey ramp, and that is measured rather than asserted. Grey
+   fails at both ends at once, against CF-Grau, the wash's worst end:
 
      --border-default  #9D9D9D composited   1.74:1 on the wash     invisible
      grey-500          #9B9B9B              1.78:1 on the wash     invisible
@@ -9499,15 +9499,23 @@ a.cf-calendar__day > time,
    system holds a contour to — a line the reader is invited to compare and
    cannot see. The one grey that clears the wash is 2.30:1 from the trace it is
    supposed to differ from, and it is --text-secondary, the label ink, so a
-   trace in it reads as annotation rather than as data. The three accents fare
-   no better and the arithmetic is beside the rungs below. Presence is a line
-   type here because it is the only cue that survives a 1 px stroke.
+   trace in it reads as annotation rather than as data. The accents are measured
+   beside the rungs below, and that measurement is what says a figure may carry
+   one hue and never two. Presence is the line type because it is the only cue
+   that survives a 1 px stroke in forced colours, in grayscale and on paper.
 
    NO VERTICAL LINES AT ALL, which is the table's argument reused: a rule
    between two points would be neither an edge, nor a division, nor a label
    rule, and geometry.html calls a line that is none of the three decoration.
-   No gridlines, no ticks, no axis. The domain is named at the points it is
-   read at, the same direct labelling the plot uses instead of a legend.
+   So there is no domain axis and no tick, and the domain is named at the points
+   it is read at — the same direct labelling the plot uses instead of a legend.
+
+   THE VALUE SCALE IS THE EXCEPTION, AND IT IS ONE BECAUSE IT PASSES THE SAME
+   TEST. A step is a number with a hairline running out of it to the frame's far
+   edge, which is geometry.html's third kind exactly — a label rule, the mark
+   .cf-section-header already is. It is optional, it subdivides and never
+   restates the ends, and it is the alternative to printing values rather than
+   an addition to them. See .cf-line__scale.
    -------------------------------------------------------------------------- */
 
 /* The domain coordinate, and the twin of --v. Registered for the same two
@@ -9593,6 +9601,89 @@ a.cf-calendar__day > time,
   border-block: var(--stroke-1) solid var(--border-default);
 }
 
+/* THE SCALE — the frame subdivided, and the one axis this figure has.
+
+   IT IS A LABEL RULE, WHICH IS WHY IT IS ALLOWED TO EXIST. geometry.html
+   #where-lines-go admits exactly three kinds of line and calls everything else
+   decoration, and its third kind is "a mono label with the hairline running out
+   of it to the far edge -- the line and the word are one mark". A value step is
+   that construction and nothing else: the number, a gap, then a hairline to the
+   frame's right edge. It is the same mark .cf-section-header is, turned into
+   the frame. The vertical rules stay forbidden for the reason they always were
+   -- a rule standing between two points carries no label at its end and closes
+   nothing -- so there is no domain axis here, and there does not need to be:
+   the domain is named at the points it is read at.
+
+   THE ENDS ARE NOT STEPS, and that is what keeps this from being a second copy
+   of anything. The floor and the ceiling are already drawn (the frame's own two
+   hairlines) and already named (.cf-line__bounds, which stays required and
+   still carries the unit). So the scale prints the SUBDIVISIONS only, bare, and
+   a figure never says a number twice. A step at --v: 0 or --v: 1 would also put
+   half its numerals outside the frame it is measuring.
+
+   SAME GREY AND SAME WEIGHT AS THE FRAME'S OWN EDGES, deliberately. A
+   subdivision is the same instrument at the same volume as the edges it lies
+   between, and --border-default is already the quietest line the figure draws
+   at 1.74:1 on the wash's worst end -- a rung below it is not a fainter rule,
+   it is no rule. What separates a subdivision from an edge here is not tint: an
+   edge runs the full width and carries no number, a subdivision stops at one.
+   That is the label-rule distinction drawn rather than asserted.
+
+   A SCALE AND A PRINTED VALUE ARE TWO ANSWERS TO THE SAME QUESTION and a figure
+   picks one. Print three numbers when three numbers are the message; draw a
+   scale when the shape is the message and the reader wants to estimate anywhere
+   along it, and let the set go --quiet. The one hard case is the left edge: the
+   step's number and a --first point's value are both flush left, and at 320 px
+   the frame is 136 px, so a step at .25 (34 px) and an opening value at .12
+   (28-46 px with its gap) overlap. Measured, not feared. A figure with a scale
+   does not print its opening value -- it has a scale, which is what the reader
+   would have read it off.
+
+   IT IS aria-hidden, for .cf-line__draw's reason. The scale is the instrument,
+   not the data: every value is already in the tree as text, and the extent is
+   already in the tree as .cf-line__bounds. Exposed, "25 50 75" would read as a
+   fourth series between the real ones. */
+.cf-line__scale {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* translateY(50%) and not a bare `bottom`, because the box has a height and the
+   value does not. bottom alone would sit the whole line-height above --v and
+   put the rule half a line off the number it names; centring the box on --v
+   lands the rule ON the value and the numerals beside it, at the same height,
+   over clear ground rather than over the rule. */
+.cf-line__step {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(clamp(0, var(--v), 1) * 100%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transform: translateY(50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  /* Tabular, and this is the whole of the alignment mechanism: steps with the
+     same digit count set to the same width, so the rules all start at one x
+     without a wrapper element to align them in. A sensible step already has
+     one -- 25/50/75, 20/40/60/80, 99,2/99,4/99,6 -- and a step series that
+     does not is a step series to reconsider. */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-label);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.cf-line__step::after {
+  content: "";
+  flex: 1 1 auto;
+  border-top: var(--stroke-1) solid var(--border-default);
+}
+
 /* The drawing is a normalised square that is stretched to whatever frame it is
    given: viewBox 0 0 100 100 with preserveAspectRatio="none", so x IS --t x 100
    and y IS (1 - --v) x 100 and there is no conversion anywhere between the two
@@ -9661,32 +9752,80 @@ a.cf-calendar__day > time,
              Three unordered peers is a figure this component cannot draw
              honestly; see below.
 
-   WHY THERE IS NO COLOUR HERE, WHICH IS ARITHMETIC AND NOT DOCTRINE. The brand
-   has three accents besides lime, each with a full ramp, so a categorical set
-   is not obviously unavailable — it was measured rather than assumed. Against
-   CF-Grau, the wash's worst end, at the 3:1 this system holds a contour to:
+   THERE IS ONE COLOUR HERE AND THERE CANNOT BE TWO, WHICH IS ARITHMETIC AND
+   NOT DOCTRINE. The brand has three accents besides lime, each with a full
+   ramp, so a categorical set is not obviously unavailable — it was measured
+   rather than assumed, and the measurement is what the ladder rests on.
 
-     Glas 500     #C5EBE2   1.21:1     the brand hue           FAILS
-     Sky 500      #72B0E2   1.49:1     the brand hue           FAILS
-     Violett 500  #7E7FE1   2.24:1     the brand hue           FAILS
-     Glas 800     #45524F   5.24:1     passes
-     Sky 800      #283E4F   7.12:1     passes
-     Violett 800  #2C2C4F   8.53:1     passes
+   A TRACE HAS TO CLEAR TWO BARS AT ONCE, and that is the part the obvious
+   version of this arithmetic misses. It owes 3:1 against the PAGE, whose worst
+   end is CF-Grau at relative luminance 0.624; and it owes 3:1 against the BLACK
+   TRACE it exists to differ from, which is Schwarz at 0. Solve both and the
+   colour's own luminance is pinned into a band:
 
-   The three steps that carry the hue all fail the wash, and the three that
-   clear it are near-blacks that fail against EACH OTHER: Glas 800 against Sky
-   800 is 1.36:1 and Sky 800 against Violett 800 is 1.20:1. A 1 px stroke gives
-   the eye no area to judge a hue on at the best of times; at 1.2:1 apart there
-   is nothing to judge. So the palette cannot make a categorical hairline set —
-   either the colour fails the page or it fails the other colours — and adding
-   one would mean adding colours the brand does not have. The ladder is what
-   this brand has, and past three series the answer is not a fourth line type
-   but four frames: see the small multiples on the component's page.
+     3:1 off the wash's worst end   Y <= (0.624 + 0.05) / 3 - 0.05 = 0.175
+     3:1 off the black trace        Y >= 3 x 0.05 - 0.05          = 0.100
+
+   The widest contrast available anywhere INSIDE that band is
+   (0.175 + 0.05) / (0.100 + 0.05) = 1.50:1. So a figure on this page can carry
+   at most ONE such colour, whatever palette it is handed — a second would be
+   under 1.5:1 from the first, which on a 1 px stroke is no distinction at all.
+   That is a property of a black-ink figure on a CF-Grau ground and not of the
+   brand: growing the brand a categorical ramp would not buy a second hue, it
+   would only produce more colours that fail each other. This is the whole
+   reason presence is a line type here.
+
+   OF THE 28 STEPS IN THE FOUR RAMPS, EXACTLY ONE LANDS IN THE BAND. Against
+   CF-Grau, the wash's worst end, and against the black it must differ from:
+
+     Glas 500     #C5EBE2   1.21:1 wash                the brand hue    FAILS
+     Sky 500      #72B0E2   1.49:1 wash                the brand hue    FAILS
+     Violett 500  #7E7FE1   2.24:1 wash                the brand hue    FAILS
+     Glas 700     #94B0A9   1.49:1 wash                                 FAILS
+     Sky 700      #5684A9   2.56:1 wash                                 FAILS
+     Glas 800     #45524F   5.24:1 wash, 2.57:1 black  a near-black     FAILS
+     Sky 800      #283E4F   7.12:1 wash, 1.89:1 black  a near-black     FAILS
+     Violett 800  #2C2C4F   8.53:1 wash, 1.58:1 black  a near-black     FAILS
+     Violett 700  #5F5FA9   3.65:1 wash, 3.70:1 black, 5.68:1 white     PASSES
+
+   Everything light enough to carry a hue fails the page; everything dark enough
+   to clear the page is a near-black that fails the trace. Violett 700 sits in
+   the gap, and it is the only step that does — Y 0.1348, near the middle of a
+   band 0.075 wide. It is not --text-secondary (1.61:1 from grey 700), so it
+   does not read as label ink the way a grey trace would.
+
+   SO IT IS .cf-line__trace--hue, IT RIDES WITH A RUNG AND NEVER INSTEAD OF ONE.
+   Nothing here may be encoded in colour alone, and this component has two
+   independent reasons beyond the rule: the forced-colours block below hands
+   every trace to CanvasText, so the hue is gone there and the dash is what
+   survives; and check-line-trace.py's RUNGS rule stands — two traces in one
+   figure may not share a rung, hue or no hue. That hand-off has to be written
+   out, because forced colours does NOT force SVG stroke and a tinted trace left
+   alone sails through the mode intact — which looks like the hue working and is
+   the hue escaping. What the hue buys is the thing a dash on a hairline is worst
+   at: telling two crossing lines apart at a glance, without stopping to inspect
+   a duty cycle. It is redundancy, which is what a second channel is supposed to
+   be.
+
+   Past three series the answer is still not a fourth line type, and now not a
+   second hue either. It is four frames: see the small multiples on the
+   component's page.
 
    → foundations/geometry.html, the presence ladder; tokens.css section 8a */
 .cf-line__trace--near  { stroke-dasharray: var(--presence-near); }
 .cf-line__trace--faint { stroke-dasharray: var(--presence-faint); }
 .cf-line__trace--ghost { stroke-dasharray: var(--presence-absent); }
+
+/* The one hue, on the one trace that may carry it. Violett 700 and not a
+   --line-hue custom property, deliberately: a knob here would read as a choice
+   and there is no choice to make — it is the only step in the palette that
+   clears both bars at once, and the band it sits in has room for nothing else.
+   See the arithmetic above.
+
+   The legend sample inherits it for free, because the sample IS the trace. The
+   nodes and the numbers stay black: one hue in a figure means one, and a value
+   is read off the text, not off its tint. */
+.cf-line__trace--hue { stroke: var(--violett-700); }
 
 /* THE HEAD: the key on the left, the frame's own extent on the right, one
    line above the ceiling. It costs no vertical space that .cf-line__bounds
@@ -9969,9 +10108,36 @@ a.cf-calendar__day > time,
    substitution .rule already makes in this mode and for this reason: the exact
    ratio is lost because border-style cannot express one, and the register —
    instrument against datum — is kept. The ghost trace keeps its own 1-4,
-   because a stroke-dasharray is geometry and this mode does not touch it. */
+   because a stroke-dasharray is geometry and this mode does not touch it.
+
+   The scale's steps take the same substitution for the same reason — they are
+   the frame subdivided, so they are instrument too, and a solid step rule in
+   this mode would be a full-width hairline across the figure at the trace's own
+   weight. The step still reads as a step and not as an edge, because it stops
+   at its own number: that distinction is geometry and survives here intact.
+
+   AND THE TRACE IS HANDED TO THE PALETTE BY HAND, because nothing hands it over
+   on its own. Forced colours forces `color`, `background-color`, `border-color`
+   and the rest of that list — it does NOT force SVG `fill` and `stroke`, which
+   the spec leaves to the author. So `stroke: var(--border-strong)` stays the
+   literal Schwarz it resolves to, and under a DARK forced palette — Canvas
+   black, CanvasText white — the subject trace is drawn black on black and is
+   simply not there. Measured in Chromium with the dark palette emulated: the
+   frame, the nodes, the keys and every printed value came through, and the one
+   thing missing from the figure was the measurement. That is the same failure
+   the site's search matches had, and the same fix: name the system colour.
+
+   It also makes the hue's rule true rather than merely intended. CanvasText is
+   one ink, so every trace arrives on it and the tint is gone, which is what
+   `.cf-line__trace--hue` is only ever allowed to be worth — the dash is what
+   survives, and what a reader gets in this mode is the figure exactly as it was
+   before the colour existed. Being wrong about this is easy: emulate the mode
+   and a coloured stroke comes through untouched, which looks like the hue
+   working and is the hue escaping. */
 @media (forced-colors: active) {
   .cf-line__frame { border-block-style: dashed; }
+  .cf-line__step::after { border-top-style: dashed; }
+  .cf-line__trace { stroke: CanvasText; }
 }
 
 /* --------------------------------------------------------------------------
