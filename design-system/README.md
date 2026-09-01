@@ -511,6 +511,31 @@ whole point is the ratio, and `minmax(0, 4fr)` would state that ratio twice. A d
 `15rem` inside a scroll box — because the rule is that a floor was chosen, not that it is
 zero. → `foundations/layout.html#intrinsic-minimum`
 
+**And the same defect had a second axis the check could not read.** A rule that declares
+`display: grid` and no columns at all still has one — an *implicit* track, sized `auto`,
+which in the minimum slot is the same min-content floor a bare `fr` carries. The script reads
+track *lists*, so a rule declaring none was invisible to it, and this one was found by
+sweeping instead: all 38 pattern pages, 25 widths from 320 to 2560, at browser default font
+sizes of **16, 20 and 24 px**. At 16 and 20 the system has zero sideways scroll anywhere. At
+24 — 150 %, a common low-vision setting and well inside WCAG 1.4.4 — it had exactly one page:
+`patterns/ueber-uns.html` went **320 → 359 px** wide at a 320 px viewport, 22 px over at 340
+and 5 at 360, clean again by 380.
+
+`.cf-team-grid__item` was the rule, at `display: grid` with `grid-template-rows: subgrid` and
+no column. It is the one place in the system where that can push the *page* sideways rather
+than merely widen a box, and the reason is the subgrid: a grid whose own width is free absorbs
+a wide track by growing, and this card cannot — its row axis is its parent's, so it stands in
+a cell `auto-fill` has already sized and the track grows through it. That makes the case
+decidable, so it is the **gate** the check now carries: a grid whose rows are `subgrid`
+declares its columns or guards its items. The other thirteen implicit columns are a **census** —
+seven guarded, six neither and all fine today — because whether an implicit column can be
+squeezed depends on what its children hold, and that is a fact about content no reading of the
+stylesheet settles. Six named exemptions would be six judgements the script cannot make;
+counting them means the number cannot grow quietly. `-v` prints the census.
+Nothing moves at a 16 px default: a single `auto` column in a grid of definite width already
+stretches to fill it, so `minmax(0, 1fr)` draws the identical card and removes only the
+minimum. → `foundations/layout.html#intrinsic-implicit`
+
 **The rule outlived its scope, and where it landed is the interesting part.** Swept across
 all 33 pages at eighteen widths from 320 to 2560, the system had exactly one horizontal
 overflow: `foundations/colors.html` took the document **320 → 368 px** at a 320 px viewport.
