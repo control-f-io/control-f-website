@@ -56,6 +56,7 @@
       { href: 'components/table.html',          label: 'Table' },
       { href: 'components/calendar.html',       label: 'Calendar' },
       { href: 'components/team.html',           label: 'Team' },
+      { href: 'components/culture.html',        label: 'Culture' },
       { href: 'components/forms.html',          label: 'Forms' },
       { href: 'components/footer.html',         label: 'Footer' },
       { href: 'components/consent.html',        label: 'Consent' }
