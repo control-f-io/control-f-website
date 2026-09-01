@@ -717,7 +717,7 @@ design-system/
 │                           illustration, logo, photo, motion, mobile,
 │                           page transitions, field, found state, line of sight
 ├── components/             buttons, nav, breadcrumb, section header, statement +
-│                           value table, plot, line, gantt, annotation,
+│                           value table, plot, line, pie, gantt, annotation,
 │                           process card, accordion, blog grid,
 │                           subdivision field, search + results, vacancy,
 │                           pagination, error + empty state, arrival + progress,
@@ -1760,6 +1760,32 @@ These were judgement calls, each documented on the relevant page:
   to 0.05 user units. It is the invisible class in its purest form: a label a few pixels
   off its own line looks like a label, and a trace drawn from last quarter's numbers under
   this quarter's printed values looks like a chart. → `components/line.html`
+- **The pie is the plot's finding one dimension along.** Same missing plate, same method:
+  `.cf-pie` is built only from measures the plot already carries — 6u across, the height of
+  a full column; a 1u band, the unit cube's edge; a 4u hole, the column pitch. And the same
+  refusal. Laying the disc on the 2:1 ground plane is the obvious move in this brand and is
+  the one thing a chart of angles cannot survive: under `scaleY(0.5)` a ray at *t* is drawn
+  at `atan(0.5·tan t)`, so two true 30° shares — the same 8.3 % of the whole — come out at
+  16.10° and 49.11°, a factor of **3.05** decided by nothing but where on the ring they
+  landed. So the pie stands up, a true circle. Three further things fell out of the language
+  rather than being chosen: **no leaders**, because a share's mid-angle is a measurement and
+  a leader off it lands on none of the four brand angles, which makes it decoration; **the
+  bloom rather than the rake**, because the band is rotated to its share and a bloom centred
+  on the ring is the only member of the light family that looks the same at every rotation;
+  and **no glow**, because at 12 px it laid light on both sides of the outer contour and the
+  hairline over the lit share went invisible — `.cf-iso__light`, every lit face in the
+  system, has never carried one either. The hole is not empty: the whole goes in it, with
+  its unit, which is the one number a pie has always failed to state.
+  Two engine facts are load-bearing and both were measured rather than assumed. A dash
+  under `vector-effect: non-scaling-stroke` is counted in SCREEN pixels while `pathLength`
+  normalises in user units, so the two never meet: at `--pie-u: 32px` a full-circle dash on
+  a non-scaling contour drew 0.625 of the ring — 120/192, the viewBox scale exactly. And
+  `stroke-dashoffset` takes a number, but Firefox 153 accepts it only as a literal: every
+  unitless `calc()` on that property is invalid at computed-value time and drops to 0,
+  `calc(1 - 0.27)` included — which over `pathLength="1"` is the whole ring lit. Written as
+  `calc((1 - var(--pie-arc)) * 1px)` all three engines compute 0.73px. Verified in Chromium
+  151, Firefox 153 and WebKit 26.5: same ring, same cuts, same labels to the pixel.
+  → `components/pie.html`
 - **The found state is derived from the language, not measured off a plate.** No plate in
   `assets/source/manual/` draws a highlight and neither mockup carries one, so `.cf-mark`,
   `::target-text` and the two `::highlight()` names are built only from parts the manual does
