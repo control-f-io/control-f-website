@@ -518,10 +518,83 @@
      why it is viewport-conditional, and for why both values went up four
      points when the artwork was replaced on 2026-08-03. */
   --scrim-depth: 0.46;
+  /* THE TINT IS THE PAGE'S OWN GREY, AND FOR A WHILE IT WAS THE PAGE'S OLD
+     ONE. The rule above is "CF-Grau and nothing else. The page's own surface,
+     bleeding up into the artwork exactly where the type sits" — and it is the
+     second sentence that decides the number, not the first. This layer is not
+     a grey chosen to sit over artwork; it is THE SURFACE THE PAGE ALREADY IS,
+     continued upward under the type. So it has to be whatever the wash is at
+     the height the hero occupies, and it stopped being that.
+
+     --wash-stops used to open on #CFCFCF. It opens on #CFCFD2 — the
+     Violett-tinged stop the wash acquired when it was given the foil's own
+     ramp reversed, at chroma 0.005, for the reasons set out in full up at the
+     wash. The scrim was not part of that change and kept painting
+     rgb(207, 207, 207): the anchor colour the page had BEFORE the wash moved.
+     Every pixel of the plateau was therefore a flat sheet of a grey the page
+     no longer has anywhere, laid over the artwork at 46 %, at the top of a
+     page whose first painted row is three levels of blue away from it.
+
+     Nothing caught it, and the two things that could have both had a reason
+     not to. check-gradient-family.py exempts a stop carrying alpha, correctly,
+     because "what such a stop renders as depends on what is behind it".
+     check-hero-scrim.py asks that the scrim be ONE TINT — which it was, and
+     which was the wrong question by itself: one tint is what stops this
+     reading as a plate, and it says nothing about WHICH. That check now asks
+     both, and derives the answer from --wash-stops rather than from a literal
+     of its own, so the next time the page's grey moves this cannot silently
+     fail to follow it again.
+
+     WHAT MOVED, MEASURED. #CFCFCF to #CFCFD2 is +3 levels of blue and nothing
+     else: OKLab L 0.854514 to 0.855402, a rise of 0.00089, and chroma 0 to
+     0.0041 — inside the 0.005 ceiling --wash-stops sets and gives the reason
+     for ("no channel may move further from the neutral than the grain does"),
+     and inside the ~5 levels of grain the page already carries. The alpha path
+     is untouched to the digit: both plateau stops still carry --scrim-depth,
+     the third is still zero at twice the reach, so check-hero-scrim.py's
+     geometry is the geometry it was. Re-run after this, all 16 element/frame
+     pairs in check-hero-contrast.py's register hold, and they hold with more
+     room than before rather than less — a hair more of the scrim's own
+     luminance is a hair more separation for the black type on top of it.
+     Those figures cost a decoder and 360 frames per viewport; this does not
+     spend them.
+
+     MEASURED ON THE RENDERED PAGE, 1280 x 900, this change against the commit
+     before it, so the claim is about pixels and not only about the token:
+
+       band                     max delta   mean signed R / G / B
+       hero, y 0–300                4        0.00 / 0.00 / +1.25
+       hero, y 300–620              2        0.00 / 0.00 / +1.22
+       below the hero, y 700+       1        0.00 / 0.00 / +1.00  (2.3 % of px)
+
+     R AND G ARE ZERO TO TWO DECIMALS ACROSS THE WHOLE PAGE. Only blue moves —
+     the token's own +3, laid on at --scrim-depth — and it decays to nothing
+     past twice the reach exactly as the alpha ramp says it should. A mean of
+     1.2 levels sits under the ~5 levels of grain the page already carries,
+     which is the ceiling --wash-stops sets and the one this had to meet.
+
+     AND NO FOIL CAN ENTER THIS BOX — worth stating here, because the hero is
+     the obvious place to want one and the answer is measured rather than
+     cautious. check-hero-contrast.py holds the headline to 3:1 and the kicker
+     AND THE RULE THAT IS ITS BORDER-TOP to 4.5:1, against a 12-second loop
+     whose worst backdrops sample at relative luminance 0.108–0.154. Black
+     clears those at 3.15–4.08:1 with little to spare. Every stop of
+     --gradient-foil-ink measured against the same three backdrops:
+
+       Glas 800     1.22 – 1.59:1
+       Sky 800      1.66 – 2.16:1
+       Violett 800  1.99 – 2.58:1
+
+     The LIGHTEST stop of the shadow foil is the worst of them, and the best
+     case of the best stop is still under the 3:1 floor for the headline, let
+     alone the 4.5:1 the kicker and its rule owe. The lit half is further out
+     again — it is light-on-dark and this backdrop is neither. So the hero
+     takes its light from the scrim underneath the type, not from the type,
+     and that is a property of the artwork rather than a gap to be closed. */
   --hero-scrim: linear-gradient(var(--angle-a),
-                      rgba(207, 207, 207, var(--scrim-depth)) 0,
-                      rgba(207, 207, 207, var(--scrim-depth)) var(--scrim-reach),
-                      rgba(207, 207, 207, 0)    calc(var(--scrim-reach) * 2));
+                      rgba(207, 207, 210, var(--scrim-depth)) 0,
+                      rgba(207, 207, 210, var(--scrim-depth)) var(--scrim-reach),
+                      rgba(207, 207, 210, 0)    calc(var(--scrim-reach) * 2));
 
   /* ------------------------------------------------------------------
      3c. THE FOIL
@@ -1292,7 +1365,7 @@
        56.25rem / 900   the page-header figure is dropped; the consent
                         banner goes single column; the hero action drops into
                         the flow, and the hero's reading scrim goes to
-                        --scrim-depth 0.5 — the same reflow that moves the
+                        --scrim-depth 0.54 — the same reflow that moves the
                         action is what puts the artwork's dark band under the
                         kicker.
 
