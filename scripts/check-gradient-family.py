@@ -119,7 +119,23 @@ POS_TOL = 0.0006
 
 # The shipping stylesheets. docs.css is documentation chrome and does not ship,
 # which is the boundary check-glass-budget.py already draws.
-CSS = ("tokens.css", "base.css", "components.css")
+#
+# acts.css WAS OUTSIDE THIS TUPLE AND SHOULD NEVER HAVE BEEN. It is 6,300 lines
+# of scroll composition loaded by eight pages -- both designed pages among them
+# -- so it is a shipping stylesheet by the only definition the line above gives.
+# Nothing decided to leave it out; it simply arrived after this tuple was
+# written, and a list of three files does not announce that a fourth exists.
+# That is the same half-life every convention in this script was created to end,
+# read from the other side: not a rule applied by hand, but a gate whose reach
+# stopped moving while the thing it guards kept growing.
+#
+# It held one gradient and that gradient had drifted, which is what an unwatched
+# file is for: .lp-flow__src drew radial-gradient(circle, Glas, CF-Grau) with no
+# sizing keyword on a body whose border-radius makes it a disc, so the ramp was
+# sized to the box's farthest CORNER and the disc's rim stood at 70.7 % of it.
+# The family was right, the stops were right, and the last 29.3 % of the falloff
+# was painted only on pixels the border-radius throws away.
+CSS = ("tokens.css", "base.css", "components.css", "acts.css")
 
 # Below this OKLCh chroma a stop has no hue worth arcing through, so a chord
 # cannot fall short of anything and no waypoint is owed. It is the CSS side of

@@ -36,6 +36,20 @@
   .flat-vs-ramp__face { display:block; width:9rem; height:9rem; transform:var(--iso-transform); border:var(--stroke-1) solid var(--border-strong); }
   .flat-vs-ramp figcaption { font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label);
                              line-height:var(--leading-normal); text-align:center; color:var(--text-secondary); max-width:16rem; }
+
+  /* This page only. The same .material-bloom clipped to a disc twice, once
+     with the ramp sized to the box and once to the shape. No new gradient and
+     no new colour: the only thing that differs between the two is
+     --bloom-shape, which the class already takes as a parameter. Round,
+     because a round clip is the case where the two sizings part company —
+     on the plate the class is written for they agree. */
+  .bloom-clip { --tile:13rem; --flow:var(--space-8); justify-items:center; }
+  .bloom-clip figure { margin:0; display:grid; justify-items:center; gap:var(--space-4); }
+  .bloom-clip__disc { display:block; width:9rem; height:9rem; border-radius:var(--radius-full);
+                      border:var(--stroke-1) solid var(--border-strong); }
+  .bloom-clip__disc--sized { --bloom-shape: closest-side circle; }
+  .bloom-clip figcaption { font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label);
+                           line-height:var(--leading-normal); text-align:center; color:var(--text-secondary); max-width:16rem; }
 </style>
 </head>
 <body class="docs" data-root="../">
@@ -454,6 +468,55 @@
         are drawn full-bleed because this is the page that shows the ramp, the same licence
         the three rakes above take. Do not copy the swatch; clip the bloom.
       </p>
+    </div>
+    <div class="docs-note">
+      <strong>Clipping the bloom is half of it. The ramp has to be <em>sized</em> to the object
+      too, and it is not sized by the clip.</strong>
+      <p>
+        A radial gradient's reach is measured off the element's box, not off whatever shape is
+        drawn over it — so a clip changes which pixels you keep and nothing at all about how
+        long the ramp is. With no sizing keyword the reach is
+        <code>farthest-corner</code>, the half-diagonal, and on a square box that is
+        <strong>1.414&nbsp;×</strong> the radius of the inscribed disc. Clip that square to a
+        circle and the rim stands at <strong>70.7&nbsp;%</strong> of the ramp: the last
+        <strong>29.3&nbsp;%</strong> is painted only on the four corners the clip throws away.
+      </p>
+      <p>
+        Which is the whole of a mirrored bloom. Its lime is at 100&nbsp;% — the lit rim is the
+        thing it exists to draw — so on a disc the rim arrives at 42.5&nbsp;% of the Glas → lime
+        leg and the light never lands. Measured on the pair below at 9&nbsp;rem, sampling the
+        last row of pixels inside the contour — the ramp's own end is lime,
+        <code>#E1FF00</code>, <code>rgb(225, 255, 0)</code>:
+      </p>
+      <table class="docs-table">
+        <thead><tr><th>Sizing</th><th>At the rim</th></tr></thead>
+        <tbody>
+          <tr><td><code>circle</code> — farthest-corner, the default</td><td><code>rgb(207, 244, 175)</code></td></tr>
+          <tr><td><code>closest-side circle</code></td><td><code>rgb(223, 255, 55)</code></td></tr>
+        </tbody>
+      </table>
+      <p>
+        So: <strong>a bloom on a plate takes the default and a bloom on a round body takes
+        <code>closest-side</code>.</strong> Both are already in the system and neither was
+        stated — <code>.material-bloom</code> is written for a face and is right to reach the
+        corners, and <code>--field-bloom</code>'s pool of light says <code>closest-side</code>
+        and always has. The one radial that stated no size at all was
+        <code>.lp-flow__src</code>, act 2's source disc in <code>acts.css</code>, whose own note
+        says it "carries Glas falling to the contour's grey" and which stopped seven tenths of
+        the way there at <code>rgb(204, 216, 213)</code>. It says <code>closest-side</code> now.
+      </p>
+    </div>
+    <div class="docs-demo docs-demo--plain">
+      <div class="bloom-clip tiles tiles--fit">
+        <figure>
+          <span class="material-bloom bloom-clip__disc"></span>
+          <figcaption>Don't · sized to the box. The rim is 70.7 % of the ramp and the lit edge is outside the clip.</figcaption>
+        </figure>
+        <figure>
+          <span class="material-bloom bloom-clip__disc bloom-clip__disc--sized"></span>
+          <figcaption>Do · sized to the shape. The ramp ends on the contour.</figcaption>
+        </figure>
+      </div>
     </div>
     <div class="docs-note">
       <strong>The bloom from above is the far rake, and that is arithmetic.</strong>

@@ -1040,7 +1040,38 @@
     width: var(--src-d);
     height: var(--src-d);
     border-radius: var(--radius-full);
-    background: radial-gradient(circle, var(--cf-glas), var(--cf-grau));
+    /* closest-side, AND THE KEYWORD IS THE WHOLE OF IT. A radial-gradient with
+       no sizing keyword is farthest-CORNER, so on a square box the ramp is as
+       long as the half-diagonal and the inscribed disc's rim stands at
+       0.5 / 0.7071 = 70.7 % of it. This body is a square clipped to a disc by
+       the border-radius above, which means the last 29.3 % of the falloff was
+       painted only on the four corners the clip throws away. Measured on the
+       same two stops at 400 px so the 8-bit grid cannot hide it, sampling the
+       rim:
+
+         farthest-corner (as shipped)   rgb(204, 216, 213)
+         closest-side                   rgb(207, 207, 207)   = CF-Grau
+
+       Nine levels of green and six of blue of Glas still on the body where it
+       meets its contour. The note below says this disc "carries Glas falling to
+       the contour's grey" and it did not reach the grey; it stopped seven
+       tenths of the way there. closest-side puts the ramp's end exactly on the
+       rim, so the paint and the sentence are the same thing again.
+
+       IT IS THE ONLY RADIAL IN THE SYSTEM THAT DID NOT STATE ITS SIZE, and the
+       others are right for reasons this one does not share. .material-bloom is
+       a surface material for a PLATE -- a face, an edge -- where farthest-
+       corner is correct, because there the extra reach lands inside the box
+       and the light is meant to fill it. --field-bloom is a pool and already
+       says closest-side. A bloom on a round body is --field-bloom's case, not
+       .material-bloom's. See foundations/colors.html#rakes-and-blooms.
+
+       NO oklab BRANCH, and that is measured rather than skipped. Glas ->
+       CF-Grau diverges 0.00073 between the sRGB and oklab paths -- half of the
+       0.00148 tokens.css names as the leg already left in sRGB deliberately,
+       and sixty times below the lime legs the family exists to correct. There
+       is no lime here: the core is a layer, not a stop. */
+    background: radial-gradient(closest-side circle, var(--cf-glas), var(--cf-grau));
     border: 1px solid var(--border-strong);
     --glow-r: calc(var(--src-d) * 1.5);
     box-shadow:
