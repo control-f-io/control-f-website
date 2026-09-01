@@ -196,6 +196,72 @@ body.docs {
 .docs-section ul:not(:where(.docs-demo *)) { max-width: 72ch; color: var(--text-secondary); padding-left: 1.1rem; }
 .docs-section li + li:not(:where(.docs-demo *)) { margin-top: var(--space-2); }
 
+/* THE FIFTH ONE, AND THE ONLY PIECE OF THIS PAGE'S OWN WRITING THAT HAD NEVER
+   BEEN STYLED. Every mono thing in this system is Geist Mono — the labels, the
+   counters, the spec tables, the code blocks, `.docs-table code` two hundred
+   lines down. An inline <code> in a documentation paragraph was not: nothing
+   above `code { font-family: monospace }` in the user-agent sheet ever claimed
+   it, so it rendered in whatever mono the reader's operating system supplies,
+   at the paragraph's own size. Measured on foundations/motion.html at 1280 px:
+   281 <code> spans on the page, 51 of them in a spec table at Geist Mono 12 px
+   and the other 230 at UA `monospace` 14 px. On foundations/geometry.html the
+   two faces meet inside one line — `solid · <code>.rule</code> · default
+   divider` sets the sentence in Geist Mono 11 and the class name in DejaVu Sans
+   Mono 11 beside it. The shipping side has answered this since it was written:
+   `.cf-prose :is(code, kbd, samp)` is --font-mono at 0.875em. The documentation
+   had simply never been given the same line.
+
+   min(1em, --text-sm) rather than a flat size, because this selector reaches
+   two very different hosts. In a 14 px paragraph it resolves to 12 px, which is
+   what `.docs-table code` has always used and is within a quarter-pixel of the
+   shipping 0.875em. In an 11 px mono caption it resolves to 11 and changes
+   nothing — a fixed 12 would have set the identifier LARGER than the label
+   around it, and 0.875em would have set it at 9.6 px, below every size in the
+   ramp.
+
+   AND THE CASE. `.docs-table th[scope="row"]` already argues this out in full,
+   240 lines down: a label's uppercase is right for a word and wrong for a name,
+   `.cf-blog-card--lead` uppercased is `.CF-BLOG-CARD--LEAD`, and that is not
+   that class. That fix was scoped to the row header, which is where it had been
+   found. The same fault was still standing everywhere else a name sits inside a
+   label, and <code> is exactly the element that marks one:
+
+     foundations/layout.html   <th><code>--gutter</code></th>      --GUTTER
+     foundations/layout.html   <th><code>--section-gap</code></th> --SECTION-GAP
+     foundations/found.html    <th><code>.cf-mark--current</code>  .CF-MARK--CURRENT
+     foundations/motion.html   <th><code>.cf-iso--build</code></th>.CF-ISO--BUILD
+     foundations/geometry.html <figcaption>… <code>.rule</code>    .RULE
+
+   Declaring it on the element ends the argument outright: text-transform is
+   inherited, and an inherited value never beats a declaration on the element
+   itself, whatever the specificity of the rule that set it upstream. So this
+   holds under a label of any weight without having to out-specify it.
+
+   SCOPED TO THE COMPONENT AND NOT TO THE FRAME, which is the one place this
+   rule differs from its four siblings above. They exclude `.docs-demo *`,
+   because what they set — a 72ch measure, a grey — would flatten a component's
+   own choices, and everything inside the frame is suspect to them. That is too
+   wide here. A demo frame holds two kinds of thing: the component, which must
+   render exactly as it ships, and this page's own labelling of it — the
+   figcaption under a tile, the `.docs-specimen__note` under a type specimen,
+   the anatomy table beside a drawing. Measured across all 46 pages, twenty-four
+   <code> spans sit inside a demo frame and only four of them belong to a
+   component. The other twenty are the documentation talking about the specimen,
+   in the documentation's own devices, and they were the whole reason this was
+   worth writing: four of them are foundations/motion.html's durations.
+
+   So the exclusion names the component directly. Everything this system ships
+   is `cf-`-prefixed, which makes `[class*="cf-"] *` the exact boundary, and
+   `*=` rather than `^=` because a component can carry a utility first
+   (`class="tiles cf-iso"`). components/table.html's own `Takt (ms)` column head
+   stays as it ships — it uppercases a unit symbol, and that is the component's
+   business, not this page's. */
+.docs-section code:not(:where(.docs-demo [class*="cf-"] *)) {
+  font-family: var(--font-mono);
+  font-size: min(1em, var(--text-sm));
+  text-transform: none;
+}
+
 /* THE AIR AROUND A BLOCK SPECIMEN — the demo plate, the spec table, the code
    block, the do/don't pair. One rule, because until it existed the gap was
    whatever the element ABOVE happened to leave behind, and a paragraph leaves
@@ -660,6 +726,22 @@ body.docs {
   outline: 0 solid transparent;
 }
 .docs-plate:hover img { outline: 2px solid var(--border-strong); outline-offset: -1px; }
+/* THE ONE COPY OF THE CAPTION DEVICE THAT LIVES IN A STYLESHEET. Nineteen more
+   are declared page-locally — .iso-demo, .lines-demo, .motion-demo, .motion-lit,
+   .logo-tile, .photo-row, .field-pair, .icon-sizes, .icon-weights, .demo-space,
+   .band-swatches, .flat-vs-ramp, .bloom-clip, .vt-stages, .sheets — each a
+   figcaption under a demo tile, each mono at --text-xs with the label tracking,
+   and each written out again because there was nothing to reach for.
+
+   Six of them had drifted to --text-muted, which is the one value the device
+   may not take: #919191 at 11 px is 2.97:1 on --grey-050 and 3.15:1 on white,
+   against a 4.5:1 floor, and 11 px is not large text. It is the same
+   substitution .docs-table th makes forty lines up for the same reason, and the
+   same rule components.css states four times over for the page wash. The
+   colour here is the value all twenty are supposed to carry; a new copy of the
+   device starts from this one. → scripts/check-contrast.py's muted rule, whose
+   sweep reads base/components/acts and the pattern pages' own <style> blocks,
+   and has never reached this side of the line. */
 .docs-plate figcaption {
   margin-top: var(--space-2);
   font-family: var(--font-mono);
@@ -760,7 +842,10 @@ body.docs {
   margin: var(--space-3) 0 0;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--text-muted);
+  /* --text-secondary, not --text-muted: #919191 at 11 px is 2.97:1 on the
+     documentation wash and 11 px is not large text. Same substitution
+     .docs-table th and .docs-plate figcaption make, for the same floor. */
+  color: var(--text-secondary);
 }
 
 /* Where each plane stands. Layer 6 is at the top of the frame because layer 6
@@ -833,7 +918,10 @@ body.docs {
 .docs-stack__num {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--text-muted);
+  /* --text-secondary, not --text-muted: #919191 at 11 px is 2.97:1 on the
+     documentation wash and 11 px is not large text. Same substitution
+     .docs-table th and .docs-plate figcaption make, for the same floor. */
+  color: var(--text-secondary);
   padding-top: 0.25em;
 }
 .docs-stack__name {
