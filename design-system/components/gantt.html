@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gantt — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Components</p>
+    <h1>Gantt</h1>
+    <p>
+      A plan on one axis. The system could draw a value in space
+      (<a href="plot.html">Plot</a>), a quantity over a domain
+      (<a href="line.html">Line</a>), parts of one whole (<a href="pie.html">Pie</a>) and
+      one thing's way along a line (<a href="arrival.html">Progress</a>); it had no way to
+      put several of those on a shared span of time and say which one the work is standing
+      in. Every mark here is
+      one it already owns — the rail, the lattice cell, the field, and
+      <a href="annotation.html">Annotation</a> whole and unmodified — arranged against
+      an axis.
+    </p>
+  </header>
+
+  <section class="docs-section" id="plan">
+    <h2>The plan</h2>
+    <p>
+      Six phases against twenty-four weeks. The rows are level and unruled, the time grid
+      under them is the field rather than a set of lines, and the only vertical drawn in
+      ink is <span lang="de">heute</span>. Each phase carries its own dates as text, so
+      the drawing is <code>aria-hidden</code> and adds nothing the row does not already
+      say.
+    </p>
+    <p>
+      A tick names the line its column <em>begins</em> at, so six columns carry six labels
+      and the far edge of the axis carries none. That edge is drawn — it is the field's
+      horizon — and it is named in the caption, which is where the span of the whole figure
+      belongs anyway.
+    </p>
+
+    <div class="docs-demo docs-demo--plain">
+      <figure class="cf-gantt" style="--gantt-cols:6">
+        <div class="cf-gantt__scroll" tabindex="0" role="region" aria-labelledby="gantt-zwilling">
+          <div class="cf-gantt__frame">
+            <ol class="cf-gantt__scale" aria-hidden="true">
+              <li class="cf-gantt__tick">KW 06</li>
+              <li class="cf-gantt__tick">KW 10</li>
+              <li class="cf-gantt__tick">KW 14</li>
+              <li class="cf-gantt__tick">KW 18</li>
+              <li class="cf-gantt__tick">KW 22</li>
+              <li class="cf-gantt__tick">KW 26</li>
+            </ol>
+            <div class="cf-gantt__body">
+              <ol class="cf-gantt__set">
+                <li class="cf-gantt__row" style="--span-from:0; --span-to:.125">
+                  <span class="cf-gantt__key">Aufnahme
+                    <span class="cf-gantt__when">02.02. – 20.02.</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__bar"></span>
+                  </span>
+                </li>
+                <li class="cf-gantt__row cf-gantt__row--live"
+                    style="--span-from:.125; --span-to:.333; --span-done:.55">
+                  <span class="cf-gantt__key">Datenmodell
+                    <span class="cf-gantt__when">23.02. – 27.03. · läuft</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__bar"></span>
+                    <span class="cf-gantt__head"></span>
+                  </span>
+                </li>
+                <li class="cf-gantt__row" style="--span-to:.333">
+                  <span class="cf-gantt__key">Freigabe Datenmodell
+                    <span class="cf-gantt__when">27.03. · Meilenstein</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__mark"></span>
+                  </span>
+                </li>
+                <li class="cf-gantt__row cf-gantt__row--planned"
+                    style="--span-from:.34; --span-to:.625">
+                  <span class="cf-gantt__key">Anbindung der Quellen
+                    <span class="cf-gantt__when">30.03. – 15.05. · geplant</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__bar"></span>
+                  </span>
+                </li>
+                <li class="cf-gantt__row cf-gantt__row--planned"
+                    style="--span-from:.65; --span-to:.875">
+                  <span class="cf-gantt__key">Testbetrieb
+                    <span class="cf-gantt__when">18.05. – 26.06. · geplant</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__bar"></span>
+                  </span>
+                </li>
+                <li class="cf-gantt__row cf-gantt__row--proposed"
+                    style="--span-from:.89; --span-to:.98">
+                  <span class="cf-gantt__key">Abnahme und Übergabe
+                    <span class="cf-gantt__when">29.06. – 17.07. · Vorschlag</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__bar"></span>
+                  </span>
+                </li>
+              </ol>
+              <div class="cf-gantt__now" style="--gantt-now:.26">
+                <span class="cf-gantt__now-label">heute · 18.03.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <figcaption class="cf-gantt__caption" id="gantt-zwilling">
+          Einführung des digitalen Zwillings, KW 06 bis KW 30. Das Datenmodell liegt vier
+          Tage hinter dem Plan — die Freigabe Ende März hält, weil der Rückstand kleiner
+          ist als der Puffer davor.
+        </figcaption>
+      </figure>
+    </div>
+
+    <pre class="docs-code">&lt;<span class="tag">figure</span> <span class="attr">class</span>=<span class="val">"cf-gantt"</span> <span class="attr">style</span>=<span class="val">"--gantt-cols:6"</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-gantt__scroll"</span> <span class="attr">tabindex</span>=<span class="val">"0"</span> <span class="attr">role</span>=<span class="val">"region"</span> <span class="attr">aria-labelledby</span>=<span class="val">"gantt-zwilling"</span>&gt;
+    &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-gantt__frame"</span>&gt;
+
+      &lt;!-- the axis: one tick per column, standing on the line its column begins at --&gt;
+      &lt;<span class="tag">ol</span> <span class="attr">class</span>=<span class="val">"cf-gantt__scale"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;
+        &lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-gantt__tick"</span>&gt;KW 06&lt;/<span class="tag">li</span>&gt; …
+      &lt;/<span class="tag">ol</span>&gt;
+
+      &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-gantt__body"</span>&gt;
+        &lt;<span class="tag">ol</span> <span class="attr">class</span>=<span class="val">"cf-gantt__set"</span>&gt;
+
+          &lt;!-- one &lt;li&gt; per phase. The dates are written ONCE, here, and every
+               mark in the row reads them --&gt;
+          &lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-gantt__row"</span> <span class="attr">style</span>=<span class="val">"--span-from:0; --span-to:.125"</span>&gt;
+            &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-gantt__key"</span>&gt;Aufnahme
+              &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-gantt__when"</span>&gt;02.02. – 20.02.&lt;/<span class="tag">span</span>&gt;&lt;/<span class="tag">span</span>&gt;
+            &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-gantt__track"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;
+              &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-gantt__bar"</span>&gt;&lt;/<span class="tag">span</span>&gt;
+            &lt;/<span class="tag">span</span>&gt;
+          &lt;/<span class="tag">li</span>&gt;
+
+          &lt;!-- the one phase in flight: the rung ahead of the head is the ghost,
+               and the head is the figure's lime moment --&gt;
+          &lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-gantt__row cf-gantt__row--live"</span> <span class="attr">style</span>=<span class="val">"--span-from:.125; --span-to:.333; --span-done:.55"</span>&gt;
+            … &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-gantt__head"</span>&gt;&lt;/<span class="tag">span</span>&gt; …
+          &lt;/<span class="tag">li</span>&gt;
+
+          &lt;!-- a milestone: a phase of no duration, so a mark and no run --&gt;
+          &lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-gantt__row"</span> <span class="attr">style</span>=<span class="val">"--span-to:.333"</span>&gt;
+            … &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-gantt__mark"</span>&gt;&lt;/<span class="tag">span</span>&gt; …
+          &lt;/<span class="tag">li</span>&gt;
+
+        &lt;/<span class="tag">ol</span>&gt;
+
+        &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-gantt__now"</span> <span class="attr">style</span>=<span class="val">"--gantt-now:.26"</span>&gt;
+          &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-gantt__now-label"</span>&gt;heute · 18.03.&lt;/<span class="tag">span</span>&gt;
+        &lt;/<span class="tag">div</span>&gt;
+      &lt;/<span class="tag">div</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+  &lt;/<span class="tag">div</span>&gt;
+  &lt;<span class="tag">figcaption</span> <span class="attr">class</span>=<span class="val">"cf-gantt__caption"</span> <span class="attr">id</span>=<span class="val">"gantt-zwilling"</span>&gt;Einführung des digitalen Zwillings…&lt;/<span class="tag">figcaption</span>&gt;
+&lt;/<span class="tag">figure</span>&gt;</pre>
+
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>Required</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-gantt</code></td><td>yes</td><td>A <code>&lt;figure&gt;</code>. Owns every measure the figure is built from, and is the scroll subject the drawing is timed against.</td></tr>
+        <tr><td><code>.cf-gantt__scroll</code></td><td>yes</td><td>The scroll box. Carries <code>tabindex="0"</code> and takes its accessible name from the caption — scrollable content with no focusable child is unreachable by anything but a mouse. WCAG 2.1.1.</td></tr>
+        <tr><td><code>.cf-gantt__frame</code></td><td>yes</td><td>Holds the figure's minimum width, which is the key column plus every time column at its own floor.</td></tr>
+        <tr><td><code>.cf-gantt__scale</code></td><td>yes</td><td>An <code>&lt;ol&gt;</code> of ticks on the strong hairline — the label rule. <code>aria-hidden</code>: every date it names is already in a row.</td></tr>
+        <tr><td><code>.cf-gantt__tick</code></td><td>yes</td><td>One column head. Mono, 11 px, uppercase, <code>--text-secondary</code>. Stands <em>at</em> the line its column begins at.</td></tr>
+        <tr><td><code>.cf-gantt__body</code></td><td>yes</td><td>The rows and the now line together. It is what the now line is measured inside, which is why the line stops at the axis rule instead of crossing the ticks.</td></tr>
+        <tr><td><code>.cf-gantt__set</code></td><td>yes</td><td>An <code>&lt;ol&gt;</code> — the phases are a sequence and their order carries meaning.</td></tr>
+        <tr><td><code>.cf-gantt__row</code></td><td>yes</td><td>One <code>&lt;li&gt;</code>, one phase. Carries the dates: <code>--span-from</code>, <code>--span-to</code>, and <code>--span-done</code> if it is the live one. Fixed height, and no rule under it — see below.</td></tr>
+        <tr><td><code>.cf-gantt__row--planned</code></td><td>no</td><td>The 2-1 rung: dates agreed, not fixed.</td></tr>
+        <tr><td><code>.cf-gantt__row--proposed</code></td><td>no</td><td>The 1-2 rung: under discussion.</td></tr>
+        <tr><td><code>.cf-gantt__row--live</code></td><td>no</td><td>The phase in flight. Solid behind the head, 1-4 ahead of it. <strong>At most one per figure</strong> — it carries the light.</td></tr>
+        <tr><td><code>.cf-gantt__key</code></td><td>yes</td><td>What the phase is. Body face, body size — a row's subject is content, not a label, the same call <code>.cf-table</code> makes for <code>th[scope="row"]</code>. One line.</td></tr>
+        <tr><td><code>.cf-gantt__when</code></td><td>yes</td><td>The dates, and the phase's standing <em>in words</em>. Mono, tabular. This is the only copy of the data — see below.</td></tr>
+        <tr><td><code>.cf-gantt__track</code></td><td>yes</td><td>The plot area of one row, and the field is drawn on it. <code>aria-hidden</code> — everything in it is drawing.</td></tr>
+        <tr><td><code>.cf-gantt__bar</code></td><td>no</td><td>The run. Two layers, no overlay: solid to <code>--span-done</code>, the rung's own dash after it. 2 px, and the only mark in the figure at that weight.</td></tr>
+        <tr><td><code>.cf-gantt__head</code></td><td>no</td><td>Where the work has got to. The lattice cell filled with the near rake. Only on a <code>--live</code> row, and only ever one.</td></tr>
+        <tr><td><code>.cf-gantt__mark</code></td><td>no</td><td>A milestone: the same cell in contour, at <code>--span-to</code>. <code>--lit</code> gives it the ramp instead, for a figure whose one light is a gate rather than a phase.</td></tr>
+        <tr><td><code>.cf-gantt__notes</code></td><td>no</td><td>The annotation layer. Covers the plot area exactly and hands <a href="annotation.html">Annotation</a> the plan's coordinates — it holds a plain <code>.cf-annot-set</code> and declares nothing of its own.</td></tr>
+        <tr><td><code>.cf-gantt__now</code></td><td>no</td><td><span lang="de">heute</span>. Carries <code>--gantt-now</code>. A division, and the one vertical here drawn in ink.</td></tr>
+        <tr><td><code>.cf-gantt__now-label</code></td><td>with the above</td><td>The word on the line. Hangs below the last row, not above the axis — see below.</td></tr>
+        <tr><td><code>.cf-gantt__caption</code></td><td>yes</td><td>A <code>&lt;figcaption&gt;</code>, and the scroll region's accessible name. What the plan means, in words.</td></tr>
+      </tbody>
+    </table>
+
+    <table class="docs-table">
+      <thead><tr><th>Property</th><th>Default</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>--span-from</code></td><td><code>0</code></td><td>Per row. Where the phase starts, as a fraction of the whole axis. Registered <code>&lt;number&gt;</code>.</td></tr>
+        <tr><td><code>--span-to</code></td><td><code>0</code></td><td>Per row. Where it ends — and, on a milestone row, when it happens.</td></tr>
+        <tr><td><code>--span-done</code></td><td><code>0</code></td><td>Per row. How far the work has got, as a fraction <em>of the phase</em>, the way <code>--progress</code> states it. Clamped to 0–1.</td></tr>
+        <tr><td><code>--gantt-now</code></td><td><code>0</code></td><td>Today, as a fraction of the axis.</td></tr>
+        <tr><td><code>--gantt-cols</code></td><td><code>6</code></td><td>How many time columns. One number: the scale is divided by it and the field's period is read from it, so a tick list that disagrees with it is visible immediately.</td></tr>
+        <tr><td><code>--gantt-key</code></td><td><code>12rem</code></td><td>The key column. rem, because it is set by two lines of type — the opposite of <code>--plot-u</code>'s reasoning, for the opposite reason.</td></tr>
+        <tr><td><code>--gantt-row</code></td><td><code>var(--space-12)</code></td><td>The row pitch, and the unit an annotation's step is measured in. 48 px is the lattice cell's own height — see below.</td></tr>
+        <tr><td><code>--gantt-node</code></td><td><code>0.75rem</code></td><td>The mark. The lattice cell at UI scale, one size up from the progress rail's 8 × 4 head because it stands in a 48 px row.</td></tr>
+        <tr><td><code>--gantt-col-min</code></td><td><code>3rem</code></td><td>The narrowest a time column may be drawn. It is what makes the scroll box engage instead of the figure compressing.</td></tr>
+        <tr><td><code>--gantt-draw</code></td><td><code>1</code></td><td>Set by the scroll animation, read by the run's clip, the marks' scale and the notes' <code>--annot-draw</code>. 1 is the finished plan, which is also what everything that cannot animate gets.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="construction">
+    <h2>How it is constructed</h2>
+    <p>
+      Nothing in the figure is a new mark. The run is the progress rail, the milestone is
+      the lattice cell at rest, the ground is the field, and the layer that names a point
+      on it is <a href="annotation.html">Annotation</a>, whole. What the component adds is
+      the axis they are all measured against.
+    </p>
+
+    <div class="docs-note">
+      <strong>The rows are level, and that is the plot's argument one axis over — the
+      third figure in this section to reach it.</strong>
+      Every direction in the isometric ground plane slopes on screen at ±26.57°, so a run
+      marched along one of them trades drawn length for drawn height — and two phases of
+      equal duration drawn at different depths come out different lengths. A chart whose
+      measure depends on where it stands is not a chart. Time runs level here; the
+      isometry stays in the marks standing on it. <a href="line.html">Line</a> declines to
+      draw a trace as a body for the same reason, and <a href="pie.html">Pie</a> stands its
+      disc up rather than laying it on the ground plane.
+    </div>
+
+    <div class="docs-note">
+      <strong>The rows are not ruled, and that is the exact inverse of
+      <a href="table.html">Table</a> by the same test.</strong> A table rules its rows and
+      draws nothing vertical, because there the row is the unit of reading and the rule
+      between two of them is a division in the geometry chapter's sense: one thing ends,
+      another begins, content on both sides. In a plan it is not. Every phase already has a
+      drawn body of its own, and what is on both sides of a line between two rows is the
+      same plan, on the same date, saying nothing. Drawn against the field's verticals it
+      produces the one thing <code>.cf-table</code> names as the failure to avoid — a grid
+      of boxes, which says spreadsheet. So this figure draws its verticals and rules
+      nothing, the table rules its rows and draws no vertical, and both fall out of the
+      same three-way test.
+    </div>
+
+    <div class="docs-note">
+      <strong>The time grid is not a line, it is the field.</strong>
+      <a href="../foundations/geometry.html#where-lines-go">Where a line may go</a> allows
+      exactly three things — an edge, a division, a label rule — and calls everything else
+      decoration. A column line is none of them: it closes no surface and separates no
+      content. It passes for the reason the lattice passes on
+      <a href="../foundations/field.html">The Field</a>: it is not a line in the layout at
+      all, it is <em>a texture on the ground, under everything, at a tenth of an ink</em>.
+      So it is drawn in <code>--field-ink</code> at <code>--field-line</code> — the same
+      material <code>.cf-ground</code> is, inverting with the theme because that token
+      does.
+      <br><br>
+      The 10 % ceiling comes with the material, and it is why the grid is
+      <code>--field-ink</code> and not <code>--border-subtle</code>.
+      <code>tokens.css</code> §8b derives that ceiling from the worst thing that has to
+      cross the field — <code>--text-secondary</code> at 14 px on CF-Grau under a line:
+      4.71:1 at 10 %, 4.51:1 at 12 %, 4.15:1 at 16 %. <code>--border-subtle</code> is that
+      12 % row with no margin left in it, and it is a <em>border</em> token besides:
+      reaching for it here would be claiming the grid is a line in the layout after
+      arguing that it is not.
+      <br><br>
+      This figure then spends none of the cap. Every word in it is kept off the ground on
+      purpose — keys to the left of the field, ticks above it,
+      <span lang="de">heute</span> below the last row — so the only things crossing the
+      grid are the runs themselves, which are ink rather than type. The ceiling is
+      inherited whole and is not being leaned on.
+    </div>
+
+    <div class="docs-note">
+      <strong><span lang="de">heute</span> is the one vertical drawn in ink, and it is a
+      division in the strictest reading of that page.</strong> Done on one side of it, not
+      done on the other, content on both. It also carries its own mono label, so it is a
+      label rule as well — line and word, one mark. Everything the figure knows about
+      <em>when</em> is on that line; everything it knows about <em>where a plan stands</em>
+      is in the rungs. Two facts, two marks, and the distance between the head and the line
+      is the only thing in the drawing that is neither.
+      <br><br>
+      The label hangs below the last row rather than above the axis. The scale's own labels
+      are placed by the axis and this one is placed by the data, so above the rule the two
+      collide at whatever date the plan happens to have reached — and a figure whose top
+      edge is legible only in some months is not one.
+    </div>
+
+    <div class="docs-note">
+      <strong>The row pitch is the lattice cell's own height, and that is what puts an
+      annotation on the lattice.</strong> <code>--field-unit</code> is 96 and the cell is
+      96 × 48, so a row of <code>--space-12</code> is half a cell: a shallow (2, 1) leader
+      out of a point on a run travels one whole cell across and half a row up, and every
+      note in the figure comes down on the same lattice the runs are standing on. It is
+      also why <code>--annot-u</code> on the notes layer is <code>--gantt-row / 2</code>
+      rather than the annotation component's own fluid unit.
+    </div>
+
+    <div class="docs-note">
+      <strong>This figure's axis is required and <a href="line.html">Line</a>'s is
+      optional, and the two are answering the same test with opposite hands.</strong> The
+      axis being argued about here is the <em>domain</em> — time, running level — and Line
+      has none at all, for the reason it gives: a trace is read <em>at</em> its points,
+      every one is labelled where it stands, and a rule standing between two of them would
+      be neither an edge, nor a division, nor a label rule. A plan is read the other way
+      round. Its subject is <em>extent</em>, and a length has to be read against something
+      or it is not a length. Hence a ground here, and hence that ground being the field
+      rather than a set of rules — and hence the one line drawn in ink being the only one
+      that is genuinely a division.
+      <br><br>
+      Line's <a href="line.html#scale">scale</a> is the other axis and does not disturb
+      any of that: it measures <em>value</em>, it is a label rule rather than a rule
+      standing between two points, and it is the alternative to printing values rather
+      than an addition to them. A plan has no second quantity to scale — a run is a span
+      and not a height — so this figure has one axis where that one may have two, and the
+      one it has is the one it cannot do without.
+      <br><br>
+      What the two figures share is the conclusion about colour. Line settles by measurement
+      that a second series is one rung down the presence ladder and not one step down the
+      grey ramp, because every grey light enough to read as a second series is under the
+      3:1 a contour owes. That is why four states of a plan are four line types and not
+      four inks.
+    </div>
+
+    <div class="docs-note">
+      <strong>Two components draw today, and only one of them may be lit.</strong>
+      <a href="calendar.html">Calendar</a>'s today is the found state's lit numeral at
+      <code>[aria-current="date"]</code>, and it claims the page's one lime moment —
+      discharged by arithmetic, since a month has exactly one today. This component does not
+      contest that: on a page carrying both, the calendar's day keeps the light and
+      <code>.cf-gantt__head</code> is simply not written. Nothing is lost, because the head
+      is emphasis and not information — the run's own solid-to-ghost boundary is drawn at
+      <code>--span-done</code> either way and still says where the work has got to.
+      <br><br>
+      The drawings differ because the word means two things. In a month today is a
+      <em>slot</em> — a numeral standing on its ground line, with the light picking it out
+      of thirty others. In a plan today is a <em>boundary</em>, done on one side and not
+      done on the other, which is a division, and a division is drawn as a rule.
+    </div>
+
+    <div class="docs-note">
+      <strong>What is deliberately not drawn is the dependency, and it was built first.</strong>
+      A link between two adjacent rows has to drop exactly one row pitch, <em>p</em>. The
+      brand sanctions two obliques and no others, so its horizontal run is either
+      2<em>p</em> — 96 px, the shallow step — or <em>p</em>/2, 24 px, the steep one. A
+      finish-to-start dependency, which is most of them, has a horizontal run of
+      <strong>zero</strong>. Every version of it therefore departs from inside the run
+      above or arrives past the mark below; both are a line crossing a body that is not
+      its own, and on a plan of six phases that is six of them.
+      <br><br>
+      Nothing is lost that the figure was carrying. The sequence is in the drawing already
+      — where the runs stand, and the order of the rows — and it is in the text exactly, in
+      the dates. What a plan actually wants at those points is a <em>word</em>, and that is
+      the next note.
+    </div>
+
+    <div class="docs-note">
+      <strong>A leader in this system carries a word, so the step is spent on a note and
+      not on a link.</strong> <a href="annotation.html">Annotation</a>'s own rule is that
+      the line and the label are one mark. An unlabelled leader running between two runs is
+      a leader with nothing to say — which is the decoration
+      <a href="../foundations/geometry.html#where-lines-go">Where a line may go</a> bans by
+      name, in a figure that had just argued its way out of two other kinds of decoration.
+      The same mark, given a word, is the thing the plan was missing.
+      <br><br>
+      <a href="pie.html">Pie</a> arrives at the same place from the other side, and the
+      pair is worth reading together because the two figures fail the leader test for
+      opposite reasons. A pie has no leaders because its anchors are <em>measurements</em>
+      — a share's mid-angle lands on none of the four sanctioned slopes, so the line could
+      not be drawn on the lattice even with a word on it, and proximity is made to do the
+      linking. A plan's anchors are on the lattice by construction, so here the line
+      <em>can</em> be drawn and the only question was whether it had anything to say. Both
+      refuse the same thing: a leader not carrying a label.
+    </div>
+
+    <div class="docs-note">
+      <strong>The run draws out on a clip, never on a <code>scaleX</code>.</strong> Scaling
+      a box scales the dash period inside it, so a 2-1 rung would arrive through every ratio
+      except its own — the fault
+      <code>check-grow-origin.py</code> describes for a dashed stroke under a scale, in the
+      one medium where no <code>vector-effect</code> can take it back. The marks are the
+      exception and they scale: a point has no length to draw along, and a cell coming up
+      from nothing is the presence ladder's own figure.
+    </div>
+  </section>
+
+  <section class="docs-section" id="ladder">
+    <h2>The ladder, along one run</h2>
+    <p>
+      Four line types, one object drawn four times — which is what
+      <a href="../foundations/geometry.html#lines">the Linien plate's bottom half</a> is,
+      and what <code>tokens.css</code> §8a names the presence ladder. The tokens say the
+      ladder is <em>only ever legible when the same object is drawn more than once, which
+      is why no static page has needed it</em>. A plan is six drawings of one object — a
+      span of work — at different degrees of being real, on one sheet. It is the case the
+      ladder was written for, and this is the first figure in the system to use all four
+      rungs at once.
+    </p>
+    <p>
+      No axis and no <span lang="de">heute</span> below — one span of work, drawn four
+      times, with nothing to measure it against. The two verticals are the field closing
+      the run at both ends, which is what a plan of a single time column has.
+    </p>
+
+    <div class="docs-demo docs-demo--plain">
+      <figure class="cf-gantt" style="--gantt-cols:1; --gantt-key:14rem">
+        <div class="cf-gantt__scroll" tabindex="0" role="region" aria-labelledby="gantt-leiter">
+          <div class="cf-gantt__frame">
+            <div class="cf-gantt__body">
+              <ol class="cf-gantt__set">
+                <li class="cf-gantt__row" style="--span-from:.06; --span-to:.94">
+                  <span class="cf-gantt__key">Festgeschrieben
+                    <span class="cf-gantt__when">solid · Termine stehen</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__bar"></span>
+                  </span>
+                </li>
+                <li class="cf-gantt__row cf-gantt__row--planned" style="--span-from:.06; --span-to:.94">
+                  <span class="cf-gantt__key">Geplant
+                    <span class="cf-gantt__when">2-1 · abgestimmt, nicht fixiert</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__bar"></span>
+                  </span>
+                </li>
+                <li class="cf-gantt__row cf-gantt__row--proposed" style="--span-from:.06; --span-to:.94">
+                  <span class="cf-gantt__key">In Abstimmung
+                    <span class="cf-gantt__when">1-2 · Vorschlag</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__bar"></span>
+                  </span>
+                </li>
+                <li class="cf-gantt__row cf-gantt__row--live"
+                    style="--span-from:.06; --span-to:.94; --span-done:.42">
+                  <span class="cf-gantt__key">Läuft
+                    <span class="cf-gantt__when">solid bis zum Kopf, 1-4 danach</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__bar"></span>
+                    <span class="cf-gantt__head"></span>
+                  </span>
+                </li>
+              </ol>
+            </div>
+          </div>
+        </div>
+        <figcaption class="cf-gantt__caption" id="gantt-leiter">
+          Dieselbe Strecke, viermal — vom festgeschriebenen Termin bis zu dem Teil der
+          Arbeit, der noch nicht stattgefunden hat.
+        </figcaption>
+      </figure>
+    </div>
+
+    <table class="docs-table">
+      <thead><tr><th>Rung</th><th>Line</th><th>What it says about the phase</th></tr></thead>
+      <tbody>
+        <tr><td><em>(none)</em></td><td><code>--presence-present</code>, solid</td><td>Committed. The dates are fixed — whether or not the work has happened yet, which is what the now line is for.</td></tr>
+        <tr><td><code>--planned</code></td><td><code>--presence-near</code>, 2-1</td><td>Agreed, not fixed.</td></tr>
+        <tr><td><code>--proposed</code></td><td><code>--presence-faint</code>, 1-2</td><td>Under discussion. Nobody has committed to these dates.</td></tr>
+        <tr><td><code>--live</code></td><td><code>--presence-absent</code>, 1-4, <em>ahead of the head only</em></td><td>In flight. The ghost is the part of a real, committed phase that has not happened yet — which is the job that rung already does on the progress rail.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="docs-note">
+      <strong>The ladder is not the same axis as <span lang="de">heute</span>, and the
+      figure would be misread if it were.</strong> A rung says how real the <em>dates</em>
+      are. The now line says how much of the work is behind us. A finished phase and a
+      fixed-date phase eight weeks out are the same drawing, on opposite sides of one line
+      — which is correct, and is the reason the component has no
+      <code>--done</code> modifier. An object may only move <em>along</em> the ladder, never
+      across it.
+    </div>
+  </section>
+
+  <section class="docs-section" id="notes">
+    <h2>Naming a point on it</h2>
+    <p>
+      A plan is a drawing, and the system already owns the layer that names a part of one.
+      <a href="annotation.html">Annotation</a> goes over a Gantt unchanged — same classes,
+      same four quadrants, same leader — and <code>.cf-gantt__notes</code> is the only new
+      thing: a layer that covers the plot area exactly and hands that component the plan's
+      coordinates.
+    </p>
+
+    <div class="docs-demo docs-demo--plain">
+      <figure class="cf-gantt" style="--gantt-cols:6">
+        <div class="cf-gantt__scroll" tabindex="0" role="region" aria-labelledby="gantt-notiz">
+          <div class="cf-gantt__frame">
+            <ol class="cf-gantt__scale" aria-hidden="true">
+              <li class="cf-gantt__tick">KW 06</li>
+              <li class="cf-gantt__tick">KW 10</li>
+              <li class="cf-gantt__tick">KW 14</li>
+              <li class="cf-gantt__tick">KW 18</li>
+              <li class="cf-gantt__tick">KW 22</li>
+              <li class="cf-gantt__tick">KW 26</li>
+            </ol>
+            <div class="cf-gantt__body">
+              <ol class="cf-gantt__set">
+                <li class="cf-gantt__row cf-gantt__row--live"
+                    style="--span-from:.10; --span-to:.34; --span-done:.62">
+                  <span class="cf-gantt__key">Datenmodell
+                    <span class="cf-gantt__when">23.02. – 27.03. · läuft</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__bar"></span>
+                    <span class="cf-gantt__head"></span>
+                  </span>
+                </li>
+                <li class="cf-gantt__row" style="--span-to:.34">
+                  <span class="cf-gantt__key">Freigabe Datenmodell
+                    <span class="cf-gantt__when">27.03. · Meilenstein</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__mark"></span>
+                  </span>
+                </li>
+                <li class="cf-gantt__row cf-gantt__row--planned"
+                    style="--span-from:.36; --span-to:.62">
+                  <span class="cf-gantt__key">Anbindung der Quellen
+                    <span class="cf-gantt__when">30.03. – 15.05. · geplant</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__bar"></span>
+                  </span>
+                </li>
+                <li class="cf-gantt__row cf-gantt__row--planned"
+                    style="--span-from:.68; --span-to:.94">
+                  <span class="cf-gantt__key">Testbetrieb
+                    <span class="cf-gantt__when">18.05. – 26.06. · geplant</span></span>
+                  <span class="cf-gantt__track" aria-hidden="true">
+                    <span class="cf-gantt__bar"></span>
+                  </span>
+                </li>
+              </ol>
+              <div class="cf-gantt__notes">
+                <ul class="cf-annot-set">
+                  <li class="cf-annot cf-annot--se"
+                      style="--annot-x:34%; --annot-y:calc(var(--gantt-row) * 0.5)">
+                    <span class="cf-annot__label">noch nicht abgearbeitet</span>
+                  </li>
+                  <li class="cf-annot cf-annot--se"
+                      style="--annot-x:65%; --annot-y:calc(var(--gantt-row) * 2.5)">
+                    <span class="cf-annot__label">Puffer <span class="cf-annot__value">2 Wochen</span></span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <figcaption class="cf-gantt__caption" id="gantt-notiz">
+          Zwei Stellen, die der Plan selbst nicht benennen kann: was am laufenden Balken
+          noch aussteht, und wie viel Luft vor dem Testbetrieb liegt.
+        </figcaption>
+      </figure>
+    </div>
+
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-gantt__body"</span>&gt;
+  &lt;<span class="tag">ol</span> <span class="attr">class</span>=<span class="val">"cf-gantt__set"</span>&gt;…&lt;/<span class="tag">ol</span>&gt;
+
+  &lt;!-- the layer, and then Annotation exactly as it is documented --&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-gantt__notes"</span>&gt;
+    &lt;<span class="tag">ul</span> <span class="attr">class</span>=<span class="val">"cf-annot-set"</span>&gt;
+
+      &lt;!-- x is a fraction of the AXIS, y is a length down the ROWS --&gt;
+      &lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-annot cf-annot--se"</span>
+          <span class="attr">style</span>=<span class="val">"--annot-x:65%; --annot-y:calc(var(--gantt-row) * 2.5)"</span>&gt;
+        &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-annot__label"</span>&gt;Puffer &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-annot__value"</span>&gt;2 Wochen&lt;/<span class="tag">span</span>&gt;&lt;/<span class="tag">span</span>&gt;
+      &lt;/<span class="tag">li</span>&gt;
+
+    &lt;/<span class="tag">ul</span>&gt;
+  &lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+
+    <table class="docs-table">
+      <thead><tr><th>What the layer sets</th><th>Value</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><code>--annot-x</code></td><td>written by the author</td><td>A percentage of the plot area, which is a fraction of the axis — the same number a run's <code>--span-to</code> is, written as a percentage.</td></tr>
+        <tr><td><code>--annot-y</code></td><td>written by the author</td><td><code>calc(var(--gantt-row) * (row + 0.5))</code> — the centre line of the row it points into, counting from zero.</td></tr>
+        <tr><td><code>--annot-u</code></td><td><code>calc(var(--gantt-row) / 2)</code></td><td>Half a row, so a shallow (2, 1) step is one whole lattice cell across and half a row up, and the note lands on the lattice the runs stand on.</td></tr>
+        <tr><td><code>--annot-node</code></td><td><code>var(--gantt-node)</code></td><td>The anchor cell is the rhombus the head and the milestones are already drawn at. One mark at one size, not two at two.</td></tr>
+        <tr><td><code>--annot-draw</code></td><td>from <code>--gantt-draw</code></td><td>The annotation's own view timeline is cancelled here — see below — and the value comes off the plan's draw instead, in its last third.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="docs-note">
+      <strong>The annotation's own timeline had to be killed, and not for taste.</strong>
+      <code>.cf-annot-set</code> animates <code>--annot-draw</code> on
+      <code>animation-timeline: view()</code>, which resolves against the nearest
+      scrollport — and inside this component that is <code>.cf-gantt__scroll</code>.
+      <code>overflow-x: auto</code> leaves <code>overflow-y</code> computing to
+      <code>auto</code>, so the box is a scroll container in <em>both</em> axes and its
+      block axis never scrolls. That is exactly the <code>.cf-hero</code> defect
+      <code>check-overflow-clip.py</code> was written for: the timeline resolves, it
+      reports a progress, and the progress does not move. So the animation is cancelled —
+      which is the only way to get the property back, since a custom property cannot
+      override an animation — and <code>--annot-draw</code> is derived from
+      <code>--gantt-draw</code>. <code>3x − 2</code> puts the labels in the last third of
+      the plan's own draw, which keeps the order the annotation states in prose: the
+      drawing is finished before it is labelled.
+    </div>
+
+    <div class="docs-note">
+      <strong>The layer is deliberately not named <code>cf-annot-fig</code>.</strong> That
+      container name switches the annotation to its legend fallback below 28rem — the right
+      answer for a 320 px drawing, and the wrong one here, because the plot area is under
+      28rem exactly when the plan is scrolling. A static legend inside an absolutely
+      positioned layer is not a legend. A plan answers a narrow screen by scrolling; it
+      does not fold.
+    </div>
+
+    <div class="docs-note">
+      <strong>Three marks in this figure are the same rhombus, and that is the reading
+      rather than a collision.</strong> The lattice cell means <em>a point</em>, here as
+      everywhere else in the system. What is attached to it says which kind: nothing at all
+      is a milestone, light is where the work has got to, and a leader with a word on the
+      end of it is a note. One glyph, three attachments — which is why the anchor takes
+      <code>--gantt-node</code> and is drawn at the same size as the other two rather than
+      shrunk to distinguish itself from them.
+    </div>
+
+    <div class="docs-note">
+      <strong>Two marks are closest at the figure's floor, not at the width you drew it
+      at.</strong> The axis compresses to <code>--gantt-cols × --gantt-col-min</code> and
+      then the scroll box takes over, so a note anchored four days from the head has its
+      least room there and nowhere else. A rhombus is about 17 px across whatever the axis
+      is doing, which makes the floor the only width worth checking two marks in the same
+      row against — and the reason the note below is anchored at the end of the run rather
+      than in the middle of the ghost it names.
+    </div>
+
+    <div class="docs-note">
+      <strong>Point into empty ground, and stay inside the frame.</strong> The author picks
+      the quadrant the same way they do on a drawing — most of a plan is empty, and the
+      empty part is usually the row above or below the run being named. Two things are
+      stricter here than on an illustration: a note that overflows the figure is inside a
+      scroll box and will be cut or will add a scrollbar, and the <em>lit</em> rung is
+      already spent — the head is the plan's one lime moment, so notes on a plan with a
+      live phase are contour. On a plan with none, one note may take
+      <code>.cf-annot--lit</code>.
+    </div>
+  </section>
+
+  <section class="docs-section" id="accessibility">
+    <h2>What makes it readable</h2>
+    <p>
+      A plan is a chart, and a chart is the one component where the picture can be
+      perfectly rendered and the component still fail. The plot states four rules for that;
+      three of them are the same here and the fourth is about the axis.
+    </p>
+
+    <table class="docs-table">
+      <thead><tr><th>Rule</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>The text is the data, and there is no second copy of it</td>
+          <td>
+            Each <code>&lt;li&gt;</code> carries its phase and its dates as real text, so the
+            figure reaches the accessibility tree as an ordered list of
+            "Aufnahme 02.02. – 20.02.", "Datenmodell 23.02. – 27.03. · läuft",
+            "Freigabe Datenmodell 27.03. · Meilenstein", … The drawing says nothing the row does not, which is why the track
+            and the scale are <code>aria-hidden</code>. No visually hidden table, nothing
+            that can drift out of step with the picture.
+          </td>
+        </tr>
+        <tr>
+          <td>Every rung is stated in words as well as in a line</td>
+          <td>
+            <code>geplant</code>, <code>Vorschlag</code>, <code>läuft</code>, and the
+            milestone that says <code>Meilenstein</code>. A dash ratio is a difference some
+            readers cannot resolve and every reader has to be taught; the word costs four
+            characters in a column that is already there.
+          </td>
+        </tr>
+        <tr>
+          <td>Lime is emphasis, never a category</td>
+          <td>
+            The head is the one lit mark and the caption is about it. Never light two, and
+            never use lit / unlit to mean two kinds of phase — that is a legend, in a figure
+            that has none, carried by a colour a share of readers cannot separate from its
+            neighbours. On a page that has already spent its lime elsewhere — a
+            <a href="calendar.html">Calendar</a>'s today, most of all — leave the head out
+            and let the run's own solid-to-ghost boundary carry the same fact.
+          </td>
+        </tr>
+        <tr>
+          <td>The scroll box can be reached without a mouse</td>
+          <td>
+            An axis is data, so a plan legitimately outgrows its column. The box carries
+            <code>tabindex="0"</code> and takes its name from the caption — without the
+            tabindex, everyone who does not drag with a pointer never sees the far end of
+            the plan. WCAG 2.1.1, the same construction <a href="table.html">Table</a> uses.
+          </td>
+        </tr>
+        <tr>
+          <td>The caption states the message, not the mechanics</td>
+          <td>
+            "Das Datenmodell liegt vier Tage hinter dem Plan — die Freigabe Ende März hält,
+            weil der Rückstand kleiner ist als der Puffer davor." The claim, then what it
+            rests on. A caption that only names the date range has left the reader to do the
+            interpretation the figure was drawn to save them.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      Contrast: the runs, the marks and the now line are all <code>--border-strong</code>
+      on the page wash. Keys are
+      <code>--text-primary</code>; dates and ticks are <code>--text-secondary</code>, 5.9:1
+      on CF-Grau — never <code>--text-muted</code>, which is 2.0:1 there. No type in the
+      figure stands on the grid at all, which is deliberate: the field's 10 % ceiling is
+      inherited and left unspent. The lit head is a ramp inside a black contour, so the 3:1
+      a UI shape owes is carried by the contour and not by the lime.
+    </p>
+  </section>
+
+  <section class="docs-section" id="motion">
+    <h2>Drawing</h2>
+    <p>
+      The plan draws itself out of its own start as the figure arrives, scrubbed from
+      scroll position rather than played on a timer — the same posture as
+      <code>.cf-plot</code> and <code>.cf-iso</code>
+      (→ <a href="../foundations/motion.html">Motion</a>). One registered number,
+      <code>--gantt-draw</code>, is animated on a view timeline; the run's clip, the marks'
+      scale and the annotation layer's own <code>--annot-draw</code> all read it, so they
+      cannot fall out of step.
+    </p>
+    <p>
+      The ground does not arrive. The field, the axis and the now line are drawn at full
+      strength from the first frame, because they are not the data — they are what the data
+      is measured against, and a figure whose axis fades in is a figure that measures
+      nothing for the first half of its own animation.
+    </p>
+    <div class="docs-note">
+      <strong>Every fallback is the finished plan.</strong> No support for view timelines,
+      <code>prefers-reduced-motion: reduce</code>, and print all leave
+      <code>--gantt-draw</code> at its registered <code>1</code>. The growth also finishes
+      inside the first third of the figure's cover range, so a plan near the foot of a short
+      page reaches its full length rather than stopping short and understating every phase
+      in it.
+    </div>
+  </section>
+
+  <section class="docs-section" id="dos">
+    <h2>Do and don't</h2>
+    <table class="docs-table">
+      <thead><tr><th>Do</th><th>Don't</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Use it for a plan a reader should be able to hold in their head — five to nine phases.</td>
+          <td>Reach for it for a project schedule. Past about nine rows the figure stops being a picture of a plan and becomes a tool for editing one, which is a different product.</td>
+        </tr>
+        <tr>
+          <td>Give every phase its dates in the key column.</td>
+          <td>Leave the drawing to carry the dates and make the reader measure them off the ground. This axis names the spans a plan is divided into; it is not a ruler, and a date estimated off it is a date nobody can act on.</td>
+        </tr>
+        <tr>
+          <td>Draw a run in contour, at 2 px, on the ladder.</td>
+          <td>Fill it. A filled bar is the generic Gantt, and contour before fill is the first rule this brand has.</td>
+        </tr>
+        <tr>
+          <td>Mark one phase <code>--live</code>, and let its head sit where the work has actually got to.</td>
+          <td>Mark two, or pin the head to the now line. A head that is always on the line is a mark with nothing to say — the gap between the two is the reading.</td>
+        </tr>
+        <tr>
+          <td>Divide the axis into equal columns and label them.</td>
+          <td>Label six columns as six calendar months. They are 28 to 31 days long, the columns are not, and a two-day lie in a figure whose whole content is duration is the same defect as a plot whose columns do not track their values. Weeks, or four-week steps, are equal by construction.</td>
+        </tr>
+        <tr>
+          <td>Say the one thing the drawing cannot with a note — the float, the ghost, the reason a date moved.</td>
+          <td>Join two runs with a line. It is a leader with no word on it, and there is no angle in this brand that gets from one run's end to the next one's start without crossing a body.</td>
+        </tr>
+        <tr>
+          <td>Keep keys to one line.</td>
+          <td>Let a key wrap. The row pitch is the unit every annotation's step is measured in, so a taller row puts its notes off the lattice the runs stand on.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="open">
+    <h2>Still open</h2>
+    <ul>
+      <li>
+        <strong>The manual has no plan plate either.</strong> The 22 plates in
+        <code>assets/source/manual/</code> hold no chart of any kind — which is already
+        noted on <a href="plot.html">Plot</a> and on <a href="table.html">Table</a>, and is
+        as true here. Everything on this page is derived from the parts of the language that
+        <em>are</em> documented: the lattice, the four angles, the four line types, the light
+        layer, the field. Check it against the statistics plate when the full archive is to
+        hand. If the two disagree, the plate wins.
+      </li>
+      <li>
+        <strong>Dependencies are not drawn, and the reason is in
+        <a href="#construction">How it is constructed</a> rather than here.</strong> What is
+        genuinely open is whether they can be drawn at all in this language. Every path that
+        keeps both sanctioned obliques crosses a body; a path that does not would need a
+        third angle, and the brand has four and no more. Until there is one, the sequence is
+        carried by position and by the dates, and the leader is spent on a word.
+      </li>
+      <li>
+        <strong>Nothing holds a note to the row it is written for.</strong>
+        <code>--annot-y</code> is a length, and <code>calc(var(--gantt-row) * 2.5)</code> is
+        the third row's centre only as long as the author counts correctly — a note half a
+        row out looks exactly like a note pointing between two phases, which is a thing
+        somebody might mean. It is countable in the markup: every <code>--annot-y</code> in
+        a <code>.cf-gantt__notes</code> should be an odd multiple of half the row pitch. That
+        is the shape every check in <code>scripts/</code> has, and this one is not written.
+      </li>
+      <li>
+        <strong>No overlap, no swimlanes, one run per row.</strong> A phase that stops and
+        restarts is two rows here. Two runs in one row is drawable — the marks are already
+        positioned independently — but the head reads <code>--span-from</code> and
+        <code>--span-to</code> off the row, so a second run would need a second source of
+        truth, which is the one thing this component is built to avoid.
+      </li>
+      <li>
+        <strong>The float between two phases is not drawn.</strong> Slack is the empty axis
+        between one run's end and the next one's start, and it is currently just air with a
+        note over it where it matters. The ghost rung would draw it in one declaration;
+        nothing yet needs it, and a figure that draws everything it could draw is the thing
+        this system is trying not to be.
+      </li>
+    </ul>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>
