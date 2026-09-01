@@ -355,6 +355,9 @@ python3 scripts/check-count-atom.py            # a section head taken off the la
 python3 scripts/check-count-atom.py -v         # every section header row, and the ramp it is on
 python3 scripts/check-field-family.py          # every field control is accounted for in the family's shared rules
 python3 scripts/check-field-family.py -v       # every shared rule and the controls it names
+python3 scripts/check-lime-flat.py             # every flat lime area sits on one of the light layer's four boundaries
+python3 scripts/check-lime-flat.py --fix       # rewrite the census in foundations/light.html
+python3 scripts/check-lime-flat.py -v          # every area paint examined, and the argument that covers it
 python3 scripts/build-i18n.py --check          # the English edition matches its German source
 python3 scripts/build-i18n.py --extract        # every German string with no entry in the catalogue
 ```
@@ -367,7 +370,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The twenty-three checks the system enforces rather than documents, run by CI on every push and
+The twenty-four checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -1083,14 +1086,62 @@ mid grey and the far end of the ramp would read as a grey pill rather than as li
 falling off. In SVG the ramp is a paint server and carries the `#DBFC60` oklab waypoint,
 because a CSS gradient cannot be an SVG `fill`.
 
-Three exceptions, each technical rather than aesthetic: the palette swatch on
-`foundations/colors.html` (a swatch of a colour has to be the colour), the **found state**
-(`background-image` is ignored on a highlight pseudo-element, so no ramp of this family can
-be painted into `::selection`, `::target-text` or `::highlight()` — see below), and any
-**stroke, outline or focus ring** (not a fill — the rule is about area). The flat lime cube on
-`foundations/illustration.html` is a labelled *don't*, drawn wrong on purpose.
+Four boundaries, each technical rather than aesthetic: a **swatch** (the palette chip on
+`foundations/colors.html`, a legend key on a map — a swatch of a colour has to be the
+colour), a **highlight** (`background-image` is ignored on a highlight pseudo-element, so no
+ramp of this family can be painted into `::selection`, `::target-text` or `::highlight()` —
+see below), a **source's nucleus** (a light's falloff is the glow it throws, not a ramp
+inside it), and anything that is **not an area** — a stroke, an outline, a focus ring. The
+flat lime cube on `foundations/illustration.html` is a labelled *don't*, drawn wrong on
+purpose.
 
-→ `foundations/colors.html#lime-is-never-flat`
+→ `foundations/colors.html#lime-is-never-flat`, `foundations/light.html#flat`
+
+## The light layer
+
+`foundations/light.html` is the chapter for the one of the six material layers that had
+none. The front door draws the six and gives each a route into the system; five of them
+land on a chapter that is about that layer — the wash, materials, glass, geometry,
+typography — and **layer 5 pointed at three chapters, none of which is about light**: a
+section of the colour chapter, the found state, and the line of sight. Light was documented
+as a property of the palette, which is a category error, and it produced a real one.
+
+**The law is one source per screen, and a falloff is unbudgeted.** The system's oldest
+rule about light — *one lime moment per screen* — is right and is a count standing in for
+it. A **source** is where light comes from: a nucleus, a lit contour, a lit face, a cap, a
+rim. It says *this is the place something happens*, and a screen with two of them has two
+places and therefore none. A **falloff** is a surface catching light from somewhere else —
+a foil headline, a glass rim, the pool on a lit ground, a black button's label — and it
+makes no claim about where the eye should go, so counting it was never the point.
+
+The distinction is not new; it was discovered three times and written down as three
+separate exemptions, none of which could see the other two. The black button's foil label
+("under no budget, because there the foil is the component's colour rather than an
+emphasis"), the found state's twelve matches ("satisfied by the drawing rather than waived
+for it") and the annotation layer's six notes ("one lit anchor and five contoured ones") are
+one rule. Naming it once tells the next component which side it is on before it needs an
+exemption written for it.
+
+**The boundary was a list of places, and it had gone stale.** *Lime is never flat* closed
+with "three exceptions" — the palette swatch, the found state, a stroke. Swept over the four
+shipping stylesheets, the system paints a flat lime **area** in seven places. The three
+names covered five of them — the found state's registers, all one kind — and two had no row: the **nucleus** of a source (`.lp-flow__src::after`,
+twenty-five of them on the landing page) and a **legend key** (`.map__key-dot--*`, the
+swatch argument at a different address). Neither is a defect in the drawing — measured on
+the rendered page, a nucleus is 3.6 px of flat lime standing inside 5.4 px of lime and 12 px
+of Glas of glow, so the falloff is there and is three times the diameter of the thing
+throwing it. A ramp inside it would be a more expensive way to draw a flat dot. The rule was
+never violated; the list of addresses was the wrong shape for it.
+
+`scripts/check-lime-flat.py` is the boundary made executable. It derives what counts as lime
+from the stylesheets' own aliases rather than from a roster — `--accent`, `--found-light` and
+`--focus-ring` are lime because `tokens.css` says `var(--cf-lime)` — takes every declaration
+of an area property (`background`, `background-color`, `background-image`, `fill`) carrying
+no ramp, and fails in **both** directions: an uncovered flat lime, and a covered entry that
+matches nothing. The second half is the one this section is about, because a stale exemption
+is how a list stops being read. The census is stamped into the chapter.
+
+→ `foundations/light.html`, `foundations/colors.html#lime-is-never-flat`
 
 ## Where a line may go
 

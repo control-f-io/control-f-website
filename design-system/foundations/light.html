@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Light Layer — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* Every mark below is a specimen of the layer, so each one is drawn with the
+     system's own material classes rather than with a colour typed here. The
+     page-local rules are the STAGE — a box of a known size, a caption, a
+     ground to stand the mark on — and nothing in them paints light. */
+  .lit { --tile: 13rem; --flow: var(--space-6); }
+  .lit figure {
+    margin: 0;
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+  .lit__stage {
+    display: grid;
+    place-items: center;
+    block-size: 8.5rem;
+    background: var(--cf-grau);
+    border: var(--stroke-1) solid var(--border-subtle);
+  }
+  .lit__stage--dark { background: var(--surface-inverse); }
+  .lit figcaption { display: grid; gap: var(--space-1); }
+  .lit b {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--text-primary);
+    font-weight: var(--weight-regular);
+  }
+  .lit span { font-size: var(--text-sm); color: var(--text-secondary); }
+
+  /* The nucleus, at the size the landing page actually draws it: --src-d caps
+     at 8 px, --glow-core is 0.45, so the core is 3.6 px and the glow reaches
+     5.4 px of lime and 12 px of Glas past it. Every number here is read from
+     the token beside it — nothing is typed twice. */
+  .lit__source {
+    --src-d: 8px;
+    --glow-r: calc(var(--src-d) * 1.5);
+    inline-size: var(--src-d);
+    block-size: var(--src-d);
+    border-radius: var(--radius-full);
+    border: var(--stroke-1) solid var(--border-strong);
+    position: relative;
+    box-shadow:
+      0 0 calc(var(--glow-r) * var(--glow-core)) var(--glow-lime),
+      0 0 var(--glow-r) var(--glow-glas);
+  }
+  .lit__source::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    inline-size: calc(var(--src-d) * var(--glow-core));
+    block-size: calc(var(--src-d) * var(--glow-core));
+    border-radius: var(--radius-full);
+    background: var(--cf-lime);
+  }
+  /* The same object at eight times the size, so the argument can be read. The
+     scale is on the box, not on the ramp: a nucleus does not get a falloff by
+     being drawn bigger, it gets a bigger nucleus. */
+  .lit__source--large { --src-d: 64px; border-width: var(--stroke-2); }
+
+  /* The isometric circle: a 2:1 box with a full radius is the ellipse the
+     lattice's own circle is, and it is the shape --iso's bloom is aimed at.
+     Drawn as a rectangle the same ramp reads as a yellow-edged box, which is
+     the failure the rule beside it is about. */
+  .lit__disc { inline-size: 9rem; aspect-ratio: 2 / 1; border-radius: var(--radius-full); }
+  .lit__rhombus { inline-size: 9rem; aspect-ratio: 2 / 1; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+  /* The rim on its own, not on a sheet. What the figure is about is the edge
+     light, and standing it on a blurred plate would spend a backdrop-filter on
+     a page whose subject is not glass — see the census in
+     foundations/materials.html. --glass-edge is white, Glas and Sky at alpha
+     0.42 and below, so it exists only over something dark. */
+  .lit__edge { inline-size: 9rem; }
+  .lit__contour { inline-size: 9rem; block-size: auto; display: block; }
+  .lit__contour .is-lit { stroke: var(--cf-lime); }
+  .lit__foil { font-size: var(--text-2xl); font-family: var(--font-display); font-weight: var(--weight-bold); }
+
+  /* SVG paint is not forced, so the lit stroke would survive a palette the
+     reader chose and the contour beside it would not — two lines that mean
+     different things collapsing to one meaning, backwards. Both go to
+     CanvasText, which is what this mode does to every pair the system tells
+     apart by colour rather than by shape. */
+  @media (forced-colors: active) {
+    .lit__contour [stroke]:not([stroke="none"]),
+    .lit__contour .is-lit { stroke: CanvasText; }
+    .lit__stage { background: Canvas; border-color: CanvasText; }
+  }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 17</p>
+    <h1>The Light Layer</h1>
+    <p>
+      The system is six material layers in a fixed order, and five of them have a chapter.
+      Light — layer 5, the one the whole brand is named after in everything but the word — was
+      documented as a property of the palette, a note in the motion chapter, a rung of the
+      found state and a row in four different tables. This is its chapter: what separates a
+      light from a thing that is merely lit, how much of it a screen may carry, and the one
+      place the rule about it had gone stale.
+    </p>
+  </header>
+
+  <section class="docs-section" id="layer">
+    <h2>Why this is a layer and not a colour</h2>
+    <p>
+      <a href="../index.html">The stack</a> on the front door draws the six, back to front: the
+      page's own wash, then whatever is opaque, then glass, then the contour that draws it,
+      then <strong>light</strong>, then the words. Every other layer answers to a chapter that
+      is about it — <a href="colors.html#wash">the wash</a>, <a href="materials.html">materials</a>,
+      <a href="materials.html#glass">glass</a>, <a href="geometry.html">geometry</a>,
+      <a href="typography.html">typography</a>. Layer 5 pointed at three chapters, none of
+      which is about light: a section of the colour chapter, the found state, and the line of
+      sight. That is not a documentation gap so much as a category error, and it produced a
+      real one downstream, which the last section of this page is about.
+    </p>
+    <p>
+      Light is not a colour in this system. It is <em>a source and a falloff</em> — the phrase
+      <a href="colors.html#lime-is-never-flat">the colour chapter</a> has always used — and
+      that is why lime never fills an area flat, why the glow shifts hue as it fades rather
+      than fading in alpha, and why the foil is a rake rather than a tint. A colour is a value.
+      A light has a direction, a distance and a place it comes from.
+    </p>
+    <div class="docs-note">
+      <strong>Lime is the layer's colour and is not the layer.</strong> Glas and Sky are in the
+      light family too — every ramp here runs out of lime, through Glas, and away to CF-Grau —
+      and the <a href="#budget">budget below</a> is a budget on <em>sources</em>, not on
+      appearances of a hex value. That distinction is what the rest of this page is for.
+    </div>
+  </section>
+
+  <section class="docs-section" id="budget">
+    <h2>A source, and everything else is falloff</h2>
+    <p>
+      The system's oldest rule about light is <strong>one lime moment per screen</strong>. It is
+      restated on most of the component pages and in every shipping stylesheet, and it is
+      right; taken literally it is also broken by three things that ship, which is how you can
+      tell it was a count standing in for a law. The law is:
+    </p>
+    <div class="docs-note">
+      <strong>One source per screen. A falloff is unbudgeted.</strong>
+      <p>
+        A <strong>source</strong> is where light comes from: a nucleus, a lit contour, a lit
+        face, a cap, a rim. It is the mark that says <em>this is the place something happens</em>,
+        and a screen with two of them has two places and therefore none. A <strong>falloff</strong>
+        is a surface catching light that comes from somewhere else — a foil headline, the rim
+        on a sheet of glass, the pool on a lit ground, a black button's label. It carries the
+        same family of ramps and it makes no claim about where the eye should go, so counting
+        it was never the point.
+      </p>
+    </div>
+    <p>
+      The three things that break the count are the three the system already had to write an
+      exemption for, one at a time, in three different places, and each of them is a falloff:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>What ships</th><th>Where it was excused</th><th>What it actually is</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>the black button's label, filled with the foil</td>
+          <td>“the button's label is under no budget, because there the foil is the component's colour rather than an emphasis”</td>
+          <td>a falloff. There can be several black buttons on a page and none of them is a place something happens.</td>
+        </tr>
+        <tr>
+          <td>a page with twelve matches, all drawn in the <a href="found.html">found state</a></td>
+          <td>“the one lime moment is satisfied by the drawing rather than waived for it”</td>
+          <td>one source — the current match — and eleven falloffs. The lit rung is the light; the contoured rung is a mark that has been found.</td>
+        </tr>
+        <tr>
+          <td>a drawing with six <a href="../components/annotation.html">annotations</a></td>
+          <td>“a drawing with six notes composes one lit anchor and five contoured ones”</td>
+          <td>the same shape again, at object scale. One anchor is lit and it is the source.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      Three separate arguments, all correct, all making the same move, and none of them able to
+      see the other two. Naming the move once turns three exemptions into one rule that
+      generates them — and, more usefully, tells the next component which side it is on before
+      it needs an exemption written for it.
+    </p>
+
+    <div class="docs-demo">
+      <div class="lit tiles tiles--fit">
+        <figure>
+          <div class="lit__stage"><span class="lit__source lit__source--large"></span></div>
+          <figcaption>
+            <b>Source · nucleus</b>
+            <span>The core is the light. Its falloff is the glow it throws, outside the fill.</span>
+          </figcaption>
+        </figure>
+        <figure>
+          <div class="lit__stage">
+            <svg class="lit__contour" viewBox="0 0 200 120" role="img" aria-label="An isometric rhombus drawn in contour with one edge lit">
+              <path d="M100 20 L180 60 L100 100 L20 60 Z" fill="none" stroke="var(--border-strong)" stroke-width="1"/>
+              <path class="is-lit" d="M20 60 L100 20 L180 60" fill="none" stroke-width="2" stroke-linecap="square"/>
+            </svg>
+          </div>
+          <figcaption>
+            <b>Source · lit contour</b>
+            <span>Two edges of four. Light lands on the faces turned towards it and on no others.</span>
+          </figcaption>
+        </figure>
+        <figure>
+          <div class="lit__stage"><span class="lit__rhombus material-rake"></span></div>
+          <figcaption>
+            <b>Source · lit face</b>
+            <span>The near rake, <code>--gradient-light</code>. A flat face is where the light lands.</span>
+          </figcaption>
+        </figure>
+        <figure>
+          <div class="lit__stage"><span class="lit__disc material-bloom material-bloom--iso"></span></div>
+          <figcaption>
+            <b>Source · rim</b>
+            <span>The bloom on the 2:1 ellipse — the isometric circle — lit at the rim and falling to CF-Grau at the centre.</span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+    <p>
+      Four sources, one family, and each of them has a place the light comes out of. Beside
+      them, the same family used the other way round:
+    </p>
+    <div class="docs-demo">
+      <div class="lit tiles tiles--fit">
+        <figure>
+          <div class="lit__stage lit__stage--dark"><span class="lit__foil text-foil">Antwort</span></div>
+          <figcaption>
+            <b>Falloff · foil</b>
+            <span>A surface catching light. Unbudgeted — the page may carry several, which is why the black button's label needed no exemption after all.</span>
+          </figcaption>
+        </figure>
+        <figure>
+          <div class="lit__stage lit__stage--dark"><span class="lit__edge material-glass-edge"></span></div>
+          <figcaption>
+            <b>Falloff · edge light</b>
+            <span>The lit rim of a sheet of glass, on the dark ground it is drawn for. It reports a light; it is not one.</span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+    <p>
+      The two groups are drawn from the same family and the difference between them is not how
+      bright they are. It is whether the mark has an <em>inside</em> the light comes out of.
+      That test decides every case in this system and it decides them the same way a technical
+      illustrator would: you can point at the lamp.
+    </p>
+  </section>
+
+  <section class="docs-section" id="flat">
+    <h2>Lime is never flat, and where it is</h2>
+    <p>
+      <a href="colors.html#lime-is-never-flat">The rule</a> is the layer's core law and belongs
+      to the colour chapter, which states it, measures it and says which ramp a mark takes.
+      What belongs here is its <strong>boundary</strong> — the shape of the thing the rule does
+      not reach — because that was written as a list of three names, and the system ships
+      <strong>seven</strong> flat lime areas. Five of them are the found state's registers, all
+      one kind; the other two had no row at all.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Boundary</th><th>Why the ramp is not available or not meant</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>A highlight</strong></td>
+          <td><code>background-image</code> is not painted on a highlight pseudo-element, so there is no gradient form of the declaration to reach for. <code>.cf-mark--current</code> and the calendar's today are elements that <em>could</em> ramp and are held to the same means on purpose: a match is one drawing wherever it is drawn. → <a href="found.html">The found state</a></td>
+        </tr>
+        <tr>
+          <td><strong>A swatch</strong></td>
+          <td>a specimen of the colour rather than an application of it — the palette chip, a legend key. A ramp on a key would name a colour the key does not mean.</td>
+        </tr>
+        <tr>
+          <td><strong>A source's nucleus</strong></td>
+          <td>a light's falloff is the glow it throws, not a ramp inside it. The core is the source; the ramp is around it, and it is there.</td>
+        </tr>
+        <tr>
+          <td><strong>Not an area</strong></td>
+          <td>a stroke, an outline, a focus ring. A line has no plane to ramp across, and the rule is about area. This is the rule's edge rather than an exception inside it, so it carries no rows in the census below and is enforced by not being looked at.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>The nucleus, measured</h3>
+    <p>
+      The third row is the one that was missing, and it is the interesting one, because the
+      colour chapter's own table two paragraphs above the old list says <em>a rim, a ring, a
+      nucleus → the bloom</em>. The landing page draws twenty-five sources that do not, and
+      they are right. Measured on the rendered page at 1440 × 900:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>Size</th><th>Derived from</th></tr></thead>
+      <tbody>
+        <tr><td>the disc</td><td>8 px</td><td><code>--src-d</code>, <code>clamp(5px, 1cqi, 8px)</code></td></tr>
+        <tr><td>the nucleus</td><td>3.6 px, flat lime</td><td><code>--src-d × --glow-core</code> (0.45)</td></tr>
+        <tr><td>the lime falloff</td><td>5.4 px</td><td><code>--glow-r × --glow-core</code></td></tr>
+        <tr><td>the Glas falloff</td><td>12 px</td><td><code>--glow-r</code>, <code>--src-d × 1.5</code></td></tr>
+      </tbody>
+    </table>
+    <p>
+      A ramp inside a 3.6 px core would be a more expensive way to draw a flat dot, and it
+      would be the wrong drawing even if it were free: the falloff is already there, three
+      times the diameter of the thing that is throwing it. The rule was never violated. The
+      exception list was a list of places rather than a statement of the boundary, and a list
+      of places goes stale the first time the same argument turns up at a different address —
+      which is exactly what the legend key on the same page is.
+    </p>
+
+    <h3>The census</h3>
+    <p>
+      Every flat lime area in the four shipping stylesheets, and the boundary it sits under.
+      The table is generated by <code>scripts/check-lime-flat.py</code>, which fails when a
+      flat lime appears with no boundary <em>and</em> when a boundary outlives the thing it was
+      written for — because a stale exemption is how a list stops being read, which is the
+      defect this section is about. Stamp <code>570e103a</code>, a
+      digest of the rows.
+    </p>
+    <table class="docs-table" id="lime-flat-census">
+      <thead>
+        <tr><th>Where</th><th>Boundary</th><th>Stylesheet</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>.cf-calendar__day[aria-current=&quot;date&quot;] > time</code></td><td>highlight</td><td><code>components.css</code></td></tr>
+        <tr><td><code>.cf-mark--current</code></td><td>highlight</td><td><code>base.css</code></td></tr>
+        <tr><td><code>.lp-flow__src::after</code></td><td>nucleus</td><td><code>acts.css</code></td></tr>
+        <tr><td><code>.map__key-dot--asset, .map__key-dot--kind</code></td><td>swatch</td><td><code>acts.css</code></td></tr>
+        <tr><td><code>::highlight(cf-found-current)</code></td><td>highlight</td><td><code>base.css</code></td></tr>
+        <tr><td><code>::selection</code></td><td>highlight</td><td><code>base.css</code></td></tr>
+        <tr><td><code>::target-text</code></td><td>highlight</td><td><code>base.css</code></td></tr>
+      </tbody>
+    </table>
+    <pre class="docs-code">python3 scripts/check-lime-flat.py          <span class="com"># check, exit 1 on drift</span>
+python3 scripts/check-lime-flat.py --fix    <span class="com"># rewrite the census + stamp</span>
+python3 scripts/check-lime-flat.py -v       <span class="com"># every area paint, and its argument</span></pre>
+    <div class="docs-note">
+      <strong>The scope is derived, not listed.</strong> Lime is resolved through the
+      stylesheets' own aliases — <code>--accent</code>, <code>--found-light</code> and
+      <code>--focus-ring</code> are lime because <code>tokens.css</code> says
+      <code>var(--cf-lime)</code> — so a fifth alias enters the claim by being declared rather
+      than by somebody remembering the file exists. The dark end of the ramp is deliberately
+      out: <code>--lime-700</code> and below are ink on a light ground, and ink is not this
+      layer.
+    </div>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <p>
+      Light enters a drawing five ways and no others. Which one a mark takes is decided by
+      what the mark <em>is</em>, and the table that decides it lives on the colour chapter with
+      the numbers; this is the index into it.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Material</th><th>Class or token</th><th>Role</th><th>Takes it when the mark is</th></tr></thead>
+      <tbody>
+        <tr><td>Near rake</td><td><code>.material-rake</code> · <code>--gradient-light</code></td><td>source</td><td>a flat face — a cap, a top face, a tile</td></tr>
+        <tr><td>Mid rake</td><td><code>.material-rake--mid</code></td><td>source</td><td>a curved body turning away from the light</td></tr>
+        <tr><td>Bloom</td><td><code>.material-bloom</code> · <code>--iso</code></td><td>source</td><td>a rim, a ring, a disc lit at its edge</td></tr>
+        <tr><td>Level run</td><td><code>--gradient-light-90</code></td><td>source</td><td>a horizontal run — an edge, a head, a bar</td></tr>
+        <tr><td>Glow</td><td><code>--glow-light</code> · <code>--glow-r</code></td><td>source</td><td>the spill past a nucleus. Two shadows, so the spill shifts hue as it fades</td></tr>
+        <tr><td>Foil</td><td><code>.text-foil</code> · <code>--gradient-foil</code></td><td>falloff</td><td>a surface catching light — type, a label, a black button's fill</td></tr>
+        <tr><td>Glass edge</td><td><code>.material-glass-edge</code></td><td>falloff</td><td>the lit rim of a sheet</td></tr>
+        <tr><td>Field pool</td><td><code>.cf-ground--lit</code></td><td>falloff</td><td>the lattice, lit where the reader is</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Everything in the first group has a place the light comes from and is therefore
+      budgeted. Everything in the second reports a light that is somewhere else, and is not.
+      → <a href="colors.html#lime-is-never-flat">which ramp, on a small mark</a> ·
+      <a href="sight.html">what may answer to the reader</a>
+    </p>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <ul>
+      <li><strong>One source per screen.</strong> Count sources, not appearances of lime. A
+        screen with two places something happens has none.</li>
+      <li><strong>A falloff is unbudgeted and is still not decoration.</strong> It has to
+        report a light that exists in the drawing. A foil headline on a page with no source is
+        a gradient, and the reader has nothing to attribute it to.</li>
+      <li><strong>Wherever it fills an area, it fills it with a ramp</strong> — outside the
+        four boundaries above, and the boundaries are a shape rather than a list of
+        addresses. → <a href="colors.html#lime-is-never-flat">the rule</a></li>
+      <li><strong>Light sits above the contour and below the text.</strong> That is what makes
+        it lighten a ghost rather than replace it, and it is why
+        <a href="../components/arrival.html">the arrival band</a> is capped at 0.18 rather
+        than at whatever still clears contrast.</li>
+      <li><strong>Never as ink.</strong> Lime on black measures 18.5:1 and still may not set a
+        letterform: near-white luminance at the palette's highest chroma blooms on a dark
+        ground. Type takes white or the foil. → <a href="colors.html#lime-is-light">Lime is
+        light, not ink</a></li>
+      <li><strong>A source may move its light; it may not move.</strong> What answers to the
+        reader is the angle a ramp is drawn at and the position of a mask — never a colour, an
+        opacity or a place. → <a href="sight.html">The line of sight</a></li>
+    </ul>
+
+    <h3>Three ways to get it wrong</h3>
+    <ol>
+      <li><strong>Lighting the important thing.</strong> The source is where something
+        <em>happens</em>, not where the most important content is. A lit headline and a lit CTA
+        on one screen are two lamps in one room, and the room goes flat.</li>
+      <li><strong>Turning a falloff into a source by making it brighter.</strong> A foil that
+        has been pushed until it reads as a light is a headline competing with the mark it was
+        supposed to point at. The foil's whole claim is hue travel inside a narrow luminance
+        band; widening the band is how it stops being foil and starts being a fade.</li>
+      <li><strong>Writing an exemption instead of finding the boundary.</strong> Three of them
+        were written before the rule underneath was noticed, and a fourth was needed for the
+        legend key before this page existed. If a mark needs an exemption, the first question
+        is which of the four boundaries it is on.</li>
+    </ol>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>

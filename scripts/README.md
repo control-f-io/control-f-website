@@ -1,7 +1,7 @@
 # scripts/
 
 Everything that generates this website, and everything that refuses to let it
-ship broken. 153 files at this level, this one included, no shared library, no
+ship broken. 156 files at this level, this one included, no shared library, no
 package, no `__init__.py`, no build step: every one is `python3` against the
 standard library and is run by its own path. There are exactly two dependencies
 in the whole directory — Pillow, in `sync-news-notion.py` and nowhere else, and
@@ -21,7 +21,7 @@ most.
 
 | Count | What | Who runs it |
 | --- | --- | --- |
-| 135 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
+| 138 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
 | 7 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all seven, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
 | 1 | `build-all.sh` | `news-sync.yml`, and a human. Nothing else. |
 | 1 | `stage-site.py` — collects the website into `dist/` | both deploys, `--surface pages` and `--surface worker` |
