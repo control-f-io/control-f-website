@@ -18,6 +18,19 @@ sentences around it, went stale while the stamped census beside them did not:
 stamp over a row count cannot read a paragraph. The sixth claim binds that table
 to the same derived set the census is counted from.
 
+AND IT BOUND ONLY THE FROSTED HALF OF IT, which is how the same drift happened
+again one material over. That table is titled "Every panel, and what it is made
+of" and its verdict on most panels is *not* glass — it is contour, and a
+response made of light rather than of blur. Claim 6 held the glass rows to the
+stylesheet and left every other row unbound, so a panel that answers a pointer
+with `--sheen-panel` could be added, renamed or dropped and the table would
+never notice. One had been: the register — `.cf-result`, `.cf-vacancy` and
+`.cf-event`, one drawing behind the search results, the open positions and a
+day on the calendar — is a panel on the page wash with a travelling light on it,
+on two shipping pages, and the table that claims to name every panel did not
+name it. The seventh claim is claim 6 read against the other derived set, so a
+lit panel enters the verdict table by existing, exactly as a frosted one does.
+
 Every one of those is invisible in a screenshot. A third blurred layer renders
 correctly; it just costs. A literal `blur(20px)` on some future panel renders
 correctly; it just forks the material. A gradient animated across a blurred
@@ -33,7 +46,9 @@ enters the budget by existing, rather than by somebody remembering to add it to
 a list in this file — the same reason check-gradient-family.py recomputes its
 waypoint from the oklab path instead of comparing against a table of hexes. A
 checker whose scope is hand-maintained drifts exactly the way the prose census
-did.
+did. WHAT COUNTS AS A LIT PANEL IS READ OUT THE SAME WAY: every shipping rule
+that paints `var(--sheen-panel)`, selectors taken as the definition. Two derived
+sets, one walk of the pages, and neither of them a list.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
@@ -348,9 +363,59 @@ def glass_rules():
     return found
 
 
+# The other material a panel can be made of, and the reason the seventh claim
+# exists. --sheen-panel is the light layer's answer for a surface that is NOT
+# glass: a gradient parked in its own transparent half and slid across on hover,
+# so a contour panel reads as lit rather than tinted. foundations/materials.html
+# calls it "a response" and draws the line the whole verdict column turns on —
+# a panel gets one only if it answers, because lighting a panel that does
+# nothing when you click it promises otherwise.
+#
+# READ AS A CONSUMPTION AND NOT AS A DECLARATION, which is the one difference
+# from the blur. `backdrop-filter: ...` is only ever written by a surface that
+# is glass; `--sheen-panel` is written once in tokens.css, twice counting the
+# inverse theme, by the token itself. So the set is the rules that READ it —
+# declared()'s second return — and the two declarations fall out for free by
+# never appearing in it.
+SHEEN_TOKEN = "--sheen-panel"
+
+
+def sheen_rules():
+    """Every shipping rule that paints --sheen-panel, with its selectors.
+
+    The mirror of glass_rules(), and derived for the same reason: a lit panel
+    added later enters the verdict table by existing rather than by somebody
+    remembering this file. An opt-out is not a consumer — .cf-blog-card--listing
+    sets `background-image: none` on the archive entry that has no article
+    behind it, reads nothing, and correctly never enters the set.
+    """
+    found = []
+    for name in SHIPPING_CSS:
+        for head, body, line in rules((CSS / name).read_text()):
+            if SHEEN_TOKEN not in declared(body)[1]:
+                continue
+            # No "values" key, unlike glass_rules(). That one carries the blur's
+            # declared value because claim 2 reads it back; there is no
+            # equivalent claim about a sheen, and a field nothing reads is a
+            # field the next reader has to check is unused.
+            found.append(
+                {
+                    "file": name,
+                    "line": line,
+                    "selectors": [s.strip() for s in head.split(",") if s.strip()],
+                }
+            )
+    return found
+
+
 def glass_classes(found):
     """The class names a blurred layer hangs off, and the selectors that failed
-    to reduce to one."""
+    to reduce to one.
+
+    Shape work only — it reads selectors, never declarations — so sheen_rules()
+    goes through it unchanged. The register is why that matters: its three
+    classes share one rule and one drawing, and a helper that assumed one class
+    per rule would have had to be told about them."""
     classes, unreducible = set(), []
     for rule in found:
         for sel in rule["selectors"]:
@@ -421,24 +486,34 @@ def pages():
         yield path
 
 
-def census(classes):
+def census(classes, sheen):
     """Every page under design-system/, with how many blurred layers it carries.
 
     Returns the rows and, beside them, the glass classes that actually reach a
     SHIPPING page. One walk answers both, and it has to be one walk: the second
     answer is what claim 6 holds the panel table to, and a separate pass would
     be a second opinion about which pages ship.
+
+    THE LIT PANELS RIDE THE SAME WALK, for the same sentence one material over.
+    Claim 7 needs to know which sheened classes reach a shipping page, and "which
+    pages ship" has to have one answer in this file, not two. Only the blurred
+    layers are counted — a sheen costs nothing and is not on any budget — so the
+    third return is a set and never a column.
     """
-    rows, shipping_classes = [], set()
+    rows, shipping_classes, shipping_sheen = [], set(), set()
     for path in pages():
+        html = path.read_text()
         parser = GlassCounter(classes)
-        parser.feed(path.read_text())
+        parser.feed(html)
+        lit = GlassCounter(sheen)
+        lit.feed(html)
         rel = path.relative_to(DS).as_posix()
         shipping = rel.startswith("patterns/")
         if shipping:
             shipping_classes |= parser.seen
+            shipping_sheen |= lit.seen
         rows.append((rel, len(parser.hits), shipping, parser.hits))
-    return rows, shipping_classes
+    return rows, shipping_classes, shipping_sheen
 
 
 def stamp_of(rows):
@@ -580,7 +655,8 @@ def main():
         return 1
 
     classes, unreducible = glass_classes(found)
-    rows, shipping_classes = census(classes)
+    sheen, sheen_unreducible = glass_classes(sheen_rules())
+    rows, shipping_classes, shipping_sheen = census(classes, sheen)
     stamp = stamp_of(rows)
     failures = []
 
@@ -741,13 +817,64 @@ def main():
             "    that ships, which is what the census cannot notice. Add a row naming\n"
             "    .%s in a <code>, or take the blur off it." % ("." + name, name)
         )
-    for name in sorted(verdicts - classes):
+    #    THE REVERSE DIRECTION IS ONE CHECK FOR BOTH MATERIALS, and it has to be
+    #    one. A class in that table is a panel, and this half asks whether the
+    #    stylesheet still draws it at all — a question neither derived set can
+    #    answer alone, because a row moving from glass to sheen is a panel
+    #    changing material rather than a panel disappearing. Subtracting only
+    #    the glass set would have failed on every honest sheen row below.
+    for name in sorted(verdicts - classes - sheen):
         failures.append(
-            ".%s is named in the panel table on foundations/materials.html as a glass\n"
-            "    surface, and nothing in the shipping CSS declares backdrop-filter for it.\n"
+            ".%s is named in the panel table on foundations/materials.html, and nothing\n"
+            "    in the shipping CSS gives it a material: no rule declares backdrop-filter\n"
+            "    for it and none paints %s.\n"
             "    Either the rule was removed and the verdict outlived it — delete the row or\n"
             "    move the panel to its honest material — or the class was renamed and the\n"
-            "    table still names the old one." % name
+            "    table still names the old one." % (name, SHEEN_TOKEN)
+        )
+
+    # 7. CLAIM 6, READ AGAINST THE OTHER DERIVED SET. The panel table's title is
+    #    "Every panel", and most of its rows are not glass — the verdict there is
+    #    contour, with a response made of light. So binding only the frosted rows
+    #    left the majority of that table exactly as unbound as the whole of it
+    #    used to be, and it drifted the same way and for the same reason: the
+    #    register grew a travelling light, reached two shipping pages, and
+    #    nothing could notice that the table naming every panel had never heard
+    #    of it. (No count of those rows here, deliberately. Counting them in a
+    #    comment is the habit this claim exists to retire.)
+    #
+    #    A SHEEN IS NOT ON A BUDGET, so this claim is only about the verdict and
+    #    never about a count. It costs a gradient and a background-position; the
+    #    reason it belongs in a checker at all is that the table's own rule is a
+    #    design ruling with teeth — light is a response, and a panel that does
+    #    nothing when you click it may not have one — and a row nobody wrote is a
+    #    ruling nobody made.
+    #
+    #    Same shipping qualifier as claim 6, and it excuses the same shape of
+    #    thing: .cf-event is the register's third class, it stands on a day of
+    #    .cf-calendar, and today it appears only on the component page that
+    #    demonstrates it. The table names it anyway, beside the two that ship,
+    #    because they are one rule and one drawing — which the reverse direction
+    #    above accepts and this direction never demanded.
+    for name in sorted(shipping_sheen - verdicts):
+        failures.append(
+            "%s paints %s and reaches a shipping page, and the panel table on\n"
+            "    foundations/materials.html does not name it.\n"
+            "    That table is the chapter's verdict on every panel in the system, not only\n"
+            "    on the frosted ones, and its last column is a ruling: light crossing a\n"
+            "    surface is a response to a pointer arriving at something that will answer.\n"
+            "    Add a row naming .%s in a <code>, with what is behind it and what it\n"
+            "    answers — or, if it answers nothing, take the sheen off it."
+            % ("." + name, SHEEN_TOKEN, name)
+        )
+    for name, line, sel in sheen_unreducible:
+        failures.append(
+            "%s:%d paints %s on a selector this script cannot reduce to a class:\n"
+            "        %s\n"
+            "    Claim 7 holds the panel table to the set of lit panels, and a selector it\n"
+            "    cannot name silently leaves one out. Either reduce it to a single class\n"
+            "    (optionally with one pseudo-element), or widen SIMPLE_SELECTOR here."
+            % (name, line, SHEEN_TOKEN, sel)
         )
 
     doc_stamp, published = doc_rows()
@@ -774,7 +901,8 @@ def main():
         )
 
     if args.verbose:
-        print("glass, as read out of the shipping CSS: %s\n" % ", ".join(sorted(classes)))
+        print("glass, as read out of the shipping CSS: %s" % ", ".join(sorted(classes)))
+        print("lit panels, the same way:               %s\n" % ", ".join(sorted(sheen)))
         for rel, n, shipping, hits in rows:
             print(
                 "  %2d  %-46s %-13s %s"

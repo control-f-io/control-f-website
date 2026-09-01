@@ -498,6 +498,21 @@ add it — the same reason the light-family script recomputes its waypoint inste
 comparing against a table of hexes. A selector it cannot count is a finding, never a silent
 skip.
 
+**And the chapter's other table is now held to two derived sets, not one.** *Every panel, and
+what it is made of* is the verdict column — for each panel: what is behind it, what it is made
+of, how it responds — and it is prose by necessity, because a verdict is an argument. The
+claim that binds it read only the frosted rows, so the majority of a table titled *every*
+panel was bound to nothing at all, and it drifted exactly the way the census had before it was
+generated: the register — `.cf-result`, `.cf-vacancy`, `.cf-event`, one rule behind the search
+results, the open positions and a day on the calendar — carries `--sheen-panel` on two
+shipping pages and the table had never heard of it. The chapter had written *"it is on nothing
+else in the system"* twice, once about the accordion row and once about this. A closing "and
+nothing else" is a census in a sentence. So the lit panels are derived the same way the
+frosted ones are — every shipping rule painting `var(--sheen-panel)`, selectors taken as the
+definition — and a panel that answers a pointer with light now enters the verdict table by
+existing. It is a verdict claim and never a budget one: a sheen is a gradient and a
+`background-position`, and costs nothing to composite.
+
 **The list one step further out was hand-maintained anyway, and that is where it broke.**
 Which *stylesheets* count as shipping was three names, and `acts.css` — which
 `patterns/landing-page.html` loads — was not among them. A `backdrop-filter` written there
