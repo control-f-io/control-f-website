@@ -12456,6 +12456,13 @@ a.cf-calendar__day > time,
      ring. One mono word over one number fits inside it at every size; a key
      that does not is a key, not a sentence. */
   --pie-label-w: 5rem;
+  /* THE WIDTH AT WHICH THIS FIGURE CHANGES TIER, as a value rather than only
+     as a prelude. The query below cannot read it — var() is not allowed in a
+     @container prelude, which is the whole reason tokens.css keeps a register
+     of literals — so the number is typed there and named here, and the list
+     tier's own measure reads the name. Two places, one of them able to say
+     what it is. → tokens.css, 21rem. */
+  --pie-tier: 21rem;
   /* Where a label's near edge sits: half a cell clear of the rim. The same
      half cell the plot's near edge starts on. */
   --pie-label-r: calc(var(--pie-u) * 3.5);
@@ -12469,6 +12476,34 @@ a.cf-calendar__day > time,
      something, a chart that is confidently wrong. */
   --pie-grow: 1;
   margin: 0;
+  /* THE FIGURE ASKS ITSELF WHETHER THE RING TIER FITS, and the sentence three
+     comments up is the arithmetic it asks with: 6u of ring plus half a cell
+     and a label cap on each side is 7u + 2 * --pie-label-w, which at the u
+     floor and a 16 px root is 328 px. The figure is the container because the
+     room a label needs is a fact about the DRAWING's box and never about the
+     screen — the same rule .cf-annot-fig states one component over, for the
+     same decision. Named, so the tier below cannot be answered by whatever
+     container happens to be nearest on a caller's page. → tokens.css, the
+     breakpoint register, 21rem.
+
+     AND THE MEASURE IS DECLARED, BECAUSE A CONTAINER HAS TO HAVE ONE. Inline-
+     size containment is the other half of `container-type: inline-size`: the
+     box stops contributing its contents to its own intrinsic width. This
+     figure had been getting its width from its caption's max-content and being
+     clamped to the track — which reads like a width and is not one — so under
+     `justify-items: center` (acts.css, .lp-ev-card__figure) containment took
+     it to 0 px at every viewport and every label on the landing page landed on
+     one point. .cf-line and .cf-block already take this declaration from that
+     same rule, with the same sentence attached: a frame takes the measure it
+     is given or it collapses to min-content. The pie is a frame now too, for
+     the stronger reason — a container that asks how much room it has must
+     first be given some. Percentage of a grid item resolves against its grid
+     AREA, which is definite, so this is the track's own width and the same
+     number the caption was borrowing: 214 px at 320, 446 at 1024, 587 at
+     1440, unchanged to the pixel. */
+  width: 100%;
+  container-type: inline-size;
+  container-name: cf-pie;
 }
 
 /* The drawing's own box, 6u square. Every layer inside it is measured against
@@ -12507,6 +12542,31 @@ a.cf-calendar__day > time,
   margin: var(--space-4) 0 0;
   padding: 0;
   list-style: none;
+  /* THE LIST IS AS WIDE AS THE FIGURE AND NOT AS WIDE AS THE DRAWING, and
+     until the tier below became something a reader sees this was never
+     tested. The list is a child of .cf-pie__ring, whose width is the drawing's
+     6u — 144 px at the u floor — so each row had 144 px for a key and a
+     reading side by side. "STILLSTÄNDE €0,90 Mio." does not fit in that, and
+     what a flex row does when it does not fit is wrap: the landing page's two
+     longest shares set "Mio." alone on a second line under "€0,90", which is
+     the fault 34446b2 fixed on the bounded values — a number parted from its
+     unit — reappearing one component over.
+
+     The drawing cannot widen with it (the three paint layers are `width: 100%`
+     of this same box with `aspect-ratio: 1`, so a wider ring is a bigger
+     circle), so the list steps out of the ring instead: the figure's own
+     inline size, pulled back by half the difference on each side. It lands on
+     the same measure .cf-pie__caption already takes, which is what the rules
+     under each row now line up with.
+
+     CAPPED AT THE TIER WIDTH, because this tier has two entrances. Below
+     --pie-tier the cap never binds — the figure is narrower than it by
+     definition. It binds in the other entrance, a browser with no CSS trig,
+     where the figure may be 1 072 px wide and a legend stretched that far is
+     a worse answer than the 192 px one this replaces. Same number as the
+     query, by name. */
+  inline-size: min(100cqi, var(--pie-tier));
+  margin-inline: calc((var(--pie-u) * 6 - min(100cqi, var(--pie-tier))) / 2);
 }
 .cf-pie__seg:last-child .cf-pie__label { border-bottom: 0; }
 
@@ -12763,12 +12823,35 @@ a.cf-calendar__day > time,
    transform nobody can compute puts four labels and the total on one point. */
 .cf-pie__label {
   display: flex;
+  /* AND IT WRAPS AS A ROW, NOT AS A SENTENCE. A key and a reading side by side
+     stop fitting eventually — at a 32 px root the landing page's figure is
+     150 px wide and "STILLSTÄNDE" alone is most of it — and the two ways of
+     not fitting are not equal. Without this the flex line holds and the
+     READING breaks inside itself: "€0,90" on one line and "Mio." alone on the
+     next, which is the fault 34446b2 fixed on the bounded values, in a
+     component that had never been looked at below 21rem because nothing shipped
+     it there. With it the value moves WHOLE to a second line under its key —
+     the arrangement .cf-pie__whole already uses in the hole — and the pair is
+     still one row with one rule under it. Measured on landing-page.html at a
+     32 px root: 4 of 4 readings split before, 0 after. */
+  flex-wrap: wrap;
   gap: var(--space-4);
   justify-content: space-between;
   align-items: baseline;
   padding: var(--space-2) 0;
   border-bottom: var(--stroke-1) solid var(--border-default);
 }
+/* The other half of that: the row may wrap, the reading may not. A figure's
+   number and its unit are one token, and this is the FOURTH bounded value in
+   the system to say so — .cf-line__val and .cf-block__val have carried the
+   declaration all along and .cf-plot__val was given it on 2026-09-01, with the
+   census that made the omission visible. Same shape, same argument, and this
+   one was invisible for the same reason .cf-plot's was: the tier where the
+   value has to share a line with its key did not ship until the query above.
+   NOT on .cf-pie__whole-val, which shares the rule below rather than this one:
+   that reading stands in a 4u hole it cannot leave, and wrapping is the right
+   answer inside it. */
+.cf-pie__val { white-space: nowrap; }
 
 /* THE TIER THAT RIDES THE RING. The label stands against its own arc, half a
    cell clear of the rim, and the second half of the transform is what keeps it
@@ -12777,9 +12860,52 @@ a.cf-calendar__day > time,
    way the anchor points. No per-quadrant class, no leader, nothing to author.
 
    CSS trig has been Baseline since March 2023 — the same capability, and the
-   same @supports posture, .cf-annot already takes for the isometric angle. */
+   same @supports posture, .cf-annot already takes for the isometric angle.
+
+   AND TRIG IS NOT THE ONLY THING IT NEEDS. It needs the ROOM, and on a phone
+   this figure has never had it. The label is `width: max-content` capped at
+   --pie-label-w and it hangs off a ring measured in px, so the label grows
+   with the reader's text size and the ring does not: at 320 px the landing
+   page gives .cf-pie a 214 px box, the 3 o'clock label's far edge lands at
+   centre + 3.5u + its own width, and the whole figure paints outside the card
+   it stands in — 48 px past on the left and 41 px past on the right at a 16 px
+   root, and past the VIEWPORT at 20 px (+6), 24 px (+23) and 32 px (+31 at
+   375). A document wider than its screen because the reader enlarged the type
+   is the fault scripts/check-text-zoom.py is named after, and its census had
+   all four of those cells filed here. Two of them were: 320 x 20 and 320 x 24
+   are clean now. The other two, at 200 %, were act 4's line chart standing
+   behind the pie — a cell names its widest offender and this label was wider —
+   and they are entered under their own cause there.
+
+   A NARROWER CAP CANNOT FIX IT — "Stillstände" is the widest key this figure
+   ships and a cap that fits it inside 214 px breaks it mid-word — so the tier
+   itself is what does not fit, and the component already owns the answer: the
+   base tier above, the ruled list under the drawing, which was written for
+   browsers without trig and is just as much the right figure for a box without
+   room. So the ring tier asks for both, and where either is missing the same
+   legend is what ships. Below 21rem of container the labels flow under the
+   ring in ring order; above it they ride the arcs. Measured after, on
+   .cf-pie's own box: landing-page 214 / 198 / 182 px at 320 and 268 / 202 at
+   375 all take the list, 446 px at 1024 and 587 px at 1440 are unmoved, and
+   the census cells are gone.
+
+   THE SAME SHAPE AS .cf-annot's 28rem AND DELIBERATELY NOT THE SAME NUMBER.
+   That threshold turns callouts into a legend on the FIGURE's width too, and
+   the temptation is to reuse it rather than mint a rung. It is measured on a
+   different drawing: 28rem is 448 px, and this component rides the ring
+   correctly in the 446 px box the landing page gives it at 1024 — reusing it
+   would drop a working desktop figure to the legend to save a register row.
+   21rem is 336 px, eight of them clear of the 328 px the arithmetic above
+   asks for at a 16 px root, and it scales with the reader because a container
+   query's rem — unlike a media query's — resolves against the root's ACTUAL
+   font size. Verified in Chromium: a 400 px container answers a 20rem query
+   yes at a 16 px root and no at 24 px. */
 @supports (top: calc(1px * sin(45deg))) {
-  .cf-pie__set { margin: 0; }
+ @container cf-pie (min-width: 21rem) {
+  /* Both of the base tier's list declarations come off together: the margin
+     for the reason below, and the measure because the rows have no measure to
+     take — every label is out of flow and placed against its own arc. */
+  .cf-pie__set { margin: 0; inline-size: auto; }
   /* NO z-index HERE, AND THE ABSENCE IS THE MECHANISM. A share is a box that
      covers the whole drawing and carries three marks belonging to three
      different layers of it — a fill, a hairline and a label. Give the <li> a
@@ -12813,6 +12939,7 @@ a.cf-calendar__day > time,
                 calc(var(--pie-label-r) * -1 * cos(var(--pie-a) * 1turn)
                      - 50% - 50% * cos(var(--pie-a) * 1turn)));
   }
+ }
 }
 
 /* THE SECOND HIT TARGET, AND IT IS THE ONE THE BASE TIER HAS. Direct labelling
