@@ -1521,6 +1521,34 @@ hr {
     --bloom-image: radial-gradient(var(--bloom-shape) at var(--bloom-at) in oklab, var(--bloom-ramp));
   }
 }
+/* Forced colours drops every gradient background-image, and both classes ARE
+   their background-image — no border, no text, nothing else to paint — so an
+   element carrying only .material-rake or .material-bloom goes to Canvas on
+   Canvas: a swatch or a source with no edge, gone rather than merely flat.
+   Measured, Chromium, forced-colors: active, both schemes: three
+   .material-rake swatches on foundations/colors.html's gradient table and the
+   .material-bloom row beside them, and two of the four source figures on
+   foundations/light.html — Source · lit face and Source · rim, the two
+   built from these classes rather than from an SVG or a bordered element —
+   render as empty boxes; the page's own forced-colors rule for
+   .lit__contour's SVG stroke and .lit__source's always-on border left those
+   two looking handled while these two were not.
+
+   Redrawn as a border, same idiom as .material-glass-edge above: neither
+   class sets one at rest, so there is nothing to double, and a border on a
+   box already clipped to a circle by border-radius (.lit__disc,
+   .bloom-clip__disc) draws that circle's outline rather than a new rectangle
+   around it. It does NOT reach a box clipped by clip-path — border-radius
+   reshapes the border itself, clip-path only crops paint after the border is
+   already drawn around the untouched box, so a shape clip-path narrows below
+   that box loses the border with the area it cuts away. light.html's own
+   .lit__rhombus is exactly that case and carries its own forced-colors
+   override beside it, filled rather than outlined for the reason recorded
+   there. */
+@media (forced-colors: active) {
+  .material-rake,
+  .material-bloom { border: var(--stroke-1) solid CanvasText; }
+}
 /* The foil — the light layer carried far enough to split into the brand's
    own spectrum. A surface material, like .material-light: an isometric face,
    an edge, a plate. Not a background for text. */
