@@ -1443,6 +1443,50 @@ python3 scripts/check-iso-motion.py</pre>
       it.
     </div>
 
+    <h3 id="build-head">The build's head is set by the drawing, not by the card</h3>
+    <p>
+      The other number a re-timing has to decide is where the build <em>opens</em>. On the
+      landing track the plan goes first — the ghosts fade up at <code>+0.5&nbsp;%</code> of
+      the quarter and the solids arrive a point later, into geometry that is already
+      standing. That one point is <code>--build-head</code>, and giving all four cards the
+      same value was wrong for one of them.
+    </p>
+    <p>
+      <strong>Card 01's object is eleven forms with no plan at all</strong> — no ghosts, no
+      trace — so its quarter opened by waiting a point for something that never comes. That
+      is not an abstraction: sampled every 4 px at 1440 × 900 across every animated part on
+      the page — opacity, both scale axes, <code>fill-opacity</code> and
+      <code>stroke-dashoffset</code>, 235 parts — the summed change was <strong>exactly
+      zero</strong> from <code>contain 0.42&nbsp;%</code> to <code>1.50&nbsp;%</code>, and the
+      same window at 1280 × 800 and 1024 × 720.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>viewport</th><th>the still</th><th>length</th></tr></thead>
+      <tbody>
+        <tr><td>1440 × 900</td><td><code>contain 0.42 → 1.50 %</code></td><td>62 px</td></tr>
+        <tr><td>1280 × 800</td><td><code>contain 0.42 → 1.50 %</code></td><td>56 px</td></tr>
+        <tr><td>1024 × 720</td><td><code>contain 0.42 → 1.50 %</code></td><td>50 px</td></tr>
+      </tbody>
+    </table>
+    <p>
+      It is the only still between the flow's first stroke and the end of card 01's reveal,
+      and it sits at the worst place on the track: the stage has just taken the scroll, so
+      the page is not moving either, and what stands there is a finished empty rectangle with
+      the four counters lit over it — the picture that says a stage was assembled rather than
+      assembling.
+    </p>
+    <p>
+      So the head is a variable and <strong>the plan is what sets it</strong>: a card with no
+      ghosts takes the plan's own slot, because its forms <em>are</em> the first thing on the
+      stage. Written <code>:not(:has(.cf-iso__ghost))</code> rather than against the card's
+      index, so it reads the drawing — the day card 01 gains a plan the head goes back on its
+      own, with nothing here to remember. The window <strong>translates rather than
+      stretches</strong>, 6.5 points wide either way, so every card's parts still arrive at
+      the same rate; only the whole build sits one point earlier. The stagger, the trace and
+      node windows, the 62 % hold and the reveal's end at 15.5 are untouched.
+      <code>scripts/check-quarter-opening.py</code> holds it.
+    </p>
+
     <h3>The hold is the point</h3>
     <p>
       A stage divides into a <strong>reveal</strong> and a <strong>hold</strong>, and the

@@ -345,6 +345,8 @@ python3 scripts/check-stack-layers.py          # the front door's six planes, an
 python3 scripts/check-stack-layers.py -v       # print the stack: every plane, its place and its route to the light
 python3 scripts/check-faq-count.py             # the counter above an accordion counts its rows
 python3 scripts/check-faq-count.py -v          # every accordion, counted or skipped, and why
+python3 scripts/check-illustration-source.py   # the four process objects are still the designer's vectors
+python3 scripts/check-illustration-source.py -v  # every element, matched or deviated, and why
 python3 scripts/build-i18n.py --check          # the English edition matches its German source
 python3 scripts/build-i18n.py --extract        # every German string with no entry in the catalogue
 ```
@@ -2222,19 +2224,31 @@ All five bite when an object is rebuilt or re-exported from `assets/source/illus
 and none of them announces itself — the drawing still renders, it is simply no longer what
 the designer drew.
 
-**Three of the five are now checked**, by one script each, all run by CI on every push and
+**Four of the five are now checked**, by one script each, all run by CI on every push and
 pull request — the travel by `scripts/check-iso-motion.py`, the waypoint by
 `scripts/check-gradient-family.py`, which owns it because it recomputes the offset and the
-colour from the oklab path rather than looking for a hex, and the dash pattern by
-`scripts/check-line-types.py`. See [Check it](#check-it).
-The other two are not, and the line between them is worth stating rather than leaving
-as an accident of what was easy. A missing waypoint, a travel that disagrees with its
-viewBox and a dash period that is on no rung are **facts about the markup**, so a script
-can settle them. The other two are not: a `transform` on a `userSpaceOnUse` gradient is sometimes exactly right — card 04's
-largest orbit carries `rotate(-90)` on purpose — so the presence of one is a question, not
-a verdict; and whether a trace runs off the edge of its crop is a fact about rendered
-geometry, which needs a browser to answer. A checker that guessed at either would train
-people to ignore it.
+colour from the oklab path rather than looking for a hex, the dash pattern by
+`scripts/check-line-types.py`, and the dropped `transform` by
+`scripts/check-illustration-source.py`. See [Check it](#check-it).
+
+**The fourth was on the unchecked side of this list, and the argument for leaving it there
+was wrong in an instructive way.** It ran: a `transform` on a `userSpaceOnUse` gradient is
+sometimes exactly right — card 04's largest orbit carries `rotate(-90)` on purpose — so the
+presence of one is a question, not a verdict. That is true when the only thing you have is
+the markup. It stops being true the moment you compare the markup against
+`assets/source/illustrations/`, because **the source vector is what says whether the
+transform was there**, and the question this list is actually about is not "should this
+element have a rotation" but "did a rebuild drop the one the designer drew". That second
+question is decidable, and the general rule `components/process-card.html` states is what
+decides it: a transform may go missing only where dropping it is provably a no-op — a
+rotation about the element's own centre, on a circle, painted flat. Card 04's eight
+construction points pass all three. Its orbit fails the third, which is the defect that was
+shipped. Verified against a mutation of each rule rather than assumed.
+
+**The fifth is genuinely not checkable here**, and the line is worth stating rather than
+leaving as an accident of what was easy. Whether a trace runs off the edge of its crop is a
+fact about *rendered* geometry, which needs a browser to answer; a checker that guessed at
+it would train people to ignore it.
 
 - **The oklab waypoint.** `#DBFC60` exists in no source vector, so a re-export drops it and
   that lime→Glas leg reverts to the sRGB path. Every waypoint carries a comment at the stop.
@@ -2251,7 +2265,9 @@ people to ignore it.
   is resolved in the user space where it is referenced, so the element's own transform
   rotates its gradient too. On a circle the rotation looks like a no-op against the geometry
   and is not: card 04's largest orbit had lost `rotate(-90)` and was fading 90° off the
-  designer's axis. Measured and fixed. → `components/process-card.html`
+  designer's axis. Measured and fixed, and now held against the source vector rather than
+  against a reading of the markup.
+  → `scripts/check-illustration-source.py`, `components/process-card.html`
 - **`--trace-from` / `--trace-to` on a trace the crop cuts, and `--trace-lead` /
   `--trace-span` on one of several.** All four are inline custom properties on the path, so a
   re-export drops them and the line-drawing goes back to being timed against its full length —
