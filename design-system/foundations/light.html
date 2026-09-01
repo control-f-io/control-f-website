@@ -95,6 +95,21 @@
     .lit__contour [stroke]:not([stroke="none"]),
     .lit__contour .is-lit { stroke: CanvasText; }
     .lit__stage { background: Canvas; border-color: CanvasText; }
+    /* base.css redraws .material-rake and .material-bloom's lost gradient as
+       a border, and that works here for .lit__disc — border-radius reshapes
+       the border itself into the ellipse it already draws. .lit__rhombus is
+       clip-path, not border-radius: the clip is applied AFTER the border is
+       painted around the untouched rectangle, and the diamond it cuts only
+       touches that rectangle at its four edge midpoints — everywhere else
+       the border is clipped away with the corners it belonged to, so the
+       diamond that survives is four contact points, not four edges. Measured
+       at 9rem square: a border reads as background-image's replacement
+       everywhere else in this family because nothing else in the family
+       clips a rectangle to a shape narrower than itself. A solid fill has no
+       such edge to lose — clip-path crops paint, not geometry — so this one
+       shape is filled rather than outlined, the one case where CanvasText as
+       a plate is the only way to keep it a diamond at all. */
+    .lit__rhombus { background: CanvasText; border: 0; }
   }
 </style>
 </head>
