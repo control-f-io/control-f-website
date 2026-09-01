@@ -5747,6 +5747,26 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
     display: grid;
     grid-row: span 4;
     grid-template-rows: subgrid;
+    /* The floor the outer grid already has and this one quietly lost. .tiles
+       floors ITS track at min-width: 0, which keeps the card itself from
+       growing — but turning the card into a grid of its own, for the subgrid
+       row alignment above, gives its four lines an unstated single column,
+       and an implicit column is auto: content-sized, with no floor of its
+       own. A grid item's min-width defaults to auto too, which for text
+       means its min-content — the widest word it cannot break, since
+       overflow-wrap: break-word narrows a LINE but not the size grid
+       intrinsic sizing measures. Every card carries a word that long
+       somewhere; it only surfaces where nothing else in the card is wider.
+       Measured: at a 320 px viewport and a 24 px root default, Marie
+       Ernø-Møller's card — "Gravitationswellenforschung", 27 characters, no
+       hyphen to break at — pushed .cf-person__focus to 359 px right inside a
+       320 px page, 39 px of horizontal scroll, while the card's own box
+       (floored by .tiles) stayed at its correct 290 px. Same floor as
+       .ex-step and the frame at line 8933 above: minmax(0, 1fr) makes the
+       one column exactly as flexible as the auto it replaces and no longer
+       lets a single word set the page's width. Re-swept after: zero overflow
+       at 320/360/390/414 x 16/20/24, both engines. */
+    grid-template-columns: minmax(0, 1fr);
     row-gap: 0;
   }
 }
