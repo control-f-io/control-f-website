@@ -213,11 +213,26 @@ def range_head(value):
     return parts[0]
 
 
+# THE LEAD TERM IS READ AND THEN DEFERRED TO ZERO, AND THAT IS A CLAIM, NOT A
+# SHORTCUT. `.cf-pin .cf-iso__trace` maps a stroke's authored --trace-lead onto
+# the quarter by a change of basis — `+ var(--trace-lead) * 8 / 27`, see the
+# note over that rule in components.css — so its head is a constant plus a
+# per-STROKE delay rather than a constant plus a per-PART stage. This script
+# asks one question, "what is the first thing this step puts on the stage", and
+# a term that can only ever push a stroke LATER cannot change the answer: the
+# earliest trace on any step is the one with no lead, and its head is the
+# constant. That holds only while the lead is non-negative, so it is not
+# assumed here — scripts/check-iso-motion.py fails a negative --trace-lead or
+# a non-positive --trace-span, and this comment is the reason that gate exists.
+# The term is matched rather than skipped so that a DIFFERENT trailing shape,
+# one that could move the head, still reaches the ValueError below.
 HEAD_RE = re.compile(
     r"^contain\s+calc\(\s*var\(--i\)\s*\*\s*25%"          # the quarter
     r"\s*\+\s*(?P<head>[\d.]+%|var\(\s*--[\w-]+\s*\)\s*\*\s*1%)"   # the head: literal or var
     r"(?:\s*\+\s*var\(\s*(?P<sv>--[\w-]+)\s*(?:,\s*0\s*)?\)"
     r"\s*\*\s*(?P<b>[\d.]+)%)?"                           # optional stage term
+    r"(?:\s*\+\s*var\(\s*--[\w-]+\s*\)"
+    r"\s*\*\s*[\d.]+\s*/\s*[\d.]+)?"                      # optional lead term
     r"\s*\)\s*$"
 )
 LITERAL_RE = re.compile(r"^([\d.]+)%$")

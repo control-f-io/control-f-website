@@ -1714,6 +1714,25 @@ These were judgement calls, each documented on the relevant page:
   the palette is exactly the seven the manual names, and a dark surface that needs a second
   value takes it from the neutral ramp like every other surface does.
   → `foundations/colors.html`
+- **The pinned track re-times the build and used to drop the trace's lead with it.** A
+  signal drawn as several strokes carries `--trace-lead` and `--trace-span` so that it
+  arrives along its own direction of travel — the base assembly's own note measures what
+  happens without them, card 03's arrow "growing outward from five different points, which
+  reads as a sketch scribbling itself rather than as a signal arriving". `.cf-pin
+  .cf-iso__trace` named **one** window for every stroke on the track, so both properties
+  resolved to nothing on the one page that ships them. Measured on the landing page at
+  1440 × 900 inside card 03's quarter: five strokes, five different authored leads, and all
+  five at progress `0.061` and `stroke-dashoffset 0.79497` — the same number five times. The
+  window is now mapped rather than replaced: the base window is the 27 points of `cover` the
+  default `--trace-span` names and the quarter's is the 8 points between `+5 %` and `+13 %`,
+  so a stroke takes the same fraction of the second that it took of the first. **Both ends of
+  the default are preserved exactly** — a trace with no authored lead draws where it always
+  did, card 02's two are byte-identical, and card 03's five become 5→11.22, 5.89→12.11 and
+  6.78→13.00, the last still landing on 13 where the construction points open. The 27 is
+  load-bearing on two timelines now for one number authored once, so `check-iso-motion.py`
+  holds it — along with the `--stage` ceiling and the rule that a light is a filled element,
+  both of which were stated in prose and read by nothing.
+  → `foundations/motion.html#hold`, `foundations/motion.html#trace`
 - **Card 04's orbits turn, and they turn by moving their dashes rather than by rotating.**
   They are the only geometry in the system drawn as motion, and they were the only thing on
   the page asserting circulation while holding perfectly still. A rotation would have been the
