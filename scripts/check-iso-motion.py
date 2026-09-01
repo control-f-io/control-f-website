@@ -65,6 +65,7 @@ stdlib only, no build step, no dependency. Same python3 that serves the pages.
     python3 scripts/check-iso-motion.py
 """
 
+import html
 import pathlib
 import re
 import sys
@@ -179,6 +180,58 @@ def travel_overrides():
             r"\.([\w-]+)\s+\.cf-iso\s*\{[^}]*--iso-travel:\s*([\d.]+)", text
         )
     }
+
+
+# A selector-keyed travel as a documentation page writes one, after the
+# highlighting spans are stripped:
+#
+#     .cf-statement .cf-iso { --iso-travel: 30; }   /* 1200 / 40 */
+#
+# The trailing derivation is optional in the pattern and required by nothing —
+# a sample that omits it is checked against the stylesheet alone. Where it is
+# written it is the stronger claim, because it names the frame the number came
+# out of, which is the thing a recrop moves.
+DOC_TRAVEL = re.compile(
+    r"\.([\w-]+)\s+\.cf-iso\s*\{[^}]*?--iso-travel:\s*([\d.]+)[^}]*\}"
+    r"(?:\s*/\*\s*([\d.]+)\s*/\s*([\d.]+)\s*\*/)?"
+)
+TAGS = re.compile(r"<[^>]+>")
+
+
+def documented_travels():
+    """Every selector-keyed --iso-travel sample written into a docs-code block,
+    as (page, line, class, value, frame, divisor).
+
+    THE SAMPLE IS THE PART NOTHING WAS READING. travel_overrides() above holds
+    the stylesheet to the drawings, and did so while the page that teaches the
+    rule printed a different number over a frame the tree has never had —
+    `.cf-statement .cf-iso { --iso-travel: 12 }` on "the statement figure is 480
+    units", against a shipped 30 on a 1200-unit drawing. Both halves were wrong
+    and they were consistent with each other, so the sample read as a quotation
+    of a rule it contradicted, and the inversion mattered: a BIGGER frame on the
+    same token travels a SMALLER fraction, so the example taught the correction
+    backwards.
+
+    The spans are stripped rather than parsed. docs-code is highlighted by
+    wrapping literals in <span class="val">, which puts markup between the
+    property and its value, and the entities that survive that (&lt;, &gt;,
+    &amp;) are unescaped before matching so a sample reads as the CSS it
+    depicts."""
+    out = []
+    for page in PAGES:
+        text = page.read_text()
+        for block in re.finditer(r'<pre class="docs-code">(.*?)</pre>', text, re.S):
+            plain = html.unescape(TAGS.sub("", block.group(1)))
+            for m in DOC_TRAVEL.finditer(plain):
+                out.append((
+                    page.relative_to(ROOT),
+                    text.count("\n", 0, block.start()) + 1,
+                    m.group(1),
+                    float(m.group(2)),
+                    float(m.group(3)) if m.group(3) else None,
+                    float(m.group(4)) if m.group(4) else None,
+                ))
+    return out
 
 
 def token(name, text):
@@ -562,6 +615,10 @@ def main():
 
     # --- 1. the travel matches the frame -----------------------------------
     assembling = 0
+    # The frames each override actually governs, recorded by the same
+    # resolution the loop below already does rather than by a second reading of
+    # the cascade. Rule 8 needs it to check a sample's `/* W / 40 */`.
+    governs = {}
     for page in PAGES:
         parser = IsoFinder()
         parser.feed(page.read_text())
@@ -585,6 +642,7 @@ def main():
                 ]
                 if matched:
                     actual, source = matched[0][1], ".%s .cf-iso" % matched[0][0]
+                    governs.setdefault(matched[0][0], set()).add(fig["width"])
                 else:
                     actual, source = TRAVEL_DEFAULT, "the :root default"
             want = fig["width"] / TRAVEL_DIVISOR
@@ -811,6 +869,54 @@ def main():
             % (name, line, media)
         )
 
+    # --- 8. a documented travel is the shipped travel ----------------------
+    # Rule 1 holds the stylesheet to the drawings. This holds the pages that
+    # TEACH that rule to the stylesheet, which is the one direction a checker
+    # reading only CSS can never see: the sample is prose, it renders whatever
+    # it says, and a number in it that has gone stale reads exactly like a
+    # number that has not.
+    documented = 0
+    for rel, line, cls, value, frame, divisor in documented_travels():
+        shipped = overrides.get(cls)
+        if shipped is None:
+            findings.append(
+                "%s:%d prints `.%s .cf-iso { --iso-travel: %g }` as a sample, and\n"
+                "    components.css declares no such rule. A sample is a quotation, not a\n"
+                "    second declaration — key it on the component the stylesheet keys, or\n"
+                "    the page teaches a selector no drawing matches.\n"
+                "    -> design-system/foundations/motion.html#travel"
+                % (rel, line, cls, value)
+            )
+            continue
+        documented += 1
+        if abs(shipped - value) > TRAVEL_TOLERANCE:
+            findings.append(
+                "%s:%d prints --iso-travel: %g for .%s where components.css ships %g.\n"
+                "    The page that teaches the 2.5 %% rule is quoting a value the system does\n"
+                "    not hold, and nothing renders wrong either way — the sample is text.\n"
+                "    -> design-system/foundations/motion.html#travel"
+                % (rel, line, value, cls, shipped)
+            )
+        if frame is None:
+            continue
+        seen = governs.get(cls, set())
+        if divisor != TRAVEL_DIVISOR:
+            findings.append(
+                "%s:%d derives .%s's travel as %g / %g. The divisor is %d — 2.5 %% of the\n"
+                "    drawing — and it is the ratio the system holds constant, not the number.\n"
+                "    -> design-system/foundations/motion.html#travel"
+                % (rel, line, cls, frame, divisor, TRAVEL_DIVISOR)
+            )
+        elif seen and any(abs(w - frame) > TRAVEL_TOLERANCE for w in seen):
+            findings.append(
+                "%s:%d derives .%s's travel from a %g-unit frame; the drawings that rule\n"
+                "    governs are %s units wide. A recrop moves the frame and leaves the\n"
+                "    arithmetic beside it reading correctly about a drawing that is gone.\n"
+                "    -> design-system/foundations/motion.html#travel"
+                % (rel, line, cls, frame,
+                   " and ".join("%g" % w for w in sorted(seen)))
+            )
+
     if findings:
         print("isometric assembly: %d finding(s)\n" % len(findings))
         for f in findings:
@@ -823,8 +929,10 @@ def main():
         "%d normalised strokes clear of non-scaling-stroke, every animation-timeline scoped\n"
         "to screen.\n"
         "                    timing: %d traces inside the %g-point window, %d stages at or\n"
-        "under %d, %d lights filled."
-        % (assembling, normalised, led, win["trace_span"], staged, max_stage, lit)
+        "under %d, %d lights filled.\n"
+        "                    %d documented travels quoting the stylesheet they teach."
+        % (assembling, normalised, led, win["trace_span"], staged, max_stage, lit,
+           documented)
     )
     return 0
 

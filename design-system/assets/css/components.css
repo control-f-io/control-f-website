@@ -3133,9 +3133,17 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    The value lived in patterns/landing-page.html's own <style> block, keyed on
    .lp-statement-figure — a hook that exists on exactly one page. The identical
    drawing in components/statement.html therefore sat on the 640-unit default
-   and arrived from 3.33 % of its own width, a third further than the one that
-   ships, on the page whose whole job is to be the specimen. Keyed on the
-   component, both are right and neither can be forgotten again.
+   and arrived from 1.33 % of its own width, a bit over half the distance of the
+   one that ships, on the page whose whole job is to be the specimen. Keyed on
+   the component, both are right and neither can be forgotten again.
+
+   THE FRACTION IN THAT SENTENCE USED TO READ 3.33 %, "a third further", which
+   is 16/480 and belongs to a frame this drawing has never had. A bigger frame
+   on the same token travels a SMALLER fraction, so the correction inverts: the
+   default was too little here, not too much. foundations/motion.html carried
+   the same inversion in the worked example that quotes this rule, and the
+   sample is now read by check-iso-motion.py against this declaration rather
+   than left to agree with it by hand.
    → foundations/motion.html#travel */
 .cf-statement .cf-iso { --iso-travel: 30; }
 /* THE LATTICE IS GROUND, AND IT WAS SHIPPING AS FIGURE. The statement's lattice
@@ -3552,11 +3560,22 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 }
 /* No fill of its own, and it never had one that could be seen: this declared
    --surface-raised while the card behind it declared --surface-card, and both
-   tokens resolved to grey-050. One plate painted twice, half of it dead. With
-   the card's plate gone the honest reading of that pair is that the copy
+   tokens resolved to grey-050. One plate painted twice, half of it dead.
+
+   AND THE SENTENCE THAT FOLLOWED WAS TOO BROAD, in the same way the one
+   foundations/materials.html corrected about the figure half was. It read:
+   "with the card's plate gone the honest reading of that pair is that the copy
    column was never a second surface — the hairline between it and the figure
-   is what separates them, and that is an edge in the sense
-   foundations/geometry.html means it. */
+   is what separates them". The hairline part is true and unchanged: it is an
+   edge in the sense foundations/geometry.html means it, and it is still what
+   divides the halves. The other half of the claim was refuted by measuring the
+   mockup — the copy column IS a second surface there, a light plate at +22 to
+   +29 over the page, and only the FIGURE half reads as the page. Two grey-050
+   plates cancelling each other was a reason to retire --surface-card, not
+   evidence about which half the designer lit.
+
+   It takes --surface-lifted in the two-column form. See the rule at the foot
+   of this component, and tokens.css for the derivation. */
 .cf-process__panel {
   display: flex;
   flex-direction: column;
@@ -3641,7 +3660,36 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
     border-bottom: 0;
     border-right: var(--stroke-1) solid var(--border-strong);
   }
-  .cf-process__panel { padding: var(--space-12); }
+  /* THE PLATE THE DESIGNER DREW, AND IT IS SCOPED TO THIS BLOCK ON PURPOSE.
+     mockups/landing-page.jpg draws this half as a light plate over the page —
+     flat 248 against a margin climbing 219 to 226 beside it, +22 to +29 and
+     never negative — and the implementation drew nothing, a gap
+     foundations/materials.html has carried as an open question with the form
+     of its answer already named: a veil of white, not a grey. --surface-lifted
+     is that veil, and its derivation, its measurements and the reason the
+     objection above it no longer binds are all in tokens.css beside the token.
+
+     IT BELONGS TO THE TWO-COLUMN FORM AND NOT TO THE COMPONENT. A plate is a
+     plate against something: here, the figure half beside it, which the mockup
+     measures as the page itself. Below this breakpoint the two halves stack,
+     the copy is simply the lower part of one column, and there is no second
+     surface for it to differ from — so it goes back to contour, which is what
+     the comment over .cf-process__panel says the card is made of and stays
+     true wherever this rule does not reach.
+
+     NOT ON THE FIGURE, for the same reason. The mockup's left half and the
+     page margin read within 0.2 of each other at every row of the plate; the
+     drawing stands on the page and lighting the ground under a contour figure
+     would be inventing a material the source does not have.
+
+     THE HAIRLINE STILL DOES THE DIVIDING. .cf-process__figure's border-right
+     three rules up is the card's divider and it is unchanged — the veil is a
+     surface arriving behind an edge that was already there, not a replacement
+     for it. Contour before fill, in that order. */
+  .cf-process__panel {
+    padding: var(--space-12);
+    background: var(--surface-lifted);
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -10371,7 +10419,16 @@ a.cf-calendar__day > time,
 }
 .cf-plot__col--lit .cf-plot__val { font-weight: var(--weight-medium); }
 
-/* The key sits under the cell's near vertex, which is the bottom of the box. */
+/* The key sits under the cell's near vertex, which is the bottom of the box.
+   It is the same bounded-key shape .cf-block__key is, and needs the same two
+   opt-outs for the same reason — see the long comment above that rule. This
+   one shipped without them: at 375 px the column is 32 px (--plot-u*2, the
+   fluid unit floored), and base.css's break-word net cut "Abtastung" to
+   ABTA/STUN/G, a three-line key with an orphaned final letter overlapping the
+   caption below it on blog-artikel.html. The second demo on this page had
+   already been given &shy; in "Verfüg&shy;barkeit" and "Lebens&shy;dauer" in
+   anticipation of this fix; without the opt-out those soft hyphens were
+   inert and the words still broke wherever the net chose. */
 .cf-plot__key {
   position: absolute;
   left: 0;
@@ -10386,6 +10443,8 @@ a.cf-calendar__day > time,
   line-height: var(--leading-normal);
   text-align: center;
   color: var(--text-secondary);
+  overflow-wrap: normal;
+  hyphens: manual;
 }
 
 /* The caption carries the message in words, so it is the figure's accessible
