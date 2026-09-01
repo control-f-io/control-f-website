@@ -3711,10 +3711,52 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    because its only shipping use is a pinned stage they scroll through. The
    comment on cf-nav-rim asks a later run to put sheet response on the rim
    layer and not on the sheet; this is that run, and this is that layer. */
+/* THE INSETS CANCEL THE SHEET'S BORDER-WIDTH, and for as long as they did not
+   this card drew TWO lines where the material has one.
+
+   `inset` on an absolutely positioned box resolves against its containing
+   block's PADDING box, and .cf-info-card--glass reserves a border — the lit
+   rim it takes from --glass-border. So `inset: 0 0 auto 0` put this strip one
+   pixel INSIDE the perimeter it is the perimeter of, and two pixels short of
+   it in width. Measured on components/info-card.html at 1440 x 900, device
+   scale 1, card border box 608 px wide:
+
+     row 0   253-254 flat        the border, drawn by the card
+     row 1   251 .. (240,248,246) --glass-edge, drawn by this strip, x 1..607
+     row 2+  251                 the bearing tint
+
+   Two parallel lines a pixel apart, the outer one achromatic and the inner one
+   carrying the material's whole Weiss-Glas-Sky travel — on the one surface in
+   the system whose own comment three lines up says the rim "is the same one
+   pixel of Weiss-Glas-Sky that .cf-nav::after and .cf-btn--glass end at".
+   Nothing rendered wrong. There was simply a second line, and glass in this
+   brand is edged once.
+
+   .cf-btn--glass::before HAS ALWAYS DONE THIS RIGHT and says so in as many
+   words — "painted on the BORDER box (background-origin is border-box, 1 px
+   reserved)" — cancelling the width on `top` and `left` and carrying the same
+   cancellation into its own 62 % window (`62% + 0.62 * 2 * var(--stroke-1)`).
+   .cf-nav::after needs no cancellation because the band has no border to
+   cancel. This was the third rim and the only one written against the padding
+   box; the idiom existed, in this file, and it was not reached for.
+
+   IT IS THE SAME DEFECT check-contour-box.py WAS WRITTEN FOR, one construction
+   over. That script's rule — an absolutely positioned drawing that takes over
+   a bordered parent's edge must cancel that border-width on its insets — was
+   scoped to <svg> edge frames, because that is the form it was found in. A
+   1 px pseudo-element is the same sentence in CSS. scripts/check-glass-rim-box.py
+   now reads the other form.
+
+   THE ENDS DO NOT GAP. --glass-edge is transparent at 0 % and 100 % and never
+   exceeds alpha 0.42, so the strip composites ONTO the border it now stands on
+   rather than replacing it: where the gradient has nothing, the card's own
+   --glass-border shows through unchanged, and the two top corners still close
+   against the side borders. That is what the button's rim does over the same
+   border, and it is why this is a one-line move rather than a redraw. */
 .cf-info-card--glass::before {
   content: "";
   position: absolute;
-  inset: 0 0 auto 0;
+  inset: calc(-1 * var(--stroke-1)) calc(-1 * var(--stroke-1)) auto;
   height: var(--stroke-1);
   background-image: var(--glass-rim-light), var(--glass-edge);
   background-repeat: no-repeat, no-repeat;
