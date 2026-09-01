@@ -130,16 +130,19 @@
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Duration</th><th>Used for</th><th>In the CSS today</th></tr></thead>
       <tbody>
-        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change, damping a measured value</td><td>15 rules</td></tr>
-        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>the control itself responding — arrow, button, menu</td><td>11 rules</td></tr>
-        <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>a reveal, or light crossing a surface</td><td>8 rules</td></tr>
-        <tr><td><code>--duration-scene</code></td><td>1200 ms</td><td>a full object build, if one is ever driven by time</td><td><strong>none yet</strong></td></tr>
+        <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change, damping a measured value</td><td>19 rules</td></tr>
+        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>the control itself responding — arrow, button, menu</td><td>18 rules</td></tr>
+        <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>a reveal, or light crossing a surface</td><td>12 rules</td></tr>
+        <tr><td><code>--duration-scene</code></td><td>1200 ms</td><td>a scene-length pass — the scroll cue's comet; a full object build, if one is ever driven by time</td><td>1 rule</td></tr>
       </tbody>
     </table>
     <p>
       The last column is the honest one, and it is counted by rule rather than by
-      <code>var()</code> occurrence — a rule naming a token twice is one consumer, not two.
-      Only <code>--duration-scene</code> has none.
+      <code>var()</code> occurrence — a rule naming a token twice is one consumer, not two —
+      across the four stylesheets that ship: <code>tokens</code>, <code>base</code>,
+      <code>components</code>, and the <code>acts</code> sheet the landing page loads. Every
+      one of the four has a consumer; <code>--duration-scene</code>'s first and only one is the
+      scroll cue, below.
     </p>
     <div class="docs-note">
       <strong>That column has now gone stale three times, and it is still the only part of this
@@ -154,16 +157,18 @@
       <code>--duration-fast</code> consumers were its own damping, and the third had merged
       from another branch while it was being written. That is the failure mode the
       command exists for and cannot itself prevent — a number is only current as of the commit
-      that wrote it. <strong>Run it, do not read it.</strong>
+      that wrote it. <strong>The fifth time, the command itself was the stale part.</strong>
+      It read three stylesheets while the landing page loads a fourth, so on 2026-09-01 the
+      column published 15 / 11 / 8 / none against 19 / 18 / 12 / 1 — and the paragraph under
+      it went on to say the fourth token had no consumer at all. The column is generated now:
+      <code>scripts/check-motion-census.py</code> counts the rules, fails CI when a cell
+      disagrees with the stylesheets, and rewrites the cells with <code>--fix</code>.
+      <strong>Run it, do not read it — and do not edit it.</strong>
     </div>
-    <pre class="docs-code"><span class="com"># from design-system/ — counts RULES, not var() occurrences</span>
-python3 -c "
-import re
-css = ''.join(open('assets/css/'+f).read() for f in ['tokens.css','base.css','components.css'])
-blocks = re.findall(r'\{([^{}]*)\}', re.sub(r'/\*.*?\*/', '', css, flags=re.S))
-for t in ['fast','base','slow','scene']:
-    print('--duration-'+t, sum(1 for b in blocks if 'var(--duration-'+t+')' in b))
-"</pre>
+    <pre class="docs-code"><span class="com"># from the repo root — counts RULES, not var() occurrences</span>
+python3 scripts/check-motion-census.py        <span class="com"># fail if a cell on this page is stale</span>
+python3 scripts/check-motion-census.py -v     <span class="com"># every consumer, by selector</span>
+python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the count cells on this page</span></pre>
     <p>
       Comments are stripped first, because this page and the stylesheets both discuss these
       tokens in prose and a naive grep counts the discussion. Blocks are matched rather than
@@ -171,55 +176,80 @@ for t in ['fast','base','slow','scene']:
       <code>.cf-btn--glass</code> names <code>--duration-base</code> in two of its three
       transition legs and is one rule. The declaration in <code>tokens.css</code> that
       <em>defines</em> each token is not a <code>var()</code> and never enters the count.
+      The same script holds the two value columns to <code>tokens.css</code>, and holds the
+      stylesheets to the curves: no <code>ease</code>, <code>ease-in</code>,
+      <code>ease-out</code>, <code>ease-in-out</code> or bare <code>cubic-bezier()</code> in
+      a transition or animation value, except as the fallback inside a <code>var()</code>.
+      <code>linear</code> is not a curve and is left alone — it is what light takes.
     </p>
     <p>
       <strong>480 ms carries two different kinds of motion, and the distinction is worth
-      keeping.</strong> Six of its eight consumers are light crossing a surface — the specular
-      on each of the two lit buttons, the accordion row and blog cell each sliding
-      <code>--sheen-panel</code> by <code>background-position</code>, and the two clip
+      keeping.</strong> Most of its consumers are light crossing a surface — the specular
+      on each of the two lit buttons, the accordion row, the blog cell and the event row each
+      sliding <code>--sheen-panel</code> by <code>background-position</code>, the pie's light
+      moving home to the share the pointer is on, and the two clip
       animations of the <a href="transitions.html">page transition</a>, which are the same
       gesture at the scale of a whole page: one raked edge, one foil-lit contour, crossing the
-      viewport. The other two are a panel
+      viewport. Two are a panel
       opening: <code>.cf-accordion__item::details-content</code>, and the mobile navigation
       menu, whose clip edge travels down the panel to draw it out from under the bar. That
       looks like a counterexample to "the control responds fast" and is not one: a reveal is
       not the control answering a click, it is content arriving, and 480 ms is this token's
       stated purpose. What belongs at <code>--duration-base</code> is the control's own
       acknowledgement — the arrow stepping, the border changing. The glass button does both at
-      once, which is why it names two durations in one rule.
+      once, which is why it names two durations in one rule. One is a reveal on the landing
+      page's act rail, whose three marks come up as the rail opens. And one is not a duration
+      at all: the scroll cue names this token as the <em>delay</em> before its comet's first
+      pass, which the census counts because it is a rule reaching for the token and which never
+      animates anything at 480 ms.
     </p>
     <p>
       <strong>The two panel reveals deliberately share a curve as well as a duration.</strong>
       <code>--ease-in-out</code>'s entry in the table below — states that toggle back and forth
-      — describes the menu almost exactly, and it is still the one curve with no consumer. It
-      was left that way on purpose: the accordion got to <code>--ease-standard</code> first,
-      and two panels opening in one system should not move on two different curves for a
-      distinction only their stylesheets can see.
+      — describes the menu almost exactly, and the menu still does not take it. That was left
+      on purpose: the accordion got to <code>--ease-standard</code> first, and two panels
+      opening in one system should not move on two different curves for a distinction only
+      their stylesheets can see. What does take it is what toggles and keeps toggling: the
+      indeterminate progress rail's sweep, and on the landing page the sensor field's pulse and
+      the leaf shimmer. <strong>Those last two ran on the keyword <code>ease-in-out</code> for
+      as long as they existed</strong> — <code>cubic-bezier(.42, 0, .58, 1)</code>, the
+      browser's curve, where the token is <code>cubic-bezier(.4, 0, .2, 1)</code> — four rules
+      on a designed page that reached past the one token written for exactly that motion,
+      while this paragraph recorded the token as having no consumer. They take the token now,
+      and the census refuses a raw curve anywhere in the shipping stylesheets, so the three
+      curves stay three.
     </p>
     <p>
-      <code>--duration-scene</code> genuinely has no consumer, and it is worth knowing why
-      rather than assuming: <strong>the isometric assembly is driven by scroll range, not by a
-      duration.</strong> Its <code>animation-duration</code> is <code>auto</code>, and how long
+      <code>--duration-scene</code> has one consumer, and it is not an object build: the
+      <a href="../components/scroll-cue.html">scroll cue</a>'s comet crosses its stem in
+      1200 ms, <code>linear</code>, three passes, and is then over. The isometric assembly
+      still does not take it, and it is worth knowing why rather than assuming: <strong>the
+      assembly is driven by scroll range, not by a duration.</strong> Its
+      <code>animation-duration</code> is <code>auto</code>, and how long
       it takes depends entirely on how fast you scroll. So <code>--duration-scene</code>
       describes the intent of that motion without being the mechanism behind it. It is kept
-      because the two-speed rule is a design decision, not an implementation detail — but it
-      should not be cited as evidence that something on the site takes 1200 ms.
+      because the two-speed rule is a design decision, not an implementation detail — and the
+      cue is the one thing on the site that actually takes 1200 ms.
     </p>
   </section>
 
   <section class="docs-section" id="curves">
     <h2>Curves</h2>
     <table class="docs-table">
-      <thead><tr><th>Token</th><th>Value</th><th>Used for</th></tr></thead>
+      <thead><tr><th>Token</th><th>Value</th><th>Used for</th><th>In the CSS today</th></tr></thead>
       <tbody>
-        <tr><td><code>--ease-standard</code></td><td>cubic-bezier(.2, 0, 0, 1)</td><td>the default — quick start, soft arrival</td></tr>
-        <tr><td><code>--ease-out</code></td><td>cubic-bezier(0, 0, .2, 1)</td><td>objects that fly in and stay — the whole isometric assembly</td></tr>
-        <tr><td><code>--ease-in-out</code></td><td>cubic-bezier(.4, 0, .2, 1)</td><td>states that toggle back and forth — <strong>no consumer yet</strong></td></tr>
+        <tr><td><code>--ease-standard</code></td><td>cubic-bezier(.2, 0, 0, 1)</td><td>the default — quick start, soft arrival</td><td>38 rules</td></tr>
+        <tr><td><code>--ease-out</code></td><td>cubic-bezier(0, 0, .2, 1)</td><td>objects that fly in and stay — the whole isometric assembly</td><td>21 rules</td></tr>
+        <tr><td><code>--ease-in-out</code></td><td>cubic-bezier(.4, 0, .2, 1)</td><td>states that toggle back and forth — a pulse, a shimmer, a sweep that repeats</td><td>5 rules</td></tr>
       </tbody>
     </table>
     <p>
       All three start or end at 0 or 1 and never overshoot, which is what keeps the brand
-      from springing. There is no elastic curve in the system and there should not be one.
+      from springing. There is no elastic curve in the system and there should not be one —
+      and there is no fourth curve either: the last column is generated by the same census as
+      the durations', and the census fails on a transition or animation value that names a
+      curve the tokens do not. <code>linear</code> is the one word it lets through, because
+      light crossing a surface travels at the speed it travels at.
     </p>
   </section>
 
@@ -1411,7 +1441,10 @@ python3 scripts/check-iso-motion.py</pre>
     <p>
       This means the hero needs both elements in the markup — a <code>&lt;video&gt;</code>
       with its <code>poster</code>, and an <code>&lt;img&gt;</code> of the same frame.
-      <code>poster</code> alone is not enough: it disappears with the video.
+      <code>poster</code> alone is not enough: it disappears with the video. And hiding is
+      only half of it: a hidden video still downloads, so the file sits on a
+      <code>&lt;source media="(prefers-reduced-motion: no-preference)"&gt;</code> and is never
+      requested by a reader who has asked for the still. → <a href="#hero">Hero artwork</a>
     </p>
 
     <h3>Three ways to get the finished object</h3>
@@ -1750,7 +1783,14 @@ python3 scripts/check-iso-motion.py</pre>
         → <code>scripts/check-hero-poster.py</code></li>
       <li>An <code>&lt;img&gt;</code> of the same frame in the markup, because <code>poster</code>
         disappears with the video.</li>
-      <li>Under reduced motion, only the still is shown.</li>
+      <li>The file on a <code>&lt;source&gt;</code> whose <code>media</code> is
+        <code>(prefers-reduced-motion: no-preference)</code>, never on the video's own
+        <code>src</code>. <code>display: none</code> hides a loop and does not stop it loading —
+        measured, the reduced-motion reader was sent the whole file for a frame they never see.
+        A <code>&lt;source&gt;</code> whose <code>media</code> does not match is skipped by
+        resource selection, so <code>currentSrc</code> stays empty and the 3.3 MB is never
+        requested. → <code>scripts/check-hero-video.py</code></li>
+      <li>Under reduced motion, only the still is shown — and only the still is fetched.</li>
       <li><strong>A switch on the page that stops it</strong> — see below.</li>
       <li>The headline sits <em>on top</em> of the video and needs at least 4.5:1 there — if in doubt, darken the lower half.</li>
     </ul>
@@ -1826,7 +1866,7 @@ python3 scripts/check-iso-motion.py</pre>
       <tbody>
         <tr><td>default</td><td>runs</td><td>hidden</td><td>shown, bars</td></tr>
         <tr><td>switch checked</td><td>hidden</td><td>shown</td><td>shown, triangle</td></tr>
-        <tr><td>reduced motion</td><td>hidden</td><td>shown</td><td><strong>removed</strong></td></tr>
+        <tr><td>reduced motion</td><td>hidden, and never fetched</td><td>shown</td><td><strong>removed</strong></td></tr>
         <tr><td>no CSS / no JS</td><td>runs</td><td>hidden</td><td>shown and working</td></tr>
       </tbody>
     </table>
