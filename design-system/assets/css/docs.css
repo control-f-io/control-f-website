@@ -559,6 +559,186 @@ body.docs {
    not a variant, and a page must never use it. */
 .cf-consent--static { position: static; }
 
+/* --------------------------------------------------------------------------
+   THE STACK — the six material layers as one object, on the front door.
+
+   WHY IT IS HERE AND NOT ON foundations/materials.html. That chapter already
+   draws the six layers, twice: once as six samples in a row and once
+   composited into a facsimile of the hero. Both are pictures of what the
+   layers LOOK like. Neither is a picture of the model — that the six stand in
+   a fixed order, back to front, and that every chapter in this system is a
+   chapter about one of them. The front door was the place that model was
+   missing: index.html opened on a paragraph and a grid of cards, which is a
+   sheet of paper describing a space. This is the same index, drawn as the
+   thing it describes.
+
+   THE DRAWING IS DERIVED, not invented. Six rhombi, 2:1, so every edge is
+   26.57°; half-width 200 and half-height 100 in a 640-unit frame; 84 units
+   between planes, which leaves them overlapping by 116 and reads as a stack
+   rather than as six separate objects. The two struts are the stack's own
+   left and right vertices carried down, in --dash-1-4 — the absent rung of
+   the presence ladder, because a strut is not an edge of anything, it is
+   where an edge would be. → foundations/geometry.html, components/arrival.html
+
+   ONE LIME MOMENT, AND IT HAS A DEFAULT. Exactly one plane carries the light
+   family at a time. With no pointer and no focus anywhere in the block, the
+   plane that is lit is layer 5 — the light layer itself, lighting itself,
+   which is the only default that does not have to be argued for. Hovering or
+   focusing a row moves the light to that row's plane, and moves it: the ramp
+   travels across the plane rather than switching on, which is the
+   distinction components.css opens with.
+
+   THE OTHER FIVE RECEDE RATHER THAN VANISH. stroke-opacity 0.55, and the
+   number is a contrast floor rather than a taste. Read off the rendered page,
+   the ground under this figure is #F8F8F8; black at 0.55 composites to
+   #707070 there and measures 4.66:1. On CF-Grau — what the same drawing would
+   stand on inside a pattern page — it composites to #5D5D5D and measures
+   4.23:1. Both clear the 3:1 the system holds a contour to, at both ends, so
+   the recession is a rank and not a way of turning a contour off.
+   → foundations/geometry.html
+
+   NO SCRIPT, and the binding is :has(). Six rules key a row's hover or focus
+   to its own plane; nothing else is needed, and nothing here degrades if a
+   browser has no :has() — the block is then a figure in its default state
+   beside a list of links, which is what it is anyway. The list carries every
+   destination; the drawing carries none. A reader who never moves a pointer
+   loses a lit plane and no information.
+   -------------------------------------------------------------------------- */
+.docs-stack {
+  --stack-lift: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
+  gap: var(--space-12);
+  align-items: start;
+}
+.docs-stack__figure { margin: 0; position: sticky; top: var(--space-8); }
+.docs-stack__svg { display: block; width: 100%; height: auto; }
+.docs-stack__caption {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* Where each plane stands. Layer 6 is at the top of the frame because layer 6
+   is the top of the stack; the list beside it is written in the same order,
+   so row and plane are read off each other by position and nothing has to be
+   labelled twice. */
+.docs-stack__plane[data-layer="6"] { --cy: 120; }
+.docs-stack__plane[data-layer="5"] { --cy: 204; }
+.docs-stack__plane[data-layer="4"] { --cy: 288; }
+.docs-stack__plane[data-layer="3"] { --cy: 372; }
+.docs-stack__plane[data-layer="2"] { --cy: 456; }
+.docs-stack__plane[data-layer="1"] { --cy: 540; }
+
+.docs-stack__plane {
+  --lit: 0;
+  /* Two translations in one, so the plane's home and its lift cannot drift:
+     the lift is subtracted from the home rather than composed after it. */
+  transform: translateY(calc(var(--cy) * 1px - var(--lit) * var(--stack-lift)));
+  transition: transform var(--duration-base) var(--ease-standard);
+}
+.docs-stack__edge {
+  stroke: var(--border-strong);
+  stroke-opacity: calc(0.55 + 0.45 * var(--lit));
+  transition: stroke-opacity var(--duration-base) var(--ease-standard);
+}
+.docs-stack__strut {
+  stroke: var(--border-strong);
+  stroke-opacity: 0.55;
+  stroke-dasharray: var(--dash-1-4);
+}
+/* The light travels in from the plane's own left vertex — the direction its
+   top-left edge already runs, 26.57° — rather than appearing over the whole
+   rhombus at once. --stack-lift is reused as the distance so the plane and
+   the light on it move as one thing. */
+.docs-stack__lit {
+  opacity: var(--lit);
+  transform: translate(calc(var(--lit) * 0px - (1 - var(--lit)) * var(--stack-lift) * 2),
+                       calc((1 - var(--lit)) * var(--stack-lift)));
+  transition: opacity var(--duration-base) var(--ease-standard),
+              transform var(--duration-base) var(--ease-standard);
+}
+
+/* The default: the light layer, lit. Only while nothing in the block is
+   hovered or focused. */
+.docs-stack:not(:has(.docs-stack__row:is(:hover, :focus-within)))
+  .docs-stack__plane[data-layer="5"] { --lit: 1; }
+
+.docs-stack:has(.docs-stack__row[data-layer="1"]:is(:hover, :focus-within)) .docs-stack__plane[data-layer="1"] { --lit: 1; }
+.docs-stack:has(.docs-stack__row[data-layer="2"]:is(:hover, :focus-within)) .docs-stack__plane[data-layer="2"] { --lit: 1; }
+.docs-stack:has(.docs-stack__row[data-layer="3"]:is(:hover, :focus-within)) .docs-stack__plane[data-layer="3"] { --lit: 1; }
+.docs-stack:has(.docs-stack__row[data-layer="4"]:is(:hover, :focus-within)) .docs-stack__plane[data-layer="4"] { --lit: 1; }
+.docs-stack:has(.docs-stack__row[data-layer="5"]:is(:hover, :focus-within)) .docs-stack__plane[data-layer="5"] { --lit: 1; }
+.docs-stack:has(.docs-stack__row[data-layer="6"]:is(:hover, :focus-within)) .docs-stack__plane[data-layer="6"] { --lit: 1; }
+
+.docs-stack__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-6);
+}
+.docs-stack__row {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: 0 var(--space-4);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-default);
+}
+.docs-stack__row:last-child { padding-bottom: 0; border-bottom: 0; }
+.docs-stack__num {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  padding-top: 0.25em;
+}
+.docs-stack__name {
+  margin: 0;
+  font-size: var(--text-md);
+  line-height: var(--leading-tight);
+}
+.docs-stack__desc {
+  grid-column: 2;
+  margin: var(--space-2) 0 0;
+  color: var(--text-secondary);
+}
+.docs-stack__links {
+  grid-column: 2;
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+}
+
+/* Nothing travels for a reader who asked for less. The state still switches —
+   a lit plane is information, not decoration — it simply arrives where it
+   already stood. tokens.css collapses the durations under the same query;
+   this zeroes the two distances, which durations cannot. */
+@media (prefers-reduced-motion: reduce) {
+  .docs-stack { --stack-lift: 0px; }
+}
+
+/* Forced colours takes the light away with every other gradient — the rule
+   for that is on .cf-iso in components.css and this drawing is a .cf-iso, so
+   it inherits it. What does NOT survive on its own is the recession: a
+   stroke-opacity is a paint operation the mode does not touch, so five of the
+   six planes would stay at 55 % of a system colour the mode chose to be read
+   at 100 %. The stack goes flat instead.
+
+   THE LIT PLANE IS STILL THE LIT PLANE THERE, and not because of the lift.
+   `.cf-iso [fill]` maps to Canvas, so the ramp becomes an opaque plate — and
+   the five unlit copies are at opacity 0, so exactly one plane in the stack
+   is filled and it occludes the plane behind it. Verified in both palettes at
+   1440. That is the whole mechanism intact in a mode with no colour: one
+   plane out of six is solid, and it is the one the reader is pointing at. */
+@media (forced-colors: active) {
+  .docs-stack__edge,
+  .docs-stack__strut { stroke-opacity: 1; }
+}
+
 @media (max-width: 900px) {
   /* minmax(0, 1fr), not 1fr: a bare 1fr track floors at min-content, so one
      long line in a <pre> pushes the whole documentation page sideways on a
@@ -577,4 +757,13 @@ body.docs {
   /* A table cannot shrink below its min-content width, so on a phone it has to
      scroll inside itself rather than take the page with it. */
   .docs-table { display: block; overflow-x: auto; }
+  /* The stack folds to one column and the drawing stops following the reader.
+     Sticky is what makes the figure worth having beside a list that is taller
+     than it; above the list it is the first screenful, and a first screenful
+     that refuses to scroll away is a page that will not start. The drawing
+     also stops being reachable by a pointer at all on a touch device, which
+     is the reason its default lit plane is a state and not an idle
+     animation — see the block above. */
+  .docs-stack { grid-template-columns: minmax(0, 1fr); }
+  .docs-stack__figure { position: static; max-width: 22rem; }
 }
