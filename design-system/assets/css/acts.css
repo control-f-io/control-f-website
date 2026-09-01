@@ -1563,6 +1563,39 @@
     aspect-ratio: var(--ar);
     --mount: var(--space-4);
     padding: var(--mount);
+    /* A GRID, AND ONLY WEBKIT CAN TELL. The ratio sizes this box's border
+       edge (box-sizing is border-box, base.css line 49), so the window's
+       `block-size: 100%` is the content box: 544.94 px inside a 576.94 box
+       on the 721.17 px column a 1280 x 900 viewport gives the 5:4 plate.
+       That is what Chromium 141 lays out. WebKit 26.5 resolves the same
+       100 % against the BORDER height — 576.94 — and then, the automatic
+       minimum size being the child's, grows the box to hold it: 608.94 px,
+       the mount's 32 px stacked on top of the ratio. Both plates, same
+       viewport, same scroll offset, both engines:
+
+                        Chromium shot / win     WebKit shot / win
+         5:4            576.94 / 544.94         608.94 / 576.94
+         2000 / 773     278.72 / 246.72         310.72 / 278.72
+
+       So in Safari the photograph is 32 px taller than its ratio, its crop
+       moves, and the frame stands 16 px above and 16 px below where the
+       words beside it were centred against. Isolated to a 700 px block with
+       these four declarations and a 100 % child: 592 / 560 in WebKit against
+       560 / 528 in Chromium, and the same in block, flex and grid parents,
+       so it is the percentage and not the plate's grid. `min-block-size: 0`
+       alone restores the box and leaves the child at 560 — the same 32 px,
+       now overflowing the mount at the foot — so the box is not the fix.
+
+       A grid container sizes its one in-flow item, the window, against the
+       content box in both engines: 560 / 528 in WebKit, Chromium unchanged,
+       and the window's own 100 % stays declared, because a browser that
+       reads it right needs nothing else. Nothing else here is an item: the
+       frame and the tick are absolutely positioned, and an absolute child
+       of a grid takes the padding box as its containing block exactly as it
+       does under a block — frame inset 0 is still 721.17 x 576.94, the
+       tick's two corners are still --mount apart. No template, one auto
+       track, one child in it. */
+    display: grid;
   }
   .sp4-win {
     block-size: 100%;
