@@ -4,11 +4,20 @@ THE PROJECTION.  +x is 26.57 deg down-right, +y is 26.57 deg down-left, +z is
 vertical.  Every vertex comes from a lattice coordinate, so every edge lands on
 a brand angle by construction.  One lattice cell is 2*U wide and U tall.
 
-THE TONE.  The system's own illustrations are near-white with black contours
-and only a few small dark accents.  Solid mid-grey faces read as clip art, not
-as a technical drawing.  So: faces are white to near-white, DETAIL COMES FROM
-LINES drawn on top of them, and anything darker than FACE_L is an accent
-measured in a few square units — a slot, a vent, an aperture — never a face.
+THE TONE.  The three-grey register of foundations/illustration.html, "Contour
+and fill": #DADADA facing the sky, CF-Grau #CFCFCF on the lit side — which is
+also the top of the page wash, so an unlit face sits at the page's own colour
+and the contour alone carries it — and #C4C4C4 turned away.  These four objects
+shipped for a while in a near-white register of their own, with two dark accent
+values for slots and apertures and a paler trio for the foundation, on the
+argument that a dense drawing in three mid greys reads as clip art.  The
+reference plates the register was re-measured against on 2026-09-01 say
+otherwise: the same three values on a CF-Grau ground, the object sunk into the
+page rather than lifted off it, one lit top face running the whole ramp from
+lime at its back corner to the ground's own grey at its near one, and two
+nodes on that face.  So the foundation is the same material as the machine, an
+accent is the shaded value and nothing is darker than that, and DETAIL STILL
+COMES FROM LINES drawn on the faces rather than from tone.
 
 THE CURVES ARE COMPUTED, NOT APPROXIMATED.  A circle of radius r lying in any
 lattice plane projects to an ellipse whose two semi-axes and rotation fall out
@@ -30,15 +39,18 @@ U = 56.0
 H = 56.0
 OX, OY = 320.0, 372.0
 
-# ---- the palette. Anything below ACCENT is for slots, recesses and apertures.
-FACE_TOP = '#FFFFFF'
-FACE_R = '#F6F6F6'        # the +x face, catching more light
-FACE_L = '#EAEAEA'        # the +y face, turned away
-PLATE_TOP = '#FBFBFB'
-PLATE_R = '#F0F0F0'
-PLATE_L = '#E2E2E2'
-ACCENT = '#919191'        # a slot, a gap, a recess — a few square units only
-DARK = '#484848'          # an aperture. Rarely, and never a whole face.
+# ---- the palette: the three-grey register, and nothing off it. ACCENT and
+# DARK are kept as names so a slot or an aperture is still declared as one at
+# the call site, but both resolve to the shaded value: a recess is a face
+# turned away from the light, and the register has no fourth grey to spend.
+FACE_TOP = '#DADADA'      # facing the sky
+FACE_R = '#CFCFCF'        # the +x face, lit — CF-Grau, the page's own ground
+FACE_L = '#C4C4C4'        # the +y face, turned away
+PLATE_TOP = FACE_TOP      # a foundation is the same material as what stands on it
+PLATE_R = FACE_R
+PLATE_L = FACE_L
+ACCENT = FACE_L           # a slot, a gap, a recess
+DARK = FACE_L             # an aperture
 
 # Screen images of the three unit lattice directions.
 VX = (U, U / 2.0)
@@ -313,7 +325,14 @@ def _arc(c, a, b, r, t0, t1):
     dpos, dmid = (phi(p1) - f0) % tau, (phi(pm) - f0) % tau
     sweep = 1 if dmid < dpos else 0
     span = dpos if sweep else tau - dpos
-    large = 1 if span > math.pi else 0
+    # A HALF-TURN IS NEITHER ARC, and it is the common case: every hoop and
+    # every far end is exactly 180 deg. At span == pi both flags draw the same
+    # curve, but `span > pi` on a value that is pi to the last ulp is a coin
+    # toss decided by the platform's libm — regenerated on another machine,
+    # two of the four shipped files came back with eleven flags flipped and
+    # nothing changed on screen. The README says the same paths come out every
+    # run; the tolerance is what makes that true.
+    large = 1 if span > math.pi + 1e-9 else 0
     return p0, p1, f'A{f(rx)} {f(ry)} {f(ang)} {large} {sweep} {f(p1[0])} {f(p1[1])}'
 
 
@@ -336,6 +355,13 @@ def hoop(x, y, z, r, axis='z', t0=-45.0, t1=135.0):
 # each other are lit by the same rule.
 _SIDE = {'x': FACE_L, 'y': FACE_R, 'z': FACE_R}
 _CROWN = {'x': (45.0, 135.0, FACE_TOP), 'y': (-45.0, 45.0, FACE_TOP), 'z': (45.0, 135.0, FACE_L)}
+# The near cap is a face in a plane of constant axis, so its tone is the
+# register's value for THAT face: sky for a drum, the lit side for a run along
+# +x, the shaded side for one along +y. It defaulted to the sky value for all
+# three; maschinenbau() corrected it at the call site and said so, while the
+# motor, the pump, both exchangers and both pipe runs on anlagen() kept
+# sky-toned end faces pointing at the reader. `cap='auto'` reads this table.
+_CAP = {'x': FACE_R, 'y': FACE_L, 'z': FACE_TOP}
 
 
 def _band(c0, c1, a, b, r, t0, t1):
@@ -345,11 +371,14 @@ def _band(c0, c1, a, b, r, t0, t1):
     return (f'M{f(q0[0])} {f(q0[1])}{arc0}L{f(s0[0])} {f(s0[1])}{arc1}Z')
 
 
-def cyl(x, y, z, axis, length, r, side=None, cap=FACE_TOP, cap_far=None,
+def cyl(x, y, z, axis, length, r, side=None, cap='auto', cap_far=None,
         far=True, crown=True):
     """A finite cylinder along one lattice axis: far cap, tube, crown, near cap.
     The tube's edges leave the caps at the tangent points, so the silhouette is
     the true one and not a rectangle with two lids.
+
+    cap='auto' tones the near cap for the plane it lies in (_CAP); None drops
+    it, for a cylinder whose end something else is drawn on.
 
     far=False drops the far cap, for a cylinder that runs into a housing. The
     generator's did not, and its ellipse stood out past the coupling guard as a
@@ -368,6 +397,8 @@ def cyl(x, y, z, axis, length, r, side=None, cap=FACE_TOP, cap_far=None,
     a, b = _PLANE[axis]
     d = _AXIS[axis]
     s = _STEP[axis]
+    if cap == 'auto':
+        cap = _CAP[axis]
     c0 = p_(x, y, z)
     c1 = p_(x + s[0] * length, y + s[1] * length, z + s[2] * length)
     # theta where the tube's edge runs parallel to the axis
@@ -435,6 +466,86 @@ def taper(x, y, z, r0, r1, h, top=FACE_TOP, side=FACE_R):
     return out
 
 
+def cone(x, y, z, axis, length, r0, r1, side=None, cap='auto', cap_far=None, far=True):
+    """A frustum along one lattice axis: radius r0 at (x, y, z), the far end,
+    and r1 at the near end `length` along the axis. taper() is this for the
+    vertical axis, where the two silhouette lines are verticals; along +x or
+    +y they are the two tangents from the projected APEX to the projected base
+    circle, and the same two parameters cut the top circle, because a
+    generator is a straight line through the apex and the projection is
+    affine. Solved on the ellipse itself: with u(t) = c0 + cos t * a + sin t * b
+    the tangent condition (u - q) x u' = 0 reduces to
+    cos t * (w x b) - sin t * (w x a) = -(a x b), w = c0 - q, which is one
+    cosine. r0 == r1 falls through to cyl().
+
+    THE FAR END IS ALWAYS THE ARC, whether or not the far cap is painted: a
+    frustum butted onto a cylinder shares that cylinder's cap, so `far=False`
+    drops only the ellipse — a chord across the end would be exactly the bar
+    cyl()'s own docstring was written against. An aircraft is the reason this
+    exists: a fuselage that ends in a flat cap pointed at the reader is a drum,
+    whatever is drawn on it."""
+    if abs(r0 - r1) < 1e-9:
+        return cyl(x, y, z, axis, length, r0, side=side, cap=cap, cap_far=cap_far,
+                   far=far, crown=False)
+    a, b = _PLANE[axis]
+    s = _STEP[axis]
+    if cap == 'auto':
+        cap = _CAP[axis]
+    base = side or _SIDE[axis]
+    c0 = p_(x, y, z)
+    c1 = p_(x + s[0] * length, y + s[1] * length, z + s[2] * length)
+    k = r0 / (r0 - r1)
+    q = (c0[0] + (c1[0] - c0[0]) * k, c0[1] + (c1[1] - c0[1]) * k)
+
+    def x_(p, s_):
+        return p[0] * s_[1] - p[1] * s_[0]
+
+    ar, br = (a[0] * r0, a[1] * r0), (b[0] * r0, b[1] * r0)
+    w = (c0[0] - q[0], c0[1] - q[1])
+    wa, wb, ab = x_(w, ar), x_(w, br), x_(ar, br)
+    rr = math.hypot(wa, wb)
+    val = max(-1.0, min(1.0, -ab / rr))
+    psi = math.atan2(wa, wb)
+    t1 = math.degrees(-psi + math.acos(val))
+    t2 = math.degrees(-psi - math.acos(val))
+    p01, p02 = _on(c0, a, b, r0, t1), _on(c0, a, b, r0, t2)
+    p11, p12 = _on(c1, a, b, r1, t1), _on(c1, a, b, r1, t2)
+
+    def _away(e):
+        m = _on(c0, a, b, r0, (t2 + e) / 2.0)
+        return math.hypot(m[0] - c1[0], m[1] - c1[1])
+
+    end = max((t1, t1 + 360.0, t1 - 360.0), key=_away)
+    _, _, arc = _arc(c0, a, b, r0, t2, end)
+    tube = ('M' + ' '.join(f'{f(p[0])} {f(p[1])}' for p in (p01, p11, p12, p02)) + arc + 'Z')
+    _PTS.extend([p01, p02, p11, p12])
+    rx0, ry0, ang0 = _ell(a, b, r0)
+    rx1, ry1, ang1 = _ell(a, b, r1)
+    out = []
+    if far:
+        out.append(_ell_tag(c0, rx0, ry0, ang0, cap_far or base))
+    out.append(face(tube, base))
+    if cap:
+        out.append(_ell_tag(c1, rx1, ry1, ang1, cap))
+    return out
+
+
+def wheel(x, y, z, r, w=0.08, axis='y'):
+    """A tyre: a short cylinder ending on the near flank — at `y` for axis 'y',
+    a machine running down +x; at `x` for axis 'x', one running down +y — with
+    its hub on the near cap. A wheel used to be a flat disc, which reads as a
+    washer leaning against the body until it has a tread. Only the near flank
+    is drawn on a low-slung machine, because its far wheels are behind its own
+    frame from this camera; where the body is carried clear of them, as an
+    aircraft's is, both are drawn and both show."""
+    if axis == 'y':
+        out = cyl(x, y - w, z, 'y', w, r)
+    else:
+        out = cyl(x - w, y, z, 'x', w, r)
+    out.append(disc(x, y, z, r * 0.34, axis, FACE_TOP))
+    return out
+
+
 # The half-chord of a blade, as (fraction of span, half-chord in lattice units):
 # a narrow root, the shoulder a fifth of the way out, and a tip that is still
 # two contours wide at the size these objects ship at. Under about 0.016 the
@@ -499,9 +610,42 @@ def orbit(x, y, z, r, axis='z'):
                     cls='cf-iso__ghost cf-iso__orbit', extra=' stroke-dasharray="1 4"')
 
 
-def node(x, y, z, r=4):
-    c = P(x, y, z)
-    return f'<circle class="cf-iso__node" cx="{f(c[0])}" cy="{f(c[1])}" r="{r}" fill="#000" stroke="none"/>'
+def _node_tag(c, r):
+    return (f'<circle class="cf-iso__node" cx="{f(c[0])}" cy="{f(c[1])}" r="{r}" '
+            f'fill="#000" stroke="none"/>')
+
+
+def node(x, y, z, r=3):
+    """A construction point at a lattice point. r = 3 is what the illustration
+    page gives a node on the lit face; these objects drew theirs at 4."""
+    return _node_tag(P(x, y, z), r)
+
+
+def _extremes(pts):
+    """The highest and the rightmost of a set of screen points — the two
+    corners the reference plates put a node on: where the lit face's far edges
+    meet at the back, and where its right edge turns the corner. Nothing else
+    in a plate carries one, so an object's nodes are the light's, not a list
+    of things the copy mentions."""
+    top = min(pts, key=lambda p: (p[1], p[0]))
+    right = max(pts, key=lambda p: (p[0], -p[1]))
+    return top, right
+
+
+def light_nodes_quad(pts, r=3):
+    """The two nodes of a lit quad. `pts` are the lattice triples that were
+    handed to light_quad()."""
+    return [_node_tag(c, r) for c in _extremes([P(*q) for q in pts])]
+
+
+def light_nodes_disc(x, y, z, r, axis='z', rn=3):
+    """The same two points on a lit disc: the highest and the rightmost point
+    of the projected circle, found on the curve itself and not on its box."""
+    a, b = _PLANE[axis]
+    c = p_(x, y, z)
+    top, right = _extremes([_on(c, a, b, r, t / 4.0) for t in range(1440)])
+    _PTS.extend([top, right])
+    return [_node_tag(top, rn), _node_tag(right, rn)]
 
 
 # THE WAYPOINT IS DERIVED, NOT TYPED. SVG has no `in oklab`, so a gradient that
@@ -529,7 +673,25 @@ def light_disc(gid, x, y, z, r, axis='z'):
     return _ell_tag(p_(x, y, z), rx, ry, ang, f'url(#{gid})', cls='cf-iso__light')
 
 
-def lime_span_disc(x, y, z, r, axis='z', span=3.0):
+def lime_span_quad(pts):
+    """Ramp endpoints for a light_quad(): straight down — 90 deg, a brand
+    angle — from the face's highest corner to the level of its lowest. Lime
+    sits in the back corner, Glas crosses the face a third of the way down and
+    the near corner lands on CF-Grau, which is the ground's own value: that is
+    how the reference plates let a lit top read as lit without the whole face
+    standing off the page as a mint sticker.
+
+    This replaces a span that ran corner to corner and 2.6 times the face's
+    length, on the reasoning that a face which spends the whole ramp arrives
+    mint. It does not; it arrives as the plates draw it. The ramp's length is
+    the face's own height, so the light and the thing it lights are one
+    measurement and a recrop cannot part them."""
+    sp = [p_(*q) for q in pts]
+    top, _ = _extremes(sp)
+    return top, (top[0], max(p[1] for p in sp))
+
+
+def lime_span_disc(x, y, z, r, axis='z', span=1.0):
     """Ramp endpoints for a light_disc(). Same arguments, and it exists because
     the generic corner-to-corner span is wrong for a disc in two ways at once.
 
@@ -555,8 +717,10 @@ def lime_span_disc(x, y, z, r, axis='z', span=3.0):
     So: anchor on the ellipse's own vertical extent, which is exactly attained,
     run straight down (90 deg, a brand angle), and hand both endpoints over in
     the frame the browser will read them in. `span` is the ramp's length in
-    disc heights — 3.0 puts the disc's own lower edge on 1/3, so it spends the
-    lime -> Glas leg and stops there, which is the near rake."""
+    disc heights. It shipped at 3.0 — the disc's lower edge on 1/3, so the
+    light spent the lime -> Glas leg and stopped there, mint at the rim — and
+    is 1.0 now, for the reason lime_span_quad() gives: the whole ramp lies
+    inside the lit element and its lower edge lands on CF-Grau."""
     a, b = _PLANE[axis]
     rx, ry, ang = _ell(a, b, r)
     c = p_(x, y, z)
