@@ -1650,6 +1650,50 @@ already about something not being there. The empty socket is the figure's lit el
 the note that names it — *Leerstelle* — is drawn in contour: the light is spent on the
 object and the note points at it rather than competing with it. → `components/annotation.html`
 
+## A mark drawn from a name
+
+`components/signet.html` is the system's answer to an item that needs a face and has no
+photograph. Nine plots of the isometric lattice, blocks standing on some of them, one face
+carrying the light — **the object is the stack on `foundations/geometry.html#objects` and
+not a new shape.** What the name decides is only where the blocks stand and how high, which
+is the one degree of freedom that object already had: `01-discovery.svg` is three stacked
+cuboids, and a signet is a nine-plot field of them.
+
+**The alphabet is finite and its density is fixed.** The nine heights are a permutation of
+one multiset — `0 0 0 1 1 2 2 3 3` — so every mark in the set has exactly three empty plots,
+exactly two towers at full height, and exactly the same quantity of ink. That is
+9! / (3! 2! 2! 2!) = **7560** arrangements, and it is the whole difference between this and
+an identicon: the usual generator hashes into free parameters and its density swings from
+nearly blank to nearly solid across the set, which is why identicons read as a family of
+hashes rather than as a family of marks. Fixing the multiset moves the variation into
+arrangement, where the construction system can still govern it. The number is computed from
+the multiset by `CFSignet.count` rather than written down, so the documentation cannot drift
+from the array.
+
+**One lime moment, and the ink form is the default.** Of the two full-height towers the
+light goes on the frontmost and never on both. But a wall of signets is the one place in
+this system where an object could break the screen's lime budget twenty times over without
+any single mark being wrong, so the generator emits `--ink` unless it is asked otherwise and
+the light is opt-in, once. The lit face carries the family's ramp on the near rake, with the
+19 % waypoint; its axis is the designer's own scaled by 0.15, which means **lime itself never
+lands on the face** — what lands there is the leg just after it, falling to Glas by the
+opposite corner. That is true of the designer's stack in the same proportion, and it is what
+the manual means by light as a temporary effect rather than a fill.
+
+**Determinism is the point, not a convenience.** FNV-1a into an xorshift32 into a
+Fisher-Yates shuffle: no table, no storage, and the same answer in Python — which is what the
+share plates will need on the day they are written by a build script. Seed it with something
+stable and unique, a slug or a path; never with a title, because renaming a thing must not
+redraw its mark.
+
+**Where it is meant to go, and the one thing standing in front of it.** The site ships **no
+Open Graph metadata at all** — no `og:title`, no `og:image`, no Twitter card, on any pattern
+page in either edition — so every link to control-f.de posted into LinkedIn, Slack or Teams
+renders as a bare address today. The signet is the plate for that, and the text half of the
+metadata is not blocked by anything. The image half is: every consumer of `og:image` requires
+a raster and this repository has no build dependencies, so the three routes and what each
+costs are written out on the component page. → `components/signet.html#launch`
+
 ## The line of sight
 
 `foundations/sight.html` is the chapter for the half of the brand's own model that the
@@ -1779,6 +1823,7 @@ which is what this site did before. → `foundations/transitions.html`
 | **Geist / Geist Mono** | OFL, free. Self-host the `.woff2` files in `assets/fonts/` — deliberately **not** the Google Fonts CDN (DSGVO). |
 | **Process illustrations** | Done. Built from the designer's source vectors in `assets/source/illustrations/`. The four documented deviations are listed on `components/process-card.html`. |
 | **Partner logos** | The logo wall renders text placeholders; drop in the real SVGs. |
+| **Open Graph and Twitter cards** | **Nothing ships.** No `og:title`, `og:description`, `og:type`, `og:url`, `og:locale`, `og:site_name` or `og:image`, and no `twitter:*`, on any of the eighteen pattern pages in either edition — so a link posted into LinkedIn, Slack, Teams or a message renders as a bare address. The text half is not blocked by anything: the values are already on every page as `<title>` and `meta[name=description]`, `build-i18n.py` already flips the language pair, and `og:url` is the one field that needs the production origin rather than a relative path. The image half is blocked on one decision — every consumer of `og:image` requires a raster, this repository has no build dependencies, and the three routes out of that are costed on `components/signet.html#launch`. → `components/signet.html` |
 | **Team photos** | Seven named portraits ship on Über uns, each filed under the person in it, and four of them now have a 144 px avatar derivative beside them (`simon-144.jpg` …) for the strip and the byline. The placeholder-era `portrait-01…04-144.jpg` are still in the folder but no page names a person over them any more; a derivative for Robin, Marie or Birk is made the same way — the 440 px square on the head, columns 100–540 and rows 60–500 of the 640 × 800 frame, at 144 px — the day a page needs one. No shipping page carries the strip itself. → `components/team.html#strip` |
 | **Team layout on Über uns** | The mockup draws that block as a full-bleed strip of 294 px cells running past the right edge — 4.9 of them fit a 1440 frame — and the implementation renders a contained field that wraps instead. The wrapping grid is the better answer for ten people and it is what ships, but it is an improvement over the material rather than the material. A designer settles it. → `components/team.html#rules` |
 | **Consent copy** | The three categories, their retention periods and the six entries in the inventory are placeholders. A lawyer signs off the wording, and a real cookie audit replaces the rows. The columns — name, kind of storage, purpose, recipient, retention — are what TDDDG § 25 and Art. 13 DSGVO ask for and should survive the replacement. The anchor the dialog links to now exists — `patterns/datenschutz.html#cookies` — and the counts in `.cf-consent__meta` have to keep matching the list there. |
