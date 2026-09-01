@@ -1189,6 +1189,43 @@ hr {
   background-attachment: fixed;
 }
 
+/* AND THE WASH IS THE ONE PAINT THAT WAS GETTING PAST FORCED COLOURS, which is
+   not what anything in this file assumed. .material-glass-edge's note above
+   says "forced colours drops every gradient background-image", and measured on
+   its own that is true: an element whose whole background is a gradient comes
+   back `background-image: none`. It is only true ON ITS OWN. Measured in
+   Chromium 149 and 151, forced-colors emulated:
+
+     background-image: <gradient>                        -> none
+     background-image: url(<data-uri>)                   -> kept
+     background-image: url(<data-uri>), <gradient>       -> BOTH kept
+
+   So a gradient beside a url() layer is carried through with it, and this rule
+   is exactly that shape: --grain is a data-URI SVG and --surface-page-wash is
+   the CF-Grau ramp. The site therefore shipped its full light wash under a
+   DARK forced palette — measured on blog-artikel.html, a CF-Grau field from
+   216 to 248 with the forced white text sitting on it, each run of text on the
+   black Canvas backplate Chromium lays down behind it. Not a contrast failure,
+   because the backplate does its job; a mode that was asked for a palette and
+   given a decorative ground instead.
+
+   It is also what made every SVG in the site look fine in this mode and hid
+   the real fault under it. Forced colours does not force `fill` and `stroke` —
+   the spec leaves those to the author — so every drawing here is still ink
+   black, and it read only because the wash it stood on was still CF-Grau. The
+   figures that DON'T sit on the wash (a --flat or --plain docs demo) were
+   already black on black, which is where this was found. Dropping the ground
+   and naming the ink are one change: either alone paints one of the two on the
+   other. Every drawing's own forced-colours rule is in components.css and
+   acts.css beside the drawing.
+
+   The grain goes with it. It is 8 % greyscale noise, it is a texture rather
+   than information, and leaving it is a url() layer painting over a palette
+   the reader chose. */
+@media (forced-colors: active) {
+  .page-wash { background-image: none; }
+}
+
 /* --------------------------------------------------------------------------
    SURFACES & MATERIALS
    -------------------------------------------------------------------------- */

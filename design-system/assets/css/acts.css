@@ -6235,3 +6235,131 @@
       }
     }
   }
+
+/* ==========================================================================
+   FORCED COLOURS — the four drawings handed to the reader's palette
+   Written once, at the foot of the file and at the top level, rather than in
+   each drawing's own block: three of these paints are inside a @supports or
+   @media gate, and a rule that has to outrank whatever the gate does is a rule
+   whose place in source order is the thing that makes it work. The same
+   ordering trap has already cost this project once — components.css composes
+   the lime spill at ITS foot, and the `filter: none` .cf-gantt wrote in its own
+   forced-colours block never applied for exactly this reason.
+
+   WHY ANY OF IT IS NEEDED, which is one sentence and one exemption. Forced
+   colours forces `color`, `background-color`, `border-color` and the rest of
+   that list; it does NOT force SVG `fill` and `stroke`, which the spec leaves
+   to the author. So every stroke below stays the literal CF-Schwarz it
+   resolves to. This file already knew that — the map legend's own block says
+   "an SVG's own fill and stroke are exempt, so under Windows High Contrast the
+   map still draws the CF-Schwarz office and the lime asset" — and repainted
+   the LEGEND while leaving the drawing alone, on the reasonable ground that a
+   black drawing on the page's own wash still read. It read because the wash
+   was still there: base.css was carrying --surface-page-wash straight through
+   this mode, a gradient layer kept alive by the url() grain layer beside it.
+   With that ground gone the drawings are black on black, so the legend's
+   decision now has to be taken for the drawing too. Its own words are the
+   spec for it: "the distinction the drawing makes rather than the colours it
+   makes it in".
+
+   THE LIGHT FALLS AWAY EVERYWHERE, and that is one decision applied four
+   times. Every lit pass here is an SVG paint server — url(#lp-flow-ramp),
+   url(#sp4-ramp-n), url(#map-ramp) — so unlike a background-image the mode
+   does not discard it, and left alone each would be the one thing on the page
+   still wearing brand colour inside a palette the reader chose. Same answer
+   .cf-gantt__mark--lit, .cf-pie__band and .cf-iso__light take in components.css
+   -------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  /* ACT 1 — the sensor field. The bead is a contour and a body; the body is a
+     paint server and goes, the contour is the mark and stays. The halo is a
+     spill by another name — a radial ramp under the bead — and goes with it. */
+  .cf-stmt-sensor__bead { stroke: CanvasText; fill: Canvas; }
+  .cf-stmt-sensor__halo { fill: none; }
+
+  /* ACT 2 — the flow. Segments and junctions are the drawing. The orb is a
+     source drawn as a body, so it keeps its contour and loses its fill, which
+     leaves the one shape here whose edge was decided by a gradient stop with
+     an edge that is drawn — the thing .lp-flow__orb's own note argues a
+     contour is for. The light pass is a second stroke ON the segment it lights,
+     so it is removed rather than repainted: CanvasText over CanvasText is a
+     2 px route among 1 px routes, which reads as a heavier road and not as a
+     lit one. */
+  .lp-flow__seg   { stroke: CanvasText; }
+  .lp-flow__node  { fill: CanvasText; }
+  .lp-flow__orb   { stroke: CanvasText; fill: Canvas; }
+  .lp-flow__light { stroke: none; }
+
+  /* AND THE TWO COMPOSED SPILLS, which are the acts' own and not the system's.
+     components.css switches off the five members of ITS --glow composition at
+     the foot of that file; these two assemble the same two drop-shadows from
+     the same three tokens locally, for the reason both their notes give — a
+     filter composed on :root bakes in the :root reach — so they are switched
+     off locally too. Measured on index.html with the dark palette active: the
+     flow drew correctly in one ink and the source at the foot of it still wore
+     a 44 px lime halo, the one thing left on the page carrying brand colour.
+     A `filter` is not on the list forced colours forces, so nothing drops
+     either of them without being asked.
+
+     THE LEAF IS REACHED THROUGH ITS PARENT AND THE ORB IS NOT, which is the
+     tier discipline this file opens with rather than a flourish. The orb's
+     filter is a BASE-tier declaration, so a later base rule at equal weight is
+     simply the cascade. The leaf's is declared inside `@supports
+     (animation-timeline: view())`, and a media or supports query adds no
+     specificity — so a bare `.lp-flow__leaf` here would be a base-tier rule
+     landing after the gated one and winning INSIDE the gate as well, which is
+     the exact defect check-tier-order.py exists to stop and has caught twice
+     before. Naming the parent puts this at (0,2,0) against the gated rule's
+     (0,1,0), so it wins on weight instead of on position and the gated tier
+     keeps every declaration it makes that this one does not. */
+  .lp-flow__orb            { filter: none; }
+  .lp-flow .lp-flow__leaf  { filter: none; }
+
+  /* ACT 4 — the frame around the photographs. Same split: the edge is the
+     drawing, the ramp front that travels along it is the light. .sp4-lit is
+     dropped rather than stroked for .lp-flow__light's reason, and the base
+     tier already ships exactly this figure — "the base tier paints the black
+     hairline alone", its own note, because a lime rectangle standing
+     permanently around a photograph is not the settled state of this drawing.
+     Forced colours gets the settled state. */
+  .sp4-edge      { stroke: CanvasText; }
+  .sp4-lit       { stroke: none; }
+  /* Through the parent, for .lp-flow__leaf's reason one rule up: the frame's
+     stroke is a gated-tier declaration, so a bare `.lp-frame__line` here would
+     be a base rule outranking it inside the gate on nothing but source order.
+     It is also what keeps check-relay-rate.py reading the right rule — that
+     check takes the LAST `.lp-frame__line` rule in the file and holds it to
+     declaring the relay's window, and a second bare rule with no
+     animation-range in it would answer in the real one's place. */
+  .lp-frame .lp-frame__line { stroke: CanvasText; }
+
+  /* ACT 5 — the map, and the three weights become two. The decay the drawing
+     is built on — every country a contour, Europe a lattice on top of it, the
+     home market a ramp on top of that — is three COLOUR layers and this mode
+     has one ink, so two of the three cannot survive as colour. They survive as
+     WEIGHT instead: stroke-width is geometry, the mode does not touch it, and
+     the market's contour goes to 2 px against every other coastline's 1. That
+     keeps the sentence the act is making ("Deutschland und die ganze Welt" as
+     a decay rather than as two countries at one weight and nine at none) with
+     Europe's middle term collapsed into the base — the same trade the legend
+     one block up already took when its six kind swatches became one ring.
+
+     The two fills go to `none` and not to Canvas, because a Canvas-filled
+     country would paint over the coastline drawn under it and cut itself out
+     of the map — the one country the reader is being pointed at, drawn as the
+     only one without an edge.
+
+     THE POINTS ARE THE LEGEND'S OWN RULE, MOVED ONTO THE DRAWING. That block
+     resolved this exact collapse for its swatches — "the office mark is filled
+     CanvasText, the asset mark is a CanvasText ring around Canvas" — and the
+     drawing already has the geometry to say it: an asset point is two strokes,
+     an 8 px ring under a 5 px core, so the ring takes the ink and the core
+     takes the ground. Filled against hollow, in the drawing and in the key,
+     drawn by the same pair of colours. */
+  .map__land          { stroke: CanvasText; }
+  .map__land--market  { stroke-width: 2; }
+  .map__fill,
+  .map__weave         { fill: none; }
+  .map__dot--office   { stroke: CanvasText; }
+  .map__dot--ring     { stroke: CanvasText; }
+  .map__dot--asset    { stroke: Canvas; }
+}
