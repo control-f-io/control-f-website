@@ -43,9 +43,12 @@ the same min-content floor a bare `fr` carries. The defect is identical and the
 script had nothing to read, so it was invisible — found in the end by sweeping
 the pattern pages at a 24 px browser default rather than by anything here.
 
-The system has fourteen grids that leave their column axis implicit and only one
+The system had fourteen grids that leave their column axis implicit and only one
 of them could overflow, so this is a CENSUS with one GATE inside it rather than
-a rule over all fourteen:
+a rule over all fourteen. (A second one then did: .cf-pin__steps, a stack of
+cards, took patterns/landing-page.html 320 -> 459 px at a 32 px root on one
+compound in one card's title, and declares its column now. The census is what
+made that a one-line diff rather than a search.)
 
   the gate     a grid whose ROWS are `subgrid` must declare its columns, or
                guard its items. Both halves are load-bearing. A grid whose own
@@ -81,10 +84,21 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CSS = ROOT / "design-system" / "assets" / "css"
 
-# The three stylesheets that ship to control-f.de. docs.css, per-page <style>
+# The four stylesheets that ship to control-f.de. docs.css, per-page <style>
 # blocks and prototypes/ are out of scope — the same boundary the breakpoint
 # register and the spacing check both draw, and for the same reason.
-SHIPPING = ("tokens.css", "base.css", "components.css")
+#
+# acts.css WAS THREE STYLESHEETS' WORTH OF OMISSION, and the same omission
+# design-system.yml records for the gradient check: never excluded on purpose,
+# 7,000 lines of composition on the landing page, and the one place in the tree
+# where a grid item's implicit `auto` column was measurably taking a page
+# sideways. .lp-ev-card__figure and .lp-ev-src both shipped `display: grid`
+# with no column; at a 32 px root the figure's track grew to a legend entry
+# (292 px in a 204 px card) and the source list's to one mono compound
+# (270 px in 150). Both are declared now, and the file is read so the next one
+# is counted. Its 15 fr track lists all carried a floor on the day it was
+# added, so the reach moves and the count of findings does not.
+SHIPPING = ("tokens.css", "base.css", "components.css", "acts.css")
 
 # Properties that take a track list. The custom properties are here because in
 # this system a track list is as likely to be declared into one as written

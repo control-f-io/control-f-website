@@ -9315,7 +9315,46 @@ a.cf-calendar__day > time,
    Steps overlap on the stage only inside the gate, where a page's own
    enhanced rules (acts.css, expertise's block) re-take the grid; out here
    they are a column with the section rhythm between them. */
-.cf-pin__steps { display: grid; gap: var(--space-12); }
+.cf-pin__steps {
+  display: grid;
+  /* THE COLUMN IS DECLARED, AND IT WAS THE IMPLICIT ONE scripts/check-grid-tracks.py
+     counts in its census: `display: grid` with no track list leaves one `auto`
+     column, and `auto` as a minimum is the widest thing inside it. Every card in
+     this stack is a grid ITEM, so the reset's break-word net could not reach the
+     words that mattered — a net breaks a word at the box's edge, and the track
+     had already grown to the word. Measured on patterns/landing-page.html, act
+     4's four cards, the document's scroll width against the viewport:
+
+                        root 16   root 20   root 24   root 32
+       320 x 800          320       332       368       459
+       375 x 800          375       375       375       463
+
+     The width was one compound in one card's copy: "Wartungsintervalle" in
+     card 03's title is 309 px of unbreakable word at a 32 px root, inside a
+     stack whose whole width at 320 is 280, and the track took the word. The
+     cell census in check-text-zoom.py carried these as "act 4's cards" since
+     the act landed.
+
+     minmax(0, 1fr) is the floor the same script asks of every explicit track:
+     one column, as wide as the stack and no wider, so a card takes the width
+     it is given and its copy wraps inside it — which is what the net was
+     always for. Same four cells after, with the card's own two implicit
+     columns declared in acts.css beside it:
+
+                        root 20   root 24   root 32
+       320 x 800          326       343       379
+       375 x 800          375       375       406
+
+     What is left past the edge in every one of those is .cf-pie__label at the
+     ring's 3 o'clock — a 5rem cap beside a px radius, the component's own tier
+     question and not this stack's — and, at 320 x 32, the folded nav's 22 px
+     that every page carries. The pinned tiers above the gate place every card
+     at grid-area 1 / 1 and are unmoved by naming the column they were already
+     in; measured identical to the pixel on all four adopters at 375, 1024 and
+     1440. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-12);
+}
 
 @supports (animation-timeline: view()) and (animation-range: contain 0% contain 100%) {
   @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
@@ -11186,6 +11225,16 @@ a.cf-calendar__day > time,
   margin: 0;
   padding: 0;
   list-style: none;
+  /* THE LEGEND IS ITSELF A FLEX ITEM, of .cf-line__head, and a flex item's
+     automatic minimum is its min-content — which for this list is its longest
+     entry, not its longest word. So the list could wrap its items and never
+     did: the head handed it the whole entry's width first. Measured on
+     patterns/landing-page.html at a 32 px root, "MIT ENERGIEMANAGEMENT" made
+     the legend 292 px wide inside a 204 px figure, the frame took the legend's
+     width, and its end node stood 17 px past a 375 px viewport. min-width: 0
+     is what lets the head decide the width and the wrap above do its job;
+     base.css calls the same declaration on .tiles "load-bearing, not hygiene". */
+  min-width: 0;
 }
 .cf-line__legend-item {
   display: flex;
@@ -11198,6 +11247,12 @@ a.cf-calendar__day > time,
   text-transform: uppercase;
   line-height: var(--leading-normal);
   color: var(--text-secondary);
+  /* And the entry is a flex item of the legend, with the same automatic
+     minimum one level down: without this the list above wraps its entries and
+     an entry never wraps its words, so "MIT ENERGIEMANAGEMENT" stays one line
+     wider than the frame at a 32 px root. With it the entry takes the legend's
+     width and the reset's net wraps the text. */
+  min-width: 0;
 }
 
 /* THE SAMPLE IS THE TRACE, not a picture of it. It carries .cf-line__trace and
