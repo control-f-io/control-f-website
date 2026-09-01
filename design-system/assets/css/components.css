@@ -4205,67 +4205,109 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
 
 /* The plate is the whole state here, and forced-colours throws backgrounds
    away. Highlight/HighlightText is the pair the mode reserves for exactly
-   this — "the selected one of a set" — and it is not the pair used below.
+   this — "the selected one of a set" — and it is the pair below, but only
+   because the element is first taken out of the mode's own repaint.
 
-   HighlightText DOES NOT PAINT. Measured in Chromium 141's forced-colors
-   mode (the emulation this system is checked against, scripts/check-
-   runtime.py): a bare `color: HighlightText` on plain text, with or without
-   a `background: Highlight` beside it, produces zero visible glyphs — the
-   box takes its background and border, the text takes its layout box, and
-   no ink lands. SelectedItem/SelectedItemText, the newer pair for the same
-   meaning, fails identically.
+   THE INK IS NOT LAID ON THE PLATE. IT IS LAID ON A BACKPLATE THE COLOUR OF
+   THE PAGE. That one fact is behind every failure this comment has recorded,
+   and it is the fact the earlier readings were missing. Chromium paints an
+   opaque Canvas-coloured rectangle behind a run of text in forced-colours
+   mode — the guarantee that text over an image stays readable — and it lands
+   ON TOP of whatever background the element declared. So the plate has to
+   clear Canvas and the ink has to clear Canvas, separately, and a matching
+   system pair answers neither question: every pair is built to contrast with
+   its own plate, and its own plate is not what the glyphs land on.
 
-   MARK/MARKTEXT ALSO DOES NOT PAINT, AND ONLY UNDER THE DARK THEME — the gap
-   the previous measurement here missed, because it only checked one. Same
-   Chromium 141, same emulation, `color-scheme: dark` added: `background:
-   Mark; color: MarkText` on `<span aria-current="page">1</span>` renders a
-   solid opaque block the exact size of the glyph's layout box — zero ink,
-   same failure shape as HighlightText, not merely low-contrast. Restating
-   `-webkit-text-fill-color: MarkText` beside it, the fix the rest of this
-   file uses for exactly this class of bug, does not help: the value itself
-   is what fails to paint here, not a missing second declaration. `color-
-   scheme: light` with the identical rule is fine, which is how this shipped
-   unnoticed — the pair was verified once, in the theme that works.
+   ON TOP OF WHICH ELEMENT'S BACKGROUND IS THE PART THAT DECIDES WHO IS HIT.
+   The backplate belongs to the BLOCK CONTAINER that lays the text out, and it
+   is painted in that container's own background phase — so it goes down before
+   the inline backgrounds inside it and after its own. An inline <mark> in a
+   paragraph is not that container: the paragraph's backplate goes down first
+   and the mark's plate covers it, which is why the found state's element rungs
+   render correctly in both palettes and this slot does not. This slot is an
+   inline-flex box, so it IS its own block container and the backplate lands on
+   the plate the state is made of. Measured across the structural cases at
+   base.css's found state, where the same mark inline and blockified are two
+   different results.
 
-   THE MECHANISM IS THE BACKPLATE, NOT THE VALUE, which base.css records in
-   full at the found state and which is worth correcting here because this is
-   the comment the rest of the file cites. `color: MarkText` paints perfectly
-   well; what fails is that Chromium lays an opaque Canvas-coloured backplate
-   behind every run of text in this mode, and that backplate belongs to the
-   BLOCK CONTAINER laying the text out rather than to the text's own box. An
-   inline <mark> in a paragraph is not that container, so its plate goes down
-   on top of the backplate and survives — measured in Chromium 151, both
-   schemes, every match on the site renders correctly. This slot is an
-   inline-flex box: it IS its own block container, so the backplate lands on
-   top of the plate this state is made of. That is why "the same pair" fails
-   here and not there, and it is a fact about the box and not about Mark.
+   Measured by render and not by computed style, which cannot see any of this:
+   Chromium 149 and 151 driven by playwright-core, forced-colors emulated
+   active against `color-scheme` light and dark, this page served over http,
+   the current slot screenshotted and its pixels counted. The two builds agree
+   to the byte. Shares are of the slot's own box:
 
-   It follows that `forced-color-adjust: none` would restore this plate too —
-   measured, Mark under the escape gives the current page a yellow plate and
-   a black numeral in both schemes. Not taken here, and the reason is the one
-   the paragraph below already gives: the meaning wanted is "the selected one
-   of a set", ButtonFace/ButtonText is the pair for it, and this state's
-   problem is which pair says the right thing rather than whether a plate
-   survives. Left as a note for whoever decides the plate is worth more than
-   the pair.
+                          light                      dark
+     ButtonFace/Text      98 % #ffffff               98 % #000000
+     Highlight/Text       81 % #37336d, 8 % #ffffff  81 % #00b8cc, 8 % #000000
+     Mark/MarkText        89 % #ffff00, 6 % #ffffff  89 % #ffff00, 8 % #000000
 
-   ButtonFace/ButtonText is the replacement, and it is verified in both:
-   Chromium 141, forced-colors active, `color-scheme` light and dark, `<span
-   aria-current="page">1</span>` and `<span aria-current="page">Telemetrie
-   </span>` (.cf-article__tag below) — legible glyphs, both themes. It is
-   also not a new keyword in this system: .cf-btn--solid already reaches for
-   it under forced colours, in this same file, and restates -webkit-text-
-   fill-color beside it for the reason base.css's ::selection comment gives.
-   "Currently selected" reading as a button face is a smaller mismatch than
-   the "currently matched" one Mark/MarkText was already accepted for below,
-   and the page's own aria-current still carries the true meaning for
-   assistive tech regardless of which system pair paints it. */
+   The second figure in each cell is the backplate, and it is the page's own
+   colour in every one of them. Read across it and the three findings this file
+   has accumulated all fall out of the one mechanic:
+
+   HIGHLIGHTTEXT IS CANVAS. White under the light palette, black under the dark
+   one — the same value as the backplate it is printed on, both times. The
+   glyphs are painted and then cannot be told from what is behind them, which is
+   what the note here used to call "HighlightText does not paint".
+
+   MARKTEXT IS BLACK IN BOTH, because Mark and MarkText hold the same two values
+   in either scheme rather than flipping with it. On the light backplate that is
+   legible; on the dark one it is black on black. Hence a failure only under the
+   dark theme, which is how it shipped: verified once, in the palette that
+   works.
+
+   AND BUTTONFACE IS CANVAS IN BOTH, so the pair that was put here to escape
+   those two draws no state whatsoever. 98 % of the slot is the page's own
+   colour, the border went with it because it was set to ButtonFace as well, and
+   the current page renders as a bare numeral between two links that keep their
+   boxes. ButtonText against the backplate is legible in both palettes and that
+   is exactly what was measured and recorded. Legible was true. Selected was
+   never asked.
+
+   FORCED-COLOR-ADJUST: NONE IS THE ESCAPE, AND IT DOES NOT LEAVE THE PALETTE.
+   It stops the backplate and the repaint for this element alone; the values
+   below stay system colours, so the user's theme still chooses them — the plate
+   resolves to #37336d under the light palette and #00b8cc under the dark one,
+   flipping with their scheme and not with ours. Rendered the same way: 97 % of
+   the slot's interior is plate, and the numeral paints in HighlightText on it —
+   17 px of ink clearing 4.5:1 against the plate in light, 14 px in dark, where
+   the same pair under the mode's own repaint put a backplate there and no ink
+   at all. The plate stands 11.31:1 off the page in light and 8.73:1 in dark.
+   It is also the only answer here that does not depend on the backplate
+   existing — the platform guarantees Highlight against HighlightText — so it
+   still draws in an engine that paints no backplate of its own, which an ink
+   of CanvasText on this plate would not.
+
+   It also puts this rule back beside the other one that means it. .cf-annot--
+   lit::before fills with Highlight under forced colours for "the selected one
+   of a set", and says so pointing here — a claim that was false for as long as
+   this slot was a button face. That rule needs no escape and this one does,
+   which is the whole of what the escape is for: the annot rung is a pseudo-
+   element with no text in it, so it has a plate to draw and no ink to lose.
+
+   Mark/MarkText survives the same escape and is still not taken: it is the
+   found state's pair (base.css, .cf-mark--current, and the calendar's lit day),
+   "currently matched" is not "currently selected", and yellow stands 1.07:1 off
+   a white page — a hue with no luminance under it.
+
+   The Mark row of the table above is this element's measurement and not the
+   found state's, and that distinction has since been settled by render. The
+   found state's two ELEMENT rungs never failed: an inline <mark> keeps its
+   plate, in both palettes, for the reason two paragraphs up. What did fail is
+   the calendar's lit day, which is a flex item and therefore this element's
+   shape rather than a <mark>'s; it takes the same escape now, and so do
+   base.css's element rungs, where the escape changes nothing that ships and
+   covers the day a match is blockified. The half that is still open is the
+   found state's three highlight PSEUDO-elements, which take no author
+   declaration under forced colours at all — measured against three candidate
+   declarations, byte-identical every time. base.css records it. */
 @media (forced-colors: active) {
   .cf-pagination__page[aria-current] {
-    background: ButtonFace;
-    border-color: ButtonFace;
-    color: ButtonText;
-    -webkit-text-fill-color: ButtonText;
+    forced-color-adjust: none;
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+    -webkit-text-fill-color: HighlightText;
   }
 }
 
@@ -4951,24 +4993,34 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    It lands on the same inverted plate that hover lands on, which is safe here
    precisely because the two can never be the same element. */
 .cf-article__tag[aria-current] { background: var(--cf-schwarz); color: var(--grey-000); }
-/* ButtonFace/ButtonText, not Highlight/HighlightText and not Mark/MarkText —
-   see the identical selected state on .cf-pagination__page[aria-current],
-   which measures both failures: a bare `color: HighlightText` paints no
-   glyphs in Chromium 141's forced-colors mode, on this element or in
-   isolation, and `color: MarkText` paints none either once `color-scheme:
-   dark` is added to the same mode — a solid block the size of the word's
-   layout box, not merely low contrast. (That second failure is the text
-   backplate landing on top of this element's own background, not a fault in
-   MarkText; the pagination's comment now carries the mechanism and base.css
-   carries it in full. It reaches this element for the same reason — a tag is
-   an inline-block, so it is its own block container.) ButtonFace/ButtonText
-   is the pair measured legible in both themes, and .cf-btn--solid already
-   reaches for it under forced colours elsewhere in this file. */
+/* Highlight/HighlightText under forced-color-adjust: none — the same pair and
+   the same escape as the identical selected state on .cf-pagination__page[aria-
+   current], whose note carries the measurement and the mechanic: forced colours
+   prints the ink on a backplate the colour of the page rather than on the plate
+   the element declared, so plate and ink each have to clear Canvas on their own.
+   ButtonFace stood here before and IS Canvas in both palettes. Measured the same
+   way, Chromium 149 and 151, this chip in the row it sits in: 82 % of its
+   interior was the page's own colour, in both palettes, with the word legible
+   on top. A legible
+   word is not a filter state — six of these are links, and the chip is the only
+   thing saying which topic you are reading. It is now a plate of #322f69 against
+   the light palette and #2ee7fb against the dark one, 12.03:1 and 13.94:1 off
+   the page, with the word in HighlightText on it.
+
+   THE BORDER IS DECLARED HERE AND IS NOT DECLARED IN THE UNFORCED RULE ABOVE.
+   That asymmetry is the one thing the escape changes about writing this rule:
+   the contour comes from .cf-article__tag and is --border-strong, which unforced
+   is right — the plate is brand black and the contour vanishes into it. With the
+   repaint switched off, the mode no longer maps that translucent brand ink onto
+   the user's palette, and it would draw a contour of ours around a chip of
+   theirs. It takes the plate's colour instead, and the chip stays one shape. */
 @media (forced-colors: active) {
   .cf-article__tag[aria-current] {
-    background: ButtonFace;
-    color: ButtonText;
-    -webkit-text-fill-color: ButtonText;
+    forced-color-adjust: none;
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+    -webkit-text-fill-color: HighlightText;
   }
 }
 
@@ -6100,6 +6152,11 @@ a.cf-calendar__day > time,
      .cf-mark (inline)        ink + ground line        ink + ground line
      .cf-mark--current        yellow plate, black ink  yellow plate, black ink
      [aria-current="date"]    WHITE plate, black ink   BLACK BLOCK, no ink
+     .cf-pagination[current]  navy plate, white ink    cyan plate, black ink
+
+   The pagination's row is the shape this one is, not the shape a <mark> is, and
+   it reached its plate the same way: Highlight/HighlightText under the same
+   escape. Its note carries the mechanic and the figures.
 
    base.css now carries the mechanism in full. Chromium paints an opaque
    Canvas-coloured backplate behind each run of text in this mode, and the

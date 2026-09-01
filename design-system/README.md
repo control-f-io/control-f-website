@@ -1131,8 +1131,12 @@ calendar](#a-month-is-a-page-of-days) — a `<time>` that is a flex item — and
 copy.
 
 Not `ButtonFace`/`ButtonText`, where the current-page marker in `components/pagination.html`
-went for the neighbouring finding: measured on the same run, `ButtonFace` resolves to the *same
-value as* `Canvas` in both palettes, so a plate painted in it is not a plate. And **the three
+went for the neighbouring finding and did not stay: measured on the same run, `ButtonFace`
+resolves to the *same value as* `Canvas` in both palettes, so a plate painted in it is not a
+plate. That marker is the blockified case as well — an `inline-flex` slot — and it now takes
+`Highlight`/`HighlightText` under this same escape, the pair the mode reserves for *the selected
+one of a set*. One mechanic, two pairs: the escape decides whether a plate survives, the pair
+decides what the plate says. And **the three
 highlight pseudo-elements are not styleable in forced colours at all** — Chromium paints
 `::target-text`, `::highlight(cf-found)` and `::highlight(cf-found-current)` with the UA's own
 `Highlight`/`HighlightText` and discards every author declaration. Four candidates rendered
@@ -1255,8 +1259,9 @@ palette, because every value in the rule is a system colour keyword and still re
 theme. The lit day is now a yellow plate with a black numeral and a black rule in both schemes.
 What was deferred to `base.css` was one declaration and not a change of pair — the two element
 rungs there carry the same escape, where it changes nothing that ships today and covers the day a
-match is blockified. `.cf-pagination__page[aria-current]` sits on the same mechanism, is the same
-blockified case, and keeps its own `ButtonFace`/`ButtonText` answer; that is that component's call.
+match is blockified. `.cf-pagination__page[aria-current]` sits on the same mechanism and is the same
+blockified case; it took the same escape and a different pair, `Highlight`/`HighlightText`, because
+*currently selected* is not *currently matched*.
 
 
 ## The last route with nowhere to go
