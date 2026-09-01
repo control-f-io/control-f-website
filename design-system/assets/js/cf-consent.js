@@ -245,10 +245,73 @@
              window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 240;
     }
 
+    /* AND THE BANNER HANDS THE SKIP LINK BACK, which is the other half of
+       showBanner's argument and the half that was never written.
+
+       showBanner does not move focus in, so that the skip link keeps the first
+       stop; the reasoning is in its own comment and it is right. But a reader
+       who ANSWERS the banner is standing on a button that is about to be
+       `hidden`, and a focused element that disappears drops focus to <body>.
+       Chrome then leaves the sequential starting point where that button was —
+       AFTER the skip link — so every forward Tab goes down the page and the
+       skip link is reachable only by wrapping the whole document.
+
+       Measured on this page, banner answered from the keyboard, counting Tab
+       presses forward until .skip-link takes focus:
+
+         375 x 900     18 presses
+         1280 x 900    29 presses
+
+       against 1 press on the return visit with the decision already stored.
+       That is the same fault showBanner's comment names — "a bypass block
+       reachable only after the thing it exists to bypass is not a bypass
+       block" — arriving through the other door, and it is the door every
+       first-time reader uses, because answering the banner is the only way
+       past it.
+
+       So: if the banner holds focus as it leaves, the skip link takes it. That
+       is the stop immediately before the banner in the document, so the reader
+       lands exactly where showBanner's reasoning says they should be, and the
+       next Tab is the nav.
+
+       :focus-visible AND NOT :focus, because this fires for the mouse too and
+       .skip-link paints on :focus — a pointer reader clicking "Alle
+       akzeptieren" would watch a black chip slide in at the top left for no
+       reason they could name. :focus-visible is the browser's own answer to
+       "should this focus be shown", so it is the browser's answer to "is there
+       a keyboard reader here to hand the link to". Where it is not supported
+       the match throws and nothing moves, which is the behaviour that shipped
+       before this block.
+
+       The test is made just before the element goes, not when hideBanner was
+       called: the exit runs for --duration-base and a reader can Tab out of the
+       banner inside it. Focus that has already left is focus this must not
+       take back.
+
+       decide() closes the settings dialog before it calls this, and the
+       dialog's own close listener has by then handed focus to whatever opened
+       it. Opened from the footer, that button is outside the banner and this
+       leaves it alone; opened from the banner's own "Einstellungen", it is
+       inside the banner and about to be hidden too, so the skip link is right
+       there as well. → assets/css/base.css, .skip-link;
+       scripts/check-focus-reach.py */
     function hideBanner() {
       if (banner.hidden) return;
       banner.dataset.enter = 'true';
-      window.setTimeout(function () { banner.hidden = true; publishHeight(); }, exitDuration());
+      window.setTimeout(function () {
+        var held = false;
+        try {
+          held = !!document.activeElement &&
+                 banner.contains(document.activeElement) &&
+                 document.activeElement.matches(':focus-visible');
+        } catch (e) { held = false; }
+        banner.hidden = true;
+        publishHeight();
+        if (held) {
+          var skip = document.querySelector('.skip-link');
+          if (skip) skip.focus();
+        }
+      }, exitDuration());
     }
 
     function decide(granted, opts) {
