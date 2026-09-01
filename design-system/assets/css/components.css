@@ -926,6 +926,327 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 .cf-btn--xwide { --btn-w: 22rem; }
 
 /* --------------------------------------------------------------------------
+   THE TWO RUNGS THE BUTTON NEVER HAD — unavailable, and busy
+
+   The presence ladder (tokens.css 8a, drawn in components/arrival.html) has
+   four rungs and one hard rule: an object may only move ALONG it, never
+   across it — a thing that is not here is the SAME DRAWING as the thing that
+   is, one rung down. The field took rung 2 for `disabled` years ago. The
+   button, the most-used control in the system, stood at rung 3 and had
+   nowhere else to stand: nothing in this file matched `[disabled]` on a
+   .cf-btn, so `<button class="cf-btn cf-btn--primary" disabled>` rendered
+   the full lime plate, full ink, pointer cursor — a dead control drawn
+   exactly like a live one, which is the failure shape every checker in
+   scripts/ exists for.
+
+   AND THE DOCUMENTATION POINTED THE OTHER WAY. components/buttons.html's Do
+   list read "Disabled states via the `disabled` attribute plus a
+   --grey-200 surface", which is two faults in one line: --grey-200 was never
+   written on a button anywhere in this file, so the instruction produced the
+   live-looking control above; and a grey plate is precisely the GREY SLAB the
+   ladder names as its one prohibition — "it is not a low-presence drawing of
+   anything". The button's own page instructed the reader to break the
+   system's own rule, in a treatment the stylesheet did not implement.
+
+   SO THE TWO STATES ARE THE TWO RUNGS THE LADDER ALREADY DESCRIBES:
+
+     unavailable  rung 2, --presence-near (2-1). The ladder reserves that rung
+                  for "a claim about the object, not about the wait", which is
+                  what unavailable is. Same box, same size, same place, same
+                  corner — the fill goes and the contour comes up, which is
+                  contour-before-fill read as a state.
+     busy         rung 0, --presence-absent (1-4), with the arrival band
+                  crossing it. Busy is not a weaker claim about the object; it
+                  is the object not being here YET, which is the ghost's own
+                  sentence. It reuses --arrive-period, --arrive-light-peak and
+                  @keyframes cf-arrive-sweep rather than inventing a second
+                  wait, because two waits at two speeds on one page is the
+                  thing the ladder exists to prevent.
+
+   FOUR GRADIENTS, ONE PER EDGE, for the reason this file has now written
+   three times: CSS gives no control over the dash-to-gap ratio of
+   border-style: dashed and the four line types ARE ratios. 4 on / 2 off is
+   2-1 and 1 on / 4 off is 1-4 — the same numbers as .cf-field__input
+   [disabled] and .cf-arrive__plate. Change one, change all three. They land
+   on the BORDER box because .cf-btn already sets background-origin:
+   border-box and reserves a 1 px transparent border, so the dashes sit
+   exactly where the resting contour sits and nothing moves by a pixel.
+
+   --glass IS EXCLUDED, and the exclusion is in the selector rather than left
+   to chance. Its edge is a lit rim and not a contour — foundations/
+   materials.html rules that glass is never outlined in black, so a black
+   dashed edge on it would be a claim the material forbids — and the ladder
+   moves a contour. It also has nothing to move for: the one .cf-btn--glass
+   on the site is an <a>, the hero's "Kontakt aufnehmen", and neither
+   `disabled` nor a busy state applies to a link. A glass control that must
+   go unavailable is an --outline control.
+
+   WHICH ATTRIBUTE IS A RULING, not a preference, and it differs by state:
+
+     unavailable  `disabled`. The control is not going to become available on
+                  this page, so there is nothing for a reader to discover by
+                  reaching it, and dropping it out of the tab order is the
+                  honest report. This is the case current guidance reserves
+                  the native attribute for.
+     busy         `aria-disabled="true"` plus `aria-busy="true"`, never
+                  `disabled`. A focused element that is given `disabled`
+                  drops focus to <body> — so a keyboard reader who pressed
+                  the button loses their place at the exact moment the page
+                  starts working. aria-disabled keeps the element focusable
+                  and says the same thing to assistive technology. It blocks
+                  NOTHING on its own: the activation has to be blocked in the
+                  handler, which is why the busy state is documented as a
+                  pair of attributes and a guard clause rather than as a
+                  class.
+
+   Both are matched here so that either attribute draws, whichever a page
+   reaches for. [aria-busy] draws on its own too — it does not depend on
+   aria-disabled being present as well — because a state that renders only
+   when two attributes agree is a state that silently does not render.
+   -------------------------------------------------------------------------- */
+.cf-btn:not(.cf-btn--glass)[disabled],
+.cf-btn:not(.cf-btn--glass)[aria-disabled="true"],
+.cf-btn:not(.cf-btn--glass)[aria-busy="true"] {
+  /* Rung 2. The busy rule below moves these two and nothing else, which is
+     what "one figure, four line types" means in a stylesheet. */
+  --btn-rung-x: repeating-linear-gradient(90deg, var(--border-strong) 0 4px, transparent 4px 6px);
+  --btn-rung-y: repeating-linear-gradient(0deg,  var(--border-strong) 0 4px, transparent 4px 6px);
+  /* Parked, not transitioning: the specular is the plate catching light and
+     an unavailable plate catches none. Equal to the @property initial-value
+     and to the rest value --primary declares, so a browser without
+     @property lands in the same place. */
+  --cf-specular: 150%;
+  background-color: transparent;
+  background-image: var(--btn-rung-x), var(--btn-rung-x), var(--btn-rung-y), var(--btn-rung-y);
+  background-size:
+    100% var(--stroke-1), 100% var(--stroke-1),
+    var(--stroke-1) 100%, var(--stroke-1) 100%;
+  background-position: 0 0, 0 100%, 0 0, 100% 0;
+  background-repeat: no-repeat;
+  /* RESTATED, and this is the trap --solid sets. Inside the @supports block
+     above, --solid clips layer 1 to `text` and paints the label with
+     -webkit-text-fill-color: transparent. Take its foil away without handing
+     the fill back and the label does not go grey — it disappears entirely,
+     which is the bug that block's own comment records having caught twice. */
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: var(--text-secondary);
+  -webkit-text-fill-color: var(--text-secondary);
+  border-color: transparent;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+/* The arrow says the action leads somewhere. It does not, so it neither
+   carries the plate's ink nor keeps the 4 px nudge .cf-btn:hover gives it —
+   an unavailable control that still leans when a pointer crosses it is
+   answering, which is the one thing it must not do. */
+.cf-btn:not(.cf-btn--glass)[disabled] .cf-arrow,
+.cf-btn:not(.cf-btn--glass)[aria-disabled="true"] .cf-arrow,
+.cf-btn:not(.cf-btn--glass)[aria-busy="true"] .cf-arrow {
+  fill: var(--text-secondary);
+  transform: none;
+}
+/* The one variant with no plate: a label over a 1 px rule, so one rung down
+   is one edge changing type, not four appearing. Exactly the drawing
+   .cf-field__input[disabled] makes — one idiom, two components, and now
+   three. The bottom border goes transparent so the gradient is the only
+   line, and the hover thickening below is left with nothing to thicken. */
+.cf-btn.cf-btn--ghost[disabled],
+.cf-btn.cf-btn--ghost[aria-disabled="true"],
+.cf-btn.cf-btn--ghost[aria-busy="true"] {
+  background-image: var(--btn-rung-x);
+  background-size: 100% var(--stroke-1);
+  background-position: 0 100%;
+  border-bottom-color: transparent;
+}
+.cf-btn.cf-btn--ghost[disabled]:hover,
+.cf-btn.cf-btn--ghost[aria-disabled="true"]:hover,
+.cf-btn.cf-btn--ghost[aria-busy="true"]:hover {
+  border-bottom-width: var(--stroke-1);
+  padding-bottom: var(--space-2);
+}
+
+/* BUSY — rung 0, and the light that says it is still happening.
+
+   Two declarations move the figure down two rungs; everything else about the
+   drawing is inherited from the rule above, which is the ladder's rule
+   expressed as a cascade. The band is the arrival ghost's, at the same
+   period and the same measured 0.18 cap, because a wait is a wait wherever
+   it is drawn. */
+.cf-btn:not(.cf-btn--glass)[aria-busy="true"] {
+  --btn-rung-x: repeating-linear-gradient(90deg, var(--border-strong) 0 1px, transparent 1px 5px);
+  --btn-rung-y: repeating-linear-gradient(0deg,  var(--border-strong) 0 1px, transparent 1px 5px);
+  /* The strip the light is allowed into: the edge, whole, with no dash in it.
+     A gradient and not a colour because a mask layer is an image. */
+  --btn-edge: linear-gradient(#000, #000);
+  position: relative;
+  isolation: isolate;
+}
+/* THE LIGHT RUNS ALONG THE CONTOUR, NOT ACROSS THE PLATE, and both halves of
+   that sentence were measured before it was written.
+
+   ACROSS THE PLATE WAS TRIED FIRST — .cf-arrive__ghost's band, at the same
+   --arrive-light-peak, over the whole button. On this component that band
+   crosses TYPE, which is the one thing .cf-arrive__ghost is built never to do:
+   its own note says the light sits above the contours it crosses and the
+   status line is a SIBLING rather than a child for exactly this reason. A
+   button's label is a text node of the button, so there is no sibling to move
+   it to. Composited in sRGB and quantized the way the browser paints it, worst
+   stop over --text-secondary on the page wash:
+
+     band          label       plate       contrast
+     none          72,72,72    207,207,207   5.87:1
+     Weiss  0.18   105,105,105 216,216,216   3.85:1
+     Weiss  0.18   105,105,105 207,207,207   3.52:1   <- band on the label only
+     Glas   0.18    94,101,100 205,212,210   3.96:1
+     Sky    0.18    92, 98,102 203,208,213   3.98:1
+
+   Every frame of it is under the 4.5:1 a label owes, and the worst is the
+   frame where the band has reached the words and not yet the edge. Lowering
+   the peak does not rescue it: the same arithmetic run backwards puts the
+   ceiling at 0.09 — 0.10 renders 4.43:1 and fails, the same integer cliff
+   tokens.css records for the hero's glass — and half the ghost's light spread
+   over a 48 px plate is a band nobody can see.
+
+   SO THE FIGURE IS THE PROGRESS RAIL'S, NOT THE GHOST'S. .cf-progress--
+   indeterminate already answers this exact question one component along — "a
+   ghost line and a lit line is a difference in line TYPE, which is the
+   difference this whole component is built on" — and it answers it in
+   --gradient-foil-ink, the one leg of the family legible on this surface,
+   because a 0.18 light band over an 8 px box "puts almost no ink on the one
+   pixel that is the line". A 1 px contour is that argument at its limit.
+
+   The mask is what confines it. Four layers, the same four the contour above
+   paints, at the same sizes and the same positions — so the band paints on
+   the dashes and nowhere else. The label keeps its full 5.87:1 and the lit
+   dashes measure 5.24:1 against the wash at the ramp's palest stop — Glas 800;
+   Sky 800 is 7.12 and Violett 800 is 8.53 — against the 3:1 a contour owes.
+
+   INSET IS NEGATIVE FOR THE SAME REASON .cf-btn--glass::before's top is:
+   `inset: 0` resolves against the PADDING box, and .cf-btn's contour is
+   painted on the BORDER box (background-origin: border-box, 1 px reserved).
+   Zero would put the mask one pixel inside the dashes it is meant to line up
+   with, on every edge. */
+@supports (mask-image: linear-gradient(#000, #000)) or (-webkit-mask-image: linear-gradient(#000, #000)) {
+  .cf-btn:not(.cf-btn--glass)[aria-busy="true"]::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--stroke-1));
+    z-index: 1;
+    pointer-events: none;
+    /* The foil's ink, in the foil's own order, in a travelling window. The
+       window is the arrival band's — -22 % to +22 % of the sweep, so the pass
+       reads as one crossing and a rest — and the colours are the ink ramp's
+       three 800s, which tokens.css derives as clearing AA at any size across
+       the whole page wash. Nothing here is invented for this component. */
+    background-image: linear-gradient(var(--angle-b),
+        transparent            calc(var(--arrive-sweep) - 22%),
+        var(--glas-800)        calc(var(--arrive-sweep) - 8%),
+        /* arc waypoint, Glas 800 -> Sky 800. See THE ARC in tokens.css. */
+        #33494E                calc(var(--arrive-sweep) - 4%),
+        var(--sky-800)         var(--arrive-sweep),
+        /* arc waypoint, Sky 800 -> Violett 800. */
+        #273650                calc(var(--arrive-sweep) + 4%),
+        var(--violett-800)     calc(var(--arrive-sweep) + 8%),
+        transparent            calc(var(--arrive-sweep) + 22%));
+    -webkit-mask-image: var(--btn-edge), var(--btn-edge), var(--btn-edge), var(--btn-edge);
+    mask-image: var(--btn-edge), var(--btn-edge), var(--btn-edge), var(--btn-edge);
+    -webkit-mask-size:
+      100% var(--stroke-1), 100% var(--stroke-1),
+      var(--stroke-1) 100%, var(--stroke-1) 100%;
+    mask-size:
+      100% var(--stroke-1), 100% var(--stroke-1),
+      var(--stroke-1) 100%, var(--stroke-1) 100%;
+    -webkit-mask-position: 0 0, 0 100%, 0 0, 100% 0;
+    mask-position: 0 0, 0 100%, 0 0, 100% 0;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    animation: cf-arrive-sweep var(--arrive-period) linear infinite;
+  }
+}
+/* The band on the oklab path, the same way every other gradient in the system
+   takes it; browsers without it keep the sRGB band above. A browser without
+   the mask keeps the ghost contour and loses the light, which is the correct
+   thing to lose: the plate still says the object is not here, and nothing is
+   drawn over the label. */
+@supports ((mask-image: linear-gradient(#000, #000)) or (-webkit-mask-image: linear-gradient(#000, #000)))
+      and (background: linear-gradient(in oklab, red, blue)) {
+  .cf-btn:not(.cf-btn--glass)[aria-busy="true"]::after {
+    background-image: linear-gradient(var(--angle-b) in oklab,
+        transparent            calc(var(--arrive-sweep) - 22%),
+        var(--glas-800)        calc(var(--arrive-sweep) - 8%),
+        /* arc waypoint, Glas 800 -> Sky 800. See THE ARC in tokens.css. */
+        #33494E                calc(var(--arrive-sweep) - 4%),
+        var(--sky-800)         var(--arrive-sweep),
+        /* arc waypoint, Sky 800 -> Violett 800. */
+        #273650                calc(var(--arrive-sweep) + 4%),
+        var(--violett-800)     calc(var(--arrive-sweep) + 8%),
+        transparent            calc(var(--arrive-sweep) + 22%));
+  }
+}
+/* The ghost variant has ONE edge, so it gets one mask layer and not four —
+   otherwise the light travels round a box three sides of which are not drawn.
+   The inset is one-sided for the matching reason: this variant's border box
+   and padding box differ on the bottom alone, which is where its 1 px lives. */
+.cf-btn.cf-btn--ghost[aria-busy="true"]::after {
+  inset: 0 0 calc(-1 * var(--stroke-1)) 0;
+  -webkit-mask-image: var(--btn-edge);
+  mask-image: var(--btn-edge);
+  -webkit-mask-size: 100% var(--stroke-1);
+  mask-size: 100% var(--stroke-1);
+  -webkit-mask-position: 0 100%;
+  mask-position: 0 100%;
+}
+
+/* 50 % is the designed still — the band at the middle of the plate, the same
+   rest the arrival ghost and the swinging foil land on. The ghost stays:
+   nothing is moving, and the thing is still not done. */
+@media (prefers-reduced-motion: reduce) {
+  .cf-btn:not(.cf-btn--glass)[aria-busy="true"]::after {
+    animation: none;
+    --arrive-sweep: 50%;
+  }
+}
+/* Paper has no waits in it, and no unavailable controls either — but the two
+   print differently. The ghost contour PRINTS, because it is a true statement
+   about the control on the page that was printed; the light does not, because
+   it is the half of the state that is still happening. Same split as
+   .cf-arrive__ghost. */
+@media print {
+  .cf-btn:not(.cf-btn--glass)[aria-busy="true"]::after { display: none; }
+}
+/* Forced colours drop every background image, which here is the whole
+   contour — so the four edge gradients are redrawn as a border, the only
+   paint that survives. GrayText is the mode's own word for an unavailable
+   control and is the one place in this file where a system colour says
+   something the palette cannot. The band goes for the same reason it goes on
+   the arrival ghost: it is a background image and there is nothing left of
+   it to see. */
+@media (forced-colors: active) {
+  .cf-btn:not(.cf-btn--glass)[disabled],
+  .cf-btn:not(.cf-btn--glass)[aria-disabled="true"],
+  .cf-btn:not(.cf-btn--glass)[aria-busy="true"] {
+    border: var(--stroke-1) dashed GrayText;
+    color: GrayText;
+    -webkit-text-fill-color: GrayText;
+  }
+  /* One edge here too. The shorthand above draws four, which on the variant
+     that has no plate is a box the reader has never seen before appearing at
+     the moment the control goes unavailable — the ladder's rule broken by a
+     media query. */
+  .cf-btn.cf-btn--ghost[disabled],
+  .cf-btn.cf-btn--ghost[aria-disabled="true"],
+  .cf-btn.cf-btn--ghost[aria-busy="true"] {
+    border: 0;
+    border-bottom: var(--stroke-1) dashed GrayText;
+  }
+  .cf-btn:not(.cf-btn--glass)[disabled] .cf-arrow,
+  .cf-btn:not(.cf-btn--glass)[aria-disabled="true"] .cf-arrow,
+  .cf-btn:not(.cf-btn--glass)[aria-busy="true"] .cf-arrow { fill: GrayText; }
+  .cf-btn:not(.cf-btn--glass)[aria-busy="true"]::after { display: none; }
+}
+
+/* --------------------------------------------------------------------------
    LOGO LOCKUP
    The logo sits on a black plate in the top-left. A plate, not a pill: the
    export draws it 152.09 x 35.25 at rx="2", where a pill would be rx 17.6.

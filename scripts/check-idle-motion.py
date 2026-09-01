@@ -123,10 +123,22 @@ IDLE_MARK = "data-cf-idle"
 #                          one thing on the page whose whole message is "this
 #                          has not stopped yet". Pausing it while it is off
 #                          screen would be pausing the only honest report.
+#   [aria-busy="true"]     the button's busy band, and the same argument as the
+#                          rail one component along: aria-busy is written when
+#                          a control starts working and removed when it stops,
+#                          so the animation cannot outlive the wait. It is also
+#                          the one entry here that could not be a class. The
+#                          button is furniture — .cf-btn ships on every page in
+#                          the tree — so exempting the ELEMENT would exempt
+#                          every perpetual animation a button ever declares.
+#                          Exempting the STATE exempts the four lines that
+#                          declare it and nothing else, which is why keys()
+#                          reads attributes.
 #
-# Both are also states a page enters, not furniture it ships: neither exists in
-# the markup of a page at rest. The landing page carries neither.
-TRANSIENT = (".cf-arrive__ghost", ".cf-progress__rail", ".cf-progress--indeterminate")
+# All three are also states a page enters, not furniture it ships: none exists
+# in the markup of a page at rest. The landing page carries none of them.
+TRANSIENT = (".cf-arrive__ghost", ".cf-progress__rail", ".cf-progress--indeterminate",
+             '[aria-busy="true"]')
 
 
 def strip_comments(text):
@@ -270,21 +282,40 @@ def pauses(block):
 
 
 def keys(selector):
-    """The class / element keys a selector rests on, for matching a pause to it.
+    """The class / attribute keys a selector rests on, for matching a pause to it.
 
     The rightmost compound is what identifies the thing being animated, and a
     pause is written beside it rather than as a character-for-character copy of
     the selector — the same reason check-print-fixed.py matches on the key
     instead of the whole thing.
+
+    ATTRIBUTES ARE KEYS TOO, and they were not until a state needed to be named.
+    A class names an OBJECT; some of what this file has to talk about are
+    STATES, and a state's name is an attribute — `.cf-btn[aria-busy="true"]` is
+    the busy button and `.cf-btn` is every button on the site. Reading classes
+    only, the two are the same key, so the TRANSIENT list below could not say
+    "the busy band" without saying "any perpetual animation a button ever
+    declares", which is precisely the hand-maintained scope this file's header
+    warns about. Attribute keys let the exemption be exact.
+
+    Adding keys can only widen an intersection, never narrow one: every use
+    below is `sel_keys & …`, so no rule that passed before this can fail after
+    it, and no rule that failed can start passing except through a TRANSIENT
+    entry somebody wrote on purpose.
     """
     # :is() and :where() are unwrapped rather than dropped: this file's own
     # pause rules are written as one grouped `:is(...)` beside the declaration
     # they answer, and a regex that ate the parentheses ate the classes with
     # them — the pause was there and the check could not see it.
     sel = re.sub(r"::?(?:is|where|not|has)\(", " ", selector)
+    # The attribute keys come out BEFORE the pseudo-class sweep below, which
+    # eats bracketed text along with everything else it does not recognise.
+    out = set()
+    for attr, _q, val in re.findall(r"\[\s*([A-Za-z0-9_:.-]+)\s*(?:([~^|*$]?=)\s*"
+                                    r"\"?([^\"\]]*)\"?)?\s*\]", sel):
+        out.add('[%s="%s"]' % (attr, val) if val else "[%s]" % attr)
     sel = re.sub(r"::?[a-z-]+(\([^)]*\))?", " ", sel)
     sel = sel.replace(",", " ").replace("(", " ").replace(")", " ")
-    out = set()
     for part in sel.split():
         for cls in re.findall(r"\.([A-Za-z0-9_-]+)", part):
             out.add("." + cls)
