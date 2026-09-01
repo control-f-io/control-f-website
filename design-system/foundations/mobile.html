@@ -454,6 +454,42 @@
       to the decimal.
     </div>
     <div class="docs-note">
+      <strong>A sixth overflow, in a component the earlier root-size sweep never
+      drew.</strong> <code>.cf-plot</code>'s five key labels — the short mono words
+      under each column — carry <code>overflow-wrap: normal; hyphens: manual</code>,
+      the opt-out documented above the rule in <code>components.css</code> so a
+      long key wraps at a chosen point instead of being cut mid-word. The opt-out
+      was given to the component, not to every label on it: <code>components/plot.html</code>'s
+      own demo was written with <code>&amp;shy;</code> in "Verfüg&shy;barkeit" and
+      "Lebens&shy;dauer" from the start, but the plot added to
+      <code>blog-artikel.html</code> shipped its five keys as plain words —
+      "Einheit", "Zeitzone", "Abtastung", "Modell" carry no break point at all,
+      and a label with none does not wrap, it runs past its 32 px column.
+      <br><br>
+      Measured before the fix, 320 px viewport, 24 px root default, Chromium and
+      WebKit identically: the last column's key, "Modell", rendered as one
+      unbroken word 60.4 px wide inside a box 32 px wide, its right edge landing
+      at 336 px against a 320 px viewport —
+      <code>document.documentElement.scrollWidth</code> read 336. At the 16 px
+      default the same column reads 308 px, inside the frame, which is why the
+      earlier sweep at the system's base root size never found it: the geometry
+      of <code>.cf-plot</code> itself is entirely px-based
+      (<code>--plot-u: clamp(16px, 3.4vw, 32px)</code>, already fixed for exactly
+      this reason — see the isometric-plot note above) and does not move with the
+      reader's setting; <code>--text-xs</code>, the label's font size, does.
+      <br><br>
+      Fixed the same way the sibling demo already had it: soft hyphens on the
+      four keys long enough to need one — "Ein&shy;heit", "Zeit&shy;zone",
+      "Ab&shy;tastung", "Mo&shy;dell" — with the matching entries added to
+      <code>design-system/i18n/en.json</code> so the English edition carries the
+      same break points. Re-measured, both engines, 320/360/390/414 at root
+      16/20/24: <code>scrollWidth</code> equals <code>clientWidth</code> at every
+      cell, 24 readings, zero overflow. "Modell" now wraps to "Mo-" over "dell"
+      and its widest line reads 316 px — inside the 320 px frame with 4 px to
+      spare, which is why this is the one root size worth re-checking if a sixth
+      key or a longer translation is ever added here.
+    </div>
+    <div class="docs-note">
       <strong>A row that wraps must not be justified, and the logo wall was.</strong>
       <code>justify-content: space-between</code> justifies <em>every</em> line, and the
       last line of a wrapped row is the one line that must never be justified: it holds
