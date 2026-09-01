@@ -419,11 +419,27 @@
       max-content</code>, ignoring the containing block entirely. Isolated: a
       <code>fit-content</code> heading in a 100 px box measured 277.84 px on both
       engines; the same heading as <code>fit-content(100%)</code> measured 100.
-      <code>base.css</code> now uses the function form with an explicit stretch basis,
-      which is what the class's own comment described all along and what the bare
-      keyword never did. Re-measured on <code>expertise</code>, both engines,
-      320/360/390/414 at root 16/20/24: zero overflow. Both lanes the sweep opened are
-      now closed.
+      <code>base.css</code> took the function form on that measurement. Re-measured on
+      <code>expertise</code>, both engines, 320/360/390/414 at root 16/20/24: zero
+      overflow.
+      <br><br>
+      <strong>The overflow was fixed and the reason was wrong, and the difference cost
+      the foil.</strong> <code>fit-content()</code> is css-sizing-4 <em>grid track
+      sizing</em>; no engine implements it as a value of a box property, and
+      <code>CSS.supports("width", "fit-content(100%)")</code> is false on Chromium 141.
+      The declaration was guaranteed-invalid and dropped, so what actually shipped — and
+      what measured 100 px in a 100 px box, and what closed this overflow — was
+      <code>width: auto</code>. A dropped declaration and a working clamp are the same
+      number when the box <em>is</em> the containing block, which was the only case the
+      isolated test had. The 100 px reading was real; it was evidence for the wrong
+      thing. The overflow stayed closed and the clip box the same block sizes did not:
+      every page header on the site painted the first fifth of a four-stop ramp until
+      <a href="colors.html#foil">Colour</a> re-measured it. The cap is a
+      <code>max-width: max-content</code> now, the card titles are excluded from it
+      because <code>cf-stream.js</code> writes their text, and
+      <code>scripts/check-foil-clip.py</code> fails any box property in the shipping CSS
+      that takes <code>fit-content()</code>. Both lanes the sweep opened are still
+      closed; the third one is now gated rather than argued.
     </div>
     <div class="docs-note">
       <strong>A fourth time: fourteen became fifteen — and the count now has a
@@ -452,6 +468,42 @@
       markup — so its row carries the same three numbers. The re-run reproduced
       the closest pair recorded below, 24.1 px on <code>impressum</code> at 375,
       to the decimal.
+    </div>
+    <div class="docs-note">
+      <strong>A sixth overflow, in a component the earlier root-size sweep never
+      drew.</strong> <code>.cf-plot</code>'s five key labels — the short mono words
+      under each column — carry <code>overflow-wrap: normal; hyphens: manual</code>,
+      the opt-out documented above the rule in <code>components.css</code> so a
+      long key wraps at a chosen point instead of being cut mid-word. The opt-out
+      was given to the component, not to every label on it: <code>components/plot.html</code>'s
+      own demo was written with <code>&amp;shy;</code> in "Verfüg&shy;barkeit" and
+      "Lebens&shy;dauer" from the start, but the plot added to
+      <code>blog-artikel.html</code> shipped its five keys as plain words —
+      "Einheit", "Zeitzone", "Abtastung", "Modell" carry no break point at all,
+      and a label with none does not wrap, it runs past its 32 px column.
+      <br><br>
+      Measured before the fix, 320 px viewport, 24 px root default, Chromium and
+      WebKit identically: the last column's key, "Modell", rendered as one
+      unbroken word 60.4 px wide inside a box 32 px wide, its right edge landing
+      at 336 px against a 320 px viewport —
+      <code>document.documentElement.scrollWidth</code> read 336. At the 16 px
+      default the same column reads 308 px, inside the frame, which is why the
+      earlier sweep at the system's base root size never found it: the geometry
+      of <code>.cf-plot</code> itself is entirely px-based
+      (<code>--plot-u: clamp(16px, 3.4vw, 32px)</code>, already fixed for exactly
+      this reason — see the isometric-plot note above) and does not move with the
+      reader's setting; <code>--text-xs</code>, the label's font size, does.
+      <br><br>
+      Fixed the same way the sibling demo already had it: soft hyphens on the
+      four keys long enough to need one — "Ein&shy;heit", "Zeit&shy;zone",
+      "Ab&shy;tastung", "Mo&shy;dell" — with the matching entries added to
+      <code>design-system/i18n/en.json</code> so the English edition carries the
+      same break points. Re-measured, both engines, 320/360/390/414 at root
+      16/20/24: <code>scrollWidth</code> equals <code>clientWidth</code> at every
+      cell, 24 readings, zero overflow. "Modell" now wraps to "Mo-" over "dell"
+      and its widest line reads 316 px — inside the 320 px frame with 4 px to
+      spare, which is why this is the one root size worth re-checking if a sixth
+      key or a longer translation is ever added here.
     </div>
     <div class="docs-note">
       <strong>A row that wraps must not be justified, and the logo wall was.</strong>

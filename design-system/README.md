@@ -357,6 +357,8 @@ python3 scripts/check-count-atom.py            # a section head taken off the la
 python3 scripts/check-count-atom.py -v         # every section header row, and the ramp it is on
 python3 scripts/check-field-family.py          # every field control is accounted for in the family's shared rules
 python3 scripts/check-field-family.py -v       # every shared rule and the controls it names
+python3 scripts/check-foil-clip.py             # the foil's clip box is capped at its ink, and no box property takes fit-content()
+python3 scripts/check-foil-clip.py -v          # every declaration considered
 python3 scripts/check-lime-flat.py             # every flat lime area sits on one of the light layer's four boundaries
 python3 scripts/check-lime-flat.py --fix       # rewrite the census in foundations/light.html
 python3 scripts/check-lime-flat.py -v          # every area paint examined, and the argument that covers it
@@ -372,7 +374,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The twenty-five checks the system enforces rather than documents, run by CI on every push and
+The twenty-six checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number

@@ -569,6 +569,24 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-lime-flat.py
 
+      # The foil's clip box, and the class of fault under it: a VALUE NO ENGINE
+      # IMPLEMENTS. background-clip:text clips a background painted across the
+      # whole element box, so the cap that pulls that box back to the ink is
+      # what decides whether the far end of the ramp is ever painted. It was
+      # written `width: fit-content(100%)` — a grid track-sizing function, on a
+      # box property, guaranteed-invalid and dropped — and the measurement that
+      # chose it was a heading in a box the same width as the containing block,
+      # where a dropped width and a working clamp give the same number. The
+      # overflow it was fixing stayed fixed, by `width: auto`; the clip box did
+      # not come back, and three pages went on documenting it as fixed. Every
+      # page header on the site painted the first fifth of a four-stop ramp:
+      # 23.6 / 21.1 / 16.7 / 14.8 % of ink over box at 1280. Nothing renders
+      # wrong — a foil that never reaches Violett is a legible headline — which
+      # is exactly the shape of failure the gates in this file exist for.
+      - name: Foil clip box
+        if: '!cancelled()'
+        run: python3 scripts/check-foil-clip.py
+
       - name: Grid tracks
         if: '!cancelled()'
         run: python3 scripts/check-grid-tracks.py
