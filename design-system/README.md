@@ -357,7 +357,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The sixteen checks the system enforces rather than documents, run by CI on every push and
+The eighteen checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step.
 
