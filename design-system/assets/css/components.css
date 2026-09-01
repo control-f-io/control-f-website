@@ -851,10 +851,26 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      both now, so both copies are gone. See base.css, ::selection. */
 }
 
-/* Both of these hand the label back a real colour. Ink on paper has no plate
-   to sit on, and forced-colors has already decided what a button looks like. */
+/* All three of these hand the label back a real colour. Ink on paper has no
+   plate to sit on, forced-colors has already decided what a button looks
+   like, and a reader who asked for more contrast asked for the top of the
+   range rather than a ramp whose floor happens to be high.
+
+   EACH DOOR NAMES ALL THREE STATES, for the reason the @supports block above
+   names them together: the shorthand's hover restates the whole layer list
+   at a higher specificity than a bare .cf-btn--solid, so a door written for
+   the resting button alone is beaten on :hover and :focus-visible and the
+   foil clip comes back under it. The two older doors used to be written that
+   way. It never showed, because the fill each door hands back is declared
+   later in source than the transparent one and the hover rule never touches
+   the fill — a label that stays legible by source order rather than by
+   statement, which is exactly the dependency the comment above says this
+   bug comes back through. scripts/check-foil-doors.py holds every door to
+   every state the context clips in. */
 @media print {
-  .cf-btn--solid {
+  .cf-btn--solid,
+  .cf-btn--solid:hover,
+  .cf-btn--solid:focus-visible {
     background: none;
     color: var(--cf-schwarz);
     -webkit-text-fill-color: var(--cf-schwarz);
@@ -880,12 +896,33 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   }
 }
 @media (forced-colors: active) {
-  .cf-btn--solid {
+  .cf-btn--solid,
+  .cf-btn--solid:hover,
+  .cf-btn--solid:focus-visible {
     background: none;
     color: ButtonText;
     -webkit-text-fill-color: ButtonText;
   }
   .cf-btn--solid .cf-arrow { fill: ButtonText; }
+}
+/* The plate stays and only the image goes — background-image: none rather
+   than background: none — because this door, unlike paper and forced
+   colours, still has a black plate to keep: Weiss on Schwarz is 21:1 at rest
+   and 16.5:1 on the grey-800 hover, against the foil's own 11.9 and 9.3. The
+   arrow takes the same ink because --violett-300 was the ramp's own last
+   stop, and there is no ramp. See base.css, THE FOURTH DOOR, for why the
+   answer is solid ink and not a darker foil. */
+@media (prefers-contrast: more) {
+  .cf-btn--solid,
+  .cf-btn--solid:hover,
+  .cf-btn--solid:focus-visible {
+    background-image: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    color: var(--text-inverse);
+    -webkit-text-fill-color: var(--text-inverse);
+  }
+  .cf-btn--solid .cf-arrow { fill: var(--text-inverse); }
 }
 
 /* The one button that goes back to square, because it has no plate: it is a
