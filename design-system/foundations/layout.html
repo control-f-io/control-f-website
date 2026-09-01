@@ -15,6 +15,16 @@
      first so the demo still shows twelve columns rather than scrolling. */
   @media (max-width:640px) { .demo-grid { gap:var(--space-1); } }
   .demo-grid span { background:rgba(225,255,0,.55); border:1px solid var(--border-strong); padding:var(--space-4) 0; text-align:center; font-family:var(--font-mono); font-size:var(--text-xs); }
+  /* docs.css keeps a spec table's first column on one line, which is right for
+     the identifiers every other table puts there and wrong for this one: its
+     first column holds file PATHS, and the longest of them —
+     prototypes/expertise-scroll.html at 32 characters — held the table 60 px
+     wider than the docs column between a 901 and a ~1000 px viewport, where the
+     sidebar has just come back. It scrolled inside itself rather than pushing
+     the page, so nothing was lost; a path that wraps at its slash costs nothing
+     and the band is gone. Measured with the sidebar in, at 901: 578 px of table
+     in 518 of column, before. */
+  #outside-register td:first-child { white-space:normal; }
   .demo-space { display:flex; align-items:flex-end; gap:var(--space-4); flex-wrap:wrap; }
   /* The ramp, not flat lime: nothing in this system fills an area with lime
      edge to edge. foundations/colors.html#lime-is-never-flat */
@@ -559,23 +569,40 @@
       pays for it</a>
     </div>
     <div class="docs-note">
-      <strong>What sits outside the register, in full.</strong> The register covers the three
-      stylesheets that ship. Five width queries live outside it — one in <code>docs.css</code>,
-      three in per-page <code>&lt;style&gt;</code> blocks, one in a prototype — and three of the five
-      repeat a figure from the table above. None is a bug: each query is correct and out of scope
-      by design. But a scope boundary that lists some of its contents is the same failure as a
-      register that lists some of its thresholds, so here is all of it. (The two
-      <code>prefers-reduced-motion</code> queries in <code>prototypes/</code> are not thresholds
-      and are not listed.)
+      <strong>What sits outside the register, in full.</strong> The register covers the four
+      stylesheets that ship. Everything else that changes shape at a width or a height is below,
+      in three tiers: per-page <code>&lt;style&gt;</code> blocks, which
+      <code>scripts/check-local-thresholds.py</code> governs as their own register;
+      <code>docs.css</code>, the documentation chrome; and <code>prototypes/</code>, declared
+      not-yet-system by the README. None is a bug: each query is correct and out of the register's
+      scope by design. But a scope boundary that lists some of its contents is the same failure as
+      a register that lists some of its thresholds — so this table is checked against a sweep of
+      the tree, in both directions, by that same script. The count is whatever it prints.
+      <br><br>
+      <strong>It had drifted to five of twelve, and the miss worth naming is the last row.</strong>
+      This table used to excuse it in a parenthesis: <em>the <code>prefers-reduced-motion</code>
+      queries in <code>prototypes/</code> are not thresholds and are not listed.</em> True of the
+      queries that sentence was written about, false of this one, which asks a
+      <code>min-width</code> inside a mode query. <strong>A mode query that carries a width is
+      still a threshold</strong> — the layout changes shape at 820 px whatever else the prelude
+      also asks — and a rule that sorts queries by their first feature will keep missing that
+      shape. The sweep behind this table now reads dimensions from anywhere in a prelude.
     </div>
-    <table class="docs-table">
+    <table class="docs-table" id="outside-register">
       <thead><tr><th>Where</th><th>Query</th><th>Collides with</th></tr></thead>
       <tbody>
+        <tr><td><code>patterns/expertise.html</code></td><td><code>@container layout (min-width: 56rem)</code> — the step takes its two columns</td><td>the <code>56rem</code> container row above — the <strong>same</strong> threshold, adopted rather than re-derived. The page-local rule only scopes what the system's own fold already decides</td></tr>
+        <tr><td><code>patterns/expertise.html</code></td><td><code>@media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem)</code> — the pinned stage</td><td>the <code>64rem</code> and <code>45rem</code> viewport rows above — the landing page's pin gate, adopted for the same reason. Was <code>820px</code>, which cropped the stage; → <code>scripts/check-local-thresholds.py</code></td></tr>
+        <tr><td><code>patterns/expertise.html</code></td><td><code>@media (max-height: 53.75rem)</code> — <code>--field-unit</code> steps 6rem → 4.5rem</td><td>nothing in the register. Shares its figure with the prototype it came from, one row below</td></tr>
         <tr><td><code>docs.css</code></td><td><code>@media (max-width: 900px)</code> — collapses the sidebar</td><td>the <code>56.25rem</code> viewport row at a 16 px default, same type — but it has a consequence, see below. Still <code>px</code>, deliberately: converting it would imply the register governs the documentation chrome</td></tr>
         <tr><td><code>foundations/materials.html</code></td><td><code>@media (max-width:780px)</code></td><td>the <code>48.75rem</code> viewport row at a 16 px default, <strong>same type</strong>. Now a genuine divergence rather than a duplicate: this one does not follow the reader's font size</td></tr>
+        <tr><td><code>foundations/transitions.html</code></td><td><code>@media (max-width: 900px)</code> — the transition demos stack</td><td>the <code>56.25rem</code> viewport row <em>and</em> <code>docs.css</code>'s sidebar, at a 16 px default. Unrelated to both, and the second copy of 900 in the documentation chrome</td></tr>
         <tr><td><code>foundations/iconography.html</code></td><td><code>@media (max-width: 48rem)</code> — a <strong>viewport</strong> query</td><td>the <strong>container</strong> <code>48rem</code> row — different type</td></tr>
-        <tr><td><code>foundations/layout.html</code></td><td><code>@media (max-width:640px)</code> — the demo grid's gap</td><td>no other <em>query</em>; but see the crossovers below — 640 is not unused as a number</td></tr>
+        <tr><td><code>foundations/illustration.html</code></td><td><code>@media (max-width:640px)</code> — the plate folds to one column</td><td>this page's own demo-grid 640, one row below, and the consent dialog's crossover further down. Three unrelated 640s</td></tr>
+        <tr><td><code>foundations/layout.html</code></td><td><code>@media (max-width:640px)</code> — the demo grid's gap</td><td>no other <em>query</em> in shipping CSS; but see the row above and the crossovers below — 640 is not unused as a number</td></tr>
         <tr><td><code>prototypes/werte-scroll.html</code></td><td><code>@media (max-width:820px)</code></td><td>the <code>51.25rem</code> viewport row at a 16 px default — and that row is <em>new</em>, see the note directly below</td></tr>
+        <tr><td><code>prototypes/expertise-scroll.html</code></td><td><code>@media screen and (prefers-reduced-motion: no-preference) and (min-width: 820px)</code></td><td><code>werte-scroll.html</code>'s 820 above, same figure. This is the gate <code>patterns/expertise.html</code> inherited and has since dropped — the prototype keeps it, correctly, because reconciling a prototype is not the job</td></tr>
+        <tr><td><code>prototypes/expertise-scroll.html</code></td><td><code>@media (max-height: 53.75rem)</code></td><td>the pattern page's own <code>53.75rem</code>, three rows up: one number that crossed from prototype into pattern intact</td></tr>
       </tbody>
     </table>
     <div class="docs-note">
