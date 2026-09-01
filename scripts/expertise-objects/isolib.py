@@ -466,6 +466,86 @@ def taper(x, y, z, r0, r1, h, top=FACE_TOP, side=FACE_R):
     return out
 
 
+def cone(x, y, z, axis, length, r0, r1, side=None, cap='auto', cap_far=None, far=True):
+    """A frustum along one lattice axis: radius r0 at (x, y, z), the far end,
+    and r1 at the near end `length` along the axis. taper() is this for the
+    vertical axis, where the two silhouette lines are verticals; along +x or
+    +y they are the two tangents from the projected APEX to the projected base
+    circle, and the same two parameters cut the top circle, because a
+    generator is a straight line through the apex and the projection is
+    affine. Solved on the ellipse itself: with u(t) = c0 + cos t * a + sin t * b
+    the tangent condition (u - q) x u' = 0 reduces to
+    cos t * (w x b) - sin t * (w x a) = -(a x b), w = c0 - q, which is one
+    cosine. r0 == r1 falls through to cyl().
+
+    THE FAR END IS ALWAYS THE ARC, whether or not the far cap is painted: a
+    frustum butted onto a cylinder shares that cylinder's cap, so `far=False`
+    drops only the ellipse — a chord across the end would be exactly the bar
+    cyl()'s own docstring was written against. An aircraft is the reason this
+    exists: a fuselage that ends in a flat cap pointed at the reader is a drum,
+    whatever is drawn on it."""
+    if abs(r0 - r1) < 1e-9:
+        return cyl(x, y, z, axis, length, r0, side=side, cap=cap, cap_far=cap_far,
+                   far=far, crown=False)
+    a, b = _PLANE[axis]
+    s = _STEP[axis]
+    if cap == 'auto':
+        cap = _CAP[axis]
+    base = side or _SIDE[axis]
+    c0 = p_(x, y, z)
+    c1 = p_(x + s[0] * length, y + s[1] * length, z + s[2] * length)
+    k = r0 / (r0 - r1)
+    q = (c0[0] + (c1[0] - c0[0]) * k, c0[1] + (c1[1] - c0[1]) * k)
+
+    def x_(p, s_):
+        return p[0] * s_[1] - p[1] * s_[0]
+
+    ar, br = (a[0] * r0, a[1] * r0), (b[0] * r0, b[1] * r0)
+    w = (c0[0] - q[0], c0[1] - q[1])
+    wa, wb, ab = x_(w, ar), x_(w, br), x_(ar, br)
+    rr = math.hypot(wa, wb)
+    val = max(-1.0, min(1.0, -ab / rr))
+    psi = math.atan2(wa, wb)
+    t1 = math.degrees(-psi + math.acos(val))
+    t2 = math.degrees(-psi - math.acos(val))
+    p01, p02 = _on(c0, a, b, r0, t1), _on(c0, a, b, r0, t2)
+    p11, p12 = _on(c1, a, b, r1, t1), _on(c1, a, b, r1, t2)
+
+    def _away(e):
+        m = _on(c0, a, b, r0, (t2 + e) / 2.0)
+        return math.hypot(m[0] - c1[0], m[1] - c1[1])
+
+    end = max((t1, t1 + 360.0, t1 - 360.0), key=_away)
+    _, _, arc = _arc(c0, a, b, r0, t2, end)
+    tube = ('M' + ' '.join(f'{f(p[0])} {f(p[1])}' for p in (p01, p11, p12, p02)) + arc + 'Z')
+    _PTS.extend([p01, p02, p11, p12])
+    rx0, ry0, ang0 = _ell(a, b, r0)
+    rx1, ry1, ang1 = _ell(a, b, r1)
+    out = []
+    if far:
+        out.append(_ell_tag(c0, rx0, ry0, ang0, cap_far or base))
+    out.append(face(tube, base))
+    if cap:
+        out.append(_ell_tag(c1, rx1, ry1, ang1, cap))
+    return out
+
+
+def wheel(x, y, z, r, w=0.08, axis='y'):
+    """A tyre: a short cylinder ending on the near flank — at `y` for axis 'y',
+    a machine running down +x; at `x` for axis 'x', one running down +y — with
+    its hub on the near cap. A wheel used to be a flat disc, which reads as a
+    washer leaning against the body until it has a tread. Only the near flank
+    is drawn on a low-slung machine, because its far wheels are behind its own
+    frame from this camera; where the body is carried clear of them, as an
+    aircraft's is, both are drawn and both show."""
+    if axis == 'y':
+        out = cyl(x, y - w, z, 'y', w, r)
+    else:
+        out = cyl(x - w, y, z, 'x', w, r)
+    out.append(disc(x, y, z, r * 0.34, axis, FACE_TOP))
+    return out
+
+
 # The half-chord of a blade, as (fraction of span, half-chord in lattice units):
 # a narrow root, the shoulder a fifth of the way out, and a tip that is still
 # two contours wide at the size these objects ship at. Under about 0.016 the

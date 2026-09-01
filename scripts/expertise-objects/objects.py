@@ -28,7 +28,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from isolib import (  # noqa: E402
     p_, line, box, plate, face, poly, quad_t, quad_x, quad_y, seams, slab_x, slab_y,
-    disc, hoop, cyl, taper, orbit, rotor, light_quad, light_disc,
+    disc, hoop, cyl, cone, wheel, taper, orbit, rotor, light_quad, light_disc,
     light_nodes_quad, light_nodes_disc, lime_span_quad, lime_span_disc,
     assemble, bbox, reset,
     FACE_TOP, FACE_L, FACE_R, PLATE_TOP, PLATE_L, PLATE_R,
@@ -569,17 +569,9 @@ def container(x, y, z, top=FACE_TOP):
     return out
 
 
-def wheelset(x, y, z, r, axis='y'):
-    """A wheel and its hub, on the near flank. Only the near flank: the far one
-    is behind the body it carries, and drawing it there puts two grey discs in
-    a place the reader cannot see a wheel from.
-
-    `axis` is the plane the disc lies in — 'y' for a machine running down +x,
-    'x' for one running down +y. It was hard-coded 'y' once, and the one +y
-    machine in the yard inherited it: the aircraft taxied on wheels turned 90
-    degrees across its own axis, three casters under a machine whose nose
-    points at the reader."""
-    return [disc(x, y, z, r, axis, ACCENT), disc(x, y, z, r * 0.34, axis, FACE_TOP)]
+# wheelset() is gone: a wheel is isolib.wheel(), a tyre with a tread rather
+# than a flat disc, and the aircraft's are drawn on both sides because its
+# body is carried clear of them — see the note on that helper.
 
 
 def flotten():
@@ -741,7 +733,7 @@ def flotten():
     # painted across the farther one's rim and the two read as merged. The
     # wagon's four are symmetric about the DECK's centre, -0.05, not about 0.
     for xx in (-2.68, -2.36, -1.5, -1.18, -0.65, -0.33, 0.23, 0.55):
-        s1 += wheelset(xx, RY + 0.24, 0.4, 0.15)
+        s1 += wheel(xx, RY + 0.24, 0.4, 0.15, 0.06)
     # THE ENDS ARE CLOSED. The loco's front pair sits under its nose (at -2.57
     # the deck ran 0.2 past the tyre), and each open deck end carries a
     # headstock down to the axle line: without one, the end of a frame is a
@@ -771,86 +763,65 @@ def flotten():
     # on the two different lattice axes, which is what stops the yard reading as
     # a shelf.
     #
-    # THE NOSE POINTS +y, AT THE YARD, and that is a projection decision before
-    # it is a composition one. cyl() closes its FAR end with the true silhouette
-    # arc and its near end with a flat cap ellipse, so whichever end faces the
-    # reader is the flat one — nose-away, the tail was a barrel end with a fin
-    # behind it, and no amount of fin fixed it. Nose-toward, the flat cap IS the
-    # nose cap and the arc does the tail cone for free.
+    # THE NOSE POINTS +y, AT THE YARD, AND IT IS A CONE. It was a cylinder with
+    # a flat cap pointed at the reader and a second, smaller cap on top of that,
+    # which is a drum however it is dressed; the fuselage is a barrel with a
+    # frustum at each end now (isolib.cone), the tail one closing to a point
+    # under the fin and the nose one to the radome. 1 : 5 body to length, wing
+    # the biggest surface on the machine, as before.
     #
-    # 5 : 1, NOT 3 : 1. The fuselage was first drawn fat enough to keep a
-    # container in, and it swallowed the wing: at r 0.28 the tube is 31 px across
-    # against a wing 4 px thick, and this camera then lays the one over the
-    # other. The body is a fifth of its own length here and the wing is the
-    # biggest surface on the machine, which is the proportion that reads.
-    PX, TAIL, FL = 2.0, -2.4, 2.1
-    FZ, FR = 0.95, 0.2
-    # A STRUT STOPS AT ITS AXLE. Run to the apron like a table leg, it came out
-    # below the wheel and past it on both sides, and the gear read as a post with
-    # a washer hung on it. From the wheel's centre up, the wheel is the foot.
-    # AND THE WHEELS ROLL THE WAY THE MACHINE DOES: this is the yard's one +y
-    # machine, so its axles lie along x — wheelset's default served the
-    # aircraft three of the train's wheels, casters turned 90 deg across the
-    # taxi direction, and nothing else in the drawing looked more wrong.
-    # A BARE WHEEL HAS WIDTH. wheelset()'s flat disc serves the train and the
-    # semi because their tyres show as dark slivers half behind a solebar; the
-    # aircraft's hang in the open on their own struts, and a zero-thickness
-    # disc there is a washer leaning on a post — the right plane, no body.
-    # Each wheel is a short drum out the strut's near flank, its hub on the
-    # near cap, and the strut still ends at the axle.
-    def tyre(x0, y, z, w, r):
-        out = cyl(x0, y, z, 'x', w, r, side=ACCENT, cap=ACCENT, cap_far=ACCENT)
-        out.append(disc(x0 + w, y, z, r * 0.34, 'x', FACE_TOP))
-        return out
-
-    for ex in (PX - 0.52, PX + 0.52):                          # main gear
-        s2 += box(ex - 0.05, -1.37, 0.33, 0.1, 0.1, 0.49)
-        s2 += tyre(ex + 0.05, -1.32, 0.33, 0.1, 0.13)
-    s2 += box(PX - 0.05, -0.73, 0.31, 0.1, 0.1, 0.44)          # nose gear
-    s2 += tyre(PX + 0.05, -0.68, 0.31, 0.08, 0.11)
-    # A LOW WING IS PAINTED FIRST. The tube's crown (z 1.15) rides above the
-    # wing's top face (0.9), so along this camera's ray the fuselage is in front
-    # of the wing everywhere they cross — emitted after it, the wing sawed the
-    # tube into a nose drum and an aft cone with nothing between them. Wing and
-    # fairing first, tube over them: the one round body in the drawing stays
-    # whole, and the wing is two lit surfaces either side of it.
-    s2 += box(PX - 0.3, -1.66, 0.74, 0.6, 0.74, 0.12)          # belly fairing
-    s2 += box(0.95, -1.56, 0.82, 2.1, 0.56, 0.08)              # the wing
-    s2.append(line(p_(0.95, -1.2, 0.9), p_(3.05, -1.2, 0.9)))
-    # THE FAR ENGINE AND ITS SWEEP GO HERE: after the wing they hang over,
-    # before the fuselage that passes in front of the sweep's rear arc. The
-    # sweep was once emitted before the wing, and the wing — which is BEHIND
-    # the propeller disc — erased its forward arc.
-    s2 += cyl(PX - 0.52, -1.28, 1.01, 'y', 0.5, 0.11, cap=FACE_L)
-    s2 += cyl(PX - 0.52, -0.78, 1.01, 'y', 0.09, 0.045, cap=FACE_L)
-    s2.append(orbit(PX - 0.52, -0.76, 1.01, 0.3, 'y'))         # far prop sweep
-    # THE NOSE IS STEPPED. One cylinder ends in a cap ellipse the size of its
-    # own body, which at this scale is a drum end pointed at the reader whatever
-    # is drawn on it; a second radius under it and the same cap is the last few
-    # pixels of a cone. The far end gets its cone free from cyl()'s own arc.
-    s2 += cyl(PX, TAIL, FZ, 'y', FL - 0.16, FR, cap=FACE_L, cap_far=FACE_L)
-    s2 += cyl(PX, TAIL + FL - 0.16, FZ, 'y', 0.16, 0.12, cap=FACE_L)
-    # BOTH BANDS SIT ON THE TUBE, and that is arithmetic, not judgement. A flat
-    # panel at (dx, dz) off the axis is on the body only while dx^2 + dz^2 < r^2:
-    # the window line once lay along the 45 deg generatrix — the seam where the
-    # crown tone meets the side — and the cockpit patch was at radius 0.207 on a
-    # 0.20 body, i.e. off the aeroplane altogether. Both are at 0.8 r now, and
-    # the cockpit stops at y -0.92: nearer the nose it slid behind the near cap
-    # (the cap plane is y -0.46) and showed only as a chip on the cap's rim.
-    s2.append(quad_x(PX + FR * 0.8, -2.02, FZ, 1.0, 0.07, ACCENT))
-    s2.append(quad_x(PX + FR * 0.8, -0.92, FZ, 0.18, 0.09, DARK))
-    # ON the wing, tangent to it: axis 1.01 puts the barrel's underside at
-    # 0.90, which is the wing's own top face — at 0.94 the tube sank 0.07 into
-    # the surface it is mounted on. Only the NEAR engine paints here; the far
-    # one went in before the fuselage, with its sweep.
-    s2 += cyl(PX + 0.52, -1.28, 1.01, 'y', 0.5, 0.11, cap=FACE_L)
-    s2 += cyl(PX + 0.52, -0.78, 1.01, 'y', 0.09, 0.045, cap=FACE_L)
-    # The fin's leading edge is dz = -1.5 dy: 63.43 deg, the transom's angle on
-    # the other lattice axis. Its trailing edge stands ON the tube's end plane,
-    # y -2.4 — at -2.42 it hung 0.02 behind the aeroplane.
-    s2 += slab_x(PX - 0.05, 0.1,
-                 [(-1.8, 1.12), (-2.24, 1.78), (-2.4, 1.78), (-2.4, 1.12)])
-    s2 += box(PX - 0.45, -2.5, 1.78, 0.9, 0.3, 0.06)            # the tailplane
+    # THE ENGINES HANG UNDER THE WING, FORWARD OF IT. They sat ON it, tangent to
+    # its top face, and read as two pods lying on a plank. A nacelle under a low
+    # wing is painted BEFORE the wing: the wing then covers the nacelle's top,
+    # and the part that stands proud of the leading edge — which is what the
+    # reader sees of a turboprop from above — is nearer than that edge and
+    # displaced down-left of it on screen, so the wing's leading-edge strip
+    # covers none of it. The far nacelle's sweep goes in with it, before the
+    # fuselage that passes in front of the sweep's rear arc; the near one's
+    # rides the top layer.
+    #
+    # THREE WHEELS SHOW, and it took moving two things. The main gear sits
+    # inboard of the nacelles rather than under them, and the belly fairing is
+    # gone: with the fairing, the far main wheel surfaced as a grey chip under
+    # the belly and nothing else, which read as a machine on two wheels and a
+    # stand. A strut stops at its axle — the wheel is the foot — and the tyre
+    # has a tread (isolib.wheel), because a zero-thickness disc on a strut is a
+    # washer leaning on a post.
+    PX, TAIL = 1.85, -2.35
+    FZ, FR = 0.92, 0.22
+    # tail cone -2.35 .. -1.9, barrel -1.9 .. -0.45, nose cone -0.45 .. -0.05:
+    # the tail sits on the apron's back edge and the wing tip, PX + 1.0, is
+    # inside the apron's own edge at 2.95, which the old span (3.05) was not.
+    for ex in (PX - 0.35, PX + 0.35):                          # main gear
+        s2 += box(ex - 0.05, -1.25, 0.33, 0.1, 0.1, 0.37)      # strut, axle to wing
+        s2 += wheel(ex + 0.15, -1.2, 0.33, 0.13, 0.1, 'x')
+    s2 += box(PX - 0.05, -0.4, 0.31, 0.1, 0.1, 0.39)           # nose gear
+    s2 += wheel(PX + 0.13, -0.35, 0.31, 0.11, 0.08, 'x')
+    for ex in (PX - 0.55, PX + 0.55):                          # nacelles, far first
+        s2 += cyl(ex, -1.35, 0.64, 'y', 0.55, 0.12)
+        s2 += cyl(ex, -0.8, 0.64, 'y', 0.1, 0.05)              # spinner
+    s2.append(orbit(PX - 0.55, -0.75, 0.64, 0.3, 'y'))         # far prop sweep
+    s2 += box(PX - 1.0, -1.45, 0.7, 2.0, 0.5, 0.1)             # the wing
+    # The tailplane goes in before the tail cone that passes through its root:
+    # the cone then covers the root and the two halves stand out either side.
+    # IT SITS HIGH ON THE CONE, at 1.04, not on the axis: on the axis its far
+    # half was behind the barrel's own end from this camera and showed as a
+    # sliver beside the fin. 0.12 up, it clears the barrel's crown by 12 units.
+    s2 += box(PX - 0.5, -2.3, 1.04, 1.0, 0.28, 0.05)           # tailplane
+    s2 += cone(PX, TAIL, FZ, 'y', 0.45, 0.07, FR, cap=None)    # tail cone
+    s2 += cyl(PX, TAIL + 0.45, FZ, 'y', 1.45, FR, cap=FACE_L, cap_far=FACE_L)
+    s2 += cone(PX, TAIL + 1.9, FZ, 'y', 0.4, FR, 0.06, far=False)   # nose cone
+    # The cockpit glazing is at 0.8 r, on the body, and stops short of the
+    # nose cone; it is the one panel left on the tube — the window band that
+    # ran the length of the barrel at the same offset read as a rail standing
+    # off it, because a flat rectangle on a round body is a rectangle.
+    s2.append(quad_x(PX + FR * 0.8, -0.7, FZ + 0.02, 0.18, 0.09, DARK))
+    # The fin's leading edge is dz = 1.5 dy: 63.43 deg. Its root sits at 1.12,
+    # inside the barrel's crown at 1.136 across the slab's own width, and its
+    # trailing edge stands on the barrel's last section, where the tail cone
+    # begins to fall away from under it.
+    s2 += slab_x(PX - 0.04, 0.08,
+                 [(-1.45, 1.12), (-1.75, 1.57), (-1.9, 1.57), (-1.9, 1.12)])
 
     # the excavator, facing +x with its boom over the empty quarter
     EX, EY = -2.7, 1.25
@@ -866,71 +837,72 @@ def flotten():
         s2 += seams((EX, yy + 0.3, Z), (EX + 1.05, yy + 0.3, Z),
                     (EX, yy + 0.3, Z + 0.28), (EX + 1.05, yy + 0.3, Z + 0.28), 4)
     s2 += box(EX + 0.02, EY - 0.05, 0.7, 1.2, 0.9, 0.1)        # slew platform
-    # NO SLEW RING. It was drawn on the platform's top face and the house stands
-    # on that face, so all that ever showed was a 14 px arc coming out from
-    # behind the cab — a curve with nothing to be the edge of. The bearing is
-    # under the house, which is where a bearing is.
-    s2 += box(EX + 0.02, EY, 0.8, 0.23, 0.8, 0.4)              # counterweight
-    # CAB BEFORE HOOD: the cab sits on the far lane (y to EY+0.44) and the hood
-    # on the near one (from EY+0.45), so the hood is in front — emitted after
-    # the cab, it laps the cab's lower flank the way a desk hides the wall
-    # behind it. The other order painted the cab through the hood.
-    s2 += box(EX + 0.45, EY + 0.02, 0.8, 0.44, 0.42, 0.6)      # cab
-    s2.append(quad_x(EX + 0.89, EY + 0.06, 0.96, 0.34, 0.36, DARK))
-    s2.append(quad_y(EY + 0.44, EX + 0.51, 0.96, 0.32, 0.36, DARK))
-    s2 += box(EX + 0.28, EY + 0.45, 0.8, 0.72, 0.4, 0.34)      # engine hood
-    s2 += seams((EX + 0.28, EY + 0.85, 0.8), (EX + 1.0, EY + 0.85, 0.8),
-                (EX + 0.28, EY + 0.85, 1.14), (EX + 1.0, EY + 0.85, 1.14), 3)
+    # ONE HOUSE, ONE CAB, ONE BOOM FOOT. The upper works were a counterweight
+    # box, a cab box and a hood box stepping down the platform, and the boom
+    # rose from a point on the platform's front edge with nothing under it —
+    # a blade hinged on air. The house is one mass now, engine and
+    # counterweight together, with its vents on the near flank; the cab stands
+    # at its front corner on the far lane; and the boom sits on a foot beside
+    # the cab, on the near lane, which is where an excavator carries it.
+    s2 += box(EX + 0.05, EY + 0.02, 0.8, 0.75, 0.76, 0.42)     # house
+    s2 += seams((EX + 0.05, EY + 0.78, 0.8), (EX + 0.8, EY + 0.78, 0.8),
+                (EX + 0.05, EY + 0.78, 1.22), (EX + 0.8, EY + 0.78, 1.22), 3)
+    s2 += cyl(EX + 0.25, EY + 0.22, 1.22, 'z', 0.14, 0.05, side=FACE_L)   # exhaust
+    s2 += box(EX + 0.78, EY + 0.02, 0.8, 0.42, 0.36, 0.62)     # cab
+    s2.append(quad_x(EX + 1.2, EY + 0.06, 0.96, 0.28, 0.38, DARK))
+    s2.append(quad_y(EY + 0.38, EX + 0.84, 0.96, 0.3, 0.38, DARK))
+    s2 += box(EX + 0.85, EY + 0.42, 0.8, 0.3, 0.28, 0.12)      # boom foot
     # The boom rises at dz = 1.5 dx and the stick falls at dz = -1.5 dx: 45 deg
-    # up, 63.43 deg down. THE BUCKET IS ON THE GROUND, which is a drawing
-    # decision and not a pose one: a bucket in the air is a shape hanging off a
-    # line, and a bucket with its cutting edge on the apron is the one thing in
-    # the yard that says what the machine does.
-    s2 += slab_y(EY + 0.34, 0.16,
-                 [(EX + 1.15, 0.8), (EX + 1.6, 1.475), (EX + 1.6, 1.675),
-                  (EX + 1.15, 1.0)])
-    s2 += slab_y(EY + 0.26, 0.3,                               # the bucket
-                 [(EX + 2.04, 0.74), (EX + 2.48, 0.74), (EX + 2.48, 0.44),
-                  (EX + 2.24, Z), (EX + 2.04, Z)])
+    # up, 63.43 deg down, 0.22 deep, 0.28 wide — a box section, not a blade.
+    # THE BUCKET IS ON THE GROUND, which is a drawing decision and not a pose
+    # one: a bucket in the air is a shape hanging off a line, and a bucket with
+    # its cutting edge on the apron is the one thing in the yard that says
+    # what the machine does. The stick's tip lands on the mouth's rim.
+    s2 += slab_y(EY + 0.42, 0.28,                              # the boom
+                 [(EX + 0.95, 0.92), (EX + 1.45, 1.67), (EX + 1.45, 1.89), (EX + 0.95, 1.14)])
+    s2 += slab_y(EY + 0.4, 0.32,                               # the bucket
+                 [(EX + 1.98, 0.8), (EX + 2.4, 0.8), (EX + 2.4, 0.5),
+                  (EX + 2.2, Z), (EX + 1.98, Z)])
     # THE MOUTH IS WHAT MAKES IT A BUCKET. Closed, the shape is a box with one
     # chamfered corner and it read as exactly that — a crate on the end of a
-    # stick. Seen from above a bucket is open, and an opening is what ACCENT is
-    # for: an aperture of a few square units, never a face.
-    s2.append(quad_t(EX + 2.08, EY + 0.3, 0.74, 0.36, 0.22, ACCENT))
+    # stick. Seen from above a bucket is open, and an opening is a recess.
+    s2.append(quad_t(EX + 2.02, EY + 0.44, 0.8, 0.34, 0.24, ACCENT))
     # THE STICK GOES LAST AND GOES IN. Painted before the bucket, it vanished
     # behind the rim and the machine ended at a crate it never touched; the
-    # joint has to be SEEN, so the stick paints over the mouth and its tip
-    # stops exactly ON the rim plane at x +2.0833 — a tip that dipped below it
-    # projected past the rim onto the bucket's near wall, because the stick's
-    # lane and the mouth's near edge share y. Still dz = -1.5 dx, tip to heel.
-    s2 += slab_y(EY + 0.32, 0.2,
-                 [(EX + 1.55, 1.54), (EX + 2.0833, 0.74), (EX + 2.0833, 0.94),
-                  (EX + 1.55, 1.74)])
+    # joint has to be SEEN, so the stick paints over the mouth.
+    s2 += slab_y(EY + 0.46, 0.2,                               # the stick
+                 [(EX + 1.37, 1.8), (EX + 2.03, 0.81), (EX + 2.03, 1.01), (EX + 1.37, 2.0)])
 
     # ---- 3 · the semi, nearest the reader
     #
     # THE COUPLING IS A LAP, NOT A GAP. The deck's front rests ON the chassis —
-    # bottom flush with the chassis top, 0.12 of overlap — because a trailer
-    # rests on its tractor; the shipped version held a 0.02 air gap with the
-    # chassis top ABOVE the deck bottom, a trailer nothing could have coupled
-    # to. The chassis flank stays 0.02 behind the wheel plane, and the wheels —
-    # the near flank itself — are painted last, so no frame edge ever bites a
-    # tyre: the train's solebar rule, applied to the road.
+    # bottom flush with the chassis top — because a trailer rests on its
+    # tractor. The chassis flank stays behind the wheel plane, and the wheels
+    # are painted after it so no frame edge ever bites a tyre: the train's
+    # solebar rule, applied to the road.
+    #
+    # A CAB-OVER, NOT A CUBE. The tractor was one box with two windows and a
+    # wheel poking out under its front corner. It has a windscreen across its
+    # front face, a door with its window on the flank, a roof fairing, and a
+    # bumper — the four things that make a box read as a truck cab — and its
+    # front wheel sits under the door, half in the arch: the wheel plane is
+    # 0.04 behind the cab's near face and the wheel is painted before the cab.
+    # The drive axles are a tandem under the coupling, the trailer's a tandem
+    # at its rear, and every tyre has a tread; flat discs were washers.
     TY = 1.4
-    s3 += box(2.2, TY + 0.04, 0.38, 0.74, 0.48, 0.14)          # tractor chassis
-    s3 += box(0.58, TY, 0.52, 1.74, 0.58, 0.1)                 # trailer deck
-    s3 += container(0.66, TY + 0.07, 0.62)
-    # 0.34 within the trailer's pair against a 0.30 tyre — the train's spacing
-    # rule; at 0.30 the two tyres are tangent and read as one blob. BEFORE the
-    # cab: the cab's near face is 0.04 nearer than the wheel plane, so the front
-    # wheel half-hides behind it the way a cabover's wheel sits under its door —
-    # painted after the cab, the tyre lay ON the door instead.
-    for xx in (0.86, 1.2, 2.28, 2.8):
-        s3 += wheelset(xx, TY + 0.54, 0.35, 0.15)
-    s3 += box(2.32, TY + 0.02, 0.52, 0.6, 0.56, 0.62)          # cab
-    s3.append(quad_x(2.92, TY + 0.07, 0.8, 0.46, 0.24, DARK))
-    s3.append(quad_y(TY + 0.58, 2.42, 0.8, 0.32, 0.22, DARK))
-    s3.append(line(p_(2.32, TY + 0.58, 0.72), p_(2.92, TY + 0.58, 0.72)))
+    s3 += box(2.0, TY + 0.08, 0.34, 0.84, 0.42, 0.12)          # tractor chassis
+    s3 += box(0.58, TY, 0.46, 1.68, 0.58, 0.1)                 # trailer deck
+    s3 += container(0.66, TY + 0.07, 0.56)
+    for xx in (0.82, 1.16):                                    # trailer tandem
+        s3 += wheel(xx, TY + 0.56, 0.36, 0.16, 0.1)
+    for xx in (2.06, 2.34, 2.7):                               # drive tandem, steer axle
+        s3 += wheel(xx, TY + 0.54, 0.36, 0.16, 0.1)
+    s3 += box(2.22, TY + 0.02, 0.5, 0.62, 0.56, 0.6)           # cab
+    s3 += box(2.26, TY + 0.06, 1.1, 0.5, 0.48, 0.12)           # roof fairing
+    s3.append(quad_x(2.84, TY + 0.08, 0.76, 0.44, 0.26, DARK))     # windscreen
+    s3.append(quad_y(TY + 0.58, 2.44, 0.76, 0.3, 0.24, DARK))      # door window
+    s3.append(line(p_(2.38, TY + 0.58, 0.5), p_(2.38, TY + 0.58, 1.1)))   # door seam
+    s3 += box(2.84, TY + 0.04, 0.34, 0.06, 0.52, 0.16)         # bumper
 
     # THE CROP IS TAKEN HERE, before the ghost, for the reason isolib.bbox()
     # exists: a ghost is what is not there yet, so it sits outside what the
@@ -962,7 +934,7 @@ def flotten():
     # aircraft's own stage, before the fuselage, which then occludes the arc
     # that passes behind it. A full ellipse over everything put dashed specks
     # on the nose drum standing in front of the far propeller.
-    orbits = [orbit(PX + 0.52, -0.76, 1.01, 0.3, 'y')]
+    orbits = [orbit(PX + 0.55, -0.75, 0.64, 0.3, 'y')]
 
     # The lit box is one of the four on the ship and the near one of the upper
     # tier: it is surrounded by its own repetitions, which is the only place in
