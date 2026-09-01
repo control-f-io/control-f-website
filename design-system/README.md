@@ -349,6 +349,8 @@ python3 scripts/check-illustration-source.py   # the four process objects are st
 python3 scripts/check-illustration-source.py -v  # every element, matched or deviated, and why
 python3 scripts/check-readme-check-count.py    # the count above this block is the length of this block
 python3 scripts/check-readme-check-count.py -v # the number, and every check counted
+python3 scripts/check-count-atom.py            # a section head taken off the label ramp keeps its counter in one piece
+python3 scripts/check-count-atom.py -v         # every section header row, and the ramp it is on
 python3 scripts/build-i18n.py --check          # the English edition matches its German source
 python3 scripts/build-i18n.py --extract        # every German string with no entry in the catalogue
 ```
@@ -361,7 +363,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The twenty checks the system enforces rather than documents, run by CI on every push and
+The twenty-one checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number

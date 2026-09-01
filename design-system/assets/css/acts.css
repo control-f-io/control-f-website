@@ -5458,6 +5458,42 @@
     font-size: var(--text-h2);
     line-height: var(--leading-tight);
   }
+  /* THE COUNT IS AN ATOM AND THE TYPE RAMP IS WHAT STOPPED IT BEING ONE.
+     .cf-section-header floors both halves at min-width: 0 — components.css
+     argues that at length, and it is right: without it a German compound in
+     either half takes the whole document sideways. But min-width: 0 makes
+     both halves SHRINKABLE, and a flex row shrinks its items in proportion to
+     their max-content, so the count gives up width even while the label still
+     has slack. At the component's own 11 px that never shows, because
+     eleven-pixel mono always fits. This block sets both halves at --text-h2 —
+     three times the size on the same row — and at that size the count is the
+     half that runs out of room first, and a counter that runs out of room
+     wraps between the number and the noun it counts. Measured at the header,
+     count line boxes:
+
+                              320   360   375   414   480
+       landing "4 Schritte"     3     2     2     2     1
+       proto  "In vier Schr…"   2     2     2     2     2
+
+     Three line boxes at 320 on this page: "4" alone, "SCHRITTE" under it, and
+     the reader is told a numeral and a noun as two separate facts. The count
+     is one word — it is the only place on the page that says how many steps
+     there are — so it does not get to be the half that gives.
+
+     SO IT IS RIGID, AND THE ROW IS ALLOWED TO WRAP SO THAT RIGIDITY CAN NEVER
+     BECOME OVERFLOW. flex: none alone fixes this page and BREAKS THE OTHER
+     CONSUMER: statement-to-process.html counts "In vier Schritten", six
+     characters longer, and with the count immovable the label is squeezed
+     under its own min-content and breaks mid-word — 4 line boxes at 360, 7 at
+     320, a 170 px header. The escape is what makes the rigidity safe: when
+     both halves cannot stand on one line the count drops to its own, whole,
+     still ending at the rule's right edge, because margin-left: auto right-
+     aligns it on a line it is alone on the same way space-between does on a
+     line it shares. Header height, both consumers, one line box each half at
+     every width from 320 up; 560 and above is untouched to the pixel.
+     → scripts/check-count-atom.py */
+  .sp-head { flex-wrap: wrap; }
+  .sp-head__count { flex: none; margin-left: auto; }
   /* "4 Schritte" is set at --text-h2 — 32 px, so WCAG's large-text floor of
      3:1 applies rather than 4.5 — and at --text-muted it measured 2.31:1 over
      the wash where the header lands. It is the only place on the page that
