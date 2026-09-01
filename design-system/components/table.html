@@ -34,7 +34,7 @@
     <div class="docs-demo">
       <div class="cf-table__scroll" tabindex="0" role="region" aria-labelledby="tbl-versatz">
         <table class="cf-table">
-          <caption id="tbl-versatz">Typischer Versatz und was er kostet</caption>
+          <caption id="tbl-versatz"><span>Typischer Versatz und was er kostet</span></caption>
           <thead>
             <tr>
               <th scope="col">Betriebsart</th>
@@ -53,7 +53,7 @@
 
     <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-table__scroll"</span> <span class="attr">tabindex</span>=<span class="val">"0"</span> <span class="attr">role</span>=<span class="val">"region"</span> <span class="attr">aria-labelledby</span>=<span class="val">"tbl-versatz"</span>&gt;
   &lt;<span class="tag">table</span> <span class="attr">class</span>=<span class="val">"cf-table"</span>&gt;
-    &lt;<span class="tag">caption</span> <span class="attr">id</span>=<span class="val">"tbl-versatz"</span>&gt;Typischer Versatz und was er kostet&lt;/<span class="tag">caption</span>&gt;
+    &lt;<span class="tag">caption</span> <span class="attr">id</span>=<span class="val">"tbl-versatz"</span>&gt;&lt;<span class="tag">span</span>&gt;Typischer Versatz und was er kostet&lt;/<span class="tag">span</span>&gt;&lt;/<span class="tag">caption</span>&gt;
     &lt;<span class="tag">thead</span>&gt;
       &lt;<span class="tag">tr</span>&gt;
         &lt;<span class="tag">th</span> <span class="attr">scope</span>=<span class="val">"col"</span>&gt;Betriebsart&lt;/<span class="tag">th</span>&gt;
@@ -74,6 +74,29 @@
       quoted or printed. A heading floating above the box is none of those things — it is
       only near it.
     </div>
+
+    <div class="docs-note">
+      <strong>The <code>&lt;span&gt;</code> is what keeps the title on screen.</strong> A
+      caption is a child of the table, and the table is the thing that scrolls — so
+      scrolling to the last column used to carry the title off the left edge with it.
+      Measured on <a href="../patterns/datenschutz.html">datenschutz</a> at 320 px: of a
+      151.2 px caption, 42.2 px was still inside the box at full scroll. 72 % of the visible
+      title, gone. At a 20 px browser default the scroll range is longer than the caption is
+      wide, so it left entirely.
+      <br><br>
+      It was never a screen-reader defect — the caption is still the accessible name, and
+      the region still borrows it. It was the sighted phone reader who scrolled to read
+      column five and lost the line saying what the rows are.
+      <br><br>
+      The sticky box has to be one level in.
+      <code>position: sticky</code> on the <code>&lt;caption&gt;</code> itself does nothing,
+      because a table-caption box is not stickyable — measured, still 42.2 px — and giving
+      the caption <code>display: inline-block</code> to make it stickyable drops it into the
+      table's anonymous cell structure and renders it <em>under</em> the head row. A bare
+      <code>&lt;caption&gt;</code> still renders exactly as it always has: the selector is
+      <code>caption &gt; span</code>, so this is an enhancement over the bare markup
+      <code>.cf-prose</code> promises an author, not a new requirement.
+    </div>
   </section>
 
   <section class="docs-section" id="rows-numbers">
@@ -93,7 +116,7 @@
     <div class="docs-demo">
       <div class="cf-table__scroll" tabindex="0" role="region" aria-labelledby="tbl-quellen">
         <table class="cf-table">
-          <caption id="tbl-quellen">Angebundene Quellen, Stand Q2</caption>
+          <caption id="tbl-quellen"><span>Angebundene Quellen, Stand Q2</span></caption>
           <thead>
             <tr>
               <th scope="col">Quelle</th>
@@ -142,15 +165,31 @@
       arrow keys.
     </p>
     <p>
-      What stops it compressing instead of overflowing is that the column labels do not wrap.
-      Without that floor a narrow table simply wraps every cell to three lines, stays inside
-      its box, and the scroll it is wrapped in never engages — the mechanism would be present
-      and permanently unused.
+      This section used to claim that what stops the table compressing instead of overflowing
+      is that the column labels do not wrap — that the head row is the floor, and without it
+      the scroll box would be present and permanently unused. That is not true, and it was
+      load-bearing enough to have produced a do/don't of its own.
+    </p>
+    <p>
+      Measured, as the min-content width of every table in the system with the heads
+      nowrapped and with them allowed to wrap: <strong>zero difference</strong> on all four
+      of datenschutz's tables and on three of the four demos on this page. The one exception
+      is <em>Angebundene Quellen</em> above, at 15 px. The body cells are the floor
+      everywhere the system actually draws a table — German data words are longer than the
+      labels over them, and <span lang="de">INSTANDHALTUNG</span> at 11 px mono is narrower
+      than the same word at 14 px in the cell beneath it.
+    </p>
+    <p>
+      So the nowrap stays, but for the reason it shares with the section header and the
+      accordion: <strong>a label broken over two lines is read as two words.</strong> It is a
+      typographic rule about labels, not a mechanism holding the scroll box open. The scroll
+      box engages because the content is wider than the phone. The one place the nowrap does
+      bind is paper, and there it binds the wrong way — see below.
     </p>
     <div class="docs-demo" style="max-width:22rem">
       <div class="cf-table__scroll" tabindex="0" role="region" aria-labelledby="tbl-schmal">
         <table class="cf-table">
-          <caption id="tbl-schmal">Vier Spalten in 22 rem</caption>
+          <caption id="tbl-schmal"><span>Vier Spalten in 22 rem</span></caption>
           <thead>
             <tr>
               <th scope="col">Anlage</th>
@@ -186,11 +225,19 @@
       in an <code>aria-label</code> that would then drift.
     </div>
     <p>
-      The cost is honest and worth stating: the box is a tab stop even on a wide screen where
-      it does not scroll, so a keyboard user lands once on something that does nothing. The
-      alternative is a script that measures overflow on load and on resize and adds the
-      attribute conditionally, and this system does not spend a shipping script on a
-      convenience. One redundant tab stop beats one unreachable column.
+      The cost is honest and worth stating, and this paragraph used to understate it by four
+      times. It said <em>a keyboard user lands once on something that does nothing</em>. The
+      box is a tab stop even on a wide screen where it does not scroll, and the tables are
+      not spread thinly across the site — they come in runs. Measured on datenschutz at
+      1280: all four boxes hold 867 px of content in an 867 px box, so none of them scrolls
+      and a keyboard reader takes <strong>four dead tab stops in a row</strong> on the page
+      the cookie inventory lives on.
+    </p>
+    <p>
+      The argument still wins, only by less than it claimed. The alternative is a script that
+      measures overflow on load and on resize and adds the attribute conditionally, and this
+      system does not spend a shipping script on a convenience. Four redundant tab stops
+      still beat one unreachable column.
     </p>
     <p>
       There is no card-per-row transformation at small widths. Turning rows into stacked cards
@@ -198,6 +245,45 @@
       <code>display: block</code> table drops the row and column semantics that
       <code>scope</code> was there to provide. The narrow answer is the same table, scrolled.
     </p>
+  </section>
+
+  <section class="docs-section" id="print">
+    <h2>On paper</h2>
+    <p>
+      Nothing scrolls a sheet. A scroll box on paper is a crop, so every column past the
+      box's width is not hidden-until-you-drag — it is gone, and it goes silently, mid-word,
+      with no rule or ellipsis to say a column was dropped. Printed through Chromium at a
+      page box narrow enough to force it, the last column's head came out
+      <code>LETZTE</code> from <span lang="de">LETZTE SPALTE</span> and its cell came out
+      <code>KENNW</code> from <span lang="de">KENNWORTENDE</span>.
+    </p>
+    <p>
+      This is the failure mode <code>scripts/check-print-fixed.py</code> opens by naming —
+      invisible in every screenshot this repository takes, because every screenshot is
+      <code>screen</code> — and neither gate covers it. That one reads
+      <code>position: fixed</code>; <code>check-overflow-clip.py</code> reads
+      <code>overflow: hidden</code>. This is <code>overflow-x: auto</code>.
+    </p>
+    <p>
+      Today's tables all fit A4 and print whole — datenschutz's five columns were checked
+      page by page — so this was the latent case, fixed before it landed rather than after. A
+      narrower sheet, a larger print stylesheet, or one more column, and the cookie inventory
+      the site owes under <span lang="de">TDDDG</span> § 25 would print with a column missing
+      and no sign that it did.
+    </p>
+    <div class="docs-note">
+      <strong>It takes two declarations, not one.</strong> Releasing the crop alone only
+      moves the cut from the box's edge to the paper's. The head row has to be allowed to
+      wrap before the table can compress into the sheet — which is the one place the nowrap
+      above binds, and the one place it must not.
+    </div>
+    <pre class="docs-code"><span class="tag">@media</span> print {
+  .cf-table__scroll,
+  .cf-prose__table-scroll { <span class="attr">overflow</span>: <span class="val">visible</span>; }
+
+  .cf-table thead th,
+  .cf-prose thead th { <span class="attr">white-space</span>: <span class="val">normal</span>; }
+}</pre>
   </section>
 
   <section class="docs-section" id="inverse">
@@ -210,7 +296,7 @@
     <div class="docs-demo docs-demo--dark" data-theme="inverse">
       <div class="cf-table__scroll" tabindex="0" role="region" aria-labelledby="tbl-dunkel">
         <table class="cf-table">
-          <caption id="tbl-dunkel">Dieselbe Tabelle, invertierte Fläche</caption>
+          <caption id="tbl-dunkel"><span>Dieselbe Tabelle, invertierte Fläche</span></caption>
           <thead>
             <tr>
               <th scope="col">Kategorie</th>
@@ -241,7 +327,8 @@
         <tr><td><code>.cf-table__scroll</code></td><td>div</td><td>The scroll box. Carries <code>tabindex="0"</code>, <code>role="region"</code> and <code>aria-labelledby</code>. Focus ring comes from <code>base.css</code>, which rings any <code>[tabindex]</code>.</td></tr>
         <tr><td><code>.cf-table</code></td><td>table</td><td>Full width, collapsed borders, 14 px, tabular figures.</td></tr>
         <tr><td><code>&lt;caption&gt;</code></td><td>caption</td><td>Mono, 12 px, <code>--text-secondary</code>, left, <code>--space-3</code> above the head rule. The accessible name of both the table and the region.</td></tr>
-        <tr><td><code>th[scope="col"]</code></td><td>th</td><td>Mono 11 px uppercase on <code>--border-strong</code>. The section header's label, at cell scale. Does not wrap — the head row is what gives the table a minimum width, and without one it compresses instead of scrolling.</td></tr>
+        <tr><td><code>caption &gt; span</code></td><td>span</td><td>Sticky at the box's left edge, so the title stays on screen while the table is scrolled. Optional — a bare <code>&lt;caption&gt;</code> renders identically and simply scrolls away with the table.</td></tr>
+        <tr><td><code>th[scope="col"]</code></td><td>th</td><td>Mono 11 px uppercase on <code>--border-strong</code>. The section header's label, at cell scale. Does not wrap, because a label broken over two lines is read as two words — <em>not</em> to floor the table's width, which it measurably does not do. Lifted for print, where it is what stops the table fitting the sheet.</td></tr>
         <tr><td><code>th[scope="row"]</code></td><td>th</td><td>Body face, body size, medium weight, full ink. The row's subject, not a label.</td></tr>
         <tr><td><code>td</code></td><td>td</td><td><code>--space-3</code> above and below, <code>--space-4</code> to the right, nothing to the left; top-aligned so a wrapping cell keeps its first line on the row's baseline.</td></tr>
         <tr><td><code>.cf-table__num</code></td><td>th / td</td><td>Right-aligns a column of figures. Goes on the head cell too.</td></tr>
@@ -277,7 +364,7 @@
       <div class="docs-rule docs-rule--do">
         <h4>Do</h4>
         <ul>
-          <li>Caption every table, in words that say what the rows are.</li>
+          <li>Caption every table, in words that say what the rows are, and put the line in a <code>&lt;span&gt;</code> so it stays on screen while the table is scrolled.</li>
           <li>Wrap it in the scroll box with all three attributes, every time — including when you are sure it fits.</li>
           <li>Make the first column a <code>th scope="row"</code> whenever it names the row.</li>
           <li>Put <code>.cf-table__num</code> on any column of figures, head cell included.</li>

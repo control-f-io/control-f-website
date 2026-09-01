@@ -1150,6 +1150,56 @@ Both Figma mockups draw a six-item nav bar measured to `417 × 41`; a seventh it
 to the drawing, not to the code. `patterns/404.html` routes to it instead — first in the list,
 because it is the only route on that page that does not guess what the reader was after.
 
+## A month is a page of days
+
+`components/calendar.html` is the second application of the found state, and the first thing in
+the system that had to draw **time**. It is worth its own section for one reason: it introduces
+no drawing. There is no new geometry in it, no new colour, no new token, and one custom
+property that is a floor already written twice elsewhere. The whole component is three existing
+components in an arrangement — which is the test a system passes or fails when something new is
+asked of it.
+
+| | |
+|---|---|
+| the frame | `.cf-table`'s. Ruled rows, nothing vertical, tabular figures, the caption as the accessible name, the scroll box with its three attributes. A month **is** tabular — the column is a weekday, the row is a week — so `<th scope>` does the work and no script has to. |
+| the slot | `.cf-pagination__page`'s. 2.75 rem, a mono numeral centred in it, no contour at rest and the contour arriving on hover and focus, because at rest a number is type and under the pointer it is a target larger than its glyph. |
+| the mark | the found state's, at numeral scale. A day something stands on is a numeral on its ground line; **today** is the same numeral with the light behind it. |
+
+**The brand is named after finding a thing in a page, and a month is a page of days.** The day
+the reader is standing on is the match they are standing on, so today is not a new state — it is
+`::target-text` at the scale of a numeral, held to the same `--found-*` tokens rather than to a
+shared selector, which is the mechanism `base.css` already states for the five rungs it declares
+itself. It settles the lime budget the way [the found state](#the-found-state) does, and one step
+harder: a month has exactly one today, so a calendar with four marked days composes one lit
+numeral and three contoured ones *by arithmetic*. Nothing has to be kept.
+
+Three absences, each a rule from somewhere else. **No weekend column** — it could only be a
+vertical rule or a column fill, and a fill doing a hairline's job is the zebra stripe the table
+refuses. **No days of the neighbouring month** — the only way to say a cell belongs to another
+month is to grey it, and `--text-muted` on CF-Grau is 2.0:1, the one step this system does not
+have; the cells before the first and after the last are empty, and the way out is a
+`.cf-pagination` above or below the grid. **No entry titles in the cells** — a 44 px slot cannot
+hold a sentence, so the grid is an *index* and what stands on a day is the register, which gains
+its third consumer, `.cf-event`, beside `.cf-result` and `.cf-vacancy` for three words in seven
+selector lists and not one declaration.
+
+**Nothing dynamic ships here either.** `aria-current="date"` is a claim about the day the page is
+*served*, so it is the server's to write, and the specimen fixes a month and lights one day in it
+— the same standing [the presence ladder](#the-presence-ladder)'s states have and the news
+archive's paging has.
+
+One thing is measured and not fixed. Under forced colours today takes `Mark`/`MarkText`, the pair
+`<mark>`, `::target-text` and both `::highlight()` names already take — and measured in Chromium
+141 with forced colours emulated, that pair does not paint under the dark theme: `MarkText`
+resolves black while the text backplate resolves to `Canvas` black, so the lit day renders as a
+block with no ink. `.cf-pagination__page[aria-current]` records the same finding against the same
+pair on the same engine and moved to `ButtonFace`/`ButtonText`. The calendar deliberately does
+**not** follow it there: a lit day and a current match are one drawing and may not have two
+answers under one media query. That is the found state's forced-colours answer, the fix belongs
+in `base.css` to all five rungs at once, and the component's comment says so rather than working
+around it.
+
+
 ## The last route with nowhere to go
 
 Every nav bar and every footer in the system links `/karriere`. `patterns/404.html` offers
