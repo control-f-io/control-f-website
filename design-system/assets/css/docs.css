@@ -196,6 +196,63 @@ body.docs {
 .docs-section ul:not(:where(.docs-demo *)) { max-width: 72ch; color: var(--text-secondary); padding-left: 1.1rem; }
 .docs-section li + li:not(:where(.docs-demo *)) { margin-top: var(--space-2); }
 
+/* THE AIR AROUND A BLOCK SPECIMEN — the demo plate, the spec table, the code
+   block, the do/don't pair. One rule, because until it existed the gap was
+   whatever the element ABOVE happened to leave behind, and a paragraph leaves
+   nothing: p is reset to margin 0 at base.css:125 and only p + p puts anything
+   back. Measured across all 46 documentation pages at 1280 px, direct children
+   of .docs-section, gap from the previous sibling's bottom to this element's
+   top:
+
+     .docs-note          408 at 24 px      the one block that declared its own
+     .docs-rules          27 at 24,  2 at 0
+     .docs-table          42 at 24,  6 at 16, 100 at 0
+     .docs-table-scroll    7 at 24,  2 at 16,  29 at 0
+     .docs-demo           16 at 24,  2 at 16, 129 at 0
+
+   The 24s and 16s are an h2's or an h3's margin-bottom doing the work; the
+   260 zeros are a paragraph introducing a block and the block starting on the
+   paragraph's next line. Two consequences, both visible: a spec table's
+   internal cell padding (12/16 px) exceeded the air outside it, so the table
+   read as more prose rather than as a specimen; and where two blocks abutted
+   — foundations/motion.html has two spec tables in a row — the second table's
+   mono header row appeared INSIDE the first table, one continuous grid with a
+   band of labels through the middle of it.
+
+   --space-4, not --space-6, because .docs-code already declared exactly this
+   and eight tables on foundations/layout.html had been hand-patched with
+   style="margin-top:var(--space-4)" by someone who could not stand the zero
+   any more. The system had answered; it had just never written it once.
+
+   Both sides, following .docs-note's `margin: var(--space-6) 0` — the block
+   with 408 out of 408 consistent gaps is also the only one whose margin is
+   symmetrical, and six <p style="margin-top:var(--space-4)"> attributes were
+   the other half of the same hand-patching.
+
+   Adjacent-sibling margins collapse, so this ADDS nothing where a heading
+   already gives 24 or 16: max(24, 16) is 24. It changes the zeros and only the
+   zeros. Scoped to `.docs-section >` so a table inside .docs-table-scroll
+   (46 of them, first child every time) keeps its margin outside the scroller
+   rather than inside it, and so a specimen nested in a demo is left alone.
+
+   .docs-note is the second container the rule has to reach, and it is not a
+   flourish. Seventeen notes carry a spec table, none of them had any air above
+   it either, and five of those seventeen were among the hand-patched ones — so
+   a rule that reached only .docs-section would have taken 16 px OFF a table by
+   tidying its attribute away. Zeroed at the note's own edges, where the note's
+   padding is already the air: none of the seventeen opens or closes on its
+   table today, and the guard is what keeps that free. */
+.docs-section > .docs-demo,
+.docs-section > .docs-table,
+.docs-section > .docs-table-scroll,
+.docs-section > .docs-rules,
+.docs-note > .docs-table,
+.docs-note > .docs-table-scroll { margin-block: var(--space-4); }
+.docs-note > .docs-table:first-child,
+.docs-note > .docs-table-scroll:first-child { margin-top: 0; }
+.docs-note > .docs-table:last-child,
+.docs-note > .docs-table-scroll:last-child { margin-bottom: 0; }
+
 /* ONE ROW OF A SPECIMEN LIST — a sample, its caption, and the hairline that
    separates it from the row below. The type scale wrote this eleven times as
    an inline attribute and drew the hairline as ten <hr> elements, which is
@@ -375,10 +432,17 @@ body.docs {
   background-size: cover;
   background-position: center;
 }
+/* The one glue joint in the set. A code block under a demo is the SOURCE of
+   the drawing above it, and the two are drawn as one object: the dark plate
+   hangs off the bottom edge of the demo's contour with no seam. That needs
+   both halves of the joint closed now that a demo carries a bottom margin of
+   its own — zeroing only the code block's top would leave the demo's 16 px
+   between them, which is the seam this rule exists to remove. */
 .docs-demo + .docs-code { margin-top: 0; border-top: 0; }
+.docs-section > .docs-demo:has(+ .docs-code) { margin-bottom: 0; }
 
 .docs-code {
-  margin: var(--space-4) 0 0;
+  margin: var(--space-4) 0;
   padding: var(--space-4) var(--space-6);
   overflow-x: auto;
   background: var(--grey-800);
