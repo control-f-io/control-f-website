@@ -10122,6 +10122,34 @@ a.cf-calendar__day > time,
   initial-value: 1;
 }
 
+/* THE LIGHT HAS TWO SOURCES AND THEY ARE TWO PROPERTIES, because they answer
+   two different questions about the same one lime moment. --pie-home is how
+   much of the AUTHORED light a share is holding: 1 on .cf-pie__seg--lit, 0
+   everywhere else, and 0 on the lit share itself for exactly as long as the
+   pointer is on another one. --pie-point is the light the POINTER has brought,
+   which any share may hold and only one ever does.
+
+   Per share, so neither inherits. Registered, so both interpolate — the whole
+   of the hover is the two of them crossing, and an unregistered property is a
+   token substitution rather than a number and cannot be transitioned at all.
+
+   THEY MEET IN A max(), WHICH IS THE ONE-LIGHT RULE WRITTEN AS ARITHMETIC
+   rather than as a note somebody has to keep. Two sources on one share cannot
+   add up to more lit arc than the share has, a share the pointer is on cannot
+   dip while its authored light hands over, and the figure cannot be made to
+   hold two lit arcs by any combination of scroll position and pointer. A sum
+   would fail all three. */
+@property --pie-home {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --pie-point {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
 .cf-pie {
   /* u is the plot's unit at the plot's crossover, so the two figures grow
      together and land at one scale in one article. The FLOOR is the pie's own,
@@ -10163,6 +10191,13 @@ a.cf-calendar__day > time,
   position: relative;
   width: calc(var(--pie-u) * 6);
   margin: calc(var(--pie-u) / 2 + var(--space-8)) auto;
+  /* THE FIGURE'S PAINT ORDER IS A STACK OF THREE LAYERS AND THIS IS WHAT KEEPS
+     THEM INSIDE THE FIGURE. Every z-index below is a number about this ring and
+     nothing else; without a stacking context of its own they would be numbers
+     about the page, and a pie in a section that had its own layer would sort
+     against it. isolation rather than a z-index because the ring is not asking
+     for a position in anybody's stack — it is asking not to be in one. */
+  isolation: isolate;
 }
 .cf-pie__ring::before {
   content: "";
@@ -10186,6 +10221,7 @@ a.cf-calendar__day > time,
    the drawing in the tier where the labels flow under it, and a four-sided
    inset would stretch the circle into an ellipse exactly there. */
 .cf-pie__draw,
+.cf-pie__ink,
 .cf-pie__frame {
   position: absolute;
   top: 0;
@@ -10197,6 +10233,36 @@ a.cf-calendar__day > time,
      viewBox and its hairline would be cropped in half by it. */
   overflow: visible;
 }
+
+/* CONTOUR BEFORE FILL, FOR THE WHOLE FIGURE AT ONCE. The brand's first rule is
+   the contour, and a ring of banded shares is the one drawing here where honouring
+   it cannot be a fact about markup order. Each share's band runs from its own cut
+   to the next share's, so a band always ENDS on a hairline belonging to somebody
+   else — and a 20-user-unit stroke laid over a 1 px contour wins by 30 to 1. Which
+   band wins which seam is then decided by which <li> came later, and the wrap-round
+   seam at 12 o'clock is decided the wrong way by construction: the last share's
+   band is above the first share's cut, always, in every figure.
+
+   The version this replaces answered the same question with `z-index: 0` on the lit
+   share, which worked while exactly one share could ever be filled AND that share
+   was authored. Neither is true now: every share carries a body, and the light
+   moves to whichever share the reader is pointing at. A per-share number cannot
+   express "under all of the ink" when the share is chosen at pointer time.
+
+   So the figure is three layers instead, and each is a kind of mark rather than a
+   share: the FILLS, then the INK, then the TYPE. A band cannot reach a hairline
+   from a layer below it, whichever <li> it belongs to and whichever share is lit. */
+.cf-pie__draw { z-index: 0; }
+.cf-pie__ink,
+.cf-pie__frame { z-index: 1; }
+
+/* THE INK TAKES NO POINTER. Both of these layers cover the whole drawing, and
+   both sit ABOVE the bands — which is the point of them — so an <svg> box that
+   hit-tests would seal every share underneath it. Nothing in either layer is
+   something to point at: they are the contour and the cuts, and what a reader
+   points at is a share. */
+.cf-pie__ink,
+.cf-pie__frame { pointer-events: none; }
 
 /* 120 x 120 user units = 6u x 6u, so one user unit is u/20 at every size and
    the numbers in the markup are the plot's numbers. The centre is 60,60; the
@@ -10219,52 +10285,115 @@ a.cf-calendar__day > time,
   /* Where the label stands: the middle of the share's own arc. Derived, so it
      needs no third number in the markup. */
   --pie-a: calc(var(--pie-from) + var(--pie-share) / 2);
-  /* How much of the share's band is lit. The ONLY thing --pie-grow touches. */
-  --pie-arc: clamp(0, calc(var(--pie-share) * var(--pie-grow)), 1);
-}
+  /* Declared as well as registered, and for the reason --pie-grow is: the
+     registration is what makes them interpolable, the declaration is what makes
+     them RESOLVE where @property is not supported. Without it --pie-arc is
+     invalid at computed-value time and the dashoffset falls back to the initial
+     0, which on a dash of 1 is the whole ring lit — a chart that is confidently
+     wrong rather than one that is missing something. */
+  --pie-home: 0;
+  --pie-point: 0;
+  /* How much of this share's band is lit: the authored light as far as it has
+     arrived, or the pointer's, whichever is further round the arc. */
+  --pie-arc: clamp(0, calc(var(--pie-share)
+                           * max(var(--pie-home) * var(--pie-grow), var(--pie-point))), 1);
+  /* THE SHARE IS NOT THE HIT TARGET; THE MARKS INSIDE IT ARE. In the tier that
+     rides the ring the <li> is inset: 0 — it covers the whole drawing — so left
+     alone the LAST share in the markup would take every pointer event in the
+     figure and the other four would be unreachable at every angle. Turned off
+     here and turned back on, once, on the band and the label.
 
-/* Both the cut and the band start at 12 o'clock in the markup and are turned
-   to the share they belong to. Rotation rather than a redrawn path: nothing in
-   the drawing is per-value, which is the same promise .cf-plot__draw makes —
-   five paths, one viewBox, and the data in two custom properties. */
+     :hover still reaches this element from a descendant that is a target, in all
+     three engines: pointer-events decides what is HIT, not which ancestors the
+     hover chain runs through. The states below are written against that. */
+  pointer-events: none;
+}
+/* Where the light lives when nobody is pointing at anything. */
+.cf-pie__seg--lit { --pie-home: 1; }
+
+/* The cut and both bands start at 12 o'clock in the markup and are turned to
+   the share they belong to. Rotation rather than a redrawn path: nothing in the
+   drawing is per-value, which is the same promise .cf-plot__draw makes — five
+   paths, one viewBox, and the data in two custom properties. */
 .cf-pie__cut,
-.cf-pie__band {
+.cf-pie__band,
+.cf-pie__light {
   transform-box: view-box;
   transform-origin: 60px 60px;
   transform: rotate(calc(var(--pie-from) * 1turn));
 }
 
-/* The lit band IS the annulus sector — a 1u stroke on the 2.5u circle covers
-   exactly the ground between the two contours, so the one filled shape in this
-   component still needs no path of its own. It is the only path here that
-   scales with the drawing, which is what lets it use the pathLength draw.
+/* A BAND IS THE ANNULUS SECTOR — a 1u stroke on the 2.5u circle covers exactly
+   the ground between the two contours, so the one filled shape in this component
+   still needs no path of its own. It is the only kind of path here that scales
+   with the drawing, which is what lets it use the pathLength draw.
 
-   THE FILL IS NOT DECLARED HERE, for the reason .cf-plot__cap's is not: lime
-   is never a flat fill, a CSS gradient cannot be an SVG fill, and so the ramp
-   is a paint server the lit share carries in its own <defs>. What it carries
-   is the BLOOM, not the rake — .material-bloom, mirrored, lime on the rim and
-   CF-Grau toward the centre, which foundations/colors.html gives to "a body of
-   revolution" and which is the only member of the family that survives being
-   turned: a bloom centred on the ring's own centre looks the same at every
-   --turn, where a linear rake would swing its axis off the four angles by
-   whatever the data happened to say. */
-.cf-pie__band {
+   TWO OF THEM PER SHARE, AND THAT IS THE WHOLE OF THE COLOUR CODING.
+   .cf-pie__band is the share's BODY and every share carries one; .cf-pie__light
+   is the lit face and one share carries it at a time. Neither declares a colour,
+   for the reason .cf-plot__cap does not: lime is never a flat fill and a CSS
+   gradient cannot paint an SVG, so both are stroked with a paint server the
+   figure carries in its own <defs>.
+
+   THE TWO SERVERS ARE ONE RAMP CUT AT TWO PLACES, which is what keeps this a
+   coding rather than a palette. Both are .material-bloom — mirrored, centred on
+   the ring, the member of the family foundations/colors.html gives to "a body of
+   revolution", and the only one that survives being turned: a bloom on the ring's
+   own centre looks identical at every --turn, where a linear rake would swing its
+   axis off the four angles by whatever the data happened to say.
+
+     #cf-pie-light    CF-Grau -> Glas -> lime. The whole ramp, at the mid rake,
+                      with the oklab waypoint the lime leg owes.
+     #cf-pie-ground   CF-Grau -> Glas. The SAME RAMP WITHOUT ITS LIME LEG,
+                      renormalised over the band — the construction
+                      --gradient-foil already makes for .text-foil, and the one
+                      leg of the family that needs no waypoint, because
+                      Glas -> CF-Grau is dEok 0.00073 and sRGB and oklab agree
+                      on it to three decimal places.
+
+   So the difference between a share and the LIT share is the presence of lime,
+   not a hue. Every unlit share is painted identically — there is no per-share
+   colour to look up, nothing a legend could be made of, and nothing encoded in a
+   distinction a third of readers cannot draw. The comparison is still carried by
+   the contour and the printed number; what the ground adds is that the ring has
+   a body for the light to land on. */
+.cf-pie__band,
+.cf-pie__light {
   fill: none;
   stroke-width: 20;
   stroke-dasharray: 1;
-  /* MULTIPLIED INTO A LENGTH, AND GECKO IS WHY. stroke-dashoffset takes a
-     <length-percentage> or a <number>, and Firefox 153 accepts the number only
-     as a literal: every unitless calc() on this property — calc(1 - var(--x)),
-     and calc(1 - 0.27) with no custom property in it at all — is invalid at
-     computed-value time and drops to the initial 0. Which on a dash of 1 over
-     pathLength="1" is the WHOLE RING lit: not a share drawn short, a share
-     drawn as every share there is. Measured on the same markup, all three
-     engines: unitless computes 0.73px in Chromium and WebKit and 0px in
-     Firefox; * 1px computes 0.73px in all three. pathLength normalises against
-     the drawn length either way, so the unit costs nothing and buys the engine
-     that would otherwise draw the figure confidently wrong. */
-  stroke-dashoffset: calc((1 - var(--pie-arc)) * 1px);
 }
+
+/* MULTIPLIED INTO A LENGTH, AND GECKO IS WHY — both of them, below.
+   stroke-dashoffset takes a <length-percentage> or a <number>, and Firefox 153
+   accepts the number only as a literal: every unitless calc() on this property —
+   calc(1 - var(--x)), and calc(1 - 0.27) with no custom property in it at all —
+   is invalid at computed-value time and drops to the initial 0. Which on a dash
+   of 1 over pathLength="1" is the WHOLE RING: not a share drawn short, a share
+   drawn as every share there is. Measured on the same markup, all three engines:
+   unitless computes 0.73px in Chromium and WebKit and 0px in Firefox; * 1px
+   computes 0.73px in all three. pathLength normalises against the drawn length
+   either way, so the unit costs nothing and buys the engine that would otherwise
+   draw the figure confidently wrong. */
+
+/* The body runs the share's whole arc and never moves. It is the share, drawn. */
+.cf-pie__band {
+  stroke-dashoffset: calc((1 - var(--pie-share)) * 1px);
+  /* THE ONE HIT TARGET IN THE DRAWING, AND IT IS GEOMETRY THE FIGURE ALREADY
+     HAD. The band is dashed to exactly its own share, and all three engines
+     hit-test a dashed stroke on the DRAWN dash and let the gap fall through to
+     whatever lies under it — measured on Chromium 151, Firefox 154 and
+     WebKit 26.5, at four points on one ring. So pointing at an arc points at the
+     share that arc belongs to, with no second shape to keep in step with the
+     first and nothing per-value to author.
+
+     `stroke` and not `visibleStroke`, deliberately: `stroke` ignores paint and
+     visibility, so the target survives .cf-pie--hollow taking the paint away. */
+  pointer-events: stroke;
+}
+
+/* The lit face, and the only thing in this figure that moves. */
+.cf-pie__light { stroke-dashoffset: calc((1 - var(--pie-arc)) * 1px); }
 
 /* AND IT DOES NOT GLOW, which is not an omission. The spill is a small mark's
    light: --glow-r is 6 px on an icon, 8 px on a relay head, 12 px on a plot
@@ -10276,6 +10405,56 @@ a.cf-calendar__day > time,
    arc where the reader most needs to see where the share ends. The brand's
    first rule is the contour, so the light gives way to it. A lit face, like
    every other lit face here. */
+
+/* THE RING WITHOUT ITS BODY. A ground band is a fill, and a fill is the first
+   thing this system gives up: on a dark section, over artwork, or beside a
+   drawing already carrying the page's material, a pale annulus is one surface
+   too many. --hollow takes the paint off the body and changes nothing else —
+   the cuts, the contours, the numbers, the lit share and the pointer all behave
+   exactly as they do above, and the figure is the one this component shipped
+   before it had a body. The path itself stays in the drawing because it is the
+   hit target, and pointer-events: stroke does not ask whether the stroke is
+   painted. */
+.cf-pie--hollow .cf-pie__band { stroke: none; }
+
+/* THE LIGHT FOLLOWS THE POINTER, AND THERE IS STILL ONLY ONE OF IT. Point at a
+   share — at its arc, or at its label — and the light moves there; take the
+   pointer away and it goes home. The authored share gives its light up for
+   exactly as long as the pointer is on a different one, so no reading of this
+   figure ever holds two lime moments. :not() is on the second rule because the
+   lit share pointed at is BOTH sources at once, and without it --pie-home would
+   fall while --pie-point rose and max() would dip to 0.5 halfway through — a
+   share that darkens when you point at it.
+
+   IT REVEALS NOTHING, WHICH IS WHY IT SHIPS NO TAB STOP. Every key and every
+   number is printed at every moment; what the pointer moves is emphasis, not
+   information. That is Mobile's "nothing is hover-only" in its strongest form —
+   remove hover entirely and the figure is exactly the figure this component
+   shipped — and it is the reason five spans that go nowhere do not get a
+   tabindex each. :focus-within is named beside :hover because every state pair
+   in this file names both, and here it means a share that a page has wrapped in
+   a link lights from the keyboard the same way it lights from the pointer.
+
+   NOT GATED ON (hover: hover). On touch the first tap lights the share and the
+   next one moves the light, which is a fair reading of the same gesture and
+   loses nothing when it sticks — the state it sticks in is a legal state of the
+   figure. */
+.cf-pie__seg:is(:hover, :focus-within) { --pie-point: 1; }
+.cf-pie__set:has(.cf-pie__seg:is(:hover, :focus-within))
+  .cf-pie__seg--lit:not(:hover, :focus-within) { --pie-home: 0; }
+
+/* Motion is opted into here, the way .cf-subdiv opts into its own, rather than
+   switched off under a reduce query. --duration-slow is the token's own
+   definition — "a reveal, or light crossing a surface" — and light crossing a
+   surface is the entire content of this transition. Both properties are
+   registered <number>, so what interpolates is a number and what redraws is one
+   dashoffset per frame; nothing here reflows, and nothing but the light moves. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .cf-pie__seg {
+    transition: --pie-home var(--duration-slow) var(--ease-standard),
+                --pie-point var(--duration-slow) var(--ease-standard);
+  }
+}
 
 /* THE BASE TIER: A LEGEND, WHICH IS THE THING THIS COMPONENT EXISTS TO AVOID.
    Placing a label against its own arc is trigonometry and there is no literal
@@ -10308,29 +10487,27 @@ a.cf-calendar__day > time,
    same @supports posture, .cf-annot already takes for the isometric angle. */
 @supports (top: calc(1px * sin(45deg))) {
   .cf-pie__set { margin: 0; }
+  /* NO z-index HERE, AND THE ABSENCE IS THE MECHANISM. A share is a box that
+     covers the whole drawing and carries three marks belonging to three
+     different layers of it — a fill, a hairline and a label. Give the <li> a
+     z-index and it becomes a stacking context, the three marks are sealed into
+     it, and the figure sorts by share instead of by kind: the last share's band
+     over the first share's cut, at 12 o'clock, in every figure.
+
+     Left at auto the <li> is transparent to the stack, the three layers above
+     sort against each other across all five shares, and contour still comes
+     before fill — which is the rule this was always trying to keep. It replaces
+     `.cf-pie__seg--lit { z-index: 0 }`, a number that could only ever name one
+     share and could not name the share a reader is pointing at. */
   .cf-pie__seg {
     position: absolute;
     inset: 0;
-    z-index: 1;
   }
-  /* The lit share paints UNDER every other share's cut. Its band ends exactly
-     on the two hairlines that bound it, and a 20-user-unit stroke laid over a
-     1 px contour wins by 30:1 — so the boundary it shares with its neighbour
-     would go soft on one side only. Its own cut is drawn after its own band
-     inside the same <svg> and needs no help.
-
-     IT LIVES IN HERE, UNDER THE RULE IT TAKES BACK, and putting it outside is a
-     dead declaration rather than a wrong one. .cf-pie__seg--lit and
-     .cf-pie__seg are both a single class, so the winner is whichever comes
-     last — and a z-index authored above this block loses to the one inside it
-     at every scroll position, in a way no screenshot separates from a 1 px
-     seam going soft. Same shape as the cascade check-anchor-position-cascade.py
-     was written for. */
-  .cf-pie__seg--lit { z-index: 0; }
   .cf-pie__label {
     position: absolute;
     left: 50%;
     top: 50%;
+    z-index: 2;
     display: block;
     width: max-content;
     max-width: var(--pie-label-w);
@@ -10344,6 +10521,14 @@ a.cf-calendar__day > time,
                      - 50% - 50% * cos(var(--pie-a) * 1turn)));
   }
 }
+
+/* THE SECOND HIT TARGET, AND IT IS THE ONE THE BASE TIER HAS. Direct labelling
+   means the name of a share stands beside its arc, so a reader whose pointer is
+   already on the word is pointing at the share — and where CSS trig is missing
+   and the labels are a ruled list under the drawing, the row IS the only target
+   there is. One declaration gives the ring's labels and the list's rows the same
+   behaviour, in both tiers, without either knowing about the other. */
+.cf-pie__label { pointer-events: auto; }
 
 /* The key and the value, and the treatment is the plot's — a figure's numbers
    look the same wherever the figure is. Stated rather than inherited, because
@@ -10391,6 +10576,12 @@ a.cf-calendar__day > time,
   margin: 0;
   transform: translate(-50%, -50%);
   text-align: center;
+  /* The hole is 4u across and this box is 4u wide, so its CORNERS stand at
+     2.24u from the centre and the band starts at 2u: a box that clears the
+     inner contour on all four sides still has four points inside the ring. They
+     are empty points on an empty box, and left alone they would take the
+     pointer off the two shares nearest 12 and 6 o'clock. */
+  pointer-events: none;
 }
 .cf-pie__whole-val { font-weight: var(--weight-medium); }
 
@@ -10448,6 +10639,41 @@ a.cf-calendar__day > time,
 @keyframes cf-pie-light {
   from { --pie-grow: 0; }
   to   { --pie-grow: 1; }
+}
+
+/* FORCED COLOURS TAKES THE FILLS AND KEEPS THE DRAWING, which is the answer
+   .rule and .text-foil already give one altitude up: CanvasText is what ink
+   means in this palette. Two things are true here at once, and only both
+   together leave a figure.
+
+   THE INK WAS NEVER IN THE PALETTE. --border-strong is a custom property, and a
+   custom property arriving at an SVG `stroke` is not forced. Measured in
+   Chromium 151, forced-colors active, prefers-color-scheme dark, this page over
+   http: .cf-pie__contour computes rgb(0, 0, 0) against a Canvas of rgb(0, 0, 0).
+   Black on black — both contours and every cut, absent rather than faint, in the
+   palette where a drawing has nothing else to be read by. It is the finding the
+   found state's five rungs carried, in a component that draws instead of marks,
+   and it takes the same answer.
+
+   AND A GRADIENT IS NOT IN THE PALETTE EITHER. A paint server is not forced at
+   all — `stroke` computes url("#cf-pie-ground") in both palettes — so the bands
+   would go on painting their own Glas and lime under a reader's chosen black.
+   That is not merely off-palette: it is where the ink would become unreadable
+   again the moment it was fixed, a CanvasText hairline laid on a pale annulus.
+   So the fills come off, and what is left is exactly .cf-pie--hollow — the
+   contours, the cuts, the labels and the whole, in the reader's own ink.
+
+   The lit share loses its light and nothing goes with it. It is the share the
+   caption names in words, which is this component's own rule that nothing here
+   is encoded in colour alone, and its number keeps the one weight step
+   .cf-pie__seg--lit gives it. The pointer still moves a light that is not being
+   painted, which costs nothing: it was emphasis, and emphasis is the one thing
+   this mode is entitled to take. */
+@media (forced-colors: active) {
+  .cf-pie__contour,
+  .cf-pie__cut { stroke: CanvasText; }
+  .cf-pie__band,
+  .cf-pie__light { stroke: none; }
 }
 
 /* --------------------------------------------------------------------------
