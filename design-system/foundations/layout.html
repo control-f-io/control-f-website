@@ -59,7 +59,7 @@
         <tr><td><code>--grid-columns</code></td><td>12</td><td>columns — the count</td></tr>
         <tr><td><code>--grid-tracks</code></td><td><code>repeat(var(--grid-columns), minmax(0, 1fr))</code></td><td>columns — the track list</td></tr>
         <tr><td><code>--grid-gap</code></td><td>24 px</td><td>column gap</td></tr>
-        <tr><td><code>--section-gap</code></td><td>64 → 160 px</td><td><em>padding</em> on each edge of a section — see Rhythm</td></tr>
+        <tr><td><code>--section-gap</code></td><td>64 → 120 px</td><td><em>padding</em> on each edge of a section — see Rhythm</td></tr>
         <tr><td><code>--section-header-gap</code></td><td>48 → 80 px</td><td>the air under a section header's rule — see Rhythm</td></tr>
       </tbody>
     </table>
@@ -934,7 +934,7 @@
       <strong>Every step is accounted for.</strong> A scale is only honest if you can say who
       uses each rung, so here is the count of <em>declarations</em> that reference each step in
       the shipping CSS (<code>tokens</code> + <code>base</code> + <code>components</code>),
-      comments excluded. Stamped <code>63fbd660</code> — see below for what that is and how to
+      comments excluded. Stamped <code>31f54606</code> — see below for what that is and how to
       check it in one command:
     </div>
     <table class="docs-table" id="space-scale">
@@ -951,8 +951,8 @@
         <tr><td><code>--space-16</code></td><td>64</td><td>11</td><td>the <code>--section-gap</code> floor</td></tr>
         <tr><td><code>--space-20</code></td><td>80</td><td>6</td><td>the <code>--section-header-gap</code> and <code>-sm</code> ceilings — both reached at 1440 — and the accordion indent</td></tr>
         <tr><td><code>--space-24</code></td><td>96</td><td>5</td><td>page-header and footer <code>padding-block</code>; the field's rhombus width</td></tr>
-        <tr><td><code>--space-30</code></td><td>120</td><td><strong>0</strong></td><td>—</td></tr>
-        <tr><td><code>--space-40</code></td><td>160</td><td>2</td><td>the <code>--section-gap</code> ceiling</td></tr>
+        <tr><td><code>--space-30</code></td><td>120</td><td>1</td><td>the <code>--section-gap</code> ceiling — reached at 1440, with the other two</td></tr>
+        <tr><td><code>--space-40</code></td><td>160</td><td>1</td><td>the vacancy register's picture square</td></tr>
       </tbody>
     </table>
     <div class="docs-note">
@@ -972,9 +972,10 @@ print('stamp', hashlib.sha256(repr(counts).encode()).hexdigest()[:8])
 print(counts)
 "</pre>
     <div class="docs-note">
-      Comments are stripped first, which matters more than it sounds: <code>--space-30</code>
-      is named eight times across <code>tokens.css</code> and this page and used in exactly zero
-      declarations, so a naive <code>grep</code> would report it as a healthy rung.
+      Comments are stripped first, which matters more than it sounds: for as long as
+      <code>--space-30</code> had no consumer it was still named eight times across
+      <code>tokens.css</code> and this page, so a naive <code>grep</code> reported it as a
+      healthy rung while the count above read zero.
       <br><br>
       The other thing a sceptical reader checks first: the match includes the closing paren, so
       <code>var(--space-1)</code> cannot match <code>var(--space-12)</code>. The narrow steps are
@@ -1026,7 +1027,7 @@ print(counts)
     <div class="docs-note">
       <strong>The stamp is a digest of the counts themselves.</strong> It is the first eight hex
       of a SHA-256 over the thirteen numbers, printed by the same command that prints them — so
-      if it still reads <code>63fbd660</code>, the table is current and there is nothing to
+      if it still reads <code>31f54606</code>, the table is current and there is nothing to
       re-derive.
       <br><br>
       It took two wrong answers to get here, and both are worth keeping because both are the
@@ -1045,15 +1046,18 @@ print(counts)
       the claim, not the material the claim was made from.</strong>
     </div>
     <div class="docs-note">
-      <strong><code>--space-30</code> is the one step with no consumer</strong> — and the
-      previous version of this note was wrong about it, claiming it and
-      <code>--space-40</code> were both values <code>--section-gap</code> merely resolves to.
-      <code>--space-40</code> is written by hand, as the clamp's ceiling. <code>--space-30</code>
-      is written nowhere. It is kept as the single deliberate exception to the rule below,
-      because 120 is a real rung of a 4 px scale and it is the value the rhythm lands on at the
-      1440 reference frame — the landmark the whole vertical system is measured against. If a
-      designer would rather see the rule enforced than the landmark kept, delete it; that is a
-      reasonable ruling and this note exists so it can be made deliberately.
+      <strong>Every step has a consumer now, and the last one to get one was
+      <code>--space-30</code>.</strong> For most of this page's life it was the one rung with a
+      count of zero, kept as a deliberate exception to the rule below because 120 is the value
+      the rhythm lands on at the 1440 reference frame — a landmark, written nowhere. The
+      previous version of this note was wrong about it once already, claiming it and
+      <code>--space-40</code> were both values <code>--section-gap</code> merely resolves to,
+      when <code>--space-40</code> was written by hand as the clamp's ceiling. That ceiling is
+      <code>--space-30</code> now — see <a href="#rhythm">Vertical rhythm</a> for why — so the
+      landmark is the consumer, the exception in <code>check-spacing-scale.py</code> is an empty
+      set, and <code>--space-40</code> keeps its place on the strength of the one consumer it
+      always had on its own: the vacancy register's picture square. A rung reaching zero is a
+      finding again, for every rung.
     </div>
     <div class="docs-note">
       <strong>If a step loses its last consumer, delete it</strong> rather than leaving it as a
@@ -1071,7 +1075,7 @@ print(counts)
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Fluid part</th><th>Floor</th><th>Ceiling</th></tr></thead>
       <tbody>
-        <tr><td><code>--section-gap</code></td><td><code>100vw / 12</code> — one twelfth of the frame</td><td>64 below 768</td><td>160 from 1920</td></tr>
+        <tr><td><code>--section-gap</code></td><td><code>100vw / 12</code> — one twelfth of the frame</td><td>64 below 768</td><td>120 from 1440</td></tr>
         <tr><td><code>--section-gap-sm</code></td><td><code>100vw / 18</code></td><td>32 below 576</td><td>80 from 1440</td></tr>
         <tr><td><code>--section-header-gap</code></td><td><code>100vw / 18</code> — two thirds of <code>--section-gap</code></td><td>48 below 864</td><td>80 from 1440</td></tr>
       </tbody>
@@ -1089,7 +1093,7 @@ print(counts)
         <thead><tr><th>below ÷ above</th><th>320</th><th>375</th><th>768</th><th>900</th><th>1024</th><th>1280</th><th>1440</th><th>1920</th></tr></thead>
         <tbody>
           <tr><td><code>.section</code>, was</td><td>1.25</td><td>1.25</td><td>1.25</td><td>1.07</td><td>0.94</td><td>0.75</td><td><strong>0.67</strong></td><td>0.50</td></tr>
-          <tr><td><code>.section</code>, is</td><td>0.75</td><td>0.75</td><td>0.75</td><td>0.67</td><td>0.67</td><td>0.67</td><td><strong>0.67</strong></td><td>0.50</td></tr>
+          <tr><td><code>.section</code>, is</td><td>0.75</td><td>0.75</td><td>0.75</td><td>0.67</td><td>0.67</td><td>0.67</td><td><strong>0.67</strong></td><td>0.67</td></tr>
           <tr><td><code>--tight</code>, was</td><td>2.50</td><td>2.50</td><td>1.87</td><td>1.60</td><td>1.41</td><td>1.13</td><td><strong>1.00</strong></td><td>1.00</td></tr>
           <tr><td><code>--tight</code>, is</td><td>1.50</td><td>1.50</td><td>1.12</td><td>1.00</td><td>1.00</td><td>1.00</td><td><strong>1.00</strong></td><td>1.00</td></tr>
         </tbody>
@@ -1108,7 +1112,9 @@ print(counts)
       ceiling is 80 and the fluid term reaches it at exactly 1440, the frame the mockups were
       drawn on. The floor is the proximity constraint written as a number — it has to sit under
       <code>--section-gap</code>'s own 64 px floor or the inversion survives wherever both are
-      floored, and 48 is the scale step that does, reached at 864.
+      floored, and 48 is the scale step that does, reached at 864. The 1920 column read 0.50 for
+      as long as <code>--section-gap</code> ran on to 160 after this token had capped; both cap
+      at 1440 now, so the two thirds holds from 864 up.
       <br><br>
       <code>--tight</code> is still over 1.00 at the phone, deliberately: a section takes the
       small rhythm precisely <em>because</em> a page header above it has already spent the air,
@@ -1131,7 +1137,7 @@ print(counts)
         <tr><td>1024</td><td>56.3</td><td>911</td><td>85.3</td><td>56.9</td></tr>
         <tr><td>1280</td><td>70.4</td><td>1139</td><td>106.7</td><td>71.1</td></tr>
         <tr><td>1440</td><td>79.2</td><td><strong>1280</strong></td><td><strong>120</strong> = <code>--space-30</code></td><td><strong>80</strong> = <code>--space-20</code></td></tr>
-        <tr><td>1920</td><td>80</td><td>1280</td><td><strong>160</strong> = <code>--space-40</code></td><td>80</td></tr>
+        <tr><td>1920</td><td>80</td><td>1280</td><td><strong>120</strong> <span class="t-secondary">(capped)</span></td><td>80</td></tr>
       </tbody>
     </table>
     <div class="docs-note">
@@ -1143,18 +1149,17 @@ print(counts)
       viewport-to-page relationships, which is what they are.
     </div>
     <div class="docs-note">
-      <strong>The 2 : 3 ratio holds in the middle, not everywhere.</strong> The two tokens are
-      1/18 and 1/12 of the frame, so where both are fluid they sit at exactly 1.50. Measured
-      across the range that is <strong>768 to 1440 and nowhere else</strong>: 2.00 below 576
-      where both rest on their floors, sliding 2.00 → 1.50 across 576–768 as
-      <code>-sm</code> leaves its floor first — it passes 1.80 at 640 and 1.65 at 700, and an
-      earlier version of this note named the 640 figure as the start of the slide — flat at
-      1.50 through the middle, then opening
-      back out to 2.00 by 1920 as <code>-sm</code> caps and <code>--section-gap</code> climbs
-      on alone. This is the failure mode <code>clamp()</code> is known for — two ramps that
-      agree at the ends and drift in between — and it is checked here rather than assumed.
-      The drift is benign: the ratio only widens, so the tight rhythm never overtakes the loose
-      one.
+      <strong>The 2 : 3 ratio holds from 768 up, and below that only at the floors.</strong> The
+      two tokens are 1/18 and 1/12 of the frame, so where both are fluid they sit at exactly
+      1.50. Measured: 2.00 below 576 where both rest on their floors, sliding 2.00 → 1.50 across
+      576–768 as <code>-sm</code> leaves its floor first — it passes 1.80 at 640 and 1.65 at 700,
+      and an earlier version of this note named the 640 figure as the start of the slide — then
+      flat at 1.50 from 768 through 1440 and <strong>beyond it</strong>, because both ceilings
+      are reached at 1440 and 120 / 80 is the same 1.50. It used to open back out to 2.00 by
+      1920 as <code>-sm</code> capped and <code>--section-gap</code> climbed on alone to 160.
+      That is the failure mode <code>clamp()</code> is known for — two ramps that agree at one
+      end and drift at the other — and it was recorded here for several releases as benign
+      before it was fixed at the ceiling: see the two notes below.
     </div>
     <div class="docs-note">
       <strong>Where the rationale stops being literally true.</strong>
@@ -1168,50 +1173,53 @@ print(counts)
       it is why the number lands exactly on <code>--space-30</code> at 1440. It is simply not
       the grid.
       <br><br>
-      The correction sharpens the question below rather than dissolving it. What changes at
+      The correction sharpened the question below rather than dissolving it. What changes at
       about <strong>1438 px</strong> is that the container caps, so the <em>frame</em> stops
       governing the page: content freezes at 1280 while 100vw ÷ 12 keeps climbing. Section
-      rhythm therefore keeps opening against a column that no longer grows — measured as a
-      share of content width, the air per section goes 9.4 % flat from 768 to 1440, then climbs to
-      12.5 % at 1920. At the other end it reaches 19.2 % at 375 and 22.9 % at 320, because the
+      rhythm therefore kept opening against a column that no longer grew — measured as a
+      share of content width, the air per section went 9.4 % flat from 768 to 1440, then climbed
+      to 12.5 % at 1920. At the other end it reaches 19.2 % at 375 and 22.9 % at 320, because the
       64 px floor is held while the column keeps narrowing.
       <br><br>
-      Neither end is broken and both look deliberate, but neither was measured off a mockup —
-      the designer's frame is 1440. The alternative is to cap the fluid part at the frame
-      (<code>min(100vw, 89.9rem) ÷ 12</code>), which would freeze the rhythm at
-      <code>--space-30</code> exactly where the column freezes, and give that step the consumer
-      it currently lacks. That is a visible change to every viewport above 1500 — 240 px between
-      sections instead of up to 320 — so it is left for a designer to rule on rather than taken
-      here.
+      <strong>The top end is capped at the frame now.</strong> Neither end was measured off a
+      mockup — the designer's frame is 1440 and nothing in the source material is wider — and
+      the two ends are not alike: the floor is a proximity constraint that holds a rhythm
+      together on a phone, while the old 160 ceiling was simply where 100vw ÷ 12 happened to
+      land on the next common monitor width. The ceiling is <code>--space-30</code>, which is
+      1440 ÷ 12 by construction, so the rhythm freezes on exactly the width the column freezes
+      on and that step has the consumer it lacked. Above 1440 the air between sections is a flat
+      240 px rather than climbing to 320, and the share of content width holds at 9.4 % from
+      768 to any width at all. Nothing at or below 1440 moves by a pixel. Written as a scale
+      step rather than as <code>min(100vw, 90rem) ÷ 12</code>, because a ceiling that is a rung
+      is a ceiling the count above can see.
     </div>
     <div class="docs-note">
-      <strong>Five tokens stop growing at five different widths, and that is what the ratio drift
-      actually is.</strong> The note above is the visible corner of a wider fact:
+      <strong>Five tokens stop growing within 16 px of each other, and one of them used to
+      arrive 466 px late.</strong> The note above is the visible corner of a wider fact:
       <table class="docs-table">
         <thead><tr><th>Token</th><th>Stops growing at</th><th>Because</th></tr></thead>
         <tbody>
           <tr><td><code>--container-max</code></td><td><strong>1438.2</strong></td><td>content reaches 1280</td></tr>
           <tr><td><code>--section-gap-sm</code></td><td><strong>1440.0</strong></td><td>100vw ÷ 18 = 80</td></tr>
           <tr><td><code>--section-header-gap</code></td><td><strong>1440.0</strong></td><td>100vw ÷ 18 = 80</td></tr>
+          <tr><td><code>--section-gap</code></td><td><strong>1440.0</strong></td><td>100vw ÷ 12 = 120</td></tr>
           <tr><td><code>--gutter</code></td><td><strong>1454.5</strong></td><td>5.5vw = 80</td></tr>
-          <tr><td><code>--section-gap</code></td><td><strong>1920.0</strong></td><td>100vw ÷ 12 = 160</td></tr>
         </tbody>
       </table>
-      Four land within <strong>16 px</strong> of each other and the fifth arrives
-      <strong>466 px</strong> later. The header gap used to be outside this table altogether,
-      because it never started growing — it is in the cluster now, and it got there by taking the
-      ceiling the note below asks the whole system to coordinate on. So the ratio opening back out to 2.00 by 1920 is not the rhythm
-      doing something interesting — it is <code>--section-gap</code> climbing alone after every
-      horizontal measure has frozen. From 1454 to 1920 the page is a fixed 1280 column with 80 px
-      gutters whose vertical rhythm keeps loosening by a further 39 px.
+      The header gap used to be outside this table altogether, because it never started
+      growing — it joined the cluster by taking the ceiling the whole system coordinates on.
+      <code>--section-gap</code> was the last one out: its ceiling was <code>--space-40</code>,
+      reached at <strong>1920.0</strong>, so from 1454 to 1920 the page was a fixed 1280 column
+      with 80 px gutters whose vertical rhythm kept loosening by a further 40 px. That was the
+      whole of the ratio drift the note above records, and it was not the rhythm doing something
+      interesting — it was one token climbing alone after every horizontal measure had frozen.
       <br><br>
       Current fluid-scale practice is to coordinate the upper bound across the system so gutters,
-      padding and type top out together and the composition grows in proportion. This system has
-      them four places apart, and the widest governs vertical space. Whether that is wrong is a
-      designer's call — <code>clamp(var(--space-16), calc(100vw / 12), var(--space-30))</code> would
-      lock section rhythm to the frame at 1440 — and it is the same call as the note above, so it is
-      recorded here rather than taken. Named because a measured fact is worth more to whoever rules
-      on it than an inference.
+      padding and type top out together and the composition grows in proportion — Utopia's
+      generator takes one maximum viewport for every fluid step it writes, for exactly this
+      reason. This system now has all five within 16 px of the designer's frame; the 14.5 px
+      the gutter still overshoots by is the rounding of 5.5556vw to 5.5vw, documented under
+      Container, and it is horizontal air on the window rather than on the column.
     </div>
     <div class="docs-note">
       <strong>The fluid middle does not answer to the user's font size, and the ends do.</strong>
