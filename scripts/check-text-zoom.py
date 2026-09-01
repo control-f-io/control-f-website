@@ -56,7 +56,12 @@ this gate stands on.
 
 Everything outside that rectangle -- 320 px at any text size, and 200 % at any
 width -- is CENSUS, measured on every run, printed with the widest offender in
-each cell, and RATCHETED: 45 cells today, and the number may fall but not rise.
+each cell, and RATCHETED: 45 cells when this was written; on 2026-09-01, with
+the built tree's 38 pages, 42 in CI's Chromium and 43 under the Chromium 1194
+this repository's sessions carry (one cell sits inside font-metric slack), so
+the ceiling is 43 — and the number may fall but not rise. Measure on a BUILT
+tree: the 25 generated pattern pages are half the census, and an unbuilt
+checkout reads 23 and tempts a ceiling CI cannot meet.
 A census that can only be read is the thing this repository's README calls a
 stale enumeration; a census with a ratchet on it is a gate that has not closed
 yet. The 45 are five faults, none of them this change's:
@@ -69,11 +74,21 @@ yet. The 45 are five faults, none of them this change's:
                       16 px default. Wrapping the list cannot reach it, because
                       below the fold that list is `display: none` and the panel
                       is out of flow; the fix is a relayout of the folded plate.
-  act 4's cards       landing-page.html, 3 cells: +12 px at 320 x 20, +48 at
-                      320 x 24, +88 at 375 x 32. article.lp-ev-card measures
-                      439 px in a 320 px viewport at 200 %. It arrived with the
-                      evidence act (#523) and is why that page's 320 x 32 cell
-                      reads 459 and not the nav's 342.
+  act 4's pie label   landing-page.html, 4 cells: +6 px at 320 x 20, +23 at
+                      320 x 24, +59 at 320 x 32, +31 at 375 x 32. These used to
+                      read +12 / +48 / +139 / +88 with article.lp-ev-card at
+                      439 px in a 320 px viewport — three implicit `auto` grid
+                      columns (.cf-pin__steps, .lp-ev-card__figure, .lp-ev-src)
+                      each sized to a German compound, declared since. What is
+                      left is .cf-pie__label at the ring's 3 o'clock: a 5rem
+                      cap and a max-content box beside a px radius, so the
+                      label grows with the root and the ring does not. At 320
+                      the label's right edge is centre + 77 + 0.96 x its width
+                      and clears the viewport only up to a root of ~18 px. The
+                      fix is the component's list tier (labels ruled under the
+                      ring, which the no-trig fallback already draws) behind a
+                      container query, not a cap — a cap narrow enough to fit
+                      breaks "Stillstände" mid-word.
   a prose table       blog-artikel.html, 2 cells: +6 px at 320 x 20 and +16 at
                       320 x 24.
   expertise.html      1 cell, +18 px at 375 x 32, on a list item.
@@ -109,7 +124,7 @@ GATE_WIDTHS = (375, 768, 900, 1024, 1280)
 GATE_ROOTS = (16, 20, 24)
 
 # What the census holds. It may fall; it may not rise.
-CENSUS_CEILING = 45
+CENSUS_CEILING = 43
 
 BROWSER_CANDIDATES = (
     os.environ.get("CF_BROWSER"),

@@ -2133,6 +2133,17 @@
   .lp-ev-card { border: var(--stroke-1) solid var(--border-strong); }
   .lp-ev-card__figure {
     display: grid;
+    /* ONE COLUMN, DECLARED, for the reason .cf-pin__steps declares its own one
+       level up: a grid with no track list has an implicit `auto` column, and
+       `auto` as a minimum is the widest thing in it. Here that was the line
+       chart's legend — "MIT ENERGIEMANAGEMENT" is one word to a line breaker —
+       so at a 32 px root the figure's track grew to 292 px inside a card whose
+       content box was 204, the `width: 100%` below resolved against the grown
+       track, and the frame's end node stood 17 px past a 375 px viewport.
+       minmax(0, 1fr) is the stack's width and no wider; the figures that carry
+       their own px widths (the pie's ring, the plot's 18u) still centre in it
+       and overhang into this padding, which is what the padding is for. */
+    grid-template-columns: minmax(0, 1fr);
     justify-items: center;
     padding: var(--space-8);
     border-bottom: var(--stroke-1) solid var(--border-strong);
@@ -2182,6 +2193,13 @@
   .lp-ev-src {
     margin: 0; padding: 0; list-style: none;
     display: grid; gap: var(--space-2);
+    /* The third implicit column in this one card, and the same fix: a source
+       is one mono line whose longest word — "Stillstandsstunde," "Beratungs-
+       schätzung" — is 178 px at a 24 px root and 270 at 32, in a panel whose
+       content box is 150 at 320 px. Declared, the track is the panel's width
+       and the reset's break-word net gets the word; implicit, the track was
+       the word. */
+    grid-template-columns: minmax(0, 1fr);
   }
   /* EVERY SOURCE IS A LINK THE READER CAN OPEN, and that is the whole rule
      of this list. It used to carry the research note's P/S/E/M confidence
