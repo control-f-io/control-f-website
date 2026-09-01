@@ -864,12 +864,14 @@ of them live when it was written:
   `--layer` goes on saying what the drawing meant, with nothing able to tell you they have come
   apart. `--layer` is the copy that runs now, and the four pairs are one rule.
 
-`KNOWN` in that script is the register of gaps open today, each with its reason. It holds one
-entry, and it is the largest documentation gap in the system: **`cf-culture`, the culture strip
-on `patterns/karriere.html`, has no documentation page at all** — no specimen, no anatomy, no
-mention, in `components/` or `foundations/`. Its two row modifiers are the visible edge of that.
-A row whose gap has been closed fails the check too, because a register that outlives its
-subject is how the next one hides inside it.
+`KNOWN` in that script is the register of gaps open today, each with its reason. **It is empty**,
+and that is the register working rather than the register being ignored. It held two rows, and
+they were the largest documentation gap in the system: `cf-culture` — the culture band on
+`patterns/karriere.html` — had no documentation page at all, no specimen, no anatomy, no mention
+anywhere under `components/` or `foundations/`, and its two row modifiers were the visible edge of
+that. [`components/culture.html`](components/culture.html) is that page, and it shows both frames
+live, so the rows went with the gap they named. A row whose gap has been closed fails the check
+too, because a register that outlives its subject is how the next one hides inside it.
 
 ## Layout
 
@@ -885,7 +887,8 @@ design-system/
 │                           process card, accordion, blog grid,
 │                           subdivision field, search + results, vacancy,
 │                           pagination, error + empty state, arrival + progress,
-│                           article + prose, table, team, forms, footer, consent
+│                           article + prose, table, team, culture, forms, footer,
+│                           consent
 ├── patterns/               the website — landing-page.html, expertise.html,
 │                           ueber-uns.html,
 │                           news.html, blog-artikel.html, suche.html,

@@ -75,16 +75,16 @@ MODIFIER = re.compile(r"^cf-[a-z0-9]+(?:__[a-z0-9-]+)?--[a-z0-9-]+$")
 
 # Modifiers that ship with no documentation anywhere, and why this script is not
 # the thing that closes them. Each row is a real finding, parked in the open.
-KNOWN = {
-    "cf-culture__row--tall":
-        "the whole cf-culture block — the culture strip on patterns/karriere.html "
-        "— has no documentation page at all, so its two modifiers are the visible "
-        "edge of a missing components/culture.html rather than a paragraph left "
-        "out of an existing one. Writing that page is a component routine's work, "
-        "not an editing pass'.",
-    "cf-culture__row--wide":
-        "as cf-culture__row--tall: the block itself is undocumented.",
-}
+KNOWN = {}
+# Empty, and that is the register working rather than the register being
+# skipped. It held two rows — cf-culture__row--tall and cf-culture__row--wide —
+# whose reason was that the block behind them had no documentation page at all:
+# the two modifiers were the visible edge of a missing components/culture.html
+# rather than a paragraph left out of an existing page. That page exists now and
+# carries a live specimen of both frames, so rule 1 finds them shown, and the
+# rows had to go with the gap they named — a row whose subject is closed fails
+# this script as a STALE ROW, which is the half of it that keeps the register
+# honest in the direction registers usually rot.
 
 
 def block_of(cls):
@@ -215,9 +215,11 @@ def main():
 
     print("markup answered: every modifier the pattern pages ship is shown on a "
           "page the component is built from, every inline custom property is read "
-          "by something that runs, and the %d gap%s in KNOWN %s still open."
-          % (len(KNOWN), "" if len(KNOWN) == 1 else "s",
-             "is" if len(KNOWN) == 1 else "are"))
+          "by something that runs, and %s."
+          % ("KNOWN is empty — no gap is parked open" if not KNOWN else
+             "the %d gap%s in KNOWN %s still open"
+             % (len(KNOWN), "" if len(KNOWN) == 1 else "s",
+                "is" if len(KNOWN) == 1 else "are")))
     return 0
 
 
