@@ -347,6 +347,8 @@ python3 scripts/check-faq-count.py             # the counter above an accordion 
 python3 scripts/check-faq-count.py -v          # every accordion, counted or skipped, and why
 python3 scripts/check-illustration-source.py   # the four process objects are still the designer's vectors
 python3 scripts/check-illustration-source.py -v  # every element, matched or deviated, and why
+python3 scripts/check-readme-check-count.py    # the count above this block is the length of this block
+python3 scripts/check-readme-check-count.py -v # the number, and every check counted
 python3 scripts/build-i18n.py --check          # the English edition matches its German source
 python3 scripts/build-i18n.py --extract        # every German string with no entry in the catalogue
 ```
@@ -359,9 +361,12 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The eighteen checks the system enforces rather than documents, run by CI on every push and
+The twenty checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
-Stdlib only: they do not give the system a build step.
+Stdlib only: they do not give the system a build step. The count is one of them:
+`check-readme-check-count.py` reads this sentence and counts the block, because the number
+had gone stale three times — every time as a correct change by a lane that could not see
+the other one landing the same day.
 
 **The space scale** holds to two rules: `foundations/layout.html`'s table of who uses each
 rung must match the shipping CSS, and spacing in the shipping CSS must be written as a
