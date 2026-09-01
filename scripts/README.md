@@ -54,7 +54,10 @@ Plus two subdirectories:
   subdirectory's two load-bearing conventions.
 
 `check-runtime.py` is the one check that opens a browser instead of reading
-files. It runs in its own `design-system.yml` job with Playwright installed, and
+files — five fault classes that exist only at runtime, the fifth being a
+scroll-driven timeline whose clock reports one value at every scroll position
+because some ancestor's `overflow: hidden` made a scroll container out of a
+crop. It runs in its own `design-system.yml` job with Playwright installed, and
 it skips with exit 0 when no browser is present — except when
 `CF_REQUIRE_BROWSER` is set, which is how the CI job stops a broken install
 step from silently dodging the gate.
