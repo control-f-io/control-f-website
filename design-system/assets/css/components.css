@@ -9178,14 +9178,29 @@ a.cf-calendar__day > time,
       animation-fill-mode: both;
       animation-timing-function: var(--ease-out);
     }
-    .cf-values__grid-layer:nth-of-type(1),
-    .cf-values__grid-layer:nth-of-type(1) line { animation-range: contain 16.667% contain 27%; }
-    .cf-values__grid-layer:nth-of-type(2),
-    .cf-values__grid-layer:nth-of-type(2) line { animation-range: contain 33.333% contain 43.667%; }
-    .cf-values__grid-layer:nth-of-type(3),
-    .cf-values__grid-layer:nth-of-type(3) line { animation-range: contain 50%     contain 60.333%; }
-    .cf-values__grid-layer:nth-of-type(4),
-    .cf-values__grid-layer:nth-of-type(4) line { animation-range: contain 66.667% contain 77%; }
+    /* THE INDEX IS THE MARKUP'S --layer, NOT THE ELEMENT'S POSITION. The four
+       layers each carried `style="--layer:N"` and nothing in the system read it:
+       the ranges below were four hand-written pairs selected by
+       :nth-of-type(N+1) instead, so the same index was written twice and only
+       one of the two copies did anything. The dead half is the dangerous half —
+       reorder the layers, or wrap them in a <g> for a clip or a transform, and
+       :nth-of-type follows the new positions while --layer keeps saying what the
+       drawing meant, with nothing to reconcile them. `--layer` is now the one
+       that runs, and it counts <g> elements by tag rather than by class, which
+       is the other half of the same fragility.
+
+       The arithmetic is the six stages the whole track is quoted in: a layer
+       opens on stage --layer + 1 of 6 and draws over the first 62 % of it, the
+       same 62 % .cf-values__contour and .cf-values__solid take, so a stage at
+       rest always shows its own step finished rather than mid-draw. Written out
+       that is 16.667/27, 33.333/43.667, 50/60.333 and 66.667/77 — the four pairs
+       this replaces, to three decimal places. */
+    .cf-values__grid-layer,
+    .cf-values__grid-layer line {
+      animation-range:
+        contain calc((var(--layer) + 1) / 6 * 100%)
+        contain calc((var(--layer) + 1) / 6 * 100% + 10.333%);
+    }
     .cf-values__solid {
       animation-name: cf-values-fade;
       animation-range: contain 83.333% contain 93.667%;

@@ -336,6 +336,8 @@ python3 scripts/check-job-posting.py           # the JobPosting block matches th
 python3 scripts/check-a11y.py                  # the accessibility facts that are arithmetic rather than judgement
 python3 scripts/check-class-provenance.py      # every class in the markup is declared by something
 python3 scripts/check-class-provenance.py --report  # the census: who declares what, and what is written twice
+python3 scripts/check-markup-answered.py       # nothing in the markup writes into a void
+python3 scripts/check-markup-answered.py -v    # the counts, and the gaps parked in KNOWN
 python3 scripts/check-viewport-zoom.py         # no page revokes the reader's pinch zoom
 python3 scripts/check-local-thresholds.py      # every page-local threshold is registered, and in rem under patterns/
 python3 scripts/check-local-thresholds.py -v   # print the register
@@ -732,6 +734,37 @@ The two checks were written in the same hour and found the same fork from opposi
 census reports that the pinned stage on `patterns/expertise.html` and the one on
 `patterns/landing-page.html` share **eleven identical rule bodies** under `ex-` and
 `lp-proc-` prefixes; this check reports that until now they did not share the **gate**.
+
+### The other half: nothing in the markup writes into a void
+
+`check-class-provenance.py` asks who **declares** a class. `check-markup-answered.py` asks who
+**answers** the markup, which is a different question with the same failure mode — the page is
+correct, the screenshot is correct, and something it says is heard by nothing. Two rules, both
+of them live when it was written:
+
+- **A modifier the component's own page does not show.** `.cf-footer--detached` shipped on
+  `ueber-uns` and `blog-artikel`, was named in the rhythm table on `foundations/layout.html`,
+  and was already guarded by `check-footer-parity.py` — and `components/footer.html`, the page
+  with the live footer on it, never mentioned it. Somebody building a footer from the component
+  page could not learn that the modifier exists, or that a biconditional binds it to
+  `.section--flush`. **"Mentioned somewhere" is not the bar**: a rhythm table names a class, it
+  does not teach it. The page that has to show a state is the page with a **live specimen** of
+  the block on it, and where a block has no specimen anywhere the rule softens to its floor —
+  findable at all. The hero's pause switch is that case.
+- **An inline custom property no rule reads.** `patterns/ueber-uns.html` set
+  `style="--layer:N"` on the four grid layers of the Werte mark and nothing read it: the
+  animation ranges were four hand-written pairs picked out by `:nth-of-type` instead. One index,
+  written twice, one copy inert — and the inert copy is the dangerous one. Reorder those layers,
+  or wrap them in a `<g>` for a clip, and `:nth-of-type` follows the new positions while
+  `--layer` goes on saying what the drawing meant, with nothing able to tell you they have come
+  apart. `--layer` is the copy that runs now, and the four pairs are one rule.
+
+`KNOWN` in that script is the register of gaps open today, each with its reason. It holds one
+entry, and it is the largest documentation gap in the system: **`cf-culture`, the culture strip
+on `patterns/karriere.html`, has no documentation page at all** — no specimen, no anatomy, no
+mention, in `components/` or `foundations/`. Its two row modifiers are the visible edge of that.
+A row whose gap has been closed fails the check too, because a register that outlives its
+subject is how the next one hides inside it.
 
 ## Layout
 

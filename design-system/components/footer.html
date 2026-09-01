@@ -111,6 +111,45 @@
     </p>
   </section>
 
+  <section class="docs-section" id="detached">
+    <h2>The one modifier: <code>--detached</code></h2>
+    <p>
+      The footer has exactly one modifier, and until now this page did not mention it while
+      two of the site's pages shipped it. <code>.cf-footer--detached</code> adds
+      <code>margin-top: var(--section-gap-sm)</code> — the footer supplying the air above
+      itself, instead of the last section supplying it below.
+    </p>
+    <pre class="docs-code">&lt;<span class="tag">section</span> <span class="attr">class</span>=<span class="val">"section section--flush"</span>&gt;…&lt;/<span class="tag">section</span>&gt;
+&lt;<span class="tag">footer</span> <span class="attr">class</span>=<span class="val">"cf-footer cf-footer--detached"</span> <span class="attr">data-theme</span>=<span class="val">"inverse"</span>&gt;…&lt;/<span class="tag">footer</span>&gt;</pre>
+    <div class="docs-note">
+      <strong>It is half of a biconditional, never a decoration.</strong>
+      <p>
+        The last section is <code>.section--flush</code> <em>if and only if</em> the footer is
+        <code>--detached</code>. <code>--flush</code> gives up the section's bottom padding and
+        <code>--detached</code> puts the same distance back, so the two together make
+        <strong>one</strong> gap. Use one without the other and the page is wrong in whichever
+        direction you broke it: both, and <code>patterns/kontakt.html</code> stood its footer off
+        at 240&nbsp;px where every other page measures 120; neither, and the footer would sit
+        straight against the last row of content.
+      </p>
+      <p>
+        Change one, check the other — and change the distance in
+        <a href="../assets/css/tokens.css"><code>tokens.css</code></a>, never on the page. The
+        edges either modifier touches are set out in full on
+        <a href="../foundations/layout.html#sections">Layout → Sections</a>, and the reason this
+        edge reads <code>--section-gap-sm</code> rather than <code>--section-gap</code> is under
+        <a href="../foundations/layout.html#footer-clearance">footer clearance</a>: the footer is
+        not a second section of content but a black plate that has already ended the page, and it
+        spends 96&nbsp;px of its own before the CTA.
+      </p>
+    </div>
+    <p>
+      Two pages ship it — <code>patterns/ueber-uns.html</code> and
+      <code>patterns/blog-artikel.html</code>. Every other page ends on a normal
+      <code>.section</code> and takes a plain <code>.cf-footer</code>.
+    </p>
+  </section>
+
   <section class="docs-section" id="structure">
     <h2>Structure</h2>
     <table class="docs-table">
@@ -143,6 +182,8 @@
           <li>Exactly one CTA. The footer is a closing, not a second menu.</li>
           <li>Set <code>data-theme="inverse"</code> — contours and the focus ring flip with it.</li>
           <li>The sentence above the button is a prompt, not a heading.</li>
+          <li>Pair <a href="#detached"><code>--detached</code></a> with
+            <code>.section--flush</code> on the last section, or use neither.</li>
         </ul>
       </div>
       <div class="docs-rule docs-rule--dont">
