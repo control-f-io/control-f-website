@@ -1095,6 +1095,37 @@ Three more things the chapter settles:
   script has run, reads the whole page rather than one container, and is the one keystroke a
   reader can rely on everywhere. A site search field is an addition to it, not a replacement.
 
+**In forced colours, `Mark` is a plate colour and not an ink colour** — one answer, applied to
+all five rungs. `Mark` is yellow and `MarkText` black in *both* forced palettes; they are the
+only pair in this drawing that does not flip, while `Canvas` and `CanvasText` do. So `MarkText`
+holds only where it sits **on** the `Mark` plate, and everything the drawing puts outside that
+plate takes `CanvasText`: the whole contour rung, which has no plate, and the ground line of the
+light rung, which hangs below the plate on the page itself. That is the value the rest of the
+system already means by *ink in this palette* — `.text-foil` takes it and `.rule` redraws itself
+in it.
+
+The rung that found this had been **absent, not faint**. Rendered rather than computed —
+Chromium 149 and 151, `forced-colors: active`, `prefers-color-scheme` light and dark,
+`foundations/found.html` served and screenshotted, pixels read back — the dark palette returned
+one colour and 100 % `Canvas` for `.cf-mark`: the specimen sentence read *"Every match is the
+______ alone"*, with the marked words gone from the page. `color: inherit` does not inherit
+under forced colours; the mode re-forces the computed value, and for a `<mark>` Chromium forces
+it to `MarkText` — black ink under a black ground line on a black `Canvas`. The declaration said
+`color: inherit` and the computed value came back `rgb(0, 0, 0)`, which is why only a screenshot
+could find it. The light palette was correct throughout, which is how it shipped.
+
+Not `ButtonFace`/`ButtonText`, where the current-page marker in `components/pagination.html`
+went for the neighbouring finding: measured on the same run, `ButtonFace` resolves to the *same
+value as* `Canvas` in both palettes, so a plate painted in it is not a plate. And **the three
+highlight pseudo-elements are not styleable in forced colours at all** — Chromium paints
+`::target-text`, `::highlight(cf-found)` and `::highlight(cf-found-current)` with the UA's own
+`Highlight`/`HighlightText` and discards every author declaration. Four candidates rendered
+identically, the two rungs collapsing into one plate with no ground line. The single lever that
+works is `forced-color-adjust: none` on the *originating element*, which would mean setting it
+on the running text of the site — opting the page out of forced colours in order to keep a
+drawing about accessibility. It is not taken; those three rules are written as a conforming
+engine would paint them and are inert on Chromium today.
+
 `::selection` is the one exception on the page and keeps its solid lime with no contour. Its
 boundary against CF-Grau is the same 1.37:1 and that is documented rather than fixed: a drag is
 transient, self-caused and under the reader's own hand, so the platform's convention wins over
