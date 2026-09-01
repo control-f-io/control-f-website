@@ -4384,6 +4384,48 @@ ul.cf-info-card__chips {
   .subdivide--late .cf-blog-grid--port { height: auto; }
   .subdivide--late .cf-blog-grid--port .cf-blog-col { overflow: visible; }
 }
+/* ASPECT-RATIO IS NOT A HEIGHT, THE ONE TIME THAT DIFFERENCE COSTS TEN SHEETS.
+   .cf-blog-card__image is `aspect-ratio: 3 / 2; flex: 1 1 auto` a few rules
+   down — a size that depends on the flex container's own final size, which on
+   paper is exactly the box the fragmenter is still trying to solve. Chromium's
+   print pass treats that circularity as "cannot be less than the rest of the
+   page": every `.cf-blog-card` this port holds is `break-inside: avoid`
+   (below, the print law's own register), and rather than measuring the aspect-
+   ratio picture at its resolved size and testing whether the card fits in
+   what is left of the sheet, it gives the card the whole remaining page and
+   starts the next one fresh.
+
+   Measured on the built news.html, ten posts, page.pdf() through Chromium:
+
+     unmodified                 11 sheets, one post per sheet, ink covering
+                                 roughly a third of each — the other two thirds
+                                 are the .cf-blog-grid border's own left rule,
+                                 drawn down the blank rest because nothing
+                                 after the first post ever shares its page
+     height fixed, ratio auto    5 sheets, three to four posts a page
+
+   Proven by isolation, not just observation: dropping the images entirely
+   (image `display: none`, avoid rule untouched) also collapsed the archive to
+   two sheets, and restoring them at a plain fixed `height` — no aspect-ratio,
+   nothing else touched — reproduced the five-sheet result on its own. The
+   `flex: 1 1 auto` was not the trigger; measured with it left alone and only
+   `aspect-ratio` and `height` overridden here, the count did not move.
+   `aspect-ratio` on a flex item is the one property in this rule that cannot
+   be resolved without first knowing the box it sits in, and a fragmenter
+   choosing a page boundary is asking the same question the property is
+   waiting on.
+
+   200px / 12.5rem is not the screen's 3 / 2 — at the port's own column widths
+   (roughly 330–390 px folded, up to the full measure for the lead) 3 / 2 would
+   ask for 220–520 px per picture. 200 keeps every picture legible under
+   object-fit: cover while holding three ordinary rows plus a lead to a sheet,
+   which is what bought the count above. Nothing here touches the screen rule:
+   this is scoped to print and does not change `aspect-ratio: 3 / 2` outside
+   it. → scripts/check-print-law.py, .cf-blog-card's break-inside a few rules
+   down */
+@media print {
+  .cf-blog-grid--port .cf-blog-card__image { aspect-ratio: auto; height: 12.5rem; }
+}
 
 .cf-blog-card {
   display: flex;
