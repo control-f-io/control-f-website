@@ -327,6 +327,8 @@ python3 scripts/check-grid-tracks.py           # every fr track has a floor
 python3 scripts/check-grid-tracks.py -v        # list every track list, not only the failures
 python3 scripts/check-breakpoints.py           # every threshold is in the register, in rem
 python3 scripts/check-breakpoints.py -v        # list every threshold, not only the failures
+python3 scripts/check-demo-fold-band.py        # each framed demo is documented at the fold it actually answers to
+python3 scripts/check-demo-fold-band.py -v     # every fold rule and every subdivision call site
 python3 scripts/check-overflow-clip.py         # a crop is a crop, not a scroll container
 python3 scripts/check-overflow-clip.py -v      # list every overflow declaration, not only the failures
 python3 scripts/check-highlight-fill.py        # every highlight states its ink as a fill, so a clip cannot erase it

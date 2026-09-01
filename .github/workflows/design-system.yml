@@ -636,6 +636,25 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-breakpoints.py
 
+      # The register's consequence, which is not the register's to keep. The
+      # one threshold it deliberately excludes — docs.css's sidebar at 900 —
+      # takes 319 px out of the docs column in a single pixel of viewport, so a
+      # container-queried demo can fold on the WIDE side of that edge. The
+      # chapter that documents it demonstrated it on the one page in the tree
+      # where it does not happen: components/blog-grid.html wears
+      # .subdivide--late, whose fold is 56rem and not the primitive's 44, so it
+      # is stacked at 900, at 901 and at 1074 alike. Three of the table's four
+      # state cells named something that page has never done, and both band
+      # edges were derived from a threshold that does not govern the element.
+      # Nothing rendered wrong; the table simply described a different
+      # component from the one it named. This resolves every call site's fold
+      # from base.css and the element's own modifiers and holds the table to
+      # the answer. Proven failing on both halves — the original 44rem claim,
+      # and a demo left out of the table.
+      - name: Demo fold band
+        if: '!cancelled()'
+        run: python3 scripts/check-demo-fold-band.py
+
       # The register's other half: the seven clamp() tokens that move
       # continuously rather than at a threshold. Their record is written four
       # times across foundations/mobile.html and foundations/layout.html, and
