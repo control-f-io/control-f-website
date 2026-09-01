@@ -8840,10 +8840,51 @@ a.cf-calendar__day > time,
       animation-fill-mode: both;
       animation-timing-function: var(--ease-out);
     }
+    /* THE LEAD SURVIVES THE RE-TIMING, AND IT DID NOT.
+       --trace-lead and --trace-span exist because a signal drawn as several
+       strokes has to arrive along its own direction of travel: the base
+       assembly's note above measures what happens without them — card 03's
+       arrow "drew all five strokes at once, growing outward from five
+       different points, which reads as a sketch scribbling itself rather than
+       as a signal arriving". The four cards carry the answer in their markup,
+       leads of 0, 3, 6, 6 and 6 points.
+
+       This rule threw all five away. It named ONE window for every stroke on
+       the track, so the two properties resolved to nothing at all on the one
+       page that ships them. Measured on patterns/landing-page.html at
+       1440 x 900, inside card 03's quarter: all five strokes at progress
+       0.061 and stroke-dashoffset 0.79497 — the same number five times, from
+       five paths whose leads differ by six points. The failure the base
+       assembly is written against, shipped on a designed page, under an
+       authored lead that could not reach it.
+
+       SO THE WINDOW IS MAPPED RATHER THAN REPLACED. The base window is 27
+       points of `cover` — 18 to 45, which is what the default --trace-span
+       names — and the quarter's is the 8 points between 5 and 13. A stroke
+       occupies (lead / 27) to (lead + span) / 27 of the first, so it takes
+       the same fraction of the second: `* 8 / 27` is that change of basis and
+       nothing else.
+
+       BOTH ENDS OF THE DEFAULT ARE PRESERVED EXACTLY. With the shipped
+       defaults — lead 0, span 27 — this resolves to 5 % and to 5 % + 27 x 8 /
+       27 = 13 %, the two literals it replaces, so every trace that authors no
+       lead draws in the window it drew in before. Card 02's two traces are
+       byte-identical. Card 03's five become 5 to 11.22, 5.89 to 12.11 and
+       6.78 to 13.00 — led along the arrow's own travel, the last of them
+       still landing on 13, which is where .cf-pin .cf-iso__node opens and
+       where this rule handed over before.
+
+       The 27 is load-bearing at both ends now rather than one, so it is
+       checked: scripts/check-iso-motion.py fails a trace whose lead and span
+       sum past it, which on this timeline would push the last stroke into the
+       nodes' window instead of onto it. → foundations/motion.html#trace */
     .cf-pin .cf-iso__trace {
       stroke-dasharray: 1;
       animation-name: cf-iso-draw;
-      animation-range: contain calc(var(--i) * 25% + 5%) contain calc(var(--i) * 25% + 13%);
+      animation-range:
+        contain calc(var(--i) * 25% + 5% + var(--trace-lead) * 8 / 27)
+        contain calc(var(--i) * 25% + 5%
+                     + (var(--trace-lead) + var(--trace-span)) * 8 / 27);
     }
     .cf-pin .cf-iso__node {
       animation-name: cf-iso-fade;

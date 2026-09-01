@@ -34,6 +34,30 @@ two places; and every scroll-driven block must be scoped to `screen`, because a
 paged medium has no scroll and a `both`-filled animation then holds its `from`
 keyframe onto the paper.
 
+Plus three about WHEN a part arrives, each authored as a number in a style
+attribute and each stated in prose by the very stylesheet that reads it:
+
+  --trace-lead
+  + --trace-span  may not run past the trace window's own width. The window is
+                  27 points of `cover` and the pinned track maps a stroke onto
+                  its quarter's 8 points BY that 27, so one stroke over budget
+                  is wrong on two timelines at once — it lands inside the
+                  construction points' window instead of on the light.
+  --stage         may not name a stage that starts after the light does. Stage
+                  n arrives over `build_first + n x build_step`; past the last
+                  one that opens before the light, a part is still travelling
+                  while the lime it carries is coming up.
+  a light's fill  cf-iso-light animates fill-opacity and nothing else, so a
+                  light that is not a filled element has no arrival at all —
+                  and the <svg>'s own fill="none" means it paints nothing
+                  either.
+
+The two constants those first two are measured against are READ OUT OF
+components.css rather than restated here — see assembly_windows(). A checker
+carrying its own copy of a number goes on passing the day the stylesheet moves
+it, which is the drift every script in this directory exists to stop; if the
+constant cannot be found, that is itself a finding rather than a fallback.
+
 None of these can be seen in a screenshot. All of them can be counted.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
@@ -160,6 +184,75 @@ def travel_overrides():
 def token(name, text):
     m = re.search(re.escape(name) + r":\s*([^;]+);", strip_comments(text))
     return m.group(1).strip() if m else None
+
+
+def rule_bodies(text, selector):
+    """The declarations of every rule whose selector list is exactly `selector`.
+
+    Anchored on the WHOLE prelude, normalised for whitespace, rather than on a
+    substring: `.cf-iso__light` must never pick up
+    `.cf-iso--build .cf-iso__light`, whose window is a different number for a
+    different reason. Several rules share a selector here — `.cf-iso__trace`
+    has three — so this returns all of them and the caller picks by the
+    declaration it is after.
+    """
+    return [
+        m.group(2)
+        for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", text)
+        if " ".join(m.group(1).split()) == selector
+    ]
+
+
+def _number(pattern, bodies):
+    """The first number `pattern` finds across `bodies`, or None — and the
+    caller reports the None rather than falling back to a literal of its own.
+    A gate derived from a constant this script could not find is a gate that
+    silently stops meaning anything."""
+    for body in bodies:
+        m = re.search(pattern, body)
+        if m:
+            return float(m.group(1))
+    return None
+
+
+def assembly_windows():
+    """The three numbers the assembly's timing is written against, read out of
+    components.css rather than restated here.
+
+    A checker carrying its own copy of a constant goes on passing the day the
+    stylesheet moves, which is the whole failure this directory exists to
+    prevent. So the two gates below are DERIVED:
+
+      trace_open   cover % at which the trace window opens.
+      trace_span   the default --trace-span, which is also the full width of
+                   that window. A led stroke has to fit inside it, and now has
+                   to twice: components.css maps the same lead onto the pinned
+                   track's 8 points by exactly this ratio.
+      build_first  cover % at which stage 0 starts arriving.
+      build_step   how much later each subsequent stage starts.
+      light_start  cover % at which the lime begins coming up.
+    """
+    text = strip_comments((CSS / "components.css").read_text())
+    trace = rule_bodies(text, ".cf-iso__trace")
+    build = rule_bodies(text, ".cf-iso--build .cf-iso__form")
+    light = rule_bodies(text, ".cf-iso__light")
+    return {
+        "trace_open": _number(
+            r"animation-range:\s*cover\s*calc\(\s*([\d.]+)%", trace),
+        "trace_span": _number(r"--trace-span:\s*([\d.]+)%", trace),
+        "build_first": _number(
+            r"animation-range:\s*cover\s*calc\(\s*([\d.]+)%", build),
+        "build_step": _number(
+            r"var\(--stage,\s*0\)\s*\*\s*([\d.]+)%", build),
+        "light_start": _number(
+            r"animation-range:\s*cover\s*([\d.]+)%", light),
+    }
+
+
+def style_number(tag, name, default):
+    """A custom property's value off an element's style attribute, in points."""
+    m = re.search(re.escape(name) + r":\s*(-?[\d.]+)", tag)
+    return float(m.group(1)) if m else default
 
 
 def scroll_blocks_missing_screen():
@@ -527,12 +620,99 @@ def main():
             )
 
     # --- 3, 4, 5. per-page drawing rules --------------------------------
+    #
+    # THE ASSEMBLY'S TIMING INVARIANTS ARE IN HERE TOO, and they are the three
+    # things components.css and motion.html state in prose about WHEN a part
+    # arrives, none of which anything read until now. Each is a number in a
+    # style attribute, each is invisible in a screenshot, and each has a
+    # failure that renders perfectly:
+    #
+    #   lead + span   A trace's window is authored per stroke so that a signal
+    #                 drawn as several strokes arrives along its own direction
+    #                 of travel. components.css says "Keep lead + span <= 27 %
+    #                 and the last stroke still lands on the light", and the
+    #                 pinned re-timing now maps the same two properties onto
+    #                 the quarter's 8 points BY that 27. Past it, the last
+    #                 stroke draws into the nodes' window instead of onto it —
+    #                 on both timelines, for one number authored once.
+    #                 Five of the eight authored traces sit exactly on 27.
+    #   --stage       Stage n starts at build_first + n x build_step. The rule
+    #                 is that every stage starts before the light comes up —
+    #                 "Four stages fit before the light comes up at 30 %" — so
+    #                 a part one stage past the last is still travelling when
+    #                 the lime it carries begins to light, and still moving
+    #                 when the construction nodes settle.
+    #   a light's fill  cf-iso-light animates fill-opacity and nothing else.
+    #                 A light drawn as a stroke therefore has NO arrival at
+    #                 all: it is simply there from the first frame, and the
+    #                 beat the whole assembly is timed to end on is missing
+    #                 with nothing rendering wrong. The <svg> carries
+    #                 fill="none", so an unfilled light paints nothing either.
+    #
+    # The two constants come from assembly_windows(), which reads them off the
+    # stylesheet — see its docstring for why they are not literals here.
+    win = assembly_windows()
+    missing = [k for k, v in win.items() if v is None]
+    if missing:
+        findings.append(
+            "components.css no longer states %s where this check reads it, so the\n"
+            "    assembly's timing gates below cannot be derived and are not being\n"
+            "    applied. Point assembly_windows() at the rule that carries them now —\n"
+            "    a gate whose constant went missing is worse than no gate, because it\n"
+            "    goes on passing." % ", ".join(sorted(missing))
+        )
+        max_stage = None
+    else:
+        # The last stage that still STARTS before the light does. 5 + 7n < 30
+        # gives 3 — four stages, 0 through 3, which is what motion.html says.
+        max_stage = 0
+        while win["build_first"] + (max_stage + 1) * win["build_step"] < win["light_start"]:
+            max_stage += 1
+
+    led = staged = lit = 0
+
     for page in PAGES:
         text = page.read_text()
         rel = page.relative_to(ROOT)
 
         for m in re.finditer(r"<[a-z]+\b[^>]*\bcf-iso__trace\b[^>]*>", text):
             line = text.count("\n", 0, m.start()) + 1
+            if win["trace_span"] is not None:
+                led += 1
+                lead = style_number(m.group(0), "--trace-lead", 0.0)
+                span = style_number(m.group(0), "--trace-span", win["trace_span"])
+                # A lead only ever DELAYS a stroke and a span is time spent
+                # drawing, so the floor on each is not pedantry. It is what
+                # scripts/check-quarter-opening.py stands on: that script reads
+                # this rule's head past the lead term on the ground that the
+                # earliest stroke on a step is the one with no lead, which is
+                # true exactly while a lead cannot be negative.
+                if lead < 0 or span <= 0:
+                    findings.append(
+                        "%s:%d authors --trace-lead:%g and --trace-span:%g. A lead is how far\n"
+                        "    INTO the window a stroke starts and a span is how much of the\n"
+                        "    window it spends drawing, so the first cannot be negative and the\n"
+                        "    second cannot be zero or less. A negative lead also moves the head\n"
+                        "    of the pinned rule earlier, which is the one thing\n"
+                        "    scripts/check-quarter-opening.py reads it past.\n"
+                        "    -> design-system/foundations/motion.html#trace"
+                        % (rel, line, lead, span)
+                    )
+                elif lead + span > win["trace_span"] + 1e-9:
+                    findings.append(
+                        "%s:%d is led %g into a %g-point window and then draws for %g, so it\n"
+                        "    finishes at %g where the window itself closes at %g. A trace's\n"
+                        "    window is the whole of `cover %g%% -> %g%%`, and the pinned track\n"
+                        "    maps a stroke onto its quarter's 8 points by that same %g — so a\n"
+                        "    stroke over budget lands inside the nodes' window on BOTH\n"
+                        "    timelines rather than on the light at the end of its own.\n"
+                        "    Shorten the span or start the stroke earlier.\n"
+                        "    -> design-system/foundations/motion.html#trace"
+                        % (rel, line, lead, win["trace_span"], span,
+                           lead + span, win["trace_span"],
+                           win["trace_open"], win["trace_open"] + win["trace_span"],
+                           win["trace_span"])
+                    )
             if 'pathLength="1"' not in m.group(0):
                 findings.append(
                     "%s:%d is a .cf-iso__trace with no pathLength=\"1\". The draw is timed\n"
@@ -547,6 +727,43 @@ def main():
                     "    screen pixels while pathLength normalises in user space, and the draw\n"
                     "    finishes at 45 %% of its range. Stroke it at width 2 in user units."
                     % (rel, line)
+                )
+
+        # A part one stage past the last one that starts before the light.
+        if max_stage is not None:
+            for m in re.finditer(r"--stage:\s*(\d+)", text):
+                staged += 1
+                stage = int(m.group(1))
+                if stage > max_stage:
+                    findings.append(
+                        "%s:%d authors --stage:%d, and the last stage that starts before the\n"
+                        "    light comes up is %d. Stage n starts at cover %g%% + n x %g%%, so\n"
+                        "    this part only begins moving at %g%% — after the lime has started\n"
+                        "    coming up at %g%%, and it is still travelling when the construction\n"
+                        "    points settle. Stage order is construction order: fold the part\n"
+                        "    into an existing stage rather than adding one past the light.\n"
+                        "    -> design-system/foundations/motion.html#build"
+                        % (rel, text.count("\n", 0, m.start()) + 1, stage, max_stage,
+                           win["build_first"], win["build_step"],
+                           win["build_first"] + stage * win["build_step"],
+                           win["light_start"])
+                    )
+
+        # A light that is not a filled element has no arrival at all.
+        for m in re.finditer(r"<[a-z]+\b[^>]*\bcf-iso__light\b[^>]*>", text):
+            lit += 1
+            fill = re.search(r'\bfill="([^"]*)"', m.group(0))
+            if fill is None or fill.group(1).strip() in ("", "none"):
+                findings.append(
+                    "%s:%d is a .cf-iso__light with %s. cf-iso-light animates fill-opacity\n"
+                    "    and nothing else, so a light that is not filled never arrives — it is\n"
+                    "    simply there from the first frame, and the beat the whole assembly is\n"
+                    "    timed to end on is missing with nothing rendering wrong. The <svg>\n"
+                    "    carries fill=\"none\", so it paints nothing at all either. Lime is\n"
+                    "    light: give it the gradient as a fill.\n"
+                    "    -> design-system/foundations/illustration.html"
+                    % (rel, text.count("\n", 0, m.start()) + 1,
+                       "no fill" if fill is None else 'fill="%s"' % fill.group(1))
                 )
 
         for m in re.finditer(r'class="([^"]*\bcf-iso__orbit\b[^"]*)"', text):
@@ -604,8 +821,10 @@ def main():
         "isometric assembly: %d assembling figures on the 2.5 %% rule, orbit travel a whole\n"
         "number of dashes, every trace normalised, every orbit a ghost, one light per object,\n"
         "%d normalised strokes clear of non-scaling-stroke, every animation-timeline scoped\n"
-        "to screen."
-        % (assembling, normalised)
+        "to screen.\n"
+        "                    timing: %d traces inside the %g-point window, %d stages at or\n"
+        "under %d, %d lights filled."
+        % (assembling, normalised, led, win["trace_span"], staged, max_stage, lit)
     )
     return 0
 

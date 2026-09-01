@@ -332,7 +332,7 @@ for t in ['fast','base','slow','scene']:
         <tr><td><code>.cf-iso__ghost</code></td><td>dashed reference geometry</td><td>fades up after the body it belongs to</td><td>cover 20–40 %</td></tr>
         <tr><td><code>.cf-iso__orbit</code></td><td>a ghost that circulates</td><td>fades up with the other ghosts, and keeps turning after them — see below</td><td>cover 20–40 % fading, 20–50 % turning</td></tr>
         <tr><td><code>.cf-iso__trace</code> <em>(retired)</em></td><td>the signal reaching the object — <strong>one stroke</strong>. No longer one of the layers; see <a href="illustration.html#layers">Illustration</a></td><td>draws itself, edge of the crop to edge of the crop — see below</td><td>cover 18–45 %, or a window inside it</td></tr>
-        <tr><td><code>.cf-iso__light</code></td><td>the single lime-gradient element</td><td>its fill comes up last. Light arrives; it does not fly in.</td><td>cover 30–48 %</td></tr>
+        <tr><td><code>.cf-iso__light</code></td><td>the single lime-gradient element, <strong>filled</strong></td><td>its fill comes up last. Light arrives; it does not fly in — which is why <code>cf-iso-light</code> animates <code>fill-opacity</code> and nothing else, and why a light drawn as a stroke would have no arrival at all. Checked.</td><td>cover 30–48 %</td></tr>
         <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>fade up last of all</td><td>cover 35–50 %</td></tr>
       </tbody>
     </table>
@@ -495,7 +495,12 @@ for t in ['fast','base','slow','scene']:
       Stages overlap by ten points of the seventeen each one runs, which is what makes this
       read as one assembly rather than four events. Four stages fit before lime comes up at
       30 %, and the whole build is settled by 43 % — inside the same cover 50 % everything
-      else finishes at.
+      else finishes at. <strong>Four is the ceiling, and it is derived rather than chosen:</strong>
+      stage 4 would only begin moving at cover 33 %, after the lime it may be carrying has
+      already started coming up, and would still be travelling when the construction points
+      settle at 50 %. <code>scripts/check-iso-motion.py</code> recomputes that last stage from
+      the two ranges in <code>components.css</code> and fails a <code>--stage</code> past it —
+      so the day either window moves, the ceiling moves with it.
     </p>
     <p>
       <strong>A part moves with <code>translate</code>, not with <code>transform</code>, and
@@ -874,7 +879,7 @@ python3 scripts/check-iso-motion.py</pre>
       at the start of the travel.
     </p>
 
-    <h3>A trace is one stroke</h3>
+    <h3 id="trace">A trace is one stroke</h3>
     <div class="docs-note">
       <strong>The trace is retired from the illustration vocabulary.</strong>
       <a href="illustration.html#layers">Illustration</a> now sets out four layers and no
@@ -930,6 +935,14 @@ python3 scripts/check-iso-motion.py</pre>
       <strong>a trace that is a single stroke resolves to <code>cover 18 % → 45 %</code>
       and nothing about the other three cards changed.</strong> Keep
       <code>lead + span ≤ 27 %</code> and the last stroke still lands on the light.
+    </p>
+    <p>
+      That ceiling is <strong>checked</strong> rather than remembered, and it now governs two
+      timelines rather than one: the <a href="#hold">pinned track</a> maps a stroke onto its
+      quarter's own 8 points <em>by</em> the same 27, so a stroke over budget lands inside the
+      construction points' window on both. <code>scripts/check-iso-motion.py</code> reads the
+      27 out of <code>components.css</code> — not a copy of it — and fails any trace whose two
+      properties sum past it.
     </p>
     <p>
       Card 03 now carries five traces on three leads — the far chevron at 0, the near one at
@@ -1402,6 +1415,33 @@ python3 scripts/check-iso-motion.py</pre>
       <code>--build-dy</code> and the <code>cf-iso-build</code> keyframe, and only the
       timeline and the windows are the page's.
     </p>
+    <div class="docs-note docs-note--warn">
+      <strong>A re-timing keeps the part's own authored numbers, or it is not a
+      re-timing.</strong> The trace's window was the exception and it shipped that way:
+      <code>.cf-pin .cf-iso__trace</code> named one window for every stroke on the track, so
+      <a href="#trace"><code>--trace-lead</code> and <code>--trace-span</code></a> —
+      which exist precisely so that a signal drawn as several strokes arrives along its own
+      direction of travel — resolved to nothing at all on the one page that ships them.
+      Measured on the landing page at 1440 × 900, inside card 03's quarter: all five strokes
+      of the incoming arrow at progress <code>0.061</code> and
+      <code>stroke-dashoffset&nbsp;0.79497</code>, the same number five times from five paths
+      whose leads differ by six points. That is the failure the base assembly is written
+      against — “a sketch scribbling itself rather than a signal arriving” — running under an
+      authored lead that could not reach it.
+      <br><br>
+      The window is now <strong>mapped rather than replaced</strong>. The base window is the
+      27 points of <code>cover</code> the default <code>--trace-span</code> names, and the
+      quarter's is the 8 points between <code>+5&nbsp;%</code> and <code>+13&nbsp;%</code>; a
+      stroke takes the same fraction of the second that it took of the first, which is what
+      <code>* 8 / 27</code> is and all it is. Both ends of the default are preserved exactly,
+      so a trace that authors no lead draws where it always did — card 02's two traces are
+      byte-identical, and card 03's five become 5→11.22, 5.89→12.11 and 6.78→13.00, the last
+      of them still landing on 13, where <code>.cf-pin .cf-iso__node</code> opens.
+      <br><br>
+      The 27 is therefore load-bearing on two timelines for one number authored once, and
+      <code>scripts/check-iso-motion.py</code> now fails a trace whose lead and span sum past
+      it.
+    </div>
 
     <h3>The hold is the point</h3>
     <p>
