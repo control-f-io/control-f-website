@@ -3629,21 +3629,82 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 .cf-process__figure > svg { width: 100%; max-width: 22rem; max-block-size: 100%; }
 /* The trace weight belongs to this rule, because this rule is what sets the
    scale it is derived from — see --trace-weight in the isometric section.
-   640 / 352 wherever the 22 rem cap binds, which is every width from the phone
-   band up: 1.00 CSS px, on the contour weight exactly. */
+   640 / 352 wherever the 22 rem cap binds: 1.00 CSS px, on the contour weight
+   exactly. This literal is now the FALLBACK TIER — the value an engine that
+   cannot evaluate atan2() over a container unit gets, which today is Gecko —
+   and the rule that follows is the one that ships. */
 .cf-process__figure .cf-iso { --trace-weight: 1.82; }
-/* The band where the OTHER cap binds, and the one place a number cannot fix.
-   Between 256 and 554 px of card width the height cap above is the tighter one,
-   so the drawing is letterboxed into a box that grows with the card — measured
-   0.22 of scale at 320 px of viewport and 0.53 at 608. That is a 2.4x ramp
-   against a fixed multiplier, so no single weight lands on 1 px across it: the
-   value that fits one end misses the other by the same 2.4x. It keeps the
-   constant every object carried before this property existed, which puts the
-   band at 0.45 - 1.06 CSS px, and the ramp is stated here rather than papered
-   over. A weight that tracked it would have to be read off the rendered box,
-   and only the box knows. */
-@container (max-width: 34.625rem) {
-  .cf-process__figure .cf-iso { --trace-weight: 2; }
+/* THE BAND WHERE THE OTHER CAP BINDS USED TO BE "THE ONE PLACE A NUMBER CANNOT
+   FIX", and the comment that stood here was right about the number and wrong
+   about the conclusion. Between 256 and 554 px of card width the height cap
+   above is the tighter one, so the drawing is letterboxed into a box that grows
+   with the card: measured 0.22 of scale at a 320 px viewport and 0.53 at 608, a
+   2.4x ramp that no constant can land on 1 px. The old answer held a second
+   constant, 2, behind a 34.625rem container query — 0.45 to 1.06 CSS px across
+   the phone band, and the only fractional threshold in the register — and
+   closed with "a weight that tracked it would have to be read off the rendered
+   box, and only the box knows".
+
+   THE BOX IS NOT THE ONLY THING THAT KNOWS. The drawn size is arithmetic over
+   lengths the stylesheet already states, and a query container is what gives a
+   stylesheet a length to do arithmetic on. Every card that ships stands in a
+   query container that it fills to the pixel — .container on the landing page,
+   .docs-demo on components/process-card.html, measured equal at every width
+   from 320 to 1024 — so 100cqw IS the card, and preserveAspectRatio's default
+   letterboxes a square viewBox into the smaller of the figure's content width
+   and content height:
+
+     content width    100cqw − 2 x card border − 2 x padding
+     content height   3/4 x (100cqw − 2 x card border) − 2 x padding − border
+     the cap          22rem, the svg's own max-width
+
+   The weight is viewBox width over the smallest of the three. A length cannot
+   be divided by a length in calc() — but a ratio of two lengths is an angle's
+   tangent, and tan(atan2(a, b)) is exactly a / b as a <number>. It is written
+   back into a length with `* 1px`, because inside an SVG a CSS px IS a user
+   unit and stroke-width takes a length in every engine, where Gecko refuses a
+   trig-function <number> there outright. Measured on the landing page after
+   this rule, Chromium 141: 1.000 CSS px at 320, 360, 375, 414, 480, 540 and
+   600, against 0.45 to 1.06 before, and still 1.000 with the root font at 20
+   and 24 px.
+
+   THE GUARD NAMES THE ONE CAPABILITY THIS NEEDS, not the function. Gecko has
+   had tan() and atan2() since 108 and evaluates them over absolute lengths
+   only: atan2(640px, 22rem) is invalid there, and so is anything with cqw, em
+   or vw inside it — measured, Firefox 142, ten spellings. A guard on
+   `tan(atan2(1px, 1px))` is therefore TRUE in Firefox and the rule behind it
+   is invalid at computed-value time, which lands stroke-width on its initial
+   1 user unit: 0.29 to 0.55 CSS px on a phone, worse than either constant.
+   `atan2(1cqw, 1px)` is what the rule actually does, Gecko's parser rejects it
+   (CSS.supports false, measured), and so Firefox keeps 1.82 above — which is
+   what the band had within a tenth of a pixel. Chromium takes the ratio,
+   measured; WebKit is expected to and was not measured — the sandbox this was
+   written in could not launch one — so if Safari ever draws this trace thin,
+   the guard is the first thing to check. Re-measure the guard before
+   loosening it; a gate that passes an engine into a rule it cannot evaluate
+   is the one failure here that renders as a hairline nobody can see.
+
+   AND THE THRESHOLD IS GONE, not moved. min() reproduces the crossover the
+   query used to spell out: above 554 the height term passes 22rem and the cap
+   binds by itself, and the two-column form at 56rem is already past that, so
+   one expression is exact in both forms and at every root font size — a 20 px
+   default moves the crossover to 693 px of card and this follows it, where a
+   rem query would have had to be re-derived. The register in tokens.css and
+   foundations/layout.html had carried the number as "a question rather than an
+   answer ... whether a derived geometric crossover should be a threshold at
+   all". It was not: it was a min() written as an if.
+
+   The three lengths are the ones .cf-process, .cf-process__figure and the svg
+   rule above declare — edit any of those and edit this, which is the same
+   contract the letterbox check holds max-block-size to. */
+@supports (stroke-width: calc(tan(atan2(1cqw, 1px)) * 1px)) {
+  .cf-process__figure .cf-iso {
+    --trace-weight: calc(tan(atan2(640px, min(
+      22rem,
+      100cqw - 2 * var(--stroke-1) - 2 * var(--space-8),
+      0.75 * (100cqw - 2 * var(--stroke-1)) - 2 * var(--space-8) - var(--stroke-1)
+    ))) * 1px);
+  }
 }
 /* No fill of its own, and it never had one that could be seen: this declared
    --surface-raised while the card behind it declared --surface-card, and both
@@ -4110,7 +4171,7 @@ ul.cf-info-card__chips {
      PURPOSE. 704 clears the trip point by 86.3 px, reached at a viewport of
      791, so a viewport of 694 to 790 is still one line and still centred — 96
      px against 168, and 43.1 px of unspent measure at each end at the top of it
-     against 75.2. The register has nothing between 34.625rem and 44rem, so
+     against 75.2. The register has nothing between 34rem and 44rem, so
      closing the band exactly would mean minting a threshold at about 38.6rem.
      That is the one thing this particular number must not have: its trip point
      is a STRING, it has already moved once by 150 px without any query being

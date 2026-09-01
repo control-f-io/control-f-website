@@ -112,6 +112,26 @@ REGISTER = {
         "position — but re-measure before trusting this row for a new "
         "consumer",
     ),
+    ".cf-process__figure .cf-iso": (
+        "calc(tan(atan2(640px, min(22rem, 100cqw - …, 0.75 * (100cqw - …) - …))) "
+        "* 1px) — the process trace's weight, viewBox width over the drawn "
+        "size, read off the card's own query container (.container on the "
+        "landing page, .docs-demo on the component page), which the card "
+        "fills to the pixel at every width from 320 to 1024",
+        False,
+        "the declaring element is the <svg>; a container-type on it would "
+        "make its own drawing a container for nothing and change no unit it "
+        "reads. It is held to the other half instead, in two parts. Gecko "
+        "never takes this rule: its parser rejects a relative length inside "
+        "atan2() — CSS.supports false on the exact guard, Firefox 142 — so the "
+        "@supports gate hands it the 1.82 fallback, and the stale-pass fault "
+        "at the head of this file cannot reach a value Gecko never computes. "
+        "Chromium 141 re-resolves it: a resize chain 1440 -> 375 -> 768 -> "
+        "1280 -> 600 -> 320 -> 1024 -> 414 with no reload measured identical "
+        "to a fresh load at every width, 1.000 CSS px on the contour. The box "
+        "it reads is the content column, which nothing folds mid-pass. "
+        "Re-measure the day Gecko evaluates atan2() over a container unit",
+    ),
     ".cf-team-grid__item": (
         "calc(100cqi / var(--cols) - var(--stroke-1)) — one team cell's "
         "content box, read off cf-team, the grid's own inline-size container",
@@ -220,10 +240,15 @@ def main():
     writers = {}
     for name, text in sheets:
         for sel, body in rules(text):
-            for prop, val in CUSTOM_PROP.findall(body):
-                if CQ_UNIT.search(val):
-                    for part in [s.strip() for s in sel.split(",")]:
-                        writers.setdefault(part, []).append((name, prop, val.strip()))
+            # An at-rule's body is its inner rules, and a declaration found
+            # there belongs to the inner selector below, not to the prelude —
+            # which is not a selector, and is split on its own commas here
+            # the moment a `@supports (… tan(atan2(1px, 1px)))` gate appears.
+            if not sel.startswith("@"):
+                for prop, val in CUSTOM_PROP.findall(body):
+                    if CQ_UNIT.search(val):
+                        for part in [s.strip() for s in sel.split(",")]:
+                            writers.setdefault(part, []).append((name, prop, val.strip()))
             # one level of nesting, same reason as above
             if "{" in body:
                 for inner_sel, inner_body in rules(body):

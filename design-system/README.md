@@ -2336,8 +2336,12 @@ These were judgement calls, each documented on the relevant page:
   object it arrives at on Expertise, and 2.5:1 against CF-Grau on the reference strip, under
   the 3:1 a contour is held to. `--trace-weight` is `viewBox width / rendered width`, declared
   beside the `max-width` or `calc()` it is the reciprocal of — the same reason `--iso-travel`
-  is written next to its viewBox. Every frame pinned to a cap is 1.00 px now; the fluid bands
-  keep the old constant and are stated as a band, because a 2.4× ramp has no constant.
+  is written next to its viewBox. Every frame pinned to a cap is 1.00 px, and so is the process
+  card's fluid phone band, which a 2.4× ramp had kept at 0.45–1.06 behind a `34.625rem` container
+  query: its weight is `tan(atan2(640px, min(…)))` over the three lengths the figure already
+  declares, with `100cqw` standing for the card, and the query is gone because `min()` is the
+  crossover it spelled out. The two fluid bands that remain, Expertise and the reference strip,
+  keep a constant stated as a band.
   → `foundations/motion.html`
 
 ## Drawing an illustration

@@ -1153,7 +1153,7 @@ python3 scripts/check-iso-motion.py</pre>
       the <code>non-scaling-stroke</code> rule and stroked in user units instead.
     </p>
 
-    <h4>The weight that pays for it is a per-object number, not a constant</h4>
+    <h4 id="trace-weight">The weight that pays for it is a per-object number, not a constant</h4>
     <p>
       A user-unit stroke lands on screen at <strong>weight &times; render scale</strong>, and
       the scale belongs to the drawing's own frame — its viewBox width over the pixels it is
@@ -1182,27 +1182,55 @@ python3 scripts/check-iso-motion.py</pre>
       remember when a frame is resized.
     </p>
     <div class="docs-note docs-note--warn">
-      <strong>Where a drawing is fluid rather than capped, no number is right, and that is
-      stated rather than papered over.</strong> A process card between 256 and 554 px of card
-      width is letterboxed by <code>max-block-size</code> into a box that grows with the card:
-      scale 0.22 at a 320 px viewport and 0.53 at 608. That is a 2.4&times; ramp against a fixed
-      multiplier, so the value that lands on 1 px at one end misses the other by the same
-      2.4&times;. Those bands keep the old constant — 0.45 to 1.06 CSS px on a phone — and the
-      three that are pinned to a cap are exact. Getting the fluid half right needs the rendered
-      box, and only the box knows how wide it is.
+      <strong>Where a drawing is fluid rather than capped, no <em>number</em> is right — and
+      this note used to end there, with "only the box knows how wide it is".</strong> A process
+      card between 256 and 554 px of card width is letterboxed by <code>max-block-size</code>
+      into a box that grows with the card: scale 0.22 at a 320 px viewport and 0.53 at 608, a
+      2.4&times; ramp that a constant misses by 2.4&times; at one end or the other. The band
+      shipped 0.45 to 1.06 CSS px on a phone, behind a <code>34.625rem</code> container query
+      holding the old constant of 2 — the only fractional threshold in the register, which
+      called it "a question rather than an answer".
+      <br><br>
+      The box is not the only thing that knows. The drawn size is the smallest of three lengths
+      the stylesheet already declares — the svg's <code>22rem</code> cap, the figure's content
+      width and its content height — and every card that ships fills a query container to the
+      pixel, so <code>100cqw</code> is the card. What a stylesheet cannot do is divide one
+      length by another; what it can do is take the tangent of their angle:
+      <code>tan(atan2(640px, min(…)))</code> is <code>640 / min(…)</code> as a plain number,
+      and <code>calc(… * 1px)</code> puts it back into a length — inside an SVG a CSS pixel
+      <em>is</em> a user unit. That is <code>--trace-weight</code> on
+      <code>.cf-process__figure</code> now. Measured on the landing page in Chromium 141 at 320,
+      360, 375, 414, 480, 540 and 600: <strong>1.000 CSS px</strong> at every one, still 1.000
+      with the root font size at 20 and 24 px, and identical after a chain of resizes with no
+      reload. The query is gone rather than moved — <code>min()</code> reproduces the crossover
+      it spelled out, in the stacked form and the two-column one, at every root font size.
+      <br><br>
+      <strong>The guard names the capability, not the function.</strong> Gecko has had
+      <code>tan()</code> and <code>atan2()</code> since Firefox 108 and evaluates them over
+      absolute lengths only: <code>atan2(640px, 22rem)</code> is invalid there, and so is any
+      argument carrying <code>cqw</code>, <code>em</code> or <code>vw</code> — measured in
+      Firefox 142 across ten spellings. Gated on <code>tan(atan2(1px, 1px))</code>, Firefox would
+      pass the gate and then fail the rule at computed-value time, which lands
+      <code>stroke-width</code> on its initial 1 user unit: 0.29 to 0.55 CSS px on a phone, worse
+      than either constant. So the gate is <code>@supports (stroke-width: calc(tan(atan2(1cqw,
+      1px)) * 1px))</code> — a container unit inside the function, which is what the rule does
+      and what Gecko's parser rejects — and Firefox keeps the capped frame's 1.82, within a
+      tenth of a pixel of what the band had. Chromium takes the ratio, measured; WebKit is
+      expected to and has not been measured yet.
     </div>
     <p>
-      Under a CSS pixel at the small end is the price of a draw that is linear at every size,
-      and it is still the right trade — a trace is a signal, not a structural contour. It is
-      also the end with the device pixels to spend: no 375 px viewport is DPR 1, so 0.57 CSS px
-      is 1.15 device pixels at DPR 2 and 1.7 at DPR 3, and the trace never actually thins below
-      the hairline it is imitating.
+      The two fluid frames that remain — Expertise at 0.95 to 1.00 px and the reference strip at
+      0.97 to 1.13 — keep a constant, and the trade is still the right one for a signal rather
+      than a structural contour: the small end is the end with the device pixels to spend, since
+      no 375 px viewport is DPR 1. The expression above fits any frame that fills a query
+      container; the day one of those two bands widens, that is the fix, not a third constant.
     </p>
     <p>
       If you add an illustration with a trace of its own, give the path
       <code>pathLength="1"</code> and the class, and set <code>--trace-weight</code> on the
-      frame to its viewBox width over the width it renders at. Do not put
-      <code>non-scaling-stroke</code> back on it.
+      frame to its viewBox width over the width it renders at — or, where the frame is fluid
+      inside a query container, to <code>tan(atan2(viewBox width, the drawn size))</code>. Do not
+      put <code>non-scaling-stroke</code> back on it.
     </p>
   </section>
 
