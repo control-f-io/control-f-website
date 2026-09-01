@@ -351,8 +351,8 @@ python3 scripts/check-faq-count.py             # the counter above an accordion 
 python3 scripts/check-faq-count.py -v          # every accordion, counted or skipped, and why
 python3 scripts/check-illustration-source.py   # the four process objects are still the designer's vectors
 python3 scripts/check-illustration-source.py -v  # every element, matched or deviated, and why
-python3 scripts/check-readme-check-count.py    # the count above this block is the length of this block
-python3 scripts/check-readme-check-count.py -v # the number, and every check counted
+python3 scripts/check-readme-check-count.py    # the count above this block is the length of this block, and scripts/README.md's two are the directory
+python3 scripts/check-readme-check-count.py -v # every number, and everything counted for it
 python3 scripts/check-count-atom.py            # a section head taken off the label ramp keeps its counter in one piece
 python3 scripts/check-count-atom.py -v         # every section header row, and the ramp it is on
 python3 scripts/check-field-family.py          # every field control is accounted for in the family's shared rules
@@ -377,7 +377,11 @@ pull request — one job, because each is a few hundred milliseconds of stdlib p
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
 had gone stale three times — every time as a correct change by a lane that could not see
-the other one landing the same day.
+the other one landing the same day. It went stale a fourth time an hour after that was
+written, and the gate caught it. **The same claim one directory over had no gate**:
+`scripts/README.md` opens on a file count and carries a `check-*.py` row, both about the
+directory it sits in, and both were two behind. They are derived from the directory now,
+by the same script.
 
 **The space scale** holds to two rules: `foundations/layout.html`'s table of who uses each
 rung must match the shipping CSS, and spacing in the shipping CSS must be written as a
