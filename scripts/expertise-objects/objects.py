@@ -541,13 +541,12 @@ def erneuerbare():
 
 # ==================================================================== 04
 # THE ONE BOX, drawn six times and ghosted twice. A fleet is a repetition, and
-# the four asset classes this field names — ships, trains, aircraft, mining
-# equipment — do not repeat each other; what repeats across them is the load. So
-# the container is a function rather than a shape: the same 1.1 x 0.44 x 0.48
-# body, the same corrugations, the same door seam, four of them stacked on the
-# ship, one on the rail wagon, one on the semi's trailer. It is also the unit
-# the reader measures the yard with — every other dimension in this object was
-# chosen against it.
+# the asset classes this field names do not repeat each other; what repeats
+# across them is the load. So the container is a function rather than a shape:
+# the same 1.1 x 0.44 x 0.48 body, the same corrugations, the same door seam,
+# four of them stacked on the ship, one on the rail wagon, one on the semi's
+# trailer. It is also the unit the reader measures the yard with — every other
+# dimension in this object was chosen against it.
 #
 # 2.5 : 1 : 1.09 is a 20-foot box, exactly. The one proportion in this drawing
 # that had to be right is the one everybody has seen ten thousand of.
@@ -569,266 +568,194 @@ def container(x, y, z, top=FACE_TOP):
     return out
 
 
-# wheelset() is gone: a wheel is isolib.wheel(), a tyre with a tread rather
-# than a flat disc, and the aircraft's are drawn on both sides because its
-# body is carried clear of them — see the note on that helper.
-
-
 def flotten():
     """A yard with one of everything on it: a ship on its blocks, an aircraft,
     a train, a semi and an excavator, and the same container on three of them.
+    Redrawn from scratch on 2026-09-01, machine by machine, after the second
+    pass at it still read wrong in the details — an aircraft whose parts did
+    not line up on its own centre line, wheels that read as washers, a tractor
+    on three axles.
 
-    WHAT THIS REPLACES, because the replacement only makes sense against it.
-    The first fleet object was four identical wagons in a row, and it was drawn
-    that way from the copy: a fleet is a repetition, so draw one machine four
-    times. The trouble is that the machine was nothing — a box, a smaller box,
-    a mast — because a shape that has to serve as ship, aircraft, train and
-    mining equipment at once ends up serving as none of them, and four copies
-    of a shape that means nothing is not four times the meaning. The chips under
-    this field's copy named Flugzeuge, Bergbaugerät, Schiffe and Züge, and the
-    drawing beside them showed none of the four.
+    WHAT HOLDS IT TOGETHER is the container, drawn six times: four in one
+    stack on the ship, one on the wagon, one on the trailer. That is the
+    repetition the copy is about — what shows on one unit can be checked on
+    all the others — and it is what makes five different machines one fleet.
+    THE LIT BOX IS ONE OF THE FOUR IN THE STACK, the only place in the drawing
+    where standing out means anything.
 
-    THE CHIPS HAVE SINCE MOVED and the yard has not followed them. They read
-    Baumaschinen, Nutzfahrzeuge, Windparks and BHKW now; of those the yard has
-    the excavator and the semi, and the ship, the aircraft and the train are no
-    longer named under it. What holds the object together in the meantime is the
-    part of it that was never the cast — the container, drawn six times — which
-    is why five machines still read as one fleet. What a redraw would owe this
-    copy is a wind park and a BHKW in two of the four corners, and those two are
-    the first things in this yard that do not run on their own wheels.
+    THE LAYOUT IS FIVE LANES THAT DO NOT CROSS ON SCREEN. Everything runs on a
+    lattice axis — ship, train, semi and excavator down +x, the aircraft down
+    +y — and each machine has its own patch of apron: the ship on the back
+    edge, the aircraft on the right, the train on a short siding through the
+    middle, the excavator in the left corner, the semi across the front. The
+    siding stops at x 1.4 so the train never runs under the aircraft's nose,
+    and starts at -2.55 so the loco never stands where the excavator's boom is
+    drawn; both were true of the first yard, whose track crossed the whole
+    apron and put its loco behind the boom. Stages are depth bands: 1 ship and
+    aircraft, 2 train and excavator, 3 the semi.
 
-    SO THE REPETITION MOVED TO WHERE IT IS TRUE. It is not the assets that
-    repeat — an operator's aircraft and its trains are not each other — it is
-    the load, the route and the question. The container is drawn six times here,
-    four of them in one stack; that is the repetition the copy is about, and it
-    is what makes five different machines one fleet rather than five stickers.
-    THE LIT BOX IS ONE OF THE FOUR IN THE STACK, which is the only place in the
-    drawing where standing out means anything: a lit box on the trailer is the
-    only box on the trailer. Surrounded by its own repetitions it says the
-    field's own sentence — what shows on one unit can be checked immediately on
-    all the others — and the trace comes in off-stage to exactly that box.
+    EVERY MACHINE IS SYMMETRIC ABOUT ITS OWN AXIS AND SAYS SO. The aircraft's
+    wing, tailplane, engines and undercarriage are placed by +- offsets from
+    PX, never by two literals that were once equal; the train's bogies are
+    placed about each vehicle's centre; the semi's axles sit where its loads
+    are. A drawing at this size has no room for a part that is nearly where
+    it should be.
 
-    EVERY MACHINE STILL RUNS ON A LATTICE AXIS — the ship, the train, the semi
-    and the excavator down +x, the aircraft down +y — so every long edge in the
-    drawing is 26.57 deg one way or the other, and screen-horizontal, the
-    direction this projection cannot draw, appears nowhere. Vertical appears
-    only where a thing is vertical: masts, gear legs, the fin's trailing edge.
     THE RAKES ARE THE CHARACTER LINES and each is one of the three ratios the
-    lattice admits: the stem, the crawler's idler ramp and the boom at 45 deg,
-    the transom, the sprocket ramp, the stick and the fin's leading edge at
-    63.43. A 40-degree boom drawn because it looked right would be off the
-    system's angles exactly as a horizontal rule is — and this object shipped a
-    61.4 deg bow for one pass, from raising a deck and not re-deriving the stem
-    under it.
+    lattice admits: in a vertical plane a step (dx, dz) lands on screen slope
+    0.5 - dz/dx, so dz/dx of 1, 1.5 and 2.5 give 26.57, 45 and 63.43 deg and
+    nothing else does. The stem, the crawler's front ramp and the boom are at
+    45; the transom, the rear ramp, the stick and the fin's leading edge at
+    63.43.
 
-    THE PLATE IS 5.9 x 4.7 and that is a width decision, not an area one. The
-    figure renders at --vb-w / 112 x --field-unit so that one cell of the
-    drawing is one cell of the ground it stands on, and the column it is laid
-    out in holds about 668 units — maschinenbau()'s docstring derives that
-    number. A plate's screen width is (dx + dy) cells, so lengthening it and
-    widening it cost exactly the same, and 10.6 cells plus two pads is 653.6.
-    That is the same frame 03 takes and it is the whole budget: the five
-    machines are sized to the yard, not the yard to the machines.
-
-    THE FOUR CORNERS ARE SPOKEN FOR, which is what keeps a plate this wide from
-    reading as an apron with things loose on it: the ship takes the back corner,
-    the aircraft the right, the excavator the left and the semi's tractor the
-    front, with the train through the middle on the one axis all five share.
+    THE PLATE IS 5.9 x 4.7 and that is a width decision: the figure renders at
+    --vb-w / 112 x --field-unit so that one cell of the drawing is one cell of
+    the ground, and the column holds about 668 units — maschinenbau() derives
+    that number. 10.6 cells plus two pads is 653.6, the whole budget.
     """
     reset()
     gid = 'cf-ex-04'
     s0, s1, s2, s3 = [], [], [], []
     Z = 0.2                                                    # the apron's top
 
-    # ---- 0 · the apron, and the one road in it that has rails
-    # No bay seams: five machines and six containers are as much line as this
-    # surface can carry, and the track already gives the ground its direction.
+    # ---- 0 · the apron, and a siding through the middle of it
     s0 += foundation(-2.95, -2.35, 5.9, 4.7, Z, 0.26, 0, 0)
-    for i in range(13):                                        # ties
-        xx = -2.78 + i * 0.44
-        s0.append(line(p_(xx, -0.16, Z), p_(xx, 0.56, Z)))
-    # CENTRED ON THE GAUGE LINES. The rails were laid with their far edges on
-    # y 0.0 and 0.4, so their centres sat on 0.03 and 0.43 and the track's
-    # centre on 0.23 — while the ties, the underframes and the wheels below
-    # were all built about RY = 0.2. Three hundredths of a cell is 1.7 units,
-    # under two pixels, and it is exactly the doubled-line class of fault the
-    # rest of this file is written against.
-    for yy in (0.0, 0.4):                                      # rails, 0.4 gauge
-        s0 += box(-2.9, yy - 0.03, Z, 5.8, 0.06, 0.05, FACE_TOP, PLATE_L, PLATE_R)
+    RY = 0.2                                                   # the siding's centre line
+    # Ties only where there is track, and track only where there is train:
+    # thirteen ties across the whole apron were the busiest thing on it.
+    for i in range(9):
+        xx = -2.45 + i * 0.44
+        s0.append(line(p_(xx, RY - 0.36, Z), p_(xx, RY + 0.36, Z)))
+    for yy in (RY - 0.2, RY + 0.2):                            # rails, 0.4 gauge,
+        s0 += box(-2.55, yy - 0.03, Z, 3.95, 0.06, 0.05,       # centred on the
+                  FACE_TOP, PLATE_L, PLATE_R)                  # gauge lines
 
-    # ---- 1 · the back band: the ship on its blocks, then the train
-    # THE SHIP IS ON KEEL BLOCKS, not floating in a plate. Everything else here
-    # stands on the apron on its own running gear, and a hull resting straight on
-    # concrete is the one thing in the yard that could not have got there.
+    # ---- 1 · the back band: the ship on its blocks, and the aircraft
     #
-    # BOTH ENDS ARE RAKED, and that is the whole difference between a ship and a
-    # barge with a house on it. THE RAKES ARE THE LATTICE'S, not a shipwright's:
-    # the stem rises 0.6 over 0.4 forward (dz = 1.5 dx, 45 deg) and the transom
-    # 0.45 over 0.3 aft (dz = -1.5 dx, 63.43 deg), and those two ratios are the
-    # only ones near a real sheer that this projection draws on a brand angle.
-    # Deepening the hull without re-deriving the stem is exactly how the first
-    # pass ended up with a 61.4 deg bow that no rule in the system admits.
-    SY, BEAM = -2.35, 1.0
+    # THE SHIP IS ON KEEL BLOCKS, not floating in a plate: everything else here
+    # stands on the apron on its own running gear, and a hull resting straight
+    # on concrete is the one thing in the yard that could not have got there.
+    # Both ends are raked, which is the whole difference between a ship and a
+    # barge with a house on it: the stem rises 0.6 over 0.4 (45 deg) and the
+    # transom 0.45 over 0.3 (63.43).
+    SY, BEAM = -2.3, 1.0
     KEEL, DECK = 0.42, 1.02
-    for xx in (-2.5, -1.6, -0.7):
-        s1 += box(xx, SY + 0.22, Z, 0.2, 0.78, KEEL - Z, FACE_TOP, PLATE_L, PLATE_R)
-    # ONE HULL, THREE FACES. Box-plus-two-slabs drew every join twice: a slab
-    # emits construction strips for all its edges, and at the bow the stem's
-    # strips, the hull box's own end and the bulwark's outline stacked into a
-    # wireframe X that read as a glitch, not a ship. A hull this camera sees is
-    # exactly three faces — the near flank carrying BOTH rakes in one polygon,
-    # the stem plate (the transom's faces away and is only ever its edge), and
-    # one deck rectangle, because both rakes end AT deck level. The small
-    # vertical at the transom's foot is the skeg, and it is the one edge the
-    # flank polygon adds.
     NF = SY + BEAM                                             # the near flank
+    for xx in (-2.5, -1.7, -0.9):                              # keel blocks
+        s1 += box(xx, SY + 0.22, Z, 0.2, 0.78, KEEL - Z, FACE_TOP, PLATE_L, PLATE_R)
+    # ONE HULL, THREE FACES: the near flank carrying both rakes in one polygon,
+    # the stem plate, and one deck rectangle, because both rakes end AT deck
+    # level. The small vertical at the transom's foot is the skeg.
     s1.append(face(poly([p_(-2.9, NF, DECK), p_(-2.6, NF, 0.57), p_(-2.6, NF, KEEL),
-                         p_(-0.5, NF, KEEL), p_(-0.1, NF, DECK)]), FACE_L))
-    s1.append(face(poly([p_(-0.5, SY, KEEL), p_(-0.1, SY, DECK),
-                         p_(-0.1, NF, DECK), p_(-0.5, NF, KEEL)]), FACE_R))
-    s1.append(quad_t(-2.9, SY, DECK, 2.8, BEAM, FACE_TOP))     # the deck
-    # The boot top's forward end lands ON the stem rake at its own height —
-    # -0.5 was the keel corner, 0.093 short of any edge, a scratch on plating.
-    s1.append(line(p_(-2.6, NF, 0.56), p_(-0.5 + (0.56 - KEEL) / 1.5, NF, 0.56)))
-    s1.append(quad_t(-2.8, SY + 0.06, DECK, 2.62, BEAM - 0.12))  # bulwark
-    # ONE POSITION, NOT THREE. The stack is drawn here, ghosted a tier higher and
-    # lit on one of its boxes, and each of those was a separate literal until two
-    # of them drifted: the lime face floated 0.1 to port of the box it was
-    # supposed to be the top of, which at this scale is 6 px of light lying on
-    # the deck beside the container. A lit face is a face OF something.
-    STK_X, STK_Y = -1.85, SY + 0.06
-    # THE DECKHOUSE COMES BEFORE THE LOAD, because the load is nearer: emitted
-    # after the stack, the accommodation's lit flank and the bridge's window
-    # painted themselves ONTO the containers standing in front of them. And the
-    # window moved to the bridge's NEAR flank — its front face, where a bridge
-    # window belongs at sea, is wholly behind the stack from this camera, so a
-    # window there is a window painted on someone else's wall.
-    # (FORWARD OF THE TRANSOM, still: a deckhouse on the raked plating hangs in
-    # the air by exactly the rake.)
+                         p_(-0.7, NF, KEEL), p_(-0.3, NF, DECK)]), FACE_L))
+    s1.append(face(poly([p_(-0.7, SY, KEEL), p_(-0.3, SY, DECK),
+                         p_(-0.3, NF, DECK), p_(-0.7, NF, KEEL)]), FACE_R))
+    s1.append(quad_t(-2.9, SY, DECK, 2.6, BEAM, FACE_TOP))     # the deck
+    # The boot top's forward end lands ON the stem rake at its own height.
+    s1.append(line(p_(-2.6, NF, 0.56), p_(-0.7 + (0.56 - KEEL) / 1.5, NF, 0.56)))
+    s1.append(quad_t(-2.8, SY + 0.06, DECK, 2.42, BEAM - 0.12))  # bulwark
+    # The deckhouse comes before the load, because the load is nearer; its
+    # window is on the bridge's near flank, the only face of it this camera
+    # sees past the stack. Forward of the transom, so it stands on the deck
+    # and not on the rake.
     s1 += box(-2.55, SY + 0.16, DECK, 0.56, 0.68, 0.4)         # accommodation
     s1 += box(-2.47, SY + 0.24, DECK + 0.4, 0.4, 0.52, 0.26)   # bridge
     s1.append(quad_y(SY + 0.76, -2.4, DECK + 0.5, 0.26, 0.13, DARK))
     s1 += box(-2.37, SY + 0.32, DECK + 0.66, 0.18, 0.26, 0.24)  # funnel
-    for tier in (DECK, DECK + CT_H):                           # the deck load, 2 x 2
+    STK_X, STK_Y = -1.85, SY + 0.06                            # the stack: 2 x 2
+    for tier in (DECK, DECK + CT_H):
         s1 += container(STK_X, STK_Y, tier)
         s1 += container(STK_X, STK_Y + CT_W, tier)
-    # The yard in two arms, split at the mast: one line through would paint its
-    # far half over the body it passes behind.
+    # The yard in two arms, split at the mast: one line through would paint
+    # its far half over the body it passes behind.
     s1.append(line(p_(-0.62, SY + 0.34, DECK + 0.54), p_(-0.62, SY + 0.46, DECK + 0.54)))
     s1 += box(-0.66, SY + 0.46, DECK, 0.08, 0.08, 0.72)        # mast
     s1.append(line(p_(-0.62, SY + 0.54, DECK + 0.54), p_(-0.62, SY + 0.66, DECK + 0.54)))
 
-    # the train — a loco and one flat wagon, on the rails drawn above
+    # THE AIRCRAFT, down +y with its nose at the yard, and this time drawn the
+    # way a turboprop is built: A HIGH WING. A low wing is hidden at the root
+    # by the fuselage that bulges over it, so it arrived on screen as two
+    # slabs at two heights with nothing between them; a high wing lies OVER
+    # the barrel as one slab, its centre line on the fuselage's own, and the
+    # engines hang under it either side, both of them wholly visible. A T-TAIL
+    # for the same reason: a stabiliser on the cone had its far half behind
+    # the barrel, and one on the fin's tip is one slab in the open, centred
+    # on the fin. THE FUSELAGE IS A BARREL WITH A CONE AT EACH END
+    # (isolib.cone), not a drum with a cap pointed at the reader.
     #
-    # THE SOLEBAR CLEARS THE WHEEL, by 0.03 of a unit and no more. The frames sat
-    # at 0.52 with a wheel whose crown is 0.55, and a solebar 0.11 nearer than
-    # the wheel plane then crosses it: four units of the tyre disappear behind
-    # the frame's bottom edge and what is left reads as a washer with a bite out
-    # of it, not as a wheel under a wagon. The whole train is 0.06 higher for it.
-    # Everything above the solebar moved with it — a hood that stays put while
-    # its own frame rises is a hood standing in its underframe.
-    RY, RW = 0.2, 0.7                                          # the track's centre
-    # Two bogies, not four wheels — and 0.32 within a pair against a 0.30
-    # wheel diameter: at the 0.28 it shipped with, each pair's nearer tyre
-    # painted across the farther one's rim and the two read as merged. The
-    # wagon's four are symmetric about the DECK's centre, -0.05, not about 0.
-    for xx in (-2.68, -2.36, -1.5, -1.18, -0.65, -0.33, 0.23, 0.55):
-        s1 += wheel(xx, RY + 0.24, 0.4, 0.15, 0.06)
-    # THE ENDS ARE CLOSED. The loco's front pair sits under its nose (at -2.57
-    # the deck ran 0.2 past the tyre), and each open deck end carries a
-    # headstock down to the axle line: without one, the end of a frame is a
-    # shelf floating 0.33 over the rail that emerges from beneath it — which is
-    # exactly where the eye lands, because an edge over daylight is the
-    # highest-contrast thing in the region.
-    s1 += box(-2.9, RY - 0.3, 0.46, 0.1, 0.6, 0.12)            # loco headstock
-    s1 += box(-2.9, RY - RW / 2, 0.58, 1.9, RW, 0.12)          # loco underframe
-    s1 += box(-2.8, RY - 0.28, 0.7, 1.15, 0.56, 0.46)          # long hood
-    s1 += seams((-2.8, RY + 0.28, 0.7), (-1.65, RY + 0.28, 0.7),
-                (-2.8, RY + 0.28, 1.16), (-1.65, RY + 0.28, 1.16), 3)
-    s1.append(disc(-2.2, RY, 1.16, 0.17, 'z', ACCENT))         # radiator fan
-    s1 += box(-2.66, RY - 0.08, 1.16, 0.14, 0.16, 0.16)        # exhaust
-    s1 += box(-1.6, RY - RW / 2, 0.7, 0.6, RW, 0.74)           # cab
-    s1.append(quad_x(-1.0, RY - 0.26, 1.12, 0.52, 0.24, DARK))
-    s1.append(quad_y(RY + RW / 2, -1.5, 1.12, 0.4, 0.24, DARK))
-    for xx in (-0.85, 0.67):                                   # wagon headstocks
-        s1 += box(xx, RY - 0.3, 0.46, 0.08, 0.6, 0.12)
-    s1 += box(-0.85, RY - 0.32, 0.58, 1.6, 0.64, 0.12)         # the flat wagon
-    s1 += container(-0.6, RY - 0.22, 0.7)
+    # THE UNDERCARRIAGE IS TWO LEGS ON THE CENTRE LINE, a wheel either side of
+    # each. From this camera a point under the far side of a y-barrel projects
+    # INTO the barrel's band — moving it outboard moves it toward the axis on
+    # screen, not away — so a wheel under each wing showed one wheel and a
+    # chip. Under the belly, both main wheels are 10 units clear of the lower
+    # silhouette. The main pair sits just aft of the wing, where an ATR's does,
+    # and that is also what keeps it out from under the nacelle on screen; the
+    # nose pair sits under the barrel ahead of the wing, in the open.
+    PX, TAIL = 1.9, -2.3
+    FZ, FR = 0.9, 0.22
+    # tail cone -2.3 .. -1.85, barrel -1.85 .. -0.5, nose cone -0.5 .. -0.1.
+    # PX + 1.0, the wing tip, is inside the apron's edge at 2.95.
+    s1 += wheel(PX - 0.05, -1.65, 0.34, 0.14, 0.1, 'x')        # main pair, far
+    s1 += box(PX - 0.05, -1.7, 0.34, 0.1, 0.1, 0.34)           # main leg, axle to belly
+    s1 += wheel(PX + 0.15, -1.65, 0.34, 0.14, 0.1, 'x')        # main pair, near
+    s1 += wheel(PX - 0.05, -0.4, 0.31, 0.11, 0.08, 'x')        # nose pair, far
+    s1 += box(PX - 0.05, -0.45, 0.31, 0.1, 0.1, 0.37)          # nose leg
+    s1 += wheel(PX + 0.13, -0.4, 0.31, 0.11, 0.08, 'x')        # nose pair, near
+    s1 += cone(PX, TAIL, FZ, 'y', 0.45, 0.06, FR, cap=None)    # tail cone
+    # crown=False: the barrel's lit band ends in a seam a quarter-turn right
+    # of the top, and neither cone carries one, so the fin on the true top
+    # read as standing beside the ridge. One tone, like the cones.
+    s1 += cyl(PX, TAIL + 0.45, FZ, 'y', 1.35, FR, cap=FACE_L, cap_far=FACE_L, crown=False)
+    s1 += cone(PX, TAIL + 1.8, FZ, 'y', 0.4, FR, 0.05, far=False)   # nose cone
+    # The cockpit glazing at 0.8 r, on the body, the one panel on the tube.
+    s1.append(quad_x(PX + FR * 0.8, -0.72, FZ + 0.02, 0.18, 0.09, DARK))
+    # The fin's leading edge is dz = 1.5 dy, 63.43 deg. Its root at 1.08 is
+    # inside the barrel's crown (1.12) and, at its trailing edge on the first
+    # section of the tail cone, inside that (1.084). Aft of the wing's
+    # trailing edge at -1.5, so the two never share a cell.
+    s1 += slab_x(PX - 0.04, 0.08,
+                 [(-1.55, 1.08), (-1.83, 1.5), (-1.95, 1.5), (-1.95, 1.08)])
+    s1 += box(PX - 0.45, -2.0, 1.5, 0.9, 0.22, 0.05)           # the T-tail, on the fin
+    # Nacelles under the wing, far first, each standing 0.1 proud of the
+    # leading edge; the wing goes over both, and over the barrel.
+    for ex in (PX - 0.55, PX + 0.55):
+        s1 += cyl(ex, -1.5, 0.98, 'y', 0.65, 0.12)
+        s1 += cyl(ex, -0.85, 0.98, 'y', 0.1, 0.05)             # spinner
+    # Seated 0.08 into the barrel's crown, not resting on it: at 1.08 the slab
+    # floated a hair over the body and read as a plank laid across it.
+    s1 += box(PX - 1.0, -1.5, 1.04, 2.0, 0.55, 0.1)            # the wing
 
-    # ---- 2 · the aircraft down the other axis, and the excavator
+    # ---- 2 · the middle band: the train on its siding, the excavator in the corner
     #
-    # THE ONE MACHINE ON +y, and it is the aircraft because it is the one whose
-    # width matters as much as its length: a wing across the row reads as a wing,
-    # a wing along it reads as another roof. It also puts the two long machines
-    # on the two different lattice axes, which is what stops the yard reading as
-    # a shelf.
-    #
-    # THE NOSE POINTS +y, AT THE YARD, AND IT IS A CONE. It was a cylinder with
-    # a flat cap pointed at the reader and a second, smaller cap on top of that,
-    # which is a drum however it is dressed; the fuselage is a barrel with a
-    # frustum at each end now (isolib.cone), the tail one closing to a point
-    # under the fin and the nose one to the radome. 1 : 5 body to length, wing
-    # the biggest surface on the machine, as before.
-    #
-    # THE ENGINES HANG UNDER THE WING, FORWARD OF IT. They sat ON it, tangent to
-    # its top face, and read as two pods lying on a plank. A nacelle under a low
-    # wing is painted BEFORE the wing: the wing then covers the nacelle's top,
-    # and the part that stands proud of the leading edge — which is what the
-    # reader sees of a turboprop from above — is nearer than that edge and
-    # displaced down-left of it on screen, so the wing's leading-edge strip
-    # covers none of it. The far nacelle's sweep goes in with it, before the
-    # fuselage that passes in front of the sweep's rear arc; the near one's
-    # rides the top layer.
-    #
-    # THREE WHEELS SHOW, and it took moving two things. The main gear sits
-    # inboard of the nacelles rather than under them, and the belly fairing is
-    # gone: with the fairing, the far main wheel surfaced as a grey chip under
-    # the belly and nothing else, which read as a machine on two wheels and a
-    # stand. A strut stops at its axle — the wheel is the foot — and the tyre
-    # has a tread (isolib.wheel), because a zero-thickness disc on a strut is a
-    # washer leaning on a post.
-    PX, TAIL = 1.85, -2.35
-    FZ, FR = 0.92, 0.22
-    # tail cone -2.35 .. -1.9, barrel -1.9 .. -0.45, nose cone -0.45 .. -0.05:
-    # the tail sits on the apron's back edge and the wing tip, PX + 1.0, is
-    # inside the apron's own edge at 2.95, which the old span (3.05) was not.
-    for ex in (PX - 0.35, PX + 0.35):                          # main gear
-        s2 += box(ex - 0.05, -1.25, 0.33, 0.1, 0.1, 0.37)      # strut, axle to wing
-        s2 += wheel(ex + 0.15, -1.2, 0.33, 0.13, 0.1, 'x')
-    s2 += box(PX - 0.05, -0.4, 0.31, 0.1, 0.1, 0.39)           # nose gear
-    s2 += wheel(PX + 0.13, -0.35, 0.31, 0.11, 0.08, 'x')
-    for ex in (PX - 0.55, PX + 0.55):                          # nacelles, far first
-        s2 += cyl(ex, -1.35, 0.64, 'y', 0.55, 0.12)
-        s2 += cyl(ex, -0.8, 0.64, 'y', 0.1, 0.05)              # spinner
-    s2.append(orbit(PX - 0.55, -0.75, 0.64, 0.3, 'y'))         # far prop sweep
-    s2 += box(PX - 1.0, -1.45, 0.7, 2.0, 0.5, 0.1)             # the wing
-    # The tailplane goes in before the tail cone that passes through its root:
-    # the cone then covers the root and the two halves stand out either side.
-    # IT SITS HIGH ON THE CONE, at 1.04, not on the axis: on the axis its far
-    # half was behind the barrel's own end from this camera and showed as a
-    # sliver beside the fin. 0.12 up, it clears the barrel's crown by 12 units.
-    s2 += box(PX - 0.5, -2.3, 1.04, 1.0, 0.28, 0.05)           # tailplane
-    s2 += cone(PX, TAIL, FZ, 'y', 0.45, 0.07, FR, cap=None)    # tail cone
-    s2 += cyl(PX, TAIL + 0.45, FZ, 'y', 1.45, FR, cap=FACE_L, cap_far=FACE_L)
-    s2 += cone(PX, TAIL + 1.9, FZ, 'y', 0.4, FR, 0.06, far=False)   # nose cone
-    # The cockpit glazing is at 0.8 r, on the body, and stops short of the
-    # nose cone; it is the one panel left on the tube — the window band that
-    # ran the length of the barrel at the same offset read as a rail standing
-    # off it, because a flat rectangle on a round body is a rectangle.
-    s2.append(quad_x(PX + FR * 0.8, -0.7, FZ + 0.02, 0.18, 0.09, DARK))
-    # The fin's leading edge is dz = 1.5 dy: 63.43 deg. Its root sits at 1.12,
-    # inside the barrel's crown at 1.136 across the slab's own width, and its
-    # trailing edge stands on the barrel's last section, where the tail cone
-    # begins to fall away from under it.
-    s2 += slab_x(PX - 0.04, 0.08,
-                 [(-1.45, 1.12), (-1.75, 1.57), (-1.9, 1.57), (-1.9, 1.12)])
+    # A loco and one flat wagon. THE SOLEBAR CLEARS THE WHEEL by 0.03: frames at
+    # 0.58 over a wheel whose crown is 0.55. Two bogies each, 0.32 within a
+    # pair against a 0.30 wheel, placed about each vehicle's own centre; and
+    # every open end carries a headstock down to the axle line, because the
+    # end of a frame over daylight is the highest-contrast thing in the region.
+    RW = 0.7
+    for xx in (-2.08, -1.76, -1.09, -0.77, -0.18, 0.14, 0.66, 0.98):
+        s2 += wheel(xx, RY + 0.24, 0.4, 0.15, 0.06)
+    for xx in (-2.3, -0.65):                                   # loco headstocks
+        s2 += box(xx, RY - 0.3, 0.46, 0.1, 0.6, 0.12)
+    s2 += box(-2.3, RY - RW / 2, 0.58, 1.75, RW, 0.12)         # loco underframe
+    s2 += box(-2.2, RY - 0.28, 0.7, 1.05, 0.56, 0.46)          # long hood
+    s2 += seams((-2.2, RY + 0.28, 0.7), (-1.15, RY + 0.28, 0.7),
+                (-2.2, RY + 0.28, 1.16), (-1.15, RY + 0.28, 1.16), 3)
+    s2.append(disc(-1.65, RY, 1.16, 0.17, 'z', ACCENT))        # radiator fan
+    s2 += box(-2.08, RY - 0.08, 1.16, 0.14, 0.16, 0.16)        # exhaust
+    s2 += box(-1.15, RY - RW / 2, 0.7, 0.55, RW, 0.74)         # cab
+    s2.append(quad_x(-0.6, RY - 0.26, 1.12, 0.52, 0.24, DARK))
+    s2.append(quad_y(RY + RW / 2, -1.07, 1.12, 0.38, 0.24, DARK))
+    for xx in (-0.4, 1.12):                                    # wagon headstocks
+        s2 += box(xx, RY - 0.3, 0.46, 0.08, 0.6, 0.12)
+    s2 += box(-0.4, RY - 0.32, 0.58, 1.6, 0.64, 0.12)          # the flat wagon
+    s2 += container(-0.15, RY - 0.22, 0.7)                     # centred on it
 
-    # the excavator, facing +x with its boom over the empty quarter
-    EX, EY = -2.7, 1.25
-    # Both ramps rise 0.3 over 0.2 — dz = 1.5 dx — so the front one lands on 45
-    # deg and the rear, running the other way, on 63.43. The rear was 0.2 over
-    # 0.2 for one pass, which is 56.31 and is nobody's angle: the strip it
-    # belongs to is hidden, but the near face still draws its edge.
+    # THE EXCAVATOR, facing +x with its boom over the empty quarter between
+    # the siding's end and the apron's left corner. Both ramps rise 0.3 over
+    # 0.2 — dz = 1.5 dx — so the front one lands on 45 deg and the rear,
+    # running the other way, on 63.43.
+    EX, EY = -2.85, 1.2
     TRK = [(0.0, Z), (1.05, Z), (1.25, Z + 0.3), (1.25, Z + 0.5),
            (-0.2, Z + 0.5), (-0.2, Z + 0.3)]
     for yy in (EY, EY + 0.5):                                  # crawler frames
@@ -837,13 +764,10 @@ def flotten():
         s2 += seams((EX, yy + 0.3, Z), (EX + 1.05, yy + 0.3, Z),
                     (EX, yy + 0.3, Z + 0.28), (EX + 1.05, yy + 0.3, Z + 0.28), 4)
     s2 += box(EX + 0.02, EY - 0.05, 0.7, 1.2, 0.9, 0.1)        # slew platform
-    # ONE HOUSE, ONE CAB, ONE BOOM FOOT. The upper works were a counterweight
-    # box, a cab box and a hood box stepping down the platform, and the boom
-    # rose from a point on the platform's front edge with nothing under it —
-    # a blade hinged on air. The house is one mass now, engine and
-    # counterweight together, with its vents on the near flank; the cab stands
-    # at its front corner on the far lane; and the boom sits on a foot beside
-    # the cab, on the near lane, which is where an excavator carries it.
+    # ONE HOUSE, ONE CAB, ONE BOOM FOOT: the house is engine and counterweight
+    # together with its vents on the near flank, the cab stands at its front
+    # corner on the far lane, and the boom sits on a foot beside the cab on
+    # the near lane, which is where an excavator carries it.
     s2 += box(EX + 0.05, EY + 0.02, 0.8, 0.75, 0.76, 0.42)     # house
     s2 += seams((EX + 0.05, EY + 0.78, 0.8), (EX + 0.8, EY + 0.78, 0.8),
                 (EX + 0.05, EY + 0.78, 1.22), (EX + 0.8, EY + 0.78, 1.22), 3)
@@ -854,92 +778,61 @@ def flotten():
     s2 += box(EX + 0.85, EY + 0.42, 0.8, 0.3, 0.28, 0.12)      # boom foot
     # The boom rises at dz = 1.5 dx and the stick falls at dz = -1.5 dx: 45 deg
     # up, 63.43 deg down, 0.22 deep, 0.28 wide — a box section, not a blade.
-    # THE BUCKET IS ON THE GROUND, which is a drawing decision and not a pose
-    # one: a bucket in the air is a shape hanging off a line, and a bucket with
-    # its cutting edge on the apron is the one thing in the yard that says
-    # what the machine does. The stick's tip lands on the mouth's rim.
+    # THE BUCKET IS ON THE GROUND: a bucket with its cutting edge on the apron
+    # is the one thing in the yard that says what the machine does. The
+    # stick's tip lands on the mouth's rim, and paints last so the joint is seen.
     s2 += slab_y(EY + 0.42, 0.28,                              # the boom
                  [(EX + 0.95, 0.92), (EX + 1.45, 1.67), (EX + 1.45, 1.89), (EX + 0.95, 1.14)])
     s2 += slab_y(EY + 0.4, 0.32,                               # the bucket
                  [(EX + 1.98, 0.8), (EX + 2.4, 0.8), (EX + 2.4, 0.5),
                   (EX + 2.2, Z), (EX + 1.98, Z)])
-    # THE MOUTH IS WHAT MAKES IT A BUCKET. Closed, the shape is a box with one
-    # chamfered corner and it read as exactly that — a crate on the end of a
-    # stick. Seen from above a bucket is open, and an opening is a recess.
-    s2.append(quad_t(EX + 2.02, EY + 0.44, 0.8, 0.34, 0.24, ACCENT))
-    # THE STICK GOES LAST AND GOES IN. Painted before the bucket, it vanished
-    # behind the rim and the machine ended at a crate it never touched; the
-    # joint has to be SEEN, so the stick paints over the mouth.
+    s2.append(quad_t(EX + 2.02, EY + 0.44, 0.8, 0.34, 0.24, ACCENT))   # the mouth
     s2 += slab_y(EY + 0.46, 0.2,                               # the stick
                  [(EX + 1.37, 1.8), (EX + 2.03, 0.81), (EX + 2.03, 1.01), (EX + 1.37, 2.0)])
 
     # ---- 3 · the semi, nearest the reader
     #
-    # THE COUPLING IS A LAP, NOT A GAP. The deck's front rests ON the chassis —
-    # bottom flush with the chassis top — because a trailer rests on its
-    # tractor. The chassis flank stays behind the wheel plane, and the wheels
-    # are painted after it so no frame edge ever bites a tyre: the train's
-    # solebar rule, applied to the road.
-    #
-    # A CAB-OVER, NOT A CUBE. The tractor was one box with two windows and a
-    # wheel poking out under its front corner. It has a windscreen across its
-    # front face, a door with its window on the flank, a roof fairing, and a
-    # bumper — the four things that make a box read as a truck cab — and its
-    # front wheel sits under the door, half in the arch: the wheel plane is
-    # 0.04 behind the cab's near face and the wheel is painted before the cab.
-    # The drive axles are a tandem under the coupling, the trailer's a tandem
-    # at its rear, and every tyre has a tread; flat discs were washers.
-    TY = 1.4
-    s3 += box(2.0, TY + 0.08, 0.34, 0.84, 0.42, 0.12)          # tractor chassis
-    s3 += box(0.58, TY, 0.46, 1.68, 0.58, 0.1)                 # trailer deck
-    s3 += container(0.66, TY + 0.07, 0.56)
-    for xx in (0.82, 1.16):                                    # trailer tandem
+    # A CAB-OVER ON TWO AXLES pulling a trailer on a tandem: four wheels a
+    # side, which is what a semi has, where the last one had five. The steer
+    # axle is under the cab's front, half in the arch — the wheel plane is
+    # 0.04 behind the cab's near face and the wheel paints before the cab —
+    # and the drive axle is under the coupling, where the trailer's weight is.
+    # THE COUPLING IS A LAP: the deck's front rests ON the chassis, bottom
+    # flush with the chassis top, because a trailer rests on its tractor.
+    TY = 1.5
+    s3 += box(2.0, TY + 0.08, 0.34, 0.65, 0.42, 0.12)          # tractor chassis
+    s3 += box(0.35, TY, 0.46, 1.8, 0.58, 0.1)                  # trailer deck
+    s3 += container(0.45, TY + 0.07, 0.56)
+    for xx in (0.7, 1.04):                                     # trailer tandem
         s3 += wheel(xx, TY + 0.56, 0.36, 0.16, 0.1)
-    for xx in (2.06, 2.34, 2.7):                               # drive tandem, steer axle
+    for xx in (2.2, 2.52):                                     # drive axle, steer axle
         s3 += wheel(xx, TY + 0.54, 0.36, 0.16, 0.1)
-    s3 += box(2.22, TY + 0.02, 0.5, 0.62, 0.56, 0.6)           # cab
-    s3 += box(2.26, TY + 0.06, 1.1, 0.5, 0.48, 0.12)           # roof fairing
-    s3.append(quad_x(2.84, TY + 0.08, 0.76, 0.44, 0.26, DARK))     # windscreen
-    s3.append(quad_y(TY + 0.58, 2.44, 0.76, 0.3, 0.24, DARK))      # door window
-    s3.append(line(p_(2.38, TY + 0.58, 0.5), p_(2.38, TY + 0.58, 1.1)))   # door seam
-    s3 += box(2.84, TY + 0.04, 0.34, 0.06, 0.52, 0.16)         # bumper
+    s3 += box(2.08, TY + 0.02, 0.5, 0.57, 0.56, 0.6)           # cab
+    s3 += box(2.12, TY + 0.06, 1.1, 0.45, 0.48, 0.12)          # roof fairing
+    s3.append(quad_x(2.65, TY + 0.08, 0.76, 0.44, 0.26, DARK))     # windscreen
+    s3.append(quad_y(TY + 0.58, 2.28, 0.76, 0.28, 0.24, DARK))     # door window
+    s3.append(line(p_(2.22, TY + 0.58, 0.5), p_(2.22, TY + 0.58, 1.1)))   # door seam
+    s3 += box(2.65, TY + 0.04, 0.34, 0.05, 0.52, 0.16)         # bumper
 
-    # THE CROP IS TAKEN HERE, before the ghost, for the reason isolib.bbox()
-    # exists: a ghost is what is not there yet, so it sits outside what the
-    # drawing is OF, and letting the frame grow to hold it would pad the
-    # drawing with the tier that has not been loaded. It was taken before the
-    # trace as well, which arrived through the top of the frame from off-stage;
-    # the traces came out of all four objects on 2026-08-26 and the call stays
-    # where it was, so the crop is the one it always was.
+    # THE CROP IS TAKEN HERE, before the ghost: a ghost is what is not there
+    # yet, so it sits outside what the drawing is OF, and letting the frame
+    # grow to hold it would pad the drawing with the tier that has not been
+    # loaded.
     crop = bbox(30.0)
 
-    # A GHOST IS THE NEXT TIER. The stack is four boxes and the fleet is however
-    # many the operator runs, so the row that is loaded continues as the row that
-    # is not: the same container, twice more, dashed, over the two below it.
+    # A GHOST IS THE NEXT TIER: the same container, twice more, dashed, over
+    # the two below it.
     ghost = []
     for yy in (STK_Y, STK_Y + CT_W):
         ghost += box(STK_X, yy, DECK + 2 * CT_H, CT_L, CT_W, CT_H,
                      'none', 'none', 'none')
 
-    # TWO SWEPT CIRCLES, and they are the reason the aircraft is an aircraft.
-    # The system's own distinction is that a swept circle is a path something
-    # travels rather than a state, which is exactly what a propeller disc is —
-    # and at 40 px a drawn blade would be three edges on angles this projection
-    # does not own. 03's rotor is the same argument on a different machine.
-    # r 0.30, from the clearance and not from taste: the sweep's inboard edge
-    # reaches offset - r, and at 0.38 that was 0.14 — inside the 0.20 tube, a
-    # propeller striking its own fuselage, with the far arc's dots landing on
-    # the nose drum in front of it.
-    # Only the NEAR sweep rides the top layer — the far one is drawn into the
-    # aircraft's own stage, before the fuselage, which then occludes the arc
-    # that passes behind it. A full ellipse over everything put dashed specks
-    # on the nose drum standing in front of the far propeller.
-    orbits = [orbit(PX + 0.55, -0.75, 0.64, 0.3, 'y')]
+    # TWO SWEPT CIRCLES, the propellers: a swept circle is a path something
+    # travels rather than a state, which is exactly what a propeller disc is.
+    # r 0.28 keeps the inboard edge 0.05 clear of the barrel.
+    orbits = [orbit(PX - 0.55, -0.8, 0.98, 0.28, 'y'),
+              orbit(PX + 0.55, -0.8, 0.98, 0.28, 'y')]
 
-    # The lit box is one of the four on the ship and the near one of the upper
-    # tier: it is surrounded by its own repetitions, which is the only place in
-    # the drawing where "what stands out on one unit" has anything to stand out
-    # from.
     LC = (STK_X, STK_Y + CT_W, DECK + 2 * CT_H)
     lid = [(LC[0], LC[1], LC[2]), (LC[0] + CT_L, LC[1], LC[2]),
            (LC[0] + CT_L, LC[1] + CT_W, LC[2]), (LC[0], LC[1] + CT_W, LC[2])]

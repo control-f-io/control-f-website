@@ -531,18 +531,26 @@ def cone(x, y, z, axis, length, r0, r1, side=None, cap='auto', cap_far=None, far
 
 
 def wheel(x, y, z, r, w=0.08, axis='y'):
-    """A tyre: a short cylinder ending on the near flank — at `y` for axis 'y',
-    a machine running down +x; at `x` for axis 'x', one running down +y — with
-    its hub on the near cap. A wheel used to be a flat disc, which reads as a
-    washer leaning against the body until it has a tread. Only the near flank
-    is drawn on a low-slung machine, because its far wheels are behind its own
-    frame from this camera; where the body is carried clear of them, as an
-    aircraft's is, both are drawn and both show."""
+    """A wheel: a short cylinder ending on the near flank — at `y` for axis 'y',
+    a machine running down +x; at `x` for axis 'x', one running down +y — and
+    on that face a rim inside the sidewall and a hub inside the rim. Three
+    concentric values is what makes a circle read as a wheel at eight pixels;
+    a sidewall with one small dot in it read as a washer.
+
+    NO CROWN ON THE TREAD. cyl() splits a tube's visible half at its 45 deg
+    generatrix and lights the upper band, which is right for a pipe and wrong
+    for a tyre this short: the lit band sat on top of each wheel as a pale cap
+    and every wheel in the yard wore a hat. One tone, contoured.
+
+    Only the near flank is drawn on a low-slung machine, because its far wheels
+    are behind its own frame from this camera; where the body is carried clear
+    of them, as an aircraft's is, both sides are drawn and both show."""
     if axis == 'y':
-        out = cyl(x, y - w, z, 'y', w, r)
+        out = cyl(x, y - w, z, 'y', w, r, crown=False)
     else:
-        out = cyl(x - w, y, z, 'x', w, r)
-    out.append(disc(x, y, z, r * 0.34, axis, FACE_TOP))
+        out = cyl(x - w, y, z, 'x', w, r, crown=False)
+    out.append(disc(x, y, z, r * 0.62, axis, FACE_TOP))     # the rim
+    out.append(disc(x, y, z, r * 0.2, axis, FACE_L))        # the hub
     return out
 
 
