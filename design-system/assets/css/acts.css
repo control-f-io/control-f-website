@@ -5767,6 +5767,46 @@
                          entry calc((var(--a) + var(--u) * var(--relay-rate)) * 1%);
         animation-fill-mode: both, forwards;
       }
+      /* WEBKIT NEVER PAINTS THIS FRONT EITHER, on any of the seven strokes,
+         for the reason already found in .lp-flow__leaf (base.css tier, this
+         file above): a non-scaling stroke WebKit's filter-region cache never
+         invalidates once a scroll-linked `scale` keyframe (lp-frame-draw) has
+         driven it. getComputedStyle reports the identical gradient stroke,
+         opacity and scale in both engines at a fixed scroll position; only
+         the pixels differ. Sampled at the mid strut across five adjoining
+         scroll fractions in WebKit 26.5: a flat (225,255,0) — the ramp's
+         first stop, held rather than swept — where Chromium reads
+         (199-200,227-228,220-221), further along the same gradient.
+         Dropping `vector-effect` alone closes the gap: the same five samples
+         then read (200,228,221), matching Chromium to the pixel.
+
+         BUT THE FRAME IS NOT THE LEAF, and #347's rejection of this exact fix
+         on .sp4-lit is why: .lp-frame's viewBox is 1000 x 500 on
+         `preserveAspectRatio: none`, so losing the non-scaling stroke means
+         the six authored pixels follow whichever axis the stroke crosses,
+         not the drawing's own uniform scale. Measured as the rendered
+         .lp-frame box against its 1000 x 500 viewBox, six viewports:
+
+           1024 x 900   x 0.91  y 1.69      1366 x 768   x 0.83  y 1.82
+           1280 x 720   x 0.74  y 2.14      1440 x 900   x 1.10  y 1.46
+           1280 x 900   x 1.10  y 1.46      1920 x 1080  x 1.28  y 1.38
+
+         Every stroke here is axis-aligned, so a VERTICAL stroke's width
+         tracks x — 0.7 to 1.3 of six pixels across all six, the same band
+         #339 accepted for the leaf (0.5 to 0.9). A HORIZONTAL stroke's width
+         tracks y — 1.4 to 2.1, peaking at 12.8 px on a stroke authored at
+         six, on a laptop height this system already treats as common
+         (--pin-measure's own table, above). That is #347's "worse than the
+         defect it repairs," so only the two strokes running vertically — the
+         mid strut and the two sides, sharing one ramp — take the fix. The
+         base rail and both arms stay black in WebKit; no additive fix for
+         them measured safe. */
+      @supports (-webkit-hyphens: none) {
+        .lp-frame .lp-frame__lit[stroke="url(#lp-frame-ramp-mid)"],
+        .lp-frame .lp-frame__lit[stroke="url(#lp-frame-ramp-side)"] {
+          vector-effect: none;
+        }
+      }
 
       /* ---- ACT 6: Evidenz, the four figures on their own pinned track ---- */
       /* THE STAGE, and its three rows are .lp-proc-stage's — the same
