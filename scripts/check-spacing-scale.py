@@ -35,11 +35,13 @@ SHIPPING = ("tokens.css", "base.css", "components.css")
 # The scale, in order. The step number is the multiple of the 4 px base unit.
 STEPS = (1, 2, 3, 4, 5, 6, 8, 12, 16, 20, 24, 30, 40)
 
-# Steps allowed to sit at zero consumers. --space-30 (120) is the value the
-# vertical rhythm lands on at the 1440 reference frame, kept as a landmark;
-# foundations/layout.html records that as a deliberate exception to the
-# delete-an-unused-rung rule. Anything else reaching zero is a finding.
-UNUSED_OK = {30}
+# Steps allowed to sit at zero consumers. None today. --space-30 (120) sat
+# here for as long as it was a landmark with no consumer — the value the
+# rhythm landed on at the 1440 frame while the clamp's ceiling was written as
+# --space-40. The ceiling is --space-30 now, so the landmark is the consumer,
+# and every rung of the scale is earned. A step reaching zero is a finding;
+# foundations/layout.html says what to do about it: delete the rung.
+UNUSED_OK = set()
 
 # Properties that carry spacing. A length here should be a token.
 SPACING_PROP = re.compile(
