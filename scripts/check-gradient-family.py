@@ -151,14 +151,62 @@ CSS = ("tokens.css", "base.css", "components.css", "acts.css")
 # and is not pretending to be one.
 ARC_CHROMA_FLOOR = 0.010
 
-# A stop carrying alpha is exempt from the arc, and this is the system's own
-# argument rather than an exemption list. --glass-edge runs Glas into Sky —
-# chromatic at both ends — and tokens.css leaves it in sRGB deliberately, on
-# the grounds that "the comparison has to be made composited, because these
-# stops carry alpha". What such a stop renders as depends on what is behind
-# it, so its declared chroma is not its drawn chroma and the chord it cuts is
-# not a fact about the stop list. Opaque stops have no such excuse.
+# A stop carrying alpha USED TO BE EXEMPT FROM THE ARC, and the exemption was
+# the one hole in this rule. The argument for it was the system's own: --glass-
+# edge runs Glas into Sky, chromatic at both ends, and tokens.css says of that
+# token "the comparison has to be made composited, because these stops carry
+# alpha". What a translucent stop renders as does depend on what is behind it,
+# so its declared chroma is not its drawn chroma.
+#
+# BUT THE CHORD IS NOT A FACT ABOUT THE DRAWN CHROMA. It is a fact about the
+# PATH, and the path survives compositing, because compositing a premultiplied
+# ramp is affine in t. A gradient interpolates premultiplied — P(t) = lerp(C1
+# a1, C2 a2), a(t) = lerp(a1, a2) — and over a fixed backdrop the pixel is
+#
+#     R(t) = P(t) + bg (1 - a(t))
+#
+# which is a straight line between the two composited endpoints for every bg
+# there is. So a leg that cuts a chord between its declared stops cuts one
+# between its composited ones as well, on every surface it is ever drawn over.
+# Measured on --glass-edge's own Glas -> Sky leg, chroma at the midpoint
+# against the polar arc through the same two composited ends:
+#
+#     over CF-Grau      -16.9 %        over the wash's middle   -15.2 %
+#     over Weiss        -20.1 %        over anthracite          -11.4 %
+#
+# The magnitude moves with the backdrop and the SIGN NEVER DOES, which is what
+# makes this a property of the stop list. The foil's own corrected leg sags
+# 16.0 %. So the exemption was hiding a defect the same size as the one the
+# arc exists to fix, on the one lit edge the system draws full width.
+#
+# What the alpha does change is the arithmetic of the waypoint, and CSS Color 4
+# already states it: in a polar space the rectangular components are
+# premultiplied and HUE IS NOT. arc_midpoint() below follows that, so an opaque
+# leg falls out of the same code with weights of a half — the four waypoints
+# that already ship are re-derived by it unchanged.
+#
+# ALPHA_OPAQUE survives for the near-miss rule, which asks a different
+# question: "was this stop pasted from an export", and a translucent stop's
+# declared hex is still the answer to it.
 ALPHA_OPAQUE = 0.999
+
+# A stop that paints nothing is not an end of a leg. rgba(255,255,255,0) closes
+# --glass-edge and --sheen-panel begins in one; both are the ramp arriving and
+# leaving without a seam, not a colour the reader is ever shown.
+ALPHA_INVISIBLE = 0.001
+
+# Alphas ship at two decimals and a midpoint's is the mean of two of them, so
+# half a unit in the last place is the most an honest rounding can cost. Same
+# reasoning as POS_TOL, one axis over.
+ALPHA_TOL = 0.005
+
+# And the same split NEAR_MISS makes on colour, made on alpha: RECOGNISING a
+# waypoint is loose so that a drifted one is still read as a waypoint and
+# reported as a wrong one, rather than reclassified as an endpoint and reported
+# as a chord in the half-leg beside it. The alphas in the family run 0.18 to
+# 0.42, so a tenth is wide enough to catch a hand-edited value and far too
+# narrow to catch a stop that is really an end.
+ALPHA_NEAR = 0.10
 
 
 # --- colour, exactly as tokens.css and colors.html compute it ----------------
@@ -466,20 +514,41 @@ def from_oklch(L, C, h):
 
 
 def arc_midpoint(start, end):
-    """The colour the POLAR path from `start` to `end` passes through halfway.
+    """The stop the POLAR path from `start` to `end` passes through halfway.
 
-    L, C and h each interpolated linearly, hue the shorter way — which is what
-    `in oklch shorter hue` means and what the waypoint is standing in for. This
-    re-derives #B9E3EB, #B8CCF3, #33494E and #273650 rather than trusting them.
+    Both arguments and the result are (hex, alpha) — the shape a parsed stop
+    already has, because alpha is part of the answer as soon as the two ends
+    disagree about it.
+
+    L, C and h each interpolated linearly, hue the shorter way, which is what
+    `in oklch shorter hue` means and what the waypoint is standing in for.
+    Alpha interpolates linearly too; the rectangular components are
+    PREMULTIPLIED and hue is not, per CSS Color 4's own definition of
+    interpolation in a polar space. Two opaque ends therefore weight a half
+    each and the alpha drops out, which is why this still re-derives #B9E3EB,
+    #B8CCF3, #33494E and #273650 rather than trusting them.
     """
-    L1, C1, H1 = oklch(start)
-    L2, C2, H2 = oklch(end)
+    (h1, a1), (h2, a2) = start, end
+    L1, C1, H1 = oklch(h1)
+    L2, C2, H2 = oklch(h2)
+    # Premultiplied weights. Two stops that paint nothing never reach here —
+    # _chromatic() has already ruled both out — so the sum cannot be zero.
+    w2 = a2 / (a1 + a2)
+    w1 = 1 - w2
     d = (H2 - H1 + 540) % 360 - 180
-    return from_oklch((L1 + L2) / 2, (C1 + C2) / 2, (H1 + d / 2) % 360)
+    return (from_oklch(w1 * L1 + w2 * L2, w1 * C1 + w2 * C2, (H1 + d / 2) % 360),
+            (a1 + a2) / 2)
+
+
+def _alpha_note(alpha):
+    """The alpha, said out loud only when there is one to say."""
+    return "" if alpha >= ALPHA_OPAQUE else " at alpha %.3f" % alpha
 
 
 def _chromatic(stop):
-    return stop is not None and stop[1] >= ALPHA_OPAQUE and oklch(stop[0])[1] >= ARC_CHROMA_FLOOR
+    return (stop is not None
+            and stop[1] > ALPHA_INVISIBLE
+            and oklch(stop[0])[1] >= ARC_CHROMA_FLOOR)
 
 
 def _turns(start, end):
@@ -510,7 +579,10 @@ def _turns(start, end):
 
 
 def check_arc(stops):
-    """Every opaque leg that turns carries its own polar midpoint as a waypoint.
+    """Every leg that turns carries its own polar midpoint as a waypoint.
+
+    Translucent or not: see the note over ALPHA_OPAQUE for why the alpha the
+    exemption was built on changes the arithmetic and not the rule.
 
     The stops that are already waypoints have to be identified before the legs
     can be, or the rule eats itself: a waypoint read as an endpoint splits its
@@ -543,7 +615,9 @@ def check_arc(stops):
         a, i, b = chrom[k - 1], chrom[k], chrom[k + 1]
         if a in waypoint:
             continue
-        if dE(stops[i][0], arc_midpoint(stops[a][0], stops[b][0])) <= NEAR_MISS:
+        want, want_a = arc_midpoint(stops[a], stops[b])
+        if (dE(stops[i][0], want) <= NEAR_MISS
+                and abs(stops[i][1] - want_a) <= ALPHA_NEAR):
             waypoint.add(i)
 
     ends = [i for i in chrom if i not in waypoint]
@@ -557,20 +631,20 @@ def check_arc(stops):
         # .cf-arrive__ghost puts it between Glas and Sky: in both the ramp
         # travels to the hot spot and away from it, two falloffs that each end
         # in an achromatic stop, and THE ARC gives those nothing.
-        if any(s is None or s[1] < ALPHA_OPAQUE or oklch(s[0])[1] < ARC_CHROMA_FLOOR
-               for s in between):
+        if any(not _chromatic(s) for s in between):
             continue
-        want = arc_midpoint(start, end)
+        want, want_a = arc_midpoint(stops[a], stops[b])
         if not between:
             out.append("%s -> %s is a chord: the leg turns %.1f deg of hue and carries no "
-                       "arc waypoint; expected %s at its midpoint"
-                       % (start, end, abs((oklch(end)[2] - oklch(start)[2] + 540) % 360 - 180), want))
+                       "arc waypoint; expected %s%s at its midpoint"
+                       % (start, end, abs((oklch(end)[2] - oklch(start)[2] + 540) % 360 - 180),
+                          want, _alpha_note(want_a)))
             continue
         if len(between) > 1:
             out.append("%s -> %s carries %d stops; the arc allows one waypoint"
                        % (start, end, len(between)))
             continue
-        got = between[0][0]
+        got, got_a = between[0]
         # Exact, the way the SVG rule compares its own recomputed waypoint. A
         # waypoint is a hex literal and arc_midpoint() returns one off the same
         # 8-bit grid, so anything but equality is somebody's rounding or a
@@ -581,6 +655,14 @@ def check_arc(stops):
         if got != want:
             out.append("arc waypoint on %s -> %s is %s; the polar midpoint of that leg "
                        "is %s (dE %.4f)" % (start, end, got, want, dE(got, want)))
+        elif abs(got_a - want_a) > ALPHA_TOL:
+            # The colour can be right while the alpha is not, and on a
+            # translucent leg that is a real drift rather than a formality:
+            # alpha interpolates linearly, so a waypoint carrying anything but
+            # the mean of its two ends puts a step in the ramp's transparency
+            # at the one position it was added to smooth.
+            out.append("arc waypoint on %s -> %s carries alpha %.3f; the leg's alpha at "
+                       "its midpoint is %.3f" % (start, end, got_a, want_a))
     return out
 
 

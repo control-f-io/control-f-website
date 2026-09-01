@@ -2323,6 +2323,67 @@
      Composited at their real alphas the numbers are a third of that again —
      --glass-edge peaks at 0.00049 over CF-Grau, --sheen-panel at 0.00019.
 
+     THE ARC IS THE OTHER CORRECTION AND IT DOES APPLY HERE, which the
+     paragraph above does not say and was read for a year as though it did.
+     The path question is "sRGB or oklab", and the answer for this leg is the
+     one just given: they agree to 0.00148 and either is fine. The ARC
+     question is "straight line or polar", and BOTH straight lines cut the
+     same corner — see THE ARC under --foil-stops. Glas -> Sky turns 64.6
+     degrees of hue at nearly constant chroma, so the chord between them falls
+     inside the circle they sit on and the middle of this edge greys out
+     exactly where it is supposed to be turning.
+
+     THE ALPHA IS NOT AN EXCUSE, and that is the part that took a measurement.
+     The reason this leg went uncorrected is that it carries alpha and
+     check-gradient-family.py exempted a translucent stop, on the argument
+     that "what such a stop renders as depends on what is behind it". True of
+     the colour and false of the PATH. A gradient interpolates premultiplied,
+     so over any fixed backdrop the pixel is
+
+         R(t) = lerp(C1a1, C2a2) + bg * (1 - lerp(a1, a2))
+
+     which is affine in t: a straight line between the two composited ends, on
+     every surface this is ever drawn over. The chord is therefore a fact
+     about the stop pair, and the sag is there on all of them —
+
+       chroma at the midpoint, against the polar arc through the same two ends
+         over CF-Grau  -16.9 %    over Weiss  -20.1 %    over the wash  -15.2 %
+         inverse, over Schwarz  -22.4 %    over anthracite  -11.5 %
+
+     against the 16.0 % the foil's own Glas -> Sky leg was corrected for. The
+     exemption was hiding a defect the size of the one the arc exists to fix,
+     on the one lit edge in the system drawn the full width of the viewport.
+
+     SO THIS LEG CARRIES ITS WAYPOINT, at 67 % — the midpoint of 54 % and
+     80 % — and its value is the leg's own polar midpoint, derived the way the
+     other four are and not picked. Alpha changes only the arithmetic, and CSS
+     Color 4 states it: in a polar space the rectangular components are
+     premultiplied and hue is not. So L and C are weighted 0.6 / 0.4 by the
+     two alphas and the hue sits at a plain half, which is exactly what
+     color-mix(in oklch shorter hue, <this leg's two stops>) returns —
+     oklch(0.8402 0.0635 211.67 / 0.349) — and the alpha is the mean, because
+     alpha interpolates linearly and a waypoint carrying anything else would
+     put a step in the ramp's transparency at the one position it was added to
+     smooth.
+
+     Max dEok from the true polar arc over the leg, before and after:
+
+       over CF-Grau  0.00513 -> 0.00234      over Weiss  0.00493 -> 0.00253
+       over the wash 0.00483 -> 0.00230      inverse, Schwarz 0.00539 -> 0.00291
+
+     The same order the foil's own waypoints bought (0.00722 -> 0.00212), and
+     nothing else moves: both ends, both alphas and the 16 % and 100 % stops
+     are untouched, so every composited figure in this block — the 0.916 /
+     0.878 / 0.819 band, the 152 degrees across it, the 62 % window on
+     .cf-btn--glass — holds unre-measured. The waypoint sits inside the band it
+     splits at L 0.840 and adds no hue the leg was not already travelling
+     through.
+
+     It is a literal, like the four in the two foils, and it carries their
+     trap: recompute it if Glas or Sky moves. check-gradient-family.py checks
+     the arc on translucent legs now and re-derives this from --cf-glas,
+     --cf-sky and the two alphas rather than trusting the hex.
+
      DO NOT "correct" the Sky stop below to sky-300 for consistency with the
      foil. It looks like drift — the foil is built on sky-300 at OKLab L
      0.865 to hold its 0.820-0.945 band, and this uses core Sky at L 0.735 —
@@ -2337,6 +2398,9 @@
                   rgba(255, 255, 255, 0)    0%,
                   rgba(255, 255, 255, 0.42) 16%,
                   rgba(197, 235, 226, 0.42) 54%,
+                  /* arc waypoint, Glas -> Sky. See THE ARC IS THE OTHER
+                     CORRECTION above; recompute if either end moves. */
+                  rgba(154, 214, 227, 0.35) 67%,
                   rgba(114, 176, 226, 0.28) 80%,
                   rgba(255, 255, 255, 0)   100%);
 
@@ -2672,10 +2736,18 @@
   --surface-glass-solid: var(--surface-raised);
   --glass-border:        1px solid rgba(255, 255, 255, 0.18);
 
+  /* The same edge at the inverse theme's own alphas, and it carries the same
+     arc waypoint for the same reason — the leg turns wherever it is drawn.
+     Its value is not a copy of the light theme's: the polar midpoint weights L
+     and C by the two alphas, and 0.26 / 0.18 weights them 0.591 / 0.409 where
+     0.42 / 0.28 weights them 0.6 / 0.4. Measured over this theme's own
+     grounds, chroma at the midpoint against the arc: -22.4 % to +2.4 % on
+     Schwarz, -11.5 % to -2.0 % on anthracite. */
   --glass-edge: linear-gradient(90deg,
                   rgba(255, 255, 255, 0)    0%,
                   rgba(255, 255, 255, 0.26) 16%,
                   rgba(197, 235, 226, 0.26) 54%,
+                  rgba(153, 214, 226, 0.22) 67%,
                   rgba(114, 176, 226, 0.18) 80%,
                   rgba(255, 255, 255, 0)   100%);
   --sheen-panel: linear-gradient(90deg,
