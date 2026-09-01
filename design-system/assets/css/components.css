@@ -9075,6 +9075,596 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 }
 
 /* --------------------------------------------------------------------------
+   GANTT — a plan on one axis
+
+   The system could draw a VALUE in space (.cf-plot) and it could draw ONE
+   thing's way along a line (.cf-progress). A plan is the second of those put
+   on a shared axis and stacked: several runs, all measured against the same
+   span of time, with one of them where the work has actually got to.
+
+   NOTHING HERE IS A NEW MARK. The run is .cf-progress__rail — solid behind
+   the head, the rung's own dash ahead of it, the head itself the lattice cell
+   filled with light. The milestone is that cell at rest. The ground under all
+   of it is .cf-ground's field with one of its two families of lines left out.
+   The layer that names a point on it is .cf-annot, whole and unmodified. What
+   the component adds is the axis the marks are measured against, and the one
+   division on it that says where today is.
+
+   WHY THE PLAN IS NOT DRAWN ON THE ISOMETRIC PLANE. The arithmetic .cf-plot's
+   header sets out, one axis over. Every direction in the ground plane slopes
+   on screen at ±26.57°, so a run marched along one of them trades drawn
+   length for drawn height, and two spans of equal duration drawn at different
+   depths come out different lengths. A chart whose measure depends on where
+   it stands is not a chart. Time runs level here; the isometry stays in the
+   marks that stand on it.
+
+   THE ONE VERTICAL THAT IS A LINE IN THE LAYOUT IS `heute`.
+   foundations/geometry.html#where-lines-go allows a line to be an edge, a
+   division or a label rule and calls everything else decoration. The now line
+   is a DIVISION in the strictest reading of that page — done on one side of
+   it, not done on the other, content on both — and it carries its own mono
+   label, so it is a label rule as well. It is therefore black, at full
+   weight, once.
+
+   THE TIME GRID IS NOT A LINE AT ALL, IT IS THE FIELD. It draws no edge and
+   divides nothing, which is exactly the case foundations/field.html makes for
+   the lattice: "a texture on the ground, under everything, at a tenth of an
+   ink." So the grid is --field-ink at --field-line, it is the same material
+   .cf-ground is, and it inverts with the theme because that token does.
+
+   AND THE 10 % CAP COMES WITH IT, which is why the grid is --field-ink and
+   not --border-subtle. tokens.css §8b derives that ceiling from the worst
+   thing that has to survive crossing the field — --text-secondary at 14 px on
+   CF-Grau under a line: 4.71:1 at 10 %, 4.51:1 at 12 %, 4.15:1 at 16 %.
+   --border-subtle is that 12 % row, with no margin left in it, and it is a
+   BORDER token besides: reaching for it here would be claiming the grid is a
+   line in the layout after arguing that it is not.
+
+   This figure then spends none of the cap. Every word in it is kept off the
+   ground on purpose — the keys stand left of the field, the ticks above it,
+   `heute` below the last row — so the only things crossing the grid are the
+   runs and the leaders, which are ink and not type. The ceiling is inherited
+   whole rather than measured again, and it is not being leaned on.
+
+   WHAT --field-edge IS FOR, AND WHY THIS FAMILY DECLINES IT. The half pixel
+   of ramp either side of a field line is antialiasing for a DIAGONAL: "a hard
+   stop on a diagonal is a hard diagonal edge … the hairline stair-steps."
+   These lines are vertical. A vertical has no stair to step, so the stops are
+   hard and the line is 1 px wherever the division lands it.
+
+   THE ROW PITCH IS THE LATTICE CELL'S OWN HEIGHT, and that is what puts an
+   annotation on the lattice. --field-unit is 96 and the cell is 96 × 48, so a
+   row of --space-12 is half a cell: a shallow (2, 1) leader out of a point on
+   a run travels one whole cell across and half a row up, and every note in
+   the figure lands on the same lattice the runs stand on.
+
+   WHAT IS DELIBERATELY NOT DRAWN IS THE DEPENDENCY. It was built and taken
+   out again, and the reason is arithmetic rather than taste. A link between
+   two adjacent rows has to drop exactly one pitch, p; the brand sanctions two
+   obliques and no others, so the horizontal run is either 2p (96 px, the
+   shallow step) or p/2 (24 px, the steep one) — while a finish-to-start
+   dependency, which is most of them, has a horizontal run of ZERO. Every
+   version of it therefore departs from inside the run above or arrives past
+   the mark below, and both of those are a line crossing a body that is not
+   its own. The sequence is already in the drawing — the runs' positions and
+   the order of the rows — and exactly in the text, in the dates.
+
+   AND THE MARK IT WAS BORROWING BELONGS TO SOMETHING ELSE. A leader in this
+   system carries a WORD: .cf-annot's own rule is that the line and the label
+   are one mark. An unlabelled leader running between two runs is a leader
+   with nothing to say, which is the decoration geometry.html bans by name. So
+   the step is spent where it has something to carry — on a note. → .cf-gantt__notes
+
+   ALL FOUR RUNGS OF THE PRESENCE LADDER ARE IN USE HERE, AND THIS IS THE
+   FIRST FIGURE IN THE SYSTEM WHERE THAT IS TRUE. tokens.css §8a says the
+   ladder is "only ever legible when the SAME object is drawn more than once,
+   which is why no static page has needed it": a plan is one object — a span
+   of work — drawn once per phase, at four different degrees of being real, on
+   one sheet. It is the case the ladder was written for.
+   -------------------------------------------------------------------------- */
+
+/* Registered for the two reasons .cf-plot's are.
+
+   TYPE SAFETY. These numbers are substituted into a left, a width, a
+   background-size and a clip inset. Unregistered, `--span-to: 40%` or a
+   stray unit makes every one of those declarations invalid at computed-value
+   time, and a run with no width declaration is drawn at the full width of its
+   track — a plan that is confidently wrong. Registered, a bad value is the
+   initial one and nothing is drawn.
+
+   INTERPOLATION. --gantt-draw is one number that the run's clip, the head's
+   scale and the leader's scale all read, so the three cannot fall out of step
+   with each other.
+
+   THEY INHERIT, and that is the whole authoring story — the one .cf-progress
+   already tells about --progress. The dates are written ONCE, on the row,
+   beside the key that names them in words, and the marks two levels down read
+   them. Non-inheriting, which is the safer-looking default, every mark would
+   silently draw at the initial value under a key stating a date. */
+@property --span-from { syntax: "<number>";  inherits: true; initial-value: 0; }
+@property --span-to   { syntax: "<number>";  inherits: true; initial-value: 0; }
+@property --span-done { syntax: "<number>";  inherits: true; initial-value: 0; }
+@property --gantt-now { syntax: "<number>";  inherits: true; initial-value: 0; }
+@property --gantt-cols { syntax: "<integer>"; inherits: true; initial-value: 6; }
+@property --gantt-draw { syntax: "<number>";  inherits: true; initial-value: 1; }
+
+.cf-gantt {
+  /* The key column: the phase's name on one line and its dates under it in
+     mono. rem, and that is the OPPOSITE of the choice --plot-u makes, for the
+     opposite reason — the plot's unit sizes a fixed-count drawing and must not
+     grow with a reader's text setting, while this measure is set by two lines
+     of TYPE and must. */
+  --gantt-key: 12rem;
+  --gantt-gap: var(--space-4);
+
+  /* Half the lattice cell, and the pitch the leader is built on. See the
+     header. */
+  --gantt-row: var(--space-12);
+
+  /* The narrowest a time column may be drawn: five characters of Geist Mono
+     at --text-xs, plus air. It is the figure's own floor, and it is here for
+     the reason .cf-table's column heads are its one — a figure with no floor
+     does not overflow, it COMPRESSES. The axis would simply keep dividing a
+     narrower and narrower track, every run would shorten with it, and the
+     scroll box that makes the plan readable on a phone would never engage. */
+  --gantt-col-min: 3rem;
+
+  /* The mark: the lattice cell at UI scale, one size up from .cf-progress's
+     8 × 4 head because it stands in a 48 px row rather than on an 8 px rail. */
+  --gantt-node: 0.75rem;
+
+  margin: 0;
+}
+
+/* A plan is the one figure that legitimately outgrows its column — the axis
+   is data, not layout — so it takes the scroll container .cf-table takes, and
+   the tabindex with it: scrollable content with no focusable child is
+   unreachable by anything but a mouse. WCAG 2.1.1. It is named by the
+   caption, which is the figure's own summary in words. The focus ring comes
+   from base.css, which already rings :focus-visible on anything carrying
+   [tabindex]. */
+.cf-gantt__scroll { overflow-x: auto; }
+
+.cf-gantt__frame {
+  /* Derived, not chosen: the key column, the gap, and every time column at
+     its own floor. */
+  min-width: calc(var(--gantt-key) + var(--gantt-gap)
+                  + var(--gantt-cols) * var(--gantt-col-min));
+}
+
+/* The axis. Mono labels standing ON their own grid lines with the strong
+   hairline running out from under them — the label rule, the third of the
+   three uses geometry.html sanctions, and the same mark .cf-section-header is
+   made of.
+
+   A label is placed at the line its column BEGINS at, not centred in the
+   column. Centred, it names an interval whose two edges the reader then has
+   to find; standing on the line, it names the line. */
+.cf-gantt__scale {
+  display: grid;
+  grid-template-columns: repeat(var(--gantt-cols), minmax(0, 1fr));
+  margin: 0;
+  margin-inline-start: calc(var(--gantt-key) + var(--gantt-gap));
+  padding: 0 0 var(--space-2);
+  list-style: none;
+  border-bottom: var(--stroke-1) solid var(--border-strong);
+}
+.cf-gantt__tick {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  /* A label broken over two lines is read as two labels, which is why
+     nothing else in this system wraps one either. */
+  white-space: nowrap;
+}
+
+/* The body is the positioning context for the now line, so that the line
+   spans the rows and stops at the axis rule rather than crossing the labels
+   over it.
+
+   The padding is the room the now label hangs in, and it is scoped with
+   :has() because it is that label's room and nobody else's — a plan with no
+   `heute` on it ends at its own last row, and 24 px of reserved air under a
+   figure with nothing to put in it reads as a misaligned caption. */
+.cf-gantt__body { position: relative; }
+.cf-gantt__body:has(.cf-gantt__now) { padding-bottom: var(--space-6); }
+
+.cf-gantt__set {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* THE ROWS ARE NOT RULED, AND THAT IS THE EXACT INVERSE OF .cf-table BY THE
+   SAME TEST. A table rules its rows and draws nothing vertical, because there
+   the row is the unit of reading and the rule between two of them is a
+   division in geometry.html's sense: one thing ends, another begins, content
+   on both sides.
+
+   In a plan it is not. Each phase already has a drawn body of its own — the
+   run — and what is on both sides of a line between two rows is the same
+   plan, at the same date, saying nothing. That is the definition of the
+   decoration the geometry chapter bans, and drawn against the field's
+   verticals it makes the one thing .cf-table's header names as the failure to
+   avoid: a grid of boxes, which says spreadsheet. So this figure draws its
+   verticals and rules nothing, and the table rules its rows and draws no
+   vertical, and both follow from the same three-way test.
+
+   THE HEIGHT IS FIXED AND NOT A MINIMUM. The pitch is the leader's drop, so a
+   row that grows takes the next row's centre line with it and the step stops
+   landing on it. Keys are short here for the reason a table's column heads do
+   not wrap. */
+.cf-gantt__row {
+  display: grid;
+  grid-template-columns: var(--gantt-key) minmax(0, 1fr);
+  column-gap: var(--gantt-gap);
+  align-items: center;
+  height: var(--gantt-row);
+}
+
+/* The key is the row's subject — content, in the body face at body size, the
+   same call .cf-table makes for a th[scope="row"]. Uppercasing it would shout
+   a phase name and spend the mono face on the one thing in the row that is
+   prose. */
+.cf-gantt__key {
+  min-width: 0;
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+}
+
+/* THE DATES ARE TEXT, AND THEY ARE THE ONLY COPY OF THEMSELVES. The drawing
+   is aria-hidden and adds nothing this line does not already say, so the
+   figure reaches the accessibility tree as an ordered list of phases with
+   their dates — no visually hidden table, nothing that can drift out of step
+   with the picture. It is also where the ladder is stated IN WORDS, so that
+   `geplant` and `läuft` are not carried by a dash pattern alone. */
+.cf-gantt__when {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-label);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+.cf-gantt__track {
+  position: relative;
+  min-width: 0;
+  height: 100%;
+}
+
+/* The ground: one family of the field's two, at the field's ink and the
+   field's weight, its period the time column. Painted by a ::before that
+   comes before every mark in tree order, so the marks paint over it without
+   a z-index — the same reason .cf-plot__draw needs none.
+
+   The second layer is the horizon. Every column carries a line at its start,
+   which leaves the far end of the axis — the one edge of the plan that is not
+   the start of anything — as the only division on it nothing draws. */
+.cf-gantt__track::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(90deg, var(--field-ink) 0 var(--field-line), transparent var(--field-line)),
+    linear-gradient(90deg, var(--field-ink) 0 var(--field-line), transparent var(--field-line));
+  background-size:
+    calc(100% / var(--gantt-cols)) 100%,
+    var(--field-line) 100%;
+  background-position: left top, right top;
+  background-repeat: repeat-x, no-repeat;
+}
+
+/* THE RUN. Two layers and no overlay, which is .cf-progress__rail's exact
+   construction: the part of the phase that is done is one solid tile sized to
+   --span-done and pinned left, the part that is not is the rung's own dash
+   sized to the remainder and pinned right. --gantt-rung is what a modifier
+   changes, so the ladder is one declaration and not a fork per state.
+
+   clamp() because --span-done is a registered number, which rejects a unit
+   but not a 2 or a -1, and either would draw a head off the end of its own
+   run.
+
+   2 px, and it is the only mark in the figure at that weight. The run is what
+   the figure is about and it has to be read against a field of hairlines;
+   base.css already has .rule--2 for exactly this — a heavier rule for a
+   heavier statement. Everything else here is 1 px.
+
+   IT DRAWS OUT OF ITS OWN START ON A CLIP AND NOT ON A scaleX. Scaling a box
+   scales the dash period inside it, so a 2-1 rung would arrive through every
+   ratio except its own — the same fault check-grow-origin.py describes for a
+   dashed stroke under a scale, in the one medium where it is not fixable by
+   a vector-effect. */
+.cf-gantt__bar {
+  --run: clamp(0, var(--span-done), 1);
+  --gantt-rung: linear-gradient(90deg, var(--border-strong) 0 100%);
+  position: absolute;
+  top: 50%;
+  left: calc(var(--span-from) * 100%);
+  width: calc((var(--span-to) - var(--span-from)) * 100%);
+  height: var(--stroke-2);
+  transform: translateY(-50%);
+  background-image:
+    linear-gradient(90deg, var(--border-strong) 0 100%),
+    var(--gantt-rung);
+  background-size:
+    calc(var(--run) * 100%) 100%,
+    calc((1 - var(--run)) * 100%) 100%;
+  background-position: left center, right center;
+  background-repeat: no-repeat;
+  clip-path: inset(0 calc((1 - var(--gantt-draw)) * 100%) 0 0);
+}
+
+/* The ladder, along one run. The three dashed periods are the ones base.css
+   already paints as .rule--dashed-*: 4/2, 2/4 and 1/4, on periods of 6, 6 and
+   5 px. They are written out again rather than reached for as a utility class
+   because .rule owns `background` outright, and this run also carries a
+   second layer, a head and a clip.
+
+     (none)      solid   the phase as committed — dates fixed
+     --planned   2-1     agreed, not fixed
+     --proposed  1-2     under discussion
+     --live      1-4     ahead of the head only: the part that has not
+                         happened yet, which is --presence-absent doing
+                         exactly the job it does on .cf-progress__rail */
+.cf-gantt__row--planned .cf-gantt__bar {
+  --gantt-rung: repeating-linear-gradient(90deg, var(--border-strong) 0 4px, transparent 4px 6px);
+}
+.cf-gantt__row--proposed .cf-gantt__bar {
+  --gantt-rung: repeating-linear-gradient(90deg, var(--border-strong) 0 2px, transparent 2px 6px);
+}
+.cf-gantt__row--live .cf-gantt__bar {
+  --gantt-rung: repeating-linear-gradient(90deg, var(--border-strong) 0 1px, transparent 1px 5px);
+}
+
+/* THE MARK: the lattice cell, drawn as a BORDER under --iso-transform rather
+   than as a clip-path polygon. That is .cf-annot::before's call and it is
+   made for the same reason — forced colours discards a background-color and
+   maps a border colour into its own palette, so a rhombus that is a border
+   survives that mode and a rhombus that is a clip vanishes from it.
+
+   It scales in with the figure rather than drawing out: a point has no
+   length to draw along, and a cell coming up from nothing IS the presence
+   ladder's own figure, "solid and small at the left". */
+.cf-gantt__head,
+.cf-gantt__mark {
+  position: absolute;
+  top: 50%;
+  width: var(--gantt-node);
+  height: var(--gantt-node);
+  border: var(--stroke-1) solid var(--border-strong);
+  transform: translate(-50%, -50%) var(--iso-transform) scale(var(--gantt-draw));
+}
+
+/* A milestone is a phase of no duration, so it is the mark alone on its own
+   row, and it stands at --span-to. There is deliberately no --mark-at beside
+   it: a milestone's date would then be written under a second name, a leader
+   drawn out of that row would still read --span-to, and the two would be free
+   to disagree about when the same thing happens. */
+.cf-gantt__mark { left: calc(var(--span-to) * 100%); }
+
+/* The head stands where the work has actually got to, which is not the same
+   fact as where today is — a phase can be behind, and the whole reason this
+   mark and the now line are two marks is that the distance between them is
+   the thing worth reading.
+
+   AND IT IS THE FIGURE'S ONE LIME MOMENT. Lime is light, so the cell carries
+   the near rake and not a flat fill — foundations/colors.html#lime-is-never-
+   flat — the same ramp .cf-annot--lit's anchor takes, for the same reason: a
+   lattice cell is a flat face. */
+.cf-gantt__head {
+  left: calc((var(--span-from)
+              + (var(--span-to) - var(--span-from)) * clamp(0, var(--span-done), 1)) * 100%);
+}
+
+/* The lit rung, for the head and for a milestone that is the figure's light
+   instead of it. One or the other and never both — the lime budget is one
+   mark per screen, and this figure is competing with everything else on the
+   page for it. */
+.cf-gantt__head,
+.cf-gantt__mark--lit {
+  background-image: var(--gradient-light);
+  --glow-r: 8px;
+}
+
+/* THE ANNOTATION LAYER, AND IT IS NOT A NEW COMPONENT. A plan is a drawing,
+   and the system already owns the layer that names a part of one: .cf-annot,
+   an anchor on the lattice, a leader that is one lattice step, and a word
+   standing on its own rule. All this element does is hand that layer the
+   plan's coordinates — it covers the plot area exactly, so --annot-x is a
+   fraction of the axis and --annot-y is a length down the rows,
+   calc(--gantt-row * (row + 0.5)).
+
+   THE UNIT IS THE PLAN'S OWN, AND THIS IS WHAT THE ROW PITCH IS FOR.
+   --annot-u is half a row. The row pitch is half the lattice cell, so a
+   shallow (2, 1) step out of an anchor travels one whole cell across and half
+   a row up and comes down on the lattice the runs are already standing on.
+   The anchor cell takes --gantt-node, the rhombus the head and the milestones
+   are already drawn at, so an annotation's mark and the plan's marks are one
+   size rather than two.
+
+   THE TIMELINE IS KILLED AND THE VALUE IS TAKEN FROM THE PLAN'S OWN DRAW.
+   .cf-annot-set animates --annot-draw on `animation-timeline: view()`, which
+   resolves against the nearest scrollport — and inside this component that is
+   .cf-gantt__scroll, whose block axis never scrolls (overflow-x: auto leaves
+   overflow-y computing to auto, which is a scroll container in both axes).
+   A view timeline against a box that does not scroll is precisely the .cf-hero
+   defect check-overflow-clip.py exists for: it resolves, it reports a
+   progress, and the progress does not move. So the animation is cancelled —
+   which this file has already established is the only way to get the property
+   back, since a custom property cannot override an animation — and the value
+   is derived from --gantt-draw instead. 3x - 2 puts the labels in the last
+   third of the plan's own draw, which keeps the order .cf-annot states in
+   prose: the drawing is finished before it is labelled.
+
+   THE CONTAINER IS DELIBERATELY NOT NAMED cf-annot-fig. That name switches
+   the layer to its legend fallback under 28rem, and the plot area is under
+   28rem exactly when the plan is scrolling — which is when the callouts are
+   correct and a static legend inside an absolutely positioned layer is not.
+   A plan answers a narrow screen by scrolling. It does not fold. */
+.cf-gantt__notes {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--gantt-key) + var(--gantt-gap));
+  right: 0;
+}
+.cf-gantt__notes .cf-annot-set {
+  --annot-u: calc(var(--gantt-row) / 2);
+  --annot-node: var(--gantt-node);
+  --annot-gap: calc(var(--gantt-node) / 2);
+  --annot-draw: clamp(0, calc(var(--gantt-draw) * 3 - 2), 1);
+  animation: none;
+}
+
+/* `heute`. See the header for why this is the one vertical here that is a
+   line in the layout, and therefore the one drawn in ink rather than in
+   material.
+
+   THE LABEL HANGS BELOW THE LAST ROW RATHER THAN ABOVE THE AXIS. The scale's
+   labels are placed by the axis and this one is placed by the data, so above
+   the axis the two collide at whatever date the plan happens to have reached
+   — and a figure whose top edge is legible only in some months is not one. */
+.cf-gantt__now {
+  position: absolute;
+  top: 0;
+  bottom: var(--space-6);
+  left: calc(var(--gantt-key) + var(--gantt-gap));
+  right: 0;
+  pointer-events: none;
+}
+.cf-gantt__now::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--gantt-now) * 100%);
+  width: var(--stroke-1);
+  background: var(--border-strong);
+}
+.cf-gantt__now-label {
+  position: absolute;
+  top: 100%;
+  left: calc(var(--gantt-now) * 100%);
+  transform: translateX(-50%);
+  padding-top: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-normal);
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+/* The caption carries the message in words, so it is the figure's accessible
+   name and its title at once — which is why it is a figcaption named by the
+   scroll region above it and not a heading floating near the block. Same
+   treatment as .cf-plot__caption, so a plan and a plot sit the same distance
+   off their captions. */
+.cf-gantt__caption {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: var(--stroke-1) solid var(--border-default);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+/* The plan draws itself onto a ground that is already there: the field, the
+   axis and the now line do not arrive, because they are not the data. Same
+   posture and the same three fallbacks as .cf-plot and .cf-iso — no support
+   for view timelines, reduced motion, and paper all leave --gantt-draw at its
+   registered 1, which is the finished plan. A chart that stays empty until a
+   timeline says otherwise is a chart some readers never see. */
+@supports (animation-timeline: view()) and (animation-range: contain 0% contain 100%) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .cf-gantt {
+      view-timeline-name: --cf-gantt;
+      view-timeline-axis: block;
+    }
+    /* On the BODY and not on the row list, because the annotation layer is
+       the row list's sibling and has to read the same number. */
+    .cf-gantt__body {
+      animation: cf-gantt-draw linear both;
+      animation-timeline: --cf-gantt;
+      /* Ends early, for .cf-plot's reason: a figure near the foot of a short
+         document may never reach the far end of its own cover range, and a
+         plan that finishes drawing at 90 % is a plan that understates every
+         phase in it. */
+      animation-range: cover 5% cover 35%;
+    }
+  }
+}
+@keyframes cf-gantt-draw {
+  from { --gantt-draw: 0; }
+  to   { --gantt-draw: 1; }
+}
+
+/* Paper keeps the plan and loses the ground, the same call .cf-ground makes:
+   a printer renders the field as a grey mesh over the copy. */
+@media print {
+  .cf-gantt__track::before { display: none; }
+}
+
+/* Forced colours discards every background image and does not repaint a
+   background-colour on a generic box, so the field, the run and the now line
+   all disappear and the two marks — which are borders — do not. Each is
+   redrawn as the one paint the mode keeps, exactly as .rule is.
+
+   The dash RATIOS are lost, because border-style cannot express them, and the
+   ladder survives as the three-way distinction .rule's own fallback keeps:
+   solid, some dash, finer dash. The live run goes back to solid rather than
+   to a dash — the part of it behind the head is real work, and its head is
+   still drawn. */
+@media (forced-colors: active) {
+  /* The draw is frozen at the finished plan, for both halves of this figure
+     and for the reason .cf-annot's own forced-colours block gives: a mode that
+     has asked for certainty gets the finished drawing rather than a frame of
+     one. It is the stronger claim here than there — a half-clipped run is not
+     a faint run, it is a plan stating dates it does not have. */
+  .cf-gantt__body,
+  .cf-gantt__notes .cf-annot-set {
+    animation: none;
+    --gantt-draw: 1;
+    --annot-draw: 1;
+  }
+  .cf-gantt__track::before { display: none; }
+  .cf-gantt__bar {
+    background: none;
+    height: 0;
+    border-block-start: var(--stroke-2) solid CanvasText;
+  }
+  .cf-gantt__row--planned  .cf-gantt__bar { border-block-start-style: dashed; }
+  .cf-gantt__row--proposed .cf-gantt__bar { border-block-start-style: dotted; }
+  /* The lit rung has nothing to give this mode: the ramp is a background
+     image it discards, and a lime spill around a mark whose palette the
+     reader has chosen is the one thing the mode exists to stop. Both fall
+     away and the contour is left, which is what the mark was already. */
+  .cf-gantt__head,
+  .cf-gantt__mark--lit {
+    background-image: none;
+    filter: none;
+  }
+  .cf-gantt__now::before {
+    width: 0;
+    background: none;
+    border-inline-start: var(--stroke-1) solid CanvasText;
+  }
+}
+
+/* --------------------------------------------------------------------------
    SUBDIVISION FIELD — "Raster > Teilungsraster", made interactive
    The manual's own claim for this system is the one part of it the web
    implementation never built: "kann als Konzept für interaktive UI-Elemente
@@ -9999,10 +10589,12 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    on :root it baked in the :root default and all three of these rendered 12 px
    whatever they asked for — see the note beside --glow-r.
 
-   One rule and three members rather than three copies: the composition is the
+   One rule and its members rather than a copy each: the composition is the
    thing that must not drift, and each member keeps its own reach above. */
 .cf-icon--light,
 .cf-plot__col--lit .cf-plot__cap,
+.cf-gantt__head,
+.cf-gantt__mark--lit,
 .cf-relay__head {
   filter:
     drop-shadow(0 0 calc(var(--glow-r) * var(--glow-core)) var(--glow-lime))
