@@ -2161,11 +2161,18 @@ These were judgement calls, each documented on the relevant page:
   interior height, every sampled pixel is a flat `#F8F8F8` while the margin beside it climbs
   219 → 226 — **+22 to +29, constant**, which the wash cannot be because the wash moves. So
   the designer drew a contour figure panel and an opaque light plate under the copy, and the
-  implementation draws neither. Left standing rather than half-restored: the same argument
-  that retired the card's plate applies to this one — an absolute grey inside the wash's range
-  inverts as the reader scrolls, and the honest form of a step *toward* the light is a veil of
-  white, which the materials family does not have a value for yet. A designer settles it.
-  → `foundations/materials.html#copy-panel-gap`
+  implementation draws neither. **The copy half now carries that plate as `--surface-lifted`.**
+  The form was never in doubt — an absolute grey inside the wash's range inverts, so the honest
+  step *toward* the light is a veil of white. What blocked the value was the rule that a light
+  step "dies at the bottom of every screen", and this panel is never at the bottom of one: the
+  card sits in `.cf-pin__stage`, `position: sticky`, and across the whole 5,760 px pin range at
+  1280×900 its viewport top reads **54** and its bottom **785** at every sample — identical, not
+  approximately still. The wash is viewport-fixed, so between those rows it is 210 → 242 for
+  every reader, with 45 → 13 of headroom that never reaches zero. Value mirrored rather than
+  picked: 6 % black removes 12.42 at the wash's opening stop, a white veil has 48 there,
+  `12.42 / 48 = 0.2588` → white 26 %. Renders **+15 at the card's head, +4 at its foot**, and
+  scoped to the two-column form, since below that breakpoint the halves stack and there is no
+  column to be a plate against. → `foundations/materials.html#copy-panel-gap`
 - **A step away from the page is a ratio, not a grey — so `--surface-sunken` is a veil.**
   The neutral steps were absolute values chosen against `--surface-base`, CF-Grau, and no
   page in the system is painted CF-Grau: every page carries `.page-wash`, which is
