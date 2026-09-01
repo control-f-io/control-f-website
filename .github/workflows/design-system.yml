@@ -3158,3 +3158,26 @@ jobs:
         env:
           CF_REQUIRE_BROWSER: "1"
         run: python3 scripts/check-consent-focus-return.py
+
+      # IN THIS JOB BECAUSE THE FAULT IS A COMPUTED WIDTH. The two gates that
+      # already hold this class read CSS — check-grid-tracks.py reads track
+      # lists, check-wrap-net.py reads the overflow-wrap net — and neither could
+      # have seen this one: .cf-nav's three children are individually blameless
+      # and it is their SUM against `max-width: 100%` that put the EN switch off
+      # the right of the screen on all 38 pattern pages at a 200 % text size.
+      # Nothing is clipped, nothing errors, and the document is simply wider
+      # than the window. Only a browser knows that number.
+      #
+      # The subject is the reader's own setting rather than a viewport: `rem` in
+      # a media query is frozen at the initial 16 px, so every threshold in this
+      # system is blind to it by construction — see check-rem-floor.py, which is
+      # the file that established the two meanings, and which found the same
+      # class inside act 3's clip.
+      #
+      # Proven failing on the defect reintroduced: with flex-wrap taken off
+      # .cf-nav__list, 38 gate cells at 900 x 24 px (989 px of document in 900 px
+      # of viewport) and the 200 % census straight from 40 cells to 154.
+      - name: Text zoom
+        env:
+          CF_REQUIRE_BROWSER: "1"
+        run: python3 scripts/check-text-zoom.py

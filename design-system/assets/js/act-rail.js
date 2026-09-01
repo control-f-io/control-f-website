@@ -161,7 +161,31 @@
       live = on;
       rail.classList.toggle('is-live', on);
     }
-    if (!on) return;
+
+    /* AND THE MARK GOES OUT WITH THE RAIL. This used to be a bare
+       `if (!on) return;`, which left aria-current="true" standing on whichever
+       act the reader was in when they left the acts — and both ends of the
+       page are outside the band. Scroll into act 3 and back to the hero and
+       the rail still said "you are in 03 Service Offering"; ride it to the
+       footer and it said the same thing from below. `is-live` came off in both
+       cases, so the rail was painted out and nobody could see the claim, but
+       nobody can see aria-current either: it is read, and this rail is
+       deliberately still in the tab order — see the header above — so a reader
+       who Tabs to it from the hero is shown the lit mark and told they are
+       standing in an act they have not reached.
+
+       current = -1 and not merely the attribute, because the two are one
+       state: without the reset, re-entering the acts at the act you left at
+       returns i === current, `read()` takes its early exit, and the mark stays
+       off for the whole of it. The invariant is that the rail carries exactly
+       one aria-current while it is live and none while it is not. */
+    if (!on) {
+      if (current >= 0) {
+        stops[current].link.removeAttribute('aria-current');
+        current = -1;
+      }
+      return;
+    }
 
     /* The last act whose beat the reader has reached. The 2 px is the rounding
        slack a smooth scroll lands inside of; without it a jump to an act can
