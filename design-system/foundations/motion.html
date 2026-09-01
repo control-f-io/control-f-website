@@ -687,12 +687,24 @@ for t in ['fast','base','slow','scene']:
     <p>
       The catch is the other half of that sentence: because the unit is the drawing's own,
       <strong>a drawing with a different viewBox travels a different fraction on the same
-      token.</strong> The statement figure is 480 units, so the shipped
-      16 would have moved it 3.33 % — measured at 35.8 × 17.9 px against the process
-      objects' 17.6 × 8.8 px, roughly twice as far while being only 1.5× the size. It
-      therefore overrides the token to 12, because 12/480 is exactly 16/640.
+      token.</strong> The statement figure is 1200 units, so the token's 16 would have moved it
+      1.33 % of its own width rather than 2.5 % — measured at 24.3 × 12.2 px where the figure
+      renders at 912, against 45.6 × 22.8 px for the value it carries. Barely more than the
+      process objects' 17.6 × 8.8 on a drawing 1.9× their width, which is a drawing that
+      settles almost before it has set off. It therefore overrides the token to 30, because
+      30/1200 is exactly 16/640.
     </p>
-    <pre class="docs-code">.cf-statement .cf-iso { <span class="attr">--iso-travel</span>: <span class="val">12</span>; }</pre>
+    <div class="docs-note">
+      <strong>The frame is bigger, so the number is bigger — and this worked example used to
+      say the opposite.</strong> It read “the statement figure is 480 units, so the shipped 16
+      would have moved it 3.33 %”, and overrode the token <em>down</em> to 12. Nothing in the
+      tree has ever been 480 units or carried 12: the drawing was 1200 in the commit that
+      wrote this paragraph, and <code>components.css</code> has shipped 30 beside it the whole
+      time. The rule underneath was right and every number over it was inverted, which is the
+      one drift a check on the stylesheet cannot see — <code>check-iso-motion.py</code> was
+      reading the CSS this sample claims to quote, and passing. It now reads the sample too.
+    </div>
+    <pre class="docs-code">.cf-statement .cf-iso { <span class="attr">--iso-travel</span>: <span class="val">30</span>; }   <span class="tag">/* 1200 / 40 */</span></pre>
     <p>
       <strong>The rule: 2.5 % of the viewBox.</strong> Any new illustration whose viewBox is
       not 640 units sets <code>--iso-travel</code> to <code>viewBox / 40</code> on itself. The
@@ -733,9 +745,9 @@ python3 scripts/check-iso-motion.py</pre>
       <strong>A rule nobody had checked since it was written.</strong> Counted across the
       shipping tree, seven of the fifteen objects have a frame that is not 640 and only the
       statement figure was setting the token. The four on <code>patterns/expertise.html</code>
-      are cropped to their own objects — 657.6, 642.4, 653.6 and 625.6 units wide — so on the
-      default they arrived from between 4.90 % and 5.19 % of their own width, four objects at
-      four distances, no two of them the same. The three figures in the
+      are cropped to their own objects — 657.6, 642.4, 653.6 and 653.6 units wide — so on the
+      default they arrived from between 4.87 % and 4.98 % of their own width, four objects at
+      three distances, no two of the three frames the same. The three figures in the
       Über uns value table are
       160 units and are the sharp case: <code>16</code> there is a fifth of the drawing's own
       width. All seven now carry their own value.
@@ -752,16 +764,19 @@ python3 scripts/check-iso-motion.py</pre>
     <pre class="docs-code">.cf-value-row__figure .cf-iso { <span class="attr">--iso-travel</span>: <span class="val">4</span>; }   <span class="tag">/* 160 / 40 */</span></pre>
     <div class="docs-note">
       <strong>“Keyed on the component” is doing work in that sentence, and the statement
-      figure is where it was not.</strong> Its 12 lived in
+      figure is where it was not.</strong> Its value lived in
       <code>patterns/landing-page.html</code>'s own <code>&lt;style&gt;</code> block, keyed on
       <code>.lp-statement-figure</code> — a hook that exists on exactly one page. The
-      identical 480-unit drawing on <a href="../components/statement.html">the component's own
+      identical 1200-unit drawing on <a href="../components/statement.html">the component's own
       documentation page</a> matched no such selector, so it sat on the 640-frame default and
-      arrived from 3.33 % of its own width: <strong>the specimen showed the motion a third
-      further than the thing it is a specimen of.</strong> The rule moved into
-      <code>components.css</code> as <code>.cf-statement .cf-iso</code>, which both copies
-      match. A value that is a fact about a drawing cannot be scoped to a page — the same
-      drawing turns up on at least two.
+      arrived from 1.33 % of its own width: <strong>the specimen showed the motion at a bit
+      over half the distance of the thing it is a specimen of.</strong> The rule moved into
+      <code>components.css</code> as <code>.cf-statement .cf-iso</code>, which every copy
+      matches. A value that is a fact about a drawing cannot be scoped to a page — the same
+      drawing turns up on at least two. (The landing page's statement carries the generated
+      sensor field now rather than this lattice, so <code>components/statement.html</code> is
+      the one page shipping it; keyed on the component, the next page to want it is right
+      without being told.)
     </div>
 
     <h3>How it is driven</h3>

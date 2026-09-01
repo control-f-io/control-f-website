@@ -2304,20 +2304,36 @@ it would train people to ignore it.
   re-export drops them and the line-drawing goes back to being timed against its full length —
   including the half of it that is outside the frame, and including the four strokes that are
   not this one. The drawing is not wrong, it just spends most of its scroll range invisible or
-  holding still. Each one carries a comment at the element. Three drawings are cut by their
-  crop — card 02 (both ends), card 04, and the trace specimen on
-  `foundations/illustration.html` — and two are drawn as several strokes and therefore led:
-  card 03's five-stroke arrow and that same specimen's three.
+  holding still. Each one carries a comment at the element. Two drawings are cut by their
+  crop — card 02, at both ends, and card 04 — and one is drawn as several strokes and
+  therefore led: card 03's five-stroke arrow. All eight authored traces are on the four
+  process objects and nowhere else. This paragraph used to name a fifth drawing and a sixth
+  stroke set on a "trace specimen" on `foundations/illustration.html`, which carries no
+  trace and no longer mentions one: the trace was retired from the four documented material
+  layers, the specimen went with it, and the sentence counting it did not. The count is the
+  tree's rather than this file's — `check-iso-motion.py` reports how many traces it measured
+  on every run.
   → `foundations/motion.html`
 - **`--iso-travel` on a frame that has been recropped.** The arrival distance is a transform,
   so it is in viewBox units, and the rule is `viewBox width / 40` — the same 5 % of the
   drawing in every frame. Seven of the fifteen shipping objects are not on a 640 square and
-  carry their own value, four of them as inline custom properties on the `svg`. Nothing ties
-  those literals to the viewBox they were derived from, so **recropping a drawing leaves its
-  travel silently wrong.** It has already happened once: the four objects on
+  carry their own value, four of them as inline custom properties on the `svg`. Nothing tied
+  those literals to the viewBox they were derived from, so **recropping a drawing left its
+  travel silently wrong.** It had already happened once: the four objects on
   `patterns/expertise.html` were recropped from 695.2 / 612 / 552.4 / 714.24 to
   732 / 776.8 / 732 / 790.24 within an hour of the values first being written, and nothing
-  failed — the objects simply arrived from the wrong distance. Re-measure after any recrop.
+  failed — the objects simply arrived from the wrong distance. `check-iso-motion.py` now
+  re-derives every one of them from the frame it is written beside, so that half is held.
+  **The prose is the half that was not, and it had been wrong since it was written.**
+  `foundations/motion.html` taught the rule with a worked example — the statement figure at
+  "480 units", overriding the token *down* to 12 — against a drawing that is 1200 units and a
+  stylesheet that has shipped 30 the whole time. Both numbers were wrong, they agreed with
+  each other, and the correction they demonstrated was inverted: a bigger frame on the same
+  token travels a *smaller* fraction, so the example argued the opposite of the rule above
+  it. A check reading only CSS cannot see that, because the sample is text and renders
+  whatever it says. The samples are now read too: a selector-keyed `--iso-travel` in a
+  docs-code block must equal what `components.css` declares for that same selector, and its
+  `/* W / 40 */` derivation must name the frame of the drawings that rule actually governs.
   **`--trace-weight` is the same hazard read the other way round:** it is `viewBox width /
   rendered width`, so a recrop breaks it from the viewBox end and a change to the frame's
   `max-width` breaks it from the render end. Both leave a trace that still draws itself,
