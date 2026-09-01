@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hold .cf-plot--zero's ground to the phase that puts a column on a crossing.
+"""Hold .cf-plot--ground's ground to the phase that puts a column on a crossing.
 
 The subject is a half of one unit, and like the pie's running sum it is a number
 the drawing cannot show you is wrong. A zero plane whose lattice is out by half
@@ -51,7 +51,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CSS = ROOT / "design-system" / "assets" / "css" / "components.css"
 
 # The rule this file is about, located by its selector rather than by line.
-BLOCK = re.compile(r"\.cf-plot--zero\s+\.cf-plot__set::before\s*\{(.*?)\n\}", re.S)
+BLOCK = re.compile(r"\.cf-plot--ground\s+\.cf-plot__set::before\s*\{(.*?)\n\}", re.S)
 
 
 def decl(body, prop):
@@ -101,7 +101,7 @@ def main():
     css = CSS.read_text(encoding="utf-8")
     m = BLOCK.search(css)
     if not m:
-        print("check-plane-phase: no .cf-plot--zero .cf-plot__set::before rule; "
+        print("check-plane-phase: no .cf-plot--ground .cf-plot__set::before rule; "
               "the zero plane this checks is gone or renamed.", file=sys.stderr)
         return 1
     body = m.group(1)

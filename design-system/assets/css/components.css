@@ -9434,47 +9434,51 @@ a.cf-calendar__day > time,
   --glow-r: 12px;
 }
 
-/* A PLOT WITH A ZERO LINE, and columns that hang off the underside of it.
+/* A PLOT THAT STANDS ON DRAWN GROUND, and one column in it that fell.
 
-   THE FIRST ATTEMPT TINTED THE CONTOUR AND IT WAS THE WRONG INSTRUMENT. A
-   falling column was drawn in Violett 700 — the one step in the palette that
-   clears both the wash and the black contour — and at a 1 px hairline, on a
-   figure whose other lines are black, the difference read as "slightly faded"
-   rather than as "different direction". A hairline gives the eye almost no
+   THE HUE WAS FIRST SPENT ON THE CONTOUR AND THAT WAS THE WRONG INSTRUMENT. A
+   column whose quantity fell was drawn in Violett 700 — the one step in the
+   palette that clears both the wash and the black contour — and at a 1 px
+   hairline, in a figure whose other lines are black, it read as "slightly
+   faded" rather than as "other direction". A hairline gives the eye almost no
    area to judge a hue on; that is the same sentence .cf-line__trace--hue
-   writes to explain why one tinted trace is the ceiling there, and it is an
-   argument against spending a hue on a stroke at all when there is a better
-   channel available.
+   writes to explain why one tinted trace is its ceiling there.
 
-   THE BETTER CHANNEL IS THE GEOMETRY. A quantity that fell should fall. Give
-   the row a zero line and let the sign place the column against it — up for a
-   rise, down for a drop — and direction stops being an encoding the reader has
-   to learn: it is the shape of the figure. Nothing is left to a colour, which
-   is why the hue can then be spent where it is actually visible, on the end
-   face, where there is area to see it.
+   SO THE COLOUR MOVED TO THE FACE, where there is area to see it, and the
+   figure gained a ground for the objects to stand on. The direction itself
+   stays where this component has always kept its data: in the number, which
+   every column prints, and which opens with a − or a +.
 
-   THE ZERO LINE IS A DIVISION, WHICH IS WHAT MAKES IT LEGAL. geometry.html
-   #where-lines-go admits an edge, a division and a label rule and calls
-   everything else decoration. This one has content on both sides and a
-   different meaning on each — the strict reading of a division, and the same
-   ground .cf-gantt's `heute` stands on. So it is black, at full weight, once.
+   AND EVERY COLUMN STANDS. A drop was drawn hanging under the plane for a
+   while — geometry says direction better than any colour can — but a hanging
+   solid is read against a ground it is behind rather than on, the two families
+   no longer share a baseline the eye can run along, and the four magnitudes
+   stop being comparable at a glance, which is the one thing a column plot is
+   for. Rises and falls are both improvements here in any case; what differs is
+   which way the underlying quantity moved, and that is a label on the column,
+   not a direction for it to point. So --fell is a face and a sign, and the
+   plot keeps one baseline.
 
-   BOTH HALVES ARE ONE UNIT TALL PLUS SIX OF RISE, so a drop of 12 and a rise
-   of 12 are the same length of column on opposite sides of the line, and --v
-   stays what it always was: the magnitude as a fraction of the largest in the
-   set, sign removed. The sign lives in the class and in the printed number. */
-.cf-plot--zero {
-  /* Room for the deepest number to hang below its cap, matching the room the
-     tallest one already has above. */
-  padding-bottom: var(--space-8);
+   --v is unchanged by any of it: the magnitude as a fraction of the largest in
+   the set, sign removed. */
+.cf-plot--ground {
+  /* The ground band reaches half a unit past the footprint, so the box below
+     the columns is that much taller than a plain plot's. */
+  padding-bottom: var(--space-2);
 }
-.cf-plot--zero .cf-plot__set {
+.cf-plot--ground .cf-plot__set {
   position: relative;
   /* The keys clear the deepest value label rather than the box: a column at
      --v: 1 ends at 14u and its number runs a line and a half past that. */
   margin-bottom: var(--space-16);
 }
-.cf-plot--zero .cf-plot__col { height: calc(var(--plot-u) * 14); }
+/* 7u of column, plus the half unit the ground band reaches below the
+   footprint. The drawing keeps its own 7u so the viewBox is not restretched. */
+.cf-plot--ground .cf-plot__col { height: calc(var(--plot-u) * 7.5); }
+.cf-plot--ground .cf-plot__draw {
+  inset: 0 0 auto 0;
+  height: calc(var(--plot-u) * 7);
+}
 
 /* THE ZERO PLANE, AND IT IS A PLANE RATHER THAN A LINE ON PURPOSE.
 
@@ -9532,14 +9536,16 @@ a.cf-calendar__day > time,
    level with a surface instead of a stroke, and the footprints sitting in it
    are what locate zero for each column. Two marks for one fact is one too
    many. */
-.cf-plot--zero .cf-plot__set::before {
+.cf-plot--ground .cf-plot__set::before {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
+  /* Centred on the footprint, which is at 6.5u of the drawing's 7u — so the
+     band runs 5.5u to 7.5u and the cell's own centre is 1u into it, which is
+     the coordinate check-plane-phase.py solves the crossings in. */
+  top: calc(var(--plot-u) * 5.5);
   height: calc(var(--plot-u) * 2);
-  translate: 0 -50%;
   --field-unit: calc(var(--plot-u) * 2);
   --field-step: calc(var(--field-unit) / 2.2360679775);
   --field-half: calc(var(--field-step) / 2);
@@ -9554,162 +9560,57 @@ a.cf-calendar__day > time,
   background-position: 0 calc(var(--plot-u) * 0.5);
 }
 
-/* Each drawing takes its own half of the box and meets the line at the cell.
-   The viewBox is unchanged, so one user unit is still u/20 on both sides.
-
-   THE HEIGHT IS STATED, NOT INSET. .cf-plot__draw already carries `height:
-   100%` alongside its `inset: 0`, and a stated height wins over the one an
-   inset would resolve to — so `inset: 0 0 50% 0` alone left every standing
-   column a full-height box pinned to the top, straddling the line it was
-   supposed to stand on. Measured before the fix: both risers reported
-   STRADDLES against the zero line, both falling columns were correct, because
-   only the falling ones were also moved. Half the box, said in the property
-   that is actually deciding it. */
-.cf-plot--zero .cf-plot__draw {
-  inset: 0 0 auto 0;
-  height: 50%;
-}
-.cf-plot--zero .cf-plot__col--down .cf-plot__draw {
-  inset: auto 0 0 0;
-  height: 50%;
-}
-
-/* AND BOTH HALVES COME BACK HALF A CELL, so that the two families stand on one
-   plane. A column's footprint is a rhombus and the zero line is a flat rule,
-   which do not meet at a single obvious place: left alone, a standing column
-   rested its cell's LOWEST vertex on the line and a falling one hung its cell's
-   HIGHEST vertex from it, so the two footprints sat a whole unit apart and the
-   figure had two ground planes one cell above the other. Measured before the
-   fix: cellOnZero false on all four columns.
-
-   The point on the axis is the rhombus's CENTRE, so the line passes through it
-   and half the cell falls either side — which is also what an isometric ground
-   plane crossing a flat reference actually looks like. Half a cell is 0.5u, the
-   same half cell .cf-plot__rise--near is offset by, and it goes on the drawing
-   rather than into the path data so the geometry in the markup stays the
-   geometry every other plot has. */
-.cf-plot--zero .cf-plot__draw { translate: 0 calc(var(--plot-u) * 0.5); }
-.cf-plot--zero .cf-plot__col--down .cf-plot__draw { translate: 0 calc(var(--plot-u) * -0.5); }
-
-/* The standing column's number travels with its own drawing. */
-.cf-plot--zero .cf-plot__val {
-  top: calc(var(--plot-u) * 0.5 + var(--plot-rise) * (1 - var(--plot-h)));
-}
-
-/* THE HANGING BOX IS AUTHORED, NOT MIRRORED, and that is not fussiness. A
-   scaleY(-1) on the standard drawing produces the right silhouette and the
-   wrong solid: it swaps the near and far verticals, so the figure would draw
-   the centre edge the body hides and omit the one facing the reader. The
-   rhombus is symmetric about its own horizontal axis and survives the flip;
-   the three verticals do not. So a falling column carries its own five paths
-   — cell at the top at the zero plane, cap at the bottom at the value, near
-   edge on the bottom vertex where it belongs — and the transforms below are
-   the standing column's, read the other way up. */
-.cf-plot__col--down .cf-plot__rise {
-  transform-origin: 0 10px;
-  transform: scaleY(var(--plot-h));
-}
-/* THE CENTRE EDGE OF A PIT IS THE FAR ONE, and getting this wrong is most of
-   why the first draft "looked like a weird object". A cube standing on the
-   ground shows the vertical edge NEAREST the reader — the one at the
-   footprint's bottom vertex — and hides the far one behind its own body. A
-   cell sunk BELOW the ground is the same solid read the other way: the reader
-   looks down into it, the near walls are behind the ground surface in front of
-   the hole, and the edge standing in the middle of the opening is the FAR one,
-   at the footprint's top vertex. Drawn with the near edge instead, the pit
-   reads as a box hanging in front of the plane rather than as a hole in it.
-   The path is the markup's — M20 0V120 rather than M20 20V140 — and this is
-   the origin it grows from. */
-.cf-plot__col--down .cf-plot__rise--near { transform-origin: 0 0; }
-.cf-plot__col--down .cf-plot__cap {
-  transform: translateY(calc(-120px * (1 - var(--plot-h))));
-}
-
-/* The number hangs BELOW the cap it belongs to, which is the standing column's
-   rule with the sign of every term flipped: 8u is the cap's lowest vertex at
-   --v: 0, and it travels a full 6u of rise from there. No translate — the
-   label starts at the line it is measured from and reads downward. */
-.cf-plot__col--down .cf-plot__val {
-  top: calc(var(--plot-u) * 7.5 + var(--plot-rise) * var(--plot-h));
-  transform: none;
-  padding-top: var(--space-2);
-  padding-bottom: 0;
-}
-
-/* AN OBJECT ON A GROUND HAS TO OCCLUDE IT, and until now nothing here did.
-
-   The columns were wireframes with `fill: none`, so the lattice ran straight
-   through every body: a box standing on the plane had the ground drawn across
-   its front, and a box hanging under it was crossed by the same lines at the
-   same weight. Nothing in the picture said which side of the ground anything
-   was on, and that is the whole of why it read as flat.
+/* AN OBJECT ON A GROUND HAS TO OCCLUDE IT, and as wireframes these did not.
+   The lattice ran straight through every body, so the ground was drawn across
+   the front of each solid and nothing in the picture said the columns were
+   standing on it rather than floating over it.
 
    A FACE AT THE PAGE'S OWN COLOUR IS HOW THIS SYSTEM DRAWS A SOLID. Every
-   isometric object on the landing page is built this way — `fill: #CFCFCF` on
-   the form, the contour carrying the shape — and foundations/illustration.html
-   states the consequence in its own words: an unlit face sits at exactly the
-   page's colour and the object would disappear entirely if the contour were
-   not carrying it. --surface-page is that colour as a token, so it inverts
-   with the theme instead of pinning the grey.
+   isometric object on the landing page is built that way — a fill on the form,
+   the contour carrying the shape — and foundations/illustration.html states
+   the consequence in its own words: an unlit face sits at exactly the page's
+   colour and the object would disappear entirely if the contour were not
+   carrying it. --surface-page is that colour as a token, so it inverts with
+   the theme instead of pinning the grey.
 
    THE SILHOUETTE IS THREE STATIC SHAPES, not one variable path, and that is
-   forced by the same half cell the rises are. A hexagon whose top V travels
-   while its bottom V stays is not an affine transform of anything. Decomposed,
-   it is: the cap rhombus, which already translates; a rectangle between the
-   cap's and the footprint's side vertices, which scales exactly like a rise;
-   and the footprint rhombus, which is static. Their union is the hexagon
+   forced by the same half cell that gives the rises two origins: a hexagon
+   whose top V travels while its bottom V stays is not an affine transform of
+   anything. Decomposed, it is the cap, which already translates; a rectangle
+   between the cap's and the footprint's side vertices, which scales exactly
+   like a rise; and the footprint, which is static. Their union is the hexagon
    exactly — the cap's lower half falls inside the rectangle, and the
-   footprint's near point is the only thing below it.
+   footprint's near point is the only thing below it. So the only new mark is
+   the rectangle.
 
-   So the only new mark is the rectangle, and it takes the rises' own two
-   origins: the foot for a column that stands, the head for one that hangs. */
-.cf-plot--zero .cf-plot__draw .cf-plot__body {
+   NO z-index IS NEEDED, and that is what one baseline buys. The ground is a
+   ::before of the set, so it paints before every column; with nothing below
+   the plane there is no family that has to be painted under it. The variant
+   that hung its falls needed three layers and a stacking context to keep the
+   numbers above the ground. This one needs paint order and nothing else. */
+.cf-plot--ground .cf-plot__draw .cf-plot__body {
   fill: var(--surface-page);
   transform-box: view-box;
   transform-origin: 0 130px;
   transform: scaleY(var(--plot-h));
 }
-.cf-plot--zero .cf-plot__col--down .cf-plot__body { transform-origin: 0 10px; }
 
-/* THE FOOTPRINT STOPS BEING A GHOST AND BECOMES THE FACE IT ALWAYS WAS. In a
-   plot with no ground the dashed cell is construction — it says where the
-   column stands. Here the plane says that, and says it better: the phase fix
-   above put the footprint exactly on a lattice diamond, so the dash was a
-   second drawing of a line the ground already draws. What the shape is still
-   needed for is its fill, which is the solid's bottom face and the last piece
-   of the silhouette. */
-.cf-plot--zero .cf-plot__draw .cf-plot__cell {
+/* The footprint stops being a ghost and becomes the face it always was. The
+   phase above put it exactly on a lattice diamond, so the dash was a second
+   drawing of a line the ground already draws; the fill is the solid's bottom
+   face and the last piece of the silhouette. */
+.cf-plot--ground .cf-plot__draw .cf-plot__cell {
   fill: var(--surface-page);
   stroke: none;
 }
 
-/* An unlit cap is a face too, and it was the one place a `fill: none` still
-   let the ground through the top of a standing box. Scoped off the two caps
-   that carry a paint server, because author CSS beats a presentation
-   attribute — the mistake this component's own note records one rule up. */
-.cf-plot--zero .cf-plot__col:not(.cf-plot__col--lit):not(.cf-plot__col--down) .cf-plot__cap {
+/* An unlit cap is a face too, and it is the one place a `fill: none` still let
+   the ground through the top of a box. Scoped off the two caps that carry a
+   paint server, because author CSS beats a presentation attribute — the
+   mistake this component's own note records further up. */
+.cf-plot--ground .cf-plot__col:not(.cf-plot__col--lit):not(.cf-plot__col--fell) .cf-plot__cap {
   fill: var(--surface-page);
 }
-
-/* AND THE GROUND IS PAINTED BETWEEN THE TWO FAMILIES, which is the whole of
-   the depth cue. A solid above the ground is nearer the reader than the ground
-   behind it, so it is painted over the lattice; a solid below the ground is
-   behind it, so the lattice is painted over it. One plane, two sides, and the
-   paint order says which is which — no line weight, no dash, no tint.
-
-   The lattice crossing a hanging box is not a flaw in the drawing, it is the
-   drawing: the ground here is an open framework, so a hole in it looks exactly
-   like a cell of it, and the diamond that sits over the opening IS the rim.
-
-   z-index is on the DRAWING and not on the column, because a column that
-   established a stacking context would take its own number with it — the
-   numbers have to stay above the ground even where a shallow one sits inside
-   the band. */
-.cf-plot--zero .cf-plot__set { isolation: isolate; }
-.cf-plot--zero .cf-plot__draw { z-index: 2; }
-.cf-plot--zero .cf-plot__col--down .cf-plot__draw { z-index: 0; }
-.cf-plot--zero .cf-plot__set::before { z-index: 1; }
-.cf-plot--zero :is(.cf-plot__val, .cf-plot__key) { z-index: 3; }
 
 /* THE HUE MOVES TO THE FACE, where a colour has room to be one. The ramp is
    the lit cap's, with the warm source swapped for the cool one and every
@@ -9725,7 +9626,7 @@ a.cf-calendar__day > time,
    the one thing --lit spends. This face is not lit; it is the cool end of the
    same ramp, which is what the palette already does with every surface the
    light does not reach. */
-.cf-plot__col--down .cf-plot__cap { --glow-r: 0; }
+.cf-plot__col--fell .cf-plot__cap { --glow-r: 0; }
 
 /* FORCED COLOURS TAKES THE FILLS AND KEEPS THE DRAWING — the pie's rule, for
    the pie's reason, and the plot needed it before any of this arrived.
@@ -9746,17 +9647,17 @@ a.cf-calendar__day > time,
   .cf-plot__rise,
   .cf-plot__cap,
   .cf-plot__cell { stroke: CanvasText; }
-  .cf-plot--zero .cf-plot__set::before { background: CanvasText; }
+  .cf-plot--ground .cf-plot__set::before { background: CanvasText; }
   .cf-plot__col--lit .cf-plot__cap,
-  .cf-plot__col--down .cf-plot__cap { fill: none; }
+  .cf-plot__col--fell .cf-plot__cap { fill: none; }
   /* The occluders keep their job and lose their colour. A fill written as a
      custom property is not forced, so --surface-page would paint CF-Grau over
      a reader's chosen Canvas; named Canvas, the body still hides the ground
      behind it and still does so in their palette. Depth survives a mode with
      one ink, because it was never carried by a colour. */
-  .cf-plot--zero .cf-plot__draw .cf-plot__body,
-  .cf-plot--zero .cf-plot__draw .cf-plot__cell,
-  .cf-plot--zero .cf-plot__col:not(.cf-plot__col--lit):not(.cf-plot__col--down) .cf-plot__cap {
+  .cf-plot--ground .cf-plot__draw .cf-plot__body,
+  .cf-plot--ground .cf-plot__draw .cf-plot__cell,
+  .cf-plot--ground .cf-plot__col:not(.cf-plot__col--lit):not(.cf-plot__col--fell) .cf-plot__cap {
     fill: Canvas;
   }
 }
