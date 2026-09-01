@@ -1724,21 +1724,46 @@ hr {
    tokens.css claiming the shallow rake "spreads it across the whole line"
    was describing the intent, not the paint.
 
-   fit-content(100%), NOT THE BARE KEYWORD, and that parenthesis is load-
-   bearing. The intent has always been min(max-content, available), so a
-   short headline shrink-wraps and a long one still wraps and fills its
-   column — but the bare `fit-content` keyword does not compute that on a
-   plain in-flow block, on either engine: measured in isolation, a
-   fit-content h3 in a 100 px box rendered at its full 277.84 px max-content
-   width on Chromium 141 and WebKit alike, identically to `width:
-   max-content`. `fit-content(100%)` — the function, with an explicit
-   stretch basis — is what actually clamps to the containing block, and
-   ships the same 100 px. Found on expertise.html's info-card titles at an
-   enlarged root font size: "Maschinenbau" at 42 px sat 290 px wide in a
-   164 px card, ink and box both past the card's edge, on a page whose own
-   grid track was floored correctly around it. It lives inside @supports
-   because outside it nothing is clipped and shrinking the box would be a
-   layout change for no reason.
+   `fit-content` AND `max-width: 100%`, TWO DECLARATIONS, AND THE SECOND ONE
+   IS WHY. The intent has always been min(max-content, available): a short
+   headline shrink-wraps and a long one still wraps and fills its column.
+   This line used to say that intent was written `fit-content(100%)` — "the
+   function, with an explicit stretch basis" — and that the bare keyword did
+   not clamp. HALF OF THAT WAS RIGHT AND THE HALF THAT SHIPPED WAS NOT.
+   `fit-content()` is a css-sizing-4 function that no engine implements for
+   `width`; it is grid track sizing only. `CSS.supports("width",
+   "fit-content(100%)")` is FALSE on Chromium 141, so the declaration was
+   guaranteed-invalid and dropped, and this class has had `width: auto` for
+   as long as the line existed.
+
+   The measurement that put it here could not tell the difference. The test
+   was an h3 in a 100 px box: `fit-content` rendered 277.84 px, the function
+   form rendered 100 — which is exactly what a DROPPED width does in a 100 px
+   box. A dropped declaration and a working clamp are the same number when
+   the box is the containing block, and that is the one case the isolated
+   test had. The overflow it was fixing did go away, because `width: auto`
+   also does not overflow; the clip box the same block claims to size did
+   not come back. Measured on the shipped tree at 1280, ink over box:
+   Über uns 23.6 %, Karriere 21.1 %, Suche 16.7 %, News 14.8 % — every page
+   header on the site painting the first fifth of a four-stop ramp, which is
+   the defect the paragraph above says was fixed, still there and now
+   documented as gone.
+
+   The bare keyword is the supported spelling of the intent, and the case it
+   loses on is a min-content wider than the column — "Maschinenbau" at 42 px
+   in a 164 px card, which is what sent this to the function form. That is a
+   max-width's job and not a width's: `max-width: 100%` caps the box at the
+   containing block, so the degenerate case lands on the same box `auto`
+   gives it (ink overflows an unbreakable word either way) and every other
+   case shrink-wraps. Both are ordinary CSS both engines have shipped for a
+   decade.
+
+   scripts/check-foil-clip.py is the gate, and it exists because this failure
+   was silent in both directions: an unsupported value renders as no value,
+   and the ramp it costs is only visible with a ruler.
+
+   It lives inside @supports because outside it nothing is clipped and
+   shrinking the box would be a layout change for no reason.
 
    THIS CLASS IS NOT THE ONLY CONSUMER OF --gradient-foil, and the other one
    inverts both rules above on purpose:
@@ -1797,13 +1822,37 @@ hr {
 
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .text-foil {
-    width: fit-content(100%);
     background-image: var(--foil-image);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;
   }
+  /* THE CLIP BOX, and it is a max-width rather than a width. width: auto
+     stays: the box fills its column and the cap pulls it back to the ink,
+     which is min(max-content, available) written as the one property that
+     cannot be cyclic. A `width` of any intrinsic keyword asks the box to
+     size itself from its own content, and a block whose content is being
+     rewritten — see the exclusion below — resolves that to nothing.
+
+     A STREAM-OWNED LINE IS EXCLUDED, and the exclusion is the same fact
+     .ex-step already reserves min-height for. cf-stream.js empties the
+     element it types into and refills it character by character, so the
+     element's max-content is the characters typed SO FAR: nothing at rest,
+     and growing while the reader scrolls. Capping the box at that makes the
+     box nothing at rest, and — if it were not nothing — would rescale the
+     ramp on every character, which is a foil re-lit letter by letter rather
+     than a plate the light crosses. Measured on expertise.html at 1280
+     without this clause: all four .cf-info-card__title boxes collapsed to
+     22 px and 0. The page reserves the block axis by hand for the same
+     reason; this reserves the inline one, in the class rather than on the
+     page, because it is a property of the mechanism and not of that act.
+
+     :has() and not a modifier class, because the condition is not knowable
+     when the markup is written: the same h3 is unstreamed until the script
+     runs, and correctly shrink-wrapped for as long as it is. */
+  .text-foil:not(:has(.cf-stream__text)) { max-width: max-content; }
+
   /* NO ::selection RULE HERE, and its absence is the fix rather than an
      omission. This class used to restate the global ::selection in full,
      because that rule set `color` and not the fill. It states both now, so a
