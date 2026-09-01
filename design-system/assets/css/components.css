@@ -10360,7 +10360,16 @@ a.cf-calendar__day > time,
 }
 .cf-plot__col--lit .cf-plot__val { font-weight: var(--weight-medium); }
 
-/* The key sits under the cell's near vertex, which is the bottom of the box. */
+/* The key sits under the cell's near vertex, which is the bottom of the box.
+   It is the same bounded-key shape .cf-block__key is, and needs the same two
+   opt-outs for the same reason — see the long comment above that rule. This
+   one shipped without them: at 375 px the column is 32 px (--plot-u*2, the
+   fluid unit floored), and base.css's break-word net cut "Abtastung" to
+   ABTA/STUN/G, a three-line key with an orphaned final letter overlapping the
+   caption below it on blog-artikel.html. The second demo on this page had
+   already been given &shy; in "Verfüg&shy;barkeit" and "Lebens&shy;dauer" in
+   anticipation of this fix; without the opt-out those soft hyphens were
+   inert and the words still broke wherever the net chose. */
 .cf-plot__key {
   position: absolute;
   left: 0;
@@ -10375,6 +10384,8 @@ a.cf-calendar__day > time,
   line-height: var(--leading-normal);
   text-align: center;
   color: var(--text-secondary);
+  overflow-wrap: normal;
+  hyphens: manual;
 }
 
 /* The caption carries the message in words, so it is the figure's accessible
