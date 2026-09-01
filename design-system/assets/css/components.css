@@ -9636,6 +9636,81 @@ a.cf-calendar__day > time,
   padding-bottom: 0;
 }
 
+/* AN OBJECT ON A GROUND HAS TO OCCLUDE IT, and until now nothing here did.
+
+   The columns were wireframes with `fill: none`, so the lattice ran straight
+   through every body: a box standing on the plane had the ground drawn across
+   its front, and a box hanging under it was crossed by the same lines at the
+   same weight. Nothing in the picture said which side of the ground anything
+   was on, and that is the whole of why it read as flat.
+
+   A FACE AT THE PAGE'S OWN COLOUR IS HOW THIS SYSTEM DRAWS A SOLID. Every
+   isometric object on the landing page is built this way — `fill: #CFCFCF` on
+   the form, the contour carrying the shape — and foundations/illustration.html
+   states the consequence in its own words: an unlit face sits at exactly the
+   page's colour and the object would disappear entirely if the contour were
+   not carrying it. --surface-page is that colour as a token, so it inverts
+   with the theme instead of pinning the grey.
+
+   THE SILHOUETTE IS THREE STATIC SHAPES, not one variable path, and that is
+   forced by the same half cell the rises are. A hexagon whose top V travels
+   while its bottom V stays is not an affine transform of anything. Decomposed,
+   it is: the cap rhombus, which already translates; a rectangle between the
+   cap's and the footprint's side vertices, which scales exactly like a rise;
+   and the footprint rhombus, which is static. Their union is the hexagon
+   exactly — the cap's lower half falls inside the rectangle, and the
+   footprint's near point is the only thing below it.
+
+   So the only new mark is the rectangle, and it takes the rises' own two
+   origins: the foot for a column that stands, the head for one that hangs. */
+.cf-plot--zero .cf-plot__draw .cf-plot__body {
+  fill: var(--surface-page);
+  transform-box: view-box;
+  transform-origin: 0 130px;
+  transform: scaleY(var(--plot-h));
+}
+.cf-plot--zero .cf-plot__col--down .cf-plot__body { transform-origin: 0 10px; }
+
+/* THE FOOTPRINT STOPS BEING A GHOST AND BECOMES THE FACE IT ALWAYS WAS. In a
+   plot with no ground the dashed cell is construction — it says where the
+   column stands. Here the plane says that, and says it better: the phase fix
+   above put the footprint exactly on a lattice diamond, so the dash was a
+   second drawing of a line the ground already draws. What the shape is still
+   needed for is its fill, which is the solid's bottom face and the last piece
+   of the silhouette. */
+.cf-plot--zero .cf-plot__draw .cf-plot__cell {
+  fill: var(--surface-page);
+  stroke: none;
+}
+
+/* An unlit cap is a face too, and it was the one place a `fill: none` still
+   let the ground through the top of a standing box. Scoped off the two caps
+   that carry a paint server, because author CSS beats a presentation
+   attribute — the mistake this component's own note records one rule up. */
+.cf-plot--zero .cf-plot__col:not(.cf-plot__col--lit):not(.cf-plot__col--down) .cf-plot__cap {
+  fill: var(--surface-page);
+}
+
+/* AND THE GROUND IS PAINTED BETWEEN THE TWO FAMILIES, which is the whole of
+   the depth cue. A solid above the ground is nearer the reader than the ground
+   behind it, so it is painted over the lattice; a solid below the ground is
+   behind it, so the lattice is painted over it. One plane, two sides, and the
+   paint order says which is which — no line weight, no dash, no tint.
+
+   The lattice crossing a hanging box is not a flaw in the drawing, it is the
+   drawing: the ground here is an open framework, so a hole in it looks exactly
+   like a cell of it, and the diamond that sits over the opening IS the rim.
+
+   z-index is on the DRAWING and not on the column, because a column that
+   established a stacking context would take its own number with it — the
+   numbers have to stay above the ground even where a shallow one sits inside
+   the band. */
+.cf-plot--zero .cf-plot__set { isolation: isolate; }
+.cf-plot--zero .cf-plot__draw { z-index: 2; }
+.cf-plot--zero .cf-plot__col--down .cf-plot__draw { z-index: 0; }
+.cf-plot--zero .cf-plot__set::before { z-index: 1; }
+.cf-plot--zero :is(.cf-plot__val, .cf-plot__key) { z-index: 3; }
+
 /* THE HUE MOVES TO THE FACE, where a colour has room to be one. The ramp is
    the lit cap's, with the warm source swapped for the cool one and every
    other number in it unchanged: the brand's own violett, the waypoint at 19 %
@@ -9674,6 +9749,16 @@ a.cf-calendar__day > time,
   .cf-plot--zero .cf-plot__set::before { background: CanvasText; }
   .cf-plot__col--lit .cf-plot__cap,
   .cf-plot__col--down .cf-plot__cap { fill: none; }
+  /* The occluders keep their job and lose their colour. A fill written as a
+     custom property is not forced, so --surface-page would paint CF-Grau over
+     a reader's chosen Canvas; named Canvas, the body still hides the ground
+     behind it and still does so in their palette. Depth survives a mode with
+     one ink, because it was never carried by a colour. */
+  .cf-plot--zero .cf-plot__draw .cf-plot__body,
+  .cf-plot--zero .cf-plot__draw .cf-plot__cell,
+  .cf-plot--zero .cf-plot__col:not(.cf-plot__col--lit):not(.cf-plot__col--down) .cf-plot__cap {
+    fill: Canvas;
+  }
 }
 
 /* The number rides its own column: top is the cap's top vertex, 6u of rise
