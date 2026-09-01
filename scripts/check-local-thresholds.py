@@ -28,6 +28,14 @@ WHAT IT CHECKS
   register -> live    every row still has a query behind it, so a threshold
                       that was removed does not linger as a row describing
                       behaviour the system no longer has.
+  register -> table   foundations/layout.html carries a table headed "What sits
+                      outside the register, in full", and the word is the whole
+                      claim. It must hold one row per threshold outside the
+                      register's scope — the rows above, plus docs.css and
+                      prototypes/, which this file does not govern but which the
+                      table does have to list. Both directions, so a row cannot
+                      outlive its query either. See below for why that table
+                      needed a check rather than a proofread.
   the rem rule        no px width/height threshold under patterns/. A media
                       query's rem resolves against the BROWSER's default font
                       size, so a rem threshold is the only kind that tracks a
@@ -62,6 +70,34 @@ The reader who asked for larger type lost the most, which is the exact failure
 the register's rem rule exists to prevent. None of it is visible at 375, 768 or
 1280 — the three widths anyone checks — because all three are outside the band.
 
+AND A SECOND BUG, WHICH IS WHY THE TABLE RULE EXISTS
+
+The table on foundations/layout.html was written before this file was, and it
+opens "What sits outside the register, in full". It listed five queries and
+counted them in prose: "one in docs.css, three in per-page <style> blocks, one
+in a prototype". Measured against the tree it now merges into, that is five of
+twelve. Missing: both of patterns/expertise.html's own thresholds and its
+adopted pin gate, foundations/illustration.html's 640 and
+foundations/transitions.html's 900, and both of
+prototypes/expertise-scroll.html's.
+
+The last of those is the interesting one. The table excused it in a
+parenthesis — "the two prefers-reduced-motion queries in prototypes/ are not
+thresholds and are not listed" — and that sentence was true of the queries it
+was written about and false of this one, which reads
+
+    @media screen and (prefers-reduced-motion: no-preference) and (min-width: 820px)
+
+A MODE QUERY THAT CARRIES A WIDTH IS STILL A THRESHOLD. The layout changes
+shape at 820 px whatever else the prelude also asks, and a rule that sorts
+queries by their first feature will keep missing that shape. This file sorts by
+whether a dimension appears anywhere in the prelude, which is why the sweep
+finds it and the proofread did not.
+
+Every one of those rows renders perfectly. What a short list costs is the next
+person to ask where this system folds: they read a table that says "in full",
+and it is not.
+
 WHAT IT DOES NOT CHECK, deliberately
 
   Anything about classes, literals or inline layout in a page-local block. Those
@@ -82,10 +118,14 @@ WHAT IT DOES NOT CHECK, deliberately
   page-local ownership does not make a fold any less the reader's. This file
   governs only what that one names as out of scope.
 
-  prototypes/. Declared not-yet-system by the README, with their own
-  unreconciled styling, and out of scope by the same boundary every other check
-  draws. The register in tokens.css already notes werte-scroll.html's viewport
-  820 as a figure that is out of scope and collides with nothing.
+  prototypes/, and docs.css. Declared not-yet-system by the README with their
+  own unreconciled styling, and documentation chrome, respectively: out of
+  scope by the same boundary every other check draws, and neither gets a row in
+  THRESHOLDS or is held to the rem rule. They ARE swept for the table rule,
+  because listing a threshold is not governing it — that is the whole argument
+  of the table, which exists to say what the register leaves out. A threshold
+  that appears there and nowhere else is still findable; one that appears
+  nowhere is not.
 
   Crossovers. A min() or clamp() against a viewport unit also changes layout at
   a specific width, when its arms swap. None is a query, and the register in
@@ -102,12 +142,22 @@ import argparse
 import pathlib
 import re
 import sys
+from html import unescape
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DS = ROOT / "design-system"
 
+# The second copy of this register, and the only place docs.css's and
+# prototypes/'s thresholds are written down at all.
+LAYOUT_DOC = DS / "foundations" / "layout.html"
+TABLE_ID = "outside-register"
+
 # Out of scope, with the reason in the docstring above.
 EXCLUDED_DIRS = ("prototypes",)
+
+# Swept for the table rule only: never governed, always listed. docs.css is the
+# documentation chrome; prototypes/ are declared not-yet-system by the README.
+OUT_OF_SCOPE = ("assets/css/docs.css", "prototypes")
 
 # patterns/ is held to the rem rule outright. A pattern page stands in for a
 # page of the real site, so a reader's font size is a reader's font size there;
@@ -189,6 +239,75 @@ def preludes(css):
     ]
 
 
+DIMENSION = re.compile(r"\((?:min|max)-(?:width|height)\s*:\s*[^)]+\)")
+
+
+def squash(text):
+    """Whitespace removed entirely, so two spellings of one query compare equal.
+
+    The tree writes both `(max-width: 640px)` and `(max-width:640px)`, and the
+    table is transcribed by hand. Comparing on the characters that carry meaning
+    is the difference between a rule about thresholds and a rule about typing.
+    """
+    return "".join(text.split())
+
+
+def dimensions(prelude):
+    """Every width/height feature in a prelude, squashed.
+
+    Anywhere in the prelude, not only at its head: a mode query that carries a
+    width is still a threshold. See the docstring — that is the row the hand-kept
+    table missed.
+    """
+    return [squash(t) for t in DIMENSION.findall(prelude)]
+
+
+def out_of_scope_thresholds():
+    """(file, prelude, line) for every threshold this file lists but never governs."""
+    out = []
+    for entry in OUT_OF_SCOPE:
+        base = DS / entry
+        for path in sorted(base.rglob("*.html")) if base.is_dir() else [base]:
+            text = path.read_text(encoding="utf-8")
+            css = (
+                re.sub(r"/\*.*?\*/", blank, text, flags=re.S)
+                if path.suffix == ".css"
+                else local_css(text)
+            )
+            for pre, line in preludes(css):
+                if dimensions(pre):
+                    out.append((path.relative_to(DS).as_posix(), pre, line))
+    return out
+
+
+def table_rows():
+    """(where, query) for every row of the outside-the-register table, as text.
+
+    Two cells, both stripped of markup: the file a threshold is written in and
+    the query as transcribed. Cell three is prose about what it collides with
+    and is nobody's to check.
+    """
+    doc = LAYOUT_DOC.read_text(encoding="utf-8")
+    start = doc.find('id="%s"' % TABLE_ID)
+    if start < 0:
+        sys.exit(
+            "check-local-thresholds: foundations/layout.html has no table with "
+            'id="%s". That table is the second copy of this register; without it '
+            "there is nothing to hold the register to." % TABLE_ID
+        )
+    block = doc[start : doc.find("</table>", start)]
+
+    rows = []
+    for tr in re.findall(r"<tr>(.*?)</tr>", block, re.S):
+        cells = [
+            unescape(re.sub(r"<[^>]+>", "", c)).strip()
+            for c in re.findall(r"<td>(.*?)</td>", tr, re.S)
+        ]
+        if len(cells) >= 2:
+            rows.append((cells[0], cells[1]))
+    return rows
+
+
 def px_gloss(value):
     """What a threshold resolves to at a 16 px default, or None if not derivable."""
     m = re.fullmatch(r"([\d.]+)(rem|em|px)", value.strip())
@@ -261,6 +380,41 @@ def main():
             "    have. Delete it." % row
         )
 
+    # --- register -> table ---------------------------------------------------
+    # Everything outside the breakpoint register in tokens.css: the page-local
+    # blocks this file governs, plus the two scopes it only lists.
+    outside = [(rel, pre, line) for rel, pre, line, _ in found] + out_of_scope_thresholds()
+    rows = table_rows()
+    matched = set()
+
+    for rel, pre, line in outside:
+        dims = dimensions(pre)
+        hits = [
+            i
+            for i, (where, query) in enumerate(rows)
+            if rel.endswith(where) and all(d in squash(query) for d in dims)
+        ]
+        if hits:
+            matched.update(hits)
+        else:
+            failures.append(
+                "%s:%d is not in the table on foundations/layout.html:\n"
+                "        @media/@container %s\n"
+                "    That table opens \"What sits outside the register, in full\", and the\n"
+                "    word is the claim. Add the row in the same commit as the query — id=\"%s\",\n"
+                "    three cells: where, the query as written, what figure it collides with."
+                % (rel, line, pre, TABLE_ID)
+            )
+
+    for i, (where, query) in enumerate(rows):
+        if i not in matched:
+            failures.append(
+                "the table on foundations/layout.html has a stale row: %s no longer asks\n"
+                "        %s\n"
+                "    A row with no query behind it describes a fold the system does not have."
+                % (where, query)
+            )
+
     if args.verbose:
         print("page-local threshold register — %d rows\n" % len(THRESHOLDS))
         for rel, pre, line, dims in found:
@@ -283,8 +437,16 @@ def main():
     )
     print(
         "local thresholds: %d page-local thresholds in %d files, all registered; "
-        "%d in px, none under %s."
-        % (len(found), len({r for r, _, _, _ in found}), n_px, "/".join(PX_STRICT_DIRS))
+        "%d in px, none under %s.\n"
+        "                  %d outside the register in all, all listed in full on "
+        "foundations/layout.html."
+        % (
+            len(found),
+            len({r for r, _, _, _ in found}),
+            n_px,
+            "/".join(PX_STRICT_DIRS),
+            len(outside),
+        )
     )
     return 0
 
