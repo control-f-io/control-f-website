@@ -662,8 +662,17 @@
           <tr><td>Sky → Violett</td><td>0.0553</td><td>0.0588</td><td>+6.3 %</td><td><code>#B8CCF3</code></td></tr>
           <tr><td>Glas 800 → Sky 800</td><td>0.0254</td><td>0.0289</td><td><strong>+13.6 %</strong></td><td><code>#33494E</code></td></tr>
           <tr><td>Sky 800 → Violett 800</td><td>0.0484</td><td>0.0513</td><td>+6.0 %</td><td><code>#273650</code></td></tr>
+          <tr><td><code>--glass-edge</code></td><td>0.0194</td><td>0.0227</td><td><strong>+16.9 %</strong></td><td><code>#9AD6E3</code> α .35</td></tr>
+          <tr><td>the same, inverse</td><td>0.0156</td><td>0.0191</td><td><strong>+22.4 %</strong></td><td><code>#99D6E2</code> α .22</td></tr>
         </tbody>
       </table>
+      <p>
+        The first four legs are opaque and their figures are the stops' own. The last two carry
+        alpha, so theirs are composited — over CF-Grau for the light theme and over Schwarz for
+        the inverse one, both being that variant's own worst case. What a translucent stop
+        <em>renders</em> as depends on what is behind it; the chord it cuts does not, and the
+        paragraph on it below is where that is settled.
+      </p>
       <p>
         A ramp that loses a sixth of its chroma halfway through its longest leg is greying out
         exactly where it is supposed to be turning, which reads as a fade with a colour cast at
@@ -732,6 +741,38 @@
         what happens in the band between them <em>turns</em>.
       </p>
       <p>
+        <strong>But a translucent leg turns like any other,</strong> and that was the one hole in
+        the rule. <code>--glass-edge</code> — the lit rim of every glass sheet in the system, the
+        full width of the navigation bar and across the hero button's plate — runs Glas into Sky
+        at 0.42 and 0.28 alpha, chromatic at both ends, 64.6° of hue, and carried no waypoint.
+        The gate exempted it, on the argument that <em>what a translucent stop renders as depends
+        on what is behind it</em>, so its declared chroma is not its drawn chroma. That is true of
+        the colour and false of the <em>path</em>. A gradient interpolates premultiplied, so over
+        any fixed backdrop the pixel is
+        <code>lerp(C₁a₁, C₂a₂) + bg(1 − lerp(a₁, a₂))</code> — affine in <em>t</em>, a straight
+        line between the two composited ends, on every surface it is ever drawn over. The chord is
+        a fact about the stop pair. Only its size moves with the backdrop, never its sign: the
+        midpoint sags <strong>16.9 %</strong> over CF-Grau, 20.1 % over Weiss, 15.2 % over the
+        middle of the wash, and 22.4 % over Schwarz in the inverse theme — against the 16.0 % the
+        foil's own Glas → Sky leg was corrected for. The exemption was hiding a defect the size of
+        the one the arc exists to fix.
+      </p>
+      <p>
+        <strong>So the alpha changes the arithmetic and not the rule.</strong> CSS Color 4 states
+        it: interpolating in a polar space premultiplies the rectangular components and leaves hue
+        alone. The waypoint's L and C are therefore weighted by the two alphas — 0.6 / 0.4 here —
+        its hue sits at a plain half, and its own alpha is the mean, because alpha interpolates
+        linearly and a waypoint carrying anything else would put a step in the ramp's transparency
+        at the one position it was added to smooth. That is exactly what
+        <code>color-mix(in oklch shorter hue, …)</code> returns for the two stops, and two opaque
+        ends fall out of the same expression with weights of a half — so the four hexes above are
+        re-derived by it unchanged. Rendered and sampled across the 1,200 px edge, chroma at the
+        midpoint rises 26.6 % and both endpoints come back byte-identical; on the two designed
+        pages the whole change is 4 levels at most, on the nav rim's one row and the hero button's.
+        Max deviation from the true polar arc falls from 0.00513 to 0.00234 over CF-Grau, the same
+        order the two foils bought.
+      </p>
+      <p>
         <strong>The four hexes are literals, like <code>#DBFC60</code> — and they are now derived
         on every run rather than trusted.</strong> They carried the same trap the SVG waypoint did
         before it was checked: they do not follow the palette, so moving an endpoint left the ramp
@@ -741,7 +782,9 @@
         waypoint by its <em>being</em> the polar midpoint of the two stops either side of it, and
         then compares that value exactly — so <code>#B9E3EB</code>, <code>#B8CCF3</code>,
         <code>#33494E</code> and <code>#273650</code> are recomputed from OKLCh on every run and
-        never checked against a list. A leg that turns and carries nothing is reported as a chord.
+        never checked against a list — and the two translucent ones with them, alpha included,
+        since a waypoint whose colour is right and whose alpha is not is a step in the ramp.
+        A leg that turns and carries nothing is reported as a chord.
       </p>
       <p>
         <strong>It checks one more thing, and that one had already slipped.</strong> A ramp

@@ -410,7 +410,7 @@ recompute by eye, and both are checked now, in the three shipping stylesheets:
 
 | | |
 |---|---|
-| **the arc** | Every opaque leg that *turns* carries one waypoint at its own OKLCh midpoint. A waypoint is recognised by **being** that midpoint rather than by appearing on a list, so `#B9E3EB`, `#B8CCF3`, `#33494E` and `#273650` are re-derived on every run — the same standing `#DBFC60` has. A leg that turns and carries nothing is a chord and fails. |
+| **the arc** | Every leg that *turns* carries one waypoint at its own OKLCh midpoint. A waypoint is recognised by **being** that midpoint rather than by appearing on a list, so `#B9E3EB`, `#B8CCF3`, `#33494E` and `#273650` are re-derived on every run — the same standing `#DBFC60` has. A leg that turns and carries nothing is a chord and fails. |
 | **the path** | A ramp carrying a **lime** leg exists somewhere with `in oklab`. lime → Glas is ΔEok 0.0443 between the two paths where every other leg in the family is under 0.0015, which is why `--glass-edge` and `--sheen-panel` are left in sRGB by name and the lime legs are not. |
 
 What the arc does *not* govern is where the second rule gets its scope. A leg touching lime,
@@ -419,6 +419,25 @@ straight line is already its correct path. Only what happens in the band between
 The premise is not just "chromatic at both ends": lime at C 0.2201 against Glas at C 0.0414 is
 a radial move, and the polar path through it bows out to `#A8FFB6`, a green in no palette at
 three times the chroma of the stop it is travelling to.
+
+**The arc used to stop at the first translucent stop, and that exemption hid a defect the size
+of the one the arc exists to fix.** `--glass-edge` — the lit rim of every glass sheet, drawn the
+full width of the navigation bar and across the hero button's plate — runs Glas into Sky at 0.42
+and 0.28 alpha: chromatic at both ends, 64.6° of hue, no waypoint. The gate let it through on the
+grounds that *what a translucent stop renders as depends on what is behind it*, which is true of
+the colour and false of the **path**. A gradient interpolates premultiplied, so over any fixed
+backdrop the pixel is `lerp(C₁a₁, C₂a₂) + bg(1 − lerp(a₁, a₂))` — affine in *t*, a straight line
+between the two composited ends on every surface it is ever drawn over. The chord is a fact about
+the stop pair; only its size moves with the backdrop, never its sign. Chroma at the midpoint sags
+**16.9 %** over CF-Grau, 20.1 % over Weiss and 22.4 % over Schwarz in the inverse theme, against
+the 16.0 % the foil's own Glas → Sky leg was corrected for. Both variants of the edge carry their
+waypoint now, computed the way CSS Color 4 interpolates a polar space — rectangular components
+premultiplied by the two alphas, hue at a plain half, alpha the mean — which is what
+`color-mix(in oklch shorter hue, …)` returns for the pair and what two opaque ends reduce to with
+weights of a half, so the four hexes above are re-derived by the same expression unchanged.
+Rendered: chroma at the midpoint up 26.6 %, both endpoints byte-identical, and 4 levels at most
+on one row of the two designed pages.
+→ `foundations/colors.html#the-arc`
 
 **The one member both rules exempt is the largest gradient in the system,** and it needed a
 check of its own. The page wash is the reversed foil at chroma 0.005, so it carries no lime
@@ -1250,6 +1269,12 @@ grain's own mean is a **floor lift**: 8 % costs nothing on a ramp ending at whit
 first thing you see on a ground whose job is to stay black. So the rule is the least grain that
 clears the banding — 8 % on the wash, 4 % on a dark ground, where the second four per cent
 moves the banded area 0.6 % → 0.4 % and mean luminance 12.84 → 16.31.
+
+All three also draw a CSS ramp by hand — `--spectrum-stops`, `--foil-stops`, `--foil-ink-stops` —
+and all three were written before the two foils were put on the polar path, so the drawings kept
+the chord the tokens had already left behind. They carry the arc waypoints now: same colours,
+same order, one stop per turning leg at its own OKLCh midpoint. Measured against the files
+before, 4 to 6 levels at most and the picture's peak chroma unchanged at lime's own 0.2201.
 → `foundations/field.html#wallpaper`
 
 **The field is not on either designed page.** Neither mockup draws a lattice, and the
