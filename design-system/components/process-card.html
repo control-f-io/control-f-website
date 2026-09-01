@@ -213,6 +213,19 @@
       </ul>
       Card 04's tangent was also trued from 26.96° to exactly 26.57°, and Figma's inner-shadow
       bevel on card 03 was dropped: it is not one of the six material layers.
+      <p style="margin-top:1rem">
+        <strong>That is now a checked claim rather than a stated one.</strong>
+        <code>scripts/check-illustration-source.py</code> matches every geometry element of
+        every shipped process object — 326 of them, across the four cards, the English
+        edition and the prototype — against its source vector, tag, coordinates and
+        <code>transform</code>, at the two decimals the exports are written to. The four
+        deviations above are the only ones it allows, and three of the four are re-derived
+        rather than listed: a dropped <code>transform</code> has to be provably a no-op, the
+        split traces have to partition the source path exactly, and the trued angle has to be
+        exactly 2:1 where the source was not. Colour is not its business —
+        <code>check-gradient-family.py</code> owns the waypoint and
+        <code>check-paint-register.py</code> the literals.
+      </p>
     </div>
 
     <h3>A rotation that looks redundant and is not</h3>
@@ -250,7 +263,12 @@
       trace that arrives from the lower left. The shipped one dissolved downwards instead,
       which spent its solid half across the top of the lime disc — the one place on the object
       the eye is meant to land. Restored to the source verbatim, so a diff against
-      <code>assets/source/illustrations/</code> now shows no drift on this object.
+      <code>assets/source/illustrations/</code> now shows no drift on this object — and that
+      diff is run on every push rather than asserted here: dropping this
+      <code>rotate(-90)</code> again fails <code>scripts/check-illustration-source.py</code>,
+      while dropping the identical attribute from the eight flat-filled dots beside it still
+      passes. Same attribute, same shape, different consequence — as a rule the script
+      re-derives rather than a pair of names it was given.
     </p>
     <p>
       <strong>The general rule: never drop a <code>transform</code> from an element that is
