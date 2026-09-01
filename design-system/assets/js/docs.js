@@ -25,7 +25,8 @@
       { href: 'foundations/field.html',       label: 'The Field' },
       { href: 'foundations/found.html',       label: 'The Found State' },
       { href: 'foundations/sight.html',       label: 'The Line of Sight' },
-      { href: 'foundations/print.html',       label: 'The Sheet' }
+      { href: 'foundations/print.html',       label: 'The Sheet' },
+      { href: 'foundations/light.html',       label: 'The Light Layer' }
     ]},
     { title: 'Components', items: [
       { href: 'components/buttons.html',        label: 'Buttons' },
