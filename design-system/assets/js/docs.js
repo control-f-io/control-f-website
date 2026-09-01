@@ -33,6 +33,7 @@
       { href: 'components/section-header.html', label: 'Section Header' },
       { href: 'components/statement.html',      label: 'Statement & Value Table' },
       { href: 'components/plot.html',           label: 'Plot' },
+      { href: 'components/pie.html',            label: 'Pie' },
       { href: 'components/annotation.html',     label: 'Annotation' },
       { href: 'components/process-card.html',   label: 'Process Card' },
       { href: 'components/info-card.html',      label: 'Info Card' },
