@@ -28,19 +28,37 @@ numbers are crisp, the line is smooth, and they are about different data.
 
 THE FIVE RULES.
 
-  PAIRING     A figure's n-th `.cf-line__set` is the n-th `.cf-line__trace`, in
+  PAIRING     A figure's n-th `.cf-line__set` is the n-th `<polyline>` in
               document order, and the two counts are equal. A set with no trace
               is a series nobody drew; a trace with no set is a line carrying no
-              data and no accessible text at all.
+              data and no accessible text at all. Only polylines are traces:
+              a legend sample carries `.cf-line__trace` too — deliberately, so
+              that one rule paints the rung in both places — and it is a
+              `<line>`, which has no `points` and is no series.
+
+  RUNGS       Two traces in one figure may not stand on the same rung of the
+              presence ladder. The four line types are the whole vocabulary a
+              series can be drawn in here, so two solid traces are two series
+              with one appearance, and the reader has no second cue to fall
+              back on — this palette cannot make a categorical hairline set,
+              which components.css measures rather than asserts.
+
+  KEY         If the figure carries a `.cf-line__legend`, its items' rungs are
+              the figure's traces' rungs, in order, one for one. A key that
+              names the wrong line is worse than no key: it is confidently
+              wrong, and it renders exactly like a right one.
 
   AGREEMENT   Point i of a set is vertex i of its trace, to 0.05 user units —
               a twentieth of one percent of the frame, which is under a device
               pixel at every width the frame is ever given and far inside what
               hand-authored decimals need.
 
-  SPAN        The first point sits at `--t: 0` and the last at `--t: 1`. The
-              domain is the frame; a series that stops at 0.9 has drawn itself
-              a margin the reader will read as data ending early.
+  SPAN        At least one set runs the whole frame, `--t: 0` to `--t: 1`. The
+              domain IS the frame, and a figure whose every series stops at 0.9
+              has drawn itself a margin the reader will read as data ending
+              early. One series shorter than the others is a different thing
+              and a real one — a forecast that begins where the record stops —
+              so the rule is about the figure and not about each series.
 
   ORDER       `--t` never goes backwards. An `<ol>` whose order does not match
               the domain reads correctly to the eye and wrongly to everything
@@ -98,6 +116,19 @@ def numbers(text):
     return [float(m) for m in re.findall(r"-?\d*\.?\d+(?:e-?\d+)?", text or "")]
 
 
+# The four line types, as .cf-line__trace modifiers. Solid is a rung and needs
+# no modifier: it is the absence of a dash, which is how the plate draws it too.
+RUNGS = ("near", "faint", "ghost")
+
+
+def rung(classes):
+    """Which rung of the presence ladder a trace or a key sample stands on."""
+    for name in RUNGS:
+        if "cf-line__trace--" + name in classes:
+            return name
+    return "solid"
+
+
 def custom_props(style):
     """`--t` and `--v` off a style attribute, as floats where they parse."""
     out = {}
@@ -124,6 +155,7 @@ class Figures(HTMLParser):
         self.figures = []       # {line, traces: [...], sets: [...]}
         self.open_at = None     # depth the current .cf-line opened on
         self.set = None         # the set being filled
+        self.in_legend = False
 
     # -- helpers ----------------------------------------------------------
     @property
@@ -135,15 +167,25 @@ class Figures(HTMLParser):
         line = self.getpos()[0]
 
         if "cf-line" in classes and self.open_at is None:
-            self.figures.append({"line": line, "traces": [], "sets": []})
+            self.figures.append({"line": line, "traces": [], "sets": [], "key": []})
             self.open_at = self.depth
 
         fig = self.current
         if fig is None:
             return
 
-        if "cf-line__trace" in classes:
-            fig["traces"].append({"line": line, "points": numbers(attrs.get("points"))})
+        # ONLY A POLYLINE IS A TRACE. The legend's sample carries
+        # .cf-line__trace as well, on purpose — that is what makes one CSS rule
+        # paint the rung in the figure and in the key — but it is a <line>, it
+        # has no `points`, and it is not a series.
+        if "cf-line__trace" in classes and tag == "polyline":
+            fig["traces"].append({"line": line, "points": numbers(attrs.get("points")),
+                                  "rung": rung(classes)})
+        elif "cf-line__trace" in classes and self.in_legend:
+            fig["key"].append({"line": line, "rung": rung(classes)})
+
+        if "cf-line__legend" in classes:
+            self.in_legend = True
 
         if "cf-line__set" in classes:
             self.set = {"line": line, "points": []}
@@ -166,9 +208,12 @@ class Figures(HTMLParser):
 
     def handle_endtag(self, tag):
         self.depth = max(0, self.depth - 1)
+        if tag == "ul":
+            self.in_legend = False
         if self.open_at is not None and self.depth <= self.open_at:
             self.open_at = None
             self.set = None
+            self.in_legend = False
 
 
 def check_figure(rel, fig, findings, seen):
@@ -188,6 +233,25 @@ def check_figure(rel, fig, findings, seen):
         findings.append((rel, fig["line"], "no trace and no set",
                          "A .cf-line with nothing in it is a frame."))
         return
+
+    rungs = [tr["rung"] for tr in fig["traces"]]
+    if len(set(rungs)) != len(rungs):
+        doubled = sorted({r for r in rungs if rungs.count(r) > 1})
+        findings.append((rel, fig["line"], "two traces on one rung (%s)" % ", ".join(doubled),
+                         "The four line types are the whole vocabulary a series has here, "
+                         "and this palette cannot make a categorical hairline set to fall "
+                         "back on. Two series that look the same are one series."))
+
+    if fig["key"]:
+        key_rungs = [k["rung"] for k in fig["key"]]
+        if key_rungs != rungs:
+            findings.append((rel, fig["key"][0]["line"],
+                             "the key reads %s" % ", ".join(key_rungs),
+                             "and the figure draws %s. A key item's sample carries the same "
+                             ".cf-line__trace--* as the trace it names, in the same order — "
+                             "which is also what makes one CSS rule paint both. A key that "
+                             "names the wrong line renders exactly like a right one."
+                             % ", ".join(rungs)))
 
     for trace, series in zip(fig["traces"], fig["sets"]):
         coords, points = trace["points"], series["points"]
@@ -238,18 +302,23 @@ def check_figure(rel, fig, findings, seen):
                                  "%g,%g. x is --t x 100 and y is (1 - --v) x 100."
                                  % (x, y, t, v, point["line"], want[0], want[1])))
 
-        if points:
-            first, last = points[0], points[-1]
-            if isinstance(first["t"], float) and abs(first["t"]) > TOL / SPAN:
-                findings.append((rel, first["line"], "the first point",
-                                 "sits at --t %g. The domain is the frame: the series "
-                                 "starts at 0." % first["t"]))
-            if isinstance(last["t"], float) and abs(last["t"] - 1.0) > TOL / SPAN:
-                findings.append((rel, last["line"], "the last point",
-                                 "sits at --t %g. The domain is the frame: the series "
-                                 "ends at 1." % last["t"]))
-
         seen.append((rel, trace["line"], len(vertices)))
+
+    # THE FIGURE SPANS ITS FRAME, AND NOT EVERY SERIES HAS TO. One series
+    # shorter than the rest is a real shape — a forecast that begins where the
+    # record stops — but a figure whose every series stops short has drawn
+    # itself a margin the reader reads as data ending early.
+    ends = [(s["points"][0]["t"], s["points"][-1]["t"])
+            for s in fig["sets"] if s["points"]
+            and isinstance(s["points"][0]["t"], float)
+            and isinstance(s["points"][-1]["t"], float)]
+    if ends and not any(abs(a) <= TOL / SPAN and abs(b - 1.0) <= TOL / SPAN for a, b in ends):
+        first_set = next(s for s in fig["sets"] if s["points"])
+        findings.append((rel, first_set["line"], "no series runs the frame",
+                         "the widest is --t %g to %g. The domain IS the frame; a figure "
+                         "that stops short of its own sides is drawing a margin the reader "
+                         "will read as data ending early."
+                         % (min(a for a, _ in ends), max(b for _, b in ends))))
 
 
 def pages():

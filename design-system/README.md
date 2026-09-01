@@ -1641,9 +1641,34 @@ These were judgement calls, each documented on the relevant page:
   zero** — a column stands on the ground and must start there, a trace stands on nothing —
   which is why `.cf-line__bounds` is required: a tight frame is not dishonest, an
   undeclared one is. A point is data by default and a mark only when asked, so the eye gets
-  three numbers where the accessibility tree gets eleven; a second series is the ghost dash
-  and never a tint, because a grey hairline lands under the 3:1 the system holds its
-  contours to. → `components/line.html`
+  three numbers where the accessibility tree gets eleven. → `components/line.html`
+- **The palette cannot make a categorical hairline set, and that is measured rather than
+  assumed.** A second series is a rung of the presence ladder and not a tint, because grey
+  fails at both ends at once and the accents fail at both ends too. Against CF-Grau, the
+  wash's worst end: `--border-default` composites to 1.74:1, grey 500 to 1.78:1 and grey
+  400 to 2.02:1 — every grey light enough to *read* as a second series is under the 3:1 a
+  contour owes — while grey 700, the one that clears the wash at 5.87:1, is 2.30:1 from the
+  black it is supposed to differ from and is `--text-secondary`, the label ink. The three
+  brand accents split the same way: Glas/Sky/Violett **500** measure 1.21, 1.49 and 2.24:1
+  on the wash, and the **800** steps that clear it are near-blacks 1.36:1 and 1.20:1 apart
+  from *each other* — a 1 px stroke has no area to judge a hue on. So the four line types
+  are the whole vocabulary a series has: four traces at the ceiling, three in practice, and
+  the ladder is ordinal so the series have to be (measured, planned, forecast). Past that
+  the move is not a fourth line type but four frames — `.tiles` with one `.cf-line` per
+  cell, all on one stated scale. → `components/line.html`
+- **A label is a fixed height and a frame is not, which is one bug and one rule.** The
+  value that rides a point needs its own line plus the gap — `0.75rem × 1.3` over
+  `--space-3`, about 27.6 px — and that is the same 27.6 px whether the frame is 320 px
+  tall on a desktop or 136 px at a 320 px viewport, where it is a fifth of the whole
+  range. Two things follow, both measured rather than reasoned. The *bug*: a value near
+  the ceiling climbs out through it — 84 % sat 5.1 px over its own top hairline at 320 px
+  wide and 0.8 px over at 375 — and `bottom: min(…)` now parks such a label flush under
+  the ceiling and leaves its node where the data says. The *rule*: in a multi-series
+  figure the space above a point usually belongs to another trace, and at 375 px the plan
+  ran straight through the subject's opening value because 13 points of frame is 21 px
+  there. So a figure with three traces goes `.cf-line__set--quiet` — keys and nodes paint,
+  values do not, every value stays in the accessibility tree, and the numbers go in the
+  caption, which has room for them. → `components/line.html`
 - **The line chart is the one figure whose data is written twice, and a script holds the
   copy.** SVG cannot read a custom property off an `<li>`, and the CSS construction that
   would avoid the second copy — rotated hairlines sized with `hypot()` and turned with
