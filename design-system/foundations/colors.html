@@ -1130,12 +1130,44 @@
         paint.
       </p>
       <p>
-        <code>.text-foil</code> now takes <code>width: fit-content</code> inside the same
-        <code>@supports</code> block. <code>fit-content</code> and not
-        <code>max-content</code>: it resolves to min(max-content, available), so a short
-        headline shrink-wraps and a long one still wraps and fills its column exactly as
-        before. It sits inside <code>@supports</code> because outside it nothing is clipped,
-        and shrinking the box there would be a layout change for no reason.
+        <strong>And it was written twice before it was true.</strong> The first spelling was
+        <code>width: fit-content</code>, the second <code>width: fit-content(100%)</code> —
+        “the function, with an explicit stretch basis”. <code>fit-content()</code> is
+        css-sizing-4 <em>grid track sizing</em>: no engine implements it as the value of a
+        box property, <code>CSS.supports("width", "fit-content(100%)")</code> is false on
+        Chromium&nbsp;141, and a guaranteed-invalid declaration is dropped. So the class
+        carried <code>width: auto</code> for as long as the line existed, and this page said
+        the defect above was fixed while every page header on the site still had it.
+        Re-measured on the shipped tree at 1280, ink over box: <strong>Über uns 23.6 %,
+        Karriere 21.1 %, Suche 16.7 %, News 14.8 %</strong>.
+      </p>
+      <p>
+        The measurement that chose the function form could not have caught it. It was a
+        heading in a 100&nbsp;px box: the bare keyword rendered 277.84&nbsp;px and the
+        function form rendered 100 — which is exactly what a <em>dropped</em> width does in a
+        100&nbsp;px box. A dropped declaration and a working clamp are the same number when
+        the box is the containing block, and that was the only case the isolated test had.
+      </p>
+      <p>
+        It is a <strong><code>max-width: max-content</code></strong> now, over the
+        <code>width: auto</code> that was always there — min(max-content, available) written
+        as the one property that cannot be cyclic. A <code>width</code> of any intrinsic
+        keyword asks the box to size itself from its own content, and where a script writes
+        the content there is nothing to size from: <code>cf-stream.js</code> empties the
+        element it types into, and <code>width: max-content</code> collapsed all four
+        <code>.cf-info-card__title</code> boxes on <a href="../patterns/expertise.html">Expertise</a>
+        to 22&nbsp;px and 0. Those lines are excluded by
+        <code>:not(:has(.cf-stream__text))</code> for the same reason that page reserves
+        their height by hand. Everything else now samples <strong>100 %</strong> of its ramp
+        at 375 / 768 / 1280 / 1920, with no box moved and no line count changed.
+        <code>scripts/check-foil-clip.py</code> is the gate: it holds the cap in place and
+        fails any box property in the shipping CSS that takes <code>fit-content()</code>,
+        because a value no engine implements renders as no value and is then documented as
+        working.
+      </p>
+      <p>
+        It sits inside <code>@supports</code> because outside it nothing is clipped, and
+        shrinking the box there would be a layout change for no reason.
       </p>
     </div>
     <div class="docs-note">

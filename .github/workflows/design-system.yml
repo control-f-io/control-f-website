@@ -569,6 +569,24 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-lime-flat.py
 
+      # The foil's clip box, and the class of fault under it: a VALUE NO ENGINE
+      # IMPLEMENTS. background-clip:text clips a background painted across the
+      # whole element box, so the cap that pulls that box back to the ink is
+      # what decides whether the far end of the ramp is ever painted. It was
+      # written `width: fit-content(100%)` — a grid track-sizing function, on a
+      # box property, guaranteed-invalid and dropped — and the measurement that
+      # chose it was a heading in a box the same width as the containing block,
+      # where a dropped width and a working clamp give the same number. The
+      # overflow it was fixing stayed fixed, by `width: auto`; the clip box did
+      # not come back, and three pages went on documenting it as fixed. Every
+      # page header on the site painted the first fifth of a four-stop ramp:
+      # 23.6 / 21.1 / 16.7 / 14.8 % of ink over box at 1280. Nothing renders
+      # wrong — a foil that never reaches Violett is a legible headline — which
+      # is exactly the shape of failure the gates in this file exist for.
+      - name: Foil clip box
+        if: '!cancelled()'
+        run: python3 scripts/check-foil-clip.py
+
       - name: Grid tracks
         if: '!cancelled()'
         run: python3 scripts/check-grid-tracks.py
@@ -635,6 +653,25 @@ jobs:
       - name: Breakpoint register
         if: '!cancelled()'
         run: python3 scripts/check-breakpoints.py
+
+      # The register's consequence, which is not the register's to keep. The
+      # one threshold it deliberately excludes — docs.css's sidebar at 900 —
+      # takes 319 px out of the docs column in a single pixel of viewport, so a
+      # container-queried demo can fold on the WIDE side of that edge. The
+      # chapter that documents it demonstrated it on the one page in the tree
+      # where it does not happen: components/blog-grid.html wears
+      # .subdivide--late, whose fold is 56rem and not the primitive's 44, so it
+      # is stacked at 900, at 901 and at 1074 alike. Three of the table's four
+      # state cells named something that page has never done, and both band
+      # edges were derived from a threshold that does not govern the element.
+      # Nothing rendered wrong; the table simply described a different
+      # component from the one it named. This resolves every call site's fold
+      # from base.css and the element's own modifiers and holds the table to
+      # the answer. Proven failing on both halves — the original 44rem claim,
+      # and a demo left out of the table.
+      - name: Demo fold band
+        if: '!cancelled()'
+        run: python3 scripts/check-demo-fold-band.py
 
       # The register's other half: the seven clamp() tokens that move
       # continuously rather than at a threshold. Their record is written four
