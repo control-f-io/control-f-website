@@ -58,13 +58,15 @@ Everything outside that rectangle -- 320 px at any text size, and 200 % at any
 width -- is CENSUS, measured on every run, printed with the widest offender in
 each cell, and RATCHETED: 45 cells when this was written; on 2026-09-01, with
 the built tree's 38 pages, 42 in CI's Chromium and 43 under the Chromium 1194
-this repository's sessions carry (one cell sits inside font-metric slack), so
-the ceiling is 43 — and the number may fall but not rise. Measure on a BUILT
+this repository's sessions carry (one cell sits inside font-metric slack); and
+41 under that same Chromium once the pie took its container query, so the
+ceiling is 41 -- and the number may fall but not rise. Measure on a BUILT
 tree: the 25 generated pattern pages are half the census, and an unbuilt
 checkout reads 23 and tempts a ceiling CI cannot meet.
 A census that can only be read is the thing this repository's README calls a
 stale enumeration; a census with a ratchet on it is a gate that has not closed
-yet. The 45 are five faults, none of them this change's:
+yet. The 45 were five faults, none of them that change's; they are six now,
+because one of the five was two:
 
   the folded plate    38 cells, one per page, at 320 x 32. It overflows by
                       22 px, and its own note in components.css records the
@@ -75,29 +77,48 @@ yet. The 45 are five faults, none of them this change's:
                       below the fold that list is `display: none` and the panel
                       is out of flow; the fix is a relayout of the folded plate.
   act 4's pie label   landing-page.html, 4 cells: +6 px at 320 x 20, +23 at
-                      320 x 24, +59 at 320 x 32, +31 at 375 x 32. These used to
-                      read +12 / +48 / +139 / +88 with article.lp-ev-card at
-                      439 px in a 320 px viewport — three implicit `auto` grid
-                      columns (.cf-pin__steps, .lp-ev-card__figure, .lp-ev-src)
-                      each sized to a German compound, declared since. What is
-                      left is .cf-pie__label at the ring's 3 o'clock: a 5rem
-                      cap and a max-content box beside a px radius, so the
-                      label grows with the root and the ring does not. At 320
-                      the label's right edge is centre + 77 + 0.96 x its width
-                      and clears the viewport only up to a root of ~18 px. The
-                      fix is the component's list tier (labels ruled under the
-                      ring, which the no-trig fallback already draws) behind a
-                      container query, not a cap — a cap narrow enough to fit
-                      breaks "Stillstände" mid-word.
+                      320 x 24, +59 at 320 x 32, +31 at 375 x 32. FIXED on
+                      2026-09-01, and only two of those four cells were ever
+                      its own. The prescription in this paragraph is what
+                      shipped: .cf-pie is a named container now, and the tier
+                      that rides the ring asks `@container cf-pie (min-width:
+                      21rem)` on top of its trig @supports — 336 px against the
+                      328 the component's own arithmetic (7u + 2 x
+                      --pie-label-w) reserves at the u floor. Below it the
+                      labels are the ruled list the no-trig tier already drew.
+                      320 x 20 and 320 x 24 are now clean, and 320/375 x 32
+                      turned out to be a SECOND cause the pie's wider box had
+                      been masking, entered below. The container also had to be
+                      given a measure — see the note over .cf-pie — because
+                      inline-size containment took a figure that had been
+                      borrowing its caption's max-content to 0 px.
+  act 4's line chart  landing-page.html, 2 cells: +57 px at 320 x 32 and +6 at
+                      375 x 32, and until the pie above was fixed both were
+                      reported as the pie's — the pie's label was simply the
+                      wider box in the same cell. Card 04's .cf-line is what
+                      carries them: hiding that one figure and nothing else
+                      takes the document from 377 to 342 at 320 x 32 (342 is
+                      the folded plate above, on every page) and from 381 to
+                      375 at 375 x 32. Its own box is 150 px wide with a
+                      scrollWidth of 292, and its readings are absolutely
+                      positioned and `white-space: nowrap`: "€4,79 Mio." is
+                      144 px at a 32 px root and its right edge stands 12 px
+                      past the figure. Same shape as the pie's and a different
+                      component — a label written for a figure that is now
+                      narrower than the label — and the same question to
+                      answer: which tier a figure this size should draw.
   a prose table       blog-artikel.html, 2 cells: +6 px at 320 x 20 and +16 at
                       320 x 24.
   expertise.html      1 cell, +18 px at 375 x 32, on a list item.
   suche-leer.html     1 cell, +5 px at 375 x 32, on an outline button.
 
 The ratchet holds the COUNT and not the causes, so a fix for any of them lowers
-it and a sixth cause cannot hide behind them. Lower CENSUS_CEILING as it falls;
-when it reaches zero, fold GATE_WIDTHS and GATE_ROOTS back into WIDTHS and ROOTS
-and delete this half of the header.
+it and a further cause cannot hide behind them. That second half is not
+hypothetical: the line chart above spent two cells of this list filed under the
+pie, because a cell names its WIDEST offender and the pie's label was wider.
+The count is what caught it -- four cells were claimed and two came off. Lower
+CENSUS_CEILING as it falls; when it reaches zero, fold GATE_WIDTHS and
+GATE_ROOTS back into WIDTHS and ROOTS and delete this half of the header.
 
     python3 scripts/check-text-zoom.py
     python3 scripts/check-text-zoom.py --verbose     every cell, passing or not
@@ -124,7 +145,7 @@ GATE_WIDTHS = (375, 768, 900, 1024, 1280)
 GATE_ROOTS = (16, 20, 24)
 
 # What the census holds. It may fall; it may not rise.
-CENSUS_CEILING = 43
+CENSUS_CEILING = 41
 
 BROWSER_CANDIDATES = (
     os.environ.get("CF_BROWSER"),
