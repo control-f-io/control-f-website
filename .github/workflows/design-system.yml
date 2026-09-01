@@ -2879,6 +2879,37 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-plane-phase.py
 
+      # The glass rim box is the same one-pixel mistake check-contour-box.py was
+      # written after, in the other construction this system draws an edge over
+      # an edge with. `inset` on an absolutely positioned box resolves against
+      # its containing block's PADDING box, and a glass sheet that draws
+      # --glass-border reserves a pixel that box does not include — so a rim
+      # written at `inset: 0` lands one pixel inside the border it is the rim
+      # of, and the sheet draws two lines where the material has one.
+      #
+      # check-contour-box.py states that rule and enforces it for <svg> edge
+      # frames, because an edge frame is the form it was found in. A 1 px
+      # pseudo-element is the same sentence in CSS and was outside its scope.
+      # Three rims ship; two were written against the border box by hand and
+      # .cf-info-card--glass::before was not, on the one glass surface whose
+      # only shipping use is a stage the reader scrolls through at reading
+      # distance. It rendered correctly. There was a second line, a pixel below
+      # the first, carrying the whole of the material's Weiss-Glas-Sky travel
+      # while the perimeter above it stayed flat white — which no screenshot
+      # review has ever called a bug, because a card with a lit edge is exactly
+      # what it looks like.
+      #
+      # It also holds the tokens it resolves to one length per token. A rim
+      # cancels a border-width, so a --glass-border that is 1 px on :root and
+      # 2 px in the inverse theme makes every rim in the system a pixel out in
+      # one of them and green in both.
+      #
+      # Proven failing on all three: the reverted inset, a widened inverse
+      # --glass-border, and a rename that leaves no rim for it to find.
+      - name: Glass rim box
+        if: '!cancelled()'
+        run: python3 scripts/check-glass-rim-box.py
+
       # The cited gates are the ninety-first, and the only one whose subject is
       # the other ninety. Every check argues its rule in prose, and the strongest
       # move in that prose is the hand-off — "the other axis is held by this

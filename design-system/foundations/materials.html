@@ -569,6 +569,50 @@
       top pixel too, painted on the border box under the rim colour, so both frosted
       surfaces in the system end at one edge drawn from one declaration.
     </p>
+    <div class="docs-note docs-note--warn" id="rim-box">
+      <strong>A rim stands on the sheet's border box, and the third one did not.</strong>
+      <code>inset</code> on an absolutely positioned box resolves against its containing
+      block's <em>padding</em> box, and a sheet that draws <code>--glass-border</code> is one
+      pixel wider than that on every side. So <code>inset: 0</code> on a rim does not replace
+      the border it is the rim of — it lands one pixel inside it, and two pixels short of it
+      at each end, and the sheet draws <em>two</em> lines. Read off the ink on
+      <code>components/info-card.html</code> at 1440&nbsp;&times;&nbsp;900, device scale 1,
+      the card's border box 608&nbsp;px wide:
+      <table class="docs-table">
+        <thead><tr><th>Row</th><th>What painted it</th><th>Sampled</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>the card's own <code>--glass-border</code></td><td>253–254, flat across the width</td></tr>
+          <tr><td>1</td><td>the rim, <code>--glass-edge</code>, x&nbsp;1..607</td><td>251 → (240,&nbsp;248,&nbsp;246)</td></tr>
+          <tr><td>2+</td><td>the bearing tint</td><td>251</td></tr>
+        </tbody>
+      </table>
+      Two parallel lines a pixel apart — the outer one achromatic, the inner one carrying the
+      material's whole Weiss–Glas–Sky travel — on the one glass surface whose only shipping
+      use is a stage the reader scrolls through at reading distance. Nothing rendered wrong.
+      There was simply a second line, on a material this page says three times is edged once.
+      <br><br>
+      <code>.cf-btn--glass::before</code> had always done it right, cancelling the width on
+      <code>top</code> and <code>left</code> and carrying the same cancellation through its
+      own 62&nbsp;% window; <code>.cf-nav::after</code> has no border to cancel. The
+      info-card rim is now <code>inset: calc(-1 * var(--stroke-1)) calc(-1 *
+      var(--stroke-1)) auto</code>, which puts it on the perimeter and composites it
+      <em>onto</em> the border rather than beside it — <code>--glass-edge</code> is
+      transparent at both ends and never exceeds alpha 0.42, so where the gradient has
+      nothing the border shows through and the two top corners still close.
+      <br><br>
+      <strong>This paragraph is a check.</strong> It is the same one-pixel mistake
+      <code>scripts/check-contour-box.py</code> was written after, in the other construction
+      this system draws an edge over an edge with — that script enforces it for
+      <code>&lt;svg&gt;</code> edge frames, and a 1&nbsp;px pseudo-element was outside its
+      scope. <code>scripts/check-glass-rim-box.py</code> reads the CSS form: every
+      <code>::before</code> or <code>::after</code> in the shipping stylesheets that paints
+      <code>--glass-edge</code> or <code>--glass-rim-light</code> is a rim, its originating
+      element is the sheet, and every side the rim positions with a non-<code>auto</code>
+      inset must cancel the border-width the sheet reserves there. It also holds the tokens
+      it resolves to one length across every theme that declares them: a rim cancelling
+      1&nbsp;px over a sheet whose border is 2&nbsp;px in the inverse theme would be a pixel
+      out in one theme and pass in both.
+    </div>
     <p>
       The rim <em>colour</em> was a second copy of the same problem and is fixed the same way.
       <code>--glass-border</code> held white 55&nbsp;% and was read by exactly one rule in the

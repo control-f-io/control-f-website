@@ -1,7 +1,7 @@
 # scripts/
 
 Everything that generates this website, and everything that refuses to let it
-ship broken. 137 files at this level, this one included, no shared library, no
+ship broken. 144 files at this level, this one included, no shared library, no
 package, no `__init__.py`, no build step: every one is `python3` against the
 standard library and is run by its own path. There are exactly two dependencies
 in the whole directory — Pillow, in `sync-news-notion.py` and nowhere else, and
@@ -21,7 +21,7 @@ most.
 
 | Count | What | Who runs it |
 | --- | --- | --- |
-| 119 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
+| 126 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
 | 7 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all seven, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
 | 1 | `build-all.sh` | `news-sync.yml`, and a human. Nothing else. |
 | 1 | `stage-site.py` — collects the website into `dist/` | both deploys, `--surface pages` and `--surface worker` |
@@ -59,7 +59,7 @@ it skips with exit 0 when no browser is present — except when
 `CF_REQUIRE_BROWSER` is set, which is how the CI job stops a broken install
 step from silently dodging the gate.
 
-### The 119 checks are two different kinds of file wearing one prefix
+### The 126 checks are two different kinds of file wearing one prefix
 
 Roughly half assert a property of the design system: `check-spacing-scale.py`
 holds `foundations/layout.html`'s published `--space-*` table to the shipping
@@ -68,7 +68,7 @@ in every screenshot; `check-grid-tracks.py` holds the rule that a bare `fr`
 floors at `min-content`. These read `design-system/assets/css/` and every
 `patterns/*.html`, and they keep working as pages come and go.
 
-The other 45 name `landing-page.html` as a string — 38 of them as the literal
+The other 46 name `landing-page.html` as a string — 39 of them as the literal
 path `patterns/landing-page.html`, usually as a key in an exemption table or a
 per-page budget. Those are page-regression tests. They have a different
 lifecycle from a true invariant: they are correct only about the page as it
@@ -79,7 +79,7 @@ two groups differently when you clean up.
 ### The prefix is not a taxonomy, and in three places it actively misleads
 
 The first word of a check's name is the subject the author had in mind, not a
-category anyone assigned. 84 distinct first words across 119 files, 69 of them
+category anyone assigned. 89 distinct first words across 126 files, 72 of them
 singletons. Where a prefix does repeat it usually means what it looks like —
 the twelve `check-flow-*.py` are all about the statement-to-process root, the
 four `check-pin-*.py` are all about the pinned-stage scroll contract — and then
@@ -247,7 +247,7 @@ a grep for `import`, and several are outside this repository.
 
 | Frozen string | Consumed by | What breaks |
 | --- | --- | --- |
-| `design-system/patterns/` | 27 scripts contain the literal path `design-system/patterns`; 114 name `design-system` as a quoted path component; 45 checks key on `landing-page.html` as a *string*, 38 of them as `patterns/landing-page.html`; routine prompts outside the repo name the directory and the page | the checks stop finding the pages, or pass vacuously against nothing. This is why the patterns cannot be `git mv`'d to the root and `build-site.py` exists instead. |
+| `design-system/patterns/` | 27 scripts contain the literal path `design-system/patterns`; 114 name `design-system` as a quoted path component; 46 checks key on `landing-page.html` as a *string*, 39 of them as `patterns/landing-page.html`; routine prompts outside the repo name the directory and the page | the checks stop finding the pages, or pass vacuously against nothing. This is why the patterns cannot be `git mv`'d to the root and `build-site.py` exists instead. |
 | the `check-` prefix | `routine-merge.yml`'s gate loop is `for s in scripts/check-*.py` | a check renamed out of the prefix stops running on every routine branch. Globbed rather than enumerated on purpose: a check written by a later run is enforced by existing. |
 | `check-image-scale.py` | imported by `build-news.py`, `build-articles.py`, `check-content-images.py` (`intrinsic()`), and `sync-news-notion.py` (`intrinsic_bytes()`) | the builds and the Notion sync fail. It owns the raster header reader because it is also the file that fails a `width`/`height` disagreeing with the file — two readers of a progressive JPEG would disagree exactly once, and the check would be right while the page was wrong. |
 | `check-content-images.py` | imported by `sync-news-notion.py` for `MIN_WIDTH`, `MAX_WIDTH`, `MAX_BYTES` | the sync loses the plate it fits pictures to. The gate is the authority on its own numbers. |
