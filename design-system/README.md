@@ -717,9 +717,8 @@ design-system/
 │                           illustration, logo, photo, motion, mobile,
 │                           page transitions, field, found state, line of sight
 ├── components/             buttons, nav, breadcrumb, section header, statement +
-│                           value table, plot, line, pie, annotation,
-│                           process card,
-│                           accordion, blog grid,
+│                           value table, plot, line, pie, gantt, annotation,
+│                           process card, accordion, blog grid,
 │                           subdivision field, search + results, vacancy,
 │                           pagination, error + empty state, arrival + progress,
 │                           article + prose, table, team, forms, footer, consent

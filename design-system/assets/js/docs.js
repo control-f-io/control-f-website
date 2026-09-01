@@ -35,6 +35,7 @@
       { href: 'components/plot.html',           label: 'Plot' },
       { href: 'components/line.html',           label: 'Line' },
       { href: 'components/pie.html',            label: 'Pie' },
+      { href: 'components/gantt.html',          label: 'Gantt' },
       { href: 'components/annotation.html',     label: 'Annotation' },
       { href: 'components/process-card.html',   label: 'Process Card' },
       { href: 'components/info-card.html',      label: 'Info Card' },
