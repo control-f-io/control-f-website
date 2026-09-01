@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evidenz — vier Belege (Labor)</title>
+<!-- Without rel="icon" the browser falls back to GET /favicon.ico at the
+     origin root, which this repository does not reach — same finding as the
+     landing page and the statement lab. Declared, not shipped as a root file. -->
+<link rel="icon" href="../assets/img/logo/cf-favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<style>
+  /* ============================================================
+     EVIDENZ — the numbers behind the landing page's promise, as a
+     pinned stage. One evidence figure per service, in the order the
+     process act sells them: Discovery, Datenfundament, Weniger
+     Ausfälle, Mehr Leistung.
+
+     THE CHARTS ARE THE SYSTEM'S OWN — cf-pie, cf-plot, cf-line from
+     components.css, markup shape verbatim from their doc pages. This
+     page adds no chart vocabulary; what it proposes is a CHOREOGRAPHY:
+     the four figures on one .cf-pin track, each drawing itself inside
+     its own quarter.
+
+     WHY THE RE-TIMING EXISTS. Each figure normally draws on its own
+     view() timeline (--cf-plot, --cf-line, --cf-pie), timed against
+     its traversal of the viewport. Inside a pinned sticky stage the
+     figure never traverses anything — its view() freezes at one value,
+     which for a stage pinned at the top is a chart stopped mid-draw
+     (--plot-grow stuck near 0 is five empty columns, confidently
+     wrong). So in the pinned tier this page re-times the components'
+     OWN keyframes — cf-plot-grow, cf-line-draw, cf-pie-light,
+     unchanged — onto --cf-pin with per-step ranges, exactly the move
+     patterns/landing-page.html makes when it re-times cf-iso-build
+     onto the same track. Below the gate (narrow, short, reduced
+     motion, no scroll-driven animations) nothing here applies: the
+     cards stack, and every figure keeps its documented behaviour —
+     drawing as it scrolls in where the engine can, standing complete
+     where it cannot (every draw variable's @property initial is 1).
+
+     THE DATA IS NOT PLACEHOLDER. Every number is from the internal
+     research note "What telemetry data is actually worth" (Notion,
+     2026-09-01), and the load-bearing figures were re-checked against
+     the original publications while this page was built:
+
+       · PwC / Mainnovation 2018 (PDF, pp. 16–19): n=268 confirmed;
+         success factors 2018 read off the report's own bar chart —
+         Daten 67, Budget 60, Technologie 59, Sicherheit 43, Kultur 35.
+         FINDING, RECORDED: the research note's 60/59/45 for
+         technology/security/culture are the 2017 series; this page
+         uses the 2018 one. Value drivers confirmed: uptime +9 %,
+         Kosten −12 %, SHEQ-Risiko −14 %, Lebensdauer +20 %, 95 % mit
+         Resultaten.
+       · LBNL ISO 50001 (2016, p. 8): 5 % year one and 1 % continual
+         improvement confirmed — as the study's stated CONSERVATIVE
+         defaults, benchmarked on SEP-certified sites (ø 10 %/cycle,
+         range 5.6–41.9 %). The line below draws the study's own
+         worked example: 5.00 / 5.95 / 6.89 / 7.82 / 8.74 % cumulative
+         (1 % of the remainder, not of the baseline — not 5/6/7/8/9).
+       · ARC (arcweb.com, read in a real browser after curl was 403'd):
+         "only 18 percent of failures are age related, and 82 percent
+         have a random pattern" and "preventive maintenance (PM)
+         provides a benefit for just 18 percent of assets" — confirmed
+         verbatim, and ARC states the data was "compiled by NASA and
+         the US Navy", so the card credits Nowlan & Heap 1978 too.
+       · ABB (German release): €147,000/hour confirmed, and the page's
+         own footnote states it is the MEDIAN, not the mean, "because
+         the distribution makes it the better picture of the typical
+         company". n=3,215, Sapio Research, July 2023. Also 67 % at
+         least monthly, 21 % still run-to-failure.
+       · Gartner: "through 2026, organizations will abandon 60% of AI
+         projects unsupported by AI-ready data", n=1,203 data
+         management leaders, July 2024 — verbatim.
+       · Siemens Senseye TCOD 2024: 27 h/month and 25 incidents (from
+         39 and 42 in 2019), 326 h/year per large plant, $2.3m/h in
+         automotive, nine in ten doing condition monitoring, almost
+         half with PdM teams. Used as a benchmark for the model's
+         180 h/year, never as this page's own figure.
+       · The Discovery ring is control-f's OWN model (marker M below),
+         never a citation: midpoints of bands set at or below the
+         sourced evidence, on a €120m reference plant. Recomputed:
+         0.90 + 0.72 + 0.50 + 0.31 = €2.43m, band €1.40–3.46m.
+
+     THE ERROR THIS PAGE FOUND, AND WHY BOTH EURO FIGURES MOVED.
+     The research note prices the reference plant's electricity at
+     €0.2264/kWh, "Eurostat, Germany, H2 2025", and that number is
+     real — but it is the price for the 500–2,000 MWh consumption
+     band. The reference plant burns 30 GWh a year, which is 30,000
+     MWh: Eurostat band MWH20000-69999, fifteen times larger, where
+     the same H2 2025 German price on the same tax basis (excluding
+     VAT) is €0.1595/kWh. Read from the API, dataset nrg_pc_205:
+
+       band              DE excl. VAT   EU excl. VAT
+       500–2 000 MWh       0.2264         0.1837   <- the quoted one
+       2 000–20 000        0.1922         0.1596
+       20 000–70 000       0.1595         0.1342   <- this plant
+       70 000–150 000      0.1440         0.1217
+
+     Applied to 30 GWh the quoted price yields €6.79m and the correct
+     one €4.79m, so the bill was 42 % too high — and it was the base
+     of the whole line as well as the ring's energy lane. Both are
+     rebuilt on €4.79m. The positioning claim moves with it: Germany
+     is 19 % above the EU average in this band, not the 23 % that
+     holds in the band Eurostat headlines. A plant manager knows
+     their own ct/kWh, so this is the single number on the page most
+     likely to have been challenged in the room.
+     ============================================================ */
+
+  /* The lab's own chrome. */
+  .ds-back {
+    position: fixed; left: 0; bottom: 0; z-index: calc(var(--z-overlay) - 1);
+    padding: var(--space-2) var(--space-4);
+    background: var(--cf-schwarz); color: var(--grey-000);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label); text-transform: uppercase;
+    text-decoration: none;
+  }
+  .proto-head { padding: var(--space-12) 0 var(--space-8); }
+  .proto-head p { max-width: 62ch; color: var(--text-secondary); margin-top: var(--space-3); }
+
+  /* Scroll context, so the pin has something to arrive out of and leave
+     into. Im echten Einbau: durch die restliche Seite ersetzen. */
+  .placeholder {
+    min-height: 60vh; display: grid; place-items: center;
+    color: var(--text-muted);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label); text-transform: uppercase;
+  }
+
+  /* ------------------------------------------------------------
+     THE CARD, stacked tier first. This is also the whole design
+     below the pin gate: four bordered cards in .cf-pin__steps' own
+     stacked grid, each figure drawing on its own view() timeline
+     the way its doc page documents.
+     ------------------------------------------------------------ */
+  .ev-card { border: var(--stroke-1) solid var(--border-strong); }
+  .ev-card__figure {
+    display: grid;
+    justify-items: center;
+    padding: var(--space-8);
+    border-bottom: var(--stroke-1) solid var(--border-strong);
+  }
+  /* A line is a frame, not an object: it takes the measure it is given,
+     so inside a centring grid it has to keep claiming the full track or
+     it collapses to min-content. The pie and the plot carry their own
+     widths. */
+  .ev-card__figure > .cf-line { width: 100%; }
+  .ev-card__panel { padding: var(--space-8); }
+  .ev-card__eyebrow {
+    margin: 0 0 var(--space-3);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    font-weight: var(--weight-regular);
+    letter-spacing: var(--tracking-label); text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .ev-card__title { margin: 0; }
+  .ev-card__rule {
+    height: var(--stroke-1);
+    margin: var(--space-5) 0 var(--space-4);
+    background: var(--border-default);
+  }
+  .ev-src__label {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    font-weight: var(--weight-regular);
+    letter-spacing: var(--tracking-label); text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .ev-src {
+    margin: 0; padding: 0; list-style: none;
+    display: grid; gap: var(--space-2);
+  }
+  /* EVERY SOURCE IS A LINK THE READER CAN OPEN, and that is the whole rule
+     of this list. It used to carry the research note's P/S/E/M confidence
+     markers as single letters in a bordered cell, with the words only in a
+     title attribute — a legend nobody can see, on a touch device least of
+     all. Two things replaced it: what a source IS worth is now said inline
+     in German ("Beratungsschätzung ohne offengelegte Stichprobe",
+     "Gebäudestudie"), and what control-f MODELLED is said in the caption,
+     where it belongs, rather than dressed up as a citation among citations.
+     Nothing in this list is unlinked, so a reader can check every line. */
+  .ev-src li {
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    line-height: var(--leading-normal);
+    color: var(--text-secondary);
+    /* The wrap of a long source runs under its own first line rather than
+       under the next source's opening word. */
+    padding-left: var(--space-4);
+    text-indent: calc(var(--space-4) * -1);
+  }
+  .ev-src a {
+    color: var(--text-secondary);
+    text-decoration-thickness: from-font;
+    text-underline-offset: 0.2em;
+  }
+  .ev-src a:hover { color: var(--text-primary); }
+
+  /* A KEY IS AS WIDE AS IT NEEDS TO BE, NOT AS WIDE AS ITS COLUMN.
+     .cf-plot__key is `left: 0; right: 0` on a 2u column — 64 px at the
+     unit's ceiling, 32 px at its floor — and every German word this page
+     needs is longer than that: SICHERHEIT, TECHNOLOGIE, VERFÜGBARKEIT and
+     LEBENSDAUER all broke mid-word, so the figure printed SICHERH / EIT and
+     TECHNOL / OGIE under two of its columns.
+
+     The room is already there and the component simply was not taking it.
+     Columns sit on a 4u pitch — 2u of column and 2u of air — so a label
+     centred on its column may run to 3.5u before it comes within half a
+     unit of its neighbour's. That is 112 px at the ceiling, which fits
+     every key here on one line, and 56 px at the floor, where the two
+     longest still wrap — so those carry a soft hyphen and break as
+     SICHER- / HEIT, which is a word wrapped rather than a word cut.
+
+     THE OVERHANG IS INSIDE THE FIGURE'S PADDING: 0.75u past each end of the
+     row, against the --space-8 the panel already declares, so the widened
+     first and last labels do not reach the card's edge.
+     ------------------------------------------------------------ */
+  .ev-card .cf-plot__key {
+    left: 50%;
+    right: auto;
+    inline-size: calc(var(--plot-u) * 3.5);
+    translate: -50%;
+  }
+  /* The component reserves one label line under the row (--space-8: 8 px of
+     drop, an 11 px label, and air). Where a key takes two lines — the phone
+     tier, where 3.5u is 56 px — the second line would print into the caption,
+     so the reservation goes one rung up the scale.
+
+     IT WAS var(--space-10), WHICH IS NOT A TOKEN. The spacing scale runs
+     1 2 3 4 5 6 8 12 16 20 24 30 40 — there is no 10 — so the declaration was
+     invalid at computed-value time, margin-bottom computed to 0, and because
+     this rule still WON against the component's `margin: 0 0 var(--space-8)`,
+     it did not fall back to the component's reservation: it removed it. The
+     keys printed 10 px INTO the caption. An invalid var() is not a no-op when
+     it overrides something. */
+  .ev-card .cf-plot__set { margin-bottom: var(--space-12); }
+
+  /* THE ROW STANDS OFF ITS OWN EDGES BY THE LABEL'S OVERHANG. A 3.5u key
+     centred on a 2u column reaches 0.75u past each end of the row, and the
+     row is laid out from the figure's left edge — so without this the first
+     key hangs 24 px outside the figure box and, in the pinned tier where the
+     panel has no padding of its own, into the card's. Reserving the overhang
+     on the figure keeps every label inside the box that holds it. */
+  .ev-card .cf-plot {
+    padding-inline: calc(var(--plot-u) * 0.75);
+    /* AND THE UNIT COMES DOWN BY THE SAME ARGUMENT. A five-column plot is 18u
+       of drawing, and with the overhang reserved on both sides the figure now
+       claims 19.5u. The pinned card's figure column is 7fr of the measure —
+       579 px at 1280, 588 at 1440 and above, where the container caps — so at
+       the component's own 32 px ceiling the row wanted 624 px and ran 45 px
+       past the column into the copy. 19.5u must fit 579, so u tops out at
+       29.7; 28 is the round number under it and leaves the four-column plot
+       at 434. The floor and the vw term are the component's, untouched. */
+    --plot-u: clamp(16px, 3.4vw, 28px);
+  }
+
+  /* ------------------------------------------------------------
+     THE PINNED TIER — the same gate .cf-pin engages behind, restated
+     because a lab page owns its page chrome the way lp-proc-* does.
+     ------------------------------------------------------------ */
+  @supports (animation-timeline: view()) and (animation-range: contain 0% contain 100%) {
+    @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem) {
+      /* The stage: three rows sized to the card and centred as one
+         group — the landing's own answer to the surplus-height drift,
+         taken as given rather than re-measured here. */
+      .ev-stage {
+        --pin-measure: min(72rem, 100%);
+        grid-template-rows: auto minmax(0, min-content) auto;
+        align-content: center;
+        row-gap: var(--space-4);
+      }
+      .ev-steps { gap: 0; align-content: center; }
+      /* All four in one grid area, so the frames coincide and every
+         card stretches to the same height. */
+      .ev-steps > .ev-card { grid-area: 1 / 1; }
+      /* THE LECTERN, as a pseudo-element: one constant frame that does
+         not change when the page on it does. The cards give up their
+         border to it — two crossfading copies of the same hairline
+         dim to three-quarter strength at every handover, which is the
+         finding the landing's plate exists for; here the frame has no
+         inner chrome to carry, so a ::before is the whole plate. */
+      .ev-steps::before {
+        content: "";
+        grid-area: 1 / 1;
+        border: var(--stroke-1) solid var(--border-strong);
+      }
+      .ev-steps > .ev-card { border-color: transparent; }
+      /* The card goes two-column: the figure beside its copy, the
+         inner hairline retired with the border (it would crossfade
+         the same way). */
+      /* --space-10 IS NOT A TOKEN and both of these were it, so the card on
+         the stage ran with `gap: normal` and `padding: 0`: the figure sat
+         against the copy and both sat on the lectern's hairline. Same fault
+         as the one recorded over .cf-plot__set above, found by auditing every
+         var(--space-N) on this page against tokens.css after the caption
+         overlap turned up. --space-12 is the rung the scale actually has. */
+      .ev-steps > .ev-card {
+        display: grid;
+        grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+        align-items: center;
+        gap: var(--space-12);
+        padding: var(--space-12);
+      }
+      .ev-steps .ev-card__figure { padding: 0; border-bottom: 0; }
+      .ev-steps .ev-card__panel { padding: 0; }
+
+      /* --------------------------------------------------------
+         THE DRAW, RE-TIMED ONTO THE TRACK. Same keyframes the
+         components ship — cf-plot-grow, cf-line-draw, cf-pie-light —
+         on .cf-pin's timeline instead of the figure's frozen view().
+         The step is up by 25i% (its ±3 % widened fade reaches full
+         at 11 % of it), the copy is in by 25i+8 %, so the figure
+         draws 25i+4 → 25i+14: the chart is the last thing to finish
+         arriving, and the pie's light lands after its ring the way
+         the component's own cover window orders it.
+         -------------------------------------------------------- */
+      .ev-card .cf-plot__set {
+        animation: cf-plot-grow linear both;
+        animation-timeline: --cf-pin;
+        animation-range: contain calc(var(--i) * 25% + 4%) contain calc(var(--i) * 25% + 14%);
+      }
+      .ev-card .cf-line__draw {
+        animation: cf-line-draw linear both;
+        animation-timeline: --cf-pin;
+        animation-range: contain calc(var(--i) * 25% + 4%) contain calc(var(--i) * 25% + 14%);
+      }
+      .ev-card .cf-pie__set {
+        animation: cf-pie-light linear both;
+        animation-timeline: --cf-pin;
+        animation-range: contain calc(var(--i) * 25% + 9%) contain calc(var(--i) * 25% + 16%);
+      }
+
+      /* AN INVISIBLE CARD STILL CATCHES THE POINTER, and with four cards in
+         one grid area that made three quarters of this page's sources
+         unclickable. opacity: 0 hides an element; it does not remove it from
+         hit-testing, and the four cards paint in DOM order — so the LAST one
+         was on top of the stack at every scroll position, and a click aimed at
+         a source link on cards 01 to 03 landed on card 04's copy panel.
+         Measured with elementFromPoint over each card's first source link
+         while that card was the one on stage: 01 hit card 04's <h3>, 02 hit
+         card 04's link, 03 hit card 04's panel; only 04 reached its own.
+
+         The landing page's own stack never showed this because its process
+         cards carry no links — nothing in them is a target, so nothing was
+         being stolen. It is a fault of this page's content, not of .cf-pin,
+         and it is fixed here rather than in the component.
+
+         SO THE STACK IS INERT AND THE PANEL ON STAGE IS NOT. The card sets
+         pointer-events: none for the whole overlap, and the panel takes it
+         back over exactly the interval its card is at opacity 1 — the same
+         timeline, the same range and the same 11 %/89 % literals cf-pin-step
+         uses, so what a reader can click is precisely what a reader can see.
+         The last card gets the pair without the hand-back, the way
+         cf-pin-step-last is cf-pin-step without the exit.
+
+         The figure needs nothing: it holds no target, and with the card inert
+         it cannot intercept one either. Both rules live inside the pinned tier,
+         so the stacked tier below the gate — where the cards do not overlap at
+         all — is untouched and every link there is a link. */
+      .ev-steps > .ev-card { pointer-events: none; }
+      .ev-steps > .ev-card .ev-card__panel {
+        animation: ev-card-hit linear both;
+        animation-timeline: --cf-pin;
+        animation-range: contain calc(var(--i) * 25% - 3%) contain calc((var(--i) + 1) * 25% + 3%);
+      }
+      .ev-steps > .ev-card:last-child .ev-card__panel { animation-name: ev-card-hit-last; }
+
+      /* The copy arrives line by line inside the reveal — the
+         landing's stagger, restated on this page's panel. */
+      .ev-card .ev-card__panel > * {
+        animation: cf-pin-copy linear both;
+        animation-timeline: --cf-pin;
+        animation-range: contain calc(var(--i) * 25% + 2% + var(--k, 0) * 1.1%)
+                         contain calc(var(--i) * 25% + 3.6% + var(--k, 0) * 1.1%);
+      }
+      .ev-card .ev-card__panel > :nth-child(2) { --k: 1; }
+      .ev-card .ev-card__panel > :nth-child(3) { --k: 2; }
+      .ev-card .ev-card__panel > :nth-child(4) { --k: 3; }
+      .ev-card .ev-card__panel > :nth-child(5) { --k: 4; }
+    }
+  }
+
+  /* Discrete, and deliberately the same shape as cf-pin-step: nothing to
+     interpolate, one switch thrown at each end of the card's own reveal. */
+  @keyframes ev-card-hit {
+    0%, 100% { pointer-events: none; }
+    11%, 89% { pointer-events: auto; }
+  }
+  @keyframes ev-card-hit-last {
+    0%        { pointer-events: none; }
+    11%, 100% { pointer-events: auto; }
+  }
+</style>
+</head>
+<body class="page-wash">
+<main>
+
+  <header class="container proto-head">
+    <h1 class="t-h3">Evidenz: vier Belege f&uuml;r vier Leistungen</h1>
+    <p>
+      Labor-Seite: die Zahlen hinter dem Versprechen der Landing-Page — weniger ungeplante
+      Stillst&auml;nde, mehr Leistung, aus Daten, die schon da sind — als gepinnte Stufe im
+      Vokabular des Systems: Ring, S&auml;ulen, Linie, ein Beleg je Leistung. Jede Zahl ist
+      an der Prim&auml;rquelle gepr&uuml;ft; was sich nicht belegen lie&szlig;, steht nicht hier.
+    </p>
+    <p>
+      Der Grund, es so herum zu erz&auml;hlen, ist selbst belegt:
+      <a href="https://www.gartner.com/en/newsroom/press-releases/2025-02-26-lack-of-ai-ready-data-puts-ai-projects-at-risk">Gartner
+      erwartet, dass bis Ende 2026 rund 60&nbsp;% der KI-Projekte ohne KI-taugliches
+      Datenfundament abgebrochen werden</a> — die Technik funktioniert, die Physik ist an
+      benannten Standorten belegt, und die meisten Programme scheitern trotzdem an der
+      Reihenfolge. Der Markt wartet dabei nicht:
+      <a href="https://assets.new.siemens.com/siemens/assets/api/uuid:1b43afb5-2d07-47f7-9eb7-893fe7d0bc59/TCOD-2024_original.pdf">neun
+      von zehn gro&szlig;en Werken betreiben inzwischen Condition Monitoring, fast die H&auml;lfte
+      hat eigene Predictive-Maintenance-Teams — doppelt so viele wie 2019 (Siemens)</a>.
+    </p>
+  </header>
+
+  <section class="placeholder" aria-hidden="true">Sektion davor — weiter scrollen</section>
+
+  <div class="container">
+    <div class="cf-section-header">
+      <h2 class="cf-section-header__label" id="evidenz-titel">Belegte Zahlen</h2>
+      <span class="cf-section-header__count">4 Belege</span>
+    </div>
+  </div>
+
+  <section class="section" id="evidenz" aria-labelledby="evidenz-titel">
+    <div class="cf-pin">
+      <div class="cf-pin__stage">
+        <div class="container cf-pin__inner ev-stage">
+          <ol class="cf-pin__index" role="list" aria-hidden="true">
+            <li class="cf-pin__mark" style="--i:0">01</li>
+            <li class="cf-pin__mark" style="--i:1">02</li>
+            <li class="cf-pin__mark" style="--i:2">03</li>
+            <li class="cf-pin__mark" style="--i:3">04</li>
+          </ol>
+
+          <div class="cf-pin__steps ev-steps">
+
+            <!-- ================================================
+                 01 · DISCOVERY — the ring. What a year at a
+                 reference plant is made of, which is exactly the
+                 sum a Discovery prices for a real one. Marker M:
+                 control-f's arithmetic, never presented as a
+                 citation — the caption says so and the band stays
+                 in it. Midpoints: 0.90 / 0.72 / 0.50 / 0.44 of
+                 €2.43m → 37.0/29.6/20.6/12.8 %, --turn is the running sum.
+                 ================================================ -->
+            <article class="ev-card cf-pin__step" style="--i:0">
+              <div class="ev-card__figure">
+                <figure class="cf-pie">
+                  <div class="cf-pie__ring">
+                    <p class="cf-pie__whole">
+                      <span class="cf-pie__whole-key">Potenzial p. a.</span><span class="cf-pie__whole-val">€2,43 Mio.</span>
+                    </p>
+                    <ol class="cf-pie__set">
+                      <li class="cf-pie__seg cf-pie__seg--lit" style="--v:.370; --turn:0">
+                        <span class="cf-pie__label">
+                          <span class="cf-pie__key">Stillst&auml;nde</span><span class="cf-pie__val">€0,90 Mio.</span>
+                        </span>
+                        <svg class="cf-pie__draw" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+                          <path class="cf-pie__band" pathLength="1" stroke="url(#cf-pie-ground)"
+                                d="M60 10 A50 50 0 0 1 60 110 A50 50 0 0 1 60 10"/>
+                          <path class="cf-pie__light" pathLength="1" stroke="url(#cf-pie-light)"
+                                d="M60 10 A50 50 0 0 1 60 110 A50 50 0 0 1 60 10"/>
+                        </svg>
+                        <svg class="cf-pie__ink" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+                          <path class="cf-pie__cut" d="M60 20V0"/>
+                        </svg>
+                      </li>
+                      <li class="cf-pie__seg" style="--v:.296; --turn:.370">
+                        <span class="cf-pie__label">
+                          <span class="cf-pie__key">Durchsatz</span><span class="cf-pie__val">€0,72 Mio.</span>
+                        </span>
+                        <svg class="cf-pie__draw" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+                          <path class="cf-pie__band" pathLength="1" stroke="url(#cf-pie-ground)"
+                                d="M60 10 A50 50 0 0 1 60 110 A50 50 0 0 1 60 10"/>
+                          <path class="cf-pie__light" pathLength="1" stroke="url(#cf-pie-light)"
+                                d="M60 10 A50 50 0 0 1 60 110 A50 50 0 0 1 60 10"/>
+                        </svg>
+                        <svg class="cf-pie__ink" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+                          <path class="cf-pie__cut" d="M60 20V0"/>
+                        </svg>
+                      </li>
+                      <li class="cf-pie__seg" style="--v:.206; --turn:.666">
+                        <span class="cf-pie__label">
+                          <span class="cf-pie__key">Wartung</span><span class="cf-pie__val">€0,50 Mio.</span>
+                        </span>
+                        <svg class="cf-pie__draw" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+                          <path class="cf-pie__band" pathLength="1" stroke="url(#cf-pie-ground)"
+                                d="M60 10 A50 50 0 0 1 60 110 A50 50 0 0 1 60 10"/>
+                          <path class="cf-pie__light" pathLength="1" stroke="url(#cf-pie-light)"
+                                d="M60 10 A50 50 0 0 1 60 110 A50 50 0 0 1 60 10"/>
+                        </svg>
+                        <svg class="cf-pie__ink" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+                          <path class="cf-pie__cut" d="M60 20V0"/>
+                        </svg>
+                      </li>
+                      <li class="cf-pie__seg" style="--v:.128; --turn:.872">
+                        <span class="cf-pie__label">
+                          <span class="cf-pie__key">Energie</span><span class="cf-pie__val">€0,31 Mio.</span>
+                        </span>
+                        <svg class="cf-pie__draw" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+                          <path class="cf-pie__band" pathLength="1" stroke="url(#cf-pie-ground)"
+                                d="M60 10 A50 50 0 0 1 60 110 A50 50 0 0 1 60 10"/>
+                          <path class="cf-pie__light" pathLength="1" stroke="url(#cf-pie-light)"
+                                d="M60 10 A50 50 0 0 1 60 110 A50 50 0 0 1 60 10"/>
+                        </svg>
+                        <svg class="cf-pie__ink" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+                          <path class="cf-pie__cut" d="M60 20V0"/>
+                        </svg>
+                      </li>
+                    </ol>
+                    <svg class="cf-pie__frame" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+                      <defs>
+                        <!-- One ramp, cut at two places — stops verbatim from
+                             components/pie.html, waypoint at 19 % of the lime
+                             leg. → foundations/colors.html#rakes-and-blooms -->
+                        <radialGradient id="cf-pie-ground" gradientUnits="userSpaceOnUse" cx="60" cy="60" r="60">
+                          <stop offset="0.6667" stop-color="#CFCFCF"/><stop offset="1" stop-color="#C5EBE2"/>
+                        </radialGradient>
+                        <radialGradient id="cf-pie-light" gradientUnits="userSpaceOnUse" cx="60" cy="60" r="60">
+                          <stop offset="0.6667" stop-color="#CFCFCF"/><stop offset="0.83" stop-color="#C5EBE2"/><stop offset="0.9677" stop-color="#DBFC60"/><stop offset="1" stop-color="#E1FF00"/>
+                        </radialGradient>
+                      </defs>
+                      <circle class="cf-pie__contour" cx="60" cy="60" r="60"/>
+                      <circle class="cf-pie__contour" cx="60" cy="60" r="40"/>
+                    </svg>
+                  </div>
+                  <figcaption class="cf-pie__caption">
+                    Modellrechnung f&uuml;r ein Referenzwerk mit €120&nbsp;Mio. Umsatz, konservativ am
+                    unteren Rand der belegten B&auml;nder (Jahresband €1,40–3,46&nbsp;Mio.): selbst das
+                    untere Band amortisiert ein Programm im ersten Jahr — die Discovery ersetzt in
+                    vier Wochen jede Annahme durch Ihre eigenen Zahlen.
+                  </figcaption>
+                </figure>
+              </div>
+              <div class="ev-card__panel cf-pin__copy">
+                <p class="ev-card__eyebrow">Leistung 01 &middot; Discovery</p>
+                <h3 class="ev-card__title">Vier Hebel. Rund €2,4&nbsp;Mio. im Jahr.</h3>
+                <div class="ev-card__rule" aria-hidden="true"></div>
+                <p class="ev-src__label">Quellen</p>
+                  <ul class="ev-src" role="list">
+                    <li><a href="https://www.getmaintainx.com/newsroom/state-of-industrial-maintenance-report-2024">MaintainX, State of Industrial Maintenance (2024) — rund $25.000 je Stillstandsstunde, n&nbsp;=&nbsp;1.165</a></li>
+                    <li><a href="https://assets.new.siemens.com/siemens/assets/api/uuid:1b43afb5-2d07-47f7-9eb7-893fe7d0bc59/TCOD-2024_original.pdf">Siemens Senseye, True Cost of Downtime (2024) — 326&nbsp;h Stillstand pro Jahr je Gro&szlig;werk</a></li>
+                    <li><a href="https://www.mckinsey.com/capabilities/operations/our-insights/manufacturing-analytics-unleashes-productivity-and-profitability">McKinsey (2017) — Stillstand −30 bis −50&nbsp;%, Beratungssch&auml;tzung ohne offengelegte Stichprobe</a></li>
+                    <li><a href="https://www1.eere.energy.gov/femp/pdfs/om_5.pdf">US DOE FEMP, O&amp;M Best Practices R3.0 (2010) — Wartung −8 bis −12&nbsp;%</a></li>
+                    <li><a href="https://bies.lbl.gov/sites/default/files/Smart%20Energy%20Analytics%20Campaign%20Year%203%20Report_LBNL_11.1.19.pdf">LBNL, Smart Energy Analytics (2019) — Energie −4 bis −9&nbsp;%, Geb&auml;udestudie</a></li>
+                    <li><a href="https://ec.europa.eu/eurostat/web/products-eurostat-news/w/ddn-20260508-2">Eurostat — Industriestrom Deutschland H2&nbsp;2025, Band 20–70&nbsp;GWh: €0,1595/kWh</a></li>
+                  </ul>
+              </div>
+            </article>
+
+            <!-- ================================================
+                 02 · DATENFUNDAMENT — the columns. What 268
+                 European operators name as the critical success
+                 factors for predictive maintenance, 2018 series
+                 read off the report's own chart (pp. 16–17): the
+                 note at the head of this file records why these
+                 are not the research note's numbers. --v is the
+                 fraction of 67.
+                 ================================================ -->
+            <article class="ev-card cf-pin__step" style="--i:1">
+              <div class="ev-card__figure">
+                <figure class="cf-plot">
+                  <ol class="cf-plot__set">
+                    <li class="cf-plot__col" style="--v:.52">
+                      <span class="cf-plot__key">Kultur</span><span class="cf-plot__val">35 %</span>
+                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
+                        <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
+                        <path class="cf-plot__rise" d="M0 130V10"/>
+                        <path class="cf-plot__rise" d="M40 130V10"/>
+                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
+                        <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z"/>
+                      </svg>
+                    </li>
+                    <li class="cf-plot__col" style="--v:.64">
+                      <span class="cf-plot__key">Daten&shy;sicherheit</span><span class="cf-plot__val">43 %</span>
+                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
+                        <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
+                        <path class="cf-plot__rise" d="M0 130V10"/>
+                        <path class="cf-plot__rise" d="M40 130V10"/>
+                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
+                        <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z"/>
+                      </svg>
+                    </li>
+                    <li class="cf-plot__col" style="--v:.88">
+                      <span class="cf-plot__key">Techno&shy;logie</span><span class="cf-plot__val">59 %</span>
+                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
+                        <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
+                        <path class="cf-plot__rise" d="M0 130V10"/>
+                        <path class="cf-plot__rise" d="M40 130V10"/>
+                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
+                        <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z"/>
+                      </svg>
+                    </li>
+                    <li class="cf-plot__col" style="--v:.9">
+                      <span class="cf-plot__key">Budget</span><span class="cf-plot__val">60 %</span>
+                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
+                        <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
+                        <path class="cf-plot__rise" d="M0 130V10"/>
+                        <path class="cf-plot__rise" d="M40 130V10"/>
+                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
+                        <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z"/>
+                      </svg>
+                    </li>
+                    <li class="cf-plot__col cf-plot__col--lit" style="--v:1">
+                      <span class="cf-plot__key">Daten</span><span class="cf-plot__val">67 %</span>
+                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
+                        <defs>
+                          <!-- The near rake, waypoint at 19 % of the lime leg —
+                               verbatim from components/plot.html; id is this
+                               figure's own, two plots share this document. -->
+                          <linearGradient id="ev-plot-light-daten" x1="20" y1="0" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                          </linearGradient>
+                        </defs>
+                        <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
+                        <path class="cf-plot__rise" d="M0 130V10"/>
+                        <path class="cf-plot__rise" d="M40 130V10"/>
+                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
+                        <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z" fill="url(#ev-plot-light-daten)"/>
+                      </svg>
+                    </li>
+                  </ol>
+                  <figcaption class="cf-plot__caption">
+                    Kritische Erfolgsfaktoren f&uuml;r Predictive Maintenance, genannt von 268
+                    europ&auml;ischen Industriebetrieben: Datenverf&uuml;gbarkeit vor Budget und
+                    Technologie — deshalb steht bei uns das Fundament vor den Use Cases.
+                  </figcaption>
+                </figure>
+              </div>
+              <div class="ev-card__panel cf-pin__copy">
+                <p class="ev-card__eyebrow">Leistung 02 &middot; Datenfundament</p>
+                <h3 class="ev-card__title">Der Engpass ist nicht das Modell. Es sind die Daten.</h3>
+                <div class="ev-card__rule" aria-hidden="true"></div>
+                <p class="ev-src__label">Quellen</p>
+                  <ul class="ev-src" role="list">
+                    <li><a href="https://www.pwc.be/en/documents/20180926-pdm40-beyond-the-hype-report.pdf">PwC / Mainnovation, PdM&nbsp;4.0: Beyond the Hype (2018) — Erfolgsfaktoren 2018, n&nbsp;=&nbsp;268</a></li>
+                    <li><a href="https://www.gartner.com/en/newsroom/press-releases/2025-02-26-lack-of-ai-ready-data-puts-ai-projects-at-risk">Gartner (2025) — 60&nbsp;% Projektabbruch ohne KI-taugliche Daten, n&nbsp;=&nbsp;1.203</a></li>
+                  </ul>
+              </div>
+            </article>
+
+            <!-- ================================================
+                 03 · WENIGER AUSFÄLLE — the columns again, this
+                 time the measured outcome. The title carries the
+                 structural argument (ARC's 18/82), the figure the
+                 realised averages from the same PwC sample. The
+                 lit column is the one the service is named after.
+                 --v is the fraction of 20.
+                 ================================================ -->
+            <article class="ev-card cf-pin__step" style="--i:2">
+              <div class="ev-card__figure">
+                <figure class="cf-plot cf-plot--zero">
+                  <ol class="cf-plot__set">
+                    <li class="cf-plot__col cf-plot__col--lit" style="--v:.45">
+                      <span class="cf-plot__key">Verf&uuml;g&shy;barkeit</span><span class="cf-plot__val">+9 %</span>
+                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
+                        <defs>
+                          <!-- the near rake, waypoint at 19 % of the lime leg -->
+                          <linearGradient id="ev-cap-uptime" x1="20" y1="0" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                          </linearGradient>
+                        </defs>
+                        <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
+                        <path class="cf-plot__rise" d="M0 130V10"/>
+                        <path class="cf-plot__rise" d="M40 130V10"/>
+                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
+                        <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z" fill="url(#ev-cap-uptime)"/>
+                      </svg>
+                    </li>
+                    <li class="cf-plot__col cf-plot__col--down" style="--v:.6">
+                      <span class="cf-plot__key">Kosten</span><span class="cf-plot__val">&#8722;12 %</span>
+                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
+                        <defs>
+                          <!-- the same rake on the violett leg — waypoint at 19 % of it, oklab -->
+                          <linearGradient id="ev-cap-kosten" x1="20" y1="120" x2="20" y2="140" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#7E7FE1"/><stop offset="0.061" stop-color="#8A94E3"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                          </linearGradient>
+                        </defs>
+                        <path class="cf-plot__cell" d="M20 0 40 10 20 20 0 10Z"/>
+                        <path class="cf-plot__rise" d="M0 10V130"/>
+                        <path class="cf-plot__rise" d="M40 10V130"/>
+                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 0V120"/>
+                        <path class="cf-plot__cap" d="M20 120 40 130 20 140 0 130Z" fill="url(#ev-cap-kosten)"/>
+                      </svg>
+                    </li>
+                    <li class="cf-plot__col cf-plot__col--down" style="--v:.7">
+                      <span class="cf-plot__key">Risiko</span><span class="cf-plot__val">&#8722;14 %</span>
+                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
+                        <defs>
+                          <!-- the same rake on the violett leg — waypoint at 19 % of it, oklab -->
+                          <linearGradient id="ev-cap-risiko" x1="20" y1="120" x2="20" y2="140" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#7E7FE1"/><stop offset="0.061" stop-color="#8A94E3"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                          </linearGradient>
+                        </defs>
+                        <path class="cf-plot__cell" d="M20 0 40 10 20 20 0 10Z"/>
+                        <path class="cf-plot__rise" d="M0 10V130"/>
+                        <path class="cf-plot__rise" d="M40 10V130"/>
+                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 0V120"/>
+                        <path class="cf-plot__cap" d="M20 120 40 130 20 140 0 130Z" fill="url(#ev-cap-risiko)"/>
+                      </svg>
+                    </li>
+                    <li class="cf-plot__col" style="--v:1">
+                      <span class="cf-plot__key">Lebens&shy;dauer</span><span class="cf-plot__val">+20 %</span>
+                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
+                        <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
+                        <path class="cf-plot__rise" d="M0 130V10"/>
+                        <path class="cf-plot__rise" d="M40 130V10"/>
+                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
+                        <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z"/>
+                      </svg>
+                    </li>
+                  </ol>
+                  <figcaption class="cf-plot__caption">
+                    Im Schnitt realisierte Ver&auml;nderung nach Einf&uuml;hrung telemetriegest&uuml;tzter
+                    Instandhaltung — was unter der Linie h&auml;ngt, ist gesunken, und bei median €147.000
+                    Stillstandskosten je Stunde sind alle vier Bewegungen Gewinne.
+                  </figcaption>
+                </figure>
+              </div>
+              <div class="ev-card__panel cf-pin__copy">
+                <p class="ev-card__eyebrow">Leistung 03 &middot; Weniger Ausf&auml;lle</p>
+                <h3 class="ev-card__title">82&nbsp;% der Ausf&auml;lle folgen keinem Kalender.</h3>
+                <div class="ev-card__rule" aria-hidden="true"></div>
+                <p class="ev-src__label">Quellen</p>
+                  <ul class="ev-src" role="list">
+                    <li><a href="https://www.arcweb.com/blog/proactive-asset-management-iiot-analytics">ARC Advisory Group (2015) — 18&nbsp;% altersbedingt, 82&nbsp;% zuf&auml;llig, nach Daten von NASA und US&nbsp;Navy</a></li>
+                    <li><a href="https://reliabilitywebfiles.s3.amazonaws.com/Reliability+Centered+Maintenance+by+Nowlan+and+Heap.pdf">Nowlan &amp; Heap, Reliability-Centered Maintenance (1978) — Ursprung der Ausfallmuster</a></li>
+                    <li><a href="https://www.pwc.be/en/documents/20180926-pdm40-beyond-the-hype-report.pdf">PwC / Mainnovation (2018) — realisierte Werte, n&nbsp;=&nbsp;268, meist an Einzelanlagen und in Pilotprojekten</a></li>
+                    <li><a href="https://new.abb.com/news/de/detail/116577/ungeplante-stillstande-kosten-deutsche-unternehmen-147-000-eur-pro-stunde">ABB / Sapio (2024) — €147.000 je Stillstandsstunde, Median Deutschland, n&nbsp;=&nbsp;3.215</a></li>
+                  </ul>
+              </div>
+            </article>
+
+            <!-- ================================================
+                 04 · MEHR LEISTUNG — the line, in euros, against
+                 the counterfactual. Two series on one span: the
+                 ghost is the scenario rung — the plant that
+                 changes nothing stays at €6.79m — and the solid
+                 is the LBNL worked example (5 % in year one, then
+                 1 % of the remainder each year) applied to the
+                 reference plant's bill: 6.79 → 6.45 / 6.39 / 6.32
+                 / 6.26 / 6.20. Frame €6.0–7.0m, --v = (value−6)/1.
+
+                 THE SCALE IS THE AXIS and the sets go quiet about
+                 everything but the message: per the component's
+                 own doctrine a figure with a scale does not print
+                 its opening value, so the shared start stays a
+                 datum in the tree, and what paints is year one,
+                 the two ends, and the gap between them. Keys name
+                 their series ("Mit · Jahr 1"), the legend names
+                 the rungs, and no two painted keys share a --t.
+                 ================================================ -->
+            <article class="ev-card cf-pin__step" style="--i:3">
+              <div class="ev-card__figure">
+                <figure class="cf-line">
+                  <div class="cf-line__head">
+                    <ul class="cf-line__legend">
+                      <li class="cf-line__legend-item">
+                        <svg class="cf-line__sample" viewBox="0 0 24 8" preserveAspectRatio="none" aria-hidden="true"><line class="cf-line__trace" x1="0" y1="4" x2="24" y2="4"/></svg>
+                        Mit Energiemanagement
+                      </li>
+                      <li class="cf-line__legend-item">
+                        <svg class="cf-line__sample" viewBox="0 0 24 8" preserveAspectRatio="none" aria-hidden="true"><line class="cf-line__trace cf-line__trace--ghost" x1="0" y1="4" x2="24" y2="4"/></svg>
+                        Ohne Verbesserung
+                      </li>
+                    </ul>
+                    <p class="cf-line__bounds">Rahmen €4,0 – 5,0 Mio. p.&nbsp;a.</p>
+                  </div>
+                  <div class="cf-line__frame">
+                    <ul class="cf-line__scale" aria-hidden="true">
+                      <li class="cf-line__step" style="--v:.5">4,50</li>
+                      <li class="cf-line__step" style="--v:.25">4,25</li>
+                    </ul>
+                    <svg class="cf-line__draw" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                      <polyline class="cf-line__trace cf-line__trace--ghost" points="0,21.5 100,21.5"/>
+                      <polyline class="cf-line__trace" points="0,21.5 20,45.43 40,49.97 60,54.47 80,58.93 100,63.34"/>
+                    </svg>
+                    <ol class="cf-line__set">
+                      <li class="cf-line__point cf-line__point--read cf-line__point--first" style="--t:0;--v:.785">
+                        <span class="cf-line__key">Heute</span><span class="cf-line__val">€4,79 Mio.</span>
+                        <span class="cf-line__node"></span>
+                      </li>
+                      <li class="cf-line__point" style="--t:.2;--v:.785"><span class="cf-line__key">Ohne &middot; Jahr 1</span><span class="cf-line__val">€4,79 Mio.</span></li>
+                      <li class="cf-line__point" style="--t:.4;--v:.785"><span class="cf-line__key">Ohne &middot; Jahr 2</span><span class="cf-line__val">€4,79 Mio.</span></li>
+                      <li class="cf-line__point cf-line__point--read" style="--t:.6;--v:.785">
+                        <span class="cf-line__key">Ohne</span><span class="cf-line__val">€4,79 Mio.</span>
+                        <span class="cf-line__node"></span>
+                      </li>
+                      <li class="cf-line__point" style="--t:.8;--v:.785"><span class="cf-line__key">Ohne &middot; Jahr 4</span><span class="cf-line__val">€4,79 Mio.</span></li>
+                      <li class="cf-line__point" style="--t:1;--v:.785"><span class="cf-line__key">Ohne &middot; Jahr 5</span><span class="cf-line__val">€4,79 Mio.</span></li>
+                    </ol>
+                    <ol class="cf-line__set">
+                      <li class="cf-line__point" style="--t:0;--v:.785"><span class="cf-line__key">Mit &middot; Heute</span><span class="cf-line__val">€4,79 Mio.</span></li>
+                      <li class="cf-line__point" style="--t:.2;--v:.546"><span class="cf-line__key">Mit &middot; Jahr 1</span><span class="cf-line__val">€4,55 Mio.</span></li>
+                      <li class="cf-line__point" style="--t:.4;--v:.500"><span class="cf-line__key">Mit &middot; Jahr 2</span><span class="cf-line__val">€4,50 Mio.</span></li>
+                      <li class="cf-line__point" style="--t:.6;--v:.455"><span class="cf-line__key">Mit &middot; Jahr 3</span><span class="cf-line__val">€4,46 Mio.</span></li>
+                      <li class="cf-line__point" style="--t:.8;--v:.411"><span class="cf-line__key">Mit &middot; Jahr 4</span><span class="cf-line__val">€4,41 Mio.</span></li>
+                      <li class="cf-line__point cf-line__point--read cf-line__point--last" style="--t:1;--v:.367">
+                        <span class="cf-line__key">Mit &middot; Jahr 5</span><span class="cf-line__val">€4,37 Mio.</span>
+                        <span class="cf-line__node"></span>
+                      </li>
+                    </ol>
+                  </div>
+                  <figcaption class="cf-line__caption">
+                    Stromkosten des Referenzwerks (30&nbsp;GWh zu €0,1595/kWh, dem Eurostat-Preis f&uuml;r
+                    genau dieses Verbrauchsband) nach der konservativen ISO-50001-Referenz von LBNL:
+                    im ersten Jahr €239.000, im f&uuml;nften €0,42&nbsp;Mio. unter der Nulllinie und
+                    kumuliert €1,65&nbsp;Mio. — Geld, das ohne Verbesserung liegen bleibt.
+                  </figcaption>
+                </figure>
+              </div>
+              <div class="ev-card__panel cf-pin__copy">
+                <p class="ev-card__eyebrow">Leistung 04 &middot; Mehr Leistung</p>
+                <h3 class="ev-card__title">Energie: −€239.000 im ersten Jahr. Der Abstand w&auml;chst.</h3>
+                <div class="ev-card__rule" aria-hidden="true"></div>
+                <p class="ev-src__label">Quellen</p>
+                  <ul class="ev-src" role="list">
+                    <li><a href="https://www.osti.gov/servlets/purl/1342941">LBNL / US DOE, Global Impact Estimation of ISO&nbsp;50001 (2016) — 5&nbsp;% im ersten Jahr, danach 1&nbsp;% des Rests</a></li>
+                    <li><a href="https://ec.europa.eu/eurostat/web/products-eurostat-news/w/ddn-20260508-2">Eurostat — Industriestrom Deutschland H2&nbsp;2025, Band 20–70&nbsp;GWh: €0,1595/kWh, 19&nbsp;% &uuml;ber EU-Schnitt</a></li>
+                  </ul>
+              </div>
+            </article>
+
+          </div>
+
+          <div class="cf-pin__bar" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="placeholder" aria-hidden="true">Sektion danach</section>
+
+</main>
+
+<a class="ds-back" href="../index.html">&larr; Design System</a>
+
+<!-- Holds the reader's place when a resize crosses the pin gate — the same
+     two-mode reflow the landing page loads it for. -->
+<script src="../assets/js/cf-pin-gate.js"></script>
+</body>
+</html>

@@ -131,6 +131,8 @@
         <tr><td><code>.cf-plot__set</code></td><td>yes</td><td>An <code>&lt;ol&gt;</code> — the values are a series and their order carries meaning. A flex row pitched 4u.</td></tr>
         <tr><td><code>.cf-plot__col</code></td><td>yes</td><td>One <code>&lt;li&gt;</code>, one value. Carries <code>--v</code>: the value as a fraction of the tallest column, 0 to 1.</td></tr>
         <tr><td><code>.cf-plot__col--lit</code></td><td>no</td><td>Gives that column's cap the glow. The <em>fill</em> is a paint server the column carries in its own <code>&lt;defs&gt;</code>, because lime is never a flat fill and a CSS gradient cannot be an SVG <code>fill</code> — see <a href="../foundations/colors.html#lime-is-never-flat">Colour</a>. <strong>At most one per screen.</strong></td></tr>
+        <tr><td><code>.cf-plot--zero</code></td><td>no</td><td>On the <code>&lt;figure&gt;</code>. Gives the row a zero line and makes it twice as tall — six units of rise either side of it. For a set that mixes rises and falls; a set that only rises does not need one.</td></tr>
+        <tr><td><code>.cf-plot__col--down</code></td><td>no</td><td>The column <em>hangs below</em> the zero line instead of standing on it, and its end face takes the violett rake. Requires <code>.cf-plot--zero</code>, and carries its own five paths — see below. <code>--v</code> is still the magnitude, sign removed. Any number per figure.</td></tr>
         <tr><td><code>.cf-plot__key</code></td><td>yes</td><td>What the column is. Mono, 11 px, uppercase, <code>--text-secondary</code>. Sits under the cell.</td></tr>
         <tr><td><code>.cf-plot__val</code></td><td>yes</td><td>The number, with its unit. Mono, tabular, <code>--text-primary</code>. Rides the cap and travels with it.</td></tr>
         <tr><td><code>.cf-plot__draw</code></td><td>yes</td><td>The drawing. Five paths, always the same five, always the same <code>viewBox</code> — nothing in it is per-value. <code>aria-hidden</code>.</td></tr>
@@ -209,6 +211,163 @@
       <code>1</code>. Dividing by a round ceiling instead — 100 %, or the target — is the
       better choice whenever that ceiling is meaningful, because then the empty air above
       a column means something too. Say which you did in the caption.
+    </div>
+  </section>
+
+  <section class="docs-section" id="direction">
+    <h2>Columns that fell</h2>
+    <p>
+      A set that mixes rises and falls has a problem the plain plot cannot answer: the scale
+      measures the <em>size</em> of a change, so uptime <code>+9&nbsp;%</code> and cost
+      <code>&#8722;12&nbsp;%</code> draw two columns of comparable height that mean opposite
+      directions. <code>.cf-plot--zero</code> gives the row a zero line and lets
+      <code>.cf-plot__col--down</code> hang beneath it. A quantity that fell falls, and
+      direction stops being something the reader has to decode.
+    </p>
+
+    <div class="docs-demo docs-demo--plain">
+      <figure class="cf-plot cf-plot--zero">
+        <ol class="cf-plot__set">
+          <li class="cf-plot__col cf-plot__col--lit" style="--v:.45">
+            <span class="cf-plot__key">Verf&uuml;g&shy;barkeit</span><span class="cf-plot__val">+9 %</span>
+            <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
+              <defs>
+                <!-- the near rake, waypoint at 19 % of the lime leg -->
+                <linearGradient id="cf-plot-dir-light" x1="20" y1="0" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                </linearGradient>
+              </defs>
+              <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
+              <path class="cf-plot__rise" d="M0 130V10"/>
+              <path class="cf-plot__rise" d="M40 130V10"/>
+              <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
+              <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z" fill="url(#cf-plot-dir-light)"/>
+            </svg>
+          </li>
+          <li class="cf-plot__col cf-plot__col--down" style="--v:.6">
+            <span class="cf-plot__key">Kosten</span><span class="cf-plot__val">&#8722;12 %</span>
+            <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
+              <defs>
+                <!-- the same rake on the violett leg — waypoint at 19 % of it, oklab -->
+                <linearGradient id="cf-plot-dir-kosten" x1="20" y1="120" x2="20" y2="140" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#7E7FE1"/><stop offset="0.061" stop-color="#8A94E3"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                </linearGradient>
+              </defs>
+              <path class="cf-plot__cell" d="M20 0 40 10 20 20 0 10Z"/>
+              <path class="cf-plot__rise" d="M0 10V130"/>
+              <path class="cf-plot__rise" d="M40 10V130"/>
+              <path class="cf-plot__rise cf-plot__rise--near" d="M20 0V120"/>
+              <path class="cf-plot__cap" d="M20 120 40 130 20 140 0 130Z" fill="url(#cf-plot-dir-kosten)"/>
+            </svg>
+          </li>
+          <li class="cf-plot__col cf-plot__col--down" style="--v:.7">
+            <span class="cf-plot__key">Risiko</span><span class="cf-plot__val">&#8722;14 %</span>
+            <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
+              <defs>
+                <!-- the same rake on the violett leg — waypoint at 19 % of it, oklab -->
+                <linearGradient id="cf-plot-dir-risiko" x1="20" y1="120" x2="20" y2="140" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#7E7FE1"/><stop offset="0.061" stop-color="#8A94E3"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
+                </linearGradient>
+              </defs>
+              <path class="cf-plot__cell" d="M20 0 40 10 20 20 0 10Z"/>
+              <path class="cf-plot__rise" d="M0 10V130"/>
+              <path class="cf-plot__rise" d="M40 10V130"/>
+              <path class="cf-plot__rise cf-plot__rise--near" d="M20 0V120"/>
+              <path class="cf-plot__cap" d="M20 120 40 130 20 140 0 130Z" fill="url(#cf-plot-dir-risiko)"/>
+            </svg>
+          </li>
+          <li class="cf-plot__col" style="--v:1">
+            <span class="cf-plot__key">Lebens&shy;dauer</span><span class="cf-plot__val">+20 %</span>
+            <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
+              <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
+              <path class="cf-plot__rise" d="M0 130V10"/>
+              <path class="cf-plot__rise" d="M40 130V10"/>
+              <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
+              <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z"/>
+            </svg>
+          </li>
+        </ol>
+        <figcaption class="cf-plot__caption">
+          Durchschnittlich realisierte Ver&auml;nderung nach Einf&uuml;hrung telemetriegest&uuml;tzter
+          Instandhaltung. Alle vier sind Gewinne — zwei davon dadurch, dass die Zahl kleiner wird.
+        </figcaption>
+      </figure>
+    </div>
+
+    <pre class="docs-code">&lt;<span class="tag">li</span> <span class="attr">class</span>=<span class="val">"cf-plot__col cf-plot__col--down"</span> <span class="attr">style</span>=<span class="val">"--v:.6"</span>&gt;
+  &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-plot__key"</span>&gt;Kosten&lt;/<span class="tag">span</span>&gt;&lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-plot__val"</span>&gt;&#8722;12 %&lt;/<span class="tag">span</span>&gt;
+  &lt;!-- the drawing is unchanged: the modifier only restrokes it --&gt;
+&lt;/<span class="tag">li</span>&gt;</pre>
+
+    <div class="docs-note">
+      <strong>The first version tinted the contour, and that was the wrong instrument.</strong>
+      A falling column was drawn in Violett&nbsp;700 — the one step in the palette that clears
+      both the wash and the black contour — and at a 1&nbsp;px hairline, in a figure whose
+      other lines are black, it read as “slightly faded” rather than as “other direction”. A
+      hairline gives the eye almost no area to judge a hue on, which is the same sentence
+      <a href="line.html#colour">the line</a> writes to explain why one tinted trace is its
+      ceiling. Direction moved into the geometry, where it is unmistakable, and the colour
+      moved to the end face, where there is area to see it.
+    </div>
+
+    <div class="docs-note">
+      <strong>The zero line is a division, which is what makes it legal.</strong>
+      <a href="../foundations/geometry.html#where-lines-go">Geometry</a> admits an edge, a
+      division and a label rule, and calls everything else decoration. This line has content
+      on both sides and a different meaning on each — the strict reading of a division, and
+      the same ground <a href="gantt.html">the gantt's <code>heute</code></a> stands on. So it
+      is black, at full weight, once.
+    </div>
+
+    <div class="docs-note">
+      <strong>Both halves stand on one plane, and it costs half a cell to say so.</strong> A
+      footprint is a rhombus and the zero line is a flat rule, which do not meet at one
+      obvious place: left alone, a standing column rests its cell's lowest vertex on the line
+      while a falling one hangs its highest vertex from it, and the two footprints end up a
+      whole unit apart — two ground planes, one cell above the other. The point on the axis is
+      the rhombus's <em>centre</em>, so each drawing comes back half a unit and the line runs
+      through it. Measured after: all four cell centres sit on the line to within a hundredth
+      of a unit, and every column's drawn length is exactly <code>6v&nbsp;+&nbsp;0.5u</code>.
+    </div>
+
+    <div class="docs-note">
+      <strong>The hanging box is authored, not mirrored.</strong> A <code>scaleY(-1)</code> on
+      the standard drawing gives the right silhouette and the wrong solid: the rhombus is
+      symmetric about its own horizontal axis and survives the flip, but the three verticals do
+      not — near and far swap, so the figure would draw the centre edge the body hides and omit
+      the one facing the reader. A falling column therefore carries its own five paths: the
+      cell at the top on the zero plane, the cap at the bottom at the value, and the near edge
+      on the bottom vertex where it belongs.
+    </div>
+
+    <div class="docs-note">
+      <strong>The violett rake is the lit cap's ramp with the warm source swapped for the cool
+      one.</strong> Every other number in it is unchanged — the brand's own violett, the
+      waypoint at 19&nbsp;% of the violett leg measured from violett, Glas at 0.32, CF-Grau at
+      the rim. <code>#8A94E3</code> is that waypoint computed in oklab by exactly the method
+      that yields <code>#DBFC60</code> on the lime leg, which is how it was checked: the same
+      code reproduces the shipped lime waypoint to the digit.
+      <strong>It is not a second light.</strong> Lime is the source in this brand and stays the
+      one thing <code>--lit</code> spends; this face is not lit, it is the cool end of the same
+      ramp — what the palette already does with every surface the light does not reach.
+    </div>
+
+    <div class="docs-note">
+      <strong>It is direction, not judgement.</strong> A cost falling 12&nbsp;% and a risk
+      falling 14&nbsp;% are both good outcomes. Down means the quantity went down, which is why
+      the mark is a brand hue from the cool half of the spectrum rather than a warning colour,
+      and why the modifier is called <code>--down</code>.
+    </div>
+
+    <div class="docs-note">
+      <strong>Forced colours takes the fills and keeps the drawing — and the plot needed that
+      block before any of this arrived.</strong> Every stroke here is
+      <code>var(--border-strong)</code>, and a custom property arriving at an SVG
+      <code>stroke</code> is not forced: under a dark forced palette the whole figure computed
+      black on a black Canvas, the finding <a href="pie.html">the pie</a> records for its own
+      contours. A paint server is not forced at all, so both rakes come off. What survives is
+      the drawing, the zero line and every number with its sign — and because direction is in
+      the geometry here, a falling column still falls in a palette with no colour in it.
     </div>
   </section>
 

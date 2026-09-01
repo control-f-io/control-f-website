@@ -73,6 +73,7 @@
        chrome like the patterns do. */
     { title: 'Animation Prototypes', items: [
       { href: 'prototypes/statement-to-process.html', label: 'Statement → Prozess — die Kette (Labor)' },
+      { href: 'prototypes/evidence-scroll.html', label: 'Evidenz — vier Belege' },
       { href: 'prototypes/werte-scroll.html',    label: 'Werte — logo build' },
       { href: 'prototypes/services-scroll.html', label: 'Services — assembly' },
       { href: 'prototypes/expertise-scroll.html', label: 'Expertise — vier Felder' },

@@ -841,6 +841,7 @@ be reviewed against the pages it would land on.
 | `services-scroll.html` | The four process cards assemble inside a pinned section — cubes telescoping up, layers sliding in, contours drawing themselves. 1.4 MB, almost all of it one inline Figma export. |
 | `expertise-scroll.html` | The four fields of expertise on one track — Maschinenbau, Großanlagen, Erneuerbare, Flotten. No script at all: one view timeline, four windows over it, and a step that hands over to the next on the rake. Stacked and readable below 820 px and under reduced motion. |
 | `demon-core.html` | The Über-uns header object, made live. Click the core: the reflector travels down the axis, holds, snaps shut, and the assembly goes critical in the full palette. |
+| `evidence-scroll.html` | The numbers behind the landing page's promise — one sourced figure per service (pie, plot, plot, line) on one pinned track, each chart's own keyframes re-timed onto `--cf-pin` because a `view()` timeline freezes inside a sticky stage. Every figure is verified against its primary source; the source links stand on the cards. |
 
 The first two scrub from scroll position rather than playing on a timer, which is what the
 system already commits to in `foundations/motion.html` — the animation tracks the reader's
