@@ -846,6 +846,24 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
     -webkit-text-fill-color: var(--cf-schwarz);
   }
   .cf-btn--solid .cf-arrow { fill: var(--cf-schwarz); }
+
+  /* AND --primary, WHICH HAD NEVER BEEN HANDED ANYTHING BACK. It is the one
+     button on the site that is a plate of light rather than a plate of ink, and
+     its only paint is a background-image: the specular and --gradient-light-90,
+     over `border-color: transparent`. A print dialog ships background graphics
+     off, so what actually reached paper was --accent-ink — black — floating on
+     white with a transparent hairline around it. The single call to action on
+     every page in the site printed as a phrase rather than as an object.
+
+     What the plate was carrying is "this is the one thing to do here", and the
+     rule for that is the brand's founding one: what a colour carried, a line
+     carries. The contour is the object; the label was already black. Contour
+     before fill, on the one surface that cannot hold a fill. */
+  .cf-btn--primary {
+    background-image: none;
+    border-color: var(--cf-schwarz);
+    color: var(--cf-schwarz);
+  }
 }
 @media (forced-colors: active) {
   .cf-btn--solid {
@@ -14100,4 +14118,101 @@ a.cf-calendar__day > time,
   .cf-gantt__head,
   .cf-gantt__mark--lit,
   .cf-relay__head { filter: none; }
+}
+
+/* --------------------------------------------------------------------------
+   THE SHEET, PART TWO — the register of components
+
+   base.css states the law and holds everything whose selector base.css owns:
+   the page box, the container, the ground, the headings, the paragraph, the
+   table's row and head. This is the other half, and it is here rather than
+   there for one reason: this file is loaded last, and a `display: none` that
+   loses to a `display: flex` at equal specificity is not a decision.
+
+   Two registers. WHAT A SHEET DOES NOT CARRY, and WHAT MAY NOT BE CUT.
+   → foundations/print.html
+   -------------------------------------------------------------------------- */
+
+@media print {
+  /* WITHDRAWN. Each of these is an affordance rather than content — a thing
+     whose whole purpose is to be operated — and on a sheet it cannot be
+     operated. So it is not faint, it is absent: the standard this file already
+     holds .cf-hero__still-toggle to, "a switch whose state cannot change what
+     the reader sees is worse than no switch at all".
+
+     .cf-nav is 84 px of black plate and seven links you cannot click, at the
+     top of sheet 1 of every printout the site produces. .cf-scroll-cue asks the
+     reader to scroll a sheet. .cf-pagination offers page 2 of an archive to
+     somebody holding page 1 of a printout. */
+  .cf-nav,
+  .cf-scroll-cue,
+  .cf-pagination { display: none; }
+
+  /* AND THE THREE THINGS THE HERO DID FOR THE NAV, which have to be given back
+     on the same line the nav is taken away, because none of them was ever a
+     decision about paper — they are the nav's decisions, and the nav is not
+     here. The hero is pulled up by exactly --nav-height so the artwork starts
+     where the page starts; it pads the same distance back so its first line is
+     not under the plate. With the plate gone the pull crops 84 px of artwork
+     off the top of the sheet and the pad returns it as white.
+
+     The min-height is the third and it is the largest single change on the
+     sheet. min(92vh, 56rem, …) resolves against the PAGE BOX in a print
+     context, so at A4 under base.css's margins it is min(~922px, 896px) — an
+     896 px reservation for about 400 px of content. That is most of sheet 1 of
+     every printed page in this site spent on one headline. A hero is a first
+     screen; a sheet is not a screen. */
+  .cf-hero {
+    margin-top: 0;
+    padding-block-start: 0;
+    min-height: 0;
+  }
+
+  /* A section header is the top of its section, the same way an <h2> is the top
+     of what follows it. base.css makes that rule for the headings it owns; this
+     is the same rule for the two components that ARE a heading. */
+  .cf-section-header,
+  .cf-page-header { break-after: avoid; }
+
+  /* WHAT MAY NOT BE CUT. Every entry is one object in the drawing: it has one
+     contour around it, or it is one figure and its caption, or one record.
+     Read the list as the answer to a single question asked of each component —
+     if a sheet boundary landed in the middle of this, would the reader be
+     looking at one thing in two places, or at two things? */
+  .cf-vacancy,
+  .cf-blog-card,
+  .cf-info-card,
+  .cf-process,
+  .cf-team-grid__item,
+  .cf-culture__row,
+  .cf-accordion__item,
+  .cf-contact__row,
+  .cf-value-row,
+  .cf-subdiv__cell,
+  .cf-stat,
+  .cf-quote,
+  .cf-event,
+  .cf-annot-fig,
+  .cf-plot,
+  .cf-pie,
+  .cf-line,
+  .cf-gantt,
+  .cf-block,
+  .cf-calendar { break-inside: avoid; }
+
+  /* THE ADDRESS OF A THING YOU CANNOT CLICK. An article's outbound links are
+     its sources, and on a sheet a source with no address is an assertion. This
+     is the one place in the system where CSS writes text that is not in the
+     markup, and it is scoped to the prose of an article for exactly that
+     reason: the address is printed where the reader is being asked to believe
+     something, and nowhere else. Internal links are left alone — those are the
+     site talking to itself, and a reader holding a sheet of it does not need
+     the route. Set in the mono face, which is what this system uses for machine
+     strings. */
+  .cf-prose a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    word-break: break-all;
+  }
 }

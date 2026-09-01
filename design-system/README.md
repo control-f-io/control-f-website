@@ -814,7 +814,8 @@ design-system/
 ├── index.html              overview + how to include the CSS
 ├── foundations/            colour, type, layout, geometry, iconography, materials,
 │                           illustration, logo, photo, motion, mobile,
-│                           page transitions, field, found state, line of sight
+│                           page transitions, field, found state, line of sight,
+│                           the sheet (print)
 ├── components/             buttons, nav, breadcrumb, section header, statement +
 │                           value table, plot, line, pie, gantt, annotation,
 │                           process card, accordion, blog grid,

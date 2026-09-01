@@ -2979,6 +2979,28 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-glass-rim-box.py
 
+      # The print law is the one check whose subject a screenshot cannot show
+      # you, which is the whole reason its subject drifted. foundations/print.html
+      # states what this system is on a sheet -- paper carries two of the six
+      # layers, ink is data or it is nothing, nothing drawn as one object may be
+      # cut in half by a page -- and the last two of those are registers. A
+      # register kept by hand is what check-spacing-scale.py already exists for.
+      #
+      # The failure it was written against was found on the way in and is worth
+      # keeping here, because it is the shape every future one will have: the
+      # chapter's whole `display: none` register was first written in base.css,
+      # which loads BEFORE components.css, so every selector in it lost to the
+      # component's own `display` at equal specificity. The page said the
+      # navigation bar was withdrawn on paper. The bar printed, on sheet 1 of
+      # every printout the site produces. Nothing rendered wrong on a screen,
+      # because on a screen nothing rendered at all.
+      #
+      # Proven failing on exactly that: .cf-nav taken out of the register in
+      # components.css, chapter untouched, one finding naming the selector.
+      - name: Print law
+        if: '!cancelled()'
+        run: python3 scripts/check-print-law.py
+
       # The cited gates are the ninety-first, and the only one whose subject is
       # the other ninety. Every check argues its rule in prose, and the strongest
       # move in that prose is the hand-off — "the other axis is held by this

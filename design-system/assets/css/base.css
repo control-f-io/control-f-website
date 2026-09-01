@@ -2223,3 +2223,119 @@ body > .cf-footer { view-transition-name: cf-footer; }
                        calc(100% + var(--stroke-2)) 100%);
   }
 }
+
+/* --------------------------------------------------------------------------
+   THE SHEET — what this system is on paper
+
+   The brand's founding sentence is that the site sits on a data space and not
+   on a sheet of paper. Printed, it becomes the one thing it said it was not,
+   and until this section the system had never decided what it is there. It had
+   decided it twenty times instead — twenty `@media print` blocks across
+   base.css, components.css and acts.css, each correct about its own object and
+   not one of them about the SHEET. Counted on the tree this section was written
+   against, 28 558 lines of stylesheet contained no `@page`, no `break-inside`,
+   no `break-after`, no `orphans` and no `widows`. Every sheet boundary in the
+   site therefore fell wherever the flow happened to be.
+
+   THE LAW, and it is one sentence: PAPER CARRIES TWO OF THE SIX LAYERS.
+   foundations/materials.html stacks the system back to front as base wash,
+   opaque, frosted glass, contour, light, text. A sheet holds the last two of
+   those and nothing else — CONTOUR AND TEXT. Not the wash, because a wash is a
+   ground and paper already has one. Not the glass, because a frosted surface is
+   a thing you see THROUGH and there is nothing behind a sheet. Not the light,
+   because lime on white is 1.1:1 and the light layer was never a surface. Not
+   the opaque plate, because a black plate is the reader's ink and the brand
+   does not get to spend it. The system's own drawings had each reached this
+   conclusion one object at a time; this is the sentence they were halves of.
+
+   THE SECOND CLAUSE follows from the first and was already lived: INK IS DATA
+   OR IT IS NOTHING. Every browser's print dialog ships "Background graphics"
+   off, so a background is a request rather than a fact, and no rule in this
+   system asks for it back — .cf-block says it in its own words in
+   components.css, "a chart that demands ink to be readable is a chart that is
+   not readable", which is why `print-color-adjust: exact` appears nowhere. What
+   prints is the drawing, the scale and the keys. What a colour was carrying, a
+   line carries: the same trade every `forced-colors` rule here makes, paid to a
+   different reader.
+
+   THE THIRD CLAUSE is the one nothing had made: A COMPONENT CANNOT KNOW IT IS
+   BEING CUT. Fragmentation is a property of the sheet and not of the object
+   standing on it — a job card is not divided because of anything the card says,
+   it is divided because it began 40 mm from the bottom of a page. So the rule
+   is one rule: NOTHING DRAWN AS ONE OBJECT MAY BE DIVIDED BY A SHEET BOUNDARY.
+
+   AND IT IS WRITTEN IN TWO PLACES, WHICH IS A CASCADE FACT AND NOT A SECOND
+   OPINION. This file is loaded before components.css, so a `display: none` here
+   for .cf-nav loses to the `display: flex` there at equal specificity — written
+   in this file it is not a decision, it is a comment. What belongs here is
+   everything whose selector this file owns: the page box, the container, the
+   ground, the headings, the paragraphs, the table's own row and head. The
+   register of components — what is withdrawn and what may not be cut — is at
+   the foot of components.css, where it can win.
+
+   → foundations/print.html
+   -------------------------------------------------------------------------- */
+
+@page {
+  /* Millimetres, because the two papers this will meet disagree about inches:
+     A4 is 210 x 297 mm and US Letter 216 x 279, so a margin written in mm is
+     the same margin on both and a margin written in `in` is not. 14 mm at the
+     sides leaves 182 mm of measure on A4 and 188 on Letter; 16 mm head and foot
+     is the band a hand holds a sheet by without covering a line.
+
+     UNTIL THIS RULE THERE WAS NO PAGE MARGIN OF THE SYSTEM'S OWN — only the
+     browser's default, and then --gutter on top of it, which is a clamp that
+     reaches 5rem and was measured against a viewport rather than a sheet. The
+     two stacked to about 33 mm a side against Chromium's default. .container
+     gives its padding up below: the page box holds the margin now, and two
+     boxes holding one margin is how it got to 33. */
+  margin: 16mm 14mm;
+}
+
+@media print {
+  .container { padding-inline: 0; }
+
+  /* THE GROUND. Two layers, and the site had neither of them withdrawn. `body`
+     carries --surface-base, which is CF-Grau — the data space itself, as a flat
+     fill behind every sheet. .page-wash carries the ramp and --grain over it,
+     and the forced-colours rule 700 lines up has already measured why that one
+     needs saying out loud: --grain is a data-URI SVG, and a url() layer beside
+     a gradient carries the gradient through filters that drop a gradient on its
+     own. So the reader who ticks "Background graphics" — the single tick that
+     exists, and the one a reader ticks when they want a figure to keep its
+     colour — was buying the full CF-Grau ramp and 8 % greyscale noise flooded
+     across every sheet with it. The ground is the paper. */
+  body { background: none; }
+  .page-wash { background-image: none; }
+
+  /* Already off the page box under its own transform. Named so that the list of
+     what a sheet does not carry is the list. */
+  .skip-link { display: none; }
+
+  /* A HEADING IS NOT A LINE, IT IS THE TOP OF THE THING UNDER IT. Left alone,
+     the last thing on a sheet is regularly a section number and its title with
+     the section itself overleaf, which reads as a heading for nothing. */
+  h1, h2, h3, h4, h5, h6,
+  figcaption { break-after: avoid; }
+
+  /* One line of a paragraph, alone at the foot or the head of a sheet. Three
+     and three rather than the CSS initial of two and two: at
+     --leading-relaxed a two-line remainder still reads as a stray. */
+  p, li, blockquote, dd, figcaption { orphans: 3; widows: 3; }
+
+  /* A figure is its drawing and its caption, and a table row is one record.
+     Neither survives being halved. The table itself is deliberately absent from
+     this list — a table is not one object, it is a stack of rows, and it is
+     free to run over as many sheets as it needs. */
+  figure,
+  tr { break-inside: avoid; }
+
+  /* WHICH IS ONLY TRUE IF IT TAKES ITS HEAD WITH IT. A table that crosses a
+     sheet boundary otherwise leaves the reader a grid of numbers with nothing
+     saying which column is which. `table-header-group` is the one declaration
+     that repeats the head on every sheet the table reaches — and it is why the
+     head row was given `white-space: normal` in print over in components.css:
+     a repeated head is a head that has to fit more than once. */
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+}

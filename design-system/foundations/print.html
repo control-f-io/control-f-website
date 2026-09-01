@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Sheet — Control-F Design System</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* Demo chrome only. Nothing here is part of the system.
+
+     The two diagrams on this page are drawn ORTHOGONALLY and not in isometry,
+     which is a decision rather than an omission. foundations/geometry.html
+     reserves 2:1 isometry for anything SPATIAL — an object standing in the data
+     space. A sheet is not in the space; it is the surface the space is being
+     given up for, and drawing it at 26.57 degrees would say the opposite of
+     what this whole chapter says. Square corners, 1 px contours, the four
+     angles unused because nothing here is tilted. */
+  .sheets {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--space-8);
+  }
+  .sheets figure { margin: 0; }
+  .sheets figcaption {
+    margin-top: var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    max-width: var(--measure-prose);
+  }
+  .sheet-stack { display: grid; gap: var(--space-4); }
+  .sheet {
+    /* Paper, drawn as paper: white, square, one hairline. */
+    position: relative;
+    background: var(--grey-000);
+    border: var(--stroke-1) solid var(--border-strong);
+    padding: var(--space-3);
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+    min-height: 8.5rem;
+  }
+  .sheet__num {
+    position: absolute;
+    right: var(--space-3);
+    bottom: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    color: var(--text-muted);
+  }
+  .rec {
+    border: var(--stroke-1) solid var(--border-strong);
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  /* A record the boundary went through. The two halves carry the SAME label,
+     because that is the fault: one thing in two places. */
+  .rec--cut-top    { border-block-end: 0; }
+  .rec--cut-bottom { border-block-start: 0; color: var(--text-muted); }
+  .rec--whole      { border-color: var(--cf-schwarz); color: var(--text-primary); }
+  .sheet__slack {
+    /* The price of the rule, drawn rather than hidden: the foot of the sheet
+       the record was moved off. 1-4 is the line type this system uses for a
+       thing that is absent. */
+    min-height: 2.25rem;
+    background-image: repeating-linear-gradient(
+      to right, var(--border-subtle) 0 1px, transparent 1px 5px);
+    background-position: 0 50%;
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+  }
+  .layers td:first-child { white-space: nowrap; }
+  .layers .gone { color: var(--text-muted); }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 16</p>
+    <h1>The Sheet</h1>
+    <p>
+      The brand's founding sentence is that this sits on a data space and not on a sheet of
+      paper. Printed, it becomes the one thing it said it was not, and the system had never
+      decided what it is there. It had decided it twenty times instead. This chapter is the
+      sentence those twenty decisions were each half of: <strong>paper carries two of the six
+      layers</strong> — contour and text — and nothing drawn as one object may be divided by a
+      sheet boundary.
+    </p>
+  </header>
+
+  <section class="docs-section" id="where">
+    <h2>Where this comes from</h2>
+    <p>
+      No plate in <code>assets/source/manual/</code> is about print, and neither mockup is a
+      sheet, so this chapter is derived from the language the way
+      <a href="found.html">The Found State</a> and <a href="../components/plot.html">Plot</a>
+      are: built only out of what the manual does establish. Its one source is the
+      <a href="materials.html">Materials</a> plate — the six layers, back to front — and its
+      one move is to ask which of them a sheet can hold.
+    </p>
+    <p>
+      What makes it worth deriving is that the answer was already being given, one object at a
+      time, by people who could not see each other's work. The tree this chapter was written
+      against carried twenty <code>@media print</code> blocks across three stylesheets. The foil
+      goes black. The solid button gives up its plate. The stream's caret stops and its
+      screen-reader copy comes out of the clip rect. The consent banner goes, and so does the
+      height it had reserved. Every one of those is right, and every one of them is about an
+      object. Not one of them is about the sheet: in 28 558 lines there was no
+      <code>@page</code>, no <code>break-inside</code>, no <code>break-after</code>, no
+      <code>orphans</code> and no <code>widows</code>.
+    </p>
+    <div class="docs-note">
+      <p>
+        Printing is not a rare path for this site. The pages a reader actually puts on paper are
+        a job advert they want to read away from a screen, an
+        <a href="../patterns/impressum.html">Impressum</a> or a
+        <a href="../patterns/datenschutz.html">Datenschutz</a> page they have been asked to
+        keep, and an article they want to mark up. Three of those four are legal text.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="law">
+    <h2>The law: paper carries two of the six layers</h2>
+    <p>
+      <a href="materials.html">Materials</a> stacks the system back to front as base wash,
+      opaque, frosted glass, contour, light, text. A sheet holds the last two of those and
+      nothing else.
+    </p>
+    <table class="docs-table layers">
+      <thead><tr><th>Layer</th><th>On a screen</th><th>On a sheet</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr class="gone">
+          <td>01 Base wash</td><td>CF-Grau to white, plus grain</td><td>Withdrawn</td>
+          <td>A wash is a ground, and paper already has one.</td>
+        </tr>
+        <tr class="gone">
+          <td>02 Opaque</td><td>Black and anthracite plates</td><td>Withdrawn</td>
+          <td>A black plate is the reader's ink, and the brand does not get to spend it.</td>
+        </tr>
+        <tr class="gone">
+          <td>03 Frosted glass</td><td>Blur over what is behind</td><td>Withdrawn</td>
+          <td>Glass is a thing you see <em>through</em>. There is nothing behind a sheet.</td>
+        </tr>
+        <tr>
+          <td>04 Contour</td><td>1 px hairlines, four line types</td><td><strong>Carried</strong></td>
+          <td>The one layer that was already ink. It is what print is best at.</td>
+        </tr>
+        <tr class="gone">
+          <td>05 Light</td><td>Lime, once per screen</td><td>Withdrawn</td>
+          <td>Lime on white is 1.1:1, and the light layer was never a surface.</td>
+        </tr>
+        <tr>
+          <td>06 Text</td><td>Geist, Geist Mono</td><td><strong>Carried</strong></td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      Two survivors, and they are the two the brand's first rule is about. <em>Kontur vor
+      Fläche</em> is not a compromise on paper — it is the only thing paper was ever going to
+      let this system be. A page of this site printed correctly is the brand with everything
+      optional taken off it.
+    </p>
+  </section>
+
+  <section class="docs-section" id="ink">
+    <h2>Ink is data, or it is nothing</h2>
+    <p>
+      The second clause follows from the first, and the system was already living it. Every
+      browser's print dialog ships <strong>Background graphics off</strong>, so a background is
+      a request rather than a fact — and no rule in this system asks for it back.
+      <code>print-color-adjust: exact</code> appears nowhere, deliberately.
+      <a href="../components/block.html">Block</a> states the reason in its own words:
+    </p>
+    <blockquote class="measure">
+      <p>a chart that demands ink to be readable is a chart that is not readable</p>
+    </blockquote>
+    <p>
+      So a colour never carries the only copy of anything. Where a screen distinguishes with
+      hue, a sheet distinguishes with a line — the same trade every
+      <code>forced-colors</code> rule in this system already makes, paid to a different reader.
+      A figure that survives forced colours survives paper, and the two checks are one check.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <p>
+        The one thing this clause is not is permission to leave an object unpainted. The
+        primary button's only paint was a gradient over a transparent border, so with
+        backgrounds off the site's single call to action printed as a phrase floating on white
+        with nothing around it. It takes a black contour on paper now:
+        <em>what a colour was carrying, a line carries.</em>
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="page-box">
+    <h2>The page box</h2>
+    <p>
+      There had been no page margin of the system's own — only the browser's default, and then
+      <code>--gutter</code> on top of it, a clamp that reaches <code>5rem</code> and was
+      measured against a viewport rather than a sheet. Stacked against Chromium's default that
+      is about 33 mm a side. Two boxes were holding one margin.
+    </p>
+<pre class="docs-code"><span class="tag">@page</span> {
+  <span class="attr">margin</span>: <span class="val">16mm 14mm</span>;
+}
+<span class="tag">@media print</span> {
+  <span class="tag">.container</span> { <span class="attr">padding-inline</span>: <span class="val">0</span>; }
+  <span class="tag">body</span> { <span class="attr">background</span>: <span class="val">none</span>; }
+  <span class="tag">.page-wash</span> { <span class="attr">background-image</span>: <span class="val">none</span>; }
+}</pre>
+    <p>
+      Millimetres, because the two papers this will meet disagree about inches: A4 is
+      210 × 297 mm and US Letter is 216 × 279. A margin written in mm is the same margin on
+      both; a margin written in <code>in</code> is not. 14 mm at the sides leaves 182 mm of
+      measure on A4 and 188 on Letter, and 16 mm head and foot is the band a hand holds a sheet
+      by without covering a line. No <code>size</code> is declared — the paper in the tray is
+      the reader's decision, not the brand's.
+    </p>
+    <p>
+      The ground is two layers and neither had been withdrawn. <code>body</code> carries
+      <code>--surface-base</code>, which is CF-Grau: the data space itself, as a flat fill
+      behind every sheet. <code>.page-wash</code> carries the ramp and <code>--grain</code> over
+      it, and the reason that one has to be said out loud is measured in
+      <a href="colors.html#wash">Colour</a>: <code>--grain</code> is a data-URI SVG, and a
+      <code>url()</code> layer beside a gradient carries the gradient through filters that drop
+      a gradient on its own. The reader who ticks Background graphics — the single tick that
+      exists, and the one you tick when you want a figure to keep its colour — was buying the
+      full CF-Grau ramp and 8 % greyscale noise flooded across every sheet along with it.
+    </p>
+  </section>
+
+  <section class="docs-section" id="withdrawn">
+    <h2>What a sheet does not carry</h2>
+    <p>
+      Everything in this register is an affordance rather than content — a thing whose whole
+      purpose is to be operated. On a sheet it cannot be operated, so it is not faint, it is
+      absent. That is the standard <a href="../components/block.html">the hero's pause switch</a>
+      is already held to: a switch whose state cannot change what the reader sees is worse than
+      no switch at all.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Withdrawn</th><th>What it was doing on paper</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-nav</code></td><td>84 px of black plate and seven links you cannot click, at the top of sheet 1 of every printout the site produces.</td></tr>
+        <tr><td><code>.cf-scroll-cue</code></td><td>Asking the reader to scroll a sheet.</td></tr>
+        <tr><td><code>.cf-pagination</code></td><td>Offering page 2 of an archive to somebody holding page 1 of a printout.</td></tr>
+        <tr><td><code>.skip-link</code></td><td>Already off the page box under its own transform. Named so the register is the register.</td></tr>
+        <tr><td><code>.cf-consent</code>, <code>dialog</code></td><td>Withdrawn before this chapter, with the height the banner had reserved. See <a href="../components/consent.html">Consent</a>.</td></tr>
+      </tbody>
+    </table>
+    <h3>And the three things the hero did for the nav</h3>
+    <p>
+      These have to be given back on the same line the nav is taken away, because none of them
+      was ever a decision about paper — they are the nav's decisions, and the nav is not here.
+      The hero is pulled up by exactly <code>--nav-height</code> so the artwork starts where the
+      page starts, and it pads the same distance back so its first line is not under the plate.
+      With the plate gone, the pull crops 84 px of artwork off the top of the sheet and the pad
+      returns it as white.
+    </p>
+    <p>
+      The third is the largest single change on the sheet.
+      <code>min-height: min(92vh, 56rem, …)</code> resolves against the <strong>page box</strong>
+      in a print context, so at A4 under the margins above it is
+      <code>min(~922px, 896px)</code> — an 896 px reservation for about 400 px of content. That
+      is most of sheet 1 of every printed page in this site spent on one headline. A hero is a
+      first screen; a sheet is not a screen.
+    </p>
+  </section>
+
+  <section class="docs-section" id="fragmentation">
+    <h2>What may not be cut</h2>
+    <p>
+      This is the clause nothing had made, and it is the one that decides whether a printout is
+      usable. <strong>A component cannot know it is being cut.</strong> Fragmentation is a
+      property of the sheet and not of the object standing on it: a job card is not divided
+      because of anything the card says, it is divided because it began 40 mm from the bottom of
+      a page. There is no rule you could write next to <code>.cf-vacancy</code> that would be
+      about <code>.cf-vacancy</code>.
+    </p>
+
+    <div class="docs-demo docs-demo--flat">
+      <div class="sheets">
+        <figure>
+          <div class="sheet-stack">
+            <div class="sheet">
+              <span class="rec">Data Engineer</span>
+              <span class="rec">ML Engineer</span>
+              <span class="rec rec--cut-top">DevOps Engineer</span>
+              <span class="sheet__num">1</span>
+            </div>
+            <div class="sheet">
+              <span class="rec rec--cut-bottom">DevOps Engineer</span>
+              <span class="rec">Werkstudent</span>
+              <span class="sheet__num">2</span>
+            </div>
+          </div>
+          <figcaption>
+            Without the rule. The third record began too late on sheet 1, so the reader is
+            holding one thing in two places, and the contour that made it one thing is broken
+            open at both ends of the boundary.
+          </figcaption>
+        </figure>
+        <figure>
+          <div class="sheet-stack">
+            <div class="sheet">
+              <span class="rec">Data Engineer</span>
+              <span class="rec">ML Engineer</span>
+              <span class="sheet__slack" aria-hidden="true"></span>
+              <span class="sheet__num">1</span>
+            </div>
+            <div class="sheet">
+              <span class="rec rec--whole">DevOps Engineer</span>
+              <span class="rec">Werkstudent</span>
+              <span class="sheet__num">2</span>
+            </div>
+          </div>
+          <figcaption>
+            With it. The record moves whole, and the foot of sheet 1 is left short. That slack
+            is the price, it is paid on every sheet boundary, and it is cheaper than the
+            alternative every time.
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <p>
+      Read the register as the answer to a single question asked of each component: if a sheet
+      boundary landed in the middle of this, would the reader be looking at one thing in two
+      places, or at two things?
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Rule</th><th>Applies to</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>break-after: avoid</code></td>
+          <td><code>h1</code>, <code>h2</code>, <code>h3</code>, <code>h4</code>, <code>h5</code>,
+              <code>h6</code>, <code>figcaption</code>,<br><code>.cf-section-header</code>,
+              <code>.cf-page-header</code></td>
+          <td>A heading is not a line, it is the top of the thing under it. Left alone, the last thing on a sheet is regularly a section number and its title with the section itself overleaf.</td>
+        </tr>
+        <tr>
+          <td><code>orphans: 3; widows: 3</code></td>
+          <td><code>p</code>, <code>li</code>, <code>blockquote</code>, <code>dd</code></td>
+          <td>Three rather than the CSS initial of two: at <code>--leading-relaxed</code> a two-line remainder still reads as a stray.</td>
+        </tr>
+        <tr>
+          <td><code>break-inside: avoid</code></td>
+          <td><code>figure</code>, <code>tr</code></td>
+          <td>A figure is its drawing and its caption. A row is one record.</td>
+        </tr>
+        <tr>
+          <td><code>break-inside: avoid</code></td>
+          <td>
+            <code>.cf-vacancy</code>, <code>.cf-blog-card</code>, <code>.cf-info-card</code>,
+            <code>.cf-process</code>, <code>.cf-team-grid__item</code>,
+            <code>.cf-culture__row</code>, <code>.cf-accordion__item</code>,
+            <code>.cf-contact__row</code>, <code>.cf-value-row</code>,
+            <code>.cf-subdiv__cell</code>, <code>.cf-stat</code>, <code>.cf-quote</code>,
+            <code>.cf-event</code>, <code>.cf-annot-fig</code>, <code>.cf-plot</code>,
+            <code>.cf-pie</code>, <code>.cf-line</code>, <code>.cf-gantt</code>,
+            <code>.cf-block</code>, <code>.cf-calendar</code>
+          </td>
+          <td>Each is one object in the drawing: one contour around it, or one figure and its caption, or one record.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>A table is deliberately not on that list.</strong> A table is not one object, it is
+      a stack of rows, and it is free to run over as many sheets as it needs — which is only
+      true if it takes its head with it. Otherwise the reader is left holding a grid of numbers
+      with nothing saying which column is which.
+    </p>
+<pre class="docs-code"><span class="tag">thead</span> { <span class="attr">display</span>: <span class="val">table-header-group</span>; }
+<span class="tag">tfoot</span> { <span class="attr">display</span>: <span class="val">table-footer-group</span>; }</pre>
+    <p>
+      That is also why the head row was already given <code>white-space: normal</code> in print
+      by <a href="../components/table.html">Table</a>: a repeated head is a head that has to fit
+      more than once.
+    </p>
+  </section>
+
+  <section class="docs-section" id="addresses">
+    <h2>The address of a thing you cannot click</h2>
+    <p>
+      An article's outbound links are its sources, and on a sheet a source with no address is an
+      assertion. This is the one place in the system where CSS writes text that is not in the
+      markup, and it is scoped to the prose of an article for exactly that reason: the address
+      is printed where the reader is being asked to believe something, and nowhere else.
+    </p>
+<pre class="docs-code"><span class="tag">.cf-prose a[href^="http"]::after</span> {
+  <span class="attr">content</span>: <span class="val">" (" attr(href) ")"</span>;
+  <span class="attr">font-family</span>: <span class="val">var(--font-mono)</span>;
+  <span class="attr">font-size</span>: <span class="val">var(--text-xs)</span>;
+  <span class="attr">word-break</span>: <span class="val">break-all</span>;
+}</pre>
+    <p>
+      Internal links are left alone. Those are the site talking to itself, and a reader holding a
+      sheet of it does not need the route. The mono face is the system's face for machine
+      strings, and an address is one.
+    </p>
+  </section>
+
+  <section class="docs-section" id="where-the-rules-live">
+    <h2>Where the rules live, and why in two places</h2>
+    <p>
+      The law and the page box are in <code>base.css</code>. The register of components is at
+      the foot of <code>components.css</code>. That split is a cascade fact and not a second
+      opinion: <code>base.css</code> loads first, so a <code>display: none</code> written there
+      for <code>.cf-nav</code> loses to the <code>display: flex</code> in
+      <code>components.css</code> at equal specificity. Written in the wrong file it is not a
+      decision, it is a comment — which is how the first draft of this chapter shipped a nav bar
+      onto every sheet while claiming to have removed it.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>File</th><th>Holds</th></tr></thead>
+      <tbody>
+        <tr><td><code>base.css</code></td><td><code>@page</code>, <code>.container</code>, the ground, headings, paragraphs, <code>figure</code>, <code>tr</code>, <code>thead</code>/<code>tfoot</code>, <code>.skip-link</code>, and the statement of the law.</td></tr>
+        <tr><td><code>components.css</code></td><td>The two registers: what is withdrawn, and what may not be cut. Plus the print decisions that were already there beside their own components.</td></tr>
+        <tr><td><code>acts.css</code></td><td>The landing page's own two, which predate this chapter and are unchanged.</td></tr>
+        <tr><td><code>docs.css</code></td><td>Nothing. This documentation site does not ship, and printing it is not a path anyone is on.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="checking">
+    <h2>How to check it</h2>
+    <p>
+      Print styles are the one part of this system a screenshot cannot show you, which is most
+      of why they drifted. Two ways to see them, both without printing anything:
+    </p>
+    <ul class="measure">
+      <li>
+        <strong>DevTools → Rendering → Emulate CSS media type: <code>print</code>.</strong> The
+        page re-renders in place. This shows every rule but no sheet boundary, so it answers
+        “what is on the page” and not “where is it cut”.
+      </li>
+      <li>
+        <strong>Print to PDF and read the sheets.</strong> The only way to see fragmentation.
+        Headless works: <code>chrome --headless --print-to-pdf=out.pdf &lt;url&gt;</code>.
+      </li>
+    </ul>
+    <div class="docs-note">
+      <p>
+        Check with Background graphics <em>on</em> at least once. It is the setting a reader
+        turns on when they want a figure to keep its colour, and it is the setting under which
+        the ground used to flood every sheet — the fault stays invisible in the default.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Do and don't</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Add a new object to the <a href="#fragmentation">may-not-be-cut register</a> the day you add the component, not the day someone prints it.</li>
+          <li>Give a withdrawn affordance's reservations back on the same line you withdraw it — the hero's three are the worked example.</li>
+          <li>Let a colour distinguish, and let a line distinguish too. If the figure survives <code>forced-colors</code> it survives paper.</li>
+          <li>Write page measurements in <code>mm</code>. A4 and Letter disagree about inches.</li>
+          <li>Put a rule where it can win: the object registers belong at the foot of <code>components.css</code>.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Reach for <code>print-color-adjust: exact</code>. It asks the reader for ink to make up for a drawing that does not work, and it is off by default anyway.</li>
+          <li>Leave an object with no paint but a background. That is how the primary button printed as a floating phrase.</li>
+          <li>Put <code>break-inside: avoid</code> on a container that can legitimately run long — a table, a section, <code>.cf-prose</code>. It does not prevent the break, it just makes the browser start the whole thing on a fresh sheet.</li>
+          <li>Assume <code>vh</code> means what it means on a screen. In a print context it resolves against the page box, which is how one headline came to own 85 % of sheet 1.</li>
+          <li>Hide something on paper because it looks busy. Withdraw it because it cannot be operated, or leave it.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>

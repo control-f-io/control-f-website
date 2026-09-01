@@ -109,6 +109,24 @@ def blocks(css):
     return out
 
 
+def in_print(all_blocks, offset):
+    """Is this rule inside an `@media print` block?
+
+    The subject of this file is where a container PLACES ITS PLATE on a screen,
+    and the pinned stage rounds against that placement. A print rule is not
+    that: foundations/print.html hands the sheet's margin to `@page` and takes
+    .container's inline padding to 0, which is correct on paper and would be
+    read here as "the container no longer pads" — the stage would then be told
+    to round against `0`, on a medium the stage is not rendered in at all.
+    Skipping the print context is the same distinction the rest of this file
+    already makes between a rule and the at-rule it is standing in.
+    """
+    for pre, _, start, end in all_blocks:
+        if start < offset < end and pre.replace(" ", "").startswith("@mediaprint"):
+            return True
+    return False
+
+
 def rules_for(css, selector, all_blocks=None):
     """Every `selector { ... }` block, as (offset, body)."""
     found = []
@@ -157,9 +175,12 @@ def main():
 
     base_blocks = blocks(base)
     acts_blocks = blocks(acts)
-    container = rules_for(base, ".container", base_blocks)
+    container = [
+        (off, body) for off, body in rules_for(base, ".container", base_blocks)
+        if not in_print(base_blocks, off)
+    ]
     if not container:
-        print("plate grid: base.css declares no `.container` rule at all.")
+        print("plate grid: base.css declares no `.container` rule for a screen at all.")
         return 1
     cd = {}
     for _, body in container:
