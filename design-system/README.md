@@ -316,7 +316,7 @@ page. An empty result stops the sync instead — the zero state is
 python3 scripts/check-spacing-scale.py         # from the repo root
 python3 scripts/check-spacing-scale.py --fix   # rewrite the table in foundations/layout.html
 python3 scripts/check-gradient-family.py       # the light family, in every shipped SVG and stylesheet
-python3 scripts/check-gradient-family.py -v    # list all 88 gradients, not only the failures
+python3 scripts/check-gradient-family.py -v    # list all 239 gradients, not only the failures
 python3 scripts/check-iso-motion.py            # the isometric assembly's invariants
 python3 scripts/check-glass-budget.py          # what backdrop-filter is allowed to cost
 python3 scripts/check-glass-budget.py --fix    # rewrite the census in foundations/materials.html
