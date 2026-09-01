@@ -7051,12 +7051,44 @@ a.cf-calendar__day > time,
   font-size: var(--text-md);
   color: var(--text-secondary);
 }
+/* THE BUTTON IS .cf-btn--outline, so it is drawn and it reacts like one. A
+   transparent plate with a --border-strong contour and a mono label in caps is
+   that button's construction exactly; what it was missing was that button's
+   behaviour, and both halves of what it had instead were inert.
+
+   THE RADIUS WAS A DANGLING TOKEN. This rule asked for --radius-pill, which
+   tokens.css deleted — "Nothing in the source is a pill … It is gone; do not
+   reintroduce it. If a rounded control is needed, it is 2 px." An unresolvable
+   var() with no fallback is invalid at computed-value time, so border-radius
+   fell back to its initial 0 and the button has been rendering square by
+   accident, off a declaration asking for the one shape the system forbids.
+   It is --radius-sm now, which is what .cf-btn carries and what the token note
+   prescribes: this is a control, and a control is the thing that takes the
+   2 px. The corner is a decision again rather than a fault that happened to
+   land on the right answer.
+
+   AND THE HOVER PAINTED NOTHING. `border-color: var(--text-primary)` sat on a
+   border already declared `var(--border-strong)`, and both tokens resolve to
+   #000000 — so the state changed the contour from black to black. Measured on
+   patterns/bewerbung.html at 1280, the field's own box captured at rest and
+   under the pointer: 0 differing pixels. There is nothing under this contour
+   to go darker to, which is the same wall .cf-btn--solid names ("the plate is
+   black at rest, so hover has to LIFT"); an outline button answers it by
+   inverting instead, and that is the declaration borrowed here rather than
+   restated. --duration-base and not --duration-fast, because this is now the
+   control acknowledging rather than a hairline changing weight.
+
+   The inversion is background and colour, so forced-colors mode drops it —
+   correctly. Hover is not an indicator that mode has to preserve, it has its
+   own conventions for one, and the contour that survives there is the border
+   this rule no longer touches. The FOCUS indicator is the part that may not
+   depend on a background, and it does not: see the focus rule below. */
 .cf-field__file::file-selector-button {
   margin-right: var(--space-3);
   padding: var(--space-1) var(--space-3);
   background: transparent;
   border: var(--stroke-1) solid var(--border-strong);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
@@ -7064,23 +7096,55 @@ a.cf-calendar__day > time,
   text-transform: uppercase;
   color: var(--text-primary);
   cursor: pointer;
-  transition: border-color var(--duration-fast) var(--ease-standard),
-              color var(--duration-fast) var(--ease-standard);
+  transition: background var(--duration-base) var(--ease-standard),
+              color var(--duration-base) var(--ease-standard);
 }
 .cf-field__file::file-selector-button:hover {
-  border-color: var(--text-primary);
+  background: var(--cf-schwarz);
+  color: var(--grey-000);
 }
 .cf-field__textarea { resize: vertical; min-height: 7rem; }
 .cf-field__input::placeholder,
 .cf-field__textarea::placeholder { color: var(--text-muted); }
 /* The line goes to 2 px and the padding gives the pixel back, so focusing a
    field does not push everything under it down by one. The thickening is the
-   whole indicator here — see the note at the read-only rule for the one case
-   that has no line left to thicken and therefore keeps the global ring. */
+   whole indicator here — and it may be, for the three controls named below,
+   because on each of them the line IS the control: the caret lands on it and
+   the reader's own next keystroke appears above it.
+
+   THERE ARE TWO CONTROLS THAT LINE CANNOT SPEAK FOR, not one, and the second
+   was in this list for six characters' worth of resemblance. The read-only
+   field is the case the rule below already names — no line left to thicken, so
+   it keeps the global ring. THE FILE FIELD IS THE MIRROR OF IT: it has a line,
+   which is why it looked like it belonged here, but the line is not where the
+   control is. What a reader operates is the button at the far left; there is
+   no caret, and nothing they type appears anywhere. So the indicator was a
+   hairline gaining one pixel, the width of the whole field, 22 px below and
+   ~110 px to the right of the only thing on the row that does anything.
+
+   Measured on patterns/bewerbung.html at 1280, the CV field's box captured at
+   rest and again after a real Tab onto it, differenced pixel by pixel: 655
+   pixels changed, every one of them inside a single 655 x 1 row at the bottom
+   edge. Zero of them on the button. WCAG 2.4.11 asks a focus indicator for the
+   area of a 2 px perimeter of the component or sub-component and for 3:1
+   against its own unfocused state; a detached 1 px line clears neither test,
+   and 1 px also forfeits the "no thinner than 2 CSS pixels" alternative.
+
+   So .cf-field__file comes out of this list, and that is the entire fix: with
+   the override gone, base.css's ring — the system's one focus indicator, 2 px
+   of --focus-ring at 2 px offset, around the input the reader is actually on —
+   applies to it the way it applies to every other input, and the border stays
+   1 px so nothing gains a second indicator. Removed rather than overridden
+   after the read-only rule's shape, deliberately: an override here would tie
+   with this rule at (0,2,0) and be decided by source order, which is the trap
+   the .cf-gantt__mark--lit note at the foot of this file was written about.
+
+   Outline and not the inversion the button takes on hover: an outline colour
+   is mapped by forced-colors mode and a background is discarded, so this is
+   the half of the component that survives Windows high contrast. */
 .cf-field__input:focus,
 .cf-field__textarea:focus,
-.cf-field__select:focus,
-.cf-field__file:focus {
+.cf-field__select:focus {
   outline: 0;
   border-bottom-width: var(--stroke-2);
   padding-bottom: calc(var(--space-3) - var(--stroke-1));
@@ -7125,9 +7189,25 @@ a.cf-calendar__day > time,
    and the four line types are ratios, so 2-1 is a repeating gradient sized
    to the border box — the same construction as .rule--dashed-2-1 in
    base.css and .cf-arrive__plate below. Change one, change the others. */
+/* AND THE FILE FIELD IS IN THIS LIST, which it was not. Four controls carry
+   .cf-field__*, three were named here, and the ladder is doctrine rather than
+   decoration: "a disabled field is the same field one rung down". Measured by
+   building one of each disabled and reading them back, the file field kept a
+   SOLID black 1 px line where the other three drop to the 2-1 gradient, and
+   kept `cursor: default` where the other three say `not-allowed`. Its ink was
+   the only part that matched, and by coincidence — .cf-field__file already
+   sets --text-secondary at rest, so the one property that looked right was the
+   one this rule was not supplying.
+
+   The failure shape is the hand-written selector list, which this repository
+   has now named four times in three files: the overflow-wrap net, the focus
+   ring's five tags plus [tabindex], the fluid record, and this. Each was a
+   list of the things a person thinks of as belonging rather than of the things
+   that actually match the class. */
 .cf-field__input[disabled],
 .cf-field__textarea[disabled],
-.cf-field__select[disabled] {
+.cf-field__select[disabled],
+.cf-field__file[disabled] {
   border-bottom-color: transparent;
   background-image: repeating-linear-gradient(90deg,
     var(--border-strong) 0 4px, transparent 4px 6px);
