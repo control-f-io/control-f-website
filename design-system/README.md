@@ -361,6 +361,8 @@ python3 scripts/check-field-family.py          # every field control is accounte
 python3 scripts/check-field-family.py -v       # every shared rule and the controls it names
 python3 scripts/check-foil-clip.py             # the foil's clip box is capped at its ink, and no box property takes fit-content()
 python3 scripts/check-foil-clip.py -v          # every declaration considered
+python3 scripts/check-foil-doors.py            # every gradient in the letters hands its ink back on paper, under forced colours and for more contrast
+python3 scripts/check-foil-doors.py -v         # every clipping context, every state, every door
 python3 scripts/check-lime-flat.py             # every flat lime area sits on one of the light layer's four boundaries
 python3 scripts/check-lime-flat.py --fix       # rewrite the census in foundations/light.html
 python3 scripts/check-lime-flat.py -v          # every area paint examined, and the argument that covers it
@@ -376,7 +378,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The twenty-seven checks the system enforces rather than documents, run by CI on every push and
+The twenty-eight checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -439,6 +441,20 @@ with no `@supports` branch — the only lime ramp in the system's CSS never put 
 path, at ΔEok 0.03866 composited over CF-Grau, seventy-nine times the divergence of the
 `--glass-edge` layer directly above it that the family deliberately declines to correct. Its
 stops are a custom property now and only the path changes.
+
+**A gradient in the letters is a solid colour at every door,** and the third door was not
+there. A clipping context — `background-clip: text` with the fill transparent, which is
+`.text-foil` and the black button's label — hands its ink back on paper and under forced
+colours, and both of those are limitations. `prefers-contrast: more` is a request, and no
+rule in the four shipping stylesheets read it: a reader who had set it was handed the ink
+foil at its 5.24:1 floor on the page's own grey where solid ink is 13.48:1. Both contexts
+answer it now with the solid ink of their surface, and `check-foil-doors.py` holds every
+clipping context to all three doors **in every state it clips in** — which is how it found
+that the button's two older doors were written for the resting button only, and were beaten
+on hover by the rule that restates the clip at a higher specificity. That never showed,
+because the fill each door hands back happens to be declared later in source than the
+transparent one; a label legible by source order rather than by statement is the dependency
+the button's own comment names as the way this bug comes back.
 
 **The isometric assembly** holds to six rules, all of which were already written down in
 prose and none of which anything ran:

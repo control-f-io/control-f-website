@@ -851,10 +851,26 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      both now, so both copies are gone. See base.css, ::selection. */
 }
 
-/* Both of these hand the label back a real colour. Ink on paper has no plate
-   to sit on, and forced-colors has already decided what a button looks like. */
+/* All three of these hand the label back a real colour. Ink on paper has no
+   plate to sit on, forced-colors has already decided what a button looks
+   like, and a reader who asked for more contrast asked for the top of the
+   range rather than a ramp whose floor happens to be high.
+
+   EACH DOOR NAMES ALL THREE STATES, for the reason the @supports block above
+   names them together: the shorthand's hover restates the whole layer list
+   at a higher specificity than a bare .cf-btn--solid, so a door written for
+   the resting button alone is beaten on :hover and :focus-visible and the
+   foil clip comes back under it. The two older doors used to be written that
+   way. It never showed, because the fill each door hands back is declared
+   later in source than the transparent one and the hover rule never touches
+   the fill — a label that stays legible by source order rather than by
+   statement, which is exactly the dependency the comment above says this
+   bug comes back through. scripts/check-foil-doors.py holds every door to
+   every state the context clips in. */
 @media print {
-  .cf-btn--solid {
+  .cf-btn--solid,
+  .cf-btn--solid:hover,
+  .cf-btn--solid:focus-visible {
     background: none;
     color: var(--cf-schwarz);
     -webkit-text-fill-color: var(--cf-schwarz);
@@ -880,12 +896,33 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   }
 }
 @media (forced-colors: active) {
-  .cf-btn--solid {
+  .cf-btn--solid,
+  .cf-btn--solid:hover,
+  .cf-btn--solid:focus-visible {
     background: none;
     color: ButtonText;
     -webkit-text-fill-color: ButtonText;
   }
   .cf-btn--solid .cf-arrow { fill: ButtonText; }
+}
+/* The plate stays and only the image goes — background-image: none rather
+   than background: none — because this door, unlike paper and forced
+   colours, still has a black plate to keep: Weiss on Schwarz is 21:1 at rest
+   and 16.5:1 on the grey-800 hover, against the foil's own 11.9 and 9.3. The
+   arrow takes the same ink because --violett-300 was the ramp's own last
+   stop, and there is no ramp. See base.css, THE FOURTH DOOR, for why the
+   answer is solid ink and not a darker foil. */
+@media (prefers-contrast: more) {
+  .cf-btn--solid,
+  .cf-btn--solid:hover,
+  .cf-btn--solid:focus-visible {
+    background-image: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    color: var(--text-inverse);
+    -webkit-text-fill-color: var(--text-inverse);
+  }
+  .cf-btn--solid .cf-arrow { fill: var(--text-inverse); }
 }
 
 /* The one button that goes back to square, because it has no plate: it is a
@@ -6897,7 +6934,33 @@ a.cf-calendar__day > time,
     border-bottom: 0;
     border-right: var(--stroke-1) solid var(--border-strong);
   }
-  .cf-value-row__body { padding: var(--space-8); font-size: var(--text-lg); }
+  /* THE COPY SITS ON THE FIGURE'S AXIS, NOT ON THE ROW'S TOP EDGE. The figure
+     cell above is place-items: center, so the drawing stands at mid-row — and
+     the copy beside it stood at the top, which put the two halves of one row
+     on two different axes: a three-line block hanging off the top rule with
+     170 px of empty cell under it, next to a figure centred 120 px down.
+     Optically the row read as a caption that had slipped.
+
+     The mockup centres both. Pixel-measured on assets/source/mockups/
+     ueber-uns.jpg, scaled to the 1440 frame: all three rows 240.0 px tall,
+     the figure's mid-line 0.6 px off the row's, the copy's mid-line -3.6 and
+     +1.8 px off it on the two rows whose copy is short enough to move — one
+     construction drawn three times. A row whose copy outgrows the square
+     stretches to the copy and the alignment is a no-op, so nothing changes
+     where the content already set the height.
+
+     The inline inset is measured off the same plate: the copy starts 49.2 px
+     right of the divider, which is --space-12 (48) and not the --space-8 the
+     block edges keep. The figure column is a 240 square, and 48 into the
+     copy column is what lets the drawing and the first letter breathe by the
+     same amount; the block padding stays at 32 because it only ever governs
+     the rows the copy has already overgrown, where the mockup has no case to
+     measure. → components/statement.html#value-table */
+  .cf-value-row__body {
+    align-self: center;
+    padding: var(--space-8) var(--space-12);
+    font-size: var(--text-lg);
+  }
 }
 
 /* --------------------------------------------------------------------------
