@@ -6934,7 +6934,33 @@ a.cf-calendar__day > time,
     border-bottom: 0;
     border-right: var(--stroke-1) solid var(--border-strong);
   }
-  .cf-value-row__body { padding: var(--space-8); font-size: var(--text-lg); }
+  /* THE COPY SITS ON THE FIGURE'S AXIS, NOT ON THE ROW'S TOP EDGE. The figure
+     cell above is place-items: center, so the drawing stands at mid-row — and
+     the copy beside it stood at the top, which put the two halves of one row
+     on two different axes: a three-line block hanging off the top rule with
+     170 px of empty cell under it, next to a figure centred 120 px down.
+     Optically the row read as a caption that had slipped.
+
+     The mockup centres both. Pixel-measured on assets/source/mockups/
+     ueber-uns.jpg, scaled to the 1440 frame: all three rows 240.0 px tall,
+     the figure's mid-line 0.6 px off the row's, the copy's mid-line -3.6 and
+     +1.8 px off it on the two rows whose copy is short enough to move — one
+     construction drawn three times. A row whose copy outgrows the square
+     stretches to the copy and the alignment is a no-op, so nothing changes
+     where the content already set the height.
+
+     The inline inset is measured off the same plate: the copy starts 49.2 px
+     right of the divider, which is --space-12 (48) and not the --space-8 the
+     block edges keep. The figure column is a 240 square, and 48 into the
+     copy column is what lets the drawing and the first letter breathe by the
+     same amount; the block padding stays at 32 because it only ever governs
+     the rows the copy has already overgrown, where the mockup has no case to
+     measure. → components/statement.html#value-table */
+  .cf-value-row__body {
+    align-self: center;
+    padding: var(--space-8) var(--space-12);
+    font-size: var(--text-lg);
+  }
 }
 
 /* --------------------------------------------------------------------------
