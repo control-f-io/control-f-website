@@ -1114,17 +1114,42 @@ it to `MarkText` — black ink under a black ground line on a black `Canvas`. Th
 `color: inherit` and the computed value came back `rgb(0, 0, 0)`, which is why only a screenshot
 could find it. The light palette was correct throughout, which is how it shipped.
 
+**The backplate is painted over the element's own background**, which is the second half and the
+one that arrived from a report that both element rungs were black blocks under the dark palette.
+Chromium lays an opaque `Canvas`-coloured plate behind every run of text in this mode, and the
+plate belongs to the *block container* that lays the text out, painted in that container's
+background phase. An inline `<mark>` in a paragraph is not that container, so its yellow goes down
+on top of the backplate and survives — which is why every match the system ships renders correctly
+in both palettes, and why the report again named a rung that was not the one failing. Blockify the
+mark and the container *is* the mark: measured in Chromium 151, a `.cf-mark--current` that is a
+flex item, a grid item or `display: block` loses its plate in both palettes and, in the dark one,
+loses everything. `forced-color-adjust: none` stops the backplate and does not leave the reader's
+palette, since every value in those two rules is a system colour keyword; both element rungs carry
+it now, the blockified cases arrive at the inline drawing in both palettes, and the inline cases do
+not move by a pixel. The rung that was really failing is [today in the
+calendar](#a-month-is-a-page-of-days) — a `<time>` that is a flex item — and it carries its own
+copy.
+
 Not `ButtonFace`/`ButtonText`, where the current-page marker in `components/pagination.html`
-went for the neighbouring finding: measured on the same run, `ButtonFace` resolves to the *same
-value as* `Canvas` in both palettes, so a plate painted in it is not a plate. And **the three
+went for the neighbouring finding and did not stay: measured on the same run, `ButtonFace`
+resolves to the *same value as* `Canvas` in both palettes, so a plate painted in it is not a
+plate. That marker is the blockified case as well — an `inline-flex` slot — and it now takes
+`Highlight`/`HighlightText` under this same escape, the pair the mode reserves for *the selected
+one of a set*. One mechanic, two pairs: the escape decides whether a plate survives, the pair
+decides what the plate says. And **the three
 highlight pseudo-elements are not styleable in forced colours at all** — Chromium paints
 `::target-text`, `::highlight(cf-found)` and `::highlight(cf-found-current)` with the UA's own
 `Highlight`/`HighlightText` and discards every author declaration. Four candidates rendered
-identically, the two rungs collapsing into one plate with no ground line. The single lever that
+identically, the two rungs collapsing into one plate with no ground line; re-measured when the
+escape went onto the element rungs — against the rules as they stand, against the same rules
+carrying `forced-color-adjust: none` *inside* the pseudo, and against magenta and lime, colours no
+palette contains — all three came back byte for byte identical in both schemes, `forced-color-adjust`
+not being on the closed list of properties a highlight pseudo accepts. The single lever that
 works is `forced-color-adjust: none` on the *originating element*, which would mean setting it
 on the running text of the site — opting the page out of forced colours in order to keep a
-drawing about accessibility. It is not taken; those three rules are written as a conforming
-engine would paint them and are inert on Chromium today.
+drawing about accessibility. It is not taken; the escape on the element rungs is the opposite
+trade and affordable because it lands on the word rather than the prose around it. Those three
+rules are written as a conforming engine would paint them and are inert on Chromium today.
 
 `::selection` is the one exception on the page and keeps its solid lime with no contour. Its
 boundary against CF-Grau is the same 1.37:1 and that is documented rather than fixed: a drag is
@@ -1219,16 +1244,24 @@ selector lists and not one declaration.
 — the same standing [the presence ladder](#the-presence-ladder)'s states have and the news
 archive's paging has.
 
-One thing is measured and not fixed. Under forced colours today takes `Mark`/`MarkText`, the pair
-`<mark>`, `::target-text` and both `::highlight()` names already take — and measured in Chromium
-141 with forced colours emulated, that pair does not paint under the dark theme: `MarkText`
-resolves black while the text backplate resolves to `Canvas` black, so the lit day renders as a
-block with no ink. `.cf-pagination__page[aria-current]` records the same finding against the same
-pair on the same engine and moved to `ButtonFace`/`ButtonText`. The calendar deliberately does
-**not** follow it there: a lit day and a current match are one drawing and may not have two
-answers under one media query. That is the found state's forced-colours answer, the fix belongs
-in `base.css` to all five rungs at once, and the component's comment says so rather than working
-around it.
+One thing was measured, deferred, and has now been paid. Under forced colours today takes
+`Mark`/`MarkText`, the pair `<mark>`, `::target-text` and both `::highlight()` names already take,
+and for a while this component recorded that the pair does not paint under the dark theme and sent
+the fix to `base.css` "to all five rungs at once". Re-measured in Chromium 151 in both schemes, the
+found state's own inline rungs paint correctly in *both* palettes and always did; the lit day did
+not. **The pair was never the fault; the box was.** Chromium lays an opaque `Canvas`-coloured
+backplate behind each run of text in this mode, and it belongs to the *block container* that lays
+the text out — so an inline `<mark>`'s plate goes down on top of it and survives, while this
+`<time>`, a flex item of an inline-flex day, is its own block container and had the backplate land
+on top of its plate: white in the light scheme, where the ink still read, black in the dark one,
+where it did not. `forced-color-adjust: none` stops the backplate without leaving the reader's
+palette, because every value in the rule is a system colour keyword and still resolves to the
+theme. The lit day is now a yellow plate with a black numeral and a black rule in both schemes.
+What was deferred to `base.css` was one declaration and not a change of pair — the two element
+rungs there carry the same escape, where it changes nothing that ships today and covers the day a
+match is blockified. `.cf-pagination__page[aria-current]` sits on the same mechanism and is the same
+blockified case; it took the same escape and a different pair, `Highlight`/`HighlightText`, because
+*currently selected* is not *currently matched*.
 
 
 ## The last route with nowhere to go
