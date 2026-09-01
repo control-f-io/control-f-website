@@ -5673,6 +5673,38 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-table__scroll,
 .cf-prose__table-scroll { overflow-x: auto; }
 
+/* A SCROLL BOX ON PAPER IS A CROP. Nothing scrolls a sheet, so every column
+   past the box's width is not hidden-until-you-drag, it is gone — and it goes
+   silently, mid-word, with no rule or ellipsis to say a column was dropped.
+   Printed through Chromium at a page box narrow enough to force it, the head
+   of the last column came out "LETZTE" from LETZTE SPALTE and its cell came
+   out "KENNW" from KENNWORTENDE.
+
+   This is the failure mode check-print-fixed.py opens by naming — invisible in
+   every screenshot this repository takes, because every screenshot is `screen`
+   — and neither gate covers it: that one reads `position: fixed`, and
+   check-overflow-clip.py reads `overflow: hidden`. This is `overflow-x: auto`.
+
+   Today's tables all fit A4 and print whole; datenschutz's five columns were
+   checked page by page. So this is the latent case, fixed before it lands
+   rather than after: a narrower sheet, a larger print stylesheet, or one more
+   column, and the cookie inventory the site owes under TDDDG § 25 prints with
+   a column missing and no sign that it did.
+
+   Two declarations, because releasing the crop alone only moves the cut from
+   the box's edge to the paper's. The head row has to be allowed to wrap before
+   the table can compress into the sheet — which is the one place the nowrap
+   above binds, and the one place it must not. */
+@media print {
+  .cf-table__scroll,
+  .cf-prose__table-scroll { overflow: visible; }
+
+  .cf-table thead th,
+  .cf-table th[scope="col"],
+  .cf-prose thead th,
+  .cf-prose th[scope="col"] { white-space: normal; }
+}
+
 .cf-table,
 .cf-prose table {
   width: 100%;
@@ -5702,15 +5734,33 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 
 /* A column head is a label — mono, uppercase, on the strong hairline.
 
-   It does not wrap, and that carries the table's minimum width. Two reasons,
-   and the second is the one that matters. A label broken over two lines is a
-   label read as two words, which is why nothing else in this system wraps one
-   either. And a table with no floor to its width does not overflow, it
-   compresses: every cell wraps to three lines and the scroll box it is sitting
-   in never engages, so the mechanism that makes a wide table readable on a
-   phone is present and never used. The heads are the floor. Which is also why
-   the do/don't asks for four or five columns and short labels — a long label
-   here is a scroll bar everywhere. */
+   It does not wrap, and this comment used to give two reasons for that, of
+   which it said the second was the one that mattered: a label broken over two
+   lines is read as two words, AND the nowrap is what floors the table's width,
+   without which a wide table compresses instead of overflowing and the scroll
+   box it sits in never engages. The second reason is not true, and it is the
+   one the do/don't was derived from.
+
+   Measured — min-content width of every table in the system, with the heads
+   nowrapped and with them allowed to wrap:
+
+     datenschutz, the four inventory and Fristen tables    0 px difference
+     table.html, three of the four demos                   0 px difference
+     table.html, "Angebundene Quellen"                    15 px difference
+
+   The body cells are the floor, everywhere the system actually draws a table.
+   German data words are longer than the labels over them — INSTANDHALTUNG is
+   14 characters of 11 px mono under a cell holding the same word at 14 px —
+   so the nowrap buys nothing on screen and the do/don't's "a long label here
+   is a scroll bar everywhere" was guarding a cost of zero.
+
+   The first reason stands on its own, and it is now the only one: this is a
+   typographic rule about labels, the same one the section header and the
+   accordion follow, and not a mechanism holding the scroll box open. The
+   scroll box engages because the CONTENT is wider than the phone.
+
+   Where the nowrap does bind is paper, and there it binds the wrong way —
+   see the @media print block under the scroll box. */
 .cf-table thead th,
 .cf-table th[scope="col"],
 .cf-prose thead th,
@@ -5746,6 +5796,37 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   font-size: var(--text-sm);
   text-align: left;
   color: var(--text-secondary);
+}
+
+/* THE TITLE LEFT THE FRAME IN THE ONE STATE THE SCROLL BOX EXISTS FOR. A
+   caption is a child of the table, the table is what scrolls, so scrolling to
+   the last column carried the title off the left edge with it. Measured on
+   datenschutz at 320: of a 151.2 px caption, 42.2 px was still inside the box
+   at full scroll — 72 % of the visible title gone. At a 20 px browser default
+   the scroll range is longer than the caption is wide, so it leaves entirely.
+
+   The component's own argument for a caption over a heading is that it stays
+   attached to the table. It does — semantically, and the region still takes
+   its accessible name from it, so this was never a screen-reader defect. It is
+   the sighted phone reader who scrolls to read column five and loses the line
+   saying what the rows are.
+
+   THE FIX IS A SPAN AND IT HAD TO BE. `position: sticky` on the caption itself
+   does nothing — a table-caption box is not stickyable, measured: still
+   42.2 px — and giving the caption `display: inline-block` or `block` to make
+   it stickyable drops it into the table's anonymous cell structure and renders
+   it UNDER the head row. So the sticky box is one level in, and the caption
+   stays a caption.
+
+   A bare <caption> keeps exactly today's rendering. The selector is `> span`,
+   so this is an enhancement over the markup .cf-prose promises an author —
+   write the bare element and it behaves as it always has, wrap the line and
+   the line stays put. */
+.cf-table caption > span,
+.cf-prose caption > span {
+  position: sticky;
+  left: 0;
+  display: inline-block;
 }
 
 /* A numeric column aligns on its right edge so the digits stack, which is the
