@@ -363,7 +363,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The twenty checks the system enforces rather than documents, run by CI on every push and
+The twenty-one checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
