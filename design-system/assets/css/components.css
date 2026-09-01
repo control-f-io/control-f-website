@@ -1636,8 +1636,44 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    is nothing left here for the reset to shadow, so the tag qualifier goes
    with it; the folded panel below states its own plate at (0,2,0) and is
    heavier than the reset on its own. */
+/* AND IT WRAPS, WHICH IS THE ONLY REASON THE PLATE CAN BE CAPPED AT ALL.
+
+   .cf-nav__bar is `width: max-content; max-width: 100%` — it asks for the one
+   line its contents need and is then cut to the band. When the cap bites, flex
+   has to take the difference out of the three children, and it cannot: each is
+   `flex: 0 1 auto` with `min-width: auto`, and a nowrap flex row's automatic
+   minimum is the SUM of its items. So the row could not shrink, and the
+   surplus left the plate to the right — `overflow: visible`, so it went on to
+   the document's scroll width and took the whole page sideways.
+
+   The fold does not catch it. `@media (max-width: 48.75rem)` resolves `rem`
+   against the root's INITIAL font size and never against the reader's — the
+   same two meanings of one word scripts/check-rem-floor.py is named after — so
+   the plate unfolds at 780 px at every text size while everything inside it
+   goes on scaling. Measured on patterns/landing-page.html, document scroll
+   width against viewport, and how far past its own plate the EN switch stood:
+
+     viewport   root 16    root 20    root 22        root 24        root 32
+       900       900 -9     900 -11    911 +60 ✗     989 +139 ✗    1302 +451 ✗
+      1024      1024 -9    1024 -11   1024 -12       1024  +28     1308 +341 ✗
+      1280      1280 -9    1280 -11   1280 -12       1280  -13     1323 +113 ✗
+
+   900 x 22 px is the first failure and it is nothing exotic: 900 px is the
+   width just above the fold, and 22 px is between Chrome's "Large" (20) and
+   "Very large" (24). WCAG 1.4.4 asks for 200 % — root 32 — and there the page
+   scrolled sideways at three of the seven widths this page is swept at.
+
+   One declaration answers it, and only where the fault is: above the fold the
+   seven routes take a second row inside the plate and the plate grows to hold
+   them, which is what the no-script tier below has always done with the same
+   property. Below the fold this list is `display: none` (the panel is out of
+   flow) and in the no-script tier it is `flex-direction: column`, so neither
+   sees this. At every width and text size that fits on one line today the
+   layout is byte-identical — wrap only ever does something to a line that was
+   going to overflow. → scripts/check-text-zoom.py */
 .cf-nav__list {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-1);
   margin: 0;

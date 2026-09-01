@@ -373,14 +373,29 @@ body.docs {
 
    Nor does the frame widen monotonically, which is the part that catches
    people. The sidebar arrives at 901 px and takes 319 px out of the docs column
-   in a single pixel of viewport — 786 px of frame at 900, 467 px at 901, not
-   back to 786 until about 1220. So "make the window wider" is not always sound
-   advice, and a container-queried demo can fold on the WIDE side of that edge:
-   .subdivide does exactly that on components/blog-grid.html, five columns at
-   900, stacked from 901 to 1073, five again at 1074. That is docs chrome rather
-   than the component, and not this declaration's to fix — but any note about
-   demo width has to survive it. Say the constraint on the page it affects; do
-   not widen the frame to hide it. */
+   in a single pixel of viewport — 852 px of column at 900, 533 at 901, and this
+   plate's own 2 x --space-8 leaves 786 and 467 of frame inside it. So "make the
+   window wider" is not always sound advice, and a container-queried demo can
+   fold on the WIDE side of that edge.
+
+   THIS COMMENT USED TO NAME THE ONE PAGE WHERE IT DOES NOT HAPPEN. It said
+   .subdivide does exactly that on components/blog-grid.html, "five columns at
+   900, stacked from 901 to 1073, five again at 1074". That element carries
+   .subdivide--late, whose fold is 56rem and not the primitive's 44 — so it is
+   stacked at 900, at 901 and at 1074 alike, and does not take five columns in
+   this frame until 1265. Re-measured, the demos that DO show the band are
+   components/pagination.html (three columns, plain frame: 901 to 1072) and
+   foundations/layout.html's own --4 demo (padded frame, so 68 px longer: 901 to
+   1140). The band always opens at 901 and closes wherever that frame regains
+   the fold, which makes its length a property of the padding rather than of the
+   component.
+
+   That is docs chrome rather than the component, and not this declaration's to
+   fix — but any note about demo width has to survive it. Say the constraint on
+   the page it affects; do not widen the frame to hide it. The fold each demo
+   actually answers to is resolved by scripts/check-demo-fold-band.py now, so
+   the next copy of this paragraph cannot quote a threshold its element does not
+   have. → foundations/layout.html#demo-fold-band */
 .docs-demo {
   container: layout / inline-size;
   padding: var(--space-8);
@@ -547,6 +562,41 @@ body.docs {
      ramp has no step between #919191 and #484848 to land on instead. */
   color: var(--text-secondary);
   border-bottom-color: var(--border-strong);
+}
+/* A ROW HEADER IS A NAME, NOT A LABEL — the same distinction .cf-table has
+   drawn since it was written, and the documentation's own table had never
+   learned it. The rule above is written for `th` and reaches both kinds: the
+   column head, which is a label and is uppercase mono for the same reason
+   every label in this system is, and the row head, which is the row's SUBJECT
+   and is very often an identifier. `.cf-blog-card--lead` uppercased is
+   `.CF-BLOG-CARD--LEAD`, which is not that class: CSS class names are
+   case-sensitive, and so is every other thing a row header names here — a
+   token, an attribute, a file, a cookie.
+
+   That is why no documentation page had ever put a class in a row header,
+   although components/table.html's own do-list says to use `th scope="row"`
+   whenever the first column names the row. The rule made the correct markup
+   render wrong, so every anatomy table wrote `<td>` instead and gave up the
+   header semantics — a screen reader announces a row header with each cell in
+   its row, which is the whole reason the element exists. The shipping table
+   already carried the fix (components.css, `.cf-table th[scope="row"]`); this
+   is that rule, in the same words, on this side of the line.
+
+   Scoped to the attribute, so a `th` without one is untouched: the two
+   attribute names in components/forms.html's column heads are labels doing a
+   label's job and stay uppercase. */
+.docs-table th[scope="row"] {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: var(--weight-medium);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--text-primary);
+  /* The strong hairline belongs to the head of the table, where it separates
+     the labels from the data. Left on a row header it draws a heavier rule
+     under the first column alone, and the table reads as a column of headings
+     with a grid pinned to it. */
+  border-bottom-color: var(--border-subtle);
 }
 .docs-table code {
   font-family: var(--font-mono);

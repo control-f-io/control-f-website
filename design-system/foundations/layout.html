@@ -643,32 +643,63 @@
       it more useful. The token-level clamps are documented already — the gutter's floor and
       ceiling under Container, <code>--section-gap</code>'s under Rhythm.
     </div>
-    <div class="docs-note">
+    <div class="docs-note" id="demo-fold-band">
       <strong>Out of scope is not the same as no consequence — and <code>docs.css</code>'s 900 has
       one.</strong> Calling it "unrelated, do not reconcile" is right about the query and stops one
       step short. Below 900 the sidebar goes static and a demo gets the whole viewport; at 901 the
-      272 px sidebar returns and the demo loses it. Measured on
-      <code>components/blog-grid.html</code>, with <code>.subdivide</code>'s content box against
-      its own 44rem (704 px) fold:
-      <table class="docs-table">
-        <thead><tr><th>Viewport</th><th><code>.subdivide</code> content box</th><th>State</th></tr></thead>
+      272 px sidebar returns and the docs column goes from <strong>852 px to 533</strong> in a
+      single pixel of viewport. A container-queried demo can therefore fold on the <em>wide</em>
+      side of that edge, and widening the browser further un-folds it again.
+      <br><br>
+      <strong>This note used to demonstrate that on the one page in the tree where it does not
+      happen.</strong> It measured <code>components/blog-grid.html</code> "against its own 44rem
+      (704 px) fold" and reported five columns at 900, stacked from 901, five again at 1074. That
+      element is <code>.subdivide--even.subdivide--late</code>, and the whole point of
+      <code>--late</code> is that the five-column form folds at <strong>56rem</strong>, not 44 —
+      the modifier and this note landed in the same commit. 896 px is more than the plain frame
+      ever reaches below 1265, so the demo is stacked at 900, stacked at 901 and stacked at 1074:
+      three of the table's four rows named a state that page has never been in, and both band edges
+      were derived from a threshold that does not govern the element. The band is real; the example
+      was not.
+      <br><br>
+      Re-measured in Chromium at a 16 px root, per demo, with the governing fold resolved from the
+      element's own modifiers rather than assumed:
+      <table class="docs-table" id="fold-band-table">
+        <thead><tr><th>Demo</th><th>Fold</th><th>Frame at 900</th><th>Stacked from</th><th>Columns again at</th><th>Band</th></tr></thead>
         <tbody>
-          <tr><td>900</td><td>851 px</td><td>five columns</td></tr>
-          <tr><td><strong>901</strong></td><td><strong>532 px</strong></td><td><strong>stacked</strong></td></tr>
-          <tr><td>1073</td><td>704 px</td><td>stacked — 44rem exactly, and the query is inclusive</td></tr>
-          <tr><td><strong>1074</strong></td><td><strong>705 px</strong></td><td>five columns again</td></tr>
+          <tr><td><code>components/pagination.html</code><br><span class="t-secondary">plain frame, three columns</span></td><td><code>44rem</code></td><td>852 px</td><td><strong>901</strong></td><td><strong>1073</strong></td><td><strong>172 px</strong></td></tr>
+          <tr><td><code>foundations/layout.html</code><br><span class="t-secondary">this page, padded frame, <code>--4</code></span></td><td><code>44rem</code></td><td>786 px</td><td><strong>901</strong></td><td><strong>1141</strong></td><td><strong>240 px</strong></td></tr>
+          <tr><td><code>components/blog-grid.html</code><br><span class="t-secondary">plain frame, five columns</span></td><td><code>56rem</code></td><td>852 px</td><td>—</td><td>1265</td><td><strong>none</strong> — folded on both sides of 900</td></tr>
         </tbody>
       </table>
-      So there is a <strong>173 px band, 901 to 1073, in which widening the browser collapses the
-      subdivision grid</strong> and widening further restores it. Both edges binary-searched. The
-      consequence worth writing down: <strong>no framed demo can show a 44rem component between
-      901 and 1073.</strong> It is documentation-only — <code>docs.css</code> does not ship, and no
-      pattern page behaves this way — but it is the one place where a query this register excludes
-      changes what the register's own subject looks like.
+      <strong>The band opens at 901 for every demo and closes wherever that demo's own frame gets
+      the fold back</strong>, so its length is a property of the frame's padding and not of the
+      component. A <code>--plain</code> frame is the docs column itself and regains 705 px at a
+      viewport of 1073; a padded <code>.docs-demo</code> spends 66 px of its own and does not
+      regain it until 1141. The chapter that describes the band therefore carries the worst case of
+      it — 68 px longer than the figure this note used to quote — on its own subdivision demo, and
+      said nothing about it.
       <br><br>
       It also explains the 1073 edge rather than leaving it odd: the fold releases at a content box
       of 705, not 704, because a size query measures the <em>content</em> box and
       <code>max-width: 44rem</code> includes 704 exactly. Same rule as the ~1007 figure above.
+      <br><br>
+      <strong>The five-column form pays a different and larger cost, and nothing had named
+      it.</strong> <code>--late</code>'s 56rem needs 897 px of container, which the shipping page
+      reaches at a viewport of <strong>1007</strong> (<code>patterns/news-thema.html</code>,
+      binary-searched) and the plain demo frame not until <strong>1265</strong>. So the component
+      page shows the stacked fallback across a <strong>258 px</strong> band where the pattern page
+      it documents is already at five columns. That is the same fact as <code>.cf-article</code> at
+      60rem in the note below, one size up, and it is why a demo frame is worth stating a
+      constraint on rather than widening.
+      <br><br>
+      All of it is documentation-only — <code>docs.css</code> does not ship, and no pattern page
+      behaves this way. It is on the record anyway because this is the one place where a query the
+      register excludes changes what the register's own subject looks like, and because the
+      correction above is what a table nothing ran costs.
+      <code>scripts/check-demo-fold-band.py</code> runs the half of it that needs no browser: it
+      resolves every <code>.subdivide</code> call site's governing fold from <code>base.css</code>
+      and the element's own modifiers, and holds this table's rows to the answer.
     </div>
     <div class="docs-note">
       <strong><code>60rem</code> is the one threshold nothing derives.</strong> The other four
@@ -1105,11 +1136,11 @@ print(counts)
     </table>
     <div class="docs-note">
       <strong>These figures are the page, not the demo frames.</strong> Every row above is
-      monotonic and every one is right — but the <strong>1024</strong> row sits inside the 901–1073
-      band described under Breakpoints, where a documentation demo is <em>narrower</em> than it is
-      at 900. Nothing in this table is wrong; it is simply adjacent to the one place the monotonic
-      reading does not carry over. Read these as viewport-to-page relationships, which is what they
-      are.
+      monotonic and every one is right — but the <strong>1024</strong> row sits inside the
+      <a href="#demo-fold-band">901–1140 band</a> described under Breakpoints, where a
+      documentation demo is <em>narrower</em> than it is at 900. Nothing in this table is wrong; it
+      is simply adjacent to the one place the monotonic reading does not carry over. Read these as
+      viewport-to-page relationships, which is what they are.
     </div>
     <div class="docs-note">
       <strong>The 2 : 3 ratio holds in the middle, not everywhere.</strong> The two tokens are
