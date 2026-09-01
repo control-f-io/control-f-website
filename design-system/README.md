@@ -341,6 +341,8 @@ python3 scripts/check-markup-answered.py -v    # the counts, and the gaps parked
 python3 scripts/check-viewport-zoom.py         # no page revokes the reader's pinch zoom
 python3 scripts/check-local-thresholds.py      # every page-local threshold is registered, and in rem under patterns/
 python3 scripts/check-local-thresholds.py -v   # print the register
+python3 scripts/check-stack-layers.py          # the front door's six planes, and the one that is lit
+python3 scripts/check-stack-layers.py -v       # print the stack: every plane, its place and its route to the light
 python3 scripts/build-i18n.py --check          # the English edition matches its German source
 python3 scripts/build-i18n.py --extract        # every German string with no entry in the catalogue
 ```
@@ -951,6 +953,60 @@ carry a 2 px corner; nothing is a pill, and avatars are the one circle. Lime is 
 not a surface: one element per screen, which is why the black button's label is filled
 with the foil rather than the lime ramp. Publica Sans sets display headlines, Geist sets
 everything readable, Geist Mono sets labels and every number.
+
+## The front door is the stack
+
+`index.html` opened on that paragraph and then on a grid of cards, which is a sheet of
+paper describing a space — the one thing the paragraph directly above it says this brand
+is not. The system's own front door was the last page in the tree still laid out like
+every other documentation site.
+
+**What was missing was not a picture of the layers. It was the model.**
+`foundations/materials.html` draws the six twice already: once as six samples in a row,
+once composited into a facsimile of the hero. Both answer *what does frosted glass look
+like*. Neither answers *what is this system made of* — that the six stand in a fixed
+order, back to front, that the order never changes, and that every chapter here is a
+chapter about one of them. A reader arriving at this repository had no way to see that
+without reading a chapter that assumes it.
+
+So the index now opens on the stack itself: six 2:1 rhombi, half-width 200 and
+half-height 100 in a 640-unit frame, 84 units apart so they overlap by 116 and read as
+one object rather than as six. Layer 6 stands at the top because it is the top of the
+stack, and the paint order is its reverse — in isometry higher is nearer, so 6 occludes
+5 and SVG paints last on top. Written the other way round the drawing is correct right
+up until a plane is lit, and then the base wash's fill covers the five layers standing
+in front of it. The two struts and the axis are `--dash-1-4`, the
+[absent rung](#the-presence-ladder): a strut is not an edge of anything, it is where an
+edge would be.
+
+**One lime moment, and it has a default.** Exactly one plane carries the light family at
+a time. With no pointer and no focus anywhere in the block, the lit plane is layer 5 —
+the light layer, lighting itself, which is the only default that does not have to be
+argued for. Hovering or focusing a row moves the light to that row's plane and lifts the
+plane 16 px out of the pile, and it *moves*: the ramp travels in along the 26.57° its own
+top-left edge runs, rather than switching on. The other five recede to `stroke-opacity`
+0.55 — a rank, not a way of turning a contour off, and the number is a floor rather than
+a taste. Black at 0.55 composites to `#707070` on this page's ground and measures
+**4.66:1**; on CF-Grau, where the same drawing would stand inside a pattern page, `#5D5D5D`
+and **4.23:1**. Both clear the 3:1 the system holds a contour to at both ends.
+
+**No script, and the binding is `:has()`.** Six rules key a row's `:hover` or
+`:focus-within` to its own plane, so the drawing answers a keyboard exactly as it answers
+a pointer — verified: focusing a link in row 02 lights plane 02 and nothing else. The
+figure is `aria-hidden` and carries no destination; every link is in the list beside it,
+in the same order the planes stand in. A browser with no `:has()` gets a figure in its
+default state next to a list of links, which is what the block is anyway, and loses no
+information at all.
+
+**Every fallback tier keeps the mechanism, including the one that has no colour.** Under
+`prefers-reduced-motion` the lift goes to `0px` — the state still switches, because a lit
+plane is information, it simply arrives where it already stood. Under `forced-colors`
+the recession is dropped, since a `stroke-opacity` is a paint operation the mode does not
+touch and five planes would otherwise sit at 55 % of a system colour the mode chose to be
+read at 100 %. The light goes with every other gradient, and the lit plane is still the
+lit plane: `.cf-iso [fill]` maps to `Canvas`, the five unlit copies are at opacity 0, so
+exactly one plane in the stack is a solid plate and it occludes the plane behind it.
+Verified in both palettes at 1440. → `assets/css/docs.css`, "THE STACK"
 
 ## Lime is never flat
 
