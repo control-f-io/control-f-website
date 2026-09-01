@@ -317,6 +317,8 @@ python3 scripts/check-spacing-scale.py         # from the repo root
 python3 scripts/check-spacing-scale.py --fix   # rewrite the table in foundations/layout.html
 python3 scripts/check-gradient-family.py       # the light family, in every shipped SVG and stylesheet
 python3 scripts/check-gradient-family.py -v    # list every gradient, not only the failures
+python3 scripts/check-wash-derivation.py       # the page wash's three stops, re-derived from the palette
+python3 scripts/check-wash-derivation.py -v    # print the whole derivation, stop by stop
 python3 scripts/check-iso-motion.py            # the isometric assembly's invariants
 python3 scripts/check-glass-budget.py          # what backdrop-filter is allowed to cost
 python3 scripts/check-glass-budget.py --fix    # rewrite the census in foundations/materials.html
@@ -363,7 +365,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The twenty-one checks the system enforces rather than documents, run by CI on every push and
+The twenty-two checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -400,6 +402,22 @@ straight line is already its correct path. Only what happens in the band between
 The premise is not just "chromatic at both ends": lime at C 0.2201 against Glas at C 0.0414 is
 a radial move, and the polar path through it bows out to `#A8FFB6`, a green in no palette at
 three times the chroma of the stop it is travelling to.
+
+**The one member both rules exempt is the largest gradient in the system,** and it needed a
+check of its own. The page wash is the reversed foil at chroma 0.005, so it carries no lime
+leg and nothing for an arc to bow out of — `check-gradient-family.py` exempts it on both
+counts, correctly, and therefore reads `#CFCFD2`, `#E1E4E7` and `#F3F8F7` as data. They are
+not data. Each is `oklch(L, 0.005, h)` where `L` is the neutral ramp's own lightness at that
+stop's position and `h` is the foil hue being reversed, and `tokens.css` says so and then
+names the trap: *"they are literals, so they do not follow `--cf-grau`. Move CF-Grau and these
+must be recomputed or the wash quietly stops starting where the page starts."* Nothing ran
+that paragraph. `check-wash-derivation.py` does — it re-derives all three from `--cf-grau`,
+`--cf-glas`, `--sky-300`, `--violett-300` and the foil's own stop positions, holds the
+lightness path to the neutral ramp it claims to be identical to, holds the chroma to the grain
+that sets its ceiling, and recomputes the hue travel against the lit foil's own stops rather
+than against the number in the prose. It pairs with `check-hero-scrim.py` in the opposite
+direction: that one holds the hero's scrim tint *to* the wash, this one holds the wash to the
+palette.
 
 The second rule had already been broken. `.cf-btn--glass` drew Glas into lime on the sRGB path
 with no `@supports` branch — the only lime ramp in the system's CSS never put on the family's
@@ -1884,7 +1902,10 @@ These were judgement calls, each documented on the relevant page:
   49 greys and there is no fiftieth, because R, G and B cross every 8-bit boundary in the
   same place. Sampled off rendered pixels in Chromium over 4,000 px, the wash goes from 51
   distinct colours to 130, and transitions that move all three channels at once fall from
-  99.8 % to 23.6 %. → `foundations/colors.html`
+  99.8 % to 23.6 %. **The three hexes are re-derived on every run** by
+  `check-wash-derivation.py`, because they are literals that do not follow `--cf-grau` on
+  their own and the gradient gate exempts this ramp from both of its rules.
+  → `foundations/colors.html`
 - **The subdivision grid is two implementations of one system.** The manual's *Teilungsraster*
   plate says the recursive system "kann als Konzept für interaktive UI-Elemente oder
   Menüstrukturen genutzt werden" — a use no plate illustrates, because a book cannot draw a

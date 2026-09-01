@@ -772,7 +772,7 @@
         <tr><td><code>--spectrum-hot</code></td><td>18 % — the white hot spot</td><td>shared by both foil gradients; not used alone</td></tr>
         <tr><td><code>--spectrum-cool</code></td><td>64 % — where Sky takes over</td><td>shared by both foil gradients; not used alone</td></tr>
         <tr><td><code>--surface-page-wash</code></td><td>linear 180°, the foil reversed at chroma 0.005</td><td>the page itself — <code>.page-wash</code>. See <a href="#wash">The page wash</a></td></tr>
-        <tr><td><code>--wash-stops</code></td><td>the wash's four stops, without an angle</td><td>the same split as the two foils, so the oklab branch restates nothing</td></tr>
+        <tr><td><code>--wash-stops</code></td><td>the wash's four stops, without an angle</td><td>the same split as the two foils, so the oklab branch restates nothing. Its three chromatic hexes are literals with a stated derivation, re-derived on every run by <code>scripts/check-wash-derivation.py</code> — the gradient gate exempts this ramp from both of its rules</td></tr>
         <tr><td><code>--grain</code></td><td>SVG fractal noise tile</td><td>the second half of the wash's dithering, at 8 %; the same filter is inlined in all three <a href="field.html#wallpaper">wallpapers</a>, at 4 % on the two dark ones. See <a href="#wash">The page wash</a></td></tr>
         <tr><td><code>--hero-dissolve</code></td><td>mask, linear 180°, an <code>(1&nbsp;−&nbsp;t)^1.45</code> falloff over the last 25.6&nbsp;%</td><td>how full-bleed artwork ends — see <a href="#edges">Where artwork meets the page</a></td></tr>
         <tr><td><code>--hero-scrim</code></td><td>linear 63.43°, one tint at <code>--scrim-depth</code> to nothing — and that tint is <code>--wash-stops</code>' opening colour, <code>#CFCFD2</code>, not a grey of its own</td><td>the light layer under hero type; same section. Held by <code>scripts/check-hero-scrim.py</code>, which derives the tint from the wash rather than restating it</td></tr>
@@ -1423,6 +1423,44 @@
       13.51:1 at the top against 13.48:1 before, and <code>--text-secondary</code> 5.88:1
       against 5.87:1 — both marginally better, because a stop nudged off the achromatic axis
       at fixed <var>L</var> loses no luminance.
+    </p>
+
+    <h3>The three hexes are re-derived, not trusted</h3>
+    <p>
+      Every number in the table above is produced by a rule, and for a while nothing ran the
+      rule. <code>#CFCFD2</code>, <code>#E1E4E7</code> and <code>#F3F8F7</code> are
+      <strong>literals</strong>: each is <code>oklch(L, 0.005, h)</code> rendered to 8-bit
+      sRGB, where <var>L</var> is the neutral ramp's own lightness at that stop's position and
+      <var>h</var> is the foil hue being reversed. Recompute the ramp and you get them back —
+      but they do not follow the palette on their own. Move <code>--cf-grau</code> and the
+      largest surface in the system starts on a colour that exists nowhere else, and the first
+      row of every page becomes a seam nobody drew. Nothing about a screenshot says so.
+    </p>
+    <p>
+      <strong><code>scripts/check-gradient-family.py</code> cannot see this</strong>, and that
+      is the right behaviour rather than a gap in it. That script asks the two questions the
+      family's opaque members answer — does a leg leaving lime carry its 19&nbsp;% waypoint,
+      does a leg that turns carry its polar midpoint — and the wash is exempt from both on
+      purpose: it carries no lime, and arcing a ramp held at chroma 0.005 would be telling it
+      to stop being neutral. So the gate reads these three hexes as data and passes them
+      through. It never asks the only question that can go stale about them.
+    </p>
+    <p>
+      <code>scripts/check-wash-derivation.py</code> asks it. It re-derives all three from
+      <code>--cf-grau</code>, <code>--cf-glas</code>, <code>--sky-300</code>,
+      <code>--violett-300</code> and the foil's own stop positions, and compares them
+      <em>exactly</em> — the same standing the arc waypoints have, because these come off the
+      same 8-bit grid the derivation lands on. The rest of this section's claims are checked
+      alongside them: that the stop <em>positions</em> stay <code>calc()</code> over
+      <code>--rake-near-n</code> and <code>--spectrum-cool-n</code> rather than flattened to
+      the percentages they evaluate to today; that the lightness path is still the neutral
+      ramp's, which is what every contrast figure above rests on; that the chroma stays inside
+      the grain that sets its ceiling; and that the hue travel still equals the lit foil's,
+      recomputed from <code>--foil-stops</code>' own colours rather than compared against the
+      104.5° written here. It is the mirror of
+      <code>scripts/check-hero-scrim.py</code>, which holds the
+      <a href="#edges">scrim's tint</a> <em>to</em> the wash: that one keeps the scrim honest
+      about whatever the wash says, this one keeps the wash honest about the palette.
     </p>
 
     <h3>Banding — and why hue is the first half of the fix</h3>
