@@ -881,6 +881,21 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-label-ramp.py
 
+      # The consequence of the step above, one row further on. check-label-ramp
+      # .py holds the SIZE of a mono label; this one holds what happens to a
+      # section header when a section deliberately takes its two halves OFF
+      # that ramp. .cf-section-header floors both halves at min-width: 0, which
+      # makes them shrinkable, and a flex row shrinks in proportion to
+      # max-content — so at --text-h2 the count runs out of room first and
+      # "4 Schritte" broke into "4" and "SCHRITTE" on separate lines, three
+      # line boxes at 320. The fix is two declarations that only work as a
+      # pair: flex: none on the count, flex-wrap: wrap on the row. Rigidity
+      # alone squeezed the OTHER consumer of acts.css — the prototype counts
+      # "In vier Schritten" — into a 7-line label at 320.
+      - name: Count atom
+        if: '!cancelled()'
+        run: python3 scripts/check-count-atom.py
+
       - name: Reset shadow
         if: '!cancelled()'
         run: python3 scripts/check-reset-shadow.py
