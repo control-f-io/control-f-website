@@ -9514,6 +9514,234 @@ a.cf-calendar__day > time,
   --glow-r: 12px;
 }
 
+/* A PLOT THAT STANDS ON DRAWN GROUND, and one column in it that fell.
+
+   THE HUE WAS FIRST SPENT ON THE CONTOUR AND THAT WAS THE WRONG INSTRUMENT. A
+   column whose quantity fell was drawn in Violett 700 — the one step in the
+   palette that clears both the wash and the black contour — and at a 1 px
+   hairline, in a figure whose other lines are black, it read as "slightly
+   faded" rather than as "other direction". A hairline gives the eye almost no
+   area to judge a hue on; that is the same sentence .cf-line__trace--hue
+   writes to explain why one tinted trace is its ceiling there.
+
+   SO THE COLOUR MOVED TO THE FACE, where there is area to see it, and the
+   figure gained a ground for the objects to stand on. The direction itself
+   stays where this component has always kept its data: in the number, which
+   every column prints, and which opens with a − or a +.
+
+   AND EVERY COLUMN STANDS. A drop was drawn hanging under the plane for a
+   while — geometry says direction better than any colour can — but a hanging
+   solid is read against a ground it is behind rather than on, the two families
+   no longer share a baseline the eye can run along, and the four magnitudes
+   stop being comparable at a glance, which is the one thing a column plot is
+   for. Rises and falls are both improvements here in any case; what differs is
+   which way the underlying quantity moved, and that is a label on the column,
+   not a direction for it to point. So --fell is a face and a sign, and the
+   plot keeps one baseline.
+
+   --v is unchanged by any of it: the magnitude as a fraction of the largest in
+   the set, sign removed. */
+.cf-plot--ground {
+  /* The ground band reaches half a unit past the footprint, so the box below
+     the columns is that much taller than a plain plot's. */
+  padding-bottom: var(--space-2);
+}
+.cf-plot--ground .cf-plot__set {
+  position: relative;
+  /* The keys clear the deepest value label rather than the box: a column at
+     --v: 1 ends at 14u and its number runs a line and a half past that. */
+  margin-bottom: var(--space-16);
+}
+/* 7u of column, plus the half unit the ground band reaches below the
+   footprint. The drawing keeps its own 7u so the viewBox is not restretched. */
+.cf-plot--ground .cf-plot__col { height: calc(var(--plot-u) * 7.5); }
+.cf-plot--ground .cf-plot__draw {
+  inset: 0 0 auto 0;
+  height: calc(var(--plot-u) * 7);
+}
+
+/* THE ZERO PLANE, AND IT IS A PLANE RATHER THAN A LINE ON PURPOSE.
+
+   It was a 1 px black rule, and the figure read as four objects floating
+   against a wire: the columns had nothing to stand on, the dashed footprints
+   scattered along the rule looked like debris rather than like ground, and a
+   pit had no surface to be sunk into. A flat rule is also the one thing this
+   projection cannot mean — every plane in an isometric drawing is a rhombus,
+   and a horizontal screen line is a plane seen from an angle it is never seen
+   from here.
+
+   SO THE GROUND IS THE SYSTEM'S OWN GROUND. This is .cf-ground's material,
+   unchanged — the two rakes, the same stop list, --field-ink at --field-line —
+   re-scaled so that one lattice diamond IS one column's footprint: 2u wide,
+   1u tall. → foundations/field.html
+
+   THE SCALE IS DERIVED, NOT PICKED. --field-unit is the horizontal spacing
+   between parallel lines of one family, and --field-step is that distance
+   measured perpendicular to them: unit / sqrt(5) for a 2:1 rake. Setting the
+   unit to 2u therefore sets the step to 2u / 2.2360679775, and the diamond
+   that falls out is 2u x 1u. Both are restated here rather than inherited
+   because a custom property is substituted where it is DECLARED: --field-step
+   at :root has already resolved against :root's --field-unit, so redefining
+   the unit alone would change nothing.
+
+   A COLUMN RISES FROM A CROSSING, NOT FROM THE MIDDLE OF A CELL, and the
+   half unit that makes that true is the whole of --plane-phase.
+
+   THE PERIOD IS ANCHORED AT THE STARTING CORNER, not at the centre. That was
+   assumed the other way round once and the figure showed it: every vertical
+   started in the middle of a diamond, so the columns read as floating over
+   the lattice instead of standing in it. Worked out properly, with the band
+   H = 2u tall and the ink half a step into each period, the two families land
+   at
+
+     A (start corner bottom-left)   y =  0.5x + (1.5u - k u)
+     B (start corner top-left)      y = -0.5x + (0.5u + m u)
+
+   which cross at x = n u, y = -0.5 n u + 0.5u + m u. A column's footprint has
+   its vertices at (4i)u,1u · (4i+1)u,1.5u · (4i+2)u,1u · (4i+1)u,0.5u — the
+   zero line being y = 1u in this box — and not one of those four solves the
+   crossing equation for integer m. All four sit exactly half a cell out,
+   which is the reading the eye gets: a lattice, and columns standing between
+   its lines.
+
+   Shift the ground down half a unit and all four solve it at once. The lattice
+   is periodic in y with period u and the band is 2u, so the wrap is seamless
+   and the shift costs nothing at the edges. After it, a footprint IS a
+   diamond of the plane: the three verticals leave the ground at crossings and
+   the cell they enclose is a cell of the ground.
+   → scripts/check-plane-phase.py holds the arithmetic
+
+   THE RULE IS GONE WITH THE LINE. A division is legal here — geometry.html
+   admits one, and .cf-gantt's `heute` is one — but the plane states the same
+   level with a surface instead of a stroke, and the footprints sitting in it
+   are what locate zero for each column. Two marks for one fact is one too
+   many. */
+.cf-plot--ground .cf-plot__set::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* Centred on the footprint, which is at 6.5u of the drawing's 7u — so the
+     band runs 5.5u to 7.5u and the cell's own centre is 1u into it, which is
+     the coordinate check-plane-phase.py solves the crossings in. */
+  top: calc(var(--plot-u) * 5.5);
+  height: calc(var(--plot-u) * 2);
+  --field-unit: calc(var(--plot-u) * 2);
+  --field-step: calc(var(--field-unit) / 2.2360679775);
+  --field-half: calc(var(--field-step) / 2);
+  --field-stops: transparent 0,
+                 transparent calc(var(--field-half) - var(--field-edge)),
+                 var(--field-ink) var(--field-half),
+                 var(--field-ink) calc(var(--field-half) + var(--field-line)),
+                 transparent calc(var(--field-half) + var(--field-line) + var(--field-edge)),
+                 transparent var(--field-step);
+  background-image: repeating-linear-gradient(var(--field-rake),        var(--field-stops)),
+                    repeating-linear-gradient(var(--field-rake-mirror), var(--field-stops));
+  background-position: 0 calc(var(--plot-u) * 0.5);
+}
+
+/* AN OBJECT ON A GROUND HAS TO OCCLUDE IT, and as wireframes these did not.
+   The lattice ran straight through every body, so the ground was drawn across
+   the front of each solid and nothing in the picture said the columns were
+   standing on it rather than floating over it.
+
+   A FACE AT THE PAGE'S OWN COLOUR IS HOW THIS SYSTEM DRAWS A SOLID. Every
+   isometric object on the landing page is built that way — a fill on the form,
+   the contour carrying the shape — and foundations/illustration.html states
+   the consequence in its own words: an unlit face sits at exactly the page's
+   colour and the object would disappear entirely if the contour were not
+   carrying it. --surface-page is that colour as a token, so it inverts with
+   the theme instead of pinning the grey.
+
+   THE SILHOUETTE IS THREE STATIC SHAPES, not one variable path, and that is
+   forced by the same half cell that gives the rises two origins: a hexagon
+   whose top V travels while its bottom V stays is not an affine transform of
+   anything. Decomposed, it is the cap, which already translates; a rectangle
+   between the cap's and the footprint's side vertices, which scales exactly
+   like a rise; and the footprint, which is static. Their union is the hexagon
+   exactly — the cap's lower half falls inside the rectangle, and the
+   footprint's near point is the only thing below it. So the only new mark is
+   the rectangle.
+
+   NO z-index IS NEEDED, and that is what one baseline buys. The ground is a
+   ::before of the set, so it paints before every column; with nothing below
+   the plane there is no family that has to be painted under it. The variant
+   that hung its falls needed three layers and a stacking context to keep the
+   numbers above the ground. This one needs paint order and nothing else. */
+.cf-plot--ground .cf-plot__draw .cf-plot__body {
+  fill: var(--surface-page);
+  transform-box: view-box;
+  transform-origin: 0 130px;
+  transform: scaleY(var(--plot-h));
+}
+
+/* The footprint stops being a ghost and becomes the face it always was. The
+   phase above put it exactly on a lattice diamond, so the dash was a second
+   drawing of a line the ground already draws; the fill is the solid's bottom
+   face and the last piece of the silhouette. */
+.cf-plot--ground .cf-plot__draw .cf-plot__cell {
+  fill: var(--surface-page);
+  stroke: none;
+}
+
+/* An unlit cap is a face too, and it is the one place a `fill: none` still let
+   the ground through the top of a box. Scoped off the two caps that carry a
+   paint server, because author CSS beats a presentation attribute — the
+   mistake this component's own note records further up. */
+.cf-plot--ground .cf-plot__col:not(.cf-plot__col--lit):not(.cf-plot__col--fell) .cf-plot__cap {
+  fill: var(--surface-page);
+}
+
+/* THE HUE MOVES TO THE FACE, where a colour has room to be one. The ramp is
+   the lit cap's, with the warm source swapped for the cool one and every
+   other number in it unchanged: the brand's own violett, the waypoint at 19 %
+   of the violett leg measured from violett, Glas at 0.32, CF-Grau at the rim.
+   #8A94E3 is that waypoint computed in oklab exactly as #DBFC60 was computed
+   on the lime leg — same construction, same proportions, other end of the
+   spectrum. It is a paint server the column carries in its own <defs>, for
+   the reason the lit cap's is: a CSS gradient cannot be an SVG fill.
+   → foundations/colors.html#rakes-and-blooms
+
+   AND IT IS NOT A SECOND LIGHT. Lime is the source in this brand and stays
+   the one thing --lit spends. This face is not lit; it is the cool end of the
+   same ramp, which is what the palette already does with every surface the
+   light does not reach. */
+.cf-plot__col--fell .cf-plot__cap { --glow-r: 0; }
+
+/* FORCED COLOURS TAKES THE FILLS AND KEEPS THE DRAWING — the pie's rule, for
+   the pie's reason, and the plot needed it before any of this arrived.
+
+   A CUSTOM PROPERTY ARRIVING AT AN SVG `stroke` IS NOT FORCED. Every stroke
+   here is var(--border-strong), which is --cf-schwarz in the light palette, so
+   under a dark forced palette the columns computed black on a black Canvas:
+   the whole drawing absent rather than faint. That is .cf-pie__contour's
+   finding verbatim, and the plot carried the same fault unfixed because it had
+   no block of its own.
+
+   AND A PAINT SERVER IS NOT FORCED AT ALL, so both ramps would go on painting
+   their own lime and violett under a reader's chosen ink. They come off. What
+   survives is the drawing, the zero line, and every column's own number with
+   its sign — and because the direction is in the geometry here, a falling
+   column still falls in a palette with no colour in it at all. */
+@media (forced-colors: active) {
+  .cf-plot__rise,
+  .cf-plot__cap,
+  .cf-plot__cell { stroke: CanvasText; }
+  .cf-plot--ground .cf-plot__set::before { background: CanvasText; }
+  .cf-plot__col--lit .cf-plot__cap,
+  .cf-plot__col--fell .cf-plot__cap { fill: none; }
+  /* The occluders keep their job and lose their colour. A fill written as a
+     custom property is not forced, so --surface-page would paint CF-Grau over
+     a reader's chosen Canvas; named Canvas, the body still hides the ground
+     behind it and still does so in their palette. Depth survives a mode with
+     one ink, because it was never carried by a colour. */
+  .cf-plot--ground .cf-plot__draw .cf-plot__body,
+  .cf-plot--ground .cf-plot__draw .cf-plot__cell,
+  .cf-plot--ground .cf-plot__col:not(.cf-plot__col--lit):not(.cf-plot__col--fell) .cf-plot__cap {
+    fill: Canvas;
+  }
+}
+
 /* The number rides its own column: top is the cap's top vertex, 6u of rise
    times the part of it not yet climbed, and the element hangs above that line
    rather than starting at it.
