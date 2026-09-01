@@ -353,6 +353,8 @@ python3 scripts/check-readme-check-count.py    # the count above this block is t
 python3 scripts/check-readme-check-count.py -v # the number, and every check counted
 python3 scripts/check-count-atom.py            # a section head taken off the label ramp keeps its counter in one piece
 python3 scripts/check-count-atom.py -v         # every section header row, and the ramp it is on
+python3 scripts/check-field-family.py          # every field control is accounted for in the family's shared rules
+python3 scripts/check-field-family.py -v       # every shared rule and the controls it names
 python3 scripts/check-lime-flat.py             # every flat lime area sits on one of the light layer's four boundaries
 python3 scripts/check-lime-flat.py --fix       # rewrite the census in foundations/light.html
 python3 scripts/check-lime-flat.py -v          # every area paint examined, and the argument that covers it
@@ -368,7 +370,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The twenty-three checks the system enforces rather than documents, run by CI on every push and
+The twenty-four checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -1122,8 +1124,8 @@ exemption written for it.
 
 **The boundary was a list of places, and it had gone stale.** *Lime is never flat* closed
 with "three exceptions" — the palette swatch, the found state, a stroke. Swept over the four
-shipping stylesheets, the system paints a flat lime **area** in seven places, in four kinds,
-and two of the kinds had no row: the **nucleus** of a source (`.lp-flow__src::after`,
+shipping stylesheets, the system paints a flat lime **area** in seven places. The three
+names covered five of them — the found state's registers, all one kind — and two had no row: the **nucleus** of a source (`.lp-flow__src::after`,
 twenty-five of them on the landing page) and a **legend key** (`.map__key-dot--*`, the
 swatch argument at a different address). Neither is a defect in the drawing — measured on
 the rendered page, a nucleus is 3.6 px of flat lime standing inside 5.4 px of lime and 12 px
@@ -2210,11 +2212,18 @@ These were judgement calls, each documented on the relevant page:
   interior height, every sampled pixel is a flat `#F8F8F8` while the margin beside it climbs
   219 → 226 — **+22 to +29, constant**, which the wash cannot be because the wash moves. So
   the designer drew a contour figure panel and an opaque light plate under the copy, and the
-  implementation draws neither. Left standing rather than half-restored: the same argument
-  that retired the card's plate applies to this one — an absolute grey inside the wash's range
-  inverts as the reader scrolls, and the honest form of a step *toward* the light is a veil of
-  white, which the materials family does not have a value for yet. A designer settles it.
-  → `foundations/materials.html#copy-panel-gap`
+  implementation draws neither. **The copy half now carries that plate as `--surface-lifted`.**
+  The form was never in doubt — an absolute grey inside the wash's range inverts, so the honest
+  step *toward* the light is a veil of white. What blocked the value was the rule that a light
+  step "dies at the bottom of every screen", and this panel is never at the bottom of one: the
+  card sits in `.cf-pin__stage`, `position: sticky`, and across the whole 5,760 px pin range at
+  1280×900 its viewport top reads **54** and its bottom **785** at every sample — identical, not
+  approximately still. The wash is viewport-fixed, so between those rows it is 210 → 242 for
+  every reader, with 45 → 13 of headroom that never reaches zero. Value mirrored rather than
+  picked: 6 % black removes 12.42 at the wash's opening stop, a white veil has 48 there,
+  `12.42 / 48 = 0.2588` → white 26 %. Renders **+15 at the card's head, +4 at its foot**, and
+  scoped to the two-column form, since below that breakpoint the halves stack and there is no
+  column to be a plate against. → `foundations/materials.html#copy-panel-gap`
 - **A step away from the page is a ratio, not a grey — so `--surface-sunken` is a veil.**
   The neutral steps were absolute values chosen against `--surface-base`, CF-Grau, and no
   page in the system is painted CF-Grau: every page carries `.page-wash`, which is
@@ -2353,20 +2362,36 @@ it would train people to ignore it.
   re-export drops them and the line-drawing goes back to being timed against its full length —
   including the half of it that is outside the frame, and including the four strokes that are
   not this one. The drawing is not wrong, it just spends most of its scroll range invisible or
-  holding still. Each one carries a comment at the element. Three drawings are cut by their
-  crop — card 02 (both ends), card 04, and the trace specimen on
-  `foundations/illustration.html` — and two are drawn as several strokes and therefore led:
-  card 03's five-stroke arrow and that same specimen's three.
+  holding still. Each one carries a comment at the element. Two drawings are cut by their
+  crop — card 02, at both ends, and card 04 — and one is drawn as several strokes and
+  therefore led: card 03's five-stroke arrow. All eight authored traces are on the four
+  process objects and nowhere else. This paragraph used to name a fifth drawing and a sixth
+  stroke set on a "trace specimen" on `foundations/illustration.html`, which carries no
+  trace and no longer mentions one: the trace was retired from the four documented material
+  layers, the specimen went with it, and the sentence counting it did not. The count is the
+  tree's rather than this file's — `check-iso-motion.py` reports how many traces it measured
+  on every run.
   → `foundations/motion.html`
 - **`--iso-travel` on a frame that has been recropped.** The arrival distance is a transform,
   so it is in viewBox units, and the rule is `viewBox width / 40` — the same 5 % of the
   drawing in every frame. Seven of the fifteen shipping objects are not on a 640 square and
-  carry their own value, four of them as inline custom properties on the `svg`. Nothing ties
-  those literals to the viewBox they were derived from, so **recropping a drawing leaves its
-  travel silently wrong.** It has already happened once: the four objects on
+  carry their own value, four of them as inline custom properties on the `svg`. Nothing tied
+  those literals to the viewBox they were derived from, so **recropping a drawing left its
+  travel silently wrong.** It had already happened once: the four objects on
   `patterns/expertise.html` were recropped from 695.2 / 612 / 552.4 / 714.24 to
   732 / 776.8 / 732 / 790.24 within an hour of the values first being written, and nothing
-  failed — the objects simply arrived from the wrong distance. Re-measure after any recrop.
+  failed — the objects simply arrived from the wrong distance. `check-iso-motion.py` now
+  re-derives every one of them from the frame it is written beside, so that half is held.
+  **The prose is the half that was not, and it had been wrong since it was written.**
+  `foundations/motion.html` taught the rule with a worked example — the statement figure at
+  "480 units", overriding the token *down* to 12 — against a drawing that is 1200 units and a
+  stylesheet that has shipped 30 the whole time. Both numbers were wrong, they agreed with
+  each other, and the correction they demonstrated was inverted: a bigger frame on the same
+  token travels a *smaller* fraction, so the example argued the opposite of the rule above
+  it. A check reading only CSS cannot see that, because the sample is text and renders
+  whatever it says. The samples are now read too: a selector-keyed `--iso-travel` in a
+  docs-code block must equal what `components.css` declares for that same selector, and its
+  `/* W / 40 */` derivation must name the frame of the drawings that rule actually governs.
   **`--trace-weight` is the same hazard read the other way round:** it is `viewBox width /
   rendered width`, so a recrop breaks it from the viewBox end and a change to the frame's
   `max-width` breaks it from the render end. Both leave a trace that still draws itself,

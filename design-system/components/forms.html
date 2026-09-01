@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Forms — Control-F Design System</title>
+<link rel="icon" href="../assets/img/logo/cf-favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/base.css">
 <link rel="stylesheet" href="../assets/css/components.css">
@@ -221,6 +222,124 @@
     </div>
   </section>
 
+  <section class="docs-section" id="file">
+    <h2>A file — the one control the browser draws for us</h2>
+    <p>
+      <code>.cf-field__file</code> ships on
+      <a href="../patterns/bewerbung.html">Bewerbung</a>, where it is the control a candidate
+      has to operate to apply for a job, and until now it was the only member of the field
+      family with no entry on this page. A file input is a button plus a filename — a box in
+      the middle of a form made of underlines — so what the stylesheet does is bring the
+      button back to the system's button idiom and the filename down to the field's own type,
+      until the row reads as the same kind of thing as the rows above it.
+    </p>
+    <div class="docs-demo">
+      <form class="stack flow-8" style="max-width:38rem" method="post"
+            enctype="multipart/form-data" novalidate>
+        <div class="cf-field">
+          <label class="cf-field__label" for="f-cv">Lebenslauf</label>
+          <input class="cf-field__file" id="f-cv" name="cv" type="file"
+                 accept=".pdf,.doc,.docx,.odt,.rtf,.txt" required>
+          <span class="cf-field__hint">PDF, DOC, DOCX, ODT, RTF oder TXT — bis 5 MB.</span>
+        </div>
+
+        <div class="cf-field">
+          <label class="cf-field__label" for="f-docs">
+            Arbeitsproben <span class="cf-field__optional">(optional)</span>
+          </label>
+          <input class="cf-field__file" id="f-docs" name="papers" type="file"
+                 accept=".pdf" multiple>
+          <span class="cf-field__hint">Mehrere Dateien möglich.</span>
+        </div>
+
+        <div class="cf-field cf-field--invalid">
+          <label class="cf-field__label" for="f-badfile">Anschreiben — error state</label>
+          <input class="cf-field__file" id="f-badfile" type="file"
+                 aria-invalid="true" aria-describedby="f-badfile-msg">
+          <span class="cf-field__error" id="f-badfile-msg">Die Datei ist 8,4 MB groß. Erlaubt sind 5 MB.</span>
+        </div>
+
+        <div class="cf-field">
+          <label class="cf-field__label" for="f-offfile">Zeugnisse — disabled</label>
+          <input class="cf-field__file" id="f-offfile" type="file" disabled>
+          <span class="cf-field__hint">Rung 2, <code>--presence-near</code> (2-1) — the same rung every other disabled field drops to.</span>
+        </div>
+      </form>
+    </div>
+
+    <pre class="docs-code">&lt;<span class="tag">form</span> <span class="attr">method</span>=<span class="val">"post"</span> <span class="attr">enctype</span>=<span class="val">"multipart/form-data"</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-field"</span>&gt;
+    &lt;<span class="tag">label</span> <span class="attr">class</span>=<span class="val">"cf-field__label"</span> <span class="attr">for</span>=<span class="val">"f-cv"</span>&gt;Lebenslauf&lt;/<span class="tag">label</span>&gt;
+    &lt;<span class="tag">input</span> <span class="attr">class</span>=<span class="val">"cf-field__file"</span> <span class="attr">id</span>=<span class="val">"f-cv"</span> <span class="attr">name</span>=<span class="val">"cv"</span> <span class="attr">type</span>=<span class="val">"file"</span>
+           <span class="attr">accept</span>=<span class="val">".pdf,.doc,.docx,.odt,.rtf,.txt"</span> <span class="attr">required</span>&gt;
+    &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-field__hint"</span>&gt;PDF, DOC, DOCX … — bis 5 MB.&lt;/<span class="tag">span</span>&gt;
+  &lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">form</span>&gt;</pre>
+
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>Drawing</th></tr></thead>
+      <tbody>
+        <tr><td>Row</td><td>the field's own 1 px line, like every other control on the form</td></tr>
+        <tr><td>Button</td><td><code>::file-selector-button</code> styled as <a href="buttons.html"><code>.cf-btn--outline</code></a>: transparent plate, 1 px <code>--border-strong</code> contour, <code>--radius-sm</code>, mono label in caps</td></tr>
+        <tr><td>Filename</td><td><code>--text-md</code>, <code>--text-secondary</code> — 14 px and not the field's 16 px, because the value is a filename whose length the reader did not choose and <em>Lebenslauf_Nachname_2026.pdf</em> runs into the button at 16</td></tr>
+        <tr><td>Hover</td><td>the button inverts — black plate, <code>--grey-000</code> label. The outline button's own declaration, borrowed rather than restated</td></tr>
+        <tr><td>Focus</td><td>the global ring: 2 px of <code>--focus-ring</code> at 2 px offset, around the input. This field does <em>not</em> thicken its line — see the note below</td></tr>
+        <tr><td>Invalid</td><td><code>.cf-field--invalid</code> takes the line to <code>--feedback-error</code>, the same as every other control</td></tr>
+        <tr><td>Disabled</td><td>rung 2, <code>--presence-near</code> (2-1), <code>cursor: not-allowed</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="docs-note">
+      <strong><code>enctype="multipart/form-data"</code> is not optional on the form.</strong>
+      Without it the browser sends only the <em>filename</em> of a
+      <code>&lt;input type="file"&gt;</code> and not the bytes — so the server receives an
+      application with no CV and cannot even tell that anything is missing. It is an attribute
+      of the <code>&lt;form&gt;</code>, not of the field, which is why it is easy to leave off
+      the one form on the site that needs it.
+    </div>
+    <div class="docs-note">
+      <strong>The button's label is the browser's word, not ours, and it cannot be
+      translated.</strong> <em>Choose file</em>, <em>Datei auswählen</em>, <em>Durchsuchen</em>
+      — which one appears is decided by the user agent's UI language, not by the page's
+      <code>lang</code>. So a German page can show an English button, and nothing in this
+      repository can change it. That is the reason the constraints live in
+      <code>.cf-field__hint</code> and the name of the thing lives in the
+      <code>&lt;label&gt;</code>: everything a reader has to know has to be in text we
+      actually own.
+    </div>
+    <div class="docs-note">
+      <strong>Never hide the input and drive it from a <code>&lt;label&gt;</code>.</strong>
+      It is the usual recipe for a "designed" upload and it costs two things this site cannot
+      put back without script: the focus ring in Safari, and the filename readout everywhere.
+      <code>::file-selector-button</code> has been in every engine since April 2021, so the
+      button can simply be styled where it stands. Nothing here is hidden and nothing is
+      replaced.
+    </div>
+    <div class="docs-note">
+      <strong>This is the second field that keeps the global focus ring, and it used to keep
+      nothing.</strong> Every other control turns the ring off because its line thickens to
+      2 px instead — which works when the line <em>is</em> the control, with the caret on it.
+      A file field has a line, which is why it was in that list, but no caret and no typing:
+      what the reader operates is the button at the far left. Measured on
+      <a href="../patterns/bewerbung.html">Bewerbung</a> at 1280, the field captured at rest
+      and after a real Tab onto it, differenced pixel by pixel: <strong>655 pixels changed,
+      all of them inside one 655 × 1 row at the bottom edge, and none of them on the
+      button</strong>. <a href="https://www.w3.org/TR/WCAG22/#focus-appearance">WCAG 2.4.11</a>
+      asks a focus indicator for the area of a 2 px perimeter of the component and 3:1 against
+      its own unfocused state; a detached 1 px line clears neither. The
+      <a href="#states">read-only field</a> is the first case of the same exception — no line
+      to thicken — and this is the mirror of it.
+    </div>
+    <div class="docs-note">
+      <strong><code>accept</code> is a filter, never a validation.</strong> It sets what the
+      OS picker offers first, and every browser lets a reader choose <em>All files</em> past
+      it. Type and size are the server's to check on arrival, and the message that comes back
+      is an ordinary field error — <code>.cf-field--invalid</code>,
+      <code>aria-invalid</code>, <code>aria-describedby</code>, and a line in the
+      <a href="#error-summary">error summary</a> like any other.
+    </div>
+  </section>
+
   <section class="docs-section" id="states">
     <h2>Not available, and not editable</h2>
     <p>
@@ -353,8 +472,11 @@
         <tr><td>Checked</td><td>the box fills with <code>--gradient-foil</code>; the mark is black and drawn out of border</td></tr>
         <tr><td>Checkbox mark</td><td>two borders on a 45° rotation — a tick</td></tr>
         <tr><td>Radio mark</td><td>the lattice rhombus: a 10 px square of border turned 45°, 14.1 px across</td></tr>
+        <tr><td>File field</td><td>the row is a line like any other; the value is 14 px, because a filename is as long as it is</td></tr>
+        <tr><td>File button</td><td><code>::file-selector-button</code> drawn as <code>.cf-btn--outline</code> — 1 px contour, <code>--radius-sm</code>, inverting on hover</td></tr>
         <tr><td>Disabled field</td><td>line drops to <code>--presence-near</code> (2-1); ink to <code>--text-secondary</code></td></tr>
         <tr><td>Read-only field</td><td>no line; full ink; keeps the global focus ring</td></tr>
+        <tr><td>File field, focused</td><td>the second control that keeps the global ring — its line is not where the control is</td></tr>
       </tbody>
     </table>
     <div class="docs-note">
@@ -395,6 +517,14 @@
       <li>
         Prefer <code>readonly</code> over <code>disabled</code> whenever the value still
         matters: a disabled control is skipped by assistive technology and does not submit.
+      </li>
+      <li>
+        A file field stays a real <code>&lt;input type="file"&gt;</code> with its button
+        styled in place. Hiding it behind a <code>&lt;label&gt;</code> drops the focus ring in
+        Safari and the filename readout everywhere, and this site has no script to put either
+        back. It keeps the global focus ring rather than the line-thickening every other
+        field uses, because the control a reader operates is the button and not the line —
+        see <a href="#file">A file</a>.
       </li>
       <li>Validate on blur, not on every keystroke.</li>
       <li>After submit, move focus to the confirmation or to the error summary.</li>

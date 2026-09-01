@@ -858,6 +858,10 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-wrap-net.py
 
+      - name: Bounded key wrap
+        if: '!cancelled()'
+        run: python3 scripts/check-bound-key-wrap.py
+
       - name: Arrival
         if: '!cancelled()'
         run: python3 scripts/check-arrival.py
@@ -921,6 +925,28 @@ jobs:
       - name: Focus ring
         if: '!cancelled()'
         run: python3 scripts/check-focus-ring.py
+
+      # The third check about a hand-written selector list, after the wrap net
+      # and the focus ring above it, and it was added because the same list
+      # failed twice in one component in both directions. components.css draws
+      # four .cf-field__* controls and says what they share in lists typed by
+      # hand: the file field was missing from [disabled], so a disabled upload
+      # kept a solid line where the other three drop to the presence ladder's
+      # 2-1 and kept `cursor: default`; and it was present in the :focus rule
+      # that turns the global ring off in favour of the line thickening, which
+      # speaks for a control the line IS. A file field's line is not that —
+      # what a reader operates is the button at the far left. Measured on
+      # patterns/bewerbung.html at 1280, at rest against a real Tab: 655 pixels
+      # changed, all of them in one 655 x 1 row at the bottom edge, none on the
+      # button. Both faults render perfectly on the day you look at them.
+      #
+      # A control outside a shared rule is now declared in the script's EXEMPT
+      # with its reason, so an omission has to be written down rather than
+      # merely happen. Adding a fifth control to the family fails this check on
+      # purpose.
+      - name: Field family
+        if: '!cancelled()'
+        run: python3 scripts/check-field-family.py
 
       # The other half of the one above. That check holds the ring's REACH —
       # every element that takes focus gets the system's indicator. This one

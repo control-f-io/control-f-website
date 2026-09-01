@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Lime is never flat, and the list of where it is was three names long.
 
-The one hundred and thirty-sixth check, and the first whose subject is the
+The one hundred and thirty-eighth check, and the first whose subject is the
 light layer as a layer. foundations/colors.html has stated the rule since the
 palette was written:
 
@@ -15,8 +15,9 @@ one": the palette swatch, the found state, and a stroke. Three names, kept by
 hand, over a rule that reaches every stylesheet in the system.
 
 WHAT THE HAND COUNT MISSED. Swept over the four shipping stylesheets, the
-system paints a flat lime AREA in seven places, in five kinds, and two of the
-kinds are not on the list:
+system paints a flat lime AREA in SEVEN places. The three names covered five of
+them -- the found state's four registers plus the calendar's today, all one
+kind. Two had no row at all:
 
   .lp-flow__src::after     the NUCLEUS of a source. Measured on the rendered
                            landing page at 1440 x 900: a 3.6 px core, flat
@@ -35,9 +36,12 @@ kinds are not on the list:
 NEITHER IS A DEFECT IN THE DRAWING. Both are right and the rule was
 incomplete, which is the more expensive way for a rule to be wrong: a stated
 exception list that does not cover what ships teaches a reader that the rule is
-advisory. foundations/light.html restates the four as a BOUNDARY that generates
-all seven -- a highlight, a swatch, a source's nucleus, and a thing that is not
-an area -- and this file is what holds the boundary to what the stylesheets do.
+advisory. foundations/light.html restates the list as a BOUNDARY with four
+categories -- a highlight, a swatch, a source's nucleus, and a thing that is
+not an area. Three of the four carry the seven; the fourth carries none by
+construction, because it is the rule's edge rather than an exception inside it,
+and it is enforced here by not looking. This file holds the boundary to what
+the stylesheets actually do.
 
 WHY A SCRIPT. Every failure here renders. A flat lime plane is a perfectly good
 yellow rectangle; nothing overflows, no reference breaks, no contrast figure
@@ -278,11 +282,27 @@ def sweep():
 
 
 def rows(found):
-    """The census: one row per covered flat lime area, sorted for stability."""
+    """The census: one row per covered flat lime area, sorted for stability.
+
+    THE LINE NUMBER IS NOT IN THE ROW, and that is the whole difference between
+    a census a reader trusts and one every lane learns to run --fix on without
+    reading. Four lanes edit these stylesheets hourly and most of what they add
+    is prose; the first merge from main after this file was written moved three
+    of the seven rules by 16, 16 and 48 lines and changed nothing about any of
+    them. A stamp that churns on an edit that is not about its subject is a
+    stamp nobody reads, which is the failure this script exists to prevent one
+    level up.
+
+    The file survives, because a rule moving between stylesheets IS a change of
+    subject -- a flat lime crossing from components.css into acts.css has moved
+    onto the page carrying the tightest budget in the system. The line is
+    reported in -v and in every failure message, where it points a reader at
+    the declaration and is read once rather than stored.
+    """
     out = []
     for hit in found:
         boundary, _ = COVERED.get(hit["selector"], ("uncovered", ""))
-        out.append((hit["selector"], boundary, "%s:%d" % (hit["file"], hit["line"])))
+        out.append((hit["selector"], boundary, hit["file"]))
     return sorted(out)
 
 
@@ -306,7 +326,7 @@ STAMP = re.compile(r"<code>[0-9a-f]{8}</code>")
 def render_table(census):
     lines = [
         "      <thead>",
-        "        <tr><th>Where</th><th>Boundary</th><th>Declared</th></tr>",
+        "        <tr><th>Where</th><th>Boundary</th><th>Stylesheet</th></tr>",
         "      </thead>",
         "      <tbody>",
     ]
