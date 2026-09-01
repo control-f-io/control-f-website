@@ -3,8 +3,17 @@
    Styles the design-system site ITSELF. None of this ships to control-f.de.
    ========================================================================== */
 
-/* Docs chrome links are navigation, not prose — no underlines. */
-.docs-sidebar a,
+/* Docs chrome links are navigation, not prose — no underlines.
+   NAMED BY COMPONENT AND NOT BY CONTAINER. This read `.docs-sidebar a`, which
+   is the same two anchors — the brand and the nav list — and put half of the
+   nav's appearance in a rule the nav does not carry. It renders identically in
+   the sidebar and differently everywhere else, so the sidebar demo on
+   foundations/colors.html, built from the nav's own classes, came out
+   underlined against a column that is not. A component that cannot be drawn
+   outside its container is a component whose documentation has to hand-draw
+   it, which is the drift this rule was written to end. */
+.docs-sidebar__brand,
+.docs-nav__list a,
 .docs-card,
 .docs-swatch { text-decoration: none; }
 
@@ -186,6 +195,26 @@ body.docs {
 .docs-section p + p:not(:where(.docs-demo *)) { margin-top: var(--space-3); }
 .docs-section ul:not(:where(.docs-demo *)) { max-width: 72ch; color: var(--text-secondary); padding-left: 1.1rem; }
 .docs-section li + li:not(:where(.docs-demo *)) { margin-top: var(--space-2); }
+
+/* ONE ROW OF A SPECIMEN LIST — a sample, its caption, and the hairline that
+   separates it from the row below. The type scale wrote this eleven times as
+   an inline attribute and drew the hairline as ten <hr> elements, which is
+   eleven places one decision about specimen rhythm could drift and ten
+   thematic breaks a screen reader announces as separators inside what is one
+   list of eleven sizes. The rule is the row's own top edge now: a separator
+   between rows is what a border on the second and later rows IS, and it needs
+   no element of its own. Same measured rhythm as the markup it replaces —
+   --space-8 of air, the hairline, --space-8 of air — because the gap above the
+   line and the gap below it were already equal and the two halves are now the
+   margin and the padding of one box. */
+.docs-specimen + .docs-specimen {
+  margin-top: var(--space-8);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--border-subtle);
+}
+/* The caption sits one rung off its sample on every row. Held here so a row
+   added later cannot pick a different rung by hand. */
+.docs-specimen__note { margin-top: var(--space-2); }
 
 /* A note the implementer must not skip. Contour + surface, no accent bar —
    the brand draws boxes with a 1 px line, not with a coloured stripe. */
