@@ -717,8 +717,8 @@ design-system/
 │                           illustration, logo, photo, motion, mobile,
 │                           page transitions, field, found state, line of sight
 ├── components/             buttons, nav, breadcrumb, section header, statement +
-│                           value table, plot, gantt, annotation, process card,
-│                           accordion, blog grid,
+│                           value table, plot, line, gantt, annotation,
+│                           process card, accordion, blog grid,
 │                           subdivision field, search + results, vacancy,
 │                           pagination, error + empty state, arrival + progress,
 │                           article + prose, table, team, forms, footer, consent
@@ -1095,6 +1095,37 @@ Three more things the chapter settles:
   script has run, reads the whole page rather than one container, and is the one keystroke a
   reader can rely on everywhere. A site search field is an addition to it, not a replacement.
 
+**In forced colours, `Mark` is a plate colour and not an ink colour** — one answer, applied to
+all five rungs. `Mark` is yellow and `MarkText` black in *both* forced palettes; they are the
+only pair in this drawing that does not flip, while `Canvas` and `CanvasText` do. So `MarkText`
+holds only where it sits **on** the `Mark` plate, and everything the drawing puts outside that
+plate takes `CanvasText`: the whole contour rung, which has no plate, and the ground line of the
+light rung, which hangs below the plate on the page itself. That is the value the rest of the
+system already means by *ink in this palette* — `.text-foil` takes it and `.rule` redraws itself
+in it.
+
+The rung that found this had been **absent, not faint**. Rendered rather than computed —
+Chromium 149 and 151, `forced-colors: active`, `prefers-color-scheme` light and dark,
+`foundations/found.html` served and screenshotted, pixels read back — the dark palette returned
+one colour and 100 % `Canvas` for `.cf-mark`: the specimen sentence read *"Every match is the
+______ alone"*, with the marked words gone from the page. `color: inherit` does not inherit
+under forced colours; the mode re-forces the computed value, and for a `<mark>` Chromium forces
+it to `MarkText` — black ink under a black ground line on a black `Canvas`. The declaration said
+`color: inherit` and the computed value came back `rgb(0, 0, 0)`, which is why only a screenshot
+could find it. The light palette was correct throughout, which is how it shipped.
+
+Not `ButtonFace`/`ButtonText`, where the current-page marker in `components/pagination.html`
+went for the neighbouring finding: measured on the same run, `ButtonFace` resolves to the *same
+value as* `Canvas` in both palettes, so a plate painted in it is not a plate. And **the three
+highlight pseudo-elements are not styleable in forced colours at all** — Chromium paints
+`::target-text`, `::highlight(cf-found)` and `::highlight(cf-found-current)` with the UA's own
+`Highlight`/`HighlightText` and discards every author declaration. Four candidates rendered
+identically, the two rungs collapsing into one plate with no ground line. The single lever that
+works is `forced-color-adjust: none` on the *originating element*, which would mean setting it
+on the running text of the site — opting the page out of forced colours in order to keep a
+drawing about accessibility. It is not taken; those three rules are written as a conforming
+engine would paint them and are inert on Chromium today.
+
 `::selection` is the one exception on the page and keeps its solid lime with no contour. Its
 boundary against CF-Grau is the same 1.37:1 and that is documented rather than fixed: a drag is
 transient, self-caused and under the reader's own hand, so the platform's convention wins over
@@ -1149,6 +1180,56 @@ words is the working band, and `textStart,textEnd` pins both ends where it canno
 Both Figma mockups draw a six-item nav bar measured to `417 × 41`; a seventh item is a change
 to the drawing, not to the code. `patterns/404.html` routes to it instead — first in the list,
 because it is the only route on that page that does not guess what the reader was after.
+
+## A month is a page of days
+
+`components/calendar.html` is the second application of the found state, and the first thing in
+the system that had to draw **time**. It is worth its own section for one reason: it introduces
+no drawing. There is no new geometry in it, no new colour, no new token, and one custom
+property that is a floor already written twice elsewhere. The whole component is three existing
+components in an arrangement — which is the test a system passes or fails when something new is
+asked of it.
+
+| | |
+|---|---|
+| the frame | `.cf-table`'s. Ruled rows, nothing vertical, tabular figures, the caption as the accessible name, the scroll box with its three attributes. A month **is** tabular — the column is a weekday, the row is a week — so `<th scope>` does the work and no script has to. |
+| the slot | `.cf-pagination__page`'s. 2.75 rem, a mono numeral centred in it, no contour at rest and the contour arriving on hover and focus, because at rest a number is type and under the pointer it is a target larger than its glyph. |
+| the mark | the found state's, at numeral scale. A day something stands on is a numeral on its ground line; **today** is the same numeral with the light behind it. |
+
+**The brand is named after finding a thing in a page, and a month is a page of days.** The day
+the reader is standing on is the match they are standing on, so today is not a new state — it is
+`::target-text` at the scale of a numeral, held to the same `--found-*` tokens rather than to a
+shared selector, which is the mechanism `base.css` already states for the five rungs it declares
+itself. It settles the lime budget the way [the found state](#the-found-state) does, and one step
+harder: a month has exactly one today, so a calendar with four marked days composes one lit
+numeral and three contoured ones *by arithmetic*. Nothing has to be kept.
+
+Three absences, each a rule from somewhere else. **No weekend column** — it could only be a
+vertical rule or a column fill, and a fill doing a hairline's job is the zebra stripe the table
+refuses. **No days of the neighbouring month** — the only way to say a cell belongs to another
+month is to grey it, and `--text-muted` on CF-Grau is 2.0:1, the one step this system does not
+have; the cells before the first and after the last are empty, and the way out is a
+`.cf-pagination` above or below the grid. **No entry titles in the cells** — a 44 px slot cannot
+hold a sentence, so the grid is an *index* and what stands on a day is the register, which gains
+its third consumer, `.cf-event`, beside `.cf-result` and `.cf-vacancy` for three words in seven
+selector lists and not one declaration.
+
+**Nothing dynamic ships here either.** `aria-current="date"` is a claim about the day the page is
+*served*, so it is the server's to write, and the specimen fixes a month and lights one day in it
+— the same standing [the presence ladder](#the-presence-ladder)'s states have and the news
+archive's paging has.
+
+One thing is measured and not fixed. Under forced colours today takes `Mark`/`MarkText`, the pair
+`<mark>`, `::target-text` and both `::highlight()` names already take — and measured in Chromium
+141 with forced colours emulated, that pair does not paint under the dark theme: `MarkText`
+resolves black while the text backplate resolves to `Canvas` black, so the lit day renders as a
+block with no ink. `.cf-pagination__page[aria-current]` records the same finding against the same
+pair on the same engine and moved to `ButtonFace`/`ButtonText`. The calendar deliberately does
+**not** follow it there: a lit day and a current match are one drawing and may not have two
+answers under one media query. That is the found state's forced-colours answer, the fix belongs
+in `base.css` to all five rungs at once, and the component's comment says so rather than working
+around it.
+
 
 ## The last route with nowhere to go
 
@@ -1622,6 +1703,63 @@ These were judgement calls, each documented on the relevant page:
   columns rising 31 → 100 the recession cancelled almost the whole climb and the tallest
   column was drawn *lower* than the shortest. The level row is still a lattice step:
   (2u, +u) + (2u, −u) = (4u, 0). → `components/plot.html`
+- **A line is not a body, so it is not drawn in space.** `.cf-plot` names its own ceiling
+  at five values and everything above it had no figure. `.cf-line` is that figure, and the
+  first decision is what it is *not*: everything the manual draws in isometry is an object
+  with faces and volume, while a trace encodes a position at each point of a domain and
+  says nothing about extent. Drawing it in space would claim a body where there is none —
+  and it would cost what the plot already measured, a unit of drawn height per step along
+  either 26.57° ground axis, which over eleven points is more than the whole climb. So the
+  line is a **section**: orthographic, 90°, the fourth of the four angles. The lattice
+  stays — every point the figure is read at stands on a cell, the same 8 px rhombus
+  `.cf-annot::before` cuts — and the trace between those cells is flat. Three consequences
+  follow from the same distinction. The trace's **angle is the one angle in this system
+  nobody chose**, because quantising a slope to the four brand angles would falsify the
+  data rather than merely flatten the picture. The **frame's ratio is fixed at 2:1**, the
+  tile's own, and is a document-level choice from the three the brand owns rather than a
+  per-figure tuning, because steepness is what a reader takes off a line and two frames at
+  two ratios in one document cannot be compared. And the **floor is not assumed to be
+  zero** — a column stands on the ground and must start there, a trace stands on nothing —
+  which is why `.cf-line__bounds` is required: a tight frame is not dishonest, an
+  undeclared one is. A point is data by default and a mark only when asked, so the eye gets
+  three numbers where the accessibility tree gets eleven. → `components/line.html`
+- **The palette cannot make a categorical hairline set, and that is measured rather than
+  assumed.** A second series is a rung of the presence ladder and not a tint, because grey
+  fails at both ends at once and the accents fail at both ends too. Against CF-Grau, the
+  wash's worst end: `--border-default` composites to 1.74:1, grey 500 to 1.78:1 and grey
+  400 to 2.02:1 — every grey light enough to *read* as a second series is under the 3:1 a
+  contour owes — while grey 700, the one that clears the wash at 5.87:1, is 2.30:1 from the
+  black it is supposed to differ from and is `--text-secondary`, the label ink. The three
+  brand accents split the same way: Glas/Sky/Violett **500** measure 1.21, 1.49 and 2.24:1
+  on the wash, and the **800** steps that clear it are near-blacks 1.36:1 and 1.20:1 apart
+  from *each other* — a 1 px stroke has no area to judge a hue on. So the four line types
+  are the whole vocabulary a series has: four traces at the ceiling, three in practice, and
+  the ladder is ordinal so the series have to be (measured, planned, forecast). Past that
+  the move is not a fourth line type but four frames — `.tiles` with one `.cf-line` per
+  cell, all on one stated scale. → `components/line.html`
+- **A label is a fixed height and a frame is not, which is one bug and one rule.** The
+  value that rides a point needs its own line plus the gap — `0.75rem × 1.3` over
+  `--space-3`, about 27.6 px — and that is the same 27.6 px whether the frame is 320 px
+  tall on a desktop or 136 px at a 320 px viewport, where it is a fifth of the whole
+  range. Two things follow, both measured rather than reasoned. The *bug*: a value near
+  the ceiling climbs out through it — 84 % sat 5.1 px over its own top hairline at 320 px
+  wide and 0.8 px over at 375 — and `bottom: min(…)` now parks such a label flush under
+  the ceiling and leaves its node where the data says. The *rule*: in a multi-series
+  figure the space above a point usually belongs to another trace, and at 375 px the plan
+  ran straight through the subject's opening value because 13 points of frame is 21 px
+  there. So a figure with three traces goes `.cf-line__set--quiet` — keys and nodes paint,
+  values do not, every value stays in the accessibility tree, and the numbers go in the
+  caption, which has room for them. → `components/line.html`
+- **The line chart is the one figure whose data is written twice, and a script holds the
+  copy.** SVG cannot read a custom property off an `<li>`, and the CSS construction that
+  would avoid the second copy — rotated hairlines sized with `hypot()` and turned with
+  `atan2()` — draws nothing at all on an engine without CSS trigonometry, which breaks the
+  component's first law that every fallback is the finished chart. So the polyline and the
+  list are both authored, the mapping between them is the identity (`x == --t × 100`,
+  `y == (1 − --v) × 100`), and `scripts/check-line-trace.py` proves point *i* is vertex *i*
+  to 0.05 user units. It is the invisible class in its purest form: a label a few pixels
+  off its own line looks like a label, and a trace drawn from last quarter's numbers under
+  this quarter's printed values looks like a chart. → `components/line.html`
 - **The found state is derived from the language, not measured off a plate.** No plate in
   `assets/source/manual/` draws a highlight and neither mockup carries one, so `.cf-mark`,
   `::target-text` and the two `::highlight()` names are built only from parts the manual does

@@ -4563,20 +4563,25 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
 html[data-cf-search="live"] [data-cf-search-claim] { visibility: hidden; }
 html[data-cf-search="live"] [data-cf-search-region] { display: none; }
 
-/* THE REGISTER HAS TWO CONSUMERS, AND IT IS DECLARED ONCE.
-   .cf-vacancy is the open-position list on patterns/karriere.html, and it is
-   not a second drawing — it is this one. A register is a stack of type blocks
-   standing on hairlines, and a job opening and a search hit are the same
+/* THE REGISTER HAS THREE CONSUMERS, AND IT IS DECLARED ONCE.
+   .cf-vacancy is the open-position list on patterns/karriere.html and .cf-event
+   is what stands on a day of .cf-calendar, and neither is a second drawing —
+   both are this one. A register is a stack of type blocks standing on
+   hairlines, and a job opening, a search hit and a date in a month are the same
    object at that level: a mono line, a linked title, a couple of sentences.
-   So every rule below names both, the way .cf-prose table names itself
+   So every rule below names all three, the way .cf-prose table names itself
    alongside .cf-table rather than being written out twice. One drawing, and
    it cannot drift.
 
-   What the vacancy adds is the one part a result has no use for: a <dl> of
-   facts (Standort, Anstellung, Umfang, Start). That is declared on its own,
-   below, and nothing else is. → components/vacancy.html */
+   What the vacancy adds is the one part the other two have no use for: a <dl>
+   of facts (Standort, Anstellung, Umfang, Start). That is declared on its own,
+   below, and nothing else is. An event's own facts — where, and at what hour —
+   are two short strings and go in the mono line the register already has, which
+   is why the third consumer costs three words in seven selector lists and not
+   one declaration. → components/vacancy.html, components/calendar.html */
 .cf-results,
-.cf-vacancies {
+.cf-vacancies,
+.cf-events {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -4586,7 +4591,8 @@ html[data-cf-search="live"] [data-cf-search-region] { display: none; }
 }
 
 .cf-result,
-.cf-vacancy {
+.cf-vacancy,
+.cf-event {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -4604,7 +4610,9 @@ html[data-cf-search="live"] [data-cf-search-region] { display: none; }
 .cf-result:hover,
 .cf-result:focus-within,
 .cf-vacancy:hover,
-.cf-vacancy:focus-within { background-position: 100% 0; }
+.cf-vacancy:focus-within,
+.cf-event:hover,
+.cf-event:focus-within { background-position: 100% 0; }
 
 /* The row is the container its own fold is measured in: the square below
    shrinks with the row and not with the viewport, so a register drawn inside a
@@ -4614,7 +4622,8 @@ html[data-cf-search="live"] [data-cf-search-region] { display: none; }
 .cf-vacancy { container-type: inline-size; }
 
 .cf-result__meta,
-.cf-vacancy__meta {
+.cf-vacancy__meta,
+.cf-event__meta {
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
@@ -4629,7 +4638,8 @@ html[data-cf-search="live"] [data-cf-search-region] { display: none; }
 }
 
 .cf-result__title,
-.cf-vacancy__title {
+.cf-vacancy__title,
+.cf-event__title {
   font-family: var(--font-display);
   font-size: var(--text-h4);
   font-weight: var(--weight-regular);
@@ -4639,21 +4649,25 @@ html[data-cf-search="live"] [data-cf-search-region] { display: none; }
    result would make the excerpt unselectable, and the excerpt is the part
    carrying the marks the reader came to read. */
 .cf-result__link,
-.cf-vacancy__link {
+.cf-vacancy__link,
+.cf-event__link {
   color: inherit;
   text-decoration: none;
 }
 .cf-result__link:hover,
 .cf-result__link:focus-visible,
 .cf-vacancy__link:hover,
-.cf-vacancy__link:focus-visible {
+.cf-vacancy__link:focus-visible,
+.cf-event__link:hover,
+.cf-event__link:focus-visible {
   text-decoration: underline;
   text-underline-offset: 0.2em;
   text-decoration-thickness: var(--stroke-1);
 }
 
 .cf-result__excerpt,
-.cf-vacancy__excerpt {
+.cf-vacancy__excerpt,
+.cf-event__excerpt {
   max-inline-size: var(--measure-prose);
   font-size: var(--text-md);
   line-height: var(--leading-relaxed);
@@ -5669,12 +5683,51 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    accessible name from the caption — see components/table.html.
 
    The focus ring comes from base.css, which already rings :focus-visible on
-   anything carrying [tabindex]. Nothing to declare here. */
+   anything carrying [tabindex]. Nothing to declare here.
+
+   Three names, one declaration, for the reason the register three rules above
+   .cf-vacancy gives: the scroll box is not part of any of the three drawings,
+   it is the one mechanism a block that outgrows its column gets, and a second
+   copy of it is a second thing to move. → components/calendar.html#narrow */
 .cf-table__scroll,
-.cf-prose__table-scroll { overflow-x: auto; }
+.cf-prose__table-scroll,
+.cf-calendar__scroll { overflow-x: auto; }
+
+/* A SCROLL BOX ON PAPER IS A CROP. Nothing scrolls a sheet, so every column
+   past the box's width is not hidden-until-you-drag, it is gone — and it goes
+   silently, mid-word, with no rule or ellipsis to say a column was dropped.
+   Printed through Chromium at a page box narrow enough to force it, the head
+   of the last column came out "LETZTE" from LETZTE SPALTE and its cell came
+   out "KENNW" from KENNWORTENDE.
+
+   This is the failure mode check-print-fixed.py opens by naming — invisible in
+   every screenshot this repository takes, because every screenshot is `screen`
+   — and neither gate covers it: that one reads `position: fixed`, and
+   check-overflow-clip.py reads `overflow: hidden`. This is `overflow-x: auto`.
+
+   Today's tables all fit A4 and print whole; datenschutz's five columns were
+   checked page by page. So this is the latent case, fixed before it lands
+   rather than after: a narrower sheet, a larger print stylesheet, or one more
+   column, and the cookie inventory the site owes under TDDDG § 25 prints with
+   a column missing and no sign that it did.
+
+   Two declarations, because releasing the crop alone only moves the cut from
+   the box's edge to the paper's. The head row has to be allowed to wrap before
+   the table can compress into the sheet — which is the one place the nowrap
+   above binds, and the one place it must not. */
+@media print {
+  .cf-table__scroll,
+  .cf-prose__table-scroll { overflow: visible; }
+
+  .cf-table thead th,
+  .cf-table th[scope="col"],
+  .cf-prose thead th,
+  .cf-prose th[scope="col"] { white-space: normal; }
+}
 
 .cf-table,
-.cf-prose table {
+.cf-prose table,
+.cf-calendar {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--text-md);
@@ -5702,19 +5755,38 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 
 /* A column head is a label — mono, uppercase, on the strong hairline.
 
-   It does not wrap, and that carries the table's minimum width. Two reasons,
-   and the second is the one that matters. A label broken over two lines is a
-   label read as two words, which is why nothing else in this system wraps one
-   either. And a table with no floor to its width does not overflow, it
-   compresses: every cell wraps to three lines and the scroll box it is sitting
-   in never engages, so the mechanism that makes a wide table readable on a
-   phone is present and never used. The heads are the floor. Which is also why
-   the do/don't asks for four or five columns and short labels — a long label
-   here is a scroll bar everywhere. */
+   It does not wrap, and this comment used to give two reasons for that, of
+   which it said the second was the one that mattered: a label broken over two
+   lines is read as two words, AND the nowrap is what floors the table's width,
+   without which a wide table compresses instead of overflowing and the scroll
+   box it sits in never engages. The second reason is not true, and it is the
+   one the do/don't was derived from.
+
+   Measured — min-content width of every table in the system, with the heads
+   nowrapped and with them allowed to wrap:
+
+     datenschutz, the four inventory and Fristen tables    0 px difference
+     table.html, three of the four demos                   0 px difference
+     table.html, "Angebundene Quellen"                    15 px difference
+
+   The body cells are the floor, everywhere the system actually draws a table.
+   German data words are longer than the labels over them — INSTANDHALTUNG is
+   14 characters of 11 px mono under a cell holding the same word at 14 px —
+   so the nowrap buys nothing on screen and the do/don't's "a long label here
+   is a scroll bar everywhere" was guarding a cost of zero.
+
+   The first reason stands on its own, and it is now the only one: this is a
+   typographic rule about labels, the same one the section header and the
+   accordion follow, and not a mechanism holding the scroll box open. The
+   scroll box engages because the CONTENT is wider than the phone.
+
+   Where the nowrap does bind is paper, and there it binds the wrong way —
+   see the @media print block under the scroll box. */
 .cf-table thead th,
 .cf-table th[scope="col"],
 .cf-prose thead th,
-.cf-prose th[scope="col"] {
+.cf-prose th[scope="col"],
+.cf-calendar thead th {
   border-bottom-color: var(--border-strong);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -5740,7 +5812,8 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 /* The caption is the table's accessible name and its visible title at once,
    which is why it is a caption and not a heading above the block. */
 .cf-table caption,
-.cf-prose caption {
+.cf-prose caption,
+.cf-calendar caption {
   margin-bottom: var(--space-3);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
@@ -5748,11 +5821,288 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   color: var(--text-secondary);
 }
 
+/* THE TITLE LEFT THE FRAME IN THE ONE STATE THE SCROLL BOX EXISTS FOR. A
+   caption is a child of the table, the table is what scrolls, so scrolling to
+   the last column carried the title off the left edge with it. Measured on
+   datenschutz at 320: of a 151.2 px caption, 42.2 px was still inside the box
+   at full scroll — 72 % of the visible title gone. At a 20 px browser default
+   the scroll range is longer than the caption is wide, so it leaves entirely.
+
+   The component's own argument for a caption over a heading is that it stays
+   attached to the table. It does — semantically, and the region still takes
+   its accessible name from it, so this was never a screen-reader defect. It is
+   the sighted phone reader who scrolls to read column five and loses the line
+   saying what the rows are.
+
+   THE FIX IS A SPAN AND IT HAD TO BE. `position: sticky` on the caption itself
+   does nothing — a table-caption box is not stickyable, measured: still
+   42.2 px — and giving the caption `display: inline-block` or `block` to make
+   it stickyable drops it into the table's anonymous cell structure and renders
+   it UNDER the head row. So the sticky box is one level in, and the caption
+   stays a caption.
+
+   A bare <caption> keeps exactly today's rendering. The selector is `> span`,
+   so this is an enhancement over the markup .cf-prose promises an author —
+   write the bare element and it behaves as it always has, wrap the line and
+   the line stays put. */
+.cf-table caption > span,
+.cf-prose caption > span {
+  position: sticky;
+  left: 0;
+  display: inline-block;
+}
+
 /* A numeric column aligns on its right edge so the digits stack, which is the
    whole reason the figures are tabular. Set on the head as well as the cells —
    a right-aligned column under a left-aligned label is a misaligned column. */
 .cf-table :is(th, td).cf-table__num,
 .cf-prose :is(th, td).cf-table__num { text-align: right; }
+
+/* --------------------------------------------------------------------------
+   CALENDAR — one month, and nothing that is not one month
+
+   The system could rule a row, mark a word and number a slot, and it had no
+   drawing for a date. This is that drawing, and the whole of it is borrowed:
+   there is no new geometry here, no new colour, no new token, and — apart from
+   the two names below — no new declaration that is not one of the three
+   components it is made of, restated with its reason.
+
+     the frame     .cf-table's own. Ruled rows, nothing vertical, tabular
+                   figures, the caption as the accessible name, the scroll box
+                   with its three attributes. A month IS tabular: the column is
+                   a weekday, the row is a week, and <th scope> is what says so
+                   without a line of script.
+     the slot      .cf-pagination__page's own. A 2.75rem target with a mono
+                   numeral centred in it, no contour at rest, the contour
+                   arriving on hover and focus — because at rest a number is
+                   type, and under the pointer it is a target larger than its
+                   glyph.
+     the mark      the found state's own, at numeral scale. A day something
+                   stands on is a numeral on its ground line; TODAY is the same
+                   numeral with the light behind it. Two rungs, one drawing,
+                   held together by --found-* rather than by a shared selector —
+                   which is the mechanism base.css states for exactly this.
+
+   SO THE CALENDAR IS THE TABLE READ ON TWO AXES AND FIND-IN-PAGE READ OVER
+   TIME, and the second half is the part that is not a pun. The brand is named
+   after finding a thing in a page; a month is a page of days; the day the
+   reader is standing on is the match they are standing on. foundations/
+   found.html settles what that looks like and settles the lime budget with it —
+   one lit rung, every other match in contour — and a month has exactly one
+   today, so the budget is discharged by arithmetic rather than by a rule
+   somebody has to keep.
+
+   WHAT IS NOT DRAWN, and each absence is a rule from somewhere else:
+
+     no vertical rules, no cell boxes. .cf-table's own first sentence. The
+     columns are held apart by the space between them; a line there would be
+     neither an edge nor a division, which foundations/geometry.html bans by
+     name. The week rule is the whole drawing.
+     no weekend column. It could only be a vertical rule or a column fill, and
+     a fill doing a hairline's job is the zebra stripe .cf-table refuses. SA
+     and SO are named in the head row, which is where the difference lives.
+     no days of the neighbouring month. A cell holding "31" in a table captioned
+     September contradicts its own caption, and the only way to say it is
+     another month is to grey it — #919191 on CF-Grau is 2.0:1, the one step
+     this system does not have. The cells before the first and after the last
+     are empty, and the month step above the grid is how a reader leaves.
+     no month stepper inside the component. .cf-table's own don't, unchanged:
+     that is the page's navigation and .cf-pagination already draws it.
+     no entry titles in the cells. A 44 px cell cannot hold a sentence, and a
+     filled chip is the fill this brand spends contour instead of. The grid is
+     an index; what stands on a day is a register, and .cf-events below is the
+     register's third consumer rather than a fourth drawing.
+   -------------------------------------------------------------------------- */
+.cf-calendar {
+  /* THE ONE MEASUREMENT IN THE COMPONENT, and it is not a new one: 2.75rem is
+     .cf-pagination__page's floor, which is .cf-nav__toggle's floor, which is
+     WCAG 2.5.5 and Apple's HIG. It is written once here because four
+     declarations read it — the slot's two axes and both kinds of cell — and
+     four copies of a floor are four floors.
+
+     It is also what gives the table its minimum width. The cells carry it as a
+     min-width, so auto table layout resolves every column's min-content to the
+     same 2.75rem and the columns come out equal without table-layout: fixed
+     being asked for; below the sum of them the table overflows and the scroll
+     box engages. That is the same mechanism .cf-table describes for its own
+     head labels — a floor the browser cannot compress past — reached by a
+     different property because a calendar's floor is a fingertip and a table's
+     is a word. */
+  --calendar-slot: 2.75rem;
+}
+
+/* A day is centred in its own slot, so the cell has no padding of its own and
+   nothing to align: the slot is the cell's whole content and it does its own
+   centring. This is where the calendar leaves .cf-table's cell rule, which is
+   top-aligned, left, and padded on three sides for prose that wraps. */
+.cf-calendar :is(th, td) {
+  min-width: var(--calendar-slot);
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: var(--stroke-1) solid var(--border-subtle);
+}
+/* The head sits on the strong rule — the shared rule above sets that — and
+   needs its own air, since the cell rule it would have inherited padding from
+   is the one rule the calendar does not take. */
+.cf-calendar thead th { padding-block: var(--space-2); }
+
+/* THE WEEK NUMBER IS OPTIONAL AND IS STYLED WHEREVER IT APPEARS. Nothing here
+   turns it on: a calendar that carries the column has the column in its
+   markup, and one that does not is the same component with seven cells to a
+   row instead of eight. A modifier would be a class saying what the markup
+   already says.
+
+   It is the row's subject, which is what makes it a <th scope="row"> rather
+   than a first cell — .cf-table's own test. It departs from that component's
+   row head in one property and this is the reason: a row head there is set in
+   the body face because it is CONTENT, and .cf-table says so about a cookie's
+   name. KW 36 is not content, it is a figure, and every figure in this system
+   is mono. The same two-part decision .cf-table__num already makes.
+
+   --text-secondary rather than the full ink: the week number names the row, it
+   is not in it. Never --text-muted — #919191 on the page wash is 2.0:1, the
+   rule every mono label on the wash follows. */
+.cf-calendar th[scope="row"] {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-secondary);
+}
+
+/* THE SLOT. An <a> where the day has somewhere to go and a <span> where it has
+   not — the same split .cf-pagination__page makes between a page you can reach
+   and the page you are on, and it is what lets every rule below use an `a.`
+   prefix to say "only the reachable ones" without a modifier class.
+
+   No contour at rest. A day with nothing on it is a numeral in a month, which
+   is type; the box arrives when there is something to point at. Same sentence
+   .cf-pagination writes about its own numerals, and the same consequence: the
+   target is 44 px and the glyph is 14, so the contour is also the only thing
+   that can say the target is larger than what is drawn in it. */
+.cf-calendar__day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--calendar-slot);
+  min-height: var(--calendar-slot);
+  border: var(--stroke-1) solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  /* Tabular, so the 1 and the 30 in one column stand on the same axis — the
+     reason .cf-pagination gives for its own slots, and the reason every number
+     in this system is set this way. */
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+a.cf-calendar__day:hover,
+a.cf-calendar__day:focus-visible { border-color: var(--border-strong); }
+
+/* THE MARK, and it is the found state at numeral scale.
+
+   The line is under the NUMERAL and not under the slot, which is the whole
+   difference between a mark and a cell edge. foundations/found.html draws a
+   match as "a word standing on a ground line"; a rule the full 44 px of the
+   slot would be the bottom edge of a box, and a box is what this component
+   spends its whole header refusing.
+
+   THE TOKENS ARE WHAT KEEP IT ONE DRAWING. base.css states the same five
+   declarations five times over — <mark>, .cf-mark--current, ::target-text and
+   two ::highlight() names — and says why the repetition is load-bearing and
+   why --found-* is what holds them together. This is the sixth statement of
+   it, in a component rather than a pseudo-element, and it is held by the same
+   thing: move --found-offset and the calendar moves with the search results.
+
+   A LINK IS WHAT MAKES A MARK, structurally rather than by convention. There
+   is no class for "something stands on this day": the mark is on `a.` and
+   nothing else, so a day cannot be marked unless there is somewhere to go, and
+   the drawing cannot be spent on a day the reader can do nothing with. */
+a.cf-calendar__day > time,
+.cf-calendar__day[aria-current="date"] > time {
+  text-decoration-line: underline;
+  text-decoration-color: var(--found-rule);
+  text-decoration-thickness: var(--found-rule-weight);
+  text-decoration-skip-ink: none;
+  text-underline-offset: var(--found-offset);
+}
+
+/* TODAY. The second rung, and the light — which is the one thing in this
+   component that is lime, and the one lime moment on any page carrying it.
+
+   [aria-current="date"] and not a class, because ARIA has the word: "represents
+   the current date within a calendar" is the token's own definition, and the
+   drawing following the semantic fact is what .cf-pagination__page[aria-current]
+   already does one component over. It is also the honest boundary of a static
+   site — a claim about the day the page is SERVED is the server's to write,
+   the same standing components/arrival.html's states have.
+
+   Not the black plate .cf-pagination gives its current slot, and the two are
+   not in conflict. That plate says "the one of this set you chose"; today is
+   not chosen and there is no set to have chosen it from. The reader is
+   standing on it, and foundations/found.html has already drawn standing on
+   something.
+
+   The fill is restated as -webkit-text-fill-color for the reason base.css
+   gives at .cf-mark--current: inside a clipping context the inherited fill is
+   transparent and beats color, and a lit day would render as an empty lime
+   block. Contrast is carried by the rule and not by the fill in any case —
+   lime on CF-Grau is 1.37:1 and cannot hold a boundary; --found-rule measures
+   13.48:1 there. */
+.cf-calendar__day[aria-current="date"] > time {
+  background-color: var(--found-light);
+  color: var(--found-ink);
+  -webkit-text-fill-color: var(--found-ink);
+}
+
+/* Forced colours has the pair for this meaning, and this takes it — the same
+   call base.css makes for the found state's own current rung, because a lit day
+   and a current match are one drawing and may not have two answers here.
+
+   IT IS THE PAIR THAT DOES NOT PAINT UNDER THE DARK THEME, AND THAT IS RECORDED
+   RATHER THAN FORKED. .cf-pagination__page[aria-current] carries the note that
+   found it: Chromium's forced-colors emulation resolves Mark/MarkText to
+   yellow/black in BOTH colour schemes, while Canvas/CanvasText and
+   ButtonFace/ButtonText flip with the scheme. Under `prefers-color-scheme:
+   dark` the glyphs are therefore MarkText black on a Canvas-black text
+   backplate, and nothing paints.
+
+   Measured again here, Chromium 141 headless, forced-colors emulated, this
+   component and foundations/found.html side by side:
+
+                              light                    dark
+     .cf-mark--current        yellow plate, black ink  black block, no ink
+     [aria-current="date"]    yellow plate, black ink  black block, no ink
+     .cf-pagination[current]  white plate,  black ink  black plate, white ink
+
+   The two rungs of the found state fail together and the pagination's own
+   replacement pair does not, which is the whole shape of it: this is the FOUND
+   STATE's forced-colours answer, and the calendar is the fourth thing standing
+   on it rather than a new fault. Substituting ButtonFace here would make a day
+   legible and make it a different drawing from every other match in the system,
+   which is the trade base.css already refused. The fix belongs in base.css, to
+   all five rungs at once, and it is not this component's to make. */
+@media (forced-colors: active) {
+  .cf-calendar__day[aria-current="date"] > time {
+    background-color: Mark;
+    color: MarkText;
+    -webkit-text-fill-color: MarkText;
+    text-decoration-color: MarkText;
+  }
+}
+
+/* On paper there is no reader to be standing on a day, so the light has nothing
+   to rank against and lime prints as a pale wash over the ink. The rule stays,
+   which is the rung that was carrying the meaning. base.css prints the found
+   state this way for the same reason. */
+@media print {
+  .cf-calendar__day[aria-current="date"] > time {
+    background-color: transparent;
+    color: inherit;
+  }
+}
 
 /* --------------------------------------------------------------------------
    VALUE TABLE
@@ -9075,6 +9425,556 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 }
 
 /* --------------------------------------------------------------------------
+   LINE — a quantity over a domain. The second half of the plot's argument.
+
+   .cf-plot draws a short series as OBJECTS: five extruded lattice cells
+   standing on the isometric ground plane, each labelled with its own number.
+   It is the right figure for three to five values a reader should remember,
+   and its own page names the ceiling — "five columns is the ceiling at which
+   the figure still fits a 375 px screen, and it is also the ceiling at which
+   a picture is still worth more than a table". Past that ceiling the system
+   had nothing, and a series of eleven values is not a rare shape for a company
+   whose subject is metering.
+
+   WHY THIS ONE IS NOT DRAWN IN SPACE, which is the first decision and the one
+   every other follows from. Everything the manual draws in isometry is a BODY
+   — a cube, a stack, a solid of revolution, a sphere. A body has faces, one of
+   which the light lands on, and it has volume, which is what its height is
+   measuring. A line has none of that: it encodes a POSITION at each point of a
+   domain and nothing about extent. Drawing it in isometry would claim a body
+   where there is none, and it would cost what the plot already measured it
+   costs — both ground axes slope 26.57 deg on screen, so a series marching
+   along either one subtracts a unit of drawn height per step, and on the
+   eleven points below that is more than the whole climb.
+
+   So the line is a SECTION, not a plan: orthographic, 90 deg, the fourth of
+   the four brand angles and the one geometry.html calls "the default for
+   layout edges". The lattice is still there — every point the figure is read
+   at stands on a cell, the same 2:1 rhombus --iso-transform cuts for
+   .cf-annot::before — but the trace between those cells is drawn flat,
+   because that is what it is.
+
+   THE ANGLE OF THE TRACE IS THE ONE ANGLE IN THIS SYSTEM NOBODY CHOSE.
+   foundations/geometry.html says every diagonal on the site is one of four
+   values. A trace cannot be: its slope is the quotient of two numbers that
+   arrived from somewhere else, and quantising it to 26.57 / 45 / 63.43 would
+   be falsifying data to fit a brand — the same class of failure as the
+   receding row the plot was rebuilt to remove, and worse, because that one
+   only flattened the picture while this one would change the numbers. The
+   frame is the brand's; the line inside it is the data's.
+
+   WHICH LEAVES THE FRAME'S RATIO CARRYING THE STEEPNESS, and it is fixed at
+   2:1 — the lattice tile's own ratio, the same 200 x 100 bounding box
+   geometry.html derives from a 200 px square. The dataviz literature would
+   tune it per dataset (bank the median segment to 45 deg); this system does
+   not, and the reason is that steepness is the thing a reader takes off a
+   line. Two line charts in one document with two aspect ratios cannot be
+   compared and nothing tells the reader they differ. --line-ratio exists so a
+   document can choose once, from the three ratios the brand owns (2, 1, 0.5 —
+   the frame diagonals at 26.57, 45 and 63.43 deg), and never per figure.
+
+   THE FLOOR IS NOT ASSUMED TO BE ZERO, and this is the other half of the
+   body/trace distinction. A column is a body standing on the ground, so its
+   floor must be zero — cutting it lies about its volume, which is why the plot
+   has no baseline other than zero and says so. A trace stands on nothing, so
+   its frame may start anywhere, and the moment that is true the frame has to
+   SAY where it starts: .cf-line__bounds is required, and it is the only
+   number in the figure that is not a datum.
+
+   ONE COLOUR RULE FOR THE WHOLE FIGURE: the frame is grey and the data is
+   black. The frame's floor and ceiling are --border-default hairlines for
+   exactly the reason .cf-plot__caption's rule is — so they do not read as one
+   more edge of the drawing — and every trace in the box is black. A second
+   series is one rung down the presence ladder and not one step down the grey
+   ramp, and that is measured rather than asserted. Grey fails at both ends
+   at once, against CF-Grau, the wash's worst end:
+
+     --border-default  #9D9D9D composited   1.74:1 on the wash     invisible
+     grey-500          #9B9B9B              1.78:1 on the wash     invisible
+     grey-400          #919191              2.02:1 on the wash     invisible
+     grey-700          #484848              5.87:1 on the wash,
+                                            2.30:1 from black      not a second
+
+   Every grey light enough to READ as a second series is under the 3:1 this
+   system holds a contour to — a line the reader is invited to compare and
+   cannot see. The one grey that clears the wash is 2.30:1 from the trace it is
+   supposed to differ from, and it is --text-secondary, the label ink, so a
+   trace in it reads as annotation rather than as data. The three accents fare
+   no better and the arithmetic is beside the rungs below. Presence is a line
+   type here because it is the only cue that survives a 1 px stroke.
+
+   NO VERTICAL LINES AT ALL, which is the table's argument reused: a rule
+   between two points would be neither an edge, nor a division, nor a label
+   rule, and geometry.html calls a line that is none of the three decoration.
+   No gridlines, no ticks, no axis. The domain is named at the points it is
+   read at, the same direct labelling the plot uses instead of a legend.
+   -------------------------------------------------------------------------- */
+
+/* The domain coordinate, and the twin of --v. Registered for the same two
+   reasons --v is: a unit or a percentage typed here resolves to the initial 0
+   instead of making `left` invalid at computed-value time and stacking every
+   point on the frame's left edge, and a registered number is a number rather
+   than a token that looks like one. --v is registered above, by the plot, and
+   is reused verbatim — one name, one meaning, in both figures. */
+@property --t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+/* 1 is the finished chart, and it is what everything that cannot animate
+   gets — no view timelines, reduced motion, print. Same posture, same
+   registered default, as --plot-grow and --annot-draw. */
+@property --line-draw {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+.cf-line {
+  /* THE PLOT CARRIES ITS OWN SIZE AND THE LINE TAKES THE MEASURE IT IS GIVEN,
+     and that difference is the two figures being two kinds of thing. A plot is
+     an object: five columns four units apart is a width, and --plot-u is how
+     you resize it. A line is a frame with a domain stretched across it, so it
+     is as wide as the column it is set in and no wider than 640 px — which is
+     20 x --plot-u at that unit's 32 px ceiling, so a plot and a line in the
+     same article are the same width on a desktop rather than nearly so. */
+  --line-max: 640px;
+  /* 2:1, the tile. See the header — this is a document-level decision, not a
+     per-figure one, and the only other legal values are 1 and 0.5. */
+  --line-ratio: 2;
+  /* The mark a number is anchored to. Same 8 px as --annot-node, because it is
+     the same mark: a lattice cell, not a dot. */
+  --line-node: 0.5rem;
+  margin: 0;
+  /* THE CAP IS ON THE FIGURE AND NOT ON THE FRAME, which .cf-plot has no
+     reason to care about and this one does. The frame draws two full-width
+     hairlines of its own; a caption rule running past them reads as a third
+     edge of the drawing, longer than the drawing. One max-width here puts the
+     bounds, the two frame edges and the caption rule on one right margin, so
+     the figure is a single column rather than a chart with a wider footer. */
+  max-width: var(--line-max);
+  /* Room for the tallest value to hang above its node without touching the
+     bounds line above the frame. */
+  padding-top: var(--space-1);
+}
+
+/* The frame declares its own extent, in one mark, above its top edge. Right
+   aligned so it lands on the corner the ceiling and the last value share, and
+   in the label face rather than the value face: this is the instrument
+   speaking, not a datum. Required — see the header. */
+.cf-line__bounds {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: var(--leading-normal);
+  text-align: right;
+  color: var(--text-secondary);
+}
+
+/* The frame. Two hairlines and nothing else: the floor and the ceiling are
+   edges — they close the drawing — and they are the grey the caption rule uses
+   so that neither is mistaken for the trace. The left and right sides are not
+   drawn, because the domain does not end where the frame does; it is simply
+   the part of it this figure shows.
+
+   The bottom margin is the keys' room, and it is the plot's number for the
+   plot's reason: 8 px of drop plus an 11 px label at --leading-normal, plus
+   air. The keys hang below the frame on absolute position, so the frame's own
+   layout box ends at the ceiling-to-floor box and anything after it would
+   print across them. */
+.cf-line__frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--line-ratio);
+  margin-bottom: var(--space-8);
+  border-block: var(--stroke-1) solid var(--border-default);
+}
+
+/* The drawing is a normalised square that is stretched to whatever frame it is
+   given: viewBox 0 0 100 100 with preserveAspectRatio="none", so x IS --t x 100
+   and y IS (1 - --v) x 100 and there is no conversion anywhere between the two
+   halves of the component. Distorting the box is correct here rather than
+   tolerated — the aspect ratio is the frame's, not the data's, and stretching
+   the data space is precisely what changing --line-ratio means. It costs
+   nothing the drawing owns: the only geometry inside is polylines, whose stroke
+   is non-scaling and therefore 1 px on screen at every ratio and every width,
+   and every round mark in the figure is HTML sitting on top.
+
+   THE DRAW IS A WIPE AND NOT A DASH, and that is the one place this component
+   parts company with .cf-iso__trace. That trace draws with pathLength="1" and
+   stroke-dashoffset, and pays for it by giving up non-scaling-stroke — the two
+   measure in different spaces, so the draw stalls at the render scale — which
+   leaves its weight a per-object number that ran from 0.38 to 1.71 CSS px
+   across the tree. A chart cannot pay that: the trace IS the datum, and a grey
+   0.5 px line at 2.5:1 on a phone is a datum the reader does not have. So the
+   stroke keeps non-scaling-stroke and the draw is a clip travelling along the
+   domain.
+
+   It is also the better reading of the motion, which is the part worth keeping
+   even if the arithmetic had gone the other way. A dash draw advances at
+   constant ARC LENGTH, so a steep year takes longer to draw than a flat one; a
+   wipe advances at constant DOMAIN, so every year takes the same scroll. The
+   line arrives left to right at the rate time passed. */
+.cf-line__draw {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  clip-path: inset(0 calc((1 - clamp(0, var(--line-draw), 1)) * 100%) 0 0);
+}
+
+/* The one black line in the box. stroke-width is a plain 1 under
+   non-scaling-stroke, which is the system's contour made literally true at
+   every width — the same declaration .cf-plot__draw's paths carry.
+
+   Round joins rather than the drafting default: at a sharp reversal a mitre on
+   a 1 px stroke grows to the mitre limit before it bevels, which is a 4 px
+   spike on a hairline. Invisible either way at every join that is not a
+   reversal. */
+.cf-line__trace {
+  vector-effect: non-scaling-stroke;
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+/* THE OTHER THREE RUNGS, AND THERE IS NO FOURTH ENCODING BEHIND THEM.
+   The four line types are the whole vocabulary a second series can be drawn
+   in, and they are named here by RUNG rather than by ratio — --presence-near
+   is 2-1 and --presence-absent is 1-4 — because what a reader takes off a
+   broken line is how present the thing is, not what its duty cycle is.
+
+   TWO READINGS, AND WHICH ONE APPLIES IS THE NUMBER OF TRACES.
+
+     two     Presence. The solid line is the subject and the broken one is the
+             reference it is being read against: the plan, the year before,
+             the target. Use --ghost and nothing else, because the widest gap
+             on the ladder is the one that reads fastest.
+     three   Identity, and the ladder is still ordinal — so the three series
+             have to BE ordinal, and the ordering that fits it is epistemic:
+             measured, planned, forecast. Present, one rung down, not here yet.
+             Three unordered peers is a figure this component cannot draw
+             honestly; see below.
+
+   WHY THERE IS NO COLOUR HERE, WHICH IS ARITHMETIC AND NOT DOCTRINE. The brand
+   has three accents besides lime, each with a full ramp, so a categorical set
+   is not obviously unavailable — it was measured rather than assumed. Against
+   CF-Grau, the wash's worst end, at the 3:1 this system holds a contour to:
+
+     Glas 500     #C5EBE2   1.21:1     the brand hue           FAILS
+     Sky 500      #72B0E2   1.49:1     the brand hue           FAILS
+     Violett 500  #7E7FE1   2.24:1     the brand hue           FAILS
+     Glas 800     #45524F   5.24:1     passes
+     Sky 800      #283E4F   7.12:1     passes
+     Violett 800  #2C2C4F   8.53:1     passes
+
+   The three steps that carry the hue all fail the wash, and the three that
+   clear it are near-blacks that fail against EACH OTHER: Glas 800 against Sky
+   800 is 1.36:1 and Sky 800 against Violett 800 is 1.20:1. A 1 px stroke gives
+   the eye no area to judge a hue on at the best of times; at 1.2:1 apart there
+   is nothing to judge. So the palette cannot make a categorical hairline set —
+   either the colour fails the page or it fails the other colours — and adding
+   one would mean adding colours the brand does not have. The ladder is what
+   this brand has, and past three series the answer is not a fourth line type
+   but four frames: see the small multiples on the component's page.
+
+   → foundations/geometry.html, the presence ladder; tokens.css section 8a */
+.cf-line__trace--near  { stroke-dasharray: var(--presence-near); }
+.cf-line__trace--faint { stroke-dasharray: var(--presence-faint); }
+.cf-line__trace--ghost { stroke-dasharray: var(--presence-absent); }
+
+/* THE HEAD: the key on the left, the frame's own extent on the right, one
+   line above the ceiling. It costs no vertical space that .cf-line__bounds
+   was not already spending, which is the reason the legend lives here rather
+   than under the caption where a legend usually ends up — a reader who has to
+   look below the figure to find out which line is which has left the figure.
+
+   Optional. One trace needs no key at all, and two are usually better served
+   by naming each at its own last point, which is direct labelling and beats a
+   legend every time. */
+.cf-line__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-6);
+  margin-bottom: var(--space-2);
+}
+/* margin-inline-start: auto and not only space-between. When the key is wide
+   enough to take the whole line — measured at 375 px, where three items do —
+   the bounds becomes the only item on the second line, and space-between puts
+   a lone item at flex-start. Its own text-align cannot save it: a flex item is
+   shrink-to-fit, so the box IS the text and there is nothing to align inside.
+   The auto margin pushes the box itself, which is what keeps the frame's
+   extent over the frame's right edge at every width. */
+.cf-line__head .cf-line__bounds { margin: 0 0 0 auto; }
+
+.cf-line__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cf-line__legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+/* THE SAMPLE IS THE TRACE, not a picture of it. It carries .cf-line__trace and
+   the same rung modifier the polyline does, so the dash, the weight, the
+   colour and the non-scaling stroke all arrive from the one rule above — there
+   is no second declaration of what a rung looks like, and a rung added later
+   reaches the key without anybody remembering to update it.
+   scripts/check-line-trace.py holds the other half: the key's rungs must be
+   the figure's rungs, in order. */
+.cf-line__sample {
+  display: block;
+  flex: 0 0 auto;
+  width: var(--space-6);
+  height: var(--space-2);
+  overflow: visible;
+}
+
+/* The data, as text, once. Each <li> carries the two numbers that place it and
+   prints them where the reader can take them off the figure; nothing is
+   duplicated into a hidden table that could drift out of step with the
+   picture. The set is an <ol> because a series has an order and the order
+   carries the meaning. */
+.cf-line__set {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One point is a full-height column of the frame standing at its own place in
+   the domain, so that the node and the value can sit at --v while the key sits
+   under the frame — three marks, one position, no third number.
+
+   --line-h IS --v, CLAMPED AND MADE INHERITABLE, and both halves of that are
+   load-bearing. Registered custom properties do not inherit unless they say
+   so, and --v says `inherits: false`, so a child of this <li> cannot read it;
+   .cf-plot has the identical shape and solves it the identical way. The clamp
+   is the other half: a registered <number> rejects a unit but not a 4 or a -1,
+   and either would put a node outside the frame it is meant to be read in. */
+.cf-line__point {
+  position: absolute;
+  left: calc(clamp(0, var(--t), 1) * 100%);
+  top: 0;
+  bottom: 0;
+  width: 0;
+  --line-h: clamp(0, var(--v), 1);
+}
+
+/* A POINT IS DATA BY DEFAULT AND A MARK ONLY WHEN IT IS ASKED TO BE, which is
+   the rule that separates this figure from the plot. The plot prints every
+   value because it has at most five; a line exists precisely when there are
+   more values than a reader can be handed, and eleven printed numbers along a
+   trace is a figure nobody reads. So the default is the quiet one and the
+   painted point is the opt-in.
+
+   The recipe is .visually-hidden's, restated rather than reused, because that
+   class lives in base.css and this component's own positioning would outrank
+   it on source order at equal specificity. clip-path rather than the clip
+   rect, and no negative margin: the point stays in the accessibility tree, in
+   series order, with its key and its value as real text. */
+/* A SERIES READ FOR ITS SHAPE AND NOT FOR ITS NUMBERS, which is what happens
+   the moment a figure carries more than two traces. A value needs about 28 px
+   of clear space above its node — a fixed height against a frame that is 320 px
+   on a desktop and 136 px at 320 px wide — and in a multi-series figure the
+   space above a point usually belongs to another trace. Measured on the
+   three-series figure at 375 px: the plan ran through the subject's own
+   opening value, because 13 points of frame is 21 px there and the label is 28.
+   So the numbers go in the caption, which has room for them, and the figure
+   keeps its keys: the domain is still named at both ends and every value is
+   still in the accessibility tree. */
+.cf-line__set--quiet .cf-line__val,
+.cf-line__point:not(.cf-line__point--read) {
+  width: 1px;
+  height: 1px;
+  /* clip, not hidden — a crop must not become a scrollport, and this one would
+     be a scrollport per unread point. Both declarations: a browser too old for
+     `clip` drops the second and still crops. */
+  overflow: hidden;
+  overflow: clip;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.cf-line__point:not(.cf-line__point--read) {
+  left: 0;
+  top: 0;
+  bottom: auto;
+}
+
+/* The anchor: a lattice cell, not a dot — the same 2:1 rhombus at 8 px that
+   .cf-annot::before cuts and that the ground is tiled with at 120. Drawn as a
+   border, which is the paint forced-colours keeps. It exists to tie a number
+   to the trace; a point with no number needs no anchor, which is why the
+   quiet points above carry none.
+
+   At --t: 0 and --t: 1 the cell straddles the frame's side by half its width,
+   and that is correct rather than tolerated: the point IS at the side, and the
+   only way to tuck the mark inside would be to inset the domain, which moves
+   every value in the figure to flatter 5.6 px of hairline. It overhangs into
+   the measure's own margin and never into the gutter. */
+.cf-line__node {
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--line-h) * 100%);
+  width: var(--line-node);
+  height: var(--line-node);
+  border: var(--stroke-1) solid var(--border-strong);
+  transform: translate(-50%, 50%) var(--iso-transform);
+}
+
+/* The number, riding its own point. Stated weight rather than inherited, for
+   the reason .cf-plot__val states its own: .cf-prose sets running text in
+   Light and a figure that changes weight with the block it was dropped into is
+   not a figure the rest of the system can match. */
+.cf-line__val {
+  position: absolute;
+  left: 0;
+  /* THE LABEL IS A FIXED HEIGHT AND THE FRAME IS NOT, so a value near the
+     ceiling climbs out through it. The label needs its own line plus the gap
+     — 0.75rem x 1.3 of type over --space-3, about 27.6 px at a 16 px root —
+     and that is the same 27.6 px whether the frame is 320 px tall on a desktop
+     or 136 px on a 320 px viewport. As a fraction of the frame it is 8.6 %
+     there and 20.3 % here, so a value that clears the top edge on one screen
+     crosses it on another. Measured before this min(): at 320 px wide the
+     84 % on the figure above sat 5.1 px over its own ceiling, with the frame's
+     top hairline running through the numerals; at 375 px, 0.8 px over.
+
+     The clamp parks such a label flush under the ceiling instead of through
+     it, and leaves its node where the data says. Nothing moves on a frame that
+     has the room — at 320 px tall the second term is 292 px and no value in
+     this system's own examples reaches it — so this is a floor and not a
+     layout. The alternatives were worse: flipping the label below its node
+     puts it on top of a rising trace at exactly the point where a series
+     usually peaks, and reserving the headroom in the frame would mean either
+     a min-height that breaks the 2:1 or a ceiling chosen to suit the labels
+     rather than the data. */
+  bottom: min(
+    calc(var(--line-h) * 100%),
+    calc(100% - var(--space-3) - var(--text-sm) * var(--leading-normal))
+  );
+  margin-bottom: var(--space-3);
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* What the point is, under the frame. --text-secondary at 5.9:1 on CF-Grau,
+   never --text-muted, which is 2.0:1 there. */
+.cf-line__key {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: var(--space-2);
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* The two ends of the domain are read against the frame's own sides rather
+   than centred on their point, because half of a centred label at --t: 0 is
+   off the figure. Everything between them is centred. */
+.cf-line__point--first :is(.cf-line__val, .cf-line__key) { transform: none; }
+.cf-line__point--last  :is(.cf-line__val, .cf-line__key) { transform: translateX(-100%); }
+
+/* The comparison series speaks at label strength, so that the solid line is
+   unambiguously the subject. Its keys already carry its name — "Plan 2020" —
+   which is what keeps the two series apart in the accessibility tree without
+   an aria-label, a legend, or a second copy of anything. */
+.cf-line__set--ghost .cf-line__val { color: var(--text-secondary); }
+
+/* The caption carries the message in words and is the figure's accessible
+   summary as much as its label. Required, for the reason the plot's is.
+   Identical construction, so a line and a plot sit the same distance off their
+   captions inside an article and outside one. */
+.cf-line__caption {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: var(--stroke-1) solid var(--border-default);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+/* The trace arrives along its own domain as the figure does, scrubbed from
+   scroll position rather than played on a timer — the same posture and the
+   same three fallbacks as .cf-plot and .cf-iso. No support for view timelines,
+   reduced motion and paper all leave --line-draw at its registered 1, which is
+   the finished chart.
+
+   ONLY THE TRACE MOVES. The frame, the bounds, the nodes and every printed
+   number are drawn at once and stay drawn: they are the instrument, and a
+   figure whose readable content waits for a timeline is a figure some readers
+   never read. The measurement is the only thing that arrives.
+
+   The range ends early for the plot's reason — a figure near the bottom of a
+   short document may never reach the far end of its own cover range, and a
+   draw that finishes at 90 % is a chart that quietly stops short of its last
+   two years. */
+@supports (animation-timeline: view()) and (animation-range: contain 0% contain 100%) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .cf-line {
+      view-timeline-name: --cf-line;
+      view-timeline-axis: block;
+    }
+    .cf-line__draw {
+      animation: cf-line-draw linear both;
+      animation-timeline: --cf-line;
+      animation-range: cover 5% cover 35%;
+    }
+  }
+}
+@keyframes cf-line-draw {
+  from { --line-draw: 0; }
+  to   { --line-draw: 1; }
+}
+
+/* Forced colours maps every author colour onto one ink, so --border-default
+   and --border-strong arrive at the same value and the frame's two hairlines
+   come up at the trace's own weight — the one distinction this figure spends
+   its whole colour budget on, gone. Redrawn as a dash, which is the
+   substitution .rule already makes in this mode and for this reason: the exact
+   ratio is lost because border-style cannot express one, and the register —
+   instrument against datum — is kept. The ghost trace keeps its own 1-4,
+   because a stroke-dasharray is geometry and this mode does not touch it. */
+@media (forced-colors: active) {
+  .cf-line__frame { border-block-style: dashed; }
+}
+
+/* --------------------------------------------------------------------------
    GANTT — a plan on one axis
 
    The system could draw a VALUE in space (.cf-plot) and it could draw ONE
@@ -9154,6 +10054,42 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    are one mark. An unlabelled leader running between two runs is a leader
    with nothing to say, which is the decoration geometry.html bans by name. So
    the step is spent where it has something to carry — on a note. → .cf-gantt__notes
+
+   WHY THIS FIGURE HAS AN AXIS AND .cf-line HAS NONE, which is the question a
+   reader lands on with two charts one section apart. .cf-line's header ends
+   "no gridlines, no ticks, no axis", and it is right for the reason it gives:
+   a trace is read AT its points, every one of them is labelled where it
+   stands, and a rule between two of them would be neither an edge, nor a
+   division, nor a label rule. A plan is read the other way round. Its subject
+   is EXTENT — where a run starts and where it stops — and a length has to be
+   read against something or it is not a length. So the two figures answer the
+   same test with opposite hands: the line labels its points and needs no
+   frame between them; the plan labels its phases and needs the frame, which is
+   why the ground here is the field rather than a set of rules, and why the one
+   line drawn in ink is the one that is genuinely a division.
+
+   AND THE OTHER THING THAT ARRIVED WITH IT IS THE LADDER. .cf-line settles by
+   measurement that a second series is one rung down the presence ladder and
+   not one step down the grey ramp — every grey light enough to read as a
+   second series is under the 3:1 a contour owes. That is the same conclusion
+   this figure reaches from the other end, and it is why four states of a plan
+   are four line types rather than four inks.
+
+   TWO COMPONENTS NOW DRAW TODAY, AND ONLY ONE OF THEM MAY BE LIT.
+   .cf-calendar's today is [aria-current="date"] — the found state's lit
+   numeral — and its header claims it as "the one lime moment on any page
+   carrying it", discharged by arithmetic because a month has exactly one
+   today. The claim is sound and this component does not contest it: on a page
+   carrying both, the calendar's day keeps the light and the plan's head is
+   simply not written. Nothing is lost by that, because the head is emphasis
+   and not information — the run's own solid-to-ghost boundary is already
+   drawn at --span-done and still says where the work has got to.
+
+   The two drawings differ because the word means two things. In a month today
+   is a SLOT, a numeral standing on the ground line, and the light is what
+   picks it out of thirty others. In a plan today is a BOUNDARY — done on one
+   side, not done on the other — which is a division, and a division is drawn
+   as a rule.
 
    ALL FOUR RUNGS OF THE PRESENCE LADDER ARE IN USE HERE, AND THIS IS THE
    FIRST FIGURE IN THE SYSTEM WHERE THAT IS TRUE. tokens.css §8a says the

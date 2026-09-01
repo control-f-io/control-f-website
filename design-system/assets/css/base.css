@@ -459,40 +459,110 @@ a:not([class]) {
   text-underline-offset: var(--found-offset);
 }
 
-/* Forced colours already has an answer for this and it is better than ours:
-   Mark / MarkText are the system pair for precisely this meaning. Take them,
-   and keep the two rules, so the mark survives a palette with no lime in it.
+/* FORCED COLOURS: MARK IS A PLATE COLOUR, NOT AN INK COLOUR.
+
+   Mark / MarkText is still the system pair for precisely this meaning and the
+   light rung still takes it. What changed is WHERE it is allowed to land.
+   Mark is yellow and MarkText is black in BOTH forced palettes — they are the
+   one pair in play here that does not flip — while Canvas and CanvasText do.
+   So MarkText holds only where it sits ON the Mark plate, and everything this
+   drawing puts outside that plate takes CanvasText instead: the whole of the
+   contour rung, which has no plate at all, and the ground line of the light
+   rung, which hangs below the plate on the page itself. That is one answer,
+   and it is the one the rest of this file already means by "ink in this
+   palette" — .text-foil takes CanvasText, .rule redraws itself in it.
+
+   MEASURED BY RENDERING, because the computed style was right in the case
+   that failed. Chromium 149 and 151, forced-colors: active, prefers-color-
+   scheme light and dark, the five rungs on a served page, the screenshots
+   read back pixel by pixel:
+
+     light   .cf-mark           black ink, black ground line       correct
+             .cf-mark--current  yellow plate, black ink, rule      correct
+     dark    .cf-mark           ONE COLOUR. 100 % Canvas. NOTHING.
+             .cf-mark--current  yellow plate, black ink, NO RULE
+
+   `color: inherit` DOES NOT INHERIT under forced colours. The mode re-forces
+   the computed value, and for a <mark> Chromium forces it to MarkText — so
+   the contour rung drew black ink under a black ground line on a black
+   Canvas, and every non-current match on this site was invisible under a
+   dark forced palette. The declaration read `color: inherit` and the
+   computed value came back rgb(0, 0, 0): there is no reading of this file,
+   and no computed style, that could have found it. Only the screenshot.
+
+   NOT ButtonFace / ButtonText, which is where .cf-pagination__page[aria-
+   current] went for the neighbouring finding. Measured on the same run:
+   ButtonFace resolves to the SAME value as Canvas in both palettes — white
+   on white, black on black — so a plate painted in it is not a plate, and
+   the light rung would arrive at the contour rung's drawing. (It costs that
+   component its state rather than its legibility, which is a finding about
+   that component and not about this one: the current page renders there as a
+   bare numeral, no plate and no border, in both palettes. Legible, which is
+   what its comment checked; no longer saying "you are here", which is what
+   it draws.)
+
+   THE THREE HIGHLIGHT PSEUDO-ELEMENTS ARE NOT STYLEABLE HERE AT ALL, and
+   that is the half of this no choice of pair can reach. Chromium paints
+   ::target-text, ::highlight(cf-found) and ::highlight(cf-found-current)
+   with the UA's own Highlight / HighlightText and discards every author
+   declaration in this block. Rendered against four candidates — Mark/
+   MarkText, ButtonFace/ButtonText, transparent + CanvasText, and
+   forced-color-adjust: none carrying the brand's own lime — all four came
+   back as the identical solid plate with no ground line, the contour rung
+   and the light rung indistinguishable. The one lever that does work is
+   forced-color-adjust: none on the ORIGINATING element, which would mean
+   setting it on every element that can contain a match, which is the running
+   text of the site: opting the page out of forced colours to keep a drawing
+   about accessibility. Not taken. So the three rules below are correct and,
+   on Chromium today, inert — written anyway, because they are what a
+   conforming engine paints, because five rungs staying one drawing is the
+   thing this section exists to hold, and because the day the engine honours
+   them nothing here needs revisiting.
+
    ::selection has its own system pair and the UA applies it unasked. */
 @media (forced-colors: active) {
+  /* The ink is NAMED on the contour rung here, where at rest it is refused,
+     and that is not a second drawing. Under forced colours the running text
+     IS CanvasText — .text-foil's own forced-colours rule hands its
+     descendants exactly this value — so naming it names what the rung would
+     have inherited. Leaving it to the mode is the thing that does not work:
+     <mark> carries a UA colour of its own and the mode re-forces it to
+     MarkText. Only an ELEMENT rung has an ink to lose this way, which is why
+     ::highlight(cf-found) below still supplies none. */
   :where(mark), .cf-mark {
-    text-decoration-color: MarkText;
+    color: CanvasText;
+    -webkit-text-fill-color: CanvasText;
+    text-decoration-color: CanvasText;
   }
   /* The fill is restated here for the same reason it is restated at rest, and
      the system value has to be named rather than left to the mode: .text-foil
      hands its descendants CanvasText in forced colours, which is the pair for
      Canvas and not the pair for Mark. A match inside a foil headline would
      draw body ink on a highlight plate — legible in most themes and guaranteed
-     by none of them. MarkText is the value that is guaranteed against Mark. */
+     by none of them. MarkText is the value that is guaranteed against Mark —
+     and it is guaranteed against nothing else, which is the whole reason the
+     ground line one declaration below is not MarkText too. The rule lands on
+     the page, not on the plate. */
   .cf-mark--current {
     background-color: Mark;
     color: MarkText;
     -webkit-text-fill-color: MarkText;
-    text-decoration-color: MarkText;
+    text-decoration-color: CanvasText;
   }
   ::target-text {
     background-color: Mark;
     color: MarkText;
     -webkit-text-fill-color: MarkText;
-    text-decoration-color: MarkText;
+    text-decoration-color: CanvasText;
   }
   ::highlight(cf-found) {
-    text-decoration-color: MarkText;
+    text-decoration-color: CanvasText;
   }
   ::highlight(cf-found-current) {
     background-color: Mark;
     color: MarkText;
     -webkit-text-fill-color: MarkText;
-    text-decoration-color: MarkText;
+    text-decoration-color: CanvasText;
   }
 }
 
