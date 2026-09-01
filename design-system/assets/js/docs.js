@@ -34,6 +34,7 @@
       { href: 'components/statement.html',      label: 'Statement & Value Table' },
       { href: 'components/plot.html',           label: 'Plot' },
       { href: 'components/line.html',           label: 'Line' },
+      { href: 'components/block.html',          label: 'Block' },
       { href: 'components/pie.html',            label: 'Pie' },
       { href: 'components/gantt.html',          label: 'Gantt' },
       { href: 'components/annotation.html',     label: 'Annotation' },
