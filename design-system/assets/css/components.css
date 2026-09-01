@@ -5147,11 +5147,18 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    and a 12 px top margin that steps every column but the first out of the row.
    Excluded here rather than fought with specificity inside the plot block, for
    the same reason .cf-quote is excluded from the figure rule below: the
-   exception belongs where the general rule is written. */
+   exception belongs where the general rule is written.
+
+   .cf-block carries FOUR list-item names for the same reason and is the
+   sharper case, because three of the four are flex items whose width is the
+   drawing: a 32 px hang on a block inside a group does not merely decorate it,
+   it makes the block narrower than the value it stands for. The legend's items
+   are the fourth, and an ordinal in front of every key would be the figure
+   numbering its own series in a mark that means something else here. */
 .cf-prose :is(ul, ol) { margin-left: 0; padding-left: 0; list-style: none; }
-.cf-prose li:not(.cf-plot__col) { position: relative; padding-left: var(--space-8); }
-.cf-prose li + li:not(.cf-plot__col) { margin-top: var(--space-3); }
-.cf-prose ul > li::before {
+.cf-prose li:not(.cf-plot__col, .cf-block__group, .cf-block__bar, .cf-block__step, .cf-block__legend-item) { position: relative; padding-left: var(--space-8); }
+.cf-prose li + li:not(.cf-plot__col, .cf-block__group, .cf-block__bar, .cf-block__step, .cf-block__legend-item) { margin-top: var(--space-3); }
+.cf-prose ul > li:not(.cf-block__step)::before {
   content: "";
   position: absolute;
   left: 0;
@@ -5161,7 +5168,7 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   border: var(--stroke-1) solid var(--border-strong);
 }
 .cf-prose ol { counter-reset: cf-ol; }
-.cf-prose ol > li:not(.cf-plot__col)::before {
+.cf-prose ol > li:not(.cf-plot__col, .cf-block__group, .cf-block__bar, .cf-block__step, .cf-block__legend-item)::before {
   counter-increment: cf-ol;
   content: counter(cf-ol, decimal-leading-zero);
   position: absolute;
@@ -10598,6 +10605,718 @@ a.cf-calendar__day > time,
   .cf-line__step::after { border-top-style: dashed; }
   .cf-line__trace { stroke: CanvasText; }
 }
+
+
+/* --------------------------------------------------------------------------
+   BLOCK — several series compared, category by category, in section
+
+   THE GAP THIS FILLS IS THE ONE .cf-plot NAMES IN ITS OWN "STILL OPEN": "One
+   series only. Two series in one plot would need a second lattice depth — a
+   row of columns stepped one cell back along an axis — which is the obvious
+   extension and also the one most likely to reintroduce the recession problem
+   this component was rebuilt to solve." That is the right refusal, and it
+   leaves a figure the system could not draw at all: three quantities measured
+   the same way at five places, which is the commonest chart in any technical
+   report there is.
+
+   SO THE BLOCK IS THE PLOT IN SECTION, and every consequence below follows
+   from that one move. .cf-line already made it and stated why: everything the
+   manual draws in isometry is an OBJECT with faces and volume, and a figure
+   that needs to be read rather than inhabited is drawn orthographically at
+   90 deg — the fourth of the four angles. A column in space can carry one
+   series because its ground plane is spent on the projection; a block on a
+   flat frame has both screen axes free, so one of them can carry the series
+   and the other the categories.
+
+   WHAT IT BUYS, AND WHAT IT COSTS. It buys the second and third series, the
+   scale, and a legend — none of which the plot can have. It costs the body:
+   these are faces, not solids, and the figure says nothing about volume. That
+   is the correct trade for a comparison and the wrong one for a single number
+   the reader is meant to remember, which is what .cf-plot stays for.
+
+   EVERY PART IS BORROWED, as it was there:
+
+     the frame     .cf-line__frame — two hairlines, floor and ceiling, at the
+                   tile's 2:1. Same construction, same grey, same ratio, so a
+                   line and a block in one article are the same instrument
+     the scale     .cf-line__scale — the label rule, which is the only kind of
+                   rule geometry.html admits inside a drawing
+     the pitch     .cf-plot's 4u — 2u of column and 2u of air. Written here as
+                   a FRACTION of the category's pitch rather than a length,
+                   because the categories share the domain, and 0.5 is that
+                   same 1:1
+     the contour   1 px, --border-strong, and adjacent blocks SHARE it the way
+                   .cf-pie's neighbouring shares share a cut
+     the faces     one ramp, four sources — see below
+     the numbers   Geist Mono, tabular, and cropped by default: this figure has
+                   a scale, and .cf-line already settled that a scale and a
+                   printed value are two answers to one question
+
+   THE BLOCK IS A CSS BOX AND NOT AN SVG, which reverses .cf-plot's decision on
+   the same question and for the same reason. That component draws in SVG
+   because its columns are SCALED — scaleY(--plot-h) on a shaft — and a 1 px
+   CSS border inside a scaled box is scaled with it, while an SVG stroke under
+   vector-effect: non-scaling-stroke is not. Nothing here is scaled: a block's
+   height is a percentage of a frame, resolved at layout, so its border is 1 px
+   at every value, every width and every zoom without asking for it. The
+   section is the projection where the cheap medium is also the correct one.
+
+   And it is what makes the ramps legal. A CSS gradient can be written
+   `in oklab`; an SVG <linearGradient> cannot, which is why every lit face in
+   this system carries a hand-computed waypoint at 19 % of its lime leg. The
+   faces below take the family's own path directly.
+   -------------------------------------------------------------------------- */
+
+/* Registered for .cf-plot's two reasons, and the second one is the load-
+   bearing one here. Unregistered, --block-grow could not be interpolated at
+   all, so the growth would be a height animation per block instead of one
+   number every block reads. Registered, a figure of fifteen blocks grows as
+   one thing. --v is already registered above, by the plot, as <number> with an
+   initial 0 — so a typo'd value here draws a block at nothing rather than at
+   full height, which is the same failure mode and the same defence. */
+@property --block-grow {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+.cf-block {
+  /* The line's width and the line's reason: 640 px is 20 x --plot-u at that
+     unit's 32 px ceiling, so a plot, a line and a block in one article are the
+     same width on a desktop rather than nearly so. */
+  --block-max: 640px;
+  /* 2:1, the tile. A document-level decision and not a per-figure one, for
+     .cf-line's reason: steepness is what a reader takes off a frame, and two
+     frames at two ratios in one document cannot be compared. */
+  --block-ratio: 2;
+  /* THE PLOT'S 4u PITCH, WRITTEN AS A FRACTION. There the pitch is a length —
+     2u of column and 2u of air — because a plot is an object and five columns
+     four units apart is a width. Here the categories divide the frame between
+     them, so the same 1:1 has to survive a changing category count, and the
+     only form that does is a share of whatever pitch there turns out to be.
+     0.5 is 2u of blocks and 2u of air at five categories, and it is still 1:1
+     at eleven. */
+  --block-fill: 0.5;
+  /* THE SCALE'S NUMERALS NEED GROUND OF THEIR OWN, and this is the one measure
+     the line does not have to carry. .cf-line__scale sets its numbers inside
+     the frame at the left and nothing else is ever there, because a trace is a
+     hairline: it crosses a numeral as one more hairline and both stay legible.
+     A block is a surface, and the first category stands exactly where the
+     numbers are. Measured on the nine-category figure at a 700 px column
+     before this: the first block covered BOTH digits of all three steps, so
+     the figure had a scale a reader could not read.
+
+     So the set starts one gutter in. The numbers keep the line's position —
+     inside the frame, flush left, on the rule they name — and the rule runs
+     the frame's whole width from behind them, past the blocks, to the far
+     edge. That is the label rule drawn slightly more literally than the line
+     draws it, not a different mark.
+
+     32 px carries two or three digits: "100" sets 20 px in 11 px Geist Mono
+     and the step's own --space-2 gap takes 8 of the rest. A step series with
+     a decimal in it — 99,6 — needs this raised, and raising it is the whole
+     interface. */
+  --block-gutter: var(--space-8);
+  margin: 0;
+  /* On the figure and not on the frame, for .cf-line's reason: the frame draws
+     two full-width hairlines, and a caption rule running past them reads as a
+     third edge of the drawing, longer than the drawing. */
+  max-width: var(--block-max);
+}
+
+/* The head. The legend on the left, the frame's extent on the right, one line
+   above the ceiling — .cf-line__head's box exactly, because it is doing
+   exactly that job. */
+.cf-block__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-6);
+  margin-bottom: var(--space-2);
+}
+
+/* THE CEILING AND ITS UNIT, AND HERE IT IS NOT NEGOTIABLE. .cf-line__bounds
+   states both ends because a trace stands on nothing and a tight frame is a
+   legitimate choice there. A block stands ON the floor: its LENGTH is the
+   quantity, so a floor anywhere but zero multiplies every comparison in the
+   figure by a number the reader cannot see. The floor is therefore not stated
+   because it cannot be anything else, and what this mark carries is the
+   ceiling and the unit. Required. */
+.cf-block__bounds {
+  margin: 0 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: var(--leading-normal);
+  text-align: right;
+  color: var(--text-secondary);
+}
+
+/* THE LEGEND IS AN <ol> AND THAT IS THE WHOLE ACCESSIBILITY ARGUMENT OF THIS
+   COMPONENT. Every other figure in this system refuses a legend, and each
+   states the same reason: a legend is a distinction carried by a colour a
+   third of readers cannot draw. The refusal is right and the reason is about
+   COLOUR, not about legends — so the block keeps the legend and takes the
+   colour out of it.
+
+   What identifies a series here is its POSITION IN THE GROUP. The series run
+   left to right inside every category in the order the legend lists them, and
+   that order is geometry: it survives a monochrome screen, every colour vision
+   deficiency, a forced palette, and a printer that drops background images.
+   The hue is redundant reinforcement of a fact the figure has already stated
+   twice — by position, and by the series name on every block in the tree.
+
+   That is also what lets a block be lit. A lime block in position two is still
+   position two, so .cf-plot's one-light-per-figure emphasis costs the legend
+   nothing, which it would if hue were what the legend was made of. */
+.cf-block__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cf-block__legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+/* THE SAMPLE IS THE FACE, not a picture of it — .cf-line__sample's rule, kept
+   by putting the sample in the same selector list as the block it names, so
+   there is exactly one declaration of what a series looks like. A rung added
+   later reaches the key without anybody remembering to update it. */
+.cf-block__sample {
+  flex: 0 0 auto;
+  width: var(--space-3);
+  height: var(--space-3);
+  border: var(--stroke-1) solid var(--border-strong);
+}
+
+/* The frame. .cf-line__frame verbatim — two hairlines and no sides, because
+   the value axis is closed at both ends and the category axis is not an axis.
+
+   THE TOP MARGIN IS HEADROOM AND NOT AIR. A block that prints its number puts
+   that number above its own head, .cf-plot__val's construction, and a block at
+   --v: 1 puts it above the ceiling. --space-8 is the plot's own reservation —
+   8 px of drop plus a 12 px number at --leading-normal, plus air — so the
+   figure never prints a numeral through its own top hairline. The bottom
+   margin is the same measure doing the mirror job for the keys. */
+.cf-block__frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--block-ratio);
+  margin-block: var(--space-8);
+  border-block: var(--stroke-1) solid var(--border-default);
+}
+
+/* THE SCALE — .cf-line__scale, and it is the same instrument for the same
+   reason. A label rule is the third of the three kinds of line
+   geometry.html#where-lines-go admits: the number, a gap, the hairline out to
+   the frame's far edge, and the line and the word are one mark. The ends are
+   not steps — the floor and the ceiling are drawn already, as the frame's own
+   two hairlines, and named already, by .cf-block__bounds and by the zero this
+   figure cannot move.
+
+   THE RULES RUN HORIZONTALLY, AND THAT IS WHY THIS CHART STANDS UP. The
+   example a block chart is usually copied from lies on its side, with the
+   categories as rows and the value axis along the bottom, and it is the one
+   orientation this system cannot draw: the subdivisions of a horizontal value
+   axis are VERTICAL rules, and a vertical rule standing between two points
+   carries no label at its end and closes nothing, which is the line
+   geometry.html calls decoration. Lying the chart down would cost it its
+   scale. So the value axis is the vertical one, the blocks stand on the floor,
+   and the categories are named under the frame where a key belongs. It is the
+   same finding .cf-pie made when it refused the 2:1 ground plane, one figure
+   along.
+
+   aria-hidden for .cf-line__scale's reason: the scale is the instrument, every
+   value is already in the tree as text, and exposed it would read as one more
+   series between the real ones. */
+.cf-block__scale {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cf-block__step {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(clamp(0, var(--v), 1) * 100%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transform: translateY(50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-label);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.cf-block__step::after {
+  content: "";
+  flex: 1 1 auto;
+  border-top: var(--stroke-1) solid var(--border-default);
+}
+
+/* The categories, sharing the domain. An <ol>: the order of a category axis
+   carries meaning often enough — time, stage, size — that the exceptions are
+   better served by an ordered list read out of order than by a figure that
+   cannot say the order matters.
+
+   It sits UNDER the scale in paint order, which is the opposite of
+   .cf-line__set's arrangement and is what a solid face requires: a trace is a
+   hairline and the rules may pass beneath it, a block is a surface and a rule
+   drawn across its front is a rule inside the object. The blocks occlude the
+   scale where they stand and the scale runs on either side of them, which is
+   what the drawing means. */
+.cf-block__set {
+  position: absolute;
+  inset: 0 0 0 var(--block-gutter);
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cf-block__group {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* What the category is, centred under its own pitch. --text-secondary at
+   5.9:1 on CF-Grau, never --text-muted, which is 2.0:1 there and is the
+   mistake foundations/colors.html records. */
+.cf-block__key {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  margin-top: var(--space-2);
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* The series inside one category, standing on the floor. --block-fill of the
+   pitch, centred in it, which is where the plot's 2u of air comes from. */
+.cf-block__bars {
+  display: flex;
+  align-items: flex-end;
+  width: calc(var(--block-fill) * 100%);
+  height: 100%;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+/* ONE BLOCK, ONE VALUE. The height is resolved at layout rather than by a
+   transform, which is the whole reason this figure is CSS: scaleY on a bordered
+   box scales the border with it, and a chart whose contour thickens with its
+   own value is a chart that says something it does not mean.
+
+   clamp() is not decoration. --v is registered as a number, which rejects a
+   unit but not a 4 and not a -1, and either would send a block through the
+   ceiling or below the floor of a frame that is supposed to state its own
+   extent. */
+.cf-block__bar {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  --block-h: clamp(0, calc(var(--v) * var(--block-grow)), 1);
+  /* The same number with zero taken out of it, because it is a DIVISOR down at
+     .cf-block__val. A division by zero is invalid at computed-value time, which
+     would drop that whole declaration rather than merely misplace it. 0.02 is
+     under half a pixel of block at the 320 px frame, so nothing that is drawn
+     is affected by the floor. */
+  --block-hz: max(var(--block-h), 0.02);
+  height: calc(var(--block-h) * 100%);
+  border: var(--stroke-1) solid var(--border-strong);
+  /* The face is opaque so the block occludes the scale it stands in front of,
+     the job .cf-plot__body does for a column on drawn ground. Declared as a
+     colour as well as an image because a mode that drops the image still needs
+     the occlusion — see the forced-colours block. */
+  background-color: var(--surface-page);
+}
+
+/* ADJACENT BLOCKS SHARE THEIR CONTOUR, which is .cf-pie's rule for the cuts
+   between neighbouring shares and .cf-blog-grid's for the rules between its
+   cells: one hairline everywhere rather than a doubled seam at every join.
+   Only where both blocks reach — above the shorter one the taller one's edge
+   stands alone, which is what the drawing means. */
+.cf-block__bar + .cf-block__bar {
+  margin-left: calc(var(--stroke-1) * -1);
+}
+
+/* ---- ONE RAMP, FOUR SOURCES ----------------------------------------------
+
+   foundations/colors.html states the family in one line: "There is only one
+   gradient in this brand: lime falling away to CF-Grau, with Glas where the
+   two meet." A categorical figure needs more than one face and may not invent
+   a second family, so it does what .cf-plot--fell already did for its one
+   cool face — keeps the ramp and swaps the SOURCE. Lime is the light and stays
+   the one thing --lit spends; the other three are surfaces the light has not
+   reached, which is what the palette already says they are.
+
+   The order is the spectrum's own. --spectrum-stops runs lime, Weiss, Glas,
+   Sky, Violett, so Glas -> Sky -> Violett is the cool half read in the order
+   the brand already reads it in, and a series set drawn in that order is
+   drawn ordinally. THREE IS THE CEILING because the palette has three
+   chromatic colours that are not the light, and a fourth series is four
+   frames — .tiles with one .cf-block per cell, all on one stated scale — which
+   is the answer .cf-line reached at its own ceiling for the same reason.
+
+   THE GLAS RAMP IS THE PIE'S GROUND CODING, transposed. #cf-pie-ground is
+   CF-Grau -> Glas, "the bloom's own ramp without its lime leg, renormalised
+   over the band", and its job is to say THIS IS A SURFACE. That is exactly
+   what an uncoded block is, so the default face is that ramp and the first
+   series needs no modifier at all.
+
+   NO GLAS STOP IN THE MIDDLE OF THE OTHER TWO, AND THAT IS MEASURED. The
+   obvious construction is the near rake with its source swapped — <hue> 0 %,
+   Glas 32 %, CF-Grau 100 % — which is what the plot's violett cap draws. On
+   one face that is right. On a SET of faces it is fatal: the leg from Violett
+   to Glas turns 102 deg of hue, and the arc waypoint it owes under
+   foundations/colors.html#the-arc is #74C1E6, which is Sky's own hue at
+   Sky's own chroma. The Violett series would pass through the Sky series on
+   its way down, in a figure whose entire premise is that the two are
+   different things. So a series ramp is a FALLOFF and not a turn: source to
+   CF-Grau, straight, never leaving its own hue. It owes no arc waypoint for
+   the reason check-gradient-family.py gives — CF-Grau is achromatic, so there
+   is no chord to fall short of and oklab's straight line is already the path.
+
+   THE AXIS POINTS DOWN because the light comes from above: the source sits on
+   the block's head, where a cap would be if this were a column, and falls away
+   to CF-Grau at the floor. 180 deg is --angle-square turned a quarter, which
+   is the same square angle the whole system is drawn on.
+
+   EACH RAMP IS WRITTEN OUT RATHER THAN COMPOSED THROUGH ONE CUSTOM PROPERTY,
+   and that is about being checked rather than about style. check-gradient-
+   family.py resolves custom properties last-wins across the three stylesheets:
+   composed as one --block-ramp restated per modifier, all four gradients would
+   expand to whichever ramp was declared last and three of the four would go
+   unread by the gate. Four literal declarations are four checked ones. */
+.cf-block__bar,
+.cf-block__sample {
+  background-image: linear-gradient(180deg, var(--cf-glas) 0%, var(--cf-grau) 100%);
+}
+.cf-block__bar--sky,
+.cf-block__sample--sky {
+  background-image: linear-gradient(180deg, var(--cf-sky) 0%, var(--cf-grau) 100%);
+}
+.cf-block__bar--violett,
+.cf-block__sample--violett {
+  background-image: linear-gradient(180deg, var(--cf-violett) 0%, var(--cf-grau) 100%);
+}
+
+/* THE ONE LIT BLOCK, and it is the family's own ramp with nothing swapped:
+   lime at the head, Glas at the near rake, CF-Grau at the foot. .material-rake
+   at 180 deg, written here rather than composed onto the markup because a
+   block is a component's own face and not a surface an author dresses.
+
+   At most one per figure, and it is emphasis and never a category — the rule
+   .cf-plot and .cf-pie both state. The caption has to name the block the light
+   is on, because a reader who cannot see the lime must still be told which one
+   the figure is about.
+
+   NO GLOW. .cf-pie measured what a 12 px glow does to a 1 px contour on a
+   small mark: it lays light on both sides of the hairline and the contour goes
+   invisible. A block is a smaller mark than a pie's band. Contour before
+   fill, here as everywhere. */
+.cf-block__bar--lit,
+.cf-block__sample--lit {
+  background-image: linear-gradient(180deg,
+                      var(--cf-lime) 0%,
+                      var(--cf-glas) var(--rake-near),
+                      var(--cf-grau) 100%);
+}
+
+/* THE FAMILY'S OWN PATH, and in CSS it costs one block rather than a hand-
+   computed waypoint per drawing. tokens.css leaves a leg in sRGB when the two
+   paths agree and names the ones that do not; measured across these four, the
+   worst divergence between the sRGB chord and the oklab line is
+
+     lime    -> Glas      0.04512     the leg the family exists to correct
+     Violett -> CF-Grau   0.00612
+     Sky     -> CF-Grau   0.00399
+     Glas    -> CF-Grau   0.00180
+
+   Only the first is over the 0.0015 tokens.css treats as the point where the
+   two paths part, and only the first would need a waypoint in SVG. All four
+   are restated anyway, because one @supports block is cheaper than a rule
+   about which faces are on the path and which are not. */
+@supports (background: linear-gradient(in oklab, red, blue)) {
+  .cf-block__bar,
+  .cf-block__sample {
+    background-image: linear-gradient(180deg in oklab, var(--cf-glas) 0%, var(--cf-grau) 100%);
+  }
+  .cf-block__bar--sky,
+  .cf-block__sample--sky {
+    background-image: linear-gradient(180deg in oklab, var(--cf-sky) 0%, var(--cf-grau) 100%);
+  }
+  .cf-block__bar--violett,
+  .cf-block__sample--violett {
+    background-image: linear-gradient(180deg in oklab, var(--cf-violett) 0%, var(--cf-grau) 100%);
+  }
+  .cf-block__bar--lit,
+  .cf-block__sample--lit {
+    background-image: linear-gradient(180deg in oklab,
+                        var(--cf-lime) 0%,
+                        var(--cf-glas) var(--rake-near),
+                        var(--cf-grau) 100%);
+  }
+}
+
+/* ---- PARTS OF A WHOLE, PER CATEGORY --------------------------------------
+
+   .cf-pie answers what ONE thing is made of. Nothing answered whether five
+   things are made of the same thing, and five pies in a row is the figure that
+   asks a reader to compare angles across five rotations — the comparison
+   .cf-pie's own header shows an isometric pie cannot survive even once.
+
+   Stacked, the series run bottom to top in legend order: the first item is the
+   foot of the stack, which is where a base belongs and where a reader looks
+   for it. The shared contour turns with them.
+
+   --v CHANGES MEANING HERE and the caption has to say so. In a grouped figure
+   --v is the value against the ceiling; in a stack it is that SEGMENT's share
+   of the ceiling, and the segments of one category sum to its total. A stack
+   whose segments are authored as running totals draws every segment too tall
+   and looks entirely plausible. */
+.cf-block--stacked .cf-block__bars {
+  flex-direction: column-reverse;
+  /* column-reverse packs at the main START, which is the bottom. The stack
+     stands on the floor without anything else being said. */
+  justify-content: flex-start;
+  align-items: stretch;
+}
+/* FLEX-GROW HAS TO COME OFF, and this is the one place turning the axis costs
+   something rather than nothing. `flex: 1 1 0` governs the MAIN axis, so in the
+   grouped row it distributes width and leaves the height to --v — which is the
+   whole mechanism. Turn the container to a column and the same declaration
+   distributes HEIGHT: measured before this rule, Konstanz's three segments
+   came out 106.7 px each, an exact third of the frame apiece, on values of 52,
+   24 and 12 %. A stacked chart drawn in equal thirds is not a faint fault; it
+   is three numbers replaced by one, and it looks entirely like a chart. */
+.cf-block--stacked .cf-block__bar {
+  flex: 0 0 auto;
+  width: 100%;
+}
+.cf-block--stacked .cf-block__bar + .cf-block__bar {
+  margin-left: 0;
+  margin-bottom: calc(var(--stroke-1) * -1);
+}
+
+/* The number, riding its own block — .cf-plot__val's construction, at
+   .cf-plot__val's size and weight. Stated weight rather than inherited,
+   because .cf-prose sets running text in Light and a figure that changes
+   weight with the block it was dropped into is not a figure the rest of the
+   system can match.
+
+   CROPPED UNLESS ASKED FOR, which is .cf-line__set--quiet's rule and not a
+   new one: a figure with a scale does not print its values, because the scale
+   is what the reader would read them off, and fifteen numerals over five
+   categories is not a chart. The text stays in the accessibility tree at full
+   strength — crop, not display: none — so what a screen reader is handed is
+   every value the figure draws. --read prints one, for the block the caption
+   is about.
+
+   overflow: clip and not hidden, for .cf-line's reason: a crop must not become
+   a scrollport, and this one would be a scrollport per block. Both
+   declarations, so an engine too old for `clip` drops the second and still
+   crops. */
+.cf-block__val {
+  position: absolute;
+  left: 50%;
+  /* THE LABEL IS A FIXED HEIGHT AND THE FRAME IS NOT, which is .cf-line__val's
+     finding and arrives here with the same arithmetic and a different
+     denominator. The number needs its own line plus the gap — 0.75rem x 1.3
+     over --space-2, about 23.6 px — and that is the same 23.6 px whether the
+     frame is 320 px tall on a desktop or 163 px at a 375 px viewport, where it
+     is a seventh of the whole range. Measured before this min(): the 88 % on
+     the second figure crossed its own ceiling hairline by 4 px at 375 px wide,
+     with the frame's top rule running through the numerals.
+
+     THE FRAME'S HEIGHT IS AVAILABLE HERE, IN THE BLOCK'S OWN UNITS. A
+     percentage on this element resolves against the block it sits on, which is
+     --block-h of the frame — so `100% / var(--block-hz)` is one frame height
+     expressed as a percentage of the block, exactly as `100%` is on
+     .cf-line__val, and the clamp is the line's clamp with that substitution.
+     No new token, no measured length, and it follows the frame at every width.
+
+     max(0px, ...) is the growth. At --block-grow: 0 the block has no height, so
+     every percentage on it is zero and the second term is a bare negative label
+     height; without the floor the number would sit 24 px UNDER the floor for
+     the first frame of every arrival. It rides the block up from the floor
+     instead.
+
+     IN A STACK THE CLAMP IS A FLOOR RATHER THAN A CEILING, and that is stated
+     rather than fixed. A segment's own --v is its share, not the stack's total,
+     so `100% / --block-hz` is still one frame height but the segment's top is
+     not --block-h of the way up — it is however far the segments under it
+     reached. Nothing here can know that without the total being authored a
+     second time, which is the one thing --v's own note forbids. Keep --read for
+     the grouped form. */
+  bottom: max(0px, min(100%, calc(100% / var(--block-hz)
+                                  - var(--space-2)
+                                  - var(--text-sm) * var(--leading-normal))));
+  width: 1px;
+  height: 1px;
+  margin-bottom: var(--space-2);
+  overflow: hidden;
+  overflow: clip;
+  clip-path: inset(50%);
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.cf-block__bar--read .cf-block__val {
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+}
+
+/* THE SERIES NAME, ON EVERY BLOCK, NEVER PAINTED. This is the one piece of
+   text in the system that exists only for the accessibility tree, and the
+   reason is the reason the legend exists: what tells a sighted reader which
+   series a block belongs to is where it stands in its group, and position is
+   not something a screen reader can be handed. So each block carries its own
+   series name as text, and the tree reads "Rohdaten 62 %" rather than three
+   unattributed numbers under one category.
+
+   It is not a second copy of the picture — the crop that .cf-plot forbids is
+   a hidden TABLE restating values the drawing already prints. This is the
+   label the drawing does not print, and it is the thing that makes the hue
+   redundant rather than load-bearing. Never used for anything the figure says
+   in visible text. */
+.cf-block__series {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  overflow: clip;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The caption carries the message in words and is the figure's accessible
+   summary as much as its label. Required, for .cf-plot's and .cf-line's
+   reason, and identical to both so the three figures sit the same distance
+   off their captions inside an article and outside one. */
+.cf-block__caption {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: var(--stroke-1) solid var(--border-default);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+/* The blocks rise out of the floor as the figure arrives, scrubbed from scroll
+   position rather than played on a timer — the same posture and the same three
+   fallbacks as .cf-plot, .cf-line and .cf-iso. No support for view timelines,
+   reduced motion and paper all leave --block-grow at its registered 1, which
+   is the finished chart. A chart that stays empty until a timeline says
+   otherwise is a chart some readers never see.
+
+   ONLY THE BLOCKS MOVE. The frame, the scale, the legend, the keys and the
+   bounds are drawn at once and stay drawn: they are the instrument, and the
+   measurement is the only thing that arrives. The range ends inside the first
+   third of the cover range for .cf-plot's reason — a figure near the foot of a
+   short document may never reach the far end of its own range, and a growth
+   that finishes at 90 % is a chart that quietly understates every block. */
+@supports (animation-timeline: view()) and (animation-range: contain 0% contain 100%) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .cf-block {
+      view-timeline-name: --cf-block;
+      view-timeline-axis: block;
+    }
+    .cf-block__set {
+      animation: cf-block-grow linear both;
+      animation-timeline: --cf-block;
+      animation-range: cover 5% cover 35%;
+    }
+  }
+}
+@keyframes cf-block-grow {
+  from { --block-grow: 0; }
+  to   { --block-grow: 1; }
+}
+
+/* FORCED COLOURS TAKES THE FACES AND KEEPS THE FIGURE, and this component is
+   the one place in the system where that is a design requirement rather than
+   an accommodation. The mode discards every background image and does not
+   repaint a background-colour on a generic box — .cf-gantt's finding — so all
+   four ramps come off at once and every block in the figure is painted the
+   same. In any chart that coded its series with hue, that is the legend
+   destroyed and the figure with it.
+
+   Here nothing is lost, because nothing was carried by the hue. The series
+   are still in their order inside every group, the legend still lists that
+   order, the contours are borders and are forced to the reader's own ink, the
+   scale still subdivides, and every value and every series name is still in
+   the tree as text. What the reader loses is the colour, which is what this
+   mode is for.
+
+   The occlusion has to be named, though. A background-colour written as a
+   custom property is not forced, so --surface-page would go on painting
+   CF-Grau over a reader's chosen Canvas; named Canvas, the block still hides
+   the scale rules behind it and does so in their palette. Same substitution
+   .cf-plot makes for its bodies, same reason.
+
+   The frame and the steps go dashed for .cf-line's reason: one ink means the
+   frame's hairlines arrive at the contour's own weight, and the distinction
+   this figure spends its whole colour budget on — instrument against datum —
+   is redrawn as the one thing border-style can still express. */
+@media (forced-colors: active) {
+  .cf-block__frame { border-block-style: dashed; }
+  .cf-block__step::after { border-top-style: dashed; }
+  .cf-block__bar,
+  .cf-block__sample {
+    background-image: none;
+    background-color: Canvas;
+  }
+}
+
+/* Paper is the same figure and the same reasoning. A print path drops
+   background images unless the reader ticks "Background graphics", which is off
+   by default in every browser's print dialog, and this component does not ask
+   for them back with print-color-adjust: the series are in their order, the
+   contours are borders and print, and a chart that demands ink to be readable
+   is a chart that is not readable. What is printed is the drawing, the scale
+   and the keys. The growth is already frozen at the finished chart there —
+   the @supports block above is @media screen — which is checked rather than
+   assumed: emulated as print, --block-grow computes 1 and the set's
+   animation-name is none. */
 
 /* --------------------------------------------------------------------------
    PIE — parts of one whole, drawn on the one curve this system has

@@ -1820,6 +1820,30 @@ These were judgement calls, each documented on the relevant page:
   `calc((1 - var(--pie-arc)) * 1px)` all three engines compute 0.73px. Verified in Chromium
   151, Firefox 153 and WebKit 26.5: same ring, same cuts, same labels to the pixel.
   → `components/pie.html`
+- **Hue on a face is legal where hue on a hairline is not, and that is what a second series
+  costs.** `.cf-plot` names its own ceiling at one series and declines the second, because a
+  row of columns stepped a cell back along a ground axis is occluded by exactly the thing it
+  is being compared with. `.cf-block` is that figure in **section** — the same 90° the line
+  took — where both screen axes are free: one carries the categories, the other the series.
+  The palette measurement `.cf-line` made still holds and still forbids a categorical *stroke*
+  set (Glas/Sky/Violett 500 at 1.21, 1.49 and 2.24:1 on the wash), and it is a measurement
+  about **area**, not about hue: a block is nothing but face, the 3:1 is carried by the black
+  contour round it, and the fill is free. Three consequences fell out rather than being
+  chosen. **A series ramp is a falloff and not a turn** — source straight to CF-Grau, no Glas
+  in the middle — because keeping the near rake's Glas stop makes the Violett → Glas leg owe
+  its polar arc waypoint, and that colour is `#74C1E6`: Sky's own hue, at Sky's own chroma,
+  drawn through the middle of the Violett series in a figure whose premise is that the two are
+  different things. **The chart stands up**, because the subdivisions of a horizontal value
+  axis are vertical rules and geometry.html calls a rule that carries no label at its end
+  decoration — lying it down would cost it its scale; the same refusal the pie made about the
+  ground plane. And **the legend is carried by position, not by colour**: the series run in
+  the legend's order inside every group, so a forced palette, a photocopier and every colour
+  vision deficiency take the hue away and leave the figure readable — which is also what lets
+  one block still be lit. Two faults measured on the way: `flex: 1 1 0` turned into a column
+  drew a stack in equal thirds regardless of its values, and a printed number crossed its own
+  ceiling hairline by 4 px at 375 px — fixed with the line's clamp, over
+  `100% / var(--block-hz)`, which is the frame's height expressed in the block's own units.
+  → `components/block.html`
 - **The found state is derived from the language, not measured off a plate.** No plate in
   `assets/source/manual/` draws a highlight and neither mockup carries one, so `.cf-mark`,
   `::target-text` and the two `::highlight()` names are built only from parts the manual does
