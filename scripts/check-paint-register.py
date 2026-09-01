@@ -2,12 +2,13 @@
 """Every SVG paint on a pattern page resolves against the illustration registers.
 
 foundations/illustration.html states the whole of the system's drawing palette
-in prose and swatches, and states it as a closed set. Three greys for a sparse
+in prose and swatches, and states it as a closed set. Three greys, for every
 object -- "no more, because a face is either pointing at the sky, at the light,
-or away from it". Five values for a dense one, where "faces run near-white,
-the contour does all of the describing", plus the foundation trio one step
-under the machine. One lit element per object, on the light family's ramp. And
-the contour, which is black and is the drawing.
+or away from it". One lit element per object, on the light family's ramp. And
+the contour, which is black and is the drawing. (A second, near-white register
+-- five values plus a paler foundation trio -- carried the four Expertise
+objects until 2026-09-01, when they were redrawn in the three greys; the page
+retired it and this copy went with it.)
 
 Every one of those values reaches a pattern page as an SVG presentation
 attribute -- fill="#CFCFCF", stop-color="#E1FF00" -- because geometry lives in
@@ -98,21 +99,10 @@ TOKENS = DS / "assets" / "css" / "tokens.css"
 # the value means -- it is printed with a finding so the fix names itself.
 INK = {"#000000": "ink -- the contour is the drawing"}
 
-REGISTER_1 = {
-    "#dadada": "register 1: top, facing the sky",
-    "#cfcfcf": "register 1: lit side -- CF-Grau itself",
-    "#c4c4c4": "register 1: shaded side",
-}
-
-REGISTER_2 = {
-    "#ffffff": "register 2: top, facing the sky",
-    "#f6f6f6": "register 2: lit side",
-    "#eaeaea": "register 2: shaded side",
-    "#919191": "register 2: accent -- a slot, a recess",
-    "#484848": "register 2: aperture -- never a whole face",
-    "#fbfbfb": "register 2: foundation, one step under the machine",
-    "#f0f0f0": "register 2: foundation, one step under the machine",
-    "#e2e2e2": "register 2: foundation, one step under the machine",
+REGISTER = {
+    "#dadada": "register: top, facing the sky",
+    "#cfcfcf": "register: lit side -- CF-Grau itself",
+    "#c4c4c4": "register: shaded side",
 }
 
 # The light family's stops. Four are tokens and are read out of tokens.css by
@@ -165,8 +155,7 @@ def register():
     """The full sanctioned set, hex -> label."""
     out = {}
     out.update(INK)
-    out.update(REGISTER_1)
-    out.update(REGISTER_2)
+    out.update(REGISTER)
     for name, hexval in LIGHT_TOKENS.items():
         out[hexval] = "light family: var(%s)" % name
     out.update(LIGHT_WAYPOINT)
@@ -260,8 +249,7 @@ def double_entry():
     findings = []
 
     documented = {}
-    documented.update(REGISTER_1)
-    documented.update(REGISTER_2)
+    documented.update(REGISTER)
     documented.update(LIGHT_WAYPOINT)
     pairs = [(ILLUSTRATION, "foundations/illustration.html", documented),
              (DS / FALL_DOC, FALL_DOC, FALL_WAYPOINT)]
@@ -325,7 +313,7 @@ def main():
     if findings:
         for rel, line, what, why in findings:
             print("%s:%d  %s\n    %s" % (rel, line, what, why), file=sys.stderr)
-        print("\n%d paint%s off the register. The palette is the two registers "
+        print("\n%d paint%s off the register. The palette is the three greys "
               "on foundations/illustration.html and the light family in "
               "tokens.css -- resolve each paint against those, or argue it "
               "onto the page first." % (len(findings), "" if len(findings) == 1 else "s"),

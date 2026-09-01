@@ -14,6 +14,20 @@ should have to edit by hand a second time.
   gives `cyl()` the tangent points where a cylinder's silhouette leaves its end caps.
 - `objects.py` — the four drawings.
 
+The four are drawn in the three-grey register — `#DADADA` / `#CFCFCF` / `#C4C4C4`, the
+same values as every other object in the system — after shipping for a while in a
+near-white register of their own; `isolib.py`'s header has the argument, and
+`foundations/illustration.html` retired the second register with them. Each lights one
+top face, runs the whole ramp inside it, and carries exactly two nodes, on that face's
+back and right corners: `light_nodes_quad()` / `light_nodes_disc()` take the points off
+the lit element, so they cannot be placed anywhere else.
+
+Regenerating is deterministic to the byte. It was not: a half-turn arc's large-arc flag
+was `span > pi` on a value that is pi to the last ulp, and two of the four files came back
+from another machine's libm with eleven flags flipped and nothing changed on screen.
+`_arc()` now carries the tolerance. After `python3 objects.py`, the four `<svg>` blocks in
+the two pages are replaced with the files verbatim, at the pages' own indentation.
+
 Two conventions in here are load-bearing and are documented on
 `design-system/foundations/illustration.html`:
 

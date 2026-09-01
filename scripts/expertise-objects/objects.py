@@ -28,11 +28,22 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from isolib import (  # noqa: E402
     p_, line, box, plate, face, poly, quad_t, quad_x, quad_y, seams, slab_x, slab_y,
-    disc, hoop, cyl, taper, node, orbit, rotor, light_quad, light_disc,
-    assemble, bbox, lime_span_disc, reset,
+    disc, hoop, cyl, taper, orbit, rotor, light_quad, light_disc,
+    light_nodes_quad, light_nodes_disc, lime_span_quad, lime_span_disc,
+    assemble, bbox, reset,
     FACE_TOP, FACE_L, FACE_R, PLATE_TOP, PLATE_L, PLATE_R,
     ACCENT, DARK,
 )
+
+# THE LIGHT IS A TOP FACE WITH TWO NODES ON IT, and the nodes are nowhere else.
+# The reference plates of 2026-09-01 light one face per object — the top of the
+# mass the eye is meant to land on — run the whole ramp inside it, lime at the
+# back corner to CF-Grau at the near one, and mark exactly two points: where
+# the lit face's far edges meet, and where its right edge turns the corner.
+# The four objects used to scatter three or four nodes over places the copy
+# named (an exhaust outlet, a header, a cab roof), which is a list and not a
+# construction. isolib.light_nodes_quad / _disc take the two points off the lit
+# element itself, so they cannot drift from it.
 
 
 def foundation(x, y, dx, dy, h=0.2, inset=0.18, nx=2, ny=1):
@@ -48,16 +59,6 @@ def foundation(x, y, dx, dy, h=0.2, inset=0.18, nx=2, ny=1):
         out += seams((x + inset, y + inset, h), (x + inset, y + dy - inset, h),
                      (x + dx - inset, y + inset, h), (x + dx - inset, y + dy - inset, h), ny)
     return out
-
-
-def lime_span(a, b, reach=2.6):
-    """Gradient endpoints for a lit face. The ramp is lime for its first third
-    and neutral by its end, so an element that spans the WHOLE ramp arrives on
-    the page mint — which is not what "lime is light" means. Start the ramp at
-    the lit face's far corner and run it well past the near one, and the face
-    keeps the lime and only turns at its own edge."""
-    pa, pb = p_(*a), p_(*b)
-    return pa, (pa[0] + (pb[0] - pa[0]) * reach, pa[1] + (pb[1] - pa[1]) * reach)
 
 
 # ==================================================================== 01
@@ -289,11 +290,11 @@ def maschinenbau():
     # simply what the drawing asks for — 464.4 units, 398 px — and no number
     # here is rationing it.
     crop = bbox(18.0)
-    # Three nodes, each a place this field's copy names: the shaft end that is
-    # lit, the exhaust outlet, the terminals. The fourth marked one air cleaner
-    # lid and not the other, which is a scatter rather than a construction.
-    nodes = [node(1.75, 0.0, AXIS), node(-1.5, 0.0, 3.39, 3),
-             node(0.85, -0.34, 2.64, 3)]
+    # Two nodes, on the lit disc's highest and rightmost points — see the note
+    # at the top of this file. There were three, on the shaft end, the exhaust
+    # outlet and the terminals: places the copy names, not points the light
+    # depends on.
+    nodes = light_nodes_disc(1.75, 0.0, AXIS, 0.46, 'x')
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
                     light, nodes, ghost, orbits, crop=crop)
 
@@ -310,9 +311,20 @@ def anlagen():
     s0 += foundation(-2.8, -2.4, 5.6, 4.8, 0.2, 0.2, 2, 1)
 
     # ---- 1 · the column, furthest back and the tallest thing here
+    #
+    # THE COLUMN'S TOP IS THE LIGHT, and it is a flat head for that reason. The
+    # lit element used to be the top nozzle on a tapered head — a disc of r 0.22,
+    # 17 units across, the smallest lit element in the four objects and the one
+    # thing here the reference plates would not draw: they light the top face
+    # of the mass the eye lands on, and here that is the tallest vessel on the
+    # plot. The storage tank would have been the other candidate and is not:
+    # the rack's near column stands in front of its top from this camera, and
+    # the light paints after every form, so a lit tank top would have painted
+    # itself over a member that is nearer than it is. Nothing is in front of
+    # the column head at z 3.5.
     cx, cy, cr = -1.75, -1.2, 0.44
-    s1 += cyl(cx, cy, 0.2, 'z', 0.3, 0.6, side=PLATE_R, cap=FACE_TOP)     # skirt
-    s1 += cyl(cx, cy, 0.5, 'z', 3.0, cr, cap=None)
+    s1 += cyl(cx, cy, 0.2, 'z', 0.3, 0.6, side=PLATE_R)        # skirt
+    s1 += cyl(cx, cy, 0.5, 'z', 3.0, cr)
     for zz in (1.35, 2.45):                                    # shell courses
         s1.append(hoop(cx, cy, zz, cr, 'z'))
     fx, fy = cx + cr * 0.707, cy + cr * 0.707                  # the front generatrix
@@ -321,8 +333,6 @@ def anlagen():
     for i in range(8):
         zz = 0.78 + i * 0.34
         s1.append(line(p_(fx + 0.17, fy - 0.17, zz), p_(fx - 0.17, fy + 0.17, zz)))
-    s1 += taper(cx, cy, 3.5, cr, 0.3, 0.26, FACE_TOP, FACE_R)  # head
-    s1 += cyl(cx, cy, 3.76, 'z', 0.18, 0.22, side=FACE_L)      # top nozzle
 
     # ---- 2 · storage, then the rack that crosses in front of it
     tx, ty = 1.75, -1.4
@@ -347,28 +357,39 @@ def anlagen():
         s2.append(hoop(0.05 + i * 0.72, -0.32, 2.45, 0.11, 'x'))
 
     s2 += box(-2.5, 0.65, 0.2, 1.5, 0.8, 0.18, FACE_TOP, PLATE_L, PLATE_R)  # pump plinth
-    s2 += cyl(-2.35, 1.05, 0.62, 'x', 0.72, 0.24, cap=FACE_TOP)             # motor
+    s2 += cyl(-2.35, 1.05, 0.62, 'x', 0.72, 0.24)                           # motor
     for i in range(3):
         s2.append(hoop(-2.19 + i * 0.2, 1.05, 0.62, 0.24, 'x'))
-    s2 += cyl(-1.5, 1.05, 0.6, 'x', 0.38, 0.3, cap=FACE_TOP)                # pump
-    s2 += cyl(-1.3, 1.05, 0.9, 'z', 0.3, 0.1, side=FACE_L)
+    # ON THE MOTOR'S AXIS AND ON THE PLINTH. A coupled pump shares its motor's
+    # shaft line; this one sat 0.02 below it, at 0.60, with a radius of 0.30 —
+    # so its underside was at 0.30 against a plinth top of 0.38, the casing
+    # sunk 0.08 into the block it stands on, and the two axes missed by a
+    # pixel. Same axis, same radius, and the discharge nozzle starts at the
+    # crown it now has.
+    s2 += cyl(-1.5, 1.05, 0.62, 'x', 0.38, 0.24)                            # pump
+    s2 += cyl(-1.3, 1.05, 0.86, 'z', 0.3, 0.1, side=FACE_L)
 
     # ---- 3 · the exchangers, nearest the reader
     for yy in (0.6, 1.6):
         for xx in (0.5, 1.8):                                  # saddles
             s3 += box(xx, yy - 0.2, 0.2, 0.3, 0.4, 0.33, FACE_TOP, PLATE_L, PLATE_R)
-        s3 += cyl(0.3, yy, 0.85, 'x', 2.1, 0.32, side=FACE_R, cap=FACE_TOP, cap_far=FACE_L)
+        s3 += cyl(0.3, yy, 0.85, 'x', 2.1, 0.32, side=FACE_R, cap_far=FACE_L)
         for i in range(4):
             s3.append(hoop(0.62 + i * 0.42, yy, 0.85, 0.32, 'x'))
-        s3.append(hoop(2.4, yy, 0.85, 0.24, 'x'))
+        # disc(), not hoop(): the channel cover's bolt circle lies IN the end
+        # face and is wholly visible. maschinenbau() made exactly this
+        # correction on its end cover and wrote down why — drawn as a hoop the
+        # circle is an open crescent with two dangling ends — and these two
+        # kept the hoop.
+        s3.append(disc(2.4, yy, 0.85, 0.24, 'x'))
         s3 += cyl(0.72, yy, 1.17, 'z', 0.3, 0.09, side=FACE_L)  # nozzles
         s3 += cyl(2.02, yy, 1.17, 'z', 0.3, 0.09, side=FACE_L)
 
     ghost = [disc(tx, ty, 1.15, 0.6, 'z'),          # the level in the tank
              disc(cx, cy, 1.9, cr * 0.76, 'z')]     # a tray in the column
-    light = light_disc(gid, cx, cy, 3.94, 0.22, 'z')
-    la, lb = lime_span((cx - 0.22, cy - 0.22, 3.94), (cx + 0.22, cy + 0.22, 3.94))
-    nodes = [node(cx, cy, 3.94), node(tx, ty, 2.08, 3), node(0.95, -0.53, 2.34, 3)]
+    light = light_disc(gid, cx, cy, 3.5, cr, 'z')
+    la, lb = lime_span_disc(cx, cy, 3.5, cr, 'z')
+    nodes = light_nodes_disc(cx, cy, 3.5, cr, 'z')
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
                     light, nodes, ghost)
 
@@ -478,23 +499,13 @@ def erneuerbare():
     lv = [-2.6 + leaf * k for k in (0, 3, 7)]                  # leaves 1, 4, 8
     s3.append(quad_y(2.0, lv[0], 0.475, leaf, 0.5, DARK))      # louvres
     s3.append(quad_y(2.0, lv[2], 0.475, leaf, 0.5, DARK))
-    s3 += seams((-2.6, 0.9, 1.25), (0.2, 0.9, 1.25),
-                (-2.6, 2.0, 1.25), (0.2, 2.0, 1.25), 3)
-    # One unit of roof plant on each of the outer roof seams, x -1.9 and -0.5,
-    # which are symmetric about the container's own centre. The right-hand one
-    # used to stand on -0.6, a tenth off a seam and not symmetric either.
-    #
-    # AND THE UNIT IS 0.7 x 0.5 x 0.14, NOT 0.5 x 0.5 x 0.22, because in this
-    # projection a box's height and its setback SUBTRACT. Two lines that run
-    # along +y, at x1/z1 and x2/z2, land 50.1 x |dx - dz| screen units apart —
-    # so a box 0.25 out from the seam it straddles and 0.22 tall put its top
-    # edge 1.5 units from that seam where the seam surfaces, and 0.3 back from
-    # the roof's own back edge put its back edge 4 units from it. Both of those
-    # are gaps you cannot see and cannot mistake for anything but a doubled
-    # line. Wider and flatter, on the roof-plant proportion 01 and 04 already
-    # use, the same two gaps are 10.5 and 8.
-    for xx in (-2.25, -0.85):                                  # roof plant
-        s3 += box(xx, 1.2, 1.25, 0.7, 0.5, 0.14)
+    # THE ROOF IS THE LIGHT, AND A LIT FACE IS CLEAN. The container's top is
+    # the largest sky-facing face on the pad and the one the reference plates
+    # would light; it used to carry three roof seams and two units of roof
+    # plant, and the light was one door leaf on the +y flank — a vertical face,
+    # lit from the side, which is the one thing "the light comes from above"
+    # rules out. The seams and the plant come off with the move: a ramp with a
+    # box standing in it is a ramp with a hole in it.
     s3.append(quad_x(0.2, 1.02, 0.32, 0.86, 0.81))             # end frame
     s3 += seams((0.2, 1.02, 0.32), (0.2, 1.02, 1.13),
                 (0.2, 1.88, 0.32), (0.2, 1.88, 1.13), 2)
@@ -510,9 +521,9 @@ def erneuerbare():
     s3 += box(ax, ay, 0.2, 2.1, 1.5, 0.14, FACE_TOP, PLATE_L, PLATE_R)   # array
     fx, fy, fw, fh = ax + 0.12, ay + 0.12, 1.86, 1.26          # the panel field
     s3.append(quad_t(fx, fy, 0.34, fw, fh))
-    # The shaded string IS a cell of the grid below, rather than a rectangle
-    # the same size as one: 1.13 -> 1.59 against a cell of 1.135 -> 1.6.
-    s3.append(quad_t(fx + fw / 4, fy, 0.34, fw / 4, fh / 2, ACCENT))
+    # No shaded string any more. It was one cell of the grid below in the
+    # accent value, and in a register where the accent IS the shaded side it
+    # would be a second thing standing out on a pad that has one light.
     s3 += seams((fx, fy, 0.34), (fx + fw, fy, 0.34),
                 (fx, fy + fh, 0.34), (fx + fw, fy + fh, 0.34), 3)
     s3 += seams((fx, fy, 0.34), (fx, fy + fh, 0.34),
@@ -520,11 +531,10 @@ def erneuerbare():
 
     ghost = []
     orbits = [orbit(hx, wy, hz, 0.88, 'x')]                    # the sweep the tips travel
-    light = light_quad(gid, [(lv[1], 2.0, 0.475), (lv[1] + leaf, 2.0, 0.475),
-                             (lv[1] + leaf, 2.0, 0.975), (lv[1], 2.0, 0.975)])
-    la, lb = lime_span((lv[1], 2.0, 0.975), (lv[1] + leaf, 2.0, 0.475))
-    nodes = [node(lv[1] + leaf / 2, 2.0, 0.725), node(1.55, -1.375, 1.78, 3),
-             node(hx, wy, hz, 3)]
+    roof = [(-2.6, 0.9, 1.25), (0.2, 0.9, 1.25), (0.2, 2.0, 1.25), (-2.6, 2.0, 1.25)]
+    light = light_quad(gid, roof)
+    la, lb = lime_span_quad(roof)
+    nodes = light_nodes_quad(roof)
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
                     light, nodes, ghost, orbits)
 
@@ -645,8 +655,14 @@ def flotten():
     for i in range(13):                                        # ties
         xx = -2.78 + i * 0.44
         s0.append(line(p_(xx, -0.16, Z), p_(xx, 0.56, Z)))
+    # CENTRED ON THE GAUGE LINES. The rails were laid with their far edges on
+    # y 0.0 and 0.4, so their centres sat on 0.03 and 0.43 and the track's
+    # centre on 0.23 — while the ties, the underframes and the wheels below
+    # were all built about RY = 0.2. Three hundredths of a cell is 1.7 units,
+    # under two pixels, and it is exactly the doubled-line class of fault the
+    # rest of this file is written against.
     for yy in (0.0, 0.4):                                      # rails, 0.4 gauge
-        s0 += box(-2.9, yy, Z, 5.8, 0.06, 0.05, FACE_TOP, PLATE_L, PLATE_R)
+        s0 += box(-2.9, yy - 0.03, Z, 5.8, 0.06, 0.05, FACE_TOP, PLATE_L, PLATE_R)
 
     # ---- 1 · the back band: the ship on its blocks, then the train
     # THE SHIP IS ON KEEL BLOCKS, not floating in a plate. Everything else here
@@ -953,14 +969,11 @@ def flotten():
     # the drawing where "what stands out on one unit" has anything to stand out
     # from.
     LC = (STK_X, STK_Y + CT_W, DECK + 2 * CT_H)
-    light = light_quad(gid, [(LC[0], LC[1], LC[2]), (LC[0] + CT_L, LC[1], LC[2]),
-                             (LC[0] + CT_L, LC[1] + CT_W, LC[2]),
-                             (LC[0], LC[1] + CT_W, LC[2])])
-    la, lb = lime_span((LC[0], LC[1], LC[2]),
-                       (LC[0] + CT_L, LC[1] + CT_W, LC[2]), 2.2)
-    nodes = [node(LC[0] + CT_L / 2, LC[1] + CT_W / 2, LC[2]),
-             node(PX, TAIL + FL, FZ, 3), node(EX + 0.67, EY + 0.23, 1.4, 3),
-             node(1.21, TY + 0.29, 1.1, 3)]
+    lid = [(LC[0], LC[1], LC[2]), (LC[0] + CT_L, LC[1], LC[2]),
+           (LC[0] + CT_L, LC[1] + CT_W, LC[2]), (LC[0], LC[1] + CT_W, LC[2])]
+    light = light_quad(gid, lid)
+    la, lb = lime_span_quad(lid)
+    nodes = light_nodes_quad(lid)
     return assemble(gid, la, lb, [(0, s0), (1, s1), (2, s2), (3, s3)],
                     light, nodes, ghost, orbits, crop=crop)
 
