@@ -4600,6 +4600,60 @@
           drop-shadow(0 0 calc(var(--glow-r) * var(--glow-core)) var(--glow-lime))
           drop-shadow(0 0 var(--glow-r) var(--glow-glas));
       }
+      /* WHAT THE GLOW COSTS WHILE THE LEAVES BREATHE, AND WHY NO LINE IN THIS
+         FILE CAN REACH IT. An open finding, measured and left for the lane
+         that owns the drawing's structure; nothing below changes anything.
+
+         Every figure in cf-idle.js and over .sp-stream is STYLE RECALC on the
+         main thread, and by that measure the shimmer is now cheap: parked at
+         contain 70 % of this track, still, 5 000 ms, Chromium 1194 at
+         1440 x 900 — 125 ms of recalc, 128 recalcs. Nobody had measured what
+         the same frames cost to RASTER. A CSS filter on an SVG child is not
+         composited — Chromium paints SVG children into the root's layer, so
+         the two blurs above are Skia image filters run at raster time, on
+         the source as it is THAT frame. sp-leaf-shimmer changes that source
+         every frame on twenty-six leaves, so every frame re-runs all fifty-two
+         blurs. Same position, same still 5 000 ms, traced:
+
+                                     raster (worker pool)   frames   ms/frame
+           as shipped                    9 241 ms  3 383 tasks   130      71
+           shimmer paused                    0 ms                  0       —
+           filter: none, shimmer on        271 ms  7 748 tasks   297     0.9
+           one shadow instead of two     8 424 ms                254      33
+           --glow-r at 18px              8 135 ms                245      33
+           .lp-flow on its own layer     9 413 ms                123      77
+
+           as shipped, also: 3 032 ms on the Viz compositor thread and
+           2 526 ms of renderer main-thread task time, of which only 122 ms is
+           UpdateLayoutTree — the rest is the main thread waiting on raster.
+           At the closing still (contain 100 %) 9 248 ms; at 1280 x 800,
+           8 766 ms.
+
+         Read the frames column with the raster column: the pool is saturated
+         in every variant, so halving the radius or dropping a shadow does not
+         halve the bill — it roughly doubles the frame rate the same bill buys,
+         and both are numbers the notes above argue for. Pausing the shimmer
+         takes all of it to zero, which is the attribution; the filter alone
+         is the 78x per tile. These are software-raster figures from a headless
+         container with no GPU — a laptop's GPU blurs faster, and the absolute
+         numbers will not transfer — but the shape does: a drop-shadow that is
+         recomputed 60 times a second for as long as the reader looks at the
+         finished root, where the same reader on a still page pays 0 ms
+         everywhere else in this tree.
+
+         WHY IT IS NOT FIXED HERE. Every lever in this file is a design
+         decision with its measurement beside it: the 36 px is the median gap,
+         the two shadows are the system's own ramp, stroke-opacity is the
+         property that lets three animations share one element, and the
+         document clock is the whole point of a leaf that breathes. What is
+         left is structure — the glow living somewhere that is rastered once
+         and composited per frame (a filter on an HTML-level box Chromium can
+         promote, a fringe on its own <svg>, a static glow under a breathing
+         stroke) — and the twenty-six paths are gen-flow-root's, read by a
+         dozen checks, and shared with a second consumer of this file. That
+         is a change to the drawing, not to a number, and it needs the lane
+         that owns the drawing. → assets/js/cf-idle.js, the note over .sp-root
+         in patterns/landing-page.html */
       /* SAFARI NEVER PAINTS THIS LEAF, at any scroll position, once `--sp` has
          driven it — not the gradient stroke, not the glow. Every computed
          value WebKit reports matches Chromium exactly (stroke url, resolved
