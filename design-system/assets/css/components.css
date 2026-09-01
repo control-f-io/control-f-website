@@ -10903,11 +10903,37 @@ a.cf-calendar__day > time,
 
 /* What the category is, centred under its own pitch. --text-secondary at
    5.9:1 on CF-Grau, never --text-muted, which is 2.0:1 there and is the
-   mistake foundations/colors.html records. */
+   mistake foundations/colors.html records.
+
+   THE KEY IS BOUND BY ITS PITCH, WHICH IS THE ONE THING .cf-line__key CANNOT
+   BE. A point on a line has no width of its own — the domain is continuous and
+   the label is centred on a coordinate — so that key is `white-space: nowrap`
+   and overhangs into whatever is beside it. A category HAS a width: its own
+   share of the frame. So this key takes exactly that share and no more, and a
+   name too long for it wraps inside its own ground instead of into its
+   neighbour's.
+
+   THE TWO WRAPPING PROPERTIES ARE THE WHOLE RULE, and both are opt-OUTS.
+   base.css puts `overflow-wrap: break-word` on every element that holds copy,
+   <span> included, as a net against a document that scrolls sideways — and its
+   own comment calls it "a NET, not typography", inert until a line genuinely
+   cannot be set. Under a key bounded to 31 px on a phone it is not inert at
+   all: measured on prototypes/evidence-scroll.html at 375 px, five German
+   factor names came out KULT/UR, DATE/N-/SICH/ERHE/IT and TECH/NO-/LOGI/E.
+   A word cut at the box edge is worse than a word that overhangs it, and this
+   key cannot take the document sideways with it — it is absolutely positioned,
+   so it contributes nothing to any track's min-content. So the net comes off
+   here and `hyphens: manual` says the same thing from the other side: this
+   label breaks where the AUTHOR put a soft hyphen and nowhere else.
+
+   Which makes &shy; the interface. Daten&shy;sicherheit sets as DATEN- /
+   SICHERHEIT; without one, a long name simply overhangs its pitch the way the
+   plot's keys do, and the fix is a shorter name or fewer categories. */
 .cf-block__key {
   position: absolute;
   left: 50%;
   top: 100%;
+  inline-size: 100%;
   margin-top: var(--space-2);
   transform: translateX(-50%);
   font-family: var(--font-mono);
@@ -10916,8 +10942,10 @@ a.cf-calendar__day > time,
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   line-height: var(--leading-normal);
+  text-align: center;
   color: var(--text-secondary);
-  white-space: nowrap;
+  overflow-wrap: normal;
+  hyphens: manual;
 }
 
 /* The series inside one category, standing on the floor. --block-fill of the

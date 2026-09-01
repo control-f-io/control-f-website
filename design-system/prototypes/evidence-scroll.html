@@ -18,21 +18,22 @@
      process act sells them: Discovery, Datenfundament, Weniger
      Ausfälle, Mehr Leistung.
 
-     THE CHARTS ARE THE SYSTEM'S OWN — cf-pie, cf-plot, cf-line from
+     THE CHARTS ARE THE SYSTEM'S OWN — cf-pie, cf-block, cf-plot, cf-line from
      components.css, markup shape verbatim from their doc pages. This
      page adds no chart vocabulary; what it proposes is a CHOREOGRAPHY:
      the four figures on one .cf-pin track, each drawing itself inside
      its own quarter.
 
      WHY THE RE-TIMING EXISTS. Each figure normally draws on its own
-     view() timeline (--cf-plot, --cf-line, --cf-pie), timed against
+     view() timeline (--cf-block, --cf-plot, --cf-line, --cf-pie), timed against
      its traversal of the viewport. Inside a pinned sticky stage the
      figure never traverses anything — its view() freezes at one value,
      which for a stage pinned at the top is a chart stopped mid-draw
      (--plot-grow stuck near 0 is five empty columns, confidently
      wrong). So in the pinned tier this page re-times the components'
-     OWN keyframes — cf-plot-grow, cf-line-draw, cf-pie-light,
-     unchanged — onto --cf-pin with per-step ranges, exactly the move
+     OWN keyframes — cf-block-grow, cf-plot-grow, cf-line-draw,
+     cf-pie-light, unchanged — onto --cf-pin with per-step ranges,
+     exactly the move
      patterns/landing-page.html makes when it re-times cf-iso-build
      onto the same track. Below the gate (narrow, short, reduced
      motion, no scroll-driven animations) nothing here applies: the
@@ -145,8 +146,12 @@
   /* A line is a frame, not an object: it takes the measure it is given,
      so inside a centring grid it has to keep claiming the full track or
      it collapses to min-content. The pie and the plot carry their own
-     widths. */
-  .ev-card__figure > .cf-line { width: 100%; }
+     widths.
+
+     A BLOCK IS A FRAME TOO, and it arrived here as one the day card 02
+     stopped being a plot. Same rule, same reason, and it is the reason the
+     rule is a list rather than a second copy of itself. */
+  .ev-card__figure > :is(.cf-line, .cf-block) { width: 100%; }
   .ev-card__panel { padding: var(--space-8); }
   .ev-card__eyebrow {
     margin: 0 0 var(--space-3);
@@ -236,6 +241,66 @@
      it overrides something. */
   .ev-card .cf-plot__set { margin-bottom: var(--space-12); }
 
+  /* THE BLOCK NEEDS NO KEY RULE OF ITS OWN, and it is worth saying why, because
+     the plot right above it needs two. A plot column sits on a fixed 4u pitch,
+     so how wide its key may be is arithmetic on u that the component cannot do
+     for you. A block chart's categories DIVIDE the frame, so the pitch is a
+     fact the component already has — and .cf-block__key takes exactly it,
+     wrapping at whatever soft hyphens the name carries. DATEN&shy;SICHERHEIT
+     and TECHNO&shy;LOGIE break the way the plot's VERFÜG&shy;BARKEIT does, and
+     nothing here has to say so.
+
+     It did not start that way. This page is what found the fault: bounded to a
+     five-category pitch with base.css's overflow-wrap net still live, the same
+     five names came out KULT/UR, DATE/N-/SICH/ERHE/IT and TECH/NO-/LOGI/E at
+     375 px — a word cut at the box edge, which is worse than a word that
+     overhangs it. The net comes off inside .cf-block__key now, in
+     components.css, with hyphens: manual beside it.
+
+     WHAT IS STILL LOCAL IS THE ROOM UNDER THE FRAME. The component reserves one
+     label line (--space-8: 8 px of drop, an 11 px label, and air) and two of
+     these names take two. Measured before this rule: the keys printed 3.6 px
+     into the caption on the stage and 46.5 px into it at 375 px. --space-12 is
+     the next rung and it clears a two-line key with room over. It is the same
+     reservation, for the same reason, that .cf-plot__set carries above. */
+  .ev-card .cf-block__frame { margin-bottom: var(--space-12); }
+
+  /* AND THE GUTTER COMES DOWN, because this figure's steps are two digits and
+     the component's default is sized for three. --block-gutter reserves the
+     ground the scale's numerals stand on, and 32 px is "100" at 20 px plus the
+     step's own --space-2 gap. 75 / 50 / 25 set 13.4 px, so 24 is the rung that
+     fits them with the same 8 px of air — and the 8 px it gives back go where
+     this figure has nothing to spare: into the category pitch.
+
+     It is 1.6 px on the stage and it is the whole difference on a phone.
+     Measured at 375 px: the pitch is 47.1 px against a longest key fragment
+     (SICHER-, TECHNO-) of 47.0, which is not a margin, it is a coincidence.
+     At --space-6 the pitch is 48.8 and the fragments have 1.8 px on either
+     side of them. */
+  .ev-card .cf-block { --block-gutter: var(--space-6); }
+
+  /* AND THE PHONE TIER STILL DOES NOT QUITE FIT, WHICH IS RECORDED RATHER THAN
+     PAPERED OVER. Five categories divide a 248 px frame at a 320 px viewport,
+     so with the gutter above the pitch is 44.8 px — and the longest fragment
+     these two German factor names break into, SICHER- and TECHNO-, sets 47.0.
+     The two keys touch by 2.1 px there. It is not fixable in CSS: closing it
+     needs 235 px of pitch out of 224 px of frame, so the only levers left are
+     the ones components/block.html names — a shorter name or fewer categories —
+     and both of those are the data. At 375 px the same pair clears by 1.9 px
+     and every wider tier by 25 or more.
+
+     The label DID get shorter by one word, and that was a faithfulness fix
+     rather than a layout one: the PwC factor is "Sicherheit", which is what the
+     note at the head of this file has always called it, and "Datensicherheit"
+     was this figure's own expansion of it. It costs the key a line at the
+     narrow tiers, which is what keeps it out of the caption.
+
+     For scale: as a .cf-plot this figure took the document 78 px sideways at
+     320 px, because a 3.5u key on a fixed pitch has nothing bounding it at all.
+     The block's keys are bounded by their own category, and the same page now
+     measures 334 px against a 320 px viewport — all of it the ring on card 01
+     and the card box itself, neither of them this figure. */
+
   /* THE ROW STANDS OFF ITS OWN EDGES BY THE LABEL'S OVERHANG. A 3.5u key
      centred on a 2u column reaches 0.75u past each end of the row, and the
      row is laid out from the figure's left edge — so without this the first
@@ -307,7 +372,8 @@
 
       /* --------------------------------------------------------
          THE DRAW, RE-TIMED ONTO THE TRACK. Same keyframes the
-         components ship — cf-plot-grow, cf-line-draw, cf-pie-light —
+         components ship — cf-block-grow, cf-plot-grow, cf-line-draw,
+         cf-pie-light —
          on .cf-pin's timeline instead of the figure's frozen view().
          The step is up by 25i% (its ±3 % widened fade reaches full
          at 11 % of it), the copy is in by 25i+8 %, so the figure
@@ -315,6 +381,11 @@
          arriving, and the pie's light lands after its ring the way
          the component's own cover window orders it.
          -------------------------------------------------------- */
+      .ev-card .cf-block__set {
+        animation: cf-block-grow linear both;
+        animation-timeline: --cf-pin;
+        animation-range: contain calc(var(--i) * 25% + 4%) contain calc(var(--i) * 25% + 14%);
+      }
       .ev-card .cf-plot__set {
         animation: cf-plot-grow linear both;
         animation-timeline: --cf-pin;
@@ -559,73 +630,66 @@
                  factors for predictive maintenance, 2018 series
                  read off the report's own chart (pp. 16–17): the
                  note at the head of this file records why these
-                 are not the research note's numbers. --v is the
-                 fraction of 67.
+                 are not the research note's numbers.
+
+                 IT IS A .cf-block AND IT USED TO BE A .cf-plot, and
+                 the ceiling is what changed with it. A plot's --v is
+                 a fraction of the tallest column, so these five were
+                 authored against 67 and the empty air above them
+                 meant nothing. A block states its ceiling and stands
+                 on a floor it cannot move, so --v is the share
+                 itself: .35 .43 .59 .60 .67 of the 100 % of
+                 respondents __bounds now names. No number moved; the
+                 figure stopped normalising them away, which is the
+                 choice components/plot.html already names as the
+                 better one wherever the ceiling means something.
                  ================================================ -->
             <article class="ev-card cf-pin__step" style="--i:1">
               <div class="ev-card__figure">
-                <figure class="cf-plot">
-                  <ol class="cf-plot__set">
-                    <li class="cf-plot__col" style="--v:.52">
-                      <span class="cf-plot__key">Kultur</span><span class="cf-plot__val">35 %</span>
-                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
-                        <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
-                        <path class="cf-plot__rise" d="M0 130V10"/>
-                        <path class="cf-plot__rise" d="M40 130V10"/>
-                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
-                        <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z"/>
-                      </svg>
-                    </li>
-                    <li class="cf-plot__col" style="--v:.64">
-                      <span class="cf-plot__key">Daten&shy;sicherheit</span><span class="cf-plot__val">43 %</span>
-                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
-                        <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
-                        <path class="cf-plot__rise" d="M0 130V10"/>
-                        <path class="cf-plot__rise" d="M40 130V10"/>
-                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
-                        <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z"/>
-                      </svg>
-                    </li>
-                    <li class="cf-plot__col" style="--v:.88">
-                      <span class="cf-plot__key">Techno&shy;logie</span><span class="cf-plot__val">59 %</span>
-                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
-                        <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
-                        <path class="cf-plot__rise" d="M0 130V10"/>
-                        <path class="cf-plot__rise" d="M40 130V10"/>
-                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
-                        <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z"/>
-                      </svg>
-                    </li>
-                    <li class="cf-plot__col" style="--v:.9">
-                      <span class="cf-plot__key">Budget</span><span class="cf-plot__val">60 %</span>
-                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
-                        <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
-                        <path class="cf-plot__rise" d="M0 130V10"/>
-                        <path class="cf-plot__rise" d="M40 130V10"/>
-                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
-                        <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z"/>
-                      </svg>
-                    </li>
-                    <li class="cf-plot__col cf-plot__col--lit" style="--v:1">
-                      <span class="cf-plot__key">Daten</span><span class="cf-plot__val">67 %</span>
-                      <svg class="cf-plot__draw" viewBox="0 0 40 140" fill="none" aria-hidden="true">
-                        <defs>
-                          <!-- The near rake, waypoint at 19 % of the lime leg —
-                               verbatim from components/plot.html; id is this
-                               figure's own, two plots share this document. -->
-                          <linearGradient id="ev-plot-light-daten" x1="20" y1="0" x2="20" y2="20" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
-                          </linearGradient>
-                        </defs>
-                        <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>
-                        <path class="cf-plot__rise" d="M0 130V10"/>
-                        <path class="cf-plot__rise" d="M40 130V10"/>
-                        <path class="cf-plot__rise cf-plot__rise--near" d="M20 140V20"/>
-                        <path class="cf-plot__cap" d="M20 0 40 10 20 20 0 10Z" fill="url(#ev-plot-light-daten)"/>
-                      </svg>
-                    </li>
-                  </ol>
-                  <figcaption class="cf-plot__caption">
+                <figure class="cf-block">
+                  <div class="cf-block__head">
+                    <p class="cf-block__bounds">0 &ndash; 100 % der Nennungen</p>
+                  </div>
+                  <div class="cf-block__frame">
+                    <ul class="cf-block__scale" aria-hidden="true">
+                      <li class="cf-block__step" style="--v:.75">75</li>
+                      <li class="cf-block__step" style="--v:.5">50</li>
+                      <li class="cf-block__step" style="--v:.25">25</li>
+                    </ul>
+                    <ol class="cf-block__set">
+                      <li class="cf-block__group">
+                        <span class="cf-block__key">Kultur</span>
+                        <ol class="cf-block__bars">
+                          <li class="cf-block__bar cf-block__bar--read" style="--v:.35"><span class="cf-block__val">35 %</span></li>
+                        </ol>
+                      </li>
+                      <li class="cf-block__group">
+                        <span class="cf-block__key">Sicher&shy;heit</span>
+                        <ol class="cf-block__bars">
+                          <li class="cf-block__bar cf-block__bar--read" style="--v:.43"><span class="cf-block__val">43 %</span></li>
+                        </ol>
+                      </li>
+                      <li class="cf-block__group">
+                        <span class="cf-block__key">Techno&shy;logie</span>
+                        <ol class="cf-block__bars">
+                          <li class="cf-block__bar cf-block__bar--read" style="--v:.59"><span class="cf-block__val">59 %</span></li>
+                        </ol>
+                      </li>
+                      <li class="cf-block__group">
+                        <span class="cf-block__key">Budget</span>
+                        <ol class="cf-block__bars">
+                          <li class="cf-block__bar cf-block__bar--read" style="--v:.60"><span class="cf-block__val">60 %</span></li>
+                        </ol>
+                      </li>
+                      <li class="cf-block__group">
+                        <span class="cf-block__key">Daten</span>
+                        <ol class="cf-block__bars">
+                          <li class="cf-block__bar cf-block__bar--read cf-block__bar--lit" style="--v:.67"><span class="cf-block__val">67 %</span></li>
+                        </ol>
+                      </li>
+                    </ol>
+                  </div>
+                  <figcaption class="cf-block__caption">
                     Kritische Erfolgsfaktoren f&uuml;r Predictive Maintenance, genannt von 268
                     europ&auml;ischen Industriebetrieben: Datenverf&uuml;gbarkeit vor Budget und
                     Technologie — deshalb steht bei uns das Fundament vor den Use Cases.
