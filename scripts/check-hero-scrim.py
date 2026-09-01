@@ -157,12 +157,21 @@ def decl(name, css):
 
 
 def clamp_px(expr, vw):
-    """Evaluate the one clamp() shape the gutter uses: clamp(<rem>, <vw>, <rem>)."""
-    m = re.fullmatch(r"clamp\(\s*([\d.]+)rem\s*,\s*([\d.]+)vw\s*,\s*([\d.]+)rem\s*\)",
-                     expr.strip())
+    """Evaluate the one clamp() shape the gutter uses: clamp(<rem>, <vw>, <rem>).
+
+    The floor may carry a cap -- min(<rem>, <vw>) -- so a rem floor cannot
+    outgrow the viewport it is subtracted from at a large text size. It is
+    evaluated at the width asked for rather than assumed inert.
+    """
+    m = re.fullmatch(
+        r"clamp\(\s*(?:min\(\s*([\d.]+)rem\s*,\s*([\d.]+)vw\s*\)|([\d.]+)rem)"
+        r"\s*,\s*([\d.]+)vw\s*,\s*([\d.]+)rem\s*\)",
+        expr.strip())
     if not m:
         return None
-    lo, mid, hi = float(m.group(1)) * REM, float(m.group(2)) / 100.0 * vw, float(m.group(3)) * REM
+    lo = (min(float(m.group(1)) * REM, float(m.group(2)) / 100.0 * vw)
+          if m.group(1) is not None else float(m.group(3)) * REM)
+    mid, hi = float(m.group(4)) / 100.0 * vw, float(m.group(5)) * REM
     return min(max(lo, mid), hi)
 
 
@@ -197,7 +206,9 @@ def main():
     # (W - --container-max) / 2 and --gutter's own vw arm meet. --column-inset's
     # note calls this crossover exact rather than approximate, so it is solved
     # rather than quoted — 1438.2 with today's tokens.
-    vw_arm = re.search(r",\s*([\d.]+)vw\s*,", gutter_raw)
+    # The RAMP arm, anchored to the ceiling so a cap on the floor -- which is
+    # also a vw figure now -- cannot be read as the ramp.
+    vw_arm = re.search(r",\s*([\d.]+)vw\s*,\s*[\d.]+rem\s*\)\s*$", gutter_raw.strip())
     crossover_px = (cmax_px / 2.0) / (0.5 - float(vw_arm.group(1)) / 100.0) if vw_arm else 0.0
 
     # ---- the weight -------------------------------------------------------

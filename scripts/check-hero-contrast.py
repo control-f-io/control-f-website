@@ -224,14 +224,28 @@ def decl(name, css, scope=None):
 
 
 def clamp_px(expr, vw):
-    """clamp(<rem>, <vw>, <rem>) -- the one shape --gutter uses."""
-    m = re.fullmatch(r"clamp\(\s*([\d.]+)rem\s*,\s*([\d.]+)vw\s*,\s*([\d.]+)rem\s*\)",
-                     expr.strip())
+    """clamp(<rem>, <vw>, <rem>) -- the one shape --gutter uses.
+
+    The floor may be capped -- min(<rem>, <vw>) -- so a rem floor cannot
+    outgrow the viewport it is subtracted from at a large text size. The cap
+    is evaluated here rather than assumed inert, because this function is
+    called per viewport and a floor that varies with the width is exactly the
+    kind of thing a check should compute rather than round off.
+    """
+    m = re.fullmatch(
+        r"clamp\(\s*(?:min\(\s*([\d.]+)rem\s*,\s*([\d.]+)vw\s*\)|([\d.]+)rem)"
+        r"\s*,\s*([\d.]+)vw\s*,\s*([\d.]+)rem\s*\)",
+        expr.strip())
     if not m:
-        raise ValueError("--gutter is no longer clamp(<rem>, <vw>, <rem>): %r" % expr)
-    lo = float(m.group(1)) * REM
-    mid = float(m.group(2)) / 100.0 * vw
-    hi = float(m.group(3)) * REM
+        raise ValueError(
+            "--gutter is no longer clamp(<rem>, <vw>, <rem>) or "
+            "clamp(min(<rem>, <vw>), <vw>, <rem>): %r" % expr)
+    if m.group(1) is not None:
+        lo = min(float(m.group(1)) * REM, float(m.group(2)) / 100.0 * vw)
+    else:
+        lo = float(m.group(3)) * REM
+    mid = float(m.group(4)) / 100.0 * vw
+    hi = float(m.group(5)) * REM
     return min(max(lo, mid), hi)
 
 

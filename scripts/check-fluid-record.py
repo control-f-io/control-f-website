@@ -42,6 +42,14 @@ declarations and fails on the first one the stylesheet no longer supports.
 
 THE RULES, all recomputed from tokens.css with CSS comments stripped:
 
+  CAP      a floor written as min(REM, Kvw) — a rem floor capped so it cannot
+           outgrow the viewport it is subtracted from at a large text size —
+           must be inert at 320 px, the narrowest viewport this record covers
+           and the width WCAG 1.4.10 measures reflow at. Every floor figure on
+           both pages is derived from the uncapped rem, so a cap that engaged
+           above 320 would make all of them wrong below the width it engaged
+           at, silently and at every viewport under it. --gutter is the one
+           token that carries a cap today.
   TOKENS   the seven declarations parse as clamp() with a rem floor, a rem
            ceiling, and a ramp that is base + k·vw (base may be 0; the section
            gaps' 100vw / N form is k = 100/N; their var() floors and ceilings
@@ -94,6 +102,12 @@ TOKENS = ROOT / "design-system" / "assets" / "css" / "tokens.css"
 MOBILE = ROOT / "design-system" / "foundations" / "mobile.html"
 LAYOUT = ROOT / "design-system" / "foundations" / "layout.html"
 
+# The narrowest viewport the fluid record documents, and the width WCAG 1.4.10
+# measures reflow at. A cap on a clamp() floor has to be inert at and above it
+# or every floor figure on both pages is a derivation the stylesheet no longer
+# supports. See the CAP rule in main().
+REFLOW_WIDTH = 320.0
+
 failures = []
 
 
@@ -116,13 +130,32 @@ def rem_to_px(value):
 
 
 class Fluid:
-    """clamp(floor, base + k·vw, ceiling), everything in px; k in px per 100vw."""
+    """clamp(floor, base + k·vw, ceiling), everything in px; k in px per 100vw.
 
-    def __init__(self, name, floor, base, k, ceiling):
+    floor_k is the vw coefficient of a CAP ON THE FLOOR — min(Nrem, Kvw) — or
+    None where the floor is a plain rem. A capped floor exists so a rem floor
+    cannot grow past the viewport it is subtracted from when the reader raises
+    their text size; see --gutter in tokens.css. Every derivation below treats
+    the floor as the plain rem figure, which is correct exactly while the cap
+    is inert over the documented range — CAP, in the rules, is the check that
+    it is.
+    """
+
+    def __init__(self, name, floor, base, k, ceiling, floor_k=None):
         self.name, self.floor, self.base, self.k, self.ceiling = name, floor, base, k, ceiling
+        self.floor_k = floor_k
+
+    def floor_at(self, vw):
+        if self.floor_k is None:
+            return self.floor
+        return min(self.floor, self.floor_k * vw / 100.0)
+
+    def floor_cap_crossover(self):
+        """Viewport below which the cap, not the rem, is the floor."""
+        return self.floor * 100.0 / self.floor_k
 
     def at(self, vw):
-        return min(max(self.base + self.k * vw / 100.0, self.floor), self.ceiling)
+        return min(max(self.base + self.k * vw / 100.0, self.floor_at(vw)), self.ceiling)
 
     def floor_crossover(self):
         return (self.floor - self.base) * 100.0 / self.k
@@ -156,9 +189,20 @@ def parse_tokens():
             name, rem_to_px(m.group(2)), rem_to_px(m.group(3)), float(m.group(4)), rem_to_px(m.group(5))
         )
 
-    m = re.search(r"--gutter:\s*clamp\(\s*([\d.]+)rem\s*,\s*([\d.]+)vw\s*,\s*([\d.]+)rem\s*\)", css)
+    # --gutter, with or without a cap on its floor: clamp(REM, Kvw, REM) or
+    # clamp(min(REM, Cvw), Kvw, REM).
+    m = re.search(
+        r"--gutter:\s*clamp\(\s*(?:min\(\s*([\d.]+)rem\s*,\s*([\d.]+)vw\s*\)|([\d.]+)rem)"
+        r"\s*,\s*([\d.]+)vw\s*,\s*([\d.]+)rem\s*\)",
+        css,
+    )
     if m:
-        tokens["gutter"] = Fluid("gutter", rem_to_px(m.group(1)), 0.0, float(m.group(2)), rem_to_px(m.group(3)))
+        capped = m.group(1) is not None
+        floor = rem_to_px(m.group(1) if capped else m.group(3))
+        tokens["gutter"] = Fluid(
+            "gutter", floor, 0.0, float(m.group(4)), rem_to_px(m.group(5)),
+            floor_k=float(m.group(2)) if capped else None,
+        )
         tokens["gutter"].literal = m.group(0).split(":", 1)[1].strip()
 
     for gap in ("section-gap", "section-gap-sm"):
@@ -213,6 +257,31 @@ def main():
     for needed in ("text-display-1", "text-display-2", "text-h1", "text-h2", "gutter", "section-gap", "section-gap-sm"):
         if needed not in tokens:
             fail(TOKENS, 1, f"--{needed} no longer parses as the clamp() shape this record documents")
+    if failures:
+        report()
+
+    # CAP — a capped floor may not move any documented figure.
+    #
+    # Every derivation on both pages reads the floor as the plain rem value,
+    # which is only correct while the cap is inert at the narrowest viewport
+    # the record covers. REFLOW_WIDTH is that viewport and it is also what
+    # WCAG 1.4.10 measures at, so a cap that engages above it would be both a
+    # stale record and a narrower content column than the guideline assumes.
+    # Raising the cap's coefficient is free; lowering it fails here with the
+    # width at which the record stops being true.
+    for name, tok in tokens.items():
+        if getattr(tok, "floor_k", None) is None:
+            continue
+        engages = tok.floor_cap_crossover()
+        if engages > REFLOW_WIDTH + 1e-9:
+            fail(
+                TOKENS, 1,
+                f"--{name}: the cap on its floor engages at {engages:.1f} px, above the "
+                f"{REFLOW_WIDTH:g} px reflow width. Every floor figure on mobile.html and "
+                f"layout.html is derived from the uncapped {tok.floor:g} px and would be "
+                f"wrong from {engages:.1f} px down. Raise the cap to at least "
+                f"{tok.floor * 100.0 / REFLOW_WIDTH:g}vw, or re-derive both records.",
+            )
     if failures:
         report()
 
@@ -282,7 +351,10 @@ def main():
         tok = tokens["gutter"]
         if not span or abs(float(span.group(1)) - tok.floor) > 0.004 or abs(float(span.group(2)) - tok.ceiling) > 0.004:
             fail(LAYOUT, line, f"--gutter: span documented '{c[1] if len(c) > 1 else ''}', tokens.css runs {tok.floor:g} → {tok.ceiling:g} px")
-        quoted = re.search(r"clamp\([^)]*\)", row)
+        # One level of nesting, because a capped floor is a min() inside the
+        # clamp(). [^)]* stopped at the min()'s own closing paren and reported
+        # half a declaration as the whole of it.
+        quoted = re.search(r"clamp\((?:[^()]|\([^()]*\))*\)", row)
         if not quoted or norm(quoted.group(0)) != norm(tok.literal):
             fail(LAYOUT, line, f"--gutter: quoted literal '{quoted.group(0) if quoted else '(none)'}' is not tokens.css's '{tok.literal}'")
 
