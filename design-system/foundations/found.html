@@ -561,12 +561,49 @@ current.clear(); current.add(ranges[i]);</pre>
         screenshot could find it.
       </p>
       <p>
+        <strong>The backplate is painted over the element's own background, and that is the
+        second half of it.</strong> Chromium lays an opaque <code>Canvas</code>-coloured plate
+        behind every run of text in this mode so text over an image stays readable. The plate
+        does not belong to the text's own box — it belongs to the <strong>block container</strong>
+        that lays the text out, and it is painted in that container's background phase. An
+        inline <code>&lt;mark&gt;</code> in a paragraph is not that container, so its yellow goes
+        down <em>on top of</em> the backplate and survives. Blockify the mark and the container
+        <em>is</em> the mark: the backplate goes down after its own background and takes the plate
+        with it.
+      </p>
+      <div class="docs-table-scroll">
+      <table class="docs-table">
+        <thead><tr><th>A <code>.cf-mark--current</code> that is…</th><th>light</th><th>dark</th></tr></thead>
+        <tbody>
+          <tr><td>inline in a paragraph — every match this system ships</td><td>yellow plate, black ink, rule</td><td>yellow plate, black ink, rule</td></tr>
+          <tr><td>inside an inline-block, or inside <code>.text-foil</code></td><td>as above</td><td>as above</td></tr>
+          <tr><td>a flex item, a grid item, or <code>display: block</code></td><td><strong>white plate</strong>, black ink</td><td><strong>black block. no ink at all.</strong></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>
+        So the thing at risk on the two element rungs was never the ink or the pair — it was the
+        plate, and only where a mark is the block container of its own text.
+        <code>forced-color-adjust: none</code> is the one declaration that stops the backplate,
+        and it does <em>not</em> leave the reader's palette: every value in those two rules is a
+        system colour keyword, and a system colour keyword still resolves to the theme under the
+        escape. Both element rungs now carry it. Re-measured with it in place, the blockified
+        cases arrive at the inline case's drawing in both palettes and the inline cases do not
+        move by a pixel. <a href="../components/calendar.html">Today in the calendar</a> is the
+        rung that was actually failing — a <code>&lt;time&gt;</code> that is a flex item — and it
+        carries its own copy of the escape.
+      </p>
+      <p>
         <strong>Not <code>ButtonFace</code> / <code>ButtonText</code>,</strong> which is where
         <a href="../components/pagination.html">the current page marker</a> went for the
-        neighbouring finding. Measured on the same run: <code>ButtonFace</code> resolves to
-        the <em>same value as</em> <code>Canvas</code> in both palettes — white on white,
-        black on black — so a plate painted in it is not a plate, and the light rung would
-        arrive at the contour rung's drawing.
+        neighbouring finding and did not stay. Measured on the same run: <code>ButtonFace</code>
+        resolves to the <em>same value as</em> <code>Canvas</code> in both palettes — white on
+        white, black on black — so a plate painted in it is not a plate, and the light rung would
+        arrive at the contour rung's drawing. That marker is the blockified case too — an
+        <code>inline-flex</code> slot — and it now takes <code>Highlight</code>/<code>HighlightText</code>
+        under this same escape: the pair the mode reserves for <em>the selected one of a set</em>,
+        which is what that state means and is not what this one means. One mechanic, two pairs —
+        the escape decides whether a plate survives, the pair decides what the plate says.
       </p>
       <p>
         <strong>And the three highlight pseudo-elements are not styleable here at all.</strong>
@@ -577,12 +614,18 @@ current.clear(); current.add(ranges[i]);</pre>
         <code>Mark</code>/<code>MarkText</code>, <code>ButtonFace</code>/<code>ButtonText</code>,
         transparent&nbsp;+&nbsp;<code>CanvasText</code>, and <code>forced-color-adjust: none</code>
         carrying the brand's own lime — all four came back as the identical solid plate with no
-        ground line, the two rungs indistinguishable. The one lever that does work is
+        ground line, the two rungs indistinguishable. Re-measured when the escape went onto the
+        element rungs, in case the engine had moved: the rules as they stand, the same rules
+        carrying <code>forced-color-adjust: none</code> <em>inside</em> the pseudo, and magenta
+        and lime — colours no palette contains — came back byte for byte identical in both
+        schemes. <code>forced-color-adjust</code> is not on the closed list of properties a
+        highlight pseudo accepts. The one lever that does work is
         <code>forced-color-adjust: none</code> on the <em>originating element</em>, which would
         mean setting it on every element that can contain a match — the running text of the site
         — and opting the page out of forced colours to keep a drawing about accessibility. It is
-        not taken. Those three rules are written as a conforming engine would paint them, and on
-        Chromium today they are inert.
+        not taken; the escape on the element rungs is the opposite trade, and affordable because
+        it lands on the word and not on the prose around it. Those three rules are written as a
+        conforming engine would paint them, and on Chromium today they are inert.
       </p>
     </div>
   </section>

@@ -4231,6 +4231,18 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
    system pair answers neither question: every pair is built to contrast with
    its own plate, and its own plate is not what the glyphs land on.
 
+   ON TOP OF WHICH ELEMENT'S BACKGROUND IS THE PART THAT DECIDES WHO IS HIT.
+   The backplate belongs to the BLOCK CONTAINER that lays the text out, and it
+   is painted in that container's own background phase — so it goes down before
+   the inline backgrounds inside it and after its own. An inline <mark> in a
+   paragraph is not that container: the paragraph's backplate goes down first
+   and the mark's plate covers it, which is why the found state's element rungs
+   render correctly in both palettes and this slot does not. This slot is an
+   inline-flex box, so it IS its own block container and the backplate lands on
+   the plate the state is made of. Measured across the structural cases at
+   base.css's found state, where the same mark inline and blockified are two
+   different results.
+
    Measured by render and not by computed style, which cannot see any of this:
    Chromium 149 and 151 driven by playwright-core, forced-colors emulated
    active against `color-scheme` light and dark, this page served over http,
@@ -4289,10 +4301,19 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
    Mark/MarkText survives the same escape and is still not taken: it is the
    found state's pair (base.css, .cf-mark--current, and the calendar's lit day),
    "currently matched" is not "currently selected", and yellow stands 1.07:1 off
-   a white page — a hue with no luminance under it. The found state's own
-   dark-palette failure is the Mark row of the table above, unchanged; it is
-   base.css's to fix across all of its rungs at once, and the calendar's note
-   beside .cf-calendar__day[aria-current="date"] says the same. */
+   a white page — a hue with no luminance under it.
+
+   The Mark row of the table above is this element's measurement and not the
+   found state's, and that distinction has since been settled by render. The
+   found state's two ELEMENT rungs never failed: an inline <mark> keeps its
+   plate, in both palettes, for the reason two paragraphs up. What did fail is
+   the calendar's lit day, which is a flex item and therefore this element's
+   shape rather than a <mark>'s; it takes the same escape now, and so do
+   base.css's element rungs, where the escape changes nothing that ships and
+   covers the day a match is blockified. The half that is still open is the
+   found state's three highlight PSEUDO-elements, which take no author
+   declaration under forced colours at all — measured against three candidate
+   declarations, byte-identical every time. base.css records it. */
 @media (forced-colors: active) {
   .cf-pagination__page[aria-current] {
     forced-color-adjust: none;
@@ -6131,42 +6152,54 @@ a.cf-calendar__day > time,
    call base.css makes for the found state's own current rung, because a lit day
    and a current match are one drawing and may not have two answers here.
 
-   IT IS THE PAIR THAT DOES NOT PAINT UNDER THE DARK THEME, AND THAT IS RECORDED
-   RATHER THAN FORKED. .cf-pagination__page[aria-current] carries the note that
-   found it: Chromium's forced-colors emulation resolves Mark/MarkText to
-   yellow/black in BOTH colour schemes, while Canvas/CanvasText and
-   ButtonFace/ButtonText flip with the scheme. Under `prefers-color-scheme:
-   dark` the glyphs are therefore MarkText black on a Canvas-black text
-   backplate, and nothing paints.
-
-   Measured again here, Chromium 141 headless, forced-colors emulated, this
-   component and foundations/found.html side by side. The third row is the one
-   that has moved since, and it was re-measured on Chromium 149 and 151:
+   THE PAIR WAS NEVER THE FAULT HERE; THE BOX WAS. What this note used to say,
+   and what .cf-pagination__page[aria-current] one component over was read as
+   saying, is that Mark/MarkText does not paint under the dark scheme and that
+   the fix belonged in base.css, to all five rungs at once. Measured properly —
+   Chromium 151, forced-colors: active, both schemes, this component and
+   foundations/found.html served and screenshotted — the found state's own two
+   element rungs paint correctly in BOTH palettes and always did, and this one
+   does not:
 
                               light                    dark
-     .cf-mark--current        yellow plate, black ink  black block, no ink
-     [aria-current="date"]    yellow plate, black ink  black block, no ink
+     .cf-mark (inline)        ink + ground line        ink + ground line
+     .cf-mark--current        yellow plate, black ink  yellow plate, black ink
+     [aria-current="date"]    WHITE plate, black ink   BLACK BLOCK, no ink
      .cf-pagination[current]  navy plate, white ink    cyan plate, black ink
 
-   The two rungs of the found state fail together and the pagination's slot does
-   not, which is the whole shape of it: this is the FOUND STATE's forced-colours
-   answer, and the calendar is the fourth thing standing on it rather than a new
-   fault.
+   The pagination's row is the shape this one is, not the shape a <mark> is, and
+   it reached its plate the same way: Highlight/HighlightText under the same
+   escape. Its note carries the mechanic and the figures.
 
-   THE PAGINATION'S ROW IS NO LONGER A DIFFERENT PAIR. IT IS THE SAME PAIRS AND
-   AN ESCAPE, which is what changes the shape of the fix waiting in base.css.
-   Its note now records that forced-colours prints the ink on a backplate the
-   colour of the page — that is why MarkText black lands on black here — and
-   that forced-color-adjust: none suppresses the backplate for one element
-   without taking it out of the user's palette. Under that escape Mark/MarkText
-   was rendered on an element of this shape and painted its black ink on its own
-   yellow plate in BOTH schemes. So the day would no longer have to choose
-   between being legible and being drawn like every other match: the trade
-   base.css refused is not the only offer any more. It is still base.css's call
-   and not this component's — the found state has five rungs, two of them
-   highlight pseudo-elements, and they answer together or not at all. */
+   base.css now carries the mechanism in full. Chromium paints an opaque
+   Canvas-coloured backplate behind each run of text in this mode, and the
+   backplate belongs to the BLOCK CONTAINER that lays the text out, painted in
+   that container's own background phase. A <mark> inline in a paragraph is not
+   that container, so its yellow goes down on top of the backplate and survives.
+   This <time> is a flex item of an inline-flex day — blockified, its own block
+   container — so the backplate goes down AFTER its background and takes the
+   plate with it: a white plate in the light scheme, where MarkText still reads
+   on it, and a black plate in the dark one, where it does not.
+
+   `forced-color-adjust: none` is the one declaration that stops the backplate,
+   and it does not leave the reader's palette — every value below is a system
+   colour keyword and still resolves to the theme under it. Verified by render:
+   the lit day is a yellow plate with a black numeral and a black rule in both
+   schemes, which is the drawing every other rung of the found state already
+   makes. base.css carries the same escape on `mark` / `.cf-mark`, where it
+   changes nothing today and covers the day someone blockifies a match; it
+   cannot reach this rule, which is why the declaration is restated here rather
+   than inherited from there. What was deferred to base.css was one declaration,
+   not a change of pair.
+
+   The three highlight PSEUDO-elements are still the half nothing reaches:
+   Chromium discards every author declaration on ::target-text and
+   ::highlight(), and forced-color-adjust inside a highlight pseudo is not on
+   the closed property list. base.css records that measurement. It costs this
+   component nothing — a day is an element. */
 @media (forced-colors: active) {
   .cf-calendar__day[aria-current="date"] > time {
+    forced-color-adjust: none;
     background-color: Mark;
     color: MarkText;
     -webkit-text-fill-color: MarkText;
@@ -9679,13 +9712,13 @@ a.cf-calendar__day > time,
    SAY where it starts: .cf-line__bounds is required, and it is the only
    number in the figure that is not a datum.
 
-   ONE COLOUR RULE FOR THE WHOLE FIGURE: the frame is grey and the data is
-   black. The frame's floor and ceiling are --border-default hairlines for
-   exactly the reason .cf-plot__caption's rule is — so they do not read as one
-   more edge of the drawing — and every trace in the box is black. A second
-   series is one rung down the presence ladder and not one step down the grey
-   ramp, and that is measured rather than asserted. Grey fails at both ends
-   at once, against CF-Grau, the wash's worst end:
+   ONE COLOUR RULE FOR THE WHOLE FIGURE: the frame is grey, the data is black,
+   and exactly one trace may take the one hue the page has room for. The frame's
+   floor, ceiling and steps are --border-default hairlines for exactly the
+   reason .cf-plot__caption's rule is — so they do not read as one more edge of
+   the drawing. A second series is one rung down the presence ladder and not one
+   step down the grey ramp, and that is measured rather than asserted. Grey
+   fails at both ends at once, against CF-Grau, the wash's worst end:
 
      --border-default  #9D9D9D composited   1.74:1 on the wash     invisible
      grey-500          #9B9B9B              1.78:1 on the wash     invisible
@@ -9697,15 +9730,23 @@ a.cf-calendar__day > time,
    system holds a contour to — a line the reader is invited to compare and
    cannot see. The one grey that clears the wash is 2.30:1 from the trace it is
    supposed to differ from, and it is --text-secondary, the label ink, so a
-   trace in it reads as annotation rather than as data. The three accents fare
-   no better and the arithmetic is beside the rungs below. Presence is a line
-   type here because it is the only cue that survives a 1 px stroke.
+   trace in it reads as annotation rather than as data. The accents are measured
+   beside the rungs below, and that measurement is what says a figure may carry
+   one hue and never two. Presence is the line type because it is the only cue
+   that survives a 1 px stroke in forced colours, in grayscale and on paper.
 
    NO VERTICAL LINES AT ALL, which is the table's argument reused: a rule
    between two points would be neither an edge, nor a division, nor a label
    rule, and geometry.html calls a line that is none of the three decoration.
-   No gridlines, no ticks, no axis. The domain is named at the points it is
-   read at, the same direct labelling the plot uses instead of a legend.
+   So there is no domain axis and no tick, and the domain is named at the points
+   it is read at — the same direct labelling the plot uses instead of a legend.
+
+   THE VALUE SCALE IS THE EXCEPTION, AND IT IS ONE BECAUSE IT PASSES THE SAME
+   TEST. A step is a number with a hairline running out of it to the frame's far
+   edge, which is geometry.html's third kind exactly — a label rule, the mark
+   .cf-section-header already is. It is optional, it subdivides and never
+   restates the ends, and it is the alternative to printing values rather than
+   an addition to them. See .cf-line__scale.
    -------------------------------------------------------------------------- */
 
 /* The domain coordinate, and the twin of --v. Registered for the same two
@@ -9791,6 +9832,89 @@ a.cf-calendar__day > time,
   border-block: var(--stroke-1) solid var(--border-default);
 }
 
+/* THE SCALE — the frame subdivided, and the one axis this figure has.
+
+   IT IS A LABEL RULE, WHICH IS WHY IT IS ALLOWED TO EXIST. geometry.html
+   #where-lines-go admits exactly three kinds of line and calls everything else
+   decoration, and its third kind is "a mono label with the hairline running out
+   of it to the far edge -- the line and the word are one mark". A value step is
+   that construction and nothing else: the number, a gap, then a hairline to the
+   frame's right edge. It is the same mark .cf-section-header is, turned into
+   the frame. The vertical rules stay forbidden for the reason they always were
+   -- a rule standing between two points carries no label at its end and closes
+   nothing -- so there is no domain axis here, and there does not need to be:
+   the domain is named at the points it is read at.
+
+   THE ENDS ARE NOT STEPS, and that is what keeps this from being a second copy
+   of anything. The floor and the ceiling are already drawn (the frame's own two
+   hairlines) and already named (.cf-line__bounds, which stays required and
+   still carries the unit). So the scale prints the SUBDIVISIONS only, bare, and
+   a figure never says a number twice. A step at --v: 0 or --v: 1 would also put
+   half its numerals outside the frame it is measuring.
+
+   SAME GREY AND SAME WEIGHT AS THE FRAME'S OWN EDGES, deliberately. A
+   subdivision is the same instrument at the same volume as the edges it lies
+   between, and --border-default is already the quietest line the figure draws
+   at 1.74:1 on the wash's worst end -- a rung below it is not a fainter rule,
+   it is no rule. What separates a subdivision from an edge here is not tint: an
+   edge runs the full width and carries no number, a subdivision stops at one.
+   That is the label-rule distinction drawn rather than asserted.
+
+   A SCALE AND A PRINTED VALUE ARE TWO ANSWERS TO THE SAME QUESTION and a figure
+   picks one. Print three numbers when three numbers are the message; draw a
+   scale when the shape is the message and the reader wants to estimate anywhere
+   along it, and let the set go --quiet. The one hard case is the left edge: the
+   step's number and a --first point's value are both flush left, and at 320 px
+   the frame is 136 px, so a step at .25 (34 px) and an opening value at .12
+   (28-46 px with its gap) overlap. Measured, not feared. A figure with a scale
+   does not print its opening value -- it has a scale, which is what the reader
+   would have read it off.
+
+   IT IS aria-hidden, for .cf-line__draw's reason. The scale is the instrument,
+   not the data: every value is already in the tree as text, and the extent is
+   already in the tree as .cf-line__bounds. Exposed, "25 50 75" would read as a
+   fourth series between the real ones. */
+.cf-line__scale {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* translateY(50%) and not a bare `bottom`, because the box has a height and the
+   value does not. bottom alone would sit the whole line-height above --v and
+   put the rule half a line off the number it names; centring the box on --v
+   lands the rule ON the value and the numerals beside it, at the same height,
+   over clear ground rather than over the rule. */
+.cf-line__step {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(clamp(0, var(--v), 1) * 100%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transform: translateY(50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  /* Tabular, and this is the whole of the alignment mechanism: steps with the
+     same digit count set to the same width, so the rules all start at one x
+     without a wrapper element to align them in. A sensible step already has
+     one -- 25/50/75, 20/40/60/80, 99,2/99,4/99,6 -- and a step series that
+     does not is a step series to reconsider. */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-label);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.cf-line__step::after {
+  content: "";
+  flex: 1 1 auto;
+  border-top: var(--stroke-1) solid var(--border-default);
+}
+
 /* The drawing is a normalised square that is stretched to whatever frame it is
    given: viewBox 0 0 100 100 with preserveAspectRatio="none", so x IS --t x 100
    and y IS (1 - --v) x 100 and there is no conversion anywhere between the two
@@ -9859,32 +9983,80 @@ a.cf-calendar__day > time,
              Three unordered peers is a figure this component cannot draw
              honestly; see below.
 
-   WHY THERE IS NO COLOUR HERE, WHICH IS ARITHMETIC AND NOT DOCTRINE. The brand
-   has three accents besides lime, each with a full ramp, so a categorical set
-   is not obviously unavailable — it was measured rather than assumed. Against
-   CF-Grau, the wash's worst end, at the 3:1 this system holds a contour to:
+   THERE IS ONE COLOUR HERE AND THERE CANNOT BE TWO, WHICH IS ARITHMETIC AND
+   NOT DOCTRINE. The brand has three accents besides lime, each with a full
+   ramp, so a categorical set is not obviously unavailable — it was measured
+   rather than assumed, and the measurement is what the ladder rests on.
 
-     Glas 500     #C5EBE2   1.21:1     the brand hue           FAILS
-     Sky 500      #72B0E2   1.49:1     the brand hue           FAILS
-     Violett 500  #7E7FE1   2.24:1     the brand hue           FAILS
-     Glas 800     #45524F   5.24:1     passes
-     Sky 800      #283E4F   7.12:1     passes
-     Violett 800  #2C2C4F   8.53:1     passes
+   A TRACE HAS TO CLEAR TWO BARS AT ONCE, and that is the part the obvious
+   version of this arithmetic misses. It owes 3:1 against the PAGE, whose worst
+   end is CF-Grau at relative luminance 0.624; and it owes 3:1 against the BLACK
+   TRACE it exists to differ from, which is Schwarz at 0. Solve both and the
+   colour's own luminance is pinned into a band:
 
-   The three steps that carry the hue all fail the wash, and the three that
-   clear it are near-blacks that fail against EACH OTHER: Glas 800 against Sky
-   800 is 1.36:1 and Sky 800 against Violett 800 is 1.20:1. A 1 px stroke gives
-   the eye no area to judge a hue on at the best of times; at 1.2:1 apart there
-   is nothing to judge. So the palette cannot make a categorical hairline set —
-   either the colour fails the page or it fails the other colours — and adding
-   one would mean adding colours the brand does not have. The ladder is what
-   this brand has, and past three series the answer is not a fourth line type
-   but four frames: see the small multiples on the component's page.
+     3:1 off the wash's worst end   Y <= (0.624 + 0.05) / 3 - 0.05 = 0.175
+     3:1 off the black trace        Y >= 3 x 0.05 - 0.05          = 0.100
+
+   The widest contrast available anywhere INSIDE that band is
+   (0.175 + 0.05) / (0.100 + 0.05) = 1.50:1. So a figure on this page can carry
+   at most ONE such colour, whatever palette it is handed — a second would be
+   under 1.5:1 from the first, which on a 1 px stroke is no distinction at all.
+   That is a property of a black-ink figure on a CF-Grau ground and not of the
+   brand: growing the brand a categorical ramp would not buy a second hue, it
+   would only produce more colours that fail each other. This is the whole
+   reason presence is a line type here.
+
+   OF THE 28 STEPS IN THE FOUR RAMPS, EXACTLY ONE LANDS IN THE BAND. Against
+   CF-Grau, the wash's worst end, and against the black it must differ from:
+
+     Glas 500     #C5EBE2   1.21:1 wash                the brand hue    FAILS
+     Sky 500      #72B0E2   1.49:1 wash                the brand hue    FAILS
+     Violett 500  #7E7FE1   2.24:1 wash                the brand hue    FAILS
+     Glas 700     #94B0A9   1.49:1 wash                                 FAILS
+     Sky 700      #5684A9   2.56:1 wash                                 FAILS
+     Glas 800     #45524F   5.24:1 wash, 2.57:1 black  a near-black     FAILS
+     Sky 800      #283E4F   7.12:1 wash, 1.89:1 black  a near-black     FAILS
+     Violett 800  #2C2C4F   8.53:1 wash, 1.58:1 black  a near-black     FAILS
+     Violett 700  #5F5FA9   3.65:1 wash, 3.70:1 black, 5.68:1 white     PASSES
+
+   Everything light enough to carry a hue fails the page; everything dark enough
+   to clear the page is a near-black that fails the trace. Violett 700 sits in
+   the gap, and it is the only step that does — Y 0.1348, near the middle of a
+   band 0.075 wide. It is not --text-secondary (1.61:1 from grey 700), so it
+   does not read as label ink the way a grey trace would.
+
+   SO IT IS .cf-line__trace--hue, IT RIDES WITH A RUNG AND NEVER INSTEAD OF ONE.
+   Nothing here may be encoded in colour alone, and this component has two
+   independent reasons beyond the rule: the forced-colours block below hands
+   every trace to CanvasText, so the hue is gone there and the dash is what
+   survives; and check-line-trace.py's RUNGS rule stands — two traces in one
+   figure may not share a rung, hue or no hue. That hand-off has to be written
+   out, because forced colours does NOT force SVG stroke and a tinted trace left
+   alone sails through the mode intact — which looks like the hue working and is
+   the hue escaping. What the hue buys is the thing a dash on a hairline is worst
+   at: telling two crossing lines apart at a glance, without stopping to inspect
+   a duty cycle. It is redundancy, which is what a second channel is supposed to
+   be.
+
+   Past three series the answer is still not a fourth line type, and now not a
+   second hue either. It is four frames: see the small multiples on the
+   component's page.
 
    → foundations/geometry.html, the presence ladder; tokens.css section 8a */
 .cf-line__trace--near  { stroke-dasharray: var(--presence-near); }
 .cf-line__trace--faint { stroke-dasharray: var(--presence-faint); }
 .cf-line__trace--ghost { stroke-dasharray: var(--presence-absent); }
+
+/* The one hue, on the one trace that may carry it. Violett 700 and not a
+   --line-hue custom property, deliberately: a knob here would read as a choice
+   and there is no choice to make — it is the only step in the palette that
+   clears both bars at once, and the band it sits in has room for nothing else.
+   See the arithmetic above.
+
+   The legend sample inherits it for free, because the sample IS the trace. The
+   nodes and the numbers stay black: one hue in a figure means one, and a value
+   is read off the text, not off its tint. */
+.cf-line__trace--hue { stroke: var(--violett-700); }
 
 /* THE HEAD: the key on the left, the frame's own extent on the right, one
    line above the ceiling. It costs no vertical space that .cf-line__bounds
@@ -10169,16 +10341,33 @@ a.cf-calendar__day > time,
    instrument against datum — is kept. The ghost trace keeps its own 1-4,
    because a stroke-dasharray is geometry and this mode does not touch it.
 
-   AND THE TRACE IS NAMED, for the reason the plot's own block above sets out
-   at length: forced colours does not force SVG `stroke`, so `--border-strong`
-   stays literal CF-Schwarz and the subject trace is drawn black on black under
-   a dark palette. Measured on components/line.html: the frame, the nodes, the
-   keys and every printed value came through, and the one thing missing from
-   the figure was its measurement. The rungs ride the same declaration — a dash
-   is geometry and keeps its ratio — so three series stay three series in one
-   ink, which is what the ladder was for. */
+   The scale's steps take the same substitution for the same reason — they are
+   the frame subdivided, so they are instrument too, and a solid step rule in
+   this mode would be a full-width hairline across the figure at the trace's own
+   weight. The step still reads as a step and not as an edge, because it stops
+   at its own number: that distinction is geometry and survives here intact.
+
+   AND THE TRACE IS HANDED TO THE PALETTE BY HAND, because nothing hands it over
+   on its own. Forced colours forces `color`, `background-color`, `border-color`
+   and the rest of that list — it does NOT force SVG `fill` and `stroke`, which
+   the spec leaves to the author. So `stroke: var(--border-strong)` stays the
+   literal Schwarz it resolves to, and under a DARK forced palette — Canvas
+   black, CanvasText white — the subject trace is drawn black on black and is
+   simply not there. Measured in Chromium with the dark palette emulated: the
+   frame, the nodes, the keys and every printed value came through, and the one
+   thing missing from the figure was the measurement. That is the same failure
+   the site's search matches had, and the same fix: name the system colour.
+
+   It also makes the hue's rule true rather than merely intended. CanvasText is
+   one ink, so every trace arrives on it and the tint is gone, which is what
+   `.cf-line__trace--hue` is only ever allowed to be worth — the dash is what
+   survives, and what a reader gets in this mode is the figure exactly as it was
+   before the colour existed. Being wrong about this is easy: emulate the mode
+   and a coloured stroke comes through untouched, which looks like the hue
+   working and is the hue escaping. */
 @media (forced-colors: active) {
   .cf-line__frame { border-block-style: dashed; }
+  .cf-line__step::after { border-top-style: dashed; }
   .cf-line__trace { stroke: CanvasText; }
 }
 
@@ -10262,6 +10451,34 @@ a.cf-calendar__day > time,
   initial-value: 1;
 }
 
+/* THE LIGHT HAS TWO SOURCES AND THEY ARE TWO PROPERTIES, because they answer
+   two different questions about the same one lime moment. --pie-home is how
+   much of the AUTHORED light a share is holding: 1 on .cf-pie__seg--lit, 0
+   everywhere else, and 0 on the lit share itself for exactly as long as the
+   pointer is on another one. --pie-point is the light the POINTER has brought,
+   which any share may hold and only one ever does.
+
+   Per share, so neither inherits. Registered, so both interpolate — the whole
+   of the hover is the two of them crossing, and an unregistered property is a
+   token substitution rather than a number and cannot be transitioned at all.
+
+   THEY MEET IN A max(), WHICH IS THE ONE-LIGHT RULE WRITTEN AS ARITHMETIC
+   rather than as a note somebody has to keep. Two sources on one share cannot
+   add up to more lit arc than the share has, a share the pointer is on cannot
+   dip while its authored light hands over, and the figure cannot be made to
+   hold two lit arcs by any combination of scroll position and pointer. A sum
+   would fail all three. */
+@property --pie-home {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --pie-point {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
 .cf-pie {
   /* u is the plot's unit at the plot's crossover, so the two figures grow
      together and land at one scale in one article. The FLOOR is the pie's own,
@@ -10303,6 +10520,13 @@ a.cf-calendar__day > time,
   position: relative;
   width: calc(var(--pie-u) * 6);
   margin: calc(var(--pie-u) / 2 + var(--space-8)) auto;
+  /* THE FIGURE'S PAINT ORDER IS A STACK OF THREE LAYERS AND THIS IS WHAT KEEPS
+     THEM INSIDE THE FIGURE. Every z-index below is a number about this ring and
+     nothing else; without a stacking context of its own they would be numbers
+     about the page, and a pie in a section that had its own layer would sort
+     against it. isolation rather than a z-index because the ring is not asking
+     for a position in anybody's stack — it is asking not to be in one. */
+  isolation: isolate;
 }
 .cf-pie__ring::before {
   content: "";
@@ -10326,6 +10550,7 @@ a.cf-calendar__day > time,
    the drawing in the tier where the labels flow under it, and a four-sided
    inset would stretch the circle into an ellipse exactly there. */
 .cf-pie__draw,
+.cf-pie__ink,
 .cf-pie__frame {
   position: absolute;
   top: 0;
@@ -10337,6 +10562,36 @@ a.cf-calendar__day > time,
      viewBox and its hairline would be cropped in half by it. */
   overflow: visible;
 }
+
+/* CONTOUR BEFORE FILL, FOR THE WHOLE FIGURE AT ONCE. The brand's first rule is
+   the contour, and a ring of banded shares is the one drawing here where honouring
+   it cannot be a fact about markup order. Each share's band runs from its own cut
+   to the next share's, so a band always ENDS on a hairline belonging to somebody
+   else — and a 20-user-unit stroke laid over a 1 px contour wins by 30 to 1. Which
+   band wins which seam is then decided by which <li> came later, and the wrap-round
+   seam at 12 o'clock is decided the wrong way by construction: the last share's
+   band is above the first share's cut, always, in every figure.
+
+   The version this replaces answered the same question with `z-index: 0` on the lit
+   share, which worked while exactly one share could ever be filled AND that share
+   was authored. Neither is true now: every share carries a body, and the light
+   moves to whichever share the reader is pointing at. A per-share number cannot
+   express "under all of the ink" when the share is chosen at pointer time.
+
+   So the figure is three layers instead, and each is a kind of mark rather than a
+   share: the FILLS, then the INK, then the TYPE. A band cannot reach a hairline
+   from a layer below it, whichever <li> it belongs to and whichever share is lit. */
+.cf-pie__draw { z-index: 0; }
+.cf-pie__ink,
+.cf-pie__frame { z-index: 1; }
+
+/* THE INK TAKES NO POINTER. Both of these layers cover the whole drawing, and
+   both sit ABOVE the bands — which is the point of them — so an <svg> box that
+   hit-tests would seal every share underneath it. Nothing in either layer is
+   something to point at: they are the contour and the cuts, and what a reader
+   points at is a share. */
+.cf-pie__ink,
+.cf-pie__frame { pointer-events: none; }
 
 /* 120 x 120 user units = 6u x 6u, so one user unit is u/20 at every size and
    the numbers in the markup are the plot's numbers. The centre is 60,60; the
@@ -10359,52 +10614,115 @@ a.cf-calendar__day > time,
   /* Where the label stands: the middle of the share's own arc. Derived, so it
      needs no third number in the markup. */
   --pie-a: calc(var(--pie-from) + var(--pie-share) / 2);
-  /* How much of the share's band is lit. The ONLY thing --pie-grow touches. */
-  --pie-arc: clamp(0, calc(var(--pie-share) * var(--pie-grow)), 1);
-}
+  /* Declared as well as registered, and for the reason --pie-grow is: the
+     registration is what makes them interpolable, the declaration is what makes
+     them RESOLVE where @property is not supported. Without it --pie-arc is
+     invalid at computed-value time and the dashoffset falls back to the initial
+     0, which on a dash of 1 is the whole ring lit — a chart that is confidently
+     wrong rather than one that is missing something. */
+  --pie-home: 0;
+  --pie-point: 0;
+  /* How much of this share's band is lit: the authored light as far as it has
+     arrived, or the pointer's, whichever is further round the arc. */
+  --pie-arc: clamp(0, calc(var(--pie-share)
+                           * max(var(--pie-home) * var(--pie-grow), var(--pie-point))), 1);
+  /* THE SHARE IS NOT THE HIT TARGET; THE MARKS INSIDE IT ARE. In the tier that
+     rides the ring the <li> is inset: 0 — it covers the whole drawing — so left
+     alone the LAST share in the markup would take every pointer event in the
+     figure and the other four would be unreachable at every angle. Turned off
+     here and turned back on, once, on the band and the label.
 
-/* Both the cut and the band start at 12 o'clock in the markup and are turned
-   to the share they belong to. Rotation rather than a redrawn path: nothing in
-   the drawing is per-value, which is the same promise .cf-plot__draw makes —
-   five paths, one viewBox, and the data in two custom properties. */
+     :hover still reaches this element from a descendant that is a target, in all
+     three engines: pointer-events decides what is HIT, not which ancestors the
+     hover chain runs through. The states below are written against that. */
+  pointer-events: none;
+}
+/* Where the light lives when nobody is pointing at anything. */
+.cf-pie__seg--lit { --pie-home: 1; }
+
+/* The cut and both bands start at 12 o'clock in the markup and are turned to
+   the share they belong to. Rotation rather than a redrawn path: nothing in the
+   drawing is per-value, which is the same promise .cf-plot__draw makes — five
+   paths, one viewBox, and the data in two custom properties. */
 .cf-pie__cut,
-.cf-pie__band {
+.cf-pie__band,
+.cf-pie__light {
   transform-box: view-box;
   transform-origin: 60px 60px;
   transform: rotate(calc(var(--pie-from) * 1turn));
 }
 
-/* The lit band IS the annulus sector — a 1u stroke on the 2.5u circle covers
-   exactly the ground between the two contours, so the one filled shape in this
-   component still needs no path of its own. It is the only path here that
-   scales with the drawing, which is what lets it use the pathLength draw.
+/* A BAND IS THE ANNULUS SECTOR — a 1u stroke on the 2.5u circle covers exactly
+   the ground between the two contours, so the one filled shape in this component
+   still needs no path of its own. It is the only kind of path here that scales
+   with the drawing, which is what lets it use the pathLength draw.
 
-   THE FILL IS NOT DECLARED HERE, for the reason .cf-plot__cap's is not: lime
-   is never a flat fill, a CSS gradient cannot be an SVG fill, and so the ramp
-   is a paint server the lit share carries in its own <defs>. What it carries
-   is the BLOOM, not the rake — .material-bloom, mirrored, lime on the rim and
-   CF-Grau toward the centre, which foundations/colors.html gives to "a body of
-   revolution" and which is the only member of the family that survives being
-   turned: a bloom centred on the ring's own centre looks the same at every
-   --turn, where a linear rake would swing its axis off the four angles by
-   whatever the data happened to say. */
-.cf-pie__band {
+   TWO OF THEM PER SHARE, AND THAT IS THE WHOLE OF THE COLOUR CODING.
+   .cf-pie__band is the share's BODY and every share carries one; .cf-pie__light
+   is the lit face and one share carries it at a time. Neither declares a colour,
+   for the reason .cf-plot__cap does not: lime is never a flat fill and a CSS
+   gradient cannot paint an SVG, so both are stroked with a paint server the
+   figure carries in its own <defs>.
+
+   THE TWO SERVERS ARE ONE RAMP CUT AT TWO PLACES, which is what keeps this a
+   coding rather than a palette. Both are .material-bloom — mirrored, centred on
+   the ring, the member of the family foundations/colors.html gives to "a body of
+   revolution", and the only one that survives being turned: a bloom on the ring's
+   own centre looks identical at every --turn, where a linear rake would swing its
+   axis off the four angles by whatever the data happened to say.
+
+     #cf-pie-light    CF-Grau -> Glas -> lime. The whole ramp, at the mid rake,
+                      with the oklab waypoint the lime leg owes.
+     #cf-pie-ground   CF-Grau -> Glas. The SAME RAMP WITHOUT ITS LIME LEG,
+                      renormalised over the band — the construction
+                      --gradient-foil already makes for .text-foil, and the one
+                      leg of the family that needs no waypoint, because
+                      Glas -> CF-Grau is dEok 0.00073 and sRGB and oklab agree
+                      on it to three decimal places.
+
+   So the difference between a share and the LIT share is the presence of lime,
+   not a hue. Every unlit share is painted identically — there is no per-share
+   colour to look up, nothing a legend could be made of, and nothing encoded in a
+   distinction a third of readers cannot draw. The comparison is still carried by
+   the contour and the printed number; what the ground adds is that the ring has
+   a body for the light to land on. */
+.cf-pie__band,
+.cf-pie__light {
   fill: none;
   stroke-width: 20;
   stroke-dasharray: 1;
-  /* MULTIPLIED INTO A LENGTH, AND GECKO IS WHY. stroke-dashoffset takes a
-     <length-percentage> or a <number>, and Firefox 153 accepts the number only
-     as a literal: every unitless calc() on this property — calc(1 - var(--x)),
-     and calc(1 - 0.27) with no custom property in it at all — is invalid at
-     computed-value time and drops to the initial 0. Which on a dash of 1 over
-     pathLength="1" is the WHOLE RING lit: not a share drawn short, a share
-     drawn as every share there is. Measured on the same markup, all three
-     engines: unitless computes 0.73px in Chromium and WebKit and 0px in
-     Firefox; * 1px computes 0.73px in all three. pathLength normalises against
-     the drawn length either way, so the unit costs nothing and buys the engine
-     that would otherwise draw the figure confidently wrong. */
-  stroke-dashoffset: calc((1 - var(--pie-arc)) * 1px);
 }
+
+/* MULTIPLIED INTO A LENGTH, AND GECKO IS WHY — both of them, below.
+   stroke-dashoffset takes a <length-percentage> or a <number>, and Firefox 153
+   accepts the number only as a literal: every unitless calc() on this property —
+   calc(1 - var(--x)), and calc(1 - 0.27) with no custom property in it at all —
+   is invalid at computed-value time and drops to the initial 0. Which on a dash
+   of 1 over pathLength="1" is the WHOLE RING: not a share drawn short, a share
+   drawn as every share there is. Measured on the same markup, all three engines:
+   unitless computes 0.73px in Chromium and WebKit and 0px in Firefox; * 1px
+   computes 0.73px in all three. pathLength normalises against the drawn length
+   either way, so the unit costs nothing and buys the engine that would otherwise
+   draw the figure confidently wrong. */
+
+/* The body runs the share's whole arc and never moves. It is the share, drawn. */
+.cf-pie__band {
+  stroke-dashoffset: calc((1 - var(--pie-share)) * 1px);
+  /* THE ONE HIT TARGET IN THE DRAWING, AND IT IS GEOMETRY THE FIGURE ALREADY
+     HAD. The band is dashed to exactly its own share, and all three engines
+     hit-test a dashed stroke on the DRAWN dash and let the gap fall through to
+     whatever lies under it — measured on Chromium 151, Firefox 154 and
+     WebKit 26.5, at four points on one ring. So pointing at an arc points at the
+     share that arc belongs to, with no second shape to keep in step with the
+     first and nothing per-value to author.
+
+     `stroke` and not `visibleStroke`, deliberately: `stroke` ignores paint and
+     visibility, so the target survives .cf-pie--hollow taking the paint away. */
+  pointer-events: stroke;
+}
+
+/* The lit face, and the only thing in this figure that moves. */
+.cf-pie__light { stroke-dashoffset: calc((1 - var(--pie-arc)) * 1px); }
 
 /* AND IT DOES NOT GLOW, which is not an omission. The spill is a small mark's
    light: --glow-r is 6 px on an icon, 8 px on a relay head, 12 px on a plot
@@ -10416,6 +10734,56 @@ a.cf-calendar__day > time,
    arc where the reader most needs to see where the share ends. The brand's
    first rule is the contour, so the light gives way to it. A lit face, like
    every other lit face here. */
+
+/* THE RING WITHOUT ITS BODY. A ground band is a fill, and a fill is the first
+   thing this system gives up: on a dark section, over artwork, or beside a
+   drawing already carrying the page's material, a pale annulus is one surface
+   too many. --hollow takes the paint off the body and changes nothing else —
+   the cuts, the contours, the numbers, the lit share and the pointer all behave
+   exactly as they do above, and the figure is the one this component shipped
+   before it had a body. The path itself stays in the drawing because it is the
+   hit target, and pointer-events: stroke does not ask whether the stroke is
+   painted. */
+.cf-pie--hollow .cf-pie__band { stroke: none; }
+
+/* THE LIGHT FOLLOWS THE POINTER, AND THERE IS STILL ONLY ONE OF IT. Point at a
+   share — at its arc, or at its label — and the light moves there; take the
+   pointer away and it goes home. The authored share gives its light up for
+   exactly as long as the pointer is on a different one, so no reading of this
+   figure ever holds two lime moments. :not() is on the second rule because the
+   lit share pointed at is BOTH sources at once, and without it --pie-home would
+   fall while --pie-point rose and max() would dip to 0.5 halfway through — a
+   share that darkens when you point at it.
+
+   IT REVEALS NOTHING, WHICH IS WHY IT SHIPS NO TAB STOP. Every key and every
+   number is printed at every moment; what the pointer moves is emphasis, not
+   information. That is Mobile's "nothing is hover-only" in its strongest form —
+   remove hover entirely and the figure is exactly the figure this component
+   shipped — and it is the reason five spans that go nowhere do not get a
+   tabindex each. :focus-within is named beside :hover because every state pair
+   in this file names both, and here it means a share that a page has wrapped in
+   a link lights from the keyboard the same way it lights from the pointer.
+
+   NOT GATED ON (hover: hover). On touch the first tap lights the share and the
+   next one moves the light, which is a fair reading of the same gesture and
+   loses nothing when it sticks — the state it sticks in is a legal state of the
+   figure. */
+.cf-pie__seg:is(:hover, :focus-within) { --pie-point: 1; }
+.cf-pie__set:has(.cf-pie__seg:is(:hover, :focus-within))
+  .cf-pie__seg--lit:not(:hover, :focus-within) { --pie-home: 0; }
+
+/* Motion is opted into here, the way .cf-subdiv opts into its own, rather than
+   switched off under a reduce query. --duration-slow is the token's own
+   definition — "a reveal, or light crossing a surface" — and light crossing a
+   surface is the entire content of this transition. Both properties are
+   registered <number>, so what interpolates is a number and what redraws is one
+   dashoffset per frame; nothing here reflows, and nothing but the light moves. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .cf-pie__seg {
+    transition: --pie-home var(--duration-slow) var(--ease-standard),
+                --pie-point var(--duration-slow) var(--ease-standard);
+  }
+}
 
 /* THE BASE TIER: A LEGEND, WHICH IS THE THING THIS COMPONENT EXISTS TO AVOID.
    Placing a label against its own arc is trigonometry and there is no literal
@@ -10448,29 +10816,27 @@ a.cf-calendar__day > time,
    same @supports posture, .cf-annot already takes for the isometric angle. */
 @supports (top: calc(1px * sin(45deg))) {
   .cf-pie__set { margin: 0; }
+  /* NO z-index HERE, AND THE ABSENCE IS THE MECHANISM. A share is a box that
+     covers the whole drawing and carries three marks belonging to three
+     different layers of it — a fill, a hairline and a label. Give the <li> a
+     z-index and it becomes a stacking context, the three marks are sealed into
+     it, and the figure sorts by share instead of by kind: the last share's band
+     over the first share's cut, at 12 o'clock, in every figure.
+
+     Left at auto the <li> is transparent to the stack, the three layers above
+     sort against each other across all five shares, and contour still comes
+     before fill — which is the rule this was always trying to keep. It replaces
+     `.cf-pie__seg--lit { z-index: 0 }`, a number that could only ever name one
+     share and could not name the share a reader is pointing at. */
   .cf-pie__seg {
     position: absolute;
     inset: 0;
-    z-index: 1;
   }
-  /* The lit share paints UNDER every other share's cut. Its band ends exactly
-     on the two hairlines that bound it, and a 20-user-unit stroke laid over a
-     1 px contour wins by 30:1 — so the boundary it shares with its neighbour
-     would go soft on one side only. Its own cut is drawn after its own band
-     inside the same <svg> and needs no help.
-
-     IT LIVES IN HERE, UNDER THE RULE IT TAKES BACK, and putting it outside is a
-     dead declaration rather than a wrong one. .cf-pie__seg--lit and
-     .cf-pie__seg are both a single class, so the winner is whichever comes
-     last — and a z-index authored above this block loses to the one inside it
-     at every scroll position, in a way no screenshot separates from a 1 px
-     seam going soft. Same shape as the cascade check-anchor-position-cascade.py
-     was written for. */
-  .cf-pie__seg--lit { z-index: 0; }
   .cf-pie__label {
     position: absolute;
     left: 50%;
     top: 50%;
+    z-index: 2;
     display: block;
     width: max-content;
     max-width: var(--pie-label-w);
@@ -10484,6 +10850,14 @@ a.cf-calendar__day > time,
                      - 50% - 50% * cos(var(--pie-a) * 1turn)));
   }
 }
+
+/* THE SECOND HIT TARGET, AND IT IS THE ONE THE BASE TIER HAS. Direct labelling
+   means the name of a share stands beside its arc, so a reader whose pointer is
+   already on the word is pointing at the share — and where CSS trig is missing
+   and the labels are a ruled list under the drawing, the row IS the only target
+   there is. One declaration gives the ring's labels and the list's rows the same
+   behaviour, in both tiers, without either knowing about the other. */
+.cf-pie__label { pointer-events: auto; }
 
 /* The key and the value, and the treatment is the plot's — a figure's numbers
    look the same wherever the figure is. Stated rather than inherited, because
@@ -10531,6 +10905,12 @@ a.cf-calendar__day > time,
   margin: 0;
   transform: translate(-50%, -50%);
   text-align: center;
+  /* The hole is 4u across and this box is 4u wide, so its CORNERS stand at
+     2.24u from the centre and the band starts at 2u: a box that clears the
+     inner contour on all four sides still has four points inside the ring. They
+     are empty points on an empty box, and left alone they would take the
+     pointer off the two shares nearest 12 and 6 o'clock. */
+  pointer-events: none;
 }
 .cf-pie__whole-val { font-weight: var(--weight-medium); }
 
@@ -10590,36 +10970,39 @@ a.cf-calendar__day > time,
   to   { --pie-grow: 1; }
 }
 
-/* THE RING IS HANDED TO THE PALETTE, the same way the plot's columns are and
-   for the same mechanism: forced colours does not force SVG `fill` and
-   `stroke`, so both contours and every cut stay literal CF-Schwarz and the
-   whole figure is drawn black on black under a dark palette. Measured on
-   components/pie.html with the dark palette emulated, the drawing kept under
-   half the ink it puts down in the light one, and what it kept was the light —
-   the one part of it that is not the chart.
+/* FORCED COLOURS TAKES THE FILLS AND KEEPS THE DRAWING, which is the answer
+   .rule and .text-foil already give one altitude up: CanvasText is what ink
+   means in this palette. Two things are true here at once, and only both
+   together leave a figure.
 
-   THE LIT BAND GOES, AND THIS COMPONENT ALREADY SAID SO. The band is an SVG
-   paint server, so unlike a background-image the mode does not discard it on
-   its own; left alone it is a lime-to-CF-Grau bloom painting a filled sector
-   over a palette the reader chose, which is what .cf-gantt__mark--lit's rule
-   one section down refuses in as many words. Naming it costs nothing this
-   figure needs, and the argument is written above this very rule: at
-   --pie-grow 0 "the figure is still the finished ring with every share at its
-   real value, and only the light is missing", and there is no frame of that
-   animation in which the chart says something untrue. Forced colours gets that
-   frame. Which share is lit is still carried by .cf-pie__seg--lit .cf-pie__val
-   at --weight-medium, a typographic distinction the mode does not touch — so
-   this is the gantt's case and not .cf-annot--lit's, where the rung was the
-   only thing telling two states apart and had to be bought back as Highlight.
+   THE INK WAS NEVER IN THE PALETTE. --border-strong is a custom property, and a
+   custom property arriving at an SVG `stroke` is not forced. Measured in
+   Chromium 151, forced-colors active, prefers-color-scheme dark, this page over
+   http: .cf-pie__contour computes rgb(0, 0, 0) against a Canvas of rgb(0, 0, 0).
+   Black on black — both contours and every cut, absent rather than faint, in the
+   palette where a drawing has nothing else to be read by. It is the finding the
+   found state's five rungs carried, in a component that draws instead of marks,
+   and it takes the same answer.
 
-   `stroke: none` and not `Canvas`: the band rides BETWEEN the two contours, so
-   a Canvas-painted sector would lay the ground colour over the cuts that cross
-   it and cut the lit share out of the ring — the one share the reader is being
-   pointed at, drawn as the only one without edges. */
+   AND A GRADIENT IS NOT IN THE PALETTE EITHER. A paint server is not forced at
+   all — `stroke` computes url("#cf-pie-ground") in both palettes — so the bands
+   would go on painting their own Glas and lime under a reader's chosen black.
+   That is not merely off-palette: it is where the ink would become unreadable
+   again the moment it was fixed, a CanvasText hairline laid on a pale annulus.
+   So the fills come off, and what is left is exactly .cf-pie--hollow — the
+   contours, the cuts, the labels and the whole, in the reader's own ink.
+
+   The lit share loses its light and nothing goes with it. It is the share the
+   caption names in words, which is this component's own rule that nothing here
+   is encoded in colour alone, and its number keeps the one weight step
+   .cf-pie__seg--lit gives it. The pointer still moves a light that is not being
+   painted, which costs nothing: it was emphasis, and emphasis is the one thing
+   this mode is entitled to take. */
 @media (forced-colors: active) {
   .cf-pie__contour,
   .cf-pie__cut { stroke: CanvasText; }
-  .cf-pie__band { stroke: none; }
+  .cf-pie__band,
+  .cf-pie__light { stroke: none; }
 }
 
 /* --------------------------------------------------------------------------
@@ -10715,18 +11098,27 @@ a.cf-calendar__day > time,
    CAN be drawn and the only question was whether it had anything to say. Both
    components refuse the same thing: a leader that is not carrying a label.
 
-   WHY THIS FIGURE HAS AN AXIS AND .cf-line HAS NONE, which is the question a
-   reader lands on with two charts one section apart. .cf-line's header ends
-   "no gridlines, no ticks, no axis", and it is right for the reason it gives:
-   a trace is read AT its points, every one of them is labelled where it
-   stands, and a rule between two of them would be neither an edge, nor a
-   division, nor a label rule. A plan is read the other way round. Its subject
-   is EXTENT — where a run starts and where it stops — and a length has to be
-   read against something or it is not a length. So the two figures answer the
-   same test with opposite hands: the line labels its points and needs no
-   frame between them; the plan labels its phases and needs the frame, which is
-   why the ground here is the field rather than a set of rules, and why the one
-   line drawn in ink is the one that is genuinely a division.
+   WHY THIS FIGURE'S AXIS IS REQUIRED AND .cf-line'S IS OPTIONAL, which is the
+   question a reader lands on with two charts one section apart. The axis at
+   issue here is the DOMAIN, and .cf-line has none at all — it is right for the
+   reason it gives: a trace is read AT its points, every one of them is
+   labelled where it stands, and a rule standing between two of them would be
+   neither an edge, nor a division, nor a label rule. A plan is read the other
+   way round. Its subject is EXTENT — where a run starts and where it stops —
+   and a length has to be read against something or it is not a length. So the
+   two figures answer the same test with opposite hands: the line labels its
+   points and needs no frame between them; the plan labels its phases and needs
+   the frame, which is why the ground here is the field rather than a set of
+   rules, and why the one line drawn in ink is the one that is genuinely a
+   division.
+
+   .cf-line__scale is the OTHER axis and disturbs none of that. It measures
+   value rather than domain, it is a label rule — a number with a hairline
+   running out of it, which is geometry.html's third kind — rather than a rule
+   between two points, and it is the alternative to printing values rather than
+   an addition to them. A plan has no second quantity to scale: a run is a span
+   and not a height. So this figure carries one axis where that one may carry
+   two, and the one it carries is the one it cannot do without.
 
    AND THE OTHER THING THAT ARRIVED WITH IT IS THE LADDER. .cf-line settles by
    measurement that a second series is one rung down the presence ladder and
