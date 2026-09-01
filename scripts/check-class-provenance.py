@@ -148,6 +148,16 @@ UNRESOLVED_OK = {
     # not look — and the register is where that gets said out loud.
     ("patterns/landing-page.html", "lp-proc-index"): "a hook check-label-clearance.py selects on; no rule wants it",
     ("patterns/landing-page.html", "lp-proc-bar"): "a hook check-label-clearance.py selects on; no rule wants it",
+    #   .lp-proc-track / .lp-ev-track  act-rail.js's data-act-track, which is
+    #                                  handed to document.querySelector. The
+    #                                  page carries two .cf-pin tracks as of
+    #                                  2026-09-01 and querySelector takes the
+    #                                  first, so each act names its own rather
+    #                                  than resting on document order. Nothing
+    #                                  draws them: the stage inside each one is
+    #                                  what the CSS is written on.
+    ("patterns/landing-page.html", "lp-proc-track"): "act-rail.js's data-act-track for act 3; no rule wants it",
+    ("patterns/landing-page.html", "lp-ev-track"): "act-rail.js's data-act-track for act 6; no rule wants it",
     ("patterns/landing-page.html", "sp-field__sensors"): "gen-proto-field.py's splice target; no rule wants it",
 }
 

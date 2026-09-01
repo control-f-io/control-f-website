@@ -10,6 +10,14 @@ layer. It also publishes a census of where the layers are — "landing page 2,
 that names its own problem two paragraphs later: *a count somebody has to
 remember*.
 
+It also carries a second table nothing generates — "Every panel, and what it is
+made of", the chapter's verdict on each panel in the system — and that one is
+prose by necessity, because a verdict is an argument. Which is why it, and the
+sentences around it, went stale while the stamped census beside them did not:
+"Two surfaces in the whole system are frosted" outlived two more of them. A
+stamp over a row count cannot read a paragraph. The sixth claim binds that table
+to the same derived set the census is counted from.
+
 Every one of those is invisible in a screenshot. A third blurred layer renders
 correctly; it just costs. A literal `blur(20px)` on some future panel renders
 correctly; it just forks the material. A gradient animated across a blurred
@@ -368,12 +376,18 @@ class GlassCounter(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.classes = classes
         self.hits = []
+        # WHICH glass, beside how much of it. The hits are formatted for a
+        # reader — `tag.class`, and `tag.class.class` where one element carries
+        # two — so reading the names back out of them is parsing a message.
+        # Claim 6 needs the names, so the parser keeps them.
+        self.seen = set()
 
     def handle_starttag(self, tag, attrs):
         cls = dict(attrs).get("class") or ""
         names = set(cls.split())
         if names & self.classes:
             self.hits.append(tag + "." + ".".join(sorted(names & self.classes)))
+            self.seen |= names & self.classes
 
 # The English edition under patterns/en/ is generated, not written —
 # scripts/build-i18n.py builds it from the German page beside it and changes
@@ -408,15 +422,23 @@ def pages():
 
 
 def census(classes):
-    """Every page under design-system/, with how many blurred layers it carries."""
-    rows = []
+    """Every page under design-system/, with how many blurred layers it carries.
+
+    Returns the rows and, beside them, the glass classes that actually reach a
+    SHIPPING page. One walk answers both, and it has to be one walk: the second
+    answer is what claim 6 holds the panel table to, and a separate pass would
+    be a second opinion about which pages ship.
+    """
+    rows, shipping_classes = [], set()
     for path in pages():
         parser = GlassCounter(classes)
         parser.feed(path.read_text())
         rel = path.relative_to(DS).as_posix()
         shipping = rel.startswith("patterns/")
+        if shipping:
+            shipping_classes |= parser.seen
         rows.append((rel, len(parser.hits), shipping, parser.hits))
-    return rows
+    return rows, shipping_classes
 
 
 def stamp_of(rows):
@@ -489,6 +511,42 @@ def sole_stamp(html):
     return hits[0][6:-7]
 
 
+# The OTHER table on the page, and the one no generator owns. "Every panel, and
+# what it is made of" is the chapter's verdict column: for each panel, is there
+# something complex behind it that frosted glass would calm, and what does the
+# panel do about it. It is prose by design — a verdict is an argument and cannot
+# be computed — which is exactly why it drifted while the census beside it did
+# not. The census is stamped, and a stamp over a row count cannot notice that
+# the paragraph above the table says "two surfaces" while the table says four.
+VERDICTS_TABLE = re.compile(r'<table[^>]*\bid="panel-census"[^>]*>.*?</table>', re.S)
+
+# A class selector written as a reader writes one. Deliberately anchored to the
+# leading dot: the same table names --surface-sunken, --sheen-panel and
+# --glass-border in <code> too, and those are tokens rather than panels. The dot
+# is the whole discrimination, and it is the author's own notation rather than a
+# convention this script invents.
+CLASS_CODE = re.compile(r"<code>\.([A-Za-z0-9_-]+)</code>")
+
+
+def verdict_classes():
+    """The glass classes the panel table names, read out of the table itself.
+
+    Scoped to the table for the reason census_table() is scoped to its own: the
+    page is a chapter about this material and mentions every one of these class
+    names in prose somewhere. A check that searched the page would pass on a
+    sentence, which is the failure it exists to catch."""
+    html = MATERIALS_DOC.read_text()
+    m = VERDICTS_TABLE.search(html)
+    if not m:
+        sys.exit(
+            'foundations/materials.html has no <table id="panel-census">. That id is how\n'
+            "this script finds the panel table — the prose verdict on every panel in the\n"
+            "system, which is a different table from the generated census and is not\n"
+            "interchangeable with it. Restore the id."
+        )
+    return set(CLASS_CODE.findall(m.group(0)))
+
+
 def doc_rows():
     html = MATERIALS_DOC.read_text()
     found = re.findall(
@@ -522,7 +580,7 @@ def main():
         return 1
 
     classes, unreducible = glass_classes(found)
-    rows = census(classes)
+    rows, shipping_classes = census(classes)
     stamp = stamp_of(rows)
     failures = []
 
@@ -646,6 +704,50 @@ def main():
                 "a tint" if len(missing) == 1 else "%d tints" % len(missing),
                 ", ".join(missing),
             )
+        )
+
+    # 6. Every glass surface that reaches a shipping page has a VERDICT on
+    #    foundations/materials.html, and not only a row in the count.
+    #
+    #    The census claim below catches a number going stale. It cannot catch a
+    #    sentence, and the sentence is what went stale: "Two surfaces in the
+    #    whole system are frosted" survived the info-card plate shipping and
+    #    then the act rail shipping, on the page tokens.css and acts.css both
+    #    send a reader to, forty lines above a generated table that had counted
+    #    both the whole time. tokens.css names the cost in its own comment —
+    #    "a stale enumeration is worse than none, because the next run in this
+    #    lane reads it as permission to add the surface it thinks is missing" —
+    #    which is a warning about prose, kept in prose, and it aged the same way.
+    #
+    #    THE SHIPPING QUALIFIER IS DERIVED, NOT AN EXEMPTION LIST. .material-glass
+    #    is glass by the same definition this script reads out of the stylesheet
+    #    and it appears on no page under patterns/. It is the material's own
+    #    sample, and a documentation utility owes a reader a swatch rather than a
+    #    verdict on a panel it is not. The split is the same one the census
+    #    column publishes, so a utility that ever lands on a shipping page starts
+    #    owing a verdict on the day it does.
+    #
+    #    AND IT RUNS BOTH WAYS. A class named in that table which no longer
+    #    declares a blur is the identical defect one direction over: a verdict
+    #    outliving its surface, read by the next reader as a panel that exists.
+    verdicts = verdict_classes()
+    for name in sorted(shipping_classes - verdicts):
+        failures.append(
+            "%s carries backdrop-filter and reaches a shipping page, and the panel table\n"
+            "    on foundations/materials.html does not name it.\n"
+            "    That table is the chapter's verdict on every panel in the system — what is\n"
+            "    behind it, what it is made of, how it responds. A frosted surface missing\n"
+            "    from it leaves the prose around it describing a smaller system than the one\n"
+            "    that ships, which is what the census cannot notice. Add a row naming\n"
+            "    .%s in a <code>, or take the blur off it." % ("." + name, name)
+        )
+    for name in sorted(verdicts - classes):
+        failures.append(
+            ".%s is named in the panel table on foundations/materials.html as a glass\n"
+            "    surface, and nothing in the shipping CSS declares backdrop-filter for it.\n"
+            "    Either the rule was removed and the verdict outlived it — delete the row or\n"
+            "    move the panel to its honest material — or the class was renamed and the\n"
+            "    table still names the old one." % name
         )
 
     doc_stamp, published = doc_rows()

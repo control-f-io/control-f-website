@@ -999,8 +999,62 @@
   /* The air between a section header's hairline and the content it opens.
      Measured off both mockups: 88 px at the 1440 frame, so 80 px on the scale.
      A section whose content is a ruled box is the exception — there the box's
-     own top border IS the header rule. See .cf-section-header--flush. */
-  --section-header-gap: var(--space-20);
+     own top border IS the header rule. See .cf-section-header--flush.
+
+     THIS IS THE THIRD VERTICAL RHYTHM TOKEN AND IT WAS THE ONLY ONE THAT WAS
+     A CONSTANT. The chapter next door opens "two fluid tokens carry all
+     vertical air between sections", and the table under it — four tokens and
+     the width each stops growing at — had no row for this one, because it
+     never started. 80 px at 320 and 80 px at 2560, while everything it is
+     measured against moves.
+
+     What that costs is a RATIO, not a number, and the number was only ever
+     right at the frame it was measured on. The air ABOVE a section header is
+     the section's own padding-block-start; the air below it is this. Measured
+     as below ÷ above, every pattern page, before:
+
+                         320   375   768   900  1024  1280  1440  1920
+       .section         1.25  1.25  1.25  1.07  0.94  0.75  0.67  0.50
+       .section--tight  2.50  2.50  1.87  1.60  1.41  1.13  1.00  1.00
+
+     A 5x swing across the range on one relationship, and at the left-hand end
+     it is INVERTED: at 375 a header on a --tight section stands 32 px under
+     the thing before it and 80 px above the thing it introduces, so proximity
+     says the header belongs to the section above. Four pattern pages open that
+     way — karriere, news, kontakt, and the confirmation pages behind them.
+     Nothing about a screenshot at 1440 says so; at 1440 the numbers are the
+     designer's and the ratio is 0.67.
+
+     THE FIX IS THE FRACTION THE SYSTEM ALREADY OWNS. 80 at the 1440 frame is
+     100vw / 18 — the same fraction --section-gap-sm is built on, and exactly
+     2/3 of --section-gap's 100vw / 12 wherever both run fluid. So the designed
+     value is not re-derived or traded away: the ceiling IS 80 and the fluid
+     term reaches it at exactly 1440, the frame the mockups were drawn on. The
+     token stops growing where the column does, which is the coordination the
+     chapter's own note asks for and the reason no ceiling above --space-20 was
+     considered.
+
+     THE FLOOR IS THE PROXIMITY CONSTRAINT, WRITTEN AS A NUMBER. It has to sit
+     under --section-gap's own 64 px floor or the inversion survives at every
+     width where both are floored. 48 is the scale step that does, it is what
+     100vw / 18 resolves to at 864 — between the two device widths either side
+     of it — and it lands the ratio at 0.75 below 768 and a flat 2/3 from 864
+     to 1440. After:
+
+                         320   375   768   900  1024  1280  1440  1920
+       .section         0.75  0.75  0.75  0.67  0.67  0.67  0.67  0.50
+       .section--tight  1.50  1.50  1.12  1.00  1.00  1.00  1.00  1.00
+
+     --tight is still over 1.00 at the phone and that is deliberate: it takes
+     the small rhythm precisely BECAUSE a page header above it has already
+     spent the air, so its 32 is not the whole distance a reader sees and 1.50
+     there is not the inversion 2.50 was. The plain section — the one both
+     mockups show — is the case that had to stop being upside down, and it is
+     0.75 or tighter at every width now.
+
+     Nothing above 1440 moves by a pixel, and neither does the reference frame.
+     → foundations/layout.html#rhythm */
+  --section-header-gap: clamp(var(--space-12), calc(100vw / 18), var(--space-20));
 
   /* ------------------------------------------------------------------
      7. LAYOUT
