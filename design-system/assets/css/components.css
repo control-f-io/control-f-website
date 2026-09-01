@@ -2647,11 +2647,24 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    maps 1-2 onto, so the two answers agree. The mark is a background-image too
    and is simply gone, which is correct: a system palette has no value for a
    light. */
+/* AND THE CHEVRON HAD TO BE NAMED, which is the one icon on the site that
+   does. .cf-icon strokes `currentColor` and that is normally the whole story —
+   the mode forces `color`, so every icon in the system arrives on CanvasText
+   without anyone writing anything. An <svg> is `forced-color-adjust:
+   preserve-parent-color` in Chromium's UA sheet, though, which means it does
+   not take its parent's FORCED colour but the author one, and the rule above
+   is the only place in the system that hands an icon's parent an author colour
+   of its own. Measured on ueber-uns.html with the dark palette active: the cue's
+   label came through white and its chevron computed rgb(0, 0, 0) — the one part
+   of the cue the note above says "is what gets looked at", drawn on Canvas
+   black. It is also the only .cf-icon on the shipped site that does this;
+   every other one inherits `color` and is repainted for free. */
 @media (forced-colors: active) {
   .cf-scroll-cue__stem {
     background: none;
     border-inline-start: var(--stroke-1) dotted;
   }
+  .cf-scroll-cue__glyph { stroke: CanvasText; }
 }
 
 /* --------------------------------------------------------------------------
@@ -8210,6 +8223,62 @@ a.cf-calendar__day > time,
   to   { stroke-dashoffset: 0; }
 }
 
+/* FORCED COLOURS, AND THE OBJECT COMES BACK AS WHAT THIS BRAND SAYS IT IS.
+   Geometry lives in the markup here, so the palette does too: every face is a
+   `fill="#CFCFCF"` and every contour a `stroke="#000"`, and a presentation
+   attribute cannot resolve a token — check-paint-register.py exists because of
+   exactly that. The mode does not force SVG `fill` and `stroke` either, so an
+   object arrives in this mode wearing the literal five greys and the literal
+   black it was drawn in, whatever palette the reader asked for.
+
+   In the light palette that passes for correct. In the dark one it is a solid:
+   measured on components/process-card.html, the faces came through at their
+   own greys on Canvas black and every contour, every ghost and every
+   construction point was drawn black on black. The object was a light
+   silhouette — the one drawing in the system whose own first rule is "the
+   contour is the drawing", rendered as the fill alone.
+
+   ATTRIBUTE SELECTORS, BECAUSE THE none/NOT-none SPLIT IS THE WHOLE RULE. A
+   blanket `fill: Canvas` would fill the ghosts and the contour paths, which
+   are unfilled on purpose — the <svg> carries `fill="none"` and they inherit
+   it — and an opaque ghost is a reference plate over the body it references.
+   The drawing already writes the distinction down as an attribute, so it is
+   read as one: a shape that was filled becomes Canvas and goes on occluding
+   exactly what it occluded before, a shape that was not stays unfilled, and
+   the far edges keep disappearing behind the near faces. Painter's algorithm
+   intact, in two colours.
+
+   THE ROOT IS IN THE SELECTOR LIST AND IT IS NOT DECORATION. Half these
+   drawings put the contour on the <svg> itself — `<svg class="cf-iso"
+   fill="none" stroke="#000">` — and let the whole tree inherit it, so a
+   descendant rule alone repaints the elements that name their own stroke and
+   leaves every element that inherits one black. Measured on
+   components/article.html with the descendant rule alone: .cf-iso__scene,
+   .cf-iso__form and .cf-iso__ghost all still computed rgb(0, 0, 0), each with
+   a null stroke attribute and the root carrying #000. Naming .cf-iso covers
+   the inherited case and the attribute rule covers the declared one; between
+   them there is no third way a contour in these drawings gets its colour.
+
+   The nodes are the exception and they are named after: a construction point
+   is a filled mark with no stroke, so the fill IS the mark and Canvas would
+   erase it. It goes to CanvasText, which is what it always was — and it is
+   written `.cf-iso .cf-iso__node[fill]` rather than `.cf-iso__node[fill]`
+   because `:not()` takes its argument's specificity, which puts the blanket
+   fill rule at (0,3,0) and would otherwise outrank it.
+
+   THE LIGHT FALLS AWAY WITH THE REST OF THE FILLS, and it is `[fill]` that
+   takes it — .cf-iso__light is a paint server, `fill="url(#cf-01-light)"`, so
+   it matches the same selector and lands on Canvas. That is the answer
+   .cf-gantt__mark--lit and .cf-pie__band already give: a lime ramp inside a
+   palette the reader chose is what this mode exists to stop, and the lit face
+   keeps its contour, which is the one thing every other face keeps too. */
+@media (forced-colors: active) {
+  .cf-iso,
+  .cf-iso [stroke]:not([stroke="none"]) { stroke: CanvasText; }
+  .cf-iso [fill]:not([fill="none"])     { fill: Canvas; }
+  .cf-iso .cf-iso__node[fill]           { fill: CanvasText; }
+}
+
 /* --------------------------------------------------------------------------
    HERO — the still switch, and reduced motion
    The loop is the one infinite animation in the system, so it is also the one
@@ -8877,6 +8946,17 @@ a.cf-calendar__day > time,
 .cf-values__mark line,
 .cf-values__contour { stroke: var(--cf-schwarz); }
 .cf-values__solid   { fill: var(--cf-schwarz); }
+/* Named ink, so named again for the mode that does not force it. --cf-schwarz
+   is the literal here rather than a border token, which changes nothing: the
+   spec exempts SVG `fill` and `stroke` from forced colours whatever the author
+   wrote, and this sign is the whole of the figure on Über uns. Same declaration
+   the plot, the pie and the line take, and it is a fill AND a stroke because
+   this drawing has both — .cf-values__solid is the one filled mark in it. */
+@media (forced-colors: active) {
+  .cf-values__mark line,
+  .cf-values__contour { stroke: CanvasText; }
+  .cf-values__solid   { fill: CanvasText; }
+}
 
 .cf-values__list { list-style: none; margin: 0; padding: 0; }
 .cf-values__item + .cf-values__item {
@@ -9523,6 +9603,56 @@ a.cf-calendar__day > time,
 @keyframes cf-plot-grow {
   from { --plot-grow: 0; }
   to   { --plot-grow: 1; }
+}
+
+/* THE DRAWING IS HANDED TO THE PALETTE BY HAND, because nothing hands it over
+   on its own. Forced colours forces `color`, `background-color`, `border-color`
+   and the rest of that list; it does NOT force SVG `fill` and `stroke`, which
+   the spec leaves to the author. So every stroke here stays the literal
+   CF-Schwarz it resolves to, and under a DARK forced palette — Canvas black,
+   CanvasText white — the five columns are drawn black on black. Measured in
+   Chromium on components/plot.html with the dark palette emulated: the keys,
+   the values and the caption came through, and 99 % of the drawing's own box
+   was Canvas. The figure kept everything except the figure.
+
+   IT DID NOT LOOK BROKEN ON A SHIPPING PAGE, and that is the part worth
+   keeping. An article page is .page-wash, which until base.css's own rule
+   above was carrying its light CF-Grau ground straight through this mode — so
+   the black columns stood on a light ground and read, while the text beside
+   them was forced white on Canvas backplates. Naming the ink and dropping that
+   ground are one change: CanvasText on the surviving wash would have been
+   white on light grey, which is the same fault pointing the other way.
+
+   The cell keeps the register it has, by keeping its dash. --border-default
+   and --border-strong are one ink here — the mode has one — so the ground and
+   the column arrive at the same weight, and the 1-4 that says "construction,
+   not measurement" is a stroke-dasharray, which is geometry and survives
+   untouched. Same substitution .cf-line__frame makes, for the same reason.
+
+   AND THE LIT COLUMN GIVES UP ITS LIGHT, which is the answer .cf-gantt__mark
+   --lit already gives one rung up: a lime spill around a mark whose palette
+   the reader has chosen is the thing this mode exists to stop. The ramp is an
+   SVG paint server rather than a background-image, so unlike the gantt's it
+   does not fall away on its own and has to be named — author CSS beats the
+   `fill="url(#cf-plot-light)"` presentation attribute, the same precedence
+   .cf-plot__draw's `:not(.cf-plot__cap)` is written around.
+
+   What that costs is nothing the figure needs, because "lit" is not carried by
+   the light alone: .cf-plot__col--lit .cf-plot__val is --weight-medium, a
+   typographic distinction the mode does not touch. This is the gantt's case
+   and not .cf-annot--lit's — there, the rung was the ONLY thing telling two
+   states apart and had to be bought back as Highlight; here the distinction
+   survives and the emphasis is what the mode is allowed to drop.
+
+   The cap's SPILL is dropped at the foot of this file rather than here, beside
+   the composition that builds it — a `filter: none` written in this block is
+   outranked by that composition on source order, which is a trap the gantt's
+   own block fell into first and had never noticed. */
+@media (forced-colors: active) {
+  .cf-plot__cell,
+  .cf-plot__rise,
+  .cf-plot__cap { stroke: CanvasText; }
+  .cf-plot__col--lit .cf-plot__cap { fill: none; }
 }
 
 /* --------------------------------------------------------------------------
@@ -11509,12 +11639,16 @@ a.cf-calendar__day > time,
   /* The lit rung has nothing to give this mode: the ramp is a background
      image it discards, and a lime spill around a mark whose palette the
      reader has chosen is the one thing the mode exists to stop. Both fall
-     away and the contour is left, which is what the mark was already. */
+     away and the contour is left, which is what the mark was already.
+
+     THE SPILL IS NOT TURNED OFF HERE, and the `filter: none` that used to
+     stand in this rule never was either: --glow-* is composed at the foot of
+     this file, at the same specificity and 900 lines later, so source order
+     decided and the lime went on spilling under a forced palette for as long
+     as this rule has existed. It is switched off beside the composition now,
+     with every other member of it. */
   .cf-gantt__head,
-  .cf-gantt__mark--lit {
-    background-image: none;
-    filter: none;
-  }
+  .cf-gantt__mark--lit { background-image: none; }
   .cf-gantt__now::before {
     width: 0;
     background: none;
@@ -12119,12 +12253,20 @@ a.cf-calendar__day > time,
 }
 
 /* Forced colours drop every background image, ghost included, so the rail and
-   the head are redrawn as borders — the only paint that survives. */
+   the head are redrawn as borders — the only paint that survives.
+
+   The object is the third thing here and it was missed, because it is not a
+   background at all: an SVG whose `stroke` the mode leaves to the author, so
+   it stayed literal CF-Schwarz while the two boxes around it went to
+   CanvasText. On a dark palette the plate and the line were drawn and the
+   thing they are waiting for was not — a wait indicator with nothing in it.
+   The 1-4 is a stroke-dasharray and survives, so the object stays a ghost. */
 @media (forced-colors: active) {
   .cf-arrive__line,
   .cf-arrive__plate {
     border: var(--stroke-1) dashed CanvasText;
   }
+  .cf-arrive__object path { stroke: CanvasText; }
   .cf-progress__rail {
     border-bottom: var(--stroke-1) solid CanvasText;
     height: 0;
@@ -12198,6 +12340,14 @@ a.cf-calendar__day > time,
   display: block;
   width: 100%;
   height: auto;
+}
+/* The drawing an annotation is annotating is still a drawing, so it takes the
+   same handover every other one in this file takes: forced colours does not
+   force SVG `stroke`, and the ghost rhombus these specimens point at is a
+   `stroke="#000"` in the page's own markup. Left alone the leaders and their
+   labels came through on a dark palette with nothing under them to name. */
+@media (forced-colors: active) {
+  .cf-annot-fig > svg [stroke]:not([stroke="none"]) { stroke: CanvasText; }
 }
 
 /* The layer sits exactly over the drawing's own box, so --annot-x / --annot-y
@@ -12457,4 +12607,30 @@ a.cf-calendar__day > time,
   filter:
     drop-shadow(0 0 calc(var(--glow-r) * var(--glow-core)) var(--glow-lime))
     drop-shadow(0 0 var(--glow-r) var(--glow-glas));
+}
+/* AND THE SPILL IS SWITCHED OFF WHERE IT IS COMPOSED, for the same reason it
+   is composed here: a member that turns it off in its own section is a member
+   whose rule loses. .cf-gantt's forced-colours block wrote `filter: none` on
+   .cf-gantt__head and .cf-gantt__mark--lit and it has never once applied —
+   equal specificity, and this rule is 900 lines further down, so source order
+   decides and the spill wins. Measured on components/gantt.html with the dark
+   palette active: `drop-shadow(rgba(225,255,0,.5) 0 0 3.6px) …`, the lime
+   still spilling. Same trap took .cf-plot__col--lit .cf-plot__cap when its own
+   block tried the same thing, which is how this was found.
+
+   A `filter` is not on the list forced colours forces, so nothing drops it on
+   its own; and a lime halo around a mark whose palette the reader has chosen
+   is the one thing this mode exists to stop — .cf-gantt's block says exactly
+   that, and it can now be true. Every member of the composition loses the
+   spill together, which is the property the composition is here to keep.
+
+   Filter and not `--glow-r: 0`: the reach is a per-member number and zeroing
+   it would still run two drop-shadows at radius 0, which is a lime core
+   painted hard against the mark's own edge rather than no light at all. */
+@media (forced-colors: active) {
+  .cf-icon--light,
+  .cf-plot__col--lit .cf-plot__cap,
+  .cf-gantt__head,
+  .cf-gantt__mark--lit,
+  .cf-relay__head { filter: none; }
 }

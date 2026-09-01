@@ -24,6 +24,21 @@
   .wl__block p + p { margin-top:var(--space-3); }
   .wl__block--bar { border-left:var(--stroke-2) solid var(--border-strong); }
   .wl__cap { margin-top:var(--space-3); font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label); line-height:var(--leading-normal); color:var(--text-secondary); }
+
+  /* THE STACK IS AN .cf-iso OBJECT WITHOUT THE CLASS, so it needs that
+     component's forced-colours rule written out here. Same reasoning, same
+     shape: the mode does not force SVG paint, the faces are literal greys and
+     every contour is a `stroke="#000"` on the group, so on a dark palette this
+     came through as three light solids with no edges — a drawing whose whole
+     subject is edges. The filled faces go to Canvas and go on occluding what
+     they occluded (painter's algorithm intact, in two colours), the contours
+     and the corner dots go to CanvasText, and the lit face gives up its ramp
+     with every other fill. See components.css, .cf-iso's own block. */
+  @media (forced-colors: active) {
+    .geo-stack [stroke]:not([stroke="none"]) { stroke: CanvasText; }
+    .geo-stack [fill]:not([fill="none"])     { fill: Canvas; }
+    .geo-stack g[fill] circle                { fill: CanvasText; }
+  }
 </style>
 </head>
 <body class="docs" data-root="../">
@@ -143,7 +158,7 @@
       gradient — it is the place where something happens.
     </p>
     <div class="docs-demo">
-      <svg viewBox="0 0 640 640" style="width:100%;max-width:26rem;margin-inline:auto" fill="none">
+      <svg class="geo-stack" viewBox="0 0 640 640" style="width:100%;max-width:26rem;margin-inline:auto" fill="none">
         <defs>
           <!-- near rake, 63.43° — matches 01-discovery.svg (61.3°, stop 0.32) -->
           <linearGradient id="isoLight" gradientUnits="userSpaceOnUse" x1="270" y1="120" x2="350" y2="280">
