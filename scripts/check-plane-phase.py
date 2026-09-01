@@ -27,10 +27,16 @@ H = 2u that places the two families at
 which cross wherever both hold: x = n*u and y = -0.5*n*u + 0.5u + m*u, for
 integer n, m.
 
-A column's footprint is the rhombus with vertices
+A column's footprint is the rhombus with vertices, where P is the ground's own
+inline padding -- the empty cell the row is inset by, read from the set's rule
+rather than assumed:
 
-    left (4i)u, 1u      near (4i+1)u, 1.5u
-    right (4i+2)u, 1u   far  (4i+1)u, 0.5u
+    left (P+4i)u, 1u      near (P+4i+1)u, 1.5u
+    right (P+4i+2)u, 1u   far  (P+4i+1)u, 0.5u
+
+P has to be an EVEN number of units or none of them solve: the lattice repeats
+every 2u across, so an odd inset lands every vertex on the alternate parity,
+which is the cell centres again. The check holds P to that as its own rule.
 
 and the rule is simply that all four of those are crossings. Unshifted, none of
 them is -- every one lands half a cell out, at a diamond's centre. Shifted down
@@ -52,6 +58,8 @@ CSS = ROOT / "design-system" / "assets" / "css" / "components.css"
 
 # The rule this file is about, located by its selector rather than by line.
 BLOCK = re.compile(r"\.cf-plot--ground\s+\.cf-plot__set::before\s*\{(.*?)\n\}", re.S)
+# The row's inset lives on the set itself, one rule up from the ground it insets.
+SET = re.compile(r"\.cf-plot--ground\s+\.cf-plot__set\s*\{(.*?)\n\}", re.S)
 
 
 def decl(body, prop):
@@ -138,14 +146,32 @@ def main():
                             "this check cannot solve it." % pos)
             shift = 0.0
 
+    # The row's inset, in units, and the parity rule it has to keep.
+    inset = 0.0
+    sm = SET.search(css)
+    if sm:
+        raw = decl(sm.group(1), "padding-inline")
+        if raw is not None:
+            inset = u_multiple(raw, "padding-inline")
+            if inset is None:
+                findings.append("the set's padding-inline is %r, which this check "
+                                "cannot read as a multiple of --plot-u." % raw)
+                inset = 0.0
+            elif abs(inset - round(inset)) > 1e-9 or int(round(inset)) % 2:
+                findings.append("the row is inset by %gu, which is not an even number "
+                                "of units — the lattice repeats every 2u across, so an "
+                                "odd inset puts every footprint vertex on the alternate "
+                                "parity, which is the cell centres." % inset)
+
     # The four vertices of the footprint, for the first three columns.
     checked = 0
     if not findings or shift is not None:
         for i in range(3):
-            for n, y, name in ((4 * i, 1.0, "left"),
-                               (4 * i + 1, 1.5, "near"),
-                               (4 * i + 2, 1.0, "right"),
-                               (4 * i + 1, 0.5, "far")):
+            base = inset + 4 * i
+            for n, y, name in ((base, 1.0, "left"),
+                               (base + 1, 1.5, "near"),
+                               (base + 2, 1.0, "right"),
+                               (base + 1, 0.5, "far")):
                 checked += 1
                 if not on_crossing(n, y, shift or 0.0):
                     findings.append(
@@ -167,8 +193,9 @@ def main():
               file=sys.stderr)
         return 1
 
-    print("plane phase: band 2u, field unit 2u, ground shifted %gu — %d footprint "
-          "vertices re-solved, every one on a lattice crossing." % (shift, checked))
+    print("plane phase: band 2u, field unit 2u, ground shifted %gu, row inset %gu — "
+          "%d footprint vertices re-solved, every one on a lattice crossing."
+          % (shift, inset, checked))
     return 0
 
 

@@ -9468,6 +9468,26 @@ a.cf-calendar__day > time,
 }
 .cf-plot--ground .cf-plot__set {
   position: relative;
+  /* ONE EMPTY CELL OF GROUND EITHER SIDE OF THE ROW, and the row centred on it.
+
+     The set is a flex container with no width of its own, so it stretched to
+     whatever the figure was — 18u in the lab's card — while the columns are
+     14u of content packed from the start. That put the whole row flush against
+     the ground's left edge with four units of bare lattice trailing off the
+     right: the plot looked like it had slid out of its own frame.
+
+     Padding rather than justify-content, and the difference is the phase. A
+     column stands on a crossing only while its offset from the ground's left
+     edge is an EVEN multiple of u — the lattice repeats every 2u across, and a
+     shift of one u lands every vertex on the alternate parity, which is the
+     cell centres again. `justify-content: center` would offset by half the
+     slack, whatever that happens to be: 2u in this card and 1.5u in one 3u
+     narrower, where the alignment would silently go. A stated 2u is one
+     diamond exactly, at every width, and fit-content makes the right side
+     match the left instead of inheriting the container's leftovers. */
+  width: fit-content;
+  padding-inline: calc(var(--plot-u) * 2);
+  margin-inline: auto;
   /* The keys clear the deepest value label rather than the box: a column at
      --v: 1 ends at 14u and its number runs a line and a half past that. */
   margin-bottom: var(--space-16);
