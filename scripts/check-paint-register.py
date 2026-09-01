@@ -59,9 +59,11 @@ there is no flood-color, lighting-color, or paint inside a style="" attribute
 
 THE REGISTER IS WRITTEN TWICE, and this script holds the two copies to each
 other, the same defence check-breakpoints.py runs for thresholds. The palette
-values here must each appear on foundations/illustration.html, where they are
-documented with their meanings; the brand values are read out of tokens.css by
-token name and compared. Re-tone a face on the foundations page and this copy
+values here must each appear on the page that documents them with their
+meanings -- foundations/illustration.html for the drawing palette, and
+components/plot.html for the one stop that is a chart's rather than a
+drawing's; the brand values are read out of tokens.css by token name and
+compared. Re-tone a face on the foundations page and this copy
 fails loudly instead of silently enforcing the old palette; retype a token and
 the mismatch surfaces here rather than in a screenshot nobody takes.
 
@@ -113,12 +115,34 @@ REGISTER_2 = {
     "#e2e2e2": "register 2: foundation, one step under the machine",
 }
 
-# The light family's stops. Three are tokens and are read out of tokens.css by
-# name below; the waypoint is the documented #DBFC60 literal whose POSITION
-# and derivation check-gradient-family.py recomputes -- membership is all this
+# The light family's stops. Four are tokens and are read out of tokens.css by
+# name below; the waypoints are the documented literals whose POSITION and
+# derivation check-gradient-family.py recomputes -- membership is all this
 # file asks.
-LIGHT_TOKENS = {"--lime-500": "#e1ff00", "--glas-500": "#c5ebe2", "--grey-300": "#cfcfcf"}
-LIGHT_WAYPOINT = {"#dbfc60": "light family: the 19 % oklab waypoint"}
+#
+# --violett-500 IS THE FOURTH, AND IT IS THE SAME RAMP FROM THE OTHER END.
+# .cf-plot__col--fell paints its cap with the lit cap's ramp and the warm
+# source swapped for the cool one: violett, its own 19 % waypoint, Glas at
+# 0.32, CF-Grau at the rim. components.css says of it, twice, that it "is not
+# a second light" -- lime stays the one thing --lit spends -- so it enters
+# here as a member of the light family rather than as a register of its own.
+# It reached patterns/ on 2026-09-01 with the landing page's evidence act,
+# which is when this gate first saw it; the ramp itself is older, and until
+# then it had only ever been drawn on components/plot.html, outside this
+# script's scope.
+LIGHT_TOKENS = {"--lime-500": "#e1ff00", "--glas-500": "#c5ebe2", "--grey-300": "#cfcfcf",
+                "--violett-500": "#7e7fe1"}
+LIGHT_WAYPOINT = {"#dbfc60": "light family: the 19 % oklab waypoint, lime leg"}
+# THE COOL LEG'S WAYPOINT IS DOCUMENTED SOMEWHERE ELSE, and that is the whole
+# reason it is a second dict. Every value in LIGHT_WAYPOINT above is held
+# against foundations/illustration.html, which is the page that states the
+# ISOMETRIC drawing palette; #8A94E3 is a chart component's stop and is argued
+# on components/plot.html and in components.css beside the rule that spends it.
+# Holding it against the illustration page would either fail honestly or push
+# a chart decision onto a page that is not about charts, so the double entry
+# points at the page that actually carries the argument.
+FALL_WAYPOINT = {"#8a94e3": "light family: the 19 % oklab waypoint, violett leg"}
+FALL_DOC = "components/plot.html"
 
 PAINT_ATTRS = ("fill", "stroke", "stop-color")
 
@@ -146,6 +170,7 @@ def register():
     for name, hexval in LIGHT_TOKENS.items():
         out[hexval] = "light family: var(%s)" % name
     out.update(LIGHT_WAYPOINT)
+    out.update(FALL_WAYPOINT)
     return out
 
 
@@ -234,17 +259,20 @@ def double_entry():
     """
     findings = []
 
-    doc = ILLUSTRATION.read_text(encoding="utf-8").lower()
     documented = {}
     documented.update(REGISTER_1)
     documented.update(REGISTER_2)
     documented.update(LIGHT_WAYPOINT)
-    for hexval, label in sorted(documented.items()):
-        if hexval not in doc:
-            findings.append(("foundations/illustration.html", 0, hexval,
-                             "this script's register carries %s (%s) and the "
-                             "page no longer documents it. The palette moved; "
-                             "move this copy with it." % (hexval, label)))
+    pairs = [(ILLUSTRATION, "foundations/illustration.html", documented),
+             (DS / FALL_DOC, FALL_DOC, FALL_WAYPOINT)]
+    for path, rel, wanted in pairs:
+        doc = path.read_text(encoding="utf-8").lower()
+        for hexval, label in sorted(wanted.items()):
+            if hexval not in doc:
+                findings.append((rel, 0, hexval,
+                                 "this script's register carries %s (%s) and the "
+                                 "page no longer documents it. The palette moved; "
+                                 "move this copy with it." % (hexval, label)))
 
     css = strip_comments(TOKENS.read_text(encoding="utf-8"))
     for name, expected in sorted(LIGHT_TOKENS.items()):
