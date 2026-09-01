@@ -3,10 +3,10 @@
 
 The breakpoint register holds every width at which the system CHANGES SHAPE,
 and check-breakpoints.py keeps its three copies honest. But the register
-deliberately leaves out the other half of the responsive design: the seven
+deliberately leaves out the other half of the responsive design: the eight
 clamp() tokens that move CONTINUOUSLY with the viewport — four display sizes,
-the gutter and the two section gaps. Those are documented too, and the record
-is written FOUR times across two pages:
+the gutter, the two section gaps and the section header gap. Those are
+documented too, and the record is written FOUR times across two pages:
 
   foundations/mobile.html   "What changes continuously" — a table of each
                             token's floor, ramp, ceiling and the viewport
@@ -17,11 +17,11 @@ is written FOUR times across two pages:
   foundations/layout.html   the token table, whose --gutter row restates the
                             clamp() literal and whose --section-gap row
                             restates the "64 → 160 px" span; the
-                            vertical-rhythm table, which restates both section
-                            gaps' floors and ceilings WITH the widths they
-                            bind at; and the "stops growing at" table, which
-                            states the ceiling crossover of four tokens to a
-                            tenth of a pixel.
+                            vertical-rhythm table, which restates all three
+                            rhythm tokens' floors and ceilings WITH the widths
+                            they bind at; and the "stops growing at" table,
+                            which states the ceiling crossover of five tokens
+                            to a tenth of a pixel.
 
 None of those copies was read by any check. That is the exact position the
 overflow count on mobile.html was in while it went stale four separate times —
@@ -50,7 +50,7 @@ THE RULES, all recomputed from tokens.css with CSS comments stripped:
            above 320 would make all of them wrong below the width it engaged
            at, silently and at every viewport under it. --gutter is the one
            token that carries a cap today.
-  TOKENS   the seven declarations parse as clamp() with a rem floor, a rem
+  TOKENS   the eight declarations parse as clamp() with a rem floor, a rem
            ceiling, and a ramp that is base + k·vw (base may be 0; the section
            gaps' 100vw / N form is k = 100/N; their var() floors and ceilings
            resolve through the --space-* scale).
@@ -68,13 +68,14 @@ THE RULES, all recomputed from tokens.css with CSS comments stripped:
            declaration.
   SPAN     layout.html's token-table --section-gap row: the "64 → 160 px"
            span carries the token's real floor and ceiling.
-  RHYTHM   layout.html's vertical-rhythm table: each gap's "floor below F" and
+  RHYTHM   layout.html's vertical-rhythm table: each rhythm token's
+           "floor below F" and
            "ceiling from C" carry the token's real floor/ceiling in px and the
-           real crossovers — these two are exact integers today (64·12 = 768),
-           so they are held exactly.
+           real crossovers — all three are exact integers today (64·12 = 768,
+           48·18 = 864), so they are held exactly.
   STOPS    layout.html's "stops growing at" table: each ceiling crossover to
            one decimal — 1438.2 for --container-max (the width where
-           vw − 2 gutters reaches 1280), 1440.0, 1454.5, 1920.0.
+           vw − 2 gutters reaches 1280), 1440.0 twice, 1454.5, 1920.0.
 
 WHAT A FAILURE MEANS. Two different things, and the fix is different:
 
@@ -205,7 +206,7 @@ def parse_tokens():
         )
         tokens["gutter"].literal = m.group(0).split(":", 1)[1].strip()
 
-    for gap in ("section-gap", "section-gap-sm"):
+    for gap in ("section-gap", "section-gap-sm", "section-header-gap"):
         m = re.search(
             r"--" + gap + r":\s*clamp\(\s*var\(--space-(\d+)\)\s*,\s*"
             r"calc\(\s*100vw\s*/\s*(\d+)\s*\)\s*,\s*var\(--space-(\d+)\)\s*\)",
@@ -254,7 +255,7 @@ def token_row(html, token, path, where=None):
 
 def main():
     tokens = parse_tokens()
-    for needed in ("text-display-1", "text-display-2", "text-h1", "text-h2", "gutter", "section-gap", "section-gap-sm"):
+    for needed in ("text-display-1", "text-display-2", "text-h1", "text-h2", "gutter", "section-gap", "section-gap-sm", "section-header-gap"):
         if needed not in tokens:
             fail(TOKENS, 1, f"--{needed} no longer parses as the clamp() shape this record documents")
     if failures:
@@ -289,7 +290,7 @@ def main():
     layout = LAYOUT.read_text(encoding="utf-8")
 
     # FLUID — mobile.html's floor / ramp / ceiling / binds table.
-    for name in ("gutter", "section-gap", "section-gap-sm", "text-display-1", "text-display-2", "text-h1", "text-h2"):
+    for name in ("gutter", "section-gap", "section-gap-sm", "section-header-gap", "text-display-1", "text-display-2", "text-h1", "text-h2"):
         tok = tokens[name]
         row, line = token_row(mobile, name, MOBILE)
         if row is None:
@@ -367,7 +368,7 @@ def main():
             fail(LAYOUT, line, f"--section-gap: span documented '{cells(row)[1]}', tokens.css runs {tok.floor:g} → {tok.ceiling:g} px")
 
     # RHYTHM — both gaps' floors and ceilings with the widths they bind at.
-    for gap in ("section-gap", "section-gap-sm"):
+    for gap in ("section-gap", "section-gap-sm", "section-header-gap"):
         tok = tokens[gap]
         row, line = token_row(layout, gap, LAYOUT, where=lambda c: any("below" in x for x in c))
         if row is None:
@@ -386,6 +387,7 @@ def main():
     gutter = tokens["gutter"]
     stops = {
         "section-gap-sm": tokens["section-gap-sm"].ceiling_crossover(),
+        "section-header-gap": tokens["section-header-gap"].ceiling_crossover(),
         "gutter": gutter.ceiling_crossover(),
         "section-gap": tokens["section-gap"].ceiling_crossover(),
     }
@@ -424,7 +426,7 @@ def report():
         )
         sys.exit(1)
     print(
-        "fluid record: the seven clamp() tokens and all four documented copies agree — "
+        "fluid record: the eight clamp() tokens and all four documented copies agree — "
         "floors, ramps, ceilings, both crossover columns and all 25 computed sizes re-derived from tokens.css."
     )
     sys.exit(0)

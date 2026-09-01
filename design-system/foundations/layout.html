@@ -59,6 +59,7 @@
         <tr><td><code>--grid-tracks</code></td><td><code>repeat(var(--grid-columns), minmax(0, 1fr))</code></td><td>columns — the track list</td></tr>
         <tr><td><code>--grid-gap</code></td><td>24 px</td><td>column gap</td></tr>
         <tr><td><code>--section-gap</code></td><td>64 → 160 px</td><td><em>padding</em> on each edge of a section — see Rhythm</td></tr>
+        <tr><td><code>--section-header-gap</code></td><td>48 → 80 px</td><td>the air under a section header's rule — see Rhythm</td></tr>
       </tbody>
     </table>
     <p>
@@ -902,7 +903,7 @@
       <strong>Every step is accounted for.</strong> A scale is only honest if you can say who
       uses each rung, so here is the count of <em>declarations</em> that reference each step in
       the shipping CSS (<code>tokens</code> + <code>base</code> + <code>components</code>),
-      comments excluded. Stamped <code>d77e051a</code> — see below for what that is and how to
+      comments excluded. Stamped <code>63fbd660</code> — see below for what that is and how to
       check it in one command:
     </div>
     <table class="docs-table" id="space-scale">
@@ -915,9 +916,9 @@
         <tr><td><code>--space-5</code></td><td>20</td><td>7</td><td>the contact list's and the error routes' row padding, a prose note's block padding — the thinnest-used rung</td></tr>
         <tr><td><code>--space-6</code></td><td>24</td><td>46</td><td><code>--grid-gap</code>, panel padding</td></tr>
         <tr><td><code>--space-8</code></td><td>32</td><td>38</td><td>the gap between an object and its copy</td></tr>
-        <tr><td><code>--space-12</code></td><td>48</td><td>20</td><td>panel padding at the wide breakpoint</td></tr>
+        <tr><td><code>--space-12</code></td><td>48</td><td>21</td><td>panel padding at the wide breakpoint; the <code>--section-header-gap</code> floor</td></tr>
         <tr><td><code>--space-16</code></td><td>64</td><td>11</td><td>the <code>--section-gap</code> floor</td></tr>
-        <tr><td><code>--space-20</code></td><td>80</td><td>6</td><td><code>--section-header-gap</code>, the <code>-sm</code> ceiling, the accordion indent</td></tr>
+        <tr><td><code>--space-20</code></td><td>80</td><td>6</td><td>the <code>--section-header-gap</code> and <code>-sm</code> ceilings — both reached at 1440 — and the accordion indent</td></tr>
         <tr><td><code>--space-24</code></td><td>96</td><td>5</td><td>page-header and footer <code>padding-block</code>; the field's rhombus width</td></tr>
         <tr><td><code>--space-30</code></td><td>120</td><td><strong>0</strong></td><td>—</td></tr>
         <tr><td><code>--space-40</code></td><td>160</td><td>2</td><td>the <code>--section-gap</code> ceiling</td></tr>
@@ -994,7 +995,7 @@ print(counts)
     <div class="docs-note">
       <strong>The stamp is a digest of the counts themselves.</strong> It is the first eight hex
       of a SHA-256 over the thirteen numbers, printed by the same command that prints them — so
-      if it still reads <code>d77e051a</code>, the table is current and there is nothing to
+      if it still reads <code>63fbd660</code>, the table is current and there is nothing to
       re-derive.
       <br><br>
       It took two wrong answers to get here, and both are worth keeping because both are the
@@ -1033,16 +1034,57 @@ print(counts)
   <section class="docs-section" id="rhythm">
     <h2>Vertical rhythm</h2>
     <p>
-      Two fluid tokens carry all vertical air between sections. Both are one fraction of the
-      frame rather than a hand-picked slope, and both are clamped to a scale step at each end:
+      Three fluid tokens carry all vertical air around a section. Each is one fraction of the
+      frame rather than a hand-picked slope, and each is clamped to a scale step at both ends:
     </p>
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Fluid part</th><th>Floor</th><th>Ceiling</th></tr></thead>
       <tbody>
         <tr><td><code>--section-gap</code></td><td><code>100vw / 12</code> — one twelfth of the frame</td><td>64 below 768</td><td>160 from 1920</td></tr>
         <tr><td><code>--section-gap-sm</code></td><td><code>100vw / 18</code></td><td>32 below 576</td><td>80 from 1440</td></tr>
+        <tr><td><code>--section-header-gap</code></td><td><code>100vw / 18</code> — two thirds of <code>--section-gap</code></td><td>48 below 864</td><td>80 from 1440</td></tr>
       </tbody>
     </table>
+    <div class="docs-note">
+      <strong>The third one was a constant until it was measured as a ratio.</strong> This chapter
+      opened "two fluid tokens carry all vertical air between sections", and
+      <code>--section-header-gap</code> — the air under a section header's hairline, the distance
+      the connective tissue of every page is built on — was <code>--space-20</code> flat: 80 px at
+      320 and 80 px at 2560, while everything it is measured against moved. The number was right,
+      and it was right at exactly one width. What a reader sees is not the number but the
+      <em>ratio</em> of the air below a header to the air above it, and the air above it is the
+      section's own <code>padding-block-start</code>:
+      <table class="docs-table" style="margin-top:var(--space-4)">
+        <thead><tr><th>below ÷ above</th><th>320</th><th>375</th><th>768</th><th>900</th><th>1024</th><th>1280</th><th>1440</th><th>1920</th></tr></thead>
+        <tbody>
+          <tr><td><code>.section</code>, was</td><td>1.25</td><td>1.25</td><td>1.25</td><td>1.07</td><td>0.94</td><td>0.75</td><td><strong>0.67</strong></td><td>0.50</td></tr>
+          <tr><td><code>.section</code>, is</td><td>0.75</td><td>0.75</td><td>0.75</td><td>0.67</td><td>0.67</td><td>0.67</td><td><strong>0.67</strong></td><td>0.50</td></tr>
+          <tr><td><code>--tight</code>, was</td><td>2.50</td><td>2.50</td><td>1.87</td><td>1.60</td><td>1.41</td><td>1.13</td><td><strong>1.00</strong></td><td>1.00</td></tr>
+          <tr><td><code>--tight</code>, is</td><td>1.50</td><td>1.50</td><td>1.12</td><td>1.00</td><td>1.00</td><td>1.00</td><td><strong>1.00</strong></td><td>1.00</td></tr>
+        </tbody>
+      </table>
+      A 5&times; swing across the range on one relationship, and at the left-hand end it was
+      <em>inverted</em>: at 375 a header on a <code>--tight</code> section stood 32 px under the
+      thing before it and 80 px above the thing it introduces, so proximity said the header
+      belonged to the section above. Four pattern pages open that way — karriere, news, kontakt
+      and the confirmation pages behind them. Nothing about a screenshot at 1440 says so, because
+      at 1440 the numbers are the designer's.
+      <br><br>
+      <strong>The fix is a fraction this system already owns, not a new slope.</strong> 80 at the
+      1440 frame <em>is</em> <code>100vw ÷ 18</code> — the same fraction <code>--section-gap-sm</code>
+      is built on, and exactly two thirds of <code>--section-gap</code>'s <code>100vw ÷ 12</code>
+      wherever both run fluid. So the designed value is not re-derived and not traded away: the
+      ceiling is 80 and the fluid term reaches it at exactly 1440, the frame the mockups were
+      drawn on. The floor is the proximity constraint written as a number — it has to sit under
+      <code>--section-gap</code>'s own 64 px floor or the inversion survives wherever both are
+      floored, and 48 is the scale step that does, reached at 864.
+      <br><br>
+      <code>--tight</code> is still over 1.00 at the phone, deliberately: a section takes the
+      small rhythm precisely <em>because</em> a page header above it has already spent the air,
+      so its 32 is not the whole distance a reader sees. The plain section — the one both mockups
+      show — is the case that had to stop being upside down. Nothing at 1440 or above moved by a
+      pixel.
+    </div>
     <p>
       The point of choosing the fractions this way is where the clamp <em>stops</em> being
       fluid. A <code>clamp()</code> whose ends are reached at 800 px and 2000 px is a scale
@@ -1112,19 +1154,22 @@ print(counts)
       here.
     </div>
     <div class="docs-note">
-      <strong>Four tokens stop growing at four different widths, and that is what the ratio drift
+      <strong>Five tokens stop growing at five different widths, and that is what the ratio drift
       actually is.</strong> The note above is the visible corner of a wider fact:
       <table class="docs-table" style="margin-top:var(--space-4)">
         <thead><tr><th>Token</th><th>Stops growing at</th><th>Because</th></tr></thead>
         <tbody>
           <tr><td><code>--container-max</code></td><td><strong>1438.2</strong></td><td>content reaches 1280</td></tr>
           <tr><td><code>--section-gap-sm</code></td><td><strong>1440.0</strong></td><td>100vw ÷ 18 = 80</td></tr>
+          <tr><td><code>--section-header-gap</code></td><td><strong>1440.0</strong></td><td>100vw ÷ 18 = 80</td></tr>
           <tr><td><code>--gutter</code></td><td><strong>1454.5</strong></td><td>5.5vw = 80</td></tr>
           <tr><td><code>--section-gap</code></td><td><strong>1920.0</strong></td><td>100vw ÷ 12 = 160</td></tr>
         </tbody>
       </table>
-      Three land within <strong>16 px</strong> of each other and the fourth arrives
-      <strong>466 px</strong> later. So the ratio opening back out to 2.00 by 1920 is not the rhythm
+      Four land within <strong>16 px</strong> of each other and the fifth arrives
+      <strong>466 px</strong> later. The header gap used to be outside this table altogether,
+      because it never started growing — it is in the cluster now, and it got there by taking the
+      ceiling the note below asks the whole system to coordinate on. So the ratio opening back out to 2.00 by 1920 is not the rhythm
       doing something interesting — it is <code>--section-gap</code> climbing alone after every
       horizontal measure has frozen. From 1454 to 1920 the page is a fixed 1280 column with 80 px
       gutters whose vertical rhythm keeps loosening by a further 39 px.
