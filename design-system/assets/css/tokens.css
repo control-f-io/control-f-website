@@ -1016,9 +1016,37 @@
      padding subtracts back to 1280 precisely. The two decouple at the top,
      which is the tell: 5.5vw does not reach 80 until a viewport of 1454.5,
      while content reaches 1280 at 1438.2. See foundations/layout.html.
+
+     THE FLOOR IS CAPPED, AND THAT IS THE ONE THING IN THIS TOKEN THAT IS NOT
+     ABOUT THE 1440 FRAME. A clamp() floor written in rem grows with the
+     reader's text size while the viewport it is spent on does not, and the
+     gutter is the one fluid token in the system that is subtracted from the
+     measure rather than added to it. At a 32 px browser default — 200 % text,
+     which is WCAG 1.4.4 at level AA — 1.25rem is 40 px, so the two gutters
+     took 80 px of a 320 px viewport and left a 240 px content column for type
+     that had just doubled. Measured across all eighteen pattern pages at a
+     32 px default, 320–480 px: 27 (page, width) pairs scrolled sideways
+     against 0 at a 16 px default.
+
+     min(1.25rem, 6.25vw) is that floor with a ceiling of its own: 20 px, or a
+     sixteenth of the viewport, whichever is smaller — so the two gutters can
+     never take more than an eighth of the screen. 6.25vw is not a chosen
+     number. It is 20 / 320: the rem floor and the cap meet exactly at 320 px,
+     the reflow width WCAG 1.4.10 measures at, which makes the cap PROVABLY
+     INERT at a 16 px default for every viewport the record documents. Every
+     figure on foundations/mobile.html is unchanged to the last hundredth, and
+     check-fluid-record.py re-derives the crossover and holds the cap to that
+     proof rather than to this paragraph.
+
+     It does not fix everything it was measured against, and it was not
+     supposed to: the residue at 320 px is the nav bar's own row (325 px of
+     content in a 286 px bar, which no gutter reaches) and a handful of
+     component-level strings. Those are named in the PR that landed this and
+     belong to the lanes that own them. What this token owed was the 40 px it
+     was taking off the column, and that is now the 40 px the column keeps.
      ------------------------------------------------------------------ */
   --container-max: 80rem;   /* 1280 */
-  --gutter:        clamp(1.25rem, 5.5vw, 5rem);  /* 20 → 80 */
+  --gutter:        clamp(min(1.25rem, 6.25vw), 5.5vw, 5rem);  /* 20 → 80 */
 
   /* THE DISTANCE FROM THE VIEWPORT EDGE TO THE CONTENT COLUMN'S EDGE.
      --gutter is not that distance, and the difference is the whole point of

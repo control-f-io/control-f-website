@@ -54,7 +54,7 @@
       <thead><tr><th>Token</th><th>Value</th><th>Meaning</th></tr></thead>
       <tbody>
         <tr><td><code>--container-max</code></td><td>1280 px</td><td>maximum content width</td></tr>
-        <tr><td><code>--gutter</code></td><td>20 → 80 px</td><td>outer margin, <code>clamp(1.25rem, 5.5vw, 5rem)</code></td></tr>
+        <tr><td><code>--gutter</code></td><td>20 → 80 px</td><td>outer margin, <code>clamp(min(1.25rem, 6.25vw), 5.5vw, 5rem)</code></td></tr>
         <tr><td><code>--grid-columns</code></td><td>12</td><td>columns — the count</td></tr>
         <tr><td><code>--grid-tracks</code></td><td><code>repeat(var(--grid-columns), minmax(0, 1fr))</code></td><td>columns — the track list</td></tr>
         <tr><td><code>--grid-gap</code></td><td>24 px</td><td>column gap</td></tr>
@@ -108,6 +108,31 @@
       <strong>1280.00</strong> only from 1454 up, where the gutter has finished rounding to 80. So
       "exactly 1280 at the 1440 frame" is exact in the algebra and 1279.99 in device pixels — which
       is invisible, and still worth writing down on a page that keeps four decimals elsewhere.
+    </div>
+    <div class="docs-note" id="gutter-floor">
+      <strong>The floor is capped, and it is the only part of this token that is not about the
+      1440 frame.</strong> A <code>clamp()</code> floor written in <code>rem</code> grows with the
+      reader's text size while the viewport it is spent on does not — and the gutter is the one
+      fluid token in the system that is <em>subtracted</em> from the measure rather than added to
+      it. At a 32 px browser default (200 % text, WCAG 1.4.4 at level AA) <code>1.25rem</code> is
+      40 px, so the two gutters took <strong>80 px of a 320 px viewport</strong> and left a 240 px
+      content column for type that had just doubled.
+      <br><br>
+      Measured across all eighteen pattern pages at 320, 360, 375, 390, 414 and 480 px:
+      <strong>27 (page, width) pairs scrolled sideways at a 32 px default, against 0 at 16 px.</strong>
+      <code>min(1.25rem, 6.25vw)</code> is the floor with a ceiling of its own — 20 px, or a
+      sixteenth of the viewport, whichever is smaller, so the two gutters together can never take
+      more than an eighth of the screen. <strong>6.25vw is not a chosen number: it is 20 ÷ 320</strong>,
+      so the rem floor and the cap meet exactly at the 320 px reflow width WCAG 1.4.10 measures at.
+      That is what makes the cap provably inert at a 16 px default over the whole documented range —
+      every figure on <a href="mobile.html">Mobile</a> is unchanged to the last hundredth, and
+      <code>check-fluid-record.py</code>'s <strong>CAP</strong> rule holds the cap to that proof
+      rather than to this paragraph.
+      <br><br>
+      It does not fix everything it was measured against, and it was not meant to. What survives at
+      320 px is the nav bar's own row — 325 px of content in a 286 px bar, which no gutter reaches —
+      and a handful of component-level strings. Those belong to the lanes that own them. What this
+      token owed was the 40 px it was taking off the column.
     </div>
     <p>
       Every <code>.container</code> is also a <strong>query container</strong> named

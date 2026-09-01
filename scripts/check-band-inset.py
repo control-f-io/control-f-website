@@ -103,8 +103,17 @@ EXEMPT = {
 }
 
 # --gutter's own definition, read rather than restated. clamp(min, ramp, max).
+#
+# The floor may carry a cap of its own — min(<rem>, <vw>) — so a rem floor
+# cannot outgrow the viewport it is subtracted from when the reader raises
+# their text size. The cap is required to be inert at and above 320 px
+# (check-fluid-record.py's CAP rule holds it there), and 320 is exactly where
+# the sweep below starts, so the rem figure is the floor at every width this
+# check draws for and the cap changes nothing here. It is parsed rather than
+# rejected because rejecting it is what this check did the day it landed.
 CLAMP = re.compile(
-    r"--gutter:\s*clamp\(\s*([\d.]+)rem\s*,\s*([\d.]+)vw\s*,\s*([\d.]+)rem\s*\)",
+    r"--gutter:\s*clamp\(\s*(?:min\(\s*([\d.]+)rem\s*,\s*[\d.]+vw\s*\)|([\d.]+)rem)"
+    r"\s*,\s*([\d.]+)vw\s*,\s*([\d.]+)rem\s*\)",
     re.IGNORECASE,
 )
 
@@ -114,11 +123,13 @@ def gutter_ramp(tokens_text):
     m = CLAMP.search(tokens_text)
     if not m:
         raise SystemExit(
-            "band inset: --gutter is not a clamp(rem, vw, rem) in tokens.css.\n"
-            "  This check derives its arithmetic from that declaration rather\n"
-            "  than restating it. Update the check with the new shape."
+            "band inset: --gutter is not a clamp(rem, vw, rem) — or a\n"
+            "  clamp(min(rem, vw), vw, rem) — in tokens.css. This check derives\n"
+            "  its arithmetic from that declaration rather than restating it.\n"
+            "  Update the check with the new shape."
         )
-    return float(m.group(1)) * 16, float(m.group(2)), float(m.group(3)) * 16
+    floor = m.group(1) if m.group(1) is not None else m.group(2)
+    return float(floor) * 16, float(m.group(3)), float(m.group(4)) * 16
 
 
 def agreement(inset_px, lo, vw_pct, hi):
