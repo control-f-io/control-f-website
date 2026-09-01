@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Re-add every .cf-pie in the tree and hold it to the arithmetic it claims.
 
-The hundred and twenty-third check, and the first whose subject is a number a
+The hundred and twenty-fourth check, and the first whose subject is a number a
 drawing cannot show.
 
 A pie states two numbers per share and neither of them is checkable by looking.

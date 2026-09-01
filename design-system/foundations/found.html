@@ -467,7 +467,7 @@ current.clear(); current.add(ranges[i]);</pre>
     <table class="docs-table">
       <thead><tr><th>Path</th><th>What the reader gets</th></tr></thead>
       <tbody>
-        <tr><td>forced colours</td><td><code>Mark</code> / <code>MarkText</code>, the system pair for exactly this meaning, with the rules kept</td></tr>
+        <tr><td>forced colours</td><td><code>Mark</code> paints the plate and <code>MarkText</code> the ink on it; <strong>every mark outside that plate is <code>CanvasText</code></strong> — the whole contour rung and both ground lines. See below</td></tr>
         <tr><td>print</td><td>every match prints as the contour — there is no reader on paper to be standing on one, and lime prints as a wash over the ink</td></tr>
         <tr><td>no <code>::highlight()</code></td><td>the page-search demo says so and the section stays findable with the browser's own find</td></tr>
         <tr><td>no <code>::target-text</code></td><td>the browser paints its own highlight; the reader still lands on the phrase</td></tr>
@@ -512,13 +512,77 @@ current.clear(); current.add(ranges[i]);</pre>
         descendants. <code>::selection</code> states its own for the same reason.
       </p>
       <p>
-        <strong>The two contour rungs deliberately do not.</strong>
+        <strong>At rest, the two contour rungs deliberately do not.</strong>
         <code>:where(mark)</code>/<code>.cf-mark</code> takes <code>color: inherit</code> and
         <code>::highlight(cf-found)</code> supplies no ink at all, because a match the reader
         has not arrived at is the running text with a ground line under it — and inside a
         foil, the running text <em>is</em> the foil. Inheriting the clip is the correct
         drawing there rather than a bug it got away with. Only a rung that supplies its own
         ink has an ink to lose. Held by <code>scripts/check-highlight-fill.py</code>.
+        Under forced colours that refusal is overruled, and the next note is why.
+      </p>
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>Forced colours: <code>Mark</code> is a plate colour, not an ink colour.</strong>
+      <p>
+        <code>Mark</code> is yellow and <code>MarkText</code> is black in <em>both</em> forced
+        palettes — they are the one pair in this drawing that does not flip — while
+        <code>Canvas</code> and <code>CanvasText</code> do. So <code>MarkText</code> holds
+        only where it sits <em>on</em> the <code>Mark</code> plate, and everything the drawing
+        puts outside that plate takes <code>CanvasText</code>: the whole contour rung, which
+        has no plate, and the ground line of the light rung, which hangs below the plate on
+        the page itself. That is also the value the rest of the system already means by "ink
+        in this palette" — <code>.text-foil</code> takes it, and <code>.rule</code> redraws
+        itself in it.
+      </p>
+      <p>
+        <strong>Rendered, not computed, because the computed style was right in the case that
+        failed.</strong> Chromium 149 and 151, <code>forced-colors: active</code>,
+        <code>prefers-color-scheme</code> light and dark, this page served and screenshotted,
+        the pixels read back:
+      </p>
+      <div class="docs-table-scroll">
+      <table class="docs-table">
+        <thead><tr><th>Palette</th><th><code>.cf-mark</code></th><th><code>.cf-mark--current</code></th></tr></thead>
+        <tbody>
+          <tr><td>light</td><td>black ink, black ground line</td><td>yellow plate, black ink, black ground line</td></tr>
+          <tr><td>dark</td><td><strong>one colour. 100 % Canvas. nothing.</strong></td><td>yellow plate, black ink, <strong>no ground line</strong></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>
+        <code>color: inherit</code> does not inherit under forced colours. The mode re-forces
+        the computed value, and for a <code>&lt;mark&gt;</code> Chromium forces it to
+        <code>MarkText</code> — black ink under a black ground line on a black
+        <code>Canvas</code>. The sentence above this note read <em>"Every match is the ______
+        alone"</em> on a dark forced palette: <strong>every non-current match on the site was
+        absent, not faint.</strong> The declaration said <code>color: inherit</code> and the
+        computed value came back <code>rgb(0, 0, 0)</code>, which is why nothing but a
+        screenshot could find it.
+      </p>
+      <p>
+        <strong>Not <code>ButtonFace</code> / <code>ButtonText</code>,</strong> which is where
+        <a href="../components/pagination.html">the current page marker</a> went for the
+        neighbouring finding. Measured on the same run: <code>ButtonFace</code> resolves to
+        the <em>same value as</em> <code>Canvas</code> in both palettes — white on white,
+        black on black — so a plate painted in it is not a plate, and the light rung would
+        arrive at the contour rung's drawing.
+      </p>
+      <p>
+        <strong>And the three highlight pseudo-elements are not styleable here at all.</strong>
+        Chromium paints <code>::target-text</code>, <code>::highlight(cf-found)</code> and
+        <code>::highlight(cf-found-current)</code> with the UA's own
+        <code>Highlight</code>&nbsp;/&nbsp;<code>HighlightText</code> and discards every author
+        declaration in the block. Rendered against four candidates —
+        <code>Mark</code>/<code>MarkText</code>, <code>ButtonFace</code>/<code>ButtonText</code>,
+        transparent&nbsp;+&nbsp;<code>CanvasText</code>, and <code>forced-color-adjust: none</code>
+        carrying the brand's own lime — all four came back as the identical solid plate with no
+        ground line, the two rungs indistinguishable. The one lever that does work is
+        <code>forced-color-adjust: none</code> on the <em>originating element</em>, which would
+        mean setting it on every element that can contain a match — the running text of the site
+        — and opting the page out of forced colours to keep a drawing about accessibility. It is
+        not taken. Those three rules are written as a conforming engine would paint them, and on
+        Chromium today they are inert.
       </p>
     </div>
   </section>
