@@ -2806,6 +2806,40 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-font-coverage.py
 
+      # Every figure in this system carries one copy of what it says, and
+      # .cf-line is the one that could not. .cf-plot puts the value on the column
+      # as --v and the drawing reads it, so the number and the picture cannot
+      # disagree -- there is nothing to disagree with. A line chart has a
+      # polyline, and SVG cannot read a custom property off an <li>; the CSS
+      # construction that would avoid the second copy is a chain of rotated
+      # hairlines sized with hypot() and turned with atan2(), which on an engine
+      # without CSS trigonometry draws no line at all. The component's first law
+      # is that every fallback is the finished chart, so the second copy stays
+      # and this is what holds the two halves to each other.
+      #
+      # The mapping is the identity on purpose -- x == --t * 100 and
+      # y == (1 - --v) * 100, inside a 0 0 100 100 viewBox that
+      # preserveAspectRatio="none" stretches to the frame -- so a person can
+      # check a figure by eye and this can check it to 0.05 units. Five rules:
+      # the n-th set is the n-th trace and the counts are equal, point i is
+      # vertex i, the domain runs 0 to 1, --t never goes backwards, and both
+      # numbers stay inside 0..1 (the CSS clamps them and the polyline does not,
+      # which is the one way the halves can part company while both look
+      # deliberate).
+      #
+      # It is the invisible class in its purest form. A label a few pixels off
+      # its own line looks like a label; a trace drawn from last quarter's
+      # numbers under this quarter's printed values looks like a chart. The
+      # figure is at its most convincing exactly when it is worst -- crisp
+      # numbers, smooth line, different data.
+      #
+      # Proven failing on three reintroductions: one vertex moved a single user
+      # unit off its own --v, a --v of 1.33 where the CSS clamps and the
+      # polyline does not, and a percentage typed into --t.
+      - name: Line trace
+        if: '!cancelled()'
+        run: python3 scripts/check-line-trace.py
+
       # The cited gates are the ninety-first, and the only one whose subject is
       # the other ninety. Every check argues its rule in prose, and the strongest
       # move in that prose is the hand-off — "the other axis is held by this
