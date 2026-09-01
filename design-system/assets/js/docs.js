@@ -50,6 +50,7 @@
       { href: 'components/pagination.html',     label: 'Pagination' },
       { href: 'components/error-state.html',    label: 'Error & Empty State' },
       { href: 'components/arrival.html',        label: 'Arrival & Progress' },
+      { href: 'components/scroll-cue.html',     label: 'Scroll Cue' },
       { href: 'components/article.html',        label: 'Article & Prose' },
       { href: 'components/table.html',          label: 'Table' },
       { href: 'components/calendar.html',       label: 'Calendar' },
