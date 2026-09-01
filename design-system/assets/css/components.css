@@ -4227,6 +4227,28 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
    scheme: light` with the identical rule is fine, which is how this shipped
    unnoticed — the pair was verified once, in the theme that works.
 
+   THE MECHANISM IS THE BACKPLATE, NOT THE VALUE, which base.css records in
+   full at the found state and which is worth correcting here because this is
+   the comment the rest of the file cites. `color: MarkText` paints perfectly
+   well; what fails is that Chromium lays an opaque Canvas-coloured backplate
+   behind every run of text in this mode, and that backplate belongs to the
+   BLOCK CONTAINER laying the text out rather than to the text's own box. An
+   inline <mark> in a paragraph is not that container, so its plate goes down
+   on top of the backplate and survives — measured in Chromium 151, both
+   schemes, every match on the site renders correctly. This slot is an
+   inline-flex box: it IS its own block container, so the backplate lands on
+   top of the plate this state is made of. That is why "the same pair" fails
+   here and not there, and it is a fact about the box and not about Mark.
+
+   It follows that `forced-color-adjust: none` would restore this plate too —
+   measured, Mark under the escape gives the current page a yellow plate and
+   a black numeral in both schemes. Not taken here, and the reason is the one
+   the paragraph below already gives: the meaning wanted is "the selected one
+   of a set", ButtonFace/ButtonText is the pair for it, and this state's
+   problem is which pair says the right thing rather than whether a plate
+   survives. Left as a note for whoever decides the plate is worth more than
+   the pair.
+
    ButtonFace/ButtonText is the replacement, and it is verified in both:
    Chromium 141, forced-colors active, `color-scheme` light and dark, `<span
    aria-current="page">1</span>` and `<span aria-current="page">Telemetrie
@@ -4935,9 +4957,13 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    glyphs in Chromium 141's forced-colors mode, on this element or in
    isolation, and `color: MarkText` paints none either once `color-scheme:
    dark` is added to the same mode — a solid block the size of the word's
-   layout box, not merely low contrast. ButtonFace/ButtonText is the pair
-   measured legible in both themes, and .cf-btn--solid already reaches for
-   it under forced colours elsewhere in this file. */
+   layout box, not merely low contrast. (That second failure is the text
+   backplate landing on top of this element's own background, not a fault in
+   MarkText; the pagination's comment now carries the mechanism and base.css
+   carries it in full. It reaches this element for the same reason — a tag is
+   an inline-block, so it is its own block container.) ButtonFace/ButtonText
+   is the pair measured legible in both themes, and .cf-btn--solid already
+   reaches for it under forced colours elsewhere in this file. */
 @media (forced-colors: active) {
   .cf-article__tag[aria-current] {
     background: ButtonFace;
@@ -6061,31 +6087,49 @@ a.cf-calendar__day > time,
    call base.css makes for the found state's own current rung, because a lit day
    and a current match are one drawing and may not have two answers here.
 
-   IT IS THE PAIR THAT DOES NOT PAINT UNDER THE DARK THEME, AND THAT IS RECORDED
-   RATHER THAN FORKED. .cf-pagination__page[aria-current] carries the note that
-   found it: Chromium's forced-colors emulation resolves Mark/MarkText to
-   yellow/black in BOTH colour schemes, while Canvas/CanvasText and
-   ButtonFace/ButtonText flip with the scheme. Under `prefers-color-scheme:
-   dark` the glyphs are therefore MarkText black on a Canvas-black text
-   backplate, and nothing paints.
-
-   Measured again here, Chromium 141 headless, forced-colors emulated, this
-   component and foundations/found.html side by side:
+   THE PAIR WAS NEVER THE FAULT HERE; THE BOX WAS. What this note used to say,
+   and what .cf-pagination__page[aria-current] one component over was read as
+   saying, is that Mark/MarkText does not paint under the dark scheme and that
+   the fix belonged in base.css, to all five rungs at once. Measured properly —
+   Chromium 151, forced-colors: active, both schemes, this component and
+   foundations/found.html served and screenshotted — the found state's own two
+   element rungs paint correctly in BOTH palettes and always did, and this one
+   does not:
 
                               light                    dark
-     .cf-mark--current        yellow plate, black ink  black block, no ink
-     [aria-current="date"]    yellow plate, black ink  black block, no ink
-     .cf-pagination[current]  white plate,  black ink  black plate, white ink
+     .cf-mark (inline)        ink + ground line        ink + ground line
+     .cf-mark--current        yellow plate, black ink  yellow plate, black ink
+     [aria-current="date"]    WHITE plate, black ink   BLACK BLOCK, no ink
 
-   The two rungs of the found state fail together and the pagination's own
-   replacement pair does not, which is the whole shape of it: this is the FOUND
-   STATE's forced-colours answer, and the calendar is the fourth thing standing
-   on it rather than a new fault. Substituting ButtonFace here would make a day
-   legible and make it a different drawing from every other match in the system,
-   which is the trade base.css already refused. The fix belongs in base.css, to
-   all five rungs at once, and it is not this component's to make. */
+   base.css now carries the mechanism in full. Chromium paints an opaque
+   Canvas-coloured backplate behind each run of text in this mode, and the
+   backplate belongs to the BLOCK CONTAINER that lays the text out, painted in
+   that container's own background phase. A <mark> inline in a paragraph is not
+   that container, so its yellow goes down on top of the backplate and survives.
+   This <time> is a flex item of an inline-flex day — blockified, its own block
+   container — so the backplate goes down AFTER its background and takes the
+   plate with it: a white plate in the light scheme, where MarkText still reads
+   on it, and a black plate in the dark one, where it does not.
+
+   `forced-color-adjust: none` is the one declaration that stops the backplate,
+   and it does not leave the reader's palette — every value below is a system
+   colour keyword and still resolves to the theme under it. Verified by render:
+   the lit day is a yellow plate with a black numeral and a black rule in both
+   schemes, which is the drawing every other rung of the found state already
+   makes. base.css carries the same escape on `mark` / `.cf-mark`, where it
+   changes nothing today and covers the day someone blockifies a match; it
+   cannot reach this rule, which is why the declaration is restated here rather
+   than inherited from there. What was deferred to base.css was one declaration,
+   not a change of pair.
+
+   The three highlight PSEUDO-elements are still the half nothing reaches:
+   Chromium discards every author declaration on ::target-text and
+   ::highlight(), and forced-color-adjust inside a highlight pseudo is not on
+   the closed property list. base.css records that measurement. It costs this
+   component nothing — a day is an element. */
 @media (forced-colors: active) {
   .cf-calendar__day[aria-current="date"] > time {
+    forced-color-adjust: none;
     background-color: Mark;
     color: MarkText;
     -webkit-text-fill-color: MarkText;

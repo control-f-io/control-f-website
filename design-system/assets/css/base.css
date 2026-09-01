@@ -475,7 +475,8 @@ a:not([class]) {
    MEASURED BY RENDERING, because the computed style was right in the case
    that failed. Chromium 149 and 151, forced-colors: active, prefers-color-
    scheme light and dark, the five rungs on a served page, the screenshots
-   read back pixel by pixel:
+   read back pixel by pixel. This is the state the two CanvasText declarations
+   below were written against, and it is history now:
 
      light   .cf-mark           black ink, black ground line       correct
              .cf-mark--current  yellow plate, black ink, rule      correct
@@ -490,6 +491,51 @@ a:not([class]) {
    computed value came back rgb(0, 0, 0): there is no reading of this file,
    and no computed style, that could have found it. Only the screenshot.
 
+   THE BACKPLATE IS PAINTED OVER THE ELEMENT'S OWN BACKGROUND, and that is
+   the second half of this, reached from a report that the two element rungs
+   were black blocks under the dark palette. Chromium lays an opaque Canvas-
+   coloured plate behind every run of text in this mode, so that text over an
+   image stays readable. The plate does not belong to the text's own box: it
+   belongs to the BLOCK CONTAINER that lays the text out, and it is painted
+   in that container's background phase. For an inline <mark> in a paragraph
+   the container is the paragraph, so the backplate goes down BEFORE the
+   mark's inline background and the yellow covers it. Blockify the mark and
+   the container IS the mark: the backplate goes down after its own
+   background, and the plate the rung is made of is gone.
+
+   Measured, Chromium 151, forced-colors: active, both schemes, one <mark
+   class="cf-mark--current"> per structural case on a served page, the
+   element screenshotted and the pixels counted:
+
+     inline in a <p>       both   yellow plate, black ink, rule    correct
+     inside an inline-box  both   yellow plate, black ink, rule    correct
+     inside .text-foil     both   yellow plate, black ink, rule    correct
+     flex item             light  WHITE plate, black ink           plate gone
+                           dark   BLACK BLOCK. No ink at all.
+     grid item             the same two, and so does display: block
+
+   So the reported failure was again not the one that reproduced, and the
+   thing at risk on these two rungs was never the ink or the pair — it was
+   the plate, and only where a mark is the block container of its own text.
+   Every match this system ships is inline and renders correctly in both
+   palettes today. `forced-color-adjust: none` is the one declaration that
+   stops the backplate, and it does NOT leave the reader's palette: every
+   value in these two rules is a system colour keyword, and a system colour
+   keyword still resolves to the theme under the escape. Re-measured with it
+   in place, the blockified cases arrive at the inline case's drawing in both
+   palettes and the inline cases do not move by a pixel. It is taken here
+   because the class is the system's public rung and cannot know what it will
+   be put on — found.html says an element rung could carry a border and a
+   corner and is held back to the pseudo-element's means, which is a promise
+   about drawing and not about display.
+
+   THAT IS THE FIX THE CALENDAR WAS WAITING FOR, and it is not applied from
+   here. .cf-calendar__day[aria-current="date"] > time is a flex item and had
+   exactly the black block above; it is not a .cf-mark and no selector in
+   this block reaches it, so its own rule in components.css carries its own
+   copy of the escape. What that note deferred to base.css was one
+   declaration and not a change of pair, and it now says so.
+
    NOT ButtonFace / ButtonText, which is where .cf-pagination__page[aria-
    current] went for the neighbouring finding. Measured on the same run:
    ButtonFace resolves to the SAME value as Canvas in both palettes — white
@@ -499,25 +545,39 @@ a:not([class]) {
    that component and not about this one: the current page renders there as a
    bare numeral, no plate and no border, in both palettes. Legible, which is
    what its comment checked; no longer saying "you are here", which is what
-   it draws.)
+   it draws. Its slot is an inline-flex box, so it is the blockified case
+   above and the escape reaches it too — measured, Mark under the escape
+   gives it back a yellow plate with a black numeral in both palettes. That
+   is that component's call to make, not this section's.)
 
    THE THREE HIGHLIGHT PSEUDO-ELEMENTS ARE NOT STYLEABLE HERE AT ALL, and
-   that is the half of this no choice of pair can reach. Chromium paints
-   ::target-text, ::highlight(cf-found) and ::highlight(cf-found-current)
-   with the UA's own Highlight / HighlightText and discards every author
-   declaration in this block. Rendered against four candidates — Mark/
-   MarkText, ButtonFace/ButtonText, transparent + CanvasText, and
-   forced-color-adjust: none carrying the brand's own lime — all four came
-   back as the identical solid plate with no ground line, the contour rung
-   and the light rung indistinguishable. The one lever that does work is
-   forced-color-adjust: none on the ORIGINATING element, which would mean
-   setting it on every element that can contain a match, which is the running
-   text of the site: opting the page out of forced colours to keep a drawing
-   about accessibility. Not taken. So the three rules below are correct and,
-   on Chromium today, inert — written anyway, because they are what a
-   conforming engine paints, because five rungs staying one drawing is the
-   thing this section exists to hold, and because the day the engine honours
-   them nothing here needs revisiting.
+   that is the half of this no choice of pair, and no escape, can reach.
+   Chromium paints ::target-text, ::highlight(cf-found) and
+   ::highlight(cf-found-current) with the UA's own Highlight / HighlightText
+   and discards every author declaration in this block. Re-measured when the
+   escape went onto the element rungs, in case the engine had moved: the two
+   ::highlight() names and ::target-text were screenshotted against the rules
+   as they stand, against the same rules carrying forced-color-adjust: none
+   INSIDE the pseudo, and against magenta and lime — colours no palette
+   contains, so an honoured declaration could not be mistaken for anything
+   else. All three variants came back byte for byte identical in both
+   schemes: one solid UA plate, no ground line, the contour rung and the
+   light rung told apart only by the current range's plate being painted
+   twice. forced-color-adjust is not on the closed list of properties a
+   highlight pseudo accepts, and Chromium treats it accordingly.
+
+   The one lever that does work is still forced-color-adjust: none on the
+   ORIGINATING element — measured again on #find-scope, where both rungs
+   immediately take their Mark plate and their ground line and become two
+   drawings again. It would mean setting it on every element that can contain
+   a match, which is the running text of the site: opting the page out of
+   forced colours to keep a drawing about accessibility. Not taken. The
+   escape two rules up is the opposite trade and that is why it is affordable
+   — it lands on the mark, which is a word, and not on the prose around it.
+   So the three rules below are correct and, on Chromium today, inert —
+   written anyway, because they are what a conforming engine paints, because
+   five rungs staying one drawing is the thing this section exists to hold,
+   and because the day the engine honours them nothing here needs revisiting.
 
    ::selection has its own system pair and the UA applies it unasked. */
 @media (forced-colors: active) {
@@ -528,8 +588,15 @@ a:not([class]) {
      have inherited. Leaving it to the mode is the thing that does not work:
      <mark> carries a UA colour of its own and the mode re-forces it to
      MarkText. Only an ELEMENT rung has an ink to lose this way, which is why
-     ::highlight(cf-found) below still supplies none. */
+     ::highlight(cf-found) below still supplies none.
+
+     The escape is on this rung too, where it changes nothing that renders
+     today — the contour rung has no plate for a backplate to cover. It is
+     here so the two element rungs answer the mode the same way: one of them
+     needing it and the other not is a difference in their DISPLAY, not in
+     the drawing, and this file has no way to say that in a selector. */
   :where(mark), .cf-mark {
+    forced-color-adjust: none;
     color: CanvasText;
     -webkit-text-fill-color: CanvasText;
     text-decoration-color: CanvasText;
@@ -542,8 +609,14 @@ a:not([class]) {
      by none of them. MarkText is the value that is guaranteed against Mark —
      and it is guaranteed against nothing else, which is the whole reason the
      ground line one declaration below is not MarkText too. The rule lands on
-     the page, not on the plate. */
+     the page, not on the plate.
+
+     The escape is what keeps that plate on the page at all where the mark is
+     the block container of its own text, and it is stated before the pair
+     rather than after it so the order reads the way the paint does: stop the
+     backplate, then name what goes where it would have been. */
   .cf-mark--current {
+    forced-color-adjust: none;
     background-color: Mark;
     color: MarkText;
     -webkit-text-fill-color: MarkText;
