@@ -1793,7 +1793,11 @@ hr {
    The unenhanced state is the fallback: the element keeps its inherited
    colour and nothing is clipped. Only inside @supports does the text go
    transparent, so a browser without background-clip:text, a printer, and
-   Windows high-contrast all get solid, legible type.
+   Windows high-contrast all get solid, legible type — and so does a reader
+   who has asked for more contrast, which is the one door of the four that
+   a request opens rather than a limitation. See THE FOURTH DOOR below the
+   forced-colours block, and scripts/check-foil-doors.py, which holds every
+   clipping context to all three.
    -------------------------------------------------------------------------- */
 .text-foil {
   /* Declared here and not only in the @supports block below, so the modifier
@@ -2049,6 +2053,59 @@ hr {
     background: none;
     color: CanvasText;
     -webkit-text-fill-color: CanvasText;
+  }
+}
+
+/* THE FOURTH DOOR, and the one a request opens rather than a limitation.
+   Paper cannot carry a background image, forced colours has a palette of its
+   own, and an engine without the clip never enters the enhanced block. None
+   of those is the reader asking for anything. prefers-contrast: more is —
+   and until this block existed nothing in the system answered it: not one
+   rule in the four shipping stylesheets read the query, so a reader who had
+   set it was handed exactly the page everyone else gets.
+
+   The foil is the right place to start because it is the one material here
+   that TRADES contrast for light on purpose. A ramp is a set of inks and its
+   floor is its lightest one; every stop clears AA and the ink half clears
+   AAA for large type, and that is the design, not a shortfall. Solid ink on
+   the same surface is one ink at the top of the range:
+
+                                  foil, worst stop     solid, --text-primary
+     .text-foil       on Schwarz      11.90:1               21.00:1
+     .text-foil--ink  on CF-Grau       5.24:1               13.48:1
+     .text-foil--ink  on Weiss         8.16:1               21.00:1
+
+   A request is answered in full or not at all — the sentence the
+   reduced-transparency block at the foot of tokens.css already lives by.
+   So the answer is not a darker foil. The 900 band would measure 10.2–11.8:1
+   on CF-Grau and would not be a foil: Glas 900 is C 0.0075, under the ~0.018
+   at which Chromium renders a stop's hue at all (see THE ARC in tokens.css),
+   so its first leg would ship flat. The answer is the solid ink the element
+   inherits from its surface. --text-primary and not --cf-schwarz, because
+   this door is open on both surfaces: it resolves to Weiss inside
+   data-theme="inverse" and to Schwarz outside, which is exactly the ink each
+   variant of the foil stands in for.
+
+   The swing on this class's own view() timeline stops with the image — not
+   because it would show, it turns an angle nothing is drawn at, but because
+   a scroll-scrubbed animation on a property nothing reads is work done for
+   no reader. A consumer that drives --sight-v on a timeline of its own keeps
+   doing so: .cf-footer__title scrubs it off the footer's arrival with an
+   animation-name longhand in components.css, which loads after this file
+   and wins at equal specificity. Measured under the setting, the title
+   renders solid Weiss with the keyframes still attached and nothing to
+   turn. That is that component's declaration to make, and it is left.
+
+   scripts/check-foil-doors.py holds this: every clipping context in the
+   shipping CSS hands its ink back at all three doors, in every state it
+   clips in, and a third context added later without them fails there rather
+   than in a screenshot nobody takes at this setting. */
+@media (prefers-contrast: more) {
+  .text-foil {
+    background: none;
+    color: var(--text-primary);
+    -webkit-text-fill-color: var(--text-primary);
+    animation: none;
   }
 }
 

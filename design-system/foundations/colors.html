@@ -1171,13 +1171,45 @@
       </p>
     </div>
     <div class="docs-note">
-      <strong>What it falls back to.</strong>
+      <strong>What it falls back to — four doors, and the fourth is the reader's.</strong>
       <p>
         The clip lives inside <code>@supports</code>, so the unenhanced state is simply the
         inherited solid colour — nothing is transparent until the browser has proved it can
         clip. Print and <code>forced-colors</code> both reset to solid type. Both variants
         share every one of those rules: <code>--ink</code> is a modifier that swaps one
         custom property, <code>--foil-ramp</code>, so it cannot drift out of the safety net.
+      </p>
+      <p>
+        Those three are limitations: paper cannot carry the ramp, forced colours has a
+        palette of its own, an old engine cannot clip. <code>prefers-contrast: more</code> is
+        a <em>request</em>, and until now nothing in the system read it — not one rule in the
+        four shipping stylesheets — so a reader who had set it was handed the foil at its
+        floor. The foil is the one material here that trades contrast for light on purpose,
+        so it is where that answer has to start:
+      </p>
+      <table class="docs-table">
+        <thead><tr><th>Where</th><th>Foil, worst stop</th><th>More contrast, solid <code>--text-primary</code></th></tr></thead>
+        <tbody>
+          <tr><td><code>.text-foil</code> on Schwarz</td><td>11.90:1</td><td>21.00:1</td></tr>
+          <tr><td><code>.text-foil--ink</code> on CF-Grau</td><td>5.24:1</td><td>13.48:1</td></tr>
+          <tr><td><code>.text-foil--ink</code> on Weiss</td><td>8.16:1</td><td>21.00:1</td></tr>
+          <tr><td><code>.cf-btn--solid</code> label on Schwarz</td><td>11.90:1</td><td>21.00:1 (Weiss; the plate stays)</td></tr>
+        </tbody>
+      </table>
+      <p>
+        A request is answered in full or not at all — the rule the reduced-transparency
+        fallback already lives by. So the answer is solid ink and not a darker foil: the 900
+        band would measure 10.2 – 11.8:1 on CF-Grau and would not be a foil, because Glas 900
+        is C 0.0075, under the ~0.018 at which Chromium renders a stop's hue at all (see
+        <a href="#the-arc">The arc</a>). The ink is <code>--text-primary</code> rather than
+        Schwarz because the door is open on both surfaces — Weiss inside an inverse section,
+        Schwarz outside — which is exactly the ink each variant stands in for. The swing on the
+        class's own timeline stops with the image; a component that scrubs the squareness on a
+        timeline of its own, as the footer title does, keeps turning an angle nothing reads.
+        <code>scripts/check-foil-doors.py</code> holds every clipping context
+        in the shipping CSS to all three doors, in every state it clips in — which is how it
+        found that the black button's print and forced-colours doors had been written for the
+        resting button only and were beaten on hover by the rule that restates the clip.
       </p>
     </div>
     <div class="docs-note">
