@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signet — Control-F Design System</title>
+<link rel="icon" href="../assets/img/logo/cf-favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* Documentation chrome only. Every value here is a token — this block is
+     read by scripts/check-class-provenance.py, which fails a literal where a
+     token exists. */
+  /* min(9rem, 100%) and not a bare 9rem. A track minimum written in rem stops
+     being a minimum and becomes a floor the container cannot get under, and it
+     answers to the reader's text size rather than to the column. Measured at a
+     32 px root on a 375 px phone: the wall's content box is 149 px and a bare
+     9rem lays 288 px of track into it — 139 px of the grid outside its own
+     frame, 194 px of it at 320. With min() it is 149 and 94, which is to say
+     exactly the column. */
+  .sig-wall {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(9rem, 100%), 1fr));
+    gap: var(--space-6);
+  }
+  .sig-wall figure { margin: 0; display: grid; gap: var(--space-2); justify-items: start; }
+  .sig-wall figcaption {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    color: var(--text-secondary);
+    word-break: break-all;
+  }
+  .sig-row { display: flex; gap: var(--space-8); align-items: flex-end; flex-wrap: wrap; }
+  .sig-row figure { margin: 0; display: grid; gap: var(--space-2); justify-items: center; }
+  .sig-row figcaption {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    color: var(--text-secondary);
+  }
+  /* min-width: 0 on every box between the frame and the <pre>. A grid item and
+     a flex item both default to a min-width of auto, and the printed SVG's
+     min-content width is one unbreakable 100-character line — so without this
+     the track sizes to the code and the whole page scrolls sideways instead of
+     the code block scrolling inside itself. */
+  .sig-print { display: grid; gap: var(--space-3); min-width: 0; }
+  .sig-print label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .sig-print input {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    padding: var(--space-2) var(--space-3);
+    border: var(--stroke-1) solid var(--border-default);
+    border-radius: var(--radius-none);
+    background: var(--surface-raised);
+    color: var(--text-primary);
+    width: 100%;
+    max-width: 28rem;
+  }
+  .sig-print__stage {
+    display: flex;
+    gap: var(--space-6);
+    align-items: flex-start;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .sig-print__code { flex: 1 1 22rem; min-width: 0; }
+  /* data-theme="inverse" flips the semantic tokens and does not paint a
+     ground — the section it is meant for brings its own. A demo frame has to
+     bring one too, or the inverse marks and their white labels stand on the
+     light wash and neither can be read. */
+  .sig-inverse {
+    background: var(--surface-page);
+    color: var(--text-primary);
+  }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Components</p>
+    <h1>Signet</h1>
+    <p>
+      A mark that stands for one thing and is drawn from that thing's own name. Nine plots
+      of the isometric lattice, blocks standing on some of them, and one face carrying the
+      light. The same name always draws the same mark; two names never draw the same one by
+      accident.
+    </p>
+    <div class="docs-note">
+      <strong>Nothing in it is a new shape.</strong> The object is the one on
+      <a href="../foundations/geometry.html#objects">Geometry &amp; Lines · Isometric objects</a>
+      — the brand's standard building block, stacked cuboids on the 2:1 lattice, top faces
+      filled, 1&nbsp;px contours, exactly one element carrying the lime gradient. What the
+      name decides is only where the blocks stand and how high, which is the one degree of
+      freedom that object already had.
+    </div>
+  </header>
+
+  <section class="docs-section" id="demo">
+    <h2>The set</h2>
+    <p>
+      Ten marks, seeded with the ten post slugs in <code>content/news/</code>. One of them
+      carries the light; the rest are ink. That ratio is the component's default and the
+      reason for it is <a href="#light">below</a>.
+    </p>
+    <div class="docs-demo">
+      <div class="sig-wall" id="wall"></div>
+    </div>
+    <p>
+      They are siblings and none of them is a variation on another. That is what a mark
+      generated inside a construction system buys over one generated inside a hash: the
+      family resemblance is not a style applied afterwards, it is the only thing the
+      generator can draw.
+    </p>
+  </section>
+
+  <section class="docs-section" id="construction">
+    <h2>Construction</h2>
+    <p>
+      The frame is a 120&nbsp;×&nbsp;120 <code>viewBox</code>. The lattice cell is
+      36&nbsp;×&nbsp;18 — 2:1, so every ground edge is 26.57° and every vertical is 90°,
+      and no angle is ever typed into the generator. A storey is 18&nbsp;px, which is
+      twice the cell's half-height and is what makes each block a cube rather than a slab.
+      Plot <code>(a, b)</code> of the 3&nbsp;×&nbsp;3 field has its centre at
+    </p>
+    <pre class="docs-code">x = 60 + (a - b) * 18
+y = 69 + (a + b) * 9</pre>
+    <p>
+      and the field is painted in order of <code>a + b</code>, back to front, so a near
+      tower covers a far one and the mark reads as depth rather than as pattern. Every
+      coordinate the generator emits is an integer.
+    </p>
+
+    <h3>The alphabet is finite, and its density is fixed</h3>
+    <p>
+      The nine heights are not nine independent draws. They are a permutation of one fixed
+      multiset —
+    </p>
+    <pre class="docs-code">0 0 0 1 1 2 2 3 3</pre>
+    <p>
+      — so every signet in the set has exactly three empty plots, exactly two towers at full
+      height, and exactly the same quantity of ink. The name chooses the arrangement and
+      nothing else. That is
+      9!&nbsp;/&nbsp;(3!&nbsp;2!&nbsp;2!&nbsp;2!)&nbsp;=&nbsp;<strong id="count">7560</strong>
+      distinct marks, and it is the reason the set has no outliers: there is no name that
+      draws an empty field and none that draws a solid block.
+    </p>
+    <div class="docs-note">
+      <strong>This is the part a hash-into-free-parameters generator cannot promise.</strong>
+      The identicon convention — a symmetrical pixel grid in a hashed hue — is deterministic
+      and unique and belongs to no brand at all, and its density swings from nearly blank to
+      nearly solid across the set. Fixing the multiset moves the variation into arrangement,
+      where the construction system can still govern it. The number above is computed from
+      the multiset at run time by <code>CFSignet.count</code>, so it cannot drift from the
+      line it describes.
+    </div>
+
+    <h3>The name becomes an arrangement</h3>
+    <p>
+      FNV-1a over the name gives 32 bits; an xorshift32 seeded from those bits drives a
+      Fisher–Yates shuffle of the nine heights. Both are chosen for being short, table-free
+      and identical in Python — which will matter on the day the share plates are written by
+      a build script rather than by the browser. The same name gives the same arrangement in
+      every engine, on every machine, for as long as the name exists; nothing is stored.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Seed</th><th>Heights, plot 0 → 8</th></tr></thead>
+      <tbody id="heights-table"></tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="light">
+    <h2>The one lime moment, and why it is not the default</h2>
+    <p>
+      Of the two full-height towers the light goes on the <strong>frontmost</strong> — largest
+      <code>a + b</code>, ties to the larger <code>a</code> — and never on both. One lime
+      moment per mark, which is the manual's rule about a screen applied to an object.
+    </p>
+    <p>
+      But it is still possible to put twenty lit signets on one screen, and that is the one
+      place in this system where an object could break the rule twenty times over without any
+      single mark being wrong. So <strong>the ink form is what the generator emits unless it
+      is asked otherwise</strong>. <code>--ink</code> paints the peak in the same tone as
+      every other top face; the light is opt-in, once, on the mark that is the screen's lime
+      moment.
+    </p>
+    <div class="sig-row" id="light-row"></div>
+
+    <h3>The lit face reads as Glas, and that is the source material, not a mistake</h3>
+    <p>
+      The gradient is the family's — lime → Glas → CF-Grau on the near rake, 63.43°, with the
+      <code>#DBFC60</code> waypoint at 19&nbsp;% of the lime leg that every drawing in this
+      system carries. Its axis is the designer's own, scaled: on
+      <a href="../foundations/geometry.html#objects">the stack in Geometry</a> the lit rhombus
+      is 240&nbsp;px wide and its gradient runs (80,&nbsp;160) from a point 50 left and 80
+      above the centre. This rhombus is 36&nbsp;px wide, so both are multiplied by 0.15 and
+      land on (12,&nbsp;24) from (−7.5,&nbsp;−12).
+    </p>
+    <p>
+      Projected onto that axis, the face spans <code>t = 0.225</code> to
+      <code>t = 0.824</code> — which is past the lime stop at both ends. <strong>Lime itself
+      never lands on the face; what lands on it is the leg just after lime, and by the
+      opposite corner it is Glas.</strong> That is true of the designer's stack in exactly the
+      same proportion, because the axis was scaled rather than re-placed, and it is what the
+      manual means by light as a temporary effect rather than a fill: the lime is off the edge
+      of the surface and what you see is the fall-off. Re-anchoring the axis to the face would
+      put a flat lime lozenge on a 36&nbsp;px rhombus and break the family in one object.
+    </p>
+    <div class="docs-note">
+      <strong>The stops are written as attributes and not as classes.</strong>
+      <code>scripts/check-gradient-family.py</code> walks every gradient the site ships and
+      recomputes the waypoint's offset from the leg's own ends and its colour from the oklab
+      path. It reads the SVG. A stop whose colour lives in a stylesheet is a stop it cannot
+      see, and a gradient it cannot see is a gradient that drifts.
+    </div>
+  </section>
+
+  <section class="docs-section" id="sizes">
+    <h2>Three sizes, and what the smallest one drops</h2>
+    <div class="docs-demo">
+      <div class="sig-row" id="sizes-row"></div>
+    </div>
+    <p>
+      An empty plot is <em>drawn</em> and not omitted: the field is nine plots whether or not
+      anything stands on them, and a plot with nothing on it is exactly the presence ladder's
+      faint rung — the 1-2 line, this system's word for a thing that is there and is not the
+      subject. Leaving it out would make the mark a silhouette; drawing it solid would make
+      nine towers of which three happen to be flat.
+    </p>
+    <p>
+      <strong>At <code>--sm</code> that line stops being a line.</strong> 3&nbsp;rem is
+      48&nbsp;px, the frame scales by 0.4, and a 2-on-4 dash lands at roughly one device pixel
+      on and two off — which does not read as an outline, it reads as dirt on the mark. So
+      <code>--sm</code> drops the empty plots and the four construction dots with them, and
+      keeps what survives at that size: the blocks, the contour, and the light. Set
+      <code>--signet-size</code> below 4&nbsp;rem by hand and you own that decision yourself.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Class</th><th>Size</th><th>Where</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-signet--sm</code></td><td>3 rem</td><td>A row in a list: a search hit, a topic chip, a related-article line. Plots and dots dropped.</td></tr>
+        <tr><td><code>.cf-signet</code></td><td>6 rem</td><td>The default. A card that has no photograph.</td></tr>
+        <tr><td><code>.cf-signet--lg</code></td><td>12 rem</td><td>A page's own mark: an article's title plate, a topic page's header, a share plate.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="markup">
+    <h2>The markup</h2>
+    <p>
+      There are two ways to put a signet on a page and they are <strong>not</strong>
+      equivalent.
+    </p>
+
+    <h3>1. The mark is in the HTML</h3>
+    <p>
+      Paste the SVG. It is in the markup, it is in the first paint, and it survives
+      <code>cf-signet.js</code> being blocked, cached stale or switched off. This is the only
+      correct form for a mark a crawler has to see — a share plate above all, because the
+      crawler runs no script at all. Print it for any name here:
+    </p>
+    <div class="docs-demo">
+      <div class="sig-print">
+        <label for="seed">Name</label>
+        <input id="seed" type="text" value="energie-im-verteilnetz" spellcheck="false" autocomplete="off">
+        <div class="sig-print__stage">
+          <div id="print-mark"></div>
+          <pre class="docs-code sig-print__code" id="print-code"></pre>
+        </div>
+      </div>
+    </div>
+
+    <h3>2. The page names the seed and the script draws it</h3>
+    <p>
+      For documentation, and for surfaces whose items are not known when the page is written.
+      An element carrying <code>data-cf-signet</code> is filled on
+      <code>DOMContentLoaded</code>; an element that already holds an <code>&lt;svg&gt;</code>
+      is left alone, so a page that pasted its markup <em>and</em> loads the script keeps the
+      pasted one — the same rule <code>cf-icons.js</code> applies to a pasted sprite, and for
+      the same reason.
+    </p>
+    <pre class="docs-code">&lt;<span class="tag">span</span> <span class="attr">data-cf-signet</span>=<span class="val">"energie-im-verteilnetz"</span>
+      <span class="attr">data-cf-signet-lit</span>
+      <span class="attr">data-cf-signet-label</span>=<span class="val">"Energie im Verteilnetz"</span>&gt;&lt;/<span class="tag">span</span>&gt;
+&lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="val">"../assets/js/cf-signet.js"</span>&gt;&lt;/<span class="tag">script</span>&gt;</pre>
+
+    <h3>The API</h3>
+    <table class="docs-table">
+      <thead><tr><th>Call</th><th>Returns</th></tr></thead>
+      <tbody>
+        <tr><td><code>CFSignet.svg(seed, options)</code></td><td>The complete <code>&lt;svg&gt;</code> as a string. Options: <code>lit</code>, <code>label</code>, <code>id</code>, <code>class</code>.</td></tr>
+        <tr><td><code>CFSignet.mount(root)</code></td><td>Fills every <code>[data-cf-signet]</code> in a subtree. Runs itself once on load.</td></tr>
+        <tr><td><code>CFSignet.heights(seed)</code></td><td>The nine heights, plot 0 → 8. The mark as data.</td></tr>
+        <tr><td><code>CFSignet.hash(seed)</code></td><td>The 32-bit FNV-1a. Exposed so a build script can be proved to agree with the browser.</td></tr>
+        <tr><td><code>CFSignet.count</code></td><td>The size of the alphabet, computed from the multiset.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>Class</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><td>Root</td><td><code>.cf-signet</code></td><td>The 120 × 120 frame. Carries <code>--signet-size</code>, the three face tones and <code>--signet-contour</code>.</td></tr>
+        <tr><td>Ink form</td><td><code>.cf-signet--ink</code></td><td>No light. The peak is a top face like any other. The default.</td></tr>
+        <tr><td>Top face</td><td><code>.cf-signet__top</code></td><td><code>#DADADA</code> — the designer's lightest of the three tones.</td></tr>
+        <tr><td>Left face</td><td><code>.cf-signet__left</code></td><td><code>var(--cf-grau)</code>. The only one of the three with a token.</td></tr>
+        <tr><td>Right face</td><td><code>.cf-signet__right</code></td><td><code>#C4C4C4</code>. Darkest, so the light comes from the upper left.</td></tr>
+        <tr><td>Lit face</td><td><code>.cf-signet__lit</code></td><td>The family's ramp as a paint server. Its fill comes from the markup, so the stylesheet must not name one.</td></tr>
+        <tr><td>Empty plot</td><td><code>.cf-signet__plot</code></td><td>The ground rhombus at the faint rung, <code>--presence-faint</code>. Three per mark.</td></tr>
+        <tr><td>Construction dots</td><td><code>.cf-signet__dots</code></td><td>Four, on the lit face's own vertices and nowhere else. Off the manual's stack.</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The three face tones are measured off the isometric stack in
+      <a href="../foundations/geometry.html#objects">Geometry</a> and off
+      <code>01-discovery.svg</code> under it. Two of the three are written as literals in
+      <code>components.css</code>, for the reason the ramp waypoints are literals in
+      <code>tokens.css</code>: they are values read off the source material, and a token
+      naming them would be a token with one consumer and an invented name.
+    </p>
+    <p>
+      On an inverse section the three cannot simply invert — black is the floor of the neutral
+      scale, so the steps climb instead, which is the move <code>tokens.css</code> already
+      makes for that theme. The order is kept, so the light still comes from the upper left.
+      The lit face keeps the ramp unchanged: lime on black is the one place in the system where
+      the light is at its loudest, and that is the point of it.
+    </p>
+    <div class="docs-demo sig-inverse" data-theme="inverse">
+      <div class="sig-row" id="inverse-row"></div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="naming">
+    <h2>Naming it, and when it is not a picture</h2>
+    <p>
+      A signet is <strong>decorative wherever the thing it stands for is named beside it</strong>
+      — a card whose title is right there, a row in a list. There the mark is
+      <code>aria-hidden</code>, which is what the generator emits when no label is passed, and
+      a screen reader hears the title once instead of twice.
+    </p>
+    <p>
+      Pass <code>label</code> only where the mark <em>is</em> the item's face and no text
+      repeats it. Then it is <code>role="img"</code> with an accessible name, and the name is
+      the item's title in words — never the seed, and never "signet" or "generated mark", which
+      describe the drawing rather than the thing.
+    </p>
+    <p>
+      It carries no motion and needs no <code>prefers-reduced-motion</code> branch: the mark is
+      still. Under <code>forced-colors</code> the three face greys would go out together, so the
+      mark collapses to what it is under the paint — a contour drawing on the canvas, with the
+      lit face left as the one filled shape, so the moment survives a mode that has no lime in it.
+    </p>
+  </section>
+
+  <section class="docs-section" id="launch">
+    <h2>Where this is meant to go, and the one thing in front of it</h2>
+    <p>
+      This component exists because of a gap that has nothing to do with news cards.
+      <strong>The site ships no Open Graph metadata at all</strong> — no <code>og:title</code>,
+      no <code>og:description</code>, no <code>og:image</code>, no Twitter card, on any of the
+      eighteen pattern pages in either edition. Every link to control-f.de posted into LinkedIn,
+      Slack, Teams or a message renders today as a bare address. For a company whose readers
+      pass its writing to each other, that is the most-seen brand surface there is, and it is
+      blank.
+    </p>
+    <p>
+      The signet is the plate for it, and the four surfaces beneath it are the same asset at
+      other sizes:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Surface</th><th>Seed</th><th>Size</th><th>State</th></tr></thead>
+      <tbody>
+        <tr><td>Share plate — <code>og:image</code></td><td>The page's own path</td><td><code>--lg</code>, on a 1200 × 630 plate</td><td>Blocked. See below.</td></tr>
+        <tr><td>An article with no <code>bild:</code></td><td>The post's slug</td><td><code>--lg</code></td><td>Ready. Dormant — all ten posts currently carry a picture.</td></tr>
+        <tr><td>A topic page's header</td><td>The topic's slug</td><td><code>--lg</code></td><td>Ready.</td></tr>
+        <tr><td>A search hit</td><td>The hit's address</td><td><code>--sm</code></td><td>Ready. Wants a designer's eye on a results list first.</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note docs-note--warn">
+      <strong>The share plate needs one decision this system cannot make for itself.</strong>
+      Every consumer of <code>og:image</code> — LinkedIn, Slack, iMessage, WhatsApp — requires a
+      raster. SVG is not accepted by any of them. This repository has no build dependencies and
+      the house rule is that it stays that way, so there are three routes and each costs
+      something:
+      <br><br>
+      <strong>1. A Python rasteriser in <code>scripts/</code>.</strong> <code>zlib</code> is in
+      the standard library, so writing the PNG is the easy half; the hard half is filling and
+      anti-aliasing nine polygons and a gradient, which is a few hundred lines of code the
+      system would then own forever. No dependency, real weight.
+      <br><br>
+      <strong>2. The Worker renders it.</strong> There is already a Cloudflare Worker in
+      <code>worker/</code>. A route that draws the signet and returns a PNG keeps the repository
+      dependency-free and moves the cost to runtime and to a cache. It also means a crawler's
+      first fetch is a cold render.
+      <br><br>
+      <strong>3. A fixed set, exported by hand.</strong> Twenty plates for twenty routes, drawn
+      once in a vector editor from the generator's output. No machinery at all, and it stops
+      being true the day an eleventh post is published.
+      <br><br>
+      <strong>The metadata itself is not blocked by any of this.</strong>
+      <code>og:title</code>, <code>og:description</code>, <code>og:type</code>,
+      <code>og:url</code>, <code>og:locale</code> and its alternate, <code>og:site_name</code>
+      and the Twitter equivalents are text, they are already written on every page as
+      <code>&lt;title&gt;</code> and <code>meta[name=description]</code>, and
+      <code>build-i18n.py</code> already flips a page's language pair. That half should land
+      first and does not need the answer above.
+    </div>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Seed it with something <strong>stable and unique</strong> — a slug, a path, an id. That is what makes the mark an identity rather than a decoration.</li>
+          <li>Paste the SVG on any page a crawler reads. The script is for documentation and for lists the page does not know in advance.</li>
+          <li>Use the ink form by default, and light exactly one mark per screen.</li>
+          <li>Leave it <code>aria-hidden</code> wherever the item's title stands beside it.</li>
+          <li>Reach for <code>--sm</code> in a list and <code>--lg</code> where the mark is the page's own face.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Never seed it with a title, a date or anything a person may edit. Renaming the thing must not redraw its mark.</li>
+          <li>Don't put a signet where a photograph exists. It is the answer to <em>no picture</em>, not a second picture.</li>
+          <li>Don't light two on one screen, and don't light one on a screen that already has its lime moment.</li>
+          <li>Don't set <code>--signet-size</code> below 4 rem without dropping the plots — <code>--sm</code> does it for you.</li>
+          <li>Don't add heights to the multiset to get "more variety". Density is a property of the system; 7560 arrangements is not the constraint you think it is.</li>
+          <li>Don't animate it. It is a mark, not an illustration — the moving objects in this system are on <a href="../foundations/motion.html">Motion</a>.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../assets/js/cf-signet.js"></script>
+<script>
+  (function () {
+    'use strict';
+    var SEEDS = [
+      '2026-05-20-wie-die-bodenseeregion-von-vernetzten-datenplatt',
+      '2026-05-28-predictive-maintenance-fuer-kommunale-energiever',
+      '2026-06-11-databricks-vs-snowflake-welche-datenplattform-pa',
+      '2026-06-22-wie-wir-mit-digitalisierung-im-verteilnetz-wenig',
+      '2026-06-30-batteriespeicher-als-flexibilitaets-asset-warum-',
+      '2026-07-08-gastbeitrag-ki-ist-notwendigkeit-fuer-die-effizi',
+      '2026-07-08-ki-im-netzbetrieb-wie-llm-cluster-gegen-den-unko',
+      '2026-07-27-drei-milliarden-fuer-ein-netz-das-es-so-nicht-gi',
+      '2026-08-03-ki-kennzeichnung-was-der-ai-act-jetzt-verlangt',
+      '2026-08-14-sieben-tage-fuer-zwei-jahrzehnte-was-die-windsee'
+    ];
+
+    function figure(seed, opts, caption) {
+      return '<figure>' + CFSignet.svg(seed, opts) +
+             '<figcaption>' + caption + '</figcaption></figure>';
+    }
+
+    /* The wall. One lit, the rest ink — the ratio the component defaults to. */
+    document.getElementById('wall').innerHTML = SEEDS.map(function (s, i) {
+      return figure(s, { lit: i === 6, id: 'wall-' + i },
+                    s.replace(/^\d{4}-\d{2}-\d{2}-/, ''));
+    }).join('');
+
+    document.getElementById('count').textContent = CFSignet.count;
+
+    document.getElementById('heights-table').innerHTML = SEEDS.slice(0, 4).map(function (s) {
+      return '<tr><td><code>' + s.replace(/^\d{4}-\d{2}-\d{2}-/, '') + '</code></td>' +
+             '<td><code>' + CFSignet.heights(s).join(' ') + '</code></td></tr>';
+    }).join('');
+
+    document.getElementById('light-row').innerHTML =
+      figure(SEEDS[0], { id: 'light-ink' }, 'ink — the default') +
+      figure(SEEDS[0], { lit: true, id: 'light-lit' }, 'lit — once per screen');
+
+    document.getElementById('sizes-row').innerHTML =
+      figure(SEEDS[2], { 'class': 'cf-signet--sm', id: 'size-sm' }, '--sm · 3 rem') +
+      figure(SEEDS[2], { id: 'size-md' }, 'default · 6 rem') +
+      figure(SEEDS[2], { lit: true, 'class': 'cf-signet--lg', id: 'size-lg' }, '--lg · 12 rem');
+
+    document.getElementById('inverse-row').innerHTML =
+      figure(SEEDS[3], { lit: true, id: 'inv-lit' }, 'lit') +
+      figure(SEEDS[4], { id: 'inv-ink-a' }, 'ink') +
+      figure(SEEDS[5], { id: 'inv-ink-b' }, 'ink');
+
+    /* The printer. It is the component's own API, so what the page shows and
+       what it tells you to paste cannot come apart. */
+    var input = document.getElementById('seed');
+    var mark = document.getElementById('print-mark');
+    var code = document.getElementById('print-code');
+
+    function print() {
+      var seed = input.value || 'control-f';
+      mark.innerHTML = CFSignet.svg(seed, { lit: true, id: 'print-preview' });
+      code.textContent = CFSignet.svg(seed, { lit: true })
+                                 .replace(/></g, '>\n<');
+    }
+    input.addEventListener('input', print);
+    print();
+  }());
+</script>
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>

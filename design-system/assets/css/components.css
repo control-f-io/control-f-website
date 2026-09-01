@@ -14483,6 +14483,128 @@ a.cf-calendar__day > time,
   .cf-relay__head { filter: none; }
 }
 
+/* ==========================================================================
+   SIGNET — a mark for one thing, drawn from that thing's own name
+
+   The generator is assets/js/cf-signet.js and its header carries the whole
+   construction. This file owns only what the drawing is PAINTED in, and that
+   split is deliberate: the geometry is a property of the system and is the
+   same in every context, while the three greys are a property of the surface
+   the mark stands on and have to answer to the theme.
+
+   THE THREE FACE TONES ARE THE DESIGNER'S, off the isometric stack on
+   foundations/geometry.html and off 01-discovery.svg under it: #DADADA on
+   top, #CFCFCF on the left face, #C4C4C4 on the right. Only the middle one
+   has a token (--cf-grau). The other two are written as literals here for
+   the reason the ramp waypoints are written as literals in tokens.css —
+   they are measured values off the source material, and a token that named
+   them would be a token with one consumer and an invented name. They are the
+   light coming from the upper left, which is where the stack puts it.
+
+   IT IS INK BY DEFAULT AND LIT ON REQUEST. One lime moment per screen is a
+   rule about a screen, and a wall of signets is the one place in this system
+   where an object could break it twenty times over without any single mark
+   being wrong. So .cf-signet--ink is what the generator emits unless asked,
+   and it paints the peak in CF-Grau like every other top face. The light is
+   opt-in, once, on the mark that is the screen's lime moment.
+   → components/signet.html
+   ========================================================================== */
+.cf-signet {
+  --signet-face-top:   #DADADA;
+  --signet-face-left:  var(--cf-grau);
+  --signet-face-right: #C4C4C4;
+  --signet-contour:    var(--border-strong);
+
+  display: block;
+  width: var(--signet-size, 6rem);
+  height: auto;
+  /* The mark is square and its content is square; nothing about it wants to
+     stretch, and inside a flex row it otherwise would. */
+  flex: none;
+}
+
+.cf-signet--sm { --signet-size: 3rem; }
+.cf-signet--lg { --signet-size: 12rem; }
+
+/* AT 3 rem THE FAINT LINE STOPS BEING A LINE. The frame scales by 0.4, so the
+   1-2 dash lands at roughly one device pixel on and two off — which does not
+   read as an outline, it reads as dirt on the mark. The same arithmetic takes
+   the construction dots to 0.6 px. So the small form keeps what survives at
+   that size — the blocks, the contour and the light — and drops the two
+   annotations that do not. → components/signet.html#sizes */
+.cf-signet--sm .cf-signet__plot,
+.cf-signet--sm .cf-signet__dots { display: none; }
+
+/* Every face and every plot outline is the same 1 px contour at every size —
+   vector-effect on the shapes keeps it there, and the weight is named once
+   here rather than nine times in the generator. */
+.cf-signet polygon,
+.cf-signet circle {
+  stroke: var(--signet-contour);
+  stroke-width: var(--stroke-1);
+}
+
+.cf-signet__top   { fill: var(--signet-face-top); }
+.cf-signet__left  { fill: var(--signet-face-left); }
+.cf-signet__right { fill: var(--signet-face-right); }
+
+/* AN EMPTY PLOT IS DRAWN AND NOT OMITTED. The field is nine plots whether or
+   not something stands on them, and a plot with nothing on it is exactly the
+   presence ladder's "faint" rung — the 1-2 line, which is the system's word
+   for a thing that is there and is not the subject. Leaving it out would make
+   the mark a silhouette; drawing it solid would make nine towers of which
+   three happen to be flat. */
+.cf-signet__plot {
+  fill: none;
+  stroke-dasharray: var(--presence-faint);
+}
+
+/* The lit face carries the gradient as a paint server, so its fill comes from
+   the markup and this rule must not name one. */
+.cf-signet__lit { stroke: var(--signet-contour); }
+
+/* The construction dots off the manual's stack. They are the same black as
+   the contour and they mark the lit face alone. */
+.cf-signet__dots circle {
+  fill: var(--signet-contour);
+  stroke: none;
+}
+
+/* The ink form: the peak is a top face like any other, and the mark carries
+   no light at all. Stated as a modifier rather than as the absence of one, so
+   a page can read which form it is holding. */
+.cf-signet--ink .cf-signet__lit { fill: var(--signet-face-top); }
+
+/* On an inverse section the three tones cannot simply invert: black is the
+   floor of the neutral scale, so the steps climb instead — the same move
+   tokens.css makes for the inverse theme. The order of the three is kept
+   (top lightest, right darkest) so the light still comes from the upper left.
+   The lit face keeps the family's ramp unchanged: lime on black is the one
+   place in this system where the light is at its loudest, and that is the
+   point of it. */
+[data-theme="inverse"] .cf-signet {
+  --signet-face-top:   var(--grey-700);
+  --signet-face-left:  var(--grey-800);
+  --signet-face-right: #141414;
+  --signet-contour:    var(--border-strong);
+}
+
+/* Forced colours does not force SVG paint — the same trap sight.html's plan
+   view fell into. Nine faces in three near-identical greys would go out on a
+   dark palette together, so the mark collapses to what it is under the paint:
+   a contour drawing on the canvas, with the lit face left as the one filled
+   shape so the moment survives a mode that has no lime in it. */
+@media (forced-colors: active) {
+  .cf-signet polygon,
+  .cf-signet circle { stroke: CanvasText; }
+  .cf-signet__top,
+  .cf-signet__left,
+  .cf-signet__right { fill: Canvas; }
+  .cf-signet__lit   { fill: Highlight; }
+  .cf-signet--ink .cf-signet__lit { fill: Canvas; }
+  .cf-signet__dots circle { fill: CanvasText; }
+}
+
 /* --------------------------------------------------------------------------
    THE SHEET, PART TWO — the register of components
 
