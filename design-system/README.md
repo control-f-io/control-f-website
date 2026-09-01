@@ -343,6 +343,8 @@ python3 scripts/check-local-thresholds.py      # every page-local threshold is r
 python3 scripts/check-local-thresholds.py -v   # print the register
 python3 scripts/check-stack-layers.py          # the front door's six planes, and the one that is lit
 python3 scripts/check-stack-layers.py -v       # print the stack: every plane, its place and its route to the light
+python3 scripts/check-faq-count.py             # the counter above an accordion counts its rows
+python3 scripts/check-faq-count.py -v          # every accordion, counted or skipped, and why
 python3 scripts/build-i18n.py --check          # the English edition matches its German source
 python3 scripts/build-i18n.py --extract        # every German string with no entry in the catalogue
 ```
@@ -355,7 +357,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The fifteen checks the system enforces rather than documents, run by CI on every push and
+The sixteen checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step.
 
@@ -736,6 +738,34 @@ The two checks were written in the same hour and found the same fork from opposi
 census reports that the pinned stage on `patterns/expertise.html` and the one on
 `patterns/landing-page.html` share **eleven identical rule bodies** under `ex-` and
 `lp-proc-` prefixes; this check reports that until now they did not share the **gate**.
+
+**The counter above an accordion counts the rows under it,** and this one is here because
+another check wrote down the day it stopped being able to say so. `check-section-counts.py`
+owns `patterns/landing-page.html` — every counter on it, by a hand-kept register of what one
+item's markup looks like in each section — and it was written because four of that page's
+five counters were wrong. Its register then recorded a loss in as many words: the FAQ moved
+to `patterns/expertise.html` on 2026-08-04, *"its counter travelled with it unchanged and is
+still the true one (`6 Fragen`, six questions); what this register can no longer say is that
+it is true, because the register is this one page."*
+
+It was right that it could no longer say it, and wrong within the month about the fact. The
+migrated set grew from six questions to eleven and its counter grew with it. The two copies
+left behind did not, and both of them are documentation: `components/accordion.html`, the
+page that teaches the component, shipped `6 Fragen` over four `<details>`; and
+`components/section-header.html`, the page that publishes the counter's own four forms,
+shipped `6 Fragen` over two. Neither is visible. A counter is eleven pixels of mono at the
+end of a hairline — correct at every width, in every contrast check, in every screenshot, and
+a count of rows that do not all fit on the screen at once.
+
+The rule is narrow enough to be decidable and is scoped to one component: on every page
+except the one next door owns, a `.cf-section-header__count` standing above a `.cf-accordion`
+is read as a **position** if it carries `aria-hidden` and as a **quantity** if it does not —
+which is the distinction `section-header.html` already publishes, in the markup rather than in
+a list — and a quantity's leading integer must equal the number of `cf-accordion__item` under
+it. `karriere`'s `05` and `kontakt`'s `03` are skipped by that rule, not by being named. The
+marker is the item class for the same reason the partner wall's marker is its `<img>`: it is
+the thing the number is a count *of*, and a row cannot be drawn without it.
+→ `components/accordion.html`, `components/section-header.html#counters`
 
 ### The other half: nothing in the markup writes into a void
 

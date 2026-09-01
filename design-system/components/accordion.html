@@ -19,16 +19,23 @@
     <p>
       Full width, hairlines as the only boundary, arrow on the right. Built on
       <code>&lt;details&gt;</code> — it works without JavaScript and is keyboard operable
-      without us doing anything for it.
+      without us doing anything for it. What the stylesheet adds is a lit row on hover, a
+      panel that slides rather than jumps where the browser can do it, and nothing else.
     </p>
   </header>
 
   <section class="docs-section" id="demo">
     <h2>Default</h2>
+    <p>
+      Four of the eleven questions that ship on
+      <a href="../patterns/expertise.html">Expertise</a>, at the answer length this page
+      recommends. The counter says four because four stand under it — see
+      <a href="section-header.html">Section Header</a>.
+    </p>
     <div class="docs-demo docs-demo--plain">
       <div class="cf-section-header cf-section-header--flush">
         <span class="cf-section-header__label">FAQ</span>
-        <span class="cf-section-header__count">6 Fragen</span>
+        <span class="cf-section-header__count">4 Fragen</span>
       </div>
       <div class="cf-accordion">
         <details class="cf-accordion__item" open>
@@ -77,15 +84,123 @@
       </div>
     </div>
 
-    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-accordion"</span>&gt;
-  &lt;<span class="tag">details</span> <span class="attr">class</span>=<span class="val">"cf-accordion__item"</span>&gt;
-    &lt;<span class="tag">summary</span> <span class="attr">class</span>=<span class="val">"cf-accordion__summary"</span>&gt;
-      Wie starte ich mein Projekt mit Control-F?
-      &lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-arrow"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;&lt;<span class="tag">use</span> <span class="attr">href</span>=<span class="val">"#cf-arrow"</span>&gt;&lt;/<span class="tag">use</span>&gt;&lt;/<span class="tag">svg</span>&gt;
-    &lt;/<span class="tag">summary</span>&gt;
-    &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-accordion__content"</span>&gt;Mit einem Discovery-Workshop. …&lt;/<span class="tag">div</span>&gt;
-  &lt;/<span class="tag">details</span>&gt;
-&lt;/<span class="tag">div</span>&gt;</pre>
+    <p>
+      The block below is the shape that ships, wrapper included. The
+      <code>&lt;section&gt;</code> and its <code>aria-labelledby</code> are not framing: they
+      are how the set gets a name at all — see <a href="#a11y">Accessibility</a>.
+    </p>
+
+    <pre class="docs-code">&lt;<span class="tag">section</span> <span class="attr">class</span>=<span class="val">"section"</span> <span class="attr">aria-labelledby</span>=<span class="val">"faq"</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"container"</span>&gt;
+    &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-section-header cf-section-header--flush"</span>&gt;
+      &lt;<span class="tag">h2</span> <span class="attr">class</span>=<span class="val">"cf-section-header__label"</span> <span class="attr">id</span>=<span class="val">"faq"</span>&gt;FAQ&lt;/<span class="tag">h2</span>&gt;
+      &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-section-header__count"</span>&gt;11 Fragen&lt;/<span class="tag">span</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+    &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-accordion"</span>&gt;
+      &lt;<span class="tag">details</span> <span class="attr">class</span>=<span class="val">"cf-accordion__item"</span>&gt;
+        &lt;<span class="tag">summary</span> <span class="attr">class</span>=<span class="val">"cf-accordion__summary"</span>&gt;
+          Wie starte ich mein Projekt mit Control-F?
+          &lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-arrow"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;&lt;<span class="tag">use</span> <span class="attr">href</span>=<span class="val">"#cf-arrow"</span>&gt;&lt;/<span class="tag">use</span>&gt;&lt;/<span class="tag">svg</span>&gt;
+        &lt;/<span class="tag">summary</span>&gt;
+        &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-accordion__content"</span>&gt;Mit einem Discovery-Workshop. …&lt;/<span class="tag">div</span>&gt;
+      &lt;/<span class="tag">details</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+  &lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">section</span>&gt;</pre>
+  </section>
+
+  <section class="docs-section" id="states">
+    <h2>States</h2>
+    <p>
+      Four, and until now this page named none of them. Three are drawn by the stylesheet
+      and one by <code>base.css</code>; the difference matters, because the one that is not
+      the component's own is the only one that is a conformance requirement.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>State</th><th>What draws it</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Closed</td>
+          <td>The row, the hairline under it, the arrow pointing right. The resting state of every entry but at most one.</td>
+        </tr>
+        <tr>
+          <td>Hover</td>
+          <td><code>--sheen-panel</code> travelling across the row. The gradient sits on the summary at <code>background-size: 200% 100%</code>, parked in its own transparent half, and hover slides <code>background-position</code> to <code>100% 0</code> over <code>--duration-slow</code> (480 ms). Light crossing the row, not a tint on it.</td>
+        </tr>
+        <tr>
+          <td>Focus</td>
+          <td>The same sweep, <em>plus</em> the system's one focus ring — <code>--stroke-2</code> solid <code>--focus-ring</code> at 2 px offset. The sweep is not the indicator; see the note below.</td>
+        </tr>
+        <tr>
+          <td>Open</td>
+          <td><code>[open]</code> on the <code>&lt;details&gt;</code>. The arrow rotates 90° over <code>--duration-base</code> (240 ms) and the panel comes down — instantly, or over 480 ms where the browser can interpolate. See <a href="#motion">Opening</a>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="docs-note">
+      <strong>The sweep is not a focus indicator, and for a long time it was doing that job
+      alone.</strong> <code>base.css</code> carries the system's single focus ring, and its
+      selector names five tags plus <code>[tabindex]</code> — a list of the things a person
+      thinks of as a control rather than of the things the browser gives focus to.
+      <code>&lt;summary&gt;</code> is natively focusable, is none of the five and carries no
+      <code>tabindex</code>, so it never received that ring. Measured on a shipping FAQ row at
+      1440 × 900, unfocused against focused: the sweep alone is <strong>1.23:1</strong>, the
+      browser's own fallback outline 13.61:1, this system's ring 14.91:1. WCAG 2.4.11 asks 3:1
+      of a focus indicator, so the sweep was never one — the whole job was being done by a UA
+      outline nothing in this repository had asked for, at 1 px where the system draws 2 and in
+      the UA's near-black rather than in <code>--focus-ring</code>, which is the token that
+      flips to lime on an inverse surface. <code>&lt;summary&gt;</code> is in that selector now,
+      and <code>scripts/check-focus-ring.py</code> reads the selector and the markup rather
+      than trusting the next hand-kept list.
+    </div>
+
+    <div class="docs-note">
+      <strong>Not glass.</strong> These rows sit on the page wash, and frosted glass over a
+      flat surface is only a grey box. A light crossing the row is the honest version of the
+      same gesture, and it costs no <code>backdrop-filter</code> — which is the most expensive
+      declaration in the stylesheet and is budgeted per page. →
+      <a href="../foundations/materials.html">Materials</a>
+    </div>
+  </section>
+
+  <section class="docs-section" id="motion">
+    <h2>Opening</h2>
+    <p>
+      A panel that jumps to its height gives the reader no thread from the row they clicked to
+      the text that answered it. The panel slides instead — where the browser can interpolate
+      to <code>auto</code>, and nowhere else.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>interpolate-size: allow-keywords</code></td>
+          <td>On <code>.cf-accordion__item</code>. Lets <code>block-size</code> animate to the intrinsic keyword instead of snapping to it. Scoped to the item rather than to <code>:root</code>, so it does not quietly change every other auto-sized transition in the system.</td>
+        </tr>
+        <tr>
+          <td><code>::details-content</code></td>
+          <td>The panel box. <code>block-size: 0</code> closed, <code>auto</code> when <code>[open]</code>, transitioned over <code>--duration-slow</code> with <code>overflow-y: clip</code> so the text is cropped rather than made to overflow while the box travels.</td>
+        </tr>
+        <tr>
+          <td><code>content-visibility</code>, <code>allow-discrete</code></td>
+          <td>Transitioned alongside it. Without the discrete transition the content is hidden at the first frame of the close and the box animates down over nothing.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="docs-note">
+      <strong>Two gates, and the fallback is the current behaviour rather than a degraded
+      one.</strong> The whole block sits inside
+      <code>@supports (interpolate-size: allow-keywords)</code>, which is Chromium-only as of
+      2026 — Firefox and Safari never enter it, and the panel opens exactly as
+      <code>&lt;details&gt;</code> has always opened, which is instantly and correctly. Inside
+      that, <code>@media (prefers-reduced-motion: no-preference)</code>: a reader who asked for
+      less motion gets the instant open too. That second gate is deliberate and not merely the
+      global duration collapse — <code>tokens.css</code> does drop every duration to 1 ms under
+      <code>reduce</code>, but a 1 ms interpolation to <code>auto</code> is still a layout
+      animation, and the honest answer to that request is not to run one.
+    </div>
   </section>
 
   <section class="docs-section" id="anatomy">
@@ -93,30 +208,83 @@
     <table class="docs-table">
       <thead><tr><th>Property</th><th>Value</th></tr></thead>
       <tbody>
-        <tr><td>Row height</td><td>48 px closed — <code>--space-3</code> above and below a 23.2 px line box, plus the divider. A touch target across the full width.</td></tr>
-        <tr><td>Text indent</td><td><code>--space-20</code> (80 px) on the left, as in the design</td></tr>
-        <tr><td>Question</td><td>Geist Medium, 16 px</td></tr>
-        <tr><td>Answer</td><td>Geist Light, 14 px, measure capped at 76 characters</td></tr>
-        <tr><td>Dividers</td><td>1 px solid, top and bottom of the block</td></tr>
-        <tr><td>Arrow</td><td>flush right — no padding on that side, so its right edge lands on the same axis as the end of the row's hairline. Rotates 90° when <code>[open]</code>, 240 ms.</td></tr>
+        <tr><td>Row height</td><td>48 px closed — <code>--space-3</code> (12 px) above and below a 23.2 px line box, plus the 1 px divider. That is what the mockup draws, at six FAQ rows of exactly 48 px measured off <code>landing-page.jpg</code>. A touch target across the full width.</td></tr>
+        <tr><td>Text indent</td><td><code>--space-20</code> (80 px) on the left, as in the design. It matches the page gutter, so the questions start on the same axis as the section content beside them.</td></tr>
+        <tr><td>Right padding</td><td>0 on the summary, on purpose. The arrow is a mark on an axis, not text: the mockup lands its right edge on the same x as the end of the row's hairline, on every row. <code>.cf-accordion__content</code> keeps its right padding — that is prose, and prose stopping at the container edge is a different question from a glyph aligning to it.</td></tr>
+        <tr><td>Summary layout</td><td><code>grid</code>, <code>minmax(0, 1fr) auto</code>. Grid for the floor and for nothing else: the question is a bare text node, so under flex it is an <em>anonymous</em> item — the one kind nothing can put <code>min-width: 0</code> on — and its min-content width becomes the line's and then the document's. Measured at a 16 px default with one real German compound in the first question: 320 → 384 px. → <a href="../foundations/layout.html#intrinsic-minimum">Intrinsic minimum</a></td></tr>
+        <tr><td>Question</td><td>Geist Medium, <code>--text-lg</code> (16 px)</td></tr>
+        <tr><td>Answer</td><td>Geist Light, <code>--text-md</code> (14 px), <code>--text-secondary</code>, measure capped at 76 characters</td></tr>
+        <tr><td>Dividers</td><td>1 px solid <code>--border-strong</code> — above the block and under every item</td></tr>
+        <tr><td>Arrow</td><td><code>.cf-arrow</code>, flush right. Rotates 90° when <code>[open]</code>, <code>--duration-base</code> (240 ms).</td></tr>
+        <tr><td>Fold</td><td><code>48.75rem</code> — 780 px at a 16 px default. Below it the indent drops to <code>--space-4</code> and the question to <code>--text-md</code>. Written in rem so it tracks the reader's own font size rather than a number: at a 24 px default the same fold lands at 1170 px. → <a href="../foundations/layout.html#breakpoints">Breakpoints</a></td></tr>
       </tbody>
     </table>
-    <p>
-      The 80 px indent is not arbitrary: it matches the page gutter, so the questions start
-      on the same axis as the section content beside them. Below 780 px it falls back to
-      <code>--space-4</code>.
-    </p>
+  </section>
+
+  <section class="docs-section" id="context">
+    <h2>In context</h2>
+    <p>Three sets ship, and none of them is on the landing page any more.</p>
+    <table class="docs-table">
+      <thead><tr><th>Page</th><th>Entries</th><th>Counter</th></tr></thead>
+      <tbody>
+        <tr><td><a href="../patterns/expertise.html">Expertise</a></td><td>11 — the FAQ migrated from the old site</td><td><code>11 Fragen</code>, a quantity</td></tr>
+        <tr><td><a href="../patterns/karriere.html">Karriere</a></td><td>5 — what belongs in an application, and what does not</td><td><code>05</code>, a position, <code>aria-hidden</code></td></tr>
+        <tr><td><a href="../patterns/kontakt.html">Kontakt</a></td><td>3 — the questions you ask yourself before pressing send</td><td><code>03</code>, a position, <code>aria-hidden</code></td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>The largest of the three breaks two of the rules below, and it is right to.</strong>
+      Expertise ships eleven entries at answer lengths well past three to five lines, because
+      those are the customer's real questions with the house's real answers, carried over from
+      the old site rather than written to a length. The guidance under <em>Do</em> is for a set
+      somebody is writing now. It is not a licence to cut answers a customer asked for, and
+      trimming that set is an editorial decision, not a design-system one.
+    </div>
   </section>
 
   <section class="docs-section" id="a11y">
     <h2>Accessibility</h2>
     <ul>
-      <li><code>&lt;details&gt;</code>/<code>&lt;summary&gt;</code> brings role, keyboard operation and state with it — no ARIA needed.</li>
+      <li><code>&lt;details&gt;</code>/<code>&lt;summary&gt;</code> brings role, keyboard operation and state with it. Enter and Space on the focused summary toggle the panel; the summary is the row's only tab stop, and Tab from there moves into the open panel's own links. No ARIA, no script.</li>
+      <li>The summary carries the system's focus ring because <code>base.css</code> names it. That is a fix, not a given — see the note under <a href="#states">States</a>.</li>
       <li>The arrow is <code>aria-hidden</code>; the element communicates its own state.</li>
       <li>The default marker is removed (<code>list-style: none</code> plus <code>::-webkit-details-marker</code>) — the CF arrow replaces it visually.</li>
       <li>At most one <code>open</code> on load, and that should be the most common question.</li>
-      <li>Ship <code>FAQPage</code> JSON-LD alongside it for rich results.</li>
     </ul>
+
+    <div class="docs-note">
+      <strong>No heading element inside the <code>&lt;summary&gt;</code>.</strong> It is
+      tempting — HTML's content model for <code>&lt;summary&gt;</code> allows one element of
+      heading content, and a FAQ of eleven questions is exactly the thing a screen-reader
+      reader would like to skim by heading. It does not work. <code>&lt;summary&gt;</code> maps
+      to a button role, and a button's children are treated as presentational, so the heading
+      semantics are dropped — inconsistently across engines, which is worse than dropped
+      everywhere. Adding <code>role="button"</code> to force the matter drops them in macOS
+      Safari too. The markup would look like an improvement in the source and be one nowhere.
+    </div>
+
+    <div class="docs-note">
+      <strong>Name the set instead.</strong> The APG's <em>Accordion</em> pattern does ask for a
+      heading per header, and it asks it of a set of scripted buttons with
+      <code>aria-expanded</code> — a different component from this one, which is a set of
+      disclosures. What this component can have, and what all three shipping sets do have, is a
+      <code>&lt;section&gt;</code> around it named by <code>aria-labelledby</code> pointing at
+      the section header's <code>&lt;h2&gt;</code>. That heading is what a reader navigating by
+      heading lands on, and it names the whole set rather than one row of it. It is also why
+      the copy-paste block above starts at the section and not at <code>.cf-accordion</code>.
+    </div>
+
+    <div class="docs-note">
+      <strong><code>FAQPage</code> JSON-LD is no longer worth writing, and this page used to
+      say it was.</strong> The instruction here was "ship <code>FAQPage</code> JSON-LD alongside
+      it for rich results". Google narrowed FAQ rich results to well-known authoritative
+      government and health sites in August 2023, and deprecated them outright on 7 May 2026 —
+      they no longer appear in search results for anyone, and the reporting around them was
+      withdrawn over the two months after. The schema.org type is still valid and existing
+      markup does no harm, so nothing needs removing; but writing it new for a company FAQ buys
+      nothing a reader or a search engine can see. No page in this system ever shipped it, and
+      that is now the correct state rather than an omission.
+    </div>
   </section>
 
   <section class="docs-section" id="rules">
@@ -127,7 +295,9 @@
         <ul>
           <li>Phrase questions in the customer's words, not your own.</li>
           <li>Keep answers short: three to five lines, then link out.</li>
-          <li>Six to eight entries — beyond that it becomes documentation.</li>
+          <li>Six to eight entries in a set you are writing now — beyond that it becomes documentation.</li>
+          <li>Wrap the set in a <code>&lt;section&gt;</code> named by the section header's heading.</li>
+          <li>Make the header's counter count what stands under it, when it is a quantity rather than a position.</li>
         </ul>
       </div>
       <div class="docs-rule docs-rule--dont">
@@ -136,6 +306,8 @@
           <li>No accordions for content everyone is supposed to read.</li>
           <li>No nested accordions.</li>
           <li>Don't auto-close the other entries — it costs more than it gives.</li>
+          <li>No heading element inside the <code>&lt;summary&gt;</code>.</li>
+          <li>Don't reach for glass here. The rows stand on the wash; the sheen is the state.</li>
         </ul>
       </div>
     </div>
