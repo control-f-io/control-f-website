@@ -1031,15 +1031,33 @@
   --space-16: 4rem;     /*  64 */
   --space-20: 5rem;     /*  80 */
   --space-24: 6rem;     /*  96 */
-  --space-30: 7.5rem;   /* 120 — --section-gap at the 1440 reference frame */
-  --space-40: 10rem;    /* 160 — --section-gap at 1920, its ceiling */
+  --space-30: 7.5rem;   /* 120 — --section-gap's ceiling, reached at the 1440 frame */
+  --space-40: 10rem;    /* 160 — the vacancy register's picture square */
 
   /* Vertical rhythm. Both are one fraction of the frame, clamped to a scale
      step at each end, so the endpoints land on real device widths rather than
      somewhere off the edge of the range:
 
-       --section-gap     100vw / 12   64 at 768 · 120 at 1440 · 160 at 1920
+       --section-gap     100vw / 12   64 at 768 · 120 at 1440 (capped)
        --section-gap-sm  100vw / 18   32 at 576 ·  80 at 1440 (capped)
+
+     BOTH CEILINGS ARE REACHED AT 1440, AND THE LARGE ONE USED TO RUN ON TO
+     160 AT 1920. That was the one fluid measure in the system still growing
+     after every other one had stopped: --container-max caps at 1438.2,
+     --section-gap-sm and --section-header-gap at 1440.0, --gutter at 1454.5,
+     and --section-gap arrived 466 px later. From 1454 to 1920 the page was a
+     fixed 1280 column with 80 px gutters whose vertical air kept loosening by
+     a further 40 px — measured as a share of content width, 9.4 % flat from
+     768 to 1440 and then climbing to 12.5 % at 1920, against a column that no
+     longer grew. Nothing in the designer's material reaches past the 1440
+     frame, so the 160 was never a measured value; it was where 100vw / 12
+     happened to land on the next common monitor width.
+
+     The ceiling is now the frame's own value. --space-30 is 120 by
+     construction — 1440 / 12 — so the rhythm freezes on the same width the
+     column freezes on, and the step that used to be a landmark with no
+     consumer is the ceiling that stops it. Nothing at or below 1440 moves by
+     a pixel. Above it, sections stand 240 apart instead of up to 320.
 
      One twelfth of the FRAME is what 100vw / 12 is, and that is why the
      reference frame resolves it to exactly --space-30 (120). It is NOT one
@@ -1053,24 +1071,20 @@
      load-bearing for a note about what changes above 1438.
 
      The 2:3 ratio between them (1/18 : 1/12) holds exactly where BOTH are
-     fluid — 768 to 1440 — and nowhere else. Measured: 2.00 below 576 where
+     fluid, and from 768 up it holds everywhere. Measured: 2.00 below 576 where
      both sit on their floors, sliding 2.00 → 1.50 across 576–768 as -sm
-     leaves its floor first — 1.80 at 640, 1.64 at 704 — a flat 1.50 from 768
-     to 1440, then opening back out to 2.00 by 1920 as -sm caps and
-     --section-gap climbs on alone. This used to say the slide STARTS at 1.80,
+     leaves its floor first — 1.80 at 640, 1.64 at 704 — then a flat 1.50 from
+     768 to 1440 and, now that both ceilings are 1440's, a flat 1.50 beyond it:
+     120 / 80. It used to open back out to 2.00 by 1920 as -sm capped and
+     --section-gap climbed on alone; that was the ceiling drift described
+     above, and it is gone with it. This used to say the slide STARTS at 1.80,
      which put the ratio below 2.00 at 576 where -sm is still exactly on its
      floor and the ratio is still exactly 2.00. foundations/layout.html had it
      right; this comment was the copy that drifted.
 
-     Above ~1438 the "one grid column" rationale stops being literally true:
-     the container caps, so a real column stops growing while 100vw/12 does
-     not. Section rhythm therefore keeps opening on a very wide window even
-     though the content column is frozen at 1280. That is a deliberate-looking
-     choice nobody has actually ruled on — see foundations/layout.html.
-
      These are padding on `.section`, applied to both edges — so the air BETWEEN
      two adjacent sections is twice the token. See foundations/layout.html. */
-  --section-gap:    clamp(var(--space-16), calc(100vw / 12), var(--space-40));
+  --section-gap:    clamp(var(--space-16), calc(100vw / 12), var(--space-30));
   --section-gap-sm: clamp(var(--space-8),  calc(100vw / 18), var(--space-20));
 
   /* The air between a section header's hairline and the content it opens.
@@ -1116,11 +1130,15 @@
      width where both are floored. 48 is the scale step that does, it is what
      100vw / 18 resolves to at 864 — between the two device widths either side
      of it — and it lands the ratio at 0.75 below 768 and a flat 2/3 from 864
-     to 1440. After:
+     up. After:
 
                          320   375   768   900  1024  1280  1440  1920
-       .section         0.75  0.75  0.75  0.67  0.67  0.67  0.67  0.50
+       .section         0.75  0.75  0.75  0.67  0.67  0.67  0.67  0.67
        .section--tight  1.50  1.50  1.12  1.00  1.00  1.00  1.00  1.00
+
+     The 1920 column read 0.50 while --section-gap's ceiling was --space-40:
+     the air above kept growing to 160 after the air below had capped at 80.
+     Both cap at 1440 now, so the 2/3 holds at every width from 864 up.
 
      --tight is still over 1.00 at the phone and that is deliberate: it takes
      the small rhythm precisely BECAUSE a page header above it has already

@@ -34,9 +34,24 @@ This script does not assert that the block is complete, or that everything in it
 is registered in CI. Those are different claims about different files, and
 .github/workflows/design-system.yml is where the second one is settled.
 
+THE SAME NUMBER IS CLAIMED ONE DIRECTORY OVER, AND NOTHING WAS COUNTING THAT
+ONE EITHER. scripts/README.md opens "N files at this level, this one included"
+and carries a table row reading "| N | `check-*.py` — one design-system
+invariant each". Both are counts of the directory the file sits in, both are
+hand-kept, and both have exactly the failure mode above with none of the gate:
+the sentence next door was caught and fixed three times because something reads
+it, while its neighbour went stale silently. Measured on the day this was
+extended, main said 156 files and 138 checks against a tree holding 158 and 140
+— two lanes' additions, neither of which touched the paragraph.
+
+These two are not counts of a list, so they are not read off a block. They are
+counts of the directory, and the directory is right there, so they are derived
+from `os.listdir` — the same move every other register in here makes, and the
+reason this cannot itself go stale.
+
 Usage:
-    check-readme-check-count.py       fail if the word and the block disagree
-    check-readme-check-count.py -v    print the number and every check counted
+    check-readme-check-count.py       fail if a stated count and its subject disagree
+    check-readme-check-count.py -v    print each number and everything counted
 """
 
 import os
@@ -44,7 +59,14 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SCRIPTS = os.path.dirname(os.path.abspath(__file__))
 README = os.path.join(ROOT, "design-system", "README.md")
+SCRIPTS_README = os.path.join(SCRIPTS, "README.md")
+
+# scripts/README.md's two claims about the directory it introduces. Each is
+# (regex with one capturing group for the digits, what it counts, its label).
+FILE_COUNT = re.compile(r"\b(\d+) files at this level, this one included\b")
+CHECK_COUNT = re.compile(r"^\|\s*(\d+)\s*\|\s*`check-\*\.py`", re.M)
 
 SENTENCE = re.compile(
     r"^The ([a-z-]+) checks the system enforces rather than documents\b", re.M
@@ -62,6 +84,51 @@ WORDS = {
     "twenty-six": 26, "twenty-seven": 27, "twenty-eight": 28,
     "twenty-nine": 29, "thirty": 30, "thirty-one": 31, "thirty-two": 32,
 }
+
+
+def directory_counts():
+    """(files at this level, check-*.py) — counted, not remembered."""
+    entries = [e for e in os.listdir(SCRIPTS)
+               if os.path.isfile(os.path.join(SCRIPTS, e))]
+    checks = [e for e in entries
+              if e.startswith("check-") and e.endswith(".py")]
+    return sorted(entries), sorted(checks)
+
+
+def scripts_readme(verbose):
+    """Hold scripts/README.md's two counts to the directory they describe."""
+    text = open(SCRIPTS_README, encoding="utf-8").read()
+    entries, checks = directory_counts()
+    failures = []
+
+    for pattern, actual, what, where in (
+        (FILE_COUNT, len(entries), "files at this level",
+         '"N files at this level, this one included"'),
+        (CHECK_COUNT, len(checks), "check-*.py scripts",
+         "the `check-*.py` row of the table under it"),
+    ):
+        match = pattern.search(text)
+        if not match:
+            failures.append(
+                "scripts/README.md no longer carries %s.\n"
+                "    That sentence is what this rule counts. Restore it, or retire the\n"
+                "    rule with it — an uncounted count is how this file got here." % where
+            )
+            continue
+        claimed = int(match.group(1))
+        if verbose:
+            print("  scripts/README.md says %d %s; the directory holds %d"
+                  % (claimed, what, actual))
+        if claimed != actual:
+            failures.append(
+                "scripts/README.md says %d %s and the directory holds %d.\n"
+                "    Derived by listing scripts/, not by remembering. This pair is\n"
+                "    ungated history: it was corrected an hour before it went stale\n"
+                "    again, by a lane that had no reason to look at it."
+                % (claimed, what, actual)
+            )
+
+    return failures
 
 
 def main():
@@ -100,16 +167,29 @@ def main():
         for name in listed:
             print("    %s" % name)
 
+    failures = []
     if claimed != len(listed):
-        print(
+        failures.append(
             'design-system/README.md says "%s" and lists %d:\n\n%s\n\n'
-            "The block is the list, so the block is the count. Set the word to match it —\n"
-            "this is the drift that follows two lanes adding a check on the same day."
-            % (word, len(listed), "\n".join("  %s" % n for n in listed))
+            "    The block is the list, so the block is the count. Set the word to match\n"
+            "    it — this is the drift that follows two lanes adding a check on the same day."
+            % (word, len(listed), "\n".join("      %s" % n for n in listed))
         )
+
+    failures.extend(scripts_readme(verbose))
+
+    if failures:
+        print("readme check count: %d finding(s)\n" % len(failures))
+        for f in failures:
+            print("  - %s\n" % f)
         return 1
 
-    print("README says %s, and lists %d checks" % (word, len(listed)))
+    entries, checks = directory_counts()
+    print(
+        "README says %s, and lists %d checks; scripts/README.md counts %d files "
+        "and %d check-*.py, and the directory holds both."
+        % (word, len(listed), len(entries), len(checks))
+    )
     return 0
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hold every bounded key label to the same wrap opt-out, or flag the one that isn't.
+"""Hold every bounded label to the same wrap rule, or flag the one that isn't.
 
 A "bounded key" is this system's name for a label absolutely positioned under a
 data point and confined to that point's own pitch — .cf-block__key's own comment
@@ -41,13 +41,37 @@ Every rule in components.css whose selector is a single class ending in
                       `hyphens: manual`, or a compound word breaks inside its
                       own box instead of overhanging it.
 
+AND THE VALUE ON THE SAME PITCH, WHICH IS THE SECOND HALF OF THE SAME PAIR.
+Every bounded key has a bounded VALUE over the same column — .cf-plot__val,
+.cf-line__val, .cf-block__val — absolutely positioned, bound to the same
+`--plot-u * 2`, and carrying a number and its unit. That is one token, not a
+compound word: it has no interior break point that is ever right, so the shape
+it wants is not the key's `overflow-wrap: normal` but `white-space: nowrap`.
+
+Two of the three carried it and .cf-plot__val never did. At every width from
+320 to 767 the column is 30–32 px, "−12 %" does not fit, and the space before
+the sign is taken as a break: three of four values on patterns/landing-page.html
+and on prototypes/evidence-scroll.html, and three of nine on
+components/plot.html, were set with the "%" alone on a second line under the
+bar. Fixed by giving .cf-plot__val the declaration its two siblings already
+carry, which lets the token overhang its pitch — 6 px each side, no adjacent
+overlap, no horizontal scroll — instead of being folded inside it.
+
+  bounded value      `position: absolute`, a single-class `__val` rule. MUST
+                      declare `white-space: nowrap`, or a number is separated
+                      from its unit inside its own box.
+  flow value         no `position: absolute` — sized by its own box and free
+                      to wrap like any other text (.cf-pie__val). Not this
+                      script's subject.
+
 SCOPE
 
-  design-system/assets/css/components.css   the one file every `__key` class
-                                             the system ships is defined in.
-                                             A future bounded key defined
-                                             anywhere else is invisible to
-                                             this script — there is none today.
+  design-system/assets/css/components.css   the one file every `__key` and
+                                             `__val` class the system ships is
+                                             defined in. A future bounded label
+                                             defined anywhere else is invisible
+                                             to this script — there is none
+                                             today.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
@@ -64,6 +88,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 CSS = ROOT / "design-system" / "assets" / "css" / "components.css"
 
 KEY_SELECTOR = re.compile(r"^\.[A-Za-z0-9_-]+__key$")
+VAL_SELECTOR = re.compile(r"^\.[A-Za-z0-9_-]+__val$")
 ABSOLUTE = re.compile(r"position\s*:\s*absolute\b")
 NOWRAP = re.compile(r"white-space\s*:\s*nowrap\b")
 WRAP_NORMAL = re.compile(r"overflow-wrap\s*:\s*normal\b")
@@ -87,8 +112,16 @@ def main():
     text = CSS.read_text(encoding="utf-8")
     findings = []
     seen = []
+    val_seen = []
+    val_findings = []
 
     for sel, body in rules(text):
+        if VAL_SELECTOR.fullmatch(sel):
+            kind = "bounded" if ABSOLUTE.search(body) else "flow"
+            val_seen.append((sel, kind))
+            if kind == "bounded" and not NOWRAP.search(body):
+                val_findings.append(sel)
+            continue
         if not KEY_SELECTOR.fullmatch(sel):
             continue
         if not ABSOLUTE.search(body):
@@ -113,10 +146,33 @@ def main():
         print(f"{len(seen)} __key rule(s) in {CSS.relative_to(ROOT)}:")
         for sel, kind in seen:
             print(f"  {sel:<28} {kind}")
+        print(f"{len(val_seen)} __val rule(s):")
+        for sel, kind in val_seen:
+            print(f"  {sel:<28} {kind}")
 
     if not seen:
         print("FAIL  no __key rule found in components.css — the pattern this "
               "script checks is gone, not merely unbroken.")
+        return 1
+
+    if not val_seen:
+        print("FAIL  no __val rule found in components.css — the pattern this "
+              "script checks is gone, not merely unbroken.")
+        return 1
+
+    if val_findings:
+        print(f"FAIL  {len(val_findings)} bounded value(s) can be separated from "
+              f"their unit inside their own box:\n")
+        for sel in val_findings:
+            print(f"  {sel}  missing white-space: nowrap")
+        print("\n  A bounded value is position: absolute over a data point's own pitch —")
+        print("  30 to 32 px on a --plot-u*2 column below 768 px — and carries a number")
+        print("  and its unit, which is one token with no interior break point that is")
+        print("  ever right. Without nowrap the space before the unit is taken as a break")
+        print("  and the unit is set alone on a second line. Give it white-space: nowrap,")
+        print("  the declaration .cf-line__val and .cf-block__val already carry; the label")
+        print("  is centred over an absolute box, so the token overhangs the pitch")
+        print("  symmetrically and costs the layout nothing.")
         return 1
 
     if findings:
@@ -131,8 +187,11 @@ def main():
         return 1
 
     bounded = sum(1 for _, kind in seen if kind == "bounded")
+    val_bounded = sum(1 for _, kind in val_seen if kind == "bounded")
     print(f"OK    {len(seen)} __key rule(s) in components.css, {bounded} of them bounded "
           f"and each opting out of the net with overflow-wrap: normal; hyphens: manual.")
+    print(f"OK    {len(val_seen)} __val rule(s), {val_bounded} of them bounded and each "
+          f"holding its number to its unit with white-space: nowrap.")
     return 0
 
 
