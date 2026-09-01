@@ -851,10 +851,26 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      both now, so both copies are gone. See base.css, ::selection. */
 }
 
-/* Both of these hand the label back a real colour. Ink on paper has no plate
-   to sit on, and forced-colors has already decided what a button looks like. */
+/* All three of these hand the label back a real colour. Ink on paper has no
+   plate to sit on, forced-colors has already decided what a button looks
+   like, and a reader who asked for more contrast asked for the top of the
+   range rather than a ramp whose floor happens to be high.
+
+   EACH DOOR NAMES ALL THREE STATES, for the reason the @supports block above
+   names them together: the shorthand's hover restates the whole layer list
+   at a higher specificity than a bare .cf-btn--solid, so a door written for
+   the resting button alone is beaten on :hover and :focus-visible and the
+   foil clip comes back under it. The two older doors used to be written that
+   way. It never showed, because the fill each door hands back is declared
+   later in source than the transparent one and the hover rule never touches
+   the fill — a label that stays legible by source order rather than by
+   statement, which is exactly the dependency the comment above says this
+   bug comes back through. scripts/check-foil-doors.py holds every door to
+   every state the context clips in. */
 @media print {
-  .cf-btn--solid {
+  .cf-btn--solid,
+  .cf-btn--solid:hover,
+  .cf-btn--solid:focus-visible {
     background: none;
     color: var(--cf-schwarz);
     -webkit-text-fill-color: var(--cf-schwarz);
@@ -880,12 +896,33 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   }
 }
 @media (forced-colors: active) {
-  .cf-btn--solid {
+  .cf-btn--solid,
+  .cf-btn--solid:hover,
+  .cf-btn--solid:focus-visible {
     background: none;
     color: ButtonText;
     -webkit-text-fill-color: ButtonText;
   }
   .cf-btn--solid .cf-arrow { fill: ButtonText; }
+}
+/* The plate stays and only the image goes — background-image: none rather
+   than background: none — because this door, unlike paper and forced
+   colours, still has a black plate to keep: Weiss on Schwarz is 21:1 at rest
+   and 16.5:1 on the grey-800 hover, against the foil's own 11.9 and 9.3. The
+   arrow takes the same ink because --violett-300 was the ramp's own last
+   stop, and there is no ramp. See base.css, THE FOURTH DOOR, for why the
+   answer is solid ink and not a darker foil. */
+@media (prefers-contrast: more) {
+  .cf-btn--solid,
+  .cf-btn--solid:hover,
+  .cf-btn--solid:focus-visible {
+    background-image: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    color: var(--text-inverse);
+    -webkit-text-fill-color: var(--text-inverse);
+  }
+  .cf-btn--solid .cf-arrow { fill: var(--text-inverse); }
 }
 
 /* The one button that goes back to square, because it has no plate: it is a
@@ -4459,6 +4496,48 @@ ul.cf-info-card__chips {
   .subdivide--late .cf-blog-grid--port { height: auto; }
   .subdivide--late .cf-blog-grid--port .cf-blog-col { overflow: visible; }
 }
+/* ASPECT-RATIO IS NOT A HEIGHT, THE ONE TIME THAT DIFFERENCE COSTS TEN SHEETS.
+   .cf-blog-card__image is `aspect-ratio: 3 / 2; flex: 1 1 auto` a few rules
+   down — a size that depends on the flex container's own final size, which on
+   paper is exactly the box the fragmenter is still trying to solve. Chromium's
+   print pass treats that circularity as "cannot be less than the rest of the
+   page": every `.cf-blog-card` this port holds is `break-inside: avoid`
+   (below, the print law's own register), and rather than measuring the aspect-
+   ratio picture at its resolved size and testing whether the card fits in
+   what is left of the sheet, it gives the card the whole remaining page and
+   starts the next one fresh.
+
+   Measured on the built news.html, ten posts, page.pdf() through Chromium:
+
+     unmodified                 11 sheets, one post per sheet, ink covering
+                                 roughly a third of each — the other two thirds
+                                 are the .cf-blog-grid border's own left rule,
+                                 drawn down the blank rest because nothing
+                                 after the first post ever shares its page
+     height fixed, ratio auto    5 sheets, three to four posts a page
+
+   Proven by isolation, not just observation: dropping the images entirely
+   (image `display: none`, avoid rule untouched) also collapsed the archive to
+   two sheets, and restoring them at a plain fixed `height` — no aspect-ratio,
+   nothing else touched — reproduced the five-sheet result on its own. The
+   `flex: 1 1 auto` was not the trigger; measured with it left alone and only
+   `aspect-ratio` and `height` overridden here, the count did not move.
+   `aspect-ratio` on a flex item is the one property in this rule that cannot
+   be resolved without first knowing the box it sits in, and a fragmenter
+   choosing a page boundary is asking the same question the property is
+   waiting on.
+
+   200px / 12.5rem is not the screen's 3 / 2 — at the port's own column widths
+   (roughly 330–390 px folded, up to the full measure for the lead) 3 / 2 would
+   ask for 220–520 px per picture. 200 keeps every picture legible under
+   object-fit: cover while holding three ordinary rows plus a lead to a sheet,
+   which is what bought the count above. Nothing here touches the screen rule:
+   this is scoped to print and does not change `aspect-ratio: 3 / 2` outside
+   it. → scripts/check-print-law.py, .cf-blog-card's break-inside a few rules
+   down */
+@media print {
+  .cf-blog-grid--port .cf-blog-card__image { aspect-ratio: auto; height: 12.5rem; }
+}
 
 .cf-blog-card {
   display: flex;
@@ -6916,7 +6995,33 @@ a.cf-calendar__day > time,
     border-bottom: 0;
     border-right: var(--stroke-1) solid var(--border-strong);
   }
-  .cf-value-row__body { padding: var(--space-8); font-size: var(--text-lg); }
+  /* THE COPY SITS ON THE FIGURE'S AXIS, NOT ON THE ROW'S TOP EDGE. The figure
+     cell above is place-items: center, so the drawing stands at mid-row — and
+     the copy beside it stood at the top, which put the two halves of one row
+     on two different axes: a three-line block hanging off the top rule with
+     170 px of empty cell under it, next to a figure centred 120 px down.
+     Optically the row read as a caption that had slipped.
+
+     The mockup centres both. Pixel-measured on assets/source/mockups/
+     ueber-uns.jpg, scaled to the 1440 frame: all three rows 240.0 px tall,
+     the figure's mid-line 0.6 px off the row's, the copy's mid-line -3.6 and
+     +1.8 px off it on the two rows whose copy is short enough to move — one
+     construction drawn three times. A row whose copy outgrows the square
+     stretches to the copy and the alignment is a no-op, so nothing changes
+     where the content already set the height.
+
+     The inline inset is measured off the same plate: the copy starts 49.2 px
+     right of the divider, which is --space-12 (48) and not the --space-8 the
+     block edges keep. The figure column is a 240 square, and 48 into the
+     copy column is what lets the drawing and the first letter breathe by the
+     same amount; the block padding stays at 32 because it only ever governs
+     the rows the copy has already overgrown, where the mockup has no case to
+     measure. → components/statement.html#value-table */
+  .cf-value-row__body {
+    align-self: center;
+    padding: var(--space-8) var(--space-12);
+    font-size: var(--text-lg);
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -14437,6 +14542,128 @@ a.cf-calendar__day > time,
   .cf-gantt__head,
   .cf-gantt__mark--lit,
   .cf-relay__head { filter: none; }
+}
+
+/* ==========================================================================
+   SIGNET — a mark for one thing, drawn from that thing's own name
+
+   The generator is assets/js/cf-signet.js and its header carries the whole
+   construction. This file owns only what the drawing is PAINTED in, and that
+   split is deliberate: the geometry is a property of the system and is the
+   same in every context, while the three greys are a property of the surface
+   the mark stands on and have to answer to the theme.
+
+   THE THREE FACE TONES ARE THE DESIGNER'S, off the isometric stack on
+   foundations/geometry.html and off 01-discovery.svg under it: #DADADA on
+   top, #CFCFCF on the left face, #C4C4C4 on the right. Only the middle one
+   has a token (--cf-grau). The other two are written as literals here for
+   the reason the ramp waypoints are written as literals in tokens.css —
+   they are measured values off the source material, and a token that named
+   them would be a token with one consumer and an invented name. They are the
+   light coming from the upper left, which is where the stack puts it.
+
+   IT IS INK BY DEFAULT AND LIT ON REQUEST. One lime moment per screen is a
+   rule about a screen, and a wall of signets is the one place in this system
+   where an object could break it twenty times over without any single mark
+   being wrong. So .cf-signet--ink is what the generator emits unless asked,
+   and it paints the peak in CF-Grau like every other top face. The light is
+   opt-in, once, on the mark that is the screen's lime moment.
+   → components/signet.html
+   ========================================================================== */
+.cf-signet {
+  --signet-face-top:   #DADADA;
+  --signet-face-left:  var(--cf-grau);
+  --signet-face-right: #C4C4C4;
+  --signet-contour:    var(--border-strong);
+
+  display: block;
+  width: var(--signet-size, 6rem);
+  height: auto;
+  /* The mark is square and its content is square; nothing about it wants to
+     stretch, and inside a flex row it otherwise would. */
+  flex: none;
+}
+
+.cf-signet--sm { --signet-size: 3rem; }
+.cf-signet--lg { --signet-size: 12rem; }
+
+/* AT 3 rem THE FAINT LINE STOPS BEING A LINE. The frame scales by 0.4, so the
+   1-2 dash lands at roughly one device pixel on and two off — which does not
+   read as an outline, it reads as dirt on the mark. The same arithmetic takes
+   the construction dots to 0.6 px. So the small form keeps what survives at
+   that size — the blocks, the contour and the light — and drops the two
+   annotations that do not. → components/signet.html#sizes */
+.cf-signet--sm .cf-signet__plot,
+.cf-signet--sm .cf-signet__dots { display: none; }
+
+/* Every face and every plot outline is the same 1 px contour at every size —
+   vector-effect on the shapes keeps it there, and the weight is named once
+   here rather than nine times in the generator. */
+.cf-signet polygon,
+.cf-signet circle {
+  stroke: var(--signet-contour);
+  stroke-width: var(--stroke-1);
+}
+
+.cf-signet__top   { fill: var(--signet-face-top); }
+.cf-signet__left  { fill: var(--signet-face-left); }
+.cf-signet__right { fill: var(--signet-face-right); }
+
+/* AN EMPTY PLOT IS DRAWN AND NOT OMITTED. The field is nine plots whether or
+   not something stands on them, and a plot with nothing on it is exactly the
+   presence ladder's "faint" rung — the 1-2 line, which is the system's word
+   for a thing that is there and is not the subject. Leaving it out would make
+   the mark a silhouette; drawing it solid would make nine towers of which
+   three happen to be flat. */
+.cf-signet__plot {
+  fill: none;
+  stroke-dasharray: var(--presence-faint);
+}
+
+/* The lit face carries the gradient as a paint server, so its fill comes from
+   the markup and this rule must not name one. */
+.cf-signet__lit { stroke: var(--signet-contour); }
+
+/* The construction dots off the manual's stack. They are the same black as
+   the contour and they mark the lit face alone. */
+.cf-signet__dots circle {
+  fill: var(--signet-contour);
+  stroke: none;
+}
+
+/* The ink form: the peak is a top face like any other, and the mark carries
+   no light at all. Stated as a modifier rather than as the absence of one, so
+   a page can read which form it is holding. */
+.cf-signet--ink .cf-signet__lit { fill: var(--signet-face-top); }
+
+/* On an inverse section the three tones cannot simply invert: black is the
+   floor of the neutral scale, so the steps climb instead — the same move
+   tokens.css makes for the inverse theme. The order of the three is kept
+   (top lightest, right darkest) so the light still comes from the upper left.
+   The lit face keeps the family's ramp unchanged: lime on black is the one
+   place in this system where the light is at its loudest, and that is the
+   point of it. */
+[data-theme="inverse"] .cf-signet {
+  --signet-face-top:   var(--grey-700);
+  --signet-face-left:  var(--grey-800);
+  --signet-face-right: #141414;
+  --signet-contour:    var(--border-strong);
+}
+
+/* Forced colours does not force SVG paint — the same trap sight.html's plan
+   view fell into. Nine faces in three near-identical greys would go out on a
+   dark palette together, so the mark collapses to what it is under the paint:
+   a contour drawing on the canvas, with the lit face left as the one filled
+   shape so the moment survives a mode that has no lime in it. */
+@media (forced-colors: active) {
+  .cf-signet polygon,
+  .cf-signet circle { stroke: CanvasText; }
+  .cf-signet__top,
+  .cf-signet__left,
+  .cf-signet__right { fill: Canvas; }
+  .cf-signet__lit   { fill: Highlight; }
+  .cf-signet--ink .cf-signet__lit { fill: Canvas; }
+  .cf-signet__dots circle { fill: CanvasText; }
 }
 
 /* --------------------------------------------------------------------------

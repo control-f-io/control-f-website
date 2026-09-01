@@ -49,14 +49,35 @@ WHAT IT CHECKS, on design-system/assets/img/logo/cf-favicon.svg:
                   rule targets is not overridden by it; it is the rule that
                   loses, and the dark strip gets black on black.
   declared everywhere   every page under design-system/ that ships a
-                  rel="icon" points at this file, and every pattern page
-                  carries one. A browser asks for an icon either way, and an
-                  undeclared ask is a 404 at the origin root of a site that
-                  deploys to a subpath.
+                  rel="icon" points at this file, and every page outside
+                  prototypes/ carries one — the pattern pages, both editions,
+                  and the documentation: the overview, reference.html, every
+                  chapter and every specimen. A browser asks for an icon
+                  either way, and an undeclared ask is a 404 at the origin
+                  root of a site that deploys to a subpath.
+
+THE DOCUMENTATION WAS HELD TO THE SECOND HALF OF THAT AND NOT THE FIRST, and
+it showed the day a chapter was added. As first written, "carries one" was
+asserted on patterns/ and patterns/en/ only; a chapter or a specimen was read
+for where its link pointed and excused if it had none. That scope was the
+state of the tree when the check was written — index.html's own head comment
+records the declaration "made on all 38 pattern pages and on none of the 46
+documentation pages" — and the documentation was then brought into line
+without the check following it. Measured 2026-09-01: 47 of the 48
+documentation pages carried the link and foundations/light.html, the chapter
+added the day before, did not; its tab showed no mark, its console carried
+the one 404 the overview's comment describes as the fault, and this check
+passed. A convention 47 pages keep and one page misses is not a rule until
+something counts it, so the documentation is now held to the same line as
+the patterns. prototypes/ stays out: the four pages there are the designer's
+raw material, unshipped by the README's own account and outside every other
+check for the same reason, and none of them declares an icon.
 
 Proven failing on: the plate restored, a fill= put back on a path, the dark
-rule deleted, #101010 in place of #000000, a path redrawn, and the rel="icon"
-line removed from one pattern page.
+rule deleted, #101010 in place of #000000, a path redrawn, the rel="icon"
+line removed from one pattern page, and — after the widening — the same line
+removed from foundations/light.html, which the check had passed the day
+before.
 """
 
 import argparse
@@ -186,8 +207,11 @@ def audit_declarations():
         rel = path.relative_to(ROOT).as_posix()
         text = path.read_text(encoding="utf-8")
         links = ICON_LINK.findall(strip_comments(text))
-        is_page = path.parent.name in ("patterns", "en") \
-            and path.parent.parent.name in ("design-system", "patterns")
+        # Every page outside prototypes/ has to answer the ask: the patterns in
+        # both editions, and the documentation with them. The scope used to be
+        # patterns/ and patterns/en/ alone, which is how a chapter shipped
+        # without the link while this check passed — see the docstring.
+        is_page = path.relative_to(DS).parts[0] != "prototypes"
         if not links:
             if is_page:
                 findings.append((rel, 1,
