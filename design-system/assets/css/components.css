@@ -10452,6 +10452,45 @@ a.cf-calendar__day > time,
   line-height: var(--leading-normal);
   text-align: center;
   color: var(--text-primary);
+  /* THE NUMBER AND ITS UNIT ARE ONE TOKEN, and this rule is the third of three
+     bounded values in the system to say so. .cf-line__val and .cf-block__val
+     are the same shape — position: absolute, a value label bound to a data
+     point — and both carry this declaration; this one shipped without it.
+
+     The pitch is what makes the omission visible. The column is
+     `--plot-u * 2`, which is the fluid unit floored: 30 px on this page and
+     32 px on components/plot.html at every width from 320 to 414, 52 px at
+     768. "−12 %" does not fit in 30 px, so the space between the number and
+     the sign is taken as the break opportunity it looks like, and the reader
+     gets "−12" with a "%" alone on a second line under the bar. Measured over
+     the four consumers, values breaking onto two lines:
+
+                                          320 / 375     768 and up
+       patterns/landing-page.html          3 of 4          0 of 4
+       components/plot.html                3 of 9          0 of 9
+       prototypes/evidence-scroll.html     3 of 4          0 of 4
+       patterns/blog-artikel.html          0 of 5          0 of 5
+
+     blog-artikel is the control: its values are two digits and a sign inside
+     the same 32 px, so they clear it and nothing about them changes here.
+
+     The rule above says direct labelling "is what lets a reader take a number
+     off this figure at all, and it is the reason the component needs no legend
+     and no axis" — a number set as a stack of fragments is not one a reader
+     can take off anything, and on a phone that is the only way three of these
+     four were ever shown.
+
+     `nowrap` AND NOT `overflow-wrap: normal`, which is what the two __key
+     rules take. A key is a compound German noun with authored &shy; breaks in
+     it and wants the net off so it hyphenates where the author said; a value
+     has no interior break point that is ever right. The label is
+     `left: 0; right: 0; text-align: center` over an absolutely positioned box,
+     so a token wider than the pitch overhangs it symmetrically and costs the
+     layout nothing: 6 px each side on this page's 30 px column, 4 px on the
+     specimen's 32, zero adjacent-label overlap and zero horizontal scroll on
+     <body> at 320, 375, 768, 1024 and 1440 across all four consumers.
+     → scripts/check-bound-key-wrap.py */
+  white-space: nowrap;
 }
 .cf-plot__col--lit .cf-plot__val { font-weight: var(--weight-medium); }
 
