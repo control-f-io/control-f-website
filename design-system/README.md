@@ -717,7 +717,7 @@ design-system/
 │                           illustration, logo, photo, motion, mobile,
 │                           page transitions, field, found state, line of sight
 ├── components/             buttons, nav, breadcrumb, section header, statement +
-│                           value table, plot, annotation, process card,
+│                           value table, plot, line, annotation, process card,
 │                           accordion, blog grid,
 │                           subdivision field, search + results, vacancy,
 │                           pagination, error + empty state, arrival + progress,
@@ -1622,6 +1622,38 @@ These were judgement calls, each documented on the relevant page:
   columns rising 31 → 100 the recession cancelled almost the whole climb and the tallest
   column was drawn *lower* than the shortest. The level row is still a lattice step:
   (2u, +u) + (2u, −u) = (4u, 0). → `components/plot.html`
+- **A line is not a body, so it is not drawn in space.** `.cf-plot` names its own ceiling
+  at five values and everything above it had no figure. `.cf-line` is that figure, and the
+  first decision is what it is *not*: everything the manual draws in isometry is an object
+  with faces and volume, while a trace encodes a position at each point of a domain and
+  says nothing about extent. Drawing it in space would claim a body where there is none —
+  and it would cost what the plot already measured, a unit of drawn height per step along
+  either 26.57° ground axis, which over eleven points is more than the whole climb. So the
+  line is a **section**: orthographic, 90°, the fourth of the four angles. The lattice
+  stays — every point the figure is read at stands on a cell, the same 8 px rhombus
+  `.cf-annot::before` cuts — and the trace between those cells is flat. Three consequences
+  follow from the same distinction. The trace's **angle is the one angle in this system
+  nobody chose**, because quantising a slope to the four brand angles would falsify the
+  data rather than merely flatten the picture. The **frame's ratio is fixed at 2:1**, the
+  tile's own, and is a document-level choice from the three the brand owns rather than a
+  per-figure tuning, because steepness is what a reader takes off a line and two frames at
+  two ratios in one document cannot be compared. And the **floor is not assumed to be
+  zero** — a column stands on the ground and must start there, a trace stands on nothing —
+  which is why `.cf-line__bounds` is required: a tight frame is not dishonest, an
+  undeclared one is. A point is data by default and a mark only when asked, so the eye gets
+  three numbers where the accessibility tree gets eleven; a second series is the ghost dash
+  and never a tint, because a grey hairline lands under the 3:1 the system holds its
+  contours to. → `components/line.html`
+- **The line chart is the one figure whose data is written twice, and a script holds the
+  copy.** SVG cannot read a custom property off an `<li>`, and the CSS construction that
+  would avoid the second copy — rotated hairlines sized with `hypot()` and turned with
+  `atan2()` — draws nothing at all on an engine without CSS trigonometry, which breaks the
+  component's first law that every fallback is the finished chart. So the polyline and the
+  list are both authored, the mapping between them is the identity (`x == --t × 100`,
+  `y == (1 − --v) × 100`), and `scripts/check-line-trace.py` proves point *i* is vertex *i*
+  to 0.05 user units. It is the invisible class in its purest form: a label a few pixels
+  off its own line looks like a label, and a trace drawn from last quarter's numbers under
+  this quarter's printed values looks like a chart. → `components/line.html`
 - **The found state is derived from the language, not measured off a plate.** No plate in
   `assets/source/manual/` draws a highlight and neither mockup carries one, so `.cf-mark`,
   `::target-text` and the two `::highlight()` names are built only from parts the manual does

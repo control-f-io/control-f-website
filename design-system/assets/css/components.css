@@ -9075,6 +9075,411 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 }
 
 /* --------------------------------------------------------------------------
+   LINE — a quantity over a domain. The second half of the plot's argument.
+
+   .cf-plot draws a short series as OBJECTS: five extruded lattice cells
+   standing on the isometric ground plane, each labelled with its own number.
+   It is the right figure for three to five values a reader should remember,
+   and its own page names the ceiling — "five columns is the ceiling at which
+   the figure still fits a 375 px screen, and it is also the ceiling at which
+   a picture is still worth more than a table". Past that ceiling the system
+   had nothing, and a series of eleven values is not a rare shape for a company
+   whose subject is metering.
+
+   WHY THIS ONE IS NOT DRAWN IN SPACE, which is the first decision and the one
+   every other follows from. Everything the manual draws in isometry is a BODY
+   — a cube, a stack, a solid of revolution, a sphere. A body has faces, one of
+   which the light lands on, and it has volume, which is what its height is
+   measuring. A line has none of that: it encodes a POSITION at each point of a
+   domain and nothing about extent. Drawing it in isometry would claim a body
+   where there is none, and it would cost what the plot already measured it
+   costs — both ground axes slope 26.57 deg on screen, so a series marching
+   along either one subtracts a unit of drawn height per step, and on the
+   eleven points below that is more than the whole climb.
+
+   So the line is a SECTION, not a plan: orthographic, 90 deg, the fourth of
+   the four brand angles and the one geometry.html calls "the default for
+   layout edges". The lattice is still there — every point the figure is read
+   at stands on a cell, the same 2:1 rhombus --iso-transform cuts for
+   .cf-annot::before — but the trace between those cells is drawn flat,
+   because that is what it is.
+
+   THE ANGLE OF THE TRACE IS THE ONE ANGLE IN THIS SYSTEM NOBODY CHOSE.
+   foundations/geometry.html says every diagonal on the site is one of four
+   values. A trace cannot be: its slope is the quotient of two numbers that
+   arrived from somewhere else, and quantising it to 26.57 / 45 / 63.43 would
+   be falsifying data to fit a brand — the same class of failure as the
+   receding row the plot was rebuilt to remove, and worse, because that one
+   only flattened the picture while this one would change the numbers. The
+   frame is the brand's; the line inside it is the data's.
+
+   WHICH LEAVES THE FRAME'S RATIO CARRYING THE STEEPNESS, and it is fixed at
+   2:1 — the lattice tile's own ratio, the same 200 x 100 bounding box
+   geometry.html derives from a 200 px square. The dataviz literature would
+   tune it per dataset (bank the median segment to 45 deg); this system does
+   not, and the reason is that steepness is the thing a reader takes off a
+   line. Two line charts in one document with two aspect ratios cannot be
+   compared and nothing tells the reader they differ. --line-ratio exists so a
+   document can choose once, from the three ratios the brand owns (2, 1, 0.5 —
+   the frame diagonals at 26.57, 45 and 63.43 deg), and never per figure.
+
+   THE FLOOR IS NOT ASSUMED TO BE ZERO, and this is the other half of the
+   body/trace distinction. A column is a body standing on the ground, so its
+   floor must be zero — cutting it lies about its volume, which is why the plot
+   has no baseline other than zero and says so. A trace stands on nothing, so
+   its frame may start anywhere, and the moment that is true the frame has to
+   SAY where it starts: .cf-line__bounds is required, and it is the only
+   number in the figure that is not a datum.
+
+   ONE COLOUR RULE FOR THE WHOLE FIGURE: the frame is grey and the data is
+   black. The frame's floor and ceiling are --border-default hairlines for
+   exactly the reason .cf-plot__caption's rule is — so they do not read as one
+   more edge of the drawing — and the trace is the only black line in the box.
+   A second series is black too, one rung down the presence ladder: dashed
+   1-4, the ghost. Presence is a line type in this system and never a tint, and
+   here that is load-bearing rather than doctrinal — a grey second series would
+   sit under the 3:1 the system holds its contours to, which is a series the
+   reader is invited to compare and cannot see.
+
+   NO VERTICAL LINES AT ALL, which is the table's argument reused: a rule
+   between two points would be neither an edge, nor a division, nor a label
+   rule, and geometry.html calls a line that is none of the three decoration.
+   No gridlines, no ticks, no axis. The domain is named at the points it is
+   read at, the same direct labelling the plot uses instead of a legend.
+   -------------------------------------------------------------------------- */
+
+/* The domain coordinate, and the twin of --v. Registered for the same two
+   reasons --v is: a unit or a percentage typed here resolves to the initial 0
+   instead of making `left` invalid at computed-value time and stacking every
+   point on the frame's left edge, and a registered number is a number rather
+   than a token that looks like one. --v is registered above, by the plot, and
+   is reused verbatim — one name, one meaning, in both figures. */
+@property --t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+/* 1 is the finished chart, and it is what everything that cannot animate
+   gets — no view timelines, reduced motion, print. Same posture, same
+   registered default, as --plot-grow and --annot-draw. */
+@property --line-draw {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+.cf-line {
+  /* THE PLOT CARRIES ITS OWN SIZE AND THE LINE TAKES THE MEASURE IT IS GIVEN,
+     and that difference is the two figures being two kinds of thing. A plot is
+     an object: five columns four units apart is a width, and --plot-u is how
+     you resize it. A line is a frame with a domain stretched across it, so it
+     is as wide as the column it is set in and no wider than 640 px — which is
+     20 x --plot-u at that unit's 32 px ceiling, so a plot and a line in the
+     same article are the same width on a desktop rather than nearly so. */
+  --line-max: 640px;
+  /* 2:1, the tile. See the header — this is a document-level decision, not a
+     per-figure one, and the only other legal values are 1 and 0.5. */
+  --line-ratio: 2;
+  /* The mark a number is anchored to. Same 8 px as --annot-node, because it is
+     the same mark: a lattice cell, not a dot. */
+  --line-node: 0.5rem;
+  margin: 0;
+  /* THE CAP IS ON THE FIGURE AND NOT ON THE FRAME, which .cf-plot has no
+     reason to care about and this one does. The frame draws two full-width
+     hairlines of its own; a caption rule running past them reads as a third
+     edge of the drawing, longer than the drawing. One max-width here puts the
+     bounds, the two frame edges and the caption rule on one right margin, so
+     the figure is a single column rather than a chart with a wider footer. */
+  max-width: var(--line-max);
+  /* Room for the tallest value to hang above its node without touching the
+     bounds line above the frame. */
+  padding-top: var(--space-1);
+}
+
+/* The frame declares its own extent, in one mark, above its top edge. Right
+   aligned so it lands on the corner the ceiling and the last value share, and
+   in the label face rather than the value face: this is the instrument
+   speaking, not a datum. Required — see the header. */
+.cf-line__bounds {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: var(--leading-normal);
+  text-align: right;
+  color: var(--text-secondary);
+}
+
+/* The frame. Two hairlines and nothing else: the floor and the ceiling are
+   edges — they close the drawing — and they are the grey the caption rule uses
+   so that neither is mistaken for the trace. The left and right sides are not
+   drawn, because the domain does not end where the frame does; it is simply
+   the part of it this figure shows.
+
+   The bottom margin is the keys' room, and it is the plot's number for the
+   plot's reason: 8 px of drop plus an 11 px label at --leading-normal, plus
+   air. The keys hang below the frame on absolute position, so the frame's own
+   layout box ends at the ceiling-to-floor box and anything after it would
+   print across them. */
+.cf-line__frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--line-ratio);
+  margin-bottom: var(--space-8);
+  border-block: var(--stroke-1) solid var(--border-default);
+}
+
+/* The drawing is a normalised square that is stretched to whatever frame it is
+   given: viewBox 0 0 100 100 with preserveAspectRatio="none", so x IS --t x 100
+   and y IS (1 - --v) x 100 and there is no conversion anywhere between the two
+   halves of the component. Distorting the box is correct here rather than
+   tolerated — the aspect ratio is the frame's, not the data's, and stretching
+   the data space is precisely what changing --line-ratio means. It costs
+   nothing the drawing owns: the only geometry inside is polylines, whose stroke
+   is non-scaling and therefore 1 px on screen at every ratio and every width,
+   and every round mark in the figure is HTML sitting on top.
+
+   THE DRAW IS A WIPE AND NOT A DASH, and that is the one place this component
+   parts company with .cf-iso__trace. That trace draws with pathLength="1" and
+   stroke-dashoffset, and pays for it by giving up non-scaling-stroke — the two
+   measure in different spaces, so the draw stalls at the render scale — which
+   leaves its weight a per-object number that ran from 0.38 to 1.71 CSS px
+   across the tree. A chart cannot pay that: the trace IS the datum, and a grey
+   0.5 px line at 2.5:1 on a phone is a datum the reader does not have. So the
+   stroke keeps non-scaling-stroke and the draw is a clip travelling along the
+   domain.
+
+   It is also the better reading of the motion, which is the part worth keeping
+   even if the arithmetic had gone the other way. A dash draw advances at
+   constant ARC LENGTH, so a steep year takes longer to draw than a flat one; a
+   wipe advances at constant DOMAIN, so every year takes the same scroll. The
+   line arrives left to right at the rate time passed. */
+.cf-line__draw {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  clip-path: inset(0 calc((1 - clamp(0, var(--line-draw), 1)) * 100%) 0 0);
+}
+
+/* The one black line in the box. stroke-width is a plain 1 under
+   non-scaling-stroke, which is the system's contour made literally true at
+   every width — the same declaration .cf-plot__draw's paths carry.
+
+   Round joins rather than the drafting default: at a sharp reversal a mitre on
+   a 1 px stroke grows to the mitre limit before it bevels, which is a 4 px
+   spike on a hairline. Invisible either way at every join that is not a
+   reversal. */
+.cf-line__trace {
+  vector-effect: non-scaling-stroke;
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+/* The comparison. One rung down the presence ladder — the ghost dash, the same
+   1-4 the plot's ground cell and .cf-iso__ghost carry — and still black. At
+   most one of these: a third line is a legend, and this component has none.
+   What the dash means is fixed and it is not "category B". It is the
+   reference: the plan, the year before, the target the solid line is being
+   read against. → foundations/geometry.html, the presence ladder */
+.cf-line__trace--ghost {
+  stroke-dasharray: var(--dash-1-4);
+}
+
+/* The data, as text, once. Each <li> carries the two numbers that place it and
+   prints them where the reader can take them off the figure; nothing is
+   duplicated into a hidden table that could drift out of step with the
+   picture. The set is an <ol> because a series has an order and the order
+   carries the meaning. */
+.cf-line__set {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One point is a full-height column of the frame standing at its own place in
+   the domain, so that the node and the value can sit at --v while the key sits
+   under the frame — three marks, one position, no third number.
+
+   --line-h IS --v, CLAMPED AND MADE INHERITABLE, and both halves of that are
+   load-bearing. Registered custom properties do not inherit unless they say
+   so, and --v says `inherits: false`, so a child of this <li> cannot read it;
+   .cf-plot has the identical shape and solves it the identical way. The clamp
+   is the other half: a registered <number> rejects a unit but not a 4 or a -1,
+   and either would put a node outside the frame it is meant to be read in. */
+.cf-line__point {
+  position: absolute;
+  left: calc(clamp(0, var(--t), 1) * 100%);
+  top: 0;
+  bottom: 0;
+  width: 0;
+  --line-h: clamp(0, var(--v), 1);
+}
+
+/* A POINT IS DATA BY DEFAULT AND A MARK ONLY WHEN IT IS ASKED TO BE, which is
+   the rule that separates this figure from the plot. The plot prints every
+   value because it has at most five; a line exists precisely when there are
+   more values than a reader can be handed, and eleven printed numbers along a
+   trace is a figure nobody reads. So the default is the quiet one and the
+   painted point is the opt-in.
+
+   The recipe is .visually-hidden's, restated rather than reused, because that
+   class lives in base.css and this component's own positioning would outrank
+   it on source order at equal specificity. clip-path rather than the clip
+   rect, and no negative margin: the point stays in the accessibility tree, in
+   series order, with its key and its value as real text. */
+.cf-line__point:not(.cf-line__point--read) {
+  left: 0;
+  top: 0;
+  bottom: auto;
+  width: 1px;
+  height: 1px;
+  /* clip, not hidden — a crop must not become a scrollport, and this one would
+     be a scrollport per unread point. Both declarations: a browser too old for
+     `clip` drops the second and still crops. */
+  overflow: hidden;
+  overflow: clip;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The anchor: a lattice cell, not a dot — the same 2:1 rhombus at 8 px that
+   .cf-annot::before cuts and that the ground is tiled with at 120. Drawn as a
+   border, which is the paint forced-colours keeps. It exists to tie a number
+   to the trace; a point with no number needs no anchor, which is why the
+   quiet points above carry none.
+
+   At --t: 0 and --t: 1 the cell straddles the frame's side by half its width,
+   and that is correct rather than tolerated: the point IS at the side, and the
+   only way to tuck the mark inside would be to inset the domain, which moves
+   every value in the figure to flatter 5.6 px of hairline. It overhangs into
+   the measure's own margin and never into the gutter. */
+.cf-line__node {
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--line-h) * 100%);
+  width: var(--line-node);
+  height: var(--line-node);
+  border: var(--stroke-1) solid var(--border-strong);
+  transform: translate(-50%, 50%) var(--iso-transform);
+}
+
+/* The number, riding its own point. Stated weight rather than inherited, for
+   the reason .cf-plot__val states its own: .cf-prose sets running text in
+   Light and a figure that changes weight with the block it was dropped into is
+   not a figure the rest of the system can match. */
+.cf-line__val {
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--line-h) * 100%);
+  margin-bottom: var(--space-3);
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* What the point is, under the frame. --text-secondary at 5.9:1 on CF-Grau,
+   never --text-muted, which is 2.0:1 there. */
+.cf-line__key {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: var(--space-2);
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* The two ends of the domain are read against the frame's own sides rather
+   than centred on their point, because half of a centred label at --t: 0 is
+   off the figure. Everything between them is centred. */
+.cf-line__point--first :is(.cf-line__val, .cf-line__key) { transform: none; }
+.cf-line__point--last  :is(.cf-line__val, .cf-line__key) { transform: translateX(-100%); }
+
+/* The comparison series speaks at label strength, so that the solid line is
+   unambiguously the subject. Its keys already carry its name — "Plan 2020" —
+   which is what keeps the two series apart in the accessibility tree without
+   an aria-label, a legend, or a second copy of anything. */
+.cf-line__set--ghost .cf-line__val { color: var(--text-secondary); }
+
+/* The caption carries the message in words and is the figure's accessible
+   summary as much as its label. Required, for the reason the plot's is.
+   Identical construction, so a line and a plot sit the same distance off their
+   captions inside an article and outside one. */
+.cf-line__caption {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: var(--stroke-1) solid var(--border-default);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+/* The trace arrives along its own domain as the figure does, scrubbed from
+   scroll position rather than played on a timer — the same posture and the
+   same three fallbacks as .cf-plot and .cf-iso. No support for view timelines,
+   reduced motion and paper all leave --line-draw at its registered 1, which is
+   the finished chart.
+
+   ONLY THE TRACE MOVES. The frame, the bounds, the nodes and every printed
+   number are drawn at once and stay drawn: they are the instrument, and a
+   figure whose readable content waits for a timeline is a figure some readers
+   never read. The measurement is the only thing that arrives.
+
+   The range ends early for the plot's reason — a figure near the bottom of a
+   short document may never reach the far end of its own cover range, and a
+   draw that finishes at 90 % is a chart that quietly stops short of its last
+   two years. */
+@supports (animation-timeline: view()) and (animation-range: contain 0% contain 100%) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .cf-line {
+      view-timeline-name: --cf-line;
+      view-timeline-axis: block;
+    }
+    .cf-line__draw {
+      animation: cf-line-draw linear both;
+      animation-timeline: --cf-line;
+      animation-range: cover 5% cover 35%;
+    }
+  }
+}
+@keyframes cf-line-draw {
+  from { --line-draw: 0; }
+  to   { --line-draw: 1; }
+}
+
+/* Forced colours maps every author colour onto one ink, so --border-default
+   and --border-strong arrive at the same value and the frame's two hairlines
+   come up at the trace's own weight — the one distinction this figure spends
+   its whole colour budget on, gone. Redrawn as a dash, which is the
+   substitution .rule already makes in this mode and for this reason: the exact
+   ratio is lost because border-style cannot express one, and the register —
+   instrument against datum — is kept. The ghost trace keeps its own 1-4,
+   because a stroke-dasharray is geometry and this mode does not touch it. */
+@media (forced-colors: active) {
+  .cf-line__frame { border-block-style: dashed; }
+}
+
+/* --------------------------------------------------------------------------
    SUBDIVISION FIELD — "Raster > Teilungsraster", made interactive
    The manual's own claim for this system is the one part of it the web
    implementation never built: "kann als Konzept für interaktive UI-Elemente
