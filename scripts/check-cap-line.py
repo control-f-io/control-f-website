@@ -44,17 +44,35 @@ one value left off, and every one of those failures renders perfectly:
      device foundations/materials.html's glass census and
      foundations/layout.html's space scale use, and for the same reason: a
      list of selectors kept by hand is a list that is right on the day it is
-     written. A fifth trimmed selector enters the table by existing.
+     written. A further trimmed selector enters the table by existing.
 
-None of the four is visible in a screenshot of a page that is right, which is
+  5. AND THE EXAMPLE UNDER THE TABLE IS THE RULE ITSELF. Six lines below that
+     generated census the chapter prints the branch in a <pre>, and that
+     transcript was typed. It went stale the first time the rule changed:
+     .cf-section-header__action joined the trim — the third occupant of a row
+     whose other two were trimmed and which therefore held the whole header's
+     descender slot open on their behalf — the table picked the new selector
+     up on the next --fix, and the code block six lines under it went on
+     showing the two-selector version as what the system ships.
+
+     That is the ordinary failure of design-system documentation and it is
+     worth naming precisely: the table and the transcript are the SAME claim
+     in two registers, one derived and one copied, printed inside one screen
+     of each other. A reader who scrolls past the table to the code — which is
+     what a reader looking for something to paste does — gets the copy. So the
+     transcript is derived too: the @supports block is lifted out of the
+     stylesheet, comments stripped, and compared character for character.
+
+None of the five is visible in a screenshot of a page that is right, which is
 the whole test for what belongs in one of these scripts. Claim 2 is not even
 visible in a screenshot of a page that is wrong: `cap` and `cap alphabetic`
 are one character apart in the file and one drawing apart on the screen, and
 the wrong one is the one that looks like nothing happened.
 
-    python3 scripts/check-cap-line.py          # the four claims
+    python3 scripts/check-cap-line.py          # the five claims
     python3 scripts/check-cap-line.py -v       # every trim, and its context
-    python3 scripts/check-cap-line.py --fix    # rewrite the census + stamp
+    python3 scripts/check-cap-line.py --fix    # rewrite the census, the stamp
+                                               # and the transcript under it
 """
 
 import argparse
@@ -234,6 +252,77 @@ CENSUS_RE = re.compile(
     r'<tbody id="%s">.*?</tbody>' % CENSUS_ID, re.S)
 STAMP_RE = re.compile(r'(<code class="trim-stamp">)([0-9a-f]{8})(</code>)')
 
+# The transcript under the census: the one <pre> on the chapter whose code
+# opens on the branch. Matched by its CONTENT rather than by an id or an
+# ordinal, so it stays the right block if the chapter gains another <pre>
+# above it.
+TRANSCRIPT_RE = re.compile(
+    r'(<pre class="docs-code"><code>)(@supports \(text-box-trim.*?)(</code></pre>)', re.S)
+SUPPORTS_OPEN = re.compile(r"@supports\s*\([^()]*text-box-trim[^()]*\)\s*\{")
+
+
+def supports_source():
+    """The @supports (text-box-trim: …) block, lifted out of the stylesheets.
+
+    Comments are stripped — the branch in components.css carries a long note
+    the chapter has no reason to reprint — and the block is returned exactly as
+    it is authored otherwise, braces and indentation included, so what the
+    reader copies is what the browser reads.
+    """
+    found = []
+    for name in SHIPPING_CSS:
+        path = CSS_DIR / name
+        if not path.exists():
+            continue
+        text = strip_comments(path.read_text(encoding="utf-8"))
+        for m in SUPPORTS_OPEN.finditer(text):
+            depth, i = 1, m.end()
+            while i < len(text) and depth:
+                if text[i] == "{":
+                    depth += 1
+                elif text[i] == "}":
+                    depth -= 1
+                i += 1
+            block = text[m.start():i]
+            # strip_comments leaves the comment's newlines behind so the line
+            # numbers above stay honest; the transcript wants none of them.
+            lines = [ln.rstrip() for ln in block.split("\n")]
+            found.append((name, "\n".join(ln for ln in lines if ln)))
+    return found
+
+
+def check_transcript(text, fix):
+    """Claim 5 — the code block under the census is that block, not a copy of it.
+
+    Returns (new_text, findings). Anything that makes the derivation ambiguous
+    is a finding rather than a silent pass: no block to lift, more than one, or
+    a chapter with nowhere to put it.
+    """
+    blocks = supports_source()
+    if len(blocks) != 1:
+        return text, ["the stylesheets hold %d @supports (text-box-trim: …) block(s)\n"
+                      "    and the chapter prints one. There is no single rule to "
+                      "transcribe." % len(blocks)]
+    want = blocks[0][1]
+    escaped = want.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+    n = len(TRANSCRIPT_RE.findall(text))
+    if n != 1:
+        return text, ["foundations/capline.html carries %d <pre class=\"docs-code\">\n"
+                      "    opening on the branch and must carry exactly one" % n]
+
+    new = TRANSCRIPT_RE.sub(
+        lambda m: m.group(1) + escaped + m.group(3), text)
+    if new == text:
+        return text, []
+    if fix:
+        return new, []
+    return text, ["foundations/capline.html's code example is not the rule it "
+                  "transcribes.\n"
+                  "    The census above it is generated and the <pre> under it was "
+                  "typed.\n"
+                  "    Run: python3 scripts/check-cap-line.py --fix"]
+
 
 def check_chapter(rows, fix):
     """Claim 4 — the chapter's table is this list, and its stamp is this digest."""
@@ -257,13 +346,22 @@ def check_chapter(rows, fix):
     new = STAMP_RE.sub(lambda m: m.group(1) + want_stamp + m.group(3), new)
     if new != text:
         if fix:
-            CHAPTER.write_text(new, encoding="utf-8")
-            print("capline.html rewritten: stamp %s, %d row(s)" % (want_stamp, len(rows)))
+            print("capline.html census rewritten: stamp %s, %d row(s)"
+                  % (want_stamp, len(rows)))
         else:
             findings.append(
                 "foundations/capline.html's census is not the stylesheets' own list.\n"
                 "    %d trimmed selector(s), stamp %s.\n"
                 "    Run: python3 scripts/check-cap-line.py --fix" % (len(rows), want_stamp))
+
+    # Claim 5 runs on the text claim 4 would leave behind, so one --fix settles
+    # both and a table rewritten without its transcript cannot be written out.
+    after, transcript_findings = check_transcript(new, fix)
+    findings += transcript_findings
+    if fix and after != text:
+        CHAPTER.write_text(after, encoding="utf-8")
+        if after != new:
+            print("capline.html transcript rewritten from the shipping branch")
     return findings
 
 
