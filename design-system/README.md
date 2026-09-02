@@ -1833,7 +1833,7 @@ decide which token an edge gets. All three are documented on `foundations/layout
 | | |
 |---|---|
 | `.section` | `--section-gap` on both edges — so 240 px *between* two sections at the reference frame. |
-| `.section--tight` | `--section-gap-sm` on both. The first section under a `.cf-page-header`. |
+| `.section--tight` | `--section-gap-sm` on both. The first section under a `.cf-page-header` (→ `components/page-header.html`). |
 | `.section--flush` | `--section-gap` top, nothing at the bottom. The last section on a page, paired with `.cf-footer--detached`, which supplies that bottom gap instead. |
 
 Horizontal rhythm has one rule of the same shape. Most things sit in a `.container` and
