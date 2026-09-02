@@ -1,7 +1,7 @@
 # scripts/
 
 Everything that generates this website, and everything that refuses to let it
-ship broken. 191 files at this level, this one included, no package, no
+ship broken. 193 files at this level, this one included, no package, no
 `__init__.py`, no build step: every `.py` in it is `python3` against the
 standard library, and every one but `og_meta.py` is run by its own path. That
 pair used to read "178 of the 179", a second file count standing beside the
@@ -39,8 +39,8 @@ most.
 
 | Count | What | Who runs it |
 | --- | --- | --- |
-| 171 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
-| 8 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all eight, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
+| 172 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
+| 9 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all nine, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
 | 1 | `build-all.sh` | `news-sync.yml`, and a human. Nothing else. |
 | 1 | `stage-site.py` — collects the website into `dist/` | both deploys, `--surface pages` and `--surface worker` |
 | 3 | `gen-*.py` — deterministic SVG geometry spliced into pages | `design-system.yml`, `--check` only |
@@ -186,14 +186,15 @@ python3 scripts/build-search-index.py
 | 5 | `build-stellen.py` | `stelle-<slug>.html` (4 today) in **both** editions | 10 `stelle:` regions of `karriere-stelle.html` and `en/karriere-stelle.html` |
 | 6 | `build-site.py` | the 86 shipped pages — 43 German, 43 English. 18 per edition at the root, the other 25 under `blog/`, `stellen/` and `news/thema/` | nothing; four textual edits and no template |
 | 7 | `build-og-plates.py` | `assets/og/<route>.png` — one 1200 × 630 share plate per route, 12 today, drawn from the route's own signet | nothing; it renders rasters with `scripts/og-plate/` |
-| 8 | `build-search-index.py` | `assets/search/index-de.json` and `index-en.json` — 186 records per edition, one per page and one per `<h2>` under its `<main>` | nothing; it reads the shipped pages and writes beside the assets |
+| 8 | `build-app-icons.py` | `assets/icon/cf-app-icon-{180,192,512}.png` and `site.webmanifest` — the manual's App-Icon frame, rendered from the signet and the light family's ramp with the same stdlib rasteriser | nothing; the manifest's two colours are read out of `tokens.css` on every run |
+| 9 | `build-search-index.py` | `assets/search/index-de.json` and `index-en.json` — 186 records per edition, one per page and one per `<h2>` under its `<main>` | nothing; it reads the shipped pages and writes beside the assets |
 
-Step 7 could stand anywhere: a share plate is drawn from a route's NAME and
-nothing above it changes what one looks like. It runs here for one reason — the
-index reads the shipped pages and the plates ship beside them, so a run that
+Steps 7 and 8 could stand anywhere: a share plate is drawn from a route's NAME,
+the app icon is drawn from the signet, and nothing above either changes what one
+looks like. They run here for one reason — the pages link both, and a run that
 stops halfway never leaves a page advertising a picture that is not there yet.
 
-Step 8 is the odd one and its position is the whole of its argument: it reads the
+Step 9 is the odd one and its position is the whole of its argument: it reads the
 **shipped** pages rather than the patterns, because a search result carries an
 address and a pattern's address is not the page's — `beitrag-<slug>.html` is
 served at `/blog/<slug>.html`, and re-deriving that mapping would be
@@ -314,7 +315,7 @@ a grep for `import`, and several are outside this repository.
 | `build-jobs.py`, `build-articles.py` | imported by `build-stellen.py` (`JOBS`, `ART`) | the job pages lose the register reader and the splice helpers. |
 | `build-site.py` | imported by `stage-site.py` for `ship()` | `dist/` reverts to a typed list. It used to be one, and the generated content pages were missing from it: the Worker answered `/stelle-data-engineer.html` with the 404 page while Pages served it correctly. |
 | `sync-news-notion.py` | imported by `sync-jobs-notion.py` for `plain()`, `rich()`, `body_from()`, `children()`, `fetch()` | the jobs sync loses the entire Notion transform. |
-| all seven `build-*.py` filenames | invoked by literal path from `deploy.yml`, `deploy-worker.yml`, `news-sync.yml` (via `build-all.sh`), `design-system.yml`, `routine-merge.yml` (via `build-and-verify.sh`), and each other | the deploy or the gate fails on a missing file, or the gate quietly stops asserting what the deploy asserts. |
+| all nine `build-*.py` filenames | invoked by literal path from `deploy.yml`, `deploy-worker.yml`, `news-sync.yml` (via `build-all.sh`), `design-system.yml`, `routine-merge.yml` (via `build-and-verify.sh`), and each other | the deploy or the gate fails on a missing file, or the gate quietly stops asserting what the deploy asserts. |
 | `content/news/`, `content/jobs/` | `build-news.py`, `build-jobs.py`, both syncs, `check-content-images.py`; each holds a `.catalogue.json` ledger | the stores stop being found and the pages regenerate as empty. |
 | `content/themen.json` | `build-news.py` (the vocabulary a post's `themen:` is checked against, and the chips), `sync-news-notion.py` (writes it) | no post can be filed and the archive has no filter to draw — both scripts stop rather than guess. |
 | the fence namespaces `news:`, `jobs:`, `article:`, `stelle:` | the four builders match `<!-- ns:name -->` … `<!-- /ns:name -->` by exact string against the specimens | the splice finds no region and the build fails — or, if a fence is half-renamed, splices into the wrong place. |
