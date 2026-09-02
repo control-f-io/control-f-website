@@ -156,7 +156,25 @@ RADIUS_PROP = re.compile(
 MOTION_PROP = re.compile(
     r"^(?:transition|animation)(?:-duration|-delay)?$"
 )
-TIME_LITERAL = re.compile(r"(?<![\w.-])\d*\.?\d+m?s(?![\w-])")
+TIME_LITERAL = re.compile(r"(?<![\w.-])(\d*\.?\d+)(m?s)(?![\w-])")
+
+# ZERO IS NOT A DURATION, and it is the one time literal that can never be a
+# token. The system's clock says how long a thing takes to travel; `0s` says it
+# does not travel, which is a statement about the property rather than about the
+# speed of anything. There is no --duration-none and there should not be: a
+# fifth rung reading zero would put "instant" on the same ladder as fast, base,
+# slow and scene, and then somebody would reach for it to make a transition
+# quick.
+#
+# It has one consumer and the shape is worth naming, because it is the only
+# reason a zero time appears in this system at all. `transition: <prop> 0s
+# <delay>` is how a property is changed at a chosen MOMENT rather than over a
+# span — the duration is nothing, the delay carries the meaning, and the delay
+# is a token. .act-rail--glass::before uses it to hold its blur for exactly the
+# length of the plate's fade out; see foundations/materials.html, "Cost".
+def time_literals(value):
+    """Every non-zero time in a value. A zero carries no speed to tokenise."""
+    return [m.group(0) for m in TIME_LITERAL.finditer(value) if float(m.group(1)) != 0]
 
 # A declaration boundary: property after "{", ";" or "}", so a pseudo-class
 # colon in a selector and a query prelude's "(max-width: …)" never read as
@@ -276,7 +294,7 @@ def check_declaration(name, prop, value, findings):
                     "a focus ring composes from --stroke-* and a token colour.",
                 )
         if MOTION_PROP.match(prop):
-            if TIME_LITERAL.search(value):
+            if time_literals(value):
                 hit(
                     "MOTION",
                     "a duration literal. The system's clock is --duration-fast/"

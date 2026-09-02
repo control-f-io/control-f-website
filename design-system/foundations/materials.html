@@ -405,7 +405,7 @@
         <tr><td>navigation band<br><code>.cf-nav</code></td><td>the whole page, moving</td><td>veil glass + lit edge</td><td>rim fades in over the first 5&nbsp;rem, specular crosses the document</td></tr>
         <tr><td>hero button<br><code>.cf-btn--glass</code></td><td>the hero video</td><td>bearing glass + lit rim</td><td>specular on hover, focus, press and on its own passage up the viewport</td></tr>
         <tr><td>info-card plate<br><code>.cf-info-card--glass</code></td><td>the isometric ground lattice</td><td>bearing glass + lit rim</td><td>the band crosses once as the card passes the reader; on the pinned Expertise stage, once across the whole pin</td></tr>
-        <tr><td>chapter rail plate<br><code>.act-rail--glass</code></td><td>22&nbsp;000&nbsp;px of act composition, carrying its own labels</td><td>bearing glass, <strong>no lit rim</strong> — <code>--glass-border</code> instead; and on Expertise, where the same plate ships <a href="#opaque-edge">the opaque form by default</a>, a <code>--border-default</code> contour instead of that</td><td>the plate itself is the response — it fades up on hover and focus-within, and nothing travels on it</td></tr>
+        <tr><td>chapter rail plate<br><code>.act-rail--glass</code></td><td>22&nbsp;000&nbsp;px of act composition, carrying its own labels</td><td>bearing glass, <strong>no lit rim</strong> — <code>--glass-border</code> instead; and on Expertise, where the same plate ships <a href="#opaque-edge">the opaque form by default</a>, a <code>--border-default</code> contour instead of that</td><td>the plate itself is the response — <a href="#invisible-blur">the material arrives with it</a> on hover and focus-within, and nothing travels on it</td></tr>
         <tr><td>mobile menu</td><td>the hero video</td><td><strong>opaque plate</strong> — see above</td><td>a clip edge travels down it</td></tr>
         <tr><td>process card — figure half</td><td>the page wash</td><td>contour</td><td>nothing — it is not interactive, and a hover response on a panel that does not answer is a lie</td></tr>
         <tr><td>&nbsp;&nbsp;· its copy half</td><td>the page wash</td><td>contour + <code>--surface-lifted</code>, a veil — <a href="#copy-panel-gap">the plate the mockup draws</a>, two-column form only</td><td>nothing</td></tr>
@@ -939,6 +939,48 @@
       <code>--glass-lookahead</code> so content arrives through the blur rather than popping
       into it, but no further — everything past one blur kernel is spend with nothing to show.
     </p>
+    <div class="docs-note docs-note--warn" id="invisible-blur">
+      <strong>And a blur nobody can see is the same waste from the other side.</strong> The
+      Don't list below has ruled out one half of this for as long as it has existed — no
+      <code>backdrop-filter</code> under an opaque background, because the blur cannot be seen
+      and still costs a GPU pass. A layer at <code>opacity: 0</code> cannot be seen either,
+      and the pass is the same pass; the occluder is simply on the other side of it.
+      <p>
+        <strong>The chapter rail's plate was that, on the page with the tightest budget in the
+        system.</strong> <code>.act-rail--glass::before</code> declared the blur
+        unconditionally on a plate whose rest opacity is 0 — and three documents already
+        argued from the opposite premise. <a href="#third-layer">The allowance</a> that lets
+        the landing page carry a third frosted surface is written on it in as many words: the
+        plate <q>is painted only on <code>:hover</code> / <code>:focus-within</code></q>.
+        <code>tokens.css</code> says the same thing where it keeps its own list of the four.
+        <a href="#panel-verdicts">The verdict column</a> says <q>the plate itself is the
+        response</q>. The stylesheet said the material was always there and left it to the
+        compositor to notice that the result is invisible — which is a bet on an optimisation
+        no specification promises and no engine documents.
+      </p>
+      <p>
+        <strong>It is declared in the open state now, and the fade did not move a pixel.</strong>
+        <code>backdrop-filter</code> is animatable, so what each state sets is not a duration
+        but a <em>delay</em>: the open rule's <code>0s</code> puts the blur there on the frame
+        the fade starts, while the plate is still at opacity 0, and the rest rule's
+        <code>0s var(--duration-base)</code> holds it for the whole fade out and drops it on the
+        frame opacity reaches 0. Without that second half the blur would snap off at opacity 1
+        and the artwork behind five titles would come back sharp before the plate had gone.
+        Traced at 1440&nbsp;&times;&nbsp;900 through both directions: at rest
+        <code>none</code>; opening, live at opacity 0.000 through 1; closing, live at 1 through
+        0.000 and <code>none</code> only after. The fully open plate measured against the same
+        plate with the blur declared at rest — 64&nbsp;&times;&nbsp;275&nbsp;px, device scale 1
+        — comes back with a maximum channel difference of <strong>0</strong>.
+      </p>
+      <p>
+        <strong>The general form is a check.</strong>
+        <code>scripts/check-glass-budget.py</code>'s ninth claim resolves the rest state of
+        every layer the census counts and fails one that is both blurred and invisible. It
+        reads the element rather than the rule, because the pair is rarely in one: here the
+        blur is on the modifier and the opacity is on the base it modifies, and the only thing
+        that knows they are one layer is the class attribute of the element carrying both.
+      </p>
+    </div>
     <p>
       <strong>It used to read <q>never move <em>anything</em></q>, and the shipping system has
       never obeyed that.</strong> <code>.cf-btn--glass</code> paints its blur, its face and its

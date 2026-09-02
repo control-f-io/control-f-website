@@ -6694,11 +6694,65 @@
       transition: opacity var(--duration-base) var(--ease-standard);
       z-index: -1;
     }
+    /* THE BLUR IS DECLARED IN THE OPEN STATE, AND FOR THREE RELEASES IT WAS
+       DECLARED AT REST. This rule used to carry backdrop-filter unconditionally
+       on a plate whose rest opacity is 0 — a blurred layer nobody can see, on
+       the page with the tightest glass budget in the system.
+
+       WHAT MADE IT A DEFECT IS NOT THE COST, IT IS THE CONTRACT. Three
+       documents rest on one sentence about this surface, and none of them was
+       written by this rule. tokens.css: "the rail's plate paints only on hover
+       or focus, which needs the .is-live the rail only has while the acts own
+       the viewport". check-glass-budget.py's PAGE_BUDGET entry: the landing
+       page "holds three of them and that is not the budget moving", on the
+       argument that .act-rail--glass::before "is painted only on :hover /
+       :focus-within". foundations/materials.html's verdict column: "the plate
+       itself is the response". Every one of those says the material is not
+       there at rest. The stylesheet said it always was, and left it to the
+       compositor to notice that the result is invisible — which is a bet on an
+       optimisation no specification promises and no engine documents. The Don't
+       list on foundations/materials.html already rules out the other way of
+       paying for a blur nobody can see: "no backdrop-filter under an opaque
+       background, the blur cannot be seen and still costs a GPU pass". A layer
+       at opacity 0 is the same sentence with the occluder on the other side.
+       → scripts/check-glass-budget.py, claim 8, which now holds the general
+         form: no counted glass layer is invisible at rest.
+
+       THE TWO TRANSITIONS ARE ONE IDIOM AND BOTH HALVES ARE LOAD-BEARING.
+       backdrop-filter is animatable, so it takes a transition; what each state
+       sets is not a duration but a DELAY, and the delay is what makes the swap
+       unobservable in both directions.
+
+         arriving   the open rule's `0s` — the blur is there on the frame the
+                    fade starts, while the plate is still at opacity 0.
+         leaving    this rule's `0s var(--duration-base)` — the blur is HELD for
+                    the whole fade out and drops on the frame opacity reaches 0.
+
+       Written the obvious way, with no transition on the filter, the blur would
+       snap off at opacity 1 and the reader would watch the artwork behind five
+       titles come back sharp before the plate had gone. The material now exists
+       for exactly as long as it can be seen and not one frame longer.
+
+       BOTH SPELLINGS ARE IN THE TRANSITION LIST because both are declared, and
+       an unknown ident in a transition-property list is inert rather than
+       invalid — so naming the prefixed one costs nothing where it is an alias
+       and buys the delay where it is the only property that exists. */
     .act-rail--glass::before {
       background: var(--surface-glass);
       border: var(--glass-border);
+      -webkit-backdrop-filter: none;
+              backdrop-filter: none;
+      transition: opacity var(--duration-base) var(--ease-standard),
+                  -webkit-backdrop-filter 0s var(--duration-base),
+                  backdrop-filter 0s var(--duration-base);
+    }
+    .act-rail--glass:hover::before,
+    .act-rail--glass:focus-within::before {
       -webkit-backdrop-filter: var(--glass-blur);
               backdrop-filter: var(--glass-blur);
+      transition: opacity var(--duration-base) var(--ease-standard),
+                  -webkit-backdrop-filter 0s,
+                  backdrop-filter 0s;
     }
     .act-rail:hover::before,
     .act-rail:focus-within::before { opacity: 1; }
