@@ -29,13 +29,46 @@ sections a reader never sees at the same moment), the claim was specific enough
 to be convincing, and the two names looked like the two gates. Only the third
 is fixable by a script, and it is fixable completely.
 
-THE RULE. Any `scripts/check-<name>.py` written inside any file in scripts/ must
-name a file that is there. That is the whole check. It is deliberately narrower
-than "every path mentioned anywhere resolves": docstrings name CSS classes,
-custom properties, pull requests and tokens, none of which this can adjudicate,
-and a check that is right about one thing beats a check that is nearly right
-about five. A script path is unambiguous — it is either in this directory or it
-is not.
+THE RULE. Any `scripts/…py` path written anywhere in the design system or in
+scripts/ must name a file that is there. That is the whole check. It is
+deliberately narrower than "every path mentioned anywhere resolves": the same
+paragraphs name CSS classes, custom properties, pull requests and tokens, none
+of which this can adjudicate, and a check that is right about one thing beats a
+check that is nearly right about five. A script path is unambiguous — it is
+either in that directory or it is not.
+
+THE CORPUS WIDENED, AND A CLAIM THIS CHECK COULD NOT SEE IS WHY. It read the
+gates' own docstrings and the workflow, and not the chapters — which is the half
+a reader actually reads. design-system/foundations/motion.html closed its
+argument for the arrival rule by naming check-build-arrival.py as the script
+that "counts ink and holds the ceiling, so this rule is enforced rather than
+merely written here." That file has never existed in any commit; `git log -S`
+finds the name in exactly one, the commit that wrote the sentence, and the claim
+then stood through 49 merges to main — under a heading whose whole subject is a
+rule this same chapter had already stated backwards once. It is the landing
+page's seam again, one corpus over.
+
+So the existence half now reads every .html, .css and .js under design-system/
+as well, plus both READMEs. Measured on the tree the day it was widened: 101
+authored files carrying 556 mentions of a scripts/ path across 157 distinct
+names — the chapters, the four stylesheets and the markup — of which two named
+nothing at all.
+
+AND IT READS ANY scripts/ PATH NOW, not only check-*.py, one directory deep. The
+second stray was gen-flow-root.py — cited at the top of scripts/ in
+foundations/illustration.html and, copied from the same finding, in
+check-figure-roster.py's own docstring, where the generator actually stands one
+directory down in expertise-objects/. A generator writes markup that ships, so a
+reader sent to the wrong path to regenerate a drawing is in the same position as
+one sent to a gate that is not there: they conclude the thing is held, and stop
+looking.
+
+BOTH NAMES ARE WRITTEN WITHOUT THEIR PREFIX IN THIS PARAGRAPH, deliberately, and
+that is not a dodge — it is the rule stated once more. This check is about
+paths and not about names, because a name in a sentence is how a reader refers
+to a thing and a path is how they go and find it. A record of a bad path that
+was itself a bad path would fail its own gate on every run, and the record is
+worth more than the symmetry.
 
 AND THE WORKFLOW IS HELD TO THE SAME LINE, for the reason the fold exists: a
 check nobody runs is prose with a shebang. Every `scripts/check-*.py` named in
@@ -43,6 +76,9 @@ check nobody runs is prose with a shebang. Every `scripts/check-*.py` named in
 every check in scripts/ must be named in the workflow. A gate written and never
 wired is the same failure one step earlier, and this repository has shipped
 that too: the four checks added with the acts sheet ran nowhere for a week.
+This half stays narrow where the other one widened: design-system.yml is the
+run list for check-*.py sitting directly in scripts/, and a builder or a
+generator named there is a citation like any other rather than a missing step.
 
 WHAT THIS CANNOT SEE, stated so it is not mistaken for covered. It reads names,
 not claims. A check that exists, is wired, and asserts nothing about what its
@@ -63,17 +99,42 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
+TREE = ROOT / "design-system"
 WORKFLOW = ROOT / ".github" / "workflows" / "design-system.yml"
 
-# A `scripts/` path to a check, wherever it is written — in a docstring, in a
-# comment, in a `print()` that tells a reader what to run next, or in the
-# workflow's own run lines. The prefix is required: a bare "check-links.py"
-# inside a sentence is a name, and this check is about paths.
-CITE = re.compile(r"scripts/(check-[a-z0-9-]+\.py)")
+# A `scripts/` path, wherever it is written — in a docstring, in a chapter's
+# prose, in a stylesheet's comment, in a `print()` that tells a reader what to
+# run next, or in the workflow's own run lines. The prefix is required: a bare
+# "check-links.py" inside a sentence is a name, and this check is about paths.
+# One optional directory segment, because scripts/expertise-objects/ is the one
+# place a generator lives below the top of that directory.
+CITE = re.compile(r"scripts/((?:[a-z0-9_-]+/)?[a-z0-9_-]+\.py)")
+
+# THE SPECIMENS, AND NOT WHAT IS SPLICED INTO THEM. patterns/en/ is the English
+# edition build-i18n.py writes, and beitrag-/stelle-/news-thema- prefixed pages
+# are one post, one opening or one topic spliced into a specimen. Their prose is
+# a copy of a specimen's, so a stray in one of them is the same stray reported
+# twice and fixed in a file the next build overwrites.
+GENERATED = ("beitrag-", "stelle-", "news-thema-")
+
+
+def authored():
+    """Every authored file in the design system, in path order."""
+    out = []
+    for path in sorted(TREE.rglob("*")):
+        if path.suffix not in (".html", ".css", ".js", ".md"):
+            continue
+        if path.relative_to(TREE).parts[:2] == ("patterns", "en"):
+            continue
+        if path.name.startswith(GENERATED):
+            continue
+        out.append(path)
+    out.append(ROOT / "README.md")
+    return out
 
 
 def cited(text):
-    """Every scripts/check-*.py named in one file, in order of first mention."""
+    """Every scripts/…py path named in one file, in order of first mention."""
     out, seen = [], set()
     for line_no, line in enumerate(text.splitlines(), 1):
         for name in CITE.findall(line):
@@ -85,22 +146,31 @@ def cited(text):
 
 
 def audit():
-    present = {p.name for p in SCRIPTS.glob("check-*.py")}
+    present = {str(p.relative_to(SCRIPTS)) for p in SCRIPTS.rglob("*.py")}
+    checks = {p.name for p in SCRIPTS.glob("check-*.py")}
     findings, seen = [], []
 
-    for path in sorted(SCRIPTS.glob("*.py")):
+    for path in sorted(SCRIPTS.rglob("*.py")) + authored():
+        if not path.exists():
+            continue
+        where = str(path.relative_to(ROOT))
+        # A file naming its own usage line, compared as the path this check
+        # reads — not as a bare filename, which would let a generator one
+        # directory down excuse itself by citing the wrong path to itself.
+        own = str(path.relative_to(SCRIPTS)) if SCRIPTS in path.parents else None
         text = path.read_text(encoding="utf-8")
         for name, line_no in cited(text):
-            if name == path.name:
-                continue                       # a file naming its own usage line
+            if name == own:
+                continue
             if name in present:
-                seen.append((path.name, line_no, name, "exists"))
+                seen.append((where, line_no, name, "exists"))
             else:
                 findings.append(
-                    (f"scripts/{path.name}", line_no,
+                    (where, line_no,
                      f"names scripts/{name}, which is not in scripts/",
-                     "A reader takes that name for the gate on whatever this "
-                     "paragraph hands off. Write the check or drop the claim."))
+                     "A reader takes that name for the gate — or the generator "
+                     "— on whatever this paragraph hands off. Write it, correct "
+                     "the path, or drop the claim."))
 
     if not WORKFLOW.exists():
         findings.append((str(WORKFLOW.relative_to(ROOT)), 0,
@@ -108,17 +178,20 @@ def audit():
         return findings, seen
 
     wf_text = WORKFLOW.read_text(encoding="utf-8")
-    wired = {name for name, _ in cited(wf_text)}
+    # The run list is check-*.py sitting directly in scripts/. A builder or a
+    # generator named in the workflow is a citation, held by the loop above.
+    wired = {name for name, _ in cited(wf_text) if name in checks}
     for name, line_no in cited(wf_text):
         if name in present:
-            seen.append(("design-system.yml", line_no, name, "wired"))
+            seen.append(("design-system.yml", line_no, name,
+                         "wired" if name in checks else "exists"))
         else:
             findings.append(
                 (".github/workflows/design-system.yml", line_no,
                  f"runs scripts/{name}, which is not in scripts/",
                  "The job fails on the missing file, or worse, silently does "
                  "not run the gate it is named for."))
-    for name in sorted(present - wired):
+    for name in sorted(checks - wired):
         findings.append(
             (f"scripts/{name}", 0,
              "is not run by .github/workflows/design-system.yml",
@@ -152,8 +225,9 @@ def main():
 
     cites = sum(1 for _, _, _, how in seen if how == "exists")
     runs = sum(1 for _, _, _, how in seen if how == "wired")
-    print("cited gates: %d citation%s across scripts/ and %d check%s wired into "
-          "design-system.yml, every name a file that is there."
+    print("cited gates: %d citation%s across scripts/ and the design system, and "
+          "%d check%s wired into design-system.yml, every name a file that is "
+          "there."
           % (cites, "" if cites == 1 else "s", runs, "" if runs == 1 else "s"))
     return 0
 
