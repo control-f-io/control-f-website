@@ -33,6 +33,15 @@ frame reaches it, and it is the edge that carries the indicator when the outer
 one washes out. .cf-btn--glass has carried that construction and its derivation
 since it was written.
 
+An inset box-shadow is the usual second tone and cannot always be it. It paints
+above the background and BELOW the content, so on a control whose own content
+covers its edge — a blog card in the archive's port, whose picture is
+object-fit: cover across the whole cell — the shadow is under the picture and
+gone on exactly the surface that made two tones necessary. There the second
+tone is a `::after` with a border, at the same band, painted above. Both shapes
+count here; what is being proved is that a second tone exists and clears the
+floor against the first, not which property drew it.
+
 WHAT WAS MEASURED, AND WHY THIS IS A SCRIPT. Three of the four indicators over
 that hero had only the outline. Worst edge of eight sampled per control, against
 the poster, at four widths — the floor is 3:1, WCAG 1.4.11:
@@ -104,6 +113,14 @@ REGISTER = [
      "the hero video, on the WCAG 2.2.2 pause control",
      "the label carries data-theme=\"inverse\", so --focus-ring resolves to "
      "lime — over an artwork whose dominant hue is lime."),
+    (".cf-blog-grid--port .cf-blog-card:focus-visible", "root",
+     "a news photograph, at the card's own edge inside the archive's port",
+     "the port's column is a scrollport on both axes — overflow-y: auto "
+     "forces overflow-x — and a card is its full width, so the ring cannot be "
+     "drawn outside at all and turns inward. Inward, on a "
+     ".cf-blog-card--media, it lands on the picture: padding is 0 and the "
+     "image is object-fit: cover across the whole cell, so the outer band is "
+     "on content this stylesheet neither owns nor can compute."),
 ]
 
 # A rule may be in the register WITHOUT an inner ring only if it is named here,
@@ -255,6 +272,68 @@ def inner_ring(body):
     return toks[-1] if toks else None
 
 
+def registered_hit(hits):
+    """The rule a register entry is actually about, out of every copy of its
+    selector in the sheets.
+
+    A selector can be written more than once: a control whose indicator departs
+    from --focus-ring under one condition and returns to it under another is
+    two rules with one prelude. The last one wins the cascade in the state it
+    applies to and says nothing about the other, so taking hits[-1] blindly read
+    the RESTORATION — a plain var(--focus-ring) ring on a released crop — and
+    reported the two-tone construction a few lines above it as missing.
+
+    The register's subject is the departure: an entry exists because some state
+    of this control puts its ring on a surface the stylesheets do not own. So
+    the hit to judge is the last one that takes the outline OFF --focus-ring.
+    A rule that hands it back is the system default, which is the sweep's
+    business and not this loop's.
+    """
+    for hit in reversed(hits):
+        ocol = outline_colour(hit[2])
+        if ocol is not None and "--focus-ring" not in ocol:
+            return hit
+    return hits[-1]
+
+
+def pseudo_ring(sel, all_rules):
+    """The colour of an inner ring drawn as a pseudo-element, or None.
+
+    box-shadow is the system's usual second tone and cannot always be the
+    second tone. An inset shadow paints above the background and BELOW the
+    content, so on a control whose content covers its own edge — a card whose
+    picture is object-fit: cover across the whole cell — the shadow is under
+    the picture and invisible on exactly the surface that made two tones
+    necessary. `::after` paints above, at the same band.
+
+    Read from `<sel>::before` / `<sel>::after`, which rules() has already
+    collected: they carry :focus-visible themselves, so they are keys in the
+    same dict. The border colour is the tone; a pseudo-element with no border
+    is not a ring and does not count.
+    """
+    for suffix in ("::after", "::before"):
+        for _, _, body in reversed(all_rules.get(sel + suffix, [])):
+            # A `content: none` copy is the ring being STOOD DOWN under a query
+            # — the folded port releases its own crop and the ring goes back
+            # outside — not the ring being absent. Read past it to the rule
+            # that draws one.
+            if re.search(r"content\s*:\s*none", body):
+                continue
+            m = re.search(r"border-color\s*:\s*([^;]+)", body)
+            if m:
+                return m.group(1).strip()
+            m = re.search(r"border\s*:\s*([^;]+)", body)
+            if not m:
+                continue
+            spec = m.group(1).strip()
+            if spec in ("none", "0"):
+                continue
+            toks = re.findall(r"var\([^)]*\)|[^\s]+", spec)
+            if toks:
+                return toks[-1]
+    return None
+
+
 def main():
     palette = Palette(declarations(TOKENS.read_text(encoding="utf-8")))
     all_rules = rules()
@@ -274,13 +353,13 @@ def main():
                 "    rename it here — the guarantee did not move with it."
                 % (sel, behind))
             continue
-        name, line, body = hits[-1]
+        name, line, body = registered_hit(hits)
         ocol = outline_colour(body)
         if ocol is None:
             # The colour may be inherited from base.css's rule; the register
             # entry names the scope, so --focus-ring is the value in play.
             ocol = "var(--focus-ring)"
-        icol = inner_ring(body)
+        icol = inner_ring(body) or pseudo_ring(sel, all_rules)
         if icol is None:
             if sel in ON_A_CONTROLLED_SURFACE:
                 continue
@@ -293,6 +372,10 @@ def main():
                 "    surface and neither is guaranteed. Fill the offset with "
                 "an inner ring —\n"
                 "      box-shadow: 0 0 0 var(--stroke-2) <the other tone>;\n"
+                "    — or, where the control's own content would paint over an "
+                "inset shadow, a\n"
+                "      <sel>::after { border: var(--stroke-2) solid <the other "
+                "tone>; }\n"
                 "    — so the boundary between the two tones carries the "
                 "indicator. That edge is\n"
                 "    internal and no frame of the artwork can reach it. "
@@ -359,9 +442,9 @@ def main():
 
     lines = []
     for sel, scope, behind, _ in REGISTER:
-        name, line, body = all_rules[sel][-1]
+        name, line, body = registered_hit(all_rules[sel])
         ocol = outline_colour(body) or "var(--focus-ring)"
-        icol = inner_ring(body)
+        icol = inner_ring(body) or pseudo_ring(sel, all_rules)
         if icol is None:
             lines.append("    %-52s on a controlled surface" % sel)
             continue

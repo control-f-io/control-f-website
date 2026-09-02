@@ -4496,6 +4496,93 @@ ul.cf-info-card__chips {
   .subdivide--late .cf-blog-grid--port { height: auto; }
   .subdivide--late .cf-blog-grid--port .cf-blog-col { overflow: visible; }
 }
+
+/* THE PORT CROPPED THE FOCUS RING OFF EVERY CARD IN IT, ON THE ONE AXIS IT
+   NEVER SCROLLS.
+
+   `overflow-y: auto` above is one axis of intent and two axes of effect: CSS
+   Overflow 3 does not let a box scroll on one axis and overflow visibly on the
+   other, so `overflow-x` computes from `visible` to `auto` and the column
+   becomes a scrollport horizontally as well. Measured on news.html at 1280,
+   both columns: scrollWidth 568 = clientWidth 568, scrollWidth 569 =
+   clientWidth 569. Nothing ever scrolls sideways — the horizontal scrollport
+   is pure cost, and what it costs is the ring.
+
+   A card is the column's whole width, edge to edge: the column has no padding
+   and the card no margin. base.css draws the ring at `outline-offset: 2px`, so
+   all 4 px of it are outside the card's border box and therefore outside the
+   scrollport's padding box on both sides. Measured with the card focused: left
+   edge cut by 4 px of 4, right by 3 of 4 — the whole indicator, on every card.
+   The lead loses all four sides, because its column is one card tall and its
+   block axis has nothing to scroll either. 130 links across the eight archive
+   pages and this component's own page, and a keyboard reader gets no ring on
+   any of them. WCAG 2.4.7.
+
+   Padding on the column cannot buy the room back — the card is sized by the
+   column and would shrink with it — and no overflow value gives one axis a
+   scrollport and the other a bleed: `overflow-y: auto` forces a specified
+   `clip` on x to compute to `hidden`, which crops just the same and takes
+   `overflow-clip-margin` with it.
+
+   SO THE RING TURNS INWARD, which is this system's answer already: .cf-team
+   -strip does exactly this, for exactly this reason, where the strip's own
+   full-bleed box put two of the ring's four sides off the screen. That note
+   says nothing else in the system needs it. This is the second thing, and the
+   difference is worth naming: the strip is cropped by the viewport, these
+   cards by a scrollport their own component declared.
+
+   AND IT IS TWO-TONE, BECAUSE THE EDGE IT LANDS ON IS A PHOTOGRAPH.
+   `.cf-blog-card--media` is `padding: 0` and its picture is `object-fit:
+   cover` across the full cell, so an inward ring's outer band sits on a news
+   photo — content, not a surface this stylesheet owns or can compute. That is
+   the case .cf-btn--glass derives over the hero video and the case
+   check-focus-ring-edge.py registers: no single tone clears 3:1 against an
+   arbitrary image, and two tones whose own boundary is internal to the
+   indicator do. Same pair and the same order as the glass button — lime
+   outside where the artwork is, black inside where it cannot reach, 18.51:1
+   between them — and here the lime band lands against the grid's own black
+   hairline as well, which is the second reason for that order: black on black
+   reads as the rule having thickened, which is the failure .cf-team-strip
+   names.
+
+   The inner tone is a pseudo-element and not `box-shadow: inset`, which is
+   what the glass button uses. An inset shadow paints above the background and
+   below the content, and on a --media card the content is the picture: the
+   shadow would be under it and invisible on exactly the cards that need it.
+   `::after` paints above, at the same two bands. */
+.cf-blog-grid--port .cf-blog-card { position: relative; }
+.cf-blog-grid--port .cf-blog-card:focus-visible {
+  outline-color: var(--cf-lime);
+  outline-offset: calc(var(--stroke-2) * -1);
+}
+.cf-blog-grid--port .cf-blog-card:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: var(--stroke-2);
+  border: var(--stroke-2) solid var(--cf-schwarz);
+  pointer-events: none;
+}
+/* Folded, the crop is released — the two queries above say so — so the ring
+   goes back outside with it, and a card in a folded port indicates exactly as
+   the same card does in the Weiterlesen grid under an article, which is the
+   same component without the port. The inward ring is a consequence of the
+   scrollport, so it lives and dies with it rather than with the modifier. */
+@container (max-width: 44rem) {
+  .cf-blog-grid--port .cf-blog-card:focus-visible {
+    outline-color: var(--focus-ring);
+    outline-offset: 2px;
+  }
+  .cf-blog-grid--port .cf-blog-card:focus-visible::after { content: none; }
+}
+@container (max-width: 56rem) {
+  .subdivide--late .cf-blog-grid--port .cf-blog-card:focus-visible {
+    outline-color: var(--focus-ring);
+    outline-offset: 2px;
+  }
+  .subdivide--late .cf-blog-grid--port .cf-blog-card:focus-visible::after {
+    content: none;
+  }
+}
 /* ASPECT-RATIO IS NOT A HEIGHT, THE ONE TIME THAT DIFFERENCE COSTS TEN SHEETS.
    .cf-blog-card__image is `aspect-ratio: 3 / 2; flex: 1 1 auto` a few rules
    down — a size that depends on the flex container's own final size, which on
@@ -6055,10 +6142,19 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    and there was nothing to close it at either end.
    Turning the offset inward is the whole fix: the ring keeps its weight and
    its colour, all four sides land inside the box, and the 1 px of wash between
-   it and the strip's own hairline is what tells the two apart. Nothing else in
-   the system needs this, because nothing else in it is focusable AND flush
-   with both edges of the screen — .cf-table__scroll, the other scroll box with
-   the same three attributes, sits inside a .container. */
+   it and the strip's own hairline is what tells the two apart.
+
+   THIS USED TO CLOSE BY SAYING NOTHING ELSE IN THE SYSTEM NEEDS IT, on the
+   grounds that nothing else is focusable AND flush with both edges of the
+   screen. The premise still holds and the conclusion never did: the viewport
+   is not the only box that crops a ring. `.cf-blog-grid--port .cf-blog-card`
+   is flush with a scrollport its own component declared, and lost the whole
+   indicator to it on 130 links — measured, and fixed by this same move a few
+   hundred lines up. .cf-table__scroll, named here as the counter-example, is
+   still one: it sits inside a .container and its focusable is the box itself,
+   not something flush inside it. The rule to carry forward is about the crop
+   and not about the screen — a ring drawn outward needs 4 px of somewhere to
+   be drawn, and any box that clips is a box that can take it away. */
 .cf-team-strip:focus-visible { outline-offset: calc(var(--stroke-2) * -1); }
 .cf-team-strip__list {
   display: grid;
@@ -6472,6 +6568,32 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 .cf-table__scroll,
 .cf-prose__table-scroll,
 .cf-calendar__scroll { overflow-x: auto; }
+
+/* AND THE BLOCK AXIS OF THAT BOX CROPS TOO, which `overflow-x` alone does not
+   say. A box that scrolls on one axis cannot overflow visibly on the other, so
+   `overflow-y` computes to `auto` and the box clips top and bottom as well —
+   the same clause that costs .cf-blog-grid--port its ring, arrived at from the
+   other axis.
+
+   Only the calendar has a focusable INSIDE this box: a table's cells hold
+   prose and the box itself is the tab stop, but .cf-calendar__day is an <a>
+   sitting in a cell with `padding: 0`, so the last row's days end 1 px above
+   the scrollport's edge. The ring wants 4 px there and gets 1. Measured on
+   components/calendar.html at 1280: the bottom of the indicator cut by 3 px on
+   every reachable day in the final week, on all four specimens.
+
+   The room is bought below the table rather than taken out of the ring,
+   because there is room to buy: this edge is the box's own, nothing is drawn
+   on it, and 4 px of wash under the last hairline is not a spacing decision
+   anyone reads. The port could not do this — a card there is sized BY the
+   scrollport, so padding on the box comes straight back out of the card — and
+   that is the whole reason these two answers differ.
+
+   Block-end only, and deliberately not `padding-block`. The first row of days
+   has the head row above it inside the same box, which is air the ring already
+   has; 4 px on top would be air nothing needs, above a rule the head sits on.
+   → components/calendar.html */
+.cf-calendar__scroll { padding-block-end: calc(var(--stroke-2) * 2); }
 
 /* A SCROLL BOX ON PAPER IS A CROP. Nothing scrolls a sheet, so every column
    past the box's width is not hidden-until-you-drag, it is gone — and it goes
