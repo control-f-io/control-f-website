@@ -64,12 +64,27 @@ WHAT TO DO INSTEAD, which is what cf-stream.js and act-rail.js both now do:
 ask the element. A track's tall height and its `view-timeline-name` are
 declared in the same rule inside the same gate, so
 
-    getComputedStyle(track).viewTimelineName !== 'none'
+    var named = getComputedStyle(track).getPropertyValue('view-timeline-name');
+    named && named !== 'none'
 
 is true in precisely the tier the stylesheet pins in — in that consumer's own
 units, with that consumer's own height term, folding in @supports and
 prefers-reduced-motion for free because the declaration sits inside those too.
 One gate, written once, read where it is needed.
+
+AND IT IS READ AS A PROPERTY VALUE, NOT AS A DOM PROPERTY, which this section
+recommended for as long as it has existed and which cost act-rail.js a live
+fault in one engine. `getComputedStyle(track).viewTimelineName` is the value in
+every browser that HAS view-timeline-name and `undefined` in every browser that
+does not — Gecko, which has no scroll-driven animation at all and is therefore
+the one engine permanently in the degraded tier. Compared against 'none' either
+way round, `undefined` reads as "this track is pinned" there, which is the
+opposite of the truth and the exact inversion this section exists to prevent.
+getPropertyValue() returns the empty string for a property the engine does not
+implement AND for one that is not set, so the two ways a track can be unpinned
+answer the same falsy thing. cf-stream.js's pinned() guards the DOM read with a
+`typeof` for the same reason and has its own note on it.
+→ scripts/check-act-beats.py holds this shape for the rail.
 """
 
 import pathlib

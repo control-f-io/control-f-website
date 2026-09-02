@@ -385,7 +385,7 @@ python3 scripts/check-field-family.py          # every field control is accounte
 python3 scripts/check-field-family.py -v       # every shared rule and the controls it names
 python3 scripts/check-hover-focus-parity.py    # a response written for :hover is written for :focus-visible in the same rule
 python3 scripts/check-hover-focus-parity.py -v # every :hover rule, paired, exempt or stray
-python3 scripts/check-foil-clip.py             # the foil's clip box is capped at its ink, and no box property takes fit-content()
+python3 scripts/check-foil-clip.py             # the foil's clip box is capped at its ink, every exclusion from the cap is answered, and no box property takes fit-content()
 python3 scripts/check-foil-clip.py -v          # every declaration considered
 python3 scripts/check-foil-doors.py            # every gradient in the letters hands its ink back on paper, under forced colours and for more contrast
 python3 scripts/check-foil-doors.py -v         # every clipping context, every state, every door
@@ -593,6 +593,50 @@ on hover by the rule that restates the clip at a higher specificity. That never 
 because the fill each door hands back happens to be declared later in source than the
 transparent one; a label legible by source order rather than by statement is the dependency
 the button's own comment names as the way this bug comes back.
+
+**And the cap that makes a foil a foil had an exclusion nothing measured.** `background-clip:
+text` paints across the WHOLE element box, so a headline in a column samples only the first
+fraction of its ramp — `base.css` says so, calls it load-bearing, and caps `.text-foil` at
+`max-width: max-content`. The cap is written `:not(:has(.cf-stream__text))`, because
+`cf-stream.js` empties the element it types into and capping a rewritten element at its own
+content is cyclic: measured, that collapsed all four card titles on `patterns/expertise.html`
+to 22 px and 0. **The reason is right; what the excluded case then renders was never looked
+at.** Those four titles are the four largest foil moments in the system, and on the rendered
+page they sat 136–406 px of ink inside a 518 px box at 1280 and a 593 px one at 1920:
+
+| | ink / box at 1280 | at 1920 |
+|---|---|---|
+| Maschinenbau | 53.4 % | 46.6 % |
+| Erneuerbare Energien | 78.4 % | 68.4 % |
+| Großanlagen | 47.0 % | 41.1 % |
+| Flotten | 26.2 % | 22.9 % |
+
+Against `--gradient-foil-ink`, whose stops sit at 0 / 23.5 / 47 / 73.5 / 100 %, **Violett 800
+appeared on none of them at either width**, and at 1920 two of the four did not reach Sky 800
+either — the same sentence `base.css` records for the footer title *before* the cap existed,
+printed by the exemption instead of by a missing declaration.
+
+**So the stream hands the axis back before it takes it.** The full string is still in the
+element when `prepare()` runs, so its `max-content` is the real one; `cf-stream.js` publishes
+it as `--stream-inline` and the excluded rule caps on that. Nothing is cyclic — the
+measurement happens once, before the first character is removed — and the ramp is then fixed
+at the *full* string's width for the whole of the typing, so it does not rescale letter by
+letter either, which is the other failure the class names. It is published in `em` because
+`prepare()` runs once per gate flip and not once per resize, and the same string in the same
+face scales with its own font-size. The caret is inside the measurement rather than named as
+`0.55em` in a second file: it is a real inline-block in the flow, and a box capped at the ink
+alone drops it to a second line the moment the line finishes typing. That is the whole of the
+residual — the four now run **86.1 % to 94.9 %** of the ramp instead of 22.9 % to 78.4 %, all
+four cross the Sky → Violett waypoint at 73.5 %, and the violet leg renders. Contrast only
+improves: the stops this exposes are the ramp's darkest, 7.12:1 and 8.53:1 on CF-Grau against
+the 5.24:1 floor at Glas 800 that was always painted.
+
+`check-foil-clip.py` asks a third question now, and it is the general form of the first two: an
+exclusion has to be answered by a cap of its own, that cap has to clamp at the available space
+with its own term rather than with a `var()` fallback that only looks like one, and every
+custom property it caps on has to be written by a shipping script. A cap on a var nothing sets
+is `max-width: 100%` wearing an argument — a value no engine implements and a value nothing
+supplies fail the same way, and neither leaves a mark.
 
 **The isometric assembly** holds to six rules, all of which were already written down in
 prose and none of which anything ran:
@@ -1229,10 +1273,15 @@ too, because a register that outlives its subject is how the next one hides insi
 ### And the third direction: a class the documentation names
 
 Those two read the markup. `check-anatomy-provenance.py` reads the **chapter**: every class
-named in a whole-`<code>` table cell under `components/` or `foundations/` — 351 mentions
-across the 34 chapters that have one — has to be declared by a shipping stylesheet or by that page's own
-`<style>`. That is the register the other two cannot see, because a class name inside `<code>`
-is prose to a script that reads `class=` attributes.
+named in a whole-`<code>` table cell under `components/` or `foundations/` has to be declared
+by a shipping stylesheet or by that page's own `<style>`. That is the register the other two
+cannot see, because a class name inside `<code>` is prose to a script that reads `class=`
+attributes.
+
+**How many of them there are is the run's output, not a number in this paragraph.** It was one
+for an hour — "351 mentions across 34 chapters" — and two lanes landed chapters inside that
+hour. A gate against hand-kept documentation whose own documentation is hand-kept is the
+failure it was written for, one level up.
 
 **The failure it is for is a clean rename**, which is the ordinary edit and the one most likely
 to be made by a lane that has never opened the chapter: the rule is in `components.css`, the

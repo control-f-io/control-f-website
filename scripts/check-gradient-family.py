@@ -635,6 +635,29 @@ RGB_FN = re.compile(r"\brgba?\(([^()]*)\)")
 # that has to mean something for the summary line to be worth printing.
 SUPPORTS_PRELUDE = re.compile(r"@supports[^{]*\{")
 
+# AND ONE STOP IS UNREADABLE BY CONSTRUCTION RATHER THAN BY OVERSIGHT. Inside
+# `@media (forced-colors: active)` the palette is not this brand's: the engine
+# substitutes the user's own system colours, which is the whole point of the
+# mode, and a ramp there is drawn in `CanvasText` on purpose. The family has
+# nothing to say about it and never could -- what it renders as is a setting on
+# somebody's machine.
+#
+# It was being counted as unread, under a summary line naming "a color-mix(),
+# or a var() declared outside the three stylesheets", and it is neither. That
+# reads as a hole in the rule when it is the rule's edge, which is the same
+# reason the @supports probe above is carved out rather than tallied: a number
+# that means two different things means neither.
+SYSTEM_COLOURS = frozenset("""
+    canvas canvastext linktext visitedtext activetext buttonface buttontext
+    buttonborder field fieldtext highlight highlighttext selecteditem
+    selecteditemtext mark marktext graytext accentcolor accentcolortext
+""".split())
+
+
+def is_system_colour(item):
+    head = item.strip().split()
+    return bool(head) and head[0].lower() in SYSTEM_COLOURS
+
 
 def strip_comments(text):
     return SUPPORTS_PRELUDE.sub("@supports {", COMMENT.sub(" ", text))
@@ -753,7 +776,8 @@ def css_gradients(text, props):
         yield (m.group(0)[:-1],
                [parse_colour(s) for s in stops],
                "in oklab" in prefix or "in oklch" in prefix,
-               " , ".join(split_top(args)[1:] if prefix else split_top(args)))
+               " , ".join(split_top(args)[1:] if prefix else split_top(args)),
+               stops)
 
 
 # --- the CSS rules ----------------------------------------------------------
@@ -1203,11 +1227,17 @@ def main():
            for name in CSS]
     props = custom_props([t for _, t in css])
 
-    parsed, css_seen, unresolved = [], 0, 0
+    parsed, css_seen, unresolved, system = [], 0, 0, 0
     for name, text in css:
-        for fn, stops, has_oklab, stop_text in css_gradients(text, props):
+        for fn, stops, has_oklab, stop_text, raw in css_gradients(text, props):
             css_seen += 1
-            unresolved += sum(1 for s in stops if s is None)
+            for stop, item in zip(stops, raw):
+                if stop is not None:
+                    continue
+                if is_system_colour(item):
+                    system += 1
+                else:
+                    unresolved += 1
             parsed.append((name, fn, stops, has_oklab, stop_text))
 
     # Which stop lists exist anywhere on the oklab path. Keyed on the stop text
@@ -1243,6 +1273,11 @@ def main():
     # a selector it cannot count: a stop this script cannot read is a stop it
     # is making no claim about, and a rule with a silent hole in it trains
     # people to ignore it.
+    if system:
+        print("%d CSS stop%s a system colour under forced colours, where the palette "
+              "is the reader's and not this brand's. Outside the family by "
+              "construction — see SYSTEM_COLOURS."
+              % (system, " is" if system == 1 else "s are"))
     if unresolved:
         print("%d CSS stop%s could not be resolved to a colour — a color-mix(), or a "
               "var() declared outside the three stylesheets. No claim is made about "

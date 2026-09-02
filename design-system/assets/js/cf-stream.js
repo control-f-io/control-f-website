@@ -119,6 +119,70 @@
     return isFinite(n) ? n : fallback;
   }
 
+  /* THE INLINE AXIS, MEASURED BEFORE IT IS TAKEN.
+
+     prepare() below empties the element it types into, so from that moment on
+     the element's max-content is the characters typed SO FAR — nothing at
+     rest. base.css caps .text-foil at max-content for a reason it calls
+     load-bearing (`background-clip: text` paints across the WHOLE element box,
+     so a headline in a column samples only the first fraction of its ramp),
+     and it EXCLUDES a stream-owned line from that cap for exactly the fact
+     above: capping a rewritten element at its own content is cyclic, and
+     measured on this page it collapsed all four card titles to 22 px and 0.
+
+     THE EXCLUSION WAS RIGHT AND ITS COST WAS NEVER MEASURED. It is measured
+     now, on expertise.html, ink over box on the rendered page:
+
+       Maschinenbau           276 / 518 px at 1280,  276 / 593 at 1920
+       Erneuerbare Energien   406 / 518              406 / 593
+       Großanlagen            244 / 518              244 / 593
+       Flotten                136 / 518              136 / 593
+
+     Sampled against --gradient-foil-ink, whose stops sit at 0 / 23.5 / 47 /
+     73.5 / 100 %, "Maschinenbau" rendered 0.8–53.0 % of the ramp at 1280 and
+     0.5–46.2 % at 1920 — where it does not reach Sky 800 at all — and
+     "Flotten" 22.9 %. VIOLETT 800 NEVER APPEARED ON THE PAGE, at either
+     width, on any of the four. That is the same failure base.css's own note
+     records for the footer title before the cap existed, reproduced on the
+     four largest foil moments in the system by the exclusion that spares them
+     the cap.
+
+     SO THE STREAM HANDS THE AXIS BACK BEFORE IT TAKES IT. The full string is
+     still in the element here, so its max-content is the real one — the same
+     number `max-width: max-content` would have resolved to, wrap and all —
+     and it is published as a custom property the class can cap on instead.
+     Nothing is cyclic: the measurement happens once, before the first
+     character is removed, and the ramp is then fixed at the FULL string's
+     width for the whole of the typing. It does not rescale letter by letter,
+     which is the other failure base.css names; the light crosses a plate of
+     the final size and the characters arrive into it.
+
+     IN `em`, AND THAT IS WHAT MAKES IT SURVIVE A RESIZE. prepare() runs once
+     per gate flip, not once per resize, so a reservation in px would go stale
+     the moment the type moved under it. The same string in the same face
+     scales linearly with its own font-size — --tracking-display is in em too —
+     so the ratio is the stable form of the measurement.
+
+     THE CARET IS PART OF THE RESERVATION, and it is measured rather than
+     named. It is a real inline-block in the flow (0.45em wide, 0.1em of
+     margin), so a box capped at the ink alone drops it to a second line the
+     moment the line finishes typing. Appending it for the measurement costs
+     one node in and out per line at init and keeps the number exact if its
+     own CSS ever moves; the alternative is that 0.55em written down a second
+     time in a file that cannot see the first. */
+  function reserve(el, caret) {
+    var width = el.style.width;
+    el.appendChild(caret);
+    el.style.width = 'max-content';
+    var natural = el.getBoundingClientRect().width;
+    el.style.width = width;
+    el.removeChild(caret);
+    var size = parseFloat(getComputedStyle(el).fontSize);
+    if (natural > 0 && isFinite(size) && size > 0) {
+      el.style.setProperty('--stream-inline', (natural / size).toFixed(4) + 'em');
+    }
+  }
+
   /* Split one element into a streamed span and a full-text twin for AT. */
   function prepare(el) {
     var full = el.textContent.replace(/\s+/g, ' ').trim();
@@ -143,14 +207,28 @@
   function build(track) {
     var stages = [].slice.call(track.querySelectorAll(STAGE));
     if (!stages.length) return null;
-    var parts = stages.map(function (stage) {
-      return [].slice.call(stage.querySelectorAll(LINE)).map(prepare);
-    });
-    if (!parts.some(function (lines) { return lines.length; })) return null;
 
     var caret = document.createElement('span');
     caret.className = 'cf-stream__caret';
     caret.setAttribute('aria-hidden', 'true');
+
+    /* MEASURE EVERY LINE FIRST, THEN SPLIT THEM. Two passes and not one, and
+       the reason is the same one reserve() turns on: the moment prepare()
+       empties one element, the next element's measurement is taken against a
+       document that has changed under it. Reading every natural width while
+       the whole track is still whole is one layout for the pass rather than
+       one per line, and it is the only order in which every number is the
+       number the page actually had. */
+    var lines = stages.map(function (stage) {
+      return [].slice.call(stage.querySelectorAll(LINE));
+    });
+    lines.forEach(function (stage) {
+      stage.forEach(function (el) { reserve(el, caret); });
+    });
+
+    var parts = lines.map(function (stage) { return stage.map(prepare); });
+    if (!parts.some(function (stage) { return stage.length; })) return null;
+
     return {
       track: track,
       parts: parts,
@@ -160,9 +238,16 @@
     };
   }
 
+  /* Everything this file took, given back — the sentence and the axis both.
+     The reservation is only correct while the element it describes is being
+     rewritten; once the copy is whole again the class caps on max-content
+     itself, and a stale em left behind would cap it twice. */
   function teardown(state) {
     state.parts.forEach(function (lines) {
-      lines.forEach(function (line) { line.el.textContent = line.full; });
+      lines.forEach(function (line) {
+        line.el.textContent = line.full;
+        line.el.style.removeProperty('--stream-inline');
+      });
     });
     if (state.caret.parentNode) state.caret.parentNode.removeChild(state.caret);
   }
