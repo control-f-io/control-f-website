@@ -49,9 +49,25 @@ counts of the directory, and the directory is right there, so they are derived
 from `os.listdir` — the same move every other register in here makes, and the
 reason this cannot itself go stale.
 
+AND THE REMEDY FOR A NUMBER NOBODY CAN BE EXPECTED TO REMEMBER IS NOT A BETTER
+REMINDER. Four registers in this directory are generated rather than kept —
+check-spacing-scale.py, check-motion-census.py, check-glass-budget.py and
+check-lime-flat.py each carry --fix, and design-system/README.md says of the
+first, in as many words, "run --fix rather than editing a count by hand". This
+trio had no --fix and is the one that goes stale most often, because it moves
+whenever ANY lane adds a check and two of its three numbers live in a file that
+lane has no reason to open. The paragraph above records three of those in
+design-system/README.md and one measured pair next door; on the day --fix was
+added, main was carrying a red gate for exactly that reason, from three lanes
+that had each landed a check within the hour. Nothing here is a judgement — the
+block is the list and the directory is the directory — which is the whole test
+for what may be written rather than merely reported.
+
 Usage:
-    check-readme-check-count.py       fail if a stated count and its subject disagree
-    check-readme-check-count.py -v    print each number and everything counted
+    check-readme-check-count.py        fail if a stated count and its subject disagree
+    check-readme-check-count.py -v     print each number and everything counted
+    check-readme-check-count.py --fix  write all three from what is on disk, then
+                                       re-assert what it wrote
 """
 
 import os
@@ -84,6 +100,62 @@ WORDS = {
     "twenty-six": 26, "twenty-seven": 27, "twenty-eight": 28,
     "twenty-nine": 29, "thirty": 30, "thirty-one": 31, "thirty-two": 32,
 }
+
+
+NUMBERS = {value: word for word, value in WORDS.items()}
+
+
+def rewrite(path, pattern, value, group=1):
+    """Set the digits (or the word) `pattern` captures to `value`. Returns the
+    old text if it changed, else None."""
+    text = open(path, encoding="utf-8").read()
+    match = pattern.search(text)
+    if not match or match.group(group) == str(value):
+        return None
+    start, end = match.span(group)
+    open(path, "w", encoding="utf-8").write(text[:start] + str(value) + text[end:])
+    return match.group(group)
+
+
+def repair(listed):
+    """--fix: write all three numbers from what is actually on disk.
+
+    The same standing check-spacing-scale.py, check-motion-census.py,
+    check-glass-budget.py and check-lime-flat.py already take for the tables
+    they own — the README says of those, in as many words, "run --fix rather
+    than editing a count by hand". This trio is the one that had no --fix, and
+    it is the one that goes stale most often: it moves whenever ANY lane adds a
+    check, and two of its three numbers live in a file that lane has no reason
+    to open. The script's own finding text has said so since it was written —
+    "it was corrected an hour before it went stale again, by a lane that had no
+    reason to look at it" — and the remedy for a number nobody can be expected
+    to remember is not a better reminder.
+    """
+    entries, checks = directory_counts()
+    done = []
+
+    was = rewrite(SCRIPTS_README, FILE_COUNT, len(entries))
+    if was is not None:
+        done.append("scripts/README.md  files at this level  %s -> %d"
+                    % (was, len(entries)))
+    was = rewrite(SCRIPTS_README, CHECK_COUNT, len(checks))
+    if was is not None:
+        done.append("scripts/README.md  check-*.py           %s -> %d"
+                    % (was, len(checks)))
+
+    if len(listed) not in NUMBERS:
+        done.append(
+            "design-system/README.md  NOT written: the block lists %d and the "
+            "sentence is spelled out.\n    Add %d to WORDS — the register is a "
+            "word on purpose, and a digit there\n    would be the wrong register "
+            "for that document." % (len(listed), len(listed)))
+    else:
+        was = rewrite(README, SENTENCE, NUMBERS[len(listed)])
+        if was is not None:
+            done.append("design-system/README.md  the sentence         %s -> %s"
+                        % (was, NUMBERS[len(listed)]))
+
+    return done
 
 
 def directory_counts():
@@ -131,8 +203,15 @@ def scripts_readme(verbose):
     return failures
 
 
-def main():
+def main_verify():
+    """The checking path alone — what --fix re-runs on what it just wrote."""
+    return main(fixing=False)
+
+
+def main(fixing=None):
     verbose = "-v" in sys.argv or "--verbose" in sys.argv
+    if fixing is None:
+        fixing = "--fix" in sys.argv
     text = open(README, encoding="utf-8").read()
 
     match = SENTENCE.search(text)
@@ -166,6 +245,21 @@ def main():
         print("  sentence says %s (%d)" % (word, claimed))
         for name in listed:
             print("    %s" % name)
+
+    if fixing:
+        # The block is the list, so the block is the count — and the same is
+        # true of the directory for the other two. Nothing here is a judgement,
+        # which is the whole test for what may be written rather than reported.
+        done = repair(listed)
+        for line in done:
+            print("  %s" % line)
+        if not done:
+            print("readme check count: nothing to write; all three already match.")
+            return 0
+        print()
+        # Re-read and re-assert, so --fix can never report a repair it did not
+        # actually make.
+        return main_verify()
 
     failures = []
     if claimed != len(listed):
