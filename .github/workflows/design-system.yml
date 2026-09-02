@@ -1129,6 +1129,21 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-pin-measure.py
 
+      # check-pin-measure.py holds the stage's three rows to ONE measure and
+      # says in its own words that whether that measure is the right measure
+      # "belongs in that page, next to the card". This is the other half: the
+      # measure is (viewport - chrome) * 2, and for as long as the chrome was
+      # a flat 13rem nothing read it against the five declarations that make
+      # it. It was 1.69rem too large at every root size, the `* 2` doubled
+      # that onto a card that gets TALLER as it narrows, and the plate's
+      # bottom rail stood 23 px outside the stage's clip at 1366 x 768 — the
+      # commonest laptop there is. check-rem-floor.py measures the same stage
+      # against the same clip and read "cut 0", because it counts copy runs
+      # and what was outside the clip was the frame around them.
+      - name: Pinned reservation
+        if: '!cancelled()'
+        run: python3 scripts/check-pin-reservation.py
+
       - name: Overflow-wrap net
         if: '!cancelled()'
         run: python3 scripts/check-wrap-net.py
