@@ -321,6 +321,8 @@ python3 scripts/check-gradient-angle.py        # the angle each one is raked at,
 python3 scripts/check-gradient-angle.py -v     # print the whole rake register, gradient by gradient
 python3 scripts/check-wash-derivation.py       # the page wash's three stops, re-derived from the palette
 python3 scripts/check-wash-derivation.py -v    # print the whole derivation, stop by stop
+python3 scripts/check-ramp-ink.py              # every ramp step's label ink, recomputed from the swatch under it
+python3 scripts/check-ramp-ink.py -v           # every step, its two ratios and the ink it takes
 python3 scripts/check-iso-motion.py            # the isometric assembly's invariants
 python3 scripts/check-motion-census.py         # the motion chapter's token census is the stylesheets' count, and every curve is a token
 python3 scripts/check-motion-census.py --fix   # rewrite the count cells in foundations/motion.html
@@ -406,7 +408,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The forty-one checks the system enforces rather than documents, run by CI on every push and
+The forty-two checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -840,6 +842,29 @@ Five bare `fr` track lists were floored, in `colors.html` (three, inline), `docs
 Only the ten-step ramp was overflowing today; the other four were the same defect at a cell
 count that happened to fit. The sweep now reports zero sideways scroll on every page at every
 width.
+
+**That boundary has a second reading, on the same component, and this one was a WCAG
+failure.** A ramp step is a rectangle painted the hex it names with that name printed on it
+in 10 px mono, so its ink is not a preference: it is whichever end of the neutral ramp reads
+on that particular swatch, and the answer moves the day the hex does. It was `color:#fff`
+inside the `style` attribute of **twelve** of the thirty-eight steps — twelve copies of one
+decision, in a shorthand the palette never uses, on the chapter whose subject is that a
+colour has a name — and eleven of the twelve were right. The twelfth was **Sky 700**: white
+on `#5684A9` is **3.99:1** against the 4.5:1 a 10 px label owes, where black on the same
+swatch is **5.27:1** and clears it. It reads as a copy down the row rather than as a choice —
+the two steps under it in that ramp are genuinely dark and genuinely take white.
+
+`check-contrast.py` could not see it and is not at fault: it is the register of the pairs the
+**tokens** guarantee, and neither end of this pair is a token — the swatch is a literal in a
+`style` attribute and the ink was another literal beside it. Every other check that reads
+colour reads a stylesheet, and this decision was not in one. The ink is
+`.docs-ramp__step--dark` in `docs.css` now, spelt `var(--grey-000)`, and the modifier names
+the *swatch* rather than the ink because the swatch is the reason.
+`check-ramp-ink.py` recomputes both inks against the background each step declares and fails
+a step that takes the worse of the two — so the eleven surviving judgements are arithmetic
+rather than memory, and Sky 700 went from the only failure on the page to its tightest pass.
+Nothing here is a screenshot's job: 3.99 and 5.27 render identically to everybody who is not
+the reader the floor exists for.
 
 **Every threshold is in the register,** and this is the sixth check for a reason the other
 five had to be argued and this one only has to be counted. A threshold cannot be a token —
