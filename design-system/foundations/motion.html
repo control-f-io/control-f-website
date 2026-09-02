@@ -1521,6 +1521,26 @@ python3 scripts/check-iso-motion.py</pre>
       whose timeline source was anything but the document. <strong>Check the source, not just
       that the animation exists</strong> — <code>getAnimations()</code> reports a frozen
       timeline and a running one identically.
+      <br><br>
+      <strong>That audit was done by hand, once, and the paragraph asking for a warning is
+      now a gate.</strong> A frozen clock is invisible to every static check in
+      <code>scripts/</code> because nothing about it is wrong in a file: the
+      <code>@supports</code> matched, the <code>animation-timeline</code> resolved, the
+      keyframes are there, the animation exists, its <code>playState</code> is
+      <code>running</code> and its <code>currentTime</code> is a number. The fault is that it
+      is the <em>same</em> number at every scroll position — the absence of a difference
+      between two readings, which nothing that opens a page once can hold.
+      <code>scripts/check-runtime.py</code> already scrolls every pattern page end to end in
+      a browser, so it now takes a reference to every animation whose timeline is not the
+      <code>DocumentTimeline</code> and reads <code>timeline.currentTime</code> at each step;
+      one value across the whole page — or <code>null</code> at every step, a timeline that
+      found no scroller at all — is a finding. It reports the <em>scroller</em>, not the
+      animation: <code>.cf-glass-rim</code>'s own declarations were correct the whole time it
+      shipped broken, and the box that has to change can be several levels up the tree.
+      Proven by deleting the <code>overflow: clip</code> line again, which reports the rim
+      pass held at 12.6816&nbsp;% for the length of the landing page. Measured 2026-09-01
+      across the eighteen written pattern pages: 863 scroll-driven animations, 514 of them on
+      the landing page alone, and not one frozen.
     </div>
     <p>
       The isometric assembly is not the only thing on a view timeline. <code>.text-foil</code>
