@@ -136,8 +136,59 @@
          it rather than scrubbed across it, and the fraction still lands in act
          2's copy: 1152 against .sp-say's 1048 at 375 x 900, 1131 against 1229
          at 768. Above the gate nothing moves, so a beat quoted in acts.css is
-         still the beat this jumps to. → scripts/check-act-beats.py */
-      var budget = getComputedStyle(track).viewTimelineName === 'none' ? h : h - v;
+         still the beat this jumps to.
+
+         AND THE TIER IS ASKED FOR AS A PROPERTY VALUE, NOT AS A DOM PROPERTY,
+         which is the whole of this correction and is one engine's alone. This
+         line read `getComputedStyle(track).viewTimelineName === 'none'`. Gecko
+         has no view-timeline-name at all — it has no scroll-driven animation,
+         which is the entire reason the degraded tier exists there — so that
+         property is not on the CSSStyleDeclaration and the read is `undefined`.
+         `undefined === 'none'` is false, so the ONE engine that never has a
+         timeline took the has-a-timeline arm at every viewport and every
+         fraction went back to being a fraction of h - v. The table above is the
+         fix's own before-and-after and Firefox was on the "before" row the
+         whole time. cf-stream.js states this trap over its own `pinned()` and
+         guards it with `typeof`; this line was written without it.
+
+         getPropertyValue() answers the same question in one shape: CSSOM
+         returns the empty string for a property the engine does not implement
+         and for one that is not set, and both of those mean "no timeline
+         here", so `named && named !== 'none'` is the whole test and there is no
+         undefined to fall through it.
+
+         Measured, Firefox 153 against Chromium 141, on the shipped page with
+         consent answered — of the scroll a reader spends inside .sp-track, how
+         much of it the rail spends naming act 1, taken off the two stops this
+         function places rather than off a walk, so it is two pixels longer than
+         the table above wherever the two overlap: that is read()'s own slack.
+         Firefox is in the degraded tier at every row; Chromium is in it at every
+         row but the two marked:
+
+                          Firefox before   Firefox after   Chromium
+            1440 x 900      361 of 1902     685 of 1902    1750 of 5760  *
+            1280 x 700      328 of 1611     580 of 1611     575 of 1597
+            1023 x 900      197 of 1448     521 of 1448     509 of 1413
+             768 x 900      193 of 1435     517 of 1435     505 of 1402
+             375 x 900      198 of 1450     522 of 1450     508 of 1412
+             375 x 812      230 of 1450     522 of 1450     508 of 1412
+             320 x 900      209 of 1481     533 of 1481     520 of 1445
+             768 x 1024     148 of 1435     517 of 1435     505 of 1402
+             834 x 1194      92 of 1450     522 of 1450     510 of 1417
+             912 x 1368      50 of 1507     543 of 1507     531 of 1474
+            1024 x 1366      30 of 1449     522 of 1449    2655 of 8742  *
+
+         The tall rows are the collapse this whole test exists to prevent,
+         reached from the other side: h - v shrinks as the window grows, so at
+         1024 x 1366 act 2's beat stood 30 px past act 1's and act 1 was named
+         over 2 % of its own field. 834 x 1194 is an iPad Air held upright.
+
+         Chromium's every number is unchanged by this edit, in both tiers: it
+         reads '--sp' where the timeline is real and 'none' where it is not, and
+         `named && named !== 'none'` picks the same arm for both as the test it
+         replaces. → scripts/check-act-beats.py */
+      var named = getComputedStyle(track).getPropertyValue('view-timeline-name');
+      var budget = named && named !== 'none' ? h - v : h;
       stops.push({ link: links[i], y: t + at * Math.max(0, budget) });
       if (first === null) first = t;
       last = t + h;
