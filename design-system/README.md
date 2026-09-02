@@ -364,8 +364,8 @@ python3 scripts/check-section-header-rule.py -v # every flush header, and what d
 python3 scripts/check-illustration-source.py   # the four process objects are still the designer's vectors
 python3 scripts/check-illustration-source.py -v  # every element, matched or deviated, and why
 python3 scripts/check-readme-check-count.py    # the count above this block is the length of this block, and scripts/README.md's two are the directory
+python3 scripts/check-readme-check-count.py --fix  # write all three from what is on disk
 python3 scripts/check-readme-check-count.py -v # every number, and everything counted for it
-python3 scripts/check-readme-check-count.py --fix # rewrite scripts/README.md's two counts; the spelled-out sentence above is not touched
 python3 scripts/check-count-atom.py            # a section head taken off the label ramp keeps its counter in one piece
 python3 scripts/check-count-atom.py -v         # every section header row, and the ramp it is on
 python3 scripts/check-docs-caption.py          # the caption under a demo tile is one device, not twenty
@@ -401,6 +401,16 @@ written, and the gate caught it. **The same claim one directory over had no gate
 `scripts/README.md` opens on a file count and carries a `check-*.py` row, both about the
 directory it sits in, and both were two behind. They are derived from the directory now,
 by the same script.
+
+**And a gate that only reports is a gate somebody has to satisfy by hand every time, which
+for this trio is every time any lane adds a check.** Two of its three numbers live in
+`scripts/README.md` — a file a lane adding a check has no reason to open — so the pair went
+two behind again within the hour, three lanes deep, with the gate red on `main` and each of
+those three changes correct on its own. The finding text had been saying so since it was
+written: *"it was corrected an hour before it went stale again, by a lane that had no reason
+to look at it."* `--fix` writes all three from what is on disk and then re-asserts what it
+wrote, the way the space scale's table and the glass census already do; nothing in the trio
+is a judgement, which is the test for what may be generated rather than merely counted.
 
 **The space scale** holds to two rules: `foundations/layout.html`'s table of who uses each
 rung must match the shipping CSS, and spacing in the shipping CSS must be written as a
