@@ -9406,10 +9406,19 @@ a.cf-calendar__day > time,
        320 x 800          326       343       379
        375 x 800          375       375       406
 
-     What is left past the edge in every one of those is .cf-pie__label at the
-     ring's 3 o'clock — a 5rem cap beside a px radius, the component's own tier
-     question and not this stack's — and, at 320 x 32, the folded nav's 22 px
-     that every page carries. The pinned tiers above the gate place every card
+     What was left past the edge in every one of those was .cf-pie__label at
+     the ring's 3 o'clock — a 5rem cap beside a px radius, the component's own
+     tier question and not this stack's — and, at 320 x 32, the folded nav's
+     22 px that every page carries. The pie has since taken its half: the cap
+     is min()'d against the room the label's own angle leaves it, and the same
+     four cells now read
+
+                        root 20   root 24   root 32
+       320 x 800          320       320       377
+       375 x 800          375       375       381
+
+     — zero at the two rows WCAG 1.4.4 asks for, and what remains at 32 is the
+     act's rem insets and the nav's 22 px, neither of which is a track. The pinned tiers above the gate place every card
      at grid-area 1 / 1 and are unmoved by naming the column they were already
      in; measured identical to the pixel on all four adopters at 375, 1024 and
      1440. */
@@ -12449,12 +12458,20 @@ a.cf-calendar__day > time,
      and it is higher: a plot has to fit five columns and four gaps (18u), a
      pie is 6u of ring plus a label hanging off each side however many shares
      it has. 6u + 2 * (0.5u + --pie-label-w) at u = 24 is 328 px against the
-     335 px a 375 px viewport leaves inside its gutters. px rather than rem for
-     the same reason the plot's are — see --plot-u. */
+     335 px a 375 px viewport leaves inside its gutters — at a 16 px browser
+     default, which is the qualification the sum needs and did not carry: the
+     second term is rem and the first two are px, so the figure this floor
+     sizes is 368 px at a 20 px default and 408 at 24. The label's own cap
+     answers that; the floor here is the 16 px row and stays exact. px rather
+     than rem for the same reason the plot's are — see --plot-u. */
   --pie-u: clamp(24px, 3.4vw, 32px);
-  /* The ceiling a label may occupy, and the room reserved for it beside the
-     ring. One mono word over one number fits inside it at every size; a key
-     that does not is a key, not a sentence. */
+  /* The ceiling a label's TYPE may occupy: one mono word over one number fits
+     inside it at every size, and a key that does not is a key, not a sentence.
+     It is not the room beside the ring, which is a second and separate ceiling
+     — this one is in rem and moves with the reader, the ring is in px and does
+     not, so the room has to be measured against the screen rather than
+     declared here. The tier that rides the ring takes the smaller of the two;
+     see the note over .cf-pie__label's max-width. */
   --pie-label-w: 5rem;
   /* Where a label's near edge sits: half a cell clear of the rim. The same
      half cell the plot's near edge starts on. */
@@ -12796,6 +12813,59 @@ a.cf-calendar__day > time,
     position: absolute;
     inset: 0;
   }
+  /* AND THE CEILING IS TWO TERMS, BECAUSE ONE OF THEM IS IN THE READER'S UNITS
+     AND THE RING IS NOT. --pie-label-w is 5rem and grows with the browser's
+     default font size; --pie-u is px and floors at 24, so the ring the label
+     hangs off does not grow with it. A cap that moves with the type it is
+     capping is not a cap: at a 20 px default the widest key measured 92 px
+     against a 100 px ceiling, at 24 px it measured 111 against 120, and the
+     ceiling never once bound. What bound instead was the screen. Measured on
+     the shipped landing page at 320 px, document scrollWidth against the
+     viewport, and the two side labels' own edges:
+
+       browser default   scrollWidth   "Wartung" left   "Stillstände" right
+       16 px              320            5 px             308 px
+       20 px              326           -13 px            326 px
+       24 px              343           -31 px            343 px
+       32 px              379           -67 px            379 px
+
+     The right-hand label took the document sideways; the left-hand one fell
+     off the left edge, where a negative left costs no scrollWidth at all and
+     no overflow gate can see it — at a 24 px default a third of "WARTUNG /
+     €0,50 Mio." was simply not on the screen.
+
+     THE SECOND TERM IS THE ROOM, AND IT IS ANGLE-DEPENDENT because the room
+     is. A label's near edge stands --pie-label-r from the ring's centre along
+     its own radius, so what it spends horizontally is that radius times
+     sin(a): everything at 3 and 9 o'clock, nothing at 12 and 6. 50vw is the
+     distance from the centre of a centred figure to the screen edge, so
+     50vw - --pie-label-r * |sin(a)| is exactly the room the label has left,
+     and min() takes whichever ceiling is lower.
+
+     |sin| AS max(x, -1 * x) AND NOT abs(). The tier is gated on trig alone,
+     and abs() is four years younger than the sin() this @supports tests — a
+     cap that fails to parse is a cap that is not there, in the one tier that
+     needs it. max() of a number and its negation is the same value out of the
+     capability this rule already has.
+
+     WHY NOT A TIGHTER --pie-label-w. Because the token is the TYPE's ceiling,
+     one mono word over one number, and every width it holds at a 16 px default
+     is a width the figure was drawn at. A px cap tight enough to fit 320 px at
+     a 24 px default is 76 px, which at a 16 px default wraps "DURCHSATZ" at 6
+     o'clock — where the room was never the problem — into a third line, out
+     through the ring's own bottom margin and over the caption below it.
+     Measured after, same page, same widths, and the 16 px row is unchanged to
+     the pixel on all four labels at all sixteen widths swept:
+
+       browser default   scrollWidth   "Wartung" left   "Stillstände" right
+       16 px              320            5 px             308 px
+       20 px              320            0 px             317 px
+       24 px              320            0 px             317 px
+       32 px              377            0 px             317 px
+
+     The 57 px left at a 32 px default is the act's own — four dense figures
+     and their rem insets in a 280 px card — and acts.css records it there.
+     → acts.css, .lp-ev-card's note on card 01; scripts/check-text-zoom.py */
   .cf-pie__label {
     position: absolute;
     left: 50%;
@@ -12803,7 +12873,10 @@ a.cf-calendar__day > time,
     z-index: 2;
     display: block;
     width: max-content;
-    max-width: var(--pie-label-w);
+    max-width: min(var(--pie-label-w),
+                   calc(50vw - var(--pie-label-r)
+                        * max(sin(var(--pie-a) * 1turn),
+                              -1 * sin(var(--pie-a) * 1turn))));
     padding: 0;
     border: 0;
     text-align: center;
