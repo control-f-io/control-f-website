@@ -44,6 +44,23 @@ clock. The three are tokens now, the crossing is one keyframe set, and the two
 endpoints are RE-DERIVED here from the band rather than compared to a table,
 the way check-gradient-family.py recomputes its waypoint.
 
+AND THE MOST EXPENSIVE LAYER ON THE LANDING PAGE WAS ONE NOBODY COULD SEE. The
+ninth claim is the Don't list's oldest rule read from the other side. That list
+already forbids `backdrop-filter` under an opaque background — the blur cannot
+be seen and still costs a GPU pass — and a layer at `opacity: 0` cannot be seen
+either, with the occluder simply on the other side of it.
+`.act-rail--glass::before` was exactly that: the blur declared unconditionally
+on a plate whose rest opacity is 0, on the one page this file grants its largest
+allowance to, and PAGE_BUDGET's entry for that page argues from the opposite
+premise in as many words — the plate "is painted only on :hover /
+:focus-within". tokens.css said it too, and so did the verdict column on
+materials.html. Three documents, one premise, and the stylesheet asserting the
+other thing while leaving it to the compositor to notice that the result is
+invisible. The claim resolves the rest state of every layer the census counts
+and fails one that is both blurred and invisible; it reads the ELEMENT and not
+the rule, because the pair is rarely in one block — here the blur is on the
+modifier and the opacity is on the base it modifies.
+
 Every one of those is invisible in a screenshot. A third blurred layer renders
 correctly; it just costs. A literal `blur(20px)` on some future panel renders
 correctly; it just forks the material. A gradient animated across a blurred
@@ -174,13 +191,41 @@ SKIP_DIRS = {"prototypes", "assets"}
 # token; a literal radius is two materials that merely resemble each other.
 BLUR_TOKEN = "var(--glass-blur)"
 
-# A selector this script can count: one class, optionally one pseudo-element.
-# Deliberately narrow. Anything wider — a descendant combinator, an attribute,
-# a :not() — would need a real selector engine to match against the HTML, and a
-# checker that guesses at matching is worse than none. A selector that does not
-# reduce is a finding rather than a skip, so the failure mode is "teach me or
-# simplify it" and never "quietly stopped counting that one".
-SIMPLE_SELECTOR = re.compile(r"^\.([A-Za-z0-9_-]+)(::[a-z-]+)?$")
+# The user-action states a rule may be written in without changing WHICH element
+# it lands on. That is the whole test for admitting one here, and it is why the
+# set is these five and not "pseudo-classes": :hover, :focus and their relatives
+# are a fact about the reader, not about the document, so a selector carrying one
+# hangs off exactly the elements the same selector without it hangs off. A
+# structural pseudo-class does not have that property — .cf-x:first-child names a
+# subset of .cf-x and admitting it would make the census a guess — and neither
+# does :not(), which needs a selector engine to answer at all.
+#
+# WHAT THIS BUYS, AND WHAT IT DOES NOT. It lets a surface declare the material in
+# the state that shows it and not at rest, which is what .act-rail--glass now
+# does. It does not widen the census by one element: GlassCounter matches on the
+# class attribute, and a state pseudo-class contributes nothing to that. The
+# count is unchanged by construction, which is the point — the budget is a
+# statement about elements, and this is a statement about when.
+STATE_PSEUDO = "hover|focus|focus-within|focus-visible|active"
+
+# A selector this script can count: one class, optionally one user-action state,
+# optionally one pseudo-element. Deliberately narrow. Anything wider — a
+# descendant combinator, an attribute, a :not() — would need a real selector
+# engine to match against the HTML, and a checker that guesses at matching is
+# worse than none. A selector that does not reduce is a finding rather than a
+# skip, so the failure mode is "teach me or simplify it" and never "quietly
+# stopped counting that one".
+SIMPLE_SELECTOR = re.compile(
+    r"^\.([A-Za-z0-9_-]+)(?::(?:%s))?(::[a-z-]+)?$" % STATE_PSEUDO
+)
+
+# The same shape read for its middle rather than its ends: which state a rule is
+# written in, empty string for the rest state. Claim 9 is entirely about that
+# distinction, and asking SIMPLE_SELECTOR for it would mean a third capture
+# group on a pattern two other call sites already read by position.
+SELECTOR_PARTS = re.compile(
+    r"^\.([A-Za-z0-9_-]+)(:(?:%s))?(::[a-z-]+)?$" % STATE_PSEUDO
+)
 
 # Properties whose animation re-rasterises the blur underneath on every frame.
 # transform is here even though it is normally the cheap one: a blurred layer
@@ -479,6 +524,38 @@ def sheen_rules():
     return found
 
 
+def rest_layers():
+    """The rest state of every countable layer in the shipping CSS.
+
+    A "layer" is one class plus one pseudo-element — `("act-rail", "::before")`
+    — which is the finest thing this script can name without a selector engine,
+    and exactly the granularity a backdrop-filter lives at. "Rest" means every
+    rule for that layer written in NO user-action state, in source order, so the
+    last declaration of a property wins the way the cascade would. Everything
+    here is a single class, so specificity never separates two of them and
+    source order is the whole answer.
+
+    Returns {(class, pseudo): {property: (value, file, line)}}. The provenance
+    rides along because the finding has to name the line that declared the
+    value, which is often not the line that declared the other half of the pair.
+    """
+    layers = {}
+    for name in SHIPPING_CSS:
+        for head, body, line in rules((CSS / name).read_text()):
+            for sel in (s.strip() for s in head.split(",") if s.strip()):
+                m = SELECTOR_PARTS.match(sel)
+                if not m or m.group(2):        # unreducible, or a state rule
+                    continue
+                key = (m.group(1), m.group(3) or "")
+                slot = layers.setdefault(key, {})
+                for decl in (d.strip() for d in body.split(";") if d.strip()):
+                    prop, sep, value = decl.partition(":")
+                    if not sep:
+                        continue
+                    slot[prop.strip()] = (value.strip(), name, line)
+    return layers
+
+
 def glass_classes(found):
     """The class names a blurred layer hangs off, and the selectors that failed
     to reduce to one.
@@ -517,6 +594,15 @@ class GlassCounter(HTMLParser):
         # two — so reading the names back out of them is parsing a message.
         # Claim 6 needs the names, so the parser keeps them.
         self.seen = set()
+        # AND CLAIM 9 NEEDS THE OTHER NAMES — every class on a counted element,
+        # not only the glass ones. The rest state of a blurred layer is rarely
+        # declared by the class that carries the blur: .act-rail--glass::before
+        # is the material and .act-rail::before is the plate it is a modifier
+        # of, and the opacity that decides whether any of it can be seen is on
+        # the second. A set of glass classes cannot reach that rule; the
+        # element's own class attribute can, and it is the only thing in this
+        # file that knows the two belong to one layer.
+        self.carried = set()
 
     def handle_starttag(self, tag, attrs):
         cls = dict(attrs).get("class") or ""
@@ -524,6 +610,7 @@ class GlassCounter(HTMLParser):
         if names & self.classes:
             self.hits.append(tag + "." + ".".join(sorted(names & self.classes)))
             self.seen |= names & self.classes
+            self.carried.add(frozenset(names))
 
 # The English edition under patterns/en/ is generated, not written —
 # scripts/build-i18n.py builds it from the German page beside it and changes
@@ -571,7 +658,7 @@ def census(classes, sheen):
     layers are counted — a sheen costs nothing and is not on any budget — so the
     third return is a set and never a column.
     """
-    rows, shipping_classes, shipping_sheen = [], set(), set()
+    rows, shipping_classes, shipping_sheen, carried = [], set(), set(), set()
     for path in pages():
         html = path.read_text()
         parser = GlassCounter(classes)
@@ -583,8 +670,13 @@ def census(classes, sheen):
         if shipping:
             shipping_classes |= parser.seen
             shipping_sheen |= lit.seen
+        carried |= parser.carried
         rows.append((rel, len(parser.hits), shipping, parser.hits))
-    return rows, shipping_classes, shipping_sheen
+    # Documentation pages contribute here as well as shipping ones, and
+    # deliberately: a blurred layer nobody can see costs the same GPU pass on
+    # foundations/materials.html as it does on the landing page, and the samples
+    # there are the one place a hidden one would be easiest to write by accident.
+    return rows, shipping_classes, shipping_sheen, carried
 
 
 def stamp_of(rows):
@@ -727,7 +819,7 @@ def main():
 
     classes, unreducible = glass_classes(found)
     sheen, sheen_unreducible = glass_classes(sheen_rules())
-    rows, shipping_classes, shipping_sheen = census(classes, sheen)
+    rows, shipping_classes, shipping_sheen, carried = census(classes, sheen)
     stamp = stamp_of(rows)
     failures = []
 
@@ -751,8 +843,18 @@ def main():
     # 2. One blur for the whole system. tokens.css measures 16 px as the radius
     #    past which nothing reads better and everything costs more; a literal
     #    anywhere is a second material wearing the first one's name.
+    #
+    #    `none` IS NOT A LITERAL, and this claim had no way to say so until a
+    #    surface needed to declare the material absent in one state and present
+    #    in another. There is nothing else backdrop-filter: none could mean — it
+    #    is the material switched off, exactly as --glass-blur: none is in the
+    #    three fallback blocks, which is a vocabulary this file already has and
+    #    keeps in NEUTRALISED. A radius says "blur, but my own amount"; `none`
+    #    says "no blur", and only the first of those is a second material.
     for rule in found:
         for value in rule["values"]:
+            if value.strip() == "none":
+                continue
             if BLUR_TOKEN not in value:
                 failures.append(
                     "%s:%d writes its own blur rather than reading the token:\n"
@@ -1063,6 +1165,74 @@ def main():
                     "    is least visible and most likely to be left behind by the band."
                     % (fname, fline, n, head.strip(), body.strip(), RIM_PARK, RIM_CROSS)
                 )
+
+    # 9. NO COUNTED GLASS LAYER IS INVISIBLE AT REST.
+    #
+    #    foundations/materials.html's Don't list already rules out one way of
+    #    paying for a blur nobody can see — "no backdrop-filter under an opaque
+    #    background, the blur cannot be seen and still costs a GPU pass". This is
+    #    the same sentence with the occluder on the other side: a layer at
+    #    opacity 0 is not seen either, and the pass is the same pass.
+    #
+    #    IT WAS FOUND ON THE PAGE THIS FILE HAS ITS LARGEST ALLOWANCE FOR.
+    #    .act-rail--glass::before declared backdrop-filter unconditionally on a
+    #    plate whose rest opacity is 0, and PAGE_BUDGET's entry for the landing
+    #    page is written on the opposite premise, in as many words: the plate
+    #    "is painted only on :hover / :focus-within". tokens.css says it, the
+    #    verdict column on materials.html says it, and the stylesheet said the
+    #    other thing while three documents argued from this one. Whether a given
+    #    compositor throws the pass away for a transparent layer is not in any
+    #    specification and not in this system's gift; what is, is declaring the
+    #    material in the state that shows it.
+    #
+    #    THE PAIR IS RARELY IN ONE RULE, which is why this reads the ELEMENT and
+    #    not the block. The blur is on the modifier and the opacity is on the
+    #    base — .act-rail--glass::before and .act-rail::before — so the only
+    #    thing that knows they are one layer is the class attribute of the
+    #    element carrying both. carried is that, straight off the pages, and the
+    #    resolution below is the cascade this file can honestly do: single
+    #    classes only, so source order decides and specificity never enters.
+    #
+    #    VISIBILITY AND DISPLAY ARE NOT HERE, and the omission is the claim being
+    #    narrow rather than incomplete. `display: none` takes the box out of
+    #    layout, so there is no layer to blur and nothing to find;
+    #    `visibility: hidden` is the one this claim would extend to, and nothing
+    #    in the tree writes it on a blurred layer today. Adding a branch for a
+    #    case with no instance is how a checker grows a rule nobody has read.
+    layers = rest_layers()
+    for names in sorted(carried, key=lambda s: sorted(s)):
+        for pseudo in ("", "::before", "::after"):
+            blur = opacity = None
+            owner = None
+            for cls in sorted(names):
+                slot = layers.get((cls, pseudo))
+                if not slot:
+                    continue
+                if "backdrop-filter" in slot:
+                    blur, owner = slot["backdrop-filter"], cls
+                if "opacity" in slot:
+                    opacity = slot["opacity"]
+            if not blur or blur[0].strip() == "none":
+                continue
+            if not opacity or opacity[0].strip() not in ("0", "0.0", "0%"):
+                continue
+            failures.append(
+                "%s:%d declares a live blur on a layer that is invisible at rest:\n"
+                "        backdrop-filter: %s\n"
+                "    and %s:%d sets opacity: %s on the same layer — .%s%s, carried by an\n"
+                "    element whose classes are %s.\n"
+                "    The reader cannot see it and the compositor is not obliged to skip it.\n"
+                "    Declare the blur in the state that shows the surface, and hold it there\n"
+                "    for the fade out with a zero-duration transition delayed by the fade's\n"
+                "    own length — see .act-rail--glass::before in acts.css, which is this\n"
+                "    idiom and the reason this claim exists."
+                % (
+                    blur[1], blur[2], blur[0],
+                    opacity[1], opacity[2], opacity[0],
+                    owner, pseudo,
+                    " ".join(sorted(names)),
+                )
+            )
 
     doc_stamp, published = doc_rows()
     measured = {rel: n for rel, n, _, _ in rows if n}
