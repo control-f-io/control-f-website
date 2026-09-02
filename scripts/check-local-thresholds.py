@@ -36,12 +36,18 @@ WHAT IT CHECKS
                       table does have to list. Both directions, so a row cannot
                       outlive its query either. See below for why that table
                       needed a check rather than a proofread.
-  the rem rule        no px width/height threshold under patterns/. A media
-                      query's rem resolves against the BROWSER's default font
-                      size, so a rem threshold is the only kind that tracks a
-                      reader who has asked for larger type. Elsewhere a px
-                      threshold gets a row marked PX DEBT and is counted rather
-                      than failed — see the scope note below.
+  the rem rule        no px width/height threshold under patterns/,
+                      foundations/ or components/, and none in docs.css. A
+                      media query's rem resolves against the BROWSER's default
+                      font size, so a rem threshold is the only kind that
+                      tracks a reader who has asked for larger type. There is
+                      no PX DEBT tier any more: the four rows that carried it
+                      were converted, and the rule now reaches every file in
+                      front of a reader. Only prototypes/ is exempt, because
+                      the README declares it unreconciled with the tokens.
+                      NOTE THAT DOCS.CSS IS OUTSIDE THE REGISTER AND INSIDE
+                      THIS RULE — being written down and answering to the
+                      reader's font size are two different questions.
   the px gloss        the figure after each slash is what the threshold
                       resolves to at a 16 px default. Derived here, not trusted.
 
@@ -118,14 +124,22 @@ WHAT IT DOES NOT CHECK, deliberately
   page-local ownership does not make a fold any less the reader's. This file
   governs only what that one names as out of scope.
 
-  prototypes/, and docs.css. Declared not-yet-system by the README with their
-  own unreconciled styling, and documentation chrome, respectively: out of
-  scope by the same boundary every other check draws, and neither gets a row in
-  THRESHOLDS or is held to the rem rule. They ARE swept for the table rule,
-  because listing a threshold is not governing it — that is the whole argument
-  of the table, which exists to say what the register leaves out. A threshold
-  that appears there and nowhere else is still findable; one that appears
-  nowhere is not.
+  prototypes/, and docs.css — for the REGISTER. Declared not-yet-system by the
+  README with their own unreconciled styling, and documentation chrome,
+  respectively: out of scope by the same boundary every other check draws, and
+  neither gets a row in THRESHOLDS. They ARE swept for the table rule, because
+  listing a threshold is not governing it — that is the whole argument of the
+  table, which exists to say what the register leaves out. A threshold that
+  appears there and nowhere else is still findable; one that appears nowhere is
+  not.
+
+  THE REM RULE IS A DIFFERENT RULE AND DOCS.CSS IS NOW INSIDE IT. The register
+  asks which thresholds are written down; the rem rule asks whose font size a
+  threshold answers to. The second question is about a reader, not about
+  ownership, and docs.css's frame is what every page of this documentation is
+  read in — measured at 492 px of horizontal scroll at 200 % text before the
+  conversion. prototypes/ stays exempt from both: reconciling a prototype is
+  not the job, and the outside-the-register table says so in place.
 
   Crossovers. A min() or clamp() against a viewport unit also changes layout at
   a specific width, when its arms swap. None is a query, and the register in
@@ -159,10 +173,38 @@ EXCLUDED_DIRS = ("prototypes",)
 # documentation chrome; prototypes/ are declared not-yet-system by the README.
 OUT_OF_SCOPE = ("assets/css/docs.css", "prototypes")
 
+# THE REM RULE AND THE REGISTER ARE TWO RULES, and separating them is what this
+# line is for. The REGISTER decides which thresholds are written down, and
+# docs.css stays outside it — its row in the outside-the-register table is the
+# whole argument. The REM RULE decides whose font size a threshold answers to,
+# and that question is about a reader rather than about ownership: a px gate in
+# front of a rem layout opens a band that grows with the reader's type,
+# whichever file it is typed in.
+#
+# docs.css's frame carried the last unconverted one, and nobody had measured
+# it. Its sidebar track is 17rem and its fold was 900px, so the two drifted
+# apart as the reader's default rose: measured in Chromium on four
+# documentation pages, 161 px of horizontal scroll at a 901 px viewport at a
+# 24 px default and 492 px at a 32 px one — 200 % text, which is what WCAG
+# 1.4.4 asks for — against none at any width at 16 px. That is the fault the
+# register's own rem rule was written after, an order of magnitude larger, on
+# the pages that document the fix. The full record is on
+# foundations/layout.html#outside-register and in the comment over the query.
+PX_STRICT_FILES = ("assets/css/docs.css",)
+
 # patterns/ is held to the rem rule outright. A pattern page stands in for a
-# page of the real site, so a reader's font size is a reader's font size there;
-# and this lane owns patterns/, so there is nobody to hand a debt row to.
-PX_STRICT_DIRS = ("patterns",)
+# page of the real site, so a reader's font size is a reader's font size there.
+#
+# foundations/ JOINED IT, and the note that used to sit over its four px rows
+# is why: they were "counted rather than failed because foundations/ is not
+# this lane's". Thresholds are the layout lane's subject and this is that lane,
+# so the debt was collected rather than handed on. The second half of that
+# note — "a demo page's threshold is about a specimen rather than about a page
+# a reader reads" — is true of a specimen and false of a frame, and the two
+# 900s were frames: docs.css's sidebar and transitions.html's stack of demos
+# are what a reader reads the documentation IN. components/ carries no width
+# threshold of its own and joins on the same terms.
+PX_STRICT_DIRS = ("patterns", "foundations", "components")
 
 # ---------------------------------------------------------------------------
 # THE REGISTER
@@ -188,26 +230,27 @@ THRESHOLDS = {
         "stays page-local.",
 
     # -- foundations/ — documentation chrome ---------------------------------
-    # Four of these five are px. They are counted rather than failed because
-    # foundations/ is not this lane's, and because a demo page's threshold is
-    # about a specimen rather than about a page a reader reads. Each names its
-    # owner; the count is printed on every run and cannot grow without an edit
-    # here.
+    # ALL FIVE ARE rem NOW, and the four that were px are the debt this lane
+    # collected rather than handed on — see PX_STRICT_DIRS. Each renders
+    # identically at a 16 px default and folds where the reader actually runs
+    # out of room above it. The count is printed on every run and cannot grow
+    # without an edit here.
     ("foundations/iconography.html", "(max-width: 48rem)"):
         "the icon grid folds. Already named in tokens.css's SCOPE list, as the example "
         "of a page-local VIEWPORT 48rem colliding with a shipping CONTAINER 48rem — "
         "same figure, unrelated queries, do not reconcile them.",
-    ("foundations/illustration.html", "(max-width:640px)"):
-        "PX DEBT — foundations. The illustration plate folds to one column.",
-    ("foundations/layout.html", "(max-width:640px)"):
-        "PX DEBT — foundations. The space-scale demo folds.",
-    ("foundations/materials.html", "(max-width:780px)"):
-        "PX DEBT — foundations. The glass demos stack. Renders at the same width as "
-        "the shipping 48.75rem nav threshold and is unrelated to it.",
-    ("foundations/transitions.html", "(max-width: 900px)"):
-        "PX DEBT — foundations. The transition demos stack. Renders at the same width "
-        "as the shipping 56.25rem and as docs.css's own sidebar query, and is "
-        "unrelated to both.",
+    ("foundations/illustration.html", "(max-width:40rem)"):
+        "The illustration plate folds to one column. Was `640px`; 640 / 16 = 40.",
+    ("foundations/layout.html", "(max-width:40rem)"):
+        "The space-scale demo folds. Was `640px`; 640 / 16 = 40.",
+    ("foundations/materials.html", "(max-width:48.75rem)"):
+        "The glass demos stack. Was `780px`; 780 / 16 = 48.75, which makes it a "
+        "DUPLICATE of the shipping nav threshold again rather than the divergence it "
+        "had become. Same figure, unrelated queries — do not reconcile them.",
+    ("foundations/transitions.html", "(max-width: 56.25rem)"):
+        "The transition demos stack. Was `900px`; 900 / 16 = 56.25. Now the same "
+        "figure as the shipping 56.25rem and as docs.css's own sidebar query, which "
+        "it was already renderng at — and unrelated to both.",
 }
 
 
@@ -383,7 +426,28 @@ def main():
     # --- register -> table ---------------------------------------------------
     # Everything outside the breakpoint register in tokens.css: the page-local
     # blocks this file governs, plus the two scopes it only lists.
-    outside = [(rel, pre, line) for rel, pre, line, _ in found] + out_of_scope_thresholds()
+    listed_only = out_of_scope_thresholds()
+    outside = [(rel, pre, line) for rel, pre, line, _ in found] + listed_only
+
+    # The rem rule reaches a file this register never governs — see
+    # PX_STRICT_FILES. Listing a threshold is not governing it, and answering to
+    # the reader's font size is not the same thing as being written down.
+    for rel, pre, line in listed_only:
+        if rel not in PX_STRICT_FILES:
+            continue
+        px = [d.strip() for d in re.findall(
+            r"\((?:min|max)-(?:width|height)\s*:\s*([^)]+)\)", pre) if d.strip().endswith("px")]
+        if px:
+            failures.append(
+                "%s:%d writes a threshold in px: %s\n"
+                "        @media/@container %s\n"
+                "    This file is outside the register and still inside the rem rule: the two\n"
+                "    are different rules. A media query's rem resolves against the browser's\n"
+                "    default font size, so only a rem threshold folds where the reader actually\n"
+                "    runs out of room. Convert it — the arithmetic is value / 16."
+                % (rel, line, ", ".join(px), pre)
+            )
+
     rows = table_rows()
     matched = set()
 
