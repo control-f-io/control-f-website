@@ -15645,3 +15645,195 @@ a.cf-calendar__day > time,
     word-break: break-all;
   }
 }
+
+/* --------------------------------------------------------------------------
+   THE CONSTRUCTION LAYER — the working, kept
+
+   Every plate in the brand manual shows how it was made. The Winkelraster is
+   a star of rays with the isometric rhombus laid over it; the logo plate
+   stands the mark inside a measured frame with the unit written on it; the
+   illustration example carries the angles it was struck at. The manual is not
+   a gallery of finished objects, it is a set of objects with their setting-out
+   still visible — which for a company whose first line is "find the answers"
+   is the argument itself, not decoration.
+
+   The website threw all of it away. Every drawing here ships as the finished
+   object and nothing else, and the one exception proves the rule rather than
+   softening it: the demon core on Über uns has its shells and its axis drawn
+   at --presence-absent and labelled "reference geometry" in its own source
+   comment — construction geometry, baked into one figure, with no name, no
+   material and no way for a second drawing to carry it.
+
+   tokens.css had already named this. --presence-absent's own comment reads
+   "the ghost line: CONSTRUCTION GEOMETRY, a footprint, a cell that says where
+   a thing stands rather than what it measures" — and until this block the rung
+   was spent entirely on the other half of that sentence, the not-here-yet
+   register on .cf-arrive, .cf-progress and .cf-line__trace--ghost. The word
+   was in the token and the drawing was nowhere.
+
+   WHAT IT IS. A second drawing behind the first, in the first's own coordinate
+   space, carrying the rays the object was set out on, the cells it was cut
+   from and the points where those meet. It is dormant: at rest a reader sees
+   the object the designer drew, which is the state every one of these figures
+   already shipped in. A reader who asks gets the working.
+
+   THE RANK IS THE LINE TYPE, NOT THE INK, and that is the whole reason this
+   layer is cheap. The obvious way to hold construction back from an object is
+   to draw it fainter, and every system that does it that way loses the
+   distinction in the two modes that discard ink strength: forced colours maps
+   authored colour into a palette of its own, and a printer renders a 20 %
+   black as a grey mesh. The presence ladder is a ladder of DASH PATTERNS —
+   "same box, same size, same place", one rung down — so the construction here
+   is drawn in --border-strong, the same contour ink as the object, and told
+   apart by --presence-absent alone. Nothing has to be re-argued under forced
+   colours, nothing has to be measured for contrast that was not already
+   measured for the contour, and the layer survives paper intact.
+
+   THE FOUR ANGLES, AND THE ONE THAT HAD NEVER BEEN DRAWN. The rays are the
+   Winkelraster: the vertical, its horizontal datum, and the fan at ±26.57°,
+   ±45° and ±63.43°. --angle-neutral, 45°, has been a row in geometry.html's
+   token table and a value in tokens.css since the first commit and had EXACTLY
+   ZERO consumers anywhere in the tree — no stylesheet, no page, no drawing.
+   That is not an oversight, it is where the angle lives: 45° is a neutral
+   construction ray in a 2:1 system, so a system that never draws construction
+   never draws it. This is its first consumer, and the figures make the point
+   by standing on it — an object's own edges lie on the 26.57° rays and on
+   nothing else, and the neutral rays run out of the drawing carrying nothing.
+
+   IT PAINTS UNDER THE OBJECT. __work comes first in the markup and __figure
+   second, both positioned, so the object occludes the construction exactly as
+   an opaque face occludes anything behind it. A ray therefore emerges from a
+   corner already travelling along the edge it set out, which is the reading
+   the plate gets for free by being drawn on paper and this had to be ordered
+   for.
+
+   THE SWITCH IS .cf-check, WHOLE. A real checkbox with a real label — the
+   role, the state, the keyboard behaviour and the focus ring all come with it,
+   nothing is reimplemented in ARIA, and a mode with no :has() support rests at
+   the object as drawn, which is the state the figure shipped in for a year.
+   The construction is aria-hidden: it is the same geometry the prose beside it
+   states in words, and a screen reader that announced eight rays would be
+   reading out a drawing rather than a document.
+   -------------------------------------------------------------------------- */
+/* The plate stretches and the switch does not, and the two have to be said
+   separately: a `justify-items: start` on the grid would leave the plate's
+   `width: 100%` resolving against a track sized by its own content. */
+.cf-construct { display: grid; gap: var(--space-4); }
+
+.cf-construct__control { justify-self: start; cursor: pointer; }
+
+.cf-construct__plate { position: relative; width: 100%; }
+
+/* Both layers carry the same viewBox, so inset: 0 over a figure sized by its
+   own aspect ratio is registration: nothing is positioned twice and the two
+   drawings cannot come apart at a width nobody tested. */
+.cf-construct__figure { position: relative; display: block; width: 100%; }
+.cf-construct__work {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: var(--stroke-1);
+  /* It is never the thing a pointer is after — the object is. */
+  pointer-events: none;
+  opacity: 0;
+}
+
+.cf-construct__ray,
+.cf-construct__cell { stroke-dasharray: var(--presence-absent); }
+
+/* A setting-out point is where an edge WOULD start, so it is the corner dot
+   one rung down: the same mark the isometric objects fill, drawn as contour.
+   Its stroke is solid because a 5-unit circle cannot carry a 1-4 dash — the
+   ladder is about a line long enough to have a rhythm, and below that length
+   the rung is carried by the fill being absent instead. */
+.cf-construct__point { fill: none; stroke-dasharray: var(--dash-solid); }
+
+/* A DIMENSION LINE IS THE ONE MARK HERE THAT IS SOLID, and geometry.html's
+   "where a line may go" is what decides it. That page allows a line to be an
+   edge, a division or a LABEL RULE and calls everything else decoration. A
+   ray is none of the three, which is exactly why it is drawn at the absent
+   rung — it is where an edge would be. A measure is the third: it is a rule
+   carrying a word, it states a fact about the object that is already true,
+   and it is no more provisional than the caption under a figure. So it takes
+   full ink at full length, and the ticks at its ends are part of it. */
+.cf-construct__measure { stroke-dasharray: var(--dash-solid); }
+
+/* A LABEL IS LAYER 6, SO IT IS NOT IN THE DRAWING. Every measure here was an
+   SVG <text> first, and on a phone that is what it costs: the plate is capped
+   at a rem measure and shrinks to the column, so a 22-unit label in a 780-unit
+   viewBox rendered at 7 px on a 375 frame — below anything this system sets
+   type at, and shrinking further at every narrower width. SVG text is drawn IN
+   the user coordinate system; there is no vector-effect for a font size, and
+   no unit that survives the transform.
+
+   So the labels are HTML over the plate, positioned in the drawing's own
+   coordinates as percentages. The mapping is exact and needs no arithmetic at
+   runtime: __figure is width: 100% with no height, so it takes the viewBox's
+   aspect ratio, and the plate's box IS the viewBox's box. --x and --y are
+   (coordinate − viewBox min) / viewBox extent, written on the element.
+
+   What that buys beyond the size: the measure is real text. It takes
+   --text-xs and the mono face like every other label in the system, it scales
+   with the reader's own text size rather than with the drawing, it is
+   selectable and searchable, and it needs nothing said about forced colours
+   because a `color` is exactly what that mode does remap. */
+.cf-construct__label {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  margin: 0;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--text-primary);
+  pointer-events: none;
+  opacity: 0;
+}
+/* A label at the edge of the frame is anchored by the side that would leave
+   it, not centred and nudged back in by hand. */
+.cf-construct__label--end   { transform: translate(-100%, -50%); }
+.cf-construct__label--start { transform: translate(0, -50%); }
+
+.cf-construct:has(.cf-construct__switch:checked)
+  :is(.cf-construct__work, .cf-construct__label) { opacity: 1; }
+
+/* Gated, like every other animation in these three stylesheets. The state
+   still switches without it — a revealed construction is information, and it
+   simply arrives rather than fading in. */
+@media (prefers-reduced-motion: no-preference) {
+  .cf-construct__work,
+  .cf-construct__label { transition: opacity var(--duration-base) var(--ease-standard); }
+}
+
+/* FORCED COLOURS IS ONE DECLARATION, AND IT IS NOT THE ONE THIS BLOCK EXPECTED
+   TO NEED. The mode does not force SVG paint — geometry.html's stack has said
+   so over the same drawing for as long as it has had a forced-colours rule —
+   so a stroke authored as --border-strong stays #000 on a dark system canvas
+   and the entire working goes invisible. Caught by screenshotting the logo
+   plate in the dark palette, where it rendered as a mark on nothing.
+
+   What DOES come through for free is the rank, and that is the dividend of not
+   having spent ink on it: --presence-absent is a dasharray, the mode does not
+   touch dasharrays, so the construction is still exactly one rung behind the
+   object the moment the ink is restored. A layer held back by opacity would
+   have had to re-argue the whole distinction here. The labels need nothing
+   either — they are HTML text and a `color` is precisely what the mode remaps.
+   One line, and it is about visibility rather than about rank. */
+@media (forced-colors: active) {
+  .cf-construct__work { stroke: CanvasText; }
+}
+
+/* Paper keeps whatever is on screen and loses the control, for the reason the
+   sheet chapter gives: a printed page has no state to change, so a checkbox on
+   it is an instruction the reader cannot follow. The plate is not allowed to
+   break across a sheet — a construction cut in half is two drawings. */
+@media print {
+  .cf-construct__control { display: none; }
+  .cf-construct__plate { break-inside: avoid; }
+}

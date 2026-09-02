@@ -27,7 +27,8 @@
       { href: 'foundations/sight.html',       label: 'The Line of Sight' },
       { href: 'foundations/print.html',       label: 'The Sheet' },
       { href: 'foundations/light.html',       label: 'The Light Layer' },
-      { href: 'foundations/share.html',       label: 'The Share Plate' }
+      { href: 'foundations/share.html',       label: 'The Share Plate' },
+      { href: 'foundations/construction.html',label: 'The Construction Layer' }
     ]},
     { title: 'Components', items: [
       { href: 'components/buttons.html',        label: 'Buttons' },

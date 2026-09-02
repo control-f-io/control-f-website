@@ -27,6 +27,19 @@
   .frames { --tile:9rem; }
   .frame { display:grid; place-items:center; height:9rem; background:var(--cf-schwarz); }
   .frame img { width:4.5rem; }
+
+  /* The construction specimen is capped, not sized: both layers are registered
+     on one viewBox inside .cf-construct__plate, so the only thing this page
+     owns is how wide the pair is allowed to get. */
+  .logo-construct { width:100%; max-width:34rem; margin-inline:auto; }
+
+  /* The mark is inline SVG here rather than the <img> the variants above use,
+     so it needs what an <img> gets for free: forced colours does not remap a
+     fill authored as #000, and a black mark on a dark system canvas is a hole.
+     Same rule, same reason, as the isometric stack on geometry.html. */
+  @media (forced-colors: active) {
+    .logo-construct__mark path { fill: CanvasText; }
+  }
 </style>
 </head>
 <body class="docs" data-root="../">
@@ -137,11 +150,92 @@
     </p>
   </section>
 
+  <section class="docs-section" id="construction">
+    <h2>The mark on its unit</h2>
+    <p>
+      <em>Logo Design &gt; Konstruktion</em> is the one manual plate this chapter named and
+      never drew. It stands the symbol inside a measured frame on a grid of X, and the note
+      beside it says why: <em>“die Konstruktion basiert auf einem definierten Maßstabsystem,
+      sodass das Logo bei Bedarf konsistent nachgebaut oder skaliert werden kann.”</em> The
+      page had the unit's name and, until now, the wrong two numbers against it.
+    </p>
+    <div class="docs-demo">
+      <div class="cf-construct logo-construct">
+        <label class="cf-check cf-construct__control">
+          <input class="cf-check__box cf-construct__switch" type="checkbox" id="logo-construct-switch">
+          <span class="cf-check__label">Show the construction</span>
+        </label>
+        <div class="cf-construct__plate">
+          <svg class="cf-construct__work cf-iso" viewBox="-150 -30 780 600" aria-hidden="true">
+            <!-- THE FRAME IS THE MARK'S OWN EXTENT, solved rather than traced. The
+                 exported paths round every acute vertex with a 2-unit fillet, so no
+                 point in the file sits on the frame: the tips are the intersections
+                 of the edges that meet there. The left tip is where 0.5x + y = 240
+                 meets y - 0.5x = 240, which is (0, 240) to four decimal places. All
+                 four solve onto the frame, and all four onto a node of the grid. -->
+            <path class="cf-construct__cell" d="M0 0H600V480H0Z"/>
+            <g class="cf-construct__cell">
+              <path d="M60 0V480"/><path d="M120 0V480"/><path d="M180 0V480"/>
+              <path d="M240 0V480"/><path d="M300 0V480"/><path d="M360 0V480"/>
+              <path d="M420 0V480"/><path d="M480 0V480"/><path d="M540 0V480"/>
+              <path d="M0 60H600"/><path d="M0 120H600"/><path d="M0 180H600"/>
+              <path d="M0 240H600"/><path d="M0 300H600"/><path d="M0 360H600"/>
+              <path d="M0 420H600"/>
+            </g>
+            <g class="cf-construct__point">
+              <circle cx="0" cy="240" r="7"/>
+              <circle cx="480" cy="0" r="7"/>
+              <circle cx="600" cy="60" r="7"/>
+              <circle cx="480" cy="480" r="7"/>
+            </g>
+            <g class="cf-construct__measure">
+              <path d="M0 530H600"/><path d="M0 522V538"/><path d="M600 522V538"/>
+              <path d="M-55 0V480"/><path d="M-63 0H-47"/><path d="M-63 480H-47"/>
+            </g>
+          </svg>
+          <!-- The two paths of assets/img/logo/cf-symbol-black.svg, verbatim, in the
+               construction's own frame. Inline rather than an <img> for one reason:
+               a construction has to be registered on the thing it constructs, and an
+               <img> would put the mark's 600 x 480 box inside this one at whatever
+               size the layout gave it. Here both layers carry the same viewBox and
+               the mark stands at 0,0 of it. -->
+          <svg class="cf-construct__figure logo-construct__mark" viewBox="-150 -30 780 600" fill="#000" aria-hidden="true">
+            <path d="M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 327.317C183.155 328.422 183.155 331.578 185.367 332.683L476.422 478.211C478.675 479.337 481.325 479.337 483.578 478.211L594.633 422.683C596.845 421.578 596.845 418.422 594.633 417.317L425.367 332.683Z"/>
+            <path d="M116.422 298.211C118.675 299.337 121.325 299.337 123.578 298.211L594.633 62.6833C596.845 61.5777 596.845 58.4223 594.633 57.3167L483.578 1.78885C481.325 0.662745 478.675 0.662745 476.422 1.78885L5.36656 237.317C3.15542 238.422 3.15542 241.578 5.36656 242.683L116.422 298.211Z"/>
+          </svg>
+          <!-- The three measures, in the drawing's coordinates as a fraction of the
+               -150 -30 780 600 viewBox: (300, 508) over the horizontal dimension
+               line, (-72, 240) at the end of the vertical one, (30, 30) inside the
+               first cell of the grid. -->
+          <p class="cf-construct__label" style="--x:57.69%;--y:89.67%">10X</p>
+          <p class="cf-construct__label cf-construct__label--end" style="--x:10%;--y:45%">8X</p>
+          <p class="cf-construct__label" style="--x:23.08%;--y:10%">X</p>
+        </div>
+      </div>
+    </div>
+    <p>
+      <strong>X is 60 in the symbol's own 600 × 480 units, and every number on the plate
+      falls out of the file.</strong> The frame is 10X wide and 8X tall — 600 / 10 =
+      480 / 8 = 60 — and the mark's four extreme vertices land on grid nodes: (0X, 4X),
+      (8X, 0), (10X, 1X) and (8X, 8X). Measured off the same paths, one bar is 2X thick and
+      the gap between the bars is exactly X. Nothing here was eyeballed against the plate;
+      the edges are all at ±1 : 2, so each vertex is one intersection of two lines.
+    </p>
+    <div class="docs-note">
+      <strong>This chapter used to state that wrongly, and the drawing is what caught it.</strong>
+      The sentence read “the symbol is 8X wide, the horizontal lockup 10X”. Both numbers are
+      the symbol's and neither is a width: 8X is the symbol's <em>height</em> and 10X its
+      width. The horizontal lockup is <code>3331 × 480</code>, which is 55.5X — it has no
+      round measure in X at all, because the wordmark's length is set by the letters and not
+      by the grid. → <a href="construction.html">The construction layer</a>
+    </div>
+  </section>
+
   <section class="docs-section" id="clearspace">
     <h2>Clear space &amp; minimum size</h2>
     <p>
-      The construction is based on the unit X — the height of one bar of the symbol. The
-      symbol is 8X wide, the horizontal lockup 10X.
+      Clear space is measured in the same X the frame above is built on — 60 units of the
+      symbol's own 600 × 480, one tenth of its width.
     </p>
     <table class="docs-table">
       <thead><tr><th>Measure</th><th>Value</th><th>Note</th></tr></thead>
