@@ -4220,11 +4220,64 @@ ul.cf-info-card__chips {
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
+/* THE INTRINSIC MINIMUM, ONE LEVEL BELOW THE GUARD THAT ALREADY EXISTS.
+   `.tiles > * { min-width: 0 }` floors the fact COLUMN, which is the tiles
+   grid's item; the chip is a flex item inside that column and carries its own
+   `min-width: auto`, so it floors at its own min-content — one uppercase mono
+   compound with --tracking-label on every letter — and a flex item is not
+   allowed to shrink below that. The column then holds its width and the chip
+   simply leaves it. It is the third instance of the case
+   foundations/layout.html#intrinsic-two-fixes tabulates, after .tiles and
+   .cf-section-header, and the one nothing had run: check-grid-tracks.py reads
+   TRACK LISTS, and a flex row declares none.
+
+   base.css's break-word net does not reach it either, and the layout chapter
+   says why in its own words — overflow-wrap decides how a line breaks once the
+   box has a width, and the box's width is what min-content has already
+   decided. The word breaks visibly inside the chip on every page, which is
+   exactly what makes this look handled.
+
+   MEASURED, patterns/expertise.html, field 03, the widest chip in the tree
+   ("Windgeschwindigkeit", 19 characters with no interior break) against the
+   fact column it stands in, at the browser default font sizes a Windows
+   reader arrives with:
+
+     viewport  root   chip     column   outside the card   document
+     320       16     fits     —        0 px               320
+     320       20     fits     —        0 px               320
+     320       24     229 px   182 px   47 px              320
+     320       32     305 px   150 px   155 px             390  (70 px sideways)
+     375       32     305 px   198 px   107 px             393  (18 px sideways)
+
+   So it paints outside its own panel from a 24 px default — 150 % is the
+   common low-vision setting and inside what WCAG 1.4.4 asks — and takes the
+   whole document sideways at 32. With the floor, every one of those rows is
+   0 px outside and the 375 document is 375. What is left at 320 x 32 is 27 px
+   of .cf-page-header__meta, a two-span flex row that cannot wrap, which is a
+   different rule and is not touched here.
+
+   WHAT IT COSTS IS THE BREAK POINT, and the net decides it rather than a
+   dictionary. Contained, a chip whose longest word is wider than the column
+   breaks inside that word — "BATTERIESPEICH / ER, KLEIN UND GROSS" at 320 x 24,
+   where the escaping version broke at its comma. That is base.css's net doing
+   the job it says it does ("It is a NET, not typography ... Until then the page
+   does not scroll sideways"), and the right answer for German is still
+   `hyphens: auto` against these pages' lang="de", which that same note leaves
+   to the typography lane and to a designer. A word set badly inside the panel
+   is the smaller fault than a word set well outside it.
+
+   NOTHING MOVES WHERE NOTHING WAS WRONG. min-width: 0 only lets a box shrink
+   that the line was already too narrow to hold: measured identical to the
+   pixel at 320, 375, 414, 853 and 1024 at a 16 px default, and at 853 and 1024
+   — the CSS viewports a 1280 px screen has at Windows' 125 % and 150 % display
+   scaling — at every default from 16 to 32.
+   → base.css, .tiles > *; foundations/layout.html#intrinsic-two-fixes */
 .cf-info-card__chips li {
   padding: var(--space-1) var(--space-3);
   border: var(--stroke-1) solid var(--border-default);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
+  min-width: 0;
 }
 
 /* --------------------------------------------------------------------------

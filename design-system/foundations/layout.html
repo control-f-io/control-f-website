@@ -1773,10 +1773,23 @@ print(counts)
         <tr>
           <td>on the item</td>
           <td><code>min-width: 0</code> on the grid items, which sets the automatic minimum size to zero and leaves <code>auto</code> nothing to floor at</td>
-          <td><code>.subdivide</code>, <code>.tiles</code>, <code>.cf-section-header</code></td>
+          <td><code>.subdivide</code>, <code>.tiles</code>, <code>.cf-section-header</code>,
+            <code>.cf-info-card__chips</code></td>
         </tr>
       </tbody>
     </table>
+    <p>
+      <strong>The second fix is not a grid property.</strong> The automatic minimum size is
+      what <code>min-width: auto</code> resolves to on any item that establishes its own
+      formatting context, so a <em>flex</em> item floors at its own min-content in exactly the
+      same way — and a flex item may not shrink below it, which is the same sentence with the
+      word “track” taken out. <code>.cf-section-header</code> is that case, and so is
+      <code>.cf-info-card__chips</code>, whose chips sit one level below a
+      <code>.tiles</code> column that is already guarded: the column holds its width and the
+      chip leaves it, at 47 px outside the panel with the browser default at 24 px and 155 px
+      at 32. The check below cannot see either of them, and not by an oversight — it reads
+      track lists, and a flex row declares none.
+    </p>
     <p>
       <code>.subdivide</code> has to take the second one. Its geometric sets are
       <code>4fr 2fr 2fr</code> — exact halves whose entire content is the ratio — and
