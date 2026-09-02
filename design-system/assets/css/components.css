@@ -1803,6 +1803,38 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   .cf-nav::after { border-top: var(--stroke-1) solid CanvasText; }
 }
 
+/* THE SAME LOSS IN THE OTHER TWO DOORS, and it is a boundary here rather than
+   a hairline. tokens.css turns --glass-edge and --glass-rim-light off wherever
+   the blur is off, because with no material there is no material light; the
+   measurement is there. What is local to this rule is that this sheet ENDS at
+   this edge instead of closing a perimeter — .cf-nav::before carries no border
+   — so the bar's whole boundary against the page is this one pixel. Nothing
+   else would draw it.
+
+   The plate it has to separate from the page is the material's opaque
+   stand-in, #E7E7E7 in the light theme, and the wash runs 207 to 255 on every
+   screen at every scroll position: at some scroll the bar and the page are the
+   same grey and this line is all there is. --border-default removes 24 % of
+   whatever is behind it, which is a constant direction at both ends of that
+   range (1.40:1 to 2.17:1 against the page) where the white rim inverts inside
+   it (1.38:1 down to 1.05:1). Same argument as --glass-border one rule over,
+   and the same ink.
+
+   Two blocks and not one, because @supports and @media cannot be OR'd into a
+   single query. Both say the same thing.
+
+   THE BACKGROUNDS ARE GONE BY CONSTRUCTION, not by a second declaration. This
+   element is `height: var(--stroke-1)` under a global border-box, so a 1 px
+   top border leaves a zero-height padding box, and a background-image sized
+   against that paints nothing. Exactly what the forced-colours rule above
+   relies on, which is why neither needs to unset anything. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .cf-nav::after { border-top: var(--stroke-1) solid var(--border-default); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .cf-nav::after { border-top: var(--stroke-1) solid var(--border-default); }
+}
+
 /* THE LIST IS NO LONGER A PLATE — .cf-nav__bar is the plate and this is the
    run of seven routes inside it. The fill, the border, the 2 px corner and the
    8 px inset all moved there, unchanged; what is left is the row itself.

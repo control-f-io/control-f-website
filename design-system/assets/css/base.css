@@ -1377,6 +1377,21 @@ hr {
 @media (forced-colors: active) {
   .material-glass-edge { border-top: var(--stroke-1) solid CanvasText; }
 }
+/* And the same in the two no-blur doors, for the reason the forced-colours rule
+   gives one line up: this element IS its background-image, and tokens.css turns
+   --glass-edge off wherever the blur is off — no material, no material light.
+   The band in the layer stack on foundations/materials.html is the other sheet
+   in the system that ends at a single edge rather than closing a perimeter
+   (`border: 0` above says so), so without this the sample that teaches the
+   material's edge would have nothing on it in exactly the tiers that page
+   documents. Same ink and same argument as .cf-nav::after in components.css;
+   two blocks because @supports and @media do not combine into one query. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .material-glass-edge { border-top: var(--stroke-1) solid var(--border-default); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .material-glass-edge { border-top: var(--stroke-1) solid var(--border-default); }
+}
 /* Kontur — 1 px outline, the default way to draw a box in this brand. */
 .material-outline {
   border: var(--stroke-1) solid var(--border-strong);
