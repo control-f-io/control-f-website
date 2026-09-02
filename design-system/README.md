@@ -2265,6 +2265,18 @@ These were judgement calls, each documented on the relevant page:
   drift no diff against `assets/source/` could ever show, because it lives in the rendered
   phase and not in the markup. Verified: the settled object is pixel-identical to the build
   with no animation at all. → `foundations/motion.html`
+- **When they turn is two claims about other rules, and both were false.** "An orbit turns as
+  the object assembles and settles when everything else does" is a relation between three rules
+  in two stylesheets, so neither end could be seen from inside the rule that set it. The stacked
+  path had the rings fading up over a *finished* sphere — measured at 375 px, first orbit ink at
+  `cover` 20 % with the object's eleven forms already at mean opacity 0.444, and the plan's own
+  `2–14 %` window standing empty because card 04's orbits are the only dashed geometry it has.
+  The pinned path had the other end: the turn closed at `+12 %` of a quarter whose light opens at
+  `+12.4 %`, so the ring stopped four tenths of a point before the lime under it began to come
+  up. Both ends are now read rather than written — the plan's window and the construction points'
+  window — and `check-iso-motion.py` re-derives all three, so moving either window moves what the
+  orbit is judged against. The travel is untouched, so the settled ring is the same pixels.
+  → `foundations/motion.html#orbit-plan`
 - **The Über uns value-table wheel keeps its six teeth, and six is off the sanctioned
   angles.** Measured off `mockups/ueber-uns.jpg` by radial profile from the drawing's own
   centre, the teeth sit at 30°, 90°, 150°, 210°, 270° and 330° — 60° apart, of which only

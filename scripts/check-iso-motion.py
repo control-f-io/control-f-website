@@ -359,6 +359,46 @@ LIGHT_RULES = (
     ("acts.css", ".lp-proc-steps .cf-iso__light"),
 )
 
+# ---------------------------------------------------------------------------
+# AN ORBIT FADES WITH THE PLAN AND SETTLES WITH THE OBJECT.
+#
+# foundations/motion.html states the orbit in one sentence — it turns as the
+# object assembles and settles when everything else does — and an orbit carries
+# .cf-iso__ghost precisely so that it fades up with the rest of the dashed
+# geometry. Both halves of that are relations between THREE rules that live in
+# two stylesheets, so neither half can be seen from inside any one of them, and
+# both were false at once:
+#
+#   components.css   the base build retimes every ghost to the plan's window
+#                    and excludes the orbit, to stop a single-value range
+#                    clobbering the turn. The exclusion also handed the FADE
+#                    back to `cover 20% cover 40%`, a window measured against
+#                    an object that arrives whole. On card 04 — the only built
+#                    object in the system with orbits, and they are its only
+#                    dashed geometry — the plan's window ran empty and the
+#                    rings faded up over a finished sphere.
+#   acts.css         the pinned track ended the turn at 12 of a quarter whose
+#                    light lands at 15 and whose nodes close the reveal at
+#                    15.5, so the ring stopped four tenths of a point before
+#                    the lime under it began to come up.
+#
+# Each is a number that looks free from where it is written and is not: the
+# fade's two ends belong to the sibling ghosts' rule and the turn's end to the
+# construction points' rule, one of which is in the other stylesheet. So all
+# four are read rather than restated, and compared as numbers for the same
+# reason light_handover() evaluates rather than matches — the two timelines
+# state the same windows in different algebras.
+#
+#   (stylesheet, orbit selector, plan selector, node stylesheet, node selector)
+ORBIT_RULES = (
+    ("components.css", ".cf-iso--build .cf-iso__orbit",
+     ".cf-iso--build .cf-iso__ghost:not(.cf-iso__orbit)",
+     "components.css", ".cf-iso__node"),
+    ("acts.css", ".lp-proc-steps .cf-iso__orbit",
+     ".lp-proc-steps .cf-iso--build .cf-iso__ghost:not(.cf-iso__orbit)",
+     "components.css", ".cf-pin .cf-iso__node"),
+)
+
 _VAR = re.compile(r"var\(\s*(--[\w-]+)\s*(?:,\s*([^()]*?)\s*)?\)")
 
 
@@ -513,6 +553,92 @@ def light_handover(max_stage):
             else:
                 continue
             break
+    return findings
+
+
+def _one_range(filename, selector, text, want):
+    """The `animation-range` of `selector`, split into `want` ranges of two
+    values each — or a finding saying which of those it is not."""
+    bodies = [b for b in rule_bodies(text, selector) if "animation-range" in b]
+    if not bodies:
+        return None, (
+            "%s no longer carries an animation-range on `%s`. ORBIT_RULES names\n"
+            "    the rules this gate reads; point it at the rule that carries it now."
+            % (filename, selector))
+    value = re.search(r"animation-range:\s*([^;]+);", bodies[-1]).group(1)
+    ranges = [split_range(r) for r in split_top_level(value)]
+    if len(ranges) != want or any(len(r) != 2 for r in ranges):
+        return None, (
+            "%s's `%s` no longer states exactly %d range(s) of two values, so the\n"
+            "    orbit's fade and turn cannot be told apart. Found %d."
+            % (filename, selector, want, len(ranges)))
+    return ranges, None
+
+
+def orbit_handover():
+    """An orbit's fade is its sibling ghosts' window; its turn opens with that
+    fade and closes where the construction points settle."""
+    findings = []
+    cache = {}
+
+    def sheet(name):
+        if name not in cache:
+            cache[name] = strip_comments((CSS / name).read_text())
+        return cache[name]
+
+    for filename, orbit_sel, plan_sel, node_file, node_sel in ORBIT_RULES:
+        text = sheet(filename)
+        orbit, bad = _one_range(filename, orbit_sel, text, 2)
+        if bad:
+            findings.append(bad)
+            continue
+        plan, bad = _one_range(filename, plan_sel, text, 1)
+        if bad:
+            findings.append(bad)
+            continue
+        nodes, bad = _one_range(node_file, node_sel, sheet(node_file), 1)
+        if bad:
+            findings.append(bad)
+            continue
+
+        # Declaration order follows animation-name: cf-iso-fade, cf-iso-orbit.
+        (fade_open, fade_shut), (turn_open, turn_shut) = orbit
+        env = {"--i": "0"}
+        try:
+            values = [eval_calc(e, env) for e in
+                      (fade_open, fade_shut, turn_open, turn_shut,
+                       plan[0][0], plan[0][1], nodes[0][1])]
+        except (KeyError, SyntaxError, ValueError) as exc:
+            findings.append(
+                "%s's `%s` states a range this check cannot evaluate (%s: %s)."
+                % (filename, orbit_sel, type(exc).__name__, exc))
+            continue
+        fo, fs, to, ts, po, ps, ne = values
+
+        if (fo, fs) != (po, ps):
+            findings.append(
+                "%s's `%s` fades up over %g–%g %% while the ghosts beside it use\n"
+                "    %g–%g %%. An orbit carries .cf-iso__ghost so that it arrives WITH\n"
+                "    the dashed geometry: on a built object the plan is what the solids\n"
+                "    arrive into, and an orbit timed after them is that drawing told\n"
+                "    backwards. State the plan's own two ends.\n"
+                "    → foundations/motion.html#build"
+                % (filename, orbit_sel, fo, fs, po, ps))
+        if to != fo:
+            findings.append(
+                "%s's `%s` begins turning at %g %% and begins fading up at %g %%.\n"
+                "    The ring is drawn as motion; it may not appear already still, nor\n"
+                "    move before it is visible. Open both on the same point."
+                % (filename, orbit_sel, to, fo))
+        if abs(ts - ne) > 1e-9:
+            findings.append(
+                "%s's `%s` settles at %g %% and `%s` settles the construction points\n"
+                "    at %g %%. The rule is that an orbit turns while the object assembles\n"
+                "    and settles when everything else does — %g points either way is a\n"
+                "    ring that stops while its object is still arriving, or goes on\n"
+                "    turning after the object is finished. Read the node window's end.\n"
+                "    → foundations/motion.html#build"
+                % (filename, orbit_sel, ts, node_sel, ne, abs(ts - ne)))
     return findings
 
 
@@ -1089,6 +1215,9 @@ def main():
                 )
             )
 
+    # --- 2b. and it turns for as long as the object is arriving -------------
+    findings += orbit_handover()
+
     # --- 3, 4, 5. per-page drawing rules --------------------------------
     #
     # THE ASSEMBLY'S TIMING INVARIANTS ARE IN HERE TOO, and they are the three
@@ -1359,12 +1488,13 @@ def main():
         "to screen.\n"
         "                    timing: %d traces inside the %g-point window, %d stages at or\n"
         "under %d, %d lights filled, %d light declarations opening their fill no earlier\n"
-        "than the plate carrying it lands.\n"
+        "than the plate carrying it lands, %d orbit declarations fading with their plan and\n"
+        "settling with their construction points.\n"
         "                    %d straight traces starting and stopping at their own crop,\n"
         "every split signal sharing one window by length.\n"
         "                    %d documented travels quoting the stylesheet they teach."
         % (assembling, normalised, led, win["trace_span"], staged, max_stage, lit,
-           len(LIGHT_RULES), straight, documented)
+           len(LIGHT_RULES), len(ORBIT_RULES), straight, documented)
     )
     return 0
 

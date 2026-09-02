@@ -365,7 +365,7 @@ python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the co
         <tr><td><code>.cf-iso__scene</code></td><td>the whole object</td><td>travels in on 26.57° — see below — and fades up. The only thing that moves. Silent under <code>.cf-iso--build</code>.</td><td>cover 5–30 %</td></tr>
         <tr><td><code>.cf-iso__form</code></td><td>solid contoured body</td><td>nothing on its own; it rides the scene. Under <code>.cf-iso--build</code> it arrives on its own stage — see below.</td><td>— / cover 5–22 % + 7 % per stage</td></tr>
         <tr><td><code>.cf-iso__ghost</code></td><td>dashed reference geometry</td><td>fades up after the body it belongs to</td><td>cover 20–40 %</td></tr>
-        <tr><td><code>.cf-iso__orbit</code></td><td>a ghost that circulates</td><td>fades up with the other ghosts, and keeps turning after them — see below</td><td>cover 20–40 % fading, 20–50 % turning</td></tr>
+        <tr><td><code>.cf-iso__orbit</code></td><td>a ghost that circulates</td><td>fades up with the other ghosts, and keeps turning after them — see below. Under <code>.cf-iso--build</code> both ends move with the ghosts’ own window; only the settle stays put.</td><td>cover 20–40 % fading, 20–50 % turning / under <code>--build</code>, 2–14 % and 2–50 %</td></tr>
         <tr><td><code>.cf-iso__trace</code> <em>(retired)</em></td><td>the signal reaching the object — <strong>one stroke</strong>. No longer one of the layers; see <a href="illustration.html#layers">Illustration</a></td><td>draws itself, edge of the crop to edge of the crop — see below</td><td>cover 18–45 %, or a window inside it</td></tr>
         <tr><td><code>.cf-iso__light</code></td><td>the single lime-gradient element, <strong>filled</strong></td><td>its fill comes up last. Light arrives; it does not fly in — which is why <code>cf-iso-light</code> animates <code>fill-opacity</code> and nothing else, and why a light drawn as a stroke would have no arrival at all. Checked.</td><td>cover 30–48 %</td></tr>
         <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>fade up last of all</td><td>cover 35–50 %</td></tr>
@@ -520,7 +520,7 @@ python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the co
       <tbody>
         <tr><td><code>.cf-iso__scene</code></td><td>does not animate at all — every child starts at opacity 0, so the scene has nothing left to fade and nowhere to arrive from</td><td>—</td></tr>
         <tr><td><code>.cf-iso__ghost</code></td><td><strong>first on screen.</strong> A ghost is the object's future state, and the parts arrive out of exactly where the ghosts are, so a ghost that fades up after the part it predicts is the drawing told backwards</td><td>cover 2–14 %</td></tr>
-        <tr><td><code>.cf-iso__orbit</code></td><td>excluded from that retiming — an orbit is a ghost that turns, and its turn is written against 20–50 %</td><td>unchanged</td></tr>
+        <tr><td><code>.cf-iso__orbit</code></td><td><strong>first on screen too.</strong> It is excluded from the rule above for a mechanical reason — it runs two animations and that rule states one range — and it states the plan’s own window itself. The turn opens on the same point and still settles where the construction points do, so it runs the whole assembly rather than its second half</td><td>cover 2–14 % fading, 2–50 % turning</td></tr>
         <tr><td><code>.cf-iso__form</code></td><td>arrives on its stage, from <code>--build-dx</code> / <code>--build-dy</code></td><td>cover 5–22 %, +7 % per stage</td></tr>
         <tr><td><code>.cf-iso__light</code></td><td>a part like any other while the object is being built, so it takes a stage and travels with the section it belongs to — card 01's lime plate <em>is</em> the top of the inner shaft and cannot stay behind while the shaft rises. Its fill comes up last, and “last” is <a href="#light-last">the later of 30 % and its own arrival</a> rather than a flat 30.</td><td>arrival on its stage; fill cover <code>max(30, 22 + 7n)</code>–48 %</td></tr>
         <tr><td><code>.cf-iso__node</code></td><td><strong>not staged.</strong> Construction points are added to a finished object, at its finished position, which is what they mean</td><td>unchanged</td></tr>
@@ -682,7 +682,9 @@ python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the co
       system that is <em>drawn as motion</em>, and until now they were also the only thing on
       the page that said “this is circulating” and then held perfectly still. They now turn as
       the object assembles and settle when everything else does — the brand's rule for anything
-      spatial, which is that it turns slowly and then stops.
+      spatial, which is that it turns slowly and then stops. That sentence is two claims about
+      when, both of them true of a rule somewhere else, and both were false until they were
+      checked: → <a href="#orbit-plan">It turns <em>while</em> the object assembles</a>.
     </p>
     <p>
       <strong>The obvious way to turn a ring is to rotate it, and that is the wrong way here.</strong>
@@ -830,6 +832,75 @@ python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the co
       hairlines running only while their object crosses the viewport is the same order of work
       again. It causes no layout and no reflow.
     </div>
+
+    <h4 id="orbit-plan">It turns <em>while</em> the object assembles, and on both timelines it did not</h4>
+    <p>
+      The sentence this whole section is written against has two halves — an orbit turns as the
+      object assembles, and settles when everything else does — and each half is a relation
+      between rules that sit in different blocks, one of them in a different stylesheet. Neither
+      half could be seen from inside the rule that broke it, and both were broken at once, in
+      opposite directions.
+    </p>
+    <p>
+      <strong>On the stacked path the ring arrived after the object it circles.</strong>
+      <a href="#build">A built object</a> moves its dashed geometry to <code>cover 2–14 %</code>,
+      because the plan is what the solids arrive into. The orbits are excluded from that rule for
+      a mechanical reason — they run two animations and it states one range, so it would clobber
+      the turn — and the exclusion also handed their <em>fade</em> back to the base
+      <code>cover 20–40 %</code>, a window measured against an object that arrives whole. Card 04
+      is the only built object in the system with orbits, and they are the only dashed geometry
+      it carries, so the plan's window ran empty. Swept on
+      <a href="../patterns/landing-page.html">the landing page</a> at 375 × 812, on card 04's own
+      view timeline, every 2.5 points of <code>cover</code>:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th><code>cover</code></th><th>orbit opacity</th><th><code>stroke-dashoffset</code></th><th>the eleven forms</th></tr></thead>
+      <tbody>
+        <tr><td>2 % — the plan's window opens</td><td>0.000</td><td>60.00 px</td><td>0.000</td></tr>
+        <tr><td>5 % — the first solid arrives</td><td>0.000</td><td>60.00 px</td><td>0.000</td></tr>
+        <tr><td>20 % — first orbit ink</td><td>0.008</td><td>59.67 px</td><td><strong>0.444</strong></td></tr>
+        <tr><td>40 %</td><td>1.000</td><td>3.94 px</td><td>0.997</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Twenty points of an object's arrival with nothing on screen for the solids to arrive into,
+      then reference geometry fading up over a finished sphere — and the ring held at its start
+      phase for the whole of it, so it was still <em>and</em> invisible while the thing it
+      circulates around was being built. It now fades on <code>2–14 %</code>, the plan's own two
+      ends, and turns from 2 to the 50 where the construction points settle: at
+      <code>cover 5 %</code>, where the first solid arrives, the orbits are at opacity 0.574 with
+      47.51 px of travel still to run.
+    </p>
+    <p>
+      <strong>On the pinned track the ring stopped before the object did.</strong> There the same
+      object is re-timed onto the process track and its orbits already take the ghosts' head at
+      <code>+0.5 %</code> of their quarter — the stacked path is now agreeing with the designed
+      one, not the other way round. What was wrong there was the other end: the turn closed at
+      <code>+12 %</code> of a quarter whose light lands at <code>+15 %</code> and whose
+      construction points close the reveal at <code>+15.5 %</code>. Card 04's own light opens
+      latest of the four, at <code>+12.4 %</code> (→ <a href="#light-last">the light's handover</a>),
+      so measured at 1440 × 900 the ring stopped four tenths of a point <em>before</em> the lime
+      under it began to come up, and was three and a half points still by the time the nodes
+      landed. That is the same separate event the long second range exists to avoid, read the
+      other way round. The end is now <code>+15.5 %</code> — the node window's own end, not a new
+      constant.
+    </p>
+    <p>
+      The travel is unchanged on both: 60 px, twelve dashes of <code>--dash-1-4</code>, both ends
+      on the phase the source vector draws, so the settled ring is the same pixels it was and the
+      share ceiling above is untouched. Only the rate drops — twelve dashes over 48 points of
+      <code>cover</code> instead of 30, and over 15 points of a quarter instead of 11.5 — which is
+      slower, and <em>turn slowly, then settle</em> is the rule it is being slowed towards.
+    </p>
+    <p>
+      <strong>Both halves are now arithmetic rather than prose.</strong>
+      <code>scripts/check-iso-motion.py</code> reads the orbit's two ranges, the sibling ghosts'
+      rule and the construction points' rule — the last of which is in the other stylesheet on the
+      pinned timeline — and fails a fade that is not the plan's window, a turn that opens on a
+      different point from the fade, or a settle that is not where the nodes settle. Nothing in
+      the gate is a literal: move the plan's window or the node window and the orbit is judged
+      against wherever they moved to.
+    </p>
 
     <h3 id="travel">How far it travels</h3>
     <p>
