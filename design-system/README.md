@@ -331,6 +331,8 @@ python3 scripts/check-glass-budget.py --fix    # rewrite the census in foundatio
 python3 scripts/check-glass-budget.py -v       # list every page, not only the ones carrying glass
 python3 scripts/check-glass-solid-edge.py      # when glass goes opaque, its edge turns over with it
 python3 scripts/check-glass-solid-edge.py -v   # list every tier and surface examined, not only the faults
+python3 scripts/check-card-fill.py             # a card is a contour, and its one fill goes inside
+python3 scripts/check-card-fill.py -v          # list every background read on a card, not only the findings
 python3 scripts/check-grid-tracks.py           # every fr track has a floor
 python3 scripts/check-grid-tracks.py -v        # list every track list, not only the failures
 python3 scripts/check-breakpoints.py           # every threshold is in the register, in rem
@@ -408,7 +410,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The forty-two checks the system enforces rather than documents, run by CI on every push and
+The forty-three checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -702,6 +704,30 @@ fourth frosted surface enters the budget by existing rather than by somebody rem
 add it — the same reason the light-family script recomputes its waypoint instead of
 comparing against a table of hexes. A selector it cannot count is a finding, never a silent
 skip.
+
+**A card is a contour, and its one fill goes inside — which is the same register read for
+the panels that carry no material at all.** The glass claims bind the rows of the panel
+census that name a material; a row whose verdict is the *absence* of one was bound to
+nothing, and that is every card in the system. It cost three declarations, all on the
+process card: `--surface-card` on the card itself, `--surface-raised` on its copy half — a
+second plate in the same grey inside the first, so the two cancelled and half of it was
+dead — and `--surface-lifted` on that half again, a veil argued from the mockup, which draws
+the copy column as a flat plate. **Two of the three were invisible and the third was not.**
+Cancelling plates render exactly like no plate, so no screenshot could hold them; the veil
+was in every screenshot of the landing page for as long as it shipped, and shipped anyway,
+because a measurement is a stronger argument than a sentence. `check-card-fill.py` reads
+every `background` on a card or a part of one out of the shipping stylesheets, resolves it
+through every custom property those files declare — a component that paints its own
+`--x-bg` is painting whatever that property holds — and fails on anything computing to a
+colour that is not one of three registered fills — the note's veil, the info card's frosted modifier, and the plate under
+the vacancy row's photograph. A line painted as a block is not a fill and neither is a
+gradient: the sheen, the rim and the dashed rules have their own gates. The ruling it
+enforces is narrower than *don't fill the card*, because none of the three was on the card:
+**a card's divisions are edges, so a surface on one side of an edge divides it twice, and
+the fill a card may carry is a veil on a block inside one of its parts.** The roster is
+hand-kept, for the reason nothing in a stylesheet tells a card from any other bordered box —
+and a class whose *name* says card and is not on it fails, so the next card cannot arrive
+uncovered. → `foundations/materials.html#card-fill`
 
 **The lit rim is one geometry, and it was written out eight times.** Three glass surfaces
 carry a specular that crosses their rim — the navigation sheet, the hero button, the
@@ -2931,18 +2957,24 @@ These were judgement calls, each documented on the relevant page:
   interior height, every sampled pixel is a flat `#F8F8F8` while the margin beside it climbs
   219 → 226 — **+22 to +29, constant**, which the wash cannot be because the wash moves. So
   the designer drew a contour figure panel and an opaque light plate under the copy, and the
-  implementation draws neither. **The copy half now carries that plate as `--surface-lifted`.**
-  The form was never in doubt — an absolute grey inside the wash's range inverts, so the honest
-  step *toward* the light is a veil of white. What blocked the value was the rule that a light
-  step "dies at the bottom of every screen", and this panel is never at the bottom of one: the
-  card sits in `.cf-pin__stage`, `position: sticky`, and across the whole 5,760 px pin range at
-  1280×900 its viewport top reads **54** and its bottom **785** at every sample — identical, not
-  approximately still. The wash is viewport-fixed, so between those rows it is 210 → 242 for
-  every reader, with 45 → 13 of headroom that never reaches zero. Value mirrored rather than
-  picked: 6 % black removes 12.42 at the wash's opening stop, a white veil has 48 there,
-  `12.42 / 48 = 0.2588` → white 26 %. Renders **+15 at the card's head, +4 at its foot**, and
-  scoped to the two-column form, since below that breakpoint the halves stack and there is no
-  column to be a plate against. → `foundations/materials.html#copy-panel-gap`
+  implementation draws neither. **The copy half carried that plate for a while, as
+  `--surface-lifted`, and it has come off again — the card is contour on both halves.** The
+  veil was the honest form of the mockup's plate and the arithmetic behind it holds: an
+  absolute grey inside the wash's range inverts, so the step *toward* the light is a veil of
+  white; the objection that a light step "dies at the bottom of every screen" is silent about
+  this panel, which sits in `.cf-pin__stage`, `position: sticky`, and holds viewport rows **54**
+  and **785** identically across the whole 5,760 px pin range at 1280×900; and the value was
+  mirrored rather than picked — 6 % black removes 12.42 at the wash's opening stop, a white
+  veil has 48 there, `12.42 / 48 = 0.2588` → white 26 %, rendering +15 at the card's head and
+  +4 at its foot. **What none of that answered is whether the card wants a surface there at
+  all, and on the rendered card it does not.** The two halves are already divided, by the
+  figure's `border-right` — one hairline, and the only cut the card was meant to have. A plate
+  on one side of it divides them a second time along the same seam and more loudly: what reads
+  at a glance is a light block filling the right half of a card whose left half is the page,
+  rather than one card in two parts. So both halves are the wash, in both forms, and
+  `--surface-lifted` is retired with the declaration — its one consumer — with the derivation
+  kept beside the retirement note in `tokens.css`. The mockup's measurement stands; the mockup
+  is not the thing that ships. → `foundations/materials.html#copy-panel-gap`
 - **A step away from the page is a ratio, not a grey — so `--surface-sunken` is a veil.**
   The neutral steps were absolute values chosen against `--surface-base`, CF-Grau, and no
   page in the system is painted CF-Grau: every page carries `.page-wash`, which is
