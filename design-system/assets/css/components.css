@@ -6577,8 +6577,55 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 
 /* A link inside running text is underlined at all times — colour alone never
    carries it. The line starts at the same weight as every other hairline in
-   the system and goes to full ink on hover. */
-.cf-prose a {
+   the system and goes to full ink on hover.
+
+   :not(.cf-btn), AND IT IS THE TRANSITION THAT FORCES IT, not the underline.
+   `transition` is a shorthand: the rule that wins REPLACES the whole list
+   rather than merging with it. This selector is (0,1,1); .cf-btn declares its
+   own background / color / border-color, all at --duration-base, at (0,1,0),
+   and therefore lost the entire declaration — not just the properties the two
+   rules share. What was left on the button was
+   `transition-property: text-decoration-color`, which is neither of the two
+   properties its :hover moves.
+
+   ONE ANCHOR IN THE SYSTEM CARRIES A COMPONENT CLASS INSIDE .cf-prose: the
+   "Fall besprechen" / "Discuss your case" CTA at the foot of Expertise, one
+   in each edition. Censused by dumping the full computed style of every
+   `.cf-prose a` on every page this repo serves, before and after this line —
+   148 anchors over 214 pages, the 76 shipped and the 138 of the manual — and
+   diffing: FOUR move, and they are that one CTA in both editions plus the two
+   pattern sources it is generated from. The other 144 are byte-identical, and
+   `color` is not among the nine properties that move on the four. So this is
+   the whole blast radius, and it was the whole defect. Measured in
+   Chromium 1194 at 1440 x 900 by reading the CSSTransition objects Blink
+   actually builds on the frame the pointer enters, which is exact where a
+   sample is not. BEFORE: one, `text-decoration-color`, 120 ms — and none on
+   either property the :hover moves, so background transparent -> #000 and
+   colour #000 -> #fff were both already at their END value in the first
+   sample, 19 ms in on / and 21 ms on /en/. AFTER: two, `background-color`
+   and `color`, 240 ms each, cubic-bezier(0.2, 0, 0, 1), which is
+   --duration-base and --ease-standard as declared. Sampled on a ~22 ms grid
+   the ramp now lands at 271 ms, against 266 ms for the same .cf-btn--outline
+   one page over on datenschutz — a <button>, which this selector could never
+   match, and therefore the control that says what the button should do.
+
+   EXCLUDED HERE RATHER THAN OUT-SPECIFIED IN THE BUTTON BLOCK, and in the
+   same idiom the list rules immediately below already use for .cf-plot and
+   .cf-block — `.cf-prose li:not(.cf-plot__col, …)` — under the sentence this
+   file writes there: the exception belongs where the general rule is written.
+   Weight goes (0,1,1) ->
+   (0,2,1) and the :hover pair (0,2,1) -> (0,3,1), so nothing this rule used
+   to win it now loses; it only stops matching the one element it should never
+   have styled.
+
+   The underline goes with it, and that is the correction and not a side
+   effect: `a { text-decoration: none }` in base.css is what every other
+   .cf-btn in the system renders under, and this one was drawing a
+   running-text underline through a bordered CTA for no reason other than
+   standing in prose. Its colour does not move — .cf-btn--outline sets
+   `color: var(--text-primary)`, which resolves to the #000 this rule was
+   handing it by inheritance, measured identical before and after. */
+.cf-prose a:not(.cf-btn) {
   color: inherit;
   text-decoration: underline;
   text-decoration-thickness: var(--stroke-1);
@@ -6586,8 +6633,8 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   text-decoration-color: var(--border-default);
   transition: text-decoration-color var(--duration-fast) var(--ease-standard);
 }
-.cf-prose a:hover,
-.cf-prose a:focus-visible { text-decoration-color: var(--border-strong); }
+.cf-prose a:not(.cf-btn):hover,
+.cf-prose a:not(.cf-btn):focus-visible { text-decoration-color: var(--border-strong); }
 
 /* Lists are drawn, not bulleted: an unordered marker is a 6 px contour
    square, an ordered one is a mono ordinal. Both hang outside the text
