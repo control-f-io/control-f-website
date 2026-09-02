@@ -25,18 +25,33 @@
     background-position: 0 0, 0 25%, 0 50%, 0 75%;
     background-repeat: no-repeat;
   }
-  .band-swatches figcaption { margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs);
-                              letter-spacing:var(--tracking-label); color:var(--text-primary); }
+  /* .docs-caption, and the one thing this caption owns: it is two tiers, and
+     the name is the tier that takes the ink. Everywhere else the device puts
+     the lit line in a <b>; here the name is the caption's own text and the
+     gloss is the <span> under it, so the step down happens on the child. */
+  .band-swatches figcaption { color:var(--text-primary); }
   .band-swatches figcaption span { display:block; margin-top:var(--space-1); color:var(--text-secondary); }
 
   /* Flat lime against the same face taking the ramp. Both are the isometric
      rhombus, because the argument is about a lit FACE and a square would be
      making it about something else. */
   .flat-vs-ramp { --tile:13rem; --flow:var(--space-8); justify-items:center; }
-  .flat-vs-ramp figure { margin:0; display:grid; justify-items:center; gap:var(--space-4); }
-  .flat-vs-ramp__face { display:block; width:9rem; height:9rem; transform:var(--iso-transform); border:var(--stroke-1) solid var(--border-strong); }
-  .flat-vs-ramp figcaption { font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label);
-                             line-height:var(--leading-normal); text-align:center; color:var(--text-secondary); max-width:16rem; }
+  .flat-vs-ramp figure { margin:0; display:grid; justify-items:center; align-content:start; gap:var(--space-4); }
+  /* THE CAPTION SITS OFF THE DRAWING, NOT OFF THE BOX. --iso-transform is a
+     transform, so it repaints the face and leaves the layout box a --face
+     square: a rhombus 6.364rem tall standing in a 9rem row, with 1.318rem of
+     nothing above and below it. Measured, that put this caption 37.09 px under
+     its face where .bloom-clip's — same page, same device, a disc that does
+     fill its box — sits at 16. The slack is exact rather than eyeballed: a
+     square scaled to half its height and turned 45° draws w·√2/2 tall, so each
+     end carries w(1 − √2/2)/2 = w × 0.146447, and pulling that back leaves the
+     ink where the box used to be. */
+  .flat-vs-ramp__face { --face:9rem; display:block; width:var(--face); height:var(--face);
+                        margin-block:calc(var(--face) * -0.146447);
+                        transform:var(--iso-transform); border:var(--stroke-1) solid var(--border-strong); }
+  /* .docs-caption; centred and measured, because this caption is a sentence
+     under a centred face rather than a label under a tile. */
+  .flat-vs-ramp figcaption { line-height:var(--leading-normal); text-align:center; max-width:16rem; }
 
   /* This page only. The same .material-bloom clipped to a disc twice, once
      with the ramp sized to the box and once to the shape. No new gradient and
@@ -45,12 +60,18 @@
      because a round clip is the case where the two sizings part company —
      on the plate the class is written for they agree. */
   .bloom-clip { --tile:13rem; --flow:var(--space-8); justify-items:center; }
-  .bloom-clip figure { margin:0; display:grid; justify-items:center; gap:var(--space-4); }
+  /* align-content:start for the reason logo.html's tiles need align-content
+     :center. These two figures are grid items in one row, so both are stretched
+     to the taller of them, and the taller is whichever caption wraps to two
+     lines — which put 23.14 px under the disc whose caption is one line and 16
+     under the other. The slack belongs at the foot of the shorter figure, not
+     between a sample and the words naming it. */
+  .bloom-clip figure { margin:0; display:grid; justify-items:center; align-content:start; gap:var(--space-4); }
   .bloom-clip__disc { display:block; width:9rem; height:9rem; border-radius:var(--radius-full);
                       border:var(--stroke-1) solid var(--border-strong); }
   .bloom-clip__disc--sized { --bloom-shape: closest-side circle; }
-  .bloom-clip figcaption { font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-label);
-                           line-height:var(--leading-normal); text-align:center; color:var(--text-secondary); max-width:16rem; }
+  /* .docs-caption; same sentence-under-a-face shape as .flat-vs-ramp above. */
+  .bloom-clip figcaption { line-height:var(--leading-normal); text-align:center; max-width:16rem; }
 </style>
 </head>
 <body class="docs" data-root="../">
@@ -514,11 +535,11 @@
       <div class="bloom-clip tiles tiles--fit">
         <figure>
           <span class="material-bloom bloom-clip__disc"></span>
-          <figcaption>Don't · sized to the box. The rim is 70.7 % of the ramp and the lit edge is outside the clip.</figcaption>
+          <figcaption class="docs-caption docs-caption--cased docs-caption--flush">Don't · sized to the box. The rim is 70.7 % of the ramp and the lit edge is outside the clip.</figcaption>
         </figure>
         <figure>
           <span class="material-bloom bloom-clip__disc bloom-clip__disc--sized"></span>
-          <figcaption>Do · sized to the shape. The ramp ends on the contour.</figcaption>
+          <figcaption class="docs-caption docs-caption--cased docs-caption--flush">Do · sized to the shape. The ramp ends on the contour.</figcaption>
         </figure>
       </div>
     </div>
@@ -1399,15 +1420,15 @@
       <div class="band-swatches tiles tiles--fit">
         <figure>
           <i style="--band-c:color-mix(in oklab, var(--cf-weiss) 18%, transparent)"></i>
-          <figcaption>Weiss · 18 %<span>the hot spot, still the hot spot</span></figcaption>
+          <figcaption class="docs-caption docs-caption--cased">Weiss · 18 %<span>the hot spot, still the hot spot</span></figcaption>
         </figure>
         <figure>
           <i style="--band-c:color-mix(in oklab, var(--cf-glas) 18%, transparent)"></i>
-          <figcaption>Glas 500 · 18 %<span>the leading edge of the band</span></figcaption>
+          <figcaption class="docs-caption docs-caption--cased">Glas 500 · 18 %<span>the leading edge of the band</span></figcaption>
         </figure>
         <figure>
           <i style="--band-c:color-mix(in oklab, var(--sky-300) 18%, transparent)"></i>
-          <figcaption>Sky 300 · 18 %<span>the trailing edge</span></figcaption>
+          <figcaption class="docs-caption docs-caption--cased">Sky 300 · 18 %<span>the trailing edge</span></figcaption>
         </figure>
       </div>
     </div>
@@ -1665,11 +1686,11 @@
       <div class="flat-vs-ramp tiles tiles--fit">
         <figure>
           <span class="flat-vs-ramp__face" style="background:var(--cf-lime)"></span>
-          <figcaption>Don't · a lime plane. No source, no falloff.</figcaption>
+          <figcaption class="docs-caption docs-caption--cased docs-caption--flush">Don't · a lime plane. No source, no falloff.</figcaption>
         </figure>
         <figure>
           <span class="flat-vs-ramp__face" style="background:var(--gradient-light)"></span>
-          <figcaption>Do · the near rake. Lime is where the light lands.</figcaption>
+          <figcaption class="docs-caption docs-caption--cased docs-caption--flush">Do · the near rake. Lime is where the light lands.</figcaption>
         </figure>
       </div>
     </div>
