@@ -51,11 +51,17 @@ it:
 THE SET IS DERIVED, NOT LISTED, the same standing check-glass-budget.py takes
 for what counts as glass and check-gradient-family.py takes for its waypoint. A
 container earns the right to stand under a flush header by declaring a top
-border of stroke ink in a shipping stylesheet — `border-top: var(--stroke-N)
-solid var(--border-*)` — so a sixth ruled register qualifies by existing rather
-than by somebody remembering to add it here. Six classes qualify today
-(.cf-accordion, .cf-results, .cf-vacancies, .cf-events, .cf-blog-grid,
-.cf-table); a list would have gone stale the first time a seventh was written.
+border of stroke ink in a shipping stylesheet — in the `border-top` longhand or
+in the `border` and `border-block` shorthands that contain it — so a further
+ruled register qualifies by existing rather than by somebody remembering to add
+it here. Run it with -v for the register as it stands.
+
+Both halves of that reading were got wrong first, and each error hid a site
+this script exists to find. Taking only the longhand credited .cf-process —
+which states its whole contour as `border` — with no edge, and reported the one
+flush header in the system that has always been right. Taking the last CLASS of
+a selector rather than its last COMPOUND credited .cf-prose with the border only
+its `figure` has, and .cf-prose is one of the eight.
 
 Selectors inside @media forced-colors and the other fallback blocks are read
 too, and deliberately: a border those blocks restore is a border the reader
@@ -68,9 +74,12 @@ would be a duplicate of one found here) and assets/source/ (the designer's own
 material):
 
   pairing    every .cf-section-header--flush is followed, inside its own
-             parent, by an element carrying at least one class that draws a top
-             border. A flush header with no element after it at all is the same
-             finding by a shorter route — it has handed its rule to nothing.
+             parent, by an element that draws a top border — or whose first
+             child does, to four levels, because a wrapper's top edge is its
+             first child's: .subdivide is what stands under the blog grid's
+             flush header and .cf-blog-grid is what draws. A flush header with
+             no element after it at all is the same finding by a shorter route:
+             it has handed its rule to nothing.
 
 The inverse is NOT checked, and the boundary matters. A plain header standing
 over a ruled container draws two hairlines a few pixels apart, which is a
