@@ -355,6 +355,8 @@ python3 scripts/check-stack-layers.py          # the front door's six planes, an
 python3 scripts/check-stack-layers.py -v       # print the stack: every plane, its place and its route to the light
 python3 scripts/check-faq-count.py             # the counter above an accordion counts its rows
 python3 scripts/check-faq-count.py -v          # every accordion, counted or skipped, and why
+python3 scripts/check-section-header-rule.py   # a flush section header stands over something that draws the rule it gave up
+python3 scripts/check-section-header-rule.py -v # every flush header, and what draws its edge
 python3 scripts/check-illustration-source.py   # the four process objects are still the designer's vectors
 python3 scripts/check-illustration-source.py -v  # every element, matched or deviated, and why
 python3 scripts/check-readme-check-count.py    # the count above this block is the length of this block, and scripts/README.md's two are the directory
@@ -384,7 +386,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The thirty-one checks the system enforces rather than documents, run by CI on every push and
+The thirty-two checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -948,6 +950,49 @@ it. `karriere`'s `05` and `kontakt`'s `03` are skipped by that rule, not by bein
 marker is the item class for the same reason the partner wall's marker is its `<img>`: it is
 the thing the number is a count *of*, and a row cannot be drawn without it.
 → `components/accordion.html`, `components/section-header.html#counters`
+
+**The other end of the same hairline had a modifier that promises something about a
+different element, and nothing read the two together.** `.cf-section-header--flush` sets
+`border-bottom: 0` and `margin-bottom: 0` on the device that opens every section, on the
+understanding components.css states plainly: *the content below is a ruled container and ITS
+top border is the rule.* Over `.cf-accordion` or `.cf-vacancies` that is exactly right and
+saves a doubled line 1 px away. Over anything else it does not move the rule, it **deletes**
+it — and what ships is a mono label and a counter floating with no hairline under them and no
+clearance either, because the modifier drops the gap too. It renders as a smaller version of
+the correct thing, which is why every contrast, link, layout and a11y check in the directory
+passes a section drawn that way.
+
+**Eight of the thirty-seven were written that way, and the two files each blamed the other.**
+The comment over `.cf-contact` read *"No top border. The section header above it draws that
+hairline; giving the list one of its own is what `--flush` exists to avoid"* — true of a
+plain header in its first clause, and naming in its second the one modifier that makes the
+first false. `patterns/impressum.html` read the second clause and wrote `--flush`, so its
+`03` opened on nothing between an `01` and an `02` that both draw a rule.
+`patterns/karriere-stelle.html` did it twice, over `.cf-prose` and over a `.stack`, leaving
+`04` ruleless one section above an `05` that is flush and correct — and the four generated
+`stelle-*.html` inherit its specimen verbatim. `patterns/expertise.html` handed its rule to
+an element that is not there at all: nothing follows that header inside the container, since
+the pin stage below is full-bleed and a sibling of it.
+
+**The sharpest two are the zero states**, and they are the reason this is a script. On
+`karriere.html` and `suche.html` the header IS flush and IS right, because `.cf-vacancies`
+and `.cf-results` bring the edge. `karriere-leer.html` and `suche-leer.html` swap that
+register for `.cf-error--inline`, which brings none — so the rule was present in the state
+anyone looks at and absent in the state that ships the day the register empties. All eight
+are plain headers now; the rule lands on the same axis it did before, because a flush
+container's top border and a plain header's bottom border sit at the same place, and only the
+clearance under it differs — which is right, since a message is not a register.
+
+The set of containers allowed under a flush header is **derived, not listed**: any rule in a
+shipping stylesheet declaring a top border of stroke ink, in the longhand or in the `border`
+and `border-block` shorthands that contain it. Reading only the longhand credited
+`.cf-process` — which states its whole contour as `border` — with no edge, and reading the
+last *class* of a selector rather than its last *compound* credited `.cf-prose` with the
+border only its `figure` has. That second error is not incidental: `.cf-prose` is one of the
+eight sites. The inverse direction is deliberately not checked — a plain header over a ruled
+container draws two hairlines a few pixels apart, which is a drawing decision with more than
+one right answer, not the disappearance of a line.
+→ `components/section-header.html`
 
 ### The other half: nothing in the markup writes into a void
 
