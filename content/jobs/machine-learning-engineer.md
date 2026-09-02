@@ -12,8 +12,10 @@ anstellung: Festanstellung
 employment: Permanent employment
 umfang:     Vollzeit
 hours:      Full time
-start:      ab September 2026
-starts:     from September 2026
+start:      ab sofort
+starts:     immediately
+gehalt_von: 65000
+gehalt_bis: 80000
 art:        FULL_TIME
 seit:       2026-07-06
 frist:      2026-09-30
