@@ -4137,6 +4137,60 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   }
 }
 
+/* THE 1-4 HAIRLINE OUTSIDE .rule, WHERE .rule's FORCED-COLOURS BLOCK CANNOT
+   REACH IT.
+
+   base.css says the whole of this under the LINE UTILITIES block: every .rule
+   is `border: 0` and painted entirely by background, forced-colors discards
+   background-image outright, "nothing else on the box paints, so the whole
+   line disappears". It then redraws the family as a border and maps the dash
+   ratios onto the two styles a border has — .rule--dashed-1-4, whose gradient
+   is `var(--border-strong) 0 1px, transparent 1px 5px`, becomes dotted.
+
+   Two hairlines in this file are that same gradient, character for character,
+   written out on a component instead of taken from the utility. Neither is a
+   .rule, so neither is inside that block, and both are the defect it was
+   written to fix. MEASURED in Chromium 1194's forced-colors emulation at
+   1440 x 900, both schemes, before this block existed:
+
+     .cf-process__divider   components/process-card.html   439 x 1
+     .cf-process__divider   patterns/landing-page.html     451 x 1
+     .cf-prose hr           patterns/blog-artikel.html     558 x 1
+
+   background-image: none, background-color rgba(255,255,255,0) on the light
+   palette and rgba(0,0,0,0) on the dark, border-top-width 0px. The box keeps
+   its 1 px of height and paints nothing in it. Absent, in both schemes, on
+   all three surfaces.
+
+   THE HEIGHT IS LEFT ALONE, and that is worth writing down because the
+   neighbouring fix does not leave it alone. .cf-page-header__rule's block
+   sets `height: 0` so the box does not double under its new border. Here it
+   would be a no-op: base.css puts `box-sizing: border-box` on everything, so
+   a 1 px box with a 1 px border is a 1 px box — the border grows inward into
+   height the element had already reserved. Measured on
+   patterns/blog-artikel.html, getBoundingClientRect().height is 1 either way,
+   with border-top-width 0px before and 1px after. Nothing moves in the
+   rhythm around it (margin-block: var(--space-6) on the divider,
+   var(--space-12) on the prose rule), so nothing needs restating to hold it.
+
+   AND THE OPACITY GOES WITH IT, on the divider only. Forced colours does not
+   reset opacity, so a 0.5 CanvasText border does not composite to a colour in
+   the user's palette: measured against Canvas, rgb(127,127,127) at 4.00:1 on
+   the light palette and rgb(128,128,128) at 5.32:1 on the dark, where the
+   palette's own pairing is 21:1. Half-strength is a legitimate register on a
+   brand ramp and is not one here — forced colours has two inks and the whole
+   contract is that the reader chose them. .rule--muted is the same shape and
+   is left alone deliberately: it is the demonstration swatch for the muted
+   variant on foundations/geometry.html, where showing the register IS the
+   content. */
+@media (forced-colors: active) {
+  .cf-process__divider {
+    background: none;
+    border-block-start: var(--stroke-1) dotted CanvasText;
+    opacity: 1;
+  }
+}
+
 /* --------------------------------------------------------------------------
    INFO CARD
    A field of copy on a plate of glass: a count, a title, a subtitle, a
@@ -6336,13 +6390,26 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 }
 
 /* A break in the argument, not a divider between sections: the finest of the
-   four sanctioned dashes, at the width of the text column. */
+   four sanctioned dashes, at the width of the text column.
+
+   The dash is the 1-4 gradient written out rather than taken from
+   .rule--dashed-1-4, so forced colours drops it and the break is absent —
+   measured at 558 x 1 on patterns/blog-artikel.html, both schemes. It is
+   redrawn as a dotted border below, on the argument set out over
+   .cf-process__divider's block, which carries the same gradient and fails the
+   same way. */
 .cf-prose hr {
   width: 100%;
   height: var(--stroke-1);
   margin-block: var(--space-12);
   border: 0;
   background: repeating-linear-gradient(90deg, var(--border-strong) 0 1px, transparent 1px 5px);
+}
+@media (forced-colors: active) {
+  .cf-prose hr {
+    background: none;
+    border-block-start: var(--stroke-1) dotted CanvasText;
+  }
 }
 
 /* An aside inside the argument. Sunken rather than outlined, so it reads as
