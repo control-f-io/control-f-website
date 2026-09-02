@@ -3195,6 +3195,63 @@
    inheriting anything — the redundancy this file's note above asks for, so
    that a token added to the inverse block cannot punch a hole in a fallback
    again. */
+
+/* AND THE LIGHT HAS TO GO WITH THE MATERIAL, which is this same argument one
+   token further out and the reason it took a third pass to find. The block
+   above turned --glass-border over. It left --glass-edge and --glass-rim-light
+   declared, and those two are not a boundary — they are the material's own
+   light, and with the blur off there is no material for light to be on.
+
+   WHAT THAT COSTS, ARITHMETIC RATHER THAN ARGUED. The lit edge is painted on
+   the same row as the contour the block above installs, and it is white, so it
+   takes the contour back off. On the light theme's opaque plate, #E7E7E7:
+
+                                        paints    against the plate
+     --glass-edge      white 42 %      (241)          1.095:1
+     + --glass-rim-light white 45 %    (247)          1.154:1
+     --border-default  black 24 %      (176)          1.754:1
+
+   And against the page it stands on, which is the number that matters, because
+   the wash runs the whole 207-to-255 range on every screen at every scroll
+   position:
+
+                    wash 207   wash 231   wash 243   wash 255
+     lit edge         1.376      1.095      1.053      1.129
+     contour          1.395      1.754      2.022      2.169
+
+   The lit edge INVERTS inside the wash's own range — lighter than the page at
+   the top of the viewport, darker at the bottom, 1.05:1 where the two cross —
+   which is the exact failure --surface-sunken was retired for and the act
+   rail's white rim was measured out of. The contour holds one direction the
+   whole way down. Same sentence, same wash, one token over.
+
+   IT IS ONE SURFACE'S WHOLE BOUNDARY AND THREE OTHERS' TOP EDGE. .cf-nav::after
+   and .material-glass-edge are sheets that END at a single edge rather than
+   closing a perimeter, so the lit hairline is all they have; .cf-btn--glass,
+   .cf-info-card--glass::before and the button's own rim paint it ON the border
+   they already close with, so there it is a white line washing out a contour
+   that was correct underneath. Turning the token off fixes the second case by
+   itself — the border is already right — and the two single-edge sheets take
+   the contour explicitly, beside the forced-colours rules that already redraw
+   them for the same reason one door over (components.css .cf-nav::after,
+   base.css .material-glass-edge).
+
+   `none` and not a colour, because both tokens are consumed as background-image
+   LAYERS in a list — `var(--glass-rim-light), var(--glass-edge)` on two of the
+   three rims, one layer of three on the button's plate. `none` is a valid
+   background-image, the sizes and positions beside it are simply not consulted,
+   and @keyframes cf-glass-rim goes on animating a background-position that now
+   moves nothing. No consumer needs a fallback of its own, which is what these
+   blocks are for.
+
+   BOTH SCOPES, THOUGH ONLY ONE OF THEM MEASURES AS A FAILURE. In the inverse
+   theme the edge is white 26 % on #1F1F1F and reads 2.35:1, brighter than the
+   18 % rim beside it rather than weaker — no plate is lost. It still goes,
+   because the rule is about the material and not about the number: no blur, no
+   glass, no light on glass. A theme-dependent answer here would be two
+   materials wearing one name.
+
+   scripts/check-glass-solid-edge.py's third claim holds this. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   :root {
     --glass-blur:          none;
@@ -3202,6 +3259,8 @@
     --surface-glass-thin:  var(--surface-glass-solid);
     --surface-glass-veil:  rgba(255, 255, 255, 0.72);
     --glass-border:        var(--stroke-1) solid var(--border-default);
+    --glass-edge:          none;
+    --glass-rim-light:     none;
   }
   [data-theme="inverse"] {
     --glass-blur:          none;
@@ -3209,6 +3268,8 @@
     --surface-glass-thin:  var(--surface-glass-solid);
     --surface-glass-veil:  rgba(0, 0, 0, 0.72);
     --glass-border:        var(--stroke-1) solid rgba(255, 255, 255, 0.18);
+    --glass-edge:          none;
+    --glass-rim-light:     none;
   }
 }
 
@@ -3222,7 +3283,18 @@
    a boundary, and on an opaque plate inside the wash's own range a white one
    is not a boundary either. Leaving a tint translucent while switching the
    blur off is the worst of the three states — content behind it bleeds through
-   sharp — so the inverse case is spelled out rather than inherited. */
+   sharp — so the inverse case is spelled out rather than inherited.
+
+   THE TWO LIGHT TOKENS GO HERE TOO, and here the request settles it before the
+   measurement does. The block above turns --glass-edge and --glass-rim-light
+   off because a plate with no blur has no material for light to sit on; a
+   reader who has asked for less transparency has asked for the plate, and a
+   specular travelling across it on every scroll is the material asserting
+   itself anyway. It is also the one door where the tint goes fully opaque on
+   all three surfaces, so the nav band — the only sheet whose whole boundary is
+   that hairline — is at its most exposed: an absolute grey bar across the top
+   of every page, bounded by a white line the wash catches up with and passes.
+   The arithmetic is in the block above and is the same on this side of it. */
 @media (prefers-reduced-transparency: reduce) {
   :root {
     --glass-blur:          none;
@@ -3230,6 +3302,8 @@
     --surface-glass-thin:  var(--surface-glass-solid);
     --surface-glass-veil:  var(--surface-glass-solid);
     --glass-border:        var(--stroke-1) solid var(--border-default);
+    --glass-edge:          none;
+    --glass-rim-light:     none;
   }
   [data-theme="inverse"] {
     --glass-blur:          none;
@@ -3237,6 +3311,8 @@
     --surface-glass-thin:  var(--surface-glass-solid);
     --surface-glass-veil:  var(--surface-glass-solid);
     --glass-border:        var(--stroke-1) solid rgba(255, 255, 255, 0.18);
+    --glass-edge:          none;
+    --glass-rim-light:     none;
   }
 }
 
@@ -3394,7 +3470,17 @@
    Two of those were found and fixed above because they are inside panels; the
    general sweep belongs to whoever owns the line chapter, and the brand's four
    line types are the reason it is not mechanical — `border-style: dashed` has
-   no period of its own to hold 2-1 or 1-4 to. */
+   no period of its own to hold 2-1 or 1-4 to.
+
+   THE TWO LIGHT TOKENS ARE STATED HERE AND CHANGE NOTHING, which is the same
+   kind of line as the surfaces above. The mode already computes every gradient
+   background-image to `none` — that is measured two chapters up, and it is why
+   .cf-nav::after and .material-glass-edge carry border rules in this mode at
+   all. So this declares what the mode does rather than doing it, and the
+   material's own rule — no blur, no material light — reads the same in all
+   three doors instead of holding in two of them by declaration and in the third
+   by the platform. check-glass-solid-edge.py's third claim reads every tier the
+   same way and would otherwise need this one exempted by name. */
 @media (forced-colors: active) {
   :root {
     --glass-blur:          none;
@@ -3404,6 +3490,8 @@
     --surface-glass-solid: Canvas;
     --surface-lifted:      Canvas;
     --surface-sunken:      Canvas;
+    --glass-edge:          none;
+    --glass-rim-light:     none;
   }
   [data-theme="inverse"] {
     --glass-blur:          none;
@@ -3413,5 +3501,7 @@
     --surface-glass-solid: Canvas;
     --surface-lifted:      Canvas;
     --surface-sunken:      Canvas;
+    --glass-edge:          none;
+    --glass-rim-light:     none;
   }
 }
