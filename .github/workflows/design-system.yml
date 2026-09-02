@@ -647,6 +647,19 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-foil-clip.py
 
+      # It reads a third thing now, and it is the one rule of the three with no
+      # tiers and no exemptions. An auto-repeat derives its column count from
+      # the floor in its minmax, so the floor IS the grid's minimum inline size
+      # and a bare length there sets the minimum width of the page. base.css has
+      # said so in prose since .tiles was written, and .tiles is the fix —
+      # min(--tile, 100%) makes the floor the tile or the container, whichever
+      # is smaller. The comment there records folding twenty hand-written copies
+      # into that one class; two were missed, foundations/share.html kept the
+      # exact minmax(19rem, 1fr) that comment quotes by its number, and
+      # foundations/layout.html then recorded that the pages still scrolling
+      # sideways were "four separate causes, none of them that one". One of them
+      # was that one. A sweep that folds nineteen of twenty and a note saying the
+      # cause is gone is what this whole file exists to catch.
       - name: Grid tracks
         if: '!cancelled()'
         run: python3 scripts/check-grid-tracks.py
@@ -1405,6 +1418,14 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-flow-nodes.py
 
+      # The other half of the pair above, over the <style> blocks the sheets
+      # check cannot reach. It runs the auto-repeat floor at every tier rather
+      # than only under patterns/, because that rule does not depend on what the
+      # items hold. Its own docstring was where the miss hid: the paragraph
+      # explaining what it deliberately does NOT check offered
+      # "minmax(15rem, 1fr) inside a scroll container" as the legitimate case,
+      # and that string was character for character what foundations/print.html
+      # had written into an auto-repeat in normal flow.
       - name: Page-local grid tracks
         if: '!cancelled()'
         run: python3 scripts/check-page-local-tracks.py

@@ -1008,7 +1008,7 @@
       count of pages whose body scrolls sideways is:
     </p>
     <table class="docs-table">
-      <thead><tr><th>Viewport</th><th>Root font</th><th>Before <code>.tiles</code></th><th>After</th></tr></thead>
+      <thead><tr><th>Viewport</th><th>Root font</th><th>Before <code>.tiles</code></th><th>After, on the 43 pages of that day</th></tr></thead>
       <tbody>
         <tr><td>320</td><td>16 px</td><td>5 of 43</td><td>1 of 43</td></tr>
         <tr><td>320</td><td>20 px</td><td>14 of 43</td><td>9 of 43</td></tr>
@@ -1020,9 +1020,34 @@
       Everything from 375 to 1920 px at a 16 px root is clean and was clean before. What the
       table measures is the corner where a narrow viewport meets an enlarged root font, and
       four fifths of what it found there was one missing term in one repeated recipe —
-      <a href="#tiles-guard">the tiles guard</a>. The nine that remained were four separate
-      causes, none of them that one, each recorded here for the lane whose call it is:
+      <a href="#tiles-guard">the tiles guard</a>. The nine that remained were recorded as four
+      separate causes, <em>none of them that one</em>, each for the lane whose call it is:
     </p>
+    <div class="docs-note docs-note--warn">
+      <strong>Two of them were that one.</strong> The fold missed
+      <code>foundations/share.html</code> and <code>foundations/print.html</code>, so the
+      claim above was wrong on its own terms — <code>share</code> was the single page in the
+      <q>1 of 43</q> cell, and its cause was the recipe, not any of the four below. Both are on
+      <code>.tiles--fit</code> now and <a href="#tiles-gate">a gate reads the floor</a>. The
+      table below is re-measured on the tree as it stands, which is <strong>93</strong> pages
+      rather than 43 — <code>index</code>, <code>foundations/</code>, <code>components/</code>
+      and <code>patterns/</code>, all of them, at the same four combinations:
+      <table class="docs-table">
+        <thead><tr><th>Viewport</th><th>Root font</th><th>Before this run</th><th>After</th></tr></thead>
+        <tbody>
+          <tr><td>320</td><td>16 px</td><td>1 of 93</td><td><strong>0 of 93</strong></td></tr>
+          <tr><td>320</td><td>20 px</td><td>3 of 93</td><td><strong>1 of 93</strong></td></tr>
+          <tr><td>375</td><td>20 px</td><td>1 of 93</td><td><strong>0 of 93</strong></td></tr>
+          <tr><td>768</td><td>24 px</td><td>0 of 93</td><td><strong>0 of 93</strong></td></tr>
+        </tbody>
+      </table>
+      Nothing in this tree scrolls sideways at a plain 16 px root at any width from 320 to
+      1920. The one cell left is <code>components/plot.html</code>, 16 px of document overflow
+      at 320 / 20 px, and it is <em>not</em> a track list: an element walk finds no unclipped
+      box past the viewport, and the page's two <code>pre.docs-code</code> blocks are correct
+      scroll containers whose own edges sit inside it. Recorded without a cause rather than
+      with a guessed one.
+    </div>
     <table class="docs-table">
       <thead><tr><th>Where</th><th>Cause</th><th>Note</th></tr></thead>
       <tbody>
@@ -1072,9 +1097,11 @@
           <td><code>foundations/colors.html</code></td>
           <td><code>.docs-ramp__steps</code>, <code>repeat(10, 1fr)</code></td>
           <td>
-            The only page failing at a plain 16 px root. Documentation-only, and a ten-step
-            colour ramp genuinely wants ten cells in a row — it needs a scroll container, the
-            way <code>.docs-table-scroll</code> already handles wide tables.
+            <strong>Fixed since, and the row's own claim was wrong when it was written.</strong>
+            <code>docs.css</code> now declares <code>repeat(7, minmax(0, 1fr))</code> and the
+            page does not overflow at any of the four combinations. It was also never
+            <q>the only page failing at a plain 16 px root</q> — <code>share</code> was, on the
+            tiles recipe, and that is the miss recorded above.
           </td>
         </tr>
       </tbody>
@@ -1876,8 +1903,17 @@ print(counts)
       pattern pages: at a 320 px viewport <strong>five</strong> scrolled sideways, and at
       320 px with the root font at 20 px — where a reader who has enlarged their type is —
       <strong>fourteen</strong> did. Folding the recipe into one class took the first number to
-      one and the second to nine, and the nine that remain have other causes, listed under
-      <a href="#reflow">Reflow</a>. Sixteen of the twenty copies were also unreachable from the
+      one and the second to nine, and the nine that remained were recorded under
+      <a href="#reflow">Reflow</a> as four causes, none of them this one.
+      <strong>Two of the twenty copies were never folded, and one of them was the page that
+      still scrolled.</strong> <code>foundations/share.html</code> kept
+      <code>minmax(19rem, 1fr)</code> — the declaration quoted by its number two paragraphs up,
+      as the reason this is a class — and <code>foundations/print.html</code> kept
+      <code>minmax(15rem, 1fr)</code>. Both are on <code>.tiles--fit</code> now, and
+      <code>scripts/check-grid-tracks.py</code> reads the auto-repeat floor so that a
+      twenty-first copy cannot be written unguarded: see
+      <a href="#tiles-gate">what enforces it</a> below.
+      Sixteen of the twenty copies were also unreachable from the
       system: a rule you can only get at by copying it off another page is not a rule, which is
       the argument that already brought back <code>.cluster--between</code> and the
       <code>.flow-*</code> rungs.
@@ -1905,6 +1941,37 @@ print(counts)
       <a href="#intrinsic-minimum">the intrinsic minimum</a>, and every grid in the system
       answers to it.
     </p>
+    <h3 id="tiles-gate">What enforces it</h3>
+    <p>
+      <code>scripts/check-grid-tracks.py</code> reads every
+      <code>repeat(auto-fill&nbsp;|&nbsp;auto-fit, minmax(<em>floor</em>, …))</code> in the
+      shipping stylesheets and <code>scripts/check-page-local-tracks.py</code> reads the same
+      thing in every page-local <code>&lt;style&gt;</code> block, and both require the
+      <em>floor</em> to fold — <code>min(…, 100%)</code>, a percentage, or zero. A bare length
+      fails.
+    </p>
+    <p>
+      <strong>It is the one rule in that pair with no tiers and no exemptions</strong>, and the
+      reason is worth stating because the other two rules there are full of both. Whether a bare
+      <code>fr</code> overflows depends on what the items hold — a paragraph of German can push
+      its track and an SVG cannot — which is a fact about content that no reading of a
+      stylesheet settles, so those rules count what they cannot judge. An auto-repeat floor is
+      not like that. The browser derives the column count from it, one column is always laid,
+      and below the floor the row overflows on every page it is written on, whatever is inside.
+      That is a fact about the declaration, so it is gated everywhere the CSS is read.
+    </p>
+    <div class="docs-note">
+      <strong>The rule this replaced said the opposite, and named the broken declaration as its
+      example.</strong> <code>check-page-local-tracks.py</code> used to record that
+      <q>minmax(15rem, 1fr) inside a scroll container is a chosen floor and passes… the rule is
+      that a floor was chosen, not that it is zero.</q> That is sound for the floor it means —
+      <code>.cf-team-strip__list</code> sets <code>grid-auto-columns</code> inside a scroll
+      container, where the floor decides how wide the strip scrolls and can reach nothing else.
+      It was also, character for character, what <code>foundations/print.html</code> had written
+      into an auto-repeat in normal flow. The distinction the paragraph was drawing is real; it
+      just was not the distinction the example carried, and an example chosen to show where a
+      rule stops is the last place a counter-example should be able to sit unread.
+    </div>
   </section>
 
   <section class="docs-section" id="intrinsic-minimum">
