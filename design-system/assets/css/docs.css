@@ -285,6 +285,31 @@ body.docs {
   font-family: var(--font-mono);
   font-size: min(1em, var(--text-sm));
   text-transform: none;
+  /* AND IT BREAKS, which base.css's net cannot arrange for it. That net is a
+     list of the elements that MEAN text — h1..h6, p, li, td, span and the
+     rest — and `code` is not on it, because overflow-wrap inherits and a
+     `<code>` inside a `<p>` is covered by the paragraph. A `<code>` whose
+     parent is a plain `<div>` is not: `.docs-note` is a div, it holds inline
+     prose directly, and a path or a token in it computes overflow-wrap:
+     normal and cannot be broken anywhere.
+
+     Nothing shows it at a 16 px root, because no token in these chapters is
+     that long at that size. Swept at 375 px across all 55 documentation pages
+     at roots of 20 and 24 px — 125 % and 150 % text, both inside WCAG 1.4.10's
+     400 % — three page-loads took the document sideways on exactly this:
+     `assets/source/illustrations/` in components/process-card.html (390 px
+     against a 375 px viewport, at 24) and
+     `document.documentElement.scrollWidth` in foundations/mobile.html (385 at
+     20, 462 at 24). Zero after this line. Chromium 141.
+
+     break-word rather than anywhere, for the reason check-wrap-net.py gives:
+     `anywhere` also shrinks min-content and would resize table columns at
+     widths where nothing was wrong. This only lets a token that has nowhere
+     to go break where it stands. Two figure specimens still overflow at these
+     roots — the share plate and the sheet's register — and they are a fixed
+     drawing rather than a word, so they are named in the audit and not
+     touched here. */
+  overflow-wrap: break-word;
 }
 
 /* THE AIR AROUND A BLOCK SPECIMEN — the demo plate, the spec table, the code
@@ -1303,8 +1328,32 @@ body.docs {
      position, not a component. */
   .docs-sidebar { position: static; height: auto; view-transition-name: none; }
   .docs-main { padding: var(--space-8) var(--space-6) var(--space-16); }
-  .docs-rules { grid-template-columns: 1fr; }
-  .docs-ramp { grid-template-columns: 1fr; }
+  /* minmax(0, 1fr) HERE TOO, and these two are why the note above is worth
+     having twice. Both folded to a bare `1fr` — the exact track the rule five
+     lines up refuses — and a bare `1fr` floors at min-content, so a single
+     unbreakable token inside a rule card or a ramp step sets the width of the
+     whole column and the documentation page goes sideways with it.
+
+     It is invisible at a 16 px root because nothing in these cards is that
+     long at that size. It is not invisible at the sizes this media query
+     exists to serve: measured on components/process-card.html at 375 px with
+     the root at 24 px — 150 % text, which is inside WCAG 1.4.10's 400 % — the
+     Do & don't grid resolved to one 406.8 px column against a 375 px
+     viewport, off `<code>assets/source/illustrations/</code>` at 302.4 px, and
+     the document scrolled to 443. Floored, the column is 327 and the document
+     is 375. The card's own copy did not change; it wraps where it could not
+     before, which is what the floor is for. Chromium 141.
+
+     base.css's overflow-wrap net cannot reach this — intrinsic sizing runs
+     before line breaking, which is the division foundations/layout.html
+     states and check-wrap-net.py's docstring restates. Only a floor answers
+     it. check-grid-tracks.py, the gate for exactly this, reads the four
+     SHIPPING stylesheets and says in as many words that docs.css is out of
+     scope: the chapters are not control-f.de. That boundary is deliberate and
+     stands; it is also why these two sat here, so they are named rather than
+     only fixed. */
+  .docs-rules { grid-template-columns: minmax(0, 1fr); }
+  .docs-ramp { grid-template-columns: minmax(0, 1fr); }
   /* A table cannot shrink below its min-content width, so on a phone it has to
      scroll inside itself rather than take the page with it. */
   .docs-table { display: block; overflow-x: auto; }

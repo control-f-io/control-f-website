@@ -1,7 +1,7 @@
 # scripts/
 
 Everything that generates this website, and everything that refuses to let it
-ship broken. 185 files at this level, this one included, no package, no
+ship broken. 186 files at this level, this one included, no package, no
 `__init__.py`, no build step: every `.py` in it is `python3` against the
 standard library, and every one but `og_meta.py` is run by its own path. That
 pair used to read "178 of the 179", a second file count standing beside the
@@ -39,7 +39,7 @@ most.
 
 | Count | What | Who runs it |
 | --- | --- | --- |
-| 165 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
+| 166 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
 | 8 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all eight, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
 | 1 | `build-all.sh` | `news-sync.yml`, and a human. Nothing else. |
 | 1 | `stage-site.py` — collects the website into `dist/` | both deploys, `--surface pages` and `--surface worker` |
