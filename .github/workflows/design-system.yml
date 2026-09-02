@@ -972,6 +972,19 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-bound-key-wrap.py
 
+      # The other half of the rule above. The wrap check decides HOW a bounded
+      # key breaks; nothing checked what happens once it does. A key is
+      # `top: 100%` on a box with no height, so the caption below it is held
+      # off by a fixed reservation on the row — and both figures reserved one
+      # label line for a key their own rules let break onto two. Measured on
+      # patterns/blog-artikel.html, the consumer standing on the component's
+      # own default: the second line ended 4.59 px BELOW the caption's
+      # hairline at 320, 375, 414 and 768, and cleared only at 1024 where
+      # nothing wraps.
+      - name: Key line reserve
+        if: '!cancelled()'
+        run: python3 scripts/check-key-line-reserve.py
+
       - name: Arrival
         if: '!cancelled()'
         run: python3 scripts/check-arrival.py

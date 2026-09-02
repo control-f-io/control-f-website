@@ -2251,18 +2251,33 @@
     inline-size: calc(var(--plot-u) * 3.5);
     translate: -50%;
   }
-  /* The component reserves one label line under the row (--space-8: 8 px of
-     drop, an 11 px label, and air). Where a key takes two lines — the phone
-     tier, where 3.5u is 56 px — the second line would print into the caption,
-     so the reservation goes one rung up the scale.
+  /* This card's plot is a .cf-plot--ground, and that variant reserves
+     --space-16 under its row for its own reason. The evidence card does not
+     need the extra rung: what it needs is two label lines, because at the
+     phone tier its 3.5u key is 56 px and SICHER-/HEIT wraps. --space-12 is
+     that — 8 px of drop, two 11 px labels at --leading-normal (14.3 px each)
+     and 11.4 px of air — and this declaration exists to take the ground
+     variant's 64 px back down to it, not to correct the component.
 
-     IT WAS var(--space-10), WHICH IS NOT A TOKEN. The spacing scale runs
-     1 2 3 4 5 6 8 12 16 20 24 30 40 — there is no 10 — so the declaration was
-     invalid at computed-value time, margin-bottom computed to 0, and because
-     this rule still WON against the component's `margin: 0 0 var(--space-8)`,
-     it did not fall back to the component's reservation: it removed it. The
-     keys printed 10 px INTO the caption. An invalid var() is not a no-op when
-     it overrides something. */
+     IT USED TO BE CORRECTING THE COMPONENT, which is how the fault was found:
+     .cf-plot__set itself reserved one line for a key its own rule lets break,
+     and this rule bought the second line for this card alone. Every other
+     consumer standing on the component's default was still on one line —
+     patterns/blog-artikel.html printed its second line 4.59 px through the
+     caption's hairline at 320, 375, 414 and 768. The rung moved into the
+     component; what is left here is the ground variant's override and nothing
+     else.
+     → design-system/assets/css/components.css, .cf-plot__set
+     → scripts/check-key-line-reserve.py
+
+     THE VALUE HERE WAS ONCE var(--space-10), WHICH IS NOT A TOKEN, and that is
+     the reason the checker reads overrides as well as the default. The spacing
+     scale runs 1 2 3 4 5 6 8 12 16 20 24 30 40 — there is no 10 — so the
+     declaration was invalid at computed-value time, margin-bottom computed to
+     0, and because this rule still WON against the component's own margin it
+     did not fall back to the component's reservation: it removed it. The keys
+     printed 10 px INTO the caption. An invalid var() is not a no-op when it
+     overrides something. */
   .lp-ev-card .cf-plot__set { margin-bottom: var(--space-12); }
 
   /* THE BLOCK NEEDS NO KEY RULE OF ITS OWN, and it is worth saying why, because
@@ -2281,13 +2296,21 @@
      overhangs it. The net comes off inside .cf-block__key now, in
      components.css, with hyphens: manual beside it.
 
-     WHAT IS STILL LOCAL IS THE ROOM UNDER THE FRAME. The component reserves one
-     label line (--space-8: 8 px of drop, an 11 px label, and air) and two of
-     these names take two. Measured before this rule: the keys printed 3.6 px
-     into the caption on the stage and 46.5 px into it at 375 px. --space-12 is
-     the next rung and it clears a two-line key with room over. It is the same
-     reservation, for the same reason, that .cf-plot__set carries above. */
-  .lp-ev-card .cf-block__frame { margin-bottom: var(--space-12); }
+     THE ROOM UNDER THE FRAME USED TO BE LOCAL TOO, and this is where it stopped
+     being. The component reserved one label line (--space-8: 8 px of drop, an
+     11 px label, and air) and two of these names take two; measured before that
+     was answered, the keys printed 3.6 px into the caption on the stage and
+     46.5 px into it at 375 px, and the answer was this rule — --space-12, the
+     next rung, on this card alone.
+
+     One rung in the consumer is one rung the next consumer does not get.
+     .cf-block__frame reserves --space-12 itself now, for the same arithmetic
+     and the same reason, so the declaration that was here is gone and this
+     card measures what it measured with it: the keys' second line ends 12.41 px
+     above the caption's hairline at 320, 375 and 414, and 26.7 px above it from
+     768 where nothing wraps.
+     → design-system/assets/css/components.css, .cf-block__frame
+     → scripts/check-key-line-reserve.py */
 
   /* AND THE GUTTER COMES DOWN, because this figure's steps are two digits and
      the component's default is sized for three. --block-gutter reserves the
