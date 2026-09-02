@@ -513,6 +513,96 @@ body.docs {
   background-size: cover;
   background-position: center;
 }
+/* THE DESIGNER'S OWN SPECTRUM COLUMN, drawn by the system.
+   assets/source/manual/colour-dosage.jpg carries the spectrum as ONE
+   continuous material, highlight to shadow, and foundations/colors.html has
+   cited it for as long as it has existed while showing --gradient-spectrum
+   instead — which is the middle of that column, at the 300 tints, at the
+   designer's 132.36°. Two different pictures under one sentence.
+
+   This is the column itself: the six palette values, at the positions
+   scripts/check-spectrum-plate.py measures off the plate, at 180° because the
+   plate draws it vertically. It is a QUOTATION and not a token, so it lives
+   here in the documentation stylesheet rather than in tokens.css, and it takes
+   no rake — the reason the grazing linear and the blooms became classes is the
+   reason this is one: nothing in the system consumes it, and a token nothing
+   consumes is a second statement of a ramp waiting to drift from the first.
+
+   Written as a CLASS and not as a style="" for the reason tokens.css gives at
+   AN INLINE STYLE ATTRIBUTE IS THE SAME PROBLEM WEARING CSS: @supports cannot
+   reach an inline declaration, so an inline ramp is on the sRGB path whatever
+   the interpolation block says. Its lime -> Glas leg is the one leg in this
+   brand where the two paths actually part, at dEok 0.04430.
+
+   TWO ARC WAYPOINTS, and they are this column's own rather than the foil's.
+   The rule is THE ARC in tokens.css: a leg whose two ends sit at similar
+   chroma turns, and a straight line across a turn is a chord that greys out in
+   the middle. Measured on the core palette rather than the 300s, because that
+   is what the plate draws:
+
+     Weiss   -> lime           ratio inf    falls off
+     lime    -> Glas           ratio 5.32   falls off
+     Glas    -> Sky            ratio 2.35   TURNS, #8FD1DF at the midpoint
+     Sky     -> Violett        ratio 1.49   TURNS, #7299E5 at the midpoint
+     Violett -> violett-900    ratio 4.81   falls off
+
+   Both waypoints are their leg's OKLCH midpoint, computed the way the foil's
+   #B9E3EB and #B8CCF3 are, and they are literals with the same trap: recompute
+   them if either end of their leg moves. check-gradient-family.py re-derives
+   them rather than trusting the hexes — docs.css is inside its walk for this
+   reason, and adding this ramp is what put it there.
+
+   The tail stop sits at 98.93 % and not at 100 %, because 98.93 is where the
+   plate's column comes closest to violett-900 and nothing here is picked by
+   hand. The last one per cent holds flat, which is what the plate does.
+
+   NO GRAIN, AND THAT IS MEASURED RATHER THAN ASSUMED. --grain exists because
+   the page wash is 5,800 px of two colours 49 greys apart and bands; the
+   question for any new ramp is whether it is in that regime. Sampled off the
+   rendered strip at 1x, 385 px tall: 372 distinct colours down it, widest flat
+   run 4 px — and that run is the deliberate hold between 98.93 % and the foot.
+   The wash's own figures are 130 colours over 4,000 px and a 36 px flat run.
+   Eight stops across 0.805 of OKLab lightness and 165 degrees of hue give the
+   8-bit grid far more rungs than a near-neutral ramp does, so there is nothing
+   here for a dither to fix. Laying grain on it anyway would be texture applied
+   to a picture of the designer's material.
+
+   AND IT IS DRAWN PORTRAIT, which is not decoration. The plate's column is
+   16 px wide in a 1500 px plate — a strip, read down. Drawn full-bleed at the
+   demo's own width the same ramp is 912 px across, and lime's leg of it becomes
+   a 912 x 40 px band: the brand's one light spent as a surface, on the page
+   that publishes the rule against it. Lime is never flat, and a ramp wide
+   enough that its lime leg reads as a plane has kept the letter of that and
+   lost the point. 5rem is a quotation of a column; it is not the plate's own
+   1:41, and does not claim to be. */
+.plate-column {
+  --plate-stops: var(--cf-weiss)    0%,
+                 var(--cf-lime)     21.29%,
+                 var(--cf-glas)     44.41%,
+                 /* arc waypoint, Glas -> Sky. Recompute if either end moves. */
+                 #8FD1DF            54.44%,
+                 var(--cf-sky)      64.47%,
+                 /* arc waypoint, Sky -> Violett. Recompute if either moves. */
+                 #7299E5            72.82%,
+                 var(--cf-violett)  81.16%,
+                 var(--violett-900) 98.93%;
+  --plate-image: linear-gradient(180deg, var(--plate-stops));
+  display: block;
+  width: 5rem;
+  height: 24rem;
+  border: 1px solid var(--border-default);
+  background-image: var(--plate-image);
+}
+@supports (background: linear-gradient(in oklab, red, blue)) {
+  .plate-column { --plate-image: linear-gradient(180deg in oklab, var(--plate-stops)); }
+}
+/* Forced colours drops the background image and leaves an empty framed box,
+   which is the correct thing to leave: this figure IS the colours, and a mode
+   that has replaced the palette has nothing to show here. The rim is a border,
+   so the box stays drawn rather than vanishing without trace. */
+@media (forced-colors: active) {
+  .plate-column { background-image: none; }
+}
 /* The one glue joint in the set. A code block under a demo is the SOURCE of
    the drawing above it, and the two are drawn as one object: the dark plate
    hangs off the bottom edge of the demo's contour with no seam. That needs

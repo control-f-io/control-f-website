@@ -1,12 +1,13 @@
 # scripts/
 
 Everything that generates this website, and everything that refuses to let it
-ship broken. 178 files at this level, this one included, no package, no
+ship broken. 179 files at this level, this one included, no package, no
 `__init__.py`, no build step: every one is `python3` against the standard
-library, and 177 of the 178 are run by their own path. There are exactly two
+library, and 178 of the 179 are run by their own path. There are exactly two
 dependencies in the whole directory — Pillow, in `sync-news-notion.py` and
-nowhere else, and Playwright, in `check-runtime.py` and nowhere else — and both
-are discussed below.
+nowhere else, and Playwright, in the four checks that need a browser
+(`check-runtime.py`, `check-text-zoom.py`, `check-consent-focus-return.py`,
+`check-spectrum-plate.py`) — and both are discussed below.
 
 **The file that is not run by its own path is `og_meta.py`**, imported by four
 of its neighbours and executed by none. The paragraph above read "no shared
@@ -32,7 +33,7 @@ most.
 
 | Count | What | Who runs it |
 | --- | --- | --- |
-| 158 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
+| 159 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
 | 8 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all eight, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
 | 1 | `build-all.sh` | `news-sync.yml`, and a human. Nothing else. |
 | 1 | `stage-site.py` — collects the website into `dist/` | both deploys, `--surface pages` and `--surface worker` |
@@ -74,14 +75,25 @@ Plus two subdirectories:
   produce, and its own `README.md`, which is the authority on that
   subdirectory's two load-bearing conventions.
 
-`check-runtime.py` is the one check that opens a browser instead of reading
-files — five fault classes that exist only at runtime, the fifth being a
-scroll-driven timeline whose clock reports one value at every scroll position
-because some ancestor's `overflow: hidden` made a scroll container out of a
-crop. It runs in its own `design-system.yml` job with Playwright installed, and
-it skips with exit 0 when no browser is present — except when
-`CF_REQUIRE_BROWSER` is set, which is how the CI job stops a broken install
-step from silently dodging the gate.
+**Four checks open a browser instead of reading files,** and they all live in
+`design-system.yml`'s `runtime` job, where Playwright is installed. All four
+skip with exit 0 when no browser is present — except when `CF_REQUIRE_BROWSER`
+is set, which is how the CI job stops a broken install step from silently
+dodging the gate. This paragraph named one of them for as long as there have
+been more than one.
+
+`check-runtime.py` is the original: five fault classes that exist only at
+runtime, the fifth being a scroll-driven timeline whose clock reports one value
+at every scroll position because some ancestor's `overflow: hidden` made a
+scroll container out of a crop. `check-text-zoom.py` and
+`check-consent-focus-return.py` need a browser for the same shape of reason —
+a computed document width at a reader's own text size, and where focus actually
+lands after a dialog closes. `check-spectrum-plate.py` needs one for a
+different reason entirely: its subject is a **JPEG**, the designer's
+`Farben > Dosierung` plate, and Chromium is how a picture gets decoded without
+adding a third dependency to a stdlib-only directory. It samples the spectrum
+column on that plate and holds `foundations/colors.html#plate` to what the
+picture actually says.
 
 ### The 126 checks are two different kinds of file wearing one prefix
 
