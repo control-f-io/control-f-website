@@ -812,6 +812,43 @@
     transform-box: fill-box;
     transform-origin: center;
   }
+  /* AND SAFARI READS NONE OF IT, for the reason set out in full beside the
+     leaves, under "SAFARI PAINTS NO CSS FILTER ON AN SVG CHILD": WebKit
+     applies no CSS filter FUNCTION to an SVG child — drop-shadow or blur —
+     while `filter: url()` on the same element works. So the source stood on
+     this page as a plain disc with a black ring and no light in it, which is
+     the one reading the rule above spends a paragraph arguing against.
+
+     THIS ONE IS NOT INSIDE THE PIN GATE, and the leaf's override is: the
+     leaf's glow is declared in the pinned tier and only ships there, while
+     these two shadows are unconditional and light the orb in every tier the
+     drawing appears in. An override written where the leaf's is would have
+     left the source dark on a phone, under reduced motion, and on any browser
+     without animation-timeline — the three tiers this file keeps whole.
+     → check-fallback-tier.py, which is about exactly that mistake.
+
+     The flood colours for BOTH filters are set here, once, for the reason
+     the reach cannot be: flood-color is a CSS property, so the primitives take
+     --glow-lime and --glow-glas from tokens.css the way the shorthand does and
+     a palette move still moves both spellings. Both tokens carry their own
+     alpha, so flood-opacity stays at its default 1 and the pair matches the
+     shorthand exactly. stdDeviation is an attribute in the drawing's units and
+     no var() reaches it — that number, and what it costs, are in the markup.
+
+     (0,1,0) AND NOT THE PARENT, for the reason the leaf's own note gives at
+     length: forced colours drops this halo with `.lp-flow__orb { filter: none }`
+     at the foot of this file, at the same weight and later, so it still wins.
+     Naming the parent here would put this at (0,2,0) and leave the source at
+     full brand lime under a forced palette — the exact reading that block was
+     written to remove. It beats the two shadows above on source order, both
+     being base-tier declarations thirty-eight lines apart. */
+  @supports (-webkit-hyphens: none) {
+    .lp-flow__orb { filter: url(#lp-flow-glow-orb); }
+    #lp-flow-glow-leaf feDropShadow:first-child,
+    #lp-flow-glow-orb  feDropShadow:first-child { flood-color: var(--glow-lime); }
+    #lp-flow-glow-leaf feDropShadow + feDropShadow,
+    #lp-flow-glow-orb  feDropShadow + feDropShadow { flood-color: var(--glow-glas); }
+  }
   /* The drawing is the root alone now — the field moved to the stage's own
      backdrop — 620u on a 1200u basis: 0.5167 of its width in height. Sizing
      it off the viewport's height is what guarantees the whole of it fits the
@@ -4757,11 +4794,12 @@
          the same markup painted correctly in an unanimated, static copy of
          this exact SVG. Removing `animation`, pausing it, or forcing a
          repaint on the live element does not bring the colour back — only
-         dropping vector-effect does, which points at WebKit's filter-region
-         cache for a non-scaling stroke never invalidating once the element
-         has been driven by a scroll-linked `scale` keyframe (lp-frame-draw),
-         settled or not. `.lp-flow__seg`'s hairline is unaffected because it
-         carries no filter.
+         dropping vector-effect does. That was read at the time as WebKit's
+         filter-region cache never invalidating for a non-scaling stroke once
+         the element has been driven by a scroll-linked `scale` keyframe
+         (lp-frame-draw); the block below is what the same symptom turned out
+         to be once it was reduced, and it is not a cache. `.lp-flow__seg`'s
+         hairline is unaffected because it carries no filter.
 
          Scoped with the standard `-webkit-hyphens: none` feature query —
          true only in WebKit/Safari, so Chromium and Firefox keep the
@@ -4775,8 +4813,70 @@
          `.lp-flow :is(path, circle)` is (0,1,1) and outranks a lone
          `.lp-flow__leaf` at (0,1,0) regardless of source order — the override
          has to out-specify it, not just come after it. */
+      /* AND THE OTHER HALF OF THAT SENTENCE WAS NOT FIXED, because the
+         diagnosis above is only half right. Dropping vector-effect did bring
+         the GRADIENT back — the leaves have been drawing in lime-to-Glas in
+         WebKit ever since — and the note was written as though the glow came
+         with it. It did not. Re-surveyed in WebKit 26.5 against Chromium 141,
+         same viewport, same scroll offsets, document-clock animations frozen
+         at a fixed time in both: over the drawing's band the two engines
+         disagreed on 8.2 % of pixels at act 2's opening, and the whole of that
+         is the fringe standing on dead wash — which is, word for word, the
+         thing the note above --glow-light says the glow exists to prevent.
+
+         SAFARI PAINTS NO CSS FILTER ON AN SVG CHILD. Not this drawing's, not
+         any: reduced to a bare <path> in a static file with no animation, no
+         vector-effect and no timeline, `filter: drop-shadow()` on an SVG child
+         renders nothing in WebKit — and neither does `filter: blur(3px)`, which
+         is what rules out anything specific to shadows, to this drawing or to
+         the scroll. The same declaration on an HTML box beside it paints; on
+         the OUTER <svg> it paints; `filter: url(#f)` on the same child paints,
+         including from a <filter> in another <svg> in the document. That is the
+         shape of a renderer that hangs CSS filters off the layer an SVG child
+         never gets, and it is why `-webkit-filter`, `will-change`, `translateZ`,
+         `contain: paint` and the presentation attribute all change nothing —
+         every one of them was tried.
+
+         So the glow is handed to Safari as the thing it does read: two
+         feDropShadow primitives in the drawing's own defs, which are the
+         primitive `drop-shadow()` is defined in terms of. → the filters in
+         patterns/landing-page.html for the reach, the unit it is in, and why
+         the region is stated in user space. Chromium and Firefox never see
+         this rule and keep the px reach composed above.
+
+         MEASURED AFTER, same frames: the two engines' disagreement over the
+         drawing's band falls from 8.2 % of pixels to 2.0 %, which is this
+         page's ordinary two-engine text-antialiasing floor; and the orb's
+         radial ramp, sampled every 10 px out from its edge, lands within one
+         level of Chromium's at every radius (41.1/22.0/9.7/3.3/1.1 against
+         41.9/21.5/8.3/2.6/0.7). It is the same light, not an approximation
+         of one.
+
+         WHAT IT COSTS, and it is the cost the note above already accepts on
+         Blink: WebKit rasters the fringe's fifty-two blurs per frame while the
+         shimmer breathes, exactly as Chromium does. Scrolling ninety frames
+         across the fringe in the headless container this was measured in —
+         software raster, no GPU, and a baseline that is already 10 fps there —
+         went from 9.3 to 7.0 fps. Chromium holds 60 fps with the same glow on
+         and off, so that figure is the container's, not Safari's; what
+         transfers is that this restores a real bill, not that it is 33 %.
+         `[data-idle]` and `[data-dark]` still stop the shimmer, and a still
+         page still pays nothing. */
+      /* TWO SELECTORS AND NOT ONE, and the weight is the whole reason. The
+         vector-effect above has to out-specify line 765's
+         `.lp-flow :is(path, circle)` at (0,1,1), so it names the parent. The
+         filter must NOT: forced colours kills this glow with
+         `.lp-flow .lp-flow__leaf { filter: none }` at the foot of this file,
+         and that rule was written at (0,2,0) precisely so it beats the gated
+         declaration on WEIGHT rather than on position — put this one at (0,2,0)
+         too and the kill switch is reduced to source order, which is the defect
+         check-tier-order.py exists to stop and which it caught here. At (0,1,0)
+         it overrides the two shadows 146 lines up on source order inside this
+         one tier, where both are declared, and loses to forced colours on
+         weight. Nothing at (0,1,1) or above sets `filter` on this element. */
       @supports (-webkit-hyphens: none) {
         .lp-flow .lp-flow__leaf { vector-effect: none; }
+        .lp-flow__leaf { filter: url(#lp-flow-glow-leaf); }
       }
       .lp-flow__leaf {
         animation: lp-frame-draw linear,

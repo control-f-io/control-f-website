@@ -1343,6 +1343,69 @@
               <linearGradient id="lp-frame-ramp-side"  href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="500"/>
               <linearGradient id="lp-frame-ramp-arm-w" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="500" y2="0"/>
               <linearGradient id="lp-frame-ramp-arm-e" href="#lp-flow-ramp" gradientUnits="userSpaceOnUse" x1="1000" y1="0" x2="500" y2="0"/>
+              <!-- THE SAME TWO SHADOWS AGAIN, FOR THE ONE ENGINE THAT CANNOT READ
+                   THEM OFF A CSS PROPERTY. acts.css lights the fringe and the
+                   source with `filter: drop-shadow() drop-shadow()`; WebKit
+                   applies no CSS filter FUNCTION to an SVG child at all — not
+                   drop-shadow, not blur — while `filter: url()` on the same
+                   element works. So the leaf's and the orb's glow are written a
+                   second time here, as the filter primitive the shorthand is
+                   defined in terms of, and acts.css points Safari at them behind
+                   `@supports (-webkit-hyphens: none)`. Nothing outside WebKit
+                   ever references these two; they cost the other engines a
+                   parse. → acts.css, "SAFARI PAINTS NO CSS FILTER ON AN SVG
+                   CHILD", and the reach's own note above .lp-flow__leaf.
+
+                   THE COLOURS ARE NOT REPEATED, only the geometry. flood-color
+                   is a CSS property, so both primitives take --glow-lime and
+                   --glow-glas from tokens.css the way the shorthand does (set in
+                   acts.css beside the rules) and a palette move still moves this.
+                   The reach cannot follow: stdDeviation is an attribute in the
+                   drawing's own units, and no var() reaches it.
+
+                   THE NUMBERS ARE THE SHORTHAND'S, CONVERTED ONCE. Measured
+                   rather than assumed, because the mapping is not the one
+                   box-shadow uses: a circle blurred by `drop-shadow(0 0 44px)`
+                   in Chromium and by `feDropShadow stdDeviation="44"` in both
+                   engines gives the SAME radial profile to a tenth of a level at
+                   every radius — so the blur radius IS the deviation here, 1:1,
+                   not half of it. What does not carry over is the unit: this
+                   viewBox is fitted to the stage, so one unit is 0.640 px at the
+                   pin gate's floor (1024 x 720) and 1.780 px at 2560 x 1440.
+                   These are the shorthand's 36 px and 44 px at 0.925 px/unit —
+                   1280 x 900 and 1440 x 900, the width the reach was measured at
+                   — so Safari matches the other engines there and reads the
+                   drawing's own units either side of it: 25 px at the gate floor,
+                   47 px at 1920 x 1080. That is the trade for having the light at
+                   all, and it holds the shape the reach was argued from, which is
+                   halfway across a median gap in UNITS.
+
+                   userSpaceOnUse IS NOT A PREFERENCE. The default filter region
+                   is a percentage of the referencing element's bounding box, and
+                   a filter whose region resolves to zero is not rendered AT ALL —
+                   the element disappears. Six of the twenty-six leaves are
+                   perfectly vertical (getBBox width 0), so objectBoundingBox
+                   units would blank them; the region has to be stated in the
+                   drawing's coordinates instead, once, big enough for whichever
+                   leaf uses it. The leaves occupy x 0-1200, y 50-245 and the two
+                   chained blurs die out by about 1.75 deviations (measured off
+                   the orb: the ramp is at 1.1 of 41 levels at 75 px and at 0.1 by
+                   85), so 80 units of margin covers them; the orb is one circle
+                   at 566-634 / 552-620 and takes 96. Both regions are bounded on
+                   purpose — WebKit rasters one buffer of this size per filtered
+                   element, twenty-six times for the fringe. -->
+              <filter id="lp-flow-glow-leaf" filterUnits="userSpaceOnUse"
+                      x="-80" y="-40" width="1360" height="390"
+                      color-interpolation-filters="sRGB">
+                <feDropShadow dx="0" dy="0" stdDeviation="17.5"/>
+                <feDropShadow dx="0" dy="0" stdDeviation="38.9"/>
+              </filter>
+              <filter id="lp-flow-glow-orb" filterUnits="userSpaceOnUse"
+                      x="470" y="456" width="260" height="260"
+                      color-interpolation-filters="sRGB">
+                <feDropShadow dx="0" dy="0" stdDeviation="21.4"/>
+                <feDropShadow dx="0" dy="0" stdDeviation="47.6"/>
+              </filter>
             </defs>
             <!-- Drawn first, so every stroke that leaves it is painted over
                  it and the trunk appears to come OUT of the light rather than
