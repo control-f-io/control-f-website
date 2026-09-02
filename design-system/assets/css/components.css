@@ -1876,11 +1876,25 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    One declaration answers it, and only where the fault is: above the fold the
    seven routes take a second row inside the plate and the plate grows to hold
    them, which is what the no-script tier below has always done with the same
-   property. Below the fold this list is `display: none` (the panel is out of
-   flow) and in the no-script tier it is `flex-direction: column`, so neither
-   sees this. At every width and text size that fits on one line today the
+   property. At every width and text size that fits on one line today the
    layout is byte-identical — wrap only ever does something to a line that was
-   going to overflow. → scripts/check-text-zoom.py */
+   going to overflow. → scripts/check-text-zoom.py
+
+   WHO ELSE SEES IT: THE CENSUS THIS NOTE SHIPPED WAS ONE STATE SHORT. It read
+   "below the fold this list is `display: none` (the panel is out of flow) and
+   in the no-script tier it is `flex-direction: column`, so neither sees this",
+   and the first clause is true of the closed panel and false of the open one —
+   [data-cf-nav] .cf-nav__list[data-open="true"] puts `display: flex` back, and
+   a wrap on a column with a bounded height makes columns instead of a
+   scrollport. Four columns and a clipped route at 568 x 320; the numbers and
+   the one-word fix are on the folded rule's own `flex-wrap: nowrap`.
+
+   The second clause holds and for a reason worth keeping: `flex-direction:
+   column` is not on its own enough — that is exactly what the folded panel
+   also has — but the no-script list has no cap on its height, so its main size
+   is its content's and there is never a line to break. Measured at 320 x 568
+   and 667 x 375, roots 16/20/24, both engines: one column, seven rows, in
+   every cell. */
 .cf-nav__list {
   display: flex;
   flex-wrap: wrap;
@@ -2169,6 +2183,48 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
     border-radius: var(--radius-sm);
     padding: var(--space-2);
     flex-direction: column;
+    /* AND NOWRAP, WHICH IS THE HALF THE BASE RULE'S CENSUS MISSED. This list
+       carries `flex-wrap: wrap` from .cf-nav__list, where it is right: above
+       the fold the seven routes take a second line inside the bar's plate.
+       That rule's note clears this tier in as many words — "below the fold
+       this list is `display: none` (the panel is out of flow)" — and that is
+       true of the CLOSED panel only. Open, the [data-open="true"] rule below
+       puts `display: flex` back, and the wrap comes back with it, now on a
+       column whose main size the max-height 30 lines down has bounded.
+
+       A wrapping column flex container answers a full main axis by starting a
+       new flex LINE, and a column's lines run sideways. So the cap never
+       fills, `overflow-y: auto` never has anything to scroll, and the panel
+       the note over that cap describes as scrolling inside itself is instead
+       dealt out into two, three and four columns. Measured on the shipped
+       panel, WebKit 26.5 and Chromium 141 agreeing to the tenth of a pixel on
+       all 66 cells — 11 viewports x roots 16/20/24 x both engines, of which
+       32 wrap:
+
+         320 x 568  root 24   2 cols   rows 142.1 and 121.9 px wide
+         360 x 640  root 24   2 cols   rows 172.1 and 131.9
+         667 x 375  root 16   2 cols   rows 152.2 and 138.8
+         740 x 360  root 20   3 cols   rows 133.3 / 124.9 / 99.7
+         568 x 320  root 24   4 cols   "Suche" 58.4 px past the panel's right
+                                       edge, clipped, and reachable only by
+                                       scrolling a vertical menu sideways
+
+       scrollHeight - clientHeight was 0 in all 66. 320 x 568 at a 24 px root
+       is a small phone whose reader has turned the type up; 667 x 375 is the
+       iPhone SE on its side, which is the exact viewport the cap's own note
+       was written for. Neither is an edge case, and on the 568 x 320 row the
+       primary control on a phone loses a route outright.
+
+       IT IS ALSO WHY THE ROWS CAME OUT RAGGED. `align-items: stretch` below
+       stretches an item to its own flex LINE's cross size and not the
+       container's, so the moment there are two lines the columns take two
+       different widths — 152.2 against 138.8 at 667 x 375 — and a menu whose
+       rows are one plate wide is drawn as two unequal ones.
+
+       nowrap rather than unsetting the base declaration: the panel is a single
+       column by design, this states it where the direction is stated, and the
+       bar above the fold is untouched because none of this rule reaches it. */
+    flex-wrap: nowrap;
     align-items: stretch;
     /* Closed is the panel wiped away upward, back under the bar.
 

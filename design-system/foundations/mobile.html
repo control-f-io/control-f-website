@@ -1217,6 +1217,90 @@
       a device constant, not a device reading — the same shape of argument the backstop's
       note above makes, and the same one that fix was accepted on.
     </div>
+    <div class="docs-note">
+      <strong>The two notes above reach for the open nav panel three times as the shape
+      everything else was measured against, and the panel was not doing it.</strong> All
+      three reach for the same sentence — <code>.cf-nav__list[data-open="true"]</code> is a
+      <code>max-height</code> cap over <code>overflow-y: auto</code>, carrying
+      <code>vh</code> then <code>dvh</code> "since the fix that gave the open menu its own
+      scrollport". The cap and both units are declared and correct. What was never true is
+      the scrollport: <code>scrollHeight − clientHeight</code> read <strong>0</strong> in
+      all 66 cells swept below, at every viewport and every text size. The panel had no
+      scroll to hijack, because the overflow was going somewhere else.
+      <br><br>
+      <code>.cf-nav__list</code> carries <code>flex-wrap: wrap</code> from the unfolded bar,
+      where it is right and load-bearing — above the fold the seven routes take a second
+      line inside the plate, which is the fix that keeps the page from scrolling sideways at
+      a 22 px root. That rule's own note enumerates who else sees it and clears this tier:
+      "below the fold this list is <code>display: none</code> (the panel is out of flow)".
+      That is true of the <em>closed</em> panel. Open, <code>display: flex</code> comes
+      back and the wrap comes back with it, now on a <code>flex-direction: column</code>
+      whose main size the cap has bounded — and a wrapping column answers a full main axis
+      by starting a new flex <em>line</em>, which on a column runs sideways. So the menu
+      was dealt into columns instead of scrolling. Both engines to the tenth of a pixel,
+      11 viewports × roots 16/20/24 × WebKit 26.5 and Chromium 141; 32 of the 66 wrapped:
+      <div class="docs-table-scroll">
+      <table class="docs-table">
+        <thead><tr><th>Viewport</th><th>Root</th><th>Columns</th><th>Row widths</th><th>Consequence</th></tr></thead>
+        <tbody>
+          <tr><td>320 × 568</td><td>24</td><td>2</td><td>142.1 / 121.9</td><td>rows at half a plate, two widths</td></tr>
+          <tr><td>360 × 640</td><td>24</td><td>2</td><td>172.1 / 131.9</td><td>same</td></tr>
+          <tr><td>667 × 375</td><td>16</td><td>2</td><td>152.2 / 138.8</td><td>same</td></tr>
+          <tr><td>740 × 360</td><td>20</td><td>3</td><td>133.3 / 124.9 / 99.7</td><td>same</td></tr>
+          <tr><td>568 × 320</td><td>24</td><td>4</td><td>138.6 / 128.5 / 128.5 / 98.3</td><td><strong>Suche alone in column four, 58.4 px past the panel's right edge</strong></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <br>
+      The bottom row is the one that decides it. On a 568 × 320 screen at a 24 px root the
+      fourth column stands outside the plate, clipped, reachable only by scrolling a
+      vertical menu sideways — a route lost from the control this page's own touch section
+      calls "the primary control on a phone: the only way to reach any other page". The
+      rows above it are not decorative either: 320 × 568 at a 24 px root is a small phone
+      whose reader has turned the type up, and 667 × 375 is the iPhone SE on its side,
+      which is the exact viewport the cap's note was written for and the case it was
+      written to answer. <code>align-items: stretch</code> is what makes the columns
+      ragged: it stretches an item to its own flex line's cross size, not the container's,
+      so two lines are two different widths.
+      <br><br>
+      Fixed with <code>flex-wrap: nowrap</code>, declared beside the
+      <code>flex-direction: column</code> it belongs to, inside the
+      <code>@media (max-width: 48.75rem)</code> block that already folds this bar. Nothing
+      above the fold is in that block, so the unfolded bar keeps the wrap its own note in
+      <code>components.css</code> earned for it — re-checked at 900, 1024 and 1280 across
+      roots 16/20/22/24/32 on both engines, thirty cells: the list still computes
+      <code>flex-wrap: wrap</code>, still takes one to four rows as the type grows, the
+      document still scrolls sideways nowhere and the <em>EN</em> switch stands inside its
+      plate in every cell. Re-measured over the same 66 phone cells:
+      <div class="docs-table-scroll">
+      <table class="docs-table">
+        <thead><tr><th>Viewport</th><th>Root</th><th>Panel</th><th>Row width</th><th>Scrollable</th><th>Past the plate</th></tr></thead>
+        <tbody>
+          <tr><td>320 × 568</td><td>24</td><td>296 × 430</td><td>270</td><td>94 px</td><td>none</td></tr>
+          <tr><td>667 × 375</td><td>16</td><td>313 × 283</td><td>295</td><td>67 px</td><td>none</td></tr>
+          <tr><td>568 × 320</td><td>24</td><td>466.6 × 182</td><td>440.6</td><td>342 px</td><td>none</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <br>
+      One column in all 66, one row width per cell, nothing horizontal left to scroll, and
+      the cap's own scrollport engaged for the first time in every cell where the panel is
+      taller than its room. Driven as a finger would: the panel scrolled to its end and the
+      last route hit-tested at its centre — <code>document.elementFromPoint</code> returns
+      <code>a.cf-nav__link</code> on both engines at all three viewports above, where before
+      the fix that same route was drawn outside the plate. Rows the reader has not scrolled
+      to are below the fold <em>inside the panel</em>, which is what a scrollport is; the
+      pixels are unchanged in the 34 cells that never wrapped. → <code>components.css</code>
+      <code>.cf-nav__list</code>, <code>[data-cf-nav] .cf-nav__list</code>
+      <br><br>
+      <strong>The no-script tier was checked and is clean, for a reason worth writing
+      down.</strong> <code>html:not([data-cf-nav]) .cf-nav__list</code> is also a wrapping
+      column, so <code>flex-direction: column</code> alone is plainly not what was saving
+      it. It has no cap: <code>max-height</code> computes to <code>none</code>, its main
+      size is its content's, and a line that cannot fill cannot break. Measured at 320 × 568
+      and 667 × 375 across roots 16/20/24 on both engines — one column, seven rows, twelve
+      cells out of twelve.
+    </div>
   </section>
 
   <section class="docs-section" id="not">
