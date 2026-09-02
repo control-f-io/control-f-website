@@ -99,14 +99,42 @@ because one of the five was two:
                       carries them: hiding that one figure and nothing else
                       takes the document from 377 to 342 at 320 x 32 (342 is
                       the folded plate above, on every page) and from 381 to
-                      375 at 375 x 32. Its own box is 150 px wide with a
-                      scrollWidth of 292, and its readings are absolutely
-                      positioned and `white-space: nowrap`: "€4,79 Mio." is
-                      144 px at a 32 px root and its right edge stands 12 px
-                      past the figure. Same shape as the pie's and a different
-                      component — a label written for a figure that is now
-                      narrower than the label — and the same question to
-                      answer: which tier a figure this size should draw.
+                      375 at 375 x 32.
+
+                      FIXED on 2026-09-02, and the cause was not the one this
+                      paragraph named. It read the figure's absolutely
+                      positioned, `white-space: nowrap` readings — "€4,79 Mio."
+                      is 144 px at a 32 px root and stands 12 px past a 150 px
+                      figure — and asked which tier a figure this size should
+                      draw. That overhang is real and it is not what reached the
+                      document: an out-of-flow box contributes no min-content to
+                      any track, which is the whole reason this system lets a
+                      reading overhang its pitch. Hiding one <li> of
+                      .cf-line__legend and nothing else moved the same two
+                      cells the whole figure did, and so did one soft hyphen:
+
+                                            320 x 32      375 x 32
+                        document before      377 px        381 px
+                        document after       342           375
+                        .lp-ev-steps         357 -> 297    357 -> 328
+
+                      The legend entry is a FLEX ITEM, so its automatic minimum
+                      is its min-content — its longest word — and base.css's
+                      `overflow-wrap: break-word` net wraps the paint while
+                      leaving that minimum alone, by design ("`anywhere` would
+                      let every grid track in the system collapse to one
+                      character"). "Energiemanagement", 17 letters, was the
+                      longest word in any figure's chrome on the site and the
+                      only label set on the page with no authored break: the
+                      .cf-block__key two figures up in the same card already
+                      carries "Si&shy;cher&shy;heit" and "Kul&shy;tur". It
+                      carries "Energie&shy;management" now, and the en.json key
+                      moved with it. 375 x 32 is clean; 320 x 32 stays in the
+                      census at +22, which is the folded plate's own figure on
+                      every other page, so the count falls by one and not two.
+                      A cell names its widest offender: the same masking that
+                      filed this fault under the pie's filed the pie's diagnosis
+                      onto this one.
   a prose table       blog-artikel.html, 2 cells: +6 px at 320 x 20 and +16 at
                       320 x 24.
   expertise.html      1 cell, +18 px at 375 x 32, on a list item.
@@ -145,7 +173,20 @@ GATE_WIDTHS = (375, 768, 900, 1024, 1280)
 GATE_ROOTS = (16, 20, 24)
 
 # What the census holds. It may fall; it may not rise.
-CENSUS_CEILING = 41
+#
+# 41 -> 39 on 2026-09-02, with act 4's line chart: one cell, 375 x 32 on
+# patterns/landing-page.html. 39 is what the Chromium 1194 these sessions carry
+# reads, which is the number this constant has always been set to — the header's
+# own measurements put CI's Chromium one cell BELOW it (42 against 43), so the
+# slack runs the safe way. It was 41 against a reading of 40 before this change:
+# a cell had come off without the ratchet following it, which is the state the
+# header's "lower CENSUS_CEILING as it falls" exists to prevent.
+#
+# 39 and not 40 because a ratchet that sits on the value the defect produces
+# does not catch the defect. Measured, by putting the soft hyphen back and
+# taking it out again: 40 cells with "Energiemanagement" whole, 39 with the
+# break authored. At 40 both readings pass; at 39 the reintroduction fails here.
+CENSUS_CEILING = 39
 
 BROWSER_CANDIDATES = (
     os.environ.get("CF_BROWSER"),
