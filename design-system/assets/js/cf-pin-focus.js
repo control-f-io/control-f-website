@@ -108,12 +108,29 @@
    read is the whole guard, so in every degraded tier this file listens and
    does nothing, which is correct: those tiers never lost the links.
 
-   `behavior: 'instant'` on the scroll, against base.css's smooth default, and
-   it is not an exception to that rule but an instance of it. This is the
-   scroll the platform itself performs when Tab moves focus to something off
-   screen, and the platform performs it instantly; the visibility the next
-   focus depends on is a function of that scroll having landed. A smooth
-   scroll here would put focus on a card that is still hidden.
+   `behavior: 'instant'` on the scroll, against base.css's smooth default: the
+   visibility the next focus depends on is a function of that scroll having
+   landed, and a smooth scroll here would put focus on a card that is still
+   hidden.
+
+   THE PLATFORM'S OWN SCROLL IS NOT INSTANT, though the paragraph above once
+   assumed it was. Every Tab that is not one of this file's own handovers —
+   the six to nine stops between the track and either of its doors, .cf-nav's
+   own links and the footer's own copy of them among them — still moves by
+   Chromium's own scroll-into-view, and that inherits base.css's
+   `scroll-behavior: smooth` the same as any other CSSOM scroll. A reader
+   moving at a normal keyboard pace outruns each hop's animation: the next
+   keydown lands while the last scroll is still easing, the platform's next
+   scroll-into-view fires from wherever the easing had gotten to, and the
+   position the walk arrives at a door with is whatever an interrupted
+   animation happened to leave behind — not the settled position either
+   door's own check assumes. Measured, 1440 x 900, backward from the wrap:
+   14 of 14 with the presses 100 ms apart, 0 of 14 at the walk's own 60 ms
+   cadence, nothing else in this file or acts.css different between the two
+   runs. `instantWhileTabbing`, below, is what makes this paragraph's first
+   sentence true instead of aspirational: it forces the platform's own
+   scroll instant for as long as Tab keeps being pressed, the same way this
+   file's own handovers already were.
    → scripts/check-pin-focus-walk.py */
 
 (function () {
@@ -272,8 +289,29 @@
     return true;
   }
 
+  /* `auto` beats the stylesheet the way an inline style always beats one —
+     the file's own head has the fault this defends against and the numbers
+     that justify it. Restoring it on a timer rather than after this one
+     keypress is deliberate: the very next keydown is the next hop of the
+     same walk, still racing the platform's own scroll, and re-arming a
+     shorter timer is cheaper than a second listener. 300 ms is past any Tab
+     cadence a human or this file's own check produces, and short enough that
+     a reader who stops tabbing to scroll the page some other way gets the
+     smooth default back before they would notice its absence. */
+  var restoreScroll = null;
+  function instantWhileTabbing() {
+    document.documentElement.style.scrollBehavior = 'auto';
+    if (restoreScroll) clearTimeout(restoreScroll);
+    restoreScroll = setTimeout(function () {
+      document.documentElement.style.scrollBehavior = '';
+      restoreScroll = null;
+    }, 300);
+  }
+
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Tab' || e.altKey || e.ctrlKey || e.metaKey) return;
+
+    instantWhileTabbing();
 
     var a = document.activeElement;
     /* Focus on <body> is focus nowhere: the walk is about to start from the
