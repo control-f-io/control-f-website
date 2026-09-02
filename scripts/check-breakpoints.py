@@ -70,6 +70,11 @@ WHAT IT DOES NOT CHECK, deliberately:
   a specific width, when its arms swap. None is a query, none is in the
   register, and the register says so in as many words. A checker that widened
   the definition would be enforcing a different rule than the one written down.
+  That is still right, and for as long as it was the last word on the subject
+  the panel below the register — which listed three crossovers and claimed to
+  list them all — was a hand-kept completeness claim with nothing running it.
+  There are thirty. check-fluid-crossovers.py resolves and publishes them, as a
+  second register on its own axis rather than as rows in this one.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
