@@ -390,7 +390,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The thirty-two checks the system enforces rather than documents, run by CI on every push and
+The thirty-three checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -828,9 +828,9 @@ line therefore starts under the *descender slot*, not at the baseline, so the dr
 distance is the token plus a slice of the font. `.cf-section-header` is where that was
 worth a check: its rule has always said *the header owns the air beneath it, so every
 section on the site opens on the same axis*, and it declares `--space-3`. Swept at 1280 px
-over all eighteen pattern pages with each label trimmed to its baseline so the distance
-could be read off the rule: **40 headers, two axes, 12 px declared and 16.94 px drawn on
-39 of them, 17.63 on the fortieth.** 41 % over the token, and not one axis.
+over all 38 pattern pages with each label trimmed to its baseline so the distance
+could be read off the rule: **54 headers, two axes, 12 px declared and 16.94 px drawn on
+53 of them, 17.63 on the fifty-fourth.** 41 % over the token, and not one axis.
 
 Neither number is computable, which is the argument for trimming the slot rather than
 compensating for it. Between `--leading-normal` and `--leading-relaxed` at 11 px the line
@@ -842,8 +842,8 @@ and one font, and this system has three of each.
 
 `text-box-trim: trim-end; text-box-edge: cap alphabetic` takes the slot off, and the axis
 is `--space-4` at every size and every leading. **16 px is the drawn distance moved onto
-the space scale rather than changed**: within 0.94 px of what 39 of those headers draw
-today and 1.63 px of the fortieth, so the composition does not move and the number under
+the space scale rather than changed**: within 0.94 px of what 53 of those headers draw
+today and 1.63 px of the fifty-fourth, so the composition does not move and the number under
 it becomes true. Outside the `@supports` branch the padding stays `--space-3` and the
 drawing is exactly today's — Chrome 133, Edge 132, Safari 18.2 and Firefox 154 have it,
 and anything older is 0.94 px looser and correct.
@@ -1532,16 +1532,6 @@ screenshotting the logo plate in the dark palette is what found it. What did com
 unaided is the rank — a dasharray is not something the mode touches — which is the half
 that would have been expensive.
 
-<<<<<<< HEAD
-**`--angle-neutral` has a consumer.** 45° had a definition in `tokens.css`, a row in
-`foundations/geometry.html`'s angle table and **zero** uses anywhere in the tree: no
-stylesheet, no page, no drawing. That is not an oversight, it is where the angle lives. On
-the *Winkelraster* plate the 45° rays are drawn dotted beside the solid isometric pair —
-they are construction, and in a 2:1 system nothing is ever built on them, so a system that
-never draws construction can never draw 45°. The specimen makes the point by standing on
-it: two of its eight rays leave the setting-out point and become edges of the object, and
-the other six run out of the frame carrying nothing.
-=======
 **`--angle-neutral` has a consumer.** The token had a definition in `tokens.css`, a row in
 `foundations/geometry.html`'s angle table and **zero** uses anywhere in the tree: no
 stylesheet, no page, no drawing named it. The *angle* was not absent — 45° is written as a
@@ -1554,7 +1544,6 @@ is ever built on them, so a system that never draws construction has nowhere to 
 angle. The specimen makes the point by standing on it — two of its eight rays leave the
 setting-out point and become edges of the object, and the other six run out of the frame
 carrying nothing.
->>>>>>> 1ddfe5c (The rung named "construction geometry" had never drawn any, and the angle that only lives there had no consumer at all)
 
 **A measure is not drawn.** Every label here was an SVG `<text>` first, and a phone is what
 that costs — a 22-unit label in a 780-unit `viewBox` rendered at **7 px** on a 375 frame,

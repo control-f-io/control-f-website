@@ -5,9 +5,9 @@ A line of type is not a line. It is a line BOX, and the slot under the
 baseline that carries the descenders belongs to it, so a padding measured
 from the bottom of that box is the token PLUS a slice of the font that no
 token names. Measured on this system — Chromium 141, 1280 px, every
-.cf-section-header on all eighteen pattern pages — `padding-bottom:
-var(--space-3)` drew 16.94 px of air under 39 labels and 17.63 px under the
-fortieth, under a comment that says every section opens on the same axis.
+.cf-section-header on all 38 pattern pages — `padding-bottom:
+var(--space-3)` drew 16.94 px of air under 53 labels and 17.63 px under the
+fifty-fourth, under a comment that says every section opens on the same axis.
 The slot scales with the font size and the leading, and a section header
 chooses neither.
 
