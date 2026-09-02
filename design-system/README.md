@@ -361,6 +361,7 @@ python3 scripts/check-illustration-source.py   # the four process objects are st
 python3 scripts/check-illustration-source.py -v  # every element, matched or deviated, and why
 python3 scripts/check-readme-check-count.py    # the count above this block is the length of this block, and scripts/README.md's two are the directory
 python3 scripts/check-readme-check-count.py -v # every number, and everything counted for it
+python3 scripts/check-readme-check-count.py --fix # rewrite scripts/README.md's two counts; the spelled-out sentence above is not touched
 python3 scripts/check-count-atom.py            # a section head taken off the label ramp keeps its counter in one piece
 python3 scripts/check-count-atom.py -v         # every section header row, and the ramp it is on
 python3 scripts/check-docs-caption.py          # the caption under a demo tile is one device, not twenty
