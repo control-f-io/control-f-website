@@ -666,6 +666,92 @@
       </p>
     </div>
 
+    <div class="docs-note" id="the-rake-register">
+      <strong>The ramp is one half of a gradient. The other half is the angle, and nothing
+      was reading it.</strong>
+      <p>
+        Everything above settles what a gradient is <em>made of</em> — which colours, in which
+        order, on which path. Which way it <em>runs</em> is a law of the same standing and it
+        lived only in prose. <a href="geometry.html">Geometry</a> states it without
+        qualification: <em>the only sanctioned angles are 26.57, 45, 63.43 and 90 degrees.</em>
+        A gradient is light crossing a surface, so it is spatial by the same definition the
+        drawings are — and because a gradient has a <em>direction</em>, those four angles close
+        into sixteen. <code>scripts/check-gradient-angle.py</code> resolves what each of the
+        302 gradients the site ships actually paints at, and every one of them is on the set.
+      </p>
+      <table class="docs-table">
+        <thead><tr><th>Direction</th><th>SVG</th><th>CSS</th><th>What is raked that way</th></tr></thead>
+        <tbody>
+          <tr><td><code>0°</code> · up</td><td>25</td><td>3</td><td>the flow diagram's vertical axes, the lit frame's mid strut, the vertical half of every dashed rung</td></tr>
+          <tr><td><code>26.57°</code></td><td>12</td><td>6</td><td>the shallow isometric rake — <code>--field-rake</code></td></tr>
+          <tr><td><code>45°</code></td><td>8</td><td>—</td><td>the neutral diagonal, up and to the right</td></tr>
+          <tr><td><code>63.43°</code></td><td>12</td><td>1</td><td>the steep isometric rake — <code>--angle-a</code>, the hero scrim</td></tr>
+          <tr><td><code>90°</code> · right</td><td>14</td><td>31</td><td><code>--gradient-light-90</code>, the lit rules, every dashed line drawn as a ramp</td></tr>
+          <tr><td><code>116.57°</code></td><td>—</td><td>6</td><td><code>--foil-rake</code> — both foils, at rest</td></tr>
+          <tr><td><code>135°</code></td><td>20</td><td>—</td><td>the flow's leaf ramps, falling away to the lower right</td></tr>
+          <tr><td><code>153.43°</code></td><td>16</td><td>2</td><td><code>--field-rake-mirror</code></td></tr>
+          <tr><td><code>180°</code> · down</td><td>38</td><td>27</td><td>the page wash, and every light that arrives from above</td></tr>
+          <tr><td><code>206.57°</code> <code>225°</code> <code>270°</code> <code>296.57°</code> <code>315°</code> <code>333.43°</code></td><td>67</td><td>2</td><td>the same six directions read from the other end — a face turning away</td></tr>
+          <tr><td><code>132.36°</code> <code>239.25°</code></td><td>—</td><td>6</td><td>the designer's two measured rakes, kept verbatim</td></tr>
+          <tr><td><code>151.26°</code> <code>130.04°</code> <code>63.31°</code> <code>332.48°</code></td><td>10</td><td>—</td><td>the four source vectors', kept verbatim</td></tr>
+        </tbody>
+      </table>
+      <p>
+        The CSS column counts <em>angles checked</em> rather than gradients: a ramp reached
+        through a modifier that swaps its rake is checked at every angle that property is ever
+        declared as. <code>--rake-angle</code> holds three — 90° at rest, 270° under
+        <code>--mirror</code>, 239.25° under <code>--grazing</code> — so its two gradients
+        appear in three rows. 80 CSS gradients, 84 rows.
+      </p>
+      <p>
+        <strong>It has to be a gate rather than a reading, because a gradient's angle is not
+        written in the file that declares it.</strong> Read off its own coordinates,
+        <code>#cf-ex-01</code> — the lit disc of the Maschinenbau object — runs at
+        <strong>52.02°</strong>, which is not a brand angle and not near one. Painted, it runs
+        at exactly <strong>180°</strong>, straight down, because a <code>userSpaceOnUse</code>
+        paint server resolves in the user space the <em>referencing</em> element establishes and
+        that ellipse carries <code>rotate(127.98)</code>. The declaration and the paint are 128°
+        apart and both are correct.
+      </p>
+      <p>
+        That is not hypothetical. <code>scripts/expertise-objects/isolib.py</code> records the
+        same mechanism shipping wrong, in the same place: <em>“measured by rasterising the
+        shipped ellipse and reading the pixels back, the lightest pixel of this object's light
+        sat 68&nbsp;% of the way DOWN the disc. The one rule the page states without
+        qualification is that the light comes from above.”</em> It was found by rendering a page
+        and reading pixels, because there was nothing else that could have found it, and nothing
+        held the fix: change the disc's axis, wrap it in a <code>&lt;g transform&gt;</code>,
+        re-anchor the span, and the light lies down again in silence. The check walks the whole
+        transform chain, so the number it reports is the one a reader sees.
+      </p>
+      <p>
+        <strong>The exemptions are derived, not listed.</strong> Ten gradients paint off the
+        set — cards 01 and 03 at 151.26° and 130.04°, and card 04's two orbits at 63.31° and
+        332.48°, a tenth of a degree and a degree off the brand angles beside them. They are the
+        designer's: <code>01-discovery.svg</code>, <code>03-weniger-ausfaelle.svg</code> and
+        <code>04-mehr-leistung.svg</code> carry exactly those vectors, resolved through their own
+        transforms. The material wins, so the script reads <code>assets/source/</code> and accepts
+        what it finds there. Move a source vector and the exemption moves with it; delete the
+        file and the exemption is gone.
+      </p>
+      <p>
+        <strong>Three things it cannot read, and it names all three on every run</strong> rather
+        than passing them in silence — a rule with a quiet hole in it teaches people to stop
+        reading it. A paint server named from a stylesheet (<code>.map__fill</code> sets
+        <code>fill: url(#map-ramp)</code>, so which element carries it is decided by a selector in
+        another file). An <code>objectBoundingBox</code> vector that is diagonal, which renders at
+        <code>atan2(dx·W, −dy·H)</code> against a box that is a rendered quantity; an axis-aligned
+        one is immune, because scaling a box never turns a horizontal or a vertical. And
+        <code>--foil-angle</code>, which is <a href="#the-rake-swings">the swing</a>:
+        <code>calc(90deg + 26.57deg × --sight-v × --sight-h)</code>, a value two
+        <code>@property</code> numbers on a scroll timeline decide. <strong>Both ends of that
+        travel are themselves brand angles</strong> — 90° square at rest either side, 116.57°
+        at mid-travel — so the swing opens by exactly one brand angle and lands on another,
+        which is why it is a tilt and not a slide. That is a fact about a keyframe block rather
+        than about a declaration, so it is stated here and named there.
+      </p>
+    </div>
+
     <div class="docs-note" id="the-arc">
       <strong>The arc — why the two foils carry a waypoint of their own.</strong>
       <p>
@@ -1309,7 +1395,7 @@
       </p>
     </div>
 
-    <h3>The rake swings</h3>
+    <h3 id="the-rake-swings">The rake swings</h3>
     <p>
       Holographic stock is not a picture of a spectrum. It is a surface that hands you a
       different part of one from every angle, which is why a foil sample book is photographed
