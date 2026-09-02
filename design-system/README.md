@@ -333,6 +333,9 @@ python3 scripts/check-grid-tracks.py           # every fr track has a floor
 python3 scripts/check-grid-tracks.py -v        # list every track list, not only the failures
 python3 scripts/check-breakpoints.py           # every threshold is in the register, in rem
 python3 scripts/check-breakpoints.py -v        # list every threshold, not only the failures
+python3 scripts/check-fluid-crossovers.py      # every width a clamp swaps arms at is published
+python3 scripts/check-fluid-crossovers.py --fix  # rewrite the census in foundations/layout.html
+python3 scripts/check-fluid-crossovers.py -v   # every declaration read, and every one deliberately not
 python3 scripts/check-demo-fold-band.py        # each framed demo is documented at the fold it actually answers to
 python3 scripts/check-demo-fold-band.py -v     # every fold rule and every subdivision call site
 python3 scripts/check-overflow-clip.py         # a crop is a crop, not a scroll container
@@ -814,6 +817,46 @@ features, which are modes rather than thresholds, and `min()`/`clamp()` crossove
 change the layout at a width without being queries — the register says so in as many words,
 and a checker that widened the definition would be enforcing a different rule than the one
 written down. → `foundations/layout.html#breakpoints`
+
+**And that left the other half standing on nothing.** The sentence above is right about the
+register and it is the *last* thing anything ran on the subject. The panel directly under the
+register on `foundations/layout.html` covers what the register drops — a `min()` or `clamp()`
+against a viewport unit swaps arms at a width too — and it listed **three** and said "the three
+in shipping CSS". There are **thirty, in sixteen declarations.** The three were the three
+somebody had noticed: the consent dialog's two and the hero's `min-height`. Eleven token-level
+crossovers were excused in a clause — *"the token-level clamps are documented already"* — which
+is true of the gutter and `--section-gap` and silent about the rest. A completeness claim about
+a four-file corpus, kept by hand, on the page whose neighbouring tables are generated precisely
+because hand-kept counts went stale four times.
+
+**The finding is 941 px.** `.cf-plot`'s `--plot-u` and `.cf-pie`'s `--pie-u` both reach their
+32 px ceiling there — past every phone, short of every desktop frame this design was drawn on,
+which is the band a fluid middle is least likely to be looked at and the classic place a
+`clamp()` goes wrong unnoticed. Both figures stop growing there and hold one size for the next
+thousand pixels. That is *correct* — a fixed-count geometric drawing has a size past which it is
+merely large — and it was written down nowhere, with `.cf-plot`'s own comment naming the gap:
+*"this is a crossover, not a threshold, so it is deliberately absent from the breakpoint
+register."* Right about the register, and nothing underneath it.
+
+**It has to be a gate rather than a reading, because a crossover is not written in the
+declaration that has one.** `--section-gap` says `100vw / 12` and reaches its ceiling at 1440;
+`--plot-u` says `clamp(16px, 3.4vw, 32px)` and stops at 941. So the script resolves rather than
+reads: each value becomes a tree of `min()`/`max()` over linear forms in px, vw and vh —
+`clamp(a, b, c)` is `max(a, min(b, c))`, `var()` resolves through `tokens.css`, and addition and
+scalar multiplication distribute into the branches, because `min(a, b) + c` is
+`min(a + c, b + c)` and a negative factor turns a `min()` into a `max()`. The result is piecewise
+linear, so a crossover is exactly a width at which the selected arm changes: swept to find, then
+solved off the two arms that swapped. **640, 920 and 974 are re-derived every run** the same way
+941.2 is, which is the same standing `#DBFC60` has one chapter over.
+
+Three things it cannot read it names on every run rather than passing in silence: 36 declarations
+with an arm in `%` or `cqi`, which swap at a **container** width and are a different axis; 19 that
+are unitless, where there is no arm measured in anything to swap; and **6 genuinely unread** —
+four landing-page rules taking `max(49vw, 100vh − …)` against a page-local property, where the
+swap is a curve in two axes rather than a width, and two resolving through a custom property no
+reading of a stylesheet settles. Six is small enough to read, and counting them is what stops the
+number growing quietly. → `foundations/layout.html#crossover-census`
+
 **A crop says so,** and this is the seventh check, for the same reason as the other six.
 `overflow: hidden` does two things: it crops, which is what anyone writing it wants, and
 it makes the element a **scroll container**, which almost nobody does — and the second
