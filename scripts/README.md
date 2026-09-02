@@ -1,7 +1,7 @@
 # scripts/
 
 Everything that generates this website, and everything that refuses to let it
-ship broken. 162 files at this level, this one included, no shared library, no
+ship broken. 166 files at this level, this one included, no shared library, no
 package, no `__init__.py`, no build step: every one is `python3` against the
 standard library and is run by its own path. There are exactly two dependencies
 in the whole directory — Pillow, in `sync-news-notion.py` and nowhere else, and
@@ -21,8 +21,8 @@ most.
 
 | Count | What | Who runs it |
 | --- | --- | --- |
-| 144 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
-| 7 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all seven, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
+| 146 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
+| 8 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all eight, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
 | 1 | `build-all.sh` | `news-sync.yml`, and a human. Nothing else. |
 | 1 | `stage-site.py` — collects the website into `dist/` | both deploys, `--surface pages` and `--surface worker` |
 | 3 | `gen-*.py` — deterministic SVG geometry spliced into pages | `design-system.yml`, `--check` only |
@@ -46,6 +46,15 @@ Plus two subdirectories:
   `--fixture FILE` flag, which is how the Notion transform is exercised
   without a token. No workflow names any of the three; they are inputs, not
   steps.
+- **`og-plate/`** — four files and the only rasteriser in the repository.
+  `png.py` (a PNG writer over `zlib` and `crc32`), `raster.py` (scanline
+  coverage, hairline strokes, one linear gradient, and a flattener for the
+  logo's Bézier outlines), `signet.py` (the signet's model, ported from
+  `assets/js/cf-signet.js` and held to it by `check-signet-parity.py`) and
+  `plate.py` (what stands where on the 1200 × 630). Standard library only,
+  like everything else here. `build-og-plates.py` is its entry point and
+  `design-system/foundations/share.html` is the authority on why it exists at
+  all rather than a Worker route or a folder of hand-exported files.
 - **`expertise-objects/`** — eight files. `isolib.py` (the isometric
   projection and primitives), `objects.py` (the four Expertise drawings),
   `gen-flow-root.py` (the landing page's branching root, and the only one of
@@ -137,9 +146,15 @@ python3 scripts/build-search-index.py
 | 4 | `build-articles.py` | `beitrag-<slug>.html` (18 today) in **both** editions | 9 `article:` regions of `blog-artikel.html` and `en/blog-artikel.html` |
 | 5 | `build-stellen.py` | `stelle-<slug>.html` (4 today) in **both** editions | 10 `stelle:` regions of `karriere-stelle.html` and `en/karriere-stelle.html` |
 | 6 | `build-site.py` | the 86 shipped pages — 43 German, 43 English. 18 per edition at the root, the other 25 under `blog/`, `stellen/` and `news/thema/` | nothing; four textual edits and no template |
-| 7 | `build-search-index.py` | `assets/search/index-de.json` and `index-en.json` — 186 records per edition, one per page and one per `<h2>` under its `<main>` | nothing; it reads the shipped pages and writes beside the assets |
+| 7 | `build-og-plates.py` | `assets/og/<route>.png` — one 1200 × 630 share plate per route, 12 today, drawn from the route's own signet | nothing; it renders rasters with `scripts/og-plate/` |
+| 8 | `build-search-index.py` | `assets/search/index-de.json` and `index-en.json` — 186 records per edition, one per page and one per `<h2>` under its `<main>` | nothing; it reads the shipped pages and writes beside the assets |
 
-Step 7 is the odd one and its position is the whole of its argument: it reads the
+Step 7 could stand anywhere: a share plate is drawn from a route's NAME and
+nothing above it changes what one looks like. It runs here for one reason — the
+index reads the shipped pages and the plates ship beside them, so a run that
+stops halfway never leaves a page advertising a picture that is not there yet.
+
+Step 8 is the odd one and its position is the whole of its argument: it reads the
 **shipped** pages rather than the patterns, because a search result carries an
 address and a pattern's address is not the page's — `beitrag-<slug>.html` is
 served at `/blog/<slug>.html`, and re-deriving that mapping would be
@@ -381,6 +396,17 @@ as a second file"). A one-file fix silently splits every long post into two.
 - **55 independent readers of `tokens.css`**, each building the path and
   regexing out the custom properties it cares about. 65 scripts name the file
   at all.
+
+**One shared module exists now, and it is the exception that says what the rule
+is for.** `og_meta.py` holds the Open Graph block — thirteen `<meta>` lines and
+their two comments — and `build-news.py`, `build-articles.py` and
+`build-stellen.py` all import it, as does `check-open-graph.py`. The duplication
+above is of *behaviour*, where five near-identical functions are five legitimate
+answers to slightly different questions. This is duplication of a *string*: four
+copies of one markup block is four places to forget a field, and the check that
+holds the thirteen authored copies to the generated ones has to compare against
+something. Read it as precedent for `cflib` rather than as an argument against
+it.
 
 *Migration.* A `scripts/cflib/` package with the four comment strippers, one
 parameterised HTML walker and one token table is the obvious answer, and it is

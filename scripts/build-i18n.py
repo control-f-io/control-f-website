@@ -138,6 +138,18 @@ ATTRS = ("alt", "title", "placeholder", "aria-label", "value", "label")
 ATTR_RE = re.compile(r'\b(%s)="([^"]*)"' % "|".join(ATTRS))
 DESC_RE = re.compile(r'(<meta\s+name="description"\s+content=")([^"]*)(")', re.I)
 
+# THE OPEN GRAPH COPY. Three of the share card's `content` attributes are
+# sentences and the other nine are data — a type, a size, an origin, a locale.
+# The three are matched by name for the same reason `description` is: `content`
+# is copy on a handful of tags and a number, a URL or a viewport on the rest.
+#
+# og:title and og:description are, by design, the page's own <title> and
+# description repeated — so they resolve against catalogue entries that already
+# exist for those two, and adding a share card to a page adds no translation
+# work at all. og:image:alt is one sentence shared by every page.
+OG_COPY = re.compile(
+    r'(<meta property="og:(?:title|description|image:alt)" content=")([^"]*)(">)', re.I)
+
 # A run of text is copy if it holds two adjacent letters. `01`, `·`, `—` and
 # `/` are drawing, not language, and asking the catalogue for them would fill it
 # with punctuation mapped to itself.
@@ -261,7 +273,8 @@ def translate(src, cat, missing):
             return m.group(0)
         USED.add(k)
         return m.group(1) + cat[k] + m.group(3)
-    return DESC_RE.sub(desc, doc)
+    doc = DESC_RE.sub(desc, doc)
+    return OG_COPY.sub(desc, doc)
 
 
 def translate_markup(chunk, cat, missing):
@@ -319,6 +332,18 @@ ALT_DE = re.compile(r'(<link rel="alternate" hreflang="de" href=")([a-z0-9-]+\.h
 ACTION = re.compile(r'(action="https://[^"/]+)/([a-z0-9-]+\.html#fehler")')
 ACTION_EN = r'\1/en/\2'
 
+# LOCALE. og:locale names the language the page is written in and
+# og:locale:alternate the one it has a twin in, so the two swap together and
+# the pair is written whole rather than patched — a page that flipped one and
+# not the other would tell a crawler it is German and also that German is the
+# translation. Pages that carry no share card carry neither line, which is why
+# this edit is allowed to match nothing; check-open-graph.py is what says which
+# pages those are.
+LOCALE = ('<meta property="og:locale" content="de_DE">\n'
+          '<meta property="og:locale:alternate" content="en_GB">',
+          '<meta property="og:locale" content="en_GB">\n'
+          '<meta property="og:locale:alternate" content="de_DE">')
+
 
 def once(doc, pattern, repl, name, what):
     doc, n = pattern.subn(repl, doc)
@@ -342,6 +367,12 @@ def structural(doc, name):
     doc, n = ACTION.subn(ACTION_EN, doc)
     if n > 1:
         sys.exit("%s: expected at most one cross-origin form action, found %d" % (name, n))
+
+    if LOCALE[0] in doc:
+        if doc.count(LOCALE[0]) != 1:
+            sys.exit("%s: %d og:locale pairs, expected one"
+                     % (name, doc.count(LOCALE[0])))
+        doc = doc.replace(LOCALE[0], LOCALE[1], 1)
     return doc
 
 

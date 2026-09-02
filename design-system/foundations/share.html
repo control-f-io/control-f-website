@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Share Plate — Control-F Design System</title>
+<link rel="icon" href="../assets/img/logo/cf-favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<script src="../assets/js/cf-signet.js" defer></script>
+<style>
+  /* Demo chrome only. Nothing here is part of the system.
+
+     THE PLATES ARE NOT SHOWN AS PNGs ON THIS PAGE, and that is deliberate
+     rather than lazy. The rasters under assets/og/ are generated output and
+     .gitignore keeps them out of the repository, so a reader looking at this
+     chapter on a fresh checkout would find a dozen broken images. What IS
+     always here is the model they are drawn from — cf-signet.js draws the same
+     arrangement from the same seed, and check-signet-parity.py is what says
+     "the same" is a fact rather than a hope. So the demo below is the mark, at
+     the plate's own composition, drawn live. */
+  /* EVERY PERCENTAGE BELOW IS THE PLATE'S OWN NUMBER, divided by 1200 or by
+     630. scripts/og-plate/plate.py puts the ground rule at y 545, the object's
+     centre at x 800 with the 120-unit viewBox at scale 4.3, and the lockup at
+     x 112 by 380 wide with one clear space above the rule. Written as ratios
+     they survive this demo being any width, and they are checkable against the
+     module by hand. */
+  .plate {
+    position: relative;
+    aspect-ratio: 1200 / 630;
+    background: linear-gradient(180deg, var(--wash-stops));
+    border: var(--stroke-1) solid var(--border-subtle);
+    overflow: hidden;
+  }
+  /* The ground rule: full bleed, and everything on the plate stands on it.
+     545 of 630 from the top. */
+  .plate::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 86.51%;
+    border-block-start: var(--stroke-1) solid var(--border-strong);
+    opacity: .55;
+  }
+  /* 112 / 1200 from the left, 380 / 1200 wide, its foot 490.24 of 630 down —
+     one lockup height clear of the rule, which is the 4X the Logo chapter asks
+     for. */
+  .plate__logo {
+    position: absolute;
+    left: 9.33%;
+    width: 31.67%;
+    bottom: 22.18%;
+  }
+  /* 516 px square at scale 4.3, centred on x 800, sitting so the field's front
+     vertex — 114 of the 120-unit viewBox — lands on the rule. */
+  .plate__mark {
+    position: absolute;
+    left: 66.67%;
+    translate: -50% 0;
+    width: 43%;
+    bottom: 9.4%;
+  }
+  .plate__mark .cf-signet { width: 100%; height: auto; display: block; }
+  .plates {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+    gap: var(--space-8);
+  }
+  .plates figure { margin: 0; }
+  .plates figcaption {
+    margin-top: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    color: var(--text-secondary);
+  }
+  /* The feed, at the size a card is actually seen at.
+     A share plate is not looked at; it is glanced past. */
+  .feed {
+    max-width: 26rem;
+    border: var(--stroke-1) solid var(--border-strong);
+    background: var(--grey-000);
+  }
+  .feed .plate { border: 0; border-block-end: var(--stroke-1) solid var(--border-subtle); }
+  .feed__text { padding: var(--space-4); display: grid; gap: var(--space-1); }
+  .feed__host {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .feed__title { font-weight: 600; }
+  .feed__desc { font-size: var(--text-sm); color: var(--text-secondary); }
+  .layers td:first-child { white-space: nowrap; }
+  .census td:nth-child(2) { font-family: var(--font-mono); font-size: var(--text-xs); }
+  /* A row about something that is NOT on the plate, or a route that was not
+     taken. Muted rather than struck through: it is a real decision with a
+     reason beside it, not a mistake. Same spelling as on The Sheet. */
+  .docs-table .gone { color: var(--text-muted); }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 18</p>
+    <h1>The Share Plate</h1>
+    <p>
+      Every other chapter is about a surface the reader arrives on. This one is about the
+      surface they meet <em>first</em>, somewhere else: the card a pasted link renders as, in a
+      Slack channel, a LinkedIn feed, a Teams chat, a message. Until 2026-09-02 the site
+      shipped no Open Graph metadata at all, so <strong>the most-seen brand surface there is
+      was blank</strong> — every address unfurled as a bare URL. This chapter is the plate that
+      goes there, the rule for which pages get one, and the one field still waiting on a
+      decision nobody in this repository can make.
+    </p>
+  </header>
+
+  <section class="docs-section" id="where">
+    <h2>Where this comes from</h2>
+    <p>
+      No plate in <code>assets/source/manual/</code> is about link previews — the format did not
+      exist when a brand manual's last chapter was stationery. So this is derived the way
+      <a href="print.html">The Sheet</a> is: out of what the manual <em>does</em> establish, and
+      out of the one component that was already built for it.
+      <a href="../components/signet.html">Signet</a> exists because an item sometimes needs a
+      face and has no photograph, and its own launch note named this gap first: <q>the one that
+      is still missing entirely — the plate a shared link renders on LinkedIn.</q>
+    </p>
+    <p>
+      The plate borrows nothing new. Its ground is the page wash off
+      <code>tokens.css</code>; its grid is the 2:1 lattice from
+      <a href="geometry.html">Geometry &amp; Lines</a>; its object is a signet at that lattice's
+      own cell; its light is the single lit face the mark already carries; its logotype is the
+      horizontal lockup at the clear space <a href="logo.html">Logo</a> asks for. Every
+      decision on it was made in another chapter.
+    </p>
+    <div class="docs-note">
+      <p>
+        A share plate is glanced past, not looked at. It renders somewhere between 400 and
+        600&nbsp;px wide in a feed, next to a headline the reader is actually reading. That is
+        the whole design brief: be recognisable at a third of size, in a column of other
+        people's pictures, without saying anything the text beside it already says.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="plate">
+    <h2>The plate</h2>
+    <p>
+      1200 × 630, the one size every consumer renders — LinkedIn, Slack, Discord, iMessage,
+      WhatsApp, Teams and Facebook all take 1.91:1, and X crops 16:9 out of the middle of it
+      rather than refusing it. Six layers, and they are the six on
+      <a href="materials.html">Materials</a>, minus the one a picture cannot have.
+    </p>
+    <div class="plates">
+      <figure>
+        <div class="plate">
+          <img class="plate__logo" src="../assets/img/logo/cf-logo-horizontal-black.svg" alt="">
+          <div class="plate__mark"
+               data-cf-signet="ueber-uns" data-cf-signet-lit></div>
+        </div>
+        <figcaption>seed · ueber-uns</figcaption>
+      </figure>
+      <figure>
+        <div class="plate">
+          <img class="plate__logo" src="../assets/img/logo/cf-logo-horizontal-black.svg" alt="">
+          <div class="plate__mark"
+               data-cf-signet="karriere" data-cf-signet-lit></div>
+        </div>
+        <figcaption>seed · karriere</figcaption>
+      </figure>
+      <figure>
+        <div class="plate">
+          <img class="plate__logo" src="../assets/img/logo/cf-logo-horizontal-black.svg" alt="">
+          <div class="plate__mark"
+               data-cf-signet="expertise" data-cf-signet-lit></div>
+        </div>
+        <figcaption>seed · expertise</figcaption>
+      </figure>
+    </div>
+    <p>
+      The three above are the live model, drawn by <code>cf-signet.js</code> at the plate's own
+      composition. The shipped plates are the same arrangements rasterised — same seed, same
+      lattice, same ramp, one lit face — with the isometric grid behind them, which a
+      documentation demo has no business faking in CSS.
+    </p>
+    <table class="docs-table layers">
+      <thead><tr><th>Layer</th><th>On the plate</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>01 Base wash</td><td>CF-Grau to white, top to bottom</td>
+          <td>The page's own ground, read out of <code>--wash-stops</code> rather than pasted, calc()s resolved.</td>
+        </tr>
+        <tr>
+          <td>02 Opaque</td><td>The three face greys</td>
+          <td><code>#DADADA</code> / <code>#CFCFCF</code> / <code>#C4C4C4</code>, the manual's isometric stack. Light from the upper left.</td>
+        </tr>
+        <tr class="gone">
+          <td>03 Frosted glass</td><td>Withdrawn</td>
+          <td>Glass is a thing you see <em>through</em>. There is nothing behind a raster.</td>
+        </tr>
+        <tr>
+          <td>04 Contour</td><td>The object, the empty plots, the ground rule, the lattice</td>
+          <td>Hairlines at four alphas. The grid fades in downwards, so the plate has a sky and a ground rather than graph paper over both.</td>
+        </tr>
+        <tr>
+          <td>05 Light</td><td>One lit face, the family's ramp on the 63.43° rake</td>
+          <td>One lime moment per screen, and a plate is a screen. The frontmost full-height tower carries it, which is the mark's own rule.</td>
+        </tr>
+        <tr>
+          <td>06 Text</td><td>The horizontal lockup, and nothing else</td>
+          <td>Drawn as outlines, at 4X clear space from the ground rule and from the object. See <a href="#no-headline">below</a> for why there is no headline.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="no-headline">
+    <h2>The plate carries the mark, not the headline</h2>
+    <p>
+      Almost every share card on the web sets the page's title inside the picture. This one does
+      not, and it is a decision rather than an omission.
+    </p>
+    <p>
+      Every consumer of <code>og:image</code> renders <code>og:title</code> as text immediately
+      beside the image — at the reader's own size, in their own typeface, wrapped by their own
+      client. A plate that also sets the title publishes the same sentence twice, the second
+      time at a size nobody chose and hyphenated by nobody. This site's headlines are German
+      compounds — <span lang="de">Flexibilitäts-Asset</span>,
+      <span lang="de">Verteilnetz</span>, <span lang="de">Musterausschreibung</span> — and a
+      1200&nbsp;px plate breaks them badly and silently, in a raster no check can read.
+    </p>
+    <p>
+      So the plate does the one thing the text beside it cannot: it says <em>whose</em> link this
+      is before a word is read, and it says it differently for every route. Below is the card as
+      it actually arrives, at feed width, with the title where the title belongs.
+    </p>
+    <div class="feed">
+      <div class="plate">
+        <img class="plate__logo" src="../assets/img/logo/cf-logo-horizontal-black.svg" alt="">
+        <div class="plate__mark" data-cf-signet="landing-page" data-cf-signet-lit></div>
+      </div>
+      <div class="feed__text">
+        <span class="feed__host">control-f.io</span>
+        <span class="feed__title">Control-F — Find the answers. Make the decisions. Build the future.</span>
+        <span class="feed__desc" lang="de">Weniger ungeplante Stillstände, mehr Durchsatz — aus Daten, die Sie schon haben.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="rasteriser">
+    <h2>Why there is a rasteriser in this repository</h2>
+    <p>
+      Every consumer of <code>og:image</code> requires a raster. Not one of them accepts SVG.
+      This repository has no build dependencies and the house rule is that it stays that way, so
+      <a href="../components/signet.html#launch">Signet</a> costed three routes out of that, and
+      this is the one that was taken.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Route</th><th>Cost</th><th>Taken</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>A rasteriser in <code>scripts/</code></td>
+          <td>About six hundred lines the system owns forever. No dependency, no runtime, no drift.</td>
+          <td><strong>Yes</strong></td>
+        </tr>
+        <tr class="gone">
+          <td>The Worker renders it</td>
+          <td>Moves the cost to runtime — and makes a crawler's <em>first</em> fetch a cold render. LinkedIn caches what it gets on that first fetch for weeks, so one cold miss is a card that stays blank.</td>
+          <td>No</td>
+        </tr>
+        <tr class="gone">
+          <td>A fixed set, exported by hand</td>
+          <td>No machinery at all, and it stops being true the day an eleventh post is published.</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      <code>zlib</code> and <code>crc32</code> are in the standard library, so writing the PNG
+      was the easy half. The other half is a scanline fill with sixteen sub-scanlines a row,
+      exact fractional cover in x, even-odd winding, hairline strokes merged with
+      <code>max()</code> so a corner is not painted twice, one linear gradient, and a flattener
+      for the logo's Bézier outlines. It renders a plate in about a second and a half.
+    </p>
+    <table class="docs-table census">
+      <thead><tr><th>File</th><th>Does</th><th>Standard library only</th></tr></thead>
+      <tbody>
+        <tr><td><code>scripts/og-plate/png.py</code></td><td>PNG, colour type 2, per-row filter chosen by SAD</td><td><code>zlib</code>, <code>struct</code></td></tr>
+        <tr><td><code>scripts/og-plate/raster.py</code></td><td>coverage, fills, strokes, gradient, SVG paths</td><td><code>math</code>, <code>re</code></td></tr>
+        <tr><td><code>scripts/og-plate/signet.py</code></td><td>the mark's model, ported from <code>cf-signet.js</code></td><td>—</td></tr>
+        <tr><td><code>scripts/og-plate/plate.py</code></td><td>what stands where on the 1200 × 630</td><td><code>os</code>, <code>re</code></td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <p>
+        <strong>The signet is now drawn twice, and that is the risk this chapter adds to the
+        system.</strong> The browser's copy is <code>cf-signet.js</code>; the crawler's is
+        <code>og-plate/signet.py</code>, because a crawler runs no script at all. Two
+        implementations of one model is the drift a design system notices about a year late,
+        with a page and its own share card showing different marks the whole time.
+        <code>scripts/check-signet-parity.py</code> is what stops it: the lattice, the multiset,
+        the ramp and the three faces are compared against the JavaScript and the CSS on every
+        run, and where <code>node</code> is present every arrangement that ships is generated in
+        both languages and diffed. The hash was chosen for this — <code>cf-signet.js</code> says
+        it picked FNV-1a because it <q>gives the same answer in Python</q>.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="which">
+    <h2>Which pages get one</h2>
+    <p>
+      A share card is for a link somebody pastes on purpose, which is the same set as the pages
+      that want to be found. So the rule is written out of two things the page already says
+      about itself, and <code>scripts/check-open-graph.py</code> holds it in both directions:
+    </p>
+    <pre class="docs-code">a page carries Open Graph metadata
+EXACTLY WHEN it has a &lt;meta name="description"&gt; and is not `noindex`.</pre>
+    <table class="docs-table">
+      <thead><tr><th>Page</th><th>Card</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>The <strong>12</strong> routes with a description</td><td><strong>Yes</strong></td><td>Landing, Expertise, Über uns, News, a topic, an article, Karriere, an opening, Kontakt, Bewerbung, Datenschutz, Impressum.</td></tr>
+        <tr class="gone"><td><code>404.html</code></td><td>None</td><td>No description, and it is served with a 404 status. A polished card over a dead address is a lie.</td></tr>
+        <tr class="gone"><td><code>kontakt-danke</code>, <code>bewerbung-danke</code></td><td>None</td><td><code>noindex</code>. The page you see after sending something; a link to it is a link to nothing.</td></tr>
+        <tr class="gone"><td><code>suche</code>, <code>suche-leer</code></td><td>None</td><td><code>noindex, follow</code> — and a second argument on top. Their <code>&lt;title&gt;</code> quotes the reader's own query, and <code>og:title</code> would be a fourth place that text is echoed into, on the one surface where the escaping is somebody else's crawler's problem.</td></tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>The seed is the route, not the file.</strong> <code>karriere-leer.html</code> is
+      /karriere with nothing open — the same address in another state — so it carries karriere's
+      mark. Both language editions of a page share one plate too: the mark stands for the thing,
+      not for the language it is read in, and a reader who has seen one edition's card should
+      recognise the other's.
+    </p>
+  </section>
+
+  <section class="docs-section" id="markup">
+    <h2>The markup</h2>
+    <p>
+      Thirteen pattern pages carry this as authored markup; <code>build-news.py</code>,
+      <code>build-articles.py</code> and <code>build-stellen.py</code> write it for the topic
+      pages, the reading pages and the openings, whose title and description they own. All four
+      emit it from <code>scripts/og_meta.py</code>, and the check re-derives every line and
+      compares — so the authored copies are provably the same markup as the generated ones
+      rather than merely similar to them.
+    </p>
+    <pre class="docs-code">&lt;<span class="tag">meta</span> <span class="attr">property</span>=<span class="val">"og:type"</span> <span class="attr">content</span>=<span class="val">"website"</span>&gt;
+&lt;<span class="tag">meta</span> <span class="attr">property</span>=<span class="val">"og:site_name"</span> <span class="attr">content</span>=<span class="val">"Control-F"</span>&gt;
+&lt;<span class="tag">meta</span> <span class="attr">property</span>=<span class="val">"og:locale"</span> <span class="attr">content</span>=<span class="val">"de_DE"</span>&gt;
+&lt;<span class="tag">meta</span> <span class="attr">property</span>=<span class="val">"og:locale:alternate"</span> <span class="attr">content</span>=<span class="val">"en_GB"</span>&gt;
+&lt;<span class="tag">meta</span> <span class="attr">property</span>=<span class="val">"og:title"</span> <span class="attr">content</span>=<span class="val">"…the page's own &lt;title&gt;…"</span>&gt;
+&lt;<span class="tag">meta</span> <span class="attr">property</span>=<span class="val">"og:description"</span> <span class="attr">content</span>=<span class="val">"…the page's own description…"</span>&gt;
+&lt;<span class="tag">meta</span> <span class="attr">property</span>=<span class="val">"og:image"</span> <span class="attr">content</span>=<span class="val">"https://…/design-system/assets/og/ueber-uns.png"</span>&gt;
+&lt;<span class="tag">meta</span> <span class="attr">property</span>=<span class="val">"og:image:type"</span> <span class="attr">content</span>=<span class="val">"image/png"</span>&gt;
+&lt;<span class="tag">meta</span> <span class="attr">property</span>=<span class="val">"og:image:width"</span> <span class="attr">content</span>=<span class="val">"1200"</span>&gt;
+&lt;<span class="tag">meta</span> <span class="attr">property</span>=<span class="val">"og:image:height"</span> <span class="attr">content</span>=<span class="val">"630"</span>&gt;
+&lt;<span class="tag">meta</span> <span class="attr">property</span>=<span class="val">"og:image:alt"</span> <span class="attr">content</span>=<span class="val">"…one sentence, the same on every plate…"</span>&gt;
+&lt;<span class="tag">meta</span> <span class="attr">name</span>=<span class="val">"twitter:card"</span> <span class="attr">content</span>=<span class="val">"summary_large_image"</span>&gt;</pre>
+    <table class="docs-table">
+      <thead><tr><th>Field</th><th>Where its value comes from</th></tr></thead>
+      <tbody>
+        <tr><td><code>og:title</code></td><td>The page's own <code>&lt;title&gt;</code>, verbatim. A card that says something its own page does not is a card that goes stale on the first edit — and it costs no translation, because the string is already in the catalogue.</td></tr>
+        <tr><td><code>og:description</code></td><td>The page's own <code>meta[name=description]</code>, on the same argument.</td></tr>
+        <tr><td><code>og:locale</code></td><td>The edition. <code>build-i18n.py</code> swaps the pair whole, so a page cannot say it is German and that German is its translation.</td></tr>
+        <tr><td><code>og:image</code></td><td>Absolute, where every other address on the page is relative — LinkedIn among others does not resolve a relative one. The origin is <code>SITE_ORIGIN</code> in <code>wrangler.toml</code>, read rather than typed.</td></tr>
+        <tr><td><code>og:image:alt</code></td><td>One sentence describing what the picture <em>is</em>. A reader who cannot see it is owed that; they are not owed the seed.</td></tr>
+        <tr><td><code>twitter:card</code></td><td>The only <code>twitter:*</code> tag here. X reads Open Graph as its fallback for every other field, so repeating them would be three strings maintained twice — but without this one a large embed degrades to an 80 × 80 thumbnail on Discord and to the small card on X.</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <p>
+        <strong><code>og:url</code> is deliberately absent, and it is the one field the domain
+        cutover unblocks.</strong> Two public copies of this site are live while the move off
+        Wix is pending — GitHub Pages is canonical and the Worker deployment is
+        <code>noindex</code>ed against it. An <code>og:url</code> names one of them, and it
+        would name that one on both; every consumer falls back to the address it actually
+        fetched, which is right on either copy. When
+        <code>wrangler.toml</code>'s <code>SITE_ORIGIN</code> goes, this is the line that
+        arrives with it.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="next">
+    <h2>What this is one slice of</h2>
+    <p>
+      <strong>12</strong> marks ship today, one per route, and the machinery underneath them takes any seed
+      at all. Three surfaces are one loop away and are not built yet, in the order they are
+      worth building:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Surface</th><th>Seed</th><th>What it needs</th></tr></thead>
+      <tbody>
+        <tr><td>A plate per post</td><td>the post's slug</td><td>A loop over <code>content/news/</code> in <code>build-og-plates.py</code>. An article is the most-pasted thing this site publishes and today all ten share one mark.</td></tr>
+        <tr><td>A plate per opening</td><td>the role's slug</td><td>The same loop over the Stellen register — with the wrinkle that the openings come out of Notion, so a plate has to exist before a crawler asks for it.</td></tr>
+        <tr><td>A plate per topic</td><td>the topic's slug</td><td>One argument in <code>build-news.py</code>. Six topics, six marks.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Do and don't</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Seed a plate with a path, a slug or an id — something stable that nobody edits for style. Renaming a thing must not redraw its mark.</li>
+          <li>Let <code>og:title</code> and <code>og:description</code> stay the page's own two strings. Writing a third and a fourth is how a card starts describing a page that has since changed.</li>
+          <li>Keep the object and the logotype inside the middle 1200 × 470. Consumers crop, and those are the two things that must survive it.</li>
+          <li>Run <code>build-og-plates.py --check</code> the way you run every other generator's. A plate edited by hand is a plate the next build silently reverts.</li>
+          <li>Read the origin out of <code>wrangler.toml</code>. It is the one place this repository records where the site lives.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Don't set the headline inside the plate. It is already beside it, at a size the reader chose, and a German compound broken by a raster is broken where no check can read it.</li>
+          <li>Don't draw a frame inset from the plate's edge. It is the one graphic that looks <em>broken</em> when a consumer crops it — full-bleed, or nothing.</li>
+          <li>Don't give a <code>noindex</code> page a card, and don't give a card to a page with no description. The two halves of that rule are the page's own words.</li>
+          <li>Don't light two faces to make the lime read at feed size. One lime moment is the rule, and the answer to a small light is a bigger object.</li>
+          <li>Don't let a plate past 300&nbsp;KB. WhatsApp soft-caps around there and downgrades quietly, on the one surface nobody tests.</li>
+          <li>Don't add a second implementation of anything the plate shares with a page without a parity check beside it. The signet has one for a reason.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>

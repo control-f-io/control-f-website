@@ -56,12 +56,17 @@ stdlib only, no build step, no dependency. Same python3 that serves the pages.
 import argparse
 import importlib.util
 import json
+import os
 import pathlib
 import re
 import sys
 import textwrap
 import unicodedata
 from html import unescape
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import og_meta                                                    # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PATTERNS = ROOT / "design-system" / "patterns"
@@ -469,9 +474,24 @@ def head(post, edition, pad):
     title = post["titel"] if edition == "de" else post["title"]
     lead = (post["text_de"] if edition == "de" else post["text_en"])[0][1]
     desc = summary(lead)
-    return ('%s<title>%s — Control-F</title>\n'
-            '%s<meta name="description" content="%s">'
-            % (pad, esc(title), pad, esc(desc).replace('"', "&quot;")))
+    shown = "%s — Control-F" % esc(title)
+    quoted = esc(desc).replace('"', "&quot;")
+    # THE SHARE CARD IS WRITTEN HERE FOR THE SAME REASON THE TITLE IS. og:title
+    # and og:description are this page's own two strings said again, and on a
+    # reading page both of them are the post's. Left in the authored specimen
+    # outside this region, every one of the ten reading pages would advertise
+    # itself as "Digitale Zwillinge im Energiesektor".
+    #
+    # EVERY POST SHARES /blog's PLATE TODAY, and this is the one place in the
+    # system where that is a compromise rather than a rule: the signet was built
+    # to be seeded on a post's slug — components/signet.html says so in as many
+    # words — so a mark per post is one argument here and a loop over the
+    # archive in build-og-plates.py. It is the next slice, not this one, and it
+    # is named on foundations/share.html. → scripts/og_meta.py
+    return "\n".join(pad + line for line in (
+        ["<title>%s</title>" % shown,
+         '<meta name="description" content="%s">' % quoted]
+        + og_meta.block(shown, quoted, "blog-artikel", edition)))
 
 
 def summary(lead, limit=165):
