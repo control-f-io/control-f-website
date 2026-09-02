@@ -992,8 +992,8 @@
         <tr><td><code>--foil-stops</code></td><td>the lit half's four stops plus two arc waypoints, without an angle</td><td>the material, so the rake can change without restating it</td></tr>
         <tr><td><code>--foil-ink-stops</code></td><td>the shadow half's three stops plus two arc waypoints, without an angle</td><td>the same, for the 800 band</td></tr>
         <tr><td><code>--foil-glas-n</code>, <code>--foil-sky-n</code>, <code>--foil-ink-sky-n</code></td><td>the renormalised stop positions as bare numbers</td><td>so each waypoint's position is the average of its leg's ends rather than a third picked figure — see <a href="#the-arc">The arc</a></td></tr>
-        <tr><td><code>--spectrum-hot</code></td><td>18 % — the white hot spot</td><td>shared by both foil gradients; not used alone</td></tr>
-        <tr><td><code>--spectrum-cool</code></td><td>64 % — where Sky takes over</td><td>shared by both foil gradients; not used alone</td></tr>
+        <tr><td><code>--spectrum-hot</code></td><td>18 % — the white hot spot</td><td>shared by both foil gradients; not used alone. The only two positions in the family with no derivation — see <a href="#plate">What the plate actually draws</a></td></tr>
+        <tr><td><code>--spectrum-cool</code></td><td>64 % — where Sky takes over</td><td>shared by both foil gradients; not used alone. Equal to <code>--rake-far-n</code>, and equal to Sky's position read from the top of the designer's own column; deliberately not bound to either — see <a href="#plate">What the plate actually draws</a></td></tr>
         <tr><td><code>--surface-page-wash</code></td><td>linear 180°, the foil reversed at chroma 0.005</td><td>the page itself — <code>.page-wash</code>. See <a href="#wash">The page wash</a></td></tr>
         <tr><td><code>--wash-stops</code></td><td>the wash's four stops, without an angle</td><td>the same split as the two foils, so the oklab branch restates nothing. Its three chromatic hexes are literals with a stated derivation, re-derived on every run by <code>scripts/check-wash-derivation.py</code> — the gradient gate exempts this ramp from both of its rules</td></tr>
         <tr><td><code>--grain</code></td><td>SVG fractal noise tile</td><td>the second half of the wash's dithering, at 8 %; the same filter is inlined in all three <a href="field.html#wallpaper">wallpapers</a>, at 4 % on the two dark ones. See <a href="#wash">The page wash</a></td></tr>
@@ -1124,6 +1124,72 @@
       artwork does across a single isometric plane — lime at the lit edge, a white hot spot,
       then cyan, blue and violet in the falloff.
     </p>
+    <h3 id="plate">What the plate actually draws</h3>
+    <p>
+      That sentence names a picture, and for as long as it has been written nothing read the
+      picture. The plate carries a narrow ramp column at its right edge — 654&nbsp;px of the
+      spectrum drawn as <em>one continuous material</em>, highlight to shadow. Sampled and
+      matched against the palette by OKLab distance, every stop on it is a palette value:
+    </p>
+    <table class="docs-table" id="plate-column">
+      <thead><tr><th>Stop</th><th>Position on the column</th><th>Nearest approach</th></tr></thead>
+      <tbody>
+        <tr><td><code>--cf-weiss</code></td><td>0.00&nbsp;%</td><td>dEok 0.0116 — the head, and it is <em>before</em> lime</td></tr>
+        <tr><td><code>--cf-lime</code></td><td>21.29&nbsp;%</td><td>dEok 0.0050</td></tr>
+        <tr><td><code>--cf-glas</code></td><td>44.41&nbsp;%</td><td>dEok 0.0119</td></tr>
+        <tr><td><code>--cf-sky</code></td><td>64.47&nbsp;%</td><td>dEok 0.0042 — core Sky, not <code>--sky-300</code></td></tr>
+        <tr><td><code>--cf-violett</code></td><td>81.16&nbsp;%</td><td>dEok 0.0123 — core Violett, not <code>--violett-300</code></td></tr>
+        <tr><td><code>--violett-900</code></td><td>98.93&nbsp;%</td><td>dEok 0.0041 — the tail</td></tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>Schwarz never appears on it</strong>, at dEok 0.1518 — an order of magnitude
+      further out than the worst stop that <em>is</em> on the column. That is the one row
+      worth having measured, because the shadow half's rule was argued from arithmetic alone:
+      do not complete <code>--gradient-foil-ink</code> by adding black at 0&nbsp;%, since a
+      0.426 span on a ramp whose whole claim is a 0.115 one reads as a fade to black. The
+      designer's own column makes the same argument in paint — it bottoms out in
+      <code>--violett-900</code> and stops. The two foils are the middle of this column,
+      split; the plate draws it whole, which is why they are one material rather than two
+      ramps asserted to be related.
+    </p>
+    <p>
+      <strong>Two places the implementation differs, and neither is a defect.</strong> The
+      plate opens on Weiss and lime is its first <em>coloured</em> stop;
+      <code>--spectrum-stops</code> puts Weiss <em>after</em> lime at
+      <code>--spectrum-hot</code>, on the authority of the hero artwork rather than of this
+      plate — lime at the lit edge, then the hot spot. And renormalised onto the family's own
+      axis (lime&nbsp;=&nbsp;0, Violett&nbsp;=&nbsp;100) the plate puts Glas at 38.6&nbsp;%
+      and Sky at 72.1&nbsp;%, where the system takes both from the rakes measured off the
+      process-card Figma dump: <code>--rake-near</code> at 32 and <code>--rake-far</code> at
+      64. Two of the designer's own sources disagree, and moving the ramp to the plate's
+      figures would move <code>--gradient-spectrum</code>, both foils and the page wash's
+      three literals in one step. It is a brand decision with a page-wide blast radius, not a
+      correction to make on the way past. Sky landing at 64.47&nbsp;% <em>of the column</em>
+      is what makes the coincidence worth naming out loud: 64 is that number read from the
+      top of the plate, and the family's axis starts at lime.
+    </p>
+    <div class="docs-demo docs-demo--plain">
+      <span class="plate-column" role="img"
+            aria-label="The spectrum plate's ramp column: white at the top, then lime, Glas, Sky, Violett and a violett-900 shadow at the foot."></span>
+    </div>
+    <p>
+      That is the column, drawn by the system at the positions in the table — six palette
+      values and the two arc waypoints its turning legs owe, at 180° because the plate draws
+      it vertically. It is a quotation rather than a token: nothing in the system consumes
+      it, and a token nothing consumes is a second statement of a ramp waiting to drift from
+      the first. The page had cited this picture and shown <code>--gradient-spectrum</code>
+      in its place — the middle of the column, at the 300 tints, at the designer's 132.36° —
+      for as long as the sentence has existed.
+    </p>
+    <p>
+      <code>scripts/check-spectrum-plate.py</code> is the measurement made executable. It
+      finds the column on the plate rather than being told where it is, reads the palette out
+      of <code>tokens.css</code> rather than carrying a copy, and holds the table above to
+      what the picture says — so the prose and the source material cannot drift apart the way
+      they had.
+    </p>
+    <h3>The band, and the hot spot</h3>
     <p>
       Iridescence comes from hue travel inside a <em>narrow luminance band</em>, not from
       more saturation. Sky and Violett are therefore taken at their 300 tints, which keeps
