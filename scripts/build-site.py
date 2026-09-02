@@ -276,6 +276,29 @@ def assets(text, name, up, assets_to):
 LINK = re.compile(r'(href|src|poster)="((?:\.\./|en/)?)([a-z0-9][a-z0-9-]*\.html)((?:[?#][^"]*)?)"')
 
 
+def folder_address(target):
+    """Where a content page ships, by the FOLDER naming rule alone — not by
+    looking the file up in `table`.
+
+    A specimen that names a post, an opening or a topic by its real slug
+    (blog-artikel.html's tag list, news.html's, karriere-stelle.html's own
+    breadcrumb) is naming a page build-news.py, build-jobs.py or
+    build-articles.py write, not one this script ships itself — `ship()` only
+    finds it via `PATTERNS.glob(prefix + "*.html")`, so the link resolves only
+    once that generator has already run in this checkout. `table` still owns
+    which pages this run actually writes; this is only the address a
+    FOLDER-prefixed name always resolves to, whether or not that generator has
+    run yet, so a specimen pointing at a topic nobody has written a post for
+    this run still gets the address that post's page will ship at, not the
+    pattern name it would 404 under."""
+    edition = "en/" if target.startswith("en/") else ""
+    name = target[len(edition):]
+    for prefix, folder in FOLDER:
+        if name.startswith(prefix):
+            return edition + folder + name[len(prefix):]
+    return None
+
+
 def links(text, src, table):
     """Every reference to a pattern page, rewritten to where that page ships."""
     edition = "en/" if src.startswith("en/") else ""
@@ -291,9 +314,10 @@ def links(text, src, table):
             target = name
         else:
             target = edition + name
-        if target not in table:
+        dest = table.get(target) or folder_address(target)
+        if dest is None:
             return m.group(0)
-        return '%s="%s%s"' % (attr, posixpath.relpath(table[target], here or "."), frag)
+        return '%s="%s%s"' % (attr, posixpath.relpath(dest, here or "."), frag)
 
     return LINK.subn(one, text)
 
