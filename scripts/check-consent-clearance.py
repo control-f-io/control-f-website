@@ -107,7 +107,43 @@ check here is:
      70vh said nothing about the nav, which is fixed and present at every
      height: at 568 x 320 it engaged at 224 px and left 12. The value must
      subtract var(--nav-height), so whatever else it takes, the other fixed
-     layer is not it.
+     layer is not it. It must carry a dvh line on top of the vh one, because
+     the box is bottom-anchored and clipped rather than scrolled. And it must
+     stand on `.cf-consent` itself rather than inside the height query, which
+     is the clause's third revision and the one this note is about.
+
+     A BACKSTOP BEHIND A QUERY IS NOT A BACKSTOP, and the query it was behind
+     is gated on the one quantity that stands still while the banner grows.
+     Every term of this banner's height is rem -- the title, the body, the
+     three controls, the block padding -- so what makes it outgrow the screen
+     is the reader's TEXT SIZE. `@media (max-height: 35rem)` cannot see that:
+     rem in a media query resolves against the root's INITIAL font size and
+     never against the reader's, so 35rem is 560 px at every setting there has
+     ever been, which is the distinction check-rem-floor.py exists for. The
+     register in tokens.css says the opposite in as many words -- "in rem for
+     the same reason as the widths, and it is the case where the unit matters
+     most" -- and that sentence is the fault written down as a justification.
+
+     Measured on patterns/landing-page.html, first load, nothing dismissed;
+     Chromium 141 and WebKit 26.5 agree to the decimal on all 60 cells. CLEAR
+     is the band between the two fixed layers, a constant no scroll offset
+     moves, and the CTA is .cf-hero's one button:
+
+         viewport    root   banner   CLEAR    CTA      after
+         320 x 568    16     353.8   130.2     48      130.2  (cap inert)
+         320 x 568    20     466.9    -3.9     60       90.0
+         320 x 568    24     644.4  -202.4     72      108.0
+         320 x 812    24     644.4    41.6     72      108.0
+         360 x 640    24     590.1   -76.1     72      108.0
+
+     At 320 x 568 and a 24 px default the banner is 113 % of the screen and
+     its top edge is 76 px ABOVE the viewport, so the notice's own heading and
+     the two links in its sentence are off screen with no scroll that reaches
+     them -- a fixed box that nothing clipped. On the other rows the nav is
+     clear and the button is not, which is the landscape finding above arrived
+     at through type instead. Every 16 px row is byte-identical after the
+     move, at all eight widths from 320 to 1440: the cap engages on none of
+     them.
 
 THE SIXTH LINK, AND IT IS A THIRD CONSUMER RATHER THAN A SIXTH TEST OF THE
 FIRST. Everything above is about the hero. The banner is fixed to the viewport's
@@ -407,23 +443,46 @@ else:
                 "of its own. That is the narrow screen's answer on the short screen's "
                 "axis.\n    flex: %s" % (SHORT, " ".join(flex.group(1).split()))
             )
-    # c · the cap says what it leaves
-    cap = re.search(r"\.cf-consent\s*\{([^}]*)\}", short_decls)
+    # c · the cap is the component's, unconditional, and says what it leaves
+    if re.search(r"\.cf-consent\s*\{[^}]*max-height", short_decls):
+        failures.append(
+            "components.css %s: the banner's max-height backstop is inside the "
+            "height query again. Every term of this banner's height is rem — title, "
+            "body, three controls, block padding — so what makes it outgrow the "
+            "screen is the reader's text size, and rem in a MEDIA QUERY resolves "
+            "against the root's INITIAL font size, never against the reader's: "
+            "35rem is 560 px at every setting there has ever been. Measured at "
+            "320 x 812 with a 24 px default, this query not matching: 644 px of "
+            "banner and 41.6 px of clear band against a 72 px call to action. The "
+            "cap belongs on .cf-consent itself, where nothing gates it." % SHORT
+        )
+    # The unconditional rule, read with comments stripped so prose about a cap
+    # can never stand in for one.
+    cap = re.search(r"^\.cf-consent\s*\{(.*?)^\}",
+                    strip_comments(components), re.S | re.M)
     cap_value = re.search(r"max-height\s*:\s*([^;]+)", cap.group(1)) if cap else None
     if not cap_value:
         failures.append(
-            "components.css %s: the banner has no max-height backstop left. It is "
-            "rarely reached now and it is still what holds the line at 320 px of "
-            "screen." % SHORT
+            "components.css: `.cf-consent` declares no max-height backstop. It is "
+            "rarely reached — inert at a 16 px root at every width measured, 320 to "
+            "1440 — and it is still what holds the line at 320 px of screen and at "
+            "the enlarged text sizes where this banner is 644 px tall."
         )
     elif "--nav-height" not in cap_value.group(1):
         failures.append(
-            "components.css %s: the banner's max-height does not subtract "
+            "components.css: the banner's max-height does not subtract "
             "var(--nav-height).\n    max-height: %s\n    A cap has to be stated "
             "against what it LEAVES. A bare share of the screen says nothing about "
             "the nav, which is the other fixed layer and is there at every height: "
             "70vh engaged at 568 x 320 and left 12 px of page between the two of them."
-            % (SHORT, " ".join(cap_value.group(1).split()))
+            % " ".join(cap_value.group(1).split())
+        )
+    elif "dvh" not in cap_value.group(0) and "dvh" not in (cap.group(1) or ""):
+        failures.append(
+            "components.css: `.cf-consent`'s max-height carries no dvh line. The box "
+            "is bottom-anchored and clipped rather than scrolled, so iOS Safari's "
+            "chrome-collapsed vh lets it grow past the visible screen and pushes its "
+            "top edge into the band the cap reserves."
         )
 
 # ---- 6 · the pinned stage reserves the layer over its foot ----------------

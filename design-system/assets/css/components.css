@@ -9006,6 +9006,60 @@ a.cf-calendar__day > time,
   border-image: var(--gradient-foil) 1;
   transition: transform var(--duration-base) var(--ease-out),
               opacity   var(--duration-base) var(--ease-out);
+  /* THE BACKSTOP IS THE COMPONENT'S, NOT THE SHORT SCREEN'S, and for two
+     revisions it was the short screen's. The cap below is unchanged — the nav
+     band, one control at .cf-btn's own 3rem floor, and a rung of air, stated
+     against what it LEAVES rather than as a share of the screen — and what
+     moved is only the condition it was behind.
+
+     WHY IT CANNOT BE BEHIND A HEIGHT QUERY. What makes this banner outgrow the
+     screen is the reader's text size: every term of its height is rem — the
+     title, the body, the three controls, the block padding — so at a 24 px
+     browser default the banner is 644 px where it is 354 at 16. The screen it
+     has to fit in does not move with that setting, and `@media (max-height:
+     35rem)` cannot see it either: rem in a MEDIA QUERY resolves against the
+     root's INITIAL font size and never against the reader's, which is the
+     distinction check-rem-floor.py exists for. So the one query that carried
+     this cap was gated on the only quantity in the arithmetic that stands
+     still while the banner grows.
+
+     Measured on patterns/landing-page.html, first load, nothing dismissed,
+     Chromium 141 and WebKit 26.5 agreeing to the decimal at all 60 cells —
+     CLEAR is the band between the two fixed layers, which is a constant no
+     scroll offset moves, and the CTA is .cf-hero's one button:
+
+       viewport    root   banner   CLEAR   CTA      CLEAR after this rule
+       320 x 568    16     353.8   130.2    48      130.2  (cap inert)
+       320 x 568    20     466.9    -3.9    60       90.0
+       320 x 568    24     644.4  -202.4    72      108.0
+       320 x 812    24     644.4    41.6    72      108.0
+       360 x 640    24     590.1   -76.1    72      108.0
+
+     At 320 x 568 and a 24 px default the banner is 113 % of the screen and its
+     top edge sits 76 px ABOVE the viewport: the notice's own heading and the
+     two links inside its sentence are off screen with no scroll that reaches
+     them, because the box is `position: fixed` and was clipped by nothing. On
+     the other three rows the nav is clear and the hero's one call to action is
+     not: there is no scroll offset at which it can be pressed whole, which is
+     the same finding the short-screen block was written for, arrived at
+     through type rather than through landscape.
+
+     INERT AT THE DEFAULT SIZE, EVERYWHERE, which is what makes it a backstop
+     and not a layout rule. Re-measured at 320/360/390/414/768/1024/1280/1440
+     across roots 16/20/24: every 16 px row is byte-identical to before —
+     scrollHeight equals clientHeight, so the cap engages on none of them — and
+     no cell above 414 px of width engages at any root either. It fires only
+     where the banner had already outgrown the room it is allowed.
+
+     vh FIRST AND dvh ON TOP, the pair .cf-nav__list[data-open="true"] carries
+     for the identical shape: this box is bottom-anchored and clipped rather
+     than scrolled, so iOS Safari's chrome-collapsed `vh` would let it grow
+     past the true visible screen and push its top edge into the very band the
+     cap reserves. A browser with no dvh keeps the line above.
+     → scripts/check-consent-clearance.py link 5c */
+  max-height: calc(100vh - var(--nav-height) - 3rem - var(--space-6));
+  max-height: calc(100dvh - var(--nav-height) - 3rem - var(--space-6));
+  overflow-y: auto;
 }
 .cf-consent[hidden] { display: none; }
 /* AND IT DOES NOT PRINT, which is not a nicety — a fixed box in paged media is
@@ -9222,44 +9276,40 @@ a.cf-calendar__day > time,
 
    Measured after, same viewports: 191 px and 94-119 px of CLEAR from 667 up,
    and 219 / 72 at 600, where the row cannot hold three, the ghost still wraps
-   and the cap below is what finishes the job.
+   and the cap on .cf-consent is what finishes the job.
    The pair is never squeezed to make room: both shrink by the same 58 px and
    floor at the 13rem min-width, 225 px against a 208 px floor at the narrowest
    width the three share a row. Above 900 the banner is already two columns and
    only the padding applies — 144 to 128 at 1024 x 400.
 
-   AND THE CAP IS NOW STATED AGAINST WHAT IT LEAVES. 70vh was a share of the
+   AND THE CAP IS STATED AGAINST WHAT IT LEAVES. 70vh was a share of the
    screen and said nothing about the nav, which is the other fixed layer and is
    there at every height: at 568 x 320 the cap engaged at 224 and left 12 px.
-   The terms below are the two things that must survive it — the nav band and
-   one control, .cf-btn's own 3rem min-height, plus a rung of air — so the
-   backstop leaves 72 px there instead of 12. It is still a backstop and still
-   rarely reached: at 375 tall it sits at 219 against a banner of 191.
+   Its terms are the two things that must survive it — the nav band and one
+   control, .cf-btn's own 3rem min-height, plus a rung of air — so the backstop
+   leaves 72 px there instead of 12. It is still a backstop and still rarely
+   reached: at 375 tall it sits at 219 against a banner of 191.
 
-   VH FIRST AND DVH ON TOP, THE SAME PAIR .cf-nav__list[data-open="true"]
-   ALREADY CARRIES FOR THE IDENTICAL SHAPE (max-height cap, overflow-y: auto).
-   This box is bottom-anchored (`.cf-consent`'s own `inset: auto 0 0 0`) and
-   clipped rather than scrolled, which the hero above is not — the hero's own
-   note argues vh alone is right for it because the hero is meant to run past
-   the fold and an oversized `vh` costs it nothing. A clipped, bottom-anchored
-   box is the opposite case, the one the nav list and the two pinned stages
-   already carry dvh for: iOS Safari's `vh` is the chrome-collapsed viewport,
-   larger than what is on screen while the toolbar is still showing — which it
-   is on the one load this banner ever matters for, before anything has been
-   scrolled. A cap sized off the larger figure lets the banner grow taller
-   than the true visible screen and, anchored to the bottom, pushes its top
-   edge up into the 72 px this whole block exists to protect — the failure
-   this backstop was written to prevent, reopened by the one unit that tracks
-   the chrome it was already reasoning about. dvh costs nothing where it is
-   missing: a browser with no dvh support keeps the vh line above it. */
+   AND THE CAP HAS LEFT THIS BLOCK, which is the correction rather than a
+   retreat from any of the above. Everything this block still does is about
+   the SHAPE the narrow form takes on a screen with no height to spend, and
+   both remaining declarations are landscape's answer to landscape: the ghost
+   rejoins a row the width has room for, the padding drops a rung. The cap was
+   never that. It is the backstop for a banner that has outgrown the screen at
+   all, and the commonest way that happens is not a phone turned sideways — it
+   is a reader who has turned their type up, which this query cannot see.
+
+   rem IN A MEDIA QUERY RESOLVES AGAINST THE ROOT'S INITIAL FONT SIZE, never
+   against the reader's; 35rem is 560 px at every text size there has ever
+   been. The banner's own height is rem all the way down, so it grows and the
+   threshold does not: measured at 320 x 812 and a 24 px default, 644 px of
+   banner and 41.6 px of clear band against a 72 px call to action, with this
+   query not matching at all. The cap now stands on .cf-consent itself, with
+   the same value and the measured table beside it.
+   → the base .cf-consent rule; scripts/check-consent-clearance.py link 5c */
 @media (max-height: 35rem) {
   .cf-consent__inner { padding-block: var(--space-4); }
   .cf-consent__actions .cf-btn--ghost { flex: 0 0 auto; justify-content: center; }
-  .cf-consent {
-    max-height: calc(100vh - var(--nav-height) - 3rem - var(--space-6));
-    max-height: calc(100dvh - var(--nav-height) - 3rem - var(--space-6));
-    overflow-y: auto;
-  }
 }
 
 /* --------------------------------------------------------------------------
