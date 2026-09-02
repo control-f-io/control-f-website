@@ -467,6 +467,34 @@ path, at ΔEok 0.03866 composited over CF-Grau, seventy-nine times the divergenc
 `--glass-edge` layer directly above it that the family deliberately declines to correct. Its
 stops are a custom property now and only the path changes.
 
+**Each of the gate's two rules had only ever seen half the tree, and it is the same gap read
+twice.** The SVG rule was written for *the lime leg*, and the family has two falloff sources:
+`.cf-plot__col--fell` draws Violett → `#8A94E3` → Glas → CF-Grau on the evidence plot's two
+falling columns, on the Landing Page and not only on the component page. Every number in it is
+the lime ramp's — the near rake's Glas at 0.32, CF-Grau at the rim, the waypoint at 19 % of the
+leg on the oklab path — and none of them was re-derived by anything, which is exactly the
+standing `#DBFC60` had before this gate existed and exactly how Expertise came to paint the mid
+rake's offset on four near-rake objects. The ARC rule was stated for *every gradient the site
+ships* and applied to the CSS quarter of them; the wallpapers and the Landing Page draw five
+turning legs in SVG that nothing had read. Both halves are gated now, and the arc had to learn
+one thing to cross over: an SVG writes its source waypoint *inside* a leg, so those stops come
+out before the arc looks, or a three-stop ramp presents it with two sub-legs and demands a
+midpoint in each for ever.
+
+**Closing the second gap turned up a defect in the first.** The arc decided *turn* versus
+*falloff* by naming lime — an enumeration of the sources that existed when it was written.
+Violett → Glas names no lime, so the old test called it a turn and would have demanded its polar
+midpoint, `#74C1E6`: a vivid sky blue at twice the chroma of the stop that leg travels to, in no
+palette in this brand, and the `#A8FFB6` failure the lime case is documented with one source
+over. The premise was never the endpoints. It is that *two stops of similar chroma sit on roughly
+the same circle about the neutral axis* — so the test is now the ratio of the two ends' chroma,
+and every leg the family draws answers it with a gap between 2.37 (Glas 800 → Sky 800, the
+narrowest turn) and 3.50 (Violett → Glas, the widest falloff). The ceiling is 2.88, the geometric
+mean of that gap. An achromatic end has chroma zero and no finite ratio, so *no waypoint on a leg
+that ends in grey* falls out of the same arithmetic rather than standing as a second clause: two
+rules become one, and no shipped gradient changes classification.
+→ `foundations/colors.html#the-arc`
+
 **Both of those settle what a gradient is made of. Nothing settled which way it runs**, and
 the brand states that law as squarely as it states the ramp: *the only sanctioned angles are
 26.57, 45, 63.43 and 90 degrees.* A gradient is light crossing a surface, so it is spatial by
@@ -803,6 +831,15 @@ child of `.cf-error--page` that components.css declares no rule for; `.h1` on
 `foundations/sight.html`, which exists in no file in this repository, so the foil demo asks
 for a display size it never gets. Each of those renders exactly like a class that works,
 which is why counting them is the only way to see them.
+
+**The `.h1` one is fixed and the fix was not the size.** `.sight-stage .text-foil` sets a
+`clamp()` of its own, so the demo had a size all along; what the dead class cost it was the
+rest of the treatment. Measured at 1280 before: Geist at `font-weight: 300` with no tracking,
+against the display face at 700 with `--tracking-display` that every foil moment on the site
+actually ships — `.cf-footer__title`, which is the line this demo quotes verbatim. The one
+demo of the foil in the system was drawing it on the thinnest letterform in the type scale,
+which is the worst possible mass for a material whose whole subject is light caught on a
+stroke. It carries `.t-display-2` now, the class whose declarations are the footer title's.
 
 It also closes the gap every other check leaves open by name. `check-spacing-scale.py` says
 it in its own header — the shipping stylesheets are in scope and "page-local `<style>`

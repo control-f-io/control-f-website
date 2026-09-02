@@ -456,6 +456,34 @@
         unrelated gradients are the same ramp at two rakes.
       </p>
     </div>
+    <div class="docs-note">
+      <strong>One ramp, two sources — and this page said one source for as long as the
+      second one has been on the Landing Page.</strong>
+      <p>
+        <code>.cf-plot__col--fell</code> draws the evidence plot's two falling columns with
+        the warm source swapped for the cool one: <strong>Violett → <code>#8A94E3</code> →
+        Glas → CF-Grau</strong>. Every other number in it is this ramp's — the near rake's
+        own Glas at 0.32, CF-Grau at the rim, and the waypoint at 19&nbsp;% of the leg
+        measured from the source, computed on the oklab path by exactly the method that
+        yields <code>#DBFC60</code> from lime. It ships on
+        <code>patterns/landing-page.html</code> and on
+        <a href="../components/plot.html">the plot component</a>, which is where the chart's
+        argument for it lives.
+      </p>
+      <p>
+        <strong>It is not a second light.</strong> Lime is the source in this brand and stays
+        the one thing a screen's single lit moment spends; this face is not lit, it is the
+        cool end of the same ramp on a column that fell. What it is, is a second
+        <em>source</em> of the same falloff — so the rule that governs the lime leg governs
+        it too, and <code>scripts/check-gradient-family.py</code> now applies that rule to
+        both instead of to whichever one it was written for. Before that, the cool leg's
+        waypoint colour and its offset were both literals nothing re-derived: exactly the
+        standing <code>#DBFC60</code> had before the gate existed, and exactly how
+        <a href="../patterns/expertise.html">Expertise</a> came to paint the mid rake's
+        offset on four near-rake objects. A third source is not sanctioned; the gate names
+        the two.
+      </p>
+    </div>
 
     <h3 id="rakes-and-blooms">The two halves — sweep and bloom</h3>
     <p>
@@ -824,28 +852,68 @@
         <strong>8.162:1</strong> on white — the same three numbers to three decimals.
       </p>
       <p>
-        <strong>No waypoint on a leg that ends in grey,</strong> and that is where this stops.
-        <code>--gradient-light</code>, <code>--gradient-light-90</code>, the rakes, the blooms
-        and the page wash all run into CF-Grau or out of Weiss, and the lit foil's own
-        Weiss → Glas leg is the same case. An achromatic stop has no hue, so there is no arc for
-        a chord to fall short of: oklab's straight line from the neutral axis to a chromatic stop
-        already <em>is</em> the constant-hue radial. Only a leg chromatic at both ends turns, and
-        only a leg that turns can cut a corner.
+        <strong>A leg turns when its two ends sit at similar chroma,</strong> and that is where
+        this stops. It used to be written here as two rules — no waypoint on a leg that ends in
+        grey, and no waypoint on a leg carrying lime — and they are one rule counted twice. The
+        chord argument has two premises, not one: the two stops must differ in <em>hue</em> and
+        sit at roughly the <em>same distance</em> from the neutral axis. A leg whose ends sit at
+        very different radii is moving <strong>radially</strong>, and a radial move has no corner
+        to cut. So the test is the ratio of the two ends' chroma, and every leg the family draws
+        answers it:
+      </p>
+      <table class="docs-table">
+        <thead><tr><th>Leg</th><th>C ratio</th><th>Path</th></tr></thead>
+        <tbody>
+          <tr><td>Glas → Sky 300</td><td>1.19</td><td>turns</td></tr>
+          <tr><td>Sky 300 → Violett 300</td><td>1.40</td><td>turns</td></tr>
+          <tr><td>Sky 800 → Violett 800</td><td>1.53</td><td>turns</td></tr>
+          <tr><td>Glas 800 → Sky 800</td><td>2.37</td><td>turns</td></tr>
+          <tr><td colspan="3"><strong>the sanctioned ceiling — 2.88</strong></td></tr>
+          <tr><td>Violett → Glas</td><td>3.50</td><td>falls off — bows to <code>#74C1E6</code></td></tr>
+          <tr><td>lime → Glas</td><td>5.32</td><td>falls off — bows to <code>#A8FFB6</code></td></tr>
+          <tr><td>lime → Weiss</td><td>∞</td><td>falls off</td></tr>
+          <tr><td>Glas → CF-Grau</td><td>∞</td><td>falls off</td></tr>
+        </tbody>
+      </table>
+      <p>
+        The ratio is <em>C high ÷ C low</em> on each leg's two ends: lime is C&nbsp;0.2201,
+        Violett 0.1446, Violett 300 0.0686, Sky 800 0.0407, Glas 0.0414, Glas 800 0.0171, and
+        Weiss and CF-Grau are zero. <code>tokens.css</code> carries the same table with both
+        columns spelled out.
       </p>
       <p>
-        <strong>And no waypoint on a leg carrying lime,</strong> which is the second half of the
-        same sentence and was left unwritten because it is invisible on the four legs above —
-        every one of them sits inside the foil's narrow band. The chord argument has two premises,
-        not one: the two stops must differ in <em>hue</em> and sit at roughly the <em>same
-        distance</em> from the neutral axis. Lime is C&nbsp;0.2201 and Glas is C&nbsp;0.0414, so
-        the move between them is radial rather than tangential — the polar path through it bows
-        out to <code>#A8FFB6</code>, a green in no palette at C&nbsp;0.1310, three times the
-        chroma of the stop it is travelling to. That is the achromatic case again and it takes the
-        same answer: oklab's straight line is already correct. It is exactly why the light family
-        is corrected with <code>in oklab</code> and the SVG waypoint while the spectrum and the
-        two foils are corrected with an arc. Lime is the light source and CF-Grau and Weiss are
-        what it falls away to; a leg touching any of the three is a <em>falloff</em>, and only
-        what happens in the band between them <em>turns</em>.
+        <strong>2.88 is the geometric mean of that gap</strong> — a ratio's midpoint is geometric,
+        not arithmetic — and <code>scripts/check-gradient-family.py</code> measures it rather than
+        reading a list of endpoint names. An achromatic end has chroma zero and therefore no
+        finite ratio, so <em>no waypoint on a leg that ends in grey</em> falls out of the same
+        arithmetic instead of standing as a clause of its own:
+        <code>--gradient-light</code>, <code>--gradient-light-90</code>, the rakes, the blooms and
+        the page wash all run into CF-Grau or out of Weiss, and oklab's straight line from the
+        neutral axis to a chromatic stop already <em>is</em> the constant-hue radial.
+      </p>
+      <p>
+        <strong>Naming lime was a proxy, and it held only while lime was the only source drawn.</strong>
+        Lime is C&nbsp;0.2201 and Glas is C&nbsp;0.0414, so the polar path between them bows out to
+        <code>#A8FFB6</code>, a green in no palette at C&nbsp;0.1300, three times the chroma of the
+        stop it is travelling to. Violett → Glas is the same case one source over — 3.50 : 1, bowing
+        to <code>#74C1E6</code>, a vivid sky blue at twice the chroma of its destination — and it
+        names no lime, so the old test called it a <em>turn</em> and would have demanded that
+        waypoint the first time a cool falloff reached CSS. It has been drawn in SVG on the Landing
+        Page for longer than that, which is where the gate was not looking. Measuring the premise
+        instead of enumerating the endpoints changes no shipped gradient's classification and
+        closes that door.
+      </p>
+      <p>
+        The published account of the same distinction is
+        <a href="https://arxiv.org/abs/2606.15352" rel="noreferrer">COFb</a>, which gates polar
+        against rectangular interpolation continuously on chroma and names the two failures it
+        corrects as the <em>inter-hue detour</em> — the polar path bulging through a hue nobody
+        asked for — and the <em>achromatic-endpoint bow</em>. Those are <code>#A8FFB6</code> and
+        the grey clause, in that order. Its own threshold is calibrated on full-gamut sRGB
+        palettes and does not transfer to a brand whose entire chromatic range outside lime tops
+        out at C&nbsp;0.069; a ratio does, because a ratio carries no scale. The gate here is a
+        step where COFb's is a ramp, for the reason every threshold in this system is a step: it
+        decides whether a stop is <em>written</em>, and a stop is written or it is not.
       </p>
       <p>
         <strong>But a translucent leg turns like any other,</strong> and that was the one hole in
@@ -915,6 +983,7 @@
         <tr><td><code>--gradient-light-90</code></td><td>linear 90°, near mirrored</td><td>primary button, horizontal edges</td></tr>
         <tr><td><code>.material-rake</code></td><td>linear, any rake, <code>--mirror</code>, <code>--grazing</code> (239.25°)</td><td>the linear half of the family, stated once — see <a href="#rakes-and-blooms">The two halves</a></td></tr>
         <tr><td><code>.material-bloom</code></td><td>radial circle, mid, mirrored; <code>--iso</code> 2:1; <code>--top</code> far, from above</td><td>the radial half, same ramp — same section</td></tr>
+        <tr><td>the cool falloff</td><td>SVG only — Violett, <code>#8A94E3</code> at 19&nbsp;% of the leg, Glas at 0.32, CF-Grau at the rim</td><td>the same ramp with the warm source swapped for the cool one, on <code>.cf-plot__col--fell</code>. Not a token, because a CSS gradient cannot be an SVG <code>fill</code>; not a second light either — see <a href="#gradients">One ramp, two sources</a></td></tr>
         <tr><td><code>--gradient-spectrum</code></td><td>linear 132.36°, five stops plus two arc waypoints</td><td><code>.material-foil</code> — surfaces only</td></tr>
         <tr><td><code>--spectrum-stops</code></td><td>the spectrum's stops, without an angle</td><td>the same split the two foils make, so the oklab branch restates nothing</td></tr>
         <tr><td><code>--gradient-foil</code></td><td>linear <code>--foil-rake</code>, the spectrum minus lime, renormalised</td><td><code>.text-foil</code> — the lit half, inverse surfaces; and every <code>.cf-btn--solid</code> label</td></tr>
