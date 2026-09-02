@@ -1,12 +1,23 @@
 # scripts/
 
 Everything that generates this website, and everything that refuses to let it
-ship broken. 171 files at this level, this one included, no shared library, no
-package, no `__init__.py`, no build step: every one is `python3` against the
-standard library and is run by its own path. There are exactly two dependencies
-in the whole directory — Pillow, in `sync-news-notion.py` and nowhere else, and
-Playwright, in `check-runtime.py` and nowhere else — and both are discussed
-below.
+ship broken. 177 files at this level, this one included, no package, no
+`__init__.py`, no build step: every one is `python3` against the standard
+library, and 176 of the 177 are run by their own path. There are exactly two
+dependencies in the whole directory — Pillow, in `sync-news-notion.py` and
+nowhere else, and Playwright, in `check-runtime.py` and nowhere else — and both
+are discussed below.
+
+**The file that is not run by its own path is `og_meta.py`**, imported by four
+of its neighbours and executed by none. The paragraph above read "no shared
+library" for the twenty-three commits after that module landed — seven of which
+edited that very sentence, to move the number standing in front of a clause they
+were leaving false — while *Known traps* opened a section below with the
+opposite claim and reconciled it in the same breath. The table under this line
+now carries a row for `og_meta.py`, and every row in it is held to the
+directory, so a file that no row accounts for is a red build rather than a
+paragraph nobody re-reads.
+→ [the one shared module](#there-is-no-shared-library-and-the-duplication-is-measurable)
 
 This file exists because the directory has grown past the point where its shape
 can be inferred by reading it. Several of the names in here are frozen strings
@@ -21,7 +32,7 @@ most.
 
 | Count | What | Who runs it |
 | --- | --- | --- |
-| 151 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
+| 157 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
 | 8 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all eight, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
 | 1 | `build-all.sh` | `news-sync.yml`, and a human. Nothing else. |
 | 1 | `stage-site.py` — collects the website into `dist/` | both deploys, `--surface pages` and `--surface worker` |
@@ -29,6 +40,7 @@ most.
 | 2 | `sync-{news,jobs}-notion.py` — Notion → `content/` | `news-sync.yml`, hourly at `:25` |
 | 2 | `new-post.py`, `new-job.py` — write one file into `content/news/` or `content/jobs/` | nobody. They are human tools. |
 | 1 | `build-and-verify.sh` — build, then fail if a tracked file moved | both gates, as their first step |
+| 1 | `og_meta.py` — the Open Graph block, the only module here that is imported rather than run | nothing runs it; `build-news.py`, `build-articles.py`, `build-stellen.py` and `check-open-graph.py` import it |
 
 **The website is not in the checkout.** Since 2026-08-17 the 154 generated pages —
 43 at the root, 43 under `en/`, 43 English patterns, 25 generated pattern pages —

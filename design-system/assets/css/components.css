@@ -2198,6 +2198,23 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    between two auto-width items says and what a two-track grid would have to
    restate. → base.css, .tiles > * */
 .cf-section-header > * { min-width: 0; }
+/* --flush IS A PROMISE ABOUT THE NEXT ELEMENT, and nothing kept it. The
+   modifier gives up the only hairline the section has, on the understanding
+   that the container below draws it instead — so written above anything that
+   does not, it does not move the rule, it deletes it. That renders as a mono
+   label floating with no rule under it, which is a picture nobody reads as an
+   error: it is the section header device minus the device.
+
+   Fifteen headers carried it and five of those stood over ordinary flow —
+   .cf-prose, a .stack, .cf-contact, and the two zero states where
+   .cf-error--inline replaces a register that would have brought the edge.
+   karriere-stelle.html had 04 and 05 adjacent, one drawing a rule and one not,
+   and impressum.html had it between an 01 and an 02 that both do.
+
+   The set of containers that may stand under it is derived from this
+   stylesheet rather than listed — any rule declaring a top border of stroke
+   ink qualifies — so a sixth ruled register earns the right by existing.
+   → scripts/check-section-header-rule.py */
 .cf-section-header--flush {
   margin-bottom: 0;
   border-bottom: 0;
@@ -2232,8 +2249,19 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    uppercase the two ends of one rule were in two different cases — and every
    counter the designer drew ("189 BEITRÄGE", "SEARCH") is uppercase on the
    plates. The transform is CSS, not markup, so the accessibility tree still
-   carries "189 Beiträge". */
-.cf-section-header__count {
+   carries "189 Beiträge".
+
+   ONE REGISTER, TWO OCCUPANTS. The right end of this rule holds a counter or —
+   the plate's own rare case, "FAQ … SEARCH" — an action. Both are the same
+   mark in the same slot, so the type is declared once for both rather than
+   copied; only what makes an action a control is added below. The classes stay
+   separate because two gates read the counter by name and neither has anything
+   to say about a control: check-section-counts.py holds the designed pages'
+   figures, check-faq-count.py holds a quantity above an accordion to the number
+   of rows. An action in the slot is simply not a count, and now cannot be
+   mistaken for one. */
+.cf-section-header__count,
+.cf-section-header__action {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
@@ -2241,6 +2269,113 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--text-secondary);
+}
+/* THE AIR UNDER THE LABEL IS 12 px IN THIS FILE AND 16.94 px ON SCREEN, and
+   the rule above says "every section on the site opens on the same axis"
+   while two of them do not. Both facts have the same cause: a line of type
+   is not a line, it is a line BOX, and the slot under the baseline that
+   carries the descenders is part of it. padding-bottom starts at the bottom
+   of that slot, so the drawn distance from the label's baseline to its rule
+   is --space-3 plus a slice of the font that no token names.
+
+   Measured — Chromium 141, 1280 px, every .cf-section-header on all
+   38 pattern pages, the label trimmed to its baseline to read the
+   distance off the rule:
+
+     54 headers, 2 distinct axes
+     11 px / 1.45   declared 12   drawn 16.94   53 of them
+     32 px / 1.02   declared 12   drawn 17.63   the acts' own header
+
+   The slot scales with the size and the leading, neither of which this
+   component chooses — the label inherits both — so the axis this component
+   claims to hold is a number it does not control. 0.69 px between the two
+   today; a third size or a container at another leading moves it again.
+
+   text-box-trim takes the slot off the box, so the padding lands on the
+   baseline and the axis is the token. --space-4 rather than --space-3 is
+   the drawn distance moved onto the space scale rather than changed: 16 px
+   is within 0.94 px of what all 40 of these headers draw today and within
+   1.63 px of the other one, so the composition the designer signed off does
+   not move and the number under it becomes true. In the branch below the
+   axis is 16 px at every size and every leading, which is the invariant the
+   comment above has always claimed.
+
+   trim-end and not trim-both, deliberately. The slot ABOVE the cap line is
+   air between the header and whatever precedes it, and it is spent by
+   --section-gap rather than by this rule; trimming it would tighten every
+   page's rhythm to fix a distance nothing measures. One edge, the one the
+   invariant is about. Whatever cannot trim keeps today's drawing exactly.
+   → foundations/capline.html */
+@supports (text-box-trim: trim-end) {
+  .cf-section-header { padding-bottom: var(--space-4); }
+  .cf-section-header__label,
+  .cf-section-header__count {
+    text-box-trim: trim-end;
+    text-box-edge: cap alphabetic;
+  }
+}
+
+/* THE ACTION, AND WHY IT COULD NOT STAY A <span>. components/section-header
+   .html has always tabulated four forms for the right end of this rule — a
+   position, a quantity, a bare count, and an action — and its own row for the
+   fourth says "yes, and then as a <button>". The demo two rows above it drew a
+   <span>. That is the documentation disagreeing with itself on the one page
+   whose subject is this component, and following either half got you nothing:
+   base.css resets <button> to `background: none; border: 0; padding: 0` and
+   `font: inherit`, so a button dropped into the slot came out PIXEL-IDENTICAL
+   to the static counter beside it. Measured on expertise.html at 1280 —
+   40.3 x 15.9 px, colour rgb(72,72,72), no background, no border, no
+   underline: the same drawing as the annotation next to it, and the reader has
+   been taught by every other section on the site that this slot is text.
+
+   SO THE RULE ANNOUNCES ITSELF AND KEEPS THE SLOT. The underline is the mark,
+   at the .cf-footer__meta offset so the system says "control" one way; the
+   colour stays --text-secondary at rest, because this is still the annotation
+   half of the rule and not a second heading, and sharpens to --text-primary on
+   hover and focus. No fill, no box, no lime: contour before fill, and one lime
+   moment per screen is not spent on a link in a rule.
+
+   THE TARGET IS THE OTHER HALF OF THE FIX, and it is the half a screenshot
+   cannot show. 11 px mono in a 16 px line box is 15.9 px tall, and WCAG 2.2
+   SC 2.5.8 (AA) asks 24 x 24 CSS px of pointer target. Neither exception
+   covers it: the inline one is for links inside a sentence, and the spacing
+   one only holds while nothing lands within 24 px, which is an accident of
+   whatever the next section ships, not a property of this component.
+
+   Padding would meet the floor and move the drawing: this row is
+   `align-items: baseline`, so padding-block grows the flex line and takes the
+   hairline down with it — the one axis every section on the site shares. The
+   hit area is drawn instead, by an ::after that is centred on the text and
+   sized `max(100%, 1.5rem)` in both directions. Layout, baseline, row height
+   and the rule's y all stay exactly where a counter leaves them; the target
+   goes from 40.3 x 15.9 to 40.3 x 24. The `max()` is why there is no number
+   to keep in sync: a longer label keeps its own width, a two-letter one is
+   floored, and a change to --text-xs or the line height cannot walk the target
+   under the floor.
+
+   THE RING IS NOT ENLARGED WITH IT. focus-visible draws base.css's outline on
+   the element's own box, which is the text — the ring marks what the reader
+   sees, and a ring 4 px clear of the glyphs on three sides would read as a
+   second box in a system whose section headers have none. */
+.cf-section-header__action {
+  position: relative;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: var(--stroke-1);
+  text-underline-offset: 0.25em;
+}
+.cf-section-header__action::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  inline-size: max(100%, 1.5rem);
+  block-size: max(100%, 1.5rem);
+}
+.cf-section-header__action:hover,
+.cf-section-header__action:focus-visible {
+  color: var(--text-primary);
 }
 
 /* --------------------------------------------------------------------------
@@ -8254,8 +8389,14 @@ a.cf-calendar__day > time,
    its column is, and inside a .col-* the nearest query container is the whole
    page container, which cannot tell.
 
-   No top border. The section header above it draws that hairline; giving the
-   list one of its own is what --flush exists to avoid.
+   No top border, so the section header above it must be the plain one, which
+   draws its own. This used to read "the section header above it draws that
+   hairline; giving the list one of its own is what --flush exists to avoid" —
+   true in its first clause and backwards in its second, since --flush is
+   precisely the header that gives its border UP. patterns/impressum.html read
+   the second clause and wrote --flush, and the two correct-sounding halves
+   cancelled into a section that opened on no rule at all.
+   → scripts/check-section-header-rule.py
    -------------------------------------------------------------------------- */
 .cf-contact { margin: 0; }
 .cf-contact__row {
@@ -9852,8 +9993,35 @@ a.cf-calendar__day > time,
    is not running. The still is the authored frame and the one this system
    already publishes contrast figures against; the switch is a control, and a
    control on paper is ink that does nothing. Both answers are already written
-   here, so print joins the query rather than restating it. */
-@media print, (prefers-reduced-motion: reduce) {
+   here, so print joins the query rather than restating it.
+
+   AND (scripting: none) IS THE THIRD ARM, FOR A REASON NEITHER OF THE OTHER
+   TWO WOULD HAVE FOUND. Nothing on this page carries a `controls` attribute,
+   so nobody expects a media UI — but the HTML standard says the user agent
+   should expose one anyway "if scripting is disabled for the media element",
+   and every engine does. Photographed at 1440 x 900 with JavaScript off, on
+   the shipped page: a scrub track across the full width of the hero at y 781,
+   a 0:00 readout at x 60 sitting on the kicker's own baseline, the button
+   cluster at x 1320-1420, and a loading arc over the middle of the artwork at
+   735, 400. With scripting on, that strip is clean. It is the front door, in
+   the one tier a developer never browses in, under a video that is
+   aria-hidden, muted, looping and decorative — and beside a pause control this
+   page already draws itself, in the system's own language, out of a checkbox
+   and two ~ selectors that need no script at all.
+
+   The UA chrome cannot be styled away without !important — Chromium's own
+   sheet carries one on ::-webkit-media-controls, and there are none in this
+   system — and a vendor pseudo-element would answer one engine. So the answer
+   is the one already written three lines down: no video box, no controls. A
+   reader with scripting off gets the authored still, which is exactly what the
+   reduced-motion reader and the printed sheet get, and the switch goes with it
+   for the reason stated above — nothing is moving, so there is nothing to
+   switch. The <source> on patterns/landing-page.html carries the matching
+   `and (scripting: enabled)`, so the 3,328,598 bytes are not fetched either:
+   the same two-part answer, the media gate for the bytes and this query for
+   the paint, that the note over .cf-hero__media spells out for reduce.
+   → scripts/check-media-controls.py */
+@media print, (prefers-reduced-motion: reduce), (scripting: none) {
   .cf-hero__media video { display: none; }
   .cf-hero__media img   { display: block; }
   /* Nothing is moving, so there is nothing to switch off. The control is not
@@ -10480,7 +10648,13 @@ a.cf-calendar__day > time,
     }
     .cf-values__mark { grid-column: 5 / 9; grid-row: 1; }
 
-    /* every value occupies the same place; the timeline chooses which is lit */
+    /* every value occupies the same place; the timeline chooses which is lit.
+
+       1 / -1 rather than 1 / 1 on the item below, because the two spellings
+       stop being the same the moment the list has more than one track — which
+       is exactly what the @supports block at the foot of this composition
+       gives it. Written this way in both paths so the fallback and the subgrid
+       form differ in ONE declaration rather than in the placement too. */
     .cf-values__list { grid-column: 1 / -1; grid-row: 1; display: grid; }
     /* The stacked state's separator has to be undone at its own specificity.
        `border: 0` on .cf-values__item below loses to
@@ -10493,7 +10667,8 @@ a.cf-calendar__day > time,
       border-top: 0;
     }
     .cf-values__item {
-      grid-area: 1 / 1;
+      grid-row: 1;
+      grid-column: 1 / -1;
       display: grid;
       grid-template-columns: var(--grid-tracks);
       gap: var(--grid-gap);
@@ -10646,6 +10821,55 @@ a.cf-calendar__day > time,
       animation-duration: auto;
       animation-fill-mode: both;
       animation-timing-function: linear;
+    }
+
+    /* --- THE 4 + 4 + 4 IS THE FRAME'S OWN LINES, NOT A SECOND SOLUTION OF THE
+       SAME ARITHMETIC.
+
+       The composition is three bands on the page's twelve columns: the title
+       at 1 / 5, the mark at 5 / 9, the body at 9 / 13. The mark is a child of
+       .cf-values__frame and stands on the frame's lines. The title and the
+       body are two levels further in — .cf-values__frame > .cf-values__list >
+       .cf-values__item — and .cf-values__item ran repeat(12, minmax(0, 1fr))
+       of its own over the width the list handed it.
+
+       Both grids read --grid-tracks, so they cannot disagree about the RECIPE.
+       That is what the token fixed and it is not the same guarantee as landing
+       on the same LINES, because a track set is a recipe plus a gutter and
+       --grid-tracks carries only the first half. The item restated the second
+       half separately, as `gap: var(--grid-gap)`. Two declarations, in two
+       rules, that have to keep resolving to the same number forever for the
+       title's right edge to meet the mark's left one — and the day the frame
+       takes a gutter of its own is the day the three bands come apart with
+       both rules still reading the token they were told to read. It is the
+       same argument .subdivide__row is built on, one component along.
+
+       subgrid ends it: the item adopts the frame's resolved lines, gutter
+       included, so there is one solution of the grid on this page and the
+       other two take it. column-gap: normal is load-bearing rather than
+       tidying — on a subgrid axis `normal` means "the parent's gutter", and
+       without it the item's own gap declaration would go on overriding the
+       thing this block exists to inherit.
+
+       Positive @supports, the form .cf-team-grid__item already uses, because
+       more than one declaration moves. Without subgrid every rule above is
+       untouched and the composition draws exactly as it did — the fallback is
+       the old arithmetic, which was right, just solved twice.
+
+       Measured before and after at 1024, 1280, 1440 and 1920: every vertical
+       is identical to the hundredth of a pixel but one — the body's left edge
+       at 1920, which moves 0.02 px, ONTO the frame's own line. That is the
+       size of the thing this closes today and the whole of the argument for
+       closing it: the two solutions agree to a rounding error while nothing
+       has moved, and there is nothing in either rule that keeps them agreeing
+       once something does. → foundations/layout.html#columns,
+       base.css .subdivide__row */
+    @supports (grid-template-columns: subgrid) {
+      .cf-values__list { grid-template-columns: subgrid; }
+      .cf-values__item {
+        grid-template-columns: subgrid;
+        column-gap: normal;
+      }
     }
   }
 }
@@ -15572,10 +15796,18 @@ a.cf-calendar__day > time,
      .cf-nav is 84 px of black plate and seven links you cannot click, at the
      top of sheet 1 of every printout the site produces. .cf-scroll-cue asks the
      reader to scroll a sheet. .cf-pagination offers page 2 of an archive to
-     somebody holding page 1 of a printout. */
+     somebody holding page 1 of a printout.
+
+     .cf-section-header__action is the fourth and the one that reads as content
+     until you ask what it does. It is a word in the same slot the counter uses,
+     so on a sheet "189 BEITRÄGE" and "SUCHEN" are the same mark — except the
+     first is the archive's size and the second is an offer to search a piece of
+     paper. It goes, and the counter stays, which is the whole of the register's
+     rule: ink is data or it is nothing. */
   .cf-nav,
   .cf-scroll-cue,
-  .cf-pagination { display: none; }
+  .cf-pagination,
+  .cf-section-header__action { display: none; }
 
   /* AND THE THREE THINGS THE HERO DID FOR THE NAV, which have to be given back
      on the same line the nav is taken away, because none of them was ever a
@@ -15644,4 +15876,202 @@ a.cf-calendar__day > time,
     font-size: var(--text-xs);
     word-break: break-all;
   }
+}
+
+/* --------------------------------------------------------------------------
+   THE CONSTRUCTION LAYER — the working, kept
+
+   Every plate in the brand manual shows how it was made. The Winkelraster is
+   a star of rays with the isometric rhombus laid over it; the logo plate
+   stands the mark inside a measured frame with the unit written on it; the
+   illustration example carries the angles it was struck at. The manual is not
+   a gallery of finished objects, it is a set of objects with their setting-out
+   still visible — which for a company whose first line is "find the answers"
+   is the argument itself, not decoration.
+
+   The website threw all of it away. Every drawing here ships as the finished
+   object and nothing else, and the one exception proves the rule rather than
+   softening it: the demon core on Über uns has its shells and its axis drawn
+   at --presence-absent and labelled "reference geometry" in its own source
+   comment — construction geometry, baked into one figure, with no name, no
+   material and no way for a second drawing to carry it.
+
+   tokens.css had already named this. --presence-absent's own comment reads
+   "the ghost line: CONSTRUCTION GEOMETRY, a footprint, a cell that says where
+   a thing stands rather than what it measures" — and until this block the rung
+   was spent entirely on the other half of that sentence, the not-here-yet
+   register on .cf-arrive, .cf-progress and .cf-line__trace--ghost. The word
+   was in the token and the drawing was nowhere.
+
+   WHAT IT IS. A second drawing behind the first, in the first's own coordinate
+   space, carrying the rays the object was set out on, the cells it was cut
+   from and the points where those meet. It is dormant: at rest a reader sees
+   the object the designer drew, which is the state every one of these figures
+   already shipped in. A reader who asks gets the working.
+
+   THE RANK IS THE LINE TYPE, NOT THE INK, and that is the whole reason this
+   layer is cheap. The obvious way to hold construction back from an object is
+   to draw it fainter, and every system that does it that way loses the
+   distinction in the two modes that discard ink strength: forced colours maps
+   authored colour into a palette of its own, and a printer renders a 20 %
+   black as a grey mesh. The presence ladder is a ladder of DASH PATTERNS —
+   "same box, same size, same place", one rung down — so the construction here
+   is drawn in --border-strong, the same contour ink as the object, and told
+   apart by --presence-absent alone. Nothing has to be re-argued under forced
+   colours, nothing has to be measured for contrast that was not already
+   measured for the contour, and the layer survives paper intact.
+
+   THE FOUR ANGLES, AND THE TOKEN THAT HAD NEVER BEEN SPENT. The rays are the
+   Winkelraster: the vertical, its horizontal datum, and the fan at ±26.57°,
+   ±45° and ±63.43°. --angle-neutral, 45°, is a row in geometry.html's token
+   table and a value in tokens.css, and it had EXACTLY ZERO consumers anywhere
+   in the tree — no stylesheet, no page, no drawing named it.
+
+   The angle was not absent; the token was. 45° is written as a literal four
+   times in these stylesheets — inside --iso-transform itself, the checkbox's
+   tick, the radio's rhombus and one act rule — and every one of them is a
+   ROTATION APPLIED TO A MARK. Not one is a line struck at 45° across a
+   drawing, which is the only thing the plate uses the angle for: 45° is a
+   neutral construction ray in a 2:1 system, so a system that never draws
+   construction has nowhere to put it. This is the token's first consumer, and
+   the figures make the point by standing on it — an object's own edges lie on
+   the 26.57° rays and on nothing else, and the neutral rays run out of the
+   drawing carrying nothing.
+
+   IT PAINTS UNDER THE OBJECT. __work comes first in the markup and __figure
+   second, both positioned, so the object occludes the construction exactly as
+   an opaque face occludes anything behind it. A ray therefore emerges from a
+   corner already travelling along the edge it set out, which is the reading
+   the plate gets for free by being drawn on paper and this had to be ordered
+   for.
+
+   THE SWITCH IS .cf-check, WHOLE. A real checkbox with a real label — the
+   role, the state, the keyboard behaviour and the focus ring all come with it,
+   nothing is reimplemented in ARIA, and a mode with no :has() support rests at
+   the object as drawn, which is the state the figure shipped in for a year.
+   The construction is aria-hidden: it is the same geometry the prose beside it
+   states in words, and a screen reader that announced eight rays would be
+   reading out a drawing rather than a document.
+   -------------------------------------------------------------------------- */
+/* The plate stretches and the switch does not, and the two have to be said
+   separately: a `justify-items: start` on the grid would leave the plate's
+   `width: 100%` resolving against a track sized by its own content. */
+.cf-construct { display: grid; gap: var(--space-4); }
+
+.cf-construct__control { justify-self: start; cursor: pointer; }
+
+.cf-construct__plate { position: relative; width: 100%; }
+
+/* Both layers carry the same viewBox, so inset: 0 over a figure sized by its
+   own aspect ratio is registration: nothing is positioned twice and the two
+   drawings cannot come apart at a width nobody tested. */
+.cf-construct__figure { position: relative; display: block; width: 100%; }
+.cf-construct__work {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: var(--stroke-1);
+  /* It is never the thing a pointer is after — the object is. */
+  pointer-events: none;
+  opacity: 0;
+}
+
+.cf-construct__ray,
+.cf-construct__cell { stroke-dasharray: var(--presence-absent); }
+
+/* A setting-out point is where an edge WOULD start, so it is the corner dot
+   one rung down: the same mark the isometric objects fill, drawn as contour.
+   Its stroke is solid because a 5-unit circle cannot carry a 1-4 dash — the
+   ladder is about a line long enough to have a rhythm, and below that length
+   the rung is carried by the fill being absent instead. */
+.cf-construct__point { fill: none; stroke-dasharray: var(--dash-solid); }
+
+/* A DIMENSION LINE IS THE ONE MARK HERE THAT IS SOLID, and geometry.html's
+   "where a line may go" is what decides it. That page allows a line to be an
+   edge, a division or a LABEL RULE and calls everything else decoration. A
+   ray is none of the three, which is exactly why it is drawn at the absent
+   rung — it is where an edge would be. A measure is the third: it is a rule
+   carrying a word, it states a fact about the object that is already true,
+   and it is no more provisional than the caption under a figure. So it takes
+   full ink at full length, and the ticks at its ends are part of it. */
+.cf-construct__measure { stroke-dasharray: var(--dash-solid); }
+
+/* A LABEL IS LAYER 6, SO IT IS NOT IN THE DRAWING. Every measure here was an
+   SVG <text> first, and on a phone that is what it costs: the plate is capped
+   at a rem measure and shrinks to the column, so a 22-unit label in a 780-unit
+   viewBox rendered at 7 px on a 375 frame — below anything this system sets
+   type at, and shrinking further at every narrower width. SVG text is drawn IN
+   the user coordinate system; there is no vector-effect for a font size, and
+   no unit that survives the transform.
+
+   So the labels are HTML over the plate, positioned in the drawing's own
+   coordinates as percentages. The mapping is exact and needs no arithmetic at
+   runtime: __figure is width: 100% with no height, so it takes the viewBox's
+   aspect ratio, and the plate's box IS the viewBox's box. --x and --y are
+   (coordinate − viewBox min) / viewBox extent, written on the element.
+
+   What that buys beyond the size: the measure is real text. It takes
+   --text-xs and the mono face like every other label in the system, it scales
+   with the reader's own text size rather than with the drawing, it is
+   selectable and searchable, and it needs nothing said about forced colours
+   because a `color` is exactly what that mode does remap. */
+.cf-construct__label {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  margin: 0;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--text-primary);
+  pointer-events: none;
+  opacity: 0;
+}
+/* A label at the edge of the frame is anchored by the side that would leave
+   it, not centred and nudged back in by hand. */
+.cf-construct__label--end   { transform: translate(-100%, -50%); }
+.cf-construct__label--start { transform: translate(0, -50%); }
+
+.cf-construct:has(.cf-construct__switch:checked)
+  :is(.cf-construct__work, .cf-construct__label) { opacity: 1; }
+
+/* Gated, like every other animation in these three stylesheets. The state
+   still switches without it — a revealed construction is information, and it
+   simply arrives rather than fading in. */
+@media (prefers-reduced-motion: no-preference) {
+  .cf-construct__work,
+  .cf-construct__label { transition: opacity var(--duration-base) var(--ease-standard); }
+}
+
+/* FORCED COLOURS IS ONE DECLARATION, AND IT IS NOT THE ONE THIS BLOCK EXPECTED
+   TO NEED. The mode does not force SVG paint — geometry.html's stack has said
+   so over the same drawing for as long as it has had a forced-colours rule —
+   so a stroke authored as --border-strong stays #000 on a dark system canvas
+   and the entire working goes invisible. Caught by screenshotting the logo
+   plate in the dark palette, where it rendered as a mark on nothing.
+
+   What DOES come through for free is the rank, and that is the dividend of not
+   having spent ink on it: --presence-absent is a dasharray, the mode does not
+   touch dasharrays, so the construction is still exactly one rung behind the
+   object the moment the ink is restored. A layer held back by opacity would
+   have had to re-argue the whole distinction here. The labels need nothing
+   either — they are HTML text and a `color` is precisely what the mode remaps.
+   One line, and it is about visibility rather than about rank. */
+@media (forced-colors: active) {
+  .cf-construct__work { stroke: CanvasText; }
+}
+
+/* Paper keeps whatever is on screen and loses the control, for the reason the
+   sheet chapter gives: a printed page has no state to change, so a checkbox on
+   it is an instruction the reader cannot follow. The plate is not allowed to
+   break across a sheet — a construction cut in half is two drawings. */
+@media print {
+  .cf-construct__control { display: none; }
+  .cf-construct__plate { break-inside: avoid; }
 }

@@ -341,6 +341,10 @@ python3 scripts/check-highlight-fill.py        # every highlight states its ink 
 python3 scripts/check-highlight-fill.py -v     # list every highlight rule, not only the failures
 python3 scripts/check-line-types.py            # every dash pattern is one of the four line types
 python3 scripts/check-line-types.py -v         # list every dash pattern, not only the strays
+python3 scripts/check-cap-line.py              # every text-box trim states both edges, inside its @supports branch
+python3 scripts/check-cap-line.py -v           # every trim, and the context it sits in
+python3 scripts/check-cap-line.py --fix        # rewrite the census in foundations/capline.html
+python3 scripts/check-merge-markers.py         # no file in the tree carries a conflict marker
 python3 scripts/check-links.py                 # every reference resolves on the host that serves it
 python3 scripts/check-job-posting.py           # the JobPosting block matches the posting the reader sees
 python3 scripts/check-a11y.py                  # the accessibility facts that are arithmetic rather than judgement
@@ -355,9 +359,12 @@ python3 scripts/check-stack-layers.py          # the front door's six planes, an
 python3 scripts/check-stack-layers.py -v       # print the stack: every plane, its place and its route to the light
 python3 scripts/check-faq-count.py             # the counter above an accordion counts its rows
 python3 scripts/check-faq-count.py -v          # every accordion, counted or skipped, and why
+python3 scripts/check-section-header-rule.py   # a flush section header stands over something that draws the rule it gave up
+python3 scripts/check-section-header-rule.py -v # every flush header, and what draws its edge
 python3 scripts/check-illustration-source.py   # the four process objects are still the designer's vectors
 python3 scripts/check-illustration-source.py -v  # every element, matched or deviated, and why
 python3 scripts/check-readme-check-count.py    # the count above this block is the length of this block, and scripts/README.md's two are the directory
+python3 scripts/check-readme-check-count.py --fix  # write all three from what is on disk
 python3 scripts/check-readme-check-count.py -v # every number, and everything counted for it
 python3 scripts/check-count-atom.py            # a section head taken off the label ramp keeps its counter in one piece
 python3 scripts/check-count-atom.py -v         # every section header row, and the ramp it is on
@@ -384,7 +391,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The thirty-one checks the system enforces rather than documents, run by CI on every push and
+The thirty-four checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -394,6 +401,16 @@ written, and the gate caught it. **The same claim one directory over had no gate
 `scripts/README.md` opens on a file count and carries a `check-*.py` row, both about the
 directory it sits in, and both were two behind. They are derived from the directory now,
 by the same script.
+
+**And a gate that only reports is a gate somebody has to satisfy by hand every time, which
+for this trio is every time any lane adds a check.** Two of its three numbers live in
+`scripts/README.md` — a file a lane adding a check has no reason to open — so the pair went
+two behind again within the hour, three lanes deep, with the gate red on `main` and each of
+those three changes correct on its own. The finding text had been saying so since it was
+written: *"it was corrected an hour before it went stale again, by a lane that had no reason
+to look at it."* `--fix` writes all three from what is on disk and then re-asserts what it
+wrote, the way the space scale's table and the glass census already do; nothing in the trio
+is a judgement, which is the test for what may be generated rather than merely counted.
 
 **The space scale** holds to two rules: `foundations/layout.html`'s table of who uses each
 rung must match the shipping CSS, and spacing in the shipping CSS must be written as a
@@ -466,6 +483,34 @@ with no `@supports` branch — the only lime ramp in the system's CSS never put 
 path, at ΔEok 0.03866 composited over CF-Grau, seventy-nine times the divergence of the
 `--glass-edge` layer directly above it that the family deliberately declines to correct. Its
 stops are a custom property now and only the path changes.
+
+**Each of the gate's two rules had only ever seen half the tree, and it is the same gap read
+twice.** The SVG rule was written for *the lime leg*, and the family has two falloff sources:
+`.cf-plot__col--fell` draws Violett → `#8A94E3` → Glas → CF-Grau on the evidence plot's two
+falling columns, on the Landing Page and not only on the component page. Every number in it is
+the lime ramp's — the near rake's Glas at 0.32, CF-Grau at the rim, the waypoint at 19 % of the
+leg on the oklab path — and none of them was re-derived by anything, which is exactly the
+standing `#DBFC60` had before this gate existed and exactly how Expertise came to paint the mid
+rake's offset on four near-rake objects. The ARC rule was stated for *every gradient the site
+ships* and applied to the CSS quarter of them; the wallpapers and the Landing Page draw five
+turning legs in SVG that nothing had read. Both halves are gated now, and the arc had to learn
+one thing to cross over: an SVG writes its source waypoint *inside* a leg, so those stops come
+out before the arc looks, or a three-stop ramp presents it with two sub-legs and demands a
+midpoint in each for ever.
+
+**Closing the second gap turned up a defect in the first.** The arc decided *turn* versus
+*falloff* by naming lime — an enumeration of the sources that existed when it was written.
+Violett → Glas names no lime, so the old test called it a turn and would have demanded its polar
+midpoint, `#74C1E6`: a vivid sky blue at twice the chroma of the stop that leg travels to, in no
+palette in this brand, and the `#A8FFB6` failure the lime case is documented with one source
+over. The premise was never the endpoints. It is that *two stops of similar chroma sit on roughly
+the same circle about the neutral axis* — so the test is now the ratio of the two ends' chroma,
+and every leg the family draws answers it with a gap between 2.37 (Glas 800 → Sky 800, the
+narrowest turn) and 3.50 (Violett → Glas, the widest falloff). The ceiling is 2.88, the geometric
+mean of that gap. An achromatic end has chroma zero and no finite ratio, so *no waypoint on a leg
+that ends in grey* falls out of the same arithmetic rather than standing as a second clause: two
+rules become one, and no shipped gradient changes classification.
+→ `foundations/colors.html#the-arc`
 
 **Both of those settle what a gradient is made of. Nothing settled which way it runs**, and
 the brand states that law as squarely as it states the ramp: *the only sanctioned angles are
@@ -787,6 +832,61 @@ diagram of a 24 px glyph. `.cf-iso__trace` is exempt from both: components.css t
 three tokens themselves, so a silent edit to a dash period fails here rather than in a
 screenshot nobody takes. → `foundations/geometry.html#lines`
 
+**Type stands on a line too, and the system was measuring to the box around it.** A block
+holding one line of type is as tall as its `line-height`, and what the glyphs do not fill
+is leading — split above the cap line and below the baseline. A `padding-bottom` under a
+line therefore starts under the *descender slot*, not at the baseline, so the drawn
+distance is the token plus a slice of the font. `.cf-section-header` is where that was
+worth a check: its rule has always said *the header owns the air beneath it, so every
+section on the site opens on the same axis*, and it declares `--space-3`. Swept at 1280 px
+over all 38 pattern pages with each label trimmed to its baseline so the distance
+could be read off the rule: **54 headers, two axes, 12 px declared and 16.94 px drawn on
+53 of them, 17.63 on the fifty-fourth.** 41 % over the token, and not one axis.
+
+Neither number is computable, which is the argument for trimming the slot rather than
+compensating for it. Between `--leading-normal` and `--leading-relaxed` at 11 px the line
+box grows 1.64 px and *all* of it lands under the baseline — the engine places the
+baseline on a whole pixel (measured at 9, 10, 11, 11, 15, 17, 27 and 34 px from the box
+top across the type scale, every one an integer) and the rounding is absorbed by whichever
+slot is left over. A magic number that cancels the slot is right at one size, one leading
+and one font, and this system has three of each.
+
+`text-box-trim: trim-end; text-box-edge: cap alphabetic` takes the slot off, and the axis
+is `--space-4` at every size and every leading. **16 px is the drawn distance moved onto
+the space scale rather than changed**: within 0.94 px of what 53 of those headers draw
+today and 1.63 px of the fifty-fourth, so the composition does not move and the number under
+it becomes true. Outside the `@supports` branch the padding stays `--space-3` and the
+drawing is exactly today's — Chrome 133, Edge 132, Safari 18.2 and Firefox 154 have it,
+and anything older is 0.94 px looser and correct.
+
+`check-cap-line.py` is the twelfth check for the same reason as the eleven before it, and
+the sharpest case of it so far: **this property's correct use and its worst misuse are the
+same declaration with one value left off.** `text-box-edge: cap` is legal and means
+`cap text` — the under edge falls back to the font's own descent, which *is* the slot the
+trim beside it was reached for — so the rule reads as a trim, draws as none, and sits one
+character away from the one that works. Leaving the property off is worse again: the
+initial is `auto`, the font's own metrics, and the display face is not licensed yet. The
+third claim is the pair — a trim and the padding that replaces the slot it removes are one
+decision and share one branch, or the drawing comes apart between browsers — and the
+fourth is the census on the chapter page, generated the way the glass budget's and the
+space scale's are. → `foundations/capline.html`
+
+**And the thirty-fourth is not about a design decision at all.** A pull request landed on
+`main` with its own rebase unresolved: `<<<<<<< HEAD` and the sha line under it shipped as
+literal text in five files — the design system's index, the reference page, two paragraphs
+of `foundations/construction.html`, this README, and a 29-line block inside a comment in
+`components.css`.
+
+**Every gate above passed over it, and none of them was wrong to.** A marker inside a CSS
+comment is comment text; a marker in a documentation page is a paragraph; a marker in
+Markdown is a line of prose. Each of the thirty-three reads one decision — a distance, a
+ramp, a dash period, a count — and a conflict marker is not a wrong *value* of anything. It
+is the one shape that is never correct in any file type this repository ships, and nothing
+was reading for it. `check-merge-markers.py` reads every tracked text file for it in one
+pass. A bare `=======` counts only *between* an opening and a closing marker, because seven
+equals signs is also a setext heading rule and a divider in an ASCII figure, and failing
+those would be enforcing a rule nobody wrote.
+
 **The tenth, eleventh and twelfth are about the system as a site** rather than about a drawing
 in it: every link resolves on the host that actually serves the pages, the `JobPosting` block
 matches the page a reader sees, and the part of accessibility that is arithmetic rather than
@@ -803,6 +903,15 @@ child of `.cf-error--page` that components.css declares no rule for; `.h1` on
 `foundations/sight.html`, which exists in no file in this repository, so the foil demo asks
 for a display size it never gets. Each of those renders exactly like a class that works,
 which is why counting them is the only way to see them.
+
+**The `.h1` one is fixed and the fix was not the size.** `.sight-stage .text-foil` sets a
+`clamp()` of its own, so the demo had a size all along; what the dead class cost it was the
+rest of the treatment. Measured at 1280 before: Geist at `font-weight: 300` with no tracking,
+against the display face at 700 with `--tracking-display` that every foil moment on the site
+actually ships — `.cf-footer__title`, which is the line this demo quotes verbatim. The one
+demo of the foil in the system was drawing it on the thinnest letterform in the type scale,
+which is the worst possible mass for a material whose whole subject is light caught on a
+stroke. It carries `.t-display-2` now, the class whose declarations are the footer title's.
 
 It also closes the gap every other check leaves open by name. `check-spacing-scale.py` says
 it in its own header — the shipping stylesheets are in scope and "page-local `<style>`
@@ -911,6 +1020,49 @@ it. `karriere`'s `05` and `kontakt`'s `03` are skipped by that rule, not by bein
 marker is the item class for the same reason the partner wall's marker is its `<img>`: it is
 the thing the number is a count *of*, and a row cannot be drawn without it.
 → `components/accordion.html`, `components/section-header.html#counters`
+
+**The other end of the same hairline had a modifier that promises something about a
+different element, and nothing read the two together.** `.cf-section-header--flush` sets
+`border-bottom: 0` and `margin-bottom: 0` on the device that opens every section, on the
+understanding components.css states plainly: *the content below is a ruled container and ITS
+top border is the rule.* Over `.cf-accordion` or `.cf-vacancies` that is exactly right and
+saves a doubled line 1 px away. Over anything else it does not move the rule, it **deletes**
+it — and what ships is a mono label and a counter floating with no hairline under them and no
+clearance either, because the modifier drops the gap too. It renders as a smaller version of
+the correct thing, which is why every contrast, link, layout and a11y check in the directory
+passes a section drawn that way.
+
+**Eight of the thirty-seven were written that way, and the two files each blamed the other.**
+The comment over `.cf-contact` read *"No top border. The section header above it draws that
+hairline; giving the list one of its own is what `--flush` exists to avoid"* — true of a
+plain header in its first clause, and naming in its second the one modifier that makes the
+first false. `patterns/impressum.html` read the second clause and wrote `--flush`, so its
+`03` opened on nothing between an `01` and an `02` that both draw a rule.
+`patterns/karriere-stelle.html` did it twice, over `.cf-prose` and over a `.stack`, leaving
+`04` ruleless one section above an `05` that is flush and correct — and the four generated
+`stelle-*.html` inherit its specimen verbatim. `patterns/expertise.html` handed its rule to
+an element that is not there at all: nothing follows that header inside the container, since
+the pin stage below is full-bleed and a sibling of it.
+
+**The sharpest two are the zero states**, and they are the reason this is a script. On
+`karriere.html` and `suche.html` the header IS flush and IS right, because `.cf-vacancies`
+and `.cf-results` bring the edge. `karriere-leer.html` and `suche-leer.html` swap that
+register for `.cf-error--inline`, which brings none — so the rule was present in the state
+anyone looks at and absent in the state that ships the day the register empties. All eight
+are plain headers now; the rule lands on the same axis it did before, because a flush
+container's top border and a plain header's bottom border sit at the same place, and only the
+clearance under it differs — which is right, since a message is not a register.
+
+The set of containers allowed under a flush header is **derived, not listed**: any rule in a
+shipping stylesheet declaring a top border of stroke ink, in the longhand or in the `border`
+and `border-block` shorthands that contain it. Reading only the longhand credited
+`.cf-process` — which states its whole contour as `border` — with no edge, and reading the
+last *class* of a selector rather than its last *compound* credited `.cf-prose` with the
+border only its `figure` has. That second error is not incidental: `.cf-prose` is one of the
+eight sites. The inverse direction is deliberately not checked — a plain header over a ruled
+container draws two hairlines a few pixels apart, which is a drawing decision with more than
+one right answer, not the disappearance of a line.
+→ `components/section-header.html`
 
 ### The other half: nothing in the markup writes into a void
 
@@ -1374,6 +1526,77 @@ chooses the number — restraint is, and 0.52 is the ceiling it must never cross
 way `patterns/news.html` renders page 1 of 11 flat and the server owns the paging. What
 the chapter fixes is the drawing and the contract; `components/arrival.html#who` lists the
 three places the behaviour will land.
+
+## The construction layer
+
+`--presence-absent`'s own comment in `tokens.css` names three jobs for the rung and the
+first of them is **construction geometry**. Every consumer it had was the fourth thing the
+comment does not mention — the not-here-yet register on `.cf-arrive`, `.cf-progress` and
+`.cf-line__trace--ghost`. The word was in the token and the drawing was nowhere.
+
+`foundations/construction.html` is that drawing. Every plate in the brand manual shows how
+it was made: the mark inside a measured frame on a grid of X, the *Winkelraster* as a star
+of rays with the isometric rhombus laid over it, the illustration example carrying the
+angles it was struck at. The manual is not a gallery of finished objects, and for a company
+whose first line is *Find the answers* that is the argument rather than the decoration.
+The website had only ever shipped the object. `.cf-construct` is a second drawing behind
+the first, in the first's own coordinates, dormant until a reader asks — the rays it was
+set out along, the cells it was cut from, the points where those meet, and the measures.
+
+**The rank is the line type, not the ink**, and that decision is what makes the layer cheap.
+The obvious way to hold construction back is to draw it fainter, and that loses the
+distinction in the two modes that discard ink strength — forced colours remaps authored
+colour, a printer renders a 20 % black as a grey mesh. The presence ladder is a ladder of
+*dash patterns*: same box, same size, same place, one rung down. So the working is drawn in
+`--border-strong`, the same contour ink as the object, and told apart by `--presence-absent`
+alone. Nothing had to be measured for contrast that the contour had not already been
+measured for, and on paper the layer arrives whole.
+
+Forced colours still needs one line, and not the one that was expected: **the mode does not
+force SVG paint**, so a stroke authored as `--border-strong` stays `#000` on a dark system
+canvas and the whole working disappears. It rendered as a mark on nothing, and
+screenshotting the logo plate in the dark palette is what found it. What did come through
+unaided is the rank — a dasharray is not something the mode touches — which is the half
+that would have been expensive.
+
+**`--angle-neutral` has a consumer.** The token had a definition in `tokens.css`, a row in
+`foundations/geometry.html`'s angle table and **zero** uses anywhere in the tree: no
+stylesheet, no page, no drawing named it. The *angle* was not absent — 45° is written as a
+literal four times in the shipping stylesheets, inside `--iso-transform` itself, the
+checkbox's tick, the radio's rhombus and one act rule — but every one of those is a
+rotation applied to a mark, and not one is a line struck at 45° across a drawing, which is
+the only thing the plate uses the angle for. On the *Winkelraster* the 45° rays are drawn
+dotted beside the solid isometric pair: they are construction, and in a 2:1 system nothing
+is ever built on them, so a system that never draws construction has nowhere to put the
+angle. The specimen makes the point by standing on it — two of its eight rays leave the
+setting-out point and become edges of the object, and the other six run out of the frame
+carrying nothing.
+
+**A measure is not drawn.** Every label here was an SVG `<text>` first, and a phone is what
+that costs — a 22-unit label in a 780-unit `viewBox` rendered at **7 px** on a 375 frame,
+below anything this system sets type at. SVG text is drawn *in* the user coordinate system
+and no unit survives the transform. So the labels are HTML over the plate, positioned in the
+drawing's coordinates as percentages: `__figure` is `width: 100%` with no height, so the
+plate's box *is* the `viewBox`'s box and `--x` / `--y` are
+`(coordinate − viewBox min) / viewBox extent`. They take `--text-xs` and the mono face, they
+grow with the reader's own text size rather than with the drawing, and they are selectable —
+which on a site named after find-in-page is not a small thing. That construction is
+`check-label-frame.py`'s subject and this is its third member: registered UNSIZED, and the
+first one that carries a `viewBox` **per instance** rather than one, so RULE 1 reads the
+other way for it — a divisor in a material's rule is the finding.
+
+**Its first application corrected the chapter it was drawn for.**
+`foundations/logo.html#construction` puts the symbol on its unit, and the plate the page had
+always named — *Logo Design > Konstruktion* — is the plate it had never drawn. The page said
+“the construction is based on the unit X — the height of one bar of the symbol. The symbol is
+8X wide, the horizontal lockup 10X.” Measured off `cf-symbol-black.svg`, every clause of that
+is wrong except the first six words: **X is 60** in the symbol's own 600 × 480 units, the
+frame is **10X wide and 8X tall**, one bar is **2X** thick and the gap between the bars is X.
+The horizontal lockup is 3331 × 480 — 55.5X — and has no round measure in X at all, because
+the wordmark's length is set by the letters and not by the grid. Every number solves out of
+the path data: the exported paths round each acute vertex with a 2-unit fillet, so no point
+in the file sits on the frame and each tip is the intersection of the two edges that meet
+there — (0, 240), (480, 0), (600, 60), (480, 480). All four land on a node of the grid.
 
 ## The found state
 

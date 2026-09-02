@@ -50,6 +50,26 @@ small enough to leave alone.
 So the CSS rules are recomputed here too — the arc waypoints from the polar
 midpoint of their own leg's ends, never compared against those four hexes.
 
+AND THE TWO RULES HAD EACH ONLY EVER SEEN HALF THE TREE, which is the same
+shape of gap read twice. The SVG rule was written for THE LIME LEG, and the
+family has two falloff sources: the evidence plot's falling columns run
+Violett -> Glas on the landing page and on components/plot.html, so the cool
+leg's waypoint colour and its offset were both literals nothing re-derived —
+#DBFC60's own former standing, one source over. The ARC rule was stated for
+every gradient the site ships and applied to the CSS quarter of them; the
+wallpapers and the landing page draw five turning legs in SVG that nothing
+had ever read.
+
+Both halves are gated now, and closing the second one turned up a defect in
+the first: the arc used to decide TURN vs FALLOFF by naming lime, which is an
+enumeration of the sources that existed when it was written. Violett -> Glas
+names no lime, so the old test called it a turn and would have demanded its
+polar midpoint — #74C1E6, a vivid sky blue in no palette in this brand. The
+test is now the ratio of the two ends' chroma, which is what the arc's own
+premise ("roughly the same circle about the neutral axis") says when it is
+measured instead of asserted. See ARC_RATIO_CEILING; no shipped gradient
+changes classification.
+
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
     python3 scripts/check-gradient-family.py          # check, exit 1 on drift
@@ -99,6 +119,24 @@ PALETTE = {
     "#7E7FE1": "Violett",
 }
 LIME = "#E1FF00"
+VIOLETT = "#7E7FE1"
+
+# THE FAMILY HAS TWO FALLOFF SOURCES AND THIS SCRIPT ONLY EVER GATED ONE.
+# A falloff ramp is a chromatic source running down into Glas and out to the
+# neutral, and the warm one -- lime -- is the one every comment in the system
+# describes. The cool one ships: .cf-plot__col--fell draws Violett -> #8A94E3
+# -> Glas -> CF-Grau on the two falling columns of the evidence plot, on
+# patterns/landing-page.html and on components/plot.html, and components.css
+# argues it beside the rule that spends it ("the lit cap's ramp with the warm
+# source swapped for the cool one ... it is not a second light").
+#
+# check-paint-register.py already knew: its FALL_WAYPOINT names #8A94E3 and its
+# LIGHT_TOKENS carries --violett-500. This script did not, so the cool leg's
+# waypoint COLOUR and its POSITION were both literals nothing re-derived --
+# the exact standing #DBFC60 had before this file existed, and the exact way
+# patterns/expertise.html came to paint the mid rake's offset on a near-rake
+# object. Two sources, one rule, and the rule is now applied to both.
+SOURCES = {LIME: "lime", VIOLETT: "Violett"}
 
 # 19 % of the leg. A convention rather than an optimum, and the same number
 # everywhere so the drawings cannot drift apart from each other -- see the
@@ -150,6 +188,63 @@ CSS = ("tokens.css", "base.css", "components.css", "acts.css")
 # travel. Anywhere between the two would do; the midpoint is not a measurement
 # and is not pretending to be one.
 ARC_CHROMA_FLOOR = 0.010
+
+# THE OTHER HALF OF THE SAME QUESTION, and until now it was answered by naming
+# endpoints instead of measuring them. _turns() used to read "start is not lime
+# and end is not lime", which is an ENUMERATION of the falloff sources that
+# happened to exist in CSS when it was written. THE ARC's own premise is not an
+# enumeration: it is that "two stops of similar chroma and different hue sit on
+# roughly the same circle about the neutral axis". Similar chroma is the
+# condition. The endpoint names were a proxy for it that held only while lime
+# was the only source anybody had drawn.
+#
+# It is a proxy that fails on material this repository already ships. Violett ->
+# Glas is chromatic at both ends and names no lime, so the old test called it a
+# turn and would have demanded its polar midpoint -- #74C1E6, a vivid sky blue
+# at C 0.0928, in no palette in this brand and twice the chroma of the stop the
+# leg is travelling to. That is the #A8FFB6 failure the lime case is documented
+# with, one source over. Nothing caught it only because the arc has so far been
+# run on the CSS half, where no Violett falloff is written; the SVG half draws
+# four of them.
+#
+# So the test is the ratio of the two ends' chroma, which is what "roughly the
+# same circle" means when it is measured rather than asserted. Every leg the
+# family draws, in CSS and in SVG:
+#
+#     leg                        C hi     C lo     ratio    classified
+#     Glas    -> Sky 300         0.0490   0.0414    1.19    turn
+#     Sky 300 -> Violett 300     0.0686   0.0490    1.40    turn
+#     Sky 800 -> Violett 800     0.0620   0.0407    1.53    turn
+#     Glas800 -> Sky 800         0.0407   0.0171    2.37    turn
+#     ------------------------------------------- 2.88 -----------------
+#     Violett -> Glas            0.1446   0.0414    3.50    falloff
+#     lime    -> Glas            0.2201   0.0414    5.32    falloff
+#     lime    -> Weiss           0.2201   0        inf      falloff
+#     Glas    -> CF-Grau         0.0414   0        inf      falloff
+#
+# The ceiling is the geometric mean of the gap -- sqrt(2.37 * 3.50) = 2.88 --
+# because a ratio's midpoint is geometric and not arithmetic, and because the
+# gap is wide enough (1.5x on either side) that anything inside it reproduces
+# the family's own classification exactly. THIS CHANGES NOTHING THAT SHIPS:
+# every CSS gradient in the tree classifies as it did before, which is the
+# test that the new rule is the old one measured rather than a new rule.
+#
+# IT ALSO SUBSUMES "NO WAYPOINT ON A LEG THAT ENDS IN GREY". An achromatic end
+# has chroma 0, so its ratio is unbounded and it is a falloff by the same
+# arithmetic rather than by a separate clause. tokens.css states those as two
+# rules; they are one.
+#
+# The published account of this is COFb (arXiv 2606.15352), which gates polar
+# against rectangular interpolation continuously on chroma -- w(C) = C/(C+sigma)
+# -- and names the two failures it corrects as the INTER-HUE DETOUR (the polar
+# path bulging through a hue nobody asked for) and the ACHROMATIC-ENDPOINT BOW.
+# Those are #A8FFB6 and the grey clause, in that order. Its sigma ~ 0.19 is
+# calibrated on full-gamut sRGB palettes and does not transfer to a brand whose
+# entire chromatic range outside lime tops out at C 0.069; the ratio does,
+# because a ratio carries no scale. The gate here is a step where COFb's is a
+# ramp, for the reason every threshold in this file is a step: it decides
+# whether a stop is WRITTEN, and a stop is written or it is not.
+ARC_RATIO_CEILING = 2.88
 
 # A stop carrying alpha USED TO BE EXEMPT FROM THE ARC, and the exemption was
 # the one hole in this rule. The argument for it was the system's own: --glass-
@@ -560,22 +655,27 @@ def _turns(start, end):
     writes the second one down because the first is invisible on the four legs
     it names — every one of them is inside the foil's narrow band.
 
-    A LEG CARRYING LIME IS NOT ON THAT CIRCLE. Lime is C 0.2201 and Glas is
-    C 0.0414: the move between them is radial, not tangential, and the polar
-    path through it bows out to #A8FFB6 — a green in no palette, at C 0.1310,
-    three times the chroma of the stop it is travelling to. That is the same
-    case as the achromatic one and takes the same answer: oklab's straight
-    line is already the correct path. It is why the light family is corrected
-    with `in oklab` and the SVG waypoint while the spectrum and the two foils
-    are corrected with an arc — the family's own INTERPOLATION block says so
-    in as many words, "OKLab is rectangular and has no hue to swing. Where a
-    hue path is wanted it is written as an explicit stop instead."
+    SIMILAR CHROMA IS THE CONDITION, and this asks it directly. A leg whose
+    ends sit at very different radii is moving RADIALLY, not tangentially:
+    lime is C 0.2201 and Glas is C 0.0414, and the polar path between them
+    bows out to #A8FFB6 — a green in no palette, at C 0.1300, three times the
+    chroma of the stop it is travelling to. Violett -> Glas is the same case
+    one source over, and bows to #74C1E6. Both take the answer the achromatic
+    case takes: oklab's straight line is already the correct path. It is why
+    the light family is corrected with `in oklab` and the SVG waypoint while
+    the spectrum and the two foils are corrected with an arc — the family's
+    own INTERPOLATION block says so in as many words, "OKLab is rectangular
+    and has no hue to swing. Where a hue path is wanted it is written as an
+    explicit stop instead."
 
-    So: lime is the light source and CF-Grau and Weiss are what it falls away
-    to, and a leg touching any of the three is a falloff. Everything else in
-    the band turns.
+    The ceiling, its derivation and the leg-by-leg table are at
+    ARC_RATIO_CEILING. An achromatic end has chroma 0 and therefore no finite
+    ratio, so "no waypoint on a leg that ends in grey" falls out of the same
+    arithmetic instead of being a second clause.
     """
-    return start != LIME and end != LIME
+    c1, c2 = oklch(start)[1], oklch(end)[1]
+    lo, hi = min(c1, c2), max(c1, c2)
+    return lo > 0 and hi / lo <= ARC_RATIO_CEILING
 
 
 def check_arc(stops):
@@ -705,68 +805,96 @@ def check_near_miss(stops):
     return out
 
 
-def check_lime_leg(stops):
-    """Every leg leaving lime carries its waypoint, at 19 % of the leg.
+def check_source_leg(stops):
+    """Every leg leaving a falloff SOURCE carries its waypoint, at 19 % of it.
 
-    The leg is lime to its nearest neighbour that is not itself a waypoint, in
-    whichever direction the drawing runs -- the two Glas-to-lime radials and
-    the dark wallpaper's lime-to-Weiss leg all run the other way from the
-    process cards, and the rule is about the leg, not about stop order.
+    The source is lime or Violett — see SOURCES for why there are two and for
+    how long only one of them was gated. The leg is the source to its nearest
+    neighbour that is not itself a waypoint, in whichever direction the drawing
+    runs: the two Glas-to-lime radials and the dark wallpaper's lime-to-Weiss
+    leg all run the other way from the process cards, and the rule is about the
+    leg, not about stop order.
     """
     out = []
-    idx = [i for i, (_, c) in enumerate(stops) if c == LIME]
-    if not idx:
-        return out
-    i = idx[0]
-    lime_off = stops[i][0]
+    for src, name in SOURCES.items():
+        idx = [i for i, (_, c) in enumerate(stops) if c == src]
+        if not idx:
+            continue
+        i = idx[0]
+        src_off = stops[i][0]
 
-    for step in (1, -1):
-        j = i + step
-        # Skip over anything that is already a waypoint on this leg: it is the
-        # stop we are about to look for, not the far end of the leg.
-        while 0 <= j < len(stops) and _is_waypoint_colour(stops[j][1], stops, i, step):
-            j += step
-        if not (0 <= j < len(stops)):
-            continue
-        end_off, end_col = stops[j]
-        if end_col == LIME:
-            continue
+        for step in (1, -1):
+            j = i + step
+            # Skip over anything that is already a waypoint on this leg: it is
+            # the stop we are about to look for, not the far end of the leg.
+            while 0 <= j < len(stops) and _is_waypoint_colour(stops[j][1], stops, src):
+                j += step
+            if not (0 <= j < len(stops)):
+                continue
+            end_off, end_col = stops[j]
+            if end_col == src:
+                continue
 
-        want_pos = lime_off + (end_off - lime_off) * WAYPOINT_T
-        want_col = waypoint_colour(LIME, end_col)
+            want_pos = src_off + (end_off - src_off) * WAYPOINT_T
+            want_col = waypoint_colour(src, end_col)
 
-        got = [s for s in stops if min(lime_off, end_off) <= s[0] <= max(lime_off, end_off)
-               and s[1] not in (LIME, end_col)]
-        if not got:
-            out.append("lime -> %s leg carries no waypoint; expected %s at offset %s"
-                       % (end_col, want_col, round(want_pos, 4)))
-            continue
-        if len(got) > 1:
-            out.append("lime -> %s leg carries %d waypoints; the family allows one"
-                       % (end_col, len(got)))
-            continue
-        pos, col = got[0]
-        if abs(pos - want_pos) > POS_TOL:
-            leg = abs(end_off - lime_off) or 1
-            out.append("waypoint %s sits at offset %g -- %.1f %% of the lime -> %s leg, "
-                       "not %g %%; expected offset %s"
-                       % (col, pos, abs(pos - lime_off) / leg * 100, end_col,
-                          WAYPOINT_T * 100, round(want_pos, 4)))
-        if col != want_col:
-            out.append("waypoint at offset %g is %s; the oklab path from lime to %s "
-                       "passes through %s at %g %%"
-                       % (pos, col, end_col, want_col, WAYPOINT_T * 100))
+            got = [s for s in stops if min(src_off, end_off) <= s[0] <= max(src_off, end_off)
+                   and s[1] not in (src, end_col)]
+            if not got:
+                out.append("%s -> %s leg carries no waypoint; expected %s at offset %s"
+                           % (name, end_col, want_col, round(want_pos, 4)))
+                continue
+            if len(got) > 1:
+                out.append("%s -> %s leg carries %d waypoints; the family allows one"
+                           % (name, end_col, len(got)))
+                continue
+            pos, col = got[0]
+            if abs(pos - want_pos) > POS_TOL:
+                leg = abs(end_off - src_off) or 1
+                out.append("waypoint %s sits at offset %g -- %.1f %% of the %s -> %s leg, "
+                           "not %g %%; expected offset %s"
+                           % (col, pos, abs(pos - src_off) / leg * 100, name, end_col,
+                              WAYPOINT_T * 100, round(want_pos, 4)))
+            if col != want_col:
+                out.append("waypoint at offset %g is %s; the oklab path from %s to %s "
+                           "passes through %s at %g %%"
+                           % (pos, col, name, end_col, want_col, WAYPOINT_T * 100))
     return out
 
 
-def _is_waypoint_colour(col, stops, lime_i, step):
-    """True if `col` is the oklab waypoint for lime toward some other stop here.
+def _is_waypoint_colour(col, stops, src):
+    """True if `col` is the oklab waypoint for `src` toward some other stop here.
 
     Used only to step past a waypoint while looking for the far end of its own
     leg, so it asks the derived question rather than consulting a list.
     """
-    return any(col == waypoint_colour(LIME, c)
-               for _, c in stops if c != LIME and c != col)
+    return any(col == waypoint_colour(src, c)
+               for _, c in stops if c != src and c != col)
+
+
+def strip_source_waypoints(stops):
+    """The ramp's own stops, with every SVG source-leg waypoint removed.
+
+    THE ARC HAS TO SEE THE LEG AND AN SVG WRITES A STOP IN THE MIDDLE OF IT.
+    A waypoint is interior to its leg, and the arc rule reads consecutive
+    stops as endpoints, so a ramp written lime -> #DBFC60 -> Glas presents the
+    arc with two sub-legs whose ends sit at nearly the same chroma. Both then
+    classify as turns and both are asked for a polar midpoint of their own,
+    for ever — the same way the rule would eat itself if an ARC waypoint were
+    read as an endpoint, which is why check_arc recognises those the same way
+    it checks them.
+
+    The two idioms are recognised differently because they ARE different: an
+    arc waypoint is the polar midpoint of its leg, a source waypoint is the
+    oklab path's value at 19 % of one. check_arc knows the first shape and
+    cannot know the second, so the second is taken out here, before it looks.
+
+    Only the ends survive, which is what the arc is about.
+    """
+    cols = [c for _, c in stops]
+    return [(off, col) for off, col in stops
+            if not any(col != src and src in cols and _is_waypoint_colour(col, stops, src)
+                       for src in SOURCES)]
 
 
 def main():
@@ -785,7 +913,15 @@ def main():
             continue
         for gid, kind, stops in gradients(text):
             seen += 1
-            problems = check_near_miss(stops) + check_lime_leg(stops)
+            # THE ARC NOW RUNS ON THIS HALF TOO, and its absence here was the
+            # larger of the two holes this file had. The rule was stated for
+            # every gradient the site ships and enforced on the CSS quarter of
+            # them; the wallpapers and the landing page draw five turning legs
+            # in SVG that nothing had ever read. They pass — which is the point
+            # of checking now rather than after one of them drifts.
+            arc_stops = [(c, 1.0) for _, c in strip_source_waypoints(stops)]
+            problems = (check_near_miss(stops) + check_source_leg(stops)
+                        + check_arc(arc_stops))
             if args.verbose:
                 mark = "FAIL" if problems else "ok  "
                 print("%s %-42s %s %-16s %s" % (

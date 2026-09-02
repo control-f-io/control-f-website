@@ -125,7 +125,7 @@
       <thead><tr><th>Token</th><th>Duration</th><th>Used for</th><th>In the CSS today</th></tr></thead>
       <tbody>
         <tr><td><code>--duration-fast</code></td><td>120 ms</td><td>hover, focus, colour change, damping a measured value</td><td>19 rules</td></tr>
-        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>the control itself responding — arrow, button, menu</td><td>18 rules</td></tr>
+        <tr><td><code>--duration-base</code></td><td>240 ms</td><td>the control itself responding — arrow, button, menu</td><td>19 rules</td></tr>
         <tr><td><code>--duration-slow</code></td><td>480 ms</td><td>a reveal, or light crossing a surface</td><td>12 rules</td></tr>
         <tr><td><code>--duration-scene</code></td><td>1200 ms</td><td>a scene-length pass — the scroll cue's comet; a full object build, if one is ever driven by time</td><td>1 rule</td></tr>
       </tbody>
@@ -232,7 +232,7 @@ python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the co
     <table class="docs-table">
       <thead><tr><th>Token</th><th>Value</th><th>Used for</th><th>In the CSS today</th></tr></thead>
       <tbody>
-        <tr><td><code>--ease-standard</code></td><td>cubic-bezier(.2, 0, 0, 1)</td><td>the default — quick start, soft arrival</td><td>38 rules</td></tr>
+        <tr><td><code>--ease-standard</code></td><td>cubic-bezier(.2, 0, 0, 1)</td><td>the default — quick start, soft arrival</td><td>39 rules</td></tr>
         <tr><td><code>--ease-out</code></td><td>cubic-bezier(0, 0, .2, 1)</td><td>objects that fly in and stay — the whole isometric assembly</td><td>21 rules</td></tr>
         <tr><td><code>--ease-in-out</code></td><td>cubic-bezier(.4, 0, .2, 1)</td><td>states that toggle back and forth — a pulse, a shimmer, a sweep that repeats</td><td>5 rules</td></tr>
       </tbody>
@@ -1917,7 +1917,16 @@ python3 scripts/check-iso-motion.py</pre>
         A <code>&lt;source&gt;</code> whose <code>media</code> does not match is skipped by
         resource selection, so <code>currentSrc</code> stays empty and the 3.3 MB is never
         requested. → <code>scripts/check-hero-video.py</code></li>
-      <li>Under reduced motion, only the still is shown — and only the still is fetched.</li>
+      <li>Under reduced motion, only the still is shown — and only the still is fetched.
+        <strong>That second half is now read off a running page rather than off the
+        markup.</strong> <code>check-hero-video.py</code> proves the <code>media</code>
+        attribute is written; whether resource selection then actually withholds the file
+        is a question a file cannot answer, and “paused” is the wrong thing to ask —
+        a runner with no H.264 decoder reports a paused <code>&lt;video&gt;</code> whether
+        the page withheld the loop or downloaded all 3.3 MB of it. So the reduce pass
+        fails any <code>&lt;video&gt;</code> with a non-empty <code>currentSrc</code>,
+        which is decided by selection and not by codecs and therefore says the same thing
+        on every browser. → <code>scripts/check-runtime.py</code></li>
       <li><strong>A switch on the page that stops it</strong> — see below.</li>
       <li>The headline sits <em>on top</em> of the video and needs at least 4.5:1 there — if in doubt, darken the lower half.</li>
     </ul>

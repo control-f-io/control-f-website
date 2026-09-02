@@ -49,11 +49,63 @@ counts of the directory, and the directory is right there, so they are derived
 from `os.listdir` — the same move every other register in here makes, and the
 reason this cannot itself go stale.
 
+AND THE FIRST --fix WRITTEN FOR IT WROTE TWO OF THE THREE, ON AN ARGUMENT THAT
+DOES NOT HOLD. It excluded design-system/README.md's spelled-out sentence,
+reasoning that the number counts a LIST rather than a directory, and that a list
+which has gained an entry needs the entry written into the block as well as the
+digit moved — so writing the word would paper over a missing row.
+
+It rewrites all three counts, each to the number its own subject holds. It does
+NOT reach the inventory below, and that one exclusion is sound where the other
+was not: a file with no row needs a ROW written, and a row is a sentence about
+what the file is rather than a number about how many there are.
+
+AND THE TABLE UNDER THAT SENTENCE IS A THIRD CLAIM, WHICH NOTHING WAS READING.
+scripts/README.md's "What is in here" table gives one row per family of files —
+check-*.py, build-*.py, gen-*.py, and five singletons — with a count in front of
+each. The rows are an inventory: read together they say what the directory
+contains. They did not. Measured on the day this was extended, with both counts
+above freshly correct at 175 and 155, the eight rows accounted for 173 files and
+README.md itself makes 174 — so one file at that level appeared in no row at
+all, and had appeared in none for the twenty-three commits since it landed.
+
+That file is og_meta.py, and it is the worst one in the directory to have left
+out: it is the only shared module here, imported by build-news.py,
+build-articles.py, build-stellen.py and check-open-graph.py and executed by
+none, which made the opening sentence's "no shared library ... every one is run
+by its own path" false in two clauses for the whole of that window. Seven of
+those twenty-three commits edited that sentence to move the number in front of
+the clause they were leaving wrong. A wrong TOTAL is caught above; a file with
+no ROW was not, because the two are independent claims and only one was gated.
+
+So the rows are read as globs and matched against the same os.listdir: a row's
+number must be the number of files its own pattern matches, no file may be
+claimed by two rows, and every file at that level except README.md — which the
+sentence excludes by saying "this one included" — must be claimed by one. The
+patterns come from the code spans in front of each row's em dash, so the table
+stays the source and this stays a reader of it.
+
+AND THE REMEDY FOR A NUMBER NOBODY CAN BE EXPECTED TO REMEMBER IS NOT A BETTER
+REMINDER. Four registers in this directory are generated rather than kept —
+check-spacing-scale.py, check-motion-census.py, check-glass-budget.py and
+check-lime-flat.py each carry --fix, and design-system/README.md says of the
+first, in as many words, "run --fix rather than editing a count by hand". This
+trio had no --fix and is the one that goes stale most often, because it moves
+whenever ANY lane adds a check and two of its three numbers live in a file that
+lane has no reason to open. Nothing in the trio is a judgement — the block is
+the list and the directory is the directory — which is the whole test for what
+may be written rather than merely reported, and it is the test the inventory
+rows fail.
+
 Usage:
-    check-readme-check-count.py       fail if a stated count and its subject disagree
-    check-readme-check-count.py -v    print each number and everything counted
+    check-readme-check-count.py        fail if a stated count and its subject disagree
+    check-readme-check-count.py -v     print each number and everything counted
+    check-readme-check-count.py --fix  write all three counts from what is on disk,
+                                       then re-assert what it wrote. The inventory
+                                       rows are prose and are left alone.
 """
 
+import fnmatch
 import os
 import re
 import sys
@@ -67,6 +119,20 @@ SCRIPTS_README = os.path.join(SCRIPTS, "README.md")
 # (regex with one capturing group for the digits, what it counts, its label).
 FILE_COUNT = re.compile(r"\b(\d+) files at this level, this one included\b")
 CHECK_COUNT = re.compile(r"^\|\s*(\d+)\s*\|\s*`check-\*\.py`", re.M)
+
+# The inventory table under that sentence. It starts at its own heading and ends
+# at the first blank line after the header rule, which is what a markdown table
+# is; anything further down the file that happens to open a row with digits is
+# therefore out of reach.
+TABLE_HEAD = "## What is in here"
+TABLE_RULE = "| --- |"
+ROW = re.compile(r"^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|", re.M)
+SPAN = re.compile(r"`([^`]+)`")
+BRACE = re.compile(r"\{([^{}]*)\}")
+
+# README.md is the one file at this level with no row, and the sentence above the
+# table says so in three words — "this one included". Everything else is claimed.
+UNROWED = "README.md"
 
 SENTENCE = re.compile(
     r"^The ([a-z-]+) checks the system enforces rather than documents\b", re.M
@@ -83,7 +149,66 @@ WORDS = {
     "twenty-three": 23, "twenty-four": 24, "twenty-five": 25,
     "twenty-six": 26, "twenty-seven": 27, "twenty-eight": 28,
     "twenty-nine": 29, "thirty": 30, "thirty-one": 31, "thirty-two": 32,
+    "thirty-three": 33, "thirty-four": 34, "thirty-five": 35,
+    "thirty-six": 36, "thirty-seven": 37, "thirty-eight": 38,
+    "thirty-nine": 39, "forty": 40,
 }
+
+
+NUMBERS = {value: word for word, value in WORDS.items()}
+
+
+def rewrite(path, pattern, value, group=1):
+    """Set the digits (or the word) `pattern` captures to `value`. Returns the
+    old text if it changed, else None."""
+    text = open(path, encoding="utf-8").read()
+    match = pattern.search(text)
+    if not match or match.group(group) == str(value):
+        return None
+    start, end = match.span(group)
+    open(path, "w", encoding="utf-8").write(text[:start] + str(value) + text[end:])
+    return match.group(group)
+
+
+def repair(listed):
+    """--fix: write all three numbers from what is actually on disk.
+
+    The same standing check-spacing-scale.py, check-motion-census.py,
+    check-glass-budget.py and check-lime-flat.py already take for the tables
+    they own — the README says of those, in as many words, "run --fix rather
+    than editing a count by hand". This trio is the one that had no --fix, and
+    it is the one that goes stale most often: it moves whenever ANY lane adds a
+    check, and two of its three numbers live in a file that lane has no reason
+    to open. The script's own finding text has said so since it was written —
+    "it was corrected an hour before it went stale again, by a lane that had no
+    reason to look at it" — and the remedy for a number nobody can be expected
+    to remember is not a better reminder.
+    """
+    entries, checks = directory_counts()
+    done = []
+
+    was = rewrite(SCRIPTS_README, FILE_COUNT, len(entries))
+    if was is not None:
+        done.append("scripts/README.md  files at this level  %s -> %d"
+                    % (was, len(entries)))
+    was = rewrite(SCRIPTS_README, CHECK_COUNT, len(checks))
+    if was is not None:
+        done.append("scripts/README.md  check-*.py           %s -> %d"
+                    % (was, len(checks)))
+
+    if len(listed) not in NUMBERS:
+        done.append(
+            "design-system/README.md  NOT written: the block lists %d and the "
+            "sentence is spelled out.\n    Add %d to WORDS — the register is a "
+            "word on purpose, and a digit there\n    would be the wrong register "
+            "for that document." % (len(listed), len(listed)))
+    else:
+        was = rewrite(README, SENTENCE, NUMBERS[len(listed)])
+        if was is not None:
+            done.append("design-system/README.md  the sentence         %s -> %s"
+                        % (was, NUMBERS[len(listed)]))
+
+    return done
 
 
 def directory_counts():
@@ -96,7 +221,13 @@ def directory_counts():
 
 
 def scripts_readme(verbose):
-    """Hold scripts/README.md's two counts to the directory they describe."""
+    """Hold scripts/README.md's two counts to the directory they describe.
+
+    REPORTING ONLY. repair() owns every write in this file, including these
+    two, and the reason is the re-assert: --fix writes and then re-runs the
+    checking path over what it wrote, so a second writer inside the checking
+    path would be repairing the file it was supposed to be judging.
+    """
     text = open(SCRIPTS_README, encoding="utf-8").read()
     entries, checks = directory_counts()
     failures = []
@@ -124,15 +255,124 @@ def scripts_readme(verbose):
                 "scripts/README.md says %d %s and the directory holds %d.\n"
                 "    Derived by listing scripts/, not by remembering. This pair is\n"
                 "    ungated history: it was corrected an hour before it went stale\n"
-                "    again, by a lane that had no reason to look at it."
+                "    again, by a lane that had no reason to look at it.\n"
+                "    Run: python3 scripts/check-readme-check-count.py --fix"
                 % (claimed, what, actual)
             )
 
     return failures
 
 
-def main():
+def expand(pattern):
+    """`sync-{news,jobs}-notion.py` is two file names. Everything else is one."""
+    match = BRACE.search(pattern)
+    if not match:
+        return [pattern]
+    out = []
+    for alt in match.group(1).split(","):
+        out.extend(expand(pattern[:match.start()] + alt.strip()
+                          + pattern[match.end():]))
+    return out
+
+
+def inventory_rows(text):
+    """(count, [glob, ...], row text) for each row of the table, in file order."""
+    start = text.find(TABLE_HEAD)
+    if start < 0:
+        return None
+    rule = text.find(TABLE_RULE, start)
+    if rule < 0:
+        return None
+    end = text.find("\n\n", rule)
+    table = text[rule:end if end > 0 else len(text)]
+
+    rows = []
+    for match in ROW.finditer(table):
+        what = match.group(2)
+        # The What cell is "`glob`[, `glob`] \u2014 prose". Only the code spans in
+        # front of the em dash name files; the prose behind it quotes directories
+        # and workflow names that are not at this level at all.
+        head = what.split("\u2014")[0]
+        globs = []
+        for span in SPAN.findall(head):
+            globs.extend(expand(span))
+        rows.append((int(match.group(1)), globs, what.strip()))
+    return rows
+
+
+def inventory(entries, verbose):
+    """Hold the table's rows to the directory: every file claimed exactly once."""
+    text = open(SCRIPTS_README, encoding="utf-8").read()
+    rows = inventory_rows(text)
+    failures = []
+
+    if not rows:
+        return ['scripts/README.md no longer carries a "%s" table.\n'
+                "    That table is this directory's inventory and this rule reads it.\n"
+                "    Restore it, or retire the rule with it." % TABLE_HEAD]
+
+    claimed = {}
+    for count, globs, what in rows:
+        if not globs:
+            failures.append(
+                'the inventory row "%s" names no file.\n'
+                "    A row's file names are the code spans before its em dash; this one\n"
+                "    has none, so nothing in the directory can be counted against it."
+                % what)
+            continue
+        matched = sorted({e for g in globs for e in entries
+                          if fnmatch.fnmatch(e, g)})
+        if verbose:
+            print("  row %-28s claims %d, matches %d"
+                  % (", ".join(globs), count, len(matched)))
+        if count != len(matched):
+            failures.append(
+                "the inventory row for %s says %d and the directory holds %d:\n%s\n"
+                "    Counted by listing scripts/, not by reading the row. --fix does not\n"
+                "    reach this half either: a row whose count moved is a row whose prose\n"
+                "    may need to move with it."
+                % (", ".join("`%s`" % g for g in globs), count, len(matched),
+                   "\n".join("      %s" % m for m in matched) or "      (nothing)"))
+        for name in matched:
+            claimed.setdefault(name, []).append(", ".join(globs))
+
+    twice = sorted(n for n, by in claimed.items() if len(by) > 1)
+    if twice:
+        failures.append(
+            "the inventory claims %d file(s) under two rows:\n%s\n"
+            "    Every file at this level belongs to exactly one family, or the rows\n"
+            "    stop adding up to the number above them."
+            % (len(twice), "\n".join("      %s \u2014 %s" % (n, " and ".join(claimed[n]))
+                                     for n in twice)))
+
+    missing = sorted(set(entries) - set(claimed) - {UNROWED})
+    if missing:
+        failures.append(
+            "the inventory has no row for %d file(s) at this level:\n%s\n"
+            "    The table is what the directory contains, so a file absent from it is\n"
+            "    invisible to every reader of this README. Write it a row saying what it\n"
+            "    is and who runs it. This is how og_meta.py \u2014 the one shared module\n"
+            '    here \u2014 stayed unlisted while the opening sentence called the\n'
+            '    directory "no shared library" for twenty-three commits.'
+            % (len(missing), "\n".join("      %s" % m for m in missing)))
+
+    if UNROWED not in entries:
+        failures.append(
+            "%s is not at this level any more, and it is the one file this rule\n"
+            '    exempts from the table on the strength of "this one included".' % UNROWED)
+
+    return failures
+
+
+def main_verify():
+    """The checking path alone — what --fix re-runs on what it just wrote."""
+    return main(fixing=False)
+
+
+def main(fixing=None):
     verbose = "-v" in sys.argv or "--verbose" in sys.argv
+    if fixing is None:
+        fixing = "--fix" in sys.argv
     text = open(README, encoding="utf-8").read()
 
     match = SENTENCE.search(text)
@@ -167,16 +407,33 @@ def main():
         for name in listed:
             print("    %s" % name)
 
+    if fixing:
+        # The block is the list, so the block is the count — and the same is
+        # true of the directory for the other two. Nothing here is a judgement,
+        # which is the whole test for what may be written rather than reported.
+        done = repair(listed)
+        for line in done:
+            print("  %s" % line)
+        if not done:
+            print("readme check count: nothing to write; all three already match.")
+            return 0
+        print()
+        # Re-read and re-assert, so --fix can never report a repair it did not
+        # actually make.
+        return main_verify()
+
     failures = []
     if claimed != len(listed):
         failures.append(
             'design-system/README.md says "%s" and lists %d:\n\n%s\n\n'
             "    The block is the list, so the block is the count. Set the word to match\n"
-            "    it — this is the drift that follows two lanes adding a check on the same day."
+            "    it — this is the drift that follows two lanes adding a check on the same day.\n"
+            "    Run: python3 scripts/check-readme-check-count.py --fix"
             % (word, len(listed), "\n".join("      %s" % n for n in listed))
         )
 
     failures.extend(scripts_readme(verbose))
+    failures.extend(inventory(directory_counts()[0], verbose))
 
     if failures:
         print("readme check count: %d finding(s)\n" % len(failures))
@@ -187,8 +444,9 @@ def main():
     entries, checks = directory_counts()
     print(
         "README says %s, and lists %d checks; scripts/README.md counts %d files "
-        "and %d check-*.py, and the directory holds both."
-        % (word, len(listed), len(entries), len(checks))
+        "and %d check-*.py, its inventory rows claim every one of the %d but %s, "
+        "and the directory holds all of it."
+        % (word, len(listed), len(entries), len(checks), len(entries), UNROWED)
     )
     return 0
 

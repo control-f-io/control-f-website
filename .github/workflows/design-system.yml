@@ -624,6 +624,23 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-grid-tracks.py
 
+      # One grid, solved once. check-grid-tracks.py above reads what a track
+      # list SAYS; this reads how many times the same one gets said inside one
+      # component. --grid-tracks made three rules agree about the recipe and
+      # that was only ever half of a track set — the other half is the gutter,
+      # and .cf-values__frame and .cf-values__item each declared their own.
+      # Two rules, one nested in the other, holding the pinned 4 + 4 + 4
+      # together on the strength of two declarations resolving to the same
+      # number forever. They did: 0.02 px apart at 1920 and exact at every
+      # other width, which is a defect no screenshot can show and no
+      # screenshot could ever have shown, because it only becomes visible on
+      # the commit that changes one half. subgrid is the form that cannot
+      # come apart, base.css has used it at .subdivide__row since the blog
+      # grid, and this is the gate that says so for the next one.
+      - name: Track restatement
+        if: '!cancelled()'
+        run: python3 scripts/check-track-restatement.py
+
       # The caption under a demo tile was declared twenty times — once in
       # docs.css and nineteen more inside the <style> block of whichever page
       # needed one, because a container selector in a page's own block is not a
@@ -749,6 +766,32 @@ jobs:
       - name: Line types
         if: '!cancelled()'
         run: python3 scripts/check-line-types.py
+
+      # The cap line, and the first property in this system whose correct use
+      # and its worst misuse are the same declaration with one value left off.
+      # `text-box-edge: cap` is legal, means `cap text`, and puts back exactly
+      # the descender slot the trim beside it was reached for; leaving the
+      # property off defers the distance to the font, and the display face is
+      # not licensed yet. Both render as a page that looks untouched. The
+      # third claim is the pair: a trim and the padding that replaces the slot
+      # it removes are one decision, so they share one @supports branch or the
+      # drawing comes apart between browsers.
+      - name: The cap line
+        if: '!cancelled()'
+        run: python3 scripts/check-cap-line.py
+
+      # The narrowest step in this file, and the only one whose subject is not
+      # a design decision. A pull request landed on main with its own rebase
+      # unresolved and `<<<<<<< HEAD` shipped as literal text in five files,
+      # one of them a 29-line block inside a comment in components.css. Every
+      # other step here passed over it and none of them was wrong to: a marker
+      # in a CSS comment is comment text and a marker in a documentation page
+      # is a paragraph. Each check above reads one decision, and a conflict
+      # marker is not a wrong value of anything — it is the one shape that is
+      # never correct in any file type this repository ships.
+      - name: Merge markers
+        if: '!cancelled()'
+        run: python3 scripts/check-merge-markers.py
 
       - name: News objects
         if: '!cancelled()'
@@ -920,6 +963,27 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-faq-count.py
 
+      # --flush is the one modifier on the device that opens every section, and
+      # it is a promise about a DIFFERENT element: it drops the header's own
+      # hairline because the container below draws one. Above anything that does
+      # not, it deletes the rule rather than moving it, and what ships is the
+      # section header device minus the device — no error, no overflow, nothing
+      # any other check in this file reads. Eight of the thirty-seven were
+      # written that way, five of them on pages nobody re-opens: the two zero
+      # states, where the register that WOULD have brought the edge is exactly
+      # what the empty state swaps out. karriere-stelle.html drew 04 without a
+      # rule and 05 with one, one section apart, and nothing saw it.
+      #
+      # components.css was the more confident of the two files: the comment over
+      # .cf-contact told the next author the header draws the hairline, and then
+      # named the modifier that makes that false. The set of containers allowed
+      # under a flush header is derived from the shipping stylesheets — anything
+      # declaring a top border of stroke ink, longhand or shorthand — so a
+      # seventh ruled register qualifies by existing.
+      - name: Section header rule
+        if: '!cancelled()'
+        run: python3 scripts/check-section-header-rule.py
+
       # The four process objects are the designer's exported vectors, coordinate
       # for coordinate. Four classes of deviation are sanctioned and three of
       # them are re-derived rather than listed, so a fifth cannot arrive by
@@ -967,6 +1031,19 @@ jobs:
       # reason to touch that paragraph. Both are now derived by listing the
       # directory rather than by reading a list, which is why they cannot drift
       # the way the sentence next door did.
+      #
+      # The third claim in that file is the inventory table under the sentence —
+      # one row per family with a count in front of it, which read together is a
+      # statement of what the directory contains. Nothing read the rows, and
+      # they were a file short of the total right above them: with both counts
+      # correct at 175 and 155, the eight rows accounted for 173 and README.md
+      # itself makes 174. The file with no row was og_meta.py, the directory's
+      # only shared module, unlisted for the twenty-three commits after it
+      # landed while the opening sentence went on calling the directory "no
+      # shared library". The rows are now globs matched against the same
+      # os.listdir — a row's number is what its pattern matches, no file is
+      # claimed twice, every file but README.md is claimed once — so the next
+      # module to arrive here cannot be invisible in its own index.
       - name: README check count
         if: '!cancelled()'
         run: python3 scripts/check-readme-check-count.py
@@ -1032,6 +1109,22 @@ jobs:
       - name: Hero poster quality
         if: '!cancelled()'
         run: python3 scripts/check-hero-poster.py
+
+      # The third half of the same contract, and the tier the other two never
+      # reach. HTML has the browser expose a media UI over a <video> whenever
+      # scripting is disabled for it, `controls` attribute or not — measured on
+      # the landing page with JavaScript off: a scrub track across the whole
+      # hero, a 0:00 on the kicker's baseline, buttons over the artwork's lit
+      # edge. It cannot be styled away without an !important this system does
+      # not have, so the answer is the withdrawal components.css already writes
+      # for print and for reduce, with (scripting: none) as its third arm.
+      #
+      # Proven failing on three reintroductions: the arm dropped from the
+      # query, the (scripting: enabled) term dropped from the <source>, and the
+      # still <img> left unrestored inside the query.
+      - name: Media controls
+        if: '!cancelled()'
+        run: python3 scripts/check-media-controls.py
 
       - name: Label ramp
         if: '!cancelled()'
@@ -2699,6 +2792,48 @@ jobs:
       - name: Act beats
         if: '!cancelled()'
         run: python3 scripts/check-act-beats.py
+
+      # ---------------------------------------------------------------
+      # The chapter rail's stagger index is 0 ... n-1 with no hole in it.
+      #
+      # Every .act-rail__item carries style="--i:<k>", and acts.css spends that
+      # value on exactly one declaration:
+      #
+      #     .act-rail__label { transition-delay: calc(var(--i) * 40ms); }
+      #
+      # -- the stagger that runs the labels open on hover and on focus. So --i
+      # is the row's place in a cadence, and a cadence has no content except its
+      # interval.
+      #
+      # patterns/expertise.html parked chapter 02 -- the world map -- inside an
+      # HTML comment and renumbered the four rows below it so the list still
+      # read 01 ... 05. Their --i was deliberately left alone, on the argument
+      # written into that commit that the value "is a 40 ms transition delay and
+      # nothing else". It is, and that is the defect: the rail kept 0, 2, 3, 4,
+      # 5, so the five labels opened at 0, 80, 120, 160 and 200 ms -- one 80 ms
+      # step where the other four are 40. The first label landed and the rail
+      # waited a whole extra beat before the rest followed. Landing page and
+      # Über uns measure 0, 40, 80, 120 and 0, 40, 80, because neither has ever
+      # had a row taken out of the middle.
+      #
+      # No screenshot shows it. Both the held state and the open state are
+      # correct; only the 200 ms between them is wrong, and no still frame
+      # contains an interval. It shipped from 2026-08-26 to 2026-09-02 with
+      # every other gate green.
+      #
+      # The pages are found rather than listed -- any file under design-system/
+      # with a live .act-rail__item, patterns/en/ aside -- so a fifth page
+      # adopting the rail is checked by existing. Markup inside HTML comments
+      # and inside <template> is stripped first: the map is parked in one of
+      # each and neither renders.
+      #
+      # Proven failing on four reintroductions: the hole restored (0, 2, 3, 4,
+      # 5), an index repeated (0, 1, 2, 2, 4), a numeral left un-renumbered
+      # (01, 03, 03, 04, 05), and the premise removed -- transition-delay
+      # written as a constant, so --i orders nothing.
+      - name: Rail stagger
+        if: '!cancelled()'
+        run: python3 scripts/check-rail-stagger.py
 
       # ---------------------------------------------------------------
       # Act 2's copy is in the accessibility tree.

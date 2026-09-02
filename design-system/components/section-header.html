@@ -98,7 +98,7 @@
       </div>
       <div class="cf-section-header">
         <span class="cf-section-header__label">FAQ</span>
-        <span class="cf-section-header__count">Search</span>
+        <button type="button" class="cf-section-header__action">Search</button>
       </div>
     </div>
     <table class="docs-table">
@@ -107,7 +107,7 @@
         <tr><td><code>01 / 04</code></td><td>position in a sequence</td><td>no — <code>aria-hidden</code></td></tr>
         <tr><td><code>189 Beiträge</code></td><td>a quantity — real information</td><td>yes</td></tr>
         <tr><td><code>10</code></td><td>a count when the unit follows from the label</td><td>yes</td></tr>
-        <tr><td><code>Search</code></td><td>an action instead of a number — rare exception</td><td>yes, and then as a <code>&lt;button&gt;</code></td></tr>
+        <tr><td><code>Search</code></td><td>an action instead of a number — rare exception</td><td>yes, and it is a control: <code>.cf-section-header__action</code> on a <code>&lt;button&gt;</code> or an <code>&lt;a&gt;</code>. → <a href="#action">The action</a></td></tr>
       </tbody>
     </table>
     <div class="docs-note">
@@ -131,6 +131,114 @@
       <code>scripts/check-faq-count.py</code> is the narrow rule that covers the component
       wherever it stands: a counter above a <code>.cf-accordion</code> that is not
       <code>aria-hidden</code> is a quantity, and its number is the number of rows.
+    </div>
+  </section>
+
+  <section class="docs-section" id="action">
+    <h2>The action</h2>
+    <p>
+      The fourth form, and the only one that is not a number. The manual draws it once —
+      <span lang="de">FAQ</span> on the left of the rule and <span lang="de">SEARCH</span> on
+      the right, in
+      <a href="../reference.html">the landing-page mockup</a> — and the table above has
+      called it a <code>&lt;button&gt;</code> since it was written. The demo above it drew a
+      <code>&lt;span&gt;</code>, and the stylesheet had no rule for the form at all.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong>Following either half of that got you nothing.</strong> <code>base.css</code>
+      resets <code>&lt;button&gt;</code> to <code>background: none; border: 0; padding: 0</code>
+      with <code>font: inherit</code> — which is right, and here it meant a button in this slot
+      came out identical to the counter beside it. Measured on
+      <a href="../patterns/expertise.html">Expertise</a> at 1280 px:
+      <code>40.3 × 15.9 px</code>, <code>rgb(72, 72, 72)</code>, no background, no border, no
+      underline. Every other section on the site teaches the reader that this slot is text, so
+      a control that draws as text is a control nobody looks for.
+    </div>
+    <div class="docs-demo">
+      <div class="cf-section-header">
+        <span class="cf-section-header__label">FAQ</span>
+        <button type="button" class="cf-section-header__action">Alle aufklappen</button>
+      </div>
+      <div class="cf-section-header">
+        <span class="cf-section-header__label">Beiträge</span>
+        <a class="cf-section-header__action" href="../patterns/suche.html">Suchen</a>
+      </div>
+    </div>
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-section-header"</span>&gt;
+  &lt;<span class="tag">h2</span> <span class="attr">class</span>=<span class="val">"cf-section-header__label"</span> <span class="attr">id</span>=<span class="val">"faq"</span>&gt;FAQ&lt;/<span class="tag">h2</span>&gt;
+  &lt;<span class="tag">button</span> <span class="attr">type</span>=<span class="val">"button"</span> <span class="attr">class</span>=<span class="val">"cf-section-header__action"</span>&gt;Alle aufklappen&lt;/<span class="tag">button</span>&gt;
+&lt;/<span class="tag">div</span>&gt;
+
+&lt;!-- navigating somewhere instead? then it is a link, and the href is
+     relative: this site is served from a subdirectory --&gt;
+&lt;<span class="tag">a</span> <span class="attr">class</span>=<span class="val">"cf-section-header__action"</span> <span class="attr">href</span>=<span class="val">"suche.html"</span>&gt;Suchen&lt;/<span class="tag">a</span>&gt;</pre>
+
+    <h3>Button or link — the element is not a style choice</h3>
+    <p>
+      A control that changes something on the page the reader is already on is a
+      <code>&lt;button&gt;</code>; a control that takes them to another address is an
+      <code>&lt;a&gt;</code> with an <code>href</code>. Both take the same class, because they
+      look the same and sit in the same slot, and neither is dressed as the other. The two
+      differ under the reader's hands as well as in the accessibility tree —
+      <kbd>Space</kbd> operates a button, <kbd>Enter</kbd> follows a link — so a link built as
+      a button answers half the keys it is asked.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>Element</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-section-header__action</code></td><td><code>button</code> / <code>a</code></td><td>The right end of the rule when it is a control. Same mono label register as <code>.cf-section-header__count</code> — the type is declared once for both — plus the underline, the hover and focus colour, and the drawn hit area.</td></tr>
+        <tr><td>The underline</td><td>—</td><td><code>text-decoration</code> at <code>1px</code> and <code>0.25em</code> offset: the same mark and the same offset <code>.cf-footer__meta</code> uses for the one other place in the system where a control sits inside a mono row.</td></tr>
+        <tr><td>The hit area</td><td><code>::after</code></td><td>Centred on the text, <code>max(100%, 1.5rem)</code> in both directions. Transparent, drawn rather than padded. → <a href="#action-target">The target</a></td></tr>
+        <tr><td>On paper</td><td>—</td><td>Withdrawn. An offer to search a sheet is not data. → <a href="../foundations/print.html#withdrawn">Print</a></td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="action-target">The target, and why it is drawn rather than padded</h3>
+    <p>
+      11 px of mono in a 16 px line box is <code>15.9 px</code> tall.
+      <a href="https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html">WCAG 2.2
+      SC 2.5.8 Target Size (Minimum)</a>, level AA, asks for 24 × 24 CSS px of pointer target,
+      and neither of the two exceptions that could apply does: the inline exception is for
+      links inside a sentence, and the spacing exception only holds while nothing else lands
+      within 24 px — an accident of whatever the next section ships, not a property of this
+      component.
+    </p>
+    <p>
+      Padding would meet the floor and move the drawing. This row is
+      <code>align-items: baseline</code>, so <code>padding-block</code> grows the flex line and
+      takes the hairline down with it — and that hairline is the one axis every section on the
+      site shares. So the target is drawn instead: a transparent <code>::after</code> centred
+      on the text at <code>max(100%, 1.5rem)</code> in both directions. Layout, baseline, row
+      height and the rule's <em>y</em> stay exactly where a counter leaves them, and the target
+      goes from <code>40.3 × 15.9</code> to <code>40.3 × 24</code>. The <code>max()</code> is
+      why there is no number to keep in sync: a long label keeps its own width, a two-letter one
+      is floored, and a change to <code>--text-xs</code> or to the line height cannot walk the
+      target back under the floor.
+    </p>
+    <div class="docs-note">
+      <strong>The focus ring is not enlarged with it.</strong> <code>:focus-visible</code> draws
+      <code>base.css</code>'s outline on the element's own box, which is the text. The ring
+      marks what the reader sees; a ring standing 4 px clear of the glyphs would read as a
+      second box, in a component that has none.
+    </div>
+    <div class="docs-note">
+      <strong>The two counter gates do not read this class, and that is deliberate.</strong>
+      <code>check-section-counts.py</code> holds the designed pages' figures to what stands
+      under them and <code>check-faq-count.py</code> holds a quantity above an accordion to the
+      number of rows. An action in the slot is not a count — sharing
+      <code>.cf-section-header__count</code> would have offered both scripts a word to check as
+      a number.
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>No shipping page carries the action today.</strong> Every section header in
+      <code>patterns/</code> whose right end is occupied carries a quantity, and a quantity is
+      information the mockup's gesture would delete: <em>11 Fragen</em> tells a reader whether
+      to read the section or search it. The five headers with an empty right end — Expertise's
+      two, the two search pages, and Über uns's team — have no action to offer that the page
+      does not already make elsewhere, and inventing one is the counter rule in different
+      clothes. The form is built, drawn and documented because the manual draws it; it lands
+      the day a section has something to do. That is the standing this system already gives
+      <a href="team.html#strip">the team strip</a>.
     </div>
   </section>
 
@@ -216,6 +324,9 @@
           <li>Keep the label short: two or three words.</li>
           <li>Span the full content width, not a column width.</li>
           <li>On dark, set <code>data-theme="inverse"</code>; the rule flips with it.</li>
+          <li>If the right end is a control, use <code>.cf-section-header__action</code> — a
+            <code>&lt;button&gt;</code> when it acts on this page, an <code>&lt;a&gt;</code> when
+            it navigates.</li>
         </ul>
       </div>
       <div class="docs-rule docs-rule--dont">
@@ -224,7 +335,10 @@
           <li>Don't give it a display size — it is 11 px mono at both ends of the rule,
             whatever element carries it.</li>
           <li>No second line underneath.</li>
-          <li>Don't invent counters — if there is nothing to count, the right side stays empty.</li>
+          <li>Don't invent counters — if there is nothing to count, the right side stays empty.
+            The same holds for the action: an empty right end beats a control with nothing to do.</li>
+          <li>Don't put a control in the slot as a <code>&lt;span&gt;</code>, and don't give a
+            <code>&lt;button&gt;</code> the counter's class — the reset makes both draw as text.</li>
           <li>Don't repeat it midway through a section.</li>
         </ul>
       </div>

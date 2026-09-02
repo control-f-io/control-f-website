@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Cap Line — Control-F Design System</title>
+<link rel="icon" href="../assets/img/logo/cf-favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* Demo chrome only. Nothing here is part of the system.
+
+     THE DIAGRAM MEASURES ITSELF WITH THE PROPERTY IT IS ABOUT, which is the
+     only way to draw a cap line without a magic number in it. The outer box
+     is the line box the browser laid out. The inner block is the same text
+     trimmed to `cap alphabetic`, so its own top border IS the cap line and
+     its own bottom border IS the baseline — not a guess at where they fall.
+     A browser that cannot trim draws the inner box at the line box's own
+     size, and the diagram then says, correctly, that it has no slot to show.
+
+     No media query on this page: the specimens are a wrapping flex row, so
+     there is no page-local threshold to register.
+     → scripts/check-local-thresholds.py */
+  .cap-spec { margin: 0; flex: 1 1 18rem; min-width: 0; }
+  .cap-specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+  }
+  /* THE LINE BOX is this element's own padding box, so the word inside it is
+     deliberately NOT trimmed here: whatever the browser laid out is what the
+     figure is about. Its two edges are drawn at 1-4, the line type the
+     presence ladder reserves for absent — a line box is there, it takes room,
+     and nothing draws it. */
+  .cap-spec__word {
+    position: relative;
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--text-h2);
+    line-height: var(--leading-tight);
+    white-space: nowrap;
+    background:
+      repeating-linear-gradient(to right,
+        var(--border-strong) 0 1px, transparent 1px 5px) top left / 100% 1px no-repeat,
+      repeating-linear-gradient(to right,
+        var(--border-strong) 0 1px, transparent 1px 5px) bottom left / 100% 1px no-repeat;
+  }
+  /* THE GAUGE. The cap line and the baseline are not positioned; they are
+     measured, by the property this chapter is about, out of the same font at
+     the same size in the same box — which is the only way to draw them with
+     no number in the stylesheet.
+
+       gauge  trim-end   -> over slot + cap box, anchored to the line box top,
+                            so its lower edge IS the baseline
+       cap    trim-both  -> the cap box, anchored to the gauge's lower edge,
+                            so its upper edge IS the cap line
+
+     The two bands left over are the slots. A browser that cannot trim draws
+     both boxes at the line box's own height, and the figure collapses to one
+     pair of lines — which is what it should say there: no slot to take off. */
+  .cap-spec__gauge,
+  .cap-spec__cap {
+    position: absolute;
+    inset-inline: 0;
+    display: block;
+    text-box-edge: cap alphabetic;
+    color: transparent;
+  }
+  .cap-spec__gauge {
+    top: 0;
+    text-box-trim: trim-end;
+    border-bottom: var(--stroke-1) solid var(--border-strong);
+  }
+  .cap-spec__cap {
+    bottom: 0;
+    text-box-trim: trim-both;
+    border-top: var(--stroke-1) solid var(--border-strong);
+  }
+  /* The pair under test. The kept specimen declares --space-3 and the line box
+     keeps its under slot; the trimmed one declares --space-4 and gives the
+     slot up, which puts the ghost's lower edge on the baseline. */
+  .cap-spec--kept    .cap-spec__box { padding-bottom: var(--space-3); }
+  .cap-spec--trimmed .cap-spec__box { padding-bottom: var(--space-4); }
+  .cap-spec--trimmed .cap-spec__word {
+    text-box-trim: trim-end;
+    text-box-edge: cap alphabetic;
+  }
+  .cap-spec__rule {
+    border-top: var(--stroke-1) solid var(--border-strong);
+  }
+  .cap-legend {
+    display: grid;
+    gap: var(--space-2);
+    margin-top: var(--space-6);
+  }
+  .cap-legend p { margin: 0; max-width: var(--measure-prose); }
+  .cap-legend__key {
+    display: inline-block;
+    width: var(--space-8);
+    height: var(--stroke-1);
+    margin-right: var(--space-2);
+    vertical-align: middle;
+    background: var(--border-strong);
+  }
+  /* The census stamp. A digest is a fixed-width number, so it is set as one —
+     and it is the anchor scripts/check-cap-line.py --fix rewrites, which is
+     why it carries a class of its own rather than being the nth <code> in a
+     paragraph somebody may later reword. */
+  .trim-stamp { font-variant-numeric: tabular-nums; }
+  .cap-legend__key--ghost {
+    background: repeating-linear-gradient(to right,
+      var(--border-strong) 0 1px, transparent 1px 5px);
+  }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 20</p>
+    <h1>The Cap Line</h1>
+    <p>
+      Every object in this system stands on a line. Type does too — and until this chapter
+      the system measured to the bottom of the box the browser wrapped around it instead,
+      which is a different place by a slice of the font that no token names and no gate
+      could see.
+    </p>
+  </header>
+
+  <section class="docs-section" id="where">
+    <h2>Where this comes from</h2>
+    <p>
+      <a href="found.html">The Found State</a> settled the same argument one register over
+      and wrote the sentence this chapter is the rest of: <em>an isometric object has no
+      bounding box either. It has a lattice edge under it.</em> That is why a match is drawn
+      as a ground line and not as a box, and it is exactly as true of a word that is not a
+      match. A line of type has two real edges — the cap line a capital starts at and the
+      baseline it stands on — and one edge that is an artefact of layout: the bottom of the
+      line box, which sits below the baseline by however much room the font wants for its
+      descenders.
+    </p>
+    <p>
+      Nothing in <code>assets/source/manual/</code> draws a line box, because no manual
+      does; it is not a thing a designer sets, it is a thing a browser makes. So this
+      chapter is derived from the language the way <a href="found.html">The Found State</a>
+      and <a href="../components/plot.html">Plot</a> are — out of parts the manual does
+      establish. The part it is built out of is the one the
+      <a href="layout.html">space scale</a> rests on: <strong>a number in this system is
+      the number on the screen.</strong> Between a line of type and anything under it, it
+      was not.
+    </p>
+    <div class="docs-note">
+      <strong>The capability arrived while this system was being built, and it is the
+      third one in a row that did.</strong>
+      <p>
+        <code>text-box-trim</code> shipped in Chrome 133 and Edge 132 in February 2025,
+        in Safari 18.2 in December 2024, and in Firefox 154 in 2026 — which is what made
+        it worth adopting rather than noting. The Found State's three registers became
+        Baseline inside the same window. A system that states its distances in tokens now
+        has a way to make the type honour them, and this chapter is that.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="slot">
+    <h2>The slot</h2>
+    <p>
+      A block containing one line of type is as tall as its <code>line-height</code>, and
+      the glyphs are placed inside that height by the font's own ascent and descent. What
+      is left over is <strong>leading</strong>, and it is split above and below. The slice
+      above the cap line is air between this line and whatever precedes it. The slice below
+      the baseline is the descender slot — the room <em>g</em> and <em>p</em> need — and it
+      is present whether or not the line contains a descender.
+    </p>
+    <p>
+      So a <code>padding-bottom</code> under a line of type does not start at the baseline.
+      It starts under the slot, and the drawn distance is the token plus the slot.
+    </p>
+
+    <div class="docs-demo">
+      <div class="cap-specs">
+        <figure class="cap-spec cap-spec--kept">
+          <div class="cap-spec__box"><span class="cap-spec__word">Antwort<span class="cap-spec__gauge" aria-hidden="true">&nbsp;<span class="cap-spec__cap">&nbsp;</span></span></span></div>
+          <div class="cap-spec__rule"></div>
+          <figcaption class="docs-caption docs-caption--cased"><b>The box the browser drew</b>padding-bottom 12 px, drawn 17.63 px. The rule stands under the slot, not under the word.</figcaption>
+        </figure>
+        <figure class="cap-spec cap-spec--trimmed">
+          <div class="cap-spec__box"><span class="cap-spec__word">Antwort<span class="cap-spec__gauge" aria-hidden="true">&nbsp;<span class="cap-spec__cap">&nbsp;</span></span></span></div>
+          <div class="cap-spec__rule"></div>
+          <figcaption class="docs-caption docs-caption--cased"><b>The box the system means</b>trim-end, padding-bottom 16 px, drawn 16 px. The ghost's lower edge is the baseline.</figcaption>
+        </figure>
+      </div>
+      <div class="cap-legend">
+        <p><span class="cap-legend__key cap-legend__key--ghost" aria-hidden="true"></span>the line box — a ghost, drawn at 1-4 because nothing draws it</p>
+        <p><span class="cap-legend__key" aria-hidden="true"></span>the cap line and the baseline — the two edges the type actually has</p>
+        <p>The bands left between them are the slots. Nothing tints them; they are what is left over.</p>
+      </div>
+    </div>
+
+    <div class="docs-note">
+      <strong>The diagram has no numbers in it.</strong>
+      <p>
+        The two ink lines are not positioned, they are measured — by the property this
+        chapter is about, out of the same font at the same size in the same box. A block
+        trimmed <code>trim-end</code> and anchored to the line box's top ends on the
+        <strong>baseline</strong>, so its lower border is one of them; a block trimmed
+        <code>trim-both</code> and anchored to that lower edge starts on the
+        <strong>cap line</strong>, so its upper border is the other. Both at
+        <code>text-box-edge: cap alphabetic</code>. There is no length anywhere in the
+        figure. A browser that cannot trim draws both blocks at the line box's own height,
+        and the figure collapses to one pair of lines — which is the correct thing for it to
+        say, because on that browser there is no slot to take off.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="measured">
+    <h2>Measured</h2>
+    <p>
+      Chromium 141, 1280 px, the shipping stack. Geist and Geist Mono carry the same
+      vertical metrics, and <a href="typography.html">Publica Sans</a> is not licensed yet
+      and falls back to Geist, so today all three families give one table. The cap box is
+      <strong>0.71 em</strong> at every size in all three.
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Size</th><th>px</th><th>Leading</th><th>Line box</th><th>Cap box</th><th>Over</th><th>Under</th></tr></thead>
+      <tbody>
+        <tr><td><code>--text-display-2</code></td><td>40</td><td><code>tight</code> 1.02</td><td>40.80</td><td>28.41</td><td>5.59</td><td>6.80</td></tr>
+        <tr><td><code>--text-h2</code></td><td>32</td><td><code>tight</code> 1.02</td><td>32.63</td><td>22.72</td><td>4.28</td><td>5.63</td></tr>
+        <tr><td><code>--text-lg</code></td><td>16</td><td><code>relaxed</code> 1.45</td><td>23.19</td><td>11.36</td><td>5.64</td><td>6.19</td></tr>
+        <tr><td><code>--text-md</code></td><td>14</td><td><code>relaxed</code> 1.45</td><td>20.30</td><td>9.94</td><td>5.06</td><td>5.30</td></tr>
+        <tr><td><code>--text-sm</code></td><td>12</td><td><code>normal</code> 1.30</td><td>15.59</td><td>8.52</td><td>2.48</td><td>4.59</td></tr>
+        <tr><td><code>--text-xs</code></td><td>11</td><td><code>normal</code> 1.30</td><td>14.30</td><td>7.81</td><td>3.19</td><td>3.30</td></tr>
+        <tr><td><code>--text-xs</code></td><td>11</td><td><code>relaxed</code> 1.45</td><td>15.94</td><td>7.81</td><td>3.19</td><td>4.94</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>The two slots are not halves of the leading, and the split is not
+      computable.</strong>
+      <p>
+        Read the last two rows together. Between <code>--leading-normal</code> and
+        <code>--leading-relaxed</code> at 11 px the line box grows by 1.64 px and
+        <em>all</em> of it lands under the baseline: the over slot is 3.19 px in both. The
+        cause is that the engine places the baseline on a whole pixel — measured at 9, 10,
+        11, 11, 15, 17, 27 and 34 px from the box top across the rows above, every one of
+        them an integer — and the rounding is absorbed by whichever slot is left over.
+      </p>
+      <p>
+        So the descender slot is not <code>(line-height − content) / 2 + descent</code>. It
+        is what remains after a rounded baseline, at this size, in this font, in this
+        engine. An author cannot compute it and a token cannot hold it. That is the whole
+        argument for trimming it rather than compensating for it: a magic number that is
+        right today is wrong at the next size, the next leading, or on the day the display
+        face is licensed.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="header">
+    <h2>What it cost the section header</h2>
+    <p>
+      <a href="../components/section-header.html">Section Header</a> is the connective
+      tissue of every page — a mono label, a counter, and a hairline under both — and its
+      rule in <code>components.css</code> has always said that <em>the header owns the air
+      beneath it, so every section on the site opens on the same axis</em>. It declares
+      <code>padding-bottom: var(--space-3)</code>, which is 12 px.
+    </p>
+    <p>
+      Swept at 1280 px across all 38 pattern pages, with each label trimmed to its
+      baseline so the distance could be read off the rule rather than off the box:
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Case</th><th>Headers</th><th>Declared</th><th>Drawn</th></tr></thead>
+      <tbody>
+        <tr><td>before · 11 px / 1.45</td><td>53</td><td>12</td><td>16.94</td></tr>
+        <tr><td>before · 32 px / 1.02</td><td>1</td><td>12</td><td>17.63</td></tr>
+        <tr><td>after · both sizes</td><td>54</td><td>16</td><td>16.00</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      Two things were wrong and they are the same thing. The axis was 41 % wider than the
+      token that sets it, and it was <strong>two axes, not one</strong> — the two sizes on the site
+      differ by 0.69 px, and a third size, or the same label inside a container at another
+      leading, would move it again. A component that inherits both its size and its leading
+      cannot hold an invariant that depends on them.
+    </p>
+    <div class="docs-note">
+      <strong><code>--space-4</code> rather than <code>--space-3</code> is the drawn
+      distance moved onto the space scale, not changed.</strong>
+      <p>
+        16 px is within 0.94 px of what 53 of those headers draw today and within 1.63 px of
+        the fifty-fourth, so the composition the designer signed off does not move; the number
+        under it becomes true, and it is now the same number at every size and every leading.
+        Where the trim is unavailable the padding stays at <code>--space-3</code> and the
+        drawing is exactly today's — the two branches are 0.94 px apart, and that is the
+        cost of the whole change.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="edges">
+    <h2>One edge, and which one</h2>
+    <p>
+      <code>text-box-trim</code> takes <code>trim-start</code>, <code>trim-end</code> or
+      <code>trim-both</code>, and <code>text-box-edge</code> says what to trim <em>to</em>.
+      This system trims to <strong><code>cap alphabetic</code></strong> and to nothing else:
+      where a capital starts, and the line it stands on. Those are the two edges the drawing
+      has; <code>text</code> is the font's own ascent and descent, which is the slot itself,
+      and <code>ex</code> is the x-height, which is not where a capital or a
+      <span lang="de">Umlaut</span> starts.
+    </p>
+    <p>
+      The section header trims <strong>one</strong> edge, the end. The slot above the cap
+      line is air between the header and whatever precedes it, and that air is spent by
+      <code>--section-gap</code>, which is a decision about the page rather than about the
+      component; taking it off would tighten every page's rhythm in order to fix a distance
+      nothing measures. The slot below the baseline is the one the component's own invariant
+      is about. One edge, the one the claim is about.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong><code>text-box-edge: cap</code> is legal, means <code>cap text</code>, and
+      draws nothing.</strong>
+      <p>
+        The one-value form fills the missing edge with <code>text</code> — the font's own
+        descent, which is the slot the trim was reached for in order to remove. Beside
+        <code>trim-end</code> it therefore trims nothing at all, and in the file it is one
+        character away from the rule that works. Leaving the property off entirely is worse
+        again: the initial is <code>auto</code>, which defers to whatever over and under
+        metrics the font ships, and the display face of this brand is not licensed yet.
+        <code>scripts/check-cap-line.py</code> fails both.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="census">
+    <h2>Where the system trims</h2>
+    <p>
+      Generated from the shipping stylesheets, not kept by hand — the device
+      <a href="materials.html">the glass census</a> and
+      <a href="layout.html#space-scale">the space scale</a> both use, and for the same
+      reason: a list of selectors written once is right on the day it is written. A fifth
+      trimmed selector enters this table by existing. Stamped
+      <code class="trim-stamp">d35e5b2c</code>, a digest of the rows themselves.
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Selector</th><th>File</th><th>Trim</th><th>Edge</th></tr></thead>
+      <tbody id="trim-census">
+        <tr><td><code>.cf-section-header__count</code></td><td><code>components.css</code></td><td><code>trim-end</code></td><td><code>cap alphabetic</code></td></tr>
+        <tr><td><code>.cf-section-header__label</code></td><td><code>components.css</code></td><td><code>trim-end</code></td><td><code>cap alphabetic</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      Everything else in the system is untrimmed on purpose. Trimming is for type that
+      meets an edge the system measures to — a rule, a border, a padding somebody wrote a
+      token for. Prose does not meet one: a paragraph's leading is the drawing, and the
+      slot at its top and bottom is what keeps two paragraphs off each other.
+    </p>
+    <pre class="docs-code"><code>@supports (text-box-trim: trim-end) {
+  .cf-section-header { padding-bottom: var(--space-4); }
+  .cf-section-header__label,
+  .cf-section-header__count {
+    text-box-trim: trim-end;
+    text-box-edge: cap alphabetic;
+  }
+}</code></pre>
+  </section>
+
+  <section class="docs-section" id="fallback">
+    <h2>What every reader gets</h2>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Path</th><th>What the reader gets</th></tr></thead>
+      <tbody>
+        <tr><td>Chrome 133+, Edge 132+, Safari 18.2+, Firefox 154+</td><td>the axis is 16 px, at every size and every leading</td></tr>
+        <tr><td>anything older</td><td>today's drawing exactly — <code>--space-3</code> and the slot, 16.94 px. Nothing is missing, nothing is misaligned; the number in the stylesheet is the older one</td></tr>
+        <tr><td>print</td><td>the same branch as the screen. A trim is geometry, not a material, and <a href="print.html">the sheet</a> takes the geometry unchanged</td></tr>
+        <tr><td>forced colours</td><td>unaffected. The trim moves a box edge and paints nothing</td></tr>
+        <tr><td>enlarged type</td><td>the axis is 16 px still. The slot it replaced scaled with the font size and this does not, which is the point</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Property</th><th>Value here</th><th>Job</th></tr></thead>
+      <tbody>
+        <tr><td><code>text-box-trim</code></td><td><code>trim-end</code></td><td>which slots come off. The system takes the end, so the padding under a line lands on its baseline</td></tr>
+        <tr><td><code>text-box-edge</code></td><td><code>cap alphabetic</code></td><td>what the box is trimmed to: the cap line over, the baseline under. Both values always — the one-value form restores the slot it was asked to remove</td></tr>
+        <tr><td><code>@supports</code></td><td><code>(text-box-trim: trim-end)</code></td><td>the trim and the padding that replaces the slot are one decision and share one branch</td></tr>
+        <tr><td><code>--space-4</code></td><td>16 px</td><td>the axis, once it is a distance the stylesheet controls</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Trim where type meets an edge the system measures to — a rule, a border, the padding of a plate. That is where the slot is a lie about a token.</li>
+          <li>State both edges, always: <code>cap alphabetic</code>. One value is a rule that reads as a trim and draws as none.</li>
+          <li>Keep the trim and the padding it changes inside one <code>@supports</code> branch, so a browser gets both halves of the decision or neither.</li>
+          <li>Move the padding onto a rung of the <a href="layout.html">space scale</a> rather than to whatever the slot happened to make. The point is a number the system owns.</li>
+          <li>Re-measure after trimming. The claim is that the drawn distance is the declared one, and that is a fact about a rendered page.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Never trim running prose. The leading between paragraphs is the drawing; the slot at the top and bottom of a block of copy is what holds two blocks apart.</li>
+          <li>No magic number instead. A negative margin that cancels the slot is right at one size, one leading and one font, and this system has three of each.</li>
+          <li>Do not trim an element that carries a background, a border or a focus ring on all four sides — the box shrinks to the cap box and the paint goes with it.</li>
+          <li>Never <code>trim-both</code> to save space. Trimming is for making a stated distance true, not for tightening one nobody stated.</li>
+          <li>Do not assume the slot is half the leading. It is what is left after the engine rounds the baseline to a whole pixel — measure it, do not derive it.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>
