@@ -317,6 +317,8 @@ python3 scripts/check-spacing-scale.py         # from the repo root
 python3 scripts/check-spacing-scale.py --fix   # rewrite the table in foundations/layout.html
 python3 scripts/check-gradient-family.py       # the light family, in every shipped SVG and stylesheet
 python3 scripts/check-gradient-family.py -v    # list every gradient, not only the failures
+python3 scripts/check-gradient-angle.py        # the angle each one is raked at, resolved through its transforms
+python3 scripts/check-gradient-angle.py -v     # print the whole rake register, gradient by gradient
 python3 scripts/check-wash-derivation.py       # the page wash's three stops, re-derived from the palette
 python3 scripts/check-wash-derivation.py -v    # print the whole derivation, stop by stop
 python3 scripts/check-iso-motion.py            # the isometric assembly's invariants
@@ -359,6 +361,8 @@ python3 scripts/check-readme-check-count.py    # the count above this block is t
 python3 scripts/check-readme-check-count.py -v # every number, and everything counted for it
 python3 scripts/check-count-atom.py            # a section head taken off the label ramp keeps its counter in one piece
 python3 scripts/check-count-atom.py -v         # every section header row, and the ramp it is on
+python3 scripts/check-docs-caption.py          # the caption under a demo tile is one device, not twenty
+python3 scripts/check-docs-caption.py -v       # every caption rule read, and whether it is a copy
 python3 scripts/check-field-family.py          # every field control is accounted for in the family's shared rules
 python3 scripts/check-field-family.py -v       # every shared rule and the controls it names
 python3 scripts/check-foil-clip.py             # the foil's clip box is capped at its ink, and no box property takes fit-content()
@@ -380,7 +384,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The twenty-nine checks the system enforces rather than documents, run by CI on every push and
+The thirty-one checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -462,6 +466,33 @@ with no `@supports` branch — the only lime ramp in the system's CSS never put 
 path, at ΔEok 0.03866 composited over CF-Grau, seventy-nine times the divergence of the
 `--glass-edge` layer directly above it that the family deliberately declines to correct. Its
 stops are a custom property now and only the path changes.
+
+**Both of those settle what a gradient is made of. Nothing settled which way it runs**, and
+the brand states that law as squarely as it states the ramp: *the only sanctioned angles are
+26.57, 45, 63.43 and 90 degrees.* A gradient is light crossing a surface, so it is spatial by
+the same definition the drawings are, and those four close under direction into sixteen.
+`check-gradient-angle.py` resolves what every gradient in the shipping tree actually paints
+at — 222 in SVG, 80 in CSS — and every one of them is on the set today.
+
+**It has to be a gate rather than a reading, because a gradient's angle is not written in the
+file that declares it.** `#cf-ex-01` reads 52.02° off its own coordinates; painted, it runs at
+exactly 180° — straight down — because a `userSpaceOnUse` paint server resolves in the user
+space the *referencing* element establishes, and that ellipse carries `rotate(127.98)`. The
+declaration and the paint are 128° apart and both are correct. That is not hypothetical:
+`isolib.py` records the same mechanism shipping wrong in the same place, found by rasterising
+the page and reading pixels back — *"the lightest pixel of this object's light sat 68 % of the
+way DOWN the disc"* — because nothing static could see it. The check resolves the transform
+chain, so the number it reports is the one a reader sees.
+
+The two exemptions are **derived, not listed**: process cards 01 and 03 paint at 151.26° and
+130.04°, and card 04's two orbits at 63.31° and 332.48° — a tenth and a degree off the brand
+angles beside them — because `01-discovery.svg`, `03-weniger-ausfaelle.svg` and
+`04-mehr-leistung.svg` carry exactly those vectors. The material wins, so the script reads the
+source and accepts what it finds there rather than carrying four numbers' worth of folklore.
+Three things it *cannot* read it names on every run instead of passing in silence: a paint
+server chosen by a selector (`.map__fill`), an `objectBoundingBox` vector that is diagonal, and
+`--foil-angle`, which is the swing.
+→ `foundations/colors.html#the-rake-register`
 
 **A gradient in the letters is a solid colour at every door,** and the third door was not
 there. A clipping context — `background-clip: text` with the fill transparent, which is

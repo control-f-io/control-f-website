@@ -2693,9 +2693,16 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 
    Same two stops as the figure's own placement, so the line meets the
    drawing's bounding box exactly. Scoped with :has() because every other
-   page header on the site carries an uninterrupted rule. */
+   page header on the site carries an uninterrupted rule.
+
+   90deg AND NOT `to right`, which is the same direction spelled the other way
+   and was the only gradient in the four shipping stylesheets spelled that way.
+   Twenty-four others state a rake as an angle, check-gradient-angle.py's
+   register reads angles, and a family whose stops are held to one hand should
+   not describe its own directions in two vocabularies. Nothing renders
+   differently; it is the register that gets shorter. */
 .cf-page-header__rule:has(.cf-page-header__figure) {
-  background: linear-gradient(to right,
+  background: linear-gradient(90deg,
     var(--border-strong) 0 27.1485%,
     transparent 27.1485% 72.8515%,
     var(--border-strong) 72.8515%);
@@ -4213,11 +4220,64 @@ ul.cf-info-card__chips {
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
+/* THE INTRINSIC MINIMUM, ONE LEVEL BELOW THE GUARD THAT ALREADY EXISTS.
+   `.tiles > * { min-width: 0 }` floors the fact COLUMN, which is the tiles
+   grid's item; the chip is a flex item inside that column and carries its own
+   `min-width: auto`, so it floors at its own min-content — one uppercase mono
+   compound with --tracking-label on every letter — and a flex item is not
+   allowed to shrink below that. The column then holds its width and the chip
+   simply leaves it. It is the third instance of the case
+   foundations/layout.html#intrinsic-two-fixes tabulates, after .tiles and
+   .cf-section-header, and the one nothing had run: check-grid-tracks.py reads
+   TRACK LISTS, and a flex row declares none.
+
+   base.css's break-word net does not reach it either, and the layout chapter
+   says why in its own words — overflow-wrap decides how a line breaks once the
+   box has a width, and the box's width is what min-content has already
+   decided. The word breaks visibly inside the chip on every page, which is
+   exactly what makes this look handled.
+
+   MEASURED, patterns/expertise.html, field 03, the widest chip in the tree
+   ("Windgeschwindigkeit", 19 characters with no interior break) against the
+   fact column it stands in, at the browser default font sizes a Windows
+   reader arrives with:
+
+     viewport  root   chip     column   outside the card   document
+     320       16     fits     —        0 px               320
+     320       20     fits     —        0 px               320
+     320       24     229 px   182 px   47 px              320
+     320       32     305 px   150 px   155 px             390  (70 px sideways)
+     375       32     305 px   198 px   107 px             393  (18 px sideways)
+
+   So it paints outside its own panel from a 24 px default — 150 % is the
+   common low-vision setting and inside what WCAG 1.4.4 asks — and takes the
+   whole document sideways at 32. With the floor, every one of those rows is
+   0 px outside and the 375 document is 375. What is left at 320 x 32 is 27 px
+   of .cf-page-header__meta, a two-span flex row that cannot wrap, which is a
+   different rule and is not touched here.
+
+   WHAT IT COSTS IS THE BREAK POINT, and the net decides it rather than a
+   dictionary. Contained, a chip whose longest word is wider than the column
+   breaks inside that word — "BATTERIESPEICH / ER, KLEIN UND GROSS" at 320 x 24,
+   where the escaping version broke at its comma. That is base.css's net doing
+   the job it says it does ("It is a NET, not typography ... Until then the page
+   does not scroll sideways"), and the right answer for German is still
+   `hyphens: auto` against these pages' lang="de", which that same note leaves
+   to the typography lane and to a designer. A word set badly inside the panel
+   is the smaller fault than a word set well outside it.
+
+   NOTHING MOVES WHERE NOTHING WAS WRONG. min-width: 0 only lets a box shrink
+   that the line was already too narrow to hold: measured identical to the
+   pixel at 320, 375, 414, 853 and 1024 at a 16 px default, and at 853 and 1024
+   — the CSS viewports a 1280 px screen has at Windows' 125 % and 150 % display
+   scaling — at every default from 16 to 32.
+   → base.css, .tiles > *; foundations/layout.html#intrinsic-two-fixes */
 .cf-info-card__chips li {
   padding: var(--space-1) var(--space-3);
   border: var(--stroke-1) solid var(--border-default);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
+  min-width: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -9200,12 +9260,40 @@ a.cf-calendar__day > time,
     /* The light is a part like any other while the object is being built, so
        it takes a stage and travels with the section it belongs to — card 01's
        lime plate IS the top of the inner shaft and cannot stay behind while
-       the shaft rises. Its fill still comes up last, on the range it always
-       had: two animations, one for the arrival and one for the light. */
+       the shaft rises. Two animations, one for the arrival and one for the
+       light.
+
+       THE FILL OPENS WHERE THE ARRIVAL CLOSES, AND IT USED TO OPEN AT 30 FLAT.
+       This paragraph said "its fill still comes up last, on the range it
+       always had", and on two of the four objects that was not true. A light
+       that carries a stage arrives over `5 + 7n` to `22 + 7n`, and the fill's
+       literal 30 is only later than that end while n is 0 or 1. Cards 01 and
+       04 both put their lime plate on stage 2 — card 01's IS the top of the
+       telescoping shaft and card 04's is the sphere's equator, so neither
+       stage is free to move — and both arrive until cover 36, so the fill had
+       six points of the range to itself before the plate carrying it landed.
+       Measured on the stacked landing page at 375 x 812, on the one sample
+       inside that overlap: card 01's crown at opacity 0.93 with 17 of its 238
+       units of travel still to run, and its lime already filling at 0.03 —
+       the shaft was lit before it had finished extending. The rule this is
+       written against is the brand's own: lime is light, and light is the
+       LAST thing to arrive.
+
+       So the fill's start is the later of the two rather than a literal: the
+       constant where the constant is still later, and the part's own arrival
+       end where the stage has pushed past it. Stage 0 and 1 resolve to 30 %
+       exactly, so cards 02 and 03 are byte-identical; cards 01 and 04 open at
+       36. Nothing here is a new number — 22 and 7 are read off the arrival
+       window immediately above, which is what keeps the two from drifting
+       apart. The window's END does not move: the light still lands at 48,
+       inside the nodes' 35–50, so the object still finishes on its
+       construction points. scripts/check-iso-motion.py holds the inequality
+       on this timeline and on the pinned one.
+       → foundations/motion.html#light-last */
     .cf-iso--build .cf-iso__light {
       animation-name: cf-iso-light, cf-iso-build;
       animation-timeline: --cf-iso, --cf-iso;
-      animation-range: cover 30% cover 48%,
+      animation-range: cover calc(max(30%, 22% + var(--stage, 0) * 7%)) cover 48%,
                        cover calc(5%  + var(--stage, 0) * 7%)
                        cover calc(22% + var(--stage, 0) * 7%);
     }
@@ -14955,6 +15043,41 @@ a.cf-calendar__day > time,
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
+
+  /* THE DRAW STOPS HERE, AND THIS LINE IS A RECALC BOUNDARY RATHER THAN A
+     VALUE. --annot-draw is registered `inherits: true` because the two boxes
+     that read it are not one box: the leader is .cf-annot::after and the note
+     is .cf-annot__label, so the animation has to run on the SET and arrive by
+     inheritance. Nothing below the note reads it — the value is the end of
+     that chain — but an inherited registered property whose value CHANGES
+     costs a style recalc on every descendant of the animated element, on
+     every frame the range is scrubbing, whether or not the descendant reads
+     it. Redeclaring it here gives this element a computed value that does not
+     move, and Blink stops the walk at an element whose inherited values are
+     unchanged, so the readouts under it are never visited.
+
+     THE SUBTREE IS NOT THE FOUR WORDS THIS COMPONENT WAS MEASURED ON. On the
+     landing page the set is .sp-annots: 21 annotations whose values are live
+     readouts — .sp-stream, six <b> apiece — so 126 of the set's 189
+     descendants sit under .cf-annot__value, and not one of them reads
+     --annot-draw. Chromium 1194, 1440 x 900, scrubbing scrollY 2050 -> 2500
+     in 40 steps (cf-annot-draw's own `cover 45% cover 62%`, act 1 lit),
+     Performance.RecalcStyleDuration, median of three runs:
+
+       as shipped                    1000 ms    25.0 ms / step
+       with this line                 594 ms    14.9 ms / step
+       cf-annot-draw force-paused     361 ms     9.0 ms / step
+
+     The 233 ms this still leaves over the paused run is the 21 leaders and
+     21 notes that do read the property, which is the work the animation is
+     for. Cutting one level lower, on .sp-stream > b, buys nothing (1062 ms,
+     within noise of shipped): by then the walk has already reached them, and
+     what a boundary saves is the visit, not the comparison.
+
+     1 is the finished annotation and the registered initial-value, the same
+     number the legend fallback, the plan and forced colours each write when
+     they hand --annot-draw back. */
+  --annot-draw: 1;
 }
 
 /* The leader draws itself out of the anchor as the figure settles. The range

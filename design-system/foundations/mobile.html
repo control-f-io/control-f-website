@@ -32,14 +32,6 @@
     cursor: pointer;
   }
   .mob-load > summary::marker { content: ""; }
-  .mob-cap {
-    margin-top: var(--space-2);
-    font-family: var(--font-mono); font-size: var(--text-xs);
-    letter-spacing: var(--tracking-label); text-transform: uppercase;
-    /* --text-secondary, not --text-muted: #919191 at 11 px is 2.97:1 on the
-       documentation wash, and 11 px is not large text. */
-    color: var(--text-secondary);
-  }
   /* The measured widths as a ruler: one row per threshold, drawn to scale
      against the 320–1280 band so the crowding around 780–1007 is visible
      rather than only tabulated. */
@@ -193,7 +185,7 @@
       <div class="mob-ruler__row"><span class="mob-ruler__n">612</span><span class="mob-ruler__bar"><i style="width:30.4%"></i></span></div>
       <div class="mob-ruler__row"><span class="mob-ruler__n">375</span><span class="mob-ruler__bar"><i style="width:5.7%"></i></span></div>
     </div>
-    <p class="mob-cap">Drawn to scale across 320 → 1280. The last flip is at 612; the 375 row is a phone, marked for scale.</p>
+    <p class="docs-caption">Drawn to scale across 320 → 1280. The last flip is at 612; the 375 row is a phone, marked for scale.</p>
     <p>
       <strong>Nothing happens between 612 and 320.</strong> Every threshold in the system
       is above the widest phone, so a phone is not a special width the layout switches
@@ -276,11 +268,11 @@
         <div class="mob-frames">
           <div>
             <iframe class="mob-frame" src="../patterns/landing-page.html" loading="lazy" title="Landing page at 375 px"></iframe>
-            <p class="mob-cap">landing-page · 375</p>
+            <p class="docs-caption">landing-page · 375</p>
           </div>
           <div>
             <iframe class="mob-frame" src="../patterns/ueber-uns.html" loading="lazy" title="Über uns page at 375 px"></iframe>
-            <p class="mob-cap">ueber-uns · 375</p>
+            <p class="docs-caption">ueber-uns · 375</p>
           </div>
         </div>
       </div>
@@ -563,6 +555,86 @@
       so if a re-measurement is ambiguous, round up. What is gone is the reason the slack
       had to be generous: there is no longer a string in a font this repository does not
       ship anywhere in the arithmetic.
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>A figure can be unreadable with
+      <code>scrollWidth === clientWidth</code>, and act 4&rsquo;s bar chart is.</strong>
+      Every claim above is about the document&rsquo;s own width, and every gate that
+      holds one &mdash; <code>check-text-zoom.py</code>&rsquo;s census included &mdash;
+      asks the same question. The <code>.cf-block</code> on card 02 of the landing
+      page&rsquo;s evidence act never widens the document at any width or root size,
+      and at the reader&rsquo;s own text size it prints its labels on top of each
+      other. Both engines, within 0.2 px of one another: Chromium 141 and WebKit 26.5.
+      <br><br>
+      <strong>The cause is two multiplications running opposite ways.</strong> Every
+      mark in this component is absolutely positioned on a <em>pitch</em> &mdash; the
+      category&rsquo;s share of the drawing &mdash; and the drawing is what the card
+      leaves it: <code>.lp-ev-card__figure</code> insets by <code>--space-8</code> a
+      side, which is 2rem and therefore grows with the reader. At a 320 px viewport the
+      drawing is 214 px at a 16 px root and 182 px at 24, so the pitch falls from 38.0 px
+      to 29.2 while every label in it gets half again as wide.
+    </div>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Viewport</th><th>Pitch at 16 / 20 / 24</th><th>Widest key line</th><th>Reading</th></tr></thead>
+      <tbody>
+        <tr><td>320</td><td>38.0 / 33.6 / 29.2</td><td rowspan="5">46.9 / 58.6 / 70.3 px before, 33.6 / 41.8 / 50.2 after</td><td rowspan="5">28.8 / 36.0 / 43.2 px, one line, unbreakable</td></tr>
+        <tr><td>360</td><td>46.0 / 40.6 / 36.2</td></tr>
+        <tr><td>375</td><td>48.8 / 43.2 / 38.8</td></tr>
+        <tr><td>390</td><td>51.4 / 45.8 / 41.5</td></tr>
+        <tr><td>414</td><td>55.7 / 50.4 / 45.7</td></tr>
+        <tr><td>768</td><td>118.7 / 114.3 / 109.9</td><td colspan="2">nothing wraps and nothing collides at any root</td></tr>
+        <tr><td>1280</td><td>111.1 / 105.7 / 100.3</td><td colspan="2">the closest reading pair anywhere is 57.1 px apart</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>The keys are fixed and the readings are not, and the difference is
+      which decision each one runs into.</strong> A key is a compound word bound to
+      its pitch, and <code>.cf-block__key</code>&rsquo;s own rule takes
+      <code>overflow-wrap: normal; hyphens: manual</code> so that a name too long for
+      its ground overhangs rather than being cut mid-word &mdash; which makes
+      <code>&amp;shy;</code> the author&rsquo;s whole interface, the same one
+      <code>.cf-plot</code>&rsquo;s keys were given above. Two of these five categories
+      carried one break point and three carried none, so at 320 and 360 the keys
+      overprinted <em>at the default text size</em>: three line pairs at 320, the
+      deepest 8.9 px, one pair at 360. Broken at the syllable &mdash; Kul&shy;tur,
+      Si&shy;cher&shy;heit, Tech&shy;no&shy;lo&shy;gie, Bud&shy;get, Da&shy;ten, and
+      their English counterparts in <code>i18n/en.json</code> &mdash; the widest line at
+      320 is 33.6 px inside a 38 px pitch, and 320 and 360 at the default size, and 360
+      through 414 at a 20 px root, are clean on both engines. Above the phone nothing
+      moves at all: at 768 and 1280 the pitch is 100&ndash;119 px and no key wraps.
+      <br><br>
+      <strong>At a 24 px root the keys still overprint</strong> &mdash; at 320 the
+      deepest overlap falls from 41.1 px to 21.0, and because each key now sets on four
+      short lines instead of two long ones there are more of them: 22 intersecting line
+      pairs against 13. A break point buys depth and spends count, and at that root
+      neither is small enough to read.
+      <br><br>
+      <strong>The readings have no break point to give.</strong>
+      <code>.cf-block__val</code> is a number and its unit, which
+      <code>check-bound-key-wrap.py</code> holds to <code>white-space: nowrap</code>
+      for the reason that gate states: one token, with no interior break that is ever
+      right. So it is 28.8 px wide at a 16 px root, 36.0 at 20 and 43.2 at 24 &mdash; the
+      same at every viewport, because it is type &mdash; and it collides with its
+      neighbour wherever the pitch is under that: at 320 by 2.4 px at a 20 px root and
+      by 14.0 at 24, at 360 by 7.0, at 375 by 4.4 and at 390 by 1.8, all at 24. 414 at a
+      24 px root clears by 2.5 px and is the first cell that does.
+      <br><br>
+      <strong>Why that half is not fixed here.</strong> The three answers a narrow
+      figure invites are each closed by a decision this system has already made and
+      written down: the reading may not wrap, because a number parted from its unit is
+      the fault two components have already been fixed for; the key may not break where
+      the author did not, because a word cut at its box edge is worse than one that
+      overhangs; and shrinking the type to fit is answering the reader&rsquo;s own text
+      size with a smaller one. What is left is the move <code>.cf-pie</code> and
+      <code>.cf-annot</code> both make: a tier &mdash; below some width of its own
+      container the figure stops hanging labels off a pitch and rules them under the
+      drawing instead. That is a threshold, thresholds are minted in the register in
+      <code>tokens.css</code> and on <a href="layout.html">Layout Grid</a> in the same
+      commit, and which tier this figure should draw is a designer&rsquo;s call rather
+      than an automated one. It is recorded here, with the arithmetic, so that the call
+      can be made from a number.
     </div>
   </section>
 

@@ -2444,6 +2444,71 @@
     11%, 100% { pointer-events: auto; }
   }
 
+  /* AND AN INVISIBLE CARD STILL TAKES THE FOCUS RING, which is the same fault
+     as the pair above arriving through the other door.
+
+     scripts/check-focus-reach.py already says this out loud, about the act
+     rail, in the sentence that file exists to hold: "Hidden by paint is only
+     honest if both halves are there: opacity alone leaves a click trap, and
+     POINTER-EVENTS ALONE LEAVES AN INVISIBLE FOCUS STOP." The pair above is
+     pointer-events alone. It closed the door the mouse arrives through and
+     left the keyboard's open, so the fix for the click trap read as complete
+     while the other half of the same sentence was still true one act down.
+
+     WHAT THAT COSTS, MEASURED. Chromium, consent accepted, Tab walked forward
+     from the rail's down-jump into .lp-ev-track and counted at nine positions
+     across the track's contain 0-100 %, recording each stop's own card's
+     computed opacity:
+
+                      stops    of them on a card at opacity 0
+       1440 x 900      126               96      76 %
+       1280 x 800      126               96      76 %
+       1920 x 1080     126               96      76 %
+
+     Every position offers all fourteen source links whatever is on the stage,
+     and three quarters of them are on a card that is not painted. The ring is
+     drawn — the stack shares one grid area, so it lands ON TOP of the card the
+     reader is actually looking at, around a link that is not that card's. WCAG
+     2.4.7 asks the focus indicator be visible and 2.4.11 that it not be
+     obscured; a ring on a fully transparent element is neither.
+
+     VISIBILITY AND NOT `hidden`, AND ON THE SAME TIMELINE AS THE PAINT. The
+     attribute is what the rail was fixed away FROM — it is a state a
+     stylesheet cannot reach and a script would have to re-derive from the
+     scroll the stylesheet already owns. `visibility` is a property, it is on
+     this timeline, and it removes descendants from the sequential focus order
+     the way the platform means it to.
+
+     THE WINDOW FALLS OUT OF THE INTERPOLATION RATHER THAN OUT OF NEW LITERALS,
+     which is why these carry the hit pair's numbers unchanged. visibility does
+     not interpolate discretely: across a segment with `visible` at either end
+     the computed value is `visible` for every progress strictly inside it. So
+     0 % hidden -> 11 % visible reads visible from the first fraction of a
+     point, and 89 % visible -> 100 % hidden reads visible until the last. The
+     panel is therefore hidden at exactly progress 0 and 1 and — with `both`
+     filling those two values outside the range — everywhere the card is not
+     on the timeline at all, and visible across the whole of it, crossfade
+     shoulders included. That is the same interval cf-pin-step holds opacity
+     above zero, by construction and not by a third number agreeing with two
+     others.
+
+     The -last variant is cf-pin-step-last's argument again: the fourth quarter
+     has no next quarter, so it holds visible instead of leaving.
+
+     Measured with the pair in: 30 stops over the same nine positions, none of
+     them on a card at opacity 0, and each position offering exactly the source
+     count of the card on stage — 6 / 2 / 4 / 2. Nothing is unreachable; the
+     track still hands over all fourteen, one card's worth at a time.
+     → scripts/check-pin-focus-stack.py */
+  @keyframes lp-ev-card-seen {
+    0%, 100% { visibility: hidden; }
+    11%, 89% { visibility: visible; }
+  }
+  @keyframes lp-ev-card-seen-last {
+    0%        { visibility: hidden; }
+    11%, 100% { visibility: visible; }
+  }
+
   @keyframes lp-frame-draw { from { scale: 0; } to { scale: 1; } }
   @keyframes lp-frame-in { from { opacity: 0; } to { opacity: 1; } }
   @keyframes lp-flow-out { to { opacity: 0; } }
@@ -5520,11 +5585,39 @@
          is what makes one lit element per screen true here
          (→ foundations/colors.html#one-per-screen, and the .lp-flow__light
          note above, which carries the sweep). It is a beat of the reveal
-         rather than a beat of the build, and the build is what moved. */
+         rather than a beat of the build, and the build is what moved.
+
+         AND MOVING IT IS WHAT PUT CARD 04'S LIME IN FRONT OF ITS OWN PLATE.
+         11.5 was derived against a head of 0.5 — card 01's, the quarter this
+         seam was measured in — and it survived the head becoming a variable
+         without being re-derived against the other value it can take. A light
+         arrives over `head + 2.2n` to `head + 6.5 + 2.2n`, so at head 1.5 and
+         stage 2 it is still arriving until 12.4 of its quarter, and the fill
+         opened at 11.5. Card 04 is exactly that card: three orbit ghosts, so
+         head 1.5, and its lime plate is the sphere's equator on stage 2.
+         Measured at 1440 x 900 on this page, sweeping card 04's quarter at
+         5 px: the equator's fill left 0 at y 11637 while the plate carrying
+         it was at opacity 0.99 and still arriving, and reaches 0 at y 11692
+         with the fix — 55 px of scroll against the 0.9 points the arithmetic
+         predicts (0.9 % of the pin's 5,760 px contain range is 52). Nine
+         tenths of a point is not much scroll and it is the wrong nine tenths:
+         it is the moment the one lit element on the screen appears, and it
+         appeared through a plate that was not finished.
+
+         So the fill opens at the later of the constant and the part's own
+         arrival end, which is the same correction components.css makes to the
+         base assembly and for the same reason. Cards 01, 02 and 03 resolve to
+         11.5 exactly and are byte-identical; card 04 opens at 12.4. The
+         window's END does not move — the light still lands at 15, the nodes
+         still close the reveal at 15.5, and the 62 % hold is untouched.
+         → foundations/motion.html#light-last */
       .lp-proc-steps .cf-iso__light {
         animation-name: cf-iso-light, cf-iso-build;
         animation-timeline: --cf-pin, --cf-pin;
-        animation-range: contain calc(var(--i) * 25% + 11.5%) contain calc(var(--i) * 25% + 15%),
+        animation-range: contain calc(var(--i) * 25%
+                                      + max(11.5%, (var(--build-head) + 6.5
+                                                    + var(--stage, 0) * 2.2) * 1%))
+                         contain calc(var(--i) * 25% + 15%),
                          contain calc(var(--i) * 25% + var(--build-head) * 1% + var(--stage, 0) * 2.2%)
                          contain calc(var(--i) * 25% + (var(--build-head) + 6.5) * 1% + var(--stage, 0) * 2.2%);
       }
@@ -6104,14 +6197,26 @@
          The figure needs nothing: it holds no target, and with the card inert
          it cannot intercept one either. Both rules live inside the pinned tier,
          so the stacked tier below the gate — where the cards do not overlap at
-         all — is untouched and every link there is a link. */
+         all — is untouched and every link there is a link.
+
+         AND THE SECOND ANIMATION IS THE KEYBOARD'S HALF of the same sentence,
+         which the first one left open for a month: what a reader can REACH is
+         now precisely what a reader can see, the way what they can click
+         already was. Both names ride one timeline and one range — the
+         animation-* lists cycle against animation-name, so the single
+         --cf-pin and the single `contain` window below serve both — because
+         the two switches are the same switch and must not become two numbers
+         that can disagree. Reasoning and measurements over the keyframes,
+         beside the hit pair. */
       .lp-ev-steps > .lp-ev-card { pointer-events: none; }
       .lp-ev-steps > .lp-ev-card .lp-ev-card__panel {
-        animation: lp-ev-card-hit linear both;
+        animation: lp-ev-card-hit linear both, lp-ev-card-seen linear both;
         animation-timeline: --cf-pin;
         animation-range: contain calc(var(--i) * 25% - 3%) contain calc((var(--i) + 1) * 25% + 3%);
       }
-      .lp-ev-steps > .lp-ev-card:last-child .lp-ev-card__panel { animation-name: lp-ev-card-hit-last; }
+      .lp-ev-steps > .lp-ev-card:last-child .lp-ev-card__panel {
+        animation-name: lp-ev-card-hit-last, lp-ev-card-seen-last;
+      }
 
       /* The copy arrives line by line inside the reveal, on the same
          stagger .lp-proc-steps' panel takes 800 lines up: same keyframe,

@@ -50,7 +50,12 @@ attribute and each stated in prose by the very stylesheet that reads it:
   a light's fill  cf-iso-light animates fill-opacity and nothing else, so a
                   light that is not a filled element has no arrival at all —
                   and the <svg>'s own fill="none" means it paints nothing
-                  either.
+                  either. And where the light DOES arrive, its fill may not
+                  open before that arrival closes: lime is light, so an object
+                  lit while it is still travelling is lit before it is there.
+                  That one is an inequality between the two ranges of a single
+                  declaration, swept over every --stage and --build-head the
+                  stylesheets themselves declare — see light_handover().
 
 The two constants those first two are measured against are READ OUT OF
 components.css rather than restated here — see assembly_windows(). A checker
@@ -65,6 +70,7 @@ stdlib only, no build step, no dependency. Same python3 that serves the pages.
     python3 scripts/check-iso-motion.py
 """
 
+import ast
 import html
 import pathlib
 import re
@@ -310,6 +316,204 @@ def assembly_windows():
         "light_start": _number(
             r"animation-range:\s*cover\s*([\d.]+)%", light),
     }
+
+
+# ---------------------------------------------------------------------------
+# THE LIGHT IS THE LAST THING TO ARRIVE, AND THAT IS AN INEQUALITY BETWEEN TWO
+# RANGES OF ONE DECLARATION.
+#
+# `.cf-iso--build .cf-iso__light` and `.lp-proc-steps .cf-iso__light` each
+# carry TWO animations on one `animation-range` — the part's arrival and the
+# lime's fill — and the whole of what the brand asks of them is that the second
+# opens no earlier than the first closes. Lime is light: an object lit while it
+# is still travelling is lit before it is there.
+#
+# Nothing held that, and it was false on two of the four objects at once. The
+# fill's opening was a literal (30 on the base assembly, 11.5 on the pinned
+# track) and the arrival's closing is an expression over --stage and, since the
+# build's head became a variable, over --build-head as well. A literal only
+# stays later than an expression while nobody moves the expression, and both
+# cards whose lime plate sits on stage 2 — 01's telescope crown, 04's equator —
+# had already moved past it.
+#
+# WHY THIS IS EVALUATED RATHER THAN PATTERN-MATCHED. The two rules state the
+# same inequality in two different algebras: `22% + var(--stage,0) * 7%` on one
+# timeline, `(var(--build-head) + 6.5 + var(--stage,0) * 2.2) * 1%` on the
+# other, the second folded differently again in the arrival it has to beat. A
+# textual comparison would fail on the folding and a hand-copied number would
+# be the drift this whole directory exists to stop. So the ranges are read out
+# of the stylesheets, the variables are swept over the values the stylesheets
+# themselves declare, and the two are compared as numbers.
+#
+# --i is not swept. It shifts a card's whole quarter and appears on both sides
+# of the comparison with the same coefficient, so it cancels; it is pinned at 0
+# and the check is the same check for every card.
+
+RANGE_NAMES = ("cover", "contain", "entry-crossing", "exit-crossing", "entry", "exit")
+
+# The two rules that carry an arrival and a fill on one declaration. Each is
+# (stylesheet, selector) — no third exists, and a fourth arriving without a row
+# here is what the count in the summary line is for.
+LIGHT_RULES = (
+    ("components.css", ".cf-iso--build .cf-iso__light"),
+    ("acts.css", ".lp-proc-steps .cf-iso__light"),
+)
+
+_VAR = re.compile(r"var\(\s*(--[\w-]+)\s*(?:,\s*([^()]*?)\s*)?\)")
+
+
+def split_top_level(text, sep=","):
+    """Split on `sep`, ignoring separators inside parentheses."""
+    parts, depth, start = [], 0, 0
+    for i, ch in enumerate(text):
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        elif ch == sep and depth == 0:
+            parts.append(text[start:i])
+            start = i + 1
+    parts.append(text[start:])
+    return [p.strip() for p in parts]
+
+
+def split_range(text):
+    """One `animation-range` entry into its start and end values.
+
+    A range is `<name> <value> <name> <value>`, and the values are calc()
+    expressions that may themselves contain the word `cover` nowhere but may
+    contain commas and parentheses everywhere. So the split is on a range NAME
+    seen at paren depth 0, which is the only place one can appear.
+    """
+    parts, depth, start = [], 0, 0
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        elif depth == 0:
+            for name in RANGE_NAMES:
+                if text.startswith(name, i) and (i == 0 or text[i - 1].isspace()):
+                    if i > start:
+                        parts.append(text[start:i].strip())
+                    start = i
+                    i += len(name) - 1
+                    break
+        i += 1
+    parts.append(text[start:].strip())
+    return [p for p in parts if p]
+
+
+def eval_calc(expr, values):
+    """A CSS calc() expression as a number of percentage points.
+
+    Every term in these two declarations is either a percentage or a plain
+    number, and the two are never multiplied together, so the unit can be
+    dropped and the arithmetic done in points. `var()` is resolved from
+    `values`, falling back to the declaration's own default where it has one —
+    a name with neither is a finding, not a zero.
+    """
+    def sub(m):
+        name, default = m.group(1), m.group(2)
+        if name in values:
+            return "(%s)" % values[name]
+        if default is not None and default != "":
+            return "(%s)" % default
+        raise KeyError(name)
+
+    text = _VAR.sub(sub, expr)
+    while _VAR.search(text):                      # var() nested in a default
+        text = _VAR.sub(sub, text)
+    for name in RANGE_NAMES:
+        text = re.sub(r"\b%s\b" % name, "", text)
+    text = re.sub(r"\bcalc\b", "", text).replace("%", "")
+    return _arith(ast.parse(text.strip(), mode="eval").body)
+
+
+_BINOPS = {ast.Add: lambda a, b: a + b, ast.Sub: lambda a, b: a - b,
+           ast.Mult: lambda a, b: a * b, ast.Div: lambda a, b: a / b}
+
+
+def _arith(node):
+    """Numbers, + - * /, unary minus, and max()/min(). Nothing else — the
+    expressions are CSS math and an `eval` over a stylesheet is not."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+        return float(node.value)
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+        v = _arith(node.operand)
+        return v if isinstance(node.op, ast.UAdd) else -v
+    if isinstance(node, ast.BinOp) and type(node.op) in _BINOPS:
+        return _BINOPS[type(node.op)](_arith(node.left), _arith(node.right))
+    if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+            and node.func.id in ("max", "min") and not node.keywords):
+        return (max if node.func.id == "max" else min)(
+            *[_arith(a) for a in node.args])
+    raise ValueError(ast.dump(node))
+
+
+def light_handover(max_stage):
+    """Every (--stage, --build-head) a light can be authored at, on both
+    timelines, with the fill opening no earlier than the arrival closes."""
+    findings = []
+    stages = range(0, (max_stage if max_stage is not None else 3) + 1)
+
+    for filename, selector in LIGHT_RULES:
+        text = strip_comments((CSS / filename).read_text())
+        bodies = [b for b in rule_bodies(text, selector) if "animation-range" in b]
+        if not bodies:
+            findings.append(
+                "%s no longer carries an animation-range on `%s`, so the rule that\n"
+                "    the lime opens where the plate lands is not being checked on this\n"
+                "    timeline. Point LIGHT_RULES at the rule that carries it now."
+                % (filename, selector))
+            continue
+
+        value = re.search(r"animation-range:\s*([^;]+);", bodies[0]).group(1)
+        ranges = [split_range(r) for r in split_top_level(value)]
+        if len(ranges) != 2 or any(len(r) != 2 for r in ranges):
+            findings.append(
+                "%s's `%s` no longer states exactly two ranges — the fill's and the\n"
+                "    arrival's — so which one opens first cannot be read. Found %d."
+                % (filename, selector, len(ranges)))
+            continue
+
+        # Declaration order follows animation-name: cf-iso-light, cf-iso-build.
+        fill_start, arrival_end = ranges[0][0], ranges[1][1]
+
+        # The heads a card can be given, off the stylesheet that gives them.
+        heads = sorted({float(h) for h in re.findall(
+            r"--build-head:\s*([\d.]+)", text)}) or [0.0]
+
+        for head in heads:
+            for stage in stages:
+                env = {"--i": "0", "--stage": str(stage),
+                       "--build-head": repr(head)}
+                try:
+                    opens, lands = (eval_calc(fill_start, env),
+                                    eval_calc(arrival_end, env))
+                except (KeyError, SyntaxError, ValueError) as exc:
+                    findings.append(
+                        "%s's `%s` states a range this check cannot evaluate (%s: %s).\n"
+                        "    Either the expression grew a function _arith() does not know\n"
+                        "    or a var() lost its fallback."
+                        % (filename, selector, type(exc).__name__, exc))
+                    break
+                if opens < lands - 1e-9:
+                    findings.append(
+                        "%s's `%s` opens the lime at %g %% and the plate carrying it is\n"
+                        "    still arriving until %g %% — at --stage:%d, --build-head:%g.\n"
+                        "    Lime is light and it is the last thing to arrive: for %g points\n"
+                        "    of range the object is lit before it is there. Open the fill at\n"
+                        "    the later of the constant and the part's own arrival end.\n"
+                        "    → foundations/motion.html#light-last"
+                        % (filename, selector, opens, lands, stage, head,
+                           lands - opens))
+            else:
+                continue
+            break
+    return findings
 
 
 def style_number(tag, name, default):
@@ -935,6 +1139,10 @@ def main():
         while win["build_first"] + (max_stage + 1) * win["build_step"] < win["light_start"]:
             max_stage += 1
 
+    # The lime opens where the plate carrying it lands, on both timelines.
+    handover = light_handover(max_stage)
+    findings.extend(handover)
+
     led = staged = lit = 0
 
     for page in PAGES:
@@ -1150,12 +1358,13 @@ def main():
         "%d normalised strokes clear of non-scaling-stroke, every animation-timeline scoped\n"
         "to screen.\n"
         "                    timing: %d traces inside the %g-point window, %d stages at or\n"
-        "under %d, %d lights filled.\n"
+        "under %d, %d lights filled, %d light declarations opening their fill no earlier\n"
+        "than the plate carrying it lands.\n"
         "                    %d straight traces starting and stopping at their own crop,\n"
         "every split signal sharing one window by length.\n"
         "                    %d documented travels quoting the stylesheet they teach."
         % (assembling, normalised, led, win["trace_span"], staged, max_stage, lit,
-           straight, documented)
+           len(LIGHT_RULES), straight, documented)
     )
     return 0
 

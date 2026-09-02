@@ -764,23 +764,49 @@ body.docs {
   outline: 0 solid transparent;
 }
 .docs-plate:hover img { outline: 2px solid var(--border-strong); outline-offset: -1px; }
-/* THE ONE COPY OF THE CAPTION DEVICE THAT LIVES IN A STYLESHEET. Nineteen more
-   are declared page-locally — .iso-demo, .lines-demo, .motion-demo, .motion-lit,
-   .logo-tile, .photo-row, .field-pair, .icon-sizes, .icon-weights, .demo-space,
-   .band-swatches, .flat-vs-ramp, .bloom-clip, .vt-stages, .sheets — each a
-   figcaption under a demo tile, each mono at --text-xs with the label tracking,
-   and each written out again because there was nothing to reach for.
+/* THE CAPTION UNDER A DEMO TILE — one device, one declaration, and there is now
+   something to reach for.
 
-   Six of them had drifted to --text-muted, which is the one value the device
-   may not take: #919191 at 11 px is 2.97:1 on --grey-050 and 3.15:1 on white,
-   against a 4.5:1 floor, and 11 px is not large text. It is the same
-   substitution .docs-table th makes forty lines up for the same reason, and the
-   same rule components.css states four times over for the page wash. The
-   colour here is the value all twenty are supposed to carry; a new copy of the
-   device starts from this one. → scripts/check-contrast.py's muted rule, whose
-   sweep reads base/components/acts and the pattern pages' own <style> blocks,
-   and has never reached this side of the line. */
-.docs-plate figcaption {
+   It used to live here as `.docs-plate figcaption` and nowhere else, with
+   nineteen more copies declared page-locally — .iso-demo, .lines-demo,
+   .motion-demo, .motion-lit, .logo-tile, .photo-row, .field-pair, .icon-sizes,
+   .icon-weights, .demo-space, .band-swatches, .flat-vs-ramp, .bloom-clip,
+   .vt-stages, .plates, .ill-cap, .mob-cap, .sig-wall, .sig-row — each a caption
+   under a sample, each mono at --text-xs, and each written out again because a
+   container selector in a page's own <style> block is not a thing another page
+   can name. That is the whole mechanism of documentation drift: the device was
+   correct nineteen times and identical none of them.
+
+   Measured before this class existed, the gap between a sample and its caption
+   was 8, 12, 16, 19.14, 26.23 or 37.09 px depending on which page you were
+   reading; three copies had lost --tracking-label, so the same 11 px mono line
+   was set at two different tracks a scroll apart; and one had drifted to
+   --text-primary. Only the first of those is visible in a screenshot, and only
+   if the two pages are open side by side.
+
+   The colour is the one value the device may not choose freely: --text-muted is
+   #919191, which at 11 px is 2.97:1 on --grey-050 and 3.15:1 on white against a
+   4.5:1 floor, and 11 px is not large text. Six copies had drifted there once
+   already. It is the same substitution .docs-table th makes for the same
+   reason. → scripts/check-docs-caption.py, which fails a twentieth copy.
+
+   Two modifiers, because two of the differences were real:
+
+     --cased   the text keeps its own case. The default is the label ramp's
+               uppercase, and uppercase is wrong wherever the caption carries
+               something whose case carries meaning — a token name, a unit, a
+               CSS function, a slug. It shipped wrong twice: foundations/field
+               .html captioned its samples `--FIELD-UNIT: 3REM`, on the page
+               whose subject is that token, and foundations/geometry.html read
+               `+ SCALEY(.5) = THE TILE`. It is the defect motion.html already
+               names over .motion-demo — "`120 ms` rendered `120 MS`, and MS is
+               not a millisecond" — fixed there, and never swept for.
+     --flush   the caption takes its air from the container's own gap instead of
+               from a margin. A caption that is a grid item beside a `gap` would
+               otherwise be spaced twice. Same contract as
+               .cf-section-header--flush: give up your own spacing, the
+               neighbour already draws it. */
+.docs-caption {
   margin-top: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -788,11 +814,13 @@ body.docs {
   text-transform: uppercase;
   color: var(--text-secondary);
 }
-.docs-plate figcaption b {
+.docs-caption b {
   display: block;
   font-weight: var(--weight-medium);
   color: var(--text-primary);
 }
+.docs-caption--cased { text-transform: none; }
+.docs-caption--flush { margin-top: 0; }
 
 /* Wrap a wide table in this. A table has a min-content width it will not go
    below, so on a phone it pushes the whole page sideways unless something
@@ -1045,7 +1073,47 @@ body.docs {
   .docs-stack__strut { stroke-opacity: 1; }
 }
 
-@media (max-width: 900px) {
+/* THE DOCUMENTATION'S ONE WIDTH THRESHOLD, AND IT WAS THE LAST px ONE LEFT IN
+   FRONT OF A READER. It read `900px` until now, deliberately: the register in
+   tokens.css keeps docs.css out of scope, and the note on
+   foundations/layout.html argued that converting this query "would imply the
+   register governs the documentation chrome".
+
+   That is right about the register and wrong about the rule. They are two
+   rules, not one. The REGISTER says which thresholds are written down, and
+   docs.css is still outside it — its row in the outside-the-register table is
+   the whole point. The REM RULE says whose font size a threshold answers to,
+   and that question does not care who owns the file: it is about whether a
+   reader who asked for larger type can read the page without dragging it
+   sideways.
+
+   Nobody had measured what this one costs. The sidebar track above is
+   17rem — it grows with the reader. This gate was 900 px — it did not. So the
+   gap between them opens as the reader's default font size rises, and the
+   documentation column is squeezed against a frame that has stopped folding.
+
+   Measured in Chromium on four documentation pages, browser default set with
+   Page.setFontSizes, document overflow read off the root element:
+
+     browser default   sidebar   text column at 901   horizontal scroll
+     16 px             272 px    533 px               none, at any width
+     24 px             408 px    349 px               161 px at 901, gone by 1063
+     32 px             544 px    165 px               492 px at 901, gone by 1393
+
+   32 px is 200 % text, which is exactly what WCAG 1.4.4 asks for, and "without
+   loss of content or functionality" is failed by 492 px of horizontal scroll.
+   The 24 px row is the same fault the breakpoint register was written after —
+   its own note records "a band at 792–820 … 43 px of horizontal scroll on
+   every page in the system" — one order of magnitude larger, on the pages that
+   document the fix.
+
+   56.25rem is 900 / 16, the register's own arithmetic and a figure it already
+   carries five times. Nothing moves at a 16 px default: the two render
+   identically, to the pixel. Above it the frame folds where it actually stops
+   fitting — 1350 px at a 24 px default, 1800 at a 32 px one — and the sidebar
+   goes over the content instead of beside it, which is the state that never
+   overflowed at any width. → foundations/layout.html#outside-register */
+@media (max-width: 56.25rem) {
   /* minmax(0, 1fr), not 1fr: a bare 1fr track floors at min-content, so one
      long line in a <pre> pushes the whole documentation page sideways on a
      phone instead of scrolling inside its own box. */
