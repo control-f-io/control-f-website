@@ -2701,6 +2701,48 @@ jobs:
         run: python3 scripts/check-act-beats.py
 
       # ---------------------------------------------------------------
+      # The chapter rail's stagger index is 0 ... n-1 with no hole in it.
+      #
+      # Every .act-rail__item carries style="--i:<k>", and acts.css spends that
+      # value on exactly one declaration:
+      #
+      #     .act-rail__label { transition-delay: calc(var(--i) * 40ms); }
+      #
+      # -- the stagger that runs the labels open on hover and on focus. So --i
+      # is the row's place in a cadence, and a cadence has no content except its
+      # interval.
+      #
+      # patterns/expertise.html parked chapter 02 -- the world map -- inside an
+      # HTML comment and renumbered the four rows below it so the list still
+      # read 01 ... 05. Their --i was deliberately left alone, on the argument
+      # written into that commit that the value "is a 40 ms transition delay and
+      # nothing else". It is, and that is the defect: the rail kept 0, 2, 3, 4,
+      # 5, so the five labels opened at 0, 80, 120, 160 and 200 ms -- one 80 ms
+      # step where the other four are 40. The first label landed and the rail
+      # waited a whole extra beat before the rest followed. Landing page and
+      # Über uns measure 0, 40, 80, 120 and 0, 40, 80, because neither has ever
+      # had a row taken out of the middle.
+      #
+      # No screenshot shows it. Both the held state and the open state are
+      # correct; only the 200 ms between them is wrong, and no still frame
+      # contains an interval. It shipped from 2026-08-26 to 2026-09-02 with
+      # every other gate green.
+      #
+      # The pages are found rather than listed -- any file under design-system/
+      # with a live .act-rail__item, patterns/en/ aside -- so a fifth page
+      # adopting the rail is checked by existing. Markup inside HTML comments
+      # and inside <template> is stripped first: the map is parked in one of
+      # each and neither renders.
+      #
+      # Proven failing on four reintroductions: the hole restored (0, 2, 3, 4,
+      # 5), an index repeated (0, 1, 2, 2, 4), a numeral left un-renumbered
+      # (01, 03, 03, 04, 05), and the premise removed -- transition-delay
+      # written as a constant, so --i orders nothing.
+      - name: Rail stagger
+        if: '!cancelled()'
+        run: python3 scripts/check-rail-stagger.py
+
+      # ---------------------------------------------------------------
       # Act 2's copy is in the accessibility tree.
       #
       # Act 1+2's stage is one .cf-statement: a figure holding the root drawing,
