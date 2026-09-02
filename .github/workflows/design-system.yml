@@ -3863,3 +3863,29 @@ jobs:
         env:
           CF_REQUIRE_BROWSER: "1"
         run: python3 scripts/check-glass-floor.py
+
+      # IN THIS JOB BECAUSE THE ANSWER IS A KEYPRESS AND NOT A FILE. Its
+      # sibling check-pin-focus-stack.py reads the stylesheets and holds the
+      # pair that keeps the focus ring honest: a .cf-pin card releases the
+      # pointer and the ring over exactly the interval it is not painted.
+      # `visibility: hidden` is what releases the ring, and it does that by
+      # taking the card out of the sequential focus order — which is correct,
+      # and which made the whole act invisible to the Tab walk, because which
+      # card is on the stage is a function of the SCROLL and the walk starts at
+      # the top of the document, where none of them is.
+      #
+      # Nothing in any file says so. Every rule is as authored, both halves of
+      # the sibling's pair are present, and the page photographs correctly at
+      # every scroll position. Only a browser, a real Tab press and the question
+      # "where is focus now" can show it: measured before the fix, forward walk
+      # from the first stop, 0 of act 4's 14 source links at 1024, 1280, 1440
+      # and 1920, and 14 of 14 below the gate and under reduce, which never pin.
+      #
+      # Proven failing on the defect reintroduced: CF_PIN_FOCUS_OFF withholds
+      # assets/js/cf-pin-focus.js from the page — the fix is one script tag, so
+      # a route that refuses to serve it is that tag removed — and every
+      # viewport above the gate goes red on REACH with the numbers above.
+      - name: Pin focus walk
+        env:
+          CF_REQUIRE_BROWSER: "1"
+        run: python3 scripts/check-pin-focus-walk.py
