@@ -2211,6 +2211,35 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-focus-reach.py
 
+      # The same sentence one act down, and the half of it that was still true.
+      # check-focus-reach.py exists over a rule it states in one line -- "hidden
+      # by paint is only honest if both halves are there: opacity alone leaves a
+      # click trap, and pointer-events alone leaves an invisible focus stop" --
+      # and act 4's card stack had been given exactly the first half. Its four
+      # evidence cards share one grid area and show one at a time by opacity, so
+      # three are transparent at every scroll position; a fix in August made
+      # them inert to the pointer and left all fourteen source links in the tab
+      # order. Measured in Chromium, Tab walked forward into .lp-ev-track at
+      # nine positions across the track: 126 stops at each of 1440 x 900,
+      # 1280 x 800 and 1920 x 1080, and 96 of them -- 76 % -- on a card at
+      # opacity 0, with the ring drawn on top of the card the reader is looking
+      # at. WCAG 2.4.7 and 2.4.11. After: 30 stops, none of them invisible, each
+      # position offering exactly the on-stage card's own sources.
+      #
+      # So the check is about the pairing rather than about one property: a
+      # pinned stack whose steps hold focusable content must release the pointer
+      # and the ring from ONE rule, on one timeline, over one window, with a
+      # -last partner for each that holds instead of handing over. A stack that
+      # holds no targets -- act 3's process cards, Expertise's four -- needs
+      # neither and is named in the summary as skipped.
+      #
+      # Proven failing on three reintroductions: the visibility switch dropped
+      # from the rule, the two windows given different literals, and the last
+      # card's hold taken away.
+      - name: Pinned stacks that hold links
+        if: '!cancelled()'
+        run: python3 scripts/check-pin-focus-stack.py
+
       # The rail's sibling, and the other half of the same element's story: that
       # one holds whether the rail can be REACHED, this one whether the page has
       # anywhere to put it. It is 84 px of fixed marks held at --space-6 from the
