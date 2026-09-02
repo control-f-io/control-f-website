@@ -8203,9 +8203,69 @@ a.cf-calendar__day > time,
        arriving at the footer. It needs no timeline-scope: a view-timeline-name
        is visible to the declaring element's descendants, which both of these
        are. Same mechanism .cf-pin names one act with. */
+    /* AND IT MEASURES THE WINDOW, NOT THE WINDOW MINUS THE BANNER, because
+       this footer has already paid for the banner once. A view timeline reads
+       the scrollport the scroll container's `scroll-padding` leaves — acts.css
+       records the same fact for --sp, "a view timeline measures the scrollport
+       that padding leaves" — and base.css sets
+       `scroll-padding-bottom: var(--cf-consent-height, 0px)` on <html>. So on
+       a first visit the end edge this range is measured against sat 144 px
+       above the real one at 1280 and 1440, 233 at 768, 334 at 375. The footer
+       ALSO adds that same term to its own bottom padding (see THE LAST BLOCK
+       PAYS FOR THE LAST SCREEN above), which is what puts its content clear of
+       the notice. Reserving it twice asks the footer's bottom edge to stop
+       two banners short of the viewport's — and this is the last block in the
+       document, so the second reservation is scroll that does not exist.
+
+       Measured at the document's last pixel, first visit, banner up, before
+       this line — the paragraph below says "progress arrives at exactly 1 and
+       stays there", and it did not:
+
+                        footer h   entry progress   --foil-angle   --cf-specular
+           1440 x 900       538         0.7325        109.461deg      69.96 %
+           1280 x 800       578         0.7501        109.930deg      78.37 %
+           1024 x 700       578         0.7806        110.740deg      92.95 %
+            768 x 1024      897         0.8387        112.283deg     120.70 %
+            390 x 844      1055         1             116.570deg     150 %
+
+       Two faults in one number. The foil stopped at 109.46deg instead of the
+       116.57deg the swing opens to — inside the 90-108 band base.css weighed
+       and rejected for this element, which is the whole reason it took a range
+       of its own. And the invite never left its ACTIVE phase, so the animated
+       --cf-specular kept outranking the declared one: the light parked at
+       69.96 % mid-plate and :hover and :active moved it nowhere. Measured with
+       a pointer held on the CTA at all four of those sizes, --cf-specular read
+       back the rest column above unchanged, where it should read 64 %. That is
+       the exact regression the paragraph below was written to prevent,
+       arriving by a second route — an end the timeline cannot reach rather
+       than a range that runs to it.
+
+       With the inset, all five: entry progress 1 (0.999 at 1280 and 768, one
+       fractional pixel of document short of it), --foil-angle 116.57deg, the
+       invite past its range, --cf-specular 150 % at rest and 64.9 % under a
+       pointer.
+
+       THE PHONE IS THE ONE SIZE THAT WAS ALREADY RIGHT, and the reason says
+       which screens this is about. At 390 x 844 the footer is 1055 px against
+       an 844 px window, and `entry` on a subject TALLER than the scrollport
+       ends when the subject's own start edge reaches the scrollport's start
+       edge — the top — rather than when its end edge reaches the bottom. No
+       bottom inset can move that, so the phone always landed. Everything from
+       768 up has a footer shorter than its window, and every one of those was
+       short by exactly the banner.
+
+       `auto 0px` zeroes the END inset only; the start stays `auto` and keeps
+       reading scroll-padding-block-start, which is what a footer arriving from
+       below never uses anyway. It is the one property that separates "where a
+       Tab press may land a control" from "where this box counts as arrived",
+       and those two are the same edge on every screen of the document
+       except the last one, which is the only screen this element is ever
+       measured on.
+       → base.css scroll-padding-bottom; scripts/check-scroll-reserve.py */
     .cf-footer {
       view-timeline-name: --cf-footer-arrival;
       view-timeline-axis: block;
+      view-timeline-inset: auto 0px;
     }
     .cf-footer__title {
       animation-name: cf-footer-foil;
