@@ -325,6 +325,8 @@ python3 scripts/check-motion-census.py --fix   # rewrite the count cells in foun
 python3 scripts/check-glass-budget.py          # what backdrop-filter is allowed to cost
 python3 scripts/check-glass-budget.py --fix    # rewrite the census in foundations/materials.html
 python3 scripts/check-glass-budget.py -v       # list every page, not only the ones carrying glass
+python3 scripts/check-glass-solid-edge.py      # when glass goes opaque, its edge turns over with it
+python3 scripts/check-glass-solid-edge.py -v   # list every tier and surface examined, not only the faults
 python3 scripts/check-grid-tracks.py           # every fr track has a floor
 python3 scripts/check-grid-tracks.py -v        # list every track list, not only the failures
 python3 scripts/check-breakpoints.py           # every threshold is in the register, in rem
@@ -378,7 +380,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The twenty-eight checks the system enforces rather than documents, run by CI on every push and
+The twenty-nine checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
