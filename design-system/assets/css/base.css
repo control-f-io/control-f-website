@@ -50,6 +50,30 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+
+  /* THE ONE DECLARATION THAT KEEPS THE WASH OURS. Every colour on this site is
+     derived — --wash-stops opens at #CFCFD2 and lands on white, the ramps are
+     checked against the oklab path, thirteen contrast ratios are recomputed on
+     every run — and none of that survives a browser that decides the page is a
+     light page it is allowed to re-tint. Chrome for Android's Auto Dark Theme
+     does exactly that, to any document that has not declared a scheme, and it
+     is invisible from every desk: a desktop browser ignores the feature, so no
+     screenshot, no responsive sweep and no contrast check in scripts/ can see
+     it. `only light` is the opt-out the feature documents, and it is also the
+     truthful statement — the system has one scheme, and it is this one.
+
+     The same declaration is what tells the UA how to paint the surfaces this
+     stylesheet cannot reach: the scrollbar, the form controls the forms
+     chapter deliberately leaves native, the spellcheck underline, the canvas
+     behind the page before the first paint. Undeclared, those are drawn from
+     the reader's OS preference and the page's from ours, which is how a dark
+     scrollbar ends up beside a CF-Grau page.
+
+     `only` is the half that does the work and the half that is a promise: it
+     forecloses an automatic dark rendering, so the day this system wants a
+     night it has to draw one. → foundations/outside.html */
+  color-scheme: only light;
+
   scroll-behavior: smooth;
   /* WHERE A TAB PRESS PUTS THE THING IT JUST FOCUSED. The note below this rule
      already establishes the mechanism — "Chromium scrolls a focused element
@@ -108,6 +132,19 @@ html {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+
+/* AND THE SECTION THAT IS ALREADY DARK SAYS SO. tokens.css has carried an
+   inverse theme since the footer was drawn — Schwarz surface, light ink, light
+   contours, the lattice inverted — and it flipped every value this system
+   declares and none of the ones the UA declares. A native control inside an
+   inverted section was drawn from the reader's OS preference, on black, and a
+   light-mode reader got a white select on a black plate with the page's own
+   focus ring around it.
+   `dark` and not `only dark`: the root above already forecloses the automatic
+   rendering for the whole document, and repeating `only` here would say this
+   subtree is defending itself from something that cannot reach it.
+   → tokens.css, "Dark context"; foundations/outside.html */
+[data-theme="inverse"] { color-scheme: dark; }
 
 body {
   margin: 0;

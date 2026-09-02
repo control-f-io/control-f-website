@@ -3403,6 +3403,57 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-favicon-frame.py
 
+      # And the four surfaces beside it, which are the same argument one step
+      # further out. The favicon is the one picture that renders where no
+      # screenshot reaches; these are the declarations that decide what the
+      # brand looks like there — and the site shipped one of them.
+      #
+      # color-scheme is the one with a live fault behind it. Chrome for Android's
+      # Auto Dark Theme re-tints any document that has not declared a scheme, and
+      # this site's every colour is derived: --wash-stops opens at #CFCFD2 and
+      # lands on white, the ramps are held to the OKLab path, thirteen contrast
+      # ratios are recomputed from the tokens on every run. A desktop browser
+      # ignores the feature outright, so the responsive sweep, every capture
+      # under docs/, the contrast register and the runtime console all agreed the
+      # page was fine while a share of readers were looking at an inverted one.
+      # It is the same shape as the viewport directive the mobile chapter found:
+      # a control the reader owns, taken away invisibly.
+      #
+      # The other half is the tile. The manual defines five frames for the signet
+      # and the web had built two; the App-Icon is the third it needs, and the
+      # favicon's own header is where the gap was written down — it argues the
+      # black plate OFF the tab strip on the grounds that it "reads as an app
+      # icon", which hands the plate somewhere nothing was standing.
+      #
+      # THE SAFE ZONE IS MEASURED RATHER THAN ASSERTED. A maskable icon is
+      # cropped by a shape the launcher chooses and only the centre circle of
+      # 80 % diameter survives it. This check renders the 512 tile in memory,
+      # finds every pixel that is not the ground and measures the farthest from
+      # the centre: 32.5 % against a 40 % radius. An icon that crossed that
+      # circle would lose a corner of the signet on some launchers and keep it on
+      # others, and nothing else here — nor any capture taken on the machine that
+      # built it — would show which.
+      #
+      # Proven failing on: the meta removed from one chapter, `light` for `only
+      # light`, the theme-color moved one hex off the wash, the manifest's colour
+      # typed rather than derived, the apple-touch-icon line removed from one
+      # pattern page, a manifest icon renamed, a size row that disagrees with the
+      # PNG header, MARK_WIDTH raised to 0.72, and the [data-theme="inverse"]
+      # rule deleted from base.css.
+      - name: Outside the page
+        if: '!cancelled()'
+        run: python3 scripts/check-outside-page.py
+
+      # And the tiles themselves, the way every other generator here is held:
+      # re-rendered and compared byte for byte, so an icon edited by hand rather
+      # than generated fails instead of being quietly rebuilt over on the next
+      # deploy. The manifest is in the same comparison, because its theme colour
+      # is read out of tokens.css and a hand-edited copy is a token that has
+      # stopped moving.
+      - name: App icons
+        if: '!cancelled()'
+        run: python3 scripts/build-app-icons.py --check
+
       # The font's coverage is the newest, and it is the first check here whose
       # subject is the two files in assets/fonts/ rather than the markup or the
       # CSS. Every other gate in this job can be settled by reading a page. This

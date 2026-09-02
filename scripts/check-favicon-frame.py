@@ -69,9 +69,15 @@ added the day before, did not; its tab showed no mark, its console carried
 the one 404 the overview's comment describes as the fault, and this check
 passed. A convention 47 pages keep and one page misses is not a rule until
 something counts it, so the documentation is now held to the same line as
-the patterns. prototypes/ stays out: the four pages there are the designer's
+the patterns. prototypes/ stays out: the six pages there are the designer's
 raw material, unshipped by the README's own account and outside every other
-check for the same reason, and none of them declares an icon.
+check for the same reason. This paragraph used to say there were four of them
+and that none declared an icon; there are six and two do — evidence-scroll and
+statement-to-process, each with a comment above the line explaining the 404 it
+avoids. Nothing was ever wrong in the check, which asks nothing of that
+directory either way. It is worth correcting because the sentence is the
+reason the next register gives for its own scope, and one of them already has.
+→ scripts/check-outside-page.py
 
 Proven failing on: the plate restored, a fill= put back on a path, the dark
 rule deleted, #101010 in place of #000000, a path redrawn, the rel="icon"
@@ -98,7 +104,20 @@ SHAPES = ("rect", "circle", "ellipse", "polygon", "polyline")
 PATH_D = re.compile(r"<path\b[^>]*?\bd=\"([^\"]+)\"", re.S)
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 STYLE_BLOCK = re.compile(r"<style\b[^>]*>(.*?)</style>", re.S)
-ICON_LINK = re.compile(r"<link\b[^>]*\brel=\"[^\"]*\bicon\b[^\"]*\"[^>]*>", re.I)
+# `icon` AS A WHOLE TOKEN, and the hyphen is why. rel is a space-separated
+# token list, and `\bicon\b` is true of `apple-touch-icon` as well, because a
+# hyphen is a word boundary. That cost nothing while `icon` was the only rel in
+# the tree; the day the home-screen register landed beside it, this expression
+# read every apple-touch-icon in the repository as a second favicon pointing at
+# the wrong file, and reported 76 pages for a rule none of them had broken.
+# → foundations/outside.html, scripts/check-outside-page.py
+ICON_LINK = re.compile(
+    r"<link\b[^>]*\brel=\"([^\"]*)\"[^>]*>", re.I)
+
+
+def is_favicon(tag_rel):
+    """True when the rel token list contains `icon` itself, not a compound."""
+    return "icon" in tag_rel.lower().split()
 HREF = re.compile(r"\bhref=\"([^\"]+)\"")
 
 
@@ -206,7 +225,8 @@ def audit_declarations():
     for path in sorted(DS.rglob("*.html")):
         rel = path.relative_to(ROOT).as_posix()
         text = path.read_text(encoding="utf-8")
-        links = ICON_LINK.findall(strip_comments(text))
+        links = [m.group(0) for m in ICON_LINK.finditer(strip_comments(text))
+                 if is_favicon(m.group(1))]
         # Every page outside prototypes/ has to answer the ask: the patterns in
         # both editions, and the documentation with them. The scope used to be
         # patterns/ and patterns/en/ alone, which is how a chapter shipped
