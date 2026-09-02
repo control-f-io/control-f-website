@@ -54,11 +54,57 @@ that argument fails, so it is the one place the ban is absolute: .stack and
 inline gap or margin on either does not sit beside the system's answer, it
 overrides it.
 
+AND THEN IT DRIFTED ONE PARAGRAPH HIGHER. foundations/layout.html already carries
+the note that the table's FOURTH column — the one a generator cannot write — had
+gone stale in exactly the way the generated columns had: --space-4's cell called
+it "the most used step in the system" while the number beside it read 37 against
+--space-3's 40. That was found by reading and fixed by hand, and the same failure
+was sitting untouched in the sentence that INTRODUCES the table:
+
+    The most common values in the design: --space-6 (24) as the default gap
+    between elements, --space-12 (48) as panel padding, and --space-20 (80)
+    as the page gutter.
+
+Three claims, three wrong. The default gap is --space-4 — .stack and .cluster
+resolve var(--flow, var(--space-4)), and the table's own row for it says so.
+Panel padding is --space-6; --space-12 is what it becomes at the wide
+breakpoint. And --space-20 has never been the page gutter: the gutter is
+--gutter, a clamp that does not reach 80 px until a viewport of 1454.5, while
+--space-20's six declarations are two rhythm ceilings, the accordion indent, the
+vacancy picture at the narrow breakpoint and one gap. Measured against the
+column below them, the three "most common" rungs ranked fourth, eighth and tenth
+of thirteen.
+
+SO THIS SCRIPT NOW OWNS TWO MORE CLAIMS, both about RANK rather than about count.
+
+  THE RANKING SENTENCE is generated, like the table. <p id="space-common">
+  is written from the same counts under the same stamp, so it cannot disagree
+  with the column three lines below it. It names every rung tied at the
+  third-place count rather than a fixed three — a ranking that says "the three
+  most-used" while a fourth ties for third is the same kind of quietly wrong
+  this whole apparatus exists to stop.
+
+  THE SUPERLATIVES IN THE FOURTH COLUMN are held by a register. That column
+  stays prose — it says what a rung is FOR, which no count knows — but a rank
+  claim inside it is checkable against the counts. Each phrase in RANK_CLAIMS
+  must sit on the row whose count is the unique extremum it names, at most
+  once, and may not appear at all while that extremum is tied: there is no
+  "the" to claim when two rungs share it.
+
+  That rule found its first case on the commit that added it, which is the
+  argument for it. --space-5 was described as "the thinnest-used rung" at 9
+  declarations, with --space-30 and --space-40 on 1 each.
+
+The general shape is the one the stamp taught: enforce the CLAIM, not only the
+material the claim was made from. A count is a claim a script can write. A rank
+is a claim a script can check. Only the reason a rung exists is left to a human,
+and that is the right split.
+
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
     python3 scripts/check-spacing-scale.py          # check, exit 1 on drift
     python3 scripts/check-spacing-scale.py -v       # every rung and the markup census
-    python3 scripts/check-spacing-scale.py --fix    # rewrite the table + stamp
+    python3 scripts/check-spacing-scale.py --fix    # rewrite the table, sentence + stamp
 """
 
 import argparse
@@ -132,6 +178,23 @@ FLOW_OWNERS = ("stack", "cluster")
 # Inline spacing values that are genuinely outside the scale, each with the
 # reason. Same rule as ALLOWED above: a long list means the scale is wrong.
 ALLOWED_MARKUP = set()
+
+# RANK CLAIMS in the table's fourth column. That column is prose on purpose —
+# it says what a rung is FOR — but a superlative in it is an assertion about
+# the generated column beside it, and the two have already disagreed once. Each
+# phrase names the extremum it claims; the rule is the same for both.
+#
+# Keep this list to phrases that are genuinely about rank. "the default gap" is
+# not one: it is a claim about what .stack and .cluster resolve to, which no
+# count can settle.
+RANK_CLAIMS = {
+    "the most used step in the system": max,
+    "the thinnest-used rung": min,
+}
+
+# How many rungs the generated sentence names. Ties at the boundary are added
+# to it rather than truncated, so the count is a floor and not a promise.
+COMMON_RUNGS = 3
 
 
 def declarations(text):
@@ -291,6 +354,94 @@ def scale_table(html):
     return m.start(), m.end(), m.group(0)
 
 
+COMMON_P = re.compile(r'<p id="space-common">(.*?)</p>', re.S)
+
+
+def common_sentence(counts):
+    """The ranking sentence, from the counts and nothing else.
+
+    Sorted by count descending, then by step ascending so the order is total
+    and the output is byte-identical run to run. The cut is the third-place
+    COUNT rather than the third position: a rung tied with it is named too,
+    because "the three most-used" with a fourth on the same number is the
+    quietly-wrong claim this sentence replaced."""
+    ranked = sorted(zip(STEPS, counts), key=lambda t: (-t[1], t[0]))
+    floor = ranked[COMMON_RUNGS - 1][1]
+    named = [t for t in ranked if t[1] >= floor]
+
+    parts = []
+    for i, (step, n) in enumerate(named):
+        # The first one carries the unit and the word, the rest just the
+        # numbers — the same way the sentence would be written by hand.
+        if i == 0:
+            parts.append("<code>--space-%d</code> (%d px, %d declarations)"
+                         % (step, step * 4, n))
+        else:
+            parts.append("<code>--space-%d</code> (%d px, %d)" % (step, step * 4, n))
+    listed = ", ".join(parts[:-1]) + " and " + parts[-1] if len(parts) > 1 else parts[0]
+
+    return ("The rungs the shipping CSS reaches for most, measured rather than "
+            "remembered: %s. This sentence is written by the same script that "
+            "writes the table below, from the same counts." % listed)
+
+
+def common_region(html):
+    """Just the generated sentence, located by its id for the reason
+    scale_table() gives about the table: a generator that cannot say which
+    element it owns will eventually rewrite one it does not."""
+    m = COMMON_P.search(html)
+    if not m:
+        sys.exit(
+            "foundations/layout.html has no <p id=\"space-common\">. That id is how this\n"
+            "script finds the generated ranking sentence. Restore it, then run --fix."
+        )
+    return m.start(1), m.end(1), m.group(1)
+
+
+def rank_failures(counts):
+    """Superlatives in the table's fourth column, held to the counts."""
+    table = scale_table(LAYOUT_DOC.read_text())[2]
+    rows = re.findall(
+        r"<tr><td><code>--space-(\d+)</code></td>.*?<td>((?:(?!</td>).)*)</td>\s*</tr>",
+        table, re.S,
+    )
+    by_step = dict(zip(STEPS, counts))
+    failures = []
+
+    for phrase, extremum in RANK_CLAIMS.items():
+        carriers = [int(step) for step, cell in rows if phrase in cell]
+        target = extremum(counts)
+        holders = [s for s in STEPS if by_step[s] == target]
+
+        if len(carriers) > 1:
+            failures.append(
+                "\"%s\" is claimed by %s in the scale table.\n"
+                "    A superlative is one row's claim or it is not a superlative. Keep it\n"
+                "    on the one that earns it."
+                % (phrase, " and ".join("--space-%d" % s for s in carriers)))
+            continue
+        if not carriers:
+            continue
+
+        step = carriers[0]
+        if len(holders) > 1:
+            failures.append(
+                "--space-%d is called \"%s\", and %d declaration(s) is a count shared by %s.\n"
+                "    While the extremum is tied there is no \"the\" to claim — say what the\n"
+                "    rung is FOR instead, which is what that column is for."
+                % (step, phrase, target,
+                   " and ".join("--space-%d" % s for s in holders)))
+        elif by_step[step] != target:
+            failures.append(
+                "--space-%d is called \"%s\" at %d declaration(s); --space-%d has %d.\n"
+                "    This is the fourth column contradicting the generated one beside it,\n"
+                "    which is the failure foundations/layout.html names in place. Move the\n"
+                "    phrase to the row that earns it, or drop it."
+                % (step, phrase, by_step[step], holders[0], target))
+
+    return failures
+
+
 def doc_claims():
     """The stamp and the thirteen Declarations cells currently in layout.html."""
     html = LAYOUT_DOC.read_text()
@@ -314,6 +465,10 @@ def fix(counts, stamp):
             table,
         )
     html = html[:start] + table + html[end:]
+    # The ranking sentence, rewritten after the table so its own offsets are
+    # taken from the document the table has already been spliced into.
+    start, end, _ = common_region(html)
+    html = html[:start] + common_sentence(counts) + html[end:]
     # The stamp is prose rather than table, so it stays a whole-document
     # substitution — but it is anchored to an 8-hex-digit <code>, which nothing
     # else on the page is.
@@ -353,6 +508,19 @@ def main():
             )
         )
 
+    published = common_region(LAYOUT_DOC.read_text())[2]
+    written = common_sentence(counts)
+    if " ".join(published.split()) != " ".join(written.split()):
+        failures.append(
+            "foundations/layout.html's ranking sentence is not what the counts say.\n"
+            "        published: %s\n"
+            "        measured:  %s\n"
+            "    Run: python3 scripts/check-spacing-scale.py --fix"
+            % (re.sub(r"<[^>]+>", "", " ".join(published.split())),
+               re.sub(r"<[^>]+>", "", " ".join(written.split()))))
+
+    failures.extend(rank_failures(counts))
+
     for step, n in zip(STEPS, counts):
         if n == 0 and step not in UNUSED_OK:
             failures.append(
@@ -384,9 +552,9 @@ def main():
             print("  - %s\n" % f)
         return 1
 
-    print("spacing scale: stamp %s, %d rungs, no off-scale literals in the three "
-          "stylesheets and none in the %d live inline declaration(s)."
-          % (stamp, len(STEPS), live))
+    print("spacing scale: stamp %s, %d rungs, %d rank claim(s) held, no off-scale literals "
+          "in the three stylesheets and none in the %d live inline declaration(s)."
+          % (stamp, len(STEPS), len(RANK_CLAIMS), live))
     return 0
 
 
