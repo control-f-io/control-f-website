@@ -767,6 +767,32 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-line-types.py
 
+      # The cap line, and the first property in this system whose correct use
+      # and its worst misuse are the same declaration with one value left off.
+      # `text-box-edge: cap` is legal, means `cap text`, and puts back exactly
+      # the descender slot the trim beside it was reached for; leaving the
+      # property off defers the distance to the font, and the display face is
+      # not licensed yet. Both render as a page that looks untouched. The
+      # third claim is the pair: a trim and the padding that replaces the slot
+      # it removes are one decision, so they share one @supports branch or the
+      # drawing comes apart between browsers.
+      - name: The cap line
+        if: '!cancelled()'
+        run: python3 scripts/check-cap-line.py
+
+      # The narrowest step in this file, and the only one whose subject is not
+      # a design decision. A pull request landed on main with its own rebase
+      # unresolved and `<<<<<<< HEAD` shipped as literal text in five files,
+      # one of them a 29-line block inside a comment in components.css. Every
+      # other step here passed over it and none of them was wrong to: a marker
+      # in a CSS comment is comment text and a marker in a documentation page
+      # is a paragraph. Each check above reads one decision, and a conflict
+      # marker is not a wrong value of anything — it is the one shape that is
+      # never correct in any file type this repository ships.
+      - name: Merge markers
+        if: '!cancelled()'
+        run: python3 scripts/check-merge-markers.py
+
       - name: News objects
         if: '!cancelled()'
         run: python3 scripts/check-news-objects.py

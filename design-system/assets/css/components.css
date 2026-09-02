@@ -2270,6 +2270,50 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   text-transform: uppercase;
   color: var(--text-secondary);
 }
+/* THE AIR UNDER THE LABEL IS 12 px IN THIS FILE AND 16.94 px ON SCREEN, and
+   the rule above says "every section on the site opens on the same axis"
+   while two of them do not. Both facts have the same cause: a line of type
+   is not a line, it is a line BOX, and the slot under the baseline that
+   carries the descenders is part of it. padding-bottom starts at the bottom
+   of that slot, so the drawn distance from the label's baseline to its rule
+   is --space-3 plus a slice of the font that no token names.
+
+   Measured — Chromium 141, 1280 px, every .cf-section-header on all
+   38 pattern pages, the label trimmed to its baseline to read the
+   distance off the rule:
+
+     54 headers, 2 distinct axes
+     11 px / 1.45   declared 12   drawn 16.94   53 of them
+     32 px / 1.02   declared 12   drawn 17.63   the acts' own header
+
+   The slot scales with the size and the leading, neither of which this
+   component chooses — the label inherits both — so the axis this component
+   claims to hold is a number it does not control. 0.69 px between the two
+   today; a third size or a container at another leading moves it again.
+
+   text-box-trim takes the slot off the box, so the padding lands on the
+   baseline and the axis is the token. --space-4 rather than --space-3 is
+   the drawn distance moved onto the space scale rather than changed: 16 px
+   is within 0.94 px of what all 40 of these headers draw today and within
+   1.63 px of the other one, so the composition the designer signed off does
+   not move and the number under it becomes true. In the branch below the
+   axis is 16 px at every size and every leading, which is the invariant the
+   comment above has always claimed.
+
+   trim-end and not trim-both, deliberately. The slot ABOVE the cap line is
+   air between the header and whatever precedes it, and it is spent by
+   --section-gap rather than by this rule; trimming it would tighten every
+   page's rhythm to fix a distance nothing measures. One edge, the one the
+   invariant is about. Whatever cannot trim keeps today's drawing exactly.
+   → foundations/capline.html */
+@supports (text-box-trim: trim-end) {
+  .cf-section-header { padding-bottom: var(--space-4); }
+  .cf-section-header__label,
+  .cf-section-header__count {
+    text-box-trim: trim-end;
+    text-box-edge: cap alphabetic;
+  }
+}
 
 /* THE ACTION, AND WHY IT COULD NOT STAY A <span>. components/section-header
    .html has always tabulated four forms for the right end of this rule — a
@@ -15877,18 +15921,6 @@ a.cf-calendar__day > time,
    colours, nothing has to be measured for contrast that was not already
    measured for the contour, and the layer survives paper intact.
 
-<<<<<<< HEAD
-   THE FOUR ANGLES, AND THE ONE THAT HAD NEVER BEEN DRAWN. The rays are the
-   Winkelraster: the vertical, its horizontal datum, and the fan at ±26.57°,
-   ±45° and ±63.43°. --angle-neutral, 45°, has been a row in geometry.html's
-   token table and a value in tokens.css since the first commit and had EXACTLY
-   ZERO consumers anywhere in the tree — no stylesheet, no page, no drawing.
-   That is not an oversight, it is where the angle lives: 45° is a neutral
-   construction ray in a 2:1 system, so a system that never draws construction
-   never draws it. This is its first consumer, and the figures make the point
-   by standing on it — an object's own edges lie on the 26.57° rays and on
-   nothing else, and the neutral rays run out of the drawing carrying nothing.
-=======
    THE FOUR ANGLES, AND THE TOKEN THAT HAD NEVER BEEN SPENT. The rays are the
    Winkelraster: the vertical, its horizontal datum, and the fan at ±26.57°,
    ±45° and ±63.43°. --angle-neutral, 45°, is a row in geometry.html's token
@@ -15905,7 +15937,6 @@ a.cf-calendar__day > time,
    the figures make the point by standing on it — an object's own edges lie on
    the 26.57° rays and on nothing else, and the neutral rays run out of the
    drawing carrying nothing.
->>>>>>> 1ddfe5c (The rung named "construction geometry" had never drawn any, and the angle that only lives there had no consumer at all)
 
    IT PAINTS UNDER THE OBJECT. __work comes first in the markup and __figure
    second, both positioned, so the object occludes the construction exactly as
