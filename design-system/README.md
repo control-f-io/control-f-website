@@ -412,10 +412,38 @@ to look at it."* `--fix` writes all three from what is on disk and then re-asser
 wrote, the way the space scale's table and the glass census already do; nothing in the trio
 is a judgement, which is the test for what may be generated rather than merely counted.
 
-**The space scale** holds to two rules: `foundations/layout.html`'s table of who uses each
-rung must match the shipping CSS, and spacing in the shipping CSS must be written as a
-token rather than as a length. The table in that page is **generated** — run `--fix`
-rather than editing a count by hand.
+**The space scale** holds to four rules: `foundations/layout.html`'s table of who uses each
+rung must match the shipping CSS, spacing in the shipping CSS must be written as a
+token rather than as a length, spacing in a `style` attribute must be written the same way,
+and neither `.stack` nor `.cluster` may carry one at all. The table in that page is
+**generated** — run `--fix` rather than editing a count by hand.
+
+**The third and fourth were added because the rule stopped at the stylesheet door.** A
+`style` attribute is the one place a distance can sit where no reader of a stylesheet meets
+it, and no gate in `scripts/` was looking. Across every page here that is not a generated
+mirror: **114 spacing declarations inside `style` attributes, 88 of them `0` or `auto`, 26
+live distances, and not one of them on a page under `patterns/`.** That last number is the
+tell rather than the reassurance: `check-local-literals.py` already stands over `patterns/`
+and narrows inline `style=` there to custom properties only, so the shipping pages were
+clean because something was reading them. Everything else in this directory —
+`components/`, `foundations/`, `prototypes/` — had no reader at all, and it is where the
+overrides collected. That is the worse half to leave open, because the documentation is the
+copy a reader learns the system from. In it: five
+values off the scale (`padding-bottom: 8rem`, and a `margin-top: 1rem` that is `--space-4`
+spelt as a length), two `gap: 1px` seams on `.docs-swatch-row` — a class that was a name in
+the markup and a rule nowhere — one `gap: var(--space-8)` on an element declaring `.stack`
+and then overriding its display, and **four `margin-top: var(--space-8)` on `<h3>` elements
+of `foundations/layout.html` itself**, the chapter that publishes the scale, each one a
+restatement of what `.docs-section > h3` already says. Measured in Chromium at 1280: 32 px
+with the attribute, 32 px without, four times.
+
+The ban is total on `.stack` and `.cluster` and partial everywhere else, and the asymmetry
+is the argument. Those two resolve their spacing through `--flow` and the `.flow-*` rungs,
+so an inline gap there does not sit beside the system's answer — it overrides it. Elsewhere
+a one-off distance on an anonymous element inside a demo is honestly written where it
+lands, and a class per demo would be the scale reaching past what it governs. The line is
+repetition: a distance written twice is a rule, and a rule belongs in a stylesheet under a
+name. → `foundations/layout.html#space-in-markup`
 
 **The light family** holds every `<linearGradient>` and `<radialGradient>` the site ships
 to one ramp. SVG has no `in oklab`, so a drawing that carries the family's ramp carries

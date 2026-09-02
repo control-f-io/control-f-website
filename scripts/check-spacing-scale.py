@@ -11,9 +11,53 @@ A self-check nobody runs is documentation, not enforcement. This script is the
 thing that runs it, and it also enforces the rule the scale exists for in the
 first place: spacing is written as a token, not as a length.
 
+AND IT ENFORCED THAT RULE IN THREE STYLESHEETS WHILE THE MARKUP WAS OPEN. A
+`style` attribute is the one place a spacing decision can sit where no reader of
+a stylesheet will ever meet it and no gate in this directory was looking. Read
+across every page under design-system/ that is not a generated mirror:
+
+  114 spacing declarations inside style attributes
+   88 of them 0 or auto — a reset, not a decision
+   26 live, and NOT ONE of them on a page under patterns/
+
+That last line is the tell rather than the reassurance. check-local-literals.py
+already stands over patterns/ and narrows inline style there to custom
+properties only, so those pages are clean because something reads them. The rest
+of the directory — components/, foundations/, prototypes/ — had no reader at
+all, and it is where the overrides collected. That is the worse half to leave
+open: the documentation is what a reader learns the system from. base.css
+carries three rules besides — .flow-*, .grid--sections, .after-register — each
+written after somebody found an inline spacing override by reading, and each one
+says so in place. Three finds, three fixes, no gate.
+
+WHAT WAS IN THERE. Five values off the scale entirely — `padding-bottom: 8rem`
+(128 px, between two rungs), `margin-top: 1rem` (16 px, which is --space-4 spelt
+as a length), and three `<ol>` indents at two different values because the rule
+beside .docs-section ul names ul and stops. Two `gap: 1px` seams on a class,
+.docs-swatch-row, that was a name in the markup and a rule nowhere. One
+`gap: var(--space-8)` on a `.stack` — the exact declaration base.css says the
+.flow-* rungs were created to end, back on a different page. And four
+`margin-top: var(--space-8)` on `<h3>` elements of foundations/layout.html, the
+chapter that publishes this scale, every one of them a restatement of what
+`.docs-section > h3` already says: measured in Chromium at 1280, 32 px with the
+attribute and 32 px with it removed, four times.
+
+THE TWO MARKUP RULES, and why they stop where they do. MARKUP holds an inline
+spacing value to the scale by the same method the stylesheet half uses — the
+same property list, the same length pattern, so px and rem are read and em, ch
+and % are not, because those are relative to something the scale does not
+govern. It does NOT ban inline spacing: a one-off distance on an anonymous
+element in a demo is honestly written where it lands, and inventing a class per
+demo would be the scale reaching past what it governs. FLOW is the one place
+that argument fails, so it is the one place the ban is absolute: .stack and
+.cluster resolve their spacing through --flow and the .flow-* rungs, so an
+inline gap or margin on either does not sit beside the system's answer, it
+overrides it.
+
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
     python3 scripts/check-spacing-scale.py          # check, exit 1 on drift
+    python3 scripts/check-spacing-scale.py -v       # every rung and the markup census
     python3 scripts/check-spacing-scale.py --fix    # rewrite the table + stamp
 """
 
@@ -24,8 +68,9 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-CSS = ROOT / "design-system" / "assets" / "css"
-LAYOUT_DOC = ROOT / "design-system" / "foundations" / "layout.html"
+DS = ROOT / "design-system"
+CSS = DS / "assets" / "css"
+LAYOUT_DOC = DS / "foundations" / "layout.html"
 
 # The three stylesheets that ship to control-f.de. docs.css, per-page <style>
 # blocks and prototypes/ are deliberately out of scope — same boundary the
@@ -65,6 +110,28 @@ ALLOWED = {
     # all; the -1px is bound to the 1px above it, not to the scale.
     ("base.css", "margin: -1px"),
 }
+
+# ---------------------------------------------------------------------------
+# The markup half.
+
+# An opening tag, and the style attribute inside one. Double quotes only:
+# this system does not write single-quoted attributes, and a pattern that
+# accepted them would start reading apostrophes in German prose as delimiters.
+TAG = re.compile(r"<[a-zA-Z][^<>]*>")
+STYLE_ATTR = re.compile(r'\sstyle="([^"]*)"')
+
+# Values that are a reset rather than a distance. `0` in any unit is already
+# covered by FREE; these are the wordy ones a shorthand can carry.
+INLINE_FREE = {"0", "auto", "none", "0 auto", "auto 0"}
+
+# The two flow primitives own their spacing through --flow and the .flow-*
+# rungs. An inline gap or margin on either is not a distance the scale is
+# missing, it is the rung family being bypassed — see base.css.
+FLOW_OWNERS = ("stack", "cluster")
+
+# Inline spacing values that are genuinely outside the scale, each with the
+# reason. Same rule as ALLOWED above: a long list means the scale is wrong.
+ALLOWED_MARKUP = set()
 
 
 def declarations(text):
@@ -117,6 +184,86 @@ def off_scale():
                 hits.append((name, line, decl))
                 break
     return hits
+
+
+def pages():
+    """Every page under design-system/, source only.
+
+    /en/ is skipped because those files are built from these by
+    build-i18n.py — a finding there is the same finding twice, reported
+    against a path a fix cannot be written to."""
+    for path in sorted(DS.rglob("*.html")):
+        if "/en/" in path.as_posix():
+            continue
+        yield path, path.read_text(encoding="utf-8")
+
+
+def inline_spacing():
+    """(path, line, classes, prop, value) for every spacing declaration that
+    lives in a style attribute rather than in a stylesheet.
+
+    Scanned tag by tag rather than line by line, and that is not tidiness.
+    These pages quote inline overrides in their own prose — foundations/
+    layout.html sets `style="gap:var(--space-8)"` in a <code> span, inside the
+    paragraph explaining why that declaration is the thing the .flow-* rungs
+    exist to replace. A pattern that reads a style attribute out of running text
+    would report the documentation of the defect as the defect. A tag is what an
+    attribute belongs to, so a tag is what this reads. Escaped samples are safe
+    by the same construction: `&lt;div style=...` never opens a tag."""
+    for path, text in pages():
+        for tag in TAG.finditer(text):
+            attrs = tag.group(0)
+            style = STYLE_ATTR.search(attrs)
+            if not style:
+                continue
+            cls = re.search(r'\sclass="([^"]*)"', attrs)
+            classes = cls.group(1).split() if cls else []
+            line_no = text.count("\n", 0, tag.start()) + 1
+            for decl in style.group(1).split(";"):
+                prop, sep, value = decl.partition(":")
+                prop, value = prop.strip().lower(), " ".join(value.split())
+                if not sep or not SPACING_PROP.fullmatch(prop):
+                    continue
+                yield path, line_no, classes, prop, value
+
+
+def markup_findings(verbose):
+    """MARKUP and FLOW, over the same declarations."""
+    failures = []
+    live = 0
+    for path, line, classes, prop, value in inline_spacing():
+        rel = path.relative_to(ROOT).as_posix()
+        if value in INLINE_FREE:
+            continue
+        live += 1
+        if verbose:
+            print("  %s:%d  %s%s: %s"
+                  % (rel, line, "." + ".".join(classes) + " " if classes else "",
+                     prop, value))
+
+        owner = next((c for c in classes if c in FLOW_OWNERS), None)
+        if owner:
+            failures.append(
+                "%s:%d writes spacing into a .%s:\n"
+                "        %s: %s\n"
+                "    .stack and .cluster resolve their spacing through --flow, so this does\n"
+                "    not sit beside the system's answer, it overrides it. Use a .flow-* rung\n"
+                "    — .flow-2/3/6/8/12 — or add the rung the family is missing to base.css."
+                % (rel, line, owner, prop, value))
+            continue
+
+        off = [m.group(0) for m in LENGTH.finditer(value)
+               if m.group(0) not in FREE]
+        if off and (rel, "%s: %s" % (prop, value)) not in ALLOWED_MARKUP:
+            failures.append(
+                "%s:%d writes spacing as a length rather than a token, in markup:\n"
+                "        %s: %s\n"
+                "    A style attribute is the one place a distance hides from every reader\n"
+                "    of a stylesheet. Use a --space-* token; if the same decision is made\n"
+                "    twice, it is a rule and belongs in a stylesheet under a name. If it\n"
+                "    genuinely sits outside the scale, add it to ALLOWED_MARKUP here with\n"
+                "    the reason." % (rel, line, prop, value))
+    return failures, live
 
 
 SCALE_TABLE = re.compile(r'<table[^>]*\bid="space-scale"[^>]*>.*?</table>', re.S)
@@ -176,6 +323,8 @@ def fix(counts, stamp):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("-v", "--verbose", action="store_true",
+                    help="print every rung and every inline spacing declaration")
     ap.add_argument("--fix", action="store_true", help="rewrite the table and stamp in layout.html")
     args = ap.parse_args()
 
@@ -222,13 +371,22 @@ def main():
             "    scale, add it to ALLOWED here with the reason." % (name, line, decl)
         )
 
+    if args.verbose:
+        for step, n in zip(STEPS, counts):
+            print("  --space-%-3d %4d px  %3d declaration(s)" % (step, step * 4, n))
+        print()
+    markup, live = markup_findings(args.verbose)
+    failures.extend(markup)
+
     if failures:
         print("spacing scale: %d finding(s)\n" % len(failures))
         for f in failures:
             print("  - %s\n" % f)
         return 1
 
-    print("spacing scale: stamp %s, %d rungs, no off-scale literals." % (stamp, len(STEPS)))
+    print("spacing scale: stamp %s, %d rungs, no off-scale literals in the three "
+          "stylesheets and none in the %d live inline declaration(s)."
+          % (stamp, len(STEPS), live))
     return 0
 
 

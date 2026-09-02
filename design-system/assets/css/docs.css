@@ -194,6 +194,30 @@ body.docs {
 .docs-section p:not(:where(.docs-demo *)) { max-width: 72ch; color: var(--text-secondary); }
 .docs-section p + p:not(:where(.docs-demo *)) { margin-top: var(--space-3); }
 .docs-section ul:not(:where(.docs-demo *)) { max-width: 72ch; color: var(--text-secondary); padding-left: 1.1rem; }
+/* THE ORDERED LIST HAD NO RULE, SO EVERY AUTHOR WROTE ONE INTO THE MARKUP.
+   Three <ol> on two pages each carried the line above as a style attribute —
+   the same 72ch, the same grey, and an indent guessed separately each time:
+   1.4rem on foundations/illustration.html twice, 1.2rem on
+   foundations/layout.html. One relationship, three copies, two numbers, none
+   of them reachable from anywhere but the page it was typed on. That is the
+   same failure .flow-*, .grid--sections and .after-register were each written
+   to end, one directory over, and it happened here because the rule beside
+   this one names ul and stops.
+
+   The indent is wider than the bullet's 1.1rem and it is not a spacing
+   decision: an ordered marker is TYPE, so its box is set by the digit, the
+   full stop and the marker gap rather than by the scale — the same reason the
+   scale's own gate does not read em, ch or %. 1.4rem is the value two of the
+   three sites chose and it clears a two-digit marker; the longest list on the
+   site is nine items, so it clears every marker that exists here with room
+   over. padding-inline-start rather than padding-left because a marker sits at
+   the start of the line, which is what the property is for.
+   → foundations/layout.html#space */
+.docs-section ol:not(:where(.docs-demo *)) {
+  max-width: 72ch;
+  color: var(--text-secondary);
+  padding-inline-start: 1.4rem;
+}
 .docs-section li + li:not(:where(.docs-demo *)) { margin-top: var(--space-2); }
 
 /* THE FIFTH ONE, AND THE ONLY PIECE OF THIS PAGE'S OWN WRITING THAT HAD NEVER
@@ -660,6 +684,32 @@ body.docs {
 }
 .docs-swatch__var { margin-top: var(--space-1); word-break: break-all; }
 .docs-swatch.is-copied .docs-swatch__hex::after { content: "  ✓ kopiert"; color: var(--text-primary); }
+
+/* A ROW OF MATERIAL SAMPLES, AND A CLASS THAT HELD NOTHING.
+
+   .docs-swatch-row was a name in the markup on foundations/colors.html twice
+   and a rule nowhere: the grid, the track list, the seam and the frame were all
+   written into the style attribute beside it, once for three samples and once
+   for four. A class that carries no declarations is worse than no class — it
+   reads as a definition somebody can go and change, and there is nothing there.
+
+   The 1 px between samples is not spacing and is not on the scale. It is the
+   ground showing through between two plates, which is how this system draws a
+   seam everywhere else: contour before fill, and the thinnest contour it has.
+   The scale governs air; this is a line, and a line is 1 px.
+
+   The count is the markup's. grid-auto-flow: column with equal auto columns
+   means the row holds however many samples are written into it, so the two
+   sites that differed only in that number now differ in nothing at all.
+   minmax(0, 1fr) rather than 1fr for the reason base.css states twice: a bare
+   fr floors at min-content and one long word pushes the row sideways. */
+.docs-swatch-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 1px;
+  border: 1px solid var(--border-default);
+}
 
 /* A tint/shade ramp: one row per colour. */
 .docs-ramp { display: grid; grid-template-columns: 7rem 1fr; gap: var(--space-4); align-items: center; }

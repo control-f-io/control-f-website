@@ -1178,6 +1178,60 @@ print(counts)
       suggestion. A scale that lists options nobody took is a menu, not a system. The count
       above is the check — run it before adding a rung, not after.
     </div>
+    <h3 id="space-in-markup">The scale binds in the markup too</h3>
+    <p>
+      The count above reads three stylesheets, and for a long time so did the rule under it. A
+      <code>style</code> attribute is the one place a distance can sit where no reader of a
+      stylesheet will ever meet it, and nothing was looking there. Read across every page in
+      this directory that is not a generated mirror:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Spacing in a <code>style</code> attribute</th><th>Count</th></tr></thead>
+      <tbody>
+        <tr><td>declarations found</td><td>114</td></tr>
+        <tr><td><code>0</code> or <code>auto</code> — a reset, not a decision</td><td>88</td></tr>
+        <tr><td>live distances</td><td>26</td></tr>
+        <tr><td>of those, on a page under <code>patterns/</code></td><td><strong>0</strong></td></tr>
+      </tbody>
+    </table>
+    <p>
+      The last row is the tell, not the reassurance. <code>check-local-literals.py</code> already
+      stands over <code>patterns/</code> and narrows inline <code>style</code> there to custom
+      properties only, so those pages are clean because something reads them. Everything else in
+      this directory — <code>components/</code>, <code>foundations/</code>,
+      <code>prototypes/</code> — had no reader, and it is where the overrides collected. That is
+      the worse half to leave open: this is the copy a reader learns the system from.
+      <code>base.css</code> carries three rules — <code>.flow-*</code>,
+      <code>.grid--sections</code>, <code>.after-register</code> — each written after somebody
+      found an inline spacing override by reading it, and each says so in place. Three finds,
+      three fixes, no gate.
+    </p>
+    <p>
+      What was in there: five values off the scale entirely, including
+      <code>padding-bottom: 8rem</code> (128 px, between two rungs) and
+      <code>margin-top: 1rem</code>, which is <code>--space-4</code> spelt as a length. Two
+      <code>gap: 1px</code> seams on <code>.docs-swatch-row</code>, a class that was a name in
+      the markup and a rule nowhere. One <code>gap: var(--space-8)</code> on an element that
+      declared <code>.stack</code> and then overrode its display — the exact declaration the
+      <code>.flow-*</code> rungs were created to end. And four
+      <code>margin-top: var(--space-8)</code> on <code>&lt;h3&gt;</code> elements
+      <em>of this page</em>, each one a restatement of what <code>.docs-section &gt; h3</code>
+      already says: measured in Chromium at 1280 px, 32 px with the attribute and 32 px with it
+      removed, four times over.
+    </p>
+    <p>
+      <code>check-spacing-scale.py</code> now reads the markup as well, under two rules.
+      <strong>An inline spacing value is held to the scale</strong> by the same method the
+      stylesheet half uses — the same property list and the same length pattern, so
+      <code>px</code> and <code>rem</code> are read and <code>em</code>, <code>ch</code> and
+      <code>%</code> are not. It does <em>not</em> ban inline spacing: a one-off distance on an
+      anonymous element inside a demo is honestly written where it lands, and inventing a class
+      per demo would be the scale reaching past what it governs. <strong>On
+      <code>.stack</code> and <code>.cluster</code> the ban is absolute</strong>, because those
+      two resolve their spacing through <code>--flow</code>, so an inline gap or margin there
+      does not sit beside the system's answer — it overrides it. If the same distance is written
+      twice, it is a rule, and a rule belongs in a stylesheet under a name.
+    </p>
   </section>
 
   <section class="docs-section" id="rhythm">
@@ -1475,7 +1529,7 @@ print(counts)
       series has to terminate somewhere: the last two columns are the same width, which is what
       makes the fractions sum to exactly one.
     </p>
-    <h3 style="margin-top:var(--space-8)">The primitive</h3>
+    <h3>The primitive</h3>
     <p>
       The manual draws the system twice: once pure, with each column half the width of the one
       before it, and once applied to a blog index, where the columns are equal and the hierarchy
@@ -1707,7 +1761,7 @@ print(counts)
       1.8rem wide, and that argument lives in <code>components.css</code> where it can be
       read.
     </p>
-    <h3 id="tiles-guard" style="margin-top:var(--space-8)">The guard is the whole point</h3>
+    <h3 id="tiles-guard">The guard is the whole point</h3>
     <p>
       The recipe underneath is <code>repeat(auto-fill, minmax(min(var(--tile), 100%), 1fr))</code>,
       and the term that matters is <code>min(…, 100%)</code>. Without it the minimum in
@@ -1796,7 +1850,7 @@ print(counts)
       system does not use it, because it breaks words mid-line even when there is room.
       The floor is the fix; the wrap is what makes the result read well afterwards.
     </div>
-    <h3 id="intrinsic-two-fixes" style="margin-top:var(--space-8)">Two correct fixes, and the system uses both</h3>
+    <h3 id="intrinsic-two-fixes">Two correct fixes, and the system uses both</h3>
     <table class="docs-table">
       <thead><tr><th>Where</th><th>What</th><th>Who</th></tr></thead>
       <tbody>
@@ -1858,7 +1912,7 @@ print(counts)
       signed off months earlier.
     </div>
 
-    <h3 id="intrinsic-implicit" style="margin-top:var(--space-8)">The column nobody declared</h3>
+    <h3 id="intrinsic-implicit">The column nobody declared</h3>
     <p>
       <strong>A grid that declares no columns still has one.</strong> <code>display: grid</code>
       with only <code>grid-template-rows</code> written leaves the inline axis to a single
@@ -1919,7 +1973,7 @@ print(counts)
   <section class="docs-section" id="sections">
     <h2>Section structure</h2>
     <p>Every section on the site follows the same order:</p>
-    <ol style="max-width:72ch;color:var(--text-secondary);padding-left:1.2rem">
+    <ol>
       <li><strong>Section header</strong> — mono label left, counter right, hairline underneath.</li>
       <li><strong>Content</strong> — in the 12-column grid.</li>
       <li><strong>Air</strong> — <code>--section-gap</code> to the next section, no divider.</li>
