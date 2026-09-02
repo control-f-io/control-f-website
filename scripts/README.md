@@ -141,7 +141,7 @@ there are these:
 | `check-band-flow.py` | JS scroll behaviour — the fraction `cf-pin-gate.js` keeps through a band across a reflow | `assets/js/cf-pin-gate.js` + four stylesheets |
 | `check-band-inset.py` | layout — a band that re-derives the page margin must use `.container`'s one number | four stylesheets |
 | `check-band-rule-continuity.py` | layout — a hairline drawn as a border sits inside its own box, so the same column line lands a pixel apart depending on which side drew it | three stylesheets |
-| `check-label-ramp.py` | typography — `--text-xs` is mono labels only, never prose | three stylesheets |
+| `check-label-ramp.py` | typography — the mono label ramp is two rungs and each rung is a size *and* the tracking that travels with it | four stylesheets + every `<style>` block |
 | `check-label-clearance.py` | SVG annotation geometry — a numeral on the flow root holds the clearance the root publishes | `patterns/`, `prototypes/`, `tokens.css` |
 | `check-label-frame.py` | SVG annotation geometry — an HTML layer placed in a drawing's coordinates gets the drawing's box | four stylesheets + every page |
 

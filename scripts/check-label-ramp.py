@@ -22,27 +22,62 @@ the <h2> standing on the hairline directly above it. Nothing about it read as
 broken in isolation. It read as broken beside the heading it dwarfed, and no
 existing check looks at type size at all.
 
-THE RAMP, and it is short on purpose:
+THE RAMP, and it is short on purpose. It has two rungs, and EACH RUNG IS A
+PAIR - a size and the tracking that travels with it:
 
-    --text-xs   0.6875rem / 11   the label. 51 rules.
-    --text-sm   0.875rem  / 14   the named larger form: .t-label-lg, and the
-                                 two components that take that form, .cf-btn
-                                 and .cf-prose h4.
+    --text-xs + --tracking-label    the label. .t-label.
+    --text-sm + --tracking-wide     the named larger form: .t-label-lg, and the
+                                    two components that take that form,
+                                    .cf-btn and .cf-prose h4.
+
+The lengths behind those four names are read out of tokens.css at run time and
+printed in the messages below rather than typed here, because this docstring
+had them wrong: it said --text-sm was 0.875rem / 14 when the token has been
+0.75rem / 12, and the failure message a developer actually reads said the same.
+A check whose own statement of the rule drifts is the thing it exists to stop.
 
 A rule that sets font-family to the mono stack and text-transform: uppercase,
-and sets a font-size that is neither, is a finding until the size becomes one
-of the two or the rule is added to EXEMPT below with a reason.
+and sets a font-size that is neither rung, is a finding until the size becomes
+one of the two or the rule is added to EXEMPT below with a reason.
+
+TRACKING IS THE SECOND HALF AND WAS UNHELD FOR AS LONG AS THE FIRST WAS HELD.
+One step of size is 1 px; two mono labels a pixel apart are told apart by their
+tracking long before they are told apart by their size, so a rule wearing one
+rung's size and the other's tracking reads as neither. Three were, in both
+directions, and each is the same hand-restated utility this check was written
+about - four of five declarations copied and the fifth taken from the wrong
+rung:
+
+    .cf-prose h4          --text-sm with --tracking-label. Named in this very
+                          docstring as a .t-label-lg, and set 0.84 px narrower
+                          per character than the buttons beside it.
+    .cf-consent__title    --text-xs with --tracking-wide. The only 11 px mono
+                          label in the shipping tree not on --tracking-label,
+                          and it is the first type a first-time reader meets.
+    .icon-toggle          --text-xs with --tracking-wide, in the <style> block
+    (iconography.html)    on foundations/iconography.html - a docs control
+                          dressed as a small button, which is how it got there.
+
+So a rule on a rung takes that rung's tracking, or states no tracking at all
+and inherits one. A rule that states a tracking off its own rung is a finding.
 
 SCOPE is every stylesheet that ships plus every <style> block on a page in
 design-system/ - wider than check-spacing-scale.py's, because this is exactly
 the boundary the defect crossed. A page's own <style> block is where a utility
 gets restated by hand; a check that stopped at the shipping stylesheets would
-have looked straight past the only occurrence there has ever been. docs.css is
+have looked straight past two of the three rules above. docs.css is
 documentation chrome and is out, the same call every check here makes.
 
-Sizes are compared as tokens, not as computed lengths. `var(--text-xs)` and
-`var(--text-xs, .6875rem)` are the same decision; a bare `0.6875rem` is not,
-because the point of the ramp is that the size is named.
+AND ACTS.CSS SHIPS. It was not in this check's SHIPPING tuple, which named
+three files where the site has four: acts.css is the scroll composition on
+eight pages and it carries two mono uppercase rules this check had never read.
+Both are on the ramp, and that is luck rather than enforcement - the same reach
+gap check-gradient-family.py was widened for, in the same file, for the same
+reason. A gate whose reach stops moving has a half-life.
+
+Sizes and trackings are compared as tokens, not as computed lengths.
+`var(--text-xs)` and `var(--text-xs, .6875rem)` are the same decision; a bare
+`0.6875rem` is not, because the point of the ramp is that the value is named.
 
 stdlib only, no build step, no dependency - the same contract as the
 twenty-two checks beside it.
@@ -60,10 +95,15 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 CSS = ROOT / "design-system" / "assets" / "css"
 DESIGN_SYSTEM = ROOT / "design-system"
 
-SHIPPING = ("tokens.css", "base.css", "components.css")
+SHIPPING = ("tokens.css", "base.css", "components.css", "acts.css")
 
-# The ramp. A mono uppercase rule sets one of these or it is a finding.
-RAMP = ("--text-xs", "--text-sm")
+# The ramp. Two rungs, each a size and the tracking that travels with it. A
+# mono uppercase rule sets one of these sizes or it is a finding; if it also
+# states a tracking, the tracking is the one its rung carries.
+RAMP = {
+    "--text-xs": "--tracking-label",
+    "--text-sm": "--tracking-wide",
+}
 
 # Rules that are mono and uppercase and off the ramp, each with the reason.
 # Keep this list short: every entry is a place the ramp does not reach, and a
@@ -78,7 +118,44 @@ EXEMPT = {
 MONO = re.compile(r"font-family:[^;]*--font-mono")
 UPPER = re.compile(r"text-transform:\s*uppercase")
 SIZE = re.compile(r"font-size:\s*([^;}]+)")
+TRACK = re.compile(r"letter-spacing:\s*([^;}]+)")
 TOKEN = re.compile(r"var\(\s*(--[\w-]+)")
+DECL = re.compile(r"(--[\w-]+):\s*([^;}]+)")
+
+
+def blank_comments(text):
+    """Blank /* ... */ keeping BOTH the length and the newlines.
+
+    ` ` * len(match) keeps the length, which is what offsets need, and eats
+    every newline inside the comment, which is what line numbers need. In a
+    stylesheet that is mostly prose the second loss is total: this file
+    reported .cf-prose h4 at components.css:2239 when it is at 6306, because
+    4,067 lines of comment above it had been flattened. A finding that points
+    at the wrong rule is worse than no line number at all, and it points there
+    confidently.
+    """
+    return re.sub(r"/\*.*?\*/",
+                  lambda m: re.sub(r"[^\n]", " ", m.group(0)), text, flags=re.S)
+
+
+def token_lengths():
+    """The four ramp values as tokens.css declares them, for the messages.
+
+    Typed into this file they went stale and said 14 px where the token says
+    12; read from the source they cannot. A token the file no longer declares
+    prints as its own name, which is a legible failure rather than a wrong
+    number.
+    """
+    text = (CSS / "tokens.css").read_text(encoding="utf-8")
+    text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
+    seen = dict(DECL.findall(text))
+    return {name: " ".join(seen[name].split()) if name in seen else name
+            for rung in RAMP.items() for name in rung}
+
+
+def gloss(name, lengths):
+    """`--text-sm (0.75rem)` - the token and what it currently resolves to."""
+    return "%s (%s)" % (name, lengths.get(name, name))
 
 
 def blocks(text):
@@ -88,7 +165,7 @@ def blocks(text):
     rules nest, so a block whose body still contains a brace is passed over
     and its inner blocks are found on their own.
     """
-    text = re.sub(r"/\*.*?\*/", lambda m: " " * len(m.group(0)), text, flags=re.S)
+    text = blank_comments(text)
     for m in re.finditer(r"\{([^{}]*)\}", text):
         body = m.group(1)
         head = text[:m.start()]
@@ -114,10 +191,16 @@ def sources():
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("-v", "--verbose", action="store_true",
-                    help="print every mono uppercase rule and its size")
+                    help="print every mono uppercase rule, its size and its "
+                         "tracking")
     args = ap.parse_args()
 
-    on_ramp, findings, exempt_seen = [], [], set()
+    lengths = token_lengths()
+    ramp_gloss = " and ".join(
+        "%s + %s (%s)" % (gloss(size, lengths), track, lengths.get(track, track))
+        for size, track in RAMP.items())
+
+    on_ramp, findings, mistracked, exempt_seen = [], [], [], set()
 
     for label, text in sources():
         for selector, body, line in blocks(text):
@@ -132,18 +215,27 @@ def main():
                 continue
             token = TOKEN.search(size)
             named = token.group(1) if token else None
-            entry = (label, selector, size, line)
-            if named in RAMP:
-                on_ramp.append(entry)
-            elif (label, selector) in EXEMPT:
+            t = TRACK.search(body)
+            track = t.group(1).strip() if t else None
+            t_token = TOKEN.search(track) if track else None
+            t_named = t_token.group(1) if t_token else None
+            entry = (label, selector, size, track, line)
+            if (label, selector) in EXEMPT:
                 exempt_seen.add((label, selector))
                 on_ramp.append(entry)
+            elif named in RAMP:
+                on_ramp.append(entry)
+                # A rule may say nothing about tracking and inherit one. If it
+                # says something, it says its own rung's.
+                if track is not None and t_named != RAMP[named]:
+                    mistracked.append(entry)
             else:
                 findings.append(entry)
 
     if args.verbose:
-        for label, selector, size, line in sorted(on_ramp):
-            print("  %-28s %-34s %s" % (label, selector[:34], size))
+        for label, selector, size, track, line in sorted(on_ramp):
+            print("  %-28s %-34s %-20s %s"
+                  % (label, selector[:34], size, track or "inherited"))
         print("  %d rules on the ramp" % len(on_ramp))
 
     stale = EXEMPT - exempt_seen
@@ -151,17 +243,30 @@ def main():
         print("check-label-ramp: %s %s is exempted and no longer exists. "
               "Drop the entry." % (label, selector), file=sys.stderr)
 
-    for label, selector, size, line in findings:
+    for label, selector, size, track, line in findings:
         print("check-label-ramp: %s:%d  %s sets mono + uppercase at %s.\n"
-              "    The label ramp is --text-xs (11, .t-label) and --text-sm "
-              "(14, .t-label-lg). Take one of the two, use the class rather "
-              "than restating it, or add the rule to EXEMPT in this file with "
-              "a reason." % (label, line, selector, size), file=sys.stderr)
+              "    The label ramp is %s. Take one of the two, use the class "
+              "rather than restating it, or add the rule to EXEMPT in this "
+              "file with a reason."
+              % (label, line, selector, size, ramp_gloss), file=sys.stderr)
 
-    if findings or stale:
+    for label, selector, size, track, line in mistracked:
+        named = TOKEN.search(size).group(1)
+        print("check-label-ramp: %s:%d  %s is on the %s rung and sets "
+              "letter-spacing: %s.\n"
+              "    Each rung is a size AND the tracking that travels with it, "
+              "because one step of size is 1 px and the tracking is what tells "
+              "the two rungs apart. %s takes %s. Take it, take the class that "
+              "already pairs them, or state no tracking and inherit one."
+              % (label, line, selector, named, track,
+                 gloss(named, lengths), gloss(RAMP[named], lengths)),
+              file=sys.stderr)
+
+    if findings or mistracked or stale:
         return 1
-    print("check-label-ramp: %d mono uppercase rules, all on the ramp "
-          "(%d exempt)." % (len(on_ramp), len(exempt_seen)))
+    print("check-label-ramp: %d mono uppercase rules, all on the ramp and on "
+          "their rung's tracking (%d exempt)."
+          % (len(on_ramp), len(exempt_seen)))
     return 0
 
 
