@@ -405,7 +405,7 @@
         <tr><td>navigation band<br><code>.cf-nav</code></td><td>the whole page, moving</td><td>veil glass + lit edge</td><td>rim fades in over the first 5&nbsp;rem, specular crosses the document</td></tr>
         <tr><td>hero button<br><code>.cf-btn--glass</code></td><td>the hero video</td><td>bearing glass + lit rim</td><td>specular on hover, focus, press and on its own passage up the viewport</td></tr>
         <tr><td>info-card plate<br><code>.cf-info-card--glass</code></td><td>the isometric ground lattice</td><td>bearing glass + lit rim</td><td>the band crosses once as the card passes the reader; on the pinned Expertise stage, once across the whole pin</td></tr>
-        <tr><td>chapter rail plate<br><code>.act-rail--glass</code></td><td>22&nbsp;000&nbsp;px of act composition, carrying its own labels</td><td>bearing glass, <strong>no lit rim</strong> — <code>--glass-border</code> instead</td><td>the plate itself is the response — it fades up on hover and focus-within, and nothing travels on it</td></tr>
+        <tr><td>chapter rail plate<br><code>.act-rail--glass</code></td><td>22&nbsp;000&nbsp;px of act composition, carrying its own labels</td><td>bearing glass, <strong>no lit rim</strong> — <code>--glass-border</code> instead; and on Expertise, where the same plate ships <a href="#opaque-edge">the opaque form by default</a>, a <code>--border-default</code> contour instead of that</td><td>the plate itself is the response — it fades up on hover and focus-within, and nothing travels on it</td></tr>
         <tr><td>mobile menu</td><td>the hero video</td><td><strong>opaque plate</strong> — see above</td><td>a clip edge travels down it</td></tr>
         <tr><td>process card — figure half</td><td>the page wash</td><td>contour</td><td>nothing — it is not interactive, and a hover response on a panel that does not answer is a lie</td></tr>
         <tr><td>&nbsp;&nbsp;· its copy half</td><td>the page wash</td><td>contour + <code>--surface-lifted</code>, a veil — <a href="#copy-panel-gap">the plate the mockup draws</a>, two-column form only</td><td>nothing</td></tr>
@@ -1232,6 +1232,53 @@
       the blur goes off. The edge light survives all three — but only because it is redrawn in
       the third, and that is the correction this section exists to record.
     </p>
+    <div class="docs-note docs-note--warn" id="opaque-edge">
+      <strong>And when the tint goes opaque the <em>rim</em> has to turn over with it, which
+      for two of the three it did not.</strong> This is
+      <a href="colors.html#wash"><code>--surface-sunken</code></a>'s argument arriving at the
+      one token that never got it. That token was <code>#E7E7E7</code> until it was measured
+      against the wash and retired: the wash is <code>background-attachment: fixed</code> and
+      <code>cover</code>, so it spans the <em>viewport</em> and runs its full CF-Grau-to-white
+      range on every screen at every scroll position, and an absolute grey inside that range
+      is <em>raised at the top of the screen, invisible at 65&nbsp;% of it, and sunken below
+      that</em>. <code>--surface-glass-solid</code> <strong>is</strong> <code>#E7E7E7</code>.
+      It cannot become a veil — it is the plate that holds 4.5:1 for bearing glass when the
+      browser cannot blur, and a translucent tint with the blur off is the worst of the three
+      states — and nothing opaque and light escapes the wash's range anyway. So the thing that
+      has to be relative is the <em>boundary</em>, and the boundary was
+      <code>--glass-border</code>: white at 55&nbsp;%, authored for a frosted sheet over a
+      backdrop dark and busy enough to hold a white line.
+      <br><br>
+      Measured on <code>patterns/expertise.html</code> with the chapter rail open — the one
+      plate in the system that ships the opaque form <em>by default</em> rather than as a
+      fallback, 278&nbsp;px tall in the left margin — sampling the plate's own border column
+      and the wash six pixels outside it:
+      <table class="docs-table">
+        <thead><tr><th>Viewport</th><th>Row</th><th>Wash</th><th>Plate&nbsp;:&nbsp;wash</th><th>White rim</th><th><code>--border-default</code></th></tr></thead>
+        <tbody>
+          <tr><td>1440&nbsp;&times;&nbsp;900</td><td>top</td><td>220</td><td>1.090:1</td><td>1.226:1</td><td><strong>1.627:1</strong></td></tr>
+          <tr><td></td><td>bottom</td><td>233</td><td>1.049:1</td><td>1.072:1</td><td><strong>1.861:1</strong></td></tr>
+          <tr><td>1920&nbsp;&times;&nbsp;1080</td><td>top</td><td>221</td><td>1.072:1</td><td>1.205:1</td><td><strong>1.655:1</strong></td></tr>
+          <tr><td></td><td>bottom</td><td>231</td><td>1.030:1</td><td>1.092:1</td><td><strong>1.827:1</strong></td></tr>
+        </tbody>
+      </table>
+      The plate is lighter than the page at its top row and darker at its bottom one — it
+      inverts inside its own height — and the rim goes with it rather than surviving it, down
+      to 1.07:1 on a panel already at 1.05:1. At the bottom of its own 278&nbsp;px the panel
+      had no boundary at all. <code>--border-default</code> removes 24&nbsp;% of whatever light
+      is behind it, a constant ratio at both ends of the wash, so it cannot invert however the
+      plate and the page drift past each other.
+      <br><br>
+      <strong>Only the light theme's.</strong> <code>[data-theme="inverse"]</code> paints
+      <code>#1F1F1F</code> in these tiers and a white 18&nbsp;% rim on a dark plate is the same
+      argument the right way up, so both inverse blocks restate their own value rather than
+      inheriting anything. And this is one sentence and not a roster:
+      <code>scripts/check-glass-solid-edge.py</code> reads the wash's range off
+      <code>--wash-stops</code>, finds the tiers by looking for <code>--glass-blur: none</code>
+      rather than by naming them, and fails when an opaque glass surface is bounded by a line
+      that steps the same way the page does. A fifth tint or a third tier enters it by
+      existing.
+    </div>
     <div class="docs-note docs-note--warn">
       <strong>This page used to say forced colours needed nothing from us.</strong> The
       sentence was <em>“the platform decides the edge anyway … the one context where none of

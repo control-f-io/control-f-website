@@ -6651,12 +6651,44 @@
        that does not paint one. A page opts INTO the material by name, the
        count follows the markup, and a fourth consumer inherits the cheap
        plate until it says it can afford the other. */
+    /* AND THE BOUNDARY IS A CONTOUR HERE, NOT THE LIT RIM, because this is
+       the one plate in the system that ships the no-blur form by DEFAULT
+       rather than as a fallback — and an opaque grey plate on the page wash
+       cannot be bounded by a white line. --surface-glass-solid is #E7E7E7,
+       which is the value tokens.css retired as --surface-sunken for exactly
+       this reason: the wash runs 207 to 255 across the viewport and is
+       fixed, so an absolute grey inside that range is raised at the top of
+       the screen and sunken at the bottom, passing through invisible on the
+       way. Measured on the shipping page with the rail open, this plate
+       278 px tall in the left margin, sampling its own border column and the
+       wash six pixels outside it:
+
+                              wash   plate:wash   white rim   --border-default
+         1440x900   top row    220      1.090       1.226         1.627
+                    bottom     233      1.049       1.072         1.861
+         1920x1080  top row    221      1.072       1.205         1.655
+                    bottom     231      1.030       1.092         1.827
+
+       The plate inverts against the page inside its own height and the white
+       rim goes with it instead of surviving it, down to 1.07:1 on a panel
+       already at 1.05:1 — so at the bottom of its own 278 px the panel had no
+       boundary at all. --border-default takes 24 % of whatever light is behind
+       it, a constant ratio at both ends of the wash, which is the property
+       that made --surface-sunken a veil.
+
+       THE FROSTED FORM KEEPS THE RIM, one rule down, because there the
+       surface is 46 % white over 22 000 px of act composition and the white
+       55 % perimeter is the material's own contour on a backdrop dark enough
+       and busy enough to hold it. Same plate, two materials, two edges — and
+       the frosted form under prefers-reduced-transparency or without
+       backdrop-filter picks up this same contour through --glass-border,
+       which tokens.css turns over in both of those blocks. */
     .act-rail::before {
       content: "";
       position: absolute;
       inset: calc(var(--space-4) * -1) calc(var(--space-5) * -1);
       background: var(--surface-glass-solid);
-      border: var(--glass-border);
+      border: var(--stroke-1) solid var(--border-default);
       border-radius: var(--radius-sm);
       opacity: 0;
       transition: opacity var(--duration-base) var(--ease-standard);
@@ -6664,6 +6696,7 @@
     }
     .act-rail--glass::before {
       background: var(--surface-glass);
+      border: var(--glass-border);
       -webkit-backdrop-filter: var(--glass-blur);
               backdrop-filter: var(--glass-blur);
     }
