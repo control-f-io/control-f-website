@@ -1073,7 +1073,47 @@ body.docs {
   .docs-stack__strut { stroke-opacity: 1; }
 }
 
-@media (max-width: 900px) {
+/* THE DOCUMENTATION'S ONE WIDTH THRESHOLD, AND IT WAS THE LAST px ONE LEFT IN
+   FRONT OF A READER. It read `900px` until now, deliberately: the register in
+   tokens.css keeps docs.css out of scope, and the note on
+   foundations/layout.html argued that converting this query "would imply the
+   register governs the documentation chrome".
+
+   That is right about the register and wrong about the rule. They are two
+   rules, not one. The REGISTER says which thresholds are written down, and
+   docs.css is still outside it — its row in the outside-the-register table is
+   the whole point. The REM RULE says whose font size a threshold answers to,
+   and that question does not care who owns the file: it is about whether a
+   reader who asked for larger type can read the page without dragging it
+   sideways.
+
+   Nobody had measured what this one costs. The sidebar track above is
+   17rem — it grows with the reader. This gate was 900 px — it did not. So the
+   gap between them opens as the reader's default font size rises, and the
+   documentation column is squeezed against a frame that has stopped folding.
+
+   Measured in Chromium on four documentation pages, browser default set with
+   Page.setFontSizes, document overflow read off the root element:
+
+     browser default   sidebar   text column at 901   horizontal scroll
+     16 px             272 px    533 px               none, at any width
+     24 px             408 px    349 px               161 px at 901, gone by 1063
+     32 px             544 px    165 px               492 px at 901, gone by 1393
+
+   32 px is 200 % text, which is exactly what WCAG 1.4.4 asks for, and "without
+   loss of content or functionality" is failed by 492 px of horizontal scroll.
+   The 24 px row is the same fault the breakpoint register was written after —
+   its own note records "a band at 792–820 … 43 px of horizontal scroll on
+   every page in the system" — one order of magnitude larger, on the pages that
+   document the fix.
+
+   56.25rem is 900 / 16, the register's own arithmetic and a figure it already
+   carries five times. Nothing moves at a 16 px default: the two render
+   identically, to the pixel. Above it the frame folds where it actually stops
+   fitting — 1350 px at a 24 px default, 1800 at a 32 px one — and the sidebar
+   goes over the content instead of beside it, which is the state that never
+   overflowed at any width. → foundations/layout.html#outside-register */
+@media (max-width: 56.25rem) {
   /* minmax(0, 1fr), not 1fr: a bare 1fr track floors at min-content, so one
      long line in a <pre> pushes the whole documentation page sideways on a
      phone instead of scrolling inside its own box. */
