@@ -49,9 +49,28 @@ counts of the directory, and the directory is right there, so they are derived
 from `os.listdir` — the same move every other register in here makes, and the
 reason this cannot itself go stale.
 
+WHY THIS ONE GREW A --fix WHEN THE FINDING IS TWO DIGITS. Because two digits
+is exactly the size of finding a lane refuses to stop for. Every other derived
+register in here that goes stale on somebody else's push has one —
+check-spacing-scale.py, check-motion-census.py, check-glass-budget.py — and
+this pair, which the docstring above says went stale "an hour before it was
+corrected" and then again in the same hour, did not. So the lane that trips it
+is a lane that has just been told its own green branch is red for a reason that
+is not its own and has no one-command way out, and the cheapest thing it can do
+is nothing. --fix makes the cheapest thing the correct thing.
+
+It rewrites ONLY the two counts in scripts/README.md, and only to the number
+the directory holds. It does not touch design-system/README.md's spelled-out
+sentence: that number counts a LIST, and a list that has gained an entry needs
+the entry written into the block as well as the digit moved — a --fix there
+would paper over a missing row rather than repair a count. The two halves of
+this script fail for different reasons and only one of them has a mechanical
+answer.
+
 Usage:
     check-readme-check-count.py       fail if a stated count and its subject disagree
     check-readme-check-count.py -v    print each number and everything counted
+    check-readme-check-count.py --fix rewrite scripts/README.md's two counts
 """
 
 import os
@@ -95,11 +114,11 @@ def directory_counts():
     return sorted(entries), sorted(checks)
 
 
-def scripts_readme(verbose):
+def scripts_readme(verbose, fix=False):
     """Hold scripts/README.md's two counts to the directory they describe."""
     text = open(SCRIPTS_README, encoding="utf-8").read()
     entries, checks = directory_counts()
-    failures = []
+    failures, rewritten = [], []
 
     for pattern, actual, what, where in (
         (FILE_COUNT, len(entries), "files at this level",
@@ -120,19 +139,36 @@ def scripts_readme(verbose):
             print("  scripts/README.md says %d %s; the directory holds %d"
                   % (claimed, what, actual))
         if claimed != actual:
+            if fix:
+                # Substitute inside the matched span only. The digits are not
+                # unique in this file -- "150" is a plausible substring of a
+                # dozen other sentences -- so the replacement is anchored on
+                # the match the pattern already found rather than on the number.
+                start, end = match.span()
+                span = text[start:end].replace(str(claimed), str(actual), 1)
+                text = text[:start] + span + text[end:]
+                rewritten.append("%s: %d -> %d" % (what, claimed, actual))
+                continue
             failures.append(
                 "scripts/README.md says %d %s and the directory holds %d.\n"
                 "    Derived by listing scripts/, not by remembering. This pair is\n"
                 "    ungated history: it was corrected an hour before it went stale\n"
-                "    again, by a lane that had no reason to look at it."
+                "    again, by a lane that had no reason to look at it.\n"
+                "    Run: python3 scripts/check-readme-check-count.py --fix"
                 % (claimed, what, actual)
             )
+
+    if fix and rewritten:
+        open(SCRIPTS_README, "w", encoding="utf-8").write(text)
+        for line in rewritten:
+            print("fixed   scripts/README.md %s" % line)
 
     return failures
 
 
 def main():
     verbose = "-v" in sys.argv or "--verbose" in sys.argv
+    fix = "--fix" in sys.argv
     text = open(README, encoding="utf-8").read()
 
     match = SENTENCE.search(text)
@@ -172,11 +208,14 @@ def main():
         failures.append(
             'design-system/README.md says "%s" and lists %d:\n\n%s\n\n'
             "    The block is the list, so the block is the count. Set the word to match\n"
-            "    it — this is the drift that follows two lanes adding a check on the same day."
+            "    it — this is the drift that follows two lanes adding a check on the same day.\n"
+            "    --fix does not reach this half: a count of a LIST that has gained an entry\n"
+            "    needs the entry written into the block, and moving the digit alone would\n"
+            "    hide the missing row rather than repair the count."
             % (word, len(listed), "\n".join("      %s" % n for n in listed))
         )
 
-    failures.extend(scripts_readme(verbose))
+    failures.extend(scripts_readme(verbose, fix))
 
     if failures:
         print("readme check count: %d finding(s)\n" % len(failures))

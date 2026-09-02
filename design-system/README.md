@@ -361,6 +361,7 @@ python3 scripts/check-illustration-source.py   # the four process objects are st
 python3 scripts/check-illustration-source.py -v  # every element, matched or deviated, and why
 python3 scripts/check-readme-check-count.py    # the count above this block is the length of this block, and scripts/README.md's two are the directory
 python3 scripts/check-readme-check-count.py -v # every number, and everything counted for it
+python3 scripts/check-readme-check-count.py --fix # rewrite scripts/README.md's two counts; the spelled-out sentence above is not touched
 python3 scripts/check-count-atom.py            # a section head taken off the label ramp keeps its counter in one piece
 python3 scripts/check-count-atom.py -v         # every section header row, and the ramp it is on
 python3 scripts/check-docs-caption.py          # the caption under a demo tile is one device, not twenty
@@ -1489,6 +1490,7 @@ screenshotting the logo plate in the dark palette is what found it. What did com
 unaided is the rank — a dasharray is not something the mode touches — which is the half
 that would have been expensive.
 
+<<<<<<< HEAD
 **`--angle-neutral` has a consumer.** 45° had a definition in `tokens.css`, a row in
 `foundations/geometry.html`'s angle table and **zero** uses anywhere in the tree: no
 stylesheet, no page, no drawing. That is not an oversight, it is where the angle lives. On
@@ -1497,6 +1499,20 @@ they are construction, and in a 2:1 system nothing is ever built on them, so a s
 never draws construction can never draw 45°. The specimen makes the point by standing on
 it: two of its eight rays leave the setting-out point and become edges of the object, and
 the other six run out of the frame carrying nothing.
+=======
+**`--angle-neutral` has a consumer.** The token had a definition in `tokens.css`, a row in
+`foundations/geometry.html`'s angle table and **zero** uses anywhere in the tree: no
+stylesheet, no page, no drawing named it. The *angle* was not absent — 45° is written as a
+literal four times in the shipping stylesheets, inside `--iso-transform` itself, the
+checkbox's tick, the radio's rhombus and one act rule — but every one of those is a
+rotation applied to a mark, and not one is a line struck at 45° across a drawing, which is
+the only thing the plate uses the angle for. On the *Winkelraster* the 45° rays are drawn
+dotted beside the solid isometric pair: they are construction, and in a 2:1 system nothing
+is ever built on them, so a system that never draws construction has nowhere to put the
+angle. The specimen makes the point by standing on it — two of its eight rays leave the
+setting-out point and become edges of the object, and the other six run out of the frame
+carrying nothing.
+>>>>>>> 1ddfe5c (The rung named "construction geometry" had never drawn any, and the angle that only lives there had no consumer at all)
 
 **A measure is not drawn.** Every label here was an SVG `<text>` first, and a phone is what
 that costs — a 22-unit label in a 780-unit `viewBox` rendered at **7 px** on a 375 frame,
