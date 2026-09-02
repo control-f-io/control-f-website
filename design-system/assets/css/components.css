@@ -4149,6 +4149,55 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-weight: var(--weight-semibold);
   color: var(--text-primary);
 }
+/* AND A VEIL IS NOT A MARK IN FORCED COLOURS — it is provably no mark at all,
+   which is a stronger statement than the one tokens.css used to make and the
+   reason this block exists rather than a line in that file.
+
+   Chromium does force `background-color` in that mode; what it preserves is
+   the ALPHA, not the colour. (CSSWG css-color-adjust-1 #4175, shipped in
+   Chromium and Edge: "the user-preferred background-color on all channels
+   except for the alpha channel".) So an author veil is repainted in the
+   reader's own surface colour AT THE AUTHOR'S ALPHA, and a veil of the
+   backdrop over the backdrop is the backdrop. Measured on
+   components/process-card.html at 1280, mode active:
+
+                          authored            used                 parent
+     light palette   rgba(0,0,0,0.06)   rgba(255,255,255,0.06)   rgb(255,255,255)
+     dark  palette   rgba(0,0,0,0.06)   rgba(0,0,0,0.06)         rgb(0,0,0)
+
+   1.000:1 in both, by construction rather than by bad luck, and the same in
+   any palette the reader picks — the block had no boundary, no surface and
+   nothing else to be seen by. It is the one thing in this card that takes a
+   surface, so with the surface neutralised it needs the paint the mode keeps.
+
+   A CONTOUR, WHICH IS WHAT THE CHAPTER ALREADY PRESCRIBES for a panel that
+   needs a boundary rather than a surface, and the same idiom .cf-nav::after
+   and .material-glass-edge take one door over. .cf-prose pre is the control
+   case: identical veil, and it survives the mode intact because it already had
+   a border. → foundations/materials.html#veil-boundary */
+@media (forced-colors: active) {
+  .cf-process__note { border: var(--stroke-1) solid CanvasText; }
+
+  /* THE DIVIDER IS THE SAME LOSS ONE PROPERTY OVER, and it is worse: a
+     background-IMAGE is not repainted in the palette, it is dropped. Forced
+     colours computes this repeating gradient to `none`, so the hairline that
+     separates the body from the benefit inside the copy column was gone
+     outright — measured `background-image: none` on the same page, in both
+     palettes. That is the loss this chapter already recorded for the two lit
+     edges, arriving a third time through the same door.
+
+     Redrawn as a border, which is the only line the mode keeps, and dashed
+     rather than solid because the gradient it stands in for is a dashed rule
+     and a solid one would be a different line type. The height goes to zero so
+     the border is the whole px, and the opacity goes to 1: half a CanvasText
+     line is half the contrast the reader turned this mode on to get. */
+  .cf-process__divider {
+    height: 0;
+    border-top: var(--stroke-1) dashed CanvasText;
+    background: none;
+    opacity: 1;
+  }
+}
 /* Square illustration panel beside the copy once there is room for both.
    Below that the panel goes full width and shortens to 4:3 so the card does
    not become a tower. Measured against the card's own container: on the
@@ -6492,6 +6541,35 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   flex: 1;
   height: var(--stroke-1);
   background: var(--border-strong);
+}
+/* THIS ASIDE LOST BOTH OF ITS MARKS IN FORCED COLOURS, and the rule is the
+   clean proof of the mechanism the note on .cf-process__note above states.
+   --border-strong is OPAQUE BLACK here, painted as a background rather than as
+   a border because a flex ::after is the tidiest way to run a hairline out of
+   a label. Measured on components/article.html at 1280, mode active: it
+   computes rgb(255,255,255) in the light palette and rgb(0,0,0) in the dark
+   one — the reader's own Canvas, both times, on a ground that IS Canvas. An
+   opaque black line becoming an opaque white one is not an alpha surviving; it
+   is the colour being replaced and the alpha kept, which is exactly what the
+   mode does and what tokens.css and foundations/materials.html both said it
+   did not, until this measurement corrected them.
+
+   So the block had no surface (its veil, same arithmetic as the process note)
+   and no rule (this line), leaving one mono word and two paragraphs of body
+   text — an aside indistinguishable from the argument it steps out of.
+
+   Both marks come back as the paint the mode keeps. The height goes to zero
+   under the border so the line stays one pixel and the label's row does not
+   grow. The info card's ask shares the declaration for the reason the rule
+   above is shared: two copies of one device answer at two sizes eventually. */
+@media (forced-colors: active) {
+  .cf-prose__note { border: var(--stroke-1) solid CanvasText; }
+  .cf-prose__note-tag::after,
+  .cf-info-card__ask-tag::after {
+    height: 0;
+    border-top: var(--stroke-1) solid CanvasText;
+    background: none;
+  }
 }
 
 .cf-prose :is(code, kbd, samp) {

@@ -1425,8 +1425,7 @@
       </li>
       <li>
         <strong>The tint becomes <code>Canvas</code>, and that was the real failure.</strong>
-        <code>background-color</code> is not among the properties Chromium's forced colours
-        overrides, so <code>--surface-glass</code> survived at white 46 % and the hero CTA
+        <code>--surface-glass</code> survived at white 46 % and the hero CTA
         stayed translucent on a page where every other surface had gone flat: the video played
         through the primary call to action. Chromium backplates the <em>label</em>, so the
         text was legible either way — what was wrong was the plate, asserting a material the
@@ -1464,6 +1463,73 @@
       now — <a href="#layers">03c</a> — and <a href="#fallbacks">the fifth claim</a> closes
       the general case, on both selectors of all three blocks, so the next tint cannot sit one
       of them out.
+    </div>
+    <div class="docs-note docs-note--warn" id="veil-boundary">
+      <strong>And the sentence it covered them with was wrong about the mechanism, which cost
+      the two panels on this page that are not made of glass at all.</strong> This page said
+      <code>background-color</code> was not among the properties Chromium's forced colours
+      overrides. It is: what the mode preserves is the <em>alpha</em>, not the colour —
+      <a href="https://lists.w3.org/Archives/Public/public-css-archive/2020Mar/0380.html">the
+      resolution on <code>css-color-adjust-1</code> issue 4175</a>, shipped in Chromium and
+      Edge, so that a translucent overlay forced opaque cannot black out the page beneath it.
+      A white tint cannot tell those two readings apart, and every tint on this page is white.
+      <br><br>
+      <strong>Half of the correction was already in the tree.</strong>
+      <code>components.css</code> states it twice, above <code>.lp-ev-card__rule</code> and
+      again above <code>.cf-page-header__rule</code> with the measurement — <em>forced colours
+      discards <code>background-color</code> and maps border colours into its own palette, so a
+      mark made of border survives and a mark made of fill does not</em>. Two files have held
+      opposite accounts of one property for as long as both have existed, and the account that
+      was right was the one about <em>lines</em>, so nobody carried it back to the tokens or to
+      this page. What is new is the other half: the alpha is kept.
+      <br><br>
+      The case that separates them is an author surface that is not.
+      <code>.cf-prose__note-tag</code>'s rule is <code>--border-strong</code> — opaque black —
+      painted as a background, because a flex <code>::after</code> is how a hairline runs out
+      of a label. Measured on <code>components/article.html</code> at 1280 px, mode active:
+      <table class="docs-table">
+        <thead><tr><th>Element</th><th>Authored</th><th>Used, light palette</th><th>Used, dark palette</th></tr></thead>
+        <tbody>
+          <tr><td><code>.cf-prose__note-tag::after</code></td><td><code>#000</code></td><td><code>rgb(255,255,255)</code></td><td><code>rgb(0,0,0)</code></td></tr>
+          <tr><td><code>.cf-process__note</code></td><td><code>rgba(0,0,0,.06)</code></td><td><code>rgba(255,255,255,.06)</code></td><td><code>rgba(0,0,0,.06)</code></td></tr>
+          <tr><td><code>.cf-prose__note</code></td><td><code>rgba(0,0,0,.06)</code></td><td><code>rgba(255,255,255,.06)</code></td><td><code>rgba(0,0,0,.06)</code></td></tr>
+        </tbody>
+      </table>
+      An opaque black becoming an opaque white is not a declaration surviving. And a veil
+      repainted in the reader's own surface colour <em>at the author's alpha</em> is a veil of
+      the backdrop over the backdrop: <strong>1.000:1, in every palette, by
+      construction</strong> — not a surface in the wrong colour but no surface at all. The
+      process card's inset note and the prose aside each had that veil and no border, and the
+      aside's opening rule went with it, so what was left of it was one mono word and two
+      paragraphs of body text.
+      <br><br>
+      <strong>Both take a contour under <code>forced-colors: active</code></strong>, which is
+      what this chapter prescribes for a panel that needs a boundary rather than a surface, and
+      the same idiom the two lit edges take above. Beside them, two lines are redrawn as
+      borders: the aside's rule, and the process card's interior divider — a
+      <code>repeating-linear-gradient</code>, and a background-<em>image</em> is not repainted
+      in the palette, it is dropped, so that hairline was gone outright.
+      <code>--surface-sunken</code> joins the block above only after that, and it moves no
+      pixel: <code>Canvas</code> at 6 % over <code>Canvas</code> already <em>was</em>
+      <code>Canvas</code>. What it removes is the claim.
+      <br><br>
+      Two panels needed nothing and are the controls. <code>.cf-prose pre</code> carries the
+      identical veil and comes through intact, because it already had a border.
+      <code>.cf-prose code</code> keeps Geist Mono, which the mode does not touch — a mark
+      without a box it never had. <strong>Still open:</strong> every other rule this system
+      draws as a <code>repeating-linear-gradient</code> — <code>.cf-prose hr</code> among them
+      — is gone in this mode for the same reason the divider was. The two inside panels are
+      fixed here; the sweep belongs to the line chapter, and it is not mechanical, because
+      <code>border-style: dashed</code> has no period of its own to hold 2-1 or 1-4 to.
+      <br><br>
+      <strong>There is no gate behind this one, and the reason is worth recording.</strong>
+      The rule a script would enforce — <em>a panel whose only mark is a veil carries a
+      boundary the mode keeps</em> — is not true read statically, because a boundary can
+      belong to something else: <code>.cf-process__panel</code> takes
+      <code>--surface-lifted</code>, has no border of its own, and needs none, since the card's
+      contour and the figure's <code>border-right</code> already delimit it. A checker cannot
+      see that from the stylesheet, and one that demanded a border there would be asking for
+      the doubled line this chapter spends its length arguing against.
     </div>
     <p>
       What the mode ends up with is the answer this page argues for everywhere else: the
