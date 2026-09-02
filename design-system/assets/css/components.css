@@ -2685,7 +2685,26 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
-.cf-page-header__meta :last-child { color: var(--text-secondary); }
+/* THE SECOND ITEM IS THE QUIET ONE, and it takes the ink step because it is
+   the second — not because it is the last. The row is "a mono line split
+   left/right": the left item says what the page holds, the right one is the
+   aside beside it, and only a split has a right-hand side at all.
+
+   `:last-child` alone does not say that. With one child the only item is both
+   first and last, so the left-hand line took the right-hand colour and the
+   page's one piece of metadata was set in --text-secondary while the identical
+   line on every other page is full ink. It is not a hypothetical: news.html's
+   meta is generated — build-news.py writes "the post count and, WHEN THERE IS
+   MORE THAN ONE PAGE, which page this is" — so the archive drops to one span
+   whenever the register fits on a single page, which is the state it ships in
+   today. Measured at 1440 x 900, patterns/news.html: the lone span computed
+   rgb(72,72,72); patterns/ueber-uns.html's first of two computed rgb(0,0,0).
+   Same component, same slot, two inks, decided by how many posts exist.
+
+   `:not(:first-child)` is the whole fix, and it says the rule in the same
+   words the note above the component does. A single-item row is now ink, a
+   split row is unchanged. */
+.cf-page-header__meta :last-child:not(:first-child) { color: var(--text-secondary); }
 
 /* THE HEADER HAS TO BE TALL ENOUGH TO HOLD THE OBJECT, and only the header
    that carries one — every other page header keeps the padding above.
@@ -2829,6 +2848,78 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      the page says it continues by continuing. Same parent-carrying selector as
      the figure's hide directly above, at (0,2,0), and for the same reason. */
   .cf-page-header .cf-page-header__cue { display: none; }
+}
+
+/* THE PAGE LINE IS PAINT, AND FORCED COLOURS DOES NOT KEEP PAINT.
+
+   This file already states the rule, one component over, in the note above
+   .lp-ev-card__rule: "forced-colors mode discards background-color and maps
+   border colours into its own palette, so a mark made of border survives
+   Windows high contrast and a mark made of fill does not." That note names
+   the offending shape as `height: var(--stroke-1); background: …` and then
+   adds, in as many words, "the shape .cf-page-header__rule uses" — and fixed
+   the evidence card's hairline only. The rule under the H1 was left as it
+   was, on sixteen of the site's eighteen pages, which makes it the most
+   widely shipped instance of the exact defect that note was written about.
+
+   MEASURED, Chromium's forced-colors emulation at 1440 x 900, before this
+   block existed:
+
+     patterns/news.html        plain rule    background-color forced to
+                               rgb(255,255,255) — Canvas, on Canvas. Absent.
+     patterns/ueber-uns.html   interrupted   background-image is a gradient,
+                               and a gradient is not a url(), so it is forced
+                               to `none`. background-color rgba(255,255,255,0).
+                               Absent, with nothing left behind it.
+
+   Both schemes fail the same way and for the same reason: on a light forced
+   palette the line is Canvas on Canvas, on a dark one it is Canvas on Canvas
+   again. The title keeps its ink, the mono row keeps its ink, and the one
+   line between them — the page line the whole header is composed around, and
+   the thing .cf-page-header__figure uses as its axis — is not drawn at all.
+
+   THE FIX IS THE SHAPE, NOT THE COLOUR. A border survives, so the rule is
+   redrawn as one: height to 0 so the box does not double, background off so
+   nothing is left claiming to paint it, and CanvasText for the ink, the way
+   .cf-nav::after and .cf-info-card--glass::before already take theirs.
+
+   THE GAP SURVIVES TOO, and it has to. .cf-iso's own forced-colors block
+   three thousand lines down forces every stroke in the figure to CanvasText,
+   so the drawing is still on the page in high contrast — and a solid line
+   ruled straight through its nucleus is the exact read the interrupted rule
+   exists to prevent. A border cannot carry a gradient's transparent middle,
+   so the two lit ends become the rule's own ::before and ::after, at the two
+   stops the gradient names — 0 → 27.1485 % and 72.8515 % → 100 %. The rule is
+   already position: relative for the figure's sake, so they have their box.
+
+   AND BELOW 56.25rem THE GAP GOES BACK, because there the figure is
+   display: none and the tier above has already restored an uninterrupted
+   line. :has() matches on the element existing rather than on it painting,
+   so without this the phone would get two segments and a hole where nothing
+   is drawn. Nested rather than a fifth top-level selector: the width rule is
+   a detail of the forced-colours rule, not a peer of it. */
+@media (forced-colors: active) {
+  .cf-page-header__rule {
+    height: 0;
+    background: none;
+    border-block-start: var(--stroke-1) solid CanvasText;
+  }
+  .cf-page-header__rule:has(.cf-page-header__figure) { border-block-start-style: none; }
+  .cf-page-header__rule:has(.cf-page-header__figure)::before,
+  .cf-page-header__rule:has(.cf-page-header__figure)::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 0;
+    border-block-start: var(--stroke-1) solid CanvasText;
+  }
+  .cf-page-header__rule:has(.cf-page-header__figure)::before { inset-inline: 0 72.8515%; }
+  .cf-page-header__rule:has(.cf-page-header__figure)::after  { inset-inline: 72.8515% 0; }
+
+  @media (max-width: 56.25rem) {
+    .cf-page-header__rule:has(.cf-page-header__figure) { border-block-start-style: solid; }
+    .cf-page-header__rule:has(.cf-page-header__figure)::before,
+    .cf-page-header__rule:has(.cf-page-header__figure)::after { content: none; }
+  }
 }
 
 /* --------------------------------------------------------------------------

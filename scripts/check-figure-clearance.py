@@ -262,8 +262,34 @@ def rules(css):
 
 FEATURE = re.compile(r"\(\s*(min|max)-width\s*:\s*([\d.]+)(rem|px)\s*\)")
 
+# A prelude this check cannot evaluate, and must not silently treat as active.
+#
+# width_matches() reads exactly one media feature — the viewport width — and
+# returned True for every prelude that did not name one. That is right for
+# `@media screen`, which is the render this whole file is about, and wrong for
+# every prelude that describes a DIFFERENT render: `@media print` is the sheet,
+# `(forced-colors: active)` is Windows high contrast, `(prefers-reduced-motion)`
+# is a preference. A declaration inside one of those was folded into the screen
+# cascade as though it were unconditional.
+#
+# WHAT FOUND IT. Adding a forced-colours redraw of .cf-page-header__rule — the
+# hairline is painted with `background`, which forced colours discards, so it
+# is drawn again as a border there and its box goes `height: 0`. Nothing about
+# the screen render moved by a hundredth of a pixel, and all five rows of the
+# measured table failed by exactly 0.499 px: half a stroke, which is the half
+# of the rule's own height the figure is centred on. The check was reading a
+# high-contrast declaration as the screen's.
+#
+# So the rule is stated the way the rest of this directory states one: a
+# prelude naming a render this check does not model is not matched, rather
+# than assumed. Width preludes are unchanged, `screen and (min-width: …)`
+# included — `screen` IS the render being read.
+OTHER_RENDER = re.compile(r"\bprint\b|forced-colors|prefers-")
+
 
 def width_matches(prelude, width):
+    if OTHER_RENDER.search(prelude):
+        return False
     for kind, num, unit in FEATURE.findall(prelude):
         edge = float(num) * (ROOT_FONT if unit == "rem" else 1)
         if kind == "min" and width < edge:
