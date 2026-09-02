@@ -313,6 +313,12 @@ def assembly_windows():
             r"animation-range:\s*cover\s*calc\(\s*([\d.]+)%", build),
         "build_step": _number(
             r"var\(--stage,\s*0\)\s*\*\s*([\d.]+)%", build),
+        # Where a part's arrival CLOSES — the second `cover calc(N% + …)` of
+        # the same declaration. It is the number the object-level gate below is
+        # written against, and the one the plate-level gate never had to read.
+        "build_last": _number(
+            r"cover\s*calc\(\s*([\d.]+)%\s*\+\s*var\(--stage[^)]*\)\s*\*"
+            r"\s*[\d.]+%\s*\)\s*;", build),
         "light_start": _number(
             r"animation-range:\s*cover\s*([\d.]+)%", light),
     }
@@ -390,10 +396,15 @@ LIGHT_RULES = (
 # state the same windows in different algebras.
 #
 #   (stylesheet, orbit selector, plan selector, node stylesheet, node selector)
+#
+# The base row reads `.cf-iso--build .cf-iso__node` and not `.cf-iso__node`,
+# which is the point of anchoring rule_bodies() on the whole prelude: the
+# construction points on a BUILT object wait for that object's last stage, so
+# the literal 50 in the base rule is no longer the end an orbit settles on.
 ORBIT_RULES = (
     ("components.css", ".cf-iso--build .cf-iso__orbit",
      ".cf-iso--build .cf-iso__ghost:not(.cf-iso__orbit)",
-     "components.css", ".cf-iso__node"),
+     "components.css", ".cf-iso--build .cf-iso__node"),
     ("acts.css", ".lp-proc-steps .cf-iso__orbit",
      ".lp-proc-steps .cf-iso--build .cf-iso__ghost:not(.cf-iso__orbit)",
      "components.css", ".cf-pin .cf-iso__node"),
@@ -495,7 +506,14 @@ def _arith(node):
 
 def light_handover(max_stage):
     """Every (--stage, --build-head) a light can be authored at, on both
-    timelines, with the fill opening no earlier than the arrival closes."""
+    timelines, with the fill opening no earlier than the arrival closes.
+
+    --build-stages is swept AT --stage rather than above it, and that is the
+    tightest reading rather than a convenient one: the fill opens later the
+    deeper the object goes, so a plate on the object's own last stage is the
+    case with the least clearance. object_handover() below is what holds the
+    other direction — that the number is the object's and not the plate's.
+    """
     findings = []
     stages = range(0, (max_stage if max_stage is not None else 3) + 1)
 
@@ -529,6 +547,7 @@ def light_handover(max_stage):
         for head in heads:
             for stage in stages:
                 env = {"--i": "0", "--stage": str(stage),
+                       "--build-stages": str(stage),
                        "--build-head": repr(head)}
                 try:
                     opens, lands = (eval_calc(fill_start, env),
@@ -554,6 +573,138 @@ def light_handover(max_stage):
                 continue
             break
     return findings
+
+
+# ---------------------------------------------------------------------------
+# …AND THE OBJECT IS NOT THE PLATE.
+#
+# light_handover() above holds the fill against the arrival of the ONE part the
+# lime is painted on, which is what `--stage` names on that declaration. The
+# rule it is written from is about the object — "an object lit while it is
+# still travelling is lit before it is there" — and the two coincide only where
+# the lime plate happens to sit on the object's last stage. That is card 01 and
+# nothing else: measured on the shipped ranges, the fill opened 6 points before
+# card 02 had landed, 7 before card 04 and 13 before card 03, against the 6 the
+# plate-level correction was written to remove.
+#
+# The object's last stage cannot be computed from a stylesheet — CSS has no
+# expression over an element's descendants — so it is declared on the <svg> as
+# `--build-stages` and this is the gate that keeps the declaration honest, in
+# two halves that have to be read together:
+#
+#   the markup  every .cf-iso--build declares --build-stages, and it equals the
+#               largest --stage among its own parts. A number that drifts from
+#               the drawing is a light that opens early again with nothing in
+#               any file looking wrong.
+#   the CSS     with that number correct, the fill opens no earlier than the
+#               object's last part lands, the construction points open no
+#               earlier than the fill does, and they close no earlier than it
+#               does — so the object still finishes on its nodes.
+#
+# Swept over every stage a part may be authored at rather than over the four
+# objects that exist, so a fifth object is covered the day it is drawn.
+
+
+def object_handover(win, max_stage):
+    """The lime and the construction points wait for the WHOLE object."""
+    findings = []
+    if win["build_last"] is None:
+        return ["components.css no longer states where a part's arrival closes\n"
+                "    where assembly_windows() reads it, so the object-level gate on the\n"
+                "    light and the nodes is not being applied."]
+
+    text = strip_comments((CSS / "components.css").read_text())
+    ranges = {}
+    for selector, want in ((".cf-iso--build .cf-iso__light", 2),
+                           (".cf-iso--build .cf-iso__node", 1)):
+        got, bad = _one_range("components.css", selector, text, want)
+        if bad:
+            findings.append(bad)
+        else:
+            ranges[selector] = got
+    if len(ranges) != 2:
+        return findings
+
+    top = max_stage if max_stage is not None else 3
+    for stages in range(0, top + 1):
+        # --stage: 0 is not a convenience, it is the case the gate exists for.
+        # A lime plate may sit on ANY stage of its object, and reading --stage
+        # on the fill's own end is exactly the defect this rule replaces — so
+        # the sweep puts the plate on the first stage and the object on the
+        # last, which is where the two readings disagree by the most.
+        env = {"--build-stages": str(stages), "--stage": "0"}
+        lands = win["build_last"] + stages * win["build_step"]
+        try:
+            fill_open, fill_shut = [eval_calc(e, env)
+                                    for e in ranges[".cf-iso--build .cf-iso__light"][0]]
+            node_open, node_shut = [eval_calc(e, env)
+                                    for e in ranges[".cf-iso--build .cf-iso__node"][0]]
+        except (KeyError, SyntaxError, ValueError) as exc:
+            findings.append(
+                "components.css states a range this check cannot evaluate at\n"
+                "    --build-stages:%d (%s: %s)." % (stages, type(exc).__name__, exc))
+            break
+
+        if fill_open < lands - 1e-9:
+            findings.append(
+                "components.css opens the lime at cover %g %% on an object whose last\n"
+                "    stage is %d and therefore still arriving until %g %%. Lime is light\n"
+                "    and it is the last thing to arrive — the whole object, not the plate\n"
+                "    the lime is painted on. Read --build-stages, not --stage, on the\n"
+                "    fill's own end of the declaration.\n"
+                "    → foundations/motion.html#light-object"
+                % (fill_open, stages, lands))
+        if node_open < fill_open - 1e-9:
+            findings.append(
+                "components.css settles the construction points from cover %g %% while\n"
+                "    the lime does not begin coming up until %g %%, at --build-stages:%d.\n"
+                "    A construction point is added to a FINISHED object: it cannot land\n"
+                "    before the light that finishes it.\n"
+                "    → foundations/motion.html#build"
+                % (node_open, fill_open, stages))
+        if node_shut < fill_shut - 1e-9:
+            findings.append(
+                "components.css closes the nodes at cover %g %% and the light at %g %%,\n"
+                "    at --build-stages:%d. The object finishes ON its construction\n"
+                "    points, so their window is the last one to close.\n"
+                "    → foundations/motion.html#build"
+                % (node_shut, fill_shut, stages))
+    return findings
+
+
+def build_stages_declared():
+    """Every built object declares the last stage it actually draws."""
+    findings = []
+    counted = 0
+    for page in PAGES:
+        text = page.read_text()
+        rel = page.relative_to(ROOT)
+        for m in re.finditer(r"<svg\b[^>]*\bcf-iso--build\b[^>]*>", text):
+            counted += 1
+            line = text.count("\n", 0, m.start()) + 1
+            shut = text.find("</svg>", m.end())
+            body = text[m.end():shut if shut != -1 else len(text)]
+            drawn = max([int(s) for s in re.findall(r"--stage:\s*(\d+)", body)],
+                        default=0)
+            declared = re.search(r"--build-stages:\s*(\d+)", m.group(0))
+            if declared is None:
+                findings.append(
+                    "%s:%d is a .cf-iso--build with no --build-stages. The light and the\n"
+                    "    construction points wait for the object's LAST stage, and no\n"
+                    "    stylesheet can read one off the object's own parts — so the\n"
+                    "    number is declared on the <svg>, beside the viewBox, the way\n"
+                    "    --iso-travel is. This object draws up to --stage:%d.\n"
+                    "    → foundations/motion.html#light-object" % (rel, line, drawn))
+            elif int(declared.group(1)) != drawn:
+                findings.append(
+                    "%s:%d declares --build-stages:%s and its deepest part is --stage:%d.\n"
+                    "    The two are the same fact about one drawing: with them apart the\n"
+                    "    lime opens %g points early (or the object stands finished waiting\n"
+                    "    for a stage it does not have). Restate it off the parts.\n"
+                    "    → foundations/motion.html#light-object"
+                    % (rel, line, declared.group(1), drawn,
+                       abs(int(declared.group(1)) - drawn) * 7))
+    return findings, counted
 
 
 def _one_range(filename, selector, text, want):
@@ -602,18 +753,37 @@ def orbit_handover():
             continue
 
         # Declaration order follows animation-name: cf-iso-fade, cf-iso-orbit.
+        # The settle is swept over --build-stages rather than read once at its
+        # fallback: the node window follows the object's last stage now, so a
+        # turn that matched it only at 0 would be a ring stopping early on
+        # exactly the object that has orbits — card 04, which draws to stage 3.
         (fade_open, fade_shut), (turn_open, turn_shut) = orbit
-        env = {"--i": "0"}
-        try:
-            values = [eval_calc(e, env) for e in
-                      (fade_open, fade_shut, turn_open, turn_shut,
-                       plan[0][0], plan[0][1], nodes[0][1])]
-        except (KeyError, SyntaxError, ValueError) as exc:
-            findings.append(
-                "%s's `%s` states a range this check cannot evaluate (%s: %s)."
-                % (filename, orbit_sel, type(exc).__name__, exc))
+        for stages in range(0, 4):
+            env = {"--i": "0", "--build-stages": str(stages)}
+            try:
+                values = [eval_calc(e, env) for e in
+                          (fade_open, fade_shut, turn_open, turn_shut,
+                           plan[0][0], plan[0][1], nodes[0][1])]
+            except (KeyError, SyntaxError, ValueError) as exc:
+                findings.append(
+                    "%s's `%s` states a range this check cannot evaluate (%s: %s)."
+                    % (filename, orbit_sel, type(exc).__name__, exc))
+                values = None
+                break
+            fo, fs, to, ts, po, ps, ne = values
+            if abs(ts - ne) > 1e-9:
+                findings.append(
+                    "%s's `%s` settles at %g %% and `%s` settles the construction points\n"
+                    "    at %g %% — at --build-stages:%d. The rule is that an orbit turns\n"
+                    "    while the object assembles and settles when everything else does;\n"
+                    "    %g points either way is a ring that stops while its object is\n"
+                    "    still arriving, or goes on turning after the object is finished.\n"
+                    "    Read the node window's end, expression and all.\n"
+                    "    → foundations/motion.html#build"
+                    % (filename, orbit_sel, ts, node_sel, ne, stages, abs(ts - ne)))
+                break
+        if values is None:
             continue
-        fo, fs, to, ts, po, ps, ne = values
 
         if (fo, fs) != (po, ps):
             findings.append(
@@ -630,15 +800,6 @@ def orbit_handover():
                 "    The ring is drawn as motion; it may not appear already still, nor\n"
                 "    move before it is visible. Open both on the same point."
                 % (filename, orbit_sel, to, fo))
-        if abs(ts - ne) > 1e-9:
-            findings.append(
-                "%s's `%s` settles at %g %% and `%s` settles the construction points\n"
-                "    at %g %%. The rule is that an orbit turns while the object assembles\n"
-                "    and settles when everything else does — %g points either way is a\n"
-                "    ring that stops while its object is still arriving, or goes on\n"
-                "    turning after the object is finished. Read the node window's end.\n"
-                "    → foundations/motion.html#build"
-                % (filename, orbit_sel, ts, node_sel, ne, abs(ts - ne)))
     return findings
 
 
@@ -1272,6 +1433,12 @@ def main():
     handover = light_handover(max_stage)
     findings.extend(handover)
 
+    # …and where the OBJECT lands, which is a different number on three of the
+    # four cards and is the one the brand's sentence is actually about.
+    findings.extend(object_handover(win, max_stage))
+    stage_findings, objects = build_stages_declared()
+    findings.extend(stage_findings)
+
     led = staged = lit = 0
 
     for page in PAGES:
@@ -1490,11 +1657,14 @@ def main():
         "under %d, %d lights filled, %d light declarations opening their fill no earlier\n"
         "than the plate carrying it lands, %d orbit declarations fading with their plan and\n"
         "settling with their construction points.\n"
+        "                    %d built objects declaring the last stage they draw, and the\n"
+        "light and the construction points waiting for it at every stage up to %d.\n"
         "                    %d straight traces starting and stopping at their own crop,\n"
         "every split signal sharing one window by length.\n"
         "                    %d documented travels quoting the stylesheet they teach."
         % (assembling, normalised, led, win["trace_span"], staged, max_stage, lit,
-           len(LIGHT_RULES), len(ORBIT_RULES), straight, documented)
+           len(LIGHT_RULES), len(ORBIT_RULES), objects, max_stage,
+           straight, documented)
     )
     return 0
 

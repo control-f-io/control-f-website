@@ -35,6 +35,23 @@ expensive to lose.
      and US Letter disagree about inches, and a margin that is right on one
      paper and wrong on the other is worse than the browser's default.
 
+  5. DISCLOSURE. Every panel a `<details>` closes is opened on the sheet. The
+     two registers both assume the object brought its content with it: one takes
+     away what cannot be operated, the other keeps whole what is left, and
+     neither asks whether there is anything inside. `<details>` is the one
+     component in this system whose resting state is to withhold its content,
+     and the register was already protecting `.cf-accordion__item` from the cut
+     — so the sheet kept whole an object carrying a question and no answer.
+     Measured on the shipped Expertise page under emulated print media before
+     the clause existed: eleven questions, eleven panels, `checkVisibility()`
+     false on all eleven.
+
+     The subject is DERIVED and not listed, the same way the two registers are:
+     a rule that styles `::details-content` is a rule about a panel a
+     `<details>` closes, and every such selector outside `@media print` has to
+     be given `content-visibility: visible` inside one. A second accordion built
+     tomorrow enters this check by existing.
+
 The registers are READ OUT OF THE CSS, not listed in this file, for the reason
 check-glass-budget.py reads its own subject out of the stylesheet: a component
 added to the register later should enter this check by existing, not by somebody
@@ -174,6 +191,30 @@ def main():
                     "WITHDRAWN: foundations/print.html names `%s` and no `@media print` "
                     "rule gives it `display: none`." % code)
 
+    # 5. Disclosure. Read the subject out of the CSS: anything styling
+    #    ::details-content is a panel a <details> closes, and the [open] form of
+    #    the same selector is the same panel in its other state rather than a
+    #    second subject.
+    opened = set()
+    for path, text in css.items():
+        for body in print_blocks(text):
+            opened |= declared(body, "content-visibility", "visible")
+    panels = set()
+    for path, text in css.items():
+        printed = "".join(print_blocks(text))
+        for m in re.finditer(r"([^{}]+)\{[^{}]*\}", text):
+            if "::details-content" not in m.group(1) or m.group(0) in printed:
+                continue
+            for sel in m.group(1).split(","):
+                sel = " ".join(sel.split())
+                if "::details-content" in sel:
+                    panels.add(sel.replace("[open]", ""))
+    for sel in sorted(panels - opened):
+        findings.append(
+            "DISCLOSURE: `%s` is a panel a <details> closes and no `@media print` rule "
+            "gives it `content-visibility: visible`. A closed panel on a sheet is not a "
+            "collapsed answer, it is no answer." % sel)
+
     # 3. Ink is data or it is nothing.
     for path, text in css.items():
         for m in re.finditer(r"^[^/*\n]*\bprint-color-adjust\s*:", text, re.M):
@@ -206,8 +247,8 @@ def main():
         return 1
 
     print("check-print-law: %d withdrawn, %d protected from the cut, %d headings that "
-          "cannot be stranded, no ink asked for, page box in mm."
-          % (len(withdrawn - EXEMPT_WITHDRAWN), len(uncut), len(unstranded)))
+          "cannot be stranded, %d panel(s) opened, no ink asked for, page box in mm."
+          % (len(withdrawn - EXEMPT_WITHDRAWN), len(uncut), len(unstranded), len(panels)))
     return 0
 
 

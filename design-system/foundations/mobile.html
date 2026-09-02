@@ -639,6 +639,87 @@
       than an automated one. It is recorded here, with the arithmetic, so that the call
       can be made from a number.
     </div>
+    <div class="docs-note docs-note--warn">
+      <strong>The same fault one component over &mdash; and this time the English
+      edition was the worse of the two.</strong> <code>.cf-plot</code>&rsquo;s keys hang
+      on a pitch the same way <code>.cf-block</code>&rsquo;s do, and the plot&rsquo;s
+      pitch is the one quantity in this whole section that does <em>not</em> move with
+      the viewport: <code>--plot-u</code> has been <code>clamp(16px, 3.4vw, 32px)</code>
+      since the run above put its floor in px, so the columns stand 64.0 px apart on
+      <a href="../patterns/blog-artikel.html">blog-artikel</a> and 60.0 px apart on
+      <a href="../patterns/landing-page.html">landing-page</a> at 320, 360, 375, 390 and
+      414 alike, and the key&rsquo;s own box is 32.0 and 52.5 px there. Only the label
+      grows. Measured on both engines, Chromium 141 and WebKit 26.5, phone contexts at
+      DPR 2; the number is the deepest overprint between two neighbouring keys, and it
+      is identical at all four phone widths in every cell below. Where the two engines
+      break a key differently the row says so. At 768 and 1280 nothing in this table
+      collides at any root, with one exception that is the point of the English row: an
+      unbroken SAMPLING overprinted MODEL by 2.9 px at a 768 px viewport at a 32 px
+      root. Everything else here is a phone reading.
+    </div>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Figure, edition</th><th>Key, as authored</th><th>Widest line 16 / 20 / 24 / 32</th><th>Overprint at 16 / 20 / 24 / 32</th></tr></thead>
+      <tbody>
+        <tr><td>blog-artikel, de &mdash; before</td><td>Ab&amp;shy;tastung, 2 / 7</td><td>47.0 / 58.7 / 70.5 / 94.0</td><td>&mdash; / &mdash; / <strong>6.5</strong> / <strong>30.0</strong></td></tr>
+        <tr><td>blog-artikel, de &mdash; after</td><td>Abtas&amp;shy;tung, 6 / 4</td><td>33.6 / 42.0 / 50.3 / 67.1 on Chromium, 40.3 / 50.3 / 60.4 / 80.5 on WebKit</td><td>&mdash; / &mdash; / &mdash; / <strong>13.2 &ndash; 16.5</strong></td></tr>
+        <tr><td>blog-artikel, en &mdash; before</td><td>Sampling, no break at all</td><td>53.7 / 67.1 / 80.5 / 107.4</td><td>&mdash; / <strong>3.1</strong> / <strong>16.5</strong> / <strong>43.4</strong></td></tr>
+        <tr><td>blog-artikel, en &mdash; after</td><td>Sam&amp;shy;pling, 4 / 5</td><td>33.6 / 42.0 / 50.3 / 67.1</td><td>&mdash; / &mdash; / &mdash; / &mdash;</td></tr>
+        <tr><td>landing-page, de</td><td>Verf&uuml;g&amp;shy;barkeit, 7 / 7</td><td>47.0 / 58.7 / 70.5 / 94.0</td><td>&mdash; / &mdash; / <strong>10.5</strong> / <strong>20.5 &ndash; 33.9</strong></td></tr>
+        <tr><td>landing-page, en</td><td>Avail&amp;shy;ability, 6 / 7</td><td>47.0 / 58.7 / 70.5 / 94.0</td><td>&mdash; / &mdash; / <strong>9.4</strong> / <strong>13.2 &ndash; 20.5</strong></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>Two of the six rows are fixed here and the fault in them was different in
+      each edition.</strong> The German key carried a break at a syllable German allows
+      and the pitch cannot use: Ab&shy;tastung splits 2 / 7, so the wider line is seven
+      characters, and seven characters is 70.5 px at a 24 px root inside a 64 px pitch.
+      Abtas&shy;tung is the same word broken one syllable along &mdash; Ab&middot;tas&middot;tung
+      &mdash; and splits 6 / 4. The English key carried no break at all: the catalogue
+      answered a hyphenated German compound with a plain <em>Sampling</em>, so the label
+      could not wrap at any size and overprinted MODEL from a <em>20 px</em> root, at a
+      768 px viewport as well by 32. Both entries live in
+      <code>i18n/en.json</code>; the English edition is generated, so a key with no break
+      point in the catalogue is a key with no break point on every page it reaches.
+      <br><br>
+      <strong>Nothing moves at the default text size and nothing moves above the phone.</strong>
+      At a 16 px root the German key sets on two lines before and after, the figure is
+      byte-identical at 768 and 1280 at every root, and the English key gains the second
+      line it should always have had (SAM&#8209;/PLING, 33.6 px, where SAMPLING stood at
+      53.7 px in a 32.0 px box and overhung it by 21.7). Two lines stay two lines, which is the
+      whole constraint: the ground reserved under a bounded key is
+      <code>--space-12</code>, the drop plus two labels plus air, and
+      <code>check-key-line-reserve.py</code> holds it.
+      <br><br>
+      <strong>Why the landing page&rsquo;s plot is not fixed with it, measured rather
+      than argued.</strong> Verf&uuml;gbarkeit is thirteen characters and Availability
+      twelve; the best two-line split of either is seven characters, and seven characters
+      is 70.5 px against that figure&rsquo;s 60.0 px pitch. So no <em>placement</em> of a
+      single break clears a 24 px root, and the third break that would &mdash;
+      Ver&shy;f&uuml;g&shy;bar&shy;keit &mdash; sets the key on four lines and puts its
+      last line <em>through the caption rule</em>: +25.31 px past it on Chromium and
+      +26.03 on WebKit at a 24 px root, and +2.59 / +2.74 at the <em>default</em> size on
+      blog-artikel, against &minus;11.70 / &minus;11.55 clear as the figures stand. That
+      is the trade the note above already named &mdash; a break point buys depth and
+      spends count &mdash; and here the count is paid for out of the caption. What is
+      left is the same tier the readings need, and a tier is a threshold.
+      <br><br>
+      <strong>And one component has no break interface at all.</strong>
+      <code>.cf-line__key</code> is <code>white-space: nowrap</code>, so the
+      <code>&amp;shy;</code> answer does not exist for it. On the landing page&rsquo;s
+      energy figure the two read points OHNE (centred at <code>--t: .6</code>) and
+      MIT&nbsp;&middot;&nbsp;JAHR&nbsp;5 (flush to the frame&rsquo;s right edge at
+      <code>--t: 1</code>) overprint from a <em>20 px</em> root &mdash; 5.4 px on
+      Chromium and 13.7 on WebKit, then 35.9 / 40.3 at 24 &mdash; at every phone width and
+      at none above 414. That is the lowest root size any overprint on this page has been
+      recorded at. Its two printed readings collide too, by 4.5 / 16.1 px at 24. Removing
+      the nowrap is not the fix: the key is absolutely positioned, so an auto width
+      shrink-to-fits against the space left in the containing block, and the last
+      point&rsquo;s is zero &mdash; every last key in every line figure in the system
+      would set one word per line, on the desktop as well. Recorded with its arithmetic,
+      for the same designer&rsquo;s call.
+    </div>
   </section>
 
   <section class="docs-section" id="touch">
@@ -824,7 +905,7 @@
     <table class="docs-table">
       <thead><tr><th>Where</th><th>Value</th><th>On a phone</th></tr></thead>
       <tbody>
-        <tr><td>Hero</td><td><code>min-height: min(92vh, 56rem)</code></td><td>747 px on a 812 px screen. 92 rather than 100 on purpose: the page has to show that it continues</td></tr>
+        <tr><td>Hero</td><td><code>min-height: min(92vh, 56rem, calc(100vh - var(--cf-consent-height, 0px)))</code></td><td>747 px on an 812 px screen from the first two terms — 92 rather than 100 on purpose: the page has to show that it continues. <strong>This row said <code>min(92vh, 56rem)</code> until the run below</strong>, and had done since the third term was added: the consent banner's reservation, the one term in this table that is not about how tall its box wants to be. It is a floor rather than a cap and on a phone it never binds — see the note under this table</td></tr>
         <tr><td>Consent, the backstop</td><td><code>calc(100vh - var(--nav-height) - 3rem - var(--space-6))</code>, with a <code>dvh</code> line on top</td><td>on <code>.cf-consent</code> itself and under no query, since the run below: 219 px against a 191 px banner at 375 tall, and inert at a 16 px root at every width from 320 to 1440. It was <code>70vh</code>, which never engaged at all; then the same terms behind a 560 px height query, which the reader's text size cannot reach</td></tr>
         <tr><td>Values track</td><td><code>100vh</code> per stage</td><td><strong>never runs below 820&nbsp;px wide or 720&nbsp;px tall</strong>, so the stage does not exist on a phone — the height half of that is new; see below</td></tr>
         <tr><td>Consent, settings panel</td><td><code>max-height: min(80vh, 46rem)</code>, now with a <code>dvh</code> line on top</td><td>the one cap in this table that <strong>always</strong> engages on a phone: 46rem never wins there, so the panel's height simply is 80vh — 533.6 px at 375&nbsp;×&nbsp;667, 531.2 at 390&nbsp;×&nbsp;664, 671.2 at 412&nbsp;×&nbsp;839. See the note below</td></tr>
@@ -848,6 +929,116 @@
       the last box of that shape anywhere in the two shipping stylesheets still capping on
       <code>vh</code> alone.
     </p>
+    <p>
+      <strong>The hero's third term is a fifth box of that shape and it is still on
+      <code>vh</code>, and the note below is why it has to stay there.</strong> The
+      paragraph above reasons about how tall the hero <em>wants</em> to be, which is what
+      <code>92vh</code> and <code>56rem</code> say; the sentence it ends on — a box
+      "anchored to an edge instead of cropped" growing "past where the cap meant to stop
+      it" — is a description of the third term, written before the third term existed and
+      never applied to it. The consent banner is <code>position: fixed; inset: auto 0 0
+      0</code>, so it is anchored to the <em>small</em> viewport: it rides above the
+      toolbar and travels with it. The hero's reservation for it is measured off the large
+      one. The two do not meet, and the gap between them is the toolbar.
+    </p>
+    <div class="docs-note">
+      <strong>The reservation is a floor, and a floor is not a cap: on every phone
+      viewport this run measured, the landing page's one call to action is under the
+      consent banner at first paint.</strong>
+      <code>scripts/check-consent-clearance.py</code> is the gate for this reservation and
+      its own header already found this failure once, in landscape: "a min-height cannot
+      shrink a box whose content is taller than it. The hero renders 467&nbsp;px against a
+      122&nbsp;px cap at 812&nbsp;×&nbsp;375." It closed that case by shortening the
+      <em>banner</em> under <code>@media (max-height: 35rem)</code> — 560&nbsp;px — and
+      stopped there. Portrait is the same fault above that threshold, and no phone held
+      the ordinary way is under it.
+      <br><br>
+      Measured on <code>landing-page</code>, first load, nothing dismissed, at the viewport
+      heights the two mobile browsers actually hand a page — Safari's and Chrome's
+      toolbar-showing viewports, not the device's screen height. <em>Content</em> is the
+      hero with <code>min-height</code> forced to zero; <em>cap</em> is the third term's
+      own value. Where content exceeds cap, the cap does nothing at all and the hero is
+      simply as tall as what is in it. <em>Hit</em> is
+      <code>document.elementFromPoint</code> at the centre of the button. Chromium 141 and
+      WebKit 26.5 agree within a tenth of a pixel on every cell:
+    </div>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Viewport</th><th>Banner</th><th>Cap</th><th>Content</th><th>Hero</th><th>CTA foot vs banner top</th><th>Hit at the CTA's centre</th></tr></thead>
+      <tbody>
+        <tr><td>320 × 568</td><td>353.8</td><td>214.0</td><td>553.6</td><td>553.6</td><td><strong>+291.4 under</strong></td><td>the banner's "Alle akzeptieren"</td></tr>
+        <tr><td>375 × 553 <em>iPhone SE</em></td><td>271.1</td><td>282.0</td><td>500.8</td><td>500.8</td><td><strong>+170.9 under</strong></td><td>the banner's "Nur notwendige"</td></tr>
+        <tr><td>393 × 659 <em>iPhone 14 Pro</em></td><td>333.5</td><td>325.0</td><td>462.8</td><td>462.8</td><td><strong>+89.3 under</strong></td><td>the banner's body copy</td></tr>
+        <tr><td>390 × 664 <em>iPhone 14</em></td><td>333.5</td><td>330.0</td><td>462.2</td><td>462.2</td><td><strong>+83.7 under</strong></td><td>the banner's body copy</td></tr>
+        <tr><td>360 × 740</td><td>333.5</td><td>406.0</td><td>497.0</td><td>497.0</td><td><strong>+42.5 under</strong></td><td>the banner's plate</td></tr>
+        <tr><td>430 × 745 <em>iPhone 14 Pro Max</em></td><td>333.5</td><td>411.0</td><td>470.2</td><td>470.2</td><td><strong>+10.7 under</strong></td><td>the button itself</td></tr>
+        <tr><td>412 × 839 <em>Pixel 7</em></td><td>333.5</td><td>505.0</td><td>466.6</td><td>505.0</td><td>−48.5 clear</td><td>the button itself</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note">
+      One row of seven clears, and it is the only one where the cap is larger than the
+      content. On five of the other six the middle of "Kennenlernen" belongs to the banner,
+      which is the same reading <code>check-consent-clearance.py</code>'s own table takes:
+      the page's primary call to action is a dead target for as long as the notice is up.
+      It is not permanently unreachable the way the landscape case was — both layers are
+      fixed there, so no scroll offset frees the button; here the hero scrolls out from
+      under a fixed banner and about 40&nbsp;px of scroll makes the button live again — but
+      first paint is the whole of what this reservation was written for.
+      <br><br>
+      <strong>The second fault is the unit, and it is the one that shows where the cap
+      <em>does</em> bind.</strong> <code>100vh</code> is the chrome-collapsed screen; the
+      banner is anchored to the visible one. So on the tall Android viewports where the cap
+      is the binding term, it lands the hero's bottom edge exactly one toolbar too low.
+      Measured on the emulated device — the page laid out in the toolbar-showing viewport
+      with <code>vh</code> resolved against the retracted one, which is what the engine
+      itself does — at Chrome Android's 56&nbsp;px toolbar, both engines identical:
+    </div>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Viewport (<code>vh</code>)</th><th>Hero</th><th>Banner top</th><th>CTA foot</th><th>Under the banner</th><th>With the toolbar tracked</th></tr></thead>
+      <tbody>
+        <tr><td>412 × 839 (895)</td><td>561.0</td><td>505.5</td><td>513.0</td><td><strong>+7.5</strong></td><td>−48.5 clear</td></tr>
+        <tr><td>412 × 892 (948)</td><td>614.0</td><td>558.5</td><td>566.0</td><td><strong>+7.5</strong></td><td>−48.5 clear</td></tr>
+        <tr><td>430 × 932 (988)</td><td>654.0</td><td>598.5</td><td>606.0</td><td><strong>+7.5</strong></td><td>−48.5 clear</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note">
+      <strong>Toolbar less 48 in every row</strong>, and constant for the reason the
+      constant gives it away: the cap binds in both states and simply sits one toolbar too
+      low, and the CTA hangs <code>--space-12</code> inside the hero's bottom edge, so 48 of
+      the 56 is absorbed before anything shows.
+      <br><br>
+      <strong>WHY NEITHER IS FIXED HERE, and what a fix has to decide.</strong> The obvious
+      repair — a <code>dvh</code> line on top of the <code>vh</code> one, the pair four
+      other boxes in this system carry — is wrong on this declaration, and measurably so.
+      With the banner gone the property is removed and the term is
+      <code>var(…, 0px)</code>, so the third term becomes plain <code>100vh</code>, which
+      can never be the smallest of the three: that inertness is the whole reason the unit is
+      <code>vh</code>. <code>100dvh</code> and <code>100svh</code> are not inert, because
+      <code>92vh</code> is 92&nbsp;% of the <em>large</em> viewport and iOS Safari's toolbar
+      is more than 8&nbsp;% of it. Measured at 390&nbsp;×&nbsp;664 with a stored decision
+      and no banner on the page at all, the hero:
+      <br><br>
+      <code>vh</code> 691.83 px — the box the row above describes · <code>dvh</code>
+      664.00 · <code>svh</code> 664.00. At 412&nbsp;×&nbsp;839 all three read 823.39,
+      because there the toolbar is under 8&nbsp;% and <code>92vh</code> wins anyway.
+      <br><br>
+      So <code>dvh</code> costs 27.8&nbsp;px of hero on every iOS visit that has no banner,
+      takes the hero off "past the fold" and onto it exactly, and — since
+      <code>dvh</code> moves with the toolbar — reflows that 27.8&nbsp;px mid-scroll, which
+      is the one thing the paragraph above says <code>vh</code> was chosen to avoid.
+      <code>svh</code> does not reflow but costs the same 27.8. Getting the unit right needs
+      the term to know whether the banner is up — a
+      <code>body:has(&gt; .cf-consent:not([hidden]))</code> rule carrying an
+      <code>svh</code> copy of the same min() — and getting the <em>floor</em> right needs
+      either a height threshold that does not exist in the register or a shorter phone form
+      for the banner. A new rule, a new threshold, or the banner's documented phone layout:
+      all three are decisions, not corrections, so this run measured them and stopped.
+      → <code>components.css</code> <code>.cf-hero</code>,
+      <code>scripts/check-consent-clearance.py</code> links 1 and 5
+    </div>
     <div class="docs-note">
       <strong>The width gate was never the only question, and the values track asked it
       alone.</strong> This mechanism has two siblings — <code>.cf-pin</code>, the Expertise

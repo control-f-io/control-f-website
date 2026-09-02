@@ -647,6 +647,19 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-foil-clip.py
 
+      # It reads a third thing now, and it is the one rule of the three with no
+      # tiers and no exemptions. An auto-repeat derives its column count from
+      # the floor in its minmax, so the floor IS the grid's minimum inline size
+      # and a bare length there sets the minimum width of the page. base.css has
+      # said so in prose since .tiles was written, and .tiles is the fix —
+      # min(--tile, 100%) makes the floor the tile or the container, whichever
+      # is smaller. The comment there records folding twenty hand-written copies
+      # into that one class; two were missed, foundations/share.html kept the
+      # exact minmax(19rem, 1fr) that comment quotes by its number, and
+      # foundations/layout.html then recorded that the pages still scrolling
+      # sideways were "four separate causes, none of them that one". One of them
+      # was that one. A sweep that folds nineteen of twenty and a note saying the
+      # cause is gone is what this whole file exists to catch.
       - name: Grid tracks
         if: '!cancelled()'
         run: python3 scripts/check-grid-tracks.py
@@ -1024,6 +1037,18 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-contrast.py
 
+      # The step above is the register of the pairs the TOKENS guarantee, and
+      # neither end of a ramp step's pair is a token: the swatch is a literal
+      # in a style attribute and its ink was another literal beside it. Twelve
+      # of those inks were typed by hand on the colour chapter and eleven were
+      # right; Sky 700 printed white on #5684A9 at 3.99:1 against the 4.5:1 a
+      # 10 px label owes, where black on the same swatch reads 5.27:1. Same
+      # boundary README records for the grid tracks — a rule enforced over
+      # stylesheets is not enforced over `style=` — read again on contrast.
+      - name: Ramp ink
+        if: '!cancelled()'
+        run: python3 scripts/check-ramp-ink.py
+
       - name: Section counts
         if: '!cancelled()'
         run: python3 scripts/check-section-counts.py
@@ -1095,6 +1120,30 @@ jobs:
       - name: Foil doors
         if: '!cancelled()'
         run: python3 scripts/check-foil-doors.py
+
+      # The door beside the foil's, and the one this system had already argued
+      # correctly in one file and then walked through in another. Forced colours
+      # DISCARDS background-image — acts.css says so over the map legend, in as
+      # many words, when it takes --gradient-spectrum off the asset swatch — and
+      # `background` is a shorthand, so a forced-colours rule handing a box a
+      # system ink resets the image and fills the box in the same declaration.
+      # On a texture that is not the drawing re-inked. It is a slab where the
+      # drawing was: measured on patterns/landing-page.html's act 4, card 03,
+      # 392 x 56 px of CanvasText across the column figure, the four solids
+      # standing in a trench and the shortest of them — the one whose point is
+      # that it rose — more than half swallowed. base.css takes the same
+      # material out with `display: none` one utility over, which is what the
+      # plot does now.
+      #
+      # The check draws the line between an ink and a ground: a texture's box
+      # filled with Canvas is erasure, which is honest and is the map's own
+      # answer, and stays passing. Proven failing on the defect reintroduced, in
+      # all three of its spellings — the shorthand, the longhand, and the
+      # shorthand with !important — and at a shorter selector than the rule it
+      # answers, since the two are routinely written at different depths.
+      - name: Forced-colours textures
+        if: '!cancelled()'
+        run: python3 scripts/check-forced-texture.py
 
       # The README's count of its own register, against the register. It had
       # gone stale three times, every time because two lanes added a check on
@@ -1405,6 +1454,14 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-flow-nodes.py
 
+      # The other half of the pair above, over the <style> blocks the sheets
+      # check cannot reach. It runs the auto-repeat floor at every tier rather
+      # than only under patterns/, because that rule does not depend on what the
+      # items hold. Its own docstring was where the miss hid: the paragraph
+      # explaining what it deliberately does NOT check offered
+      # "minmax(15rem, 1fr) inside a scroll container" as the legitimate case,
+      # and that string was character for character what foundations/print.html
+      # had written into an auto-repeat in normal flow.
       - name: Page-local grid tracks
         if: '!cancelled()'
         run: python3 scripts/check-page-local-tracks.py

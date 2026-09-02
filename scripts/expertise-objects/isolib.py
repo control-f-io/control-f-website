@@ -4,20 +4,16 @@ THE PROJECTION.  +x is 26.57 deg down-right, +y is 26.57 deg down-left, +z is
 vertical.  Every vertex comes from a lattice coordinate, so every edge lands on
 a brand angle by construction.  One lattice cell is 2*U wide and U tall.
 
-THE TONE.  The three-grey register of foundations/illustration.html, "Contour
-and fill": #DADADA facing the sky, CF-Grau #CFCFCF on the lit side — which is
-also the top of the page wash, so an unlit face sits at the page's own colour
-and the contour alone carries it — and #C4C4C4 turned away.  These four objects
-shipped for a while in a near-white register of their own, with two dark accent
-values for slots and apertures and a paler trio for the foundation, on the
-argument that a dense drawing in three mid greys reads as clip art.  The
-reference plates the register was re-measured against on 2026-09-01 say
-otherwise: the same three values on a CF-Grau ground, the object sunk into the
-page rather than lifted off it, one lit top face running the whole ramp from
-lime at its back corner to the ground's own grey at its near one, and two
-nodes on that face.  So the foundation is the same material as the machine, an
-accent is the shaded value and nothing is darker than that, and DETAIL STILL
-COMES FROM LINES drawn on the faces rather than from tone.
+THE TONE.  The dense register of foundations/illustration.html, "Two
+registers": faces white to near-white, the contour doing all of the describing,
+and anything darker an accent measured in a few square units — a slot, a vent,
+an aperture — never a face.  The foundation sits one step under the machine
+that stands on it.  For one day (2026-09-01) the four objects were drawn in the
+three-grey register instead — #DADADA / #CFCFCF / #C4C4C4, the object sunk
+into the page's own CF-Grau ground — and were put back to white the next
+morning at the owner's request; the light and the nodes from that pass stay:
+one lit top face running the whole ramp from lime at its back corner to
+CF-Grau at its near one, and two nodes on that face.
 
 THE CURVES ARE COMPUTED, NOT APPROXIMATED.  A circle of radius r lying in any
 lattice plane projects to an ellipse whose two semi-axes and rotation fall out
@@ -39,18 +35,16 @@ U = 56.0
 H = 56.0
 OX, OY = 320.0, 372.0
 
-# ---- the palette: the three-grey register, and nothing off it. ACCENT and
-# DARK are kept as names so a slot or an aperture is still declared as one at
-# the call site, but both resolve to the shaded value: a recess is a face
-# turned away from the light, and the register has no fourth grey to spend.
-FACE_TOP = '#DADADA'      # facing the sky
-FACE_R = '#CFCFCF'        # the +x face, lit — CF-Grau, the page's own ground
-FACE_L = '#C4C4C4'        # the +y face, turned away
-PLATE_TOP = FACE_TOP      # a foundation is the same material as what stands on it
-PLATE_R = FACE_R
-PLATE_L = FACE_L
-ACCENT = FACE_L           # a slot, a gap, a recess
-DARK = FACE_L             # an aperture
+# ---- the palette: the dense register, foundations/illustration.html
+# "Two registers". Anything below ACCENT is for slots, recesses and apertures.
+FACE_TOP = '#FFFFFF'
+FACE_R = '#F6F6F6'        # the +x face, catching more light
+FACE_L = '#EAEAEA'        # the +y face, turned away
+PLATE_TOP = '#FBFBFB'     # a foundation sits one step under the machine on it
+PLATE_R = '#F0F0F0'
+PLATE_L = '#E2E2E2'
+ACCENT = '#919191'        # a slot, a gap, a recess — a few square units only
+DARK = '#484848'          # an aperture. Rarely, and never a whole face.
 
 # Screen images of the three unit lattice directions.
 VX = (U, U / 2.0)

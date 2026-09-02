@@ -39,6 +39,41 @@ A screenshot cannot show it. aria-current paints one mark's tick and numeral in
 look like when the reader is in act 2. Nothing in the DOM is missing, nothing
 overflows, no console message, and every other gate stayed green.
 
+AND THEN IT WENT WRONG A SECOND TIME, IN ONE ENGINE, FOR THE WHOLE OF THE FIX'S
+LIFE. The correction above was written as `getComputedStyle(track)
+.viewTimelineName === 'none'`, and there is an engine on which that read is not
+a value: Gecko implements no scroll-driven animation, so view-timeline-name is
+not on its CSSStyleDeclaration and the read is `undefined`. `undefined ===
+'none'` is false, so Firefox -- the one browser whose EVERY tier is a degraded
+tier here -- took the has-a-timeline arm at every viewport and got h - v back.
+The fix shipped, the gate went green, and the browser it was most needed on was
+never on the "after" row.
+
+Measured, Firefox 153 against Chromium 141, the same reading as the table above
+-- of the scroll inside .sp-track, how much of it the rail spends naming act 1.
+Taken off the two stops rather than off a walk, so it stands two pixels longer
+than that table wherever the two overlap; the two are read()'s own slack:
+
+                  Firefox before   Firefox after   Chromium
+    1440 x 900      361 of 1902     685 of 1902    1750 of 5760  (timeline)
+    1023 x 900      197 of 1448     521 of 1448     509 of 1413
+     768 x 900      193 of 1435     517 of 1435     505 of 1402
+     375 x 900      198 of 1450     522 of 1450     508 of 1412
+     320 x 900      209 of 1481     533 of 1481     520 of 1445
+     768 x 1024     148 of 1435     517 of 1435     505 of 1402
+     834 x 1194      92 of 1450     522 of 1450     510 of 1417
+    1024 x 1366      30 of 1449     522 of 1449    2655 of 8742  (timeline)
+
+h - v shrinks as the window grows, so the collapse this gate exists to prevent
+is reached from the tall end instead of the short one: at 1024 x 1366 act 2's
+beat stood 30 px past act 1's and act 1 was named over 2 % of its own field.
+834 x 1194 is an iPad Air held upright. Chromium's numbers do not move.
+
+So the shape below asks for the value with getPropertyValue(), which returns the
+empty string BOTH for a property the engine does not implement and for one that
+is not set -- one falsy sentinel for the two ways a track can have no timeline,
+where the DOM property has one of them and `undefined` for the other.
+
 WHAT IS CHECKED, on three sides of the one sentence:
 
   THE PAGE     the five marks' (track, fraction) pairs. Tracks must appear in
@@ -51,7 +86,11 @@ WHAT IS CHECKED, on three sides of the one sentence:
   THE SCRIPT   that the span is chosen per tier rather than assumed: the beat is
                taken against h - v where the track has a view timeline and
                against the track's own h where it does not. Checked as the shape
-               of the expression, not as a substring.
+               of the expression, not as a substring -- and the shape now
+               includes HOW the tier is read, because that is where the second
+               fault was: getPropertyValue('view-timeline-name'), tested as
+               `named && named !== 'none'`, so that an engine with no such
+               property lands on the same arm as a track with no timeline.
 
   THE STYLESHEET  that the premise both branches rest on holds -- for every
                track carrying a FRACTIONAL beat, `view-timeline-name` is
@@ -166,12 +205,35 @@ def check_page(page):
 
 
 # `at * span` where span is h - v with a timeline and the track's own h without.
-# Written as a shape so a rename survives and a collapse does not: the ternary's
-# test has to be the computed view-timeline-name, and its two arms have to be the
-# two different spans.
+# Written as a shape so a rename survives and a collapse does not: the read has
+# to be getPropertyValue('view-timeline-name'), the ternary's test has to be that
+# value, and its two arms have to be the two different spans.
+#
+# GETPROPERTYVALUE AND NOT THE DOM PROPERTY, which is the half of the shape this
+# gate was missing and the reason it passed over a live fault for as long as it
+# has existed. `getComputedStyle(track).viewTimelineName` is the same read in
+# every engine that HAS the property and `undefined` in every engine that does
+# not -- which is Gecko, the one engine whose every tier is a degraded tier here.
+# `undefined === 'none'` is false, so the browser that never has a timeline took
+# the has-a-timeline arm and got h - v back, at every viewport. getPropertyValue
+# returns the empty string both for a property the engine does not implement and
+# for one that is not set, and both mean the same thing to this arithmetic, so
+# the absent case cannot fall through the test. Two statements rather than one,
+# because a value that has to be read before it can be tested twice is a
+# variable; the read is pinned to the same name the ternary then asks about.
+#
+# AND ONLY THE POSITIVE FORM IS ACCEPTED, `!== 'none'` and not its inverse. The
+# guard is a conjunction, so the arm the empty string reaches is the one on the
+# FALSE side of it: written `named && named !== 'none' ? h - v : h`, absent lands
+# on h with 'none', which is right; written `named && named === 'none' ? h : h -
+# v` it lands on h - v with '--sp', which is the fault this whole shape is here
+# to prevent, re-spelt. There is one way round for this test and this is it.
 SPAN = re.compile(
-    r"""(?P<name>\w+)\s*=\s*
-        getComputedStyle\(\s*\w+\s*\)\.viewTimelineName\s*(?P<op>===|!==)\s*'none'\s*\?\s*
+    r"""(?:var\s+)?(?P<read>\w+)\s*=\s*
+        getComputedStyle\(\s*\w+\s*\)\s*
+        \.getPropertyValue\(\s*'view-timeline-name'\s*\)\s*;\s*
+        (?:var\s+)?(?P<name>\w+)\s*=\s*
+        (?P=read)\s*&&\s*(?P=read)\s*!==\s*'none'\s*\?\s*
         (?P<then>[^:]+?)\s*:\s*(?P<else>[^;]+?)\s*;""",
     re.X)
 
@@ -182,11 +244,17 @@ def check_script():
     if not m:
         return fail(
             "act-rail.js does not choose the beat's span off the track's computed "
-            "view-timeline-name. Without that test the only span available is "
+            "view-timeline-name, read with getPropertyValue and tested for both "
+            "'none' and absent. Without that test the only span available is "
             "h - v, which is zero in every tier that has no timeline, and every "
-            "fractional beat collapses onto the one before it")
-    no_tl, with_tl = (m.group("then"), m.group("else")) if m.group("op") == "===" \
-        else (m.group("else"), m.group("then"))
+            "fractional beat collapses onto the one before it; and read as a DOM "
+            "property instead, the test is undefined in every engine that has no "
+            "view-timeline-name at all, which is the same collapse in the one "
+            "engine that is always in that tier")
+    # The guard is fixed at `named && named !== 'none'` by the pattern above, so
+    # the first arm is the has-a-timeline one and the second is every other tier
+    # — 'none', and the empty string an engine without the property returns.
+    with_tl, no_tl = m.group("then"), m.group("else")
     bad = 0
     if not re.fullmatch(r"\w+\s*-\s*\w+", with_tl.strip()):
         bad |= fail(f"act-rail.js takes the beat against {with_tl.strip()!r} where the "
