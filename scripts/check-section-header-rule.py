@@ -174,10 +174,9 @@ def next_element_after(source, start):
         if not match:
             return None
         pos = match.end()
-        name = match.group("name").lower()
-        if name in VOID or match.group("self"):
-            if depth == 0:
-                continue
+        # A void or self-closing element opens and shuts in one tag, so it
+        # never moves the depth the flush div's own close is counted by.
+        if match.group("name").lower() in VOID or match.group("self"):
             continue
         if match.group("close"):
             depth -= 1
