@@ -341,6 +341,9 @@ python3 scripts/check-highlight-fill.py        # every highlight states its ink 
 python3 scripts/check-highlight-fill.py -v     # list every highlight rule, not only the failures
 python3 scripts/check-line-types.py            # every dash pattern is one of the four line types
 python3 scripts/check-line-types.py -v         # list every dash pattern, not only the strays
+python3 scripts/check-cap-line.py              # every text-box trim states both edges, inside its @supports branch
+python3 scripts/check-cap-line.py -v           # every trim, and the context it sits in
+python3 scripts/check-cap-line.py --fix        # rewrite the census in foundations/capline.html
 python3 scripts/check-links.py                 # every reference resolves on the host that serves it
 python3 scripts/check-job-posting.py           # the JobPosting block matches the posting the reader sees
 python3 scripts/check-a11y.py                  # the accessibility facts that are arithmetic rather than judgement
@@ -817,6 +820,45 @@ diagram of a 24 px glyph. `.cf-iso__trace` is exempt from both: components.css t
 `stroke-dasharray: 1` is a draw mechanism, not a line type. The script also re-reads the
 three tokens themselves, so a silent edit to a dash period fails here rather than in a
 screenshot nobody takes. → `foundations/geometry.html#lines`
+
+**Type stands on a line too, and the system was measuring to the box around it.** A block
+holding one line of type is as tall as its `line-height`, and what the glyphs do not fill
+is leading — split above the cap line and below the baseline. A `padding-bottom` under a
+line therefore starts under the *descender slot*, not at the baseline, so the drawn
+distance is the token plus a slice of the font. `.cf-section-header` is where that was
+worth a check: its rule has always said *the header owns the air beneath it, so every
+section on the site opens on the same axis*, and it declares `--space-3`. Swept at 1280 px
+over all eighteen pattern pages with each label trimmed to its baseline so the distance
+could be read off the rule: **40 headers, two axes, 12 px declared and 16.94 px drawn on
+39 of them, 17.63 on the fortieth.** 41 % over the token, and not one axis.
+
+Neither number is computable, which is the argument for trimming the slot rather than
+compensating for it. Between `--leading-normal` and `--leading-relaxed` at 11 px the line
+box grows 1.64 px and *all* of it lands under the baseline — the engine places the
+baseline on a whole pixel (measured at 9, 10, 11, 11, 15, 17, 27 and 34 px from the box
+top across the type scale, every one an integer) and the rounding is absorbed by whichever
+slot is left over. A magic number that cancels the slot is right at one size, one leading
+and one font, and this system has three of each.
+
+`text-box-trim: trim-end; text-box-edge: cap alphabetic` takes the slot off, and the axis
+is `--space-4` at every size and every leading. **16 px is the drawn distance moved onto
+the space scale rather than changed**: within 0.94 px of what 39 of those headers draw
+today and 1.63 px of the fortieth, so the composition does not move and the number under
+it becomes true. Outside the `@supports` branch the padding stays `--space-3` and the
+drawing is exactly today's — Chrome 133, Edge 132, Safari 18.2 and Firefox 154 have it,
+and anything older is 0.94 px looser and correct.
+
+`check-cap-line.py` is the twelfth check for the same reason as the eleven before it, and
+the sharpest case of it so far: **this property's correct use and its worst misuse are the
+same declaration with one value left off.** `text-box-edge: cap` is legal and means
+`cap text` — the under edge falls back to the font's own descent, which *is* the slot the
+trim beside it was reached for — so the rule reads as a trim, draws as none, and sits one
+character away from the one that works. Leaving the property off is worse again: the
+initial is `auto`, the font's own metrics, and the display face is not licensed yet. The
+third claim is the pair — a trim and the padding that replaces the slot it removes are one
+decision and share one branch, or the drawing comes apart between browsers — and the
+fourth is the census on the chapter page, generated the way the glass budget's and the
+space scale's are. → `foundations/capline.html`
 
 **The tenth, eleventh and twelfth are about the system as a site** rather than about a drawing
 in it: every link resolves on the host that actually serves the pages, the `JobPosting` block
