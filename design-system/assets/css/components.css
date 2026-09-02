@@ -312,6 +312,60 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      63 % across — is unaffected. A ramp and its oklab twin sharing one stop
      list is also what makes the pair legible to the family check.
 
+     AND GECKO DOES NOT WALK IT, WHICH IS OPEN. The rule below is `in oklab`
+     and Firefox answers @supports (background: linear-gradient(in oklab,
+     red, blue)) true, so this ramp takes the gated declaration there and
+     then does not honour it. The condition is exact and it is this ramp's:
+     Gecko interpolates a gradient in the declared space only while every
+     stop carries the SAME alpha. Where the alphas differ across a leg — this
+     ramp's whole 62 % -> 87 % run, Glas at 0.55 into lime at 0.88 — Gecko
+     interpolates the PREMULTIPLIED colour in sRGB and the declared space is
+     dropped. Measured, Firefox 153 against Chromium 141, these four stops
+     rendered at 400 px over CF-Grau, and against the arithmetic:
+
+         across the leg   Firefox        Chromium       premult. oklab
+           25 %           (172,194,164)  (171,193,171)  (171,193,171)
+           50 %           (191,215,100)  (190,215,131)  (190,215,132)
+           75 %           (210,236, 37)  (209,235, 59)  (209,235, 59)
+
+     Firefox's `in oklab` row is its own sRGB row to within 4 levels at every
+     sample; Chromium is on the premultiplied-oklab path to within one. On the
+     shipped plate, face layer alone over CF-Grau, label and rim excluded:
+     Firefox stands 41 levels of blue off Chromium at worst and 2.35 on
+     average. Isolated to two stops: equal alpha agrees between the engines
+     exactly at every alpha from 0.5 to 1; differing alpha diverges by up to
+     42 levels, peaking four fifths along this leg. So the divergence this
+     block was written to remove — lime -> Glas, the one leg where the two
+     paths part — is still what a Gecko reader gets, and the whole of the
+     oklab branch below is spent on Blink and WebKit.
+
+     WHAT WAS TRIED, AND WHY IT IS NOT HERE. The system already owns the move:
+     an inline SVG cannot interpolate in oklab either, so every lime leg in it
+     carries a stop at the oklab path's own value to pull the sRGB path back
+     (tokens.css, SVG CANNOT DO THIS). Two such stops on this leg — 79 % and
+     85.5 %, searched on a 0.5 % grid against the exact path — take Firefox
+     from 41 levels to 7 at worst and 2.35 to 0.44 on average, and cost
+     Chromium one level on 803 of 10 500 plate pixels, which is the 8-bit
+     rounding of the two rgba() and nothing else: oklab interpolation is a
+     straight line, so a stop ON the line adds no geometry.
+
+     check-gradient-family.py refuses it, and it is right to. THE ARC allows
+     ONE stop inside a leg and only at that leg's POLAR midpoint; a stop
+     anywhere else is read as an endpoint, which splits the leg, and the two
+     halves — both near lime, chroma ratio inside ARC_RATIO_CEILING — are
+     turns that then demand polar waypoints of their own. Glas -> lime is a
+     FALLOFF, so the arc gives it nothing, and the one stop the rule would
+     accept is the polar midpoint of Glas and lime, which is #A8FFB6: a green
+     in no palette in this brand, and a real change to what Blink draws. The
+     rule and the correction want opposite stops in the same place.
+
+     So this is recorded rather than fixed. Closing it means a person deciding
+     whether a falloff leg may carry oklab-path stops for an engine's sake —
+     a new category in THE ARC, not a number in it — and check-gradient-family
+     .py is where that decision would have to be spelt out. Until then the
+     divergence is stated here rather than absent, which is the difference
+     between a known cost and a surprise.
+
      --cf-face is an unconditional declaration on this rule with no @property
      behind it, so it always resolves. That is the same safety --glass-edge
      has and NOT the safety --cf-specular needs; should it ever move behind a
