@@ -2874,6 +2874,71 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    words the note above the component does. A single-item row is now ink, a
    split row is unchanged. */
 .cf-page-header__meta :last-child:not(:first-child) { color: var(--text-secondary); }
+/* THE INTRINSIC MINIMUM, ON THE ITEMS — and this is the row .cf-info-card__
+   chips' note named and left alone. That note closes by counting what its own
+   floor did not reach: "what is left at 320 x 32 is 27 px of
+   .cf-page-header__meta, a two-span flex row that cannot wrap, which is a
+   different rule and is not touched here". This is that rule, and the count
+   was low because it was taken on one page.
+
+   Both spans are flex items with the default `min-width: auto`, so each is
+   floored at its own min-content and the pair cannot be squeezed below the sum
+   of those two floors plus the gap. Past that sum the line neither wraps nor
+   shrinks — it overflows, to the right, out of the header's column and off the
+   page. Measured at 320 px of viewport, the reflow width WCAG 1.4.10 asks for,
+   at a 32 px root: 200 % text, which is WCAG 1.4.4 at level AA and what a
+   Windows reader arrives with from Edge's own font-size control.
+
+     page                        right-hand span             outside   document
+     stellen/data-engineer.html  "Ausgeschrieben am 06.07."   61 px     361
+     expertise.html              "Vier Felder"                47 px     347
+     suche.html                  "Seiten, Beiträge, …"        34 px     342
+     suche-leer.html             "Seiten, Beiträge, …"        34 px     342
+     kontakt-danke.html          "Antwort in der Regel …"     20 px     342
+     bewerbung.html              "Rückmeldung auf den …"       7 px     342
+     bewerbung-danke.html        "Rückmeldung auf den …"       7 px     342
+     datenschutz.html            "Stand: Juli 2026"            7 px     342
+
+   "outside" is past the right edge of .cf-page-header__meta's own 280 px
+   column. On the first two the span cleared the viewport as well and took the
+   document with it; the job page still went 13 px over its column at 375. The
+   342 in the last column is NOT this row — it is .cf-nav__lang leaving the
+   bar's plate at the same default, which is the nav's rule and is untouched
+   here. Every one of the eight is 0 px outside after, and the two documents
+   this row had widened past it — 347 and 361 — are 342.
+
+   The component opens 74 of the 76 shipped pages, so the fault is the page
+   header's rather than any one page's: what changes page to page is only which
+   words are in the aside.
+
+   `min-width: 0` is the second of the two fixes foundations/layout.html
+   #intrinsic-two-fixes tabulates, and it is the SAME DECLARATION on the same
+   shape one component along: .cf-section-header > * takes it for a mono row
+   set on a baseline with space-between and two auto-width items, which is this
+   row's construction exactly. The floor comes off, the pair shrinks to what
+   the column has, and base.css's net breaks the word that then cannot be set
+   — `span` is in that list.
+
+   WHAT IT COSTS, AND IT IS NOT NOTHING. The floors were also what decided how
+   the shrink was shared, so a line already AT both min-contents redistributes
+   rather than staying put. Seven rows do, all of them at 320 x 24, none of
+   them outside their column before or after: each takes one more line, and on
+   expertise — where the two floors summed to exactly the 280 px column —
+   "Vier Felder" was set VIER / FELDER in 60 px and is now VIER / FELDE / R in
+   55 px, a break inside a word where the line had, barely, fitted. That is
+   base.css's own trade in the smaller direction ("a word set badly inside the
+   panel is the smaller fault than a word set well outside it"), paid here to
+   take eight pages back inside their column.
+
+   NOTHING ELSE MOVES. 640 measurements — 20 pages x roots 16/20/24/32 x
+   320/375/414/768/853/1024/1280/1440 — comparing the row's box and each item's
+   x, width and height: 37 differ, and all 37 are at 320 x 24, 320 x 32,
+   375 x 32 and 414 x 32. Identical to the pixel at a 16 px and a 20 px default
+   at every width, and identical at every default from 16 to 32 at 768 and
+   above — which includes 853 and 1024, the CSS viewports a 1280 px screen has
+   at Windows' 125 % and 150 % display scaling.
+   → base.css, .tiles > *; .cf-section-header > * */
+.cf-page-header__meta > * { min-width: 0; }
 
 /* THE HEADER HAS TO BE TALL ENOUGH TO HOLD THE OBJECT, and only the header
    that carries one — every other page header keeps the padding above.
@@ -4425,8 +4490,9 @@ ul.cf-info-card__chips {
    common low-vision setting and inside what WCAG 1.4.4 asks — and takes the
    whole document sideways at 32. With the floor, every one of those rows is
    0 px outside and the 375 document is 375. What is left at 320 x 32 is 27 px
-   of .cf-page-header__meta, a two-span flex row that cannot wrap, which is a
-   different rule and is not touched here.
+   of .cf-page-header__meta, a two-span flex row that could not wrap. That is a
+   different rule and it is now taken, on the same declaration, where the
+   component is declared — see its own note for the eight pages and the trade.
 
    WHAT IT COSTS IS THE BREAK POINT, and the net decides it rather than a
    dictionary. Contained, a chip whose longest word is wider than the column
