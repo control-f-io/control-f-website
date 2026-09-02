@@ -90,7 +90,11 @@
     </div>
 
     <pre class="docs-code">&lt;<span class="tag">article</span> <span class="attr">class</span>=<span class="val">"cf-process"</span>&gt;
-  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-process__figure"</span>&gt;<span class="com">&lt;!-- isometric SVG --&gt;</span>&lt;/<span class="tag">div</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-process__figure"</span>&gt;
+    &lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-iso cf-iso--build"</span> <span class="attr">viewBox</span>=<span class="val">"0 0 640 640"</span> <span class="attr">fill</span>=<span class="val">"none"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;
+      <span class="com">&lt;!-- the object --&gt;</span>
+    &lt;/<span class="tag">svg</span>&gt;
+  &lt;/<span class="tag">div</span>&gt;
   &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-process__panel"</span>&gt;
     &lt;<span class="tag">h3</span> <span class="attr">class</span>=<span class="val">"cf-process__title"</span>&gt;Discovery&lt;/<span class="tag">h3</span>&gt;
     &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-process__subtitle"</span>&gt;Der Einstieg&lt;/<span class="tag">p</span>&gt;
@@ -98,8 +102,19 @@
     &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-process__divider"</span>&gt;&lt;/<span class="tag">div</span>&gt;
     &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-process__benefit-label"</span>&gt;Ihr Vorteil&lt;/<span class="tag">p</span>&gt;
     &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-process__benefit"</span>&gt;…&lt;/<span class="tag">p</span>&gt;
+    <span class="com">&lt;!-- optional, and it goes last: --&gt;</span>
+    &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-process__note"</span>&gt;…&lt;/<span class="tag">p</span>&gt;
   &lt;/<span class="tag">div</span>&gt;
 &lt;/<span class="tag">article</span>&gt;</pre>
+    <div class="docs-note">
+      <strong>The <code>aria-hidden</code> on the figure is part of the block, not decoration
+      on it.</strong> This chapter used to print
+      <code>&lt;!-- isometric SVG --&gt;</code> in that slot, which is the one line of the
+      component a reader cannot infer: an <code>&lt;svg&gt;</code> with no role and no name is
+      announced by some screen readers as an unnamed graphic, and there is nothing for it to
+      say here — the object carries no fact the panel beside it does not carry in words.
+      All fourteen shipped figures already had it. → <a href="#a11y">Accessibility</a>
+    </div>
   </section>
 
   <section class="docs-section" id="note">
@@ -326,6 +341,111 @@
     </p>
   </section>
 
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <p>
+      Eleven parts, all of them contour and type. Read at a 327 px card on this page (the
+      stacked form) and at a 912 px one (the two-column form), Chromium 141, root 16 px.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Element</th><th>Required</th><th>How it is drawn</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>.cf-process</code></td><td>yes</td>
+          <td>An <code>&lt;article&gt;</code>. 1 px <code>--border-strong</code> on all four
+            sides and no fill of its own — the card is a contour, and the two grey plates it
+            used to carry cancelled each other. One column; two equal
+            <code>minmax(0, 1fr)</code> tracks from a 56rem <em>container</em>, not a
+            viewport.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-process__figure</code></td><td>yes</td>
+          <td>The object's half. <code>--space-8</code> (32 px) of padding on every side.
+            4 : 3 stacked and capped at <code>22rem + 2 × --space-8 + --stroke-1</code>;
+            square beside the copy, where the cap is released to <code>block-size: 100%</code>
+            so its border reaches the row. <strong>That border is the card's divider</strong> —
+            bottom stacked, right two-column.</td>
+        </tr>
+        <tr>
+          <td>the drawing</td><td>yes</td>
+          <td>An <code>&lt;svg class="cf-iso cf-iso--build"&gt;</code> on a 640 × 640 viewBox.
+            <code>width: 100%</code>, <code>max-width: 22rem</code>,
+            <code>max-block-size: 100%</code>, letterboxed and centred: 178.75 × 178.75
+            inside a 261 px box at a 327 px card, 352 × 352 wherever the width cap binds.
+            <code>--trace-weight</code> holds its contour at 1.00 CSS px at every one of
+            those sizes.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-process__panel</code></td><td>yes</td>
+          <td>The copy's half, a flex column. <code>--space-6</code> (24 px) of padding
+            stacked, <code>--space-12</code> (48 px) and <code>--surface-lifted</code> in the
+            two-column form — the light plate the mockup draws on this half and only on this
+            half.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-process__title</code></td><td>yes</td>
+          <td><code>--text-h2</code>, <code>--weight-medium</code>, uppercase,
+            <code>--leading-normal</code>. Fluid: 22.1 px at a 375 px viewport, 32 px at
+            1280. Always an <code>&lt;h3&gt;</code> — see <a href="#a11y">Accessibility</a>.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-process__subtitle</code></td><td>yes</td>
+          <td>The mono label under the title: <code>--font-mono</code>,
+            <code>--text-xs</code> (11 px), <code>--weight-medium</code>,
+            <code>--tracking-label</code>, uppercase, <code>--space-1</code> above it. It
+            keeps <code>--text-primary</code>, which is the one thing separating it from the
+            benefit label below — same type, one step of ink apart.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-process__body</code></td><td>yes</td>
+          <td><code>--text-md</code> (14 px, the smallest size allowed for prose),
+            <code>--text-secondary</code>, <code>--space-6</code> above, measure capped at
+            62 ch. Repeatable: the landing page's cards run two and three of them.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-process__divider</code></td><td>yes</td>
+          <td>A 1 px rule at <code>--space-6</code> above and below, drawn as
+            1 on / 4 off in <code>--border-strong</code> at half alpha — the 1-4 line type,
+            which is this system's ghost line and the right weight for a rule that separates
+            two parts of one thought rather than two things.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-process__benefit-label</code></td><td>yes</td>
+          <td>The same mono label as the subtitle, at <code>--text-secondary</code>. It
+            names what follows; it is not a heading, and it is a <code>&lt;p&gt;</code> on
+            every shipped card.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-process__benefit</code></td><td>yes</td>
+          <td><code>--text-md</code>, <code>--text-secondary</code>,
+            <code>--space-2</code> under its label, measure capped at 56 ch — six characters
+            tighter than the body, because it is the sentence the card is read for.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-process__note</code></td><td>no</td>
+          <td>The inset block cards 03 and 04 carry. <code>margin-top: auto</code>, so it is
+            pinned to the foot of the panel however tall the copy above it runs;
+            <code>--space-4</code> of padding, <code>--text-sm</code>,
+            <code>--surface-sunken</code>. <strong>The one part of this card that takes a
+            surface</strong>, and the reason that token had to become a veil rather than a
+            grey. → <a href="#note">With a note block</a></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>Every class in this table is one the stylesheet declares, and that is now
+      checked rather than proof-read.</strong> An anatomy table is prose to every gate in
+      this directory: rename a part in <code>components.css</code> and the rule moves, the
+      markup moves with it, and the row here keeps naming the old one — correct-looking,
+      unrenderable, and invisible to <code>check-class-provenance.py</code>, which reads
+      class <em>attributes</em> and not the documentation that describes them.
+      <code>scripts/check-anatomy-provenance.py</code> reads the other direction: every
+      class named in a table cell of a component or foundation chapter has to be declared by
+      a shipping stylesheet or by that page's own <code>&lt;style&gt;</code>. 351 mentions
+      across the 34 chapters that have such a cell, and it is the whole of the rule.
+    </div>
+  </section>
+
   <section class="docs-section" id="behaviour">
     <h2>Behaviour</h2>
     <ul>
@@ -349,6 +469,89 @@
         → <a href="../foundations/motion.html#pinned">Motion &gt; A pinned track</a></li>
       <li>All four must be readable without JavaScript — the sequence is content, not interaction.</li>
     </ul>
+  </section>
+
+  <section class="docs-section" id="a11y">
+    <h2>Accessibility</h2>
+    <p>
+      <strong>This card has no keyboard contract, and that is a property of it rather than an
+      omission.</strong> All seventeen instances in the tree were walked for a descendant
+      <code>&lt;a&gt;</code>, <code>&lt;button&gt;</code>, <code>&lt;input&gt;</code>,
+      <code>&lt;select&gt;</code> or <code>&lt;textarea&gt;</code>, and there are none. Nothing
+      here takes focus, nothing here has a hover response, and nothing here is a control
+      wearing the clothes of one. It is four paragraphs and a drawing.
+    </p>
+    <ul>
+      <li><strong>The figure is <code>aria-hidden="true"</code>, on all fourteen of them.</strong>
+        The object is the panel's sentence drawn a second way; it carries no fact the copy
+        beside it does not carry in words. An <code>&lt;svg&gt;</code> left in the tree with
+        no role and no name buys the reader an unnamed graphic, which is noise —
+        so it is removed from the tree rather than titled. The counter-case is real and is
+        somebody else's component: an object whose <em>content</em> is the information — the
+        plot, the pie, the Gantt — takes <code>role="img"</code> and a name, and those
+        chapters do exactly that.</li>
+      <li><strong>The title is an <code>&lt;h3&gt;</code>, on every shipped card</strong>
+        — four on the landing page, four on its English edition, four in the prototype, two
+        here — under the <code>&lt;h2&gt;</code> that names the section. That is what makes
+        the sequence navigable: a reader moving by heading gets <em>Service Offering</em> and
+        then the four steps under it, in order, whether the cards are pinned or stacked.
+        Nothing else in the panel is a heading. The subtitle and the benefit label are mono
+        labels on a <code>&lt;p&gt;</code>, and promoting either would put a second heading
+        level inside one card for a line that is not a section of anything.</li>
+      <li><strong>The counter above the sequence is announced or hidden by which of the four
+        forms it takes,</strong> not by where it sits. On this page it is a <em>position</em>
+        — <code>01 / 04</code>, <code>aria-hidden</code>, because on a single specimen it
+        says nothing a reader cannot see. On the landing page it is a <em>quantity</em> —
+        <em>4 Schritte</em> — and is left in the tree, because the number of steps is a fact
+        about the section. → <a href="section-header.html">Section Header</a></li>
+      <li><strong>Contrast.</strong> The panel's ink is <code>--text-secondary</code>, which
+        <code>check-contrast.py</code> recomputes at <strong>5.88 : 1</strong> against the
+        worst point of the page wash — the floor for 14 px prose is 4.5. In the two-column
+        form the panel additionally carries <code>--surface-lifted</code>, 26 % white over
+        that same wash, so the ratio there can only rise. The mono labels are 11 px and are
+        held to the same 4.5 rather than to the large-text 3.0.</li>
+      <li><strong>Reduced motion costs the reader nothing.</strong> The build is a
+        scroll-driven animation over geometry that is already in the document; under
+        <code>prefers-reduced-motion: reduce</code> the pinned track is not taken, the four
+        cards stack, and every object stands finished. <code>check-runtime.py</code> drives
+        every pattern page under reduce and reports nothing running — the settled drawing is
+        the same drawing.</li>
+      <li><strong>It survives the reader's own type size.</strong> The card's one fold is a
+        container query stated in <code>rem</code>, so a root of 20 or 24 px moves it with the
+        text instead of leaving four paragraphs in a column sized for 16 — and the drawing's
+        cap, its padding and the figure's height cap are all rem too, so the object grows with
+        them. <code>scripts/check-text-zoom.py</code> holds the pattern pages the component
+        ships on.</li>
+    </ul>
+  </section>
+
+  <section class="docs-section" id="usage">
+    <h2>Do &amp; don't</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Give the object exactly one lime element, and make it the one the eye should land on. Four cards, four lights, one each.</li>
+          <li>Build the object from the designer's vector in <code>assets/source/illustrations/</code>, coordinate for coordinate. <code>check-illustration-source.py</code> matches 326 elements against those files and allows four named deviations.</li>
+          <li>Keep the title an <code>&lt;h3&gt;</code> under the section's <code>&lt;h2&gt;</code>, so the four steps are four headings in order.</li>
+          <li>Put the note last. It is pinned to the foot of the panel, so anything after it in source order lands above it on screen.</li>
+          <li>Let the copy set the card's height and the drawing keep its size. Past the square the figure half is more air around the same object, never a bigger one.</li>
+          <li>Wrap the set in a <code>&lt;section&gt;</code> named by the section header's heading, and let the header's counter say how many steps there are.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Don't put a link or a button in the card. The step is the content; a card that is four paragraphs and one control reads as a control, and this component has no drawing for a focus ring.</li>
+          <li>Don't give the figure a role or a name. It is the panel's sentence drawn again, and naming it makes every card read twice.</li>
+          <li>Don't drop a <code>transform</code> from an element painted with a <code>userSpaceOnUse</code> gradient, however redundant it looks. → <a href="#sequence">A rotation that looks redundant and is not</a></li>
+          <li>Don't fill the card. It is a contour; the only surfaces in it are the note's veil and, beside the copy, the two-column form's light plate.</li>
+          <li>Don't draw the sequence as one path with several subpaths when it has to draw itself. A dash pattern restarts at every subpath and <code>pathLength</code> does not. → <a href="#sequence">Card 03's arrow is five traces</a></li>
+          <li>Don't fold the card on a viewport query. The fold is about how wide the <em>card</em> is, and on this page a 901 px viewport leaves it 533.</li>
+          <li>Don't make a step depend on the scroll. All four have to be readable with the animation never running.</li>
+        </ul>
+      </div>
+    </div>
   </section>
 </main>
 

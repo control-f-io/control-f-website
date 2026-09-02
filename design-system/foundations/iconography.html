@@ -111,8 +111,18 @@
      `forced-color-adjust: preserve-parent-color` in the UA sheet, so a `color`
      declared on or above it is NOT repainted and `stroke: currentColor` — the
      one thing an icon normally needs no help with — resolves to black anyway.
-     Same mechanism took .cf-scroll-cue__glyph, the only other place in the
-     system that hands an icon an author colour of its own. */
+
+     THE CENSUS IN THIS COMMENT WAS WRONG, and it read: "Same mechanism took
+     .cf-scroll-cue__glyph, the only other place in the system that hands an
+     icon an author colour of its own." There were four, and the scroll cue was
+     the only one that had ever been handed back. Sampled in Chromium 151 with
+     the dark palette, every <svg> on every page under design-system/, against
+     the same page in the light palette — a forced colour flips between the two
+     and an author colour does not — .cf-notice__glyph came through at
+     rgb(0, 0, 0) on a Canvas of rgb(0, 0, 0) and .cf-error__route .cf-arrow at
+     rgb(72, 72, 72), 2.29:1, and the specimen four lines down this page kept
+     its lime. All three are handed over in components.css now, and the note
+     beside .cf-icon--light carries the mechanism for the whole set. */
   @media (forced-colors: active) {
     .icon-tile__grid { color: CanvasText; }
     .icon-anatomy svg [stroke]:not([stroke="none"]) { stroke: CanvasText; }
@@ -312,6 +322,17 @@
       and 1.4:1 on CF-Grau. A lit icon on the page surface is invisible to a good many
       people and fails the 3:1 minimum for UI contours, so it must never be the only thing
       carrying a meaning — always a black contour, or a lit one next to a label.
+    </div>
+    <div class="docs-note">
+      <strong>Under forced colours the light goes out.</strong> Neither the lime nor the
+      glow is in a palette the reader chose, and neither is mapped on its own: a
+      <code>filter</code> is not on the list the mode forces, and an SVG <code>stroke</code>
+      is left to the author by the spec. So <code>components.css</code> hands both back —
+      the spill is already dropped where it is composed, and the contour returns to
+      <code>currentColor</code>. The modifier degrades to a plain <code>.cf-icon</code>,
+      which is what it means once there is no light to be made of. Before the handoff the
+      specimen above measured <code>rgb(225, 255, 0)</code> in both forced palettes: 1.13:1
+      on a light Canvas, standing beside three neighbours drawn as CanvasText hairlines.
     </div>
     <div class="docs-note">
       <strong>An icon may be lit; a letter may not.</strong> The system forbids lime

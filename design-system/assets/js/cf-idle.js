@@ -69,6 +69,13 @@
    opts into the copy stream by carrying the class the stream looks for. This
    file has no list of class names in it and nothing to keep in step.
 
+   AND A FIGURE WHOSE BOX CANNOT ANSWER THE QUESTION SAYS SO ON A SECOND
+   ATTRIBUTE. data-cf-drawn names, as a selector, the thing inside the figure
+   whose ink decides whether there is anything to animate — the fringe's
+   twenty-six leaves are held at `scale: 0` for 2 525 px of scroll after their
+   box has arrived, and the box is inside a sticky stage, so no margin on the
+   attribute above can close over it. The measurement is at callback().
+
    AND THE MARGIN IS THE FIGURE'S, because one margin was right for one of the
    two things this file gates and wrong for the other.
 
@@ -132,12 +139,140 @@
      be seen starting says so on its own attribute; see the block header. */
   var DEFAULT_MARGIN = '100% 0px 100% 0px';
 
+  /* AND A SECOND INPUT, FOR THE FIGURE WHOSE BOX CANNOT ANSWER. `data-idle` is
+     now the AND of two facts about a figure — near the window, and drawing
+     something — and a figure that names no second subject has only the first,
+     which is the observer's answer and nothing else. Both writers go through
+     apply(), so there is no order between them to get wrong.
+
+     WHY THE FRINGE NEEDED IT, and why no rootMargin does. .sp-root carries
+     data-cf-idle="0px" for the twenty-six leaves that shimmer on the document
+     clock, and the note over it in patterns/landing-page.html ends on the
+     sentence that turns out to be this paragraph's argument rather than that
+     one's: lp-frame-draw holds every leaf at `scale: 0` until contain 36 % of
+     the track, THOUSANDS OF PIXELS after the box has arrived. The box cannot
+     wait, because it is inside a sticky stage. Measured at 1440 x 900,
+     .sp-root's rect.top against scrollY:
+
+         scrollY      0    200    400    600    800   1200   2000   2600
+         rect.top   927    727    527    327    271    271    271    271
+
+     It sticks at 271 by scrollY 800 and does not move again until the stage
+     releases at 6 475. So the gate opened at scrollY 50 — the frame the box
+     crossed the fold — and the first leaf did not draw until 2 575. 2 525 px
+     of scroll, the first three screens of the front door, with twenty-six
+     leaves breathing at 60 Hz on boxes that are 0 x 0. A margin cannot reach
+     it: -30 % of the viewport moves the opening from 50 to 300, and every
+     value past that closes the gate over leaves that ARE drawn, because the
+     box the margin is measured against stopped moving.
+
+     Measured on the shipped page, loaded, scrolled once and then LEFT ALONE,
+     5 000 ms per row, Chromium 1194 at 1440 x 900:
+
+                    before            after
+       scrollY     recalc    task    recalc  task   what is on screen
+          600     200 ms   466 ms      0 ms   2 ms  hero, no leaf drawn
+        1 200     201      471         0      2     act 1, no leaf drawn
+        1 600     203      473         0      2     act 1, no leaf drawn
+        2 000     208      490         0      2     act 1, no leaf drawn
+        2 400     883    1 379         3      8     readouts lit, no leaf
+        2 600     923    1 496       877  1 571     four leaves drawn
+        3 000     230      894       232    890     the fringe, drawn
+        4 000     124    2 366       119  2 609     the fringe, drawn
+
+     At 1280 x 800, where the same bands are 2 250 px: 219 / 519 -> 0 / 2 at
+     scrollY 600, 208 / 516 -> 0 / 2 at 1 200, 210 / 516 -> 0 / 2 at 1 600.
+
+     Every row where nothing is drawn goes to the 2 ms the top of the page
+     already cost, and every row where something is drawn is unchanged. 2 400
+     is the interesting one and it is not this gate's doing: the shimmer is the
+     only animation in that band Chromium cannot composite, so it is the one
+     making the frames the other 126 are then walked in — the claim acts.css
+     makes over .lp-flow__leaf, measured here from the other side. The readouts
+     keep ticking on the compositor; sampled every 400 ms at scrollY 2 400, the
+     six-slot sequence is the same before and after, and 25 screenshots down
+     the document at each of 1440 x 900 and 1280 x 800 are byte-identical.
+
+     A BOX WITH NO AREA IS THE THIRD WAY THIS SYSTEM WITHDRAWS A THING, and it
+     is the one neither gate in this file could see. The observer answers
+     `where`; checkVisibility below answers `display, visibility, opacity,
+     content-visibility`. `scale: 0` is none of those: the element is visible
+     by every flag that call takes and puts no ink down. So this reads the rect
+     and nothing else — it is the cheaper question and it is the one that is
+     false here.
+
+     ANY, NOT ALL. The leaves stagger in on --l, so the fringe is drawn from
+     the first leaf's arrival to the last leaf's departure and the loop stops
+     at the first subject with area. Measured at every viewport the fringe
+     ships in, the gate now opens on exactly the scroll position the first leaf
+     draws at and closes where it closed before:
+
+       1440x900  50 -> 2 575    1366x768  25 -> 2 175    1280x800  25 -> 2 275
+       1280x1024 150 -> 2 925   1152x900  75 -> 2 575    1024x768  25 -> 2 175
+       1024x1366 275 -> 3 625   900x700  500 -> 1 150    768x1024 475 -> 1 075
+       390x844  400 ->   925
+
+     THE PAUSE IS STILL THE VERB, unchanged: `[data-idle] .lp-flow__leaf` holds
+     the shimmer at the value it had, and the per-leaf phase offsets survive.
+     Nothing in the stylesheets moves for this — the rule that answers the
+     attribute is the one that already answered it.
+
+     AND IT COSTS ONE RECT A FRAME while the figure is dark, on the pages that
+     ask for it and no others: the listeners are only attached if some figure
+     named a subject. Over a full 300-step pass down the landing page the whole
+     document measures 649 and 611 ms of style recalc before against 553, 589
+     and 585 after, and 5 246 / 5 270 ms of task against 5 372 / 5 232 / 5 772
+     — noise either way, which is the answer to the only cost this adds.
+     An unparseable selector leaves the figure with the observer's answer
+     alone, for the reason observerFor() falls back to the default margin: a
+     gate that is too generous is where this file started, and a page that
+     fails to boot is not. */
+  var near = [];
+  var drawn = [];
+  var subjects = [];
+  var watched = false;
+
+  function apply(n) {
+    if (near[n] && drawn[n]) figures[n].removeAttribute('data-idle');
+    else figures[n].setAttribute('data-idle', '');
+  }
+
   function callback(entries) {
     for (var i = 0; i < entries.length; i++) {
-      var el = entries[i].target;
-      if (entries[i].isIntersecting) el.removeAttribute('data-idle');
-      else el.setAttribute('data-idle', '');
+      for (var n = 0; n < figures.length; n++) {
+        if (figures[n] !== entries[i].target) continue;
+        near[n] = entries[i].isIntersecting;
+        apply(n);
+        break;
+      }
     }
+  }
+
+  function inked(el) {
+    var box = el.getBoundingClientRect();
+    return !!(box.width || box.height);
+  }
+
+  function reread() {
+    for (var n = 0; n < figures.length; n++) {
+      if (!subjects[n]) continue;
+      var lit = false;
+      for (var k = 0; k < subjects[n].length; k++) {
+        if (inked(subjects[n][k])) { lit = true; break; }
+      }
+      if (drawn[n] === lit) continue;
+      drawn[n] = lit;
+      apply(n);
+    }
+  }
+
+  /* Coalesced to one rAF, the way act-rail.js and cf-stream.js coalesce
+     theirs, and the way the paint gate at the foot of this file does. */
+  var ticking = false;
+  function schedule() {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(function () { ticking = false; reread(); });
   }
 
   /* One observer per distinct margin, not one per figure: a page that names no
@@ -178,7 +313,26 @@
        lets every figure on the page run from load until the first callback,
        including the ones fifteen thousand pixels away, which is the fault. */
     figures[i].setAttribute('data-idle', '');
+    near[i] = false;
+    /* DRAWN UNTIL READ, which is the opposite of the line above it and right
+       for the same reason: the pre-set must not be the state that lets a
+       figure run. `near` is false here, so the AND is false whatever this is,
+       and reread() below settles it before the first frame. */
+    drawn[i] = true;
+    var sel = figures[i].getAttribute('data-cf-drawn');
+    var named = null;
+    if (sel) {
+      try { named = figures[i].querySelectorAll(sel); } catch (e) { named = null; }
+    }
+    subjects[i] = (named && named.length) ? named : null;
+    if (subjects[i]) watched = true;
     observerFor(figures[i].getAttribute('data-cf-idle') || DEFAULT_MARGIN).observe(figures[i]);
+  }
+
+  if (watched) {
+    reread();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule, { passive: true });
   }
 }());
 

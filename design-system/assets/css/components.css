@@ -62,6 +62,52 @@
   --glow-r: 6px;
 }
 
+/* AN INK NAMED ON THE <svg> IS NOT IN THE READER'S PALETTE, and this note is
+   the icon set's, not this modifier's — it is written here because this is the
+   first rule in the sheet to name one.
+
+   Chromium's UA stylesheet gives every <svg> `forced-color-adjust:
+   preserve-parent-color`. That is the value that lets an icon inside a link
+   come out in LinkText instead of CanvasText: it hands the element the colour
+   it inherits and forces nothing else on it. So the moment a rule names an ink
+   ON the svg itself, that ink is preserved too — and `stroke` and `fill` were
+   never on the forced list to begin with. Either way the icon paints the
+   author's colour in a palette the reader chose. Four selectors in this sheet
+   name an ink on an <svg>, and only .cf-scroll-cue__glyph had ever handed it
+   over, by naming CanvasText on its stroke in a block of its own.
+
+   Measured in Chromium 151 over http, forced-colors active, prefers-color-
+   scheme dark — Canvas #000000, CanvasText #FFFFFF, LinkText #FFFF00 — by
+   sampling every <svg> on every page under design-system/ and comparing the
+   computed paint against the same page in the light forced palette. A forced
+   colour flips between the two; an author colour is byte-identical, which is
+   the whole test. Three were identical:
+
+     .cf-icon--light             stroke rgb(225, 255, 0), 1 instance
+     .cf-error__route .cf-arrow  rgb(72, 72, 72) at the end of a LinkText row,
+                                 2.29:1 on Canvas, 14 instances on 4 pages
+     .cf-notice__glyph           rgb(0, 0, 0) on Canvas #000000 — 1:1, gone
+                                 outright — and rgb(167, 32, 25) at 2.86:1 for
+                                 the Fehler tone. 5 instances on 2 pages
+
+   `forced-color-adjust: auto` is not the answer and was measured before it was
+   ruled out: on the error arrow it maps `color` to the inherited LinkText and
+   leaves `fill: currentColor` computing rgb(72, 72, 72), so the arrow is still
+   grey and only the computed style looks repaired. What works is naming the
+   value — `color: inherit` where the icon should take its context's ink,
+   `stroke: currentColor` where it had been opted out of one.
+
+   HERE, THE LIGHT IS WHAT GOES. The spill is already dropped in this mode (see
+   the note beside the composed --glow-r filter, 15,800 lines down), and a lime
+   contour with no light behind it is not a source — it is one icon in a colour
+   the reader did not ask for, 1.13:1 on a light Canvas, standing next to three
+   neighbours on foundations/iconography.html drawn as CanvasText hairlines. It
+   degrades to a plain .cf-icon, which is what this modifier means once there is
+   no light in the palette to be made of. */
+@media (forced-colors: active) {
+  .cf-icon--light { stroke: currentColor; }
+}
+
 /* An icon inside a button or link tracks the label's motion, nothing more.
 
    HOVER AND FOCUS ARE ONE STATE HERE, and everywhere else in this file. The
@@ -311,6 +357,60 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      62 % window — measured off where this face's lime becomes visible, about
      63 % across — is unaffected. A ramp and its oklab twin sharing one stop
      list is also what makes the pair legible to the family check.
+
+     AND GECKO DOES NOT WALK IT, WHICH IS OPEN. The rule below is `in oklab`
+     and Firefox answers @supports (background: linear-gradient(in oklab,
+     red, blue)) true, so this ramp takes the gated declaration there and
+     then does not honour it. The condition is exact and it is this ramp's:
+     Gecko interpolates a gradient in the declared space only while every
+     stop carries the SAME alpha. Where the alphas differ across a leg — this
+     ramp's whole 62 % -> 87 % run, Glas at 0.55 into lime at 0.88 — Gecko
+     interpolates the PREMULTIPLIED colour in sRGB and the declared space is
+     dropped. Measured, Firefox 153 against Chromium 141, these four stops
+     rendered at 400 px over CF-Grau, and against the arithmetic:
+
+         across the leg   Firefox        Chromium       premult. oklab
+           25 %           (172,194,164)  (171,193,171)  (171,193,171)
+           50 %           (191,215,100)  (190,215,131)  (190,215,132)
+           75 %           (210,236, 37)  (209,235, 59)  (209,235, 59)
+
+     Firefox's `in oklab` row is its own sRGB row to within 4 levels at every
+     sample; Chromium is on the premultiplied-oklab path to within one. On the
+     shipped plate, face layer alone over CF-Grau, label and rim excluded:
+     Firefox stands 41 levels of blue off Chromium at worst and 2.35 on
+     average. Isolated to two stops: equal alpha agrees between the engines
+     exactly at every alpha from 0.5 to 1; differing alpha diverges by up to
+     42 levels, peaking four fifths along this leg. So the divergence this
+     block was written to remove — lime -> Glas, the one leg where the two
+     paths part — is still what a Gecko reader gets, and the whole of the
+     oklab branch below is spent on Blink and WebKit.
+
+     WHAT WAS TRIED, AND WHY IT IS NOT HERE. The system already owns the move:
+     an inline SVG cannot interpolate in oklab either, so every lime leg in it
+     carries a stop at the oklab path's own value to pull the sRGB path back
+     (tokens.css, SVG CANNOT DO THIS). Two such stops on this leg — 79 % and
+     85.5 %, searched on a 0.5 % grid against the exact path — take Firefox
+     from 41 levels to 7 at worst and 2.35 to 0.44 on average, and cost
+     Chromium one level on 803 of 10 500 plate pixels, which is the 8-bit
+     rounding of the two rgba() and nothing else: oklab interpolation is a
+     straight line, so a stop ON the line adds no geometry.
+
+     check-gradient-family.py refuses it, and it is right to. THE ARC allows
+     ONE stop inside a leg and only at that leg's POLAR midpoint; a stop
+     anywhere else is read as an endpoint, which splits the leg, and the two
+     halves — both near lime, chroma ratio inside ARC_RATIO_CEILING — are
+     turns that then demand polar waypoints of their own. Glas -> lime is a
+     FALLOFF, so the arc gives it nothing, and the one stop the rule would
+     accept is the polar midpoint of Glas and lime, which is #A8FFB6: a green
+     in no palette in this brand, and a real change to what Blink draws. The
+     rule and the correction want opposite stops in the same place.
+
+     So this is recorded rather than fixed. Closing it means a person deciding
+     whether a falloff leg may carry oklab-path stops for an engine's sake —
+     a new category in THE ARC, not a number in it — and check-gradient-family
+     .py is where that decision would have to be spelt out. Until then the
+     divergence is stated here rather than absent, which is the difference
+     between a known cost and a surprise.
 
      --cf-face is an unconditional declaration on this rule with no @property
      behind it, so it always resolves. That is the same safety --glass-edge
@@ -4149,6 +4249,55 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-weight: var(--weight-semibold);
   color: var(--text-primary);
 }
+/* AND A VEIL IS NOT A MARK IN FORCED COLOURS — it is provably no mark at all,
+   which is a stronger statement than the one tokens.css used to make and the
+   reason this block exists rather than a line in that file.
+
+   Chromium does force `background-color` in that mode; what it preserves is
+   the ALPHA, not the colour. (CSSWG css-color-adjust-1 #4175, shipped in
+   Chromium and Edge: "the user-preferred background-color on all channels
+   except for the alpha channel".) So an author veil is repainted in the
+   reader's own surface colour AT THE AUTHOR'S ALPHA, and a veil of the
+   backdrop over the backdrop is the backdrop. Measured on
+   components/process-card.html at 1280, mode active:
+
+                          authored            used                 parent
+     light palette   rgba(0,0,0,0.06)   rgba(255,255,255,0.06)   rgb(255,255,255)
+     dark  palette   rgba(0,0,0,0.06)   rgba(0,0,0,0.06)         rgb(0,0,0)
+
+   1.000:1 in both, by construction rather than by bad luck, and the same in
+   any palette the reader picks — the block had no boundary, no surface and
+   nothing else to be seen by. It is the one thing in this card that takes a
+   surface, so with the surface neutralised it needs the paint the mode keeps.
+
+   A CONTOUR, WHICH IS WHAT THE CHAPTER ALREADY PRESCRIBES for a panel that
+   needs a boundary rather than a surface, and the same idiom .cf-nav::after
+   and .material-glass-edge take one door over. .cf-prose pre is the control
+   case: identical veil, and it survives the mode intact because it already had
+   a border. → foundations/materials.html#veil-boundary */
+@media (forced-colors: active) {
+  .cf-process__note { border: var(--stroke-1) solid CanvasText; }
+
+  /* THE DIVIDER IS THE SAME LOSS ONE PROPERTY OVER, and it is worse: a
+     background-IMAGE is not repainted in the palette, it is dropped. Forced
+     colours computes this repeating gradient to `none`, so the hairline that
+     separates the body from the benefit inside the copy column was gone
+     outright — measured `background-image: none` on the same page, in both
+     palettes. That is the loss this chapter already recorded for the two lit
+     edges, arriving a third time through the same door.
+
+     Redrawn as a border, which is the only line the mode keeps, and dashed
+     rather than solid because the gradient it stands in for is a dashed rule
+     and a solid one would be a different line type. The height goes to zero so
+     the border is the whole px, and the opacity goes to 1: half a CanvasText
+     line is half the contrast the reader turned this mode on to get. */
+  .cf-process__divider {
+    height: 0;
+    border-top: var(--stroke-1) dashed CanvasText;
+    background: none;
+    opacity: 1;
+  }
+}
 /* Square illustration panel beside the copy once there is room for both.
    Below that the panel goes full width and shortens to 4:3 so the card does
    not become a tower. Measured against the card's own container: on the
@@ -4234,6 +4383,60 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   .cf-process__panel {
     padding: var(--space-12);
     background: var(--surface-lifted);
+  }
+}
+
+/* THE 1-4 HAIRLINE OUTSIDE .rule, WHERE .rule's FORCED-COLOURS BLOCK CANNOT
+   REACH IT.
+
+   base.css says the whole of this under the LINE UTILITIES block: every .rule
+   is `border: 0` and painted entirely by background, forced-colors discards
+   background-image outright, "nothing else on the box paints, so the whole
+   line disappears". It then redraws the family as a border and maps the dash
+   ratios onto the two styles a border has — .rule--dashed-1-4, whose gradient
+   is `var(--border-strong) 0 1px, transparent 1px 5px`, becomes dotted.
+
+   Two hairlines in this file are that same gradient, character for character,
+   written out on a component instead of taken from the utility. Neither is a
+   .rule, so neither is inside that block, and both are the defect it was
+   written to fix. MEASURED in Chromium 1194's forced-colors emulation at
+   1440 x 900, both schemes, before this block existed:
+
+     .cf-process__divider   components/process-card.html   439 x 1
+     .cf-process__divider   patterns/landing-page.html     451 x 1
+     .cf-prose hr           patterns/blog-artikel.html     558 x 1
+
+   background-image: none, background-color rgba(255,255,255,0) on the light
+   palette and rgba(0,0,0,0) on the dark, border-top-width 0px. The box keeps
+   its 1 px of height and paints nothing in it. Absent, in both schemes, on
+   all three surfaces.
+
+   THE HEIGHT IS LEFT ALONE, and that is worth writing down because the
+   neighbouring fix does not leave it alone. .cf-page-header__rule's block
+   sets `height: 0` so the box does not double under its new border. Here it
+   would be a no-op: base.css puts `box-sizing: border-box` on everything, so
+   a 1 px box with a 1 px border is a 1 px box — the border grows inward into
+   height the element had already reserved. Measured on
+   patterns/blog-artikel.html, getBoundingClientRect().height is 1 either way,
+   with border-top-width 0px before and 1px after. Nothing moves in the
+   rhythm around it (margin-block: var(--space-6) on the divider,
+   var(--space-12) on the prose rule), so nothing needs restating to hold it.
+
+   AND THE OPACITY GOES WITH IT, on the divider only. Forced colours does not
+   reset opacity, so a 0.5 CanvasText border does not composite to a colour in
+   the user's palette: measured against Canvas, rgb(127,127,127) at 4.00:1 on
+   the light palette and rgb(128,128,128) at 5.32:1 on the dark, where the
+   palette's own pairing is 21:1. Half-strength is a legitimate register on a
+   brand ramp and is not one here — forced colours has two inks and the whole
+   contract is that the reader chose them. .rule--muted is the same shape and
+   is left alone deliberately: it is the demonstration swatch for the muted
+   variant on foundations/geometry.html, where showing the register IS the
+   content. */
+@media (forced-colors: active) {
+  .cf-process__divider {
+    background: none;
+    border-block-start: var(--stroke-1) dotted CanvasText;
+    opacity: 1;
   }
 }
 
@@ -5730,6 +5933,24 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
   transform: translateX(4px);
   color: var(--text-primary);
 }
+/* Both of those inks are named on the <svg>, so forced colours preserves them
+   rather than mapping them — the trap the note beside .cf-icon--light sets out
+   in full. Measured on patterns/404.html with the dark palette: the five rows
+   and their labels came through in LinkText #FFFF00 and every arrow stayed
+   rgb(72, 72, 72), 2.29:1 against Canvas, at the far right of a row that is
+   otherwise the loudest thing on the page.
+
+   `inherit` and not CanvasText, because the arrow belongs to the row: the row
+   is the link, the arrow is where it ends, and taking the link's own ink is
+   what every other .cf-arrow in the system already does by not naming one. The
+   quiet-grey-to-black step is a second ink and this mode has one, so hover is
+   listed here as well — it carries a higher specificity than the base rule and
+   would otherwise reintroduce the escape on the row under the pointer. */
+@media (forced-colors: active) {
+  .cf-error__route .cf-arrow,
+  .cf-error__route:hover .cf-arrow,
+  .cf-error__route:focus-visible .cf-arrow { color: inherit; }
+}
 
 /* One fold, measured on the component rather than the viewport, so a routes
    list inside a column folds at the same width it folds at full bleed: below
@@ -6445,13 +6666,26 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
 }
 
 /* A break in the argument, not a divider between sections: the finest of the
-   four sanctioned dashes, at the width of the text column. */
+   four sanctioned dashes, at the width of the text column.
+
+   The dash is the 1-4 gradient written out rather than taken from
+   .rule--dashed-1-4, so forced colours drops it and the break is absent —
+   measured at 558 x 1 on patterns/blog-artikel.html, both schemes. It is
+   redrawn as a dotted border below, on the argument set out over
+   .cf-process__divider's block, which carries the same gradient and fails the
+   same way. */
 .cf-prose hr {
   width: 100%;
   height: var(--stroke-1);
   margin-block: var(--space-12);
   border: 0;
   background: repeating-linear-gradient(90deg, var(--border-strong) 0 1px, transparent 1px 5px);
+}
+@media (forced-colors: active) {
+  .cf-prose hr {
+    background: none;
+    border-block-start: var(--stroke-1) dotted CanvasText;
+  }
 }
 
 /* An aside inside the argument. Sunken rather than outlined, so it reads as
@@ -6500,6 +6734,35 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   flex: 1;
   height: var(--stroke-1);
   background: var(--border-strong);
+}
+/* THIS ASIDE LOST BOTH OF ITS MARKS IN FORCED COLOURS, and the rule is the
+   clean proof of the mechanism the note on .cf-process__note above states.
+   --border-strong is OPAQUE BLACK here, painted as a background rather than as
+   a border because a flex ::after is the tidiest way to run a hairline out of
+   a label. Measured on components/article.html at 1280, mode active: it
+   computes rgb(255,255,255) in the light palette and rgb(0,0,0) in the dark
+   one — the reader's own Canvas, both times, on a ground that IS Canvas. An
+   opaque black line becoming an opaque white one is not an alpha surviving; it
+   is the colour being replaced and the alpha kept, which is exactly what the
+   mode does and what tokens.css and foundations/materials.html both said it
+   did not, until this measurement corrected them.
+
+   So the block had no surface (its veil, same arithmetic as the process note)
+   and no rule (this line), leaving one mono word and two paragraphs of body
+   text — an aside indistinguishable from the argument it steps out of.
+
+   Both marks come back as the paint the mode keeps. The height goes to zero
+   under the border so the line stays one pixel and the label's row does not
+   grow. The info card's ask shares the declaration for the reason the rule
+   above is shared: two copies of one device answer at two sizes eventually. */
+@media (forced-colors: active) {
+  .cf-prose__note { border: var(--stroke-1) solid CanvasText; }
+  .cf-prose__note-tag::after,
+  .cf-info-card__ask-tag::after {
+    height: 0;
+    border-top: var(--stroke-1) solid CanvasText;
+    background: none;
+  }
 }
 
 .cf-prose :is(code, kbd, samp) {
@@ -6674,6 +6937,23 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   }
   .cf-notice--achtung::before { border-inline-start-style: dashed; }
   .cf-notice--fehler::before  { border-inline-start-style: solid; }
+  /* AND THE THIRD CHANNEL WAS NOT THERE AT ALL, which is worse than the band
+     the paragraph above rescued. The glyph names --notice-ink on the <svg>
+     itself, and an ink named there is preserved rather than mapped — see the
+     note beside .cf-icon--light. Measured on components/notice.html in the
+     dark palette: Hinweis and Achtung drew rgb(0, 0, 0) on a Canvas of
+     rgb(0, 0, 0), 1:1, absent; Fehler drew rgb(167, 32, 25) at 2.86:1; the
+     title beside each of them is an ordinary <p> and came through at
+     CanvasText. So the box a reader was meant to read on three channels was
+     reading on two, and the one that went missing is the one the component's
+     own note calls required.
+
+     The shape is what survives here, and it is enough: the three tones carry
+     #cf-diamond, #cf-triangle and #cf-triangle-solid, so the glyph still says
+     which notice this is in a palette with one ink in it. `inherit` puts it on
+     the title's colour, which is where the tone put it before the mode took
+     the colour away. */
+  .cf-notice__glyph { color: inherit; }
 }
 
 /* --------------------------------------------------------------------------
@@ -13109,12 +13389,18 @@ a.cf-calendar__day > time,
 /* ---- ONE RAMP, FOUR SOURCES ----------------------------------------------
 
    foundations/colors.html states the family in one line: "There is only one
-   gradient in this brand: lime falling away to CF-Grau, with Glas where the
-   two meet." A categorical figure needs more than one face and may not invent
-   a second family, so it does what .cf-plot--fell already did for its one
-   cool face — keeps the ramp and swaps the SOURCE. Lime is the light and stays
-   the one thing --lit spends; the other three are surfaces the light has not
-   reached, which is what the palette already says they are.
+   gradient in this brand: a source falling away to CF-Grau, with Glas where
+   the two meet." A categorical figure needs more than one face and may not
+   invent a second family, so it does what .cf-plot--fell already did for its
+   one cool face — keeps the ramp and swaps the SOURCE. Lime is the light and
+   stays the one thing --lit spends; the other three are surfaces the light has
+   not reached, which is what the palette already says they are.
+
+   THAT LINE READ "lime falling away to CF-Grau" WHEN THIS BLOCK WAS WRITTEN,
+   and the three faces below are half the reason it no longer does. The page
+   now counts four sources rather than one, and check-gradient-family.py
+   derives them off the leg instead of holding a list of two.
+   → foundations/colors.html#sources
 
    The order is the spectrum's own. --spectrum-stops runs lime, Weiss, Glas,
    Sky, Violett, so Glas -> Sky -> Violett is the cool half read in the order
@@ -15931,6 +16217,74 @@ a.cf-calendar__day > time,
     drop-shadow(0 0 calc(var(--glow-r) * var(--glow-core)) var(--glow-lime))
     drop-shadow(0 0 var(--glow-r) var(--glow-glas));
 }
+
+/* AND ONE MEMBER OF THE COMPOSITION IS AN SVG CHILD, WHICH SAFARI DOES NOT
+   PAINT. The rule above has five members and they are not the same kind of
+   element: .cf-gantt__head is a <span>, .cf-icon--light is an OUTER <svg>, and
+   both of those take a CSS filter in every engine. .cf-plot__col--lit
+   .cf-plot__cap is a <path> INSIDE an <svg>, and that is the one case WebKit
+   drops — the finding acts.css sets out in full beside the flow drawing's
+   leaves, under "SAFARI PAINTS NO CSS FILTER ON AN SVG CHILD": no filter
+   FUNCTION reaches an SVG child there, drop-shadow or blur, while
+   `filter: url()` on the same element paints, including from a <filter> in
+   another <svg> in the document.
+
+   So the lit cap has been standing in Safari as a rhombus with a ramp and no
+   light in it. That is not a softened glow; it is the whole of what --lit
+   spends. "One lit column, and only ever one" (this file, 250 lines up) makes
+   the glow the entire signal that says which column the figure is about, and
+   without it the lit cap is an unlit cap with a different fill — measured on
+   components/plot.html at 1440, WebKit's cap and its halo are background to
+   the last pixel outside the contour, while Chromium's ramp reads 194 of 255
+   one pixel out. Re-checked with will-change, isolation, translateZ and
+   transform-box on the path: every one of them changes nothing, and
+   `filter: blur(3px)` on the same path renders nothing either, which is what
+   rules out anything specific to shadows or to this component.
+
+   THE TWO NUMBERS ARE THE SHORTHAND'S OWN, WRITTEN OUT: stdDeviation 12 and
+   5.4, which is --glow-r and --glow-r x --glow-core with the unit dropped.
+   Two facts put them there and both were established by measurement rather
+   than by arithmetic. The first is the flow drawing's, and this only
+   confirmed it: the deviation is the shorthand's RADIUS 1:1, not half of it.
+   The second is this component's: the unit is the drawing's, and one user
+   unit here is --plot-u/20 — 1.6 px at the clamp's 32 px ceiling, 0.8 px at
+   its 16 px floor. So 3.75, which is what you get by converting 12 px at the
+   ceiling and halving it, renders about a third of the light; it was the
+   first thing tried and it is wrong on both counts at once.
+
+   AND UNLIKE THE FLOW, NOTHING IS TRADED AWAY FOR IT. The flow's own note
+   accepts that its Safari reach follows the drawing while the other engines
+   hold a px figure. Sampling the halo out from the cap's edge every 4 px on
+   both axes says that does not happen here: 12/5.4 lands within two levels of
+   255 of Chromium's shipped CSS filter at every radius at 1440, where the
+   unit is 1.6 px, AND at 390, where it is 0.8 — so Chromium is reading the
+   shorthand's lengths in this drawing's user space too, and the two spellings
+   scale together across the whole clamp rather than agreeing at one width.
+
+   THE REGION IS BOUNDED ON PURPOSE, the same argument the flow's filters
+   carry: WebKit rasters one buffer of this size per filtered element. The cap
+   is 40 x 20 user units and the halo is gone by 18 of them — m=18 renders
+   identically to m=26 and m=16 does not — so the <filter> in the markup is
+   x="-18" y="-18" width="76" height="56".
+
+   FLOOD COLOURS BELONG HERE, not in the markup, for the reason the flow's do:
+   flood-color is a CSS property, so the two primitives take --glow-lime and
+   --glow-glas from tokens.css the way the shorthand above does and a palette
+   move still moves both spellings. Both tokens carry their own alpha, so
+   flood-opacity stays at its default 1.
+
+   AND IT IS DECLARED BEFORE THE FORCED-COLOURS BLOCK BELOW, which matters:
+   that block names the same selector at the same (0,2,0) weight, so source
+   order is what lets it win. A lower weight is not available — a bare
+   .cf-plot__cap would hand the reference to unlit caps too, and an SVG
+   element whose filter names an id it cannot resolve is not rendered at
+   all. */
+@supports (-webkit-hyphens: none) {
+  .cf-plot__col--lit .cf-plot__cap { filter: url(#cf-plot-glow); }
+  #cf-plot-glow feDropShadow:first-child { flood-color: var(--glow-lime); }
+  #cf-plot-glow feDropShadow + feDropShadow { flood-color: var(--glow-glas); }
+}
+
 /* AND THE SPILL IS SWITCHED OFF WHERE IT IS COMPOSED, for the same reason it
    is composed here: a member that turns it off in its own section is a member
    whose rule loses. .cf-gantt's forced-colours block wrote `filter: none` on

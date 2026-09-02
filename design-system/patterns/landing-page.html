@@ -972,8 +972,39 @@
                holds every leaf at scale 0 until contain 36 % of this track —
                thousands of pixels after the box has arrived. The readouts keep
                the viewport of lead-in they need, on .sp-track, untouched.
+
+               AND data-cf-drawn=".lp-flow__leaf" IS THAT LAST SENTENCE READ AS
+               A COST RATHER THAN AS PERMISSION. "Thousands of pixels after the
+               box has arrived" is also thousands of pixels with the gate OPEN
+               and nothing drawn under it, and no value of the margin above
+               reaches them, because this box is inside a sticky stage and
+               stops moving. Measured at 1440 x 900, .sp-root's rect.top
+               against scrollY:
+
+                 scrollY      0    200    400    600    800   1200   2000
+                 rect.top   927    727    527    327    271    271    271
+
+               Stuck at 271 by scrollY 800 and there until the stage releases
+               at 6 475. So the gate opened at scrollY 50 and the first leaf
+               drew at 2 575 — 2 525 px, the first three screens of the front
+               door, twenty-six leaves breathing at 60 Hz on boxes that are
+               0 x 0. Loaded, scrolled once and left alone, 5 000 ms, before
+               and after: 200 -> 0 ms of style recalc and 466 -> 2 ms of task
+               at scrollY 600, and the same pair at 1 200, 1 600 and 2 000
+               (201/471, 203/473, 208/490, all to 0/2). Every band where a leaf
+               IS drawn is unchanged — 25 screenshots down the document at
+               1440 x 900 and 25 at 1280 x 800 are byte-identical — and the
+               gate now opens on exactly the scroll position the first leaf
+               draws at, at all ten viewports the fringe ships in.
+
+               THE SELECTOR IS THE VALUE for the same reason "0px" is: the
+               figure is this box and the subject is the ink inside it.
+               `scale: 0` is not display, not visibility and not opacity, so
+               neither an observer nor checkVisibility can see it; cf-idle.js
+               reads the leaves' own rects. The pause rule that answers
+               data-idle does not change.
                → assets/js/cf-idle.js, scripts/check-idle-reach.py -->
-          <div class="sp-root" data-cf-idle="0px">
+          <div class="sp-root" data-cf-idle="0px" data-cf-drawn=".lp-flow__leaf">
 <!-- THE FLOW, a root. The data leaves the void and grows downward until
                it is the frame the next section is built in. Not a bus and seven
                drops any more: a trunk that bifurcates twice, three taproots, and
@@ -2578,6 +2609,21 @@
                           <linearGradient id="lp-ev-cap-uptime" x1="20" y1="0" x2="20" y2="20" gradientUnits="userSpaceOnUse">
                             <stop stop-color="#E1FF00"/><stop offset="0.061" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/>
                           </linearGradient>
+                          <!-- SAFARI'S COPY OF THE CAP'S GLOW, and the only copy it can read.
+                               WebKit paints no CSS filter FUNCTION on an SVG child, so the two
+                               drop-shadows components.css composes for .cf-plot__cap render as
+                               nothing there. This is the same remedy the flow drawing's leaf and
+                               orb take, and it is one per DOCUMENT rather than one per column: the
+                               ramp above is this column's own paint, the glow is the system's, and
+                               a <filter> is reachable by id from any <svg> on the page. The two
+                               numbers, the unit they are in and how both were measured are over
+                               the @supports block beside .cf-plot__cap in components.css. -->
+                          <filter id="cf-plot-glow" filterUnits="userSpaceOnUse"
+                                  x="-18" y="-18" width="76" height="56"
+                                  color-interpolation-filters="sRGB">
+                            <feDropShadow dx="0" dy="0" stdDeviation="5.4"/>
+                            <feDropShadow dx="0" dy="0" stdDeviation="12"/>
+                          </filter>
                         </defs>
                         <path class="cf-plot__body" d="M0 10H40V130H0Z"/>
                         <path class="cf-plot__cell" d="M20 120 40 130 20 140 0 130Z"/>

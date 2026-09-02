@@ -695,27 +695,94 @@
       <code>min()</code> or <code>clamp()</code> against a viewport unit also changes layout at a
       specific width — its arms swap — and none of those appear above, because none of them is a
       query. That distinction is worth stating rather than leaving implicit: a register whose
-      argument is completeness has to say which kind it means. The three in shipping CSS:
+      argument is completeness has to say which kind it means.
+      <br><br>
+      <strong>This panel used to say "the three in shipping CSS" and list three.</strong> There are
+      thirty, in sixteen declarations, and the three it named were the three somebody had noticed.
+      The rest were excused in one line — "the token-level clamps are documented already" — which
+      is true of the gutter and <code>--section-gap</code> and silent about eleven others. A
+      completeness claim about a four-file corpus, kept by hand, on the page whose neighbouring
+      tables are generated because hand-kept counts went stale four times. The table below is
+      generated now, by <code>scripts/check-fluid-crossovers.py</code>, and it is the whole census:
     </div>
-    <table class="docs-table">
-      <thead><tr><th>Declaration</th><th>Arms swap at</th></tr></thead>
+    <table class="docs-table" id="crossover-census">
+      <thead><tr><th>Where</th><th>Declaration</th><th>Arms swap at</th></tr></thead>
       <tbody>
-        <tr><td><code>.cf-consent__dialog</code> — <code>width: min(38rem, calc(100vw - 2 * var(--space-4)))</code></td><td><strong>640 px</strong> wide (608 + 32)</td></tr>
-        <tr><td><code>.cf-consent__dialog</code> — <code>max-height: min(80vh, 46rem)</code></td><td><strong>920 px</strong> tall (736 ÷ 0.80)</td></tr>
-        <tr><td><code>min-height: min(92vh, 56rem)</code></td><td><strong>974 px</strong> tall (896 ÷ 0.92)</td></tr>
+        <tr><td><code>main</code></td><td><code>--lp-measure: calc((max(min(45rem - 9rem, 100vh), 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2)</code></td><td><strong>576 px tall</strong></td></tr>
+        <tr><td><code>.cf-consent__dialog</code></td><td><code>max-height: min(80vh, 46rem)</code></td><td><strong>920 px tall</strong></td></tr>
+        <tr><td><code>.cf-hero</code></td><td><code>min-height: min(92vh, 56rem, calc(100vh - var(--cf-consent-height, 0px)))</code></td><td><strong>973.9 px tall</strong></td></tr>
+        <tr><td><code>.sp-stage</code></td><td><code>--sp-ground: calc( (min(100vw - var(--gutter) * 2, var(--container-max)) - var(--space-8)) * 3 / 5 * 620 / 1200)</code></td><td><strong>320 px, 363.6 px, 1438.2 px wide</strong></td></tr>
+        <tr><td><code>:root</code></td><td><code>--gutter: clamp(min(1.25rem, 6.25vw), 5.5vw, 5rem)</code></td><td><strong>320 px, 363.6 px, 1454.5 px wide</strong></td></tr>
+        <tr><td><code>:root</code></td><td><code>--text-display-1: clamp(2.5rem, 1.4rem + 4.9vw, 4rem)</code></td><td><strong>359.2 px, 849 px wide</strong></td></tr>
+        <tr><td><code>:root</code></td><td><code>--text-h1: clamp(1.75rem, 1.3rem + 2vw, 2.5rem)</code></td><td><strong>360 px, 960 px wide</strong></td></tr>
+        <tr><td><code>:root</code></td><td><code>--text-display-2: clamp(2rem, 1.3rem + 3.1vw, 2.5rem)</code></td><td><strong>361.3 px, 619.4 px wide</strong></td></tr>
+        <tr><td><code>:root</code></td><td><code>--text-h2: clamp(1.375rem, 1.1rem + 1.2vw, 2rem)</code></td><td><strong>366.7 px, 1200 px wide</strong></td></tr>
+        <tr><td><code>.lp-ev-card .cf-plot</code></td><td><code>--plot-u: clamp(15px, 3.4vw, 28px)</code></td><td><strong>441.2 px, 823.5 px wide</strong></td></tr>
+        <tr><td><code>.cf-plot</code></td><td><code>--plot-u: clamp(16px, 3.4vw, 32px)</code></td><td><strong>470.6 px, 941.2 px wide</strong></td></tr>
+        <tr><td><code>:root</code></td><td><code>--section-gap-sm: clamp(var(--space-8), calc(100vw / 18), var(--space-20))</code></td><td><strong>576 px, 1440 px wide</strong></td></tr>
+        <tr><td><code>.cf-consent__dialog</code></td><td><code>width: min(38rem, calc(100vw - 2 * var(--space-4)))</code></td><td><strong>640 px wide</strong></td></tr>
+        <tr><td><code>.cf-pie</code></td><td><code>--pie-u: clamp(24px, 3.4vw, 32px)</code></td><td><strong>705.9 px, 941.2 px wide</strong></td></tr>
+        <tr><td><code>:root</code></td><td><code>--section-gap: clamp(var(--space-16), calc(100vw / 12), var(--space-30))</code></td><td><strong>768 px, 1440 px wide</strong></td></tr>
+        <tr><td><code>:root</code></td><td><code>--section-header-gap: clamp(var(--space-12), calc(100vw / 18), var(--space-20))</code></td><td><strong>864 px, 1440 px wide</strong></td></tr>
       </tbody>
     </table>
+    <div class="docs-note">
+      Stamp <code id="crossover-stamp">6454ab02</code> — a digest of the rows, on the same argument
+      the space scale's carries: a table generated once is a table that can go stale silently, and
+      the digest is what makes a stale one say so. <code>--fix</code> rewrites both.
+      <br><br>
+      <strong>Nothing here is compared against a list of figures.</strong> A declaration's value is
+      parsed into a tree of <code>min()</code>/<code>max()</code> over linear forms in px, vw and
+      vh — <code>clamp(a, b, c)</code> is <code>max(a, min(b, c))</code>, <code>var()</code>
+      resolves through <code>tokens.css</code>, and addition and scalar multiplication distribute
+      into the branches, because <code>min(a, b) + c</code> is <code>min(a + c, b + c)</code> and a
+      negative factor turns a <code>min()</code> into a <code>max()</code>. What comes out is
+      piecewise linear, so a crossover is exactly a width at which the selected arm changes: swept
+      to find, then solved off the two arms that swapped. 640, 920 and 974 are re-derived on every
+      run the same way the rest are.
+    </div>
+    <div class="docs-note" id="crossover-941">
+      <strong>The one this was worth building for is 941 px.</strong> <code>.cf-plot</code>'s
+      <code>--plot-u</code> and <code>.cf-pie</code>'s <code>--pie-u</code> both reach their 32 px
+      ceiling there, and 900–1100 is the band a fluid middle is least likely to be looked at: past
+      every phone, short of every desktop frame this design was drawn on. Both figures stop growing
+      there and hold one size for the next thousand pixels. That is correct — a fixed-count
+      geometric drawing has a size past which it is merely large — but it was written down nowhere,
+      and <code>.cf-plot</code>'s own comment says exactly why not: <em>"this is a crossover, not a
+      threshold, so it is deliberately absent from the breakpoint register."</em> It was right about
+      the register and there was nothing under it. The two figures share that ceiling on purpose, so
+      they land at one scale in one article; sharing it means one edit moves both, and now one row
+      moves with them.
+      <br><br>
+      Four rows are the type ramp — <code>--text-display-1</code>, <code>--text-display-2</code>,
+      <code>--text-h1</code> and <code>--text-h2</code> — and they belong here as behaviour even
+      though Typography documents them as a ramp. Their floors all release between 359 and 367 px,
+      which is the band the gutter's own floor releases in at 363.6: below it the page is at its
+      minimum everywhere at once, which is the right shape for a phone and is not a coincidence to
+      read anything further into.
+    </div>
     <div class="docs-note">
       Two consequences worth carrying. The <code>640</code> row above says "no other query" rather
       than "nowhere else in the system", because the consent dialog's width crosses over at exactly
       640 — the same figure, reached by different machinery. And <strong>the height rows are true
       of queries and false of behaviour:</strong> <code>560px</code> and <code>720px</code> are the
-      only height <em>queries</em>, but layout also changes at 920 and 974 px tall.
+      only height <em>queries</em>, but layout also changes at 576, 920 and 974 px tall.
       <br><br>
-      These are deliberately out of the register. A crossover is a continuous function swapping
-      arms, not a rule switching on, and folding them in would make the list longer without making
-      it more useful. The token-level clamps are documented already — the gutter's floor and
-      ceiling under Container, <code>--section-gap</code>'s under Rhythm.
+      These stay out of the register above. A crossover is a continuous function swapping arms, not
+      a rule switching on, and folding them into a list of queries would make it longer without
+      making it more useful — which is why they have a census of their own rather than a row up
+      there.
+      <br><br>
+      <strong>What the census deliberately does not read, it names on every run</strong> rather than
+      passing over in silence; <code>-v</code> prints all of it. Thirty-six declarations have an arm
+      in <code>%</code> or <code>cqi</code>, and those swap at a <em>container</em> width, which is
+      a different axis from the one this table publishes. Nineteen are unitless —
+      <code>clamp(0, var(--v), 1)</code> and its kind — and a number has no crossover because it has
+      no arm measured in anything. Six are genuinely unread: four on the landing page take
+      <code>max(49vw, 100vh − …)</code> against a page-local property, so where they swap is a curve
+      in two axes rather than a width, and two more resolve through a custom property this script
+      cannot see from the stylesheet. Six is small enough to read; the point of counting them is
+      that the number cannot grow quietly.
     </div>
     <div class="docs-note" id="demo-fold-band">
       <strong>Out of scope is not the same as no consequence — and <code>docs.css</code>'s 900 had
@@ -1039,11 +1106,7 @@
         <figure style="margin:0"><div style="width:160px;height:160px"></div><figcaption class="docs-caption docs-caption--cased">40<br>160</figcaption></figure>
       </div>
     </div>
-    <p>
-      The most common values in the design: <code>--space-6</code> (24) as the default gap
-      between elements, <code>--space-12</code> (48) as panel padding, and
-      <code>--space-20</code> (80) as the page gutter.
-    </p>
+    <p id="space-common">The rungs the shipping CSS reaches for most, measured rather than remembered: <code>--space-3</code> (12 px, 74 declarations), <code>--space-2</code> (8 px, 71) and <code>--space-4</code> (16 px, 58). This sentence is written by the same script that writes the table below, from the same counts.</p>
     <div class="docs-note">
       <strong>Every step is accounted for.</strong> A scale is only honest if you can say who
       uses each rung, so here is the count of <em>declarations</em> that reference each step in
@@ -1058,7 +1121,7 @@
         <tr><td><code>--space-2</code></td><td>8</td><td>71</td><td>icon-to-label, chip padding</td></tr>
         <tr><td><code>--space-3</code></td><td>12</td><td>74</td><td>button <code>padding-block</code> — the most used step in the system</td></tr>
         <tr><td><code>--space-4</code></td><td>16</td><td>58</td><td>the default gap: what <code>.stack</code> and <code>.cluster</code> do unaided</td></tr>
-        <tr><td><code>--space-5</code></td><td>20</td><td>9</td><td>the contact list's and the error routes' row padding, a prose note's block padding — the thinnest-used rung</td></tr>
+        <tr><td><code>--space-5</code></td><td>20</td><td>9</td><td>the contact list's and the error routes' row padding, a prose note's block padding, three label/value column gaps</td></tr>
         <tr><td><code>--space-6</code></td><td>24</td><td>46</td><td><code>--grid-gap</code>, panel padding</td></tr>
         <tr><td><code>--space-8</code></td><td>32</td><td>38</td><td>the gap between an object and its copy</td></tr>
         <tr><td><code>--space-12</code></td><td>48</td><td>24</td><td>panel padding at the wide breakpoint; the <code>--section-header-gap</code> floor</td></tr>
@@ -1116,6 +1179,39 @@ print(counts)
       number on the same row. It is the failure this whole apparatus was built to stop, surviving
       in the one column the apparatus does not reach. A generator does not make a table true; it
       makes the part it writes true, and the rest is still prose somebody has to mean.
+    </div>
+    <div class="docs-note">
+      <strong>And it drifted one paragraph higher, where nothing was reading at all.</strong> The
+      sentence that <em>introduces</em> this table opened "the most common values in the design"
+      and then named three rungs. All three were wrong, and so was the superlative.
+      <code>--space-6</code> was called "the default gap between elements" — the default gap is
+      <code>--space-4</code>, which is what <code>.stack</code> and <code>.cluster</code> resolve
+      unaided (<code>var(--flow, var(--space-4))</code>), and the row for it in the table below
+      already said so. <code>--space-12</code> was called panel padding;
+      <code>--space-6</code> is, and <code>--space-12</code> is the value it takes at the wide
+      breakpoint. <code>--space-20</code> was called "the page gutter", which it has never been:
+      the page gutter is <code>--gutter</code>, a clamp that does not reach 80 px until a
+      viewport of 1454.5 (see <a href="#container">Container</a>), and
+      <code>--space-20</code>'s six declarations are the <code>--section-header-gap</code> and
+      <code>--section-gap-sm</code> ceilings, the accordion indent, the vacancy register's
+      picture at the narrow breakpoint, and one gap. Measured against the column beside them,
+      the three "most common" values ranked fourth, eighth and tenth of thirteen.
+      <br><br>
+      <strong>So the ranking is generated too.</strong> The paragraph above the table carries
+      <code>id="space-common"</code> and is written by
+      <code>check-spacing-scale.py</code> from the same counts as the Declarations column, under
+      the same stamp. It names every rung tied at the third-place count rather than a fixed
+      three, so a tie cannot make it quietly wrong.
+      <br><br>
+      <strong>And the superlatives in the fourth column are held by a register.</strong> That
+      column is prose a generator cannot write, but a <em>rank claim</em> in it is checkable:
+      "the most used step in the system" has to sit on the row whose count is the unique
+      maximum, "the thinnest-used rung" on the unique minimum, each at most once, and neither may
+      appear at all while its extremum is tied — there is no <em>the</em> to claim. The rule
+      found its own first case on the commit that added it: <code>--space-5</code> was described
+      as the thinnest-used rung at 9 declarations, with <code>--space-30</code> and
+      <code>--space-40</code> sitting on 1 each. Its cell now says what it does instead of where
+      it ranks.
     </div>
     <div class="docs-note">
       <strong>The scale is enforced from both ends.</strong> Counting who uses each rung answers

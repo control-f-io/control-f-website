@@ -3895,10 +3895,20 @@
            in WebKit 26.5 at 390 x 844, contain 70 %, the same frame four ways:
            as authored, the fringe is black; with `vector-effect: none`, lime;
            with the scale keyframe taken out of the leaf's list, lime; and
-           Chromium draws it lime in all of them. `.lp-flow__seg` and the
-           lights that are not leaves are unaffected in both tiers — a leaf is
-           the only stroke still being driven, by the settle, after its own
-           draw has closed.
+           Chromium draws it lime in all of them. `.lp-flow__seg` is
+           unaffected: it is stroked in one flat colour, so a ramp that is
+           never swept is a ramp it never had.
+
+           THE LIGHTS THAT ARE NOT LEAVES ARE NOT UNAFFECTED, and this
+           paragraph claimed they were for as long as the settle looked like
+           the trigger — a leaf being the only stroke still driven after its
+           own draw had closed. They lose the ramp too, in both tiers, and the
+           pinned tier's copy of this note carries the measurement and takes
+           the same fix. What the settle changes is only how long the failure
+           is on screen, not whether it happens: `lp-frame-draw` alone is
+           enough. This tier's own lights are still left as authored, for the
+           reason that note's last paragraph gives — 2 user units is 0.47 px
+           at a 320 viewport, under the contour drawn over it.
 
            AND THE WIDTH IS RESTATED IN THE DRAWING'S OWN UNITS, because
            dropping `vector-effect` is what changes what `stroke-width` MEANS:
@@ -4655,6 +4665,91 @@
                          contain calc((38 + (var(--l) + var(--u)) * var(--flow-c)) * 1%)
                          contain calc((44 + (var(--l) + var(--u)) * var(--flow-c)) * 1%);
         animation-fill-mode: both, forwards;
+      }
+      /* SAFARI PAINTS THIS LIGHT AS A FLAT LIME BAR, and it is #339's bug on
+         the strokes that fix did not reach. A leaf carries BOTH classes, so
+         the `.lp-flow .lp-flow__leaf` override further down already takes the
+         vector-effect off twenty-six of the sixty-four lights; the other
+         thirty-eight and the trunk keep it, and keep the defect with it.
+
+         The signature is the one #525 recorded on .lp-frame__lit: the ramp is
+         not absent, it is never SWEPT. #lp-flow-ramp opens on #E1FF00 and
+         every lp-flow-ax-NN inherits that first stop by href, and a stroke
+         WebKit has stopped sweeping paints that one stop down its whole
+         length. Measured at 1440 x 900, contain 20 %, on the four non-leaf
+         lights standing fully drawn and still lit, pixels sampled inside each
+         one's own box and counted as lime / as Glas:
+
+                             coloured px    lime    Glas    Glas per lime
+             Chromium 141           1132      63     534             8.48
+             WebKit 26.5            2571    1094       6             0.01
+
+         The computed values the two engines report for those same four paths
+         are identical to five decimals — opacity 0.995134, scale 1, stroke
+         url(#lp-flow-ax-NN), stroke-width 2px, vector-effect
+         non-scaling-stroke. Nothing this stylesheet says differs; only the
+         paint does. And it is the tree, not one stroke: Glas per lime,
+         WebKit against Chromium, at the fullest-lit frame of each viewport —
+         0.05 against 16.09 at 1280 x 720, 0.06 against 8.94 at 1440 x 900,
+         0.16 against 9.34 at 1920 x 1080.
+
+         ONLY DROPPING VECTOR-EFFECT BRINGS IT BACK, which is what #339 found
+         for the leaf and is why this is the same filter-region cache and not
+         a new fault. Eleven candidates measured head to head in WebKit 26.5,
+         1440 x 900, on those same four strokes, same score:
+
+             vector-effect: none                       7.18   ramp returns
+             will-change: stroke                       0.01
+             will-change: transform                    0.01
+             transform: translateZ(0)                  0.01
+             transform-box: fill-box                   0.01
+             transform-box: view-box                   0.01
+             paint-order: stroke                       0.01
+             backface-visibility: hidden               0.01
+             isolation: isolate on .lp-flow            0.01
+             contain: paint on .lp-flow                0.01
+             lp-frame-draw through transform: scale()  0.00
+
+         WHAT IT COSTS, and it is the trade the leaf's own note below already
+         takes in this tier. Dropping the vector-effect reads the authored 2 as
+         2 USER UNITS, so the light follows the drawing's own scale — uniform,
+         since .lp-flow is preserveAspectRatio="xMidYMax meet" over a
+         1200 x 620 viewBox — instead of holding 2 px flat. Measured on the
+         shipped page, every pinned shape this tier admits:
+
+             1920 x 1080    svg 1451.6    x1.21    2.42 px
+             1600 x 1000    svg 1299.6    x1.08    2.17 px
+             1440 x 900     svg 1109.6    x0.92    1.85 px
+             1152 x  864    svg 1025.3    x0.85    1.71 px
+             1024 x  900    svg  911.4    x0.76    1.52 px
+             1366 x  768    svg  858.8    x0.72    1.43 px
+             1280 x  720    svg  767.6    x0.64    1.28 px
+
+         0.64x to 1.21x of the authored 2 px, against the 0.5-0.9x of its 6 the
+         leaf already spends beside it — and never under the 1 px contour the
+         light stands either side of, which is the floor that decides it. The
+         pinned drawing is bound to viewport HEIGHT (--sp-measure, above), so
+         that band is the tier's, not a sample of it.
+
+         THE FLOW TIER LOSES THE RAMP TOO AND IS NOT FIXED HERE. Same
+         measurement at 820 x 1180: 0.22 against Chromium's 12.59. But that
+         tier's drawing runs down to 280 px wide at a 320 viewport, where 2
+         user units render 0.47 px — under the 1 px contour laid over them,
+         which is not a thin light, it is no light. Its leaf could restate its
+         width because 1cqi was already a proportion and 12 units is the same
+         1 % either way; a fixed 2 px has no user-unit restatement, and buying
+         one back needs either a ladder of widths (a breakpoint) or a light as
+         heavy as a leaf on a phone (the drawing's weight hierarchy). Neither
+         is this pass's to take. → a human, with the drawing's lane
+
+         `.lp-flow .lp-flow__light` and not the bare class, for the reason the
+         leaf's override states: `.lp-flow :is(path, circle)` is (0,1,1) and
+         outranks a lone `.lp-flow__light` at (0,1,0) whatever the source
+         order. Behind `-webkit-hyphens: none`, true only in WebKit, so
+         Chromium and Firefox keep the viewport-independent 2 px the drawing's
+         paint note documents. */
+      @supports (-webkit-hyphens: none) {
+        .lp-flow .lp-flow__light { vector-effect: none; }
       }
       /* ------------------------------------------------------------------
          THE LEAVES GO ON GLIMMERING, and they are the only thing on this page
@@ -6501,7 +6596,49 @@
         transform-origin: left;
         animation: sp-head-rule linear both;
         animation-timeline: --sp;
-        animation-range: contain 76% contain 93%;
+        /* THE LINE IS FINISHED BEFORE THE COUNT IS WRITTEN, and 86 is the
+           count's own start rather than a number anybody picked. The rule
+           sweeps the WHOLE row from the left edge; each word occupies only
+           part of that row and the count is flush right, so putting the
+           words' windows inside the rule's window — which is what this range
+           said for as long as it ended at 93 — does not put the line under
+           them. The count opened at contain 86 %, where a linear sweep of
+           76 → 93 has crossed three fifths of the row, and the count's first
+           character stands past four fifths of it.
+
+           Measured on the shipped page, stepping the whole band 25 px at a
+           time and comparing the painted right edge of the words against the
+           painted right edge of the line — both desktop tiers, both editions,
+           since the count is the one word here the translation resizes:
+
+                            count's left   line at    worst overhang
+                              edge         contain 86 %
+             1440 x 900 DE    84.7 %        60.7 %      315 px
+             1280 x 800 DE    82.9 %        59.5 %      269 px
+             1440 x 900 EN    89.3 %        60.9 %      369 px
+             1280 x 800 EN    88.0 %        59.7 %      324 px
+
+           Three hundred pixels of "4 Schritte" standing on nothing, held
+           there for the ~300 px of scroll the line needs to catch up, and the
+           EN edition is the worse of the two because the shorter word sits
+           further right. That is also why the correction is not a later
+           window for the count: where the count STARTS is a text-width fact
+           and moves with the translation, where the line ENDS is not. Landing
+           the line on the count's own start holds the invariant by
+           construction in both editions and both tiers.
+
+           Measured after, over the same band and the same four columns: the
+           end of the line stands ahead of the painted title by at least
+           258 px at 1440 and 528 px at 1280, and ahead of the painted count
+           by at least 3 px — the count's margin closing to nothing only at
+           the row's right edge, where its last character and the end of the
+           line are the same point, which is where they belong.
+
+           The title is unaffected and was never the fault: it is flush left
+           and 24.4 % of the row wide (27.4 % at 1280), so a line sweeping
+           from the same edge on a window that opens two points earlier is
+           ahead of it at every frame, by the margin above. */
+        animation-range: contain 76% contain 86%;
       }
       /* THE WIPE IS A CLIP, NOT A MASK AND NOT A WIDTH. A width animation
          reflows the flex row and drags the count across the page as the title
@@ -6516,8 +6653,10 @@
       }
       /* The title leads and the count follows it in: the label is the subject
          and the count is what the subject turns out to be, so reading order is
-         arrival order. Both inside the rule's own range, so the line is never
-         shorter than the words standing on it. */
+         arrival order. Neither is ever written onto bare page: the rule above
+         ends where the count begins, which is what actually keeps the line
+         from being shorter than the words standing on it — see its own note
+         for why "both windows inside the rule's window" was not that. */
       .sp-head__title { animation-range: contain 78% contain 88%; }
       .sp-head__count { animation-range: contain 86% contain 96%; }
     }
