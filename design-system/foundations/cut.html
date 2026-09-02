@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Cut — Control-F Design System</title>
+<link rel="icon" href="../assets/img/logo/cf-favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* Demo chrome only. Nothing here is part of the system.
+
+     THE DEMOS ARE THE REAL COMPONENT. Every scroll box on this page is a
+     `.cf-table__scroll` holding a `.cf-table`, exactly as components/table.html
+     ships it — the only thing this block does is take the port's width away, so
+     that a table which fits comfortably in a 1280 column is forced to crop at
+     every width a reader opens this page at. A demo that only cuts on a phone
+     would document the mark to the readers least able to check it.
+
+     No media query on this page: the two ports are a wrapping flex row and the
+     column is capped with min(), so there is no page-local threshold to
+     register. → scripts/check-local-thresholds.py */
+  .cut-port { max-inline-size: min(20rem, 100%); }
+  .cut-ports {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+  }
+  .cut-ports > figure { margin: 0; flex: 1 1 20rem; min-width: 0; display: grid; gap: var(--space-3); }
+
+  /* The two states side by side, drawn rather than scrolled to: a reader
+     cannot be asked to drag one box while looking at another. These are the
+     two paints of the same 1 px column — the ghost the mark is, and the
+     nothing it is the rest of the time — on the wash the boxes stand on.
+     They are not the component; they are a magnification of one edge of it. */
+  .cut-rungs { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+  /* flex: 1 1 14rem and min-width: 0, not `0 0 auto`. A flex item's automatic
+     minimum is its content, and the content here is a sentence: written as
+     `auto` the figure sized to its own caption and took the document 286 px
+     sideways at 320. Measured, before and after, at 320 / 375 / 768 / 1280 /
+     1920 with the sweep the layout chapter's intrinsic-minimum rule uses. */
+  .cut-rung { margin: 0; display: grid; gap: var(--space-3); flex: 1 1 14rem; min-width: 0; }
+  .cut-rung__plate {
+    inline-size: 6rem;
+    block-size: 6rem;
+    border: var(--stroke-1) solid var(--border-default);
+    display: grid;
+    justify-items: end;
+  }
+  .cut-rung__mark {
+    inline-size: var(--stroke-1);
+    block-size: 100%;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--border-strong) 0 var(--stroke-1),
+      transparent var(--stroke-1) calc(var(--stroke-1) * 5));
+  }
+  .cut-rung__mark--none { background-image: none; }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 21</p>
+    <h1>The Cut</h1>
+    <p>
+      Every contour in this system is an edge or a division. A crop is neither, and until
+      this chapter it was drawn as the first — five scroll boxes ending in the same nothing
+      whether a column was hidden behind them or the table simply stopped. The reader was
+      told a table ended when a table was cut.
+    </p>
+  </header>
+
+  <section class="docs-section" id="where">
+    <h2>Where this comes from</h2>
+    <p>
+      No plate in <code>assets/source/manual/</code> draws a scroll box, because a book has
+      no scroll box to draw. What the manual does establish is the law this chapter applies:
+      <a href="geometry.html">Geometry &amp; Lines</a> allows a line to be an edge or a
+      division and calls anything else decoration, and the same plate sets out four line
+      types as a ladder of how present a thing is. Both halves are needed here, and the
+      second is what makes the answer available at all.
+    </p>
+    <p>
+      The system already reasons about crops in three places and had drawn none of them.
+      <code>check-overflow-clip.py</code> holds a crop to saying it is a crop rather than a
+      scrollport; <code>check-slice-crop.py</code> holds a <code>slice</code> vector to
+      showing the part of the drawing the crop exists for; the print rules release a table's
+      crop because <a href="print.html">a sheet cannot be dragged</a>. Three gates about what
+      is outside a frame, and nothing that told a reader anything was.
+    </p>
+    <div class="docs-note">
+      <p>
+        <strong>This is the smallest possible claim and it is still a claim.</strong> A
+        scrollbar already says a box scrolls, and the five boxes here all show one — none of
+        them hides it, and <a href="#rules">Rules</a> says never to. What a scrollbar does
+        not say is <em>which edge</em> is hiding something, and on a box scrolled to its end
+        it says the opposite of nothing at all. The mark is one line at one edge, and it is
+        gone the moment that edge is honest.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section" id="three">
+    <h2>Three kinds of edge</h2>
+    <p>
+      The system draws boundaries constantly and has, until now, had one drawing for all of
+      them. There are three, and only the first is what a plain hairline means.
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <caption>Every edge in the system, by what is on the other side of it</caption>
+      <thead>
+        <tr><th scope="col">Edge</th><th scope="col">What is past it</th><th scope="col">How it is drawn</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>A <strong>boundary</strong></td><td>Nothing. The drawing ends.</td><td>A hairline, solid. The table's last rule, the plate's frame, the footer's top edge.</td></tr>
+        <tr><td>A <strong>cut</strong></td><td>More of the same drawing, off-frame and unreachable.</td><td>Nothing, and correctly: the four process objects run their traces off their crops on purpose, and a mark there would claim the reader could go and look. → <a href="illustration.html">Illustration</a></td></tr>
+        <tr><td>A <strong>crop that scrolls</strong></td><td>More of the same drawing, off-frame and one drag away.</td><td>The mark below. This is the only one of the three where the reader can act on being told.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      The distinction that decides the drawing is not <em>is something hidden</em> but
+      <em>can the reader do anything about it</em>. That is why an illustration cut by its
+      frame gets no mark and a table cut by its port does: one is composition, the other is
+      an interface withholding a column.
+    </p>
+  </section>
+
+  <section class="docs-section" id="mark">
+    <h2>The mark</h2>
+    <p>
+      One 1 px column at the edge that is hiding something, on
+      <code>--presence-absent</code> — the 1-4 ghost, the rung
+      <a href="geometry.html">the presence ladder</a> reserves for a thing that is there and
+      not drawn. Which is exactly what a column past the crop is. It appears at the leading
+      edge, the trailing edge, both, or neither, and neither is the resting state of most
+      boxes on most screens.
+    </p>
+    <div class="docs-demo">
+      <div class="cut-rungs">
+        <figure class="cut-rung">
+          <div class="cut-rung__plate"><span class="cut-rung__mark"></span></div>
+          <figcaption class="docs-caption docs-caption--cased"><b>Cut</b>The ghost line type in the cell rules’ ink, one hairline wide, the full depth of the port.</figcaption>
+        </figure>
+        <figure class="cut-rung">
+          <div class="cut-rung__plate"><span class="cut-rung__mark cut-rung__mark--none"></span></div>
+          <figcaption class="docs-caption docs-caption--cased"><b>Boundary</b>Nothing. The edge of the box is the edge of the drawing, and the box already draws it.</figcaption>
+        </figure>
+      </div>
+    </div>
+    <p>
+      Below are two real <code>.cf-table__scroll</code> boxes in narrowed ports. Drag either
+      one, or tab to it and use the arrow keys: the mark crosses from one edge to the other
+      and is gone at both ends of the travel. The second table fits its port and therefore
+      never draws one.
+    </p>
+    <div class="docs-demo">
+      <div class="cut-ports">
+        <figure>
+          <div class="cf-table__scroll cut-port" tabindex="0" role="region" aria-labelledby="cut-wide">
+            <table class="cf-table">
+              <caption id="cut-wide">Ein Messpunkt und was er kostet</caption>
+              <thead>
+                <tr><th scope="col">Betriebsart</th><th scope="col">Versatz</th><th scope="col">Geeignet für</th><th scope="col">Kosten</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Batch</td><td>1–24 h</td><td>Berichte, Trends</td><td>niedrig</td></tr>
+                <tr><td>Mikro-Batch</td><td>1–5 min</td><td>Zustandsüberwachung</td><td>mittel</td></tr>
+                <tr><td>Streaming</td><td>&lt; 1 s</td><td>Regelung, Netzstabilität</td><td>hoch</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <figcaption class="docs-caption docs-caption--cased"><b>Four columns in a 20 rem port</b>The mark stands at the trailing edge until the last column is on screen, then at the leading one.</figcaption>
+        </figure>
+        <figure>
+          <div class="cf-table__scroll cut-port" tabindex="0" role="region" aria-labelledby="cut-narrow">
+            <table class="cf-table">
+              <caption id="cut-narrow">Zwei Felder, kein Versatz</caption>
+              <thead>
+                <tr><th scope="col">Feld</th><th scope="col">Wert</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Takt</td><td>1 s</td></tr>
+                <tr><td>Puffer</td><td>64 kB</td></tr>
+                <tr><td>Rückstand</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <figcaption class="docs-caption docs-caption--cased"><b>Two columns in the same port</b>Nothing is hidden, so no mark is drawn. At a 320 px viewport and a 24 px default text size it does crop by 16 px, and the mark appears — the box answers the measurement, not the author.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="why">
+    <h2>Why this is not a background</h2>
+    <p>
+      The construction every other system reaches for is the scroll shadow: two background
+      layers on the scroll box, one of them <code>background-attachment: local</code>, so the
+      layer that scrolls with the content covers the layer that does not. It is twelve years
+      old, it works in every browser, it needs no script — and it cannot draw this mark. The
+      reason is worth stating, because it is the whole argument for the mechanism that
+      replaced it.
+    </p>
+    <p>
+      A <code>local</code> layer is positioned against the <em>scrollable area</em> rather
+      than against the box, so the pair can only ever <strong>occlude</strong> each other.
+      Both states are therefore always painted: the box at the end of its travel does not
+      lose the mark, it gains a second one drawn over the top. Whatever the resting state is
+      made of, it is made of something — and here the resting state has to be
+      <em>nothing</em>, because the alternative is a permanent vertical rule at both ends of
+      every table in the system. <a href="../components/table.html">Table</a> bans that rule
+      by name: <q>a grid of boxes says spreadsheet; a stack of rules says reading order</q>.
+    </p>
+    <p>
+      <code>scroll-state(scrollable: …)</code> is a state and not a picture. It asks whether
+      the container can still be scrolled that way, and it is false both at the end of the
+      travel <em>and</em> when there is no travel — which is the case a hand-written scroll
+      listener gets wrong first, because a listener starts at position zero and a box that
+      never scrolls is also at position zero. So a box with nothing hidden draws nothing,
+      and that is not a fallback: it is the same answer the query gives.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <p>
+        <strong>A container cannot query itself, and the mark belongs to the box.</strong>
+        The query is answered by descendants, so the mark is the box's own
+        <code>::before</code> and <code>::after</code> — child boxes of the container, and
+        the only children that can be added to five components without touching a line of
+        their markup. That costs one layout declaration: a pseudo-element in normal flow is
+        a block after the content with no depth of its own, and the mark is the full depth
+        of the crop. A single-column grid gives it that depth as a cell it can stretch in,
+        and gives the two marks the two ends of the <em>content</em> to stand at, which is
+        what <code>position: sticky</code> then measures back from.
+      </p>
+    </div>
+    <p>
+      The single child is placed in that same cell explicitly, and that is the one thing
+      about this construction that can be got wrong silently: grid auto-placement skips a
+      cell an explicitly placed item already holds, so a second child would land in row 2 —
+      under a mark drawn only to the depth of row 1, rendering as though nothing were wrong.
+      <code>scripts/check-cut-edge.py</code> reads every instance of every cut box in the
+      markup and counts its children for exactly that reason.
+    </p>
+  </section>
+
+  <section class="docs-section" id="construction">
+    <h2>The construction</h2>
+    <p>
+      Nothing is added to a page. Every box below is markup that already ships; the whole of
+      the cut is in <code>components.css</code>, behind one gate.
+    </p>
+    <pre class="docs-code"><code>&lt;!-- unchanged: this is what components/table.html has always shipped --&gt;
+&lt;div class="cf-table__scroll" tabindex="0" role="region" aria-labelledby="caption-id"&gt;
+  &lt;table class="cf-table"&gt;…&lt;/table&gt;
+&lt;/div&gt;</code></pre>
+    <pre class="docs-code"><code>@supports (container-type: scroll-state) {
+  .cf-table__scroll {
+    container-type: scroll-state;
+    display: grid;
+    grid-template-columns: minmax(min-content, 1fr);
+  }
+  .cf-table__scroll &gt; * { grid-area: 1 / 1; }
+
+  .cf-table__scroll::before,
+  .cf-table__scroll::after {
+    content: "";
+    grid-area: 1 / 1;
+    align-self: stretch;
+    position: sticky;
+    inline-size: var(--stroke-1);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--border-strong) 0 var(--stroke-1),
+      transparent var(--stroke-1) calc(var(--stroke-1) * 5));
+    opacity: 0;
+  }
+  .cf-table__scroll::before { justify-self: start; inset-inline-start: 0; }
+  .cf-table__scroll::after  { justify-self: end;   inset-inline-end: 0; }
+
+  @container scroll-state(scrollable: inline-start) {
+    .cf-table__scroll::before { opacity: 1; }
+  }
+  @container scroll-state(scrollable: inline-end) {
+    .cf-table__scroll::after { opacity: 1; }
+  }
+}</code></pre>
+    <p>
+      The track is <code>minmax(min-content, 1fr)</code> and not <code>1fr</code>. A table
+      that outgrows its column is the entire subject of this chapter, so the floor has to be
+      the content's own minimum rather than zero — which is the deliberate non-zero floor
+      <a href="layout.html#intrinsic-minimum">the track rule</a> credits, and which
+      reproduces exactly what <code>display: block</code> did: the child fills the port, or
+      exceeds it and scrolls. Measured against the same pages before the change, at 375, 768
+      and 1280: every box, every child and every document identical to the pixel, with one
+      exception — the team strip's <code>&lt;ul&gt;</code> box now measures its own content
+      rather than its port. It paints nothing, so nothing moved.
+    </p>
+  </section>
+
+  <section class="docs-section" id="fallback">
+    <h2>What every reader gets</h2>
+    <p>
+      There is no half-drawn tier here, and that is a property of the mechanism rather than
+      a piece of luck: the thing the base tier draws is the thing the query draws when it is
+      false.
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <caption>The two tiers, and the one drawing they share</caption>
+      <thead>
+        <tr><th scope="col">Reader</th><th scope="col">Box with a column hidden</th><th scope="col">Box with nothing hidden</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Chromium 133+</td><td>The ghost mark at that edge</td><td>Nothing</td></tr>
+        <tr><td>Safari, Firefox, anything older</td><td>Nothing — the page that shipped before this chapter</td><td>Nothing</td></tr>
+        <tr><td><code>prefers-reduced-motion</code></td><td>The mark, arriving instantly rather than crossing</td><td>Nothing</td></tr>
+        <tr><td><code>forced-colors: active</code></td><td>The same mark in <code>CanvasText</code> — a gradient is a background image and the mode does not remap one, so the ink is restated</td><td>Nothing</td></tr>
+        <tr><td>Paper</td><td>Nothing. A sheet has no travel, and a mark beside a column the sheet does not carry is a lie about the page → <a href="print.html">The Sheet</a></td><td>Nothing</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      The scrollbar is the affordance every one of those readers has and it is never taken
+      away. The mark is a second statement on top of it, about which edge and about whether
+      there is anything left in that direction — the two things a scrollbar is worst at on a
+      box a few dozen pixels wider than its port.
+    </p>
+  </section>
+
+  <section class="docs-section" id="census">
+    <h2>Every crop in the system</h2>
+    <p>
+      The roster is not kept here. <code>scripts/check-cut-edge.py</code> reads every rule in
+      the four shipping stylesheets that declares an inline-axis <code>overflow</code> of
+      <code>auto</code> or <code>scroll</code> and takes that as the definition of a crop —
+      the same way <a href="materials.html">the glass budget</a> reads what counts as glass
+      out of the stylesheet rather than out of a list. A sixth scroll box enters this table
+      by existing.
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <caption>The inline axis: six crops, five marked</caption>
+      <thead>
+        <tr><th scope="col">Box</th><th scope="col">What it crops</th><th scope="col">Cut</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>.cf-table__scroll</code></td><td>A table wider than its column</td><td>yes</td></tr>
+        <tr><td><code>.cf-prose__table-scroll</code></td><td>The same table inside an article</td><td>yes</td></tr>
+        <tr><td><code>.cf-calendar__scroll</code></td><td>A month at a width that cannot hold seven days</td><td>yes</td></tr>
+        <tr><td><code>.cf-gantt__scroll</code></td><td>A plan longer than the screen</td><td>yes</td></tr>
+        <tr><td><code>.cf-team-strip</code></td><td>Four faces at a 15 rem floor</td><td>yes</td></tr>
+        <tr><td><code>.cf-prose pre</code></td><td>A line of code past the block's width</td><td>no — its port edge and its drawn edge are not the same line. The block frames itself on all four sides and holds <code>--space-4</code> inside that frame, so a mark stretched across the content box would stand 16 px in from the line the reader reads as the edge: a rule inside the code rather than the edge of it.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      The <strong>block axis</strong> is out of this chapter by argument and not by
+      omission. Three boxes scroll vertically. Two of them — the phone menu's open list and
+      the consent panel — are panels whose whole height the reader chose to open, and a
+      panel is not a crop of a drawing. The third,
+      <code>.cf-blog-grid--port .cf-blog-col</code>, is a genuine block-axis cut: a column of
+      the archive holding more cards than its 36.5 rem port. It wants the same mark on a
+      different construction — the marks lie along the block edges and take their length
+      from the inline axis instead — and it is named here rather than half-covered, which is
+      the state the census is honest in.
+    </p>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <caption>What each part is and what decides it</caption>
+      <thead>
+        <tr><th scope="col">Part</th><th scope="col">Value</th><th scope="col">Why</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Weight</td><td><code>--stroke-1</code></td><td>A contour. The system's other three weights are for objects, and this is not an object.</td></tr>
+        <tr><td>Ink</td><td><code>--border-strong</code></td><td>The weight the cell rules are drawn in, so the mark reads as the box's own line rather than as a lighter thing standing beside it. Contrast on the wash is the contour's 3:1.</td></tr>
+        <tr><td>Line type</td><td><code>--presence-absent</code> (1-4)</td><td>The rung for a thing that is there and not drawn. Written as a gradient rather than a dasharray because this is a box and not a stroke; both numbers are the hairline — one unit of ink, four of gap.</td></tr>
+        <tr><td>Depth</td><td>The port's</td><td><code>align-self: stretch</code> in the one grid cell the content also holds. Not a length: the cell is whatever the content made it.</td></tr>
+        <tr><td>Position</td><td><code>sticky</code>, at the content's two ends</td><td><code>justify-self</code> puts each mark at one end of the <em>content</em>; sticky pulls it back to the port's edge for as long as content is still out there.</td></tr>
+        <tr><td>State</td><td><code>scroll-state(scrollable: inline-start / inline-end)</code></td><td>Not a scroll position. False at the end of the travel and false when there is no travel, which are the same drawing and must be.</td></tr>
+        <tr><td>Arrival</td><td><code>--duration-fast</code>, opacity only</td><td>A mark that snaps on and off at the two ends of a drag reads as a glitch. Nothing moves; it is one opacity, inside the no-preference gate.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Give a new scroll box the cut by adding it to the block in <code>components.css</code>. The gate will ask for it the moment the box exists, and the answer is two selectors, not a component.</li>
+          <li>Keep the box's scrollbar. The mark says <em>which edge</em> and <em>whether there is more</em>; the scrollbar is what says the box scrolls at all, and it is the only one of the two every reader gets.</li>
+          <li>Keep <code>tabindex="0"</code>, <code>role="region"</code> and an accessible name on the box. Scrollable content with no focusable child is unreachable by anything but a mouse — WCAG 2.1.1 — and the mark does not change that by one line.</li>
+          <li>Put the box's single child in the grid cell explicitly. One child, one cell; the gate counts them in every page that draws one.</li>
+          <li>Ask whether the crop is one a reader can act on. An illustration cut by its frame gets no mark, and that is the distinction the whole chapter turns on.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Never draw the mark in the resting state. A box with nothing hidden gets nothing — a permanent rule at both ends of every table is the drawing <a href="../components/table.html">Table</a> bans by name, and on a browser without the query it would be the only thing drawn.</li>
+          <li>No shadow, no fade, no gradient veil over the content. A shadow is not one of <a href="materials.html">the six materials</a>, and a veil hides the column it is announcing.</li>
+          <li>Do not hide the scrollbar to make room for the mark. The mark is an addition to the affordance and never a replacement for it.</li>
+          <li>Never use a scroll listener for this. A listener starts at position zero, and so does a box that does not scroll — the two states it must tell apart are the two it cannot.</li>
+          <li>Do not carry the mark onto paper. A sheet has no travel; a mark there names a column the reader can never reach.</li>
+          <li>Do not put the mark on a second axis by widening this construction. The block-axis cut is a different drawing, and half of one is worse than none.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>
