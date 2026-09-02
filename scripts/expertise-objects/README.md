@@ -26,7 +26,12 @@ Regenerating is deterministic to the byte. It was not: a half-turn arc's large-a
 was `span > pi` on a value that is pi to the last ulp, and two of the four files came back
 from another machine's libm with eleven flags flipped and nothing changed on screen.
 `_arc()` now carries the tolerance. After `python3 objects.py`, the four `<svg>` blocks in
-the two pages are replaced with the files verbatim, at the pages' own indentation.
+the two pages are replaced with the files verbatim, at the pages' own indentation — so
+anything a page needs on one of these elements has to come out of the generator. An
+orbit's `--iso-orbit-travel` is the case in point: `scripts/check-orbit-turn.py` holds
+every ring to a whole number of dashes inside one part in 19.52 of its circumference,
+the declarations were once added to the pages by hand, and the next regeneration wiped
+them. `isolib.orbit()` derives and writes the value itself now.
 
 Two conventions in here are load-bearing and are documented on
 `design-system/foundations/illustration.html`:
