@@ -1,13 +1,14 @@
 # scripts/
 
 Everything that generates this website, and everything that refuses to let it
-ship broken. 179 files at this level, this one included, no package, no
+ship broken. 180 files at this level, this one included, no package, no
 `__init__.py`, no build step: every one is `python3` against the standard
 library, and 178 of the 179 are run by their own path. There are exactly two
 dependencies in the whole directory — Pillow, in `sync-news-notion.py` and
-nowhere else, and Playwright, in the four checks that need a browser
+nowhere else, and Playwright, in the five checks that need a browser
 (`check-runtime.py`, `check-text-zoom.py`, `check-consent-focus-return.py`,
-`check-spectrum-plate.py`) — and both are discussed below.
+`check-spectrum-plate.py`, `check-glass-floor.py`) — and both are discussed
+below.
 
 **The file that is not run by its own path is `og_meta.py`**, imported by four
 of its neighbours and executed by none. The paragraph above read "no shared
@@ -33,7 +34,7 @@ most.
 
 | Count | What | Who runs it |
 | --- | --- | --- |
-| 159 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
+| 160 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
 | 8 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all eight, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
 | 1 | `build-all.sh` | `news-sync.yml`, and a human. Nothing else. |
 | 1 | `stage-site.py` — collects the website into `dist/` | both deploys, `--surface pages` and `--surface worker` |
@@ -75,8 +76,8 @@ Plus two subdirectories:
   produce, and its own `README.md`, which is the authority on that
   subdirectory's two load-bearing conventions.
 
-**Four checks open a browser instead of reading files,** and they all live in
-`design-system.yml`'s `runtime` job, where Playwright is installed. All four
+**Five checks open a browser instead of reading files,** and they all live in
+`design-system.yml`'s `runtime` job, where Playwright is installed. All five
 skip with exit 0 when no browser is present — except when `CF_REQUIRE_BROWSER`
 is set, which is how the CI job stops a broken install step from silently
 dodging the gate. This paragraph named one of them for as long as there have
@@ -94,6 +95,21 @@ different reason entirely: its subject is a **JPEG**, the designer's
 adding a third dependency to a stdlib-only directory. It samples the spectrum
 column on that plate and holds `foundations/colors.html#plate` to what the
 picture actually says.
+
+`check-glass-floor.py` is the fifth, and the only one that reads **composited
+pixels**. The 46 % bearing tint's contrast floor is arithmetic and
+`check-contrast.py` recomputes it; `--surface-glass-thin` and
+`--surface-glass-veil` are promises about a *named* backdrop that is a drawing,
+so no file states the colour and no arithmetic produces the figure. It hides a
+surface's own content, screenshots it where it stands, and takes the darkest
+pixel of the browser's real composite over the surface's whole passage through
+the viewport — nothing here reimplements `backdrop-filter`, because a gaussian
+written into a checker would be a second material wearing the first one's name.
+Every sample point is hit-tested with `elementFromPoint`: a screenshot of an
+element's box catches everything painted *over* it while `backdrop-filter`
+samples only what is painted *under* it, and reporting the navigation bar as a
+card's backdrop is how a gate stops being believed. It is the slowest check in
+the directory at about six minutes.
 
 ### The 126 checks are two different kinds of file wearing one prefix
 
@@ -489,8 +505,8 @@ That is `routine-merge.yml`'s gate step verbatim, including the order: **the
 build first**, because a fresh checkout has no pages and two of the checks read
 them, and because building is what asserts the tracked half of the tree. Then the
 checks, so a broken drawing is still reported when a catalogue entry is also
-missing. `check-runtime.py` is in the glob and will skip with exit 0 unless
-you have Playwright and set `CF_REQUIRE_BROWSER=1`; the four `gen-*.py`
+missing. The four browser checks are in the glob and will skip with exit 0
+unless you have Playwright and set `CF_REQUIRE_BROWSER=1`; the four `gen-*.py`
 `--check`s are wired in `design-system.yml` but are *not* in the glob, so add
 them by hand when you have touched a generated drawing:
 
