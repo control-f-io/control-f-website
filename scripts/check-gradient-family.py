@@ -70,6 +70,22 @@ premise ("roughly the same circle about the neutral axis") says when it is
 measured instead of asserted. See ARC_RATIO_CEILING; no shipped gradient
 changes classification.
 
+AND THE WALK READ WHAT SHIPS, WHICH IS NOT QUITE EVERY PLACE A MEMBER IS
+WRITTEN. Both halves above open files: pages, drawings, stylesheets. The
+signet's ramp is written in neither -- twice, in two languages, as a stop table
+in `design-system/assets/js/cf-signet.js` and again in
+`scripts/og-plate/signet.py`. One is emitted into the DOM as a
+<linearGradient> at DOMContentLoaded; the other is rasterised into every Open
+Graph share image. There is no file on disk holding either as markup, so the
+brand's own mark carried the one gradient nothing here had ever read.
+
+check-signet-parity.py holds those two copies TO EACH OTHER, which is precisely
+the check that cannot see this: move --cf-lime and both go stale together, in
+step, and parity still passes. Both files said the gate reached them -- "the
+gradient checker recomputes both from the leg's own ends" is written beside the
+javascript table -- which is a comment describing what this file does to the
+SVGs, next to a stop list it had never opened. See EMITTERS.
+
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
     python3 scripts/check-gradient-family.py          # check, exit 1 on drift
@@ -152,6 +168,83 @@ NEAR_MISS = 0.01
 # Position tolerance. Offsets ship at three decimals, so half a unit in the
 # last place is the most an honest rounding can cost.
 POS_TOL = 0.0006
+
+# --- the third half: the two EMITTERS ---------------------------------------
+#
+# THE WALK READS WHAT SHIPS, AND ONE MEMBER OF THIS FAMILY NEVER LANDS IN A FILE
+# THE WALK CAN READ. sources() opens design-system/**/*.html and **/*.svg, and
+# CSS opens five stylesheets. Between them that is every gradient a visitor is
+# served -- with one exception, and it is the brand's own mark.
+#
+# The signet's ramp is stated TWICE, in two languages, and neither statement is
+# markup:
+#
+#   design-system/assets/js/cf-signet.js   var STOPS = [...]
+#       emitted as a <linearGradient> into the DOM at DOMContentLoaded, on every
+#       element carrying data-cf-signet. There is no file on disk holding those
+#       stops as SVG; the walk has nothing to open.
+#   scripts/og-plate/signet.py             STOPS = [...]
+#       rasterised by scripts/og-plate/raster.py into every Open Graph share
+#       image. The output is a PNG. The walk has nothing to open there either.
+#
+# So the one gradient in this system that is painted where nobody can read it is
+# the one on the mark. check-signet-parity.py holds the two copies TO EACH
+# OTHER, which is the check that cannot find this class of drift: move --cf-lime
+# or --cf-glas and both copies go stale together, in step, and parity still
+# passes. Nothing held either of them to the palette.
+#
+# BOTH FILES SAID OTHERWISE. cf-signet.js: "see the convention in tokens.css and
+# scripts/check-gradient-family.py, which re-derives both numbers rather than
+# trusting them", and beside the table itself, "Do not round these to tidier
+# numbers -- the gradient checker recomputes both from the leg's own ends." That
+# was a description of what this file does to the SVGs, written next to a stop
+# list this file had never opened. A comment asserting a gate that does not
+# reach it is worse than no comment: it is the reason nobody went looking.
+#
+# THE OTHER TWO EMITTERS ARE DELIBERATELY NOT IN HERE, and the boundary is the
+# same one the first paragraph draws. scripts/expertise-objects/isolib.py and
+# scripts/news-objects/isonews.py also write the family's ramp as a stop table
+# in python -- but they write it INTO SVG FILES AND PAGES that sources() then
+# opens, so their output is already walked, on every run, as markup. Gating the
+# generator as well as its output would be checking the same ramp twice and
+# giving a future divergence between the two two places to be right. They also
+# already derive their waypoint's POSITION from WAYPOINT_T rather than typing
+# it; the signet's two copies type both numbers.
+#
+# The rules applied are the SVG half's, because that is what both emitters are:
+# a <linearGradient> in one case and a straight sRGB ramp through the same stops
+# in the other. Neither can interpolate in oklab, which is exactly why the
+# source-leg waypoint has to be there.
+EMITTERS = (
+    # (path, the STOPS block, one stop inside it, what a position is out of)
+    ("design-system/assets/js/cf-signet.js",
+     re.compile(r"var\s+STOPS\s*=\s*\[(.*?)\];", re.S),
+     re.compile(r"\{\s*at:\s*'\s*([0-9.]+)\s*%'\s*,\s*color:\s*'\s*(#[0-9A-Fa-f]{6})\s*'\s*\}"),
+     100.0),
+    ("scripts/og-plate/signet.py",
+     re.compile(r"^STOPS\s*=\s*\[(.*?)\]\s*$", re.S | re.M),
+     re.compile(r"\(\s*([0-9.]+)\s*,\s*\"(#[0-9A-Fa-f]{6})\"\s*\)"),
+     1.0),
+)
+
+
+def emitter_stops(path, block_re, stop_re, scale):
+    """One emitter's ramp as the SVG half's (offset, colour) pairs, or None.
+
+    Offsets are normalised onto 0-1, which is what an SVG `offset` attribute
+    is and therefore what POS_TOL is denominated in. The javascript writes
+    percentages because it is about to print them into an attribute; the
+    python writes fractions because it is about to hand them to a rasteriser.
+    Same ramp, two spellings of the same axis.
+    """
+    text = (ROOT / path).read_text(encoding="utf-8")
+    block = block_re.search(text)
+    if not block:
+        return None
+    stops = [(float(off) / scale, col.upper())
+             for off, col in stop_re.findall(block.group(1))]
+    return stops or None
+
 
 # --- the CSS half -----------------------------------------------------------
 
@@ -944,6 +1037,29 @@ def main():
             failures.append("%s  %s: href=\"#%s\" names no gradient in this file, so it "
                             "inherits no stops and paints nothing" % (rel, gid, href))
 
+    # --- the third half. Two stop tables that never become a file this walk
+    #     can open: one is emitted into the DOM, the other is baked into a PNG.
+    #     Same rules as the SVG half, because that is what both of them are.
+    emitted = 0
+    for path, block_re, stop_re, scale in EMITTERS:
+        stops = emitter_stops(path, block_re, stop_re, scale)
+        if stops is None:
+            failures.append("%s: no STOPS table found. The signet's ramp is a member of "
+                            "the light family and this is the only thing that reads it "
+                            "-- if the table has been renamed, rename it here too rather "
+                            "than letting the ramp go ungated." % path)
+            continue
+        emitted += 1
+        arc_stops = [(c, 1.0) for _, c in strip_source_waypoints(stops)]
+        problems = (check_near_miss(stops) + check_source_leg(stops)
+                    + check_arc(arc_stops))
+        if args.verbose:
+            print("%s %-42s js/py %-10s %s" % (
+                "FAIL" if problems else "ok  ", path, "STOPS",
+                " ".join("%g:%s" % s for s in stops)))
+        for p in problems:
+            failures.append("%s  STOPS: %s" % (path, p))
+
     # --- the CSS half. One props map across all three files, because the
     #     ramps are declared in tokens.css and consumed in the other two.
     css = [(name, (DS / "assets" / "css" / name).read_text(encoding="utf-8"))
@@ -984,7 +1100,8 @@ def main():
               "block in tokens.css.", file=sys.stderr)
         return 1
 
-    print("%d SVG gradients and %d CSS gradients, one family." % (seen, css_seen))
+    print("%d SVG gradients, %d CSS gradients and %d emitted ramp%s, one family."
+          % (seen, css_seen, emitted, "" if emitted == 1 else "s"))
     # Named rather than passed over in silence, the way the glass budget names
     # a selector it cannot count: a stop this script cannot read is a stop it
     # is making no claim about, and a rule with a silent hole in it trains
