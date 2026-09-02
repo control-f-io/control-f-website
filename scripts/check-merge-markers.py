@@ -19,11 +19,16 @@ nothing was reading for it.
 Cheap enough to be free: one pass over the tracked text files, one string
 comparison per line.
 
-WHAT COUNTS. `<<<<<<< ` and `>>>>>>> ` at the start of a line are findings on
-their own — no file here has a legitimate reason for either. A bare
-`=======` is a finding ONLY between them, because seven equals signs is also
-a setext heading rule in Markdown and a divider in an ASCII figure, and a
-check that failed those would be enforcing a rule nobody wrote.
+WHAT COUNTS. `<<<<<<< `, `||||||| ` and `>>>>>>> ` at the start of a line are
+findings on their own — no file here has a legitimate reason for any of the
+three. A bare `=======` is a finding ONLY between them, because seven equals
+signs is also a setext heading rule in Markdown and a divider in an ASCII
+figure, and a check that failed those would be enforcing a rule nobody wrote.
+
+The middle one is the diff3 / zdiff3 conflict style's base section, and it is
+here for the half-resolution rather than for the whole one: while both outer
+markers are present they are already findings, but a marker deleted by eye
+takes the two lines somebody was looking for and leaves that one behind.
 
     python3 scripts/check-merge-markers.py
     python3 scripts/check-merge-markers.py -v   # print what was scanned
@@ -46,6 +51,12 @@ SKIP_SUFFIXES = {
 OPEN = "<<<<<<< "
 CLOSE = ">>>>>>> "
 MID = "======="
+# The diff3 / zdiff3 conflict style writes a third section between OPEN and MID,
+# introduced by this. It is redundant while both outer markers survive — they
+# are findings on their own — and it is the one line left behind by a HALF
+# resolution, where the two obvious markers were deleted by eye and the base
+# section under them was not. Same test, same cost.
+BASE = "||||||| "
 
 
 def tracked_files():
@@ -82,6 +93,8 @@ def main():
                 findings.append((name, n, line[:60]))
             elif line.startswith(CLOSE):
                 inside = False
+                findings.append((name, n, line[:60]))
+            elif line.startswith(BASE):
                 findings.append((name, n, line[:60]))
             elif inside and line.rstrip() == MID:
                 findings.append((name, n, line))
