@@ -365,6 +365,8 @@ python3 scripts/check-section-header-rule.py   # a flush section header stands o
 python3 scripts/check-section-header-rule.py -v # every flush header, and what draws its edge
 python3 scripts/check-illustration-source.py   # the four process objects are still the designer's vectors
 python3 scripts/check-illustration-source.py -v  # every element, matched or deviated, and why
+python3 scripts/check-figure-roster.py         # the two chapters that census the isometric figures count the tree
+python3 scripts/check-figure-roster.py --fix   # rewrite the assembly roster in foundations/motion.html from the tree
 python3 scripts/check-readme-check-count.py    # the count above this block is the length of this block, and scripts/README.md's two are the directory
 python3 scripts/check-readme-check-count.py --fix  # write all three from what is on disk
 python3 scripts/check-readme-check-count.py -v # every number, and everything counted for it
@@ -395,7 +397,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The thirty-six checks the system enforces rather than documents, run by CI on every push and
+The thirty-seven checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -2904,8 +2906,9 @@ it would train people to ignore it.
   → `foundations/motion.html`
 - **`--iso-travel` on a frame that has been recropped.** The arrival distance is a transform,
   so it is in viewBox units, and the rule is `viewBox width / 40` — the same 5 % of the
-  drawing in every frame. Seven of the fifteen shipping objects are not on a 640 square and
-  carry their own value, four of them as inline custom properties on the `svg`. Nothing tied
+  drawing in every frame. Eight of the fourteen shipping figures are not on a 640 square, seven of them
+  carry their own value, four of those as inline custom properties on the `svg`, and the
+  eighth is the Über uns header, which is above the fold and travels nowhere. Nothing tied
   those literals to the viewBox they were derived from, so **recropping a drawing left its
   travel silently wrong.** It had already happened once: the four objects on
   `patterns/expertise.html` were recropped from 695.2 / 612 / 552.4 / 714.24 to
