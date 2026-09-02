@@ -96,6 +96,42 @@
       that carries no utility class. The fix is not to move the markup. It is to give all three
       one declaration to read.
     </div>
+    <div class="docs-note">
+      <strong>One declaration to read was half of it. A track set is a recipe <em>and</em> a
+      gutter, and the token carries only the recipe.</strong> <code>--grid-tracks</code> made the
+      three rules agree about how many columns and how they are sized. It could not make them
+      agree about the gutter, because that is <code>gap</code>, and
+      <code>.cf-values__frame</code> and <code>.cf-values__item</code> each declared their own —
+      two rules, one nested inside the other, holding the pinned <strong>4 + 4 + 4</strong>
+      together on the strength of two separate declarations resolving to the same number
+      forever. They did: measured at 1024, 1280, 1440 and 1920, the title, the mark and the body
+      landed on the same verticals to within <strong>0.02 px</strong>. That is what a
+      restatement looks like — right, until the day somebody gives the frame a gutter of its
+      own, at which point the three bands come apart with both rules still reading the token
+      they were told to read.
+      <br><br>
+      <code>.cf-values__item</code> takes the frame's <em>resolved lines</em> now, through
+      <code>grid-template-columns: subgrid</code> — the same move
+      <a href="#subdivision"><code>.subdivide__row</code></a> has made since the blog grid was
+      built, and for the sentence that rule is built on. <code>column-gap: normal</code> goes
+      with it and is load-bearing rather than tidying: on a subgrid axis <code>normal</code>
+      means <em>the parent's gutter</em>, and without it the item's own <code>gap</code> would
+      go on overriding the thing the subgrid exists to inherit. Positive
+      <code>@supports</code>, the form <code>.cf-team-grid__item</code> uses, because more than
+      one declaration moves; without subgrid every rule is untouched and the composition draws
+      exactly as it did. The fallback is the old arithmetic, which was right — just solved
+      twice.
+      <br><br>
+      <code>scripts/check-track-restatement.py</code> is the gate. The rule is
+      <strong>one solver per component block</strong>: a custom property counts as a track set
+      if some rule states it as the whole of a <code>grid-template-columns</code> value, and at
+      most one rule per block may state it without also taking it through <code>subgrid</code>.
+      It counts <em>rules</em> rather than selectors, so <code>acts.css</code>'s
+      <code>.act-rail__link, .act-rail__jump</code> — two siblings put on one axis by one
+      declaration, which is what this asks for — is one solver and not two; and it folds a
+      modifier onto what it modifies, so <code>.grid</code> and <code>.grid--early</code> are
+      one solver stated at two container widths. Proven failing on the restatement reintroduced.
+    </div>
     <p>
       The gutter is proportional rather than stepped, and the proportion is not arbitrary:
       (1440 − 1280) ÷ 2 ÷ 1440 = <strong>5.5556 %</strong>, rounded down to the 5.5vw in the token.

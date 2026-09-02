@@ -10530,7 +10530,13 @@ a.cf-calendar__day > time,
     }
     .cf-values__mark { grid-column: 5 / 9; grid-row: 1; }
 
-    /* every value occupies the same place; the timeline chooses which is lit */
+    /* every value occupies the same place; the timeline chooses which is lit.
+
+       1 / -1 rather than 1 / 1 on the item below, because the two spellings
+       stop being the same the moment the list has more than one track — which
+       is exactly what the @supports block at the foot of this composition
+       gives it. Written this way in both paths so the fallback and the subgrid
+       form differ in ONE declaration rather than in the placement too. */
     .cf-values__list { grid-column: 1 / -1; grid-row: 1; display: grid; }
     /* The stacked state's separator has to be undone at its own specificity.
        `border: 0` on .cf-values__item below loses to
@@ -10543,7 +10549,8 @@ a.cf-calendar__day > time,
       border-top: 0;
     }
     .cf-values__item {
-      grid-area: 1 / 1;
+      grid-row: 1;
+      grid-column: 1 / -1;
       display: grid;
       grid-template-columns: var(--grid-tracks);
       gap: var(--grid-gap);
@@ -10696,6 +10703,55 @@ a.cf-calendar__day > time,
       animation-duration: auto;
       animation-fill-mode: both;
       animation-timing-function: linear;
+    }
+
+    /* --- THE 4 + 4 + 4 IS THE FRAME'S OWN LINES, NOT A SECOND SOLUTION OF THE
+       SAME ARITHMETIC.
+
+       The composition is three bands on the page's twelve columns: the title
+       at 1 / 5, the mark at 5 / 9, the body at 9 / 13. The mark is a child of
+       .cf-values__frame and stands on the frame's lines. The title and the
+       body are two levels further in — .cf-values__frame > .cf-values__list >
+       .cf-values__item — and .cf-values__item ran repeat(12, minmax(0, 1fr))
+       of its own over the width the list handed it.
+
+       Both grids read --grid-tracks, so they cannot disagree about the RECIPE.
+       That is what the token fixed and it is not the same guarantee as landing
+       on the same LINES, because a track set is a recipe plus a gutter and
+       --grid-tracks carries only the first half. The item restated the second
+       half separately, as `gap: var(--grid-gap)`. Two declarations, in two
+       rules, that have to keep resolving to the same number forever for the
+       title's right edge to meet the mark's left one — and the day the frame
+       takes a gutter of its own is the day the three bands come apart with
+       both rules still reading the token they were told to read. It is the
+       same argument .subdivide__row is built on, one component along.
+
+       subgrid ends it: the item adopts the frame's resolved lines, gutter
+       included, so there is one solution of the grid on this page and the
+       other two take it. column-gap: normal is load-bearing rather than
+       tidying — on a subgrid axis `normal` means "the parent's gutter", and
+       without it the item's own gap declaration would go on overriding the
+       thing this block exists to inherit.
+
+       Positive @supports, the form .cf-team-grid__item already uses, because
+       more than one declaration moves. Without subgrid every rule above is
+       untouched and the composition draws exactly as it did — the fallback is
+       the old arithmetic, which was right, just solved twice.
+
+       Measured before and after at 1024, 1280, 1440 and 1920: every vertical
+       is identical to the hundredth of a pixel but one — the body's left edge
+       at 1920, which moves 0.02 px, ONTO the frame's own line. That is the
+       size of the thing this closes today and the whole of the argument for
+       closing it: the two solutions agree to a rounding error while nothing
+       has moved, and there is nothing in either rule that keeps them agreeing
+       once something does. → foundations/layout.html#columns,
+       base.css .subdivide__row */
+    @supports (grid-template-columns: subgrid) {
+      .cf-values__list { grid-template-columns: subgrid; }
+      .cf-values__item {
+        grid-template-columns: subgrid;
+        column-gap: normal;
+      }
     }
   }
 }

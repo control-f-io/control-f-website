@@ -624,6 +624,23 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-grid-tracks.py
 
+      # One grid, solved once. check-grid-tracks.py above reads what a track
+      # list SAYS; this reads how many times the same one gets said inside one
+      # component. --grid-tracks made three rules agree about the recipe and
+      # that was only ever half of a track set — the other half is the gutter,
+      # and .cf-values__frame and .cf-values__item each declared their own.
+      # Two rules, one nested in the other, holding the pinned 4 + 4 + 4
+      # together on the strength of two declarations resolving to the same
+      # number forever. They did: 0.02 px apart at 1920 and exact at every
+      # other width, which is a defect no screenshot can show and no
+      # screenshot could ever have shown, because it only becomes visible on
+      # the commit that changes one half. subgrid is the form that cannot
+      # come apart, base.css has used it at .subdivide__row since the blog
+      # grid, and this is the gate that says so for the next one.
+      - name: Track restatement
+        if: '!cancelled()'
+        run: python3 scripts/check-track-restatement.py
+
       # The caption under a demo tile was declared twenty times — once in
       # docs.css and nineteen more inside the <style> block of whichever page
       # needed one, because a container selector in a page's own block is not a
