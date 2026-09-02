@@ -34,19 +34,48 @@ TWO TIERS, WHICH IS NOT A SOFTENING
   foundations/        counted and printed, does not fail. They are documentation
   prototypes/         demos and declared not-yet-system respectively — the same
                       boundary tokens.css draws around its register and
-                      check-local-thresholds.py draws around PX DEBT. Seven
-                      unfloored track lists live there today. Recording them is
-                      the point: a number nobody prints is a number nobody
-                      fixes, and the alternative was leaving them invisible.
+                      check-local-thresholds.py draws around PX DEBT. Recording
+                      them is the point: a number nobody prints is a number
+                      nobody fixes, and the alternative was leaving them
+                      invisible. The count is the one this script prints and is
+                      deliberately not restated here — it read "seven" while the
+                      run said eight, which is the whole argument for printing
+                      it in the first place.
 
-WHAT IT DOES NOT CHECK, deliberately
+AND ONE RULE THAT IS NOT TIERED, because it does not depend on content.
 
-  Whether a floor is the RIGHT floor. minmax(15rem, 1fr) inside a scroll
-  container is a chosen floor and passes, exactly as it does in the sheets. The
-  rule is that a floor was chosen, not that it is zero.
+check-grid-tracks.py's third pass — the AUTO-REPEAT FLOOR — is imported and run
+here over the same blocks, at every tier, with no debt list. Its header carries
+the argument; the short form is that repeat(auto-fill | auto-fit, minmax(<floor>,
+1fr)) derives its own column count from <floor>, so <floor> is the grid's minimum
+inline size and a bare length there sets the minimum width of the page. Whether
+a bare fr overflows is a fact about what the items hold, which is why that rule
+has tiers; whether an auto-repeat floor overflows is a fact about the
+declaration, so it does not.
+
+THE HOLE THAT ARGUMENT LEFT WAS IN THIS FILE'S OWN DOCSTRING. It used to read:
+
+    Whether a floor is the RIGHT floor. minmax(15rem, 1fr) inside a scroll
+    container is a chosen floor and passes, exactly as it does in the sheets.
+
+That is sound for the floor it names — .cf-team-strip__list's grid-auto-columns
+sits in a scroll container and decides how wide the strip scrolls. It was also,
+verbatim, the declaration foundations/print.html had written into an auto-repeat
+in normal flow, where it took the document 320 -> 371 px at a 20 px root; and
+foundations/share.html had minmax(19rem, 1fr) beside it, the copy base.css
+quotes by its number as the reason .tiles is a class at all. An example chosen
+to show why a rule stops somewhere is the last place a counter-example should be
+able to hide, and it hid there for as long as the paragraph existed.
+
+WHAT IT STILL DOES NOT CHECK, deliberately
+
+  Whether a non-auto floor is the RIGHT floor. A chosen minimum on a track in a
+  scroll container, or on grid-auto-columns, is a decision about that element
+  and cannot reach the page. The rule there is that a floor was chosen, not that
+  it is zero.
 
   docs.css and assets/css/. Out of scope by the boundary at the head of every
-  register in this system.
+  register in this system — assets/css/ because check-grid-tracks.py reads it.
 
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 """
@@ -129,16 +158,27 @@ def main():
     rows = []
     failures = []
     debt = []
+    autos = []
     for f in pages():
         tier = f.relative_to(PAGES).parts[0]
         for offset, css in style_blocks(f):
             for line, sel, body in gt.blocks(css):
                 for prop, value in gt.declarations(body):
-                    if not gt.TRACK_PROP.fullmatch(prop) or not gt.FR.search(value):
+                    if not gt.TRACK_PROP.fullmatch(prop):
+                        continue
+                    where = "%s:%d" % (f.relative_to(ROOT), offset + line - 1)
+                    for floor in gt.auto_repeat_floors(value):
+                        folds = gt.auto_floor_folds(floor)
+                        autos.append((where, sel, floor, folds))
+                        if not folds:
+                            # Not tiered. See the docstring: this one is a fact
+                            # about the declaration, not about the content.
+                            failures.append(
+                                gt.auto_floor_finding(where, sel, prop, value, floor))
+                    if not gt.FR.search(value):
                         continue
                     block = gt.block_of(sel)
                     ok = gt.floored(value) or block in guarded
-                    where = "%s:%d" % (f.relative_to(ROOT), offset + line - 1)
                     rows.append((where, sel, prop, value, ok))
                     if ok:
                         continue
@@ -161,6 +201,11 @@ def main():
         for where, sel, prop, value, ok in rows:
             print("  %-52s %-30s %s" % (where, sel[:30], "floored" if ok else "UNFLOORED"))
         print()
+        print("auto-repeat floors, as read out of page-local <style>:\n")
+        for where, sel, floor, folds in autos:
+            print("  %-52s %-24s %-24s %s"
+                  % (where, sel[:24], floor[:24], "folds" if folds else "HARD FLOOR"))
+        print()
 
     if debt:
         # One line each, not a finding each: outside patterns/ these are
@@ -178,8 +223,10 @@ def main():
         return 1
 
     print("page-local grid tracks: %d track list(s) read, %d floored, "
-          "0 unfloored under %s/ (%d counted elsewhere)."
-          % (len(rows), sum(1 for r in rows if r[4]), "/".join(STRICT), len(debt)))
+          "0 unfloored under %s/ (%d counted elsewhere);\n"
+          "                        %d auto-repeat floor(s), all folding."
+          % (len(rows), sum(1 for r in rows if r[4]), "/".join(STRICT), len(debt),
+             len(autos)))
     return 0
 
 

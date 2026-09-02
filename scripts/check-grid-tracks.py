@@ -70,6 +70,50 @@ made that a one-line diff rather than a search.)
                asserting thirteen judgements this script cannot make. Counting
                them is the honest half, and the count cannot grow quietly.
 
+AND A THIRD AXIS, WHICH IS THE ONE THIS FILE'S OWN RULE EXPLICITLY DECLINES.
+Above: "A track list may also carry a DELIBERATE non-zero floor … Those are
+floors, so they pass: the rule is that a floor was chosen, not that it is zero."
+That is right for a track whose grid can grow — `.cf-team-strip__list`'s
+`grid-auto-columns: minmax(15rem, 1fr)` sits inside a scroll container, so its
+floor decides how wide the strip scrolls and nothing else. It is WRONG for an
+AUTO-REPEAT track in normal flow, and the difference is not a matter of degree:
+
+    repeat(auto-fill | auto-fit, minmax(<floor>, 1fr))
+
+derives its own column count from <floor>, so <floor> IS the grid's minimum
+inline size. One column is always laid, and a container narrower than <floor>
+does not fold the row — it overflows, because the track keeps its minimum and
+the grid keeps the track. A bare length there sets the minimum width of the
+PAGE.
+
+That makes it a different kind of rule from the two above, and a stricter one.
+Whether a bare `fr` overflows depends on what the items hold, which is a fact
+about content no reading of the stylesheet can settle — hence the census, the
+tiers and the debt list in check-page-local-tracks.py. Whether an auto-repeat
+floor overflows depends on nothing but the declaration: below the floor it
+overflows, always, on every page it is written on. So it is gated everywhere the
+CSS is read, at every tier, with no exemptions to judge.
+
+base.css has said all of this in prose since .tiles was written, and .tiles is
+the fix: min(var(--tile), 100%) makes the floor the tile OR the container,
+whichever is smaller, and above the fold width the term is inert. The comment
+there records the sweep that created the primitive — "written out by hand twenty
+times … once in components.css, three times in docs.css and sixteen times in
+page-local <style> blocks" — and foundations/layout.html then recorded that the
+pages still scrolling sideways afterwards were "four separate causes, none of
+them that one".
+
+TWO OF THE TWENTY WERE NOT FOLDED, AND ONE OF THEM WAS THE PAGE THAT STILL
+SCROLLED. foundations/share.html carried `minmax(19rem, 1fr)` — the exact
+declaration base.css quotes by its number as the reason .tiles exists — and
+foundations/print.html carried `minmax(15rem, 1fr)`. Measured in Chromium over
+the 93 pages of this tree: share took the document 320 -> 328 px at a plain 16 px
+root, 320 -> 410 and 375 -> 410 at a 20 px one; print took it 320 -> 371 at 20 px
+and 375 -> 445 at 24. Both are on .tiles now, and this is what says so next time.
+
+A sweep that folds nineteen of twenty copies and a note that says the cause is
+gone is exactly the failure this directory exists to catch. Prose cannot count.
+
 stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
     python3 scripts/check-grid-tracks.py       # check, exit 1 on a finding
@@ -180,6 +224,88 @@ def floored(value):
     return True
 
 
+def auto_repeat_floors(value):
+    """Every `repeat(auto-fill|auto-fit, minmax(<floor>, …))` floor in a track list.
+
+    Scanned rather than parsed, for the same reason floored() is: the floor may
+    itself be a function — min(var(--tile), 100%) is the whole point — so the
+    comma that ends it is the first one at minmax's own nesting depth, not the
+    first one found. repeat() may carry several tracks; each minmax inside an
+    auto-repeat is read.
+    """
+    out = []
+    for rep in re.finditer(r"repeat\(\s*auto-(?:fill|fit)\s*,", value):
+        depth, i, end = 1, rep.end(), len(value)
+        while i < end and depth:
+            if value[i] == "(":
+                depth += 1
+            elif value[i] == ")":
+                depth -= 1
+            i += 1
+        body = value[rep.end(): i - 1]
+        for mm in re.finditer(r"minmax\(", body):
+            depth, j = 1, mm.end()
+            start = j
+            while j < len(body) and depth:
+                if body[j] == "(":
+                    depth += 1
+                elif body[j] == ")":
+                    depth -= 1
+                elif body[j] == "," and depth == 1:
+                    break
+                j += 1
+            out.append(body[start:j].strip())
+    return out
+
+
+# A floor folds when it cannot come out wider than the container it is laid in.
+# That is exactly: it is bounded above by a percentage of the container of 100 %
+# or less. min(<len>, 100%) is the system's form; a bare percentage and a plain
+# zero are the two other ways to write something that cannot overflow.
+PERCENT = re.compile(r"(\d*\.?\d+)%")
+ZERO = re.compile(r"0(?:px|rem|em|ch|vw|%)?")
+
+
+def auto_floor_folds(floor):
+    """Can this auto-repeat floor be narrower than the container? See the header.
+
+    A percentage is only a fold if it is the OUTER bound — inside min() it is,
+    because min() cannot exceed any of its arguments. Anywhere else (calc, max,
+    clamp) it is one term among several and settles nothing, so those do not
+    pass; there is no such floor in this tree and inventing a rule for one would
+    be guessing at its arithmetic.
+    """
+    if ZERO.fullmatch(floor.strip()):
+        return True
+    bare = PERCENT.fullmatch(floor.strip())
+    if bare:
+        return float(bare.group(1)) <= 100
+    for m in re.finditer(r"min\(", floor):
+        depth, i = 1, m.end()
+        while i < len(floor) and depth:
+            if floor[i] == "(":
+                depth += 1
+            elif floor[i] == ")":
+                depth -= 1
+            i += 1
+        for pct in PERCENT.finditer(floor[m.end(): i - 1]):
+            if float(pct.group(1)) <= 100:
+                return True
+    return False
+
+
+def auto_floor_finding(where, sel, prop, value, floor):
+    return (
+        "%s  %s\n"
+        "      %s: %s\n"
+        "      The floor of an auto-repeat track is the grid's own minimum width: one\n"
+        "      column is always laid, so a container narrower than %s does not fold the\n"
+        "      row, it overflows — and takes the page's scroll width with it.\n"
+        "      Use the .tiles primitive, or write the guard: minmax(min(%s, 100%%), 1fr)."
+        % (where, sel, prop, value, floor, floor)
+    )
+
+
 def block_of(selector):
     """The component a selector belongs to: its first class, less any __element
     or --modifier. `.subdivide--3` and `.subdivide__col` are both `.subdivide`,
@@ -242,10 +368,19 @@ def main():
 
     rows = []
     failures = []
+    autos = []
     for name, text in sheets:
         for line, sel, body in blocks(text):
             for prop, value in declarations(body):
-                if not TRACK_PROP.fullmatch(prop) or not FR.search(value):
+                if not TRACK_PROP.fullmatch(prop):
+                    continue
+                for floor in auto_repeat_floors(value):
+                    folds = auto_floor_folds(floor)
+                    autos.append((name, line, sel, floor, folds))
+                    if not folds:
+                        failures.append(auto_floor_finding(
+                            "%s:%d" % (name, line), sel, prop, value, floor))
+                if not FR.search(value):
                     continue
                 block = block_of(sel)
                 ok_track = floored(value)
@@ -293,6 +428,11 @@ def main():
                   % (name, line, sel[:34],
                      "floored" if ok_track else ("min-width: 0 on items" if ok_item else "UNFLOORED")))
         print("\ncomponents declaring min-width: 0: %s\n" % ", ".join(sorted(guarded)))
+        print("auto-repeat floors:\n")
+        for name, line, sel, floor, folds in autos:
+            print("  %-16s %-5d %-34s %-28s %s"
+                  % (name, line, sel[:34], floor[:28], "folds" if folds else "HARD FLOOR"))
+        print()
 
     if failures:
         print("grid tracks: %d finding(s)\n" % len(failures))
@@ -301,12 +441,14 @@ def main():
         return 1
 
     print("grid tracks: %d fr track lists, %d floored, %d guarded on the item;\n"
-          "             %d implicit columns, %d of them guarded on the item."
+          "             %d implicit columns, %d of them guarded on the item;\n"
+          "             %d auto-repeat floors, all folding."
           % (len(rows),
              sum(1 for r in rows if r[5]),
              sum(1 for r in rows if not r[5] and r[6]),
              len(implicit),
-             sum(1 for i in implicit if i[3] in guarded)))
+             sum(1 for i in implicit if i[3] in guarded),
+             len(autos)))
     return 0
 
 
