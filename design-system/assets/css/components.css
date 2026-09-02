@@ -15721,6 +15721,74 @@ a.cf-calendar__day > time,
     drop-shadow(0 0 calc(var(--glow-r) * var(--glow-core)) var(--glow-lime))
     drop-shadow(0 0 var(--glow-r) var(--glow-glas));
 }
+
+/* AND ONE MEMBER OF THE COMPOSITION IS AN SVG CHILD, WHICH SAFARI DOES NOT
+   PAINT. The rule above has five members and they are not the same kind of
+   element: .cf-gantt__head is a <span>, .cf-icon--light is an OUTER <svg>, and
+   both of those take a CSS filter in every engine. .cf-plot__col--lit
+   .cf-plot__cap is a <path> INSIDE an <svg>, and that is the one case WebKit
+   drops — the finding acts.css sets out in full beside the flow drawing's
+   leaves, under "SAFARI PAINTS NO CSS FILTER ON AN SVG CHILD": no filter
+   FUNCTION reaches an SVG child there, drop-shadow or blur, while
+   `filter: url()` on the same element paints, including from a <filter> in
+   another <svg> in the document.
+
+   So the lit cap has been standing in Safari as a rhombus with a ramp and no
+   light in it. That is not a softened glow; it is the whole of what --lit
+   spends. "One lit column, and only ever one" (this file, 250 lines up) makes
+   the glow the entire signal that says which column the figure is about, and
+   without it the lit cap is an unlit cap with a different fill — measured on
+   components/plot.html at 1440, WebKit's cap and its halo are background to
+   the last pixel outside the contour, while Chromium's ramp reads 194 of 255
+   one pixel out. Re-checked with will-change, isolation, translateZ and
+   transform-box on the path: every one of them changes nothing, and
+   `filter: blur(3px)` on the same path renders nothing either, which is what
+   rules out anything specific to shadows or to this component.
+
+   THE TWO NUMBERS ARE THE SHORTHAND'S OWN, WRITTEN OUT: stdDeviation 12 and
+   5.4, which is --glow-r and --glow-r x --glow-core with the unit dropped.
+   Two facts put them there and both were established by measurement rather
+   than by arithmetic. The first is the flow drawing's, and this only
+   confirmed it: the deviation is the shorthand's RADIUS 1:1, not half of it.
+   The second is this component's: the unit is the drawing's, and one user
+   unit here is --plot-u/20 — 1.6 px at the clamp's 32 px ceiling, 0.8 px at
+   its 16 px floor. So 3.75, which is what you get by converting 12 px at the
+   ceiling and halving it, renders about a third of the light; it was the
+   first thing tried and it is wrong on both counts at once.
+
+   AND UNLIKE THE FLOW, NOTHING IS TRADED AWAY FOR IT. The flow's own note
+   accepts that its Safari reach follows the drawing while the other engines
+   hold a px figure. Sampling the halo out from the cap's edge every 4 px on
+   both axes says that does not happen here: 12/5.4 lands within two levels of
+   255 of Chromium's shipped CSS filter at every radius at 1440, where the
+   unit is 1.6 px, AND at 390, where it is 0.8 — so Chromium is reading the
+   shorthand's lengths in this drawing's user space too, and the two spellings
+   scale together across the whole clamp rather than agreeing at one width.
+
+   THE REGION IS BOUNDED ON PURPOSE, the same argument the flow's filters
+   carry: WebKit rasters one buffer of this size per filtered element. The cap
+   is 40 x 20 user units and the halo is gone by 18 of them — m=18 renders
+   identically to m=26 and m=16 does not — so the <filter> in the markup is
+   x="-18" y="-18" width="76" height="56".
+
+   FLOOD COLOURS BELONG HERE, not in the markup, for the reason the flow's do:
+   flood-color is a CSS property, so the two primitives take --glow-lime and
+   --glow-glas from tokens.css the way the shorthand above does and a palette
+   move still moves both spellings. Both tokens carry their own alpha, so
+   flood-opacity stays at its default 1.
+
+   AND IT IS DECLARED BEFORE THE FORCED-COLOURS BLOCK BELOW, which matters:
+   that block names the same selector at the same (0,2,0) weight, so source
+   order is what lets it win. A lower weight is not available — a bare
+   .cf-plot__cap would hand the reference to unlit caps too, and an SVG
+   element whose filter names an id it cannot resolve is not rendered at
+   all. */
+@supports (-webkit-hyphens: none) {
+  .cf-plot__col--lit .cf-plot__cap { filter: url(#cf-plot-glow); }
+  #cf-plot-glow feDropShadow:first-child { flood-color: var(--glow-lime); }
+  #cf-plot-glow feDropShadow + feDropShadow { flood-color: var(--glow-glas); }
+}
+
 /* AND THE SPILL IS SWITCHED OFF WHERE IT IS COMPOSED, for the same reason it
    is composed here: a member that turns it off in its own section is a member
    whose rule loses. .cf-gantt's forced-colours block wrote `filter: none` on
