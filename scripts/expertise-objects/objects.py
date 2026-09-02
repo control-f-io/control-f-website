@@ -698,9 +698,13 @@ def flotten():
     s1 += wheel(PX - 0.05, -1.65, 0.34, 0.14, 0.1, 'x')        # main pair, far
     s1 += box(PX - 0.05, -1.7, 0.34, 0.1, 0.1, 0.34)           # main leg, axle to belly
     s1 += wheel(PX + 0.15, -1.65, 0.34, 0.14, 0.1, 'x')        # main pair, near
-    s1 += wheel(PX - 0.05, -0.4, 0.31, 0.11, 0.08, 'x')        # nose pair, far
-    s1 += box(PX - 0.05, -0.45, 0.31, 0.1, 0.1, 0.37)          # nose leg
-    s1 += wheel(PX + 0.13, -0.4, 0.31, 0.11, 0.08, 'x')        # nose pair, near
+    # ONE NOSE WHEEL, CENTRED ON A FORK. The nose leg carried a pair like the
+    # main gear, and at 8 px the two wheels and the leg between them fused
+    # into one lump with a bite out of it. A single wheel astride the leg is
+    # one clean disc; the leg paints first, so the wheel's face covers its
+    # lower half and the leg is seen coming out of the top of the tyre.
+    s1 += box(PX - 0.03, -0.43, 0.33, 0.06, 0.06, 0.35)        # nose leg
+    s1 += wheel(PX + 0.05, -0.4, 0.33, 0.13, 0.1, 'x')         # nose wheel, astride it
     s1 += cone(PX, TAIL, FZ, 'y', 0.45, 0.06, FR, cap=None)    # tail cone
     # crown=False: the barrel's lit band ends in a seam a quarter-turn right
     # of the top, and neither cone carries one, so the fin on the true top
@@ -721,9 +725,11 @@ def flotten():
     for ex in (PX - 0.55, PX + 0.55):
         s1 += cyl(ex, -1.5, 0.98, 'y', 0.65, 0.12)
         s1 += cyl(ex, -0.85, 0.98, 'y', 0.1, 0.05)             # spinner
-    # Seated 0.08 into the barrel's crown, not resting on it: at 1.08 the slab
-    # floated a hair over the body and read as a plank laid across it.
-    s1 += box(PX - 1.0, -1.5, 1.04, 2.0, 0.55, 0.1)            # the wing
+    # Seated into the barrel's crown, not resting on it: at 1.08 the slab
+    # floated a hair over the body and read as a plank laid across it. And
+    # THIN: 0.06 on a 0.5 chord, where 0.1 on 0.55 was an 18 % section that
+    # read as a board.
+    s1 += box(PX - 1.0, -1.5, 1.06, 2.0, 0.5, 0.06)            # the wing
 
     # ---- 2 · the middle band: the train on its siding, the excavator in the corner
     #
