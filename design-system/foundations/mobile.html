@@ -215,9 +215,12 @@
     </div>
     <div class="docs-note">
       <strong>One height threshold.</strong> At a viewport <em>height</em> of 560 or less
-      — a phone in landscape — the consent banner takes its short-screen form, so it
-      cannot swallow the page it is asking about. It is the only height query in the
-      system.
+      — a phone in landscape — the consent banner takes its short-screen <em>form</em>: the
+      ghost rejoins the accept/reject row and the block padding drops a rung. It is the only
+      height query in the system. What it no longer holds is the banner's
+      <code>max-height</code> backstop, which is not a landscape rule and now stands on
+      <code>.cf-consent</code> itself — see
+      <a href="#text">the note below</a> for the measurement that moved it.
     </div>
     <div class="docs-note">
       <strong>And for a year it said that and did the opposite.</strong> The block held
@@ -822,7 +825,7 @@
       <thead><tr><th>Where</th><th>Value</th><th>On a phone</th></tr></thead>
       <tbody>
         <tr><td>Hero</td><td><code>min-height: min(92vh, 56rem)</code></td><td>747 px on a 812 px screen. 92 rather than 100 on purpose: the page has to show that it continues</td></tr>
-        <tr><td>Consent, short screens</td><td><code>calc(100vh - var(--nav-height) - 3rem - var(--space-6))</code>, now with a <code>dvh</code> line on top</td><td>only under a 560 px viewport height, i.e. landscape, and a backstop rather than the working state: 219 px against a 191 px banner at 375 tall. It was <code>70vh</code>, which never engaged at all across that band</td></tr>
+        <tr><td>Consent, the backstop</td><td><code>calc(100vh - var(--nav-height) - 3rem - var(--space-6))</code>, with a <code>dvh</code> line on top</td><td>on <code>.cf-consent</code> itself and under no query, since the run below: 219 px against a 191 px banner at 375 tall, and inert at a 16 px root at every width from 320 to 1440. It was <code>70vh</code>, which never engaged at all; then the same terms behind a 560 px height query, which the reader's text size cannot reach</td></tr>
         <tr><td>Values track</td><td><code>100vh</code> per stage</td><td><strong>never runs below 820&nbsp;px wide or 720&nbsp;px tall</strong>, so the stage does not exist on a phone — the height half of that is new; see below</td></tr>
       </tbody>
     </table>
@@ -885,8 +888,67 @@
       <br><br>
       Fixed the same way the nav list already had it: <code>max-height: calc(100dvh - ...)</code>
       declared after the <code>vh</code> line, so a browser with no <code>dvh</code> support
-      keeps the line above unchanged. → <code>components.css</code> <code>.cf-consent</code>,
-      the <code>max-height: 35rem</code> block
+      keeps the line above unchanged. → <code>components.css</code> <code>.cf-consent</code>
+      (the cap has since left the <code>max-height: 35rem</code> block; the note below is why)
+    </div>
+    <div class="docs-note">
+      <strong>And then the backstop was found to be behind a query that cannot see what
+      trips it.</strong> Both notes above are about the cap's <em>value</em>. This one is
+      about the condition it sat under, and it is the same mistake this page teaches in
+      its own words two sections up: <code>rem</code> in a <em>media query</em> resolves
+      against the root's <em>initial</em> font size and never against the reader's. So
+      <code>@media (max-height: 35rem)</code> is 560&nbsp;px at a 16&nbsp;px default, at a
+      24&nbsp;px default, and at every setting in between — while every term of this
+      banner's own height is <code>rem</code> and moves with all of them: the title, the
+      body, the three controls and the block padding. The banner grows, the threshold does
+      not, and the cap that was supposed to be the last line of defence is the one thing
+      the growth switches off.
+      <br><br>
+      The register said so and drew the opposite conclusion. Its row for this
+      threshold read “in rem for the same reason as the widths, and it is the case where
+      the unit matters most: enlarged type makes the banner taller while a px threshold
+      holds the screen it is measured against still.” The first clause is the finding. The
+      second does not follow, because the query is not a declaration.
+      <br><br>
+      Measured on <code>landing-page</code>, first load, nothing dismissed, Chromium 141
+      and WebKit 26.5 agreeing to the decimal on all 60 cells. <em>Clear</em> is the band
+      between the two fixed layers — a constant no scroll offset moves — and the CTA is
+      <code>.cf-hero</code>’s one button at <code>.cf-btn</code>’s own <code>3rem</code>:
+    </div>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Viewport</th><th>Root</th><th>Banner</th><th>Clear</th><th>CTA</th><th>Clear after</th></tr></thead>
+      <tbody>
+        <tr><td>320 × 568</td><td>16</td><td>353.8</td><td>130.2</td><td>48</td><td>130.2 — cap inert</td></tr>
+        <tr><td>320 × 568</td><td>20</td><td>466.9</td><td>−3.9</td><td>60</td><td>90.0</td></tr>
+        <tr><td>320 × 568</td><td>24</td><td>644.4</td><td>−202.4</td><td>72</td><td>108.0</td></tr>
+        <tr><td>320 × 812</td><td>24</td><td>644.4</td><td>41.6</td><td>72</td><td>108.0</td></tr>
+        <tr><td>360 × 640</td><td>24</td><td>590.1</td><td>−76.1</td><td>72</td><td>108.0</td></tr>
+        <tr><td>390 × 844</td><td>24</td><td>559.6</td><td>158.4</td><td>72</td><td>158.4 — cap inert</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note">
+      <strong>At 320 × 568 and a 24&nbsp;px default the banner is 113&nbsp;% of the
+      screen</strong> and its top edge sits 76&nbsp;px <em>above</em> the viewport. Its own
+      heading and the two links inside its sentence are off screen, and there is no scroll
+      that reaches them: the box is <code>position: fixed</code> and, with the cap gated
+      away, nothing was clipping it — <code>scrollHeight</code> equalled
+      <code>clientHeight</code>, so it had no scrollport of its own either. On the three
+      rows below that one the nav band is clear and the page’s one call to action is not,
+      which is the landscape finding above reached through type rather than through
+      orientation.
+      <br><br>
+      <strong>The fix moves the cap and changes nothing else.</strong> Same expression,
+      same <code>vh</code>-then-<code>dvh</code> pair, declared on <code>.cf-consent</code>
+      where no query gates it. Re-measured at 320, 360, 390, 414, 768, 1024, 1280 and 1440
+      across roots 16/20/24 on both engines: <strong>every 16&nbsp;px row is
+      byte-identical</strong> — the cap engages on none of them — and no cell above
+      414&nbsp;px of width engages at any root. It fires only where the banner had already
+      outgrown the room it is allowed, which is what a backstop is.
+      <code>scripts/check-consent-clearance.py</code>’s link 5c now reads the
+      unconditional rule and fails on the old placement, on a missing cap, and on a
+      missing <code>dvh</code> line.
     </div>
   </section>
 
