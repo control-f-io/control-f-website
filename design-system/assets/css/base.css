@@ -1377,6 +1377,21 @@ hr {
 @media (forced-colors: active) {
   .material-glass-edge { border-top: var(--stroke-1) solid CanvasText; }
 }
+/* And the same in the two no-blur doors, for the reason the forced-colours rule
+   gives one line up: this element IS its background-image, and tokens.css turns
+   --glass-edge off wherever the blur is off — no material, no material light.
+   The band in the layer stack on foundations/materials.html is the other sheet
+   in the system that ends at a single edge rather than closing a perimeter
+   (`border: 0` above says so), so without this the sample that teaches the
+   material's edge would have nothing on it in exactly the tiers that page
+   documents. Same ink and same argument as .cf-nav::after in components.css;
+   two blocks because @supports and @media do not combine into one query. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .material-glass-edge { border-top: var(--stroke-1) solid var(--border-default); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .material-glass-edge { border-top: var(--stroke-1) solid var(--border-default); }
+}
 /* Kontur — 1 px outline, the default way to draw a box in this brand. */
 .material-outline {
   border: var(--stroke-1) solid var(--border-strong);
@@ -2360,6 +2375,51 @@ body > .cf-footer { view-transition-name: cf-footer; }
   to {
     clip-path: polygon(calc(100% + var(--stroke-2) + var(--angle-a-run)) 0, 100% 0, 100% 100%,
                        calc(100% + var(--stroke-2)) 100%);
+  }
+}
+
+/* THE CONTINUOUS OBJECT — the one thing the rake is not allowed to cut.
+
+   The wipe above is what a PAGE does. This is what an OBJECT does when the
+   navigation that started the wipe is that object opening: the headline of the
+   cell the reader clicked is lifted out of both snapshots and travels to the
+   headline of the page it opened, over the top of the rake, while everything
+   else is cut away and redrawn. One element, one navigation, never more — the
+   picture in the cell stays behind, because a card's image is the object's
+   illustration and its title is the object's name.
+
+   NOTHING HERE NAMES AN ELEMENT, and that is deliberate rather than awkward.
+   A `view-transition-name` written in a stylesheet is permanent: the element
+   is lifted out of the root snapshot on EVERY navigation, including the ones
+   where it has no counterpart, and a headline lifted out of a wipe and left
+   standing still is worse than one that wipes with the page. So the name is
+   written by assets/js/cf-morph.js, on the one element it has proved is the
+   same object on both sides, for the length of one navigation — and this block
+   is only what that element does once it is named. With the file absent
+   nothing is ever named, these two rules match nothing, and the rake is the
+   whole transition.
+
+   AND THE SNAPSHOT IS FITTED, NOT STRETCHED. The UA gives both snapshots the
+   group's width and their own aspect ratio, which for a title going from a
+   two-line cell to a three-line page header means the outgoing sentence is
+   drawn at twice its height on the way out — text does not survive that.
+   `contain` scales it whole; `left top` anchors it where a left-aligned
+   headline actually is, so the first character stays put and the rest of the
+   line grows away from it, which is the direction the eye is reading in
+   already. → foundations/transitions.html#continuous */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(cf-morph-title) {
+    animation-duration: var(--duration-slow);
+    animation-timing-function: var(--ease-out);
+  }
+
+  ::view-transition-old(cf-morph-title),
+  ::view-transition-new(cf-morph-title) {
+    height: 100%;
+    object-fit: contain;
+    object-position: left top;
+    animation-duration: var(--duration-slow);
+    animation-timing-function: var(--ease-out);
   }
 }
 

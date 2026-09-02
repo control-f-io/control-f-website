@@ -1341,8 +1341,9 @@
       the reader has asked for <code>prefers-reduced-transparency</code>, every glass surface
       becomes the opaque <code>--surface-glass-solid</code> plate. Where
       <code>forced-colors</code> is active, every glass surface becomes <code>Canvas</code> and
-      the blur goes off. The edge light survives all three — but only because it is redrawn in
-      the third, and that is the correction this section exists to record.
+      the blur goes off. <strong>The edge light survives none of them</strong>, and the two
+      sheets that ended at it are given a contour instead — which is the second of the two
+      corrections this section records, and the later one.
     </p>
     <div class="docs-note docs-note--warn" id="opaque-edge">
       <strong>And when the tint goes opaque the <em>rim</em> has to turn over with it, which
@@ -1390,6 +1391,57 @@
       rather than by naming them, and fails when an opaque glass surface is bounded by a line
       that steps the same way the page does. A fifth tint or a third tier enters it by
       existing.
+    </div>
+    <div class="docs-note docs-note--warn" id="opaque-light">
+      <strong>And the same sentence one line further out: the material's <em>light</em> has to
+      go with the material.</strong> The correction above turned
+      <code>--glass-border</code> over and left the other line standing. This material draws
+      with two of them, and this chapter separates them at the top of the page:
+      <code>--glass-border</code> is the contour a sheet closes with,
+      <code>--glass-edge</code> is the lit hairline it ends at. Only the first was in any
+      tier. The second — white 42&nbsp;%, with the white 45&nbsp;% specular of
+      <code>--glass-rim-light</code> travelling across it — went on painting on the same row as
+      the contour the tier had just installed, and because it is white it took that contour
+      back off.
+      <br><br>
+      On the light theme's opaque plate, <code>#E7E7E7</code>, and against the page it stands
+      on — the wash again, 207 to 255 on every screen at every scroll position:
+      <table class="docs-table">
+        <thead><tr><th>Line</th><th>Paints</th><th>vs the plate</th><th>wash&nbsp;207</th><th>wash&nbsp;231</th><th>wash&nbsp;243</th><th>wash&nbsp;255</th></tr></thead>
+        <tbody>
+          <tr><td><code>--glass-edge</code>, white 42&nbsp;%</td><td>241</td><td>1.095:1</td><td>1.376:1</td><td>1.095:1</td><td>1.053:1</td><td>1.129:1</td></tr>
+          <tr><td>&nbsp;&nbsp;· with <code>--glass-rim-light</code> across it</td><td>247</td><td>1.154:1</td><td colspan="4">the specular lightens it further, wherever it happens to be</td></tr>
+          <tr><td><code>--border-default</code>, black 24&nbsp;%</td><td>176</td><td><strong>1.754:1</strong></td><td><strong>1.395:1</strong></td><td><strong>1.754:1</strong></td><td><strong>2.022:1</strong></td><td><strong>2.169:1</strong></td></tr>
+        </tbody>
+      </table>
+      The lit edge <em>inverts inside the wash's own range</em> — lighter than the page at the
+      top of the viewport, darker at the bottom, 1.05:1 where the two cross — which is the
+      identical failure the white rim was measured out of one line over. The contour holds one
+      direction the whole way down.
+      <br><br>
+      <strong>It is one sheet's whole boundary and three sheets' top edge, and the two need
+      different answers.</strong> <code>.cf-btn--glass</code>,
+      <code>.cf-info-card--glass</code> and the button's own rim paint the lit edge
+      <em>on</em> the border they already close with, so switching the token off is the entire
+      fix there — the contour underneath was already correct. <code>.cf-nav::after</code> and
+      <code>.material-glass-edge</code> are sheets that <em>end</em> at a single edge rather
+      than closing a perimeter, so that hairline was all they had: under
+      <code>prefers-reduced-transparency</code> the navigation band is an absolute grey bar
+      across the top of every page in the system, and its only boundary against the page was a
+      white line the wash catches up with and passes. Those two take
+      <code>border-top: 1px solid var(--border-default)</code> in each tier, beside the
+      <code>CanvasText</code> rules that already redraw them one door over.
+      <br><br>
+      <strong>Both themes, though only one of them measures as a failure.</strong> In the
+      inverse theme the lit edge is white 26&nbsp;% on <code>#1F1F1F</code> and reads 2.35:1 —
+      brighter than the 18&nbsp;% rim beside it rather than weaker, so no plate is lost. It
+      goes anyway, because the rule is about the material and not about the number: no blur,
+      no glass, no light on glass. <code>scripts/check-glass-solid-edge.py</code>'s third
+      claim holds it, and holds it without a roster: the rims are whatever rules paint
+      <code>--glass-edge</code>, the material's light is whatever <code>--glass-*</code> tokens
+      those rules put in a background layer, and a sheet counts as ending at its edge when the
+      element the rim hangs off declares no border of its own. A fourth light token, or a rim
+      on a fifth surface, enters the claim by existing.
     </div>
     <div class="docs-note docs-note--warn">
       <strong>This page used to say forced colours needed nothing from us.</strong> The

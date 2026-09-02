@@ -350,11 +350,15 @@ python3 scripts/check-cap-line.py              # every text-box trim states both
 python3 scripts/check-cap-line.py -v           # every trim, and the context it sits in
 python3 scripts/check-cap-line.py --fix        # rewrite the census in foundations/capline.html, and the code example under it
 python3 scripts/check-merge-markers.py         # no file in the tree carries a conflict marker
+python3 scripts/check-morph-pairs.py           # both halves of every page-to-page morph are present
+python3 scripts/check-morph-pairs.py -v        # the register, and every pair it walked
 python3 scripts/check-links.py                 # every reference resolves on the host that serves it
 python3 scripts/check-job-posting.py           # the JobPosting block matches the posting the reader sees
 python3 scripts/check-a11y.py                  # the accessibility facts that are arithmetic rather than judgement
 python3 scripts/check-class-provenance.py      # every class in the markup is declared by something
 python3 scripts/check-class-provenance.py --report  # the census: who declares what, and what is written twice
+python3 scripts/check-anatomy-provenance.py    # every class a chapter's anatomy table names is one something declares
+python3 scripts/check-anatomy-provenance.py -v # every class mention read, and where it resolves
 python3 scripts/check-markup-answered.py       # nothing in the markup writes into a void
 python3 scripts/check-markup-answered.py -v    # the counts, and the gaps parked in KNOWN
 python3 scripts/check-viewport-zoom.py         # no page revokes the reader's pinch zoom
@@ -400,7 +404,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The thirty-eight checks the system enforces rather than documents, run by CI on every push and
+The forty checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -1221,6 +1225,33 @@ anywhere under `components/` or `foundations/`, and its two row modifiers were t
 that. [`components/culture.html`](components/culture.html) is that page, and it shows both frames
 live, so the rows went with the gap they named. A row whose gap has been closed fails the check
 too, because a register that outlives its subject is how the next one hides inside it.
+
+### And the third direction: a class the documentation names
+
+Those two read the markup. `check-anatomy-provenance.py` reads the **chapter**: every class
+named in a whole-`<code>` table cell under `components/` or `foundations/` has to be declared
+by a shipping stylesheet or by that page's own `<style>`. That is the register the other two
+cannot see, because a class name inside `<code>` is prose to a script that reads `class=`
+attributes.
+
+**How many of them there are is the run's output, not a number in this paragraph.** It was one
+for an hour — "351 mentions across 34 chapters" — and two lanes landed chapters inside that
+hour. A gate against hand-kept documentation whose own documentation is hand-kept is the
+failure it was written for, one level up.
+
+**The failure it is for is a clean rename**, which is the ordinary edit and the one most likely
+to be made by a lane that has never opened the chapter: the rule is in `components.css`, the
+markup is in the pages, and the sentence describing the part is in a third file nobody is
+touching. Renamed consistently in the first two, `check-class-provenance.py` reports 5108 class
+uses all resolved and the anatomy table goes on naming a class that no longer exists — a row
+that renders like every other row and is the one thing on the page a reader copies out of.
+Proven on exactly that shape with `.cf-process__benefit-label`.
+
+It is deliberately narrow, on the argument `check-cited-gates.py` makes for reading only script
+paths: only cells that are **nothing but** code (a sentence may legitimately name a class that
+was removed — this repository keeps records), only class names (custom properties have
+`check-registered.py`), and a wildcard like `.col-*` passes, because a family is not a class and
+a check that forced twelve rows to say one thing would be making the documentation worse.
 
 ## Layout
 

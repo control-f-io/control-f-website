@@ -970,6 +970,18 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-markup-answered.py
 
+      # The third direction on the same question, and the one that survives a
+      # clean rename. Class provenance reads class ATTRIBUTES, so renaming a
+      # part in components.css and in every page that wears it leaves it green
+      # — and leaves the anatomy table describing the part under its old name,
+      # which is the one place in the chapter a reader copies out of. Proven
+      # exactly that way: with .cf-process__benefit-label renamed in the rule
+      # and in all six markup sites, class provenance reports 5108 uses all
+      # resolved and this one names the stale row.
+      - name: Anatomy provenance
+        if: '!cancelled()'
+        run: python3 scripts/check-anatomy-provenance.py
+
       - name: Viewport zoom
         if: '!cancelled()'
         run: python3 scripts/check-viewport-zoom.py
@@ -1206,6 +1218,24 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-media-controls.py
 
+      # The ramp is two rungs and each rung is a PAIR — a size and the tracking
+      # that travels with it. This step held the size half only, and the other
+      # half was broken in both directions the day it was widened: .cf-prose h4
+      # took --text-sm with the 11 px rung's tracking, .cf-consent__title took
+      # --text-xs with the 12 px rung's, and a docs-page toggle did the same.
+      # One step of size is 1 px, so the tracking is what a reader actually
+      # tells the two rungs apart by; a rule wearing one rung's size and the
+      # other's tracking reads as neither, and reads correct in isolation.
+      #
+      # Its reach was three of the four stylesheets that ship. acts.css is the
+      # scroll composition on eight pages and carries two mono uppercase rules
+      # this step had never read — both on the ramp, which is luck and not
+      # enforcement. Same reach gap, same file, same reason as the gradient
+      # family check above.
+      #
+      # The sizes it quotes back at you are read out of tokens.css at run time.
+      # Typed into the script they went stale: the message said --text-sm was
+      # 14 px for as long as the token has said 12.
       - name: Label ramp
         if: '!cancelled()'
         run: python3 scripts/check-label-ramp.py
@@ -3488,6 +3518,17 @@ jobs:
       - name: Signet parity
         if: '!cancelled()'
         run: python3 scripts/check-signet-parity.py
+
+      # The one behaviour in the system that needs two documents to agree. A
+      # register hands a headline over in `pageswap`; the page it opened takes
+      # the same name in `pagereveal`; neither can see the other, and a half
+      # that names alone is not an error to anything — the navigation
+      # completes, the console stays clean, and what ships is a headline
+      # sliding across the incoming page and fading out on top of it. This
+      # walks both halves of every pair from the outside.
+      - name: Morph pairs
+        if: '!cancelled()'
+        run: python3 scripts/check-morph-pairs.py
 
       - name: Cited gates
         if: '!cancelled()'

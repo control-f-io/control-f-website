@@ -285,8 +285,16 @@ RELEASE = "64rem"
 
 
 def strip_comments(css):
-    """Blank out /* */ runs, keeping length so offsets still line up."""
-    return re.sub(r"/\*.*?\*/", lambda m: " " * len(m.group(0)), css, flags=re.S)
+    """Blank out /* */ runs, keeping length AND newlines so offsets line up.
+
+    Length alone is not enough: the findings below report `acts.css:{line}`
+    counted off this text, and blanking a comment to spaces eats the newlines
+    inside it. acts.css is 7,478 lines and mostly prose, so a finding pointed
+    hundreds of lines above the declaration it was about -- confidently, which
+    is the expensive part.
+    """
+    return re.sub(r"/\*.*?\*/",
+                  lambda m: re.sub(r"[^\n]", " ", m.group(0)), css, flags=re.S)
 
 
 def declarations_for(selector, css):

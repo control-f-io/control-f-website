@@ -1722,7 +1722,15 @@
      both plates at 375 / 1024 / 1440 / 1920: the start lands on the crossing
      at 0.000 and the end on the picture's corner at 0.002 px, identical at
      every width because the mount is a token and the diagonal is its ratio.
-     → .sp4-shot's --mount, which this length is read off */
+
+     AND IT IS THE ONE MEMBER OF THIS FRAME THAT IS NOT AN SVG PATH, which is
+     why the drawing needs a second declaration for it. Forced colours leaves
+     `stroke` to the author and forces `background-color`, so under a reader's
+     palette the four edges stayed and this diagonal went to Canvas; it is
+     redrawn as a border in the forced-colours block at the foot of this file,
+     where that block's ACT 4 stanza carries the measurement.
+     → .sp4-shot's --mount, which this length is read off
+     → the FORCED COLOURS block at the foot of this file, ACT 4 */
   .sp4-tick {
     position: absolute;
     inset-block-start: calc(var(--stroke-1, 1px) * -0.5);
@@ -6596,7 +6604,49 @@
         transform-origin: left;
         animation: sp-head-rule linear both;
         animation-timeline: --sp;
-        animation-range: contain 76% contain 93%;
+        /* THE LINE IS FINISHED BEFORE THE COUNT IS WRITTEN, and 86 is the
+           count's own start rather than a number anybody picked. The rule
+           sweeps the WHOLE row from the left edge; each word occupies only
+           part of that row and the count is flush right, so putting the
+           words' windows inside the rule's window — which is what this range
+           said for as long as it ended at 93 — does not put the line under
+           them. The count opened at contain 86 %, where a linear sweep of
+           76 → 93 has crossed three fifths of the row, and the count's first
+           character stands past four fifths of it.
+
+           Measured on the shipped page, stepping the whole band 25 px at a
+           time and comparing the painted right edge of the words against the
+           painted right edge of the line — both desktop tiers, both editions,
+           since the count is the one word here the translation resizes:
+
+                            count's left   line at    worst overhang
+                              edge         contain 86 %
+             1440 x 900 DE    84.7 %        60.7 %      315 px
+             1280 x 800 DE    82.9 %        59.5 %      269 px
+             1440 x 900 EN    89.3 %        60.9 %      369 px
+             1280 x 800 EN    88.0 %        59.7 %      324 px
+
+           Three hundred pixels of "4 Schritte" standing on nothing, held
+           there for the ~300 px of scroll the line needs to catch up, and the
+           EN edition is the worse of the two because the shorter word sits
+           further right. That is also why the correction is not a later
+           window for the count: where the count STARTS is a text-width fact
+           and moves with the translation, where the line ENDS is not. Landing
+           the line on the count's own start holds the invariant by
+           construction in both editions and both tiers.
+
+           Measured after, over the same band and the same four columns: the
+           end of the line stands ahead of the painted title by at least
+           258 px at 1440 and 528 px at 1280, and ahead of the painted count
+           by at least 3 px — the count's margin closing to nothing only at
+           the row's right edge, where its last character and the end of the
+           line are the same point, which is where they belong.
+
+           The title is unaffected and was never the fault: it is flush left
+           and 24.4 % of the row wide (27.4 % at 1280), so a line sweeping
+           from the same edge on a window that opens two points earlier is
+           ahead of it at every frame, by the margin above. */
+        animation-range: contain 76% contain 86%;
       }
       /* THE WIPE IS A CLIP, NOT A MASK AND NOT A WIDTH. A width animation
          reflows the flex row and drags the count across the page as the title
@@ -6611,8 +6661,10 @@
       }
       /* The title leads and the count follows it in: the label is the subject
          and the count is what the subject turns out to be, so reading order is
-         arrival order. Both inside the rule's own range, so the line is never
-         shorter than the words standing on it. */
+         arrival order. Neither is ever written onto bare page: the rule above
+         ends where the count begins, which is what actually keeps the line
+         from being shorter than the words standing on it — see its own note
+         for why "both windows inside the rule's window" was not that. */
       .sp-head__title { animation-range: contain 78% contain 88%; }
       .sp-head__count { animation-range: contain 86% contain 96%; }
     }
@@ -7531,6 +7583,50 @@
      Forced colours gets the settled state. */
   .sp4-edge      { stroke: CanvasText; }
   .sp4-lit       { stroke: none; }
+  /* AND THE THIRD MEMBER OF THE SAME FRAME, WHICH IS NOT AN SVG PATH. The two
+     rules above are here because this mode leaves SVG `stroke` to the author,
+     which is the exemption this block opens with. .sp4-tick is the same
+     drawing's 45 degree chamfer across the top-left corner and it is a <span>
+     painted with `background: var(--border-strong)` — so it is on the list the
+     mode DOES force, and forcing it is what breaks it. Measured on
+     ueber-uns.html at 1280 x 900, both plates, both schemes, the settled tier
+     (`reducedMotion: 'reduce'`, because the chamfer fades in on --sp4 and is at
+     opacity 0 at the top of the page):
+
+                          .sp4-edge stroke    .sp4-tick background
+       light, Canvas #fff    rgb(0,0,0)         rgb(255,255,255)  = Canvas
+       dark,  Canvas #000    rgb(255,255,255)   rgb(0,0,0)        = Canvas
+
+     Four edges in the reader's ink and the diagonal in the reader's ground, in
+     both schemes. That is precisely the outcome the note over .sp4-tick says
+     the chamfer exists to prevent — "it is what stops the plate reading as a
+     browser default border" — so under a reader's own palette the plate read
+     as one.
+
+     A BORDER AND NOT A REPAINTED BACKGROUND. It is the answer .lp-ev-card__rule
+     already gave for this shape one act along, quoting .cf-radio__box's rule in
+     components.css: "a mark made of border survives Windows high contrast and a
+     mark made of fill does not". Here it is also free. box-sizing is
+     border-box (base.css line 49) and the bar's block-size is one --stroke-1,
+     so a 1 px top border fills exactly the box the background filled and the
+     content box goes to zero, which costs nothing on an empty span. Both
+     candidates were rendered at deviceScaleFactor 4 and their crops are
+     identical pixel for pixel; each turns 415 device pixels of Canvas into ink
+     against the unfixed render, on a run whose measured slope is the chamfer's
+     own 45 degrees.
+
+     Nothing in the geometry moves. The border box is 16.71 x 16.71 CSS px
+     before and after, so `inline-size: calc(var(--mount) * 1.41421356)` still
+     spans the mount's 22.63 px diagonal and `transform-origin: 0 calc(
+     var(--stroke-1) * 0.5)` still turns the bar about its centreline — the two
+     corner landings the note over .sp4-tick fixes at 0.000 and 0.002 px are
+     unchanged. The gated rule at the foot of the pinned tier declares only
+     `animation`, `animation-timeline` and `animation-range`, so this bare
+     selector collides with no declaration it makes and the chamfer still fades
+     in on its own range.
+
+     Additive, and in this block only: the default rendering is untouched. */
+  .sp4-tick      { border-block-start: var(--stroke-1, 1px) solid CanvasText; }
   /* Through the parent, for .lp-flow__leaf's reason one rule up: the frame's
      stroke is a gated-tier declaration, so a bare `.lp-frame__line` here would
      be a base rule outranking it inside the gate on nothing but source order.

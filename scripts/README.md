@@ -1,7 +1,7 @@
 # scripts/
 
 Everything that generates this website, and everything that refuses to let it
-ship broken. 185 files at this level, this one included, no package, no
+ship broken. 187 files at this level, this one included, no package, no
 `__init__.py`, no build step: every `.py` in it is `python3` against the
 standard library, and every one but `og_meta.py` is run by its own path. That
 pair used to read "178 of the 179", a second file count standing beside the
@@ -39,7 +39,7 @@ most.
 
 | Count | What | Who runs it |
 | --- | --- | --- |
-| 165 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
+| 167 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
 | 8 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all eight, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
 | 1 | `build-all.sh` | `news-sync.yml`, and a human. Nothing else. |
 | 1 | `stage-site.py` — collects the website into `dist/` | both deploys, `--surface pages` and `--surface worker` |
@@ -141,7 +141,7 @@ there are these:
 | `check-band-flow.py` | JS scroll behaviour — the fraction `cf-pin-gate.js` keeps through a band across a reflow | `assets/js/cf-pin-gate.js` + four stylesheets |
 | `check-band-inset.py` | layout — a band that re-derives the page margin must use `.container`'s one number | four stylesheets |
 | `check-band-rule-continuity.py` | layout — a hairline drawn as a border sits inside its own box, so the same column line lands a pixel apart depending on which side drew it | three stylesheets |
-| `check-label-ramp.py` | typography — `--text-xs` is mono labels only, never prose | three stylesheets |
+| `check-label-ramp.py` | typography — the mono label ramp is two rungs and each rung is a size *and* the tracking that travels with it | four stylesheets + every `<style>` block |
 | `check-label-clearance.py` | SVG annotation geometry — a numeral on the flow root holds the clearance the root publishes | `patterns/`, `prototypes/`, `tokens.css` |
 | `check-label-frame.py` | SVG annotation geometry — an HTML layer placed in a drawing's coordinates gets the drawing's box | four stylesheets + every page |
 
