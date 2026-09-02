@@ -15,6 +15,12 @@
 # shipped pages and the plates ship beside them, so a run that stops halfway
 # never leaves a page advertising a picture that is not there yet.
 #
+# build-app-icons.py sits beside it and could be anywhere for the same reason:
+# the tile is the signet and the light family's ramp, and nothing above changes
+# either. It runs after the pages for the plates' argument exactly — the pages
+# link the icon and the manifest, and a run that stops halfway never leaves a
+# page naming a tile that is not there yet.
+#
 # build-search-index.py is last, and that is the same argument once more: it
 # reads the SHIPPED pages, because the index carries addresses and a pattern's
 # address is not the page's. Run before build-site.py it would index a root that
@@ -32,4 +38,5 @@ python3 scripts/build-articles.py
 python3 scripts/build-stellen.py
 python3 scripts/build-site.py
 python3 scripts/build-og-plates.py
+python3 scripts/build-app-icons.py
 python3 scripts/build-search-index.py

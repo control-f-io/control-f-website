@@ -30,7 +30,8 @@
       { href: 'foundations/share.html',       label: 'The Share Plate' },
       { href: 'foundations/construction.html',label: 'The Construction Layer' },
       { href: 'foundations/capline.html',     label: 'The Cap Line' },
-      { href: 'foundations/cut.html',         label: 'The Cut' }
+      { href: 'foundations/cut.html',         label: 'The Cut' },
+      { href: 'foundations/outside.html',     label: 'Outside the Page' }
     ]},
     { title: 'Components', items: [
       { href: 'components/buttons.html',        label: 'Buttons' },
