@@ -638,7 +638,7 @@ custom property it caps on has to be written by a shipping script. A cap on a va
 is `max-width: 100%` wearing an argument — a value no engine implements and a value nothing
 supplies fail the same way, and neither leaves a mark.
 
-**The isometric assembly** holds to six rules, all of which were already written down in
+**The isometric assembly** holds to seven rules, all of which were already written down in
 prose and none of which anything ran:
 
 | | |
@@ -649,8 +649,9 @@ prose and none of which anything ran:
 | `.cf-iso__orbit` | Always carries `.cf-iso__ghost` too — an orbit is a ghost that also turns, and the shared rule names the ghost. |
 | one light | At most one `.cf-iso__light` per object. |
 | `screen` | Every `animation-timeline` declaration sits inside a `@media` that names `screen`. |
+| `--build-stages` | Every `.cf-iso--build` declares the deepest `--stage` it actually draws, and the light and the construction points wait for *that* rather than for the plate the lime is painted on. → [the object, not the plate](foundations/motion.html#light-object) |
 
-Every one of the six is invisible in a screenshot and countable in a file, which is the
+Every one of the seven is invisible in a screenshot and countable in a file, which is the
 whole test for what belongs in any of these four — and the reason two of the four in
 [Redrawing an illustration](#redrawing-an-illustration-five-things-that-vanish-quietly)
 are deliberately left out.
