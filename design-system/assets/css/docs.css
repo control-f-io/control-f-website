@@ -669,7 +669,45 @@ body.docs {
   font-size: var(--text-sm);
   color: var(--text-primary);
 }
-.docs-table td:first-child { white-space: nowrap; }
+/* THE FIRST COLUMN IS A KEY UNTIL IT IS A SENTENCE, and this rule used to say
+   the first half only.
+
+   It was `.docs-table td:first-child { white-space: nowrap }`, unqualified and
+   with no note — the only declaration in this file without one, which is what
+   a decision looks like when it was made about the table in front of somebody
+   rather than about tables. It is right about the table it was written for: a
+   spec table's first column is `.cf-blog-card--media` or `--section-gap`, and
+   an identifier broken across two lines at one of its own hyphens reads as two
+   identifiers. It is wrong about every table whose first column is prose, and
+   this documentation has 213 such cells — every do/don't table opens one.
+
+   Set on the CELL, nowrap makes a sentence one line. Measured at 1280, where
+   the content column is 912 px:
+
+     components/block.html    a 1830 px table in the 912 px box   +918
+     foundations/layout.html                                       +41
+     components/pie.html                                           +26
+     components/line.html                                          +20
+
+   Four of 225 tables, and all four for this reason: released, every one of
+   them fits. `.docs-table` is `display: block; overflow-x: auto`, so nothing
+   renders broken — the table scrolls inside itself, and a two-column do/don't
+   comparison is a thing you now have to drag sideways to compare.
+
+   THE GUARANTEE MOVES TO THE IDENTIFIER, WHICH IS WHERE IT WAS ALWAYS ABOUT.
+   A key in this documentation is marked up as one — 644 of the 1331 first
+   cells hold a <code> — so nowrap on the <code> keeps every identifier whole
+   and lets the cell around it wrap like the prose it sometimes is. Counted
+   after the change: 0 of 225 tables overflow at 1280, and 0 first-column
+   <code> elements break across a line at 1280 or at 375.
+
+   The phone gets it too, and by more. At 375 the page is narrow enough that
+   the second column overflows on its own, so this was never the only cause
+   there — but it was most of it: 185 tables scrolling and 29,008 px of total
+   overflow before, 144 and 15,186 after, worst single table 1503 px down to
+   579. Half the sideways dragging in this documentation was one declaration
+   holding sentences on one line. */
+.docs-table td:first-child code { white-space: nowrap; }
 
 /* ---------- do / don't ----------
    Both halves get the same 1 px contour. They are told apart by their label and
