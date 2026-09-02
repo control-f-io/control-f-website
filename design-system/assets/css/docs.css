@@ -757,13 +757,52 @@ body.docs {
    the Grey ramp in foundations/colors.html, which overrides this rule with ten
    columns and had to be floored there too. */
 .docs-ramp__steps { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+/* THE BLOCK PADDING IS THE SWATCH'S HEIGHT. The inline padding was doing no
+   drawing at all and one thing nobody wanted: the step's background fills its
+   whole track either way, and the label is centred either way, so --space-2
+   either side could only ever narrow the text box. On the Grey ramp — ten
+   steps in the column the 7-step ramps give to seven — it narrowed it past the
+   label. Measured, one line per step above about 391 px and then every one of
+   the ten broken: `000` set as `00` over `0` at 375, over three lines at 320.
+   Both are inside the range this system is held at, and the second is the
+   narrowest viewport it claims.
+
+   No threshold and no fold answers this, which is why it is a removal. The
+   wrap is not a width the layout should react to; it is 16 px of padding
+   spent on nothing standing in front of 18.3 px of ink. Without it the label
+   is one line at every width down to 320, where 18.3 px of ink sits in a
+   27.2 px cell with 4.4 px of clearance either side, and the seven-step ramps
+   above — whose cells are 43 px and wider — do not move at all. */
 .docs-ramp__step {
-  padding: var(--space-4) var(--space-2);
+  padding-block: var(--space-4);
   font-family: var(--font-mono);
   font-size: 0.625rem;
   letter-spacing: var(--tracking-label);
   text-align: center;
 }
+/* THE STEP NUMBER STANDS ON THE SWATCH IT NAMES, so which ink it takes is a
+   fact about that swatch's own hex and not a preference. It was written as
+   `color:#fff` inside the style attribute of twelve steps — twelve copies of
+   one decision, in a shorthand the palette never uses, on the chapter whose
+   whole subject is that a colour has a name — and eleven of the twelve were
+   right. The twelfth was Sky 700: white on #5684A9 is 3.99:1 at this size,
+   under the 4.5:1 the 10 px label owes, where black on the same swatch is
+   5.27:1. It reads as a copy down the row rather than as a choice — the two
+   steps under it in the same ramp are genuinely dark and genuinely take white.
+
+   No gate could see it. Ink written into a style attribute is outside
+   check-contrast.py's register, which is pairs of tokens, and outside every
+   check that reads a stylesheet, which is where this decision was not. It is
+   the same boundary README already records for the grid-track rule: a rule
+   enforced over stylesheets is not enforced over `style=`, and the
+   documentation pages are where those attributes live.
+
+   --grey-000 and not #fff, for the reason above. The modifier names the
+   swatch rather than the ink, because the swatch is the reason.
+   → scripts/check-ramp-ink.py recomputes both inks against the background
+   each step declares, so a step whose hex moves cannot keep an ink that no
+   longer clears AA. */
+.docs-ramp__step--dark { color: var(--grey-000); }
 
 /* ---------- spec tables ---------- */
 /* display:block so a wide table scrolls inside itself instead of pushing the
