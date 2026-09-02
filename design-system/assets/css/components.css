@@ -62,6 +62,52 @@
   --glow-r: 6px;
 }
 
+/* AN INK NAMED ON THE <svg> IS NOT IN THE READER'S PALETTE, and this note is
+   the icon set's, not this modifier's — it is written here because this is the
+   first rule in the sheet to name one.
+
+   Chromium's UA stylesheet gives every <svg> `forced-color-adjust:
+   preserve-parent-color`. That is the value that lets an icon inside a link
+   come out in LinkText instead of CanvasText: it hands the element the colour
+   it inherits and forces nothing else on it. So the moment a rule names an ink
+   ON the svg itself, that ink is preserved too — and `stroke` and `fill` were
+   never on the forced list to begin with. Either way the icon paints the
+   author's colour in a palette the reader chose. Four selectors in this sheet
+   name an ink on an <svg>, and only .cf-scroll-cue__glyph had ever handed it
+   over, by naming CanvasText on its stroke in a block of its own.
+
+   Measured in Chromium 151 over http, forced-colors active, prefers-color-
+   scheme dark — Canvas #000000, CanvasText #FFFFFF, LinkText #FFFF00 — by
+   sampling every <svg> on every page under design-system/ and comparing the
+   computed paint against the same page in the light forced palette. A forced
+   colour flips between the two; an author colour is byte-identical, which is
+   the whole test. Three were identical:
+
+     .cf-icon--light             stroke rgb(225, 255, 0), 1 instance
+     .cf-error__route .cf-arrow  rgb(72, 72, 72) at the end of a LinkText row,
+                                 2.29:1 on Canvas, 14 instances on 4 pages
+     .cf-notice__glyph           rgb(0, 0, 0) on Canvas #000000 — 1:1, gone
+                                 outright — and rgb(167, 32, 25) at 2.86:1 for
+                                 the Fehler tone. 5 instances on 2 pages
+
+   `forced-color-adjust: auto` is not the answer and was measured before it was
+   ruled out: on the error arrow it maps `color` to the inherited LinkText and
+   leaves `fill: currentColor` computing rgb(72, 72, 72), so the arrow is still
+   grey and only the computed style looks repaired. What works is naming the
+   value — `color: inherit` where the icon should take its context's ink,
+   `stroke: currentColor` where it had been opted out of one.
+
+   HERE, THE LIGHT IS WHAT GOES. The spill is already dropped in this mode (see
+   the note beside the composed --glow-r filter, 15,800 lines down), and a lime
+   contour with no light behind it is not a source — it is one icon in a colour
+   the reader did not ask for, 1.13:1 on a light Canvas, standing next to three
+   neighbours on foundations/iconography.html drawn as CanvasText hairlines. It
+   degrades to a plain .cf-icon, which is what this modifier means once there is
+   no light in the palette to be made of. */
+@media (forced-colors: active) {
+  .cf-icon--light { stroke: currentColor; }
+}
+
 /* An icon inside a button or link tracks the label's motion, nothing more.
 
    HOVER AND FOCUS ARE ONE STATE HERE, and everywhere else in this file. The
@@ -5887,6 +5933,24 @@ a.cf-pagination__step--next:focus-visible .cf-icon { transform: translateX(3px);
   transform: translateX(4px);
   color: var(--text-primary);
 }
+/* Both of those inks are named on the <svg>, so forced colours preserves them
+   rather than mapping them — the trap the note beside .cf-icon--light sets out
+   in full. Measured on patterns/404.html with the dark palette: the five rows
+   and their labels came through in LinkText #FFFF00 and every arrow stayed
+   rgb(72, 72, 72), 2.29:1 against Canvas, at the far right of a row that is
+   otherwise the loudest thing on the page.
+
+   `inherit` and not CanvasText, because the arrow belongs to the row: the row
+   is the link, the arrow is where it ends, and taking the link's own ink is
+   what every other .cf-arrow in the system already does by not naming one. The
+   quiet-grey-to-black step is a second ink and this mode has one, so hover is
+   listed here as well — it carries a higher specificity than the base rule and
+   would otherwise reintroduce the escape on the row under the pointer. */
+@media (forced-colors: active) {
+  .cf-error__route .cf-arrow,
+  .cf-error__route:hover .cf-arrow,
+  .cf-error__route:focus-visible .cf-arrow { color: inherit; }
+}
 
 /* One fold, measured on the component rather than the viewport, so a routes
    list inside a column folds at the same width it folds at full bleed: below
@@ -6865,6 +6929,23 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
   }
   .cf-notice--achtung::before { border-inline-start-style: dashed; }
   .cf-notice--fehler::before  { border-inline-start-style: solid; }
+  /* AND THE THIRD CHANNEL WAS NOT THERE AT ALL, which is worse than the band
+     the paragraph above rescued. The glyph names --notice-ink on the <svg>
+     itself, and an ink named there is preserved rather than mapped — see the
+     note beside .cf-icon--light. Measured on components/notice.html in the
+     dark palette: Hinweis and Achtung drew rgb(0, 0, 0) on a Canvas of
+     rgb(0, 0, 0), 1:1, absent; Fehler drew rgb(167, 32, 25) at 2.86:1; the
+     title beside each of them is an ordinary <p> and came through at
+     CanvasText. So the box a reader was meant to read on three channels was
+     reading on two, and the one that went missing is the one the component's
+     own note calls required.
+
+     The shape is what survives here, and it is enough: the three tones carry
+     #cf-diamond, #cf-triangle and #cf-triangle-solid, so the glyph still says
+     which notice this is in a palette with one ink in it. `inherit` puts it on
+     the title's colour, which is where the tone put it before the mode took
+     the colour away. */
+  .cf-notice__glyph { color: inherit; }
 }
 
 /* --------------------------------------------------------------------------
