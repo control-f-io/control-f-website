@@ -1543,6 +1543,31 @@ The website had only ever shipped the object. `.cf-construct` is a second drawin
 the first, in the first's own coordinates, dormant until a reader asks — the rays it was
 set out along, the cells it was cut from, the points where those meet, and the measures.
 
+**It reaches the website on `patterns/404.html`**, and until it did, the layer had three
+consumers and all three were documentation about the system. A material whose whole
+argument is *show the working*, appearing only in the chapter that explains it, is the
+same shape of thing as the core on Über uns before this chapter existed: real, and
+reaching nothing. The error page draws a row of identical units on the ground plane with
+one of them missing, and it had carried its own construction since it was written — `u =
+60`, the origin at the empty socket's left corner, the four angles and nothing else — **in
+a source comment**, which is the one place a construction cannot be read. It is drawn now:
+the eight rays of the *Winkelraster* through `(200, 340)`, the setting-out point as a ring
+around the corner dot the object kept, and the unit measured at `2u` on the one unit you
+can see through. Three of the eight rays carry something — the datum is the row's standing
+line, the two at 26.57° are the empty socket's left edges, the vertical is the missing
+unit's plumb — and the other five run out of the frame carrying nothing, which is the
+isometry stated as a fact rather than claimed.
+
+A 404 is the one address where a reader has nothing to do, and the subject of that drawing
+is already an absence. **Two marks are deliberately not there.** No cell: all three ground
+cells of the row lie under an object or under the lit socket, so the mark would draw
+nothing anyone can see — the cost of *it paints under the object* when the object is
+opaque. And the measure stands in the void above the row rather than in the empty band
+below it, because that band already carries the drawing's *Leerstelle* annotation; at 375
+the leader shortens, the label travels left, and two label rules in one band are a
+collision at some width even when they clear at the width you tested.
+→ `foundations/construction.html#shipped`
+
 **The rank is the line type, not the ink**, and that decision is what makes the layer cheap.
 The obvious way to hold construction back is to draw it fainter, and that loses the
 distinction in the two modes that discard ink strength — forced colours remaps authored
