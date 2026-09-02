@@ -457,8 +457,21 @@ def main():
     # build the part shares with its stage-mates. Only the first is this
     # number — searching the whole file for the shape finds four other rules'
     # quarters first and reports whichever one it hits.
+    #
+    # THE FILL'S OPENING IS A FLOOR NOW, NOT A LITERAL. It used to read
+    # `contain calc(var(--i) * 25% + 11.5%)`; it is
+    # `contain calc(var(--i) * 25% + max(11.5%, <the part's own arrival end>))`
+    # since the light stopped being allowed to fill before the plate carrying
+    # it had landed — foundations/motion.html#light-last. What this check owns
+    # is unchanged and is still true of card 01: its arrival closes at 11.4 of
+    # the quarter, so the floor is what it takes and 11.5 is still the number
+    # the clearance was swept at. The general inequality between the two ranges
+    # is scripts/check-iso-motion.py's; this reads the floor out of the max()
+    # and nothing else, so moving the constant still fails here.
     lit = (rule_bodies(text, ".lp-proc-steps .cf-iso__light") or [""])[-1]
-    lime = re.search(r"animation-range:\s*contain calc\(var\(--i\) \* 25% \+ ([\d.]+)%\)", lit)
+    lime = re.search(
+        r"animation-range:\s*contain calc\(\s*var\(--i\) \* 25%\s*"
+        r"\+\s*(?:max\(\s*)?([\d.]+)%", lit)
     if lime is None or abs(float(lime.group(1)) - CARD_LIME) > TOL:
         findings.append(
             f"card 01's lime no longer opens at contain {CARD_LIME} % of its quarter — "

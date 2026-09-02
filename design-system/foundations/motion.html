@@ -528,7 +528,7 @@ python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the co
         <tr><td><code>.cf-iso__ghost</code></td><td><strong>first on screen.</strong> A ghost is the object's future state, and the parts arrive out of exactly where the ghosts are, so a ghost that fades up after the part it predicts is the drawing told backwards</td><td>cover 2–14 %</td></tr>
         <tr><td><code>.cf-iso__orbit</code></td><td>excluded from that retiming — an orbit is a ghost that turns, and its turn is written against 20–50 %</td><td>unchanged</td></tr>
         <tr><td><code>.cf-iso__form</code></td><td>arrives on its stage, from <code>--build-dx</code> / <code>--build-dy</code></td><td>cover 5–22 %, +7 % per stage</td></tr>
-        <tr><td><code>.cf-iso__light</code></td><td>a part like any other while the object is being built, so it takes a stage and travels with the section it belongs to — card 01's lime plate <em>is</em> the top of the inner shaft and cannot stay behind while the shaft rises. Its fill still comes up last.</td><td>arrival on its stage; fill cover 30–48 %</td></tr>
+        <tr><td><code>.cf-iso__light</code></td><td>a part like any other while the object is being built, so it takes a stage and travels with the section it belongs to — card 01's lime plate <em>is</em> the top of the inner shaft and cannot stay behind while the shaft rises. Its fill comes up last, and “last” is <a href="#light-last">the later of 30 % and its own arrival</a> rather than a flat 30.</td><td>arrival on its stage; fill cover <code>max(30, 22 + 7n)</code>–48 %</td></tr>
         <tr><td><code>.cf-iso__node</code></td><td><strong>not staged.</strong> Construction points are added to a finished object, at its finished position, which is what they mean</td><td>unchanged</td></tr>
       </tbody>
     </table>
@@ -605,6 +605,81 @@ python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the co
       the answer has to be zero</strong>, and read an animated figure only against the same
       figure taken the same way before the change. A settled-state diff against a still
       render will always be a five-figure number and will never mean what it looks like.
+    </p>
+
+    <h3 id="light-last">Lime is the last thing to arrive, and on two objects it was not</h3>
+    <p>
+      The light is two animations on one element: <code>cf-iso-build</code> brings the plate
+      in on its stage, <code>cf-iso-light</code> raises its <code>fill-opacity</code>
+      afterwards. The whole of what the brand asks of that pair is an <em>inequality</em> —
+      the fill opens no earlier than the arrival closes — because lime is light, and an
+      object lit while it is still travelling is lit before it is there.
+    </p>
+    <p>
+      It was written as a constant on both timelines: <strong>cover 30 %</strong> in the base
+      assembly, <strong>11.5 % of the quarter</strong> on the pinned track. A constant is only
+      later than an expression while nobody moves the expression, and both had already been
+      moved past. A light that carries a stage arrives until <code>22 + 7n</code>, so a
+      stage-2 light arrives until cover 36 and the fill opened six points early. On the pinned
+      track the same thing happened for a second reason: 11.5 was derived against a
+      <a href="#build-head">build head</a> of 0.5, and the head became a variable without the
+      constant being re-derived against the other value it can take.
+    </p>
+    <p>
+      Both cards whose lime plate sits on stage 2 shipped it, and neither stage is free to
+      move: card 01's plate <em>is</em> the crown of the telescoping shaft, card 04's
+      <em>is</em> the sphere's equator, and the stage is construction order, not a timing
+      knob.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Object</th><th>Timeline</th><th>Fill opened</th><th>Plate still arriving until</th><th>Lit before it was there</th></tr></thead>
+      <tbody>
+        <tr><td>01 Discovery</td><td>base, <code>cover</code></td><td>30 %</td><td>36 %</td><td>6 points</td></tr>
+        <tr><td>04 Mehr Leistung</td><td>base, <code>cover</code></td><td>30 %</td><td>36 %</td><td>6 points</td></tr>
+        <tr><td>04 Mehr Leistung</td><td>pinned, <code>contain</code></td><td>86.5 %</td><td>87.4 %</td><td>0.9 points — 55 px measured at 1440×900</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Both were measured rather than reasoned about. On the stacked landing page at 375×812,
+      the one sample inside card 01's overlap reads the crown at <code>opacity 0.93</code>
+      with <strong>17 of its 238 units of travel still to run</strong> and its lime already
+      filling at 0.03 — the shaft lit before it had finished extending; the same sample reads
+      0 with the fix. On the pinned track at 1440×900, swept at 5 px, card 04's fill left 0 at
+      <code>y 11637</code> against <code>y 11692</code> with the fix, and at the old onset the
+      plate was at <code>opacity 0.99</code>.
+    </p>
+    <p>
+      Card 01 is clear on the pinned track by a tenth of a point, which is how close the seam
+      always was: its arrival closes at 11.4 and the fill opened at 11.5. Nothing was wrong
+      with the number — only with its being a number.
+    </p>
+    <p>
+      So the fill's start is <strong>the later of the two</strong>, and neither side of that
+      <code>max()</code> is a new literal: the arrival's end is read off the window declared
+      immediately beside it, so the two cannot drift apart again.
+    </p>
+    <pre class="docs-code"><span class="attr">animation-range</span>: cover <span class="val">calc(max(30%, 22% + var(--stage, 0) * 7%))</span> cover <span class="val">48%</span>,
+                 cover <span class="val">calc(5%  + var(--stage, 0) * 7%)</span>
+                 cover <span class="val">calc(22% + var(--stage, 0) * 7%)</span>;</pre>
+    <p>
+      Stages 0 and 1 resolve to 30 % exactly, so cards 02 and 03 are byte-identical and the
+      constant still means what it meant everywhere it still holds. <strong>The window's end
+      does not move</strong> on either timeline — the light still lands at cover 48, inside
+      the construction points' 35–50, so the object still finishes on its nodes; on the
+      pinned track it still lands at 15 of the quarter and the nodes still close the reveal at
+      15.5. The 62 % hold is untouched.
+    </p>
+    <p>
+      <code>max()</code> inside a <code>calc()</code> inside <code>animation-range</code>
+      resolves at computed-value time like any other math function — verified in Chromium by
+      reading back <code>getComputedStyle(el).animationRange</code>, which reports card 04's
+      pinned fill at <code>contain 87.4%</code>, exactly its own arrival end.
+      <code>scripts/check-iso-motion.py</code> now holds the inequality itself rather than the
+      numbers: it reads both ranges out of both stylesheets, sweeps every
+      <code>--stage</code> up to the derived ceiling against every <code>--build-head</code>
+      the stylesheets declare, and fails any pair where the fill opens first. Proven by
+      putting the two constants back, which reports five findings — the two that shipped and
+      the three a stage-3 light would have arrived with.
     </p>
 
     <h3>An orbit turns, and it turns by moving its dashes</h3>
@@ -1695,6 +1770,15 @@ python3 scripts/check-iso-motion.py</pre>
       the same rate; only the whole build sits one point earlier. The stagger, the trace and
       node windows, the 62 % hold and the reveal's end at 15.5 are untouched.
       <code>scripts/check-quarter-opening.py</code> holds it.
+    </p>
+    <p>
+      <strong>One thing further down the quarter was touched, and nothing said so at the
+      time.</strong> Making the head a variable moved the end of a light's arrival by a whole
+      point on three of the four cards, and the light's fill opened at a constant measured
+      against the other value. Card 04 shipped its lime coming up through a plate that had
+      not landed. That is <a href="#light-last">Lime is the last thing to arrive</a>, up in
+      the assembly; it is recorded here because the fault belongs to the number this section
+      introduced.
     </p>
 
     <h3>The hold is the point</h3>
