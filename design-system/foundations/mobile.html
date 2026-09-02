@@ -824,11 +824,12 @@
         <tr><td>Hero</td><td><code>min-height: min(92vh, 56rem)</code></td><td>747 px on a 812 px screen. 92 rather than 100 on purpose: the page has to show that it continues</td></tr>
         <tr><td>Consent, short screens</td><td><code>calc(100vh - var(--nav-height) - 3rem - var(--space-6))</code>, now with a <code>dvh</code> line on top</td><td>only under a 560 px viewport height, i.e. landscape, and a backstop rather than the working state: 219 px against a 191 px banner at 375 tall. It was <code>70vh</code>, which never engaged at all across that band</td></tr>
         <tr><td>Values track</td><td><code>100vh</code> per stage</td><td><strong>never runs below 820&nbsp;px wide or 720&nbsp;px tall</strong>, so the stage does not exist on a phone — the height half of that is new; see below</td></tr>
+        <tr><td>Consent, settings panel</td><td><code>max-height: min(80vh, 46rem)</code>, now with a <code>dvh</code> line on top</td><td>the one cap in this table that <strong>always</strong> engages on a phone: 46rem never wins there, so the panel's height simply is 80vh — 533.6 px at 375&nbsp;×&nbsp;667, 531.2 at 390&nbsp;×&nbsp;664, 671.2 at 412&nbsp;×&nbsp;839. See the note below</td></tr>
       </tbody>
     </table>
     </div>
     <p>
-      All three start from <code>vh</code> — deliberately, and it is worth knowing which
+      All four start from <code>vh</code> — deliberately, and it is worth knowing which
       behaviour that buys. <code>vh</code> is the <em>large</em> viewport: it resolves as
       though the URL bar were collapsed and does not change while the bar slides away, so
       nothing reflows mid-scroll. The cost is that the hero is a little taller than the
@@ -839,8 +840,10 @@
       toolbar leaves a crop-shaped gap — or, anchored to an edge instead of cropped, lets
       the box grow past where the cap meant to stop it — if nothing tracks the toolbar
       down. That is the two pinned stages (the values track here, the
-      <a href="motion.html#pinned">Expertise and landing-page builds</a>) and, since the
-      note below, the consent backstop too.
+      <a href="motion.html#pinned">Expertise and landing-page builds</a>), the consent
+      backstop and — since the second note below — the consent settings panel, which was
+      the last box of that shape anywhere in the two shipping stylesheets still capping on
+      <code>vh</code> alone.
     </p>
     <div class="docs-note">
       <strong>The width gate was never the only question, and the values track asked it
@@ -887,6 +890,75 @@
       declared after the <code>vh</code> line, so a browser with no <code>dvh</code> support
       keeps the line above unchanged. → <code>components.css</code> <code>.cf-consent</code>,
       the <code>max-height: 35rem</code> block
+    </div>
+    <div class="docs-note">
+      <strong>The backstop's fix named the shape and stopped at the box it was standing
+      in. One box of the same shape was left, and it is the only one whose cap is never
+      not engaged.</strong> <code>.cf-consent__dialog</code> — the settings panel behind
+      the banner's third action — is a <code>max-height</code> cap over
+      <code>&lt;dialog&gt;</code>'s own UA <code>overflow: auto</code>, the identical
+      mechanism to the open nav list and to the backstop above, and it capped on
+      <code>min(80vh, 46rem)</code> with no second line.
+      <br><br>
+      The backstop calls itself "still a backstop and still rarely reached". This cap is
+      the opposite: 46rem is 736 px and no phone screen is that tall, so <code>80vh</code>
+      is the panel's height on every phone, and the panel is taller than its scrollport at
+      every text size a reader can ask for. Measured on the landing page's dialog, opened
+      from the banner, content height against the scrollport the cap leaves it —
+      identically on WebKit 26.5 and Chromium 141:
+      <div class="docs-table-scroll">
+      <table class="docs-table">
+        <thead><tr><th>Viewport</th><th>Root 16</th><th>Root 20</th><th>Root 24</th><th>Cap</th></tr></thead>
+        <tbody>
+          <tr><td>375 × 667</td><td>837 / 532</td><td>1167 / 532</td><td>1634 / 532</td><td>533.6</td></tr>
+          <tr><td>390 × 664</td><td>785 / 529</td><td>1167 / 529</td><td>1604 / 529</td><td>531.2</td></tr>
+          <tr><td>412 × 839</td><td>765 / 669</td><td>1116 / 669</td><td>1538 / 669</td><td>671.2</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <br>
+      A modal <code>&lt;dialog&gt;</code> is centred in the viewport, so a cap of
+      <code>80vh</code> takes the middle four fifths and leaves a tenth of the
+      <em>vh</em>-viewport above the panel and a tenth below it. Safari's toolbar takes
+      that lower tenth back from the bottom, so the panel's foot leaves the visible screen
+      once the toolbar stands taller than a tenth of the collapsed viewport — and the
+      toolbar is showing on the one load this panel is ever opened from: a tap on a banner
+      pinned to the bottom of a page nobody has scrolled yet. Driven at 390 × 745, the
+      collapsed viewport <code>vh</code> answers with, and read against the 664 that is on
+      screen while the toolbar shows — both engines to the tenth of a pixel:
+      <div class="docs-table-scroll">
+      <table class="docs-table">
+        <thead><tr><th>Cap</th><th>Panel box</th><th>Below the visible screen</th></tr></thead>
+        <tbody>
+          <tr><td><code>min(80vh, 46rem)</code></td><td>74.5 – 670.5</td><td><strong>6.5 px</strong></td></tr>
+          <tr><td><code>min(80dvh, 46rem)</code></td><td>106.9 – 638.1</td><td>none, 25.9 px to spare</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <br>
+      <strong>6.5 px is a border, and this page does not inflate it into a control.</strong>
+      What is under the toolbar is the panel's bottom edge and the air beneath the actions
+      row; <em>Auswahl speichern</em>, the button the panel exists for, ends at 637.8 and
+      clears it on this pair. It is only a border because the toolbar here is 81 of 745, a
+      hair over the tenth the cap leaves. That margin is the difference between two numbers
+      that are both the screen's, so it closes wherever the toolbar takes a larger share of
+      it — the small phones — and the fix costs nothing either way.
+      <br><br>
+      Fixed the way the other three already had it: <code>max-height: min(80dvh, 46rem)</code>
+      declared after the <code>vh</code> line, so a browser with no <code>dvh</code> keeps
+      the line above unchanged and a pointer machine, where the two units are one number,
+      renders the panel it rendered before. → <code>components.css</code>
+      <code>.cf-consent__dialog</code>
+      <br><br>
+      <strong>What is measured here and what is not.</strong> The content-against-scrollport
+      table is measured, on both engines, at three root sizes, and so is the fact that 46rem
+      never binds on a phone. The 745 / 664 pair is not measured: no headless runner has a
+      toolbar, and <code>dvh</code> and <code>vh</code> are one number in both engines as
+      they are driven here. It is the collapsed and visible viewport heights of an
+      iPhone-14-class screen, and the panel boxes read against it were measured at that
+      viewport with the two caps applied in turn. The consequence is therefore arithmetic on
+      a device constant, not a device reading — the same shape of argument the backstop's
+      note above makes, and the same one that fix was accepted on.
     </div>
   </section>
 

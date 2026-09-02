@@ -9080,9 +9080,58 @@ a.cf-calendar__day > time,
 }
 .cf-consent .cf-btn--ghost:is(:hover, :focus-visible) { background: none; color: var(--grey-000); }
 
+/* VH FIRST AND DVH ON TOP, THE THIRD BOX OF THE SAME SHAPE AND THE LAST ONE
+   STILL MISSING THE SECOND LINE. .cf-nav__list[data-open="true"] and the
+   .cf-consent backstop a few rules down both cap on a viewport height with an
+   inner scroll behind it, and both were given the dvh line for the reason
+   written out at length over the backstop: iOS Safari's `vh` is the
+   chrome-collapsed viewport, larger than what is on screen while the toolbar
+   is still showing. This dialog is the same shape — a max-height cap over
+   <dialog>'s own UA `overflow: auto` — and it kept vh alone.
+
+   AND UNLIKE THE BACKSTOP, THIS CAP IS NEVER NOT ENGAGED. The backstop's own
+   note calls itself "still a backstop and still rarely reached". This one
+   binds on every phone at every text size: measured on the landing page's
+   dialog, both engines, the panel's content against the scrollport the cap
+   leaves it —
+
+     viewport      root 16      root 20      root 24     cap
+     375 x 667    837 / 532   1167 / 532   1634 / 532   533.6  (80vh)
+     390 x 664    785 / 529   1167 / 529   1604 / 529   531.2  (80vh)
+     412 x 839    765 / 669   1116 / 669   1538 / 669   671.2  (80vh)
+
+   46rem never wins on a phone, so the rendered height of this box IS 80vh,
+   and an error in what vh means is an error in the box, not in a term that
+   might one day bind.
+
+   WHAT THE ERROR COSTS, STATED AT ITS REAL SIZE. A modal <dialog> is centred
+   in the viewport, so at 80vh it takes the middle four fifths and leaves a
+   tenth of the vh-viewport above it and a tenth below. Safari's toolbar takes
+   that lower tenth back from the bottom, so the panel's foot leaves the
+   visible screen once the toolbar stands taller than a tenth of the collapsed
+   viewport — and the toolbar IS showing on the one load this panel is ever
+   opened from, a tap on a banner pinned to the bottom of a page nobody has
+   scrolled. Driven at 390 x 745 (the collapsed viewport `vh` answers with)
+   and read against the 664 that is on screen while the toolbar shows, both
+   engines agreeing to the tenth:
+
+     cap            panel box        below the visible screen
+     min(80vh, …)   74.5 – 670.5     6.5 px
+     min(80dvh, …)  106.9 – 638.1    none, 25.9 px to spare
+
+   6.5 px is the panel's bottom border and the air under the actions row, not
+   a control: "Auswahl speichern" ends at 637.8 and clears the toolbar on this
+   pair. It is a border because the toolbar here is 81 of 745 — a hair over
+   the tenth this cap leaves. The margin is the difference between two numbers
+   that are both the screen's, so it closes wherever the toolbar takes a
+   larger share of it, which is the small phones; and the fix is free either
+   way. dvh costs nothing where it is missing — a browser without it keeps the
+   vh line above — and nothing at all on a pointer machine, where the two
+   units are the same number. */
 .cf-consent__dialog {
   width: min(38rem, calc(100vw - 2 * var(--space-4)));
   max-height: min(80vh, 46rem);
+  max-height: min(80dvh, 46rem);
   padding: 0;
   background: var(--surface-inverse);
   color: var(--text-inverse);
