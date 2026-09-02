@@ -114,7 +114,13 @@ def blocks(text):
     rules nest, so a block whose body still contains a brace is passed over
     and its inner blocks are found on their own.
     """
-    text = re.sub(r"/\*.*?\*/", lambda m: " " * len(m.group(0)), text, flags=re.S)
+    # Blanked keeping BOTH the length and the newlines. ` ` * len(match) keeps
+    # the length, which offsets need, and eats every newline inside the
+    # comment, which is what the line number below is counting. In a stylesheet
+    # that is mostly prose that loss is total -- measured on components.css it
+    # put a finding 4,067 lines above the rule it was about.
+    text = re.sub(r"/\*.*?\*/",
+                  lambda m: re.sub(r"[^\n]", " ", m.group(0)), text, flags=re.S)
     for m in re.finditer(r"\{([^{}]*)\}", text):
         body = m.group(1)
         head = text[:m.start()]

@@ -1218,6 +1218,24 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-media-controls.py
 
+      # The ramp is two rungs and each rung is a PAIR — a size and the tracking
+      # that travels with it. This step held the size half only, and the other
+      # half was broken in both directions the day it was widened: .cf-prose h4
+      # took --text-sm with the 11 px rung's tracking, .cf-consent__title took
+      # --text-xs with the 12 px rung's, and a docs-page toggle did the same.
+      # One step of size is 1 px, so the tracking is what a reader actually
+      # tells the two rungs apart by; a rule wearing one rung's size and the
+      # other's tracking reads as neither, and reads correct in isolation.
+      #
+      # Its reach was three of the four stylesheets that ship. acts.css is the
+      # scroll composition on eight pages and carries two mono uppercase rules
+      # this step had never read — both on the ramp, which is luck and not
+      # enforcement. Same reach gap, same file, same reason as the gradient
+      # family check above.
+      #
+      # The sizes it quotes back at you are read out of tokens.css at run time.
+      # Typed into the script they went stale: the message said --text-sm was
+      # 14 px for as long as the token has said 12.
       - name: Label ramp
         if: '!cancelled()'
         run: python3 scripts/check-label-ramp.py
