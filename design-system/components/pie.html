@@ -215,7 +215,7 @@
         <tr><td><code>--v</code></td><td><code>0</code></td><td>Per share. Its share of the whole, 0 to 1. The plot's own registration, reused unchanged — in both components it is the value as a fraction, and there is no second name for that.</td></tr>
         <tr><td><code>--turn</code></td><td><code>0</code></td><td>Per share. The turn it starts on: the running sum of every <code>--v</code> before it. The first share is <code>0</code>, which is 12 o'clock, and the ring runs clockwise. Registered as <code>&lt;number&gt;</code>.</td></tr>
         <tr><td><code>--pie-u</code></td><td><code>clamp(24px, 3.4vw, 32px)</code></td><td>The unit every measure here is built from — the plot's unit, at the plot's crossover, so the two figures land at one scale. Set it on <code>.cf-pie</code> to resize a figure. The floor is the pie's own and is higher than the plot's; see below.</td></tr>
-        <tr><td><code>--pie-label-w</code></td><td><code>5rem</code></td><td>The most a label may occupy, and the room reserved for it beside the ring.</td></tr>
+        <tr><td><code>--pie-label-w</code></td><td><code>5rem</code></td><td>The most a label's <em>type</em> may occupy. Not the room beside the ring: this one is in rem and moves with the reader's browser default, the ring is in px and does not, so the tier that rides the ring min()s it against <code>50vw − --pie-label-r × |sin(a)|</code>. See the floor note under Anatomy.</td></tr>
         <tr><td><code>--pie-label-r</code></td><td><code>calc(var(--pie-u) * 3.5)</code></td><td>Where a label's near edge sits: half a cell clear of the rim.</td></tr>
         <tr><td><code>--pie-grow</code></td><td><code>1</code></td><td>Set by the scroll animation, inherited by every share — how far the <em>authored</em> light has arrived. 1 is the finished figure, which is also what everything that cannot animate gets.</td></tr>
         <tr><td><code>--pie-home</code></td><td><code>0</code></td><td>Per share. How much of the authored light this share is holding: <code>1</code> on <code>--lit</code>, and <code>0</code> there too for as long as the pointer is on a different share. Set by the component, not by an author.</td></tr>
@@ -645,6 +645,28 @@
       6u + 2 × (0.5u + <code>--pie-label-w</code>). At u = 24 that is 328 px, against the
       335 px a 375 px viewport leaves inside its gutters. The cap and the crossover are the
       plot's, so the two figures still grow together and finish at the same size.
+    </div>
+
+    <div class="docs-note">
+      <strong>The sum above is a 16 px row, and the label carries its own second
+      ceiling.</strong> Two of its three terms are px and the third is rem, so the figure
+      the floor sizes is 328 px at a 16 px browser default, 368 px at 20 and 408 px at 24 —
+      while the ring it is measured against floors at 24 px and does not move. A ceiling
+      that grows with the type it caps never binds: on the shipped landing page at 320 px
+      the widest key measured 74 px against 80 at a 16 px default, 92 against 100 at 20,
+      and 111 against 120 at 24, and the document scrolled sideways by 6 px and 23 px on
+      the last two while <code>WARTUNG / €0,50 Mio.</code> lost 13 px and then 31 px off
+      the left edge, where a negative offset costs no scroll width and no overflow gate
+      can see it. So the tier that rides the ring takes the smaller of two ceilings:
+      <code>--pie-label-w</code>, and
+      <code>50vw − --pie-label-r × |sin(a)|</code> — the room the label's own angle leaves
+      it between a centred figure's centre and the screen edge, which is everything at
+      3 and 9 o'clock and nothing at 12 and 6. The angle is why it is not simply a
+      tighter <code>--pie-label-w</code>: a flat px cap narrow enough to fit 320 px at a
+      24 px default is 76 px, and 76 px wraps the 6 o'clock label — where the room was
+      never short — into a third line and out through the ring's bottom margin. Measured
+      after, 320 px, the same four defaults: 0, 0, 0 and 57 px, the last of them the
+      landing act's own rem insets rather than this figure's.
     </div>
   </section>
 
