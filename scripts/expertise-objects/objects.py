@@ -703,8 +703,15 @@ def flotten():
     # into one lump with a bite out of it. A single wheel astride the leg is
     # one clean disc; the leg paints first, so the wheel's face covers its
     # lower half and the leg is seen coming out of the top of the tyre.
-    s1 += box(PX - 0.03, -0.43, 0.33, 0.06, 0.06, 0.35)        # nose leg
-    s1 += wheel(PX + 0.05, -0.4, 0.33, 0.13, 0.1, 'x')         # nose wheel, astride it
+    # UNDER THE COCKPIT, NOT UNDER THE RADOME. The leg stood at y -0.4, under
+    # the tip of the nose cone, which is where no aircraft carries it and
+    # where it read as a prop holding the nose up; it stands at -0.75 now,
+    # under the front of the barrel and directly below the cockpit glazing.
+    # The strut is 0.08 square — a 0.06 stick read as a wire — and the wheel
+    # is 0.12 wide about it, so the strut is seen entering the top of the
+    # tyre on both sides.
+    s1 += box(PX - 0.04, -0.79, 0.33, 0.08, 0.08, 0.35)        # nose leg
+    s1 += wheel(PX + 0.06, -0.75, 0.33, 0.13, 0.12, 'x')       # nose wheel, astride it
     s1 += cone(PX, TAIL, FZ, 'y', 0.45, 0.06, FR, cap=None)    # tail cone
     # crown=False: the barrel's lit band ends in a seam a quarter-turn right
     # of the top, and neither cone carries one, so the fin on the true top
