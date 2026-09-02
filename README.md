@@ -240,6 +240,100 @@ Because the site is served from a subpath, links and asset references must stay
 would resolve against `control-f-io.github.io` and 404. `scripts/check-links.py` holds
 that rule for the design system; the generator carries it to the root.
 
+## Domain cutover
+
+**The plan, decided 2026-09-02: the site stays on GitHub Pages and takes the domain
+there.** The Worker keeps answering the two forms from its workers.dev address, DNS
+stays at iwantmyname, and no zone moves to Cloudflare — so nothing about
+`info@control-f.io` can break. What that path gives up is written in `wrangler.toml`
+above the commented `[[routes]]` block, which is the alternative and stays four lines
+away.
+
+**Everything on the site that names its own address reads `SITE_ORIGIN` in
+`wrangler.toml`**: `og:image`, `og:url` and the canonical link on every card page, the
+sitemap, and the stubs that answer the old Wix addresses. The code side of the move is
+therefore that line, plus the thirteen authored pattern pages that spell the address out
+in their own `<head>` — `scripts/check-open-graph.py` fails if one of them is missed —
+and that is the whole of the cutover pull request,
+[#664](https://github.com/control-f-io/control-f-website/pull/664).
+
+What is already in place:
+
+- every indexable page carries `<link rel="canonical">` and `og:url` on `SITE_ORIGIN`,
+  so the copy a crawler still holds at the old Pages address points at the new one the
+  moment the line changes (`scripts/check-open-graph.py` holds both to the page's name);
+- `sitemap.xml` on both surfaces, every indexable page with its other edition as an
+  hreflang alternate; there is no `robots.txt`, on purpose — the site is meant to be
+  read by every crawler, index and script there is;
+- `content/redirects.txt`, the 28 addresses the Wix site published and where each now
+  lives. GitHub Pages cannot send a 301, so `stage-site.py` writes a meta-refresh stub
+  under each old path, canonical to its target — testable today at
+  `control-f-io.github.io/control-f-website/post/…` — and a `_redirects` file for the
+  Worker surface. Four targets were judgment calls and are explained in that file.
+
+Before the day (all outside this repository):
+
+1. **Lower the TTLs** at iwantmyname on `control-f.io`'s apex A record and the `www`
+   CNAME to 300 seconds, a day ahead.
+2. **Verify the domain with GitHub**: organisation settings → Pages → *Add a domain* →
+   `control-f.io`. GitHub gives a TXT record named
+   `_github-pages-challenge-control-f-io.control-f.io`; add it at iwantmyname and click
+   *Verify*. Verification covers `www` as well, and it is what stops another GitHub
+   user from claiming the domain if Pages is ever switched off.
+3. **Search Console**: add a *Domain* property for `control-f.io` (a second TXT at the
+   apex). Bing Webmaster Tools can import from it afterwards.
+4. **Touch nothing else in the zone.** These records are live and must stay exactly as
+   they are: `MX` → Proton, the `v=spf1 include:_spf.protonmail.ch` and
+   `protonmail-verification` TXTs, the three `protonmail*._domainkey` CNAMEs, `_dmarc`,
+   `resend._domainkey` (the form's DKIM), and `send.control-f.io`'s MX and SPF (the
+   form's bounce address). The `MS=…` TXT is an old Microsoft verification and may go.
+
+The day, in this order:
+
+1. **DNS at iwantmyname.** Change `www` from `pointing.wixdns.net` to a CNAME on
+   `control-f-io.github.io`. Replace the apex `A 185.230.63.107` (Wix) with GitHub's
+   four A records `185.199.108.153`, `185.199.109.153`, `185.199.110.153`,
+   `185.199.111.153` and four AAAA records `2606:50c0:8000::153` through
+   `2606:50c0:8003::153`. No wildcard records, ever — they defeat the verification.
+2. **Tell Pages the domain.** Settings → Pages → *Custom domain* → `www.control-f.io`,
+   or, from a checkout with `gh` signed in:
+
+   ```bash
+   gh api -X PUT repos/control-f-io/control-f-website/pages -f cname=www.control-f.io
+   ```
+
+   From this moment `control-f-io.github.io/control-f-website/…` answers 301 to
+   `www.control-f.io/…`, and GitHub redirects the apex to `www` itself. The deploy
+   workflow needs no change: with a custom Actions workflow the `CNAME` file is
+   ignored and the setting is the whole configuration.
+3. **Merge the cutover pull request**, [#664](https://github.com/control-f-io/control-f-website/pull/664)
+   — `SITE_ORIGIN = "https://www.control-f.io"` and the thirteen authored pages that
+   carry it. Wait for `deploy.yml`; the site now names its own domain everywhere.
+4. **HTTPS.** GitHub requests the certificate once DNS resolves; it can take up to a
+   day. When Settings → Pages offers *Enforce HTTPS*, turn it on (the repository setting
+   is already `https_enforced: true`, but GitHub re-evaluates it for a new domain).
+5. **Verify**, from any shell:
+
+   ```bash
+   for u in https://www.control-f.io/ https://control-f.io/ https://www.control-f.io/en/ https://www.control-f.io/sitemap.xml https://www.control-f.io/jobs https://www.control-f.io/post/ki-kennzeichnung-was-der-ai-act-jetzt-verlangt https://control-f-io.github.io/control-f-website/expertise.html; do printf '%-90s ' "$u"; curl -sS -o /dev/null -w '%{http_code} %{redirect_url}\n' "$u"; done
+   ```
+
+   Then send both forms for real — the German and the English one, an enquiry and an
+   application — and confirm the mail arrives at `info@control-f.io` with DKIM passing
+   (the Worker's `SITE_ORIGIN` now returns the reader to `www.control-f.io`). Paste the
+   landing page into LinkedIn's Post Inspector and check the card names the domain.
+6. **Search Console**: submit `https://www.control-f.io/sitemap.xml`. Do not use
+   *Change of address* — the property is the same domain.
+7. **Only then, Wix.** Cancel the premium plan and disconnect `control-f.io` from the
+   Wix site. **`controlf.io` needs a decision first**: its nameservers are Wix's
+   (`ns0/ns1.wixdns.net`), it carries the Proton MX for that mailbox, and its 301 to
+   `www.control-f.io` is a Wix feature. Move its DNS to iwantmyname (or any host with URL
+   forwarding) before the Wix account is touched, and recreate the redirect there.
+
+Cloudflare needs nothing: the Worker keeps its workers.dev address, `_headers` keeps
+marking that copy `noindex` — it is still the second copy — and `SITE_ORIGIN` sends the
+reader back to the site after a submit, as it does today.
+
 ## Fragen
 
 - Answered 2026-08-03: the contact address is `info@control-f.io` and the press
@@ -248,7 +342,10 @@ that rule for the design system; the generator carries it to the root.
 - Answered 2026-08-13: the phone number on Impressum and Datenschutz was
   Simon's personal mobile, not a company line — removed from the pages (and
   from this file, and from git history) rather than replaced.
-- host control-f.io or controlf.io or both?
+- host control-f.io or controlf.io or both? — Prepared 2026-09-02: `www.control-f.io`
+  is the canonical host, because it is the one the Wix site's sitemap published and the
+  one search engines hold. `controlf.io` is a second domain whose DNS is on Wix's
+  nameservers and which Wix currently 301s to www.control-f.io; see *Domain cutover*.
 - Three of these were about the outgoing homepage and the new design has already
   answered them: the header folds into a menu button below 780 px and is a flat bar
   above it, "Home" is the first item in it, and the map/mail/LinkedIn strip is gone.

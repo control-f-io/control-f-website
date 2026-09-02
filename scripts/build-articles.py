@@ -463,7 +463,7 @@ def meta_line(post, edition, pad):
     return "\n".join(out)
 
 
-def head(post, edition, pad):
+def head(post, edition, pad, name):
     """The title a tab shows and the description a result page quotes.
 
     The description is the lead's first sentences rather than a field of its
@@ -491,7 +491,7 @@ def head(post, edition, pad):
     return "\n".join(pad + line for line in (
         ["<title>%s</title>" % shown,
          '<meta name="description" content="%s">' % quoted]
-        + og_meta.block(shown, quoted, "blog-artikel", edition)))
+        + og_meta.block(shown, quoted, "blog-artikel", edition, name)))
 
 
 def summary(lead, limit=165):
@@ -613,7 +613,7 @@ def page(template, post, posts, edition, total, name):
     more = related(post, posts, edition, total, "    ")
     doc = template
     for region, body in (
-            ("head", lambda pad: head(post, edition, pad)),
+            ("head", lambda pad: head(post, edition, pad, name)),
             ("crumb", lambda pad: crumb(post, edition, pad)),
             ("title", lambda pad: "%s<h1 class=\"cf-page-header__title\">%s</h1>"
                                   % (pad, esc(post["titel" if edition == "de" else "title"]))),

@@ -72,6 +72,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import og_meta                                                    # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
 PATTERNS = ROOT / "design-system" / "patterns"
 OUT = PATTERNS / "en"
@@ -332,6 +335,17 @@ ALT_DE = re.compile(r'(<link rel="alternate" hreflang="de" href=")([a-z0-9-]+\.h
 ACTION = re.compile(r'(action="https://[^"/]+)/([a-z0-9-]+\.html#fehler")')
 ACTION_EN = r'\1/en/\2'
 
+# ADDRESS. og:url and the canonical link name the page's shipped address on
+# the canonical host, and the English page's address is the German one under
+# en/ — the same move the alternates above make, one directory down. The origin
+# is matched rather than written, read from the one place that records it, so
+# the domain cutover changes wrangler.toml and not this file. A page without a
+# share card carries neither line, so both edits are allowed to match nothing;
+# a page with one carries both, so they must agree.
+ADDRESS = re.compile(r'(<link rel="canonical" href="|<meta property="og:url" content=")'
+                     + re.escape(og_meta.origin()) + r'/([^"]*">)')
+ADDRESS_EN = r'\1' + og_meta.origin().replace("\\", "\\\\") + r'/en/\2'
+
 # LOCALE. og:locale names the language the page is written in and
 # og:locale:alternate the one it has a twin in, so the two swap together and
 # the pair is written whole rather than patched — a page that flipped one and
@@ -373,6 +387,11 @@ def structural(doc, name):
             sys.exit("%s: %d og:locale pairs, expected one"
                      % (name, doc.count(LOCALE[0])))
         doc = doc.replace(LOCALE[0], LOCALE[1], 1)
+
+    doc, n = ADDRESS.subn(ADDRESS_EN, doc)
+    if n not in (0, 2):
+        sys.exit("%s: expected og:url and the canonical link together or not at "
+                 "all, found %d address line(s)" % (name, n))
     return doc
 
 

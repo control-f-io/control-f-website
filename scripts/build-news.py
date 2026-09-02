@@ -843,7 +843,7 @@ def head(topic, indent=""):
     return "\n".join(indent + line for line in (
         ["<title>%s</title>" % title,
          '<meta name="description" content="%s">' % desc]
-        + og_meta.block(title, desc, "news-thema")))
+        + og_meta.block(title, desc, "news-thema", name=thema_name(topic[0]))))
 
 
 # THE SHARE CARD IS IN THIS REGION TOO, and it has to be: `og:title` and

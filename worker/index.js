@@ -36,10 +36,13 @@
               kann nur der Server tun, der den POST bekommen hat.
 
    Der Preis ist also, dass ein Leser mit einem Tippfehler im Formular auf der
-   workers.dev-Adresse landet. Das ist kein Fehler dieser Datei, sondern der
-   Grund, warum die Umstellung auf eine eigene Domain in wrangler.toml
-   vorbereitet steht: sobald sie kommt, sind beide Origins derselbe, SITE_ORIGIN
-   entfällt, und das Formular postet wieder an seine eigene Adresse.
+   workers.dev-Adresse landet. Das ist kein Fehler dieser Datei, sondern die
+   Konstruktion: die Website bleibt auf GitHub Pages, auch unter control-f.io,
+   und dieser Worker beantwortet nur das Formular. SITE_ORIGIN wird bei der
+   Umstellung auf https://www.control-f.io gesetzt, nicht gelöscht — der
+   Rückweg der Danke-Seite führt dann dorthin. Die Alternative, die ganze
+   Website hier zu bedienen und das Formular wieder relativ posten zu lassen,
+   steht in wrangler.toml beschrieben und auskommentiert.
 
    DAZU DIE VERZEICHNIS-INDIZES. wrangler.toml stellt html_handling auf "none",
    damit die Seiten unter ihren eigenen Namen erreichbar bleiben — jeder andere

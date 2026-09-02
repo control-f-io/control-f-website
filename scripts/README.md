@@ -540,3 +540,11 @@ what is watched. Use `--surface pages` only to reproduce the GitHub Pages
 artifact; it omits the `_headers` file that marks the Cloudflare copy `noindex`,
 and it skips the Worker-routing assertions so a Cloudflare question can never
 fail the Pages deploy.
+
+Both surfaces also get `sitemap.xml` — every indexable page on `SITE_ORIGIN`,
+each edition naming the other as an hreflang alternate — and an answer for every
+address the old Wix site had, out of `content/redirects.txt`: meta-refresh stub
+pages under the old paths on the Pages surface, which cannot send a 301, and a
+`_redirects` file on the Worker's, which can. `--check` refuses a target that is
+not a shipped page and a source that would shadow one. There is no `robots.txt`,
+on purpose: the site is meant to be read by every crawler and index there is.

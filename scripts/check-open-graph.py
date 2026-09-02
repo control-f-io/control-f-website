@@ -28,8 +28,10 @@ re-derived here from build-og-plates.py's own table.
 
 WHAT ELSE IS CHECKED. The block is not merely present, it is IDENTICAL to what
 scripts/og_meta.py emits for that page: same fields, same order, same origin,
-same locale pair for the edition, and og:title and og:description equal to the
-page's own <title> and description. Thirteen pattern pages carry the block as
+same locale pair for the edition, og:title and og:description equal to the
+page's own <title> and description, and og:url and the canonical link naming
+the page's SHIPPED address on the canonical host — og_meta.address() asks
+build-site.py, so /blog/<slug>.html and not beitrag-<slug>.html. Thirteen pattern pages carry the block as
 authored markup and three generators write it for everything else; this is what
 holds those two to each other.
 
@@ -58,7 +60,7 @@ FAMILIES = (("news-thema-", "news-thema"),
 TITLE = re.compile(r"<title>(.*?)</title>", re.S)
 DESC = re.compile(r'<meta name="description" content="([^"]*)">')
 ROBOTS = re.compile(r'<meta name="robots" content="([^"]*)"')
-OG_LINE = re.compile(r'^\s*<meta (?:property="og:|name="twitter:).*$', re.M)
+OG_LINE = re.compile(r'^\s*(?:<meta (?:property="og:|name="twitter:)|<link rel="canonical").*$', re.M)
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 
 
@@ -176,7 +178,7 @@ def main(argv):
 
         title = TITLE.search(bare).group(1)
         want = [line for line in og_meta.block(title, desc_m.group(1), seed,
-                                               edition)
+                                               edition, stem + ".html")
                 if not line.startswith("<!--") and not line.startswith("     ")]
         got = [line.strip() for line in found]
         if got != want:
