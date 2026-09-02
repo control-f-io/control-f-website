@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Construction Layer — Control-F Design System</title>
+<link rel="icon" href="../assets/img/logo/cf-favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* The specimen is capped rather than sized: .cf-construct__plate is a
+     percentage box and the two SVGs inside it are registered on inset: 0, so
+     the only thing this page owns is how wide the pair is allowed to get. */
+  .cn-demo { width: 100%; max-width: 30rem; margin-inline: auto; }
+
+  /* THE STACK IS AN .cf-iso OBJECT WITHOUT THE CLASS, so it carries that
+     component's forced-colours rule written out here — the same block, and for
+     the same reason, that foundations/geometry.html states over the same
+     drawing. The mode does not force SVG paint: the faces are literal greys and
+     every contour is a stroke="#000" on the group, so on a dark palette this
+     came through as three light solids with no edges. The filled faces go to
+     Canvas and go on occluding what they occluded, the contours and the corner
+     dots go to CanvasText, and the lit face gives up its ramp with every other
+     fill.
+
+     .cf-construct's own layer needs nothing here and that is the point this
+     page is about: it is ranked by dash rather than by ink, so CanvasText is
+     already the right answer for it. */
+  @media (forced-colors: active) {
+    .cn-stack [stroke]:not([stroke="none"]) { stroke: CanvasText; }
+    .cn-stack [fill]:not([fill="none"])     { fill: Canvas; }
+    .cn-stack g[fill] circle                { fill: CanvasText; }
+  }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 19</p>
+    <h1>The Construction Layer</h1>
+    <p>
+      Every plate in the brand manual shows how it was made. The mark stands inside a
+      measured frame with its unit written on it; the angle grid is a star of rays with the
+      isometric rhombus laid over it; the illustration example carries the angles it was
+      struck at. The website has only ever shipped the finished object. This is the layer
+      that keeps the working — dormant, in the drawing's own coordinates, one rung down the
+      presence ladder — and the reader who wants it asks for it.
+    </p>
+  </header>
+
+  <section class="docs-section" id="ghost">
+    <h2>A rung that had a name and no drawing</h2>
+    <p>
+      <code>--presence-absent</code> is defined in <code>tokens.css</code> with a comment
+      that names three jobs: <em>“the ghost line: construction geometry, a footprint, a cell
+      that says where a thing stands rather than what it measures.”</em> Until this chapter
+      the rung was spent entirely on a fourth thing the comment does not mention — the
+      not-here-yet register on <a href="../components/arrival.html">the arrival band</a>,
+      the progress rail and <code>.cf-line__trace--ghost</code>. The word
+      <em>construction</em> was in the token. The drawing was nowhere.
+    </p>
+    <div class="docs-note">
+      <strong>One figure in the tree had it, welded in.</strong> The core on
+      <a href="../patterns/ueber-uns.html">Über uns</a> draws its shells and its axis at
+      <code>--presence-absent</code> and its own source comment calls them
+      <em>“reference geometry”</em>. That is this layer, in one drawing, with no name, no
+      material and no way for a second figure to carry it — which is the difference between
+      a decision and a system.
+    </div>
+    <p>
+      It matters more here than it would in another brand. A consultancy whose first
+      sentence is <em>Find the answers</em> and whose whole visual argument is contour
+      before fill has one claim to make about itself, and showing the setting-out is that
+      claim drawn rather than written. The manual makes it on every plate. The site made it
+      on none.
+    </p>
+  </section>
+
+  <section class="docs-section" id="demo">
+    <h2>The specimen</h2>
+    <p>
+      The system's canonical object — three stacked cuboids, the drawing
+      <a href="geometry.html#objects">Geometry &amp; Lines</a> uses to state the whole shape
+      language — with the star it was set out on. At rest it is the object the designer
+      drew. Switched on, it is that object plus its working.
+    </p>
+    <div class="docs-demo">
+      <div class="cf-construct cn-demo">
+        <label class="cf-check cf-construct__control">
+          <input class="cf-check__box cf-construct__switch" type="checkbox" id="cn-stack-switch">
+          <span class="cf-check__label">Show the construction</span>
+        </label>
+        <div class="cf-construct__plate">
+          <!-- FIRST IN THE MARKUP, AND THAT IS THE PAINT ORDER. Both layers are
+               positioned with an auto z-index, so they paint in tree order and the
+               object occludes the construction exactly as an opaque face occludes
+               anything standing behind it. A ray therefore leaves a corner already
+               travelling along the edge it set out, which is what the plate gets for
+               free by being printed and what this had to be ordered for. -->
+          <svg class="cf-construct__work cf-iso" viewBox="0 0 640 640" aria-hidden="true">
+            <!-- The Winkelraster, centred on the object's own setting-out point
+                 (320, 140) — the apex of the top face. Eight rays: the datum, the
+                 vertical, and the fan at ±26.57°, ±45° and ±63.43°. Every endpoint
+                 is the ray clipped to the frame, not a length picked by eye. -->
+            <g class="cf-construct__ray">
+              <path d="M0 140H640"/>
+              <path d="M320 0V640"/>
+              <path d="M40 0L640 300"/>
+              <path d="M0 300L600 0"/>
+              <path d="M180 0L640 460"/>
+              <path d="M0 460L460 0"/>
+              <path d="M250 0L570 640"/>
+              <path d="M70 640L390 0"/>
+            </g>
+            <!-- The neighbouring lattice cell, sharing the top face's lower-right
+                 edge: half-width 120, half-height 60, the same 2:1 rhombus the face
+                 itself is. It is the cell the object was NOT cut from, which is how
+                 a drawing says it stands on a lattice rather than in a void. -->
+            <path class="cf-construct__cell" d="M440 200L560 260L440 320L320 260Z"/>
+            <circle class="cf-construct__point" cx="320" cy="140" r="6"/>
+          </svg>
+          <svg class="cf-construct__figure cf-iso cn-stack" viewBox="0 0 640 640" fill="none" aria-hidden="true">
+            <defs>
+              <!-- near rake, 63.43°, with the oklab waypoint at 19 % of the lime leg -->
+              <linearGradient id="cnIsoLight" gradientUnits="userSpaceOnUse" x1="270" y1="120" x2="350" y2="280">
+                <stop offset="0%"   stop-color="#E1FF00"/>
+                <stop offset="6.1%" stop-color="#DBFC60"/>
+                <stop offset="32%"  stop-color="#C5EBE2"/>
+                <stop offset="100%" stop-color="#CFCFCF"/>
+              </linearGradient>
+            </defs>
+            <g stroke="#000" stroke-width="1">
+              <polygon points="80,400 320,520 320,620 80,500" fill="#CFCFCF"/>
+              <polygon points="560,400 320,520 320,620 560,500" fill="#C4C4C4"/>
+              <polygon points="320,280 560,400 320,520 80,400" fill="#DADADA"/>
+              <polygon points="140,300 320,390 320,490 140,400" fill="#CFCFCF"/>
+              <polygon points="500,300 320,390 320,490 500,400" fill="#C4C4C4"/>
+              <polygon points="320,210 500,300 320,390 140,300" fill="#DADADA"/>
+              <polygon points="200,200 320,260 320,360 200,300" fill="#CFCFCF"/>
+              <polygon points="440,200 320,260 320,360 440,300" fill="#C4C4C4"/>
+              <polygon points="320,140 440,200 320,260 200,200" fill="url(#cnIsoLight)"/>
+            </g>
+            <g fill="#000">
+              <circle cx="320" cy="140" r="4"/><circle cx="440" cy="200" r="4"/>
+              <circle cx="320" cy="260" r="4"/><circle cx="200" cy="200" r="4"/>
+            </g>
+          </svg>
+          <!-- TWO LABELS AND NOT EIGHT. The star has eight rays and the argument
+               needs two of them named: the one an edge lies on and the one that
+               carries nothing. The other six are in the table under this figure,
+               where a name has room to be read. Both sit ON the ray they name —
+               (600, 16) solves the 26.57° ray at the top of the frame, (410, 50)
+               the 45° ray fifty units down — as a fraction of the 640 viewBox. -->
+          <p class="cf-construct__label cf-construct__label--end" style="--x:93.75%;--y:2.5%">26.57°</p>
+          <p class="cf-construct__label" style="--x:64.06%;--y:7.81%">45°</p>
+        </div>
+      </div>
+    </div>
+    <p>
+      <strong>What the drawing proves about itself.</strong> Two of the eight rays leave the
+      setting-out point and immediately become edges of the object — the top face's upper
+      pair, at 26.57° either side of the datum. The other six run out of the frame carrying
+      nothing at all. That is the isometry stated as a fact rather than as a claim: in a 2:1
+      system the object can only lie on two of these, and the six it does not lie on are
+      what makes those two mean something.
+    </p>
+  </section>
+
+  <section class="docs-section" id="markup">
+    <h2>Markup</h2>
+    <p>
+      Four elements and nothing else: the switch, the plate, the working, the object. The
+      two drawings share a <code>viewBox</code>, which is what makes registration free —
+      <code>inset: 0</code> over a figure that sizes itself by its own aspect ratio means
+      nothing is positioned twice and the pair cannot come apart at a width nobody tested.
+    </p>
+<pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-construct"</span>&gt;
+  &lt;<span class="tag">label</span> <span class="attr">class</span>=<span class="val">"cf-check cf-construct__control"</span>&gt;
+    &lt;<span class="tag">input</span> <span class="attr">class</span>=<span class="val">"cf-check__box cf-construct__switch"</span> <span class="attr">type</span>=<span class="val">"checkbox"</span>&gt;
+    &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="val">"cf-check__label"</span>&gt;Show the construction&lt;/<span class="tag">span</span>&gt;
+  &lt;/<span class="tag">label</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-construct__plate"</span>&gt;
+    <span class="com">&lt;!-- the working: first, so the object paints over it --&gt;</span>
+    &lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-construct__work cf-iso"</span> <span class="attr">viewBox</span>=<span class="val">"0 0 640 640"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;
+      &lt;<span class="tag">g</span> <span class="attr">class</span>=<span class="val">"cf-construct__ray"</span>&gt;&lt;<span class="tag">path</span> <span class="attr">d</span>=<span class="val">"M0 140H640"</span>/&gt;&lt;/<span class="tag">g</span>&gt;
+      &lt;<span class="tag">path</span> <span class="attr">class</span>=<span class="val">"cf-construct__cell"</span> <span class="attr">d</span>=<span class="val">"M440 200L560 260L440 320L320 260Z"</span>/&gt;
+      &lt;<span class="tag">circle</span> <span class="attr">class</span>=<span class="val">"cf-construct__point"</span> <span class="attr">cx</span>=<span class="val">"320"</span> <span class="attr">cy</span>=<span class="val">"140"</span> <span class="attr">r</span>=<span class="val">"6"</span>/&gt;
+    &lt;/<span class="tag">svg</span>&gt;
+    <span class="com">&lt;!-- the object, exactly as it shipped before --&gt;</span>
+    &lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-construct__figure cf-iso"</span> <span class="attr">viewBox</span>=<span class="val">"0 0 640 640"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;…&lt;/<span class="tag">svg</span>&gt;
+    <span class="com">&lt;!-- a measure: HTML, not SVG. --x and --y are the point in the
+         drawing's coordinates over the viewBox's extent --&gt;</span>
+    &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-construct__label"</span> <span class="attr">style</span>=<span class="val">"--x:64.06%;--y:7.81%"</span>&gt;45°&lt;/<span class="tag">p</span>&gt;
+  &lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+    <div class="docs-note">
+      <strong>Adding the layer never edits the object.</strong> The figure keeps the class,
+      the <code>viewBox</code> and the paths it already had; it gains a wrapper and a sibling.
+      That is the test for whether a drawing may carry construction at all — if the working
+      cannot be drawn beside the object without changing it, the working is not this
+      object's.
+    </div>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <p>
+      Five marks, and four of them are an existing mark of the system taken one rung down
+      the presence ladder rather than a new one invented for this layer.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Mark</th><th>Class</th><th>Line type</th><th>What it says</th></tr></thead>
+      <tbody>
+        <tr><td>Ray</td><td><code>.cf-construct__ray</code></td><td><code>--presence-absent</code>, 1-4</td><td>a line the object was set out along. It is not an edge — it runs past the object at both ends.</td></tr>
+        <tr><td>Cell</td><td><code>.cf-construct__cell</code></td><td><code>--presence-absent</code>, 1-4</td><td>a unit of the lattice, or the frame a mark is measured in. Where the object was cut from.</td></tr>
+        <tr><td>Point</td><td><code>.cf-construct__point</code></td><td>solid contour, no fill</td><td>a setting-out point: the corner dot with the fill taken out. Below about ten units a 1-4 dash has no rhythm, so the rung is carried by the absent fill instead.</td></tr>
+        <tr><td>Measure</td><td><code>.cf-construct__measure</code></td><td>solid</td><td>a dimension line and its ticks. The one solid mark here: a rule carrying a word is a <a href="geometry.html#where-lines-go">label rule</a>, and a measure states something already true rather than provisional.</td></tr>
+        <tr><td>Label</td><td><code>.cf-construct__label</code></td><td>—</td><td>a measure or an angle, and the one part of the layer that is <strong>not</strong> in the drawing. Layer 6, mono, <code>--text-xs</code>, placed over the plate in the drawing's coordinates by <code>--x</code> / <code>--y</code>.</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The switch is <a href="../components/forms.html"><code>.cf-check</code></a>, whole and
+      unmodified. A real <code>&lt;input type="checkbox"&gt;</code> brings its role, its
+      state, its keyboard behaviour and the system's focus ring with it, so nothing here is
+      reimplemented in ARIA and there is no new control to document.
+    </p>
+  </section>
+
+  <section class="docs-section" id="angles">
+    <h2>45°, and the consumer it never had</h2>
+    <p>
+      The manual's <em>Winkelraster</em> plate lists four angles and gives two of them
+      names: <em>Winkel A</em> 63.43°, <em>Winkel B</em> 26.57°, and
+      <em>neutrale Winkel</em> 90° / 45°. All four have been tokens since the first commit.
+      Three of them are everywhere in the tree. <code>--angle-neutral</code> — 45° — had a
+      row in <a href="geometry.html#angles">the angle table</a>, a definition in
+      <code>tokens.css</code>, and <strong>exactly zero consumers</strong>: no stylesheet,
+      no page, no drawing used it.
+    </p>
+    <p>
+      That is not an oversight, and the fix was never to find something to slant. On the
+      plate the 45° rays are drawn <em>dotted</em>, alongside the solid isometric pair and
+      the lime rhombus laid over them — they are construction, and in a 2:1 system nothing
+      is ever built on them. A system that never draws its construction can therefore never
+      draw 45°. This layer is where the angle lives, and the specimen above is its first
+      consumer in the tree.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Ray</th><th>Token</th><th>Slope</th><th>In the specimen</th></tr></thead>
+      <tbody>
+        <tr><td>Datum</td><td>—</td><td>0</td><td>the horizontal the other three are measured from. Carries nothing.</td></tr>
+        <tr><td>26.57°</td><td><code>--angle-b</code></td><td>±1 : 2</td><td><strong>carries the top face's two upper edges.</strong> The isometry itself.</td></tr>
+        <tr><td>45°</td><td><code>--angle-neutral</code></td><td>±1 : 1</td><td>neutral. Carries nothing, and that is what it is for.</td></tr>
+        <tr><td>63.43°</td><td><code>--angle-a</code></td><td>±2 : 1</td><td>the complement. Carries the near rake's gradient axis, not an edge.</td></tr>
+        <tr><td>90°</td><td><code>--angle-square</code></td><td>vertical</td><td>the object's axis — every apex and every foot stands on it.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="behaviour">
+    <h2>What it costs, and what it survives</h2>
+    <h3>A measure is not drawn</h3>
+    <p>
+      Every label here was an SVG <code>&lt;text&gt;</code> first, and a phone is what that
+      costs. The plate is capped at a rem measure and shrinks to the column, so a 22-unit
+      label in a 780-unit <code>viewBox</code> rendered at <strong>7 px</strong> on a 375
+      frame — below anything this system sets type at, and smaller at every narrower width.
+      SVG text is drawn <em>in</em> the user coordinate system; there is no
+      <code>vector-effect</code> for a font size and no unit that survives the transform.
+    </p>
+    <p>
+      So a measure is HTML over the plate, positioned in the drawing's own coordinates as a
+      percentage. The mapping needs no arithmetic at runtime: <code>__figure</code> is
+      <code>width: 100%</code> with no height, so it takes the <code>viewBox</code>'s aspect
+      ratio and the plate's box <em>is</em> the <code>viewBox</code>'s box —
+      <code>--x</code> and <code>--y</code> are
+      <code>(coordinate − viewBox min) / viewBox extent</code>. What that buys beyond the
+      size: the measure takes <code>--text-xs</code> and the mono face like every other
+      label in the system, it grows with the reader's own text size rather than with the
+      drawing, and it is selectable and findable — which on a site named after find-in-page
+      is not a small thing.
+    </p>
+
+    <h3>The rank is the line type, not the ink</h3>
+    <p>
+      The obvious way to hold construction back from an object is to draw it fainter, and
+      every system that does it that way loses the distinction in the two modes that discard
+      ink strength: forced colours maps authored colour into a palette of its own, and a
+      printer renders a 20 % black as a grey mesh over the copy. The presence ladder is a
+      ladder of <em>dash patterns</em> — “same box, same size, same place”, one rung down —
+      so the working here is drawn in <code>--border-strong</code>, the same contour ink as
+      the object, and told apart by <code>--presence-absent</code> alone.
+    </p>
+    <p>
+      That decision pays for the fallbacks, and it is worth being precise about which half
+      it pays for. Forced colours <strong>does</strong> need one line, and not the one this
+      layer expected: the mode does not force SVG paint — <a href="geometry.html#objects">the
+      stack</a> has carried a rule saying so since it was drawn — so a stroke authored as
+      <code>--border-strong</code> stays <code>#000</code> on a dark system canvas and the
+      whole working disappears. It rendered as a mark on nothing, and screenshotting the
+      logo plate in the dark palette is what found it.
+    </p>
+    <p>
+      What comes through for free is the <em>rank</em>, which is the part that would have
+      been expensive. <code>--presence-absent</code> is a dasharray and the mode does not
+      touch dasharrays, so the moment the ink is restored the construction is still exactly
+      one rung behind the object — a layer held back by opacity would have had to re-argue
+      the whole distinction here, and one held back on paper would have lost it outright.
+      Nothing has to be measured for contrast that was not already measured for the contour
+      it is drawn in. The labels need nothing at all: they are HTML text, and a
+      <code>color</code> is precisely what the mode remaps.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Condition</th><th>What happens</th></tr></thead>
+      <tbody>
+        <tr><td>At rest</td><td>The object as the designer drew it. This is the state every one of these figures shipped in before the layer existed.</td></tr>
+        <tr><td><code>prefers-reduced-motion</code></td><td>The state still switches — a revealed construction is information. It arrives rather than fading in.</td></tr>
+        <tr><td><code>forced-colors: active</code></td><td>One declaration: the working's stroke is given <code>CanvasText</code>, because the mode does not force SVG paint. The dash carries the rank unaided, and the labels are already text.</td></tr>
+        <tr><td>No <code>:has()</code></td><td>Rests at the object. The switch renders and does nothing, and the reader loses an extra, not a drawing.</td></tr>
+        <tr><td>Print</td><td>Whatever is on screen prints. The control does not; the plate may not break across a sheet.</td></tr>
+        <tr><td>Screen reader</td><td>Both layers are <code>aria-hidden</code>. The geometry is stated in the prose beside the figure — a reader who was read eight rays would be hearing a drawing rather than a document.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <ul>
+      <li><strong>The construction has to be true.</strong> Every endpoint in the specimen is
+        a ray clipped to the frame, and the cell is the object's own 2:1 unit — not a length
+        picked to look right. A decorative construction is worse than none: it claims the
+        object was set out one way and it was set out another.</li>
+      <li><strong>It is never the resting state.</strong> The designer drew the object, not
+        the object plus its scaffolding. A figure that opens with its working showing has
+        made the working the subject.</li>
+      <li><strong>Under the object, always.</strong> Construction is behind what it built,
+        and the occlusion is the evidence: a ray that leaves a corner along an edge was that
+        edge's ray.</li>
+      <li><strong>One rung down, not one shade lighter.</strong> Ink strength is not
+        available as a rank here — see above.</li>
+      <li><strong>Only where a reader has asked.</strong> The layer is a switch, never a
+        hover and never an idle animation: it costs a paint on demand and nothing at all in
+        between.</li>
+    </ul>
+
+    <h3>Three ways to get it wrong</h3>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Draw a ray that stops at the object. A ray that ends where an edge ends is an
+            edge drawn twice.</li>
+          <li>Put construction on a photograph, a chart or a body of type. It is for objects
+            that were <em>constructed</em>; a value measured from data was not.</li>
+          <li>Add a second angle family to make the star look fuller. Four angles, and the
+            drawing is allowed to use fewer.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Derive the geometry from the object's own coordinates, then check it: the
+            specimen's rays were solved against the stack's polygon points.</li>
+          <li>Label a measure the drawing cannot show — an angle, a unit, a frame — and
+            nothing the reader can already see.</li>
+          <li>Leave the object's markup alone. If it has to change, the working is not
+            this object's.</li>
+        </ul>
+      </div>
+    </div>
+    <p>
+      → <a href="logo.html#construction">the mark on its unit</a> ·
+      <a href="geometry.html#angles">the four angles</a> ·
+      <a href="../components/arrival.html">the presence ladder</a> ·
+      <a href="../reference.html#shape">the manual's own plates</a>
+    </p>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>

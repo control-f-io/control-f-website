@@ -1412,6 +1412,73 @@ way `patterns/news.html` renders page 1 of 11 flat and the server owns the pagin
 the chapter fixes is the drawing and the contract; `components/arrival.html#who` lists the
 three places the behaviour will land.
 
+## The construction layer
+
+`--presence-absent`'s own comment in `tokens.css` names three jobs for the rung and the
+first of them is **construction geometry**. Every consumer it had was the fourth thing the
+comment does not mention — the not-here-yet register on `.cf-arrive`, `.cf-progress` and
+`.cf-line__trace--ghost`. The word was in the token and the drawing was nowhere.
+
+`foundations/construction.html` is that drawing. Every plate in the brand manual shows how
+it was made: the mark inside a measured frame on a grid of X, the *Winkelraster* as a star
+of rays with the isometric rhombus laid over it, the illustration example carrying the
+angles it was struck at. The manual is not a gallery of finished objects, and for a company
+whose first line is *Find the answers* that is the argument rather than the decoration.
+The website had only ever shipped the object. `.cf-construct` is a second drawing behind
+the first, in the first's own coordinates, dormant until a reader asks — the rays it was
+set out along, the cells it was cut from, the points where those meet, and the measures.
+
+**The rank is the line type, not the ink**, and that decision is what makes the layer cheap.
+The obvious way to hold construction back is to draw it fainter, and that loses the
+distinction in the two modes that discard ink strength — forced colours remaps authored
+colour, a printer renders a 20 % black as a grey mesh. The presence ladder is a ladder of
+*dash patterns*: same box, same size, same place, one rung down. So the working is drawn in
+`--border-strong`, the same contour ink as the object, and told apart by `--presence-absent`
+alone. Nothing had to be measured for contrast that the contour had not already been
+measured for, and on paper the layer arrives whole.
+
+Forced colours still needs one line, and not the one that was expected: **the mode does not
+force SVG paint**, so a stroke authored as `--border-strong` stays `#000` on a dark system
+canvas and the whole working disappears. It rendered as a mark on nothing, and
+screenshotting the logo plate in the dark palette is what found it. What did come through
+unaided is the rank — a dasharray is not something the mode touches — which is the half
+that would have been expensive.
+
+**`--angle-neutral` has a consumer.** 45° had a definition in `tokens.css`, a row in
+`foundations/geometry.html`'s angle table and **zero** uses anywhere in the tree: no
+stylesheet, no page, no drawing. That is not an oversight, it is where the angle lives. On
+the *Winkelraster* plate the 45° rays are drawn dotted beside the solid isometric pair —
+they are construction, and in a 2:1 system nothing is ever built on them, so a system that
+never draws construction can never draw 45°. The specimen makes the point by standing on
+it: two of its eight rays leave the setting-out point and become edges of the object, and
+the other six run out of the frame carrying nothing.
+
+**A measure is not drawn.** Every label here was an SVG `<text>` first, and a phone is what
+that costs — a 22-unit label in a 780-unit `viewBox` rendered at **7 px** on a 375 frame,
+below anything this system sets type at. SVG text is drawn *in* the user coordinate system
+and no unit survives the transform. So the labels are HTML over the plate, positioned in the
+drawing's coordinates as percentages: `__figure` is `width: 100%` with no height, so the
+plate's box *is* the `viewBox`'s box and `--x` / `--y` are
+`(coordinate − viewBox min) / viewBox extent`. They take `--text-xs` and the mono face, they
+grow with the reader's own text size rather than with the drawing, and they are selectable —
+which on a site named after find-in-page is not a small thing. That construction is
+`check-label-frame.py`'s subject and this is its third member: registered UNSIZED, and the
+first one that carries a `viewBox` **per instance** rather than one, so RULE 1 reads the
+other way for it — a divisor in a material's rule is the finding.
+
+**Its first application corrected the chapter it was drawn for.**
+`foundations/logo.html#construction` puts the symbol on its unit, and the plate the page had
+always named — *Logo Design > Konstruktion* — is the plate it had never drawn. The page said
+“the construction is based on the unit X — the height of one bar of the symbol. The symbol is
+8X wide, the horizontal lockup 10X.” Measured off `cf-symbol-black.svg`, every clause of that
+is wrong except the first six words: **X is 60** in the symbol's own 600 × 480 units, the
+frame is **10X wide and 8X tall**, one bar is **2X** thick and the gap between the bars is X.
+The horizontal lockup is 3331 × 480 — 55.5X — and has no round measure in X at all, because
+the wordmark's length is set by the letters and not by the grid. Every number solves out of
+the path data: the exported paths round each acute vertex with a 2-unit fillet, so no point
+in the file sits on the frame and each tip is the intersection of the two edges that meet
+there — (0, 240), (480, 0), (600, 60), (480, 480). All four land on a node of the grid.
+
 ## The found state
 
 `foundations/found.html` is the chapter for the thing the brand is **named after**. Control-F

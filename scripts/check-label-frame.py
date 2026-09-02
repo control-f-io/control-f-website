@@ -111,6 +111,30 @@ FRAMES = [
          svg="lp-flow", answer="UNSIZED", ratio=None, box=None),
     dict(placed=".map__tag", layer=".map__tags",
          svg="map", answer="FRAMED", ratio="--map-ar", box=".map-box"),
+    # THE THIRD MEMBER IS A MATERIAL, NOT A DRAWING, and that is a difference
+    # this registry had not had to hold before. .cf-construct__figure is the
+    # object half of the construction layer — foundations/construction.html
+    # puts the isometric stack in it at 0 0 640 640, foundations/logo.html the
+    # symbol at -150 -30 780 600 — so the "one drawing, one coordinate system"
+    # clause above cannot apply to it and is not being waived by accident.
+    #
+    # What replaces it is that NOTHING SHARED IS COMPUTED FROM A VIEWBOX HERE.
+    # The other two members divide the drawing's own units down in CSS, which
+    # restates one viewBox in the stylesheet and is exactly what RULE 1 holds.
+    # This member's placements are authored per instance, as whole percentages
+    # on the element — (coordinate − viewBox min) / viewBox extent, done once,
+    # in the markup, beside the drawing it belongs to. There is no number in
+    # the CSS that a second viewBox could falsify, and RULE 1 is turned into
+    # its converse below: a divisor appearing in this rule is the finding.
+    #
+    # The UNSIZED law is unchanged and is the whole of what still binds it. The
+    # percentages are the drawing's only while .cf-construct__figure takes its
+    # intrinsic box, and that holds for any viewBox — which is precisely why a
+    # material may take this answer and may not take FRAMED, where the ratio is
+    # one number in one declaration.
+    dict(placed=".cf-construct__label", layer=".cf-construct__plate",
+         svg="cf-construct__figure", answer="UNSIZED", ratio=None, box=None,
+         per_instance=True),
 ]
 
 # The signature of a placed child: a percentage of the containing block, driven
@@ -232,7 +256,7 @@ def main():
                 "      viewBox. The registry names a drawing that is not there."
                 % (svgcls, svgcls))
             continue
-        if len(vbs) > 1:
+        if len(vbs) > 1 and not f.get("per_instance"):
             failures.append(
                 ".%s carries %d different viewBoxes across the pages that draw it:\n"
                 "      %s\n"
@@ -243,8 +267,8 @@ def main():
                                            ", ".join(str(p) for p in v))
                              for k, v in vbs.items())))
             continue
-        vb = next(iter(vbs))
-        ratio = vb[2] / vb[3]
+        vb = next(iter(vbs)) if len(vbs) == 1 else None
+        ratio = vb[2] / vb[3] if vb else None
 
         body = next((b for n, s, b, l in rules if " ".join(s.split()) == placed), None)
         line = next((l for n, s, b, l in rules if " ".join(s.split()) == placed), 0)
@@ -257,8 +281,19 @@ def main():
 
         # ------------------------------------------------------------- RULE 1
         # A placement that divides the drawing's own units down to a percentage
-        # restates the viewBox in CSS. The two numbers have to agree.
-        for axis, div in DIVISOR.findall(body):
+        # restates the viewBox in CSS. The two numbers have to agree — and on a
+        # member that carries a viewBox per instance there is no ONE number for
+        # them to agree with, so the same clause reads the other way: a divisor
+        # in a material's rule is a single drawing's dimension imposed on every
+        # drawing that will ever use it, and the second one to arrive is placed
+        # against the first one's frame with nothing failing.
+        if f.get("per_instance") and DIVISOR.search(body):
+            failures.append(
+                "`%s` is registered per-instance and divides by a viewBox dimension\n"
+                "      in CSS. Its drawings do not share a coordinate system: write the\n"
+                "      placement as a whole percentage on the element, beside the drawing\n"
+                "      it was solved against." % placed)
+        for axis, div in DIVISOR.findall(body) if vb else []:
             want = vb[2] if axis == "left" else vb[3]
             if abs(float(div) - want) > 0.005:
                 failures.append(
@@ -395,8 +430,12 @@ def main():
     if args.verbose:
         print("layers placed in a drawing's coordinates:\n")
         for placed, layer, svgcls, answer, ratio, note in rows:
-            print("  %-32s over %-14s .%-9s %-8s viewBox ratio %.4f   %s"
-                  % (placed, layer, svgcls, answer, ratio, note))
+            # A per-instance member has no one ratio to print, and printing a
+            # number for it would be the registry asserting the thing its own
+            # entry says is not true.
+            print("  %-32s over %-22s .%-22s %-8s viewBox ratio %-8s %s"
+                  % (placed, layer, svgcls, answer,
+                     "per page" if ratio is None else "%.4f" % ratio, note))
         print()
 
     if failures:
