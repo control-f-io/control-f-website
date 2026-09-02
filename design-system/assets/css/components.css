@@ -9683,12 +9683,59 @@ a.cf-calendar__day > time,
        backwards. Under --build the dashed geometry is the first thing on
        screen and the solids come along it.
 
-       The orbits are excluded rather than retimed: they are ghosts that turn,
-       and their two-animation rule above is written against 20–50 %. Without
-       the :not() this selector would win on specificity and take the turn
-       away with it. */
+       The :not() is a mechanical exclusion, not a timing decision: an orbit
+       runs two animations and this rule states ONE range, so without it the
+       orbit's turn would be clobbered by the plan's window. The orbit's own
+       --build range is the rule below, and it says the same thing this one
+       does. */
     .cf-iso--build .cf-iso__ghost:not(.cf-iso__orbit) {
       animation-range: cover 2% cover 14%;
+    }
+
+    /* AND IT COMES FIRST FOR AN ORBIT TOO, WHICH FOR ONE RELEASE IT DID NOT.
+       The exclusion above was written to protect the turn and it also handed
+       the fade back to the base rule's `cover 20% cover 40%` — a window that
+       was measured against an object arriving whole, not one being built. On
+       the one built object that has orbits, card 04, they are the ONLY dashed
+       geometry it carries, so the plan's window ran empty and the object's
+       three rings appeared after the sphere inside them was finished. Swept at
+       375 x 812 on patterns/landing-page.html, card 04's own view timeline,
+       every 2.5 points of cover:
+
+         cover  2 %   the plan's window opens          nothing on screen
+         cover  5 %   the first solid arrives          orbit opacity 0.000
+         cover 20 %   first orbit ink                  eleven forms at mean 0.444
+         cover 40 %   orbits at 1.000                  forms at 0.997
+
+       Twenty points of an object's arrival with nothing drawn for the solids
+       to arrive into, and then the reference geometry fading up over the
+       finished body. That is the drawing told backwards, on the object the
+       paragraph above is written for.
+
+       IT IS ALSO WHAT THE PINNED TRACK ALREADY DOES. acts.css re-times this
+       same object onto the process track and gives the orbits `+0.5 %` — the
+       ghosts' own head, one point ahead of the forms — so the two paths told
+       the same drawing in opposite orders depending on the viewport. This is
+       the stacked path agreeing with the designed one.
+
+       THE FADE IS THE PLAN'S WINDOW, VERBATIM, and it is written as the same
+       two literals rather than inherited, because a comma list cannot take one
+       of its entries from another rule. THE TURN OPENS WITH IT AND ENDS WHERE
+       THE NODES SETTLE — 50 %, which is what the base rule's "settling exactly
+       where the nodes do" already says and is the one end that does not move.
+       So the turn now runs the whole assembly instead of its second half: the
+       ring is turning while the sphere builds inside it, which is the sentence
+       the object is drawing.
+
+       The travel does not change — 60 px, twelve dashes of --dash-1-4, both
+       ends on the phase the source vector draws — so the settled ring is the
+       same pixels it was and check-orbit-turn.py's share ceiling is untouched.
+       What changes is the rate: the same twelve dashes over 48 points of cover
+       instead of 30, which is slower, and "turn slowly, then settle" is the
+       rule it is being slowed towards.
+       → foundations/motion.html#build */
+    .cf-iso--build .cf-iso__orbit {
+      animation-range: cover 2% cover 14%, cover 2% cover 50%;
     }
 
     /* An object that stages its own parts does not also travel as a whole:
