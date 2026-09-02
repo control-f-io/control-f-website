@@ -4222,7 +4222,91 @@
          for the same reason 45rem did, so the rem-floor rows above stand.
          → scripts/check-consent-clearance.py link 6, which now requires the
            subtraction and fails on either shape that preceded it */
-      main { --lp-measure: calc((max(min(45rem - 9rem, 100vh), 100vh - var(--cf-consent-height, 0px)) - 13rem) * 2); }
+      /* AND THE CHROME IS THE SUM OF THE RUNGS IT STANDS FOR, not 13rem.
+
+         13rem was a reservation for the trio's own furniture — the stage's two
+         paddings, its two row-gaps, the index line and the bar — and the note
+         over .lp-proc-stage measured that furniture at 181 px against the 208
+         the cap withheld, called the 27 px difference slack rather than crop,
+         and left the retune "a separate change with its own measurements".
+         These are those measurements, and the 27 px is not slack. It is
+         doubled by the `* 2` and spent on the one axis where this card gets
+         TALLER as it narrows — link 6 of check-consent-clearance.py states
+         that inversion in its own words — so a reservation 1.69rem too large
+         takes 3.38rem of card width at exactly the sizes where the cap binds,
+         and hands back a taller card to a stage that already could not hold
+         it.
+
+         THE FURNITURE, READ OFF THE DECLARATIONS RATHER THAN ESTIMATED:
+
+           .cf-pin__inner  padding-block-start   --nav-height + --space-4
+           .lp-proc-stage  row-gap, twice        2 * --space-4
+           .cf-pin__inner  padding-block-end     --space-8
+           .cf-pin__index  one line              --text-xs * --leading-relaxed
+           .cf-pin__bar    height                --stroke-1
+
+         which is 11.2469rem + 1px. Measured against the rendered trio, stage
+         padding + gaps + index + bar, at the pinned stage on this page:
+
+           root 16   180.9 px   sum 180.95      13rem = 208    over by  27.1
+           root 20   225.9      sum 225.94      13rem = 260    over by  34.1
+           root 24   270.9      sum 270.93      13rem = 312    over by  41.1
+           root 32   360.9      sum 360.90      13rem = 416    over by  55.1
+
+         Exact at every root, which is the proof that this is the chrome and
+         13rem was not: the only term that does not scale is the bar, and it
+         is the 1px the sums carry.
+
+         WHAT IT BUYS, worst crop of the plate against .cf-pin__stage's clip
+         over five scroll positions inside the pinned run, card width and
+         height beside it, before -> after:
+
+           1366 x 768   1120x731  23 px  ->  1174x690   3     the commonest
+                                                              laptop there is
+           1440 x 720   1024x772  67     ->  1078x751  57
+           1280 x 720   1024x772  67     ->  1078x751  57
+           1440 x 800   1184x690   0     ->  1238x690   0     wider, still 0
+           1280 x 760   1104x731  27     ->  1140x731  27     container-bound
+           1024 x 900    912x844  14     ->   912x844  14     container-bound
+           1280 x 900   1140x731   0     ->  1140x731   0
+           1440 x 900   1280x690   0     ->  1280x690   0     and so are 1512,
+                                                              1920, 1600, 1680
+
+         and at the large root sizes the cap exists for, where it is the copy
+         and not the frame being cut, it moves the same way rather than
+         trading — cut above / cut below the clip:
+
+           1024 x  768 at 32   653 / 820  ->  616 / 783
+           1280 x  900 at 32   513 / 680  ->  494 / 660
+           1920 x 1080 at 32   409 / 576  ->  371 / 538
+
+         Nothing regresses on any of the 23 viewport-and-root rows swept:
+         1024/1080/1280/1366/1440/1512/1920 at 16, and 1024/1280/1920 at 20,
+         24 and 32. The rows that do not move are the ones where the container
+         binds before the cap does, which is the cap doing nothing — which is
+         what it should do wherever the copy already has its measure.
+
+         IT DOES NOT CLOSE THE CROP AND IS NOT SOLD AS DOING SO. The card's
+         floor height is 690 px — its copy at the container's own 1280 — and
+         the trio's furniture is 181, so act 3 needs 871 px of viewport and
+         the gate admits 720. Every residue above is that band, it is a
+         question about where the gate stands rather than about this
+         expression, and it is written up in the audit on the pull request
+         that landed this.
+
+         THE INDEX'S LINE IS --leading-relaxed BECAUSE base.css SETS IT THERE
+         and .cf-pin__index overrides only the size: 0.6875 * 1.45 is the
+         0.9969rem the four numerals occupy, measured 15.9 px at a 16 px root
+         and 31.9 at 32. → scripts/check-pin-reservation.py, which reads all
+         five declarations and fails when the sum stops being what they say */
+      main {
+        --lp-chrome: calc(var(--nav-height) + var(--space-4)
+                          + 2 * var(--space-4)
+                          + var(--space-8)
+                          + var(--text-xs) * var(--leading-relaxed)
+                          + var(--stroke-1));
+        --lp-measure: calc((max(min(45rem - 9rem, 100vh), 100vh - var(--cf-consent-height, 0px)) - var(--lp-chrome)) * 2);
+      }
       /* ---- ACT 1 + 2: the track and the stage ---- */
       /* 640vh, NOT 400. Nothing about the SCRIPT changed — every window is
          still a contain-percent and the acts still divide the track the same
@@ -5651,21 +5735,50 @@
 
          minmax(0, min-content) AND NOT `auto`, which reads the same and is
          not. Both size the row to the card while there is room. When there is
-         not — the card cropped by 16 px with --pin-measure forced off, the
-         only way to reach that state — `auto` grows the trio past the padding
-         box and the index rides up to 76 px, under a nav band that starts at
-         84: the failure .cf-pin__inner's padding exists to prevent. The
-         minmax form stays inside the padding box and lets the card crop
-         symmetrically against the stage's own clip, which is the right thing
-         to lose. Nav clearance is not the part that gives.
+         not, `auto` grows the trio past the padding box and the index rides up
+         to 76 px, under a nav band that starts at 84: the failure
+         .cf-pin__inner's padding exists to prevent. The minmax form stays
+         inside the padding box, and nav clearance is not the part that gives —
+         held over 121 scroll positions at 1366 x 768, 1440 x 900, 1280 x 800
+         and 1920 x 1080, where the index and the bar breach the clip by 0 px
+         at every one of them.
 
-         The 13rem chrome is untouched and is now a reservation rather than a
-         measurement: with the surplus outside, the trio needs 181 px at 1280 x
-         720 against the 208 the cap withholds, so the card is 52 px narrower
-         than it could be at the sizes where the height cap binds. Slack, not
-         crop — retuning the derivation is a separate change with its own
-         measurements, and it is stated here so it is not rediscovered as a
-         bug. */
+         WHAT THE CARD THEN LOSES IS NOT SYMMETRIC, and this paragraph used to
+         say it was — "lets the card crop symmetrically against the stage's own
+         clip, which is the right thing to lose", on the reading that the state
+         was unreachable without forcing --pin-measure off. It is reachable
+         with nothing forced, at every viewport the gate admits below about
+         871 px of height, and the symmetry is about the ROW rather than about
+         the clip: `align-content: center` on .lp-proc-steps splits the
+         overflow evenly around the row, and the trio sits below the stage's
+         own middle because the padding is 100 / 32 and not 66 / 66. So the
+         surplus lands on one side. Measured, plate against clip, top / bottom:
+
+           1366 x 768     0 / 23      before --lp-chrome; 0 / 3 after
+           1080 x 800     0 / 54
+           1024 x 800     0 / 64
+           1024 x 768     0 / 80
+           1024 x 720    21 / 104     the only row that reaches the top at all
+
+         and what the bottom loses first is the plate's own closing rail — the
+         one stroke .lp-frame is there to draw — so a rectangle reads as three
+         sides. Re-centring it does not help: centred on the clip instead of on
+         the content box, the 780 px trio at 1366 x 768 puts the index at -6
+         and the bar at 773, which trades the frame's rail for the numerals and
+         the scrub line. The room is not there to be redistributed; act 3 needs
+         871 px of viewport and the gate admits 720. That is the gate's
+         question, not this row's, and it is open.
+
+         The chrome this reserves for is now the sum of the five declarations
+         that make it — --lp-chrome, derived where --lp-measure is — and this
+         paragraph is what asked for that. It used to read that the trio needs
+         181 px at 1280 x 720 against the 208 a flat 13rem withheld, call the
+         27 px slack rather than crop, and leave the retune "a separate change
+         with its own measurements". The 181 is exactly what the five rungs
+         sum to at a 16 px root; the 27 was not slack, because the cap doubles
+         it onto an axis where this card lengthens as it narrows. The
+         measurements, and what closing the gap is worth at each viewport, are
+         over the derivation. */
       .lp-proc-stage {
         grid-template-rows: auto minmax(0, min-content) auto;
         align-content: center;
