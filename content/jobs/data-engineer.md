@@ -16,8 +16,8 @@ start:      ab sofort
 starts:     immediately
 adresse:    Am Seerhein 6, 78467 Konstanz. Zwei Tage die Woche vor Ort, der Rest frei eingeteilt.
 address:    Am Seerhein 6, 78467 Konstanz. Two days a week on site, the rest as you arrange it.
-verguetung: 58.000–72.000 € brutto im Jahr, je nach Erfahrung.
-salary:     €58,000–72,000 gross a year, depending on experience. No haggling over the number, only over where you sit in the range.
+verguetung: 65.000–80.000 € brutto im Jahr, je nach Erfahrung.
+salary:     €65,000–80,000 gross a year, depending on experience. No haggling over the number, only over where you sit in the range.
 gehalt_von: 65000
 gehalt_bis: 80000
 art:        FULL_TIME, PART_TIME
