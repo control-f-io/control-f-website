@@ -344,6 +344,7 @@ python3 scripts/check-line-types.py -v         # list every dash pattern, not on
 python3 scripts/check-cap-line.py              # every text-box trim states both edges, inside its @supports branch
 python3 scripts/check-cap-line.py -v           # every trim, and the context it sits in
 python3 scripts/check-cap-line.py --fix        # rewrite the census in foundations/capline.html
+python3 scripts/check-merge-markers.py         # no file in the tree carries a conflict marker
 python3 scripts/check-links.py                 # every reference resolves on the host that serves it
 python3 scripts/check-job-posting.py           # the JobPosting block matches the posting the reader sees
 python3 scripts/check-a11y.py                  # the accessibility facts that are arithmetic rather than judgement
@@ -390,7 +391,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The thirty-three checks the system enforces rather than documents, run by CI on every push and
+The thirty-four checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -859,6 +860,22 @@ third claim is the pair — a trim and the padding that replaces the slot it rem
 decision and share one branch, or the drawing comes apart between browsers — and the
 fourth is the census on the chapter page, generated the way the glass budget's and the
 space scale's are. → `foundations/capline.html`
+
+**And the thirty-fourth is not about a design decision at all.** A pull request landed on
+`main` with its own rebase unresolved: `<<<<<<< HEAD` and the sha line under it shipped as
+literal text in five files — the design system's index, the reference page, two paragraphs
+of `foundations/construction.html`, this README, and a 29-line block inside a comment in
+`components.css`.
+
+**Every gate above passed over it, and none of them was wrong to.** A marker inside a CSS
+comment is comment text; a marker in a documentation page is a paragraph; a marker in
+Markdown is a line of prose. Each of the thirty-three reads one decision — a distance, a
+ramp, a dash period, a count — and a conflict marker is not a wrong *value* of anything. It
+is the one shape that is never correct in any file type this repository ships, and nothing
+was reading for it. `check-merge-markers.py` reads every tracked text file for it in one
+pass. A bare `=======` counts only *between* an opening and a closing marker, because seven
+equals signs is also a setext heading rule and a divider in an ASCII figure, and failing
+those would be enforcing a rule nobody wrote.
 
 **The tenth, eleventh and twelfth are about the system as a site** rather than about a drawing
 in it: every link resolves on the host that actually serves the pages, the `JobPosting` block
