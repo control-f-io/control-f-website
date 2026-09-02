@@ -10704,9 +10704,48 @@ a.cf-calendar__day > time,
   /* 4u pitch = 2u of column and 2u of air. See the header. */
   gap: calc(var(--plot-u) * 2);
   /* The keys hang below the row on absolute position, so the row's layout box
-     ends at the cells and anything after it prints across the labels. 32 px is
-     the 8 px drop plus an 11 px label at --leading-normal, plus air. */
-  margin: 0 0 var(--space-8);
+     ends at the cells and anything after it prints across the labels.
+
+     THE RESERVATION IS TWO LABEL LINES, NOT ONE, and it used to be one. A key
+     takes `hyphens: manual` (see .cf-plot__key), so it breaks only where its
+     author put a &shy; — and one authored break is a second line. This margin
+     read --space-8: 32 px, being the 8 px drop, one 11 px label at
+     --leading-normal (14.3 px) and 9.7 px of air. Two lines are 28.6 px, so
+     the second one had 4.6 px more label than there was room for.
+
+     Measured on patterns/blog-artikel.html, the only consumer standing on the
+     component's own default — landing-page.html, prototypes/evidence-scroll
+     and this component page's second demo all override the margin — with the
+     key's bottom read against the caption's hairline:
+
+                          320      375      768     1024     1440
+       lines               2        2        2        1        1
+       key bottom       +4.59    +4.59    +4.59    -9.70    -9.70
+
+     A positive number is the label ending below the rule: ZEIT/ZONE and
+     AB/TASTUNG were drawn with the caption's hairline through the bottom of
+     their second line at every width the phone and tablet tiers cover. From
+     1024 px the column is 64 px, every key fits on one line, and the same
+     figure clears by the 9.7 px this margin was designed around.
+
+     acts.css had already diagnosed exactly this and fixed it one level too
+     low: `.lp-ev-card .cf-plot__set` said "the reservation goes one rung up
+     the scale" and bought the second line for that one card, which left the
+     component — and so every published article carrying a plot — on one line.
+     The rung belongs here. 48 px is the 8 px drop, two 14.3 px labels and
+     11.4 px of air, so a wrapped key now clears by slightly more than an
+     unwrapped one used to, and the two landing consumers measure exactly what
+     they measured before. Both lengths are rem, so the reservation and the
+     label it reserves for grow together when a reader raises their default
+     text size.
+
+     The acts.css declaration stays, and for a different reason than it was
+     written for: that card's plot is a .cf-plot--ground, whose row reserves
+     --space-16 for the value labels, and --space-12 there is what takes it
+     back down. Removing it moved the landing page's caption 16 px, which is
+     how that was established.
+     → scripts/check-key-line-reserve.py */
+  margin: 0 0 var(--space-12);
   padding: 0;
   list-style: none;
 }
@@ -12183,13 +12222,29 @@ a.cf-calendar__day > time,
    that number above its own head, .cf-plot__val's construction, and a block at
    --v: 1 puts it above the ceiling. --space-8 is the plot's own reservation —
    8 px of drop plus a 12 px number at --leading-normal, plus air — so the
-   figure never prints a numeral through its own top hairline. The bottom
-   margin is the same measure doing the mirror job for the keys. */
+   figure never prints a numeral through its own top hairline.
+
+   THE BOTTOM MARGIN IS NOT THE SAME MEASURE, and the line above used to say it
+   was. The mirror job is bigger than the job: a value is one token and cannot
+   wrap (.cf-block__val takes white-space: nowrap), while a key is a compound
+   German noun that breaks where its author put a &shy; (.cf-block__key takes
+   hyphens: manual), so headroom reserves one line and the ground under the
+   keys has to reserve two. The two consumers that carry a wrapping key here —
+   patterns/landing-page.html and prototypes/evidence-scroll.html, whose keys
+   are SICHER-/HEIT and TECHNO-/LOGIE at the phone tier — were each buying the
+   second line back with `.lp-ev-card .cf-block__frame { margin-bottom:
+   var(--space-12) }` in acts.css, which is the rung being paid for in the
+   consumer instead of stated in the component. --space-12 is 8 px of drop, two
+   11 px labels at --leading-normal (14.3 px each) and 11.4 px of air; the
+   landing card measures exactly what it measured before, and the three figures
+   on components/block.html gain the line they would have needed the first time
+   one of their categories was named in German.
+   → scripts/check-key-line-reserve.py */
 .cf-block__frame {
   position: relative;
   width: 100%;
   aspect-ratio: var(--block-ratio);
-  margin-block: var(--space-8);
+  margin-block: var(--space-8) var(--space-12);
   border-block: var(--stroke-1) solid var(--border-default);
 }
 
