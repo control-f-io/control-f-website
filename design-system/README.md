@@ -337,6 +337,8 @@ python3 scripts/check-demo-fold-band.py        # each framed demo is documented 
 python3 scripts/check-demo-fold-band.py -v     # every fold rule and every subdivision call site
 python3 scripts/check-overflow-clip.py         # a crop is a crop, not a scroll container
 python3 scripts/check-overflow-clip.py -v      # list every overflow declaration, not only the failures
+python3 scripts/check-cut-edge.py              # a crop that hides a column says which edge is hiding it
+python3 scripts/check-cut-edge.py -v           # every inline crop in the shipping tree, marked or exempt
 python3 scripts/check-highlight-fill.py        # every highlight states its ink as a fill, so a clip cannot erase it
 python3 scripts/check-highlight-fill.py -v     # list every highlight rule, not only the failures
 python3 scripts/check-line-types.py            # every dash pattern is one of the four line types
@@ -835,6 +837,54 @@ browser with it never makes the scrollport. Two exemptions, both because the blo
 cropping a composed layer at all — a block that also declares `text-overflow` is
 truncating one line of text, and `.visually-hidden` is the standard clip-rect idiom quoted
 from the practice it comes from. → `foundations/materials.html`
+
+**And the other half of that subject had no gate and no drawing.** `check-overflow-clip.py`
+holds a crop to *saying* it is a crop rather than a scrollport, which is a fact about the
+stylesheet. What nothing held is the fact about the reader: the system ships **five inline
+scroll boxes** — a table, the same table inside an article, a month, a plan, the team strip
+— and every one of them drew the edge it *hides a column behind* exactly like the edge where
+the drawing stops. `foundations/geometry.html` allows a line to be an edge or a division and
+calls anything else decoration; a crop is a third thing, and it had no line.
+
+**The construction every other system reaches for cannot draw this mark**, and the reason is
+the whole argument for the one that replaced it. A scroll shadow is two background layers,
+one of them `background-attachment: local`, and a `local` layer is positioned against the
+*scrollable area* — so the pair can only ever **occlude** each other. Both states are
+therefore always painted, and the resting state here has to be **nothing**: the alternative
+is a permanent vertical rule at both ends of every table in the system, which
+`components/table.html` bans by name (*"a grid of boxes says spreadsheet"*).
+`scroll-state(scrollable: …)` is a state and not a picture, and it is false at the end of the
+travel **and** when there is no travel — the pair a hand-written scroll listener gets wrong
+first, because a listener starts at position zero and so does a box that never scrolls. So the
+fallback is not a lesser drawing: a reader without the query gets the page that shipped
+yesterday, and a box with nothing hidden gets that page too.
+
+The mark is one `--stroke-1` column at the edge that is hiding something, on
+`--presence-absent` — the 1-4 ghost, the rung the presence ladder reserves for a thing that
+is there and not drawn. **A container cannot query itself**, so it is the box's own `::before`
+and `::after`: child boxes of the container, and the only children five components can be
+given without touching a line of their markup. That costs one layout declaration — a
+single-column grid, because a pseudo-element in normal flow has no depth and the mark is the
+full depth of the crop — and the track is `minmax(min-content, 1fr)` rather than `1fr`,
+because a table outgrowing its column is the entire subject. Measured against the same pages
+before the change at 375, 768 and 1280: every box, every child and every document identical,
+with one exception that paints nothing — the team strip's `<ul>` now measures its own content
+rather than its port.
+
+`check-cut-edge.py` holds three things a screenshot cannot. **The roster is read out of the
+stylesheets** the way the glass budget reads what counts as glass — every rule declaring an
+inline-axis `overflow` of `auto` or `scroll` is a crop, so a sixth scroll box enters the
+census by existing rather than by somebody remembering it; one is exempt, with the argument,
+because `.cf-prose pre` is the single inline crop whose port edge and drawn edge are not the
+same line. **One element child**, because grid auto-placement skips a cell an explicitly
+placed item already holds and a second child would land in row 2, under a mark drawn only to
+the depth of row 1 — which renders as though nothing were wrong. And **the base tier draws
+nothing**: an `opacity` raised anywhere but inside a `@container scroll-state()` query is the
+permanent rule above, and on a browser without the query it is the only thing drawn. All three
+were verified against a mutation of each rule rather than assumed. The block axis is out of
+scope by argument — two of its three boxes are panels the reader opened rather than crops, and
+`.cf-blog-grid--port .cf-blog-col` is a genuine cut wanting a different construction, named in
+the chapter rather than half-covered. → `foundations/cut.html`
 
 **A dash pattern is one of four,** and this is the ninth check — the one that had been
 broken on a designed page the whole time. `tokens.css` realises the manual's three dashed

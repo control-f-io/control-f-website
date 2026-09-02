@@ -16303,3 +16303,199 @@ a.cf-calendar__day > time,
   .cf-construct__control { display: none; }
   .cf-construct__plate { break-inside: avoid; }
 }
+
+/* --------------------------------------------------------------------------
+   THE CUT
+   The edge of a crop, and whether the drawing continues past it.
+   → foundations/cut.html
+
+   THE SYSTEM HAS FIVE SCROLL BOXES AND NONE OF THEM SAYS SO. A table, a
+   calendar, a Gantt frame and the team strip all outgrow their column by
+   design — components/table.html calls a table "the one block that
+   legitimately outgrows its column" — and each of them answers that by
+   cropping and letting the reader drag. Every one of those crops is drawn
+   exactly like an edge that is the end of the drawing, which is the one thing
+   it is not. The reader is told a column ended when a column was hidden.
+
+   That is a contour making a false statement, and this system has a rule about
+   contours making statements: foundations/geometry.html's whole argument is
+   that a line here is an edge or a division and never decoration. A crop is a
+   third thing, and it had no line.
+
+   WHY THIS COULD NOT BE A BACKGROUND. The obvious construction is the scroll
+   shadow every other system uses -- two background layers, one
+   `background-attachment: local` covering the other. It works everywhere and
+   it cannot draw THIS mark, for a reason worth writing down: a local layer is
+   positioned against the scrollable area, so the pair can only ever occlude
+   each other. Both states are therefore always drawn, and the resting state
+   -- a box with nothing hidden past its edge -- gains a vertical rule it does
+   not want. components/table.html bans exactly that rule by name: "a grid of
+   boxes says spreadsheet". The mark has to be able to be ABSENT, and no
+   background can be absent conditionally.
+
+   `scroll-state(scrollable: …)` can, because it is a state rather than a
+   picture: it asks whether the container can still be scrolled that way, and
+   the answer is false both at the end of the travel and when there is no
+   travel. So a box with nothing hidden draws nothing, which is what ships
+   today, and that is the whole fallback: a browser without the query gets the
+   page it already had. There is no half-drawn tier.
+
+   A CONTAINER CANNOT QUERY ITSELF, and the mark belongs to the box rather
+   than to anything inside it. Its own pseudo-elements can: they are child
+   boxes of the container, so ::before and ::after answer the query the box
+   asks. They are also the only children that can be added without touching
+   five components' markup.
+
+   WHICH COSTS ONE LAYOUT DECLARATION. A pseudo-element in normal flow is a
+   block after the content with no height of its own, and the mark is the full
+   depth of the crop. `display: grid` with one column gives it that depth for
+   free -- one cell, `align-self: stretch` -- and gives the two marks somewhere
+   to stand at the two ends of the CONTENT, which is what `position: sticky`
+   then measures from. The single child is placed in the same cell explicitly,
+   because grid auto-placement skips a cell an explicitly placed item already
+   holds and would otherwise push the content into row 2.
+   → scripts/check-cut-edge.py holds every box in this block to one element
+     child, since a second one would land in a row the marks do not cover.
+
+   The track is `minmax(min-content, 1fr)` and not `1fr`: a table that outgrows
+   its column is the entire subject here, so the floor has to be the content's
+   own minimum rather than zero. That is the deliberate non-zero floor
+   check-grid-tracks.py credits, and it reproduces what `display: block` did --
+   the child fills the port, or exceeds it and scrolls.
+
+   THE MARK IS THE GHOST LINE TYPE. --presence-absent, 1-4, is the rung
+   foundations/geometry.html reserves for a thing that is there and not drawn,
+   which is precisely a column past the crop. It is written here as a gradient
+   rather than as a dasharray because this is a box and not a stroke, and both
+   numbers are the hairline: one unit of ink, four of gap, --stroke-1 each.
+   -------------------------------------------------------------------------- */
+@supports (container-type: scroll-state) {
+  .cf-table__scroll,
+  .cf-prose__table-scroll,
+  .cf-calendar__scroll,
+  .cf-gantt__scroll,
+  .cf-team-strip {
+    container-type: scroll-state;
+    display: grid;
+    grid-template-columns: minmax(min-content, 1fr);
+  }
+  .cf-table__scroll > *,
+  .cf-prose__table-scroll > *,
+  .cf-calendar__scroll > *,
+  .cf-gantt__scroll > *,
+  .cf-team-strip > * { grid-area: 1 / 1; }
+
+  .cf-table__scroll::before,
+  .cf-table__scroll::after,
+  .cf-prose__table-scroll::before,
+  .cf-prose__table-scroll::after,
+  .cf-calendar__scroll::before,
+  .cf-calendar__scroll::after,
+  .cf-gantt__scroll::before,
+  .cf-gantt__scroll::after,
+  .cf-team-strip::before,
+  .cf-team-strip::after {
+    content: "";
+    grid-area: 1 / 1;
+    align-self: stretch;
+    position: sticky;
+    z-index: 1;
+    inline-size: var(--stroke-1);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--border-strong) 0 var(--stroke-1),
+      transparent var(--stroke-1) calc(var(--stroke-1) * 5));
+    opacity: 0;
+    pointer-events: none;
+  }
+  .cf-table__scroll::before,
+  .cf-prose__table-scroll::before,
+  .cf-calendar__scroll::before,
+  .cf-gantt__scroll::before,
+  .cf-team-strip::before { justify-self: start; inset-inline-start: 0; }
+
+  .cf-table__scroll::after,
+  .cf-prose__table-scroll::after,
+  .cf-calendar__scroll::after,
+  .cf-gantt__scroll::after,
+  .cf-team-strip::after { justify-self: end; inset-inline-end: 0; }
+
+  /* The two queries are the two directions, and neither is a scroll position:
+     `scrollable` is false at the end of the travel AND when there is no
+     travel, which is the one behaviour a scroll listener gets wrong first. */
+  @container scroll-state(scrollable: inline-start) {
+    .cf-table__scroll::before,
+    .cf-prose__table-scroll::before,
+    .cf-calendar__scroll::before,
+    .cf-gantt__scroll::before,
+    .cf-team-strip::before { opacity: 1; }
+  }
+  @container scroll-state(scrollable: inline-end) {
+    .cf-table__scroll::after,
+    .cf-prose__table-scroll::after,
+    .cf-calendar__scroll::after,
+    .cf-gantt__scroll::after,
+    .cf-team-strip::after { opacity: 1; }
+  }
+
+  /* A mark that snaps on and off at the two ends of the travel reads as a
+     glitch rather than as a state, so it crosses on the shortest duration the
+     motion chapter has. Nothing MOVES -- it is one opacity -- and it is still
+     inside the no-preference gate, because a reader who asked for less has
+     asked for the state to change and not to be animated into. */
+  @media (prefers-reduced-motion: no-preference) {
+    .cf-table__scroll::before,
+    .cf-table__scroll::after,
+    .cf-prose__table-scroll::before,
+    .cf-prose__table-scroll::after,
+    .cf-calendar__scroll::before,
+    .cf-calendar__scroll::after,
+    .cf-gantt__scroll::before,
+    .cf-gantt__scroll::after,
+    .cf-team-strip::before,
+    .cf-team-strip::after { transition: opacity var(--duration-fast) var(--ease-standard); }
+  }
+
+  /* Forced colours does not remap a gradient -- it is a background IMAGE, and
+     the mode leaves images alone -- so --border-strong would stay #000 on a
+     dark system canvas and the mark would go invisible against it. This is the
+     same finding the construction layer records one section up, read through a
+     background instead of through a stroke: one declaration, about visibility
+     rather than about rank. The 1-4 period survives untouched either way. */
+  @media (forced-colors: active) {
+    .cf-table__scroll::before,
+    .cf-table__scroll::after,
+    .cf-prose__table-scroll::before,
+    .cf-prose__table-scroll::after,
+    .cf-calendar__scroll::before,
+    .cf-calendar__scroll::after,
+    .cf-gantt__scroll::before,
+    .cf-gantt__scroll::after,
+    .cf-team-strip::before,
+    .cf-team-strip::after {
+      background-image: repeating-linear-gradient(
+        to bottom,
+        CanvasText 0 var(--stroke-1),
+        transparent var(--stroke-1) calc(var(--stroke-1) * 5));
+    }
+  }
+
+  /* Paper has no travel, so it has no cut. The print block above already
+     releases the table's crop to `overflow: visible`, which makes the box stop
+     being a scroll container and the query false -- but the calendar, the
+     Gantt frame and the strip keep their crops, and on those the mark would
+     print as a dashed rule beside a column the sheet simply does not have.
+     A reader cannot drag a page. → foundations/print.html */
+  @media print {
+    .cf-table__scroll::before,
+    .cf-table__scroll::after,
+    .cf-prose__table-scroll::before,
+    .cf-prose__table-scroll::after,
+    .cf-calendar__scroll::before,
+    .cf-calendar__scroll::after,
+    .cf-gantt__scroll::before,
+    .cf-gantt__scroll::after,
+    .cf-team-strip::before,
+    .cf-team-strip::after { content: none; }
+  }
+}
