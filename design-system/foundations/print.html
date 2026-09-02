@@ -258,6 +258,7 @@
         <tr><td><code>.cf-section-header__action</code></td><td>The one entry that reads as content until you ask what it does. It sits in the counter's slot, so on a sheet <span lang="de">189 BEITRÄGE</span> and <span lang="de">SUCHEN</span> are the same mark — and the first is the archive's size while the second is an offer to search a piece of paper. The counter stays; the action goes. → <a href="../components/section-header.html#action">Section header</a></td></tr>
         <tr><td><code>.skip-link</code></td><td>Already off the page box under its own transform. Named so the register is the register.</td></tr>
         <tr><td><code>.cf-consent</code>, <code>dialog</code></td><td>Withdrawn before this chapter, with the height the banner had reserved. See <a href="../components/consent.html">Consent</a>.</td></tr>
+        <tr><td><code>.cf-accordion__summary .cf-arrow</code></td><td>The only entry withdrawn <em>because</em> of another clause. The arrow opens the panel and draws which way it stands — right for closed, rotated for open. <a href="#disclosure">Every panel is open on a sheet</a> while only the one the reader left open carries <code>[open]</code>, so ten of the eleven rows on Expertise would print an arrow stating the wrong state beside an answer already standing under it. → <a href="../components/accordion.html#print">Accordion</a></td></tr>
         <tr><td><code>.cf-construct__control</code></td><td>The switch that reveals a drawing's <a href="construction.html">construction</a>. Exactly the hero pause switch's case: a switch whose state cannot change what the reader sees is worse than no switch at all. Whatever the drawing showed on screen is what prints.</td></tr>
       </tbody>
     </table>
@@ -397,6 +398,62 @@
     </p>
   </section>
 
+  <section class="docs-section" id="disclosure">
+    <h2>What a sheet has to open</h2>
+    <p>
+      The two registers above both assume the object brought its content with it. One takes
+      away what cannot be operated; the other keeps whole what is left. Neither asks whether
+      there is anything inside — and there is exactly one component in this system whose
+      resting state is to withhold it.
+    </p>
+    <p>
+      <strong><code>&lt;details&gt;</code> is that component, and the register was already
+      protecting it from the cut.</strong> <code>.cf-accordion__item</code> has been on the
+      may-not-be-cut list since that list existed, so the sheet was carefully keeping whole an
+      object carrying a question and no answer. Measured on the shipped
+      <a href="../patterns/expertise.html">Expertise</a> page under emulated print media,
+      before this clause: eleven questions, eleven panels,
+      <code>checkVisibility()</code> false on all eleven. The FAQ is the one section of that
+      page a reader prints in order to keep what it says.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Declaration</th><th>What it is for</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>content-visibility: visible</code></td>
+          <td>The panel itself. A closed <code>&lt;details&gt;</code> is not laid out faintly, it is not laid out — this is the declaration that puts it on the sheet.</td>
+        </tr>
+        <tr>
+          <td><code>block-size: auto</code>, <code>overflow-y: visible</code></td>
+          <td>Given back from the <a href="../components/accordion.html#motion">opening animation</a>, which sets both on a <em>closed</em> panel — <code>0</code> and <code>clip</code> — at this rule's own weight. The register is at the foot of the last stylesheet loaded, which is the whole of why it wins.</td>
+        </tr>
+        <tr>
+          <td><code>grid-template-columns: minmax(0, 1fr)</code></td>
+          <td>The row is restated as one column because the arrow it kept a column for is <a href="#withdrawn">withdrawn</a>. A grid gutter is drawn between tracks whether or not the second one holds anything, so left alone the question wraps 24 px short of the answer under it — on paper only, where nobody would go looking.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>This is only reachable from a stylesheet because of
+      <code>::details-content</code>.</strong> The panel is a box the user agent generates and
+      hides, and until that pseudo-element was exposed there was no author selector for it —
+      which is why a printed accordion on the web is normally either a
+      <code>beforeprint</code> script or nothing at all. It is Baseline as of September 2025
+      (Chrome 131, Firefox 143, Safari 18.4), and the accordion already stands on it for the
+      opening animation, so the clause introduces no floor the component did not already have.
+      Below that floor the panel prints as it printed before, which is the same fallback the
+      animation takes.
+    </div>
+    <p>
+      The subject is <strong>derived and not listed</strong>, the same way both registers are.
+      A rule that styles <code>::details-content</code> is a rule about a panel a
+      <code>&lt;details&gt;</code> closes, and <code>scripts/check-print-law.py</code> asks of
+      every one of them, outside <code>@media print</code>, whether some print rule opens it. A
+      second accordion built tomorrow enters the check by existing rather than by somebody
+      remembering that this page is also a place.
+    </p>
+  </section>
+
   <section class="docs-section" id="addresses">
     <h2>The address of a thing you cannot click</h2>
     <p>
@@ -433,7 +490,7 @@
       <thead><tr><th>File</th><th>Holds</th></tr></thead>
       <tbody>
         <tr><td><code>base.css</code></td><td><code>@page</code>, <code>.container</code>, the ground, headings, paragraphs, <code>figure</code>, <code>tr</code>, <code>thead</code>/<code>tfoot</code>, <code>.skip-link</code>, and the statement of the law.</td></tr>
-        <tr><td><code>components.css</code></td><td>The two registers: what is withdrawn, and what may not be cut. Plus the print decisions that were already there beside their own components.</td></tr>
+        <tr><td><code>components.css</code></td><td>The two registers — what is withdrawn, and what may not be cut — and the clause that opens what a component closes. Plus the print decisions that were already there beside their own components.</td></tr>
         <tr><td><code>acts.css</code></td><td>The landing page's own two, which predate this chapter and are unchanged.</td></tr>
         <tr><td><code>docs.css</code></td><td>Nothing. This documentation site does not ship, and printing it is not a path anyone is on.</td></tr>
       </tbody>
@@ -474,6 +531,7 @@
         <ul>
           <li>Add a new object to the <a href="#fragmentation">may-not-be-cut register</a> the day you add the component, not the day someone prints it.</li>
           <li>Give a withdrawn affordance's reservations back on the same line you withdraw it — the hero's three are the worked example.</li>
+          <li><a href="#disclosure">Open on the sheet whatever a component closes on the screen.</a> A control that hides content is an affordance, and withdrawing it is only half the job if the content stays hidden with it.</li>
           <li>Let a colour distinguish, and let a line distinguish too. If the figure survives <code>forced-colors</code> it survives paper.</li>
           <li>Write page measurements in <code>mm</code>. A4 and Letter disagree about inches.</li>
           <li>Put a rule where it can win: the object registers belong at the foot of <code>components.css</code>.</li>
