@@ -9,6 +9,12 @@
 # pages that actually ship at the root. Run them the other way round and you
 # publish yesterday's archive in English.
 #
+# build-og-plates.py is late and could be anywhere: the share plates are drawn
+# from a route's NAME, not from its content, so nothing above changes what they
+# look like. It runs before the index for one reason only — the index reads the
+# shipped pages and the plates ship beside them, so a run that stops halfway
+# never leaves a page advertising a picture that is not there yet.
+#
 # build-search-index.py is last, and that is the same argument once more: it
 # reads the SHIPPED pages, because the index carries addresses and a pattern's
 # address is not the page's. Run before build-site.py it would index a root that
@@ -25,4 +31,5 @@ python3 scripts/build-i18n.py
 python3 scripts/build-articles.py
 python3 scripts/build-stellen.py
 python3 scripts/build-site.py
+python3 scripts/build-og-plates.py
 python3 scripts/build-search-index.py

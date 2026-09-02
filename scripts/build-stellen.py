@@ -46,9 +46,14 @@ stdlib only, no build step, no dependency. Same python3 that serves the pages.
 import argparse
 import importlib.util
 import json
+import os
 import pathlib
 import re
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import og_meta                                                    # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PATTERNS = ROOT / "design-system" / "patterns"
@@ -152,10 +157,23 @@ def head(job, edition, pad):
     w = WORDS[edition]
     desc = w["desc"] % (title, field(job, edition, "anstellung", "employment"),
                         field(job, edition, "umfang", "hours"))
-    return ('%s<title>%s — %s — Control-F</title>\n'
-            '%s<meta name="description" content="%s">'
-            % (pad, esc(title), "Karriere" if edition == "de" else "Careers",
-               pad, esc(desc).replace('"', "&quot;")))
+    shown = "%s — %s — Control-F" % (esc(title),
+                                     "Karriere" if edition == "de" else "Careers")
+    quoted = esc(desc).replace('"', "&quot;")
+    # THE SHARE CARD IS IN THIS REGION for the same reason the title is: og:title
+    # and og:description are the page's own two strings said again, and on an
+    # opening's page both of them are the opening's. A position is the single
+    # most-pasted kind of link this site has, and outside the fence every one of
+    # them would unfurl as the Data Engineer specimen.
+    #
+    # THE PLATE IS /karriere/<rolle>'s, ONE FOR ALL OF THEM. Seeding it on the
+    # slug would give every opening its own mark and the generator already takes
+    # any seed; what stops it today is that the openings come out of Notion and
+    # a plate has to exist before a crawler asks for it. → foundations/share.html
+    return "\n".join(pad + line for line in (
+        ["<title>%s</title>" % shown,
+         '<meta name="description" content="%s">' % quoted]
+        + og_meta.block(shown, quoted, "karriere-stelle", edition)))
 
 
 def ld(job, edition, pad):

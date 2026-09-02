@@ -114,9 +114,14 @@ stdlib only, no build step, no dependency. Same python3 that serves the pages.
 
 import argparse
 import json
+import os
 import pathlib
 import re
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import og_meta                                                    # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 POSTS = ROOT / "content" / "news"
@@ -832,10 +837,26 @@ def head(topic, indent=""):
     reader reads the title first, and "News" alone is the same name for the
     archive and for every slice of it.
     """
-    return ('%s<title>Thema %s — News — Control-F</title>\n'
-            '%s<meta name="description" content="Beiträge von Control-F zum '
-            'Thema %s — der gefilterte Ausschnitt des Archivs, nach Zeit '
-            'sortiert.">' % (indent, esc(topic[1]), indent, esc(topic[1])))
+    title = "Thema %s — News — Control-F" % esc(topic[1])
+    desc = ("Beiträge von Control-F zum Thema %s — der gefilterte Ausschnitt "
+            "des Archivs, nach Zeit sortiert." % esc(topic[1]))
+    return "\n".join(indent + line for line in (
+        ["<title>%s</title>" % title,
+         '<meta name="description" content="%s">' % desc]
+        + og_meta.block(title, desc, "news-thema")))
+
+
+# THE SHARE CARD IS IN THIS REGION TOO, and it has to be: `og:title` and
+# `og:description` are the page's own title and description said again, and on a
+# topic page both of those are written here. Left outside the fence, every
+# generated topic page would advertise itself as the Energiewirtschaft specimen
+# the region was spliced out of.
+#
+# ALL THE TOPIC PAGES SHARE /news/thema's PLATE. A per-topic mark is one
+# argument's change here and one entry in build-og-plates.py the day somebody
+# wants it — the seed is a slug and the generator takes any. Today the section's
+# own mark stands for all of them, and the topic is named in the title beside
+# it. → scripts/og_meta.py
 
 
 def chips(used, active, indent="      "):
