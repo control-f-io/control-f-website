@@ -46,6 +46,29 @@ stops fitting it; change --space-8 to --space-6 in the padding and the box
 silently gains 16 px of dead air. Neither edit looks wrong at the line it is
 made on, and neither shows in a screenshot at the three widths anybody checks.
 
+AND A RELEASE HAS TO BE DELIVERED, WHICH IS THE SECOND HALF OF THIS CHECK.
+The two-column figure's release above was written, registered and correct, and
+for its whole life it did nothing: `max-block-size: none` lifts one cap and the
+`aspect-ratio: 1` three lines up is the other. A grid item is stretched to its
+row by default — which is exactly what the release wants — but a box with a
+ratio and an auto block size takes the ratio's height instead of the stretch,
+in all three engines. So the figure stayed its column's width tall and the
+divider it draws stopped short of the card's bottom edge on every card whose
+copy outgrows the square. Measured on the shipped landing page, "Weniger
+Ausfälle", the card carrying both a benefit and a note:
+
+    viewport 1280 x 800    row 709   figure 569    hairline short by 140 px
+    viewport 1366 x 768    row 688   figure 607                        81
+    viewport 1440 x 900    row 688   figure 639                        49
+    viewport 1920 x 1080   row 688   figure 639                        49
+
+Nothing overflowed, nothing clipped, no check failed, and the card's own outer
+border still closed the box underneath — so the fault reads as a slightly open
+corner rather than as a missing line. A release whose stated reason is "its
+height has to be the row's" is a claim, and this check now asks for the
+declaration that makes the claim true rather than taking the entry's word for
+it. → RELEASED and STRETCH_DECLS below.
+
 SCOPE is the shipping stylesheets — tokens.css, base.css, components.css. A
 letterboxed figure is a component, not page furniture; docs.css is documentation
 chrome and is out, the same call every check here makes. A rule inside a
@@ -75,14 +98,33 @@ SHEETS = ["tokens.css", "base.css", "components.css"]
 SPACE_RE = re.compile(r"--space-(\d+):\s*([0-9.]+)rem")
 STROKE_RE = re.compile(r"--stroke-(\d+):\s*([0-9.]+)px")
 
-# A selector whose cap is deliberately released, with the reason it is released.
+# A selector whose cap is deliberately released, with the reason it is released
+# and whether that reason obliges the box to REACH the row it sits in.
 # A release is a design decision that has to be written down; an absent cap is
 # the bug this file exists to catch.
+#
+# "stretch" is the second half of the pair and it is not decoration. A release
+# whose reason is "its height has to be the row's" is a claim about the box's
+# height, and dropping max-block-size does not make that claim true — it only
+# stops one of the two things capping it. The other is the aspect-ratio the box
+# states three lines up, and a ratio caps a height exactly as firmly. So where
+# the reason says "the row's", this check asks for the declaration that actually
+# delivers it, in the same block.
 RELEASED = {
-    "@container (min-width: 56rem) .cf-process__figure":
-        "square BESIDE the copy: its right border IS the card's divider, so its "
-        "height has to be the row's or the hairline stops short of what it divides",
+    "@container (min-width: 56rem) .cf-process__figure": {
+        "why": "square BESIDE the copy: its right border IS the card's divider, so its "
+               "height has to be the row's or the hairline stops short of what it divides",
+        "stretch": True,
+    },
 }
+
+# What "reach the row" is written as. A percentage and not `stretch`: while the
+# row is being sized it cannot resolve, so it behaves as auto and the ratio still
+# makes its square contribution — the row is never shorter than the drawing wants.
+# Once the row is sized it resolves against it, both axes are definite, and the
+# ratio steps aside. `align-self: stretch` is the default already and loses to a
+# ratio in every engine, which is the whole reason this check exists.
+STRETCH_DECLS = (("block-size", "100%"), ("height", "100%"))
 
 
 def strip_comments(text):
@@ -260,7 +302,22 @@ def main():
                 mbs = d.get("max-block-size", d.get("max-height"))
 
                 if key in RELEASED:
-                    seen.append((name, line, key, "released", RELEASED[key]))
+                    rel = RELEASED[key]
+                    if rel["stretch"] and not any(
+                            d.get(prop) == val for prop, val in STRETCH_DECLS):
+                        findings.append(
+                            f"{name}:{line}  {key}\n"
+                            f"    cap released — {rel['why']} —\n"
+                            f"    but the box still states aspect-ratio: "
+                            f"{d['aspect-ratio']} and nothing stretches it, so the "
+                            f"ratio is the cap the release was meant to lift.\n"
+                            f"    The figure is its column wide and therefore its "
+                            f"column tall, whatever the row does: on the shipped "
+                            f"landing page the divider stopped 49 px above the "
+                            f"card's bottom edge at 1440 and 140 px at 1280.\n"
+                            f"    Expected `block-size: 100%` in the same block.")
+                        continue
+                    seen.append((name, line, key, "released", rel["why"]))
                     continue
 
                 if mbs is None:
