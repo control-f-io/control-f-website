@@ -35,7 +35,21 @@ VIEWBOX = 120
 HEIGHTS = [0, 0, 0, 1, 1, 2, 2, 3, 3]
 PEAK = 3
 
-# The family's ramp on the near rake, waypoint included.
+# The family's ramp on the near rake, waypoint included. Quoted from
+# cf-signet.js in fractions rather than percentages — see the parity check.
+#
+# THE ONE RAMP IN THIS RASTERISER THAT IS NOT DERIVED, and the contrast is two
+# functions away: plate.py's wash_stops() reads --wash-stops out of tokens.css
+# on every run rather than pasting four numbers, precisely so the plate and the
+# page cannot part. This table cannot do that, and should not — it is one half
+# of a two-language model that check-signet-parity.py holds byte for byte, and
+# a python that read tokens.css would no longer be the same model the
+# javascript is.
+#
+# So it is held from outside instead: check-gradient-family.py reads this list
+# and recomputes the waypoint's offset and colour from lime and Glas. Until it
+# did, this ramp and its twin were bound only to EACH OTHER — move --cf-lime
+# and both would go stale in step with parity still green.
 STOPS = [(0.0, "#E1FF00"), (0.061, "#DBFC60"), (0.32, "#C5EBE2"), (1.0, "#CFCFCF")]
 
 # The three tones off the manual's isometric stack. Light from the upper left.

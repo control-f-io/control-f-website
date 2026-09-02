@@ -58,6 +58,18 @@
    as attributes and not as classes on purpose: that checker reads the SVG,
    and a stop whose colour lives in a stylesheet is a stop it cannot see.
 
+   THAT SENTENCE WAS TRUE ABOUT THE SVGs AND FALSE ABOUT THIS TABLE, for as
+   long as it has been written. check-gradient-family.py walks FILES — every
+   page and drawing under design-system, and five stylesheets. This ramp
+   becomes a <linearGradient> in the DOM at DOMContentLoaded and never lands in
+   one of them, and its second copy in scripts/og-plate/signet.py becomes a
+   PNG, so
+   the brand's own mark carried the one gradient in the system that nothing
+   had ever read. check-signet-parity.py binds the two copies TO EACH OTHER,
+   which is exactly the check that cannot see it: move --cf-lime and both go
+   stale together, in step, and parity still passes. The gate reads both stop
+   tables directly now — see EMITTERS in that file.
+
    THE FACES ARE CLASSES, so the three greys answer to the theme. They are
    the designer's own three tones off the isometric stack — #DADADA top,
    #CFCFCF left, #C4C4C4 right — and the light comes from the upper left,
@@ -97,7 +109,12 @@
   /* The family's ramp, hand-carried onto an SVG the way tokens.css requires:
      one extra stop at 19 % of the lime leg. The leg here ends at 32 %, so the
      waypoint is at 6.1 %. Do not round these to tidier numbers — the gradient
-     checker recomputes both from the leg's own ends. */
+     checker recomputes both from the leg's own ends, and 6 % fails it.
+
+     Its twin is scripts/og-plate/signet.py's STOPS, which states the same
+     four in fractions. check-signet-parity.py holds them to each other and
+     check-gradient-family.py holds each of them to the palette; both are
+     needed, because two copies that drift together are still one drift. */
   var STOPS = [
     { at: '0%',    color: '#E1FF00' },
     { at: '6.1%',  color: '#DBFC60' },
