@@ -68,6 +68,80 @@
     .vt-stages { grid-template-columns: 1fr; }
   }
 
+  /* The continuous object, demonstrated in one document. The shipping feature
+     is cross-document and therefore cannot be shown on a page — so the two
+     halves of one pair are drawn here side by side in time instead of in
+     space: the same title, in a cell and then in a page header, swapped under
+     document.startViewTransition() with the name the real thing writes. The
+     animation you see is base.css's, unmodified. */
+  .vt-object { display: grid; gap: var(--space-6); }
+  /* display:grid beats the UA's `[hidden] { display: none }` — author origin
+     wins over UA — so without this line the state that is meant to be put away
+     is still rendered, still captured, and the two halves of the demo claim
+     one view-transition-name at once. That is the console error the browser
+     abandons a whole transition over. */
+  .vt-object__stage[hidden] { display: none; }
+  .vt-object__stage {
+    border: var(--stroke-1) solid var(--border-default);
+    background: var(--grey-000);
+    padding: var(--space-6);
+    min-height: 15rem;
+    display: grid;
+    align-content: start;
+  }
+  .vt-object__cells { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+  .vt-object__cell {
+    border: var(--stroke-1) solid var(--border-subtle);
+    padding: var(--space-3);
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+  }
+  .vt-object__plate { aspect-ratio: 3 / 2; background: var(--grey-050); border: var(--stroke-1) solid var(--border-subtle); }
+  .vt-object__title { font-family: var(--font-sans); font-size: var(--text-md); line-height: var(--leading-snug); color: var(--text-primary); margin: 0; }
+  .vt-object__meta { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-secondary); margin: 0; }
+  .vt-object__crumb { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-label); color: var(--text-secondary); margin: 0 0 var(--space-4); }
+  /* The head state: the same element, at the page header's scale. */
+  .vt-object__stage--head .vt-object__title { font-size: var(--text-h1); line-height: var(--leading-tight); font-weight: var(--weight-bold); }
+  .vt-object__rule { height: var(--stroke-1); background: var(--border-strong); margin: var(--space-4) 0 var(--space-3); }
+  .vt-object__bar { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; }
+  .vt-object__state { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-label); color: var(--text-secondary); }
+  @media (max-width: 56.25rem) {
+    .vt-object__cells { grid-template-columns: 1fr; }
+    .vt-object__cell + .vt-object__cell { display: none; }
+  }
+
+  /* THE DEMO IS A NAVIGATION THIS PAGE IS NOT MAKING, so it must not draw the
+     one this page makes. base.css rakes the root across the viewport at
+     --angle-a, which is right for two pages and absurd for a button inside a
+     figure: the entire documentation would wipe to show a headline moving
+     20 rem. The transition is started with a TYPE, and the type is what turns
+     the wipe off — the root cross-fades instead, which on a page where nothing
+     but the figure changed is invisible everywhere but the figure.
+
+     plus-lighter is restored with it. base.css resets the root's blend mode to
+     `normal` because a wipe leaves two opaque pages overlapping wherever the
+     clip has not cut yet; a cross-fade is the case the UA default was written
+     for, where the two snapshots are complementary at every pixel.
+
+     Where :active-view-transition-type() is not understood the whole rule is
+     dropped and the click rakes the page — the pre-type behaviour, not a
+     broken one. */
+  @media (prefers-reduced-motion: no-preference) {
+    :root:active-view-transition-type(vt-demo)::view-transition-old(root),
+    :root:active-view-transition-type(vt-demo)::view-transition-new(root) {
+      mix-blend-mode: plus-lighter;
+    }
+    :root:active-view-transition-type(vt-demo)::view-transition-old(root) {
+      animation: vt-demo-out var(--duration-base) var(--ease-standard) both;
+    }
+    :root:active-view-transition-type(vt-demo)::view-transition-new(root) {
+      animation: vt-demo-in var(--duration-base) var(--ease-standard) both;
+    }
+  }
+  @keyframes vt-demo-out { to   { opacity: 0; } }
+  @keyframes vt-demo-in  { from { opacity: 0; } }
+
   /* The stage diagram paints with `stroke="var(--border-strong)"` and friends
      — presentation attributes carrying tokens, which forced colours reaches no
      more than it reaches a literal: it does not force SVG `fill` and `stroke`
@@ -258,6 +332,12 @@
           <td><code>docs.css</code> — does not ship</td>
         </tr>
         <tr>
+          <td><code>.cf-blog-card__title</code>, <code>.cf-vacancy__title</code>, <code>.cf-page-header__title</code></td>
+          <td><code>cf-morph-title</code></td>
+          <td>The one name here that does <em>not</em> hold still: it is written on two different elements in two documents, and travels between them. Never declared in a stylesheet, and never present unless a pair has been proved. → <a href="#continuous">The continuous object</a></td>
+          <td><code>cf-morph.js</code> — ships, optional</td>
+        </tr>
+        <tr>
           <td><code>root</code></td>
           <td><code>root</code></td>
           <td>Everything else: the page wash and the content. This is what the edge crosses.</td>
@@ -437,27 +517,277 @@ body &gt; .cf-footer { <span class="attr">view-transition-name</span>: <span cla
     </div>
   </section>
 
-  <section class="docs-section" id="next">
-    <h2>What this does not do yet</h2>
+  <section class="docs-section" id="continuous">
+    <h2>The continuous object</h2>
     <p>
-      The obvious next move is the one this system deliberately has not made: morphing a
-      <em>specific</em> element into the page it opens — a blog cell into the article's header,
-      a team portrait into a profile. Cross-document, that needs the clicked element to be
-      given a name on the way out and the matching element to be given the same name on the
-      way in, which is a <code>pageswap</code> and a <code>pagereveal</code> listener, which is
-      a third shipping script. The system currently ships two, one of which is legally
-      required and one of which is optional and additive, and that ratio is worth protecting.
-      When it is done it should be one small file that refuses to run unless the pair actually
-      matches — the same shape as <code>cf-stream.js</code>.
+      Everything above is what a <em>page</em> does. This is what an <em>object</em> does when
+      the navigation that started the wipe is that object opening. Click a cell in the news
+      archive and its headline is not cut away with the sheet and redrawn somewhere else — it
+      is lifted out of both snapshots and travels, over the top of the rake, to become the
+      headline of the article. One element, one navigation, and the picture stays behind: a
+      card's image is the object's illustration, its title is the object's name, and only the
+      name carries identity.
     </p>
     <p>
-      Also unclaimed: nothing yet uses <code>view-transition-class</code>, which would let a
-      family of named elements share one animation without each one repeating it. There is no
-      family yet — three names, three behaviours. Worth remembering when there is a fourth.
+      This page used to say the system deliberately had not made this move, on the grounds
+      that it costs a third shipping script and <q>the system currently ships two … that ratio
+      is worth protecting.</q> <strong>The ratio was two to eight when that was read.</strong>
+      Every pattern page loads <code>cf-nav.js</code>, <code>cf-consent.js</code> and
+      <code>cf-sight.js</code>; the landing page loads eight. What survived the correction is
+      the shape the paragraph asked for — <q>one small file that refuses to run unless the
+      pair actually matches</q> — and that is exactly what
+      <a href="#continuous-anatomy"><code>cf-morph.js</code></a> is.
+    </p>
+
+    <div class="docs-demo">
+      <div class="vt-object" id="vt-object">
+        <div class="vt-object__stage" id="vt-cells">
+          <div class="vt-object__cells">
+            <div class="vt-object__cell">
+              <div class="vt-object__plate"></div>
+              <p class="vt-object__title" id="vt-title-cell">Sieben Tage für zwei Jahrzehnte: Was die WindSeeG-Novelle bedeutet</p>
+              <p class="vt-object__meta">14.08.2026 · 5 min</p>
+            </div>
+            <div class="vt-object__cell">
+              <div class="vt-object__plate"></div>
+              <p class="vt-object__title">KI-Kennzeichnung: Was der AI Act jetzt verlangt</p>
+              <p class="vt-object__meta">03.08.2026 · 5 min</p>
+            </div>
+            <div class="vt-object__cell">
+              <div class="vt-object__plate"></div>
+              <p class="vt-object__title">Drei Milliarden für ein Netz, das es so nicht gibt</p>
+              <p class="vt-object__meta">27.07.2026 · 5 min</p>
+            </div>
+          </div>
+        </div>
+        <div class="vt-object__stage vt-object__stage--head" id="vt-head" hidden>
+          <p class="vt-object__crumb">HOME / NEWS / SIEBEN TAGE FÜR ZWEI JAHRZEHNTE</p>
+          <p class="vt-object__title" id="vt-title-head">Sieben Tage für zwei Jahrzehnte: Was die WindSeeG-Novelle bedeutet</p>
+          <div class="vt-object__rule"></div>
+          <p class="vt-object__meta">BEITRAG · 14.08.2026</p>
+        </div>
+        <div class="vt-object__bar">
+          <button class="cf-btn cf-btn--ghost" type="button" id="vt-object-toggle">Open the object</button>
+          <span class="vt-object__state" id="vt-object-state">register</span>
+        </div>
+      </div>
+    </div>
+    <p class="docs-caption">One pair, both halves, in one document</p>
+    <p>
+      The shipping feature is cross-document and so cannot be photographed on a page. The two
+      halves are shown here in time instead of in space: one document, the same element,
+      swapped under <code>document.startViewTransition()</code> under the name the real file
+      writes, animated by <code>base.css</code>'s own rules and nothing local. The click is
+      given a view-transition <em>type</em>, which is what stops the page's rake from crossing
+      the whole documentation to show a headline moving twenty rem — the root cross-fades
+      instead, and on a page where nothing else changed that is invisible everywhere but the
+      figure. Without view transitions, or under reduced motion, the button still swaps the two
+      states and simply does not animate them.
+    </p>
+
+    <h3>How each half knows, without either seeing the other</h3>
+    <p>
+      The two names are written in two documents by two renderers, and neither can read the
+      other. So both sides answer the same question out of their own DOM, and a side that
+      cannot answer it does not name — because <strong>half a morph is worse than none</strong>:
+      a named element is lifted out of the wipe as well, so a headline with no counterpart
+      slides across the arriving page and fades out on top of it.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Half</th><th>Event</th><th>What it must be able to prove</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Leaving</td>
+          <td><code>pageswap</code></td>
+          <td>That this page is a <strong>register</strong> — it draws no breadcrumb of its own — and that <strong>exactly one</strong> registered cell on it resolves to the address being navigated to. Two cells for one object means there is no <q>the</q> cell; none means the reader clicked something else.</td>
+        </tr>
+        <tr>
+          <td>Arriving</td>
+          <td><code>pagereveal</code></td>
+          <td>That the address navigated <em>from</em> is <strong>the last link in this page's own breadcrumb</strong>. That link is where the object lives — it is what a breadcrumb is — so anything else is a reader arriving sideways, at a page that was not being shown as a cell.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>The breadcrumb is the only structure that can carry this, and that is a finding
+      rather than a preference.</strong> The obvious rule — <q>the article's address sits under
+      the register's address</q> — is true in <code>design-system/patterns/</code>, where
+      <code>news.html</code> sits beside <code>beitrag-….html</code>, and false on the site that
+      ships, where the register is <code>/news.html</code> and the object is
+      <code>/blog/….html</code>. A rule read off addresses would have passed every gate in
+      <code>scripts/</code> and done nothing in production.
+    </div>
+    <div class="docs-note docs-note--warn">
+      <strong>A filtered view is not a level.</strong> A topic page draws the same cells and is
+      not the object's home, which is the argument <code>blog-artikel.html</code> already makes
+      over its own breadcrumb — <q>eine gefilterte Ansicht der Liste, keine Ebene darüber</q>.
+      So topic pages do not load the file and hand nothing over. The comparison is origin plus
+      path, which means a server-rendered <code>?thema=…</code> or <code>?seite=2</code>
+      <em>on the register itself</em> does morph: that is the register, with a filter on it, at
+      the register's own address.
+    </div>
+
+    <h3 id="continuous-anatomy">Anatomy</h3>
+    <table class="docs-table">
+      <thead><tr><th>Element</th><th>Named</th><th>By</th><th>Cleared</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>.cf-blog-card__title</code>, <code>.cf-vacancy__title</code></td>
+          <td><code>cf-morph-title</code></td>
+          <td><code>cf-morph.js</code>, in <code>pageswap</code></td>
+          <td>on <code>viewTransition.finished</code> — bfcache can hand the page back</td>
+        </tr>
+        <tr>
+          <td><code>.cf-page-header__title</code></td>
+          <td><code>cf-morph-title</code></td>
+          <td><code>cf-morph.js</code>, in <code>pagereveal</code></td>
+          <td>the same</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>Nothing in a stylesheet names either of them, and that is the load-bearing part.</strong>
+      A <code>view-transition-name</code> written in CSS is permanent: the element is lifted out
+      of the root snapshot on <em>every</em> navigation, counterpart or not. The script writes
+      the name for the length of one navigation and takes it back, so a page that has no pair
+      is a page with no names at all.
+    </p>
+    <p>
+      The destination side is one selector for the whole system, which is the reason the file
+      is this small: every page here that is an <em>object</em> rather than a <em>section</em>
+      is drawn with the same page header — a title, a hairline, a mono line.
+      → <a href="../components/page-header.html">Page header</a>
+    </p>
+
+    <h3>Adding it to a page</h3>
+    <p>
+      One tag, in the <code>&lt;head&gt;</code> and not at the foot of the body:
+      <code>pagereveal</code> fires on the way in before a deferred script has run, so the file
+      has to be listening already or the arriving half is never named. Both pages of a pair
+      carry it; <code>scripts/check-morph-pairs.py</code> fails the build if only one does.
+    </p>
+    <pre class="docs-code">&lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="val">"/design-system/assets/js/cf-morph.js"</span>&gt;&lt;/<span class="tag">script</span>&gt;</pre>
+    <p>And the whole of what the stylesheet contributes:</p>
+    <pre class="docs-code"><span class="tag">@media</span> (prefers-reduced-motion: no-preference) {
+  <span class="tag">::view-transition-group</span>(cf-morph-title) {
+    <span class="attr">animation-duration</span>: <span class="val">var(--duration-slow)</span>;
+    <span class="attr">animation-timing-function</span>: <span class="val">var(--ease-out)</span>;
+  }
+  <span class="tag">::view-transition-old</span>(cf-morph-title),
+  <span class="tag">::view-transition-new</span>(cf-morph-title) {
+    <span class="attr">height</span>: <span class="val">100%</span>;
+    <span class="attr">object-fit</span>: <span class="val">contain</span>;
+    <span class="attr">object-position</span>: <span class="val">left top</span>;
+    <span class="attr">animation-duration</span>: <span class="val">var(--duration-slow)</span>;
+    <span class="attr">animation-timing-function</span>: <span class="val">var(--ease-out)</span>;
+  }
+}</pre>
+    <p>
+      <code>object-fit</code> is not decoration. The UA gives both snapshots the group's width
+      and their own aspect ratio, so a title going from a two-line cell to a three-line page
+      header is drawn at twice its height on the way out, and text does not survive that.
+      <code>contain</code> scales it whole; <code>left top</code> anchors it where a
+      left-aligned headline actually is, so the first character stays put and the line grows
+      away from it — the direction the eye is already reading in.
+    </p>
+
+    <h3>Every path</h3>
+    <table class="docs-table">
+      <thead><tr><th>Condition</th><th>What happens</th></tr></thead>
+      <tbody>
+        <tr><td>A register cell opening its object</td><td>The headline travels. Both halves named.</td></tr>
+        <tr><td>A topic page, a search result, a link in prose</td><td>Neither half names. The rake alone, as before.</td></tr>
+        <tr><td>An article's tail opening a neighbouring article</td><td>Neither half names: an object may not hand over an object.</td></tr>
+        <tr><td>Two cells on one page opening the same object</td><td>Neither half names. There is no <q>the</q> cell.</td></tr>
+        <tr><td><code>prefers-reduced-motion: reduce</code></td><td>No view transition exists, so <code>e.viewTransition</code> is null and both handlers return on their first line.</td></tr>
+        <tr><td>No cross-document view transitions (Firefox today)</td><td>The same: the events never fire, the pseudo-element rules are unknown CSS, navigation is instant.</td></tr>
+        <tr><td>Script blocked, deleted or failed</td><td>Nothing is ever named; the rake is the whole transition. Byte-identical to the tree before the file existed.</td></tr>
+        <tr><td>No Navigation API</td><td>The arriving half falls back to <code>document.referrer</code>, which is sent in full for a same-origin navigation.</td></tr>
+        <tr><td>Back, out of bfcache</td><td>The name was cleared on <code>finished</code>, so the restored page carries none.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Rules</h3>
+    <ul>
+      <li><strong>One object per navigation.</strong> Not the picture, not the meta line, not the card's frame. The meta was built and cut: the cell writes author, date and length as one run and the page header writes a kind and a date at one end of a row and the reading time at the other, so the two are not the same drawing, and the reading time flew across half the viewport reading as a stray label.</li>
+      <li><strong>Never name in CSS.</strong> A permanent name lifts its element out of every wipe, including the ones with nothing to pair with.</li>
+      <li><strong>Both halves or neither.</strong> If one side cannot prove the pair, the other must not name either — which is why the file is loaded on registers and objects and nowhere else, and why a gate walks the pairing from outside.</li>
+      <li><strong>Sight moves light; a morph moves one object.</strong> Neither may move layout, and neither may change contrast: the element travels between two positions the page already had, at the page's own scale, in the page's own ink.</li>
+    </ul>
+
+    <h3>Still unclaimed</h3>
+    <p>
+      <code>view-transition-class</code>, which lets a family of named elements share one
+      animation. <code>cf-morph-title</code> is the fourth name in this chapter and it still
+      does not claim it: a class is how a <em>family</em> says one thing once, and this is one
+      name with one behaviour. The note stands, and the next name is the one to reconsider it
+      at.
+    </p>
+    <p>
+      And the object without a register: a team portrait opening a profile. There are no
+      profile pages, so there is no pair, and a shape added to <code>SOURCES</code> that
+      matches nothing is what <code>check-morph-pairs.py</code>'s REGISTER rule exists to
+      refuse. The day the pages exist, this is two lines in the register.
     </p>
   </section>
 </main>
 
 <script src="../assets/js/docs.js"></script>
+<script>
+/* The demo above, and nothing else on this page. It is the shipping mechanism
+   with the two documents collapsed into one: the same element, named the same
+   way, swapped inside document.startViewTransition() so base.css's own
+   ::view-transition-*(cf-morph-title) rules animate it.
+
+   THE NAME IS WRITTEN AND TAKEN BACK, exactly as cf-morph.js does it, and for
+   the same reason — a permanent name would lift this paragraph out of every
+   navigation away from this page, where it has no counterpart at all. */
+(function () {
+  'use strict';
+  var toggle = document.getElementById('vt-object-toggle');
+  var cells  = document.getElementById('vt-cells');
+  var head   = document.getElementById('vt-head');
+  var state  = document.getElementById('vt-object-state');
+  if (!toggle || !cells || !head || !state) return;
+
+  var NAME = 'cf-morph-title';
+  var titles = [document.getElementById('vt-title-cell'), document.getElementById('vt-title-head')];
+
+  function swap() {
+    var opening = !cells.hidden;
+    cells.hidden = opening;
+    head.hidden = !opening;
+    state.textContent = opening ? 'object' : 'register';
+    toggle.textContent = opening ? 'Back to the register' : 'Open the object';
+  }
+
+  toggle.addEventListener('click', function () {
+    /* A hidden element is not captured, so only one of the two ever carries
+       the name at a time and it stays unique. */
+    if (!document.startViewTransition ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      swap();
+      return;
+    }
+    titles[0].style.viewTransitionName = NAME;
+    titles[1].style.viewTransitionName = NAME;
+    /* The type is what tells the stylesheet above to cross-fade the root
+       instead of raking it. The dict form of startViewTransition() arrived
+       after the callback form, so a browser that has one and not the other
+       gets the callback and the page's own rake — the older behaviour, which
+       is correct and merely loud. */
+    var vt;
+    try {
+      vt = document.startViewTransition({ update: swap, types: ['vt-demo'] });
+    } catch (e) {
+      vt = document.startViewTransition(swap);
+    }
+    vt.finished.then(function () {
+      titles[0].style.viewTransitionName = '';
+      titles[1].style.viewTransitionName = '';
+    });
+  });
+})();
+</script>
 </body>
 </html>
