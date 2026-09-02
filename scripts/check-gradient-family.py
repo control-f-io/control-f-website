@@ -173,7 +173,14 @@ POS_TOL = 0.0006
 # sized to the box's farthest CORNER and the disc's rim stood at 70.7 % of it.
 # The family was right, the stops were right, and the last 29.3 % of the falloff
 # was painted only on pixels the border-radius throws away.
-CSS = ("tokens.css", "base.css", "components.css", "acts.css")
+# The four shipping stylesheets, and docs.css. This tuple was the shipping four
+# for as long as it existed, on the reasonable reading that a documentation
+# stylesheet does not paint the brand -- and it does: .plate-column quotes the
+# designer's own spectrum column, arc waypoints and all, and would have been the
+# one gradient in the tree outside this walk. A fifth stylesheet is a fifth
+# place a family member can be written; whether it ships to a visitor is a
+# different question from whether it is in the family.
+CSS = ("tokens.css", "base.css", "components.css", "acts.css", "docs.css")
 
 # Below this OKLCh chroma a stop has no hue worth arcing through, so a chord
 # cannot fall short of anything and no waypoint is owed. It is the CSS side of
