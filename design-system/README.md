@@ -535,6 +535,26 @@ add it — the same reason the light-family script recomputes its waypoint inste
 comparing against a table of hexes. A selector it cannot count is a finding, never a silent
 skip.
 
+**The lit rim is one geometry, and it was written out eight times.** Three glass surfaces
+carry a specular that crosses their rim — the navigation sheet, the hero button, the
+info-card plate — and the token comment on `--glass-rim-light` already said what they share:
+*the same band, the same parking positions; only the container and the clock differ*. Each of
+them stated that band and those positions for itself anyway, and then again inside a pair of
+keyframes under a name of its own. Eight copies of three numbers, on three surfaces that are
+never on screen at the same time, so a hand edit to one of them would have rendered perfectly
+and been invisible to every reader and every check. The geometry is `--glass-rim-band`,
+`--glass-rim-park` and `--glass-rim-cross` now, and the crossing is one
+`@keyframes cf-glass-rim` all three name; the timeline stays local, because that is the half
+that genuinely differs. **The two endpoints are re-derived rather than compared.** A
+background layer positioned at `P` is offset by `P × (container − image)`, so a band `b` wide
+clears the left edge only at or below `−b/(1−b)` and the right edge only at or above
+`1/(1−b)` — at 40 % that is −66.7 % and +166.7 %. Widen the band without moving them and a
+sliver of the specular is parked *on* the rim at rest, which is not a stray frame: the parked
+position is what all four fallback doors fall back to, so it is the drawing itself. The check
+fails a band that no longer clears its own box, a rim rule that writes any of the three as a
+literal, and a second set of keyframes moving a rim — even one whose values are identical
+today, which is exactly what the three that existed were.
+
 **And the chapter's other table is now held to two derived sets, not one.** *Every panel, and
 what it is made of* is the verdict column — for each panel: what is behind it, what it is made
 of, how it responds — and it is prose by necessity, because a verdict is an argument. The

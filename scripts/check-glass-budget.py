@@ -31,6 +31,19 @@ on two shipping pages, and the table that claims to name every panel did not
 name it. The seventh claim is claim 6 read against the other derived set, so a
 lit panel enters the verdict table by existing, exactly as a frosted one does.
 
+AND THE LIT RIM WAS EIGHT COPIES OF THREE NUMBERS. The eighth claim is the
+second claim read one property over. Claim 2 holds every backdrop-filter to
+--glass-blur because "a literal anywhere is a second material wearing the first
+one's name"; the specular band that crosses the lit edge is the same kind of
+fact and had none of that protection. Its width and its two off-canvas
+positions were written out on .cf-nav::after, .cf-btn--glass::before and
+.cf-info-card--glass::before, and twice more inside three pairs of keyframes
+holding identical values under three names — on three surfaces whose own token
+comment says they share the band and differ only in the container and the
+clock. The three are tokens now, the crossing is one keyframe set, and the two
+endpoints are RE-DERIVED here from the band rather than compared to a table,
+the way check-gradient-family.py recomputes its waypoint.
+
 Every one of those is invisible in a screenshot. A third blurred layer renders
 correctly; it just costs. A literal `blur(20px)` on some future panel renders
 correctly; it just forks the material. A gradient animated across a blurred
@@ -279,6 +292,64 @@ def scoped_rules(text):
                     out.append((" and ".join(at), head, text[body_start:i], line))
             start = i + 1
     return out
+
+
+RIM_LIGHT = "--glass-rim-light"
+RIM_BAND = "--glass-rim-band"
+RIM_PARK = "--glass-rim-park"
+RIM_CROSS = "--glass-rim-cross"
+
+
+def rim_geometry():
+    """The specular band's three published numbers, read out of tokens.css.
+
+    Percentages, unitless in the dict. --glass-rim-band is how wide the band is
+    as a share of the sheet it crosses; --glass-rim-park and --glass-rim-cross
+    are the two background-position values that stand it fully off one end and
+    fully off the other. Every one of the three used to be a literal written out
+    on three surfaces and inside three pairs of keyframes.
+    """
+    text = blank_comments((CSS / "tokens.css").read_text())
+    out = {}
+    for name in (RIM_BAND, RIM_PARK, RIM_CROSS):
+        m = re.search(r"^\s*%s\s*:\s*(-?[0-9.]+)%%\s*;" % name, text, re.M)
+        if m:
+            out[name] = float(m.group(1))
+    return out
+
+
+def rim_rules():
+    """Every shipping rule that paints the specular band, every rule that
+    animates one of those selectors, and every keyframe block that moves a
+    background-position.
+
+    Derived the same way glass itself is: the definition of "a rim" is "a rule
+    that paints --glass-rim-light", read out of the stylesheet, so a fourth lit
+    surface is held to this claim by existing rather than by being listed here.
+    """
+    painters, animators, frames = [], [], {}
+    for name in SHIPPING_CSS:
+        text = (CSS / name).read_text()
+        for head, body, line in rules(text):
+            sels = {s.strip() for s in head.split(",") if s.strip()}
+            if RIM_LIGHT in body:
+                painters.append((name, line, sels, body))
+            names = set()
+            for decl in (d.strip() for d in body.split(";") if d.strip()):
+                prop, sep, value = decl.partition(":")
+                if prop.strip() in ("animation", "animation-name"):
+                    names |= {
+                        w
+                        for w in re.findall(r"[A-Za-z_-][\w-]*", value)
+                        if w.startswith("cf-")
+                    }
+            if names:
+                animators.append((sels, names))
+        for at, head, body, line in scoped_rules(text):
+            m = re.search(r"@keyframes\s+([\w-]+)", at)
+            if m and "background-position" in body:
+                frames.setdefault(m.group(1), []).append((name, line, head, body))
+    return painters, animators, frames
 
 
 def declared(body):
@@ -876,6 +947,122 @@ def main():
             "    (optionally with one pseudo-element), or widen SIMPLE_SELECTOR here."
             % (name, line, SHEEN_TOKEN, sel)
         )
+
+    # 8. THE SPECULAR BAND IS ONE GEOMETRY, AND THE TWO ENDPOINTS ARE ARITHMETIC.
+    #
+    #    Claim 2 already says every backdrop-filter reads --glass-blur rather
+    #    than writing its own radius, on the argument that "a literal anywhere is
+    #    a second material wearing the first one's name". The band that crosses
+    #    the lit edge is the same kind of fact and had none of that protection:
+    #    its width and its two off-canvas positions were written out on
+    #    .cf-nav::after, .cf-btn--glass::before and .cf-info-card--glass::before,
+    #    and twice more inside three pairs of keyframes holding identical values
+    #    under three names. Eight copies, on three surfaces whose own token
+    #    comment says they share the band and differ only in "the container and
+    #    the clock". Nothing would have reported one of them being edited alone:
+    #    each rim renders correctly on its own, and the drift is only visible
+    #    with all three on screen at once, which they never are.
+    #
+    #    THE ENDPOINTS ARE RE-DERIVED HERE RATHER THAN COMPARED TO A TABLE, the
+    #    same way check-gradient-family.py recomputes its waypoint instead of
+    #    trusting a hex. A background layer positioned at P is offset by
+    #    P x (container - image), so a band b wide has its left edge at P(1-b)W
+    #    and its right edge at P(1-b)W + bW. Fully off the left needs
+    #    P <= -b/(1-b); fully off the right needs P >= 1/(1-b). Move the band and
+    #    both bounds move with it — which is the trap this claim exists for,
+    #    because a band widened without moving its endpoints leaves a sliver of
+    #    the specular parked ON the rim at rest, and the resting state is what
+    #    every one of the four fallback doors falls back TO.
+    geom = rim_geometry()
+    missing = [n for n in (RIM_BAND, RIM_PARK, RIM_CROSS) if n not in geom]
+    painters, animators, frames = rim_rules()
+    if missing:
+        failures.append(
+            "tokens.css does not declare %s as a plain percentage.\n"
+            "    The specular band's geometry is published there so the three lit glass\n"
+            "    surfaces can read it instead of restating it. Declare it, or — if the band\n"
+            "    has genuinely been retired — delete this claim with it."
+            % ", ".join(missing)
+        )
+    elif geom[RIM_BAND] >= 100:
+        failures.append(
+            "tokens.css sets %s to %g %%, which is the whole sheet or more.\n"
+            "    A specular that wide is the rim brightening rather than light passing, and\n"
+            "    the endpoint arithmetic below divides by (1 - band)." % (RIM_BAND, geom[RIM_BAND])
+        )
+    else:
+        b = geom[RIM_BAND] / 100.0
+        park_max = -100.0 * b / (1 - b)
+        cross_min = 100.0 / (1 - b)
+        if geom[RIM_PARK] > park_max:
+            failures.append(
+                "%s is %g %% and %s is %g %%, which leaves the band ON the rim at rest.\n"
+                "    A band %g %% wide is clear of the left edge only at or below %.1f %%.\n"
+                "    The parked position is the state every fallback door falls back to — no\n"
+                "    scroll timeline, reduced motion, print, forced colours — so a sliver\n"
+                "    left showing there is not a stray frame, it is the designed drawing."
+                % (RIM_BAND, geom[RIM_BAND], RIM_PARK, geom[RIM_PARK], geom[RIM_BAND], park_max)
+            )
+        if geom[RIM_CROSS] < cross_min:
+            failures.append(
+                "%s is %g %% and %s is %g %%, so the band never fully leaves.\n"
+                "    A band %g %% wide clears the right edge only at or above %.1f %%. The\n"
+                "    crossing is one pass that arrives and goes; ending it mid-sheet leaves\n"
+                "    the light parked on the far end of every surface that ran it."
+                % (RIM_BAND, geom[RIM_BAND], RIM_CROSS, geom[RIM_CROSS], geom[RIM_BAND], cross_min)
+            )
+
+    #    And the same three numbers may not be written out again by the surfaces
+    #    that use them. This is the half of the claim that keeps the tokens from
+    #    becoming decoration beside a literal that is what actually renders.
+    for name, line, sels, body in painters:
+        for prop, token in (
+            ("background-size", RIM_BAND),
+            ("background-position", RIM_PARK),
+        ):
+            m = re.search(r"(?:^|;)\s*%s\s*:([^;]*)" % prop, body)
+            if not m:
+                continue
+            value = re.sub(r"var\(\s*", "var(", m.group(1)).strip()
+            if "var(%s" % token not in value:
+                failures.append(
+                    "%s:%d paints %s and writes its own %s:\n"
+                    "        %s: %s\n"
+                    "    Read %s. The band is one geometry shared by every lit glass surface;\n"
+                    "    a literal here is a fourth copy of a number that already drifted."
+                    % (name, line, RIM_LIGHT, prop, prop, value, token)
+                )
+
+    #    ONE CROSSING, NOT ONE PER SURFACE. The keyframes are collected by what
+    #    they move rather than by name, so a second set written under a new name
+    #    is a finding even if its values are identical today — identical today is
+    #    exactly what the three that existed were.
+    rim_selectors = {s for _, _, sels, _ in painters for s in sels}
+    crossing = {
+        n
+        for sels, names in animators
+        if sels & rim_selectors
+        for n in names
+        if n in frames
+    }
+    if len(crossing) > 1:
+        failures.append(
+            "%d keyframe sets move the specular across a lit glass rim: %s.\n"
+            "    There is one band and one crossing; what differs between the surfaces is\n"
+            "    the timeline, not the motion. Point them all at one set and keep the\n"
+            "    animation-timeline local to each surface."
+            % (len(crossing), ", ".join(sorted(crossing)))
+        )
+    for n in sorted(crossing):
+        for fname, fline, head, body in frames[n]:
+            if RIM_PARK not in body and RIM_CROSS not in body:
+                failures.append(
+                    "%s:%d — @keyframes %s { %s } moves the rim to a literal position:\n"
+                    "        %s\n"
+                    "    Read %s and %s. A keyframe is where the endpoint arithmetic above\n"
+                    "    is least visible and most likely to be left behind by the band."
+                    % (fname, fline, n, head.strip(), body.strip(), RIM_PARK, RIM_CROSS)
+                )
 
     doc_stamp, published = doc_rows()
     measured = {rel: n for rel, n, _, _ in rows if n}

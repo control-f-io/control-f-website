@@ -635,20 +635,20 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   border-top-left-radius: var(--radius-sm);
   background-image: var(--glass-rim-light);
   background-repeat: no-repeat;
-  background-size: 40% 100%;
-  background-position: -70% 0;   /* off-canvas — see above */
+  /* The material's own band and its parked endpoint, not a third copy of the
+     numbers. This rim is one layer where the bar's and the plate's are two;
+     the token is a bare percentage with no vertical in it for exactly that
+     reason, so all three read the same two names. → tokens.css */
+  background-size: var(--glass-rim-band) 100%;
+  background-position: var(--glass-rim-park) 0;   /* off-canvas — see above */
 }
 @supports (animation-timeline: view()) {
   @media screen and (prefers-reduced-motion: no-preference) {
     .cf-btn--glass::before {
-      animation: cf-glass-rim-pass linear both;
+      animation: cf-glass-rim linear both;
       animation-timeline: view();
     }
   }
-}
-@keyframes cf-glass-rim-pass {
-  from { background-position: -70% 0; }
-  to   { background-position: 170% 0; }
 }
 
 /* The focus ring is the one part of this button the plate's contrast floor
@@ -1581,15 +1581,20 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      is stated here instead of implied — and so a later reader can see that at
      rest this rule paints --glass-edge and nothing else.
 
-     -70 % is off-canvas and not a guess. A background layer positioned at P
-     is offset by P x (container - image); at 40 % width that is 0.6W x P, so
-     the band's left edge sits at -0.42W and its right edge at -0.02W. Nothing
-     of it is on the bar. 170 % puts it fully off the other end the same way.
-     Change the 40 % and both endpoints move with it. */
+     THE BAND AND ITS TWO ENDPOINTS ARE THE MATERIAL'S, AND ARE READ RATHER
+     THAN RESTATED. The width and the two off-canvas positions were written out
+     here, on .cf-btn--glass::before and on .cf-info-card--glass::before, and
+     twice more inside three pairs of keyframes — eight copies of one geometry
+     that had to stay equal to each other by hand, on three surfaces whose own
+     token comment says they differ only in "the container and the clock". They
+     are --glass-rim-band, --glass-rim-park and --glass-rim-cross now, and the
+     arithmetic that ties the endpoints to the width — a band b wide is fully
+     off the left at -b/(1-b) and fully off the right at 1/(1-b) — is stated
+     once, in tokens.css, beside them. */
   background-image: var(--glass-rim-light), var(--glass-edge);
   background-repeat: no-repeat, no-repeat;
-  background-size: 40% 100%, 100% 100%;
-  background-position: -70% 0, 0 0;
+  background-size: var(--glass-rim-band) 100%, 100% 100%;
+  background-position: var(--glass-rim-park) 0, 0 0;
 }
 
 /* Light arriving as the bar separates from the page, and then light crossing
@@ -1637,18 +1642,40 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 @supports (animation-timeline: scroll()) and (animation-range: contain 0% contain 100%) {
   @media screen and (prefers-reduced-motion: no-preference) {
     .cf-nav::after {
-      animation: cf-nav-edge linear both, cf-nav-rim linear both;
+      animation: cf-nav-edge linear both, cf-glass-rim linear both;
       animation-timeline: scroll(root block), scroll(root block);
       animation-range: 0 5rem, normal;
     }
   }
 }
 @keyframes cf-nav-edge { from { opacity: 0; } to { opacity: 1; } }
-/* background-position is a list property, so both layers have to be restated
-   in each keyframe. The second pair is the designed rim and never moves. */
-@keyframes cf-nav-rim {
-  from { background-position: -70% 0, 0 0; }
-  to   { background-position: 170% 0, 0 0; }
+
+/* THE CROSSING, ONCE, FOR EVERY LIT GLASS SURFACE IN THE SYSTEM. This was
+   three keyframe pairs — cf-nav-rim here, cf-glass-rim-pass on the hero
+   button, cf-info-card-rim on the plate — holding identical values under
+   three names, on three surfaces whose token comment already said they share
+   the band and differ only in the container and the clock. Three names is
+   three chances for one of them to be edited alone, and nothing would have
+   reported it: each rim renders correctly on its own.
+
+   IT IS ONE ANIMATION AND STILL THREE CLOCKS, which is the part that makes
+   the consolidation legal rather than merely tidy. A keyframe set says WHAT
+   moves; animation-timeline says WHEN. The bar takes scroll(root block)
+   because a bar is a plane the whole document moves under, the button and the
+   plate take view() because each is one object the reader carries up the
+   screen once, and the pinned plate on patterns/expertise.html takes the pin's
+   own timeline. All three now name this.
+
+   background-position is a list property, so both layers are restated in each
+   keyframe; the second pair is the designed rim and never moves. The button's
+   rim is a SINGLE layer and reads the same keyframes: a background-position
+   list longer than the element's background-image list has its extra values
+   ignored at used-value time, so the second pair is simply not consulted
+   there. That is what lets one keyframe set serve a two-layer rim and a
+   one-layer one without either restating the other's geometry. */
+@keyframes cf-glass-rim {
+  from { background-position: var(--glass-rim-park) 0, 0 0; }
+  to   { background-position: var(--glass-rim-cross) 0, 0 0; }
 }
 
 /* THE SAME LOSS PRINT HAD, IN A SECOND MEDIUM. The rim above is two gradient
@@ -3974,8 +4001,8 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   height: var(--stroke-1);
   background-image: var(--glass-rim-light), var(--glass-edge);
   background-repeat: no-repeat, no-repeat;
-  background-size: 40% 100%, 100% 100%;
-  background-position: -70% 0, 0 0;   /* parked off the left edge */
+  background-size: var(--glass-rim-band) 100%, 100% 100%;
+  background-position: var(--glass-rim-park) 0, 0 0;   /* parked off the left */
   pointer-events: none;
   z-index: 1;
 }
@@ -4004,17 +4031,16 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 @supports (animation-timeline: view()) {
   @media screen and (prefers-reduced-motion: no-preference) {
     .cf-info-card--glass::before {
-      animation: cf-info-card-rim linear both;
+      animation: cf-glass-rim linear both;
       animation-timeline: view();
     }
   }
 }
-/* background-position is a list property, so both layers restate in each
-   keyframe. The second pair is the designed rim and never moves. */
-@keyframes cf-info-card-rim {
-  from { background-position: -70% 0, 0 0; }
-  to   { background-position: 170% 0, 0 0; }
-}
+/* The crossing itself is @keyframes cf-glass-rim, declared once beside the
+   navigation sheet's edge. This plate used to carry its own copy of it under
+   its own name; what is local to this surface is the timeline above and the
+   pin override on patterns/expertise.html, which is what "same band, different
+   clock" means in a stylesheet. */
 /* Forced colours computes every gradient background-image to `none`, so this
    element — which IS its background-image, 1 px tall with nothing else to
    paint — loses the rim entirely. Redrawn as a border, the only paint the mode
