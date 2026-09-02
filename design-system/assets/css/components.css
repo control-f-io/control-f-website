@@ -2307,10 +2307,44 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    page's rhythm to fix a distance nothing measures. One edge, the one the
    invariant is about. Whatever cannot trim keeps today's drawing exactly.
    → foundations/capline.html */
+/* ALL THREE OCCUPANTS OF THE ROW, and the third is the one this branch was
+   written without. The rule two blocks up says the count and the action are
+   "the same mark in the same slot, so the type is declared once for both" —
+   and then the trim, which is a type metric like every line in that
+   declaration, was declared for two of the three. It is not a nicety on the
+   third: this row is `align-items: baseline`, so the container's content box
+   ends at the LOWEST item's bottom, and one untrimmed item holds the whole
+   header's descender slot open on behalf of the two that gave theirs up.
+   Measured, Chromium 141, 1280 px, components/section-header.html, the ten
+   headers on the page, distance from the label's baseline to the top of the
+   rule and the header's own height:
+
+     right end is a count    16.00 px   28.00 px high   6 headers
+     right end is a count    16.00 px   27.00 px high   1, the flush one,
+                                                        which draws no border
+     right end is an action  20.94 px   32.94 px high   3 headers
+
+   So the axis this component exists to hold was the token on every header
+   whose right end is a number and 4.94 px below it on every header whose
+   right end is a control — and everything below the rule moved with it. The
+   defect is invisible today for the reason it is worth fixing now rather
+   than later: the action has one consumer and it is the chapter documenting
+   the component, so the two axes stand three rows apart on the only page
+   that draws both, and the first pattern page to put a control in the slot
+   would have shipped a section opening on a different line from its
+   neighbours with nothing in the markup to say why.
+
+   Trimming it does not touch the drawn hit area. The ::after below is sized
+   `max(100%, 1.5rem)` in both directions precisely so the target cannot be
+   walked under the floor by a change to the type: 100 % goes from 15.9 px to
+   11, the `max()` holds 24, and the target measures 40.27 x 24 either way.
+   → scripts/check-hover-focus-parity.py is the other half of this slot's
+   symmetry, on the states rather than the metrics. */
 @supports (text-box-trim: trim-end) {
   .cf-section-header { padding-bottom: var(--space-4); }
   .cf-section-header__label,
-  .cf-section-header__count {
+  .cf-section-header__count,
+  .cf-section-header__action {
     text-box-trim: trim-end;
     text-box-edge: cap alphabetic;
   }

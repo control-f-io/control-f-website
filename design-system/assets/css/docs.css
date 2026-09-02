@@ -93,9 +93,10 @@ body.docs {
   padding: 0.3rem 0;
   font-size: var(--text-md);
   color: rgba(255, 255, 255, 0.66);
-  transition: color 120ms;
+  transition: color var(--duration-fast) var(--ease-standard);
 }
-.docs-nav__list a:hover { color: var(--grey-000); }
+.docs-nav__list a:hover,
+.docs-nav__list a:focus-visible { color: var(--grey-000); }
 /* The same marker .cf-nav__link[aria-current] carries on the site: a plate
    inside the plate, at the bar's own corner. The negative inline margin is
    what keeps the label on the same x as every other link — the plate grows
@@ -875,14 +876,48 @@ body.docs {
 
 /* ---------- card links on the index ---------- */
 .docs-cards { --tile: 15rem; }
+/* THREE HAND-TYPED MILLISECOND VALUES AND NOT ONE EASING, in a file whose
+   subject is the system that names both. components.css declares thirty-odd
+   transitions and every single one of them reads `var(--duration-*)
+   var(--ease-standard)`; docs.css declared 120ms, 160ms and 160ms bare — one
+   gesture, the documentation chrome's hover, timed three ways and travelling
+   on the browser's default ease.
+
+   The cost is not only the inconsistency. tokens.css collapses the four
+   durations to 1ms under `prefers-reduced-motion: reduce`, which is how every
+   transition in this system honours that request — so a number typed in place
+   of the token is a transition that opts itself out of the reader's setting
+   without saying so. All three are on --duration-fast now: 120 is what the
+   sidebar link already was, and 160 to 120 on the card and the plate is 40 ms
+   off a hover response, which is under the threshold at which either reads as
+   a different speed and puts the three marks of one gesture on one beat.
+
+   --card-lift is the same move .docs-stack makes twelve hundred lines below,
+   for the same reason stated there: the state still switches, it simply
+   arrives where it already stood. A duration of 1ms shortens a journey; it
+   does not shorten it to nothing, and 2 px of travel in 1 ms is a jump rather
+   than a lift. The distance is what has to go, and a duration cannot take
+   it. */
 .docs-card {
+  --card-lift: -2px;
   display: block;
   padding: var(--space-6);
   background: var(--grey-000);
   border: 1px solid var(--border-subtle);
-  transition: border-color 160ms, transform 160ms;
+  transition: border-color var(--duration-fast) var(--ease-standard),
+              transform var(--duration-fast) var(--ease-standard);
 }
-.docs-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+/* THE SAME STATE FOR THE SAME EVENT, whichever device raised it. Three rules
+   in this file answered :hover alone — this one, the sidebar link above and
+   the plate below — and between them they are the whole navigation of the
+   documentation: the index's card grid, the chapter list, and the gallery of
+   the designer's plates. A keyboard reader got base.css's outline on each and
+   none of the response the pointer gets, which on the card is the only thing
+   that says the tile is a link at all: it has no underline, no arrow and no
+   colour change, so the border and the 2 px lift ARE the affordance.
+   → scripts/check-hover-focus-parity.py */
+.docs-card:hover,
+.docs-card:focus-visible { border-color: var(--border-strong); transform: translateY(var(--card-lift)); }
 .docs-card > span { display: block; }
 .docs-card__num {
   font-family: var(--font-mono);
@@ -900,10 +935,11 @@ body.docs {
   width: 100%;
   border: 1px solid var(--border-strong);
   background: var(--grey-000);
-  transition: outline-color 160ms;
+  transition: outline-color var(--duration-fast) var(--ease-standard);
   outline: 0 solid transparent;
 }
-.docs-plate:hover img { outline: 2px solid var(--border-strong); outline-offset: -1px; }
+.docs-plate:hover img,
+.docs-plate:focus-visible img { outline: 2px solid var(--border-strong); outline-offset: -1px; }
 /* THE CAPTION UNDER A DEMO TILE — one device, one declaration, and there is now
    something to reach for.
 
@@ -1193,6 +1229,7 @@ body.docs {
    this zeroes the two distances, which durations cannot. */
 @media (prefers-reduced-motion: reduce) {
   .docs-stack { --stack-lift: 0px; }
+  .docs-card  { --card-lift:  0px; }
 }
 
 /* Forced colours takes the light away with every other gradient — the rule

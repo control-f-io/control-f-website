@@ -343,7 +343,7 @@ python3 scripts/check-line-types.py            # every dash pattern is one of th
 python3 scripts/check-line-types.py -v         # list every dash pattern, not only the strays
 python3 scripts/check-cap-line.py              # every text-box trim states both edges, inside its @supports branch
 python3 scripts/check-cap-line.py -v           # every trim, and the context it sits in
-python3 scripts/check-cap-line.py --fix        # rewrite the census in foundations/capline.html
+python3 scripts/check-cap-line.py --fix        # rewrite the census in foundations/capline.html, and the code example under it
 python3 scripts/check-merge-markers.py         # no file in the tree carries a conflict marker
 python3 scripts/check-links.py                 # every reference resolves on the host that serves it
 python3 scripts/check-job-posting.py           # the JobPosting block matches the posting the reader sees
@@ -372,6 +372,8 @@ python3 scripts/check-docs-caption.py          # the caption under a demo tile i
 python3 scripts/check-docs-caption.py -v       # every caption rule read, and whether it is a copy
 python3 scripts/check-field-family.py          # every field control is accounted for in the family's shared rules
 python3 scripts/check-field-family.py -v       # every shared rule and the controls it names
+python3 scripts/check-hover-focus-parity.py    # a response written for :hover is written for :focus-visible in the same rule
+python3 scripts/check-hover-focus-parity.py -v # every :hover rule, paired, exempt or stray
 python3 scripts/check-foil-clip.py             # the foil's clip box is capped at its ink, and no box property takes fit-content()
 python3 scripts/check-foil-clip.py -v          # every declaration considered
 python3 scripts/check-foil-doors.py            # every gradient in the letters hands its ink back on paper, under forced colours and for more contrast
@@ -391,7 +393,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The thirty-four checks the system enforces rather than documents, run by CI on every push and
+The thirty-five checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number

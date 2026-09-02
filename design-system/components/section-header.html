@@ -195,7 +195,10 @@
 
     <h3 id="action-target">The target, and why it is drawn rather than padded</h3>
     <p>
-      11 px of mono in a 16 px line box is <code>15.9 px</code> tall.
+      11 px of mono in a 16 px line box is <code>15.9 px</code> tall — and
+      <code>11 px</code> once the branch in
+      <a href="../foundations/capline.html">the cap line</a> trims the descent slot off it,
+      which is the direction that matters here.
       <a href="https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html">WCAG 2.2
       SC 2.5.8 Target Size (Minimum)</a>, level AA, asks for 24 × 24 CSS px of pointer target,
       and neither of the two exceptions that could apply does: the inline exception is for
@@ -210,11 +213,28 @@
       site shares. So the target is drawn instead: a transparent <code>::after</code> centred
       on the text at <code>max(100%, 1.5rem)</code> in both directions. Layout, baseline, row
       height and the rule's <em>y</em> stay exactly where a counter leaves them, and the target
-      goes from <code>40.3 × 15.9</code> to <code>40.3 × 24</code>. The <code>max()</code> is
+      goes from <code>40.3 × 15.9</code> to <code>40.27 × 24</code>. The <code>max()</code> is
       why there is no number to keep in sync: a long label keeps its own width, a two-letter one
       is floored, and a change to <code>--text-xs</code> or to the line height cannot walk the
-      target back under the floor.
+      target back under the floor. Trimming the slot off this element takes
+      <code>100%</code> from 15.9 px to 11 and the target does not move: the floor was always
+      the operative half of that <code>max()</code>.
     </p>
+    <div class="docs-note docs-note--warn">
+      <strong>“Row height and the rule's <em>y</em> stay exactly where a counter leaves
+      them” was true of the target and false of the type.</strong>
+      <p>
+        The trim is declared for the three occupants of this row together, and it was
+        written for two of them. This row is <code>align-items: baseline</code>, so the
+        header's content box ends at the <em>lowest</em> item's bottom — one untrimmed item
+        holds the whole header's descent slot open on behalf of the two that gave theirs up.
+        Measured on this page before it was fixed: a header ending in a count drew
+        <code>16.00 px</code> from the label's baseline to its rule and stood 28 px tall; a
+        header ending in an action drew <code>20.94 px</code> and stood 32.94. The two axes
+        are three rows apart on this page and it is the only page that draws both, which is
+        why nothing had seen it. → <code>scripts/check-cap-line.py</code>
+      </p>
+    </div>
     <div class="docs-note">
       <strong>The focus ring is not enlarged with it.</strong> <code>:focus-visible</code> draws
       <code>base.css</code>'s outline on the element's own box, which is the text. The ring
