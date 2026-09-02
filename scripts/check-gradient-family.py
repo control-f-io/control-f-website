@@ -52,7 +52,7 @@ midpoint of their own leg's ends, never compared against those four hexes.
 
 AND THE TWO RULES HAD EACH ONLY EVER SEEN HALF THE TREE, which is the same
 shape of gap read twice. The SVG rule was written for THE LIME LEG, and the
-family has two falloff sources: the evidence plot's falling columns run
+family has more than one falloff source: the evidence plot's falling columns run
 Violett -> Glas on the landing page and on components/plot.html, so the cool
 leg's waypoint colour and its offset were both literals nothing re-derived —
 #DBFC60's own former standing, one source over. The ARC rule was stated for
@@ -69,6 +69,19 @@ test is now the ratio of the two ends' chroma, which is what the arc's own
 premise ("roughly the same circle about the neutral axis") says when it is
 measured instead of asserted. See ARC_RATIO_CEILING; no shipped gradient
 changes classification.
+
+AND THE SAME DEFECT WAS STILL SITTING ONE RULE OVER. The source rule kept its
+own enumeration — a set of two colours, lime and Violett — for as long as the
+arc's had been measured, and it was already untrue of the tree: components.css
+ships FOUR falloff sources, because .cf-block needs three faces for a
+categorical figure and draws Glas, Sky and Violett each running down to
+CF-Grau. tokens.css and foundations/colors.html both went on saying "a third
+source is not sanctioned" while the fourth was on components/block.html. The
+source is measured off the leg now, by the two conditions at SRGB_TOLERANCE,
+and again no shipped gradient changes classification. What it buys is the leg
+nobody has drawn yet: Sky -> CF-Grau in an SVG diverges twice as far from the
+oklab path as the leg tokens.css names as small enough to leave alone, and
+until now nothing in this file would have looked at it.
 
 AND THE WALK READ WHAT SHIPS, WHICH IS NOT QUITE EVERY PLACE A MEMBER IS
 WRITTEN. Both halves above open files: pages, drawings, stylesheets. The
@@ -137,22 +150,69 @@ PALETTE = {
 LIME = "#E1FF00"
 VIOLETT = "#7E7FE1"
 
-# THE FAMILY HAS TWO FALLOFF SOURCES AND THIS SCRIPT ONLY EVER GATED ONE.
-# A falloff ramp is a chromatic source running down into Glas and out to the
-# neutral, and the warm one -- lime -- is the one every comment in the system
-# describes. The cool one ships: .cf-plot__col--fell draws Violett -> #8A94E3
-# -> Glas -> CF-Grau on the two falling columns of the evidence plot, on
-# patterns/landing-page.html and on components/plot.html, and components.css
-# argues it beside the rule that spends it ("the lit cap's ramp with the warm
-# source swapped for the cool one ... it is not a second light").
+# THE LAST ENUMERATION IN THIS FILE, AND IT WAS THE SAME ONE TWICE.
 #
-# check-paint-register.py already knew: its FALL_WAYPOINT names #8A94E3 and its
-# LIGHT_TOKENS carries --violett-500. This script did not, so the cool leg's
-# waypoint COLOUR and its POSITION were both literals nothing re-derived --
-# the exact standing #DBFC60 had before this file existed, and the exact way
-# patterns/expertise.html came to paint the mid rake's offset on a near-rake
-# object. Two sources, one rule, and the rule is now applied to both.
-SOURCES = {LIME: "lime", VIOLETT: "Violett"}
+# This was `SOURCES = {LIME: "lime", VIOLETT: "Violett"}` -- a list of the
+# falloff sources that happened to exist when it was written, which is exactly
+# the shape _turns() carried until ARC_RATIO_CEILING replaced it with a
+# measurement. The arc block below says why in as many words: "THE ARC's own
+# premise is not an enumeration". Neither is this one's.
+#
+# IT WAS ALREADY UNTRUE OF THE TREE IT GUARDS. components.css ships FOUR
+# falloff sources, not two: .cf-block draws Glas -> CF-Grau, Sky -> CF-Grau and
+# Violett -> CF-Grau for a categorical figure's three faces, beside lime ->
+# Glas -> CF-Grau for its one lit block, and argues it under ONE RAMP, FOUR
+# SOURCES. tokens.css and foundations/colors.html both still said "a third
+# source is not sanctioned; the gate names the two" while the fourth was on
+# components/block.html. Nothing rendered wrong, because the two extra sources
+# are CSS-only and CSS restates the ramp `in oklab`. The hole was the SVG half:
+# draw Sky -> CF-Grau in a <linearGradient> and this file had no opinion about
+# it, though the leg diverges twice as far from the oklab path as the one
+# tokens.css names as small enough to leave alone.
+#
+# SO THE SOURCE IS MEASURED OFF THE LEG. A falloff leg owes the 19 % waypoint
+# when both of these hold, and each is the system's own published number:
+#
+#   1. IT HAS A SOURCE AT ALL -- one end at or above ARC_CHROMA_FLOOR. The
+#      waypoint corrects a HUE path; a leg between two achromatic stops has no
+#      hue to correct. This is what excludes the wallpapers' near-black
+#      vignettes (#0B0B0B -> #000000), whose dEok of 0.058 is the largest in
+#      the tree and means nothing: the oklab cube root is near-vertical at the
+#      black end, so a difference of five 8-bit levels reads as a large dE and
+#      renders as almost nothing.
+#   2. THE sRGB CHORD ACTUALLY LEAVES THE OKLAB PATH, by more than
+#      SRGB_TOLERANCE.
+#
+# The source is then the CHROMATIC END, which is what "light falling away from
+# a source" means when it is read off the leg instead of off a list. Measured
+# over every falloff leg the tree draws in SVG:
+#
+#     leg                     dEok      8-bit    source    waypoint
+#     #0B0B0B -> #000000      0.05751     5      none      no   (1)
+#     #0A0A0A -> #000000      0.05573     4      none      no   (1)
+#     lime    -> Weiss        0.04497    55      lime      yes
+#     lime    -> Glas         0.04430    54      lime      yes
+#     Violett -> Glas         0.00444     3      Violett   yes
+#     --------------------- 0.00148 = SRGB_TOLERANCE --------------
+#     Glas    -> CF-Grau      0.00073     1      Glas      no   (2)
+#     Weiss   -> Glas         0.00045     1      Glas      no   (2)
+#     #F3F8F7 -> Weiss        0.00001     1      none      no
+#
+# EVERY CLASSIFICATION IS THE ONE THE TREE ALREADY SHIPS, which is the test
+# that this is the old rule measured rather than a new rule: the 272 lime legs
+# and the 6 Violett legs keep their waypoints, the 280 Glas -> CF-Grau legs
+# keep none, and nothing in design-system/ moves. What changes is what happens
+# NEXT: Sky -> CF-Grau at 0.00316 is over the line and would now be caught the
+# first time somebody draws it in SVG, and a fifth source needs no edit here.
+#
+# THE TOLERANCE IS NOT A NEW NUMBER. tokens.css names one leg it leaves on the
+# sRGB path deliberately -- "lime -> Glas is the leg where sRGB and oklab
+# actually part (dEok 0.04430, against 0.00148 for Glas -> Sky)" -- so 0.00148
+# is the family's own published statement of how far a chord may wander before
+# it has to be pulled back. It sits in the middle of a six-fold gap in the
+# table above (0.00073 to 0.00444), which is why anything inside that gap
+# reproduces the tree exactly and why the exact figure is not load-bearing.
+SRGB_TOLERANCE = 0.00148
 
 # 19 % of the leg. A convention rather than an optimum, and the same number
 # everywhere so the drawings cannot drift apart from each other -- see the
@@ -870,11 +930,32 @@ def check_path(name, stops, has_oklab, twins):
     """A ramp with a lime leg exists somewhere on the oklab path.
 
     lime -> Glas is dEok 0.04430 between the two paths and lime -> Weiss is
-    0.04651; every other leg in the family is under 0.0015, which is why
-    tokens.css leaves those in sRGB by name. So this asks the question only of
-    lime, and it asks it of the STOP LIST rather than of the declaration: the
-    idiom throughout is one ramp restated with a different path, so the sRGB
-    declaration and its oklab twin share their stop text exactly.
+    0.04497 — an order of magnitude past anything else the family draws, which
+    is why tokens.css names lime as the leg the correction exists for. So this
+    asks the question only of lime, and it asks it of the STOP LIST rather than
+    of the declaration: the idiom throughout is one ramp restated with a
+    different path, so the sRGB declaration and its oklab twin share their stop
+    text exactly.
+
+    THE SECOND FIGURE USED TO READ 0.04651 AND THE SENTENCE AFTER IT USED TO
+    SAY "every other leg in the family is under 0.0015", and both were wrong in
+    the same direction. path_divergence() reproduces every figure tokens.css
+    and components.css publish to five decimals — 0.04430, 0.00148, 0.00073 —
+    and it puts lime -> Weiss at 0.04497. Three legs sit above 0.0015 and not
+    zero: Violett -> Glas at 0.00444, Violett -> CF-Grau at 0.00473 and
+    Sky -> CF-Grau at 0.00316, all of which components.css already tabulates
+    under ONE RAMP, FOUR SOURCES.
+
+    THAT IS AN ARGUMENT FOR WIDENING THIS RULE AND IT IS NOT MADE HERE, because
+    two things have to be built first and neither is a gradient question. A
+    dash pattern is a stop list with no interpolation in it at all — Weiss ->
+    Schwarz reads dEok 0.121 and paints two hard rungs — so widening needs
+    hard-stop detection, and --glass-edge's two spellings carry DIFFERENT arc
+    waypoints on the two paths, so the twin test would have to match on
+    something other than stop text. Neither is a defect in the tree today: no
+    CSS ramp that actually interpolates an over-tolerance leg is off the oklab
+    path. The four sources and their measured legs are tabulated at
+    foundations/colors.html#sources.
     """
     if has_oklab:
         return []
@@ -905,71 +986,125 @@ def check_near_miss(stops):
     return out
 
 
-def check_source_leg(stops):
-    """Every leg leaving a falloff SOURCE carries its waypoint, at 19 % of it.
+def path_divergence(start, end, samples=401):
+    """How far the sRGB chord wanders from the oklab line, in oklab dE.
 
-    The source is lime or Violett — see SOURCES for why there are two and for
-    how long only one of them was gated. The leg is the source to its nearest
-    neighbour that is not itself a waypoint, in whichever direction the drawing
-    runs: the two Glas-to-lime radials and the dark wallpaper's lime-to-Weiss
-    leg all run the other way from the process cards, and the rule is about the
-    leg, not about stop order.
+    THIS IS THE NUMBER tokens.css AND components.css BOTH PUBLISH, and it is
+    reproduced here rather than read off either of them: lime -> Glas comes
+    back 0.04430, Glas -> Sky 0.00148, Glas -> CF-Grau 0.00073, each to the
+    digit those files print.
+
+    An SVG <linearGradient> interpolates in gamma-encoded sRGB and has no way
+    to ask for anything else, so the chord is a straight line through the
+    ENCODED channels. The path the family wants is a straight line through
+    oklab. The distance between them, at its widest, is what a waypoint is
+    worth -- and it has to be measured over the whole leg rather than at 19 %,
+    because 19 % is where the correction is applied and not where the two
+    paths are furthest apart.
+    """
+    a, b = _channels(start), _channels(end)
+    oa, ob = _oklab_of(a), _oklab_of(b)
+    worst = 0.0
+    for i in range(samples):
+        t = i / (samples - 1)
+        chord = _oklab_of([a[k] + (b[k] - a[k]) * t for k in range(3)])
+        line = [oa[k] + (ob[k] - oa[k]) * t for k in range(3)]
+        worst = max(worst, sum((chord[k] - line[k]) ** 2 for k in range(3)) ** 0.5)
+    return worst
+
+
+def _channels(h):
+    return [float(int(h.lstrip("#")[i:i + 2], 16)) for i in (0, 2, 4)]
+
+
+def _oklab_of(channels):
+    return linear_to_oklab(*[_srgb_to_linear(c) for c in channels])
+
+
+def source_leg(start, end):
+    """(source, far end) if this leg owes a 19 % waypoint, else None.
+
+    The two conditions and the leg-by-leg table are at SRGB_TOLERANCE. In
+    short: the leg has to have a chromatic end for the waypoint to be
+    correcting a hue path at all, and the sRGB chord has to actually leave the
+    oklab one. The source is the chromatic end, which is what "light falling
+    away from a source" is once it is read off the leg rather than off a list.
+    """
+    if _turns(start, end):
+        return None                       # the arc governs this leg, not this rule
+    c1, c2 = oklch(start)[1], oklch(end)[1]
+    if max(c1, c2) < ARC_CHROMA_FLOOR:
+        return None                       # no source: nothing to fall away from
+    if path_divergence(start, end) <= SRGB_TOLERANCE:
+        return None
+    return (start, end) if c1 >= c2 else (end, start)
+
+
+def _name(col):
+    """A palette colour by name, anything else by its hex. Error strings only."""
+    return PALETTE.get(col, col)
+
+
+def check_source_leg(stops):
+    """Every falloff leg that owes a waypoint carries it, at 19 % of the leg.
+
+    THE WALK IS OVER LEGS AND NOT OVER SOURCES, and that is the whole of the
+    change recorded at SRGB_TOLERANCE: a source used to be a name this file
+    knew and is now a property of the leg in front of it. The leg is a
+    consecutive pair of the ramp's own stops with the waypoints taken out, in
+    whichever direction the drawing runs -- the two Glas-to-lime radials and
+    the dark wallpaper's lime-to-Weiss leg all run the other way from the
+    process cards, and the rule is about the leg, not about stop order.
     """
     out = []
-    for src, name in SOURCES.items():
-        idx = [i for i, (_, c) in enumerate(stops) if c == src]
-        if not idx:
+    bare = strip_source_waypoints(stops)
+    for (o1, c1), (o2, c2) in zip(bare, bare[1:]):
+        if c1 == c2:
             continue
-        i = idx[0]
-        src_off = stops[i][0]
+        owed = source_leg(c1, c2)
+        if owed is None:
+            continue
+        src, end_col = owed
+        src_off, end_off = (o1, o2) if src == c1 else (o2, o1)
+        name = _name(src)
 
-        for step in (1, -1):
-            j = i + step
-            # Skip over anything that is already a waypoint on this leg: it is
-            # the stop we are about to look for, not the far end of the leg.
-            while 0 <= j < len(stops) and _is_waypoint_colour(stops[j][1], stops, src):
-                j += step
-            if not (0 <= j < len(stops)):
-                continue
-            end_off, end_col = stops[j]
-            if end_col == src:
-                continue
+        want_pos = src_off + (end_off - src_off) * WAYPOINT_T
+        want_col = waypoint_colour(src, end_col)
 
-            want_pos = src_off + (end_off - src_off) * WAYPOINT_T
-            want_col = waypoint_colour(src, end_col)
-
-            got = [s for s in stops if min(src_off, end_off) <= s[0] <= max(src_off, end_off)
-                   and s[1] not in (src, end_col)]
-            if not got:
-                out.append("%s -> %s leg carries no waypoint; expected %s at offset %s"
-                           % (name, end_col, want_col, round(want_pos, 4)))
-                continue
-            if len(got) > 1:
-                out.append("%s -> %s leg carries %d waypoints; the family allows one"
-                           % (name, end_col, len(got)))
-                continue
-            pos, col = got[0]
-            if abs(pos - want_pos) > POS_TOL:
-                leg = abs(end_off - src_off) or 1
-                out.append("waypoint %s sits at offset %g -- %.1f %% of the %s -> %s leg, "
-                           "not %g %%; expected offset %s"
-                           % (col, pos, abs(pos - src_off) / leg * 100, name, end_col,
-                              WAYPOINT_T * 100, round(want_pos, 4)))
-            if col != want_col:
-                out.append("waypoint at offset %g is %s; the oklab path from %s to %s "
-                           "passes through %s at %g %%"
-                           % (pos, col, name, end_col, want_col, WAYPOINT_T * 100))
+        got = [s for s in stops if min(src_off, end_off) <= s[0] <= max(src_off, end_off)
+               and s[1] not in (src, end_col)]
+        if not got:
+            out.append("%s -> %s leg carries no waypoint; expected %s at offset %s"
+                       % (name, end_col, want_col, round(want_pos, 4)))
+            continue
+        if len(got) > 1:
+            out.append("%s -> %s leg carries %d waypoints; the family allows one"
+                       % (name, end_col, len(got)))
+            continue
+        pos, col = got[0]
+        if abs(pos - want_pos) > POS_TOL:
+            leg = abs(end_off - src_off) or 1
+            out.append("waypoint %s sits at offset %g -- %.1f %% of the %s -> %s leg, "
+                       "not %g %%; expected offset %s"
+                       % (col, pos, abs(pos - src_off) / leg * 100, name, end_col,
+                          WAYPOINT_T * 100, round(want_pos, 4)))
+        if col != want_col:
+            out.append("waypoint at offset %g is %s; the oklab path from %s to %s "
+                       "passes through %s at %g %%"
+                       % (pos, col, name, end_col, want_col, WAYPOINT_T * 100))
     return out
 
 
-def _is_waypoint_colour(col, stops, src):
-    """True if `col` is the oklab waypoint for `src` toward some other stop here.
+def _is_waypoint_colour(col, stops):
+    """True if `col` is the 19 % oklab-path value of some leg drawn in this ramp.
 
-    Used only to step past a waypoint while looking for the far end of its own
-    leg, so it asks the derived question rather than consulting a list.
+    It asks the derived question rather than consulting a list, and it now asks
+    it of every pair of stops present rather than of a named source against the
+    rest -- the same widening SRGB_TOLERANCE records for the rule itself.
     """
-    return any(col == waypoint_colour(src, c)
-               for _, c in stops if c != src and c != col)
+    cols = [c for _, c in stops if c != col]
+    return any(waypoint_colour(x, y) == col
+               for x in cols for y in cols if x != y)
 
 
 def strip_source_waypoints(stops):
@@ -989,12 +1124,14 @@ def strip_source_waypoints(stops):
     oklab path's value at 19 % of one. check_arc knows the first shape and
     cannot know the second, so the second is taken out here, before it looks.
 
+    IT IS ALSO WHAT MAKES THE LEG WALK POSSIBLE, which is the second job it
+    picked up when the source stopped being a name: check_source_leg reads
+    consecutive pairs of what this returns, so a ramp's legs are its own ends
+    with every interior correction taken back out first.
+
     Only the ends survive, which is what the arc is about.
     """
-    cols = [c for _, c in stops]
-    return [(off, col) for off, col in stops
-            if not any(col != src and src in cols and _is_waypoint_colour(col, stops, src)
-                       for src in SOURCES)]
+    return [(off, col) for off, col in stops if not _is_waypoint_colour(col, stops)]
 
 
 def main():
