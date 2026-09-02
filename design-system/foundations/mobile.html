@@ -905,7 +905,7 @@
     <table class="docs-table">
       <thead><tr><th>Where</th><th>Value</th><th>On a phone</th></tr></thead>
       <tbody>
-        <tr><td>Hero</td><td><code>min-height: min(92vh, 56rem)</code></td><td>747 px on a 812 px screen. 92 rather than 100 on purpose: the page has to show that it continues</td></tr>
+        <tr><td>Hero</td><td><code>min-height: min(92vh, 56rem, calc(100vh - var(--cf-consent-height, 0px)))</code></td><td>747 px on an 812 px screen from the first two terms — 92 rather than 100 on purpose: the page has to show that it continues. <strong>This row said <code>min(92vh, 56rem)</code> until the run below</strong>, and had done since the third term was added: the consent banner's reservation, the one term in this table that is not about how tall its box wants to be. It is a floor rather than a cap and on a phone it never binds — see the note under this table</td></tr>
         <tr><td>Consent, the backstop</td><td><code>calc(100vh - var(--nav-height) - 3rem - var(--space-6))</code>, with a <code>dvh</code> line on top</td><td>on <code>.cf-consent</code> itself and under no query, since the run below: 219 px against a 191 px banner at 375 tall, and inert at a 16 px root at every width from 320 to 1440. It was <code>70vh</code>, which never engaged at all; then the same terms behind a 560 px height query, which the reader's text size cannot reach</td></tr>
         <tr><td>Values track</td><td><code>100vh</code> per stage</td><td><strong>never runs below 820&nbsp;px wide or 720&nbsp;px tall</strong>, so the stage does not exist on a phone — the height half of that is new; see below</td></tr>
         <tr><td>Consent, settings panel</td><td><code>max-height: min(80vh, 46rem)</code>, now with a <code>dvh</code> line on top</td><td>the one cap in this table that <strong>always</strong> engages on a phone: 46rem never wins there, so the panel's height simply is 80vh — 533.6 px at 375&nbsp;×&nbsp;667, 531.2 at 390&nbsp;×&nbsp;664, 671.2 at 412&nbsp;×&nbsp;839. See the note below</td></tr>
@@ -929,6 +929,116 @@
       the last box of that shape anywhere in the two shipping stylesheets still capping on
       <code>vh</code> alone.
     </p>
+    <p>
+      <strong>The hero's third term is a fifth box of that shape and it is still on
+      <code>vh</code>, and the note below is why it has to stay there.</strong> The
+      paragraph above reasons about how tall the hero <em>wants</em> to be, which is what
+      <code>92vh</code> and <code>56rem</code> say; the sentence it ends on — a box
+      "anchored to an edge instead of cropped" growing "past where the cap meant to stop
+      it" — is a description of the third term, written before the third term existed and
+      never applied to it. The consent banner is <code>position: fixed; inset: auto 0 0
+      0</code>, so it is anchored to the <em>small</em> viewport: it rides above the
+      toolbar and travels with it. The hero's reservation for it is measured off the large
+      one. The two do not meet, and the gap between them is the toolbar.
+    </p>
+    <div class="docs-note">
+      <strong>The reservation is a floor, and a floor is not a cap: on every phone
+      viewport this run measured, the landing page's one call to action is under the
+      consent banner at first paint.</strong>
+      <code>scripts/check-consent-clearance.py</code> is the gate for this reservation and
+      its own header already found this failure once, in landscape: "a min-height cannot
+      shrink a box whose content is taller than it. The hero renders 467&nbsp;px against a
+      122&nbsp;px cap at 812&nbsp;×&nbsp;375." It closed that case by shortening the
+      <em>banner</em> under <code>@media (max-height: 35rem)</code> — 560&nbsp;px — and
+      stopped there. Portrait is the same fault above that threshold, and no phone held
+      the ordinary way is under it.
+      <br><br>
+      Measured on <code>landing-page</code>, first load, nothing dismissed, at the viewport
+      heights the two mobile browsers actually hand a page — Safari's and Chrome's
+      toolbar-showing viewports, not the device's screen height. <em>Content</em> is the
+      hero with <code>min-height</code> forced to zero; <em>cap</em> is the third term's
+      own value. Where content exceeds cap, the cap does nothing at all and the hero is
+      simply as tall as what is in it. <em>Hit</em> is
+      <code>document.elementFromPoint</code> at the centre of the button. Chromium 141 and
+      WebKit 26.5 agree within a tenth of a pixel on every cell:
+    </div>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Viewport</th><th>Banner</th><th>Cap</th><th>Content</th><th>Hero</th><th>CTA foot vs banner top</th><th>Hit at the CTA's centre</th></tr></thead>
+      <tbody>
+        <tr><td>320 × 568</td><td>353.8</td><td>214.0</td><td>553.6</td><td>553.6</td><td><strong>+291.4 under</strong></td><td>the banner's "Alle akzeptieren"</td></tr>
+        <tr><td>375 × 553 <em>iPhone SE</em></td><td>271.1</td><td>282.0</td><td>500.8</td><td>500.8</td><td><strong>+170.9 under</strong></td><td>the banner's "Nur notwendige"</td></tr>
+        <tr><td>393 × 659 <em>iPhone 14 Pro</em></td><td>333.5</td><td>325.0</td><td>462.8</td><td>462.8</td><td><strong>+89.3 under</strong></td><td>the banner's body copy</td></tr>
+        <tr><td>390 × 664 <em>iPhone 14</em></td><td>333.5</td><td>330.0</td><td>462.2</td><td>462.2</td><td><strong>+83.7 under</strong></td><td>the banner's body copy</td></tr>
+        <tr><td>360 × 740</td><td>333.5</td><td>406.0</td><td>497.0</td><td>497.0</td><td><strong>+42.5 under</strong></td><td>the banner's plate</td></tr>
+        <tr><td>430 × 745 <em>iPhone 14 Pro Max</em></td><td>333.5</td><td>411.0</td><td>470.2</td><td>470.2</td><td><strong>+10.7 under</strong></td><td>the button itself</td></tr>
+        <tr><td>412 × 839 <em>Pixel 7</em></td><td>333.5</td><td>505.0</td><td>466.6</td><td>505.0</td><td>−48.5 clear</td><td>the button itself</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note">
+      One row of seven clears, and it is the only one where the cap is larger than the
+      content. On five of the other six the middle of "Kennenlernen" belongs to the banner,
+      which is the same reading <code>check-consent-clearance.py</code>'s own table takes:
+      the page's primary call to action is a dead target for as long as the notice is up.
+      It is not permanently unreachable the way the landscape case was — both layers are
+      fixed there, so no scroll offset frees the button; here the hero scrolls out from
+      under a fixed banner and about 40&nbsp;px of scroll makes the button live again — but
+      first paint is the whole of what this reservation was written for.
+      <br><br>
+      <strong>The second fault is the unit, and it is the one that shows where the cap
+      <em>does</em> bind.</strong> <code>100vh</code> is the chrome-collapsed screen; the
+      banner is anchored to the visible one. So on the tall Android viewports where the cap
+      is the binding term, it lands the hero's bottom edge exactly one toolbar too low.
+      Measured on the emulated device — the page laid out in the toolbar-showing viewport
+      with <code>vh</code> resolved against the retracted one, which is what the engine
+      itself does — at Chrome Android's 56&nbsp;px toolbar, both engines identical:
+    </div>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Viewport (<code>vh</code>)</th><th>Hero</th><th>Banner top</th><th>CTA foot</th><th>Under the banner</th><th>With the toolbar tracked</th></tr></thead>
+      <tbody>
+        <tr><td>412 × 839 (895)</td><td>561.0</td><td>505.5</td><td>513.0</td><td><strong>+7.5</strong></td><td>−48.5 clear</td></tr>
+        <tr><td>412 × 892 (948)</td><td>614.0</td><td>558.5</td><td>566.0</td><td><strong>+7.5</strong></td><td>−48.5 clear</td></tr>
+        <tr><td>430 × 932 (988)</td><td>654.0</td><td>598.5</td><td>606.0</td><td><strong>+7.5</strong></td><td>−48.5 clear</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="docs-note">
+      <strong>Toolbar less 48 in every row</strong>, and constant for the reason the
+      constant gives it away: the cap binds in both states and simply sits one toolbar too
+      low, and the CTA hangs <code>--space-12</code> inside the hero's bottom edge, so 48 of
+      the 56 is absorbed before anything shows.
+      <br><br>
+      <strong>WHY NEITHER IS FIXED HERE, and what a fix has to decide.</strong> The obvious
+      repair — a <code>dvh</code> line on top of the <code>vh</code> one, the pair four
+      other boxes in this system carry — is wrong on this declaration, and measurably so.
+      With the banner gone the property is removed and the term is
+      <code>var(…, 0px)</code>, so the third term becomes plain <code>100vh</code>, which
+      can never be the smallest of the three: that inertness is the whole reason the unit is
+      <code>vh</code>. <code>100dvh</code> and <code>100svh</code> are not inert, because
+      <code>92vh</code> is 92&nbsp;% of the <em>large</em> viewport and iOS Safari's toolbar
+      is more than 8&nbsp;% of it. Measured at 390&nbsp;×&nbsp;664 with a stored decision
+      and no banner on the page at all, the hero:
+      <br><br>
+      <code>vh</code> 691.83 px — the box the row above describes · <code>dvh</code>
+      664.00 · <code>svh</code> 664.00. At 412&nbsp;×&nbsp;839 all three read 823.39,
+      because there the toolbar is under 8&nbsp;% and <code>92vh</code> wins anyway.
+      <br><br>
+      So <code>dvh</code> costs 27.8&nbsp;px of hero on every iOS visit that has no banner,
+      takes the hero off "past the fold" and onto it exactly, and — since
+      <code>dvh</code> moves with the toolbar — reflows that 27.8&nbsp;px mid-scroll, which
+      is the one thing the paragraph above says <code>vh</code> was chosen to avoid.
+      <code>svh</code> does not reflow but costs the same 27.8. Getting the unit right needs
+      the term to know whether the banner is up — a
+      <code>body:has(&gt; .cf-consent:not([hidden]))</code> rule carrying an
+      <code>svh</code> copy of the same min() — and getting the <em>floor</em> right needs
+      either a height threshold that does not exist in the register or a shorter phone form
+      for the banner. A new rule, a new threshold, or the banner's documented phone layout:
+      all three are decisions, not corrections, so this run measured them and stopped.
+      → <code>components.css</code> <code>.cf-hero</code>,
+      <code>scripts/check-consent-clearance.py</code> links 1 and 5
+    </div>
     <div class="docs-note">
       <strong>The width gate was never the only question, and the values track asked it
       alone.</strong> This mechanism has two siblings — <code>.cf-pin</code>, the Expertise
