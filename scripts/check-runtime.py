@@ -21,7 +21,9 @@ is the one that needs two scroll positions rather than one:
                 video path, a stylesheet that moved. check-links.py proves
                 every *reference in the markup* lands on a file, but only a
                 browser issues the requests a page's scripts and CSS
-                construct at runtime.
+                construct at runtime. A request the server ANSWERED and the
+                page then abandoned is not one of these; see the note over
+                `on_request_failed`.
   MOTION        prefers-reduced-motion honoured in fact rather than in
                 declaration. The stylesheets' reduce paths are static text;
                 whether any animation still RUNS under reduce is a question
@@ -71,12 +73,29 @@ animations under reduce. Fourteen clean pages and no gate is the same
 non-fact check-markup.py's header names: a dozen routines edit these files
 every hour, and the classes above are precisely the ones a routine ships
 without noticing, because they are invisible in every diff and every file
-read. The sweep also found the one honest limitation: the hero video cannot
-be *played* under this gate, because Playwright's Chromium ships no H.264
+read.
+
+THE HERO VIDEO WAS THIS GATE'S ONE HONEST LIMITATION AND IS NOW ITS ONE
+BROWSER-DEPENDENT ONE. This paragraph used to read "the hero video cannot be
+*played* under this gate, because Playwright's Chromium ships no H.264
 decoder — hero-abstract-art.mp4 sits at readyState 0 with no error and no
-console entry there. The poster fallback is what such a browser shows, which
-is the page's own designed answer; playback is checked by check-hero-video.py
-as far as a file allows, and is out of scope here.
+console entry there." That is true of some runners and false of others.
+Measured on patterns/landing-page.html, default visit, three loads per build,
+the same page and the same file:
+
+    Chromium 141.0.7390.37  (Playwright build 1194)   net 3  ready 0  paused
+    Chromium 151.0.7922.34  (Playwright build 1234)   net 1  ready 4  playing
+
+So the decoder arrived somewhere between the two, and the newer build is what
+`playwright install chromium` fetches for CI today. On it the loop really runs
+here, which means the MOTION class's "a <video> is playing under reduce" has
+stopped passing vacuously: under reduce the `<source media>` selects nothing,
+currentSrc stays empty, only hero-poster.jpg is requested and the element is
+`display: none` behind its sibling <img> — measured, not assumed. Playback
+beyond that is still check-hero-video.py's, as far as a file allows.
+
+What the OLDER build leaves behind is an abandoned request, and that is the
+case the note over `on_request_failed` is written against.
 
 HOW IT CHECKS. The repository root is served over HTTP in-process (the pages
 refuse file:// — module scripts and fetch would too) and headless Chromium
@@ -91,8 +110,10 @@ every console message of
 severity warning or error, every uncaught page error, every failed request
 and every response of 400 and above is a finding. Under reduce, any
 Animation still in playState "running" after the scroll settles is a
-finding, and so is an unpaused <video>. In both passes, any id carried by
-two elements of the settled DOM is a finding.
+finding, so is an unpaused <video>, and so is a <video> that selected a
+source at all — the loop is meant to be withheld from that reader, not
+merely held still. In both passes, any id carried by two elements of the
+settled DOM is a finding.
 
 The timeline pass rides that same sweep and only in the DEFAULT visit, which
 is not a saving but the correct scope: every scroll-driven animation in this
@@ -167,7 +188,27 @@ dereferencing a querySelector miss (CONSOLE), a poster pointing at a file
 that is not there (REQUEST), an infinite keyframe loop outside the reduce
 guard (MOTION), cf-icons.js's sprite guard removed (RUNTIME-ID), and the
 original defect itself put back — the `overflow: clip` line deleted from
-.cf-hero so the `overflow: hidden` beneath it stands alone again (TIMELINE):
+.cf-hero so the `overflow: hidden` beneath it stands alone again (TIMELINE).
+
+The sourced-video half of MOTION was proven the same way, by deleting the
+`media="(prefers-reduced-motion: no-preference)"` attribute from the hero's
+<source> so the loop is selected for every reader:
+
+    design-system/patterns/landing-page.html [reduce]
+        MOTION: 1 <video> element(s) selected a source under
+        prefers-reduced-motion: reduce — the loop was fetched for a reader
+        who asked for the still
+
+AND THE OTHER HALF DID NOT FIRE ON IT, which is the argument for having both.
+That run was on build 1194, where the file cannot be decoded: the loop was
+requested in full, `paused` stayed true because nothing could play it, and the
+"a <video> is playing" line said nothing. A regression that hands a
+reduced-motion reader 3.3 MB is invisible to a runner without the decoder and
+visible to one with it — so the assertion that holds it has to be about
+selection, not about playback. Both are kept: the newer build's playing loop
+is caught by the first line, the older build's fetched-but-frozen one by the
+second, and neither runner can pass the pair on a page that has given the
+guard up. The original TIMELINE report:
 
     design-system/patterns/landing-page.html [default]
         TIMELINE: 1 scroll-driven animation(s) on a ViewTimeline that never
@@ -215,7 +256,19 @@ COLLECTOR = """
   const running = document.getAnimations().filter(a => a.playState === 'running').length;
   const playingVideo = Array.from(document.querySelectorAll('video'))
     .some(v => !v.paused && !v.ended);
-  return { dupes, running, playingVideo };
+  // NOT PLAYING IS THE WEAKER HALF OF WHAT THE HERO PROMISES. A paused loop
+  // still costs the reader who asked for reduce the whole file, and "paused"
+  // is also what a browser with no decoder for it reports — so on such a
+  // runner the check above passes whether the page withheld the loop or sent
+  // it. currentSrc is the half that is decided by resource selection rather
+  // than by codecs: a <source> whose media does not match is skipped, and a
+  // <video> that selected nothing reports the empty string on every browser.
+  // Empty here is the measured state of the hero under reduce, and it is the
+  // sentence foundations/motion.html writes — "only the still is shown, and
+  // only the still is fetched" — asserted rather than restated.
+  const sourcedVideo = Array.from(document.querySelectorAll('video'))
+    .filter(v => v.currentSrc).length;
+  return { dupes, running, playingVideo, sourcedVideo };
 }
 """
 
@@ -348,7 +401,56 @@ def visit(browser, url, reduced, verbose, rel):
     page.on("console", lambda m: events.append(("console-" + m.type, m.text))
             if m.type in ("error", "warning") else None)
     page.on("pageerror", lambda e: events.append(("pageerror", str(e))))
-    page.on("requestfailed", lambda r: events.append(("requestfailed", "%s :: %s" % (r.url, r.failure))))
+
+    # A REQUEST THE SERVER ANSWERED AND THE PAGE THEN WALKED AWAY FROM IS NOT A
+    # DEAD REQUEST, and telling the two apart is what keeps this class from
+    # being a property of the runner's codec licence rather than of the page.
+    #
+    # THE CASE. The hero's <video> is the only element in the tree that can
+    # abandon a resource it has already been given. On a Chromium with no H.264
+    # decoder the media element runs the resource selection algorithm, is handed
+    # the file, finds nothing it can play, and gives up — and giving up cancels
+    # the fetch that is still running. Measured on patterns/landing-page.html,
+    # three loads, deterministic on both binaries of build 1194:
+    #
+    #     request   GET hero-abstract-art.mp4    Range: bytes=0-
+    #     response  200                          the whole file, served
+    #     then      net::ERR_ABORTED             networkState 3, readyState 0,
+    #                                            video.error null
+    #
+    # networkState 3 is NETWORK_NO_SOURCE: no candidate was usable. Nothing
+    # about that is a fault of the page — it is the codec-less browser reaching
+    # the poster fallback the hero is designed around — and on build 1234 the
+    # same page produces no failed request at all, because there the file plays.
+    # A gate that is red on one runner and green on the next teaches every
+    # routine to read past it, which costs more than the class is worth.
+    #
+    # THE RULE IS THE DISTINCTION, NOT THE FILENAME. Nothing here names the
+    # video, the media type or the URL: an ERR_ABORTED whose request carries a
+    # response below 400 had its bytes delivered, so whatever else went wrong,
+    # the resource arrived. ERR_ABORTED with NO response — cancelled before any
+    # header, blocked, or refused — is still a finding, and so is every other
+    # failure code.
+    #
+    # AND IT TAKES NOTHING OFF THE CLASS'S TEETH, because a missing file never
+    # arrives here in the first place. Measured against this same server, with
+    # an <img> and a <video> pointed at files that do not exist: both produced
+    # `http-404` response events and NO requestfailed at all. The proven-failing
+    # instance this class was built on — "a poster pointing at a file that is
+    # not there" — is held entirely by the 4xx handler below, which this does
+    # not touch.
+    def on_request_failed(request):
+        failure = request.failure or ""
+        if failure == "net::ERR_ABORTED":
+            try:
+                response = request.response()
+            except Exception:
+                response = None
+            if response is not None and response.status < 400:
+                return
+        events.append(("requestfailed", "%s :: %s" % (request.url, failure)))
+
+    page.on("requestfailed", on_request_failed)
     page.on("response", lambda r: events.append(("http-%d" % r.status, r.url))
             if r.status >= 400 else None)
 
@@ -378,6 +480,11 @@ def visit(browser, url, reduced, verbose, rel):
                         % state["running"]))
     if reduced and state["playingVideo"]:
         findings.append((rel, mode, "MOTION: a <video> is playing under prefers-reduced-motion: reduce"))
+    if reduced and state["sourcedVideo"]:
+        findings.append((rel, mode,
+                         "MOTION: %d <video> element(s) selected a source under "
+                         "prefers-reduced-motion: reduce — the loop was fetched for a "
+                         "reader who asked for the still" % state["sourcedVideo"]))
 
     # One clipping ancestor freezes every timeline beneath it, so the finding is
     # reported per SCROLLER rather than per animation: forty lines naming forty
@@ -451,14 +558,14 @@ def main():
             print("%s [%s]\n    %s" % (rel, mode, why), file=sys.stderr)
         print("\n%d finding%s only a running page can show. Every pattern page loads, "
               "scrolls and settles with a silent console, no dead request, no duplicate "
-              "id, every scroll-driven clock advancing, and nothing moving for a reader "
-              "who asked for reduce."
+              "id, every scroll-driven clock advancing, and nothing moving — or even "
+              "fetched to move — for a reader who asked for reduce."
               % (len(findings), "" if len(findings) == 1 else "s"), file=sys.stderr)
         return 1
 
     print("runtime: %d pages visited twice each — console silent, every request "
           "answered, ids unique after scripts, every scroll-driven timeline live, "
-          "nothing running under reduce." % len(pages))
+          "nothing running and no loop even fetched under reduce." % len(pages))
     return 0
 
 
