@@ -354,8 +354,6 @@ python3 scripts/check-cap-line.py              # every text-box trim states both
 python3 scripts/check-cap-line.py -v           # every trim, and the context it sits in
 python3 scripts/check-cap-line.py --fix        # rewrite the census in foundations/capline.html, and the code example under it
 python3 scripts/check-merge-markers.py         # no file in the tree carries a conflict marker
-python3 scripts/check-morph-pairs.py           # both halves of every page-to-page morph are present
-python3 scripts/check-morph-pairs.py -v        # the register, and every pair it walked
 python3 scripts/check-links.py                 # every reference resolves on the host that serves it
 python3 scripts/check-job-posting.py           # the JobPosting block matches the posting the reader sees
 python3 scripts/check-a11y.py                  # the accessibility facts that are arithmetic rather than judgement
@@ -410,7 +408,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The forty-three checks the system enforces rather than documents, run by CI on every push and
+The forty-two checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
