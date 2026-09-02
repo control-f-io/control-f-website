@@ -3,9 +3,17 @@
 
 Every chapter under design-system/components/ and design-system/foundations/
 publishes a table whose left column is the component taken apart:
-`.cf-annot-set`, `.cf-process__figure`, `.cf-blog-card--media`. Thirty-four
-chapters carry one, 351 such mentions between them. It is the densest register
-of class names in the repository and it is the one register nothing reads.
+`.cf-annot-set`, `.cf-process__figure`, `.cf-blog-card--media`. It is the
+densest register of class names in the repository and it is the one register
+nothing reads.
+
+HOW MANY OF THEM THERE ARE IS NOT WRITTEN DOWN HERE, and the reason is this
+file's own subject. It shipped saying "thirty-four chapters, 351 mentions",
+which was true when it was measured and was two chapters and eighteen mentions
+behind forty minutes later, because two other lanes landed chapters in between.
+A gate against hand-kept documentation that opens on a hand-kept count is the
+joke this directory keeps writing gates about. The count is printed by the run
+instead, where it is derived every time — pass -v to see the census behind it.
 
 check-class-provenance.py holds the other direction and holds it completely:
 every class that appears in a `class=` ATTRIBUTE anywhere in the tree is
