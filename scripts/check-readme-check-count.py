@@ -49,24 +49,34 @@ counts of the directory, and the directory is right there, so they are derived
 from `os.listdir` — the same move every other register in here makes, and the
 reason this cannot itself go stale.
 
-WHY THIS ONE GREW A --fix WHEN THE FINDING IS TWO DIGITS. Because two digits
-is exactly the size of finding a lane refuses to stop for. Every other derived
-register in here that goes stale on somebody else's push has one —
-check-spacing-scale.py, check-motion-census.py, check-glass-budget.py — and
-this pair, which the docstring above says went stale "an hour before it was
-corrected" and then again in the same hour, did not. So the lane that trips it
-is a lane that has just been told its own green branch is red for a reason that
-is not its own and has no one-command way out, and the cheapest thing it can do
-is nothing. --fix makes the cheapest thing the correct thing.
+AND THE FIRST --fix WRITTEN FOR IT WROTE TWO OF THE THREE, ON AN ARGUMENT THAT
+DOES NOT HOLD. It excluded design-system/README.md's spelled-out sentence,
+reasoning that the number counts a LIST rather than a directory, and that a list
+which has gained an entry needs the entry written into the block as well as the
+digit moved — so writing the word would paper over a missing row.
 
-It rewrites ONLY the two counts in scripts/README.md, and only to the number
-the directory holds. It does not touch design-system/README.md's spelled-out
-sentence: that number counts a LIST, and a list that has gained an entry needs
-the entry written into the block as well as the digit moved — a --fix there
-would paper over a missing row rather than repair a count. The two halves of
-this script fail for different reasons and only one of them has a mechanical
-answer. Nor does it reach the inventory below, for the same reason: a file with
-no row needs a row written, and the row is a sentence about what the file is.
+It would not, and the docstring above already says why: "This script does not
+assert that the block is complete." The word is derived from the entries that
+are IN the block, exactly as the other two are derived from the entries that are
+in the directory. A check missing from the register is a different claim about a
+different file, it was never this script's to catch, and declining to write one
+of three derived numbers did not start catching it — it only left the third of
+them to be typed by hand. The lane that had written the whole trio was right and
+this note is the correction.
+
+AND THE REMEDY FOR A NUMBER NOBODY CAN BE EXPECTED TO REMEMBER IS NOT A BETTER
+REMINDER. Four registers in this directory are generated rather than kept —
+check-spacing-scale.py, check-motion-census.py, check-glass-budget.py and
+check-lime-flat.py each carry --fix, and design-system/README.md says of the
+first, in as many words, "run --fix rather than editing a count by hand". This
+trio had no --fix and is the one that goes stale most often, because it moves
+whenever ANY lane adds a check and two of its three numbers live in a file that
+lane has no reason to open. The paragraph above records three of those in
+design-system/README.md and one measured pair next door; on the day --fix was
+added, main was carrying a red gate for exactly that reason, from three lanes
+that had each landed a check within the hour. Nothing here is a judgement — the
+block is the list and the directory is the directory — which is the whole test
+for what may be written rather than merely reported.
 
 AND THE TABLE UNDER THAT SENTENCE IS A THIRD CLAIM, WHICH NOTHING WAS READING.
 scripts/README.md's "What is in here" table gives one row per family of files —
@@ -93,11 +103,17 @@ sentence excludes by saying "this one included" — must be claimed by one. The
 patterns come from the code spans in front of each row's em dash, so the table
 stays the source and this stays a reader of it.
 
+WHAT --fix STILL DOES NOT WRITE IS THAT TABLE. A count of files is derived; a
+row is a sentence about what a file is, and a file with no row needs the
+sentence written. The trio above is three numbers and no judgement, the
+inventory is prose with a number in front of it, and only the first kind can be
+generated.
+
 Usage:
-    check-readme-check-count.py       fail if a stated count and its subject disagree
-    check-readme-check-count.py -v    print each number and everything counted
-    check-readme-check-count.py --fix rewrite scripts/README.md's two counts (not its
-                                      inventory rows: a missing row is prose)
+    check-readme-check-count.py        fail if a stated count and its subject disagree
+    check-readme-check-count.py -v     print each number and everything counted
+    check-readme-check-count.py --fix  write all three from what is on disk, then
+                                       re-assert what it wrote
 """
 
 import fnmatch
@@ -150,6 +166,62 @@ WORDS = {
 }
 
 
+NUMBERS = {value: word for word, value in WORDS.items()}
+
+
+def rewrite(path, pattern, value, group=1):
+    """Set the digits (or the word) `pattern` captures to `value`. Returns the
+    old text if it changed, else None."""
+    text = open(path, encoding="utf-8").read()
+    match = pattern.search(text)
+    if not match or match.group(group) == str(value):
+        return None
+    start, end = match.span(group)
+    open(path, "w", encoding="utf-8").write(text[:start] + str(value) + text[end:])
+    return match.group(group)
+
+
+def repair(listed):
+    """--fix: write all three numbers from what is actually on disk.
+
+    The same standing check-spacing-scale.py, check-motion-census.py,
+    check-glass-budget.py and check-lime-flat.py already take for the tables
+    they own — the README says of those, in as many words, "run --fix rather
+    than editing a count by hand". This trio is the one that had no --fix, and
+    it is the one that goes stale most often: it moves whenever ANY lane adds a
+    check, and two of its three numbers live in a file that lane has no reason
+    to open. The script's own finding text has said so since it was written —
+    "it was corrected an hour before it went stale again, by a lane that had no
+    reason to look at it" — and the remedy for a number nobody can be expected
+    to remember is not a better reminder.
+    """
+    entries, checks = directory_counts()
+    done = []
+
+    was = rewrite(SCRIPTS_README, FILE_COUNT, len(entries))
+    if was is not None:
+        done.append("scripts/README.md  files at this level  %s -> %d"
+                    % (was, len(entries)))
+    was = rewrite(SCRIPTS_README, CHECK_COUNT, len(checks))
+    if was is not None:
+        done.append("scripts/README.md  check-*.py           %s -> %d"
+                    % (was, len(checks)))
+
+    if len(listed) not in NUMBERS:
+        done.append(
+            "design-system/README.md  NOT written: the block lists %d and the "
+            "sentence is spelled out.\n    Add %d to WORDS — the register is a "
+            "word on purpose, and a digit there\n    would be the wrong register "
+            "for that document." % (len(listed), len(listed)))
+    else:
+        was = rewrite(README, SENTENCE, NUMBERS[len(listed)])
+        if was is not None:
+            done.append("design-system/README.md  the sentence         %s -> %s"
+                        % (was, NUMBERS[len(listed)]))
+
+    return done
+
+
 def directory_counts():
     """(files at this level, check-*.py) — counted, not remembered."""
     entries = [e for e in os.listdir(SCRIPTS)
@@ -159,11 +231,17 @@ def directory_counts():
     return sorted(entries), sorted(checks)
 
 
-def scripts_readme(verbose, fix=False):
-    """Hold scripts/README.md's two counts to the directory they describe."""
+def scripts_readme(verbose):
+    """Hold scripts/README.md's two counts to the directory they describe.
+
+    REPORTING ONLY. repair() owns every write in this file, including these
+    two, and the reason is the re-assert: --fix writes and then re-runs the
+    checking path over what it wrote, so a second writer inside the checking
+    path would be repairing the file it was supposed to be judging.
+    """
     text = open(SCRIPTS_README, encoding="utf-8").read()
     entries, checks = directory_counts()
-    failures, rewritten = [], []
+    failures = []
 
     for pattern, actual, what, where in (
         (FILE_COUNT, len(entries), "files at this level",
@@ -184,16 +262,6 @@ def scripts_readme(verbose, fix=False):
             print("  scripts/README.md says %d %s; the directory holds %d"
                   % (claimed, what, actual))
         if claimed != actual:
-            if fix:
-                # Substitute inside the matched span only. The digits are not
-                # unique in this file -- "150" is a plausible substring of a
-                # dozen other sentences -- so the replacement is anchored on
-                # the match the pattern already found rather than on the number.
-                start, end = match.span()
-                span = text[start:end].replace(str(claimed), str(actual), 1)
-                text = text[:start] + span + text[end:]
-                rewritten.append("%s: %d -> %d" % (what, claimed, actual))
-                continue
             failures.append(
                 "scripts/README.md says %d %s and the directory holds %d.\n"
                 "    Derived by listing scripts/, not by remembering. This pair is\n"
@@ -202,11 +270,6 @@ def scripts_readme(verbose, fix=False):
                 "    Run: python3 scripts/check-readme-check-count.py --fix"
                 % (claimed, what, actual)
             )
-
-    if fix and rewritten:
-        open(SCRIPTS_README, "w", encoding="utf-8").write(text)
-        for line in rewritten:
-            print("fixed   scripts/README.md %s" % line)
 
     return failures
 
@@ -312,9 +375,15 @@ def inventory(entries, verbose):
     return failures
 
 
-def main():
+def main_verify():
+    """The checking path alone — what --fix re-runs on what it just wrote."""
+    return main(fixing=False)
+
+
+def main(fixing=None):
     verbose = "-v" in sys.argv or "--verbose" in sys.argv
-    fix = "--fix" in sys.argv
+    if fixing is None:
+        fixing = "--fix" in sys.argv
     text = open(README, encoding="utf-8").read()
 
     match = SENTENCE.search(text)
@@ -349,19 +418,31 @@ def main():
         for name in listed:
             print("    %s" % name)
 
+    if fixing:
+        # The block is the list, so the block is the count — and the same is
+        # true of the directory for the other two. Nothing here is a judgement,
+        # which is the whole test for what may be written rather than reported.
+        done = repair(listed)
+        for line in done:
+            print("  %s" % line)
+        if not done:
+            print("  nothing to write; all three already match.")
+        print()
+        # Re-read and re-assert, so --fix can never report a repair it did not
+        # actually make.
+        return main_verify()
+
     failures = []
     if claimed != len(listed):
         failures.append(
             'design-system/README.md says "%s" and lists %d:\n\n%s\n\n'
             "    The block is the list, so the block is the count. Set the word to match\n"
             "    it — this is the drift that follows two lanes adding a check on the same day.\n"
-            "    --fix does not reach this half: a count of a LIST that has gained an entry\n"
-            "    needs the entry written into the block, and moving the digit alone would\n"
-            "    hide the missing row rather than repair the count."
+            "    Run: python3 scripts/check-readme-check-count.py --fix"
             % (word, len(listed), "\n".join("      %s" % n for n in listed))
         )
 
-    failures.extend(scripts_readme(verbose, fix))
+    failures.extend(scripts_readme(verbose))
     failures.extend(inventory(directory_counts()[0], verbose))
 
     if failures:
