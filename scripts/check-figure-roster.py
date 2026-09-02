@@ -32,10 +32,11 @@ claim below rather than a paragraph:
   3. AND IT IS NOT ON THE SHIPPING LANDING PAGE AT ALL. The row read "Landing
      page - statement". patterns/landing-page.html carries no .cf-iso statement
      figure: its statement drawing is .lp-flow, act 2's root, 1200 x 620,
-     written by scripts/gen-flow-root.py and outside the .cf-iso vocabulary
-     entirely. The 1200-unit .cf-iso figure the row describes lives on
-     components/statement.html and in the prototype. A census of the shipping
-     tree was counting a figure the shipping tree does not have.
+     written by scripts/expertise-objects/gen-flow-root.py and outside the
+     .cf-iso vocabulary entirely. The 1200-unit .cf-iso figure the row
+     describes lives on components/statement.html and in the prototype. A
+     census of the shipping tree was counting a figure the shipping tree does
+     not have.
 
 WHY THIS IS A SCRIPT. Every one of those three is invisible in a rendering:
 each names a figure that is *missing from a table*, and a missing row renders as

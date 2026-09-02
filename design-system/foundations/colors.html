@@ -1376,6 +1376,63 @@
       every button ramps the full spectrum inside ten characters, which reads as a rainbow
       rather than as light crossing a plate. Do not propagate the headline's fix to it.
     </div>
+    <div class="docs-note" id="clip-box-exclusion">
+      <strong>The headline's fix had one exclusion, and it was the four largest foil moments
+      in the system.</strong>
+      <p>
+        The cap is written <code>.text-foil:not(:has(.cf-stream__text))</code>, because
+        <code>cf-stream.js</code> empties the element it types into: a rewritten element's
+        <code>max-content</code> is the characters typed <em>so far</em>, which is nothing at
+        rest, and capping on it collapsed all four card titles on
+        <a href="../patterns/expertise.html">Expertise</a> to 22&nbsp;px and 0. That reason is
+        right. What it left uninspected is what the excluded case then paints — and those four
+        titles sat 136–406&nbsp;px of ink inside a 518&nbsp;px box at 1280 and a 593&nbsp;px
+        one at 1920:
+      </p>
+      <table class="docs-table">
+        <thead><tr><th>Title</th><th>Ink over box, 1280</th><th>1920</th></tr></thead>
+        <tbody>
+          <tr><td>Maschinenbau</td><td>53.4&nbsp;%</td><td>46.6&nbsp;%</td></tr>
+          <tr><td>Erneuerbare Energien</td><td>78.4&nbsp;%</td><td>68.4&nbsp;%</td></tr>
+          <tr><td>Großanlagen</td><td>47.0&nbsp;%</td><td>41.1&nbsp;%</td></tr>
+          <tr><td>Flotten</td><td>26.2&nbsp;%</td><td>22.9&nbsp;%</td></tr>
+        </tbody>
+      </table>
+      <p>
+        <code>--gradient-foil-ink</code> puts its stops at 0 / 23.5 / 47 / 73.5 / 100&nbsp;%,
+        so <strong>Violett 800 appeared on none of the four at either width</strong> and at
+        1920 two of them did not reach Sky 800 either — a foil drawn in one hue and a half,
+        which is the failure this whole section is about, arriving through the exemption
+        instead of through a missing declaration.
+      </p>
+      <p>
+        <strong>The stream hands the axis back before it takes it.</strong> The full string is
+        still in the element when <code>prepare()</code> runs, so its <code>max-content</code>
+        is the real one — the same number the cap would have resolved to, wrap and all. It is
+        published as <code>--stream-inline</code> and the excluded rule caps on
+        <code>min(var(--stream-inline, 100%), 100%)</code>. Nothing is cyclic: the measurement
+        happens once, before the first character is removed, and the ramp is then fixed at the
+        <em>full</em> string's width for the whole of the typing — so it does not rescale
+        letter by letter either, which is the other failure the class names. In
+        <code>em</code>, because <code>prepare()</code> runs once per gate flip and not once
+        per resize. The caret is inside the measurement rather than written down a second time
+        as <code>0.55em</code>: it is inline-block in the flow, and a box capped at the ink
+        alone drops it to a second line the moment the line finishes typing. That is the whole
+        of the residual — the four now run <strong>86.1&nbsp;% to 94.9&nbsp;%</strong> of the
+        ramp, all four cross the Sky&nbsp;→&nbsp;Violett waypoint at 73.5&nbsp;%, and the
+        violet leg renders.
+      </p>
+      <p>
+        <strong>Contrast only improves</strong>, and it is worth saying which way round: the
+        stops this exposes are the ramp's <em>darkest</em>. On the page's own CF-Grau, Sky 800
+        is 7.12:1 and Violett 800 is 8.53:1, against the 5.24:1 floor at Glas 800 that was
+        always painted. The worst sample is unchanged; the ceiling rises.
+        <code>scripts/check-foil-clip.py</code> holds the pair together — an exclusion has to
+        be answered by a cap of its own, that cap has to clamp at the available space with its
+        own term rather than with a <code>var()</code> fallback that only looks like one, and
+        every custom property it caps on has to be written by a shipping script.
+      </p>
+    </div>
     <p>
       Its stops are not chosen separately. They are the spectrum's own, with lime removed
       and the remaining band renormalised onto 0–100 %:

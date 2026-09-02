@@ -614,8 +614,33 @@ def orbit(x, y, z, r, axis='z'):
     what an orbit was for in the first place."""
     a, b = _PLANE[axis]
     rx, ry, ang = _ell(a, b, r)
-    return _ell_tag(p_(x, y, z), rx, ry, ang, None,
-                    cls='cf-iso__ghost cf-iso__orbit', extra=' stroke-dasharray="1 4"')
+    return _ell_tag(p_(x, y, z), rx, ry, ang, None, cls='cf-iso__ghost cf-iso__orbit',
+                    extra=' stroke-dasharray="1 4"' + _orbit_travel(rx, ry))
+
+
+# AN ORBIT DECLARES ITS OWN TRAVEL, and the generator writes it. The token's
+# --iso-orbit-travel is 60 px, measured on process card 04's rings, which are
+# the largest in the tree; on a ring the size of a fan shroud or a propeller
+# disc 60 px is more than a lap, so scripts/check-orbit-turn.py holds every
+# orbit to one part in 19.52 of its own circumference and a whole number of
+# dash periods. Those declarations were added to the pages by hand once and
+# the next regeneration wiped them; a number the checker derives from the
+# ring is a number the ring should carry from birth. Same arithmetic as the
+# checker's: Ramanujan on the ellipse as written to two decimals, floored to
+# the dash period, and omitted where the default already fits.
+ORBIT_SHARE = 19.52
+ORBIT_PERIOD = 5.0            # stroke-dasharray="1 4"
+ORBIT_DEFAULT = 60.0          # tokens.css --iso-orbit-travel
+
+
+def _orbit_travel(rx, ry):
+    ra, rb = float(f(rx)), float(f(ry))
+    h = ((ra - rb) ** 2) / ((ra + rb) ** 2)
+    length = math.pi * (ra + rb) * (1 + 3 * h / (10 + math.sqrt(4 - 3 * h)))
+    allowed = int((length / ORBIT_SHARE) // ORBIT_PERIOD) * ORBIT_PERIOD
+    if allowed >= ORBIT_DEFAULT:
+        return ''
+    return f' style="--iso-orbit-travel:{f(allowed)}px"'
 
 
 def _node_tag(c, r):
