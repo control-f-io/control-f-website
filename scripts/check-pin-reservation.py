@@ -31,7 +31,10 @@ it counts COPY RUNS and the copy is centred in a panel with air under it: what
 was outside the clip was the plate's own bottom rail, the one stroke .lp-frame
 exists to draw.
 
-WHAT IS CHECKED — two readings of the same claim.
+WHAT IS CHECKED — two readings of the same claim, plus the shape that makes
+both possible: --lp-measure must subtract ONE parenthesised sum, `- (…)) * 2`,
+so that the term the card's whole size comes off is something a file can be
+held to rather than a constant. A flat `13rem` fails on the shape alone.
 
   1. THE TERMS. The reservation's calc() is parsed into a multiset of token
      references, and so are the five declarations it reserves for, read from
@@ -91,9 +94,18 @@ BASE = DS / "assets/css/base.css"
 COMPONENTS = DS / "assets/css/components.css"
 ACTS = DS / "assets/css/acts.css"
 
-RESERVATION = "--lp-chrome"
 CONSUMER = "--lp-measure"
 ROOTS = (16, 20, 24, 32)
+
+# The reservation is the parenthesised subtrahend inside --lp-measure rather
+# than a property of its own, and that is not a style choice.
+# check-fluid-crossovers.py resolves var() through tokens.css alone, so a
+# `- var(--lp-chrome)` naming a property acts.css defines is a var it cannot
+# resolve — the declaration goes to that census's "unread" pile and the
+# crossover at 576 px tall stops being published. Named, this term costs
+# another gate its coverage; inlined, every var() in it resolves and the row
+# stands. So the sum stays in place and this file reaches in for it.
+SUBTRAHEND = re.compile(r"-\s*(\((?:[^()]|\([^()]*\))*\))\s*\)\s*\*\s*2")
 
 # The five declarations the reservation stands for: (label, sheet, selector,
 # property, how many of them the stage has).
@@ -362,22 +374,25 @@ def main():
     findings, notes = [], []
     tokens = token_table()
 
-    reservation = find_declaration(ACTS, "main", RESERVATION)
-    if not reservation:
-        print(f"FINDING  {ACTS.relative_to(ROOT)}: no {RESERVATION} on `main`. "
-              f"The reservation {CONSUMER} subtracts has to be a named term, "
-              f"or nothing can read it against the furniture it stands for.")
+    consumer = find_declaration(ACTS, "main", CONSUMER)
+    if not consumer:
+        print(f"FINDING  {ACTS.relative_to(ROOT)}: no {CONSUMER} on `main`. "
+              f"That declaration is act 3's card width and the reservation is "
+              f"the term it subtracts; without it there is nothing to read.")
         print("\ncheck-pin-reservation: 1 finding(s).")
         return 1
-    res_line, res_value = reservation
-    notes.append(f"{RESERVATION}  {ACTS.relative_to(ROOT)}:{res_line}  {res_value}")
-
-    consumer = find_declaration(ACTS, "main", CONSUMER)
-    if not consumer or f"var({RESERVATION})" not in consumer[1]:
-        findings.append(
-            f"{ACTS.relative_to(ROOT)}: {CONSUMER} does not subtract "
-            f"var({RESERVATION}). The reservation is only a reservation while "
-            f"the measure that crops the card is the thing reading it.")
+    res_line, cons_value = consumer
+    match = SUBTRAHEND.search(cons_value)
+    if not match:
+        print(f"FINDING  {ACTS.relative_to(ROOT)}:{res_line}  {CONSUMER} is "
+              f"`{cons_value}` and this file cannot find the reservation in "
+              f"it. The shape it reads is `- (<sum>)) * 2`: one parenthesised "
+              f"subtrahend, so the term the card's whole size comes off is a "
+              f"sum something can be held to rather than a constant.")
+        print("\ncheck-pin-reservation: 1 finding(s).")
+        return 1
+    res_value = match.group(1)
+    notes.append(f"reservation  {ACTS.relative_to(ROOT)}:{res_line}  {res_value}")
 
     # ---- 1. the terms -----------------------------------------------------
     want = Counter()
@@ -431,7 +446,7 @@ def main():
             detail.append("declared, and the reservation does not carry: "
                           + ", ".join(f"{k} x{v}" for k, v in sorted(under.items())))
         findings.append(
-            f"{ACTS.relative_to(ROOT)}:{res_line}  {RESERVATION} is not the "
+            f"{ACTS.relative_to(ROOT)}:{res_line}  the reservation is not the "
             f"sum of the five declarations it stands for. "
             + "; ".join(detail)
             + ". A reservation larger than its furniture is doubled by the "
@@ -444,7 +459,7 @@ def main():
             a = resolve(res_value, tokens, root)
             if a is None:
                 findings.append(
-                    f"{ACTS.relative_to(ROOT)}:{res_line}  {RESERVATION} has a "
+                    f"{ACTS.relative_to(ROOT)}:{res_line}  the reservation has a "
                     f"term this file cannot resolve to a length. It is the "
                     f"reservation the card's whole size comes off — it has to "
                     f"stay readable.")
@@ -481,7 +496,7 @@ def main():
             if abs(a - total) > 0.1:
                 findings.append(
                     f"{ACTS.relative_to(ROOT)}:{res_line}  at a {root}px root "
-                    f"{RESERVATION} resolves to {a:.2f} px and the five "
+                    f"the reservation resolves to {a:.2f} px and the five "
                     f"declarations it reserves for come to {total:.2f} px — "
                     f"off by {a - total:+.2f}. The names still agree; a value "
                     f"under one of them moved.")

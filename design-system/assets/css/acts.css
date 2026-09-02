@@ -4297,16 +4297,26 @@
          THE INDEX'S LINE IS --leading-relaxed BECAUSE base.css SETS IT THERE
          and .cf-pin__index overrides only the size: 0.6875 * 1.45 is the
          0.9969rem the four numerals occupy, measured 15.9 px at a 16 px root
-         and 31.9 at 32. → scripts/check-pin-reservation.py, which reads all
-         five declarations and fails when the sum stops being what they say */
-      main {
-        --lp-chrome: calc(var(--nav-height) + var(--space-4)
-                          + 2 * var(--space-4)
-                          + var(--space-8)
-                          + var(--text-xs) * var(--leading-relaxed)
-                          + var(--stroke-1));
-        --lp-measure: calc((max(min(45rem - 9rem, 100vh), 100vh - var(--cf-consent-height, 0px)) - var(--lp-chrome)) * 2);
-      }
+         and 31.9 at 32.
+
+         AND THE SUM IS INLINE RATHER THAN A --lp-chrome OF ITS OWN, which is
+         not a style choice. check-fluid-crossovers.py resolves var() through
+         tokens.css alone, so a `- var(--lp-chrome)` naming a property this
+         file defines is a var it cannot resolve: the whole declaration goes to
+         that census's "unread" pile and the crossover it publishes — 576 px
+         tall, where min()'s arms swap — stops being published. Measured: named,
+         the census dropped from 16 rows to 15 and lost this one; inlined, every
+         var() in it resolves through tokens.css and the row stands with its
+         swap unchanged. Naming the term would have cost another gate its
+         coverage to buy this one a tidier expression.
+         → scripts/check-pin-reservation.py, which reads all five declarations
+           and fails when the sum stops being what they say */
+      main { --lp-measure: calc((max(min(45rem - 9rem, 100vh), 100vh - var(--cf-consent-height, 0px))
+                                - (var(--nav-height) + var(--space-4)
+                                   + 2 * var(--space-4)
+                                   + var(--space-8)
+                                   + var(--text-xs) * var(--leading-relaxed)
+                                   + var(--stroke-1))) * 2); }
       /* ---- ACT 1 + 2: the track and the stage ---- */
       /* 640vh, NOT 400. Nothing about the SCRIPT changed — every window is
          still a contain-percent and the acts still divide the track the same
@@ -5754,7 +5764,7 @@
          own middle because the padding is 100 / 32 and not 66 / 66. So the
          surplus lands on one side. Measured, plate against clip, top / bottom:
 
-           1366 x 768     0 / 23      before --lp-chrome; 0 / 3 after
+           1366 x 768     0 / 23      before the reservation fix; 0 / 3 after
            1080 x 800     0 / 54
            1024 x 800     0 / 64
            1024 x 768     0 / 80
@@ -5770,7 +5780,7 @@
          question, not this row's, and it is open.
 
          The chrome this reserves for is now the sum of the five declarations
-         that make it — --lp-chrome, derived where --lp-measure is — and this
+         that make it, inlined as --lp-measure's own subtrahend — and this
          paragraph is what asked for that. It used to read that the trio needs
          181 px at 1280 x 720 against the 208 a flat 13rem withheld, call the
          27 px slack rather than crop, and leave the retune "a separate change
