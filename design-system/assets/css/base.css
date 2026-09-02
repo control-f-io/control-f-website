@@ -1900,6 +1900,33 @@ hr {
      runs, and correctly shrink-wrapped for as long as it is. */
   .text-foil:not(:has(.cf-stream__text)) { max-width: max-content; }
 
+  /* AND THE EXCLUDED CASE IS CAPPED TOO, on a number it did not have to ask
+     itself for. The paragraph above is right that a rewritten element cannot
+     resolve its own max-content — and it left the four largest foil moments
+     in the system uncapped, which is the failure this whole block exists to
+     stop. Measured on expertise.html's rendered page: the four card titles
+     ink 136–406 px inside a 518 px box at 1280 and a 593 px one at 1920, so
+     "Maschinenbau" sampled 0.8–53.0 % of --gradient-foil-ink at 1280 and
+     0.5–46.2 % at 1920, "Flotten" 22.9 %, and Violett 800 — the far end of
+     the ramp, and the whole reason the foil is a foil — appeared on none of
+     them at either width.
+
+     cf-stream.js measures the element's real max-content BEFORE it empties
+     it and publishes it as --stream-inline, in em so it survives the type
+     moving; the caret is inside that measurement because it is inline-block
+     in the flow and a cap at the ink alone drops it to a second line. See
+     THE INLINE AXIS, MEASURED BEFORE IT IS TAKEN in that file for the
+     numbers and for why the measurement cannot be taken any later.
+
+     min(), so the cap is the same min(max-content, available) the rule above
+     resolves to — a reservation wider than the column must not widen the box.
+     The fallback is what makes this additive: with no script, no :has(), or a
+     line the stream never reached, --stream-inline is absent, min(100%, 100%)
+     is 100 %, and the box is exactly the box it is today. */
+  .text-foil:has(.cf-stream__text) {
+    max-width: min(var(--stream-inline, 100%), 100%);
+  }
+
   /* NO ::selection RULE HERE, and its absence is the fix rather than an
      omission. This class used to restate the global ::selection in full,
      because that rule set `color` and not the fill. It states both now, so a

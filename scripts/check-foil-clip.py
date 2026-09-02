@@ -27,8 +27,30 @@ function form rendered 100 -- which is exactly what a DROPPED width does in a
 the box IS the containing block, and that was the only case the isolated test
 had.
 
-So this script asks two questions, and the second is the general form of the
-first:
+AND THE CAP HAD AN EXCLUSION THE SCRIPT TOOK ON TRUST. `max-width:
+max-content` is written `.text-foil:not(:has(.cf-stream__text))`, because
+capping a rewritten element at its own content is cyclic -- the reason is
+sound and it is measured. What was never measured is what the excluded case
+then renders. It is the four card titles on expertise.html, which are the four
+largest foil moments in the system, and on the rendered page they sat 136-406
+px of ink inside a 518 px box at 1280 and a 593 px one at 1920:
+
+    Maschinenbau           53.4 % of the ramp at 1280,  46.6 % at 1920
+    Erneuerbare Energien   78.4 %                       68.4 %
+    Großanlagen            47.0 %                       41.1 %
+    Flotten                26.2 %                       22.9 %
+
+Sampled against --gradient-foil-ink, whose stops sit at 0 / 23.5 / 47 / 73.5 /
+100 %, VIOLETT 800 APPEARED ON NONE OF THEM AT EITHER WIDTH, and at 1920 two
+of the four did not reach Sky 800 either. That is the same sentence the header
+opens with, printed by the exemption instead of by the missing declaration --
+which is why a gate that only asks whether the cap EXISTS cannot see it.
+cf-stream.js publishes the element's real max-content as --stream-inline
+before it empties it, and the excluded case caps on that; question 3 below is
+what holds the pair together.
+
+So this script asks three questions, and each is the general form of the one
+before it:
 
   1. THE CAP EXISTS, as a max-width off the content rather than as a width.
      `width` with an intrinsic keyword asks a box to size itself from its own
@@ -37,6 +59,16 @@ first:
      types into: `width: max-content` collapsed all four card titles to 22 px
      and 0. `max-width: max-content` over `width: auto` is min(max-content,
      available) written as the one property that cannot be cyclic.
+
+  3. NOTHING IS EXCLUDED FROM THE CAP WITHOUT BEING CAPPED ANOTHER WAY, and
+     the number it is capped on is one something actually sets. A
+     `.text-foil:not(:has(...))` cap has to be answered by a
+     `.text-foil:has(...)` one; that answer has to clamp at the available
+     space, so a reservation wider than the column cannot widen the box; and
+     every custom property it caps on has to be written by a shipping script.
+     A cap on a var nothing sets is `max-width: 100%` wearing an argument --
+     the same shape of failure as a value no engine implements, one level of
+     indirection out.
 
   2. NO BOX PROPERTY ANYWHERE IN THE SHIPPING CSS TAKES `fit-content()`.
      That is the defect one level up from the one that happened: a value no
@@ -74,6 +106,13 @@ TRACK_PROPS = {
 
 DECL = re.compile(r"([-a-zA-Z]+)\s*:\s*([^;{}]+)", re.S)
 COMMENT = re.compile(r"/\*.*?\*/", re.S)
+# `:not(:has(X))` -- the shape an exclusion from the cap takes. X is what the
+# answering rule has to select on.
+EXCLUSION = re.compile(r":not\(\s*:has\(\s*([^)]+?)\s*\)\s*\)")
+VAR = re.compile(r"var\(\s*(--[\w-]+)")
+# A whole var() call, fallback and all, so the clamp test below reads the cap's
+# own terms rather than a fallback that only looks like one.
+VAR_CALL = re.compile(r"var\(\s*--[\w-]+\s*(?:,[^()]*)?\)")
 
 
 def strip_comments(text):
@@ -138,6 +177,8 @@ def main():
     args = ap.parse_args()
 
     findings, seen = [], []
+    scripts = [p.read_text(encoding="utf-8")
+               for p in sorted((DS / "assets" / "js").glob("*.js"))]
 
     # --- 2. fit-content() on a box property, anywhere it ships ---------------
     for name in CSS:
@@ -160,20 +201,27 @@ def main():
 
     # --- 1. the clip box is capped, and capped the right way ----------------
     base = strip_comments((DS / "assets" / "css" / "base.css").read_text(encoding="utf-8"))
-    capped, widths = [], []
+    capped, widths, excluded, answers = [], [], [], []
     for sel, body, line in rule_bodies(base):
         if ".text-foil" not in sel:
             continue
+        flat = " ".join(sel.split())
         for prop, value in declarations(body):
             if prop == "max-width" and "max-content" in value:
                 capped.append((sel, line))
-                seen.append(("ok  ", "base.css:%d" % line,
-                             " ".join(sel.split())[:44], "%s: %s" % (prop, value)))
+                for m in EXCLUSION.finditer(flat):
+                    excluded.append((m.group(1), flat, line))
+                seen.append(("ok  ", "base.css:%d" % line, flat[:44],
+                             "%s: %s" % (prop, value)))
+            elif prop == "max-width" and ":has(" in flat and ":not(" not in flat:
+                answers.append((flat, line, value))
+                seen.append(("ok  ", "base.css:%d" % line, flat[:44],
+                             "%s: %s" % (prop, value)))
             elif prop in ("width", "inline-size") and re.search(
                     r"\b(max-content|min-content|fit-content)\b", value):
                 widths.append((sel, line, value))
-                seen.append(("FAIL", "base.css:%d" % line,
-                             " ".join(sel.split())[:44], "%s: %s" % (prop, value)))
+                seen.append(("FAIL", "base.css:%d" % line, flat[:44],
+                             "%s: %s" % (prop, value)))
 
     if not capped:
         findings.append(
@@ -187,6 +235,51 @@ def main():
             "cf-stream.js empties the element it types into, and the four card "
             "titles on expertise.html collapsed to 22 px and 0. Cap with "
             "max-width instead." % (line, sel.strip()[:40], value))
+
+    # --- 3. the exclusion is answered, clamped, and caps on a real number ----
+    #
+    # An exclusion is `:not(:has(X))` on the rule that carries the cap. Its
+    # answer is a rule matching the same X with no negation, setting max-width
+    # of its own. Matching on the ARGUMENT and not on the whole selector is the
+    # point: the two rules are a pair by what they select, so a second
+    # exclusion added later needs its own answer rather than inheriting this
+    # one's.
+    for arg, sel, line in excluded:
+        pair = [a for a in answers if arg in a[0]]
+        if not pair:
+            findings.append(
+                "base.css:%d  `%s` excludes `%s` from the cap and nothing caps "
+                "it instead. The excluded box is then the column, which is what "
+                "the cap exists to stop -- measured on expertise.html, the four "
+                "card titles rendered 22.9-78.4 %% of --gradient-foil-ink and "
+                "Violett 800 appeared on none of them." % (line, sel[:52], arg))
+            continue
+        for answer, at, value in pair:
+            # The clamp has to be the CAP's own term, not a var()'s fallback.
+            # `max-width: var(--x, 100%)` reads as clamped and is not: when the
+            # property is set it is the whole of the cap, and a reservation
+            # wider than the column widens the box. So the fallbacks come out
+            # before the term is looked for.
+            outer = VAR_CALL.sub("", value)
+            if "100%" not in outer:
+                findings.append(
+                    "base.css:%d  `%s` answers the exclusion with `max-width: "
+                    "%s` and never clamps at the available space. A reservation "
+                    "wider than the column would then widen the box; the cap is "
+                    "min(max-content, available) and both halves have to say "
+                    "so." % (at, answer[:52], value))
+            for prop in set(VAR.findall(value)):
+                if not any(("setProperty('%s'" % prop) in js
+                           or ('setProperty("%s"' % prop) in js for js in scripts):
+                    findings.append(
+                        "base.css:%d  `%s` caps on `var(%s)` and no shipping "
+                        "script sets it. An unset custom property falls back, "
+                        "so the cap silently becomes its fallback -- a value no "
+                        "engine implements and a value nothing supplies fail "
+                        "the same way, and neither leaves a mark."
+                        % (at, answer[:52], prop))
+                else:
+                    seen.append(("ok  ", "assets/js", prop, "set by a shipping script"))
 
     if args.verbose:
         for status, where, prop, value in seen:
