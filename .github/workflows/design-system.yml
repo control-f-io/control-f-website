@@ -567,6 +567,20 @@ jobs:
         if: '!cancelled()'
         run: python3 scripts/check-iso-motion.py
 
+      # --iso-orbit-travel is one arc for every ring, and an arc is only one
+      # gesture while the rings are of a size. It was measured on card 04's,
+      # the largest in the system; on the six an order of magnitude smaller
+      # the same 60 px was up to 0.58 of the ring, so four of the nine orbits
+      # went round more than once and landed back where they started. Both
+      # ends of the turn sit on a whole dash either way, so the settled
+      # drawing was right and nothing reported it. This holds the travel to a
+      # whole number of the ring's own dashes and to a share of that ring, and
+      # re-derives the ceiling from the rings still running the default rather
+      # than remembering it.
+      - name: Orbit turn
+        if: '!cancelled()'
+        run: python3 scripts/check-orbit-turn.py
+
       # The motion chapter's census of its own tokens — how many rules reach for
       # each duration and each curve — was a hand-kept column that the page
       # itself said had gone stale three times. It went stale a fourth, and the

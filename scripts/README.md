@@ -1,9 +1,9 @@
 # scripts/
 
 Everything that generates this website, and everything that refuses to let it
-ship broken. 177 files at this level, this one included, no package, no
+ship broken. 178 files at this level, this one included, no package, no
 `__init__.py`, no build step: every one is `python3` against the standard
-library, and 176 of the 177 are run by their own path. There are exactly two
+library, and 177 of the 178 are run by their own path. There are exactly two
 dependencies in the whole directory — Pillow, in `sync-news-notion.py` and
 nowhere else, and Playwright, in `check-runtime.py` and nowhere else — and both
 are discussed below.

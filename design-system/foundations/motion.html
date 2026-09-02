@@ -755,6 +755,73 @@ python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the co
       angular one: the inner ring turns through more of itself than the outer one over the same
       scroll. That is what stops three concentric rings reading as one rigid body being spun.
     </p>
+
+    <h4 id="orbit-share">One speed, and a ceiling on it</h4>
+    <p>
+      <strong>The paragraph above is the whole rule for card 04 and it was the whole rule for the
+      system, and the system has nine orbits.</strong> An arc is what the token names; a
+      <em>share</em> of the ring is what the reader sees. The two are the same statement only
+      while the rings are of a size, and card 04's are the largest drawn anywhere — the great
+      circle measures 1 520.53 units and each 2:1 orbit 1 171.37, so 60 px is one part in 25.3
+      and one part in 19.5 of them. The other six orbits are on
+      <a href="../patterns/expertise.html">Expertise</a> and its prototype, and they are an order
+      of magnitude smaller.
+    </p>
+    <table class="docs-table">
+      <thead>
+        <tr><th>Ring</th><th>Circumference</th><th>Travel</th><th>Share of the ring</th><th>Of a turn, 1280 → 375 px</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Card 04, great circle</td><td>1 520.53</td><td>60 px</td><td>1 / 25.3</td><td>7.2 % → 13.7 %</td></tr>
+        <tr><td>Card 04, two 2:1 orbits</td><td>1 171.37</td><td>60 px</td><td>1 / 19.5</td><td>9.3 % → 17.8 %</td></tr>
+        <tr><td>Expertise 02</td><td>323.90</td><td>60 px</td><td>1 / 5.4</td><td>29.4 % → 44.8 %</td></tr>
+        <tr><td>Expertise 01</td><td>139.83</td><td>60 px</td><td>1 / 2.3</td><td>78.9 % → 120.0 %</td></tr>
+        <tr><td>Expertise 04, both rings</td><td>103.04</td><td>60 px</td><td>1 / 1.7</td><td><strong>112.8 % → 171.4 %</strong></td></tr>
+      </tbody>
+    </table>
+    <p>
+      Four of the nine went round <strong>more than once</strong> while their object assembled, and
+      then landed back on the phase they had started from. That is not a differential; it is a lap.
+      The settled drawing is correct either way — both ends of the animation sit on a whole number
+      of dashes, which is what the section above is about — so nothing rendered wrong and nothing
+      reported it. What the reader got was a ring that blurred and was suddenly still, which is the
+      opposite of the brand's one instruction for anything spatial: turn slowly, then settle.
+    </p>
+    <p>
+      <strong>The fix is a bound, not a second speed.</strong> The token stays 60 px and stays the
+      default, because it is right for the object it was measured on. What is new is a ceiling
+      expressed as a share: <strong>no orbit may travel more than one part in 19.52 of its own
+      ring</strong> — card 04's own tightest, so the bound is read off the drawing rather than
+      chosen. An orbit that would exceed it declares its own travel inline, the largest whole
+      number of dashes that stays inside, exactly the way a part of a built object declares its own
+      <code>--build-dx</code>.
+    </p>
+    <pre class="docs-code">&lt;<span class="tag">ellipse</span> <span class="attr">class</span>=<span class="val">"cf-iso__ghost cf-iso__orbit"</span> <span class="attr">style</span>=<span class="val">"--iso-orbit-travel:15px"</span>
+         <span class="attr">rx</span>=<span class="val">"63.12"</span> <span class="attr">ry</span>=<span class="val">"38.48"</span> <span class="attr">stroke-dasharray</span>=<span class="val">"1 4"</span>/&gt;   <span class="tag">/* 323.90 / 19.52 = 16.59 → 3 dashes */</span></pre>
+    <p>
+      Expertise declares 5, 15, 5 and 5 px. Every orbit in the system now turns between 6.6 % and
+      17.8 % of its ring across 375 to 1280 px, against 7.2 % to 171.4 % before — one gesture, at
+      nine sizes.
+    </p>
+    <div class="docs-note">
+      <strong>Why the ceiling is a share of the drawing and not a share of the render.</strong>
+      What the eye judges is the rendered ring, and the travel is in screen pixels while the ring
+      is in viewBox units, so the rendered share moves with the drawing's scale — every row of the
+      last column above is a range for that reason. A share of the <em>drawing</em> is the
+      scale-free form of the same rule, and it is the only form a check without a browser can
+      hold. The two columns agree because these drawings all render between 0.29 and 0.63 of their
+      viewBox: one part in 19.52 of the drawing is 8.1 % to 17.7 % of a rendered turn, which is
+      card 04's own measured band.
+    </div>
+    <p>
+      <strong>And the 19.52 is re-derived rather than remembered.</strong>
+      <code>scripts/check-orbit-turn.py</code> computes every orbit's circumference from its own
+      <code>rx</code>/<code>ry</code>, takes the largest share among the orbits still running the
+      token default, and fails if that is not the recorded ceiling — so a small ring left on the
+      default cannot quietly raise the bar it is being judged against. It also holds every travel
+      to a whole number of the element's own dash period, which is what keeps both ends of the
+      turn on the phase the source vector draws.
+    </p>
     <div class="docs-note">
       <strong>This is a paint-only animation, not a composited one.</strong> Transform and opacity
       are the cheap pair; <code>stroke-dashoffset</code> repaints the stroke each frame. It is
