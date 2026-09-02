@@ -12077,7 +12077,47 @@ a.cf-calendar__day > time,
   .cf-plot__rise,
   .cf-plot__cap,
   .cf-plot__cell { stroke: CanvasText; }
-  .cf-plot--ground .cf-plot__set::before { background: CanvasText; }
+  /* AND THE FOOTPRINT TAKES ITS EDGE BACK WITH THE GROUND, at the specificity
+     that reaches it. The line above is (0,1,0) and
+     `.cf-plot--ground .cf-plot__draw .cf-plot__cell { stroke: none }` is
+     (0,3,1), so on the one variant that has a plane the stroke never landed —
+     and the note over that rule says why it was taken off in the first place:
+     "the dash was a second drawing of a line the ground already draws". The
+     ground is what the rule below removes here, so the reason goes with it and
+     the face has to close its own bottom. Without this the columns lost their
+     footprints the moment the slab stopped hiding that they had none: measured
+     on components/plot.html in forced colours, four solids whose two verticals
+     simply stopped in mid air with no line across their feet and no level in
+     the figure at all. */
+  .cf-plot--ground .cf-plot__draw .cf-plot__cell { stroke: CanvasText; }
+  /* THE GROUND IS A LATTICE AND `background` IS A SHORTHAND, which is the
+     whole of this finding. The plane is two repeating gradients — hairlines
+     at a half step, transparent everywhere between them — and forced colours
+     discards background-image outright. `background: CanvasText` therefore
+     did not re-ink the lattice; it dropped the image and painted the band's
+     whole box, 392 x 56 px at 1440, in the reader's ink. Measured on
+     patterns/landing-page.html's act 4, card 03, forced colours on a white
+     Canvas: a solid black slab from the set's left edge to its right, 56 px
+     tall, centred on the zero line — the four columns standing in a trench,
+     the shortest of them (+9 %, the one whose point is that it rose) more
+     than half swallowed, and every footprint invisible against it.
+
+     .cf-ground ALREADY ANSWERED THIS, for this exact material. The plane is
+     that utility's field at the plot's scale — the note over the base rule
+     says so — and base.css takes it out under both degraded palettes with
+     the sentence this rule should have read: "a forced-colours palette has
+     no value to give it that is not either invisible or a second border."
+     CanvasText is that second border, filled rather than stroked.
+
+     AND THE LEVEL DOES NOT GO WITH IT. The plane's job here is stated one
+     comment up — "the footprints sitting in it are what locate zero for each
+     column" — and the footprints are .cf-plot__cell, which this block draws
+     as Canvas and which the rule directly above gives back its CanvasText
+     edge. Four outlined diamonds on one line state the zero this figure
+     needs; the slab was hiding them, and hiding that they had no edge to be
+     seen by. Two marks for one fact is one too many, in this palette as in
+     the other. */
+  .cf-plot--ground .cf-plot__set::before { display: none; }
   .cf-plot__col--lit .cf-plot__cap,
   .cf-plot__col--fell .cf-plot__cap { fill: none; }
   /* The occluders keep their job and lose their colour. A fill written as a
