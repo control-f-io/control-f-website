@@ -52,6 +52,7 @@
       { href: 'components/vacancy.html',        label: 'Vacancy' },
       { href: 'components/pagination.html',     label: 'Pagination' },
       { href: 'components/error-state.html',    label: 'Error & Empty State' },
+      { href: 'components/notice.html',         label: 'Notice' },
       { href: 'components/arrival.html',        label: 'Arrival & Progress' },
       { href: 'components/scroll-cue.html',     label: 'Scroll Cue' },
       { href: 'components/article.html',        label: 'Article & Prose' },

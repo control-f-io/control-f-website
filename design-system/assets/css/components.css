@@ -6245,6 +6245,157 @@ a.cf-article__tag:focus-visible { background: var(--cf-schwarz); color: var(--gr
    → the TABLE section */
 
 /* --------------------------------------------------------------------------
+   NOTICE
+   One message, standing in the flow: a qualification inside an article, a
+   warning above a form, the sentence a failed POST comes back with. Not a
+   toast, not a dialog, nothing that moves or disappears on its own.
+
+   THE PROBLEM THIS COMPONENT HAS THAT OTHER SYSTEMS DO NOT. Every notice
+   component in the field carries its severity in a fill: USWDS paints a
+   green, a yellow and a red band across the whole box, Carbon tints the
+   surface, GOV.UK fills the header. This system has one non-brand colour in
+   it — `--feedback-error`, and tokens.css calls it "the one colour outside
+   the brand palette, and the only one" — so there is no green to be
+   successful in and no amber to warn in, and inventing them would cost the
+   palette more than the component is worth.
+
+   So severity is carried by the PRESENCE LADDER instead, which is the axis
+   the brand already has for exactly this: "how present the thing it draws
+   is", four line types read as one scale. A notice is a hairline box with a
+   4 px band on its leading edge, and the band's LINE TYPE is the tone.
+
+     hinweis   --presence-faint (1-2)    a qualification. Read it or don't.
+     achtung   --presence-near  (2-1)    something will go wrong if you don't.
+     fehler    --presence-present (solid, in --feedback-error)  it already did.
+
+   Which is the ladder's own rule obeyed rather than quoted: one object, three
+   rungs, moving ALONG the scale and never across it. The box, the geometry,
+   the padding and the glyph column are identical in all three; what changes
+   is how solidly the leading edge is drawn.
+
+   And the tone is never only the line. WCAG 1.4.1 is about colour, but the
+   principle generalises to any single channel a reader may not resolve — a
+   1-2 band and a 2-1 band are four pixels apart at arm's length. Every notice
+   therefore states its tone as a WORD in the title (Hinweis / Achtung /
+   Fehler), which is the same conclusion USWDS reaches from the colour side:
+   "start alert text with the alert type descriptor". The glyph is the third
+   channel and the band is the fourth.
+
+   No fill, no radius, no lime. Lime is the light layer and a notice is not a
+   light source; a notice drawn in lime would spend a screen's one lime moment
+   on an interruption.
+   -------------------------------------------------------------------------- */
+.cf-notice {
+  /* The tone, as two custom properties. Everything else is shared. */
+  --notice-ink: var(--text-primary);
+  --notice-edge: var(--border-default);
+  /* --presence-faint, 1-2. The ratio is written out because CSS cannot read a
+     two-value `stroke-dasharray` token into a gradient — the same reason
+     base.css writes .rule--dashed-1-2 as literals rather than as var(--dash-1-2),
+     and the period is the identical 6 px. */
+  --notice-band: repeating-linear-gradient(180deg,
+                 var(--notice-ink) 0 2px, transparent 2px 6px);
+
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "glyph title" ". body" ". actions";
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+  /* The glyph and the label are one row and are centred in it, so a 16 px mark
+     and an 11 px mono line share a middle rather than a top edge. Every other
+     row holds a single item, where centring and starting are the same thing. */
+  align-items: center;
+  padding-block: var(--space-5);
+  /* The leading pad clears the band, which sits ON the contour rather than
+     inside it — so the edge of the box thickens rather than gaining a stripe. */
+  padding-inline: calc(var(--space-5) + var(--stroke-4)) var(--space-5);
+  border: var(--stroke-1) solid var(--notice-edge);
+  border-radius: var(--radius-none);
+}
+
+/* The band. Inset by the contour's own 1 px on three sides so it covers the
+   corner it stands in; a band that stopped short would read as two lines
+   meeting rather than as one edge drawn heavier. */
+.cf-notice::before {
+  content: "";
+  position: absolute;
+  inset-block: calc(var(--stroke-1) * -1);
+  inset-inline-start: calc(var(--stroke-1) * -1);
+  width: var(--stroke-4);
+  background: var(--notice-band);
+}
+
+/* Hinweis is the base and takes no modifier — the quietest tone is what a
+   notice is unless it says otherwise, the same way .cf-btn is the plain
+   button and only the loud ones are named. */
+.cf-notice--achtung {
+  /* --presence-near, 2-1. Same 6 px period, twice the ink. */
+  --notice-band: repeating-linear-gradient(180deg,
+                 var(--notice-ink) 0 4px, transparent 4px 6px);
+}
+.cf-notice--fehler {
+  /* --presence-present. The top rung is solid, and it is the one tone that
+     also takes the error ink — on the band, on the label and on the contour,
+     so the box is findable at a glance on a page that is otherwise all
+     hairlines. Same weight as every other notice: the rung does the work,
+     not a second stroke width. */
+  --notice-ink: var(--feedback-error);
+  --notice-edge: var(--feedback-error);
+  --notice-band: var(--notice-ink);
+}
+
+/* The glyph is a required part, not a decoration: it is the third channel the
+   tone is stated on, after the word and the line type. It takes .cf-icon--sm —
+   16 px is the icon set's floor and it is what stands beside an 11 px label
+   without becoming the loudest thing in the box. */
+.cf-notice__glyph {
+  grid-area: glyph;
+  color: var(--notice-ink);
+}
+.cf-notice__title {
+  grid-area: title;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--notice-ink);
+}
+/* No font-size here on purpose. A notice inherits the size of what it stands
+   in — 16 px inside .cf-prose, 14 px beside a form — because it is a sentence
+   in that text, not a panel with a type scale of its own. */
+.cf-notice__body { grid-area: body; }
+.cf-notice__body > * + * { margin-top: var(--space-3); }
+.cf-notice__body :last-child { margin-bottom: 0; }
+
+/* Optional. One or two ways out of what the notice just said — the vacancy
+   that closed linking to the register, the failed submission linking to the
+   address it could have been sent to instead. */
+.cf-notice__actions {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+}
+
+/* Under forced colours a background-image is discarded outright, so the band
+   would vanish and all three tones would render as the same box — the exact
+   failure base.css documents on .rule--dashed-*. Same answer as there: the
+   band becomes a real border, whose colour forced colours maps rather than
+   erases, and the two dashed rungs take the two dash styles CSS actually has.
+   1-2 is dotted and 2-1 is dashed, which is base.css's own mapping. */
+@media (forced-colors: active) {
+  .cf-notice::before {
+    width: 0;
+    border-inline-start: var(--stroke-4) dotted CanvasText;
+  }
+  .cf-notice--achtung::before { border-inline-start-style: dashed; }
+  .cf-notice--fehler::before  { border-inline-start-style: solid; }
+}
+
+/* --------------------------------------------------------------------------
    TEAM
    Two forms: a horizontal strip (landing page) and a portrait grid
    (Über uns). Both share the name/role typography.

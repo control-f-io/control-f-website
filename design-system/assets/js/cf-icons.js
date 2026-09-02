@@ -113,6 +113,16 @@
     { id: 'cf-diamond-nested-solid', label: 'Diamond nested, solid', use: 'Selected state at label scale',
       keyline: 'rhombus 20 x 10 with a 8 x 4 rhombus cut out',
       shapes: '<path d="M12 7 L22 12 L12 17 L2 12 Z M12 10 L16 12 L12 14 L8 12 Z" fill="currentColor" fill-rule="evenodd"/>' },
+    /* The alert mark's own top rung. cf-triangle is the line weight and is
+       what a warning takes; this is the same triangle with a body instead of
+       a contour, and it is what an ERROR takes — see the NOTICE component,
+       which reads the two as one object moving up the presence ladder rather
+       than as two different pictures of trouble. It is also the mark most
+       likely to be set at 16 px next to an 11 px label, which is the case the
+       solid weight exists for. Its line twin is in Objects below. */
+    { id: 'cf-triangle-solid', label: 'Triangle, solid', use: 'An error, an alert at label scale',
+      keyline: 'the 63.43 deg triangle, filled',
+      shapes: '<path d="M12 4 L20 20 L4 20 Z" fill="currentColor"/>' },
     { id: 'cf-ring-solid', label: 'Ring, solid', use: 'A node, a radio at label scale',
       keyline: 'ellipse 2:1 with a 2:1 ellipse cut out',
       shapes: '<path d="M2 12 A10 5 0 1 0 22 12 A10 5 0 1 0 2 12 Z M8 12 A4 2 0 1 0 16 12 A4 2 0 1 0 8 12 Z" fill="currentColor" fill-rule="evenodd"/>' },

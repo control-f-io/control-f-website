@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notice — Control-F Design System</title>
+<link rel="icon" href="../assets/img/logo/cf-favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Components</p>
+    <h1>Notice</h1>
+    <p>
+      One message standing in the flow of the page: a qualification inside an article, a
+      warning above a form, the sentence a failed submission comes back with. A hairline
+      box with a 4 px band on its leading edge, and the band's <em>line type</em> is the
+      tone. Nothing moves, nothing floats, nothing disappears on its own.
+    </p>
+  </header>
+
+  <section class="docs-section" id="tones">
+    <h2>Three tones</h2>
+    <p>
+      <strong>Hinweis</strong> qualifies something — read it or don't.
+      <strong>Achtung</strong> says something will go wrong if you don't.
+      <strong>Fehler</strong> says it already has. There is no fourth, and in particular
+      there is no success tone; <a href="#no-success">below</a> says why.
+    </p>
+    <div class="docs-demo">
+      <div class="cf-notice">
+        <svg class="cf-icon cf-icon--sm cf-notice__glyph" aria-hidden="true"><use href="#cf-diamond"></use></svg>
+        <p class="cf-notice__title">Hinweis</p>
+        <div class="cf-notice__body">
+          <p>Die Taktzeiten in der Tabelle sind Richtwerte aus eigenen Projekten, keine Norm.</p>
+        </div>
+      </div>
+    </div>
+    <div class="docs-demo">
+      <div class="cf-notice cf-notice--achtung">
+        <svg class="cf-icon cf-icon--sm cf-notice__glyph" aria-hidden="true"><use href="#cf-triangle"></use></svg>
+        <p class="cf-notice__title">Achtung</p>
+        <div class="cf-notice__body">
+          <p>Diese Stelle ist seit dem 12. August besetzt. Bewerbungen darauf werden nicht mehr gelesen.</p>
+        </div>
+      </div>
+    </div>
+    <div class="docs-demo">
+      <div class="cf-notice cf-notice--fehler">
+        <svg class="cf-icon cf-icon--sm cf-notice__glyph" aria-hidden="true"><use href="#cf-triangle-solid"></use></svg>
+        <p class="cf-notice__title">Fehler</p>
+        <div class="cf-notice__body">
+          <p>Ihre Nachricht konnte nicht übermittelt werden. Nichts davon ist verloren — das Formular steht noch so, wie Sie es ausgefüllt haben.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="ladder">
+    <h2>Why the tone is a line, not a fill</h2>
+    <p>
+      Every notice component in the field carries its severity in a fill. USWDS paints a
+      green, a yellow and a red band across the box; Carbon tints the surface; GOV.UK fills
+      the header. None of that is available here.
+      <a href="../foundations/colors.html">tokens.css</a> calls
+      <code>--feedback-error</code> “the one colour outside the brand palette, and the only
+      one” — so there is no green to be successful in and no amber to warn in, and inventing
+      them would cost the palette more than this component is worth. A fill would also lose
+      the argument twice over: the system draws with contours, and a filled panel is the
+      grey slab that <a href="../foundations/materials.html">Materials</a> spends a chapter
+      arguing against.
+    </p>
+    <p>
+      The brand already has an axis for exactly this. The
+      <a href="../foundations/geometry.html#lines">four line types</a> are catalogued twice
+      in the manual — once as a specimen strip, and once as one figure drawn four times,
+      solid and small at the left, 1-4 and huge at the right. Read that second plate left to
+      right and it is not a specimen sheet: it is a thing coming into being. That is the
+      <strong>presence ladder</strong>, and it is what a notice's severity rides on.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Tone</th><th>Rung</th><th>Band</th><th>Glyph</th><th>It says</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>.cf-notice</code></td>
+          <td><code>--presence-faint</code></td>
+          <td>1-2 dashed, ink</td>
+          <td><code>cf-diamond</code></td>
+          <td>A qualification. Read it or don't.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-notice--achtung</code></td>
+          <td><code>--presence-near</code></td>
+          <td>2-1 dashed, ink</td>
+          <td><code>cf-triangle</code></td>
+          <td>Something will go wrong if you don't.</td>
+        </tr>
+        <tr>
+          <td><code>.cf-notice--fehler</code></td>
+          <td><code>--presence-present</code></td>
+          <td>solid, <code>--feedback-error</code></td>
+          <td><code>cf-triangle-solid</code></td>
+          <td>It already has.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      Which is the ladder's own rule obeyed rather than quoted: <em>an object may only move
+      along the scale, never across it.</em> The box, the geometry, the padding and the glyph
+      column are identical in all three. What changes is how solidly the leading edge is
+      drawn — and, between the last two, whether the alert mark is a contour or a body. The
+      warning and the error are the same triangle at two weights, not two different pictures
+      of trouble.
+    </p>
+    <div class="docs-note">
+      <strong>The band is the fourth channel, never the only one.</strong> WCAG 1.4.1 is
+      written about colour, but the principle generalises to any single channel a reader may
+      not resolve, and a 1-2 band and a 2-1 band are four pixels apart at arm's length. So
+      every notice states its tone as a <em>word</em> — Hinweis, Achtung, Fehler — which is
+      the same conclusion USWDS reaches from the colour side: “start alert text with the
+      alert type descriptor”. Four channels carry the tone: the word, the glyph, the line
+      type, and on the error the ink. Remove any three and it still reads.
+    </div>
+  </section>
+
+  <section class="docs-section" id="actions">
+    <h2>With a way out</h2>
+    <p>
+      A notice that names a dead end should offer the live one. <code>.cf-notice__actions</code>
+      is an optional last row — one or two links, no more. It is a row rather than a slot
+      beside the text because a notice on a phone is 300 px wide and a button parked to the
+      right of a sentence at that width is a button on its own line anyway, one that has
+      pushed the sentence into a 180 px column to get there.
+    </p>
+    <div class="docs-demo">
+      <div class="cf-notice cf-notice--achtung">
+        <svg class="cf-icon cf-icon--sm cf-notice__glyph" aria-hidden="true"><use href="#cf-triangle"></use></svg>
+        <p class="cf-notice__title">Achtung</p>
+        <div class="cf-notice__body">
+          <p>Diese Stelle ist seit dem 12. August besetzt.</p>
+        </div>
+        <p class="cf-notice__actions">
+          <a href="#register">Alle offenen Stellen</a>
+          <a href="#initiativ">Initiativ bewerben</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section" id="markup">
+    <h2>Markup</h2>
+    <pre class="docs-code">&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-notice"</span>&gt;
+  <span class="com">&lt;!-- the glyph is a part, not a decoration: it is one of the three
+       channels the tone is stated on --&gt;</span>
+  &lt;<span class="tag">svg</span> <span class="attr">class</span>=<span class="val">"cf-icon cf-icon--sm cf-notice__glyph"</span> <span class="attr">aria-hidden</span>=<span class="val">"true"</span>&gt;
+    &lt;<span class="tag">use</span> <span class="attr">href</span>=<span class="val">"#cf-diamond"</span>&gt;&lt;/<span class="tag">use</span>&gt;
+  &lt;/<span class="tag">svg</span>&gt;
+  &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-notice__title"</span>&gt;Hinweis&lt;/<span class="tag">p</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-notice__body"</span>&gt;
+    &lt;<span class="tag">p</span>&gt;Die Taktzeiten in der Tabelle sind Richtwerte, keine Norm.&lt;/<span class="tag">p</span>&gt;
+  &lt;/<span class="tag">div</span>&gt;
+
+  <span class="com">&lt;!-- optional --&gt;</span>
+  &lt;<span class="tag">p</span> <span class="attr">class</span>=<span class="val">"cf-notice__actions"</span>&gt;
+    &lt;<span class="tag">a</span> <span class="attr">href</span>=<span class="val">"/karriere"</span>&gt;Alle offenen Stellen&lt;/<span class="tag">a</span>&gt;
+  &lt;/<span class="tag">p</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+    <p>
+      The two loud tones are one class on the root: <code>.cf-notice--achtung</code> or
+      <code>.cf-notice--fehler</code>, each with its own glyph from the table above. Hinweis
+      takes no modifier — the quietest tone is what a notice is unless it says otherwise, the
+      same way <code>.cf-btn</code> is the plain button and only the loud ones are named.
+    </p>
+    <p>
+      The glyph comes from <a href="../foundations/iconography.html#sprite">the sprite</a> —
+      either <code>assets/js/cf-icons.js</code>, or the two or three symbols the page
+      actually uses pasted into its own <code>.cf-sprite</code>, which is what
+      <a href="../patterns/blog-artikel.html">blog-artikel.html</a> does. Both work; the
+      script skips a symbol the document already carries.
+    </p>
+  </section>
+
+  <section class="docs-section" id="aria">
+    <h2>Which ARIA, and when</h2>
+    <p>
+      The markup above carries none, and that is the common case. A notice that was in the
+      HTML when the page loaded has not <em>happened</em> — nothing changed, so there is
+      nothing to announce, and a live region on it makes the page shout at a reader who is
+      simply reading. What the notice needs depends entirely on how it arrived.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>How it arrived</th><th>What it takes</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>In the page at load, inside prose</td>
+          <td>nothing</td>
+          <td>It is a paragraph with a frame around it. The title is read in document order like any other line.</td>
+        </tr>
+        <tr>
+          <td>In the page at load, at the top of a page or a form</td>
+          <td><code>role="region"</code> + <code>aria-labelledby</code> on the title</td>
+          <td>Puts it in the landmark list so it can be jumped to. GOV.UK's notification banner does exactly this. One per page at most — a page of landmarks is a page of none.</td>
+        </tr>
+        <tr>
+          <td>Server-rendered after a failed POST</td>
+          <td><code>tabindex="-1"</code> and an <code>id</code> the form's <code>action</code> targets</td>
+          <td>The browser lands on it with nothing running. The same mechanism <a href="forms.html#error-summary">the error summary</a> uses, and for the same reason: no script, so nothing to fail.</td>
+        </tr>
+        <tr>
+          <td>Injected by script, Hinweis or Achtung</td>
+          <td><code>role="status"</code></td>
+          <td>Implicitly polite and atomic. Announced at the next pause instead of interrupting whatever is being read.</td>
+        </tr>
+        <tr>
+          <td>Injected by script, Fehler</td>
+          <td><code>role="alert"</code>, and <strong>no</strong> focus move</td>
+          <td>The APG is explicit that alerts do not affect keyboard focus. Something that has to take focus is an alert dialog, and that is a different component.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>A live region has to exist before the text does.</strong> Injecting a whole
+      element that already carries <code>role="alert"</code> works in most engines and is not
+      guaranteed to; the reliable form is an empty container with the role on it, present in
+      the page, that the message is written into. If a script is going to announce notices,
+      the container is part of the template.
+    </div>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <table class="docs-table">
+      <thead><tr><th>Part</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td><code>.cf-notice</code></td><td>Grid, <code>auto minmax(0, 1fr)</code>. 1 px contour, <code>--radius-none</code>, no fill.</td></tr>
+        <tr><td>Contour</td><td><code>--border-default</code>; <code>--feedback-error</code> on the error tone</td></tr>
+        <tr><td>Band</td><td><code>--stroke-4</code> (4 px), full height, sitting <em>on</em> the contour — inset by its 1 px on three sides, so the edge thickens rather than gaining a stripe</td></tr>
+        <tr><td>Band period</td><td>6 px on all three rungs. 2 px of ink for 1-2, 4 px for 2-1, solid for the error.</td></tr>
+        <tr><td>Padding</td><td><code>--space-5</code> (20 px), plus the band's 4 px on the leading edge</td></tr>
+        <tr><td><code>.cf-notice__glyph</code></td><td><code>.cf-icon--sm</code>, 16 px, <code>--notice-ink</code>, <code>aria-hidden</code></td></tr>
+        <tr><td><code>.cf-notice__title</code></td><td>Geist Mono, 11 px, uppercase, <code>--tracking-label</code>, <code>--notice-ink</code></td></tr>
+        <tr><td><code>.cf-notice__body</code></td><td>No size of its own — inherits 16 px in prose, 14 px beside a form</td></tr>
+        <tr><td><code>.cf-notice__actions</code></td><td>Optional. Flex row, wraps, <code>--space-4</code> between items</td></tr>
+        <tr><td>Column gap</td><td><code>--space-3</code> (12 px); the body sits under the title, past the glyph</td></tr>
+        <tr><td>Row gap</td><td><code>--space-2</code> (8 px)</td></tr>
+        <tr><td>Motion</td><td>none. Nothing in this component animates, so there is nothing for <code>prefers-reduced-motion</code> to turn off.</td></tr>
+      </tbody>
+    </table>
+    <div class="docs-note">
+      <strong>The body sets no font size, and that is the decision.</strong> A notice is a
+      sentence inside whatever it stands in — 16 px in <code>.cf-prose</code>, 14 px in a
+      column of supporting copy — not a panel with a type scale of its own. Fixing a size
+      here would make the note in an article visibly smaller than the paragraph above it,
+      which is the one thing a qualification must not look like.
+    </div>
+  </section>
+
+  <section class="docs-section" id="where">
+    <h2>Where it goes</h2>
+    <ul>
+      <li>
+        <strong>Inside an article, next to the thing it qualifies.</strong> It ships on
+        <a href="../patterns/blog-artikel.html">patterns/blog-artikel.html</a>, under the
+        latency table, saying that the figures in it are guide values rather than a standard.
+        That is the shape to copy: a note earns its frame by being the sentence a reader
+        would otherwise take the table too literally without.
+      </li>
+      <li>
+        <strong>Above a form, when something about the form has changed.</strong> Not as
+        standing instructions — those are
+        <a href="forms.html">the field's own hint</a>, where they stay next to the control
+        they describe.
+      </li>
+      <li>
+        <strong>On a job page whose position has closed,</strong> with the register as its
+        action. The advertisement stays readable; the notice says it is history.
+      </li>
+      <li>
+        <strong>Not for field validation.</strong> One message per field goes on the field;
+        the list of everything wrong goes in
+        <a href="forms.html#error-summary">the error summary</a>, which is a different construction
+        with a different job — it links to each field, and a notice does not.
+      </li>
+      <li>
+        <strong>Not as a cookie banner.</strong> That is <a href="consent.html">Consent</a>,
+        and it is a dialog with legal requirements a notice knows nothing about.
+      </li>
+      <li>
+        <strong>Not as an empty state.</strong> A page with no results is
+        <a href="error-state.html">Error &amp; Empty State</a> — the whole page is the
+        message, and framing it inside a second box says the page worked and something in it
+        did not.
+      </li>
+    </ul>
+    <div class="docs-note" id="no-success">
+      <strong>There is no success tone, on purpose.</strong> Every system in the field ships
+      one, and this site has nowhere to put it: its successes are whole pages —
+      <a href="../patterns/kontakt-danke.html">kontakt-danke</a> and
+      <a href="../patterns/bewerbung-danke.html">bewerbung-danke</a> — because the thing that
+      just happened is the only thing on the screen. A green box at the top of the form you
+      just submitted is a consolation prize for having failed to navigate anywhere. The rung
+      is available if a page ever genuinely needs it; the tone is not invented until one does.
+    </div>
+  </section>
+
+  <section class="docs-section" id="dismiss">
+    <h2>Why it does not close</h2>
+    <p>
+      There is no dismiss button and no script. Carbon's guidance is the useful half of the
+      argument — reserve the close action for messages with no consequence if they are
+      dismissed, and leave it off anything the reader has to have read. All three of this
+      site's real notices are consequential or permanent: a qualification inside an article
+      is part of the article, a closed vacancy does not reopen when you close the box, and a
+      submission that failed has not succeeded because the message went away. USWDS, which
+      has had the same component for a decade, still ships no dismissible variant either.
+    </p>
+    <p>
+      What a close button would cost is not the markup. It is a focus decision on every
+      dismissal — the button is removed from the document while it holds focus, and focus
+      then falls to <code>&lt;body&gt;</code> unless something catches it — plus a script on
+      pages that currently need none. That is a real component and worth building the day a
+      page needs one. Today none does.
+    </p>
+  </section>
+
+  <section class="docs-section" id="a11y">
+    <h2>Accessibility</h2>
+    <ul>
+      <li>
+        <strong>The tone is never carried by one channel.</strong> The word, the glyph and
+        the line type all say it, and the error adds ink as a fourth. A reader who resolves
+        none of colour, none of the dash pattern and no icons still gets “FEHLER” as the
+        first word in the box.
+      </li>
+      <li>
+        Contrast. The title and glyph take <code>--notice-ink</code>: full black is 13.5:1 on
+        the page wash, and <code>--feedback-error</code> is 4.71:1 on CF-Grau and 7.33:1 on
+        white — AA at 11 px, which is body text and owes 4.5:1. The band is the same ink, so
+        it clears the 3:1 that non-text contours owe by the margin the type does.
+      </li>
+      <li>
+        The glyph is <code>aria-hidden</code>. It repeats the title word and nothing else; a
+        second announcement of “warning triangle” before the word “Achtung” is noise.
+      </li>
+      <li>
+        <strong>Live regions are opt-in, and mostly wrong.</strong> The
+        <a href="#aria">table above</a> is the whole rule. A notice that was in the page at
+        load takes no role, because nothing happened.
+      </li>
+      <li>
+        <strong>Nothing here disappears on a timer.</strong> WCAG 2.2.3 is the reason, and
+        the APG names it under this exact pattern: an alert that removes itself takes the
+        message away from a reader who was still getting to it.
+      </li>
+      <li>
+        <strong>Under forced colours the band survives as a border.</strong> A
+        <code>background-image</code> is discarded outright in that mode, so a band painted
+        as a gradient would vanish and all three tones would render as the same box — the
+        failure <a href="../foundations/geometry.html#lines">base.css documents on the rule
+        component</a>. The band becomes a real <code>border-inline-start</code>, whose colour
+        forced colours maps rather than erases, and the two dashed rungs take the two dash
+        styles CSS has: 1-2 renders <code>dotted</code>, 2-1 renders <code>dashed</code>,
+        which is base.css's own mapping.
+      </li>
+      <li>
+        No focus states, because there is nothing to focus unless the notice carries actions —
+        and those are ordinary links with the system's ring on them, unchanged.
+      </li>
+      <li>
+        The body is a real block of flow content: paragraphs, a list, a link. Not a single
+        string, so a notice never has to fake a paragraph break with a <code>&lt;br&gt;</code>.
+      </li>
+    </ul>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Start the notice with its tone word. It is the channel that survives everything else.</li>
+          <li>Put it next to what it is about — under the table, above the form, on the posting.</li>
+          <li>Keep it to two or three sentences. A notice that needs a heading is a section.</li>
+          <li>Give a dead end a way out with <code>.cf-notice__actions</code>, and cap it at two links.</li>
+          <li>Pick the role from how the notice arrived, not from how important it feels.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Don't fill it, tint it, or put lime in it. Lime is the light layer; a notice is not a light source.</li>
+          <li>Don't invent a fourth tone or a fourth line type. The ladder has four rungs and three of them are spoken for.</li>
+          <li>Don't put <code>role="alert"</code> on a notice that was in the page at load.</li>
+          <li>Don't stack them. Two notices in a row mean neither gets read; make it one, or make it a section.</li>
+          <li>Don't use it for per-field validation, for an empty page, or for consent.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../assets/js/cf-icons.js"></script>
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>
