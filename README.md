@@ -252,7 +252,10 @@ away.
 **Everything on the site that names its own address reads `SITE_ORIGIN` in
 `wrangler.toml`**: `og:image`, `og:url` and the canonical link on every card page, the
 sitemap, and the stubs that answer the old Wix addresses. The code side of the move is
-therefore one line, and it is the only change in the cutover pull request.
+therefore that line, plus the thirteen authored pattern pages that spell the address out
+in their own `<head>` — `scripts/check-open-graph.py` fails if one of them is missed —
+and that is the whole of the cutover pull request,
+[#664](https://github.com/control-f-io/control-f-website/pull/664).
 
 What is already in place:
 
@@ -303,8 +306,9 @@ The day, in this order:
    `www.control-f.io/…`, and GitHub redirects the apex to `www` itself. The deploy
    workflow needs no change: with a custom Actions workflow the `CNAME` file is
    ignored and the setting is the whole configuration.
-3. **Merge the cutover pull request** — `SITE_ORIGIN = "https://www.control-f.io"`,
-   nothing else. Wait for `deploy.yml`; the site now names its own domain everywhere.
+3. **Merge the cutover pull request**, [#664](https://github.com/control-f-io/control-f-website/pull/664)
+   — `SITE_ORIGIN = "https://www.control-f.io"` and the thirteen authored pages that
+   carry it. Wait for `deploy.yml`; the site now names its own domain everywhere.
 4. **HTTPS.** GitHub requests the certificate once DNS resolves; it can take up to a
    day. When Settings → Pages offers *Enforce HTTPS*, turn it on (the repository setting
    is already `https_enforced: true`, but GitHub re-evaluates it for a new domain).
