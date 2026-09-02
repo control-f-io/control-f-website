@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="only light">
+<meta name="theme-color" content="#CFCFD2">
+<title>Outside the Page — Control-F Design System</title>
+<link rel="icon" href="../assets/img/logo/cf-favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../assets/icon/cf-app-icon-180.png">
+<link rel="manifest" href="../assets/icon/site.webmanifest">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/docs.css">
+<style>
+  /* Demo chrome only. Nothing here is part of the system.
+
+     THE TILE IS NOT SHOWN AS A PNG ON THIS PAGE, for the reason
+     foundations/share.html gives about the share plates: the rasters under
+     assets/icon/ are generated output, .gitignore keeps them out of the
+     repository, and a reader on a fresh checkout would find three broken
+     images in the one chapter about an icon. What is always here is the model
+     they are rendered from. Every number in the figure below is a constant in
+     scripts/build-app-icons.py — MARK_WIDTH 0.56, the ramp's four stops, the
+     116.57deg rake — and scripts/check-outside-page.py measures the render
+     against the same safe radius this drawing draws.
+
+     The signet's two paths are cf-symbol-black.svg's, unchanged, in their own
+     600 x 480 units. The tile is 512 to match the largest raster; the group
+     scales the mark to 0.56 of it and centres it, which is exactly the
+     arithmetic in the generator's render(). */
+  .tile-figs { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+  .tile-fig { margin: 0; flex: 1 1 16rem; min-width: 0; display: grid; gap: var(--space-3); }
+  .tile-fig svg { width: 100%; height: auto; display: block; }
+
+  /* The construction line over the tile: the maskable safe circle. Drawn as a
+     solid hairline rather than as one of the three dashed rungs, because at a
+     512 viewBox every sanctioned dash period is under half a pixel on screen
+     and would render as a solid line pretending to be a dashed one.
+     → scripts/check-line-types.py */
+  .tile-safe { fill: none; stroke: var(--cf-weiss); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .tile-axis { stroke: var(--cf-weiss); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .tile-label { font-family: var(--font-mono); font-size: 20px; fill: var(--cf-weiss); letter-spacing: 0.06em; }
+
+  /* The chrome strip: the browser's own bar, painted with theme-color, above
+     the first pixel of the page wash. Two boxes and a hairline between them —
+     the point of the drawing is that there is no step at the seam. */
+  .chrome { display: grid; gap: 0; border: var(--stroke-1) solid var(--border-default); }
+  .chrome__bar {
+    background: #CFCFD2;
+    padding: var(--space-3) var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    /* The rung's own tracking. --text-xs takes --tracking-label; a size from
+       one rung with the tracking of another is the pair the label ramp check
+       exists to keep together. */
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .chrome__note { margin: 0; font-size: var(--text-sm); color: var(--text-secondary); }
+  .chrome__page { background: var(--surface-page-wash); min-block-size: 9rem; padding: var(--space-4); }
+</style>
+</head>
+<body class="docs" data-root="../">
+<aside class="docs-sidebar" data-docs-nav></aside>
+
+<main class="docs-main">
+  <header class="docs-header">
+    <p class="docs-header__eyebrow">Foundations · 22</p>
+    <h1>Outside the Page</h1>
+    <p>
+      Every other chapter here is about something a stylesheet draws. This one is about the
+      four declarations that decide what this brand looks like where the stylesheet does not
+      reach — the strip of browser chrome above the page, the scheme the browser is allowed
+      to re-tint it in, and the tile a reader who keeps the site ends up looking at on a home
+      screen. All four are invisible from a desk, and the site shipped one of them.
+    </p>
+  </header>
+
+  <section class="docs-section" id="where">
+    <h2>Where this comes from</h2>
+    <p>
+      The favicon's own file says it. <code>assets/img/logo/cf-favicon.svg</code> opens by
+      arguing the black plate <em>off</em> the tab strip, and the reason it gives is that
+      "a filled near-black square with a rounded corner reads as an app icon rather than as
+      this company's mark". That is right, and it hands the plate somewhere. Nothing was
+      there to catch it.
+    </p>
+    <p>
+      The manual is the other half. <a href="../reference.html">Logo Design &gt; Rahmen</a>
+      defines five frames for the signet — transparent, square, isometric, App-Icon, circle —
+      and <a href="logo.html#frames">the logo chapter</a> costs the web down to two of them:
+      the square frame is the nav plate, the transparent frame is the favicon. The App-Icon
+      is the third the web actually needs, and it is the one frame in the manual that names a
+      surface this repository does not own. It was never drawn.
+    </p>
+    <div class="docs-note">
+      <strong>Counted before this chapter: 138 pages, one browser-surface declaration between
+      them.</strong> <code>rel="icon"</code>, and nothing else. No scheme, so the page was a
+      light document a browser was free to re-render; no theme colour, so the chrome above a
+      derived wash was the UA's grey; no touch icon and no manifest, so a reader who kept the
+      site got their launcher's thumbnail of a screenshot.
+    </div>
+  </section>
+
+  <section class="docs-section" id="scheme">
+    <h2>The scheme, and the browser that repaints without asking</h2>
+    <p>
+      Chrome for Android's Auto Dark Theme takes a document that has not declared a colour
+      scheme and re-tints it — background, text, and the images it decides are re-tintable.
+      It is a good feature and it is aimed at pages that never thought about the question.
+      This site's every colour is derived: <code>--wash-stops</code> opens at
+      <code>#CFCFD2</code> and lands on white, the ramps are checked against the OKLab path,
+      and thirteen contrast ratios are recomputed from the tokens on every run. None of that
+      survives an automatic inversion, and none of it can see one.
+    </p>
+    <div class="docs-note docs-note--warn">
+      <strong>This is the failure mode no measurement in this repository could reach.</strong>
+      A desktop browser ignores the feature outright, so the responsive sweep at 375 / 768 /
+      1280 / 1920, every screenshot under <code>docs/</code>, the contrast register and the
+      runtime console all agree the page is fine. It is visible only to somebody holding an
+      Android phone with the setting on, and that person is not in the review — the same
+      shape of gap <a href="mobile.html">Mobile</a> found in the viewport directive.
+    </div>
+    <p>
+      The opt-out is the <code>only</code> keyword, and it is also the honest statement: this
+      system has one scheme and this is it. <code>light</code> on its own does not opt out —
+      it names a scheme the page supports and leaves the automatic rendering in place.
+    </p>
+    <pre class="docs-code"><code>&lt;meta name="color-scheme" content="only light"&gt;
+
+html { color-scheme: only light; }</code></pre>
+    <p>
+      Both, and they do different jobs. The meta is read by the parser before a stylesheet has
+      arrived, which is what stops the darkened first paint; the property is what cascades,
+      which is what lets a subtree say something else. It is also the declaration that decides
+      the surfaces the stylesheets here deliberately leave native — the scrollbar, the form
+      controls <a href="../components/forms.html">Forms</a> keeps as the platform draws them,
+      the spellcheck underline, the canvas behind the page.
+    </p>
+    <h3>And the section that is already dark says so</h3>
+    <p>
+      <code>tokens.css</code> has carried <code>[data-theme="inverse"]</code> since the footer
+      was drawn: Schwarz surface, light ink, light contours, the lattice inverted. It flipped
+      every value this system declares and none of the values the UA declares, so a native
+      control standing inside an inverted section was drawn from the reader's OS preference,
+      on black — a light-mode reader got a white select on a black plate with this system's
+      focus ring around it.
+    </p>
+    <pre class="docs-code"><code>[data-theme="inverse"] { color-scheme: dark; }</code></pre>
+    <p>
+      <code>dark</code> and not <code>only dark</code>: the root already forecloses the
+      automatic rendering for the whole document, and repeating <code>only</code> inside it
+      would say this subtree is defending itself against something that cannot reach it.
+    </p>
+  </section>
+
+  <section class="docs-section" id="chrome">
+    <h2>The colour above the page is a number the page already has</h2>
+    <p>
+      <code>theme-color</code> paints the browser's own bar on a phone, the tab strip on some
+      desktop builds, and the launcher's frame around an installed page. The right value is
+      not a decision: the wash's first stop is what the reader sees at the very top of the
+      document, so the chrome that sits directly above it is that stop and there is no seam.
+    </p>
+    <div class="chrome">
+      <p class="chrome__bar">theme-color · #CFCFD2</p>
+      <div class="chrome__page">
+        <p class="chrome__note"><code>--wash-stops</code>, first stop · <code>#CFCFD2</code></p>
+      </div>
+    </div>
+    <p>
+      <code>scripts/check-outside-page.py</code> reads that stop out of
+      <code>tokens.css</code> and holds all 138 pages and both manifest colours to it, so the
+      value is derived on every run rather than typed in 139 places. A theme colour written by
+      hand is a second copy of a token that moves.
+    </p>
+  </section>
+
+  <section class="docs-section" id="tile">
+    <h2>The tile</h2>
+    <p>
+      The App-Icon frame, drawn at last. Three materials and no more: the opaque layer as the
+      ground, the mark on it, and the light across the mark. An icon has room for exactly one
+      lime moment and this is the whole of it.
+    </p>
+
+    <div class="tile-figs">
+      <figure class="tile-fig">
+        <svg viewBox="0 0 512 512" role="img" aria-labelledby="tile-a-t">
+          <title id="tile-a-t">The app icon: the Control-F signet, lit, on a black tile</title>
+          <defs>
+            <!-- The light family's ramp on the leg this tile has room for, with
+                 the family's waypoint at 19 % of the lime leg — 0.0855 of 0.45.
+                 The axis is 116.57deg, the shallow isometric rake: 2 across, 1
+                 down, which is the angle the signet's own long edges run at.
+                 DECLARED IN THE SYMBOL'S 600 x 480 SPACE, NOT THE TILE'S, and
+                 that is the whole of the trap — a userSpaceOnUse gradient
+                 resolves in the coordinate system in force where it is
+                 REFERENCED, and it is referenced inside the scaled group.
+                 Written in tile units it would paint a ramp a fifth of the
+                 mark's length and clamp the rest, which renders as a mark
+                 that is lime at one tip and flat white everywhere else.
+                 → assets/css/tokens.css, scripts/check-gradient-angle.py -->
+            <linearGradient id="tile-light" x1="-35.9" y1="72" x2="635.9" y2="408" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#E1FF00"/><stop offset="0.0855" stop-color="#DBFC60"/><stop offset="0.45" stop-color="#C5EBE2"/><stop offset="1" stop-color="#FFFFFF"/>
+            </linearGradient>
+          </defs>
+          <rect width="512" height="512" fill="#000000"/>
+          <!-- MARK_WIDTH 0.56 of 512 is 286.72 across a 600-unit viewBox:
+               scale 0.477867, and the group is translated to centre it. -->
+          <g transform="translate(112.64,141.44) scale(0.477867)" fill="url(#tile-light)">
+            <path d="M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 327.317C183.155 328.422 183.155 331.578 185.367 332.683L476.422 478.211C478.675 479.337 481.325 479.337 483.578 478.211L594.633 422.683C596.845 421.578 596.845 418.422 594.633 417.317L425.367 332.683Z"/>
+            <path d="M116.422 298.211C118.675 299.337 121.325 299.337 123.578 298.211L594.633 62.6833C596.845 61.5777 596.845 58.4223 594.633 57.3167L483.578 1.78885C481.325 0.662745 478.675 0.662745 476.422 1.78885L5.36656 237.317C3.15542 238.422 3.15542 241.578 5.36656 242.683L116.422 298.211Z"/>
+          </g>
+        </svg>
+        <figcaption class="docs-caption"><b>The tile</b>512 px, full bleed, square</figcaption>
+      </figure>
+
+      <figure class="tile-fig">
+        <svg viewBox="0 0 512 512" role="img" aria-labelledby="tile-b-t">
+          <title id="tile-b-t">The same tile with the maskable safe circle drawn over it: the mark reaches 32.5 per cent of the tile from its centre, inside the 40 per cent radius</title>
+          <rect width="512" height="512" fill="#000000"/>
+          <g transform="translate(112.64,141.44) scale(0.477867)" fill="#FFFFFF" opacity="0.34">
+            <path d="M425.367 332.683C423.155 331.578 423.155 328.422 425.367 327.317L594.633 242.683C596.845 241.578 596.845 238.422 594.633 237.317L483.578 181.789C481.325 180.663 478.675 180.663 476.422 181.789L185.367 327.317C183.155 328.422 183.155 331.578 185.367 332.683L476.422 478.211C478.675 479.337 481.325 479.337 483.578 478.211L594.633 422.683C596.845 421.578 596.845 418.422 594.633 417.317L425.367 332.683Z"/>
+            <path d="M116.422 298.211C118.675 299.337 121.325 299.337 123.578 298.211L594.633 62.6833C596.845 61.5777 596.845 58.4223 594.633 57.3167L483.578 1.78885C481.325 0.662745 478.675 0.662745 476.422 1.78885L5.36656 237.317C3.15542 238.422 3.15542 241.578 5.36656 242.683L116.422 298.211Z"/>
+          </g>
+          <!-- 40 % of the edge is the maskable contract; 32.5 % is what the
+               render measures, and check-outside-page.py measures it there
+               rather than reading this number. -->
+          <circle class="tile-safe" cx="256" cy="256" r="204.8"/>
+          <circle class="tile-safe" cx="256" cy="256" r="166.4" opacity="0.5"/>
+          <path class="tile-axis" d="M256 51.2V460.8M51.2 256H460.8" opacity="0.34"/>
+          <text class="tile-label" x="256" y="38" text-anchor="middle">80 % SAFE</text>
+        </svg>
+        <figcaption class="docs-caption"><b>The safe zone</b>the mark reaches 32.5 % of 40 %</figcaption>
+      </figure>
+    </div>
+
+    <h3>The tile is square and the platform rounds it</h3>
+    <p>
+      The manual draws the App-Icon frame with a corner radius, and this system's corner rule
+      allows exactly three rounded things — the logo pill, the nav pill, the avatar. Neither
+      has to give. iOS, Android and every launcher since apply their own mask to a full-bleed
+      square, and a <em>maskable</em> icon is required to be full-bleed with its content inside
+      the centre circle of 80 % diameter. So the artwork keeps the square corner this system
+      draws everything with, the platform draws the manual's radius, and the radius nobody
+      here has to choose is the one the reader's own launcher is already using on every icon
+      standing beside it.
+    </p>
+    <div class="docs-note">
+      <strong>The safe zone is measured, not asserted.</strong>
+      <code>check-outside-page.py</code> renders the 512 tile in memory, finds every pixel
+      that is not the ground, and measures the farthest one from the centre: 32.5 % of the
+      tile against a 40 % radius. An icon whose mark crossed that circle would lose a corner
+      of the signet on some launchers and keep it on others, and nothing else in this
+      repository — nor any screenshot taken on the machine that built it — would show which.
+    </div>
+
+    <h3>Why the ramp ends at Weiss and not at CF-Grau</h3>
+    <p>
+      Every ramp in <a href="light.html">the light family</a> falls off to the ground it
+      stands on, and on the page that ground is CF-Grau. Here it is Schwarz, and a mark that
+      falls off to its own ground disappears — the far end of this ramp has to stay a mark.
+      Weiss is where the falloff stops instead: the same leg, ending at the brightest thing
+      the palette has rather than at the dimmest. The mark is not painted lime. It is painted
+      white and lit, which is the distinction the light chapter is about.
+    </p>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Stop</th><th>Offset</th><th>Value</th><th>On Schwarz</th></tr></thead>
+      <tbody>
+        <tr><td>Lime</td><td>0 %</td><td><code>#E1FF00</code></td><td>18.5:1</td></tr>
+        <tr><td>the family's waypoint</td><td>8.55 %</td><td><code>#DBFC60</code></td><td>18.1:1</td></tr>
+        <tr><td>Glas</td><td>45 %</td><td><code>#C5EBE2</code></td><td>16.4:1</td></tr>
+        <tr><td>Weiss</td><td>100 %</td><td><code>#FFFFFF</code></td><td>21.0:1</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      The waypoint at 19 % of the lime leg is the family's one convention for a ramp written
+      as stops — it is what makes an sRGB gradient track the OKLab path the family is defined
+      on — and 0.0855 of 0.45 is that ratio. Every rung clears the 3:1 floor a graphical
+      object needs, at both ends of the ramp and everywhere between them, so the mark is
+      legible whatever slice of the ramp a launcher's mask leaves standing.
+    </p>
+  </section>
+
+  <section class="docs-section" id="manifest">
+    <h2>The manifest, and why it is generated</h2>
+    <p>
+      It exists for the icon and the two colours, not to be installed:
+      <code>display</code> is <code>browser</code>, because taking the address bar away from a
+      reader who did not ask for an app is not this system's decision to make.
+    </p>
+    <pre class="docs-code"><code>&lt;link rel="apple-touch-icon" href="../assets/icon/cf-app-icon-180.png"&gt;
+&lt;link rel="manifest" href="../assets/icon/site.webmanifest"&gt;</code></pre>
+    <div class="docs-note">
+      <strong>Every address in it is relative, and that is a deploy fact rather than a
+      style.</strong> There is no CNAME on the Pages deploy, so the document root is
+      <code>/control-f-website/</code> there and <code>/</code> on Cloudflare. A manifest whose
+      <code>start_url</code> named either would be right on one host and silently wrong on the
+      other — the same finding <a href="../index.html#stack">the links check</a> was written
+      for. The manifest sits three levels below the site root on both, so
+      <code>"../../../"</code> is the root on both.
+    </div>
+    <p>
+      Its two colours are read out of <code>tokens.css</code> by
+      <code>scripts/build-app-icons.py</code> on every run, and the tiles are rendered by the
+      same script out of the signet and the ramp above — the stdlib rasteriser
+      <a href="share.html">the share plates</a> already own. No dependency, no second drawing
+      of the mark, and nothing committed: <code>.gitignore</code> keeps the output out for the
+      reason it keeps the plates out, and <code>--check</code> re-renders and compares bytes so
+      a tile edited by hand fails rather than being rebuilt over.
+    </p>
+  </section>
+
+  <section class="docs-section" id="anatomy">
+    <h2>Anatomy</h2>
+    <div class="docs-table-scroll">
+    <table class="docs-table">
+      <thead><tr><th>Declaration</th><th>Where</th><th>What reads it</th><th>What it costs to omit</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>&lt;meta name="color-scheme" content="only light"&gt;</code></td>
+          <td>every page under <code>design-system/</code>, prototypes included</td>
+          <td>the parser, before any stylesheet</td>
+          <td>a darkened first paint, and Auto Dark Theme's re-tint of a derived wash</td>
+        </tr>
+        <tr>
+          <td><code>color-scheme: only light</code></td>
+          <td><code>base.css</code>, on <code>html</code></td>
+          <td>the UA's own surfaces</td>
+          <td>scrollbar, native controls and the canvas drawn from the reader's OS preference</td>
+        </tr>
+        <tr>
+          <td><code>color-scheme: dark</code></td>
+          <td><code>base.css</code>, on <code>[data-theme="inverse"]</code></td>
+          <td>the same, inside an inverted section</td>
+          <td>a light native control on a Schwarz plate</td>
+        </tr>
+        <tr>
+          <td><code>&lt;meta name="theme-color"&gt;</code></td>
+          <td>every page, at the wash's first stop</td>
+          <td>the browser's chrome, the launcher's frame</td>
+          <td>the UA's grey directly above a derived wash</td>
+        </tr>
+        <tr>
+          <td><code>rel="apple-touch-icon"</code></td>
+          <td>every page outside <code>prototypes/</code></td>
+          <td>iOS, and Android as a fallback</td>
+          <td>a thumbnail of a screenshot on the home screen</td>
+        </tr>
+        <tr>
+          <td><code>rel="manifest"</code></td>
+          <td>the same register</td>
+          <td>Android launchers</td>
+          <td>no name, no icon set and no colours where the OS asks for them</td>
+        </tr>
+        <tr>
+          <td><code>assets/icon/cf-app-icon-{180,192,512}.png</code></td>
+          <td>generated, gitignored</td>
+          <td>the two above</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><code>assets/icon/site.webmanifest</code></td>
+          <td>generated, gitignored</td>
+          <td>the launcher</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="docs-section" id="a11y">
+    <h2>Accessibility</h2>
+    <p>
+      <code>only light</code> forecloses an automatic dark rendering, and it is worth being
+      clear about who that costs. A reader who prefers dark interfaces gets a light page here.
+      The alternative on offer is not a designed dark page — it is an algorithm's guess at one,
+      applied to a wash, four gradient families and a lime light layer that were each derived
+      against a specific ground, with no contrast guarantee at the far end of it. A guess that
+      lands at 3:1 on body copy is worse for that reader than a light page that measures.
+    </p>
+    <div class="docs-note">
+      <strong>So the keyword is a promise as well as an opt-out.</strong> The day this system
+      wants a night, it draws one: <code>[data-theme="inverse"]</code> is most of a dark
+      palette already, the wallpaper ships a dark plate beside its light one, and the manual's
+      own colour-application plate composes on Schwarz. What <code>only</code> forbids is
+      shipping somebody else's.
+    </div>
+    <p>
+      The tile carries no text and states no meaning that its <code>alt</code> has to repeat —
+      an <code>apple-touch-icon</code> is named by the manifest's <code>name</code> and by the
+      page title, which is where a screen reader on a home screen reads it. Both are
+      "Control-F".
+    </p>
+  </section>
+
+  <section class="docs-section" id="rules">
+    <h2>Rules</h2>
+    <div class="docs-rules">
+      <div class="docs-rule docs-rule--do">
+        <h4>Do</h4>
+        <ul>
+          <li>Declare the scheme in both places. The meta stops the first paint, the property cascades, and a page with one of them has half the rule.</li>
+          <li>Take the theme colour from the wash. It is the pixel directly under the chrome, so the seam is the test and there is only one right answer.</li>
+          <li>Give a section that inverts the tokens a <code>color-scheme</code> too. Anything the UA draws inside it is otherwise drawn from a preference this page has already overruled.</li>
+          <li>Keep the tile full-bleed and square, and keep the mark inside the 80 % circle. The platform's mask is the manual's radius, drawn by the reader's own launcher.</li>
+          <li>Render the icon from the signet and the ramp, never redraw it. A second drawing of this mark is a second answer to what it is.</li>
+        </ul>
+      </div>
+      <div class="docs-rule docs-rule--dont">
+        <h4>Don't</h4>
+        <ul>
+          <li>Never <code>content="light"</code> on its own. It names a scheme and does not opt out, which is the failure this whole chapter is about wearing the look of the fix.</li>
+          <li>No rounded corner in the artwork. A radius baked into the tile is masked again by the launcher and comes back as a thinner, wrong one.</li>
+          <li>Do not paint the mark lime. Lime is the light on it; a lime letterform is a lime surface, and this system has one of those and it is not this.</li>
+          <li>Never write a hex into the manifest or into a <code>theme-color</code>. It is a token, it moves, and 139 hand-written copies of it move on 139 different days.</li>
+          <li>Do not add sizes because a generator offers them. Every extra raster is another file that can go stale alone, and a launcher downsamples better than this rasteriser would.</li>
+          <li>Never <code>display: standalone</code> to make the site feel like an app. It takes the address bar from a reader who asked for a website.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>

@@ -61,6 +61,20 @@ and fails one that is both blurred and invisible; it reads the ELEMENT and not
 the rule, because the pair is rarely in one block — here the blur is on the
 modifier and the opacity is on the base it modifies.
 
+AND THE LIT PANEL WAS THREE COPIES OF THREE NUMBERS. The tenth claim is the
+eighth read one MATERIAL over. Claim 8 rescued the specular band's geometry from
+being restated by every surface that used it; --sheen-panel, the light layer's
+answer for a surface that is NOT glass, had exactly the protection the rim had
+before it: none. A `200% 100%` size, a `0 0` park and a `100% 0` answer, written
+out on .cf-accordion__summary, .cf-blog-card and the register. The three are
+tokens now, and the resting state is RE-DERIVED rather than asserted — the sheen
+slides where the rim crosses, so its endpoints are the image's own two ends and
+claim 8's off-canvas arithmetic does not apply, but the park is an equality with
+no air in it: the box shows the image's first 1/b there, so the panel is clean
+only while the gradient's transparent head reaches that far. At b = 200 % the
+window is 50 % and the head ends at exactly 50 %, in both themes, and each theme
+is measured separately because their lit stops differ.
+
 Every one of those is invisible in a screenshot. A third blurred layer renders
 correctly; it just costs. A literal `blur(20px)` on some future panel renders
 correctly; it just forks the material. A gradient animated across a blurred
@@ -510,18 +524,72 @@ def sheen_rules():
         for head, body, line in rules((CSS / name).read_text()):
             if SHEEN_TOKEN not in declared(body)[1]:
                 continue
-            # No "values" key, unlike glass_rules(). That one carries the blur's
-            # declared value because claim 2 reads it back; there is no
-            # equivalent claim about a sheen, and a field nothing reads is a
-            # field the next reader has to check is unused.
+            # No "values" key, unlike glass_rules(): that one carries the blur's
+            # declared value because claim 2 reads it back, and a sheen has no
+            # single declared value to carry. The whole body rides along
+            # instead, because claim 10 reads two properties off it rather than
+            # one — the band and the park are separate declarations and the
+            # claim fails them separately.
             found.append(
                 {
                     "file": name,
                     "line": line,
                     "selectors": [s.strip() for s in head.split(",") if s.strip()],
+                    "body": body,
                 }
             )
     return found
+
+
+SHEEN_BAND = "--sheen-band"
+SHEEN_PARK = "--sheen-park"
+SHEEN_CROSS = "--sheen-cross"
+
+
+def sheen_geometry():
+    """The lit panel's three published numbers, read out of tokens.css.
+
+    The mirror of rim_geometry(), and unitless in the dict for the same reason.
+    --sheen-band is how many times the box the gradient image is drawn at;
+    --sheen-park and --sheen-cross are the two background-position values that
+    put the image's own two ends against the box. All three used to be literals
+    written out on three surfaces.
+    """
+    text = blank_comments((CSS / "tokens.css").read_text())
+    out = {}
+    for name in (SHEEN_BAND, SHEEN_PARK, SHEEN_CROSS):
+        m = re.search(r"^\s*%s\s*:\s*(-?[0-9.]+)%%\s*;" % name, text, re.M)
+        if m:
+            out[name] = float(m.group(1))
+    return out
+
+
+def sheen_heads():
+    """Where every declared --sheen-panel stops being fully transparent.
+
+    One entry per declaration, so the inverse theme's own gradient is measured
+    rather than assumed to match the light theme's — the two differ in their lit
+    stops (0.5/0.34 against 0.12/0.10) and a claim that read only the first
+    would pass a theme it had never looked at.
+
+    Returns [(line, head_pct)] where head_pct is the position of the LAST stop
+    whose alpha is still zero. Everything before it is clear; light begins
+    somewhere after it. Stops with no explicit position are not read: every
+    --sheen-panel in the tree writes all four, and a gradient whose stops are
+    positional guesses is not something this claim should be quietly averaging.
+    """
+    text = blank_comments((CSS / "tokens.css").read_text())
+    heads = []
+    for m in re.finditer(r"%s\s*:\s*([^;]*);" % SHEEN_TOKEN, text):
+        head = 0.0
+        for stop in re.finditer(
+            r"rgba?\([^)]*?,\s*([0-9.]+)\s*\)\s+(-?[0-9.]+)%", m.group(1)
+        ):
+            if float(stop.group(1)) == 0:
+                head = max(head, float(stop.group(2)))
+        line = text[: m.start()].count("\n") + 1
+        heads.append((line, head))
+    return heads
 
 
 def rest_layers():
@@ -1233,6 +1301,121 @@ def main():
                     " ".join(sorted(names)),
                 )
             )
+
+    # 10. THE LIT PANEL IS ONE GEOMETRY TOO, AND ITS REST STATE IS AN EQUALITY.
+    #
+    #     Claim 8 read claim 2 one property over and found the specular band
+    #     restated eight times. This is claim 8 read one MATERIAL over. The sheen
+    #     is the light layer's answer for a surface that is not glass, and its
+    #     geometry had exactly the protection the rim's had before claim 8: none.
+    #     A `200% 100%` size, a `0 0` park and a `100% 0` answer, written out on
+    #     .cf-accordion__summary, .cf-blog-card and the register — three copies
+    #     of three numbers on three surfaces that are never on screen together,
+    #     which is the same reason nothing could have reported a drift in the rim.
+    #
+    #     THE PARK IS AN EQUALITY AND NOT AN INEQUALITY WITH AIR, which is what
+    #     makes it worth re-deriving rather than reading. The rim's endpoints
+    #     clear their bounds "with a little air"; the sheen's do not, and cannot.
+    #     At the park the box shows the image's first 1/b, so the panel is clean
+    #     at rest only while the gradient's transparent head reaches at least
+    #     that far — at b = 200 % the window is 50 % and the head ends at exactly
+    #     50 %. Narrow the band, or move that stop one point right, and every lit
+    #     panel in the system carries a permanent white wash across its text at
+    #     rest. Not a stray frame: the park is also what the reduced-motion
+    #     reader sees, because the durations collapse to 1 ms and the transition
+    #     stops being a transition. Both halves of the equality are read out of
+    #     the tokens — the band from its own declaration, the head from
+    #     --sheen-panel's stops, in every theme that declares one.
+    sheen_geom = sheen_geometry()
+    sheen_missing = [n for n in (SHEEN_BAND, SHEEN_PARK, SHEEN_CROSS)
+                     if n not in sheen_geom]
+    if sheen_missing:
+        failures.append(
+            "tokens.css does not declare %s as a plain percentage.\n"
+            "    The lit panel's geometry is published there so the three sheened surfaces\n"
+            "    can read it instead of restating it. Declare it, or — if the sheen has\n"
+            "    genuinely been retired — delete this claim with it."
+            % ", ".join(sheen_missing)
+        )
+    elif sheen_geom[SHEEN_BAND] <= 100:
+        failures.append(
+            "tokens.css sets %s to %g %%, which is the box or less.\n"
+            "    A sheen no wider than the panel it crosses has nowhere to be parked: the\n"
+            "    box sees the whole gradient at every position, so the light never leaves."
+            % (SHEEN_BAND, sheen_geom[SHEEN_BAND])
+        )
+    else:
+        window = 100.0 * 100.0 / sheen_geom[SHEEN_BAND]
+        for line, head in sheen_heads():
+            if head + 1e-9 < window:
+                failures.append(
+                    "tokens.css:%d declares %s with %g %% of clear head, and %s is %g %%,\n"
+                    "    so the box sees the image's first %.1f %% at the park — %.1f %% of\n"
+                    "    lit gradient standing on the panel with no pointer near it.\n"
+                    "    The park is the drawing a reduced-motion reader gets, and this one\n"
+                    "    lands under prose on the page wash. Widen the head or the band."
+                    % (line, SHEEN_TOKEN, head, SHEEN_BAND, sheen_geom[SHEEN_BAND],
+                       window, window - head)
+                )
+        if sheen_geom[SHEEN_PARK] != 0 or sheen_geom[SHEEN_CROSS] != 100:
+            failures.append(
+                "%s is %g %% and %s is %g %%; the two ends of the image are 0 %% and 100 %%.\n"
+                "    The sheen SLIDES — it arrives and stays for as long as the pointer does —\n"
+                "    where the rim CROSSES and leaves, which is why claim 8's off-canvas\n"
+                "    arithmetic is not this claim's. Anything inside those two ends parks the\n"
+                "    light part-way onto the panel or stops it part-way across."
+                % (SHEEN_PARK, sheen_geom[SHEEN_PARK], SHEEN_CROSS, sheen_geom[SHEEN_CROSS])
+            )
+
+    #     And, as with the rim, the numbers may not be written out again by the
+    #     surfaces that read them. The answer rule is checked as well as the
+    #     painter: a panel that parks from the token and crosses to a literal is
+    #     half-bound, and the half left loose is the one that moves.
+    sheen_painters = sheen_rules()
+    for rule in sheen_painters:
+        for prop, token in (
+            ("background-size", SHEEN_BAND),
+            ("background-position", SHEEN_PARK),
+        ):
+            m = re.search(r"(?:^|;)\s*%s\s*:([^;]*)" % prop, rule["body"])
+            if not m:
+                continue
+            value = re.sub(r"var\(\s*", "var(", m.group(1)).strip()
+            if "var(%s" % token not in value:
+                failures.append(
+                    "%s:%d paints %s and writes its own %s:\n"
+                    "        %s: %s\n"
+                    "    Read %s. The band is one geometry shared by every lit panel; a\n"
+                    "    literal here is a fourth copy of a number the rim already drifted on."
+                    % (rule["file"], rule["line"], SHEEN_TOKEN, prop, prop, value, token)
+                )
+
+    #     THE ANSWER IS FOUND BY WHAT IT MOVES, not by a list. Any rule whose
+    #     selectors reduce to a sheened class in a user-action state and that
+    #     declares a background-position is that panel's answer, wherever it is
+    #     written — the register's three classes share one, and a fourth panel
+    #     added later is held to this by existing.
+    for name in SHIPPING_CSS:
+        for head, body, line in rules((CSS / name).read_text()):
+            m = re.search(r"(?:^|;)\s*background-position\s*:([^;]*)", body)
+            if not m:
+                continue
+            value = re.sub(r"var\(\s*", "var(", m.group(1)).strip()
+            if "var(%s" % SHEEN_CROSS in value:
+                continue
+            hits = set()
+            for sel in (s.strip() for s in head.split(",") if s.strip()):
+                part = SELECTOR_PARTS.match(sel)
+                if part and part.group(2) and part.group(1) in sheen:
+                    hits.add(sel)
+            if hits:
+                failures.append(
+                    "%s:%d answers a sheened panel and writes its own far end:\n"
+                    "        %s { background-position: %s }\n"
+                    "    Read %s. A panel that parks from the token and crosses to a literal\n"
+                    "    is bound on the half that does not move."
+                    % (name, line, ", ".join(sorted(hits)), value, SHEEN_CROSS)
+                )
 
     doc_stamp, published = doc_rows()
     measured = {rel: n for rel, n, _, _ in rows if n}

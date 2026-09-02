@@ -3,8 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="only light">
+<meta name="theme-color" content="#CFCFD2">
 <title>Motion — Control-F Design System</title>
 <link rel="icon" href="../assets/img/logo/cf-favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../assets/icon/cf-app-icon-180.png">
+<link rel="manifest" href="../assets/icon/site.webmanifest">
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/base.css">
 <link rel="stylesheet" href="../assets/css/components.css">
@@ -394,10 +398,10 @@ python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the co
         <tr><td><code>.cf-iso__scene</code></td><td>the whole object</td><td>travels in on 26.57° — see below — and fades up. The only thing that moves. Silent under <code>.cf-iso--build</code>.</td><td>cover 5–30 %</td></tr>
         <tr><td><code>.cf-iso__form</code></td><td>solid contoured body</td><td>nothing on its own; it rides the scene. Under <code>.cf-iso--build</code> it arrives on its own stage — see below.</td><td>— / cover 5–22 % + 7 % per stage</td></tr>
         <tr><td><code>.cf-iso__ghost</code></td><td>dashed reference geometry</td><td>fades up after the body it belongs to</td><td>cover 20–40 %</td></tr>
-        <tr><td><code>.cf-iso__orbit</code></td><td>a ghost that circulates</td><td>fades up with the other ghosts, and keeps turning after them — see below. Under <code>.cf-iso--build</code> both ends move with the ghosts’ own window; only the settle stays put.</td><td>cover 20–40 % fading, 20–50 % turning / under <code>--build</code>, 2–14 % and 2–50 %</td></tr>
+        <tr><td><code>.cf-iso__orbit</code></td><td>a ghost that circulates</td><td>fades up with the other ghosts, and keeps turning after them — see below. Under <code>.cf-iso--build</code> both ends move with the ghosts’ own window; only the settle stays put.</td><td>cover 20–40 % fading, 20–50 % turning / under <code>--build</code>, 2–14 % and 2 % to wherever that object’s construction points settle</td></tr>
         <tr><td><code>.cf-iso__trace</code> <em>(retired)</em></td><td>the signal reaching the object — <strong>one stroke</strong>. No longer one of the layers; see <a href="illustration.html#layers">Illustration</a></td><td>draws itself, edge of the crop to edge of the crop — see below</td><td>cover 18–45 %, or a window inside it</td></tr>
-        <tr><td><code>.cf-iso__light</code></td><td>the single lime-gradient element, <strong>filled</strong></td><td>its fill comes up last. Light arrives; it does not fly in — which is why <code>cf-iso-light</code> animates <code>fill-opacity</code> and nothing else, and why a light drawn as a stroke would have no arrival at all. Checked.</td><td>cover 30–48 %</td></tr>
-        <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>fade up last of all</td><td>cover 35–50 %</td></tr>
+        <tr><td><code>.cf-iso__light</code></td><td>the single lime-gradient element, <strong>filled</strong></td><td>its fill comes up last. Light arrives; it does not fly in — which is why <code>cf-iso-light</code> animates <code>fill-opacity</code> and nothing else, and why a light drawn as a stroke would have no arrival at all. Checked.</td><td>cover 30–48 %; under <code>--build</code> both ends follow the object’s last stage — <a href="#light-object">the object, not the plate</a></td></tr>
+        <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>fade up last of all</td><td>cover 35–50 %; under <code>--build</code>, one beat behind the light</td></tr>
       </tbody>
     </table>
     <h3 id="arrival">A build happens where the eye is</h3>
@@ -436,17 +440,47 @@ python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the co
       landing page's flow was ten strokes and became thirty-seven, and the same envelope that
       read 67 % of its ink at the centred position under the first geometry read 78 % under
       the second while its unweighted part mean barely moved.
-      <code>scripts/check-build-arrival.py</code> counts ink and holds the ceiling, so this
-      rule is enforced rather than merely written here.
+    </p>
+    <p>
+      <strong>Nothing in <code>scripts/</code> counts that ink, and this paragraph used to
+      end by saying one thing did.</strong> It named a script as the gate that “counts ink
+      and holds the ceiling, so this rule is enforced rather than merely written here.” That
+      file has never existed in any commit — <code>git log -S</code> finds its name in
+      exactly one, the commit that wrote the sentence — and the claim then stood for 49
+      merges under the one heading on this page that already had to be rewritten for stating
+      its rule backwards. It is the same failure <code>scripts/check-cited-gates.py</code>
+      exists for, one corpus over: that check read the gates’ own docstrings and the
+      workflow and not the chapters, which is the half a reader actually reads. It reads the
+      chapters now, so this sentence cannot be written again.
+    </p>
+    <p>
+      <strong>And the ceiling cannot be held by a static script</strong>, for the reason the
+      scrub rule below states about the <code>cover</code> and <code>contain</code> families:
+      the quantity is a <em>rendered</em> state sampled at one scroll position, so producing
+      it needs a browser at a viewport, and every gate in <code>scripts/</code> is
+      stdlib-only and reads the files. It is held by hand instead — the acceptance test
+      above, run in Chromium against each entry-phase assembly — and the numbers that test
+      produced are the baseline recorded with the rule in <code>.github/ROUTINES.md</code>:
+      statement <strong>24 %</strong>, flow <strong>54 %</strong>, against the 60 % ceiling.
     </p>
     <div class="docs-note">
-      <strong>Held so far: the landing page's two entry-phase assemblies — the statement
-      figure and the flow — and both pass.</strong> The default <code>.cf-iso</code> ranges
-      in the table above are the open tranche: <code>cover 5–30 / 20–40 / 18–45 / 30–48 /
-      35–50</code> all close at or before cover 50 %, so every figure that runs them is
-      finished at the moment it is centred. They are shared by every pattern page and
-      retiming them is a change to the whole system rather than to one page, so it is stated
-      here rather than done quietly on the way past.
+      <strong>The two figures that baseline holds are the landing page&rsquo;s entry-phase
+      assemblies. The default <code>.cf-iso</code> ranges are the other half of the
+      tranche, and one part of it has just moved.</strong> Those ranges were the open
+      tranche in full:
+      <code>cover 5&ndash;30 / 20&ndash;40 / 18&ndash;45 / 30&ndash;48 / 35&ndash;50</code> all close at or before
+      cover 50 %, so every figure that ran them was finished at the moment it was centred.
+      Two of the four process objects have come partly off it: cards 03 and 04 draw to stage
+      3, so their light now closes at 61 and their construction points at 63, and both still
+      have a beat running when they sit centred. Be exact about which beat &mdash; their
+      <em>forms</em> land at 43 as they always did, so measured as ink these two objects are
+      no less finished at cover 50 than they were; what is still arriving is the lime and the
+      points. That was not the point of the change &mdash;
+      <a href="#light-object">the object, not the plate</a> was &mdash; and it is recorded here
+      because it is the first movement this tranche has had. The rest is
+      unchanged: every figure whose object declares no stages, and cards 01 and 02 at stage 2,
+      which close at 54 and 56. Retiming the defaults is a change to the whole system rather
+      than to one page, so it is still stated here rather than done quietly on the way past.
     </div>
 
     <h3 id="scrub">A part may not outrun the hand</h3>
@@ -551,18 +585,24 @@ python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the co
         <tr><td><code>.cf-iso__ghost</code></td><td><strong>first on screen.</strong> A ghost is the object's future state, and the parts arrive out of exactly where the ghosts are, so a ghost that fades up after the part it predicts is the drawing told backwards</td><td>cover 2–14 %</td></tr>
         <tr><td><code>.cf-iso__orbit</code></td><td><strong>first on screen too.</strong> It is excluded from the rule above for a mechanical reason — it runs two animations and that rule states one range — and it states the plan’s own window itself. The turn opens on the same point and still settles where the construction points do, so it runs the whole assembly rather than its second half</td><td>cover 2–14 % fading, 2–50 % turning</td></tr>
         <tr><td><code>.cf-iso__form</code></td><td>arrives on its stage, from <code>--build-dx</code> / <code>--build-dy</code></td><td>cover 5–22 %, +7 % per stage</td></tr>
-        <tr><td><code>.cf-iso__light</code></td><td>a part like any other while the object is being built, so it takes a stage and travels with the section it belongs to — card 01's lime plate <em>is</em> the top of the inner shaft and cannot stay behind while the shaft rises. Its fill comes up last, and “last” is <a href="#light-last">the later of 30 % and its own arrival</a> rather than a flat 30.</td><td>arrival on its stage; fill cover <code>max(30, 22 + 7n)</code>–48 %</td></tr>
-        <tr><td><code>.cf-iso__node</code></td><td><strong>not staged.</strong> Construction points are added to a finished object, at its finished position, which is what they mean</td><td>unchanged</td></tr>
+        <tr><td><code>.cf-iso__light</code></td><td>a part like any other while the object is being built, so it takes a stage and travels with the section it belongs to — card 01's lime plate <em>is</em> the top of the inner shaft and cannot stay behind while the shaft rises. Its fill comes up last, and “last” is <a href="#light-last">the later of 30 % and its own arrival</a> rather than a flat 30.</td><td>arrival on its stage; fill cover <code>max(30, 22 + 7S)</code> to <code>max(48, 40 + 7S)</code>, where <code>S</code> is the OBJECT’s last stage and <code>n</code> the plate’s own</td></tr>
+        <tr><td><code>.cf-iso__node</code></td><td><strong>not staged</strong>, which is not the same as fixed. Construction points are added to a finished object, at its finished position — so they wait for the object rather than for a stage of it</td><td>cover <code>max(35, 27 + 7S)</code> to <code>max(50, 42 + 7S)</code></td></tr>
       </tbody>
     </table>
     <p>
       Stages overlap by ten points of the seventeen each one runs, which is what makes this
-      read as one assembly rather than four events. Four stages fit before lime comes up at
-      30 %, and the whole build is settled by 43 % — inside the same cover 50 % everything
-      else finishes at. <strong>Four is the ceiling, and it is derived rather than chosen:</strong>
-      stage 4 would only begin moving at cover 33 %, after the lime it may be carrying has
-      already started coming up, and would still be travelling when the construction points
-      settle at 50 %. <code>scripts/check-iso-motion.py</code> recomputes that last stage from
+      read as one assembly rather than four events. <strong>Four stages fit before lime comes
+      up at 30 %</strong> — and that sentence, which stood here and in
+      <code>components.css</code> from the day the build was written, is arithmetically
+      false. Stage <em>n</em> arrives over <code>5 + 7n</code> to <code>22 + 7n</code>, so
+      only stages 0 and 1 close before 30; a stage-3 object is still arriving at 43. What
+      fits before 30 is four stages <em>starting</em>, which is a weaker claim and is the one
+      the ceiling below is derived from. The gap between the two is
+      <a href="#light-object">the object, not the plate</a>, and it is why the light and the
+      construction points now follow <code>--build-stages</code> instead of a literal.
+      <strong>Four is still the ceiling, and it is still derived rather than chosen:</strong>
+      stage 4 would only begin moving at cover 33 %, after the constant the lime's fill is
+      floored at. <code>scripts/check-iso-motion.py</code> recomputes that last stage from
       the two ranges in <code>components.css</code> and fails a <code>--stage</code> past it —
       so the day either window moves, the ceiling moves with it.
     </p>
@@ -681,7 +721,8 @@ python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the co
       <code>max()</code> is a new literal: the arrival's end is read off the window declared
       immediately beside it, so the two cannot drift apart again.
     </p>
-    <pre class="docs-code"><span class="attr">animation-range</span>: cover <span class="val">calc(max(30%, 22% + var(--stage, 0) * 7%))</span> cover <span class="val">48%</span>,
+    <pre class="docs-code"><span class="attr">animation-range</span>: cover <span class="val">calc(max(30%, 22% + var(--build-stages, 0) * 7%))</span>
+                 cover <span class="val">calc(max(48%, 40% + var(--build-stages, 0) * 7%))</span>,
                  cover <span class="val">calc(5%  + var(--stage, 0) * 7%)</span>
                  cover <span class="val">calc(22% + var(--stage, 0) * 7%)</span>;</pre>
     <p>
@@ -704,6 +745,114 @@ python3 scripts/check-motion-census.py --fix  <span class="com"># rewrite the co
       putting the two constants back, which reports five findings — the two that shipped and
       the three a stage-3 light would have arrived with.
     </p>
+
+    <h4 id="light-object">…and the thing that arrives is the object, not the plate</h4>
+    <p>
+      Everything above argues from one sentence — <em>an object lit while it is still
+      travelling is lit before it is there</em> — and then reads the arrival of a single part:
+      the plate the lime is painted on. Those are the same sentence only where the lime plate
+      happens to sit on the object's <strong>last</strong> stage, and that is card 01 and
+      nothing else in the system. On the other three the fill went on opening while other
+      parts were still arriving, by more than the defect the correction was written to remove.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>Object</th><th>Last stage</th><th>Object still arriving until</th><th>Fill opened</th><th>Lit before it was there</th></tr></thead>
+      <tbody>
+        <tr><td>01 Discovery</td><td>2</td><td>36 %</td><td>36 %</td><td>—</td></tr>
+        <tr><td>02 Datenfundament</td><td>2</td><td>36 %</td><td>30 %</td><td>6 points</td></tr>
+        <tr><td>03 Weniger Ausfälle</td><td>3</td><td>43 %</td><td>30 %</td><td><strong>13 points</strong></td></tr>
+        <tr><td>04 Mehr Leistung</td><td>3</td><td>43 %</td><td>36 %</td><td>7 points</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Measured rather than reasoned about, on
+      <a href="../components/process-card.html">Process Card</a> at 390×812, sweeping card
+      03's own view timeline and reading the lime's <code>fill-opacity</code> against the four
+      stage-3 ticks that are still travelling:
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>cover</th><th>lime <code>fill-opacity</code></th><th>parts still arriving</th></tr></thead>
+      <tbody>
+        <tr><td>32 %</td><td>0.325</td><td>4, still 16.5 units out</td></tr>
+        <tr><td>36 %</td><td>0.683</td><td>4, still 5.3 units out</td></tr>
+        <tr><td>40 %</td><td>0.875</td><td>4, still 0.9 units out</td></tr>
+        <tr><td>43 %</td><td>0.956</td><td>none — the object lands</td></tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>The lime reaches 96 % of its strength before card 03 has finished arriving.</strong>
+      Card 01 reads 0.000 at cover 32 and 0.018 at 36 with nothing left travelling, which is
+      the correction above working exactly as it says — on the one object it was ever
+      sufficient for.
+    </p>
+    <p>
+      The construction points are the same finding one beat later. Their window is the literal
+      <code>35–50</code>, measured when the deepest object went to stage 1, and their own note
+      says what they mean: <em>added to a finished object, at its finished position</em>. On
+      cards 03 and 04 they began landing <strong>8 points</strong> before the last of the
+      geometry did.
+    </p>
+    <p>
+      An object's last stage cannot be computed in CSS — there is no expression over an
+      element's descendants — so it is <strong>declared on the <code>&lt;svg&gt;</code> as
+      <code>--build-stages</code></strong>, beside the viewBox, the same place
+      <code>--iso-travel</code> is declared and for the same reason: the number and the drawing
+      it is a fact about cannot then drift apart unnoticed.
+      <code>scripts/check-iso-motion.py</code> reads the deepest <code>--stage</code> in each
+      built object and fails a declaration that disagrees with it, then sweeps the stylesheet's
+      own expressions at every stage: the fill opens no earlier than the object lands, the
+      points open no earlier than the fill, and they close no earlier than it does — so the
+      object still finishes on its construction points.
+    </p>
+    <p>
+      <strong>The window's end moves now, and that is the other half of the same finding.</strong>
+      Held at 48 while the start moved, the correction above quietly cut cards 01 and 04 from
+      an 18-point fill to a 12-point one; holding it for a stage-3 object would have left 5.
+      A light that comes up over five points on one card and eighteen on another is one element
+      behaving two ways, on the one lit moment the brand gives a screen. Both ends travel with
+      the object, so the fill keeps the 18 points of range it has always had. Nothing here is a
+      new literal: 30 and 48 are the window that shipped, 22 and 7 are the arrival's own end
+      and step, 40 is 48 − 18, and the points' 5 and 2 are the offsets 35 − 30 and 50 − 48
+      already stated. An object that declares nothing resolves to 0 and every
+      <code>max()</code> collapses to the literal beside it.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th><code>--build-stages</code></th><th>Light</th><th>Construction points</th><th>Orbit settles</th><th>Objects</th></tr></thead>
+      <tbody>
+        <tr><td>0 or 1</td><td>30 → 48 %</td><td>35 → 50 %</td><td>50 %</td><td>every other figure — unchanged</td></tr>
+        <tr><td>2</td><td>36 → 54 %</td><td>41 → 56 %</td><td>56 %</td><td>01, 02</td></tr>
+        <tr><td>3</td><td>43 → 61 %</td><td>48 → 63 %</td><td>63 %</td><td>03, 04</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The orbit's settle is in that table because it is <em>read</em> from the points' window
+      rather than restated: “settling exactly where the nodes do” was true while that end was
+      the literal 50, and stopped being true the moment the points learned to follow the
+      object. Card 04 is the only built object with orbits and it is a stage-3 object, so a
+      ring left at 50 would stop thirteen points before the object it circles is finished —
+      the separate event the whole orbit note is written against.
+    </p>
+
+    <div class="docs-note docs-note--warn">
+      <strong>The pinned track has the same defect and cannot take the same fix, and that is
+      the 62 % hold rather than an oversight.</strong> Read off
+      <code>getComputedStyle</code> at 1440×900 on the Landing Page, per quarter of 25:
+      card 01's object lands at 11.4 against a fill opening at 11.5; card 02's at 12.4 against
+      11.5; cards 03 and 04's at <strong>14.6</strong>, against 11.5 and 12.4 — so 0.9, 3.1 and
+      2.2 points, and the construction points open at 13.0 on both stage-3 cards, 1.6 points
+      before their objects land.
+      <br><br>
+      Shifting the fill to 14.6 and keeping the points one beat behind it puts them past 16.1
+      and the object finishing at 18.6, three points into the still that the reveal's end at
+      15.5 exists to give. So on that track the correction is not a later light but a
+      <em>shorter build</em>: with a head of 1.5, a 6.5-point window and a stage-3 object, the
+      stagger has to come down from 2.2 to 1.17 for the object to land by 11.5 — which folds
+      four stages into very nearly one event. That is a decision about how the pinned track is
+      composed, not a correction to it, and it is left to the lane that owns the track rather
+      than taken here. <code>check-iso-motion.py</code> holds the object-level inequality on
+      the base timeline and the plate-level one on both, which is exactly as far as the
+      argument goes today. → <a href="#hold">A pinned track: build, hold, hand over</a>
+    </div>
 
     <h3>An orbit turns, and it turns by moving its dashes</h3>
     <p>

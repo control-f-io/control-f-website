@@ -3,8 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="only light">
+<meta name="theme-color" content="#CFCFD2">
 <title>Accordion / FAQ — Control-F Design System</title>
 <link rel="icon" href="../assets/img/logo/cf-favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../assets/icon/cf-app-icon-180.png">
+<link rel="manifest" href="../assets/icon/site.webmanifest">
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/base.css">
 <link rel="stylesheet" href="../assets/css/components.css">
@@ -115,7 +119,9 @@
     <p>
       Four, and until now this page named none of them. Three are drawn by the stylesheet
       and one by <code>base.css</code>; the difference matters, because the one that is not
-      the component's own is the only one that is a conformance requirement.
+      the component's own is the only one that is a conformance requirement. All four are
+      states of a screen; a sheet has no closed row at all, and that is
+      <a href="#print">a clause of the print law</a> rather than a fifth state.
     </p>
     <table class="docs-table">
       <thead><tr><th>State</th><th>What draws it</th></tr></thead>
@@ -241,6 +247,71 @@
       somebody is writing now. It is not a licence to cut answers a customer asked for, and
       trimming that set is an editorial decision, not a design-system one.
     </div>
+  </section>
+
+  <section class="docs-section" id="print">
+    <h2>On paper</h2>
+    <p>
+      <strong>Every panel is open, and until now none of them was.</strong> A closed
+      <code>&lt;details&gt;</code> is not laid out faintly on a sheet — it is not laid out.
+      Printed through Chromium at A4, the three sets above came out as a stack of questions:
+      measured under emulated <code>print</code> media, eleven panels on
+      <a href="../patterns/expertise.html">Expertise</a>,
+      <code>checkVisibility()</code> false on all eleven. The reader was holding the only part
+      of that page they printed it for, with the answers missing.
+    </p>
+    <p>
+      It had gone unseen for the reason print faults do: every screenshot this repository takes
+      is <code>screen</code>, and on screen the component is correct. It was also being actively
+      protected — <code>.cf-accordion__item</code> has been on the
+      <a href="../foundations/print.html#fragmentation">may-not-be-cut register</a> since that
+      register existed, so the sheet was keeping whole an object carrying a question and no
+      answer.
+    </p>
+    <table class="docs-table">
+      <thead><tr><th>On paper</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>The panel is open</td>
+          <td><code>content-visibility: visible</code> on <code>::details-content</code>, with <code>block-size</code> and <code>overflow-y</code> given back from the <a href="#motion">opening animation</a> — that block sets both on a <em>closed</em> panel, at the same weight, so this one has to be later in the cascade than it is.</td>
+        </tr>
+        <tr>
+          <td>The arrow is gone</td>
+          <td>It is the control that opens the panel and it draws which way the panel stands. With every panel open and only one carrying <code>[open]</code>, it would print the wrong state beside an answer already standing under it. → <a href="../foundations/print.html#withdrawn">the withdrawn register</a></td>
+        </tr>
+        <tr>
+          <td>The row is one column</td>
+          <td>A grid gutter is drawn between tracks whether or not the second one holds anything. Left alone, the question would wrap 24 px short of the answer under it.</td>
+        </tr>
+      </tbody>
+    </table>
+    <pre class="docs-code"><span class="tag">@media</span> print {
+  .cf-accordion__summary .cf-arrow { <span class="attr">display</span>: <span class="val">none</span>; }
+
+  .cf-accordion__item::details-content {
+    <span class="attr">content-visibility</span>: <span class="val">visible</span>;
+    <span class="attr">block-size</span>: <span class="val">auto</span>;
+    <span class="attr">overflow-y</span>: <span class="val">visible</span>;
+  }
+  .cf-accordion__summary { <span class="attr">grid-template-columns</span>: <span class="val">minmax(0, 1fr)</span>; }
+}</pre>
+    <div class="docs-note">
+      <strong><code>::details-content</code> is what makes this a stylesheet's job at all.</strong>
+      The panel is a box the user agent generates and hides, and before that pseudo-element was
+      exposed there was no author selector for it — which is why a printed accordion on the web
+      is normally either a <code>beforeprint</code> script or nothing. It is Baseline as of
+      September 2025 (Chrome 131, Firefox 143, Safari 18.4). This component already stands on it
+      for <a href="#motion">the opening</a>, so the clause introduces no floor the accordion did
+      not already have, and below that floor the sheet is what it was.
+    </div>
+    <p>
+      The rules live at the foot of <code>components.css</code> with the two registers rather
+      than beside the component, because that is the end of the last stylesheet loaded and a
+      print rule that loses at equal specificity is a comment. The law and its third clause are
+      in <a href="../foundations/print.html#disclosure">Print</a>;
+      <code>scripts/check-print-law.py</code> holds every panel a <code>&lt;details&gt;</code>
+      closes to it, derived from the stylesheet rather than from a list.
+    </p>
   </section>
 
   <section class="docs-section" id="a11y">
