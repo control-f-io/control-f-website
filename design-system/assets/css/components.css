@@ -4065,6 +4065,43 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
        has no such duty: its border-bottom is drawn at the panel's own edge
        wherever that edge lands. */
     max-block-size: none;
+    /* AND THE SQUARE IS THE SECOND CAP, which releasing the first one did not
+       reach. `aspect-ratio: 1` states a height as firmly as a max-block-size
+       does: the figure is its column's width tall and stops, whatever the row
+       does. A grid item is stretched to its row by default and that is what
+       would have saved this — but a box with an aspect ratio and an auto block
+       size takes the ratio's height instead of the stretch, in all three
+       engines, so the release above bought nothing on any card whose copy is
+       taller than the drawing beside it. And the copy is taller often: it is
+       four paragraphs, a dashed divider, a benefit and sometimes a note,
+       against a square.
+
+       MEASURED ON THE SHIPPED PAGE, "Weniger Ausfälle" — the third card of
+       "Was wir machen", the one carrying both a benefit and a note — figure
+       height against the row it is supposed to divide:
+
+         viewport     row    figure    hairline short by
+         1280 x 800   709     569       140 px
+         1366 x 768   688     607        81
+         1440 x 900   688     639        49
+         1920 x 1080  688     639        49
+
+       Forty-nine pixels of a card's bottom-centre with no line in it, under a
+       drawing whose whole job on that edge is to divide. It reads as a slightly
+       open corner rather than as a fault, which is why it survived: the card's
+       own outer border still closes the box underneath, so nothing is missing,
+       something is only unfinished.
+
+       `block-size: 100%` IS THE RELEASE, and it is a percentage on purpose.
+       While the row is being sized it cannot resolve, so it behaves as auto and
+       the ratio still makes its square contribution — the row is never SHORTER
+       than the drawing wants. Once the row is sized, the percentage resolves
+       against it, both axes are definite, and the ratio steps aside. The square
+       becomes the figure's minimum rather than its size, which is what it was
+       always meant to be: the drawing inside is capped at 22rem and centred, so
+       a taller box is more air around the same object, never a bigger one.
+       → scripts/check-figure-letterbox.py, which registers this release */
+    block-size: 100%;
     border-bottom: 0;
     border-right: var(--stroke-1) solid var(--border-strong);
   }
