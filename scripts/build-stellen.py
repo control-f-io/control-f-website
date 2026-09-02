@@ -152,7 +152,7 @@ def field(job, edition, de, en):
 # --------------------------------------------------------------------------
 # the regions
 
-def head(job, edition, pad):
+def head(job, edition, pad, name):
     title = JOBS.plain_title(job, edition)
     w = WORDS[edition]
     desc = w["desc"] % (title, field(job, edition, "anstellung", "employment"),
@@ -173,7 +173,7 @@ def head(job, edition, pad):
     return "\n".join(pad + line for line in (
         ["<title>%s</title>" % shown,
          '<meta name="description" content="%s">' % quoted]
-        + og_meta.block(shown, quoted, "karriere-stelle", edition)))
+        + og_meta.block(shown, quoted, "karriere-stelle", edition, name)))
 
 
 def ld(job, edition, pad):
@@ -354,7 +354,7 @@ def page(template, job, jobs, edition, name):
              else "design-system/patterns/en/%s") % SPECIMEN
     doc = template
     for region, body in (
-            ("head", lambda pad: head(job, edition, pad)),
+            ("head", lambda pad: head(job, edition, pad, name)),
             ("ld", lambda pad: ld(job, edition, pad)),
             ("crumb", lambda pad: '%s<span class="cf-breadcrumb__current" '
                                   'aria-current="page">%s</span>'

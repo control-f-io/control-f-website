@@ -366,20 +366,24 @@ EXACTLY WHEN it has a &lt;meta name="description"&gt; and is not `noindex`.</pre
         <tr><td><code>og:description</code></td><td>The page's own <code>meta[name=description]</code>, on the same argument.</td></tr>
         <tr><td><code>og:locale</code></td><td>The edition. <code>build-i18n.py</code> swaps the pair whole, so a page cannot say it is German and that German is its translation.</td></tr>
         <tr><td><code>og:image</code></td><td>Absolute, where every other address on the page is relative — LinkedIn among others does not resolve a relative one. The origin is <code>SITE_ORIGIN</code> in <code>wrangler.toml</code>, read rather than typed.</td></tr>
+        <tr><td><code>og:url</code></td><td>The page's <em>shipped</em> address on that origin — <code>/blog/&lt;slug&gt;.html</code>, not <code>beitrag-&lt;slug&gt;.html</code>; <code>/</code> for the landing page; under <code>en/</code> for the English edition. <code>og_meta.address()</code> asks <code>build-site.py</code>'s tables, so a page moved there moves here.</td></tr>
+        <tr><td><code>&lt;link rel="canonical"&gt;</code></td><td>The same address once more, in the vocabulary a search engine reads. It sits inside the block because it is for the same set of pages and the same reason: the domain move.</td></tr>
         <tr><td><code>og:image:alt</code></td><td>One sentence describing what the picture <em>is</em>. A reader who cannot see it is owed that; they are not owed the seed.</td></tr>
         <tr><td><code>twitter:card</code></td><td>The only <code>twitter:*</code> tag here. X reads Open Graph as its fallback for every other field, so repeating them would be three strings maintained twice — but without this one a large embed degrades to an 80 × 80 thumbnail on Discord and to the small card on X.</td></tr>
       </tbody>
     </table>
     <div class="docs-note">
       <p>
-        <strong><code>og:url</code> is deliberately absent, and it is the one field the domain
-        cutover unblocks.</strong> Two public copies of this site are live while the move off
-        Wix is pending — GitHub Pages is canonical and the Worker deployment is
-        <code>noindex</code>ed against it. An <code>og:url</code> names one of them, and it
-        would name that one on both; every consumer falls back to the address it actually
-        fetched, which is right on either copy. When
-        <code>wrangler.toml</code>'s <code>SITE_ORIGIN</code> goes, this is the line that
-        arrives with it.
+        <strong><code>og:url</code> and the canonical link are the two fields written for the
+        move off Wix, and they are the reason the move is one line.</strong> Two public copies
+        of this site are live — GitHub Pages is canonical and the Worker deployment is
+        <code>noindex</code>ed against it — and at the cutover the old Pages address becomes a
+        third for as long as a crawler remembers it. Every copy therefore says which address
+        is the page, and says it from <code>SITE_ORIGIN</code>: change that line in
+        <code>wrangler.toml</code> to <code>https://www.control-f.io</code> and every card,
+        every canonical, the sitemap and the redirect stubs move together.
+        <code>check-open-graph.py</code> re-derives both from the page's name, so a page
+        cannot carry an address that is not its own.
       </p>
     </div>
   </section>

@@ -19,7 +19,16 @@ name = "control-f-website"
 main = "worker/index.js"
 compatibility_date = "2026-08-04"
 
-# THE CUTOVER, and why it is four commented lines rather than a route.
+# THE ALTERNATIVE CUTOVER: the website served from this Worker.
+#
+# NOT THE PLAN, as of 2026-09-02. The site stays on GitHub Pages and takes
+# control-f.io there — README.md, "Domain cutover" — this Worker keeps answering
+# the forms from workers.dev, DNS stays at iwantmyname and no zone moves. That
+# path costs two things this one would buy: a validation error still lands the
+# reader on the workers.dev address, and the old Wix URLs are answered by
+# meta-refresh stubs rather than 301s (content/redirects.txt becomes
+# _redirects on this surface, so the 301s are ready if this path is taken).
+# Kept because it is four lines away and the procedure below is the hard part.
 #
 # Uncommenting this is what moves the website onto this Worker. It cannot be
 # done from the repository alone, and it cannot be done first: a custom_domain
@@ -174,22 +183,25 @@ CONTACT_TO = "info@control-f.io"
 # delivers to a monitored mailbox rather than throwing an application away.
 APPLY_TO = "info@control-f.io"
 
-# Where a successful submit sends the reader back to.
+# THE ONE LINE THE DOMAIN CUTOVER CHANGES. Two things read it:
 #
-# The website is on GitHub Pages and stays there while the redesign is still
-# being built; this Worker exists for the one thing Pages cannot do, which is
-# answer a POST — it replies 405, so the form has never worked there. The form
-# on the Pages site therefore posts across origins to this Worker, and this is
-# the address it came from, subdirectory and all. Without it, a reader who
-# submitted from Pages would be left on workers.dev.
+#   the Worker   where a successful submit sends the reader back to. The
+#                website is on GitHub Pages, which answers a POST with 405, so
+#                the form posts across origins to this Worker and this is the
+#                address it came from, subdirectory and all. Without it a reader
+#                who submitted from Pages would be left on workers.dev.
+#   the build    what "this site's address" is: og:image, og:url and the
+#                canonical link on every card page (scripts/og_meta.py), the
+#                sitemap and the redirect stubs for the old Wix addresses
+#                (scripts/stage-site.py), and _headers — while it is set, the
+#                Worker copy is the second copy and is marked noindex.
+#
+# AT THE CUTOVER THIS BECOMES "https://www.control-f.io" — changed, not
+# deleted: the build stops without it, and the Worker still needs to send the
+# reader back to the site rather than to its own address. Everything above
+# moves with the one edit; the merge is step 3 of README.md's "Domain cutover".
 #
 # NO TRAILING SLASH: the paths in worker/index.js's FORMS table start with one.
-#
-# DELETE THIS LINE AT THE CUTOVER. When the Worker serves the site under its own
-# domain, both origins are the same, the form goes back to posting to its own
-# address, and an absolute redirect would only pin the reader to whatever this
-# string happened to say. worker/index.js falls back to the relative path when
-# it is absent, which is then exactly right.
 SITE_ORIGIN = "https://control-f-io.github.io/control-f-website"
 
 # RESEND_API_KEY is a secret and is deliberately absent. Set it once with:
