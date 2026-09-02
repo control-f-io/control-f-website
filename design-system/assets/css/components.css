@@ -14583,6 +14583,41 @@ a.cf-calendar__day > time,
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
+
+  /* THE DRAW STOPS HERE, AND THIS LINE IS A RECALC BOUNDARY RATHER THAN A
+     VALUE. --annot-draw is registered `inherits: true` because the two boxes
+     that read it are not one box: the leader is .cf-annot::after and the note
+     is .cf-annot__label, so the animation has to run on the SET and arrive by
+     inheritance. Nothing below the note reads it — the value is the end of
+     that chain — but an inherited registered property whose value CHANGES
+     costs a style recalc on every descendant of the animated element, on
+     every frame the range is scrubbing, whether or not the descendant reads
+     it. Redeclaring it here gives this element a computed value that does not
+     move, and Blink stops the walk at an element whose inherited values are
+     unchanged, so the readouts under it are never visited.
+
+     THE SUBTREE IS NOT THE FOUR WORDS THIS COMPONENT WAS MEASURED ON. On the
+     landing page the set is .sp-annots: 21 annotations whose values are live
+     readouts — .sp-stream, six <b> apiece — so 126 of the set's 189
+     descendants sit under .cf-annot__value, and not one of them reads
+     --annot-draw. Chromium 1194, 1440 x 900, scrubbing scrollY 2050 -> 2500
+     in 40 steps (cf-annot-draw's own `cover 45% cover 62%`, act 1 lit),
+     Performance.RecalcStyleDuration, median of three runs:
+
+       as shipped                    1000 ms    25.0 ms / step
+       with this line                 594 ms    14.9 ms / step
+       cf-annot-draw force-paused     361 ms     9.0 ms / step
+
+     The 233 ms this still leaves over the paused run is the 21 leaders and
+     21 notes that do read the property, which is the work the animation is
+     for. Cutting one level lower, on .sp-stream > b, buys nothing (1062 ms,
+     within noise of shipped): by then the walk has already reached them, and
+     what a boundary saves is the visit, not the comparison.
+
+     1 is the finished annotation and the registered initial-value, the same
+     number the legend fallback, the plan and forced colours each write when
+     they hand --annot-draw back. */
+  --annot-draw: 1;
 }
 
 /* The leader draws itself out of the anchor as the figure settles. The range
