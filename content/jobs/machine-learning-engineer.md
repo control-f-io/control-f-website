@@ -14,6 +14,8 @@ umfang:     Vollzeit
 hours:      Full time
 start:      ab sofort
 starts:     immediately
+verguetung: 65.000–80.000 € brutto im Jahr, je nach Erfahrung.
+salary:     €65,000–80,000 gross a year, depending on experience. No haggling over the number, only over where you sit in the range.
 gehalt_von: 65000
 gehalt_bis: 80000
 art:        FULL_TIME
