@@ -2002,23 +2002,62 @@ hr {
    motion, print, forced colours — the rake is the documented 116.57°: the
    head-on value, which is the right thing to fall back to.
 
-   NEITHER FOIL MOMENT ON THE TWO DESIGNED PAGES REACHES HEAD-ON, and that is
-   worth knowing before reading a screen. Both sit at a document extreme — a
-   page header at the top, a footer at the bottom — where a view() timeline
-   only has part of its range to work with. Measured at 1280 x 900:
+   ONE OF THE THREE FOIL MOMENTS FALLS SHORT OF HEAD-ON, AND IT IS THE PAGE
+   HEADER. This paragraph used to say "neither foil moment on the two designed
+   pages reaches head-on" and to argue against the fix; both halves of that
+   have been overtaken by what ships, so here is the census and the
+   measurement rather than the old pair.
 
-     Über uns title    timeline 74.6 % -> 100 %   rake 103.5° -> 90°
-     footer title      timeline    0 % ->  34 %   rake    90° -> 108.1°
+   There are 32 .text-foil elements across the 18 pattern pages, in three
+   kinds, and only the first still swings on the element's own view() that
+   this rule declares:
 
-   So both read between 90° and 108°, opening towards the designed rake as
-   they approach the middle of the screen and never quite arriving. That is
-   the honest behaviour of the model rather than a shortfall in it: a headline
-   the reader cannot bring to the centre of the screen is a headline they
-   never look at square on. A foil moment placed mid-page — a blog article
-   title, say — gets the whole journey. Nothing was bent to hide this; the
-   alternative was a per-element animation-range, which would put the footer
-   on a different rule from every other foil moment to fix something only a
-   side-by-side reveals.
+     page header title   10 pages   view()                  (this rule)
+     footer title        18 pages   --cf-footer-arrival     components.css
+     info-card title      4 on one  --cf-pin                expertise.html
+
+   Measured at 1280 x 900 — the viewport the old table named — pointer at
+   rest, so --sight-h is 1 and the rake is --sight-v alone:
+
+     page header, Über uns     timeline 72.8 % -> 100 %   rake  99.50° -> 90°
+     page header, Expertise    timeline 74.6 % -> 100 %   rake 100.49° -> 90°
+     page header, News         timeline 74.6 % -> 100 %   rake 102.73° -> 90°
+     footer title, all 18      timeline    0 % -> 100 %   rake    90° -> 116.57°
+                                                       (116.54° worst of 18)
+     info-card titles, 4 of    timeline    0 % -> 100 %   rake    90° -> 116.22°
+                                                                  ... 116.52°
+
+   Same three at 1440 x 900 and 1280 x 800: the page headers open to between
+   99.85° and 104.20° and the other two reach 116.05° or better on all of
+   them. So the shortfall is the page header's alone, and it is the one this
+   note's reasoning was always about: it sits at the top of the document, its
+   view() range opens at roughly three quarters spent, and no scroll exists
+   that would carry it to the middle of the screen. A headline the reader
+   cannot bring to the centre of the screen is a headline they never look at
+   square on — that part stands. A foil moment the document can carry past the
+   middle of the screen gets the whole journey, which is what the other two
+   rows above are: neither is at a document extreme any more, because neither
+   is timed off its own position in the viewport.
+
+   WHAT CHANGED IS THE REJECTED ALTERNATIVE. This paragraph used to close on
+   "the alternative was a per-element animation-range, which would put the
+   footer on a different rule from every other foil moment". That alternative
+   has since shipped, twice, for reasons neither of which is cosmetic:
+
+     - components.css gives the footer .cf-footer's own --cf-footer-arrival
+       over `entry 0% entry 100%` with `view-timeline-inset: auto 0px`. Its
+       note there records what the default range cost: the swing stopped at
+       109.46° AND the invite never left its active phase, so :hover could
+       not move the CTA's specular. A per-element range was the fix for a
+       stuck control, not for a rake.
+     - expertise.html gives its card titles --cf-pin, because a title inside
+       a sticky-pinned stage has no view() pass of its own to swing on.
+
+   So a per-element range is now the house answer wherever the element's own
+   view() is the wrong clock, and the page header is simply not that case:
+   its view() is the right clock and the document is what is short. Leave it
+   on this rule. Anyone giving a fourth foil moment its own range should be
+   able to name which of those two faults they are fixing.
 
    WHAT DOES NOT SWING: .cf-btn--solid. Its foil is the component's own
    colour rather than an emphasis, its clip box is the whole button on
