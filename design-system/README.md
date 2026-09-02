@@ -1229,10 +1229,15 @@ too, because a register that outlives its subject is how the next one hides insi
 ### And the third direction: a class the documentation names
 
 Those two read the markup. `check-anatomy-provenance.py` reads the **chapter**: every class
-named in a whole-`<code>` table cell under `components/` or `foundations/` — 351 mentions
-across the 34 chapters that have one — has to be declared by a shipping stylesheet or by that page's own
-`<style>`. That is the register the other two cannot see, because a class name inside `<code>`
-is prose to a script that reads `class=` attributes.
+named in a whole-`<code>` table cell under `components/` or `foundations/` has to be declared
+by a shipping stylesheet or by that page's own `<style>`. That is the register the other two
+cannot see, because a class name inside `<code>` is prose to a script that reads `class=`
+attributes.
+
+**How many of them there are is the run's output, not a number in this paragraph.** It was one
+for an hour — "351 mentions across 34 chapters" — and two lanes landed chapters inside that
+hour. A gate against hand-kept documentation whose own documentation is hand-kept is the
+failure it was written for, one level up.
 
 **The failure it is for is a clean rename**, which is the ordinary edit and the one most likely
 to be made by a lane that has never opened the chapter: the rule is in `components.css`, the
