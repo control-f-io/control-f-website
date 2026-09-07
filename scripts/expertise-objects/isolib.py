@@ -13,7 +13,7 @@ three-grey register instead — #DADADA / #CFCFCF / #C4C4C4, the object sunk
 into the page's own CF-Grau ground — and were put back to white the next
 morning at the owner's request; the light and the nodes from that pass stay:
 one lit top face running the whole ramp from lime at its back corner to
-CF-Grau at its near one, and two nodes on that face.
+CF-Grau at its near one, and four symmetric nodes on that face.
 
 THE CURVES ARE COMPUTED, NOT APPROXIMATED.  A circle of radius r lying in any
 lattice plane projects to an ellipse whose two semi-axes and rotation fall out
@@ -89,6 +89,25 @@ def line(a, b):
 
 def face(d, fill):
     return f'<path d="{d}" fill="{fill}"/>'
+
+
+def place(draw, origin, scale=1.0, offset=(0, 0, 0)):
+    """Resize one asset about a 3-D anchor, preserving its ground contacts.
+
+    Uniform scale commutes with this affine projection. Register the placed
+    geometry for the crop as well as transforming the rendered SVG group.
+    The site's non-scaling contours keep their shared stroke weight.
+    """
+    if scale <= 0:
+        raise ValueError('Asset scale must be positive')
+    start = len(_PTS)
+    parts = draw()
+    source = p_(*origin)
+    target = p_(*(a + b for a, b in zip(origin, offset)))
+    dx, dy = (b - scale * a for a, b in zip(source, target))
+    _PTS[start:] = [(scale * x + dx, scale * y + dy) for x, y in _PTS[start:]]
+    return [f'<g transform="matrix({f(scale)} 0 0 {f(scale)} {f(dx)} {f(dy)})">',
+            *parts, '</g>']
 
 
 # ---------------------------------------------------------------- boxes
@@ -441,6 +460,156 @@ def drum(x, y, z, r, h, top=FACE_TOP, side=FACE_R):
     return cyl(x, y, z, 'z', h, r, side=side, cap=top)
 
 
+def pipe_network(gid, routes, r=0.09, bend=0.2, fill=FACE_R):
+    """Continuous small-bore pipes with rounded elbows and uncapped junctions.
+
+    Project the swept circular section, rather than stacking closed cylinders
+    at every turn. Each outline is masked by the other runs in this connected
+    network so a tee has no internal cap or doubled contour. Endpoints should
+    terminate inside a fitting or at another run; exposed ends belong to cyl().
+    The bore radius may be shared or supplied separately for each route.
+    """
+    outlines = []
+    radii = [r] * len(routes) if isinstance(r, (int, float)) else r
+    if len(radii) != len(routes):
+        raise ValueError('Each pipe route needs a bore radius')
+    for route, r in zip(routes, radii):
+        if len(route) < 2:
+            raise ValueError('A pipe route needs two endpoints')
+        directions, lengths = [], []
+        for start, end in zip(route, route[1:]):
+            delta = tuple(b - a for a, b in zip(start, end))
+            length = math.sqrt(sum(v * v for v in delta))
+            if length < 1e-8:
+                raise ValueError('Pipe segments must have positive length')
+            directions.append(tuple(v / length for v in delta))
+            lengths.append(length)
+        samples = [(route[0], directions[0])]
+        for i in range(1, len(route) - 1):
+            incoming, outgoing = directions[i - 1], directions[i]
+            dot = sum(a * b for a, b in zip(incoming, outgoing))
+            if abs(dot - 1) < 1e-8:
+                samples.append((route[i], outgoing))
+                continue
+            if abs(dot) > 1e-8:
+                raise ValueError('Pipe elbows must turn through 90 degrees')
+            radius = min(bend, lengths[i - 1] * 0.45, lengths[i] * 0.45)
+            if radius < r:
+                raise ValueError('Pipe elbow needs more clearance than its bore')
+            centre = tuple(q - a * radius + b * radius
+                           for q, a, b in zip(route[i], incoming, outgoing))
+            for step in range(17):
+                angle = math.pi * step / 32
+                sn, cs = math.sin(angle), math.cos(angle)
+                point = tuple(c + radius * (a * sn - b * cs)
+                              for c, a, b in zip(centre, incoming, outgoing))
+                tangent = tuple(a * cs + b * sn for a, b in zip(incoming, outgoing))
+                samples.append((point, tangent))
+        samples.append((route[-1], directions[-1]))
+        left, right = [], []
+        for point, tangent in samples:
+            sx, sy = p_(*point)
+            dx = U * (tangent[0] - tangent[1])
+            dy = U * (tangent[0] + tangent[1]) / 2 - H * tangent[2]
+            length = math.hypot(dx, dy)
+            nx, ny = -dy / length, dx / length
+            # A A^T is diagonal for this projection. The support vector of
+            # the projected circular cross-section meets both straight runs
+            # and elbow silhouettes tangentially, without a flat cap seam.
+            xx, yy = 2 * U * U, U * U / 2 + H * H
+            scale = r / math.sqrt(xx * nx * nx + yy * ny * ny)
+            ox, oy = scale * xx * nx, scale * yy * ny
+            left.append((sx + ox, sy + oy))
+            right.append((sx - ox, sy - oy))
+        def end_arc(point, tangent, side, outward):
+            """Close on the projected circular section, never a flat chord.
+
+            Only the outward half of the end circle belongs to the tube's
+            silhouette. The other half is concealed inside the pipe body.
+            """
+            ref = (0, 0, 1) if abs(tangent[2]) < 0.9 else (1, 0, 0)
+            u = (tangent[1] * ref[2] - tangent[2] * ref[1],
+                 tangent[2] * ref[0] - tangent[0] * ref[2],
+                 tangent[0] * ref[1] - tangent[1] * ref[0])
+            norm = math.sqrt(sum(q * q for q in u))
+            u = tuple(q / norm for q in u)
+            v = (tangent[1] * u[2] - tangent[2] * u[1],
+                 tangent[2] * u[0] - tangent[0] * u[2],
+                 tangent[0] * u[1] - tangent[1] * u[0])
+
+            def project(q):
+                return U * (q[0] - q[1]), U * (q[0] + q[1]) / 2 - H * q[2]
+
+            au, av, axis = project(u), project(v), project(tangent)
+            nx, ny = -axis[1], axis[0]
+            angle = math.atan2(nx * av[0] + ny * av[1], nx * au[0] + ny * au[1])
+            if side == 'right':
+                angle += math.pi
+            mid = angle + math.pi / 2
+            dot = sum((math.cos(mid) * a + math.sin(mid) * b) * d
+                      for a, b, d in zip(au, av, axis))
+            turn = 1 if dot * outward >= 0 else -1
+            sx, sy = p_(*point)
+            return [(sx + r * (math.cos(t) * au[0] + math.sin(t) * av[0]),
+                     sy + r * (math.cos(t) * au[1] + math.sin(t) * av[1]))
+                    for t in (angle + turn * math.pi * step / 16 for step in range(1, 16))]
+
+        points = (left + end_arc(*samples[-1], 'left', 1) + right[::-1]
+                  + end_arc(*samples[0], 'right', -1))
+        # A tight 3-D bend can fold its projected inner silhouette over
+        # itself. Remove the enclosed loop before stroking, as those edges
+        # are hidden by the outside of the elbow, not holes in the pipe.
+        def area(vertices):
+            return abs(sum(a[0] * b[1] - b[0] * a[1]
+                           for a, b in zip(vertices, vertices[1:] + vertices[:1])))
+
+        while True:
+            crossing = None
+            for i in range(len(points)):
+                a, b = points[i], points[(i + 1) % len(points)]
+                vx, vy = b[0] - a[0], b[1] - a[1]
+                for j in range(i + 2, len(points)):
+                    if i == 0 and j == len(points) - 1:
+                        continue
+                    c, d = points[j], points[(j + 1) % len(points)]
+                    wx, wy = d[0] - c[0], d[1] - c[1]
+                    det = vx * wy - vy * wx
+                    if abs(det) < 1e-9:
+                        continue
+                    dx, dy = c[0] - a[0], c[1] - a[1]
+                    t, u = (dx * wy - dy * wx) / det, (dx * vy - dy * vx) / det
+                    if 1e-7 < t < 1 - 1e-7 and 1e-7 < u < 1 - 1e-7:
+                        crossing = i, j, (a[0] + t * vx, a[1] + t * vy)
+                        break
+                if crossing:
+                    break
+            if not crossing:
+                break
+            i, j, q = crossing
+            points = max(([q] + points[i + 1:j + 1],
+                          [q] + points[j + 1:] + points[:i + 1]), key=area)
+        _PTS.extend(points)
+        outlines.append(poly(points))
+    # Fill first, then retain only the external outlines. These masks affect
+    # pipe contours alone; nearer equipment still occludes the whole network.
+    all_points = _PTS
+    x0, y0 = min(x for x, _ in all_points) - 2, min(y for _, y in all_points) - 2
+    width = max(x for x, _ in all_points) - x0 + 2
+    height = max(y for _, y in all_points) - y0 + 2
+    out = []
+    for i, outline in enumerate(outlines):
+        others = ''.join(f'<path d="{other}" fill="#000" stroke="none"/>'
+                         for j, other in enumerate(outlines) if i != j)
+        out.append(f'<defs><mask id="{gid}-{i}" maskUnits="userSpaceOnUse" '
+                   f'x="{f(x0)}" y="{f(y0)}" width="{f(width)}" height="{f(height)}">'
+                   f'<rect x="{f(x0)}" y="{f(y0)}" width="{f(width)}" height="{f(height)}" '
+                   f'fill="#fff" stroke="none"/>{others}</mask></defs>')
+        out.append(f'<path d="{outline}" fill="{fill}" stroke="none"/>')
+    for i, outline in enumerate(outlines):
+        out.append(f'<path d="{outline}" fill="none" mask="url(#{gid}-{i})"/>')
+    return out
+
+
 def taper(x, y, z, r0, r1, h, top=FACE_TOP, side=FACE_R):
     """A frustum — a wind tower, a stack, a skirt. Same silhouette rule as a
     cylinder, with the tangent offset taken at each end's own radius."""
@@ -660,19 +829,23 @@ def _extremes(pts):
 
 
 def light_nodes_quad(pts, r=3):
-    """The two nodes of a lit quad. `pts` are the lattice triples that were
-    handed to light_quad()."""
-    return [_node_tag(c, r) for c in _extremes([P(*q) for q in pts])]
+    """Four equal corner nodes, in opposing pairs about the lit face's centre.
+
+    Use the same vertices as the light so symmetry survives a resize or redraw.
+    """
+    return [_node_tag(P(*q), r) for q in pts]
 
 
 def light_nodes_disc(x, y, z, r, axis='z', rn=3):
-    """The same two points on a lit disc: the highest and the rightmost point
-    of the projected circle, found on the curve itself and not on its box."""
+    """Four exact silhouette extrema, paired through the projected centre."""
     a, b = _PLANE[axis]
     c = p_(x, y, z)
-    top, right = _extremes([_on(c, a, b, r, t / 4.0) for t in range(1440)])
-    _PTS.extend([top, right])
-    return [_node_tag(top, rn), _node_tag(right, rn)]
+    right = math.degrees(math.atan2(b[0], a[0]))
+    bottom = math.degrees(math.atan2(b[1], a[1]))
+    points = [_on(c, a, b, r, t)
+              for t in (bottom + 180, right, bottom, right + 180)]
+    _PTS.extend(points)
+    return [_node_tag(point, rn) for point in points]
 
 
 # THE WAYPOINT IS DERIVED, NOT TYPED. SVG has no `in oklab`, so a gradient that
@@ -825,10 +998,11 @@ def assemble(gid, la, lb, layers, light, nodes, ghost=(), orbits=(), pad=30.0,
     the one number both are read off, whether it came from the bounding box or
     from window()."""
     x0, y0, w, h = crop if crop is not None else bbox(pad)
-    out = [f'<svg class="cf-iso" style="--vb-w:{f(w)}; --iso-travel: {f(w / 40)}" '
+    out = [f'<svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:{f(w)}; --iso-travel: {f(w / 40)}" '
            f'viewBox="{f(x0)} {f(y0)} {f(w)} {f(h)}" fill="none" aria-hidden="true">',
+           '  <style>.cf-iso__scene :is(path,line,circle,ellipse,rect,polygon,polyline):not(.cf-iso__trace){vector-effect:non-scaling-stroke}</style>',
            '  <defs>' + LIGHT_DEF.format(id=gid, x1=f(la[0]), y1=f(la[1]), x2=f(lb[0]), y2=f(lb[1])) + '</defs>',
-           '  <g class="cf-iso__scene" stroke="#000" stroke-linejoin="round">']
+           '  <g class="cf-iso__scene" stroke="#000" stroke-width="0.7" stroke-linejoin="round">']
     for stage, parts in layers:
         if not parts:
             continue

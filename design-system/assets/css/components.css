@@ -9985,12 +9985,14 @@ a.cf-calendar__day > time,
    -------------------------------------------------------------------------- */
 .cf-iso { display: block; }
 
-/* "1 px contour at every size" is a device pixel, not a viewBox unit. A 640-unit
-   drawing rendered at 352 px would otherwise put its contours on screen at
-   0.55 px — grey, not black. non-scaling-stroke makes the rule literally true,
-   and pins the dash patterns to the px values in --dash-*, which is what keeps a
-   ghost's 1-4 dash a 1-4 dash at any size. The trace is excluded — see below. */
-.cf-iso :is(path, line, circle, ellipse, rect, polygon, polyline):not(.cf-iso__trace) {
+/* One .7 CSS px contour at every size. Setting it on the actual shapes also
+   overrides inherited weights in exported SVG groups. Filled nodes and shapes
+   with stroke="none" stay unoutlined: this rule assigns no stroke paint.
+   .cf-illustration is the same contour contract for non-isometric diagrams.
+   Normalized draw-on paths and broad light strokes retain their own geometry. */
+.cf-iso :is(path, line, circle, ellipse, rect, polygon, polyline):not(.cf-iso__trace),
+.cf-illustration :is(path, line, circle, ellipse, rect, polygon, polyline):not(.cf-illustration__light, .cf-illustration__trace) {
+  stroke-width: var(--illustration-stroke);
   vector-effect: non-scaling-stroke;
 }
 
@@ -11962,12 +11964,12 @@ a.cf-calendar__day > time,
    Unlit caps are still unfilled: they inherit fill="none" from the <svg>. */
 .cf-plot__draw path:not(.cf-plot__cap) {
   vector-effect: non-scaling-stroke;
-  stroke-width: 1;
+  stroke-width: var(--illustration-stroke);
   fill: none;
 }
 .cf-plot__cap {
   vector-effect: non-scaling-stroke;
-  stroke-width: 1;
+  stroke-width: var(--illustration-stroke);
 }
 
 /* The ground. Construction geometry, so the ghost line type and the ghost
@@ -12799,9 +12801,8 @@ a.cf-calendar__day > time,
   clip-path: inset(0 calc((1 - clamp(0, var(--line-draw), 1)) * 100%) 0 0);
 }
 
-/* The one black line in the box. stroke-width is a plain 1 under
-   non-scaling-stroke, which is the system's contour made literally true at
-   every width — the same declaration .cf-plot__draw's paths carry.
+/* The one black line in the box uses the illustration contour under
+   non-scaling-stroke, matching .cf-plot__draw at every width.
 
    Round joins rather than the drafting default: at a sharp reversal a mitre on
    a 1 px stroke grows to the mitre limit before it bevels, which is a 4 px
@@ -12811,7 +12812,7 @@ a.cf-calendar__day > time,
   vector-effect: non-scaling-stroke;
   fill: none;
   stroke: var(--border-strong);
-  stroke-width: 1;
+  stroke-width: var(--illustration-stroke);
   stroke-linejoin: round;
   stroke-linecap: round;
 }
@@ -14337,7 +14338,7 @@ a.cf-calendar__day > time,
 .cf-pie__contour,
 .cf-pie__cut {
   vector-effect: non-scaling-stroke;
-  stroke-width: var(--stroke-1);
+  stroke-width: var(--illustration-stroke);
   stroke: var(--border-strong);
   fill: none;
 }
@@ -15908,7 +15909,7 @@ a.cf-calendar__day > time,
    is what every spatial object in the system is cut from — so the ghost of an
    illustration is the ground it will stand on. Stroked in SVG for the same
    reason the plot is: a transform on a bordered box scales its contour, and
-   1 px means 1 px at every size. */
+   the illustration contour stays .7 CSS px at every size. */
 .cf-arrive__object {
   display: block;
   width: 100%;
@@ -15919,7 +15920,7 @@ a.cf-calendar__day > time,
 .cf-arrive__object path {
   fill: none;
   stroke: var(--border-strong);
-  stroke-width: 1;
+  stroke-width: var(--illustration-stroke);
   stroke-dasharray: var(--presence-absent);
   vector-effect: non-scaling-stroke;
 }
@@ -17012,7 +17013,7 @@ a.cf-calendar__day > time,
   height: 100%;
   fill: none;
   stroke: var(--border-strong);
-  stroke-width: var(--stroke-1);
+  stroke-width: var(--illustration-stroke);
   /* It is never the thing a pointer is after — the object is. */
   pointer-events: none;
   opacity: 0;
