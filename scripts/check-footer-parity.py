@@ -157,6 +157,7 @@ def section_of(name):
 
 CTA_REGULAR = (
     '<p class="cf-footer__title text-foil">Jetzt Projekt starten!</p>'
+    '<p class="cf-footer__subtitle">Weniger ungeplante Stillstände, mehr Durchsatz — aus Daten, die Sie schon haben.</p>'
     '<a class="cf-btn cf-btn--primary cf-btn--xwide" href="kontakt.html">'
     " Kontakt aufnehmen "
     '<svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></a>'
@@ -168,12 +169,14 @@ CTA_REGULAR = (
 CTA_CONTACT = {
     "kontakt.html": (
         '<p class="cf-footer__title text-foil">Erst sehen, was wir bauen?</p>'
+        '<p class="cf-footer__subtitle">Telemetrie-Analytik und End-to-End-Datenintegration für Maschinenbau, Großanlagen, Erneuerbare und Flotten.</p>'
         '<a class="cf-btn cf-btn--outline cf-btn--xwide" href="expertise.html">'
         " Expertise "
         '<svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></a>'
     ),
     "kontakt-danke.html": (
         '<p class="cf-footer__title text-foil">Wer sich bei Ihnen meldet</p>'
+        '<p class="cf-footer__subtitle">Als echte Daten-Nerds bauen wir seit 2022 Big Data-Plattformen für Telemetriedaten in der Industrie.</p>'
         '<a class="cf-btn cf-btn--outline cf-btn--xwide" href="ueber-uns.html">'
         " Über uns "
         '<svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></a>'

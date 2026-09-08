@@ -1,40 +1,10 @@
 # The four Expertise objects
 
-`python3 scripts/expertise-objects/objects.py` regenerates the four SVG files and
-updates their inline copies in `design-system/patterns/expertise.html` and
-`design-system/prototypes/expertise-scroll.html`, plus the browser gallery
-`scripts/expertise-objects/preview.html`, in one operation. Run from the
-repository root. `--check` fails on stale assets, stale page geometry, or missing
-or duplicate drawings. Rebuild the English edition and website afterwards with
-`sh scripts/build-all.sh`.
-
-Keep details legible at mobile size:
-plain foundation plates, inset apertures, one lit top face, four symmetric construction
-nodes, and no x-ray overlays that cross nearer equipment. The fleet combines a
-cargo ship in water, a freight train, an Airbus-inspired jet with swept wings,
-two underwing engines and seated cockpit glazing, a flat-roof truck, and a
-tracked excavator in balanced lanes.
-The fleet's semi sits forward of the rail lane with visible screen-space
-clearance. Scale assets about their ground contacts with `place()` and rebalance
-their positions before enlarging the apron; extra empty ground shrinks every
-vehicle relative to the scene. The semi uses separated dark tyres, compact
-metal rims and a front wheel arch rather than bright concentric wheel discs.
-The jet uses unstroked crown/flank shading for volume, low wing roots hidden
-by the fuselage, short nacelles, and glazing clipped to the visible nose surface.
-The generating set follows the radiator–engine–alternator assembly of
-Rolls-Royce/mtu equipment. [REFERENCES.md](REFERENCES.md) records the official
-manufacturer photographs and the visual features used in these drawings.
-
-All four Expertise illustrations use a 0.7 px contour, including the gallery and
-standalone source geometry. `assemble()` sets the common weight and the site
-keeps it constant with non-scaling strokes. Connected small-bore pipework uses
-`pipe_network()`: continuous rounded elbows and masked external contours avoid
-the closed end caps and doubled lines produced by overlapping cylinders. End
-silhouettes follow the projected circular section; never close a pipe against
-a housing with a straight screen-space chord. Generator coolant, collector
-branches and intake runs use the same connected geometry as the plant piping.
-The renewable field has inclined solar panels on supports; the process unit's
-header connects the column and storage vessel, and its motor meets its pump.
+`python3 objects.py` re-emits `0{1..4}-*.svg` in this directory. Those four files are
+inlined verbatim into `design-system/patterns/expertise.html` and
+`design-system/prototypes/expertise-scroll.html` — they are the source the pages were
+built from, kept here because a drawing of 95 to 145 elements is not something anyone
+should have to edit by hand a second time.
 
 - `isolib.py` — the projection and the primitives. `+x` is 26.57° down-right, `+y`
   26.57° down-left, `+z` vertical, and every vertex comes from a lattice coordinate, so
@@ -47,10 +17,9 @@ header connects the column and storage vessel, and its motor meets its pump.
 The four are drawn in the dense, near-white register of
 `foundations/illustration.html` ("Two registers"); they spent one day in the three greys
 and were put back, and `isolib.py`'s header records both. Each lights one top face, runs
-the whole ramp inside it, and carries four equal nodes in opposing pairs. `light_nodes_quad()` uses all four
-face corners; `light_nodes_disc()` computes the four exact silhouette extrema.
-`validate_symmetry()` checks the node count, equal radii, and shared centre on
-every generation and `--check` run.
+the whole ramp inside it, and carries exactly two nodes, on that face's back and right
+corners: `light_nodes_quad()` / `light_nodes_disc()` take the points off the lit element,
+so they cannot be placed anywhere else.
 
 Regenerating is deterministic to the byte. It was not: a half-turn arc's large-arc flag
 was `span > pi` on a value that is pi to the last ulp, and two of the four files came back

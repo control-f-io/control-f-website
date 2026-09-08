@@ -11,7 +11,7 @@ measurement: an unlit face IS the ground, and only the contour carries it.
 
 AND THEY ARE STANDALONE FILES, WHICH IS THE REAL DIFFERENCE. Every other
 illustration in this repository is inline SVG under `.cf-iso`, and inherits
-from components.css the thing that makes a .7 CSS px contour survive being scaled:
+from components.css the thing that makes a 1 px contour survive being scaled:
 `vector-effect: non-scaling-stroke`. A file referenced by <img src> inherits
 nothing from the page it is drawn on, so this module inlines it in a <style>
 the file carries itself. Without it a 600-unit drawing in a 300 px card puts
@@ -232,8 +232,8 @@ width="{w}" height="{h}" fill="none" role="img">
    CDATA because this is XML and not HTML: a bare "<" in a CSS comment opens an
    element the parser then waits for the end of, and the whole file fails to
    load rather than losing the comment. */
-.cf-iso path,.cf-iso line,.cf-iso circle,.cf-iso ellipse,.cf-iso rect,.cf-iso polygon,.cf-iso polyline\
-{{stroke-width:var(--illustration-stroke,.7px);vector-effect:non-scaling-stroke}}
+.cf-iso path,.cf-iso line,.cf-iso circle,.cf-iso ellipse,.cf-iso polygon\
+{{vector-effect:non-scaling-stroke}}
 ]]></style>
 <defs>{defs}</defs>
 <rect x="{x0}" y="{y0}" width="{w0}" height="{h0}" fill="{ground}"/>
@@ -277,3 +277,4 @@ def emit(title, crop, defs, forms, light=None, ghost=(), orbits=(),
     parts += ['  ' + n for n in nodes]
     parts += ['</g>', '</svg>', '']
     return '\n'.join(parts)
+

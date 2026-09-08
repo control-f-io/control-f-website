@@ -51,7 +51,7 @@
     <h1>Illustration</h1>
     <p>
       The brand's pictures are technical drawings of objects that do not exist. They are
-      built on the isometric lattice, bounded by 0.7 CSS px contours, and lit exactly once. This
+      built on the isometric lattice, bounded by 1 px contours, and lit exactly once. This
       page is the chapter that says how — it composes
       <a href="geometry.html">Geometry</a>, <a href="materials.html">Materials</a> and
       <a href="colors.html">Colour</a> into one object, and it is the brief for drawing the
@@ -130,7 +130,7 @@
         <tr><td><code>.cf-iso__scene</code></td><td>the whole object</td><td>a group — the only thing that travels</td><td>cover 5–30 %</td></tr>
         <tr><td><code>.cf-iso__ghost</code></td><td>reference geometry: the lattice, a construction axis, a state the object is not in yet</td><td>dashed contour, no fill</td><td>cover 20–40 %</td></tr>
         <tr><td><code>.cf-iso__orbit</code></td><td>a ghost that <em>circulates</em> — a path something travels, not a state. Carried in addition to <code>.cf-iso__ghost</code>, never instead of it</td><td>dashed contour, closed</td><td>cover 20–50 %, turning as it fades up; under <code>.cf-iso--build</code> it opens with the plan at 2 % and still settles at 50 — see <a href="motion.html#orbit-plan">Motion</a></td></tr>
-        <tr><td><code>.cf-iso__form</code></td><td>the body — anything with a surface</td><td>0.7 CSS px solid contour, grey faces</td><td>with the scene — or, under <code>.cf-iso--build</code>, on its own <code>--stage</code>: cover 5–22 %, +7 % per stage</td></tr>
+        <tr><td><code>.cf-iso__form</code></td><td>the body — anything with a surface</td><td>1 px solid contour, grey faces</td><td>with the scene — or, under <code>.cf-iso--build</code>, on its own <code>--stage</code>: cover 5–22 %, +7 % per stage</td></tr>
         <tr><td><code>.cf-iso__light</code></td><td>the one lit element</td><td>the lime ramp, contoured like everything else</td><td>cover 30–48 %; under <code>.cf-iso--build</code> both ends wait for the OBJECT’s last stage to land, not the plate’s — <a href="motion.html#light-object">Motion</a></td></tr>
         <tr><td><code>.cf-iso__node</code></td><td>construction points</td><td>filled black dots, r = 3 / 2 / 1</td><td>cover 35–50 %; under <code>.cf-iso--build</code>, one beat behind the light and behind the same object — <a href="motion.html#light-object">Motion</a></td></tr>
       </tbody>
@@ -500,12 +500,12 @@
       Three greys is the register for an object of a dozen or two faces. At that density every
       face is large and a mid-grey face reads as a face. The four
       <a href="../patterns/expertise.html">Expertise</a> objects are not that object: they
-      carry between 94 and 317 elements each, and drawn in the same three values they come out
+      carry between 93 and 332 elements each, and drawn in the same three values they come out
       as clip art — one grey silhouette with its contours lost somewhere inside it. That is not
       a fault in the values. It is what happens when an area rule is multiplied by five. They
       spent one day, 2026-09-01, in the three greys, sunk into the page's own CF-Grau ground
       the way the reference plates draw a single primitive, and went back the next morning:
-      what a plate can afford on a cube, a compound machine or a transport fleet cannot.
+      what a plate can afford on a cube, a yard with five machines on it cannot.
     </p>
     <p>
       So a dense object drops a register. Faces run near-white, the contour does all of the
@@ -545,10 +545,8 @@
       (<code>#FBFBFB</code> / <code>#F0F0F0</code> / <code>#E2E2E2</code>), which says
       <em>ground, not machine</em> without a second contour weight. What the day in the three
       greys left behind is the light: one lit top face per object, running the whole ramp from
-      lime at its back corner to CF-Grau at its near one, with four equal nodes on that face and none
-      anywhere else. On Expertise those nodes form opposing pairs: the four corners of a
-      planar face, or the four silhouette extrema of a disc. Both pairs share the face’s
-      centre, keeping the construction balanced at every size.
+      lime at its back corner to CF-Grau at its near one, with two nodes on that face and none
+      anywhere else.
     </p>
     <div class="docs-note">
       <strong>A cylinder needs a fourth value, and it is one of the three.</strong> A tube
@@ -577,19 +575,8 @@
       </tbody>
     </table>
     <p>
-      Every illustration contour uses <code>--illustration-stroke: .7px</code>. The weight
-      stays the same across mechanical objects, diagrams, charts and their construction
-      lines. Depth comes from overlapping surfaces and directional face tones. Add detail
-      through clean silhouettes, fittings and regular spacing; keep the contour slim.
-    </p>
-    <p>
-      <code>.cf-iso</code> applies the token to isometric drawings;
-      <code>.cf-illustration</code> applies it to other SVG diagrams. Filled construction
-      nodes keep their geometric radius. Interface borders, icons and logo geometry use
-      their own tokens. Broad gradient light strokes and normalized draw-on traces keep
-      their existing animation geometry; they are separate from an object's contour.
-      <code>scripts/check-illustration-contours.py</code> guards the token, semantic rules,
-      direct inline overrides and standalone generated SVGs.
+      Stroke weight is 1 px throughout. Within one object the weight does not vary — depth is
+      carried by node radius and by overlap, never by drawing the near edges fatter.
     </p>
 
     <h3>Nodes</h3>
@@ -653,14 +640,12 @@
 
     <h3 id="render">Rendering</h3>
     <ul>
-      <li><strong>SVG, always.</strong> The contour stays 0.7 CSS px at every render size.
-        Raster exports derive their stroke from the intended display scale.</li>
+      <li><strong>SVG, always.</strong> A 1 px contour is a 1 px contour at every size; a
+        raster of one is grey mush at any other size.</li>
       <li><strong><code>vector-effect: non-scaling-stroke</code></strong> is applied by
-        <code>.cf-iso</code> and <code>.cf-illustration</code> to contour shapes. Without it,
-        the weight scales with the viewBox. It also pins dash patterns to their CSS px
-        values, which keeps a 1-4 ghost a 1-4 ghost. Normalized draw-on paths use
-        <code>.cf-iso__trace</code> or <code>.cf-illustration__trace</code> to retain
-        user-space stroke handling and their existing animation timing.</li>
+        <code>.cf-iso</code> to every shape inside it. Without it a 640-unit drawing shown at
+        352 px puts its contours on screen at 0.55 px. It also pins the dash patterns to
+        their px values, which is what keeps a 1-4 ghost a 1-4 ghost.</li>
       <li><strong>One size per set.</strong> <code>.cf-process__figure &gt; svg</code> caps at
         22 rem / 352 px so the four objects read as a sequence rather than four drawings that
         happen to be adjacent.</li>
@@ -946,7 +931,7 @@
       <thead><tr><th>Where</th><th>What</th><th>Frame</th><th>Lit</th></tr></thead>
       <tbody>
         <tr><td>Landing page · process ×4</td><td>the four objects in the table at the top of this page</td><td>640</td><td>yes</td></tr>
-        <tr><td>Expertise · fields ×4</td><td>one object per field, each cropped to itself</td><td>642.4 / 653.6 / 657.6 / 692.8</td><td>yes</td></tr>
+        <tr><td>Expertise · fields ×4</td><td>one object per field, each cropped to itself</td><td>642.4 / 653.6 / 657.6</td><td>yes</td></tr>
         <tr><td>Über uns · page header</td><td>a core in its shells, read on the axis of its reflector</td><td>586</td><td>yes</td></tr>
         <tr><td>Über uns · value table ×3</td><td>three people, three chevrons, a wheel with a globe in it</td><td>160</td><td>no</td></tr>
         <tr><td>404 page</td><td>a level row of units with one missing, its empty socket lit</td><td>640</td><td>yes</td></tr>

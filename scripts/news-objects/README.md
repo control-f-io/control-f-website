@@ -30,20 +30,16 @@ raster at all — Notion does not render an SVG in a Files property, so the
 Titelbild came out broken in the database and the person choosing the picture
 could not see the picture. A format the CMS cannot display is not a format this
 pipeline can use. `illustration.html` is written about drawings *inline* in a
-page, where `vector-effect: non-scaling-stroke` buys a .7 CSS px contour at every
+page, where `vector-effect: non-scaling-stroke` buys a 1 px contour at every
 size; it buys nothing through an `<img>` the author cannot preview.
 
 Two consequences worth knowing:
 
-- **The standalone source uses the shared .7 CSS px contour.** Its embedded
-  rule provides `--illustration-stroke` with a `.7px` fallback, because an SVG
-  opened on its own cannot inherit the website stylesheet.
-- **Raster export compensates for display scale.** The export uses `.98` user
-  units, a 30% reduction from the previous `1.4`. A raster has no non-scaling
-  stroke and is resized from 2016 px to each card's width, so its visible
-  contour still varies with the display size. Existing Notion images retain
-  their previous weight until the new local PNG is selected in `Titelbild`;
-  this tool never replaces the synchronized site image folder.
+- **The export carries a heavier stroke than the source** (1.4 user units against
+  1). A raster has no non-scaling-stroke: it is downscaled by whatever the card
+  is — 2016 → 380 in the grid, 2016 → 568 in the lead cell — so a contour needs
+  about 5 px in the file to arrive at 1 on screen. At 2016 px from a 572-unit
+  viewBox the scale is 3.52, which puts that at 1.4.
 - **Every export leaves through Pillow.** librsvg's PNG writer and Pillow's
   differ in filter choice and zlib settings, and one of the ten came out of
   librsvg as a byte stream Notion's edge refused — HTTP 403 from Cloudflare, on

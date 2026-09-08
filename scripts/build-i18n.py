@@ -307,9 +307,9 @@ ASSETS = re.compile(r'(href|src|poster)="\.\./(assets/|index\.html)')
 # German, and neither sentence is a translation of the other — "Auf Deutsch
 # wechseln" is what a German reader is owed, and it is what the English page
 # has to say, in German, to a reader who cannot read the page it is on.
-SWITCH = re.compile(r'<a class="cf-nav__lang" href="en/([a-z0-9-]+\.html)"'
+SWITCH = re.compile(r'<a class="cf-nav__lang" href="(?:/en/|en/)?([a-z0-9-]*)(?:\.html)?"'
                     r' hreflang="en" lang="en" aria-label="[^"]*">[^<]*</a>')
-SWITCH_EN = ('<a class="cf-nav__lang" href="../%s"'
+SWITCH_EN = ('<a class="cf-nav__lang" href="%s"'
              ' hreflang="de" lang="de" aria-label="Auf Deutsch wechseln">DE</a>')
 
 # ALTERNATE. Both editions are named on both pages, each one pointing at
@@ -400,7 +400,7 @@ def build(doc, name, cat, missing):
     doc = translate(doc, cat, missing)
     # After the copy pass, because the switch is masked from it: the label is
     # a language name, not a sentence the catalogue has an opinion about.
-    doc = once(doc, SWITCH, lambda m: SWITCH_EN % m.group(1), name, ".cf-nav__lang link")
+    doc = once(doc, SWITCH, lambda m: SWITCH_EN % (('/' + m.group(1)) if m.group(1) and m.group(1) not in ('landing-page', 'index') else '/'), name, ".cf-nav__lang link")
     if not doc.startswith(DOCTYPE):
         sys.exit("%s: does not open with a doctype" % name)
     rest = doc[len(DOCTYPE):]

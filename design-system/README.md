@@ -374,7 +374,6 @@ python3 scripts/check-section-header-rule.py   # a flush section header stands o
 python3 scripts/check-section-header-rule.py -v # every flush header, and what draws its edge
 python3 scripts/check-illustration-source.py   # the four process objects are still the designer's vectors
 python3 scripts/check-illustration-source.py -v  # every element, matched or deviated, and why
-python3 scripts/check-illustration-contours.py # slim illustration contours and standalone SVG parity
 python3 scripts/check-figure-roster.py         # the two chapters that census the isometric figures count the tree
 python3 scripts/check-figure-roster.py --fix   # rewrite the assembly roster in foundations/motion.html from the tree
 python3 scripts/check-readme-check-count.py    # the count above this block is the length of this block, and scripts/README.md's two are the directory
@@ -409,7 +408,7 @@ above read it, because every fact they keep is already kept one directory up. Ad
 German; run `--extract`; translate what it prints; rebuild. A German string with no entry
 fails the build rather than shipping a German sentence in an English page.
 
-The forty-three checks the system enforces rather than documents, run by CI on every push and
+The forty-two checks the system enforces rather than documents, run by CI on every push and
 pull request — one job, because each is a few hundred milliseconds of stdlib python.
 Stdlib only: they do not give the system a build step. The count is one of them:
 `check-readme-check-count.py` reads this sentence and counts the block, because the number
@@ -1533,9 +1532,8 @@ illustration renders in its authored, finished state, the same shape as the fix 
 
 The site sits on CF-Grau, not on white — a data space, not a sheet of paper, with a
 slow vertical wash from `#CFCFCF` to white across the full page height. Everything is
-drawn with contours: illustration ink is .7 CSS px, while interface rules keep
-their own stroke tokens. Spatial drawings use 2:1 isometry (26.57°).
-Structure is square and objects — controls, plates, photos —
+drawn with 1 px contours rather than filled, and anything spatial is constructed in
+2:1 isometry (26.57°). Structure is square and objects — controls, plates, photos —
 carry a 2 px corner; nothing is a pill, and avatars are the one circle. Lime is light,
 not a surface: one element per screen, which is why the black button's label is filled
 with the foil rather than the lime ramp. Publica Sans sets display headlines, Geist sets
@@ -2989,13 +2987,9 @@ These were judgement calls, each documented on the relevant page:
   and cannot, because the wash *ends* at white. Sunken now means sunken. Contrast floor is
   the CF-Grau end — `--text-secondary` 5.19:1, `--text-primary` 11.91:1.
   → `foundations/colors.html#a-step-is-a-ratio`
-- **Illustrations use `--illustration-stroke: .7px` with `vector-effect: non-scaling-stroke`.**
-  `.cf-iso` and `.cf-illustration` set it on contour shapes, and plots, line charts,
-  pie contours and arrival objects share the token. Filled nodes, UI borders, icons and
-  logo geometry retain their own measures. The width is in CSS pixels at every display
-  size, independent of the viewBox. Standalone SVGs carry an equivalent local rule;
-  `check-illustration-contours.py` keeps both forms aligned. Normalized draw-on traces
-  remain an animation exception: under
+- **Isometric contours use `vector-effect: non-scaling-stroke`.** "1 px contour at every
+  size" is a device pixel. A 640-unit drawing shown at 352 px would otherwise put its
+  contours on screen at 0.55 px. The one exception is `.cf-iso__trace`: under
   `non-scaling-stroke` the dash is measured in screen px while `pathLength` normalises
   against user space, which makes the line-drawing finish at 45 % of its range instead of
   100 %. Traces are stroked in user units instead — **and a user-unit stroke lands on screen
