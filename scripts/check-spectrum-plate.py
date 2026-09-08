@@ -76,6 +76,8 @@ run -- CI has both, and CF_REQUIRE_BROWSER makes the skip a failure.
     python3 scripts/check-spectrum-plate.py -v       # print the sampled column
 """
 
+from site_source import PreviewHandler
+
 import argparse
 import http.server
 import math
@@ -196,7 +198,7 @@ READ_IMAGE = """async (url) => {
 }"""
 
 
-class Quiet(http.server.SimpleHTTPRequestHandler):
+class Quiet(PreviewHandler):
     def __init__(self, *a, **kw):
         super().__init__(*a, directory=str(ROOT), **kw)
 

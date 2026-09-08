@@ -62,8 +62,7 @@ ROOT = Path(__file__).resolve().parent.parent
 COMPONENTS = ROOT / "design-system/assets/css/components.css"
 # The landing page gave its pinned stage to prototypes/statement-to-process.html
 # on 2026-07-28; the register follows the stages, not the folder.
-PAGES = [ROOT / "design-system/prototypes/statement-to-process.html",
-         ROOT / "design-system/patterns/expertise.html"]
+PAGES = [ROOT / "design-system/prototypes/statement-to-process.html"]
 
 # how close two resolved bands have to be, in points of `contain`. They are
 # computed from literals, so anything but 0 is a disagreement; the epsilon is

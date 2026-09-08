@@ -75,6 +75,8 @@ loading, and every viewport above the gate must then fail REACH.
     CF_PIN_FOCUS_OFF=1 python3 scripts/check-pin-focus-walk.py   # must fail
 """
 
+from site_source import PreviewHandler
+
 import argparse
 import os
 import re
@@ -149,7 +151,7 @@ WHERE = """
 """
 
 
-class QuietHandler(SimpleHTTPRequestHandler):
+class QuietHandler(PreviewHandler):
     def log_message(self, *args):
         pass
 

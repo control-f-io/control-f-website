@@ -25,31 +25,23 @@
     <p class="docs-header__eyebrow">Components</p>
     <h1>Navigation</h1>
     <p>
-      One opaque plate, centred, on a full-bleed sheet of frosted glass: the logo at its
-      left, then the seven routes, then the language switch. The glass is the band, not the
-      plate — that is the manual's stacking order, opaque surfaces on top of the frosted
-      layer, and it is what both mockups draw. It is also the only arrangement that holds
-      its contrast, because an opaque plate reads the same over every frame of the hero
-      video underneath it: 10.6:1 for the dim link ink, 21:1 for white.
+      A floating black glass bar: white logo, seven routes and a language switch,
+      with the page visible through the blur. <code>.cf-nav--v2</code> is the
+      shipping variant. It removes the full-width frost and edge line from
+      <code>.cf-nav</code>, leaving the glass on the bar itself.
     </p>
     <p>
-      It was three plates across the full width until the site owner asked for
-      <em>“alles in einen balken, zentriert”</em> — one bar, centred, logo left, glass
-      kept. The plate is <code>max-content</code> wide and the band it floats in is
-      <code>--nav-height</code> exactly.
-    </p>
-    <p>
-      A plate, not a pill. A rectangle with a 2 px corner.
+      The bar keeps the system's 2 px corners, mono labels and lime keyboard
+      focus ring. On small screens, Menü opens a matching black glass panel.
     </p>
   </header>
 
   <section class="docs-section" id="demo">
-    <h2>Default</h2>
+    <h2>Black glass menu</h2>
     <div class="docs-demo docs-demo--plain">
       <div style="background:var(--gradient-light);padding-bottom:var(--space-30)">
-        <!-- relative, not static: the bar must stay a positioned element or its
-             glass sheet escapes to the viewport. See components.css. -->
-        <nav class="cf-nav" aria-label="Hauptnavigation" style="position:relative">
+        <!-- Keep the specimen in the documentation flow; shipping bars are sticky. -->
+        <nav class="cf-nav cf-nav--v2" aria-label="Hauptnavigation" lang="de" style="position:relative">
           <div class="cf-nav__bar">
             <a class="cf-logo" href="#">
               <img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F">
@@ -73,7 +65,7 @@
     <pre class="docs-code"><span class="com">&lt;!-- in the &lt;head&gt;, after the three stylesheets --&gt;</span>
 &lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="val">"/design-system/assets/js/cf-nav.js"</span>&gt;&lt;/<span class="tag">script</span>&gt;
 
-&lt;<span class="tag">nav</span> <span class="attr">class</span>=<span class="val">"cf-nav"</span> <span class="attr">aria-label</span>=<span class="val">"Hauptnavigation"</span>&gt;
+&lt;<span class="tag">nav</span> <span class="attr">class</span>=<span class="val">"cf-nav cf-nav--v2"</span> <span class="attr">aria-label</span>=<span class="val">"Hauptnavigation"</span>&gt;
   &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="val">"cf-nav__bar"</span>&gt;
     &lt;<span class="tag">a</span> <span class="attr">class</span>=<span class="val">"cf-logo"</span> <span class="attr">href</span>=<span class="val">"/"</span>&gt;
       &lt;<span class="tag">img</span> <span class="attr">src</span>=<span class="val">"/assets/img/logo/cf-logo-horizontal-white.svg"</span> <span class="attr">alt</span>=<span class="val">"Control-F"</span>&gt;
@@ -93,32 +85,16 @@
 &lt;/<span class="tag">nav</span>&gt;</pre>
 
     <div class="docs-note">
-      <strong>The demo abstracts the hrefs and the ids. It does not abstract the
-      routes.</strong> Every link in the bar above is <code>#</code> and its panel id is
-      <code>demo-nav</code>, because a teaching copy pointing at real addresses would be the
-      fifteen shipping bars' sixteenth sibling and would have to move whenever a page moved
-      — that is the coupling <code>scripts/check-nav-parity.py</code> declines, and it is why
-      that gate holds its fifteen copies to each other rather than to this file.
-      <strong>How many routes there are is not chrome, though</strong>, and this demo carried
-      five while the site shipped seven: Expertise and Suche were missing here, in the table
-      at the foot of this page, and nowhere else. Half the arguments on this page — the plate
-      is <code>max-content</code> wide, the row wraps rather than taking the document
-      sideways at 200 % text, a DE|EN pair is 72 px the bar does not have at 375 px — are
-      arguments about a seven-route row, and none of them could be seen in a five-route
-      demo. The route <em>labels</em>, in order, are held to the shipping consensus by the
-      same parity gate now; the hrefs and the ids stay this file's own.
+      Use <code>class="cf-nav cf-nav--v2"</code> on the navigation and load
+      <code>cf-nav.js</code> in the head. Keep a unique panel ID and point
+      <code>aria-controls</code> at it. The example uses placeholder links;
+      shipping links lead to the seven routes listed below.
     </div>
     <div class="docs-note">
-      <strong>The demo column is not a viewport, so below a 1320 px window the bar above
-      wraps here while the shipping one does not.</strong> The band the demo is given is
-      <code>.docs-main</code> minus the sidebar — 912 px at a 1280 px window — and the
-      component's own gutter takes 70.4 px off each side of that, leaving 771 px for a plate
-      whose <code>max-content</code> is 802. So the seventh route takes a second row and the
-      plate grows to hold it — the same <code>flex-wrap</code> the 200 %-text finding put
-      there, doing the same thing for the same reason. From a 1320 px window up the demo has
-      its 802 px and the bar is one line.
-      On a shipping page the same gutter comes off the full viewport — 1139 px of band at
-      1280 — and the plate has never wrapped there at any width the site is swept at.
+      Resize below 48.75 rem (780 px at the default font size) to try the
+      dropdown. Open Menü, tab through the links and press Escape to close it
+      and return focus to the toggle. The documentation column is narrower
+      than a full page, so desktop links may wrap here before they do on the site.
     </div>
   </section>
 
@@ -127,12 +103,13 @@
     <table class="docs-table">
       <thead><tr><th>Part</th><th>Value</th></tr></thead>
       <tbody>
-        <tr><td><code>.cf-nav</code></td><td>the band: full bleed, <code>--nav-height</code> tall, <code>sticky</code>, carrying the frosted sheet and the hairline under it</td></tr>
-        <tr><td><code>.cf-nav__bar</code></td><td>the plate: opaque black, <code>width: max-content</code> cut to the band, <code>--radius-sm</code> (2 px), <code>--space-2</code> inset</td></tr>
+        <tr><td><code>.cf-nav</code></td><td>the sticky navigation region, at least <code>--nav-height</code> tall, with the bar centred inside it</td></tr>
+        <tr><td><code>.cf-nav--v2</code></td><td>the shipping modifier; removes the full-width frost and edge pseudo-elements</td></tr>
+        <tr><td><code>.cf-nav__bar</code></td><td>the plate: black at 55 % opacity with <code>--glass-blur</code>, <code>width: max-content</code> cut to the band, <code>--radius-sm</code> (2 px), <code>--space-2</code> inset</td></tr>
         <tr><td><code>.cf-logo</code></td><td>first in the plate — the horizontal white lockup, linking home</td></tr>
         <tr><td><code>.cf-nav__toggle</code></td><td>the disclosure button. Not drawn above 48.75 rem, and not drawn at all without <code>[data-cf-nav]</code> on <code>&lt;html&gt;</code></td></tr>
         <tr><td><code>.cf-nav__list</code></td><td>the seven routes, one wrapping flex row inside the plate, <code>--space-1</code> gutter</td></tr>
-        <tr><td><code>.cf-nav__link</code></td><td>Geist Mono, <code>--text-xs</code>, uppercase, <code>--tracking-label</code>, white 72 % — 10.6:1 on the plate</td></tr>
+        <tr><td><code>.cf-nav__link</code></td><td>Geist Mono, <code>--text-xs</code>, uppercase, <code>--tracking-label</code>, white; at least 4.74:1 over the brightest backdrop</td></tr>
         <tr><td><code>.cf-nav__lang</code></td><td>last in the plate, past the routes and past the toggle. <code>.cf-nav__link</code>'s padding above the fold, <code>.cf-nav__toggle</code>'s 44 px below it</td></tr>
         <tr><td>Current-page marker</td><td>white ink on a white 14 % plate at <code>--radius-sm</code> — a 2 px corner inside a 2 px corner</td></tr>
         <tr><td>Focus indicator</td><td>a lime outline at <code>--stroke-2</code> and 2 px offset, over a black <code>box-shadow</code> filling the offset: the guaranteed edge is internal to the ring</td></tr>
@@ -184,11 +161,11 @@
     <table class="docs-table">
       <thead><tr><th>State</th><th>Appearance</th></tr></thead>
       <tbody>
-        <tr><td>Default</td><td>one black plate at <code>--radius-sm</code>, centred in the band, links at white 72 % — 10.6:1</td></tr>
-        <tr><td>Hover</td><td>link goes to white, 120 ms</td></tr>
-        <tr><td>Current page</td><td><code>aria-current="page"</code> → white link on a white 14 % plate</td></tr>
-        <tr><td>Sticky</td><td>stays at the top on scroll; over the first 80 px the edge light resolves and the bar becomes a separate plane</td></tr>
-        <tr><td>Below 780 px</td><td>links fold under the bar, the toggle button appears — both opaque</td></tr>
+        <tr><td>Default</td><td>one translucent black plate at <code>--radius-sm</code>, centred over the page, links at white</td></tr>
+        <tr><td>Hover</td><td>white label with the shared focus indicator for keyboard navigation</td></tr>
+        <tr><td>Current page</td><td><code>aria-current="page"</code> → white link on a black 14 % plate</td></tr>
+        <tr><td>Sticky</td><td>stays at the top on scroll; the v2 variant has no full-width frost or edge animation</td></tr>
+        <tr><td>Below 780 px</td><td>links fold into a black glass dropdown; the toggle appears in the bar</td></tr>
         <tr><td>Menu open</td><td>the panel is drawn out from under the bar by a clip edge travelling down it, 480 ms; the toggle's contour lifts to white, 120 ms</td></tr>
         <tr><td><kbd>Esc</kbd></td><td>closes the panel and puts focus back on the toggle</td></tr>
         <tr><td>Focus leaves the bar</td><td>closes the panel. Focus leaving the <em>document</em> does not — that is the reader going to the browser, not away from the menu</td></tr>
@@ -199,16 +176,11 @@
       </tbody>
     </table>
     <div class="docs-note">
-      <strong>The menu is the one panel in the system that opens and closes, and it is a
-      wipe rather than a fade.</strong> That is a contrast decision, not a taste one: the
-      panel is an opaque plate over the hero video, the only backdrop on the site nobody
-      controls. Fading it in would put its labels over a partly transparent plate for the
-      length of the transition, and the floor would then depend on which frame happened to
-      be playing. Clipped, the plate is fully opaque in every frame of the motion and the
-      labels hold 16:1 from the first one — the glass button's <em>light only adds</em>,
-      applied to a reveal. 480 ms and <code>--ease-standard</code>, the same as the
-      accordion: both are a panel opening, and two panel reveals in one system should not
-      move on two different curves.
+      <strong>The dropdown opens with a downward wipe.</strong> Its clip edge
+      reveals the glass and labels together, using <code>--duration-slow</code>
+      and <code>--ease-standard</code>. Reduced motion removes the transition.
+      On mobile, the bar's glass sits on <code>.cf-nav__bar::before</code>;
+      the dropdown has its own blur, so it can sample the page independently.
       → <a href="../foundations/motion.html#durations">Motion</a>
     </div>
     <div class="docs-note">
@@ -238,19 +210,13 @@
       the bar has shipped seven routes since Expertise and Suche landed.)
     </div>
     <div class="docs-note">
-      <strong>The glass band is nearly clear on purpose.</strong> It carries
-      <code>--surface-glass-veil</code> (white 4 %), because nothing sits on it but the one
-      opaque plate — the blur is what you are meant to see, not a wash of white. Sampled from the
-      mockups, CF-Grau reads 207 above the band and 208 inside it. That also means the band
-      is invisible over a flat surface, which is correct: on Über uns it does nothing, and
-      the manual reserves frosted glass for calming complex graphics.
-    </div>
-    <div class="docs-note">
-      <strong>The bar is <code>sticky</code>, never <code>fixed</code>.</strong> A
-      <code>backdrop-filter</code> on a fixed element repaints its blurred region on every
-      scroll frame in iOS Safari. The glass sheet also reaches
-      <code>--glass-lookahead</code> past the bar's bottom edge and is masked back, so
-      content arrives through the blur instead of appearing at the boundary already sharp.
+      <strong>Black glass is translucent.</strong> The surface token
+      <code>--surface-nav-glass</code> keeps the shipping 55 % black recipe with
+      <code>--glass-blur</code>. White labels clear 4.74:1 even over pure white;
+      the current-page marker darkens its backing to preserve that contrast.
+      <code>check-contrast.py</code> recomputes both states. Reduced transparency
+      and browsers without blur receive an opaque black plate. The floating bar
+      remains <code>sticky</code> in shipping pages and <code>relative</code> here.
     </div>
   </section>
 

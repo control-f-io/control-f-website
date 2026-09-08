@@ -68,6 +68,8 @@ PNG header, MARK_WIDTH raised to 0.72 so the signet crosses the safe circle,
 and the [data-theme="inverse"] rule deleted from base.css.
 """
 
+from site_source import is_partial
+
 import argparse
 import importlib.util
 import pathlib
@@ -122,6 +124,8 @@ def rels(text):
 def audit_pages(theme):
     findings, pages, homed = [], 0, 0
     for path in sorted(DS.rglob("*.html")):
+        if is_partial(path):
+            continue
         rel = path.relative_to(ROOT).as_posix()
         text = path.read_text(encoding="utf-8")
         metas = {m.group(1).lower(): m.group(2)

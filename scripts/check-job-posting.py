@@ -84,6 +84,8 @@ rather than silently accepted, because an unknown type is either a typo or a
 new case for the table — and both want a human.
 """
 
+from site_source import read_source
+
 import argparse
 import json
 import os
@@ -268,8 +270,7 @@ def audit(paths):
 
     for path in paths:
         rel = os.path.relpath(path, ROOT)
-        with open(path, encoding="utf-8") as fh:
-            source = fh.read()
+        source = read_source(path)
 
         blocks = ld_blocks(source)
         if not blocks:

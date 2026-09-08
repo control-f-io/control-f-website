@@ -51,6 +51,8 @@ stdlib only, no build step, no dependency. Same python3 that serves the pages.
     python3 scripts/check-reachability.py -v    # list every page's walk depth
 """
 
+from site_source import read_source
+
 import argparse
 import collections
 import pathlib
@@ -111,7 +113,7 @@ def blank(m):
 
 def outbound(path):
     """Sibling pattern pages a page's live markup links to."""
-    text = MASK.sub(blank, path.read_text(encoding="utf-8"))
+    text = MASK.sub(blank, read_source(path))
     targets = []
     for m in HREF.finditer(text):
         value = m.group(1).strip()

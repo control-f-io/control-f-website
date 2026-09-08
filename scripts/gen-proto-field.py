@@ -162,7 +162,6 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 # marked blocks and both are held to this script's output — see the header.
 PAGES = [
     ROOT / "design-system" / "prototypes" / "statement-to-process.html",
-    ROOT / "design-system" / "patterns" / "landing-page.html",
 ]
 
 # THE FIELD IS THE SYSTEM'S GROUND, AT THE SYSTEM'S SIZE.

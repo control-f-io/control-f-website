@@ -131,6 +131,8 @@ about the same size.
     python3 scripts/check-glass-floor.py --page patterns/expertise.html
 """
 
+from site_source import PreviewHandler
+
 import argparse
 import os
 import struct
@@ -468,7 +470,7 @@ PLACE = """
 """
 
 
-class QuietHandler(SimpleHTTPRequestHandler):
+class QuietHandler(PreviewHandler):
     def log_message(self, *_args):
         pass
 

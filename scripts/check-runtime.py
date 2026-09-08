@@ -224,6 +224,8 @@ holding the crop, and it can be several boxes up the tree from the animation
 it silences.
 """
 
+from site_source import PreviewHandler
+
 import argparse
 import os
 import sys
@@ -316,7 +318,8 @@ async (maxSteps) => {
   const step = Math.max(700, Math.ceil(h / maxSteps));
   for (let y = 0; y <= h; y += step) {
     window.scrollTo({ top: y, left: 0, behavior: 'instant' });
-    await new Promise(r => setTimeout(r, 40));
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
     for (let i = 0; i < driven.length; i++) seen[i].add(read(driven[i]));
   }
   window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -357,7 +360,7 @@ async (maxSteps) => {
 """
 
 
-class QuietHandler(SimpleHTTPRequestHandler):
+class QuietHandler(PreviewHandler):
     def log_message(self, *args):
         pass
 

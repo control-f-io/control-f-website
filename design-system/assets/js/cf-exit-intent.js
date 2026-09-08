@@ -72,7 +72,7 @@
 
     dialog.innerHTML = [
       '<div class="cf-exit-modal__backdrop" data-cf-exit-close tabindex="-1"></div>',
-      '<div class="cf-exit-modal__card" role="document">',
+      '<div class="cf-exit-modal__panel" role="document">',
       '  <button type="button" class="cf-exit-modal__close" data-cf-exit-close aria-label="' + t.closeAria + '">',
       '    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
       '      <line x1="12" y1="2" x2="2" y2="12"></line>',

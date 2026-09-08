@@ -94,7 +94,7 @@ CSS = DS / "assets" / "css"
 # to ship in fourteen page-local copies.
 # acts.css is the fourth: the five-act scroll composition, which left one
 # prototype's <style> block when the landing page wanted it too. It ships.
-SHIPPING = ("tokens.css", "base.css", "components.css", "acts.css")
+SHIPPING = ("tokens.css", "base.css", "components.css", "acts.css", "cf-reveal.css")
 DOCS = "docs.css"
 PREVIEW = "preview.css"
 
@@ -117,6 +117,11 @@ INLINE_GATED_DIRS = ("patterns",)
 # of open findings rather than as settled law.
 # --------------------------------------------------------------------------
 UNRESOLVED_OK = {
+    ("components/footer.html", "cf-footer-layer--top"): "SVG layer hook animated by the shipping footer script",
+    ("components/footer.html", "cf-footer-layer--mid"): "SVG layer hook animated by the shipping footer script",
+    ("components/footer.html", "cf-footer-layer--bot"): "SVG layer hook animated by the shipping footer script",
+
+    ("patterns/landing-page.html", "v2-num"): "telemetry value hook updated by the page script; inherits the value typography",
     # docs.css declares .docs-rule and .docs-rule--dont and stops there, on
     # purpose: "told apart by their label and by the material underneath —
     # white for do, sunken grey for don't". The do half IS the base, so --do is

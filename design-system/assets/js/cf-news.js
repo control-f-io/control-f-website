@@ -59,20 +59,18 @@
       // Hide non-matching cards completely
       allCards.forEach(function(card) {
         if (matching.indexOf(card) === -1) {
-          card.style.setProperty('display', 'none', 'important');
-          card.classList.add('cf-news-card--filtered-out');
+          card.classList.add('cf-blog-card--filtered-out');
         } else {
-          card.classList.remove('cf-news-card--filtered-out');
+          card.classList.remove('cf-blog-card--filtered-out');
         }
       });
 
       // Show first 4 matching cards, hide the rest
       matching.forEach(function(card, index) {
-        card.style.removeProperty('display');
         if (index < 4) {
-          card.classList.remove('cf-news-card--hidden');
+          card.classList.remove('cf-blog-card--hidden');
         } else {
-          card.classList.add('cf-news-card--hidden');
+          card.classList.add('cf-blog-card--hidden');
         }
       });
 
@@ -88,9 +86,9 @@
       var wrap = getWrap();
       if (wrap) {
         var hiddenMatching = matching.filter(function(c) {
-          return c.classList.contains('cf-news-card--hidden');
+          return c.classList.contains('cf-blog-card--hidden');
         });
-        wrap.style.display = (hiddenMatching.length > 0) ? 'flex' : 'none';
+        wrap.classList.toggle('cf-news-more-wrap--empty', hiddenMatching.length === 0);
       }
     }
 
@@ -101,23 +99,23 @@
       if (moreBtn) {
         e.preventDefault();
         var hiddenMatching = allCards.filter(function(card) {
-          return !card.classList.contains('cf-news-card--filtered-out') &&
-                 card.classList.contains('cf-news-card--hidden');
+          return !card.classList.contains('cf-blog-card--filtered-out') &&
+                 card.classList.contains('cf-blog-card--hidden');
         });
 
         var batch = 4;
         for (var i = 0; i < Math.min(batch, hiddenMatching.length); i++) {
-          hiddenMatching[i].classList.remove('cf-news-card--hidden');
+          hiddenMatching[i].classList.remove('cf-blog-card--hidden');
         }
 
         var remaining = allCards.filter(function(card) {
-          return !card.classList.contains('cf-news-card--filtered-out') &&
-                 card.classList.contains('cf-news-card--hidden');
+          return !card.classList.contains('cf-blog-card--filtered-out') &&
+                 card.classList.contains('cf-blog-card--hidden');
         });
 
         var wrap = getWrap();
         if (wrap && remaining.length === 0) {
-          wrap.style.display = 'none';
+          wrap.classList.add('cf-news-more-wrap--empty');
         }
         return;
       }

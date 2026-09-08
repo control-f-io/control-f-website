@@ -388,6 +388,14 @@ def structural(doc, name):
                      % (name, doc.count(LOCALE[0])))
         doc = doc.replace(LOCALE[0], LOCALE[1], 1)
 
+    # Root-relative production routes must stay in the translated edition.
+    from site_source import route_sources
+    def translated_route(m):
+        href = m[1]
+        route = href.split('#')[0].split('?')[0]
+        return 'href="/en' + href + '"' if route in route_sources() and not route.startswith('/en/') else m[0]
+    doc = re.sub(r'href="(/[^"]*)"', translated_route, doc)
+
     doc, n = ADDRESS.subn(ADDRESS_EN, doc)
     if n not in (0, 2):
         sys.exit("%s: expected og:url and the canonical link together or not at "

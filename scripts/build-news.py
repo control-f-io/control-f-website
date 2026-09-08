@@ -673,7 +673,6 @@ def grid(posts, indent="      ", is_en=False, active_topic=None):
         is_match = (active_topic is None) or (active_topic in topic_slugs)
         
         classes = []
-        styles = []
         
         picture = image(p, 1, inner + "  ", up=up)
         if picture:
@@ -682,18 +681,16 @@ def grid(posts, indent="      ", is_en=False, active_topic=None):
         if is_match:
             matching_count += 1
             if matching_count > 4:
-                classes.append("cf-news-card--hidden")
+                classes.append("cf-blog-card--hidden")
         else:
-            classes.append("cf-news-card--filtered-out")
-            styles.append("display: none !important;")
-            
+            classes.append("cf-blog-card--filtered-out")
+
         cls_str = (" " + " ".join(classes)) if classes else ""
-        style_str = (' style="%s"' % " ".join(styles)) if styles else ""
         href = page_name(p)
         topic_attr = (' data-topic="%s"' % " ".join(topic_slugs)) if topic_slugs else ""
         
-        open_tag = ('<a class="cf-blog-card%s" href="%s"%s%s>' % (cls_str, href, topic_attr, style_str)) if href else (
-            '<span class="cf-blog-card%s cf-blog-card--listing"%s%s>' % (cls_str, topic_attr, style_str))
+        open_tag = ('<a class="cf-blog-card%s" href="%s"%s>' % (cls_str, href, topic_attr)) if href else (
+            '<span class="cf-blog-card%s cf-blog-card--listing"%s>' % (cls_str, topic_attr))
         close_tag = "</a>" if href else "</span>"
 
         meta = []
@@ -718,8 +715,8 @@ def grid(posts, indent="      ", is_en=False, active_topic=None):
 
     if len(posts) > 4:
         btn_text = "Load more posts" if is_en else "Mehr Beiträge laden"
-        wrap_style = ' style="display: none;"' if matching_count <= 4 else ""
-        lines.append('%s<div class="cf-news-more-wrap" id="cf-news-more-wrap"%s>' % (indent, wrap_style))
+        wrap_class = ' cf-news-more-wrap--empty' if matching_count <= 4 else ''
+        lines.append('%s<div class="cf-news-more-wrap%s" id="cf-news-more-wrap">' % (indent, wrap_class))
         lines.append('%s  <button type="button" class="cf-btn cf-btn--outline" id="cf-news-load-more">%s</button>' % (indent, btn_text))
         lines.append('%s</div>' % indent)
     return "\n".join(lines)

@@ -526,7 +526,7 @@ def bead_margins(tree):
     """
     out = []
     for path in sorted(tree.rglob("*.html")):
-        if "prototypes" in path.parts:
+        if "prototypes" in path.parts and path.name != "statement-to-process.html":
             continue
         raw = path.read_text(encoding="utf-8", errors="replace")
         for m in FIELD_SVG.finditer(raw):

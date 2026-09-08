@@ -94,17 +94,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PATTERNS = ROOT / "design-system" / "patterns"
-PARTIALS = ROOT / "design-system" / "partials"
-
-# THE FOOTER PARTIAL, read once at startup and injected into every pattern that
-# carries <!-- CF:FOOTER -->. Two editions, same as the patterns themselves.
-# The partial uses ../assets/ paths so the ASSETS edit rewrites them correctly
-# for wherever the shipped page ends up in the directory tree.
-FOOTER_PARTIAL = {
-    "":    (PARTIALS / "footer.html").read_text(encoding="utf-8"),
-    "en/": (PARTIALS / "en" / "footer.html").read_text(encoding="utf-8"),
-}
-
 FOOTER_MARKER = "<!-- CF:FOOTER -->"
 
 # Every pattern ships, under the name the site serves it as. The landing page
@@ -390,7 +379,8 @@ def transform(text, name, table):
 
     # FOOTER — inject the shared partial in place of the marker. Pages that
     # carry the old footer (v1 / detached) have no marker; they are left alone.
-    footer_html = FOOTER_PARTIAL[edition]
+    from site_source import footer_for
+    footer_html = footer_for(PATTERNS / name)
     counts["FOOTER"] = text.count(FOOTER_MARKER)
     text = text.replace(FOOTER_MARKER, footer_html, 1)
 

@@ -1452,15 +1452,10 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   width: max-content;
   max-width: 100%;
   padding: var(--space-2);
-  /* TEST: translucent glass pill instead of the opaque plate the design docs
-     specify above ("THE GLASS IS THE BAND AND NOT THE PLATE"). The docs flag
-     this exact swap as a deliberate contrast tradeoff reserved for the site
-     owner to decide — opaque guarantees AAA text contrast regardless of what
-     scrolls underneath; glass does not. Backup of the pre-change file:
-     components.css.bak-before-nav-glass. Requested 2026-09-03 for a one-page
-     test on landing-page.html; revert by restoring `background:
-     var(--surface-inverse);` and removing the two backdrop-filter lines. */
-  background: rgba(0, 0, 0, 0.55);
+  /* The shipping navigation material: one grey-black glass plate. Its 55%
+     tint, blur, label contrast, and opaque accessibility fallbacks are tokens
+     shared by the desktop bar and mobile dropdown. */
+  background: var(--surface-nav-glass);
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
   border: var(--stroke-1) solid var(--border-inverse);
@@ -1830,7 +1825,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.72);   /* 10.6:1 on black */
+  color: var(--nav-label); /* 4.74:1 on 55% black over white. */
   transition: color var(--duration-fast) var(--ease-standard),
               background var(--duration-fast) var(--ease-standard);
 }
@@ -1854,7 +1849,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    both draw the same — scripts/check-a11y.py keeps the tokens honest. */
 .cf-nav__link:is([aria-current="page"], [aria-current="true"]) {
   color: var(--grey-000);
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--nav-current);
 }
 /* LIME PLUS AN INNER RING, AND THE INNER RING IS THE HALF THAT WAS MISSING.
 
@@ -2081,16 +2076,26 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      applies, and the panel snaps exactly as it does today. The un-enhanced
      state is the settled one. */
   .cf-nav__bar {
+    --nav-inline-space: min(var(--space-4), 5.25vw);
+    min-width: 0;
+    gap: var(--nav-inline-space);
     background: transparent;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     border-color: transparent;
   }
+  .cf-nav__bar > .cf-logo {
+    min-width: 0;
+  }
+  .cf-nav__bar > .cf-logo img {
+    max-width: 100%;
+    height: auto;
+  }
   .cf-nav__bar::before {
     content: "";
     position: absolute;
     inset: calc(var(--stroke-1) * -1);
-    background: rgba(0, 0, 0, 0.55);
+    background: var(--surface-nav-glass);
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
     border: var(--stroke-1) solid var(--border-inverse);
@@ -2107,7 +2112,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
            calc(var(--stroke-1) * -1)
            auto
            calc(var(--stroke-1) * -1);
-    background: rgba(0, 0, 0, 0.55);
+    background: var(--surface-nav-glass);
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
     border: var(--stroke-1) solid var(--border-inverse);
@@ -2136,6 +2141,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-3) var(--space-4);
+    padding-inline: var(--nav-inline-space);
     /* 44 px. The label's own metric — 11 px mono inside --space-3 padding —
        lands the plate at 42, and this is the primary control on a phone: the
        only way to reach any other page. 2.75rem is the 44 px touch convention
@@ -2201,6 +2207,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      switch 44. */
   .cf-nav__lang {
     padding: var(--space-3) var(--space-4);
+    padding-inline: var(--nav-inline-space);
     min-height: 2.75rem;
   }
 }
@@ -4976,7 +4983,7 @@ ul.cf-info-card__chips {
   background: transparent;
   background-image: none;
   background-color: transparent;
-  transition: color var(--duration-fast, 150ms) ease;
+  transition: color var(--duration-fast) var(--ease-standard);
 }
 .cf-accordion__summary::-webkit-details-marker { display: none; }
 .cf-accordion__summary:hover,
@@ -4996,12 +5003,12 @@ ul.cf-info-card__chips {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 1.45rem;
   font-weight: 300;
   line-height: 1;
   color: var(--text-primary);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease;
+  transition: transform 0.35s var(--ease-reveal), color 0.15s var(--ease-standard);
   user-select: none;
   width: 24px;
   height: 24px;
@@ -5011,25 +5018,26 @@ ul.cf-info-card__chips {
 }
 .cf-accordion__item.is-open .cf-accordion__icon {
   transform: rotate(45deg);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease;
+  transition: transform 0.35s var(--ease-reveal), color 0.15s var(--ease-standard);
 }
 
 .cf-accordion__content-wrap {
   display: grid;
-  grid-template-rows: 0fr;
+  grid-template-rows: minmax(0, 0fr);
   opacity: 0;
   visibility: hidden;
-  transition: grid-template-rows 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.22s ease,
+  transition: grid-template-rows 0.32s var(--ease-reveal),
+              opacity 0.22s var(--ease-standard),
               visibility 0.32s step-end;
   overflow: hidden;
+  overflow: clip;
 }
 .cf-accordion__item.is-open .cf-accordion__content-wrap {
-  grid-template-rows: 1fr;
+  grid-template-rows: minmax(0, 1fr);
   opacity: 1;
   visibility: visible;
-  transition: grid-template-rows 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.28s ease,
+  transition: grid-template-rows 0.32s var(--ease-reveal),
+              opacity 0.28s var(--ease-standard),
               visibility 0s;
 }
 
@@ -5042,6 +5050,7 @@ ul.cf-info-card__chips {
 .cf-accordion__content {
   min-height: 0;
   overflow: hidden;
+  overflow: clip;
   /* Bottom padding is only 0 here (not --space-6) while the item is closed.
      The row's grid-template-rows animates 1fr -> 0fr, but the row cannot
      shrink past this box's own padding -- padding is not affected by
@@ -5051,7 +5060,7 @@ ul.cf-info-card__chips {
      continuous shrink. Padding now transitions in lockstep with the row so
      the box can reach a true 0 and the two animations finish together. */
   padding: 0 var(--space-4) 0 var(--space-20);
-  transition: padding-bottom 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: padding-bottom 0.32s var(--ease-reveal);
   max-width: 76ch;
   font-size: var(--text-md);
   color: var(--text-secondary);
@@ -5097,18 +5106,18 @@ ul.cf-info-card__chips {
 /* 2-COLUMN NEWS ARCHIVE GRID (Matches Home page hairline matrix style, transparent background) */
 .cf-news-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   border-top: 1px solid rgba(0, 0, 0, 0.25);
   border-left: 1px solid rgba(0, 0, 0, 0.25);
   background: transparent;
   width: 100%;
   max-width: 100%;
-  margin-top: var(--space-4, 1rem);
+  margin-top: var(--space-4);
 }
 @media (min-width: 50rem) {
   .cf-news-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 .cf-news-grid .cf-blog-card,
@@ -5125,11 +5134,12 @@ ul.cf-info-card__chips {
   min-width: 0;
   text-decoration: none;
   color: inherit;
-  transition: background 0.2s ease;
+  transition: background 0.2s var(--ease-standard);
   position: relative;
 }
-.cf-news-grid .cf-blog-card:hover {
-  background: #ffffff;
+.cf-news-grid .cf-blog-card:hover,
+.cf-news-grid .cf-blog-card:focus-visible {
+  border-color: var(--border-strong);
 }
 .cf-news-grid .cf-blog-card__image {
   width: 100%;
@@ -5145,27 +5155,27 @@ ul.cf-info-card__chips {
   font-size: var(--text-lg);
   font-weight: var(--weight-regular);
   line-height: var(--leading-tight, 1.25);
-  color: var(--text-primary, #111418);
-  padding: var(--space-4, 1rem) var(--space-4, 1rem) var(--space-3, 0.75rem);
+  color: var(--text-primary);
+  padding: var(--space-4) var(--space-4) var(--space-3);
   margin: 0;
 }
 .cf-news-grid .cf-blog-card__meta,
 .cf-news-grid .cf-blog-card--media > .cf-blog-card__meta {
   display: block;
-  font-family: var(--font-mono, monospace);
-  font-size: var(--text-xs, 0.75rem);
-  letter-spacing: var(--tracking-label, 0.04em);
-  color: var(--text-secondary, #636874);
-  padding: 0 var(--space-4, 1rem) var(--space-4, 1rem);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-secondary);
+  padding: 0 var(--space-4) var(--space-4);
   margin-top: auto;
 }
-.cf-news-card--hidden {
+.cf-blog-card--hidden {
   display: none !important;
 }
 .cf-news-more-wrap {
   display: flex;
   justify-content: center;
-  margin-top: var(--space-8, 2.5rem);
+  margin-top: var(--space-8);
 }
 
 /* THE PORT — the archive's own form of the grid, where a column is a year and
@@ -11811,7 +11821,7 @@ a.cf-calendar__day > time,
 .cf-values-grid__item {
   border-right: var(--stroke-1, 1px) solid var(--border-strong);
   border-bottom: var(--stroke-1, 1px) solid var(--border-strong);
-  padding: var(--space-8, 2rem) var(--space-6, 1.5rem);
+  padding: var(--space-8) var(--space-6);
   display: flex;
   flex-direction: column;
   /* Same hover as .cf-team-grid__item (cf-reveal.css, "Team Grid — Hover
@@ -11820,10 +11830,11 @@ a.cf-calendar__day > time,
      than left as its own grey-tint hover so every editorial grid on the
      site (Team, Values) responds to the cursor the same way. */
   background: transparent;
-  transition: background 0.2s ease;
+  transition: background 0.2s var(--ease-standard);
 }
 
-.cf-values-grid__item:hover {
+.cf-values-grid__item:hover,
+.cf-values-grid__item:focus-visible {
   background: #ffffff;
 }
 
@@ -11834,18 +11845,18 @@ a.cf-calendar__day > time,
 }
 
 .cf-values-grid__num {
-  font-family: var(--font-mono, monospace);
-  font-size: var(--text-xs, 0.75rem);
-  font-weight: var(--weight-medium, 500);
-  color: var(--text-secondary, #666);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
   letter-spacing: 0.06em;
-  margin-bottom: var(--space-4, 1rem);
+  margin-bottom: var(--space-4);
 }
 
 .cf-values-grid__title {
-  margin: 0 0 var(--space-3, 0.75rem);
-  font-size: var(--text-h4, 1.15rem);
-  font-weight: var(--weight-semibold, 600);
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-h4);
+  font-weight: var(--weight-semibold);
   line-height: var(--leading-tight, 1.25);
   color: var(--cf-schwarz, #111418);
   letter-spacing: -0.01em;
@@ -11853,9 +11864,9 @@ a.cf-calendar__day > time,
 
 .cf-values-grid__body {
   margin: 0;
-  font-size: var(--text-base, 0.95rem);
+  font-size: var(--text-base);
   line-height: var(--leading-relaxed, 1.6);
-  color: var(--text-secondary, #555a66);
+  color: var(--text-secondary);
 }
 
 @media (max-width: 62rem) {
@@ -11869,7 +11880,7 @@ a.cf-calendar__day > time,
     grid-template-columns: minmax(0, 1fr);
   }
   .cf-values-grid__item {
-    padding: var(--space-6, 1.5rem) var(--space-4, 1rem);
+    padding: var(--space-6) var(--space-4);
   }
 }
 
@@ -17414,6 +17425,7 @@ a.cf-calendar__day > time,
 .cf-footer--v2 {
   position: relative;
   overflow: hidden;
+  overflow: clip;
 }
 .cf-footer--v2 .cf-footer__cta {
   display: block;
@@ -17427,7 +17439,7 @@ a.cf-calendar__day > time,
 .cf-footer--v2 .cf-footer__mark {
   position: absolute;
   top: auto;
-  bottom: calc(var(--space-16, 4rem) - 10px);
+  bottom: calc(var(--space-16) - 10px);
   right: 0;
   width: 18.5rem;
   max-height: 15rem;
@@ -17466,7 +17478,7 @@ a.cf-calendar__day > time,
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
   align-items: start;
   gap: var(--space-8);
   padding-block: var(--space-8);
@@ -17538,20 +17550,19 @@ a.cf-calendar__day > time,
   color: var(--text-inverse-dim);
 }
 @media (max-width: 61.25rem) {
-  .cf-footer--v2 .cf-footer__meta { grid-template-columns: 1fr 1fr; }
+  .cf-footer--v2 .cf-footer__meta { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
 @media (max-width: 56.25rem) {
   .cf-footer--v2 .cf-footer__mark { display: none; }
 }
 @media (max-width: 40rem) {
-  .cf-footer--v2 .cf-footer__meta { grid-template-columns: 1fr; }
+  .cf-footer--v2 .cf-footer__meta { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* === NAV V2 (test page only) ===
-   Removes the full-width glass band behind the bar (.cf-nav::before), since
-   the bar itself now carries its own glass (.cf-nav__bar, requested
-   2026-09-03). Leaves .cf-nav::after (the bottom edge line) alone for now.
-   TEMPORARY: scoped to .cf-nav--v2, currently only on landing-page.html. */
+/* === BLACK GLASS NAVIGATION ===
+   The shipping variant: the bar and mobile dropdown carry their own black
+   glass. Remove both the full-width frost and its bottom edge so only the
+   floating bar remains. Live specimen: components/navigation.html#demo. */
 .cf-nav--v2::before {
   content: none;
 }
@@ -17572,7 +17583,7 @@ a.cf-calendar__day > time,
   max-width: 100%;
   max-height: 100vh;
   max-height: 100dvh;
-  padding: var(--space-4, 1rem);
+  padding: var(--space-4);
   margin: 0;
   border: none;
   background: transparent;
@@ -17583,7 +17594,7 @@ a.cf-calendar__day > time,
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+  transition: opacity 0.3s var(--ease-reveal), visibility 0.3s;
 }
 
 .cf-exit-modal[open],
@@ -17598,12 +17609,12 @@ a.cf-calendar__day > time,
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.78);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   cursor: pointer;
 }
 
-.cf-exit-modal__card {
+.cf-exit-modal__panel {
   position: relative;
   z-index: 2;
   width: 100%;
@@ -17612,10 +17623,10 @@ a.cf-calendar__day > time,
   color: #FFFFFF;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 18px;
-  padding: 2.25rem 2.5rem 2rem;
+  padding: calc(var(--space-1) * 9) calc(var(--space-1) * 10) var(--space-8);
   box-shadow: 0 28px 64px -8px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.06);
   transform: scale(0.96) translateY(10px);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.35s var(--ease-reveal);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -17623,8 +17634,8 @@ a.cf-calendar__day > time,
   text-align: left;
 }
 
-.cf-exit-modal.is-active .cf-exit-modal__card,
-.cf-exit-modal[open] .cf-exit-modal__card {
+.cf-exit-modal.is-active .cf-exit-modal__panel,
+.cf-exit-modal[open] .cf-exit-modal__panel {
   transform: scale(1) translateY(0);
 }
 
@@ -17642,12 +17653,13 @@ a.cf-calendar__day > time,
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s var(--ease-standard);
   padding: 0;
   z-index: 3;
 }
 
-.cf-exit-modal__close:hover {
+.cf-exit-modal__close:hover,
+.cf-exit-modal__close:focus-visible {
   background: rgba(255, 255, 255, 0.22);
   color: #FFFFFF;
   transform: scale(1.08);
@@ -17659,35 +17671,35 @@ a.cf-calendar__day > time,
 }
 
 .cf-exit-modal__eyebrow {
-  font-family: var(--font-mono, monospace);
-  font-size: var(--text-xs, 0.75rem);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
   font-weight: 400;
-  letter-spacing: var(--tracking-label, 0.12em);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--cf-lime, #E1FF00);
-  margin: 0 0 0.75rem;
+  margin: 0 0 var(--space-3);
   display: block;
 }
 
 .cf-exit-modal__title {
-  font-family: var(--font-sans, "Geist", "Helvetica Neue", Arial, sans-serif);
+  font-family: var(--font-sans);
   font-size: clamp(1.5rem, 3.5vw, 1.85rem);
   font-weight: 300 !important;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  margin: 0 0 0.75rem;
+  margin: 0 0 var(--space-3);
   display: block;
   width: 100%;
   color: #FFFFFF;
 }
 
 .cf-exit-modal__subtitle {
-  font-family: var(--font-sans, "Geist", "Helvetica Neue", Arial, sans-serif);
+  font-family: var(--font-sans);
   font-size: 0.925rem;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.7);
   font-weight: 300;
-  margin: 0 0 1.75rem;
+  margin: 0 0 calc(var(--space-1) * 7);
   display: block;
   width: 100%;
 }
@@ -17697,28 +17709,31 @@ a.cf-calendar__day > time,
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 1.05rem 1.4rem;
+  padding: calc(var(--space-1) * 4.2) calc(var(--space-1) * 5.6);
   border-radius: 6px;
-  background: linear-gradient(90deg, #D4D9DC 0%, #C7ECE3 40%, #E1FF00 90%, #E1FF00 100%);
+  background: linear-gradient(90deg, #D4D9DC 0%, #C5EBE2 40%, #E1FF00 90%, #E1FF00 100%);
+  background: linear-gradient(90deg in oklab, #D4D9DC 0%, #C5EBE2 40%, #E1FF00 90%, #E1FF00 100%);
   color: #000000;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-weight: 500;
-  font-size: 0.88rem;
-  letter-spacing: 0.1em;
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   text-decoration: none;
   box-shadow: none;
   border: none;
-  outline: none !important;
-  transition: filter 0.2s ease, transform 0.2s ease;
+  outline: none;
+  transition: filter 0.2s var(--ease-standard), transform 0.2s var(--ease-standard);
   box-sizing: border-box;
 }
 
-.cf-exit-modal__btn:hover {
+.cf-exit-modal__btn:hover,
+.cf-exit-modal__btn:focus-visible {
   filter: brightness(1.04);
 }
 
-.cf-exit-modal__btn:hover .cf-exit-modal__arrow {
+.cf-exit-modal__btn:hover .cf-exit-modal__arrow,
+.cf-exit-modal__btn:focus-visible .cf-exit-modal__arrow {
   transform: translateX(3px);
 }
 
@@ -17726,40 +17741,40 @@ a.cf-calendar__day > time,
   filter: brightness(0.96);
 }
 
-.cf-exit-modal__btn:focus,
 .cf-exit-modal__btn:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 .cf-exit-modal__arrow {
   width: 18px;
   height: 15px;
   fill: #000000;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s var(--ease-standard);
   flex-shrink: 0;
-  margin-left: 0.5rem;
+  margin-left: var(--space-2);
 }
 
 .cf-exit-modal__dismiss {
   display: block;
   width: 100%;
   text-align: center;
-  margin: 1.1rem auto 0;
-  padding: 0.25rem 0.5rem;
+  margin: calc(var(--space-1) * 4.4) auto 0;
+  padding: var(--space-1) var(--space-2);
   background: none;
   border: none;
-  font-family: var(--font-sans, sans-serif);
+  font-family: var(--font-sans);
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.45);
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 3px;
-  transition: color 0.2s ease;
+  transition: color 0.2s var(--ease-standard);
   outline: none;
 }
 
-.cf-exit-modal__dismiss:hover {
+.cf-exit-modal__dismiss:hover,
+.cf-exit-modal__dismiss:focus-visible {
   color: rgba(255, 255, 255, 0.85);
 }
 
@@ -17775,8 +17790,8 @@ html.has-modal-open body {
 }
 
 @media (max-width: 37.5rem) {
-  .cf-exit-modal__card {
-    padding: 1.85rem 1.4rem 1.5rem;
+  .cf-exit-modal__panel {
+    padding: calc(var(--space-1) * 7.4) calc(var(--space-1) * 5.6) var(--space-6);
     border-radius: 14px;
   }
   .cf-exit-modal__title {
@@ -17784,17 +17799,17 @@ html.has-modal-open body {
   }
   .cf-exit-modal__subtitle {
     font-size: 0.88rem;
-    margin-bottom: 1.35rem;
+    margin-bottom: calc(var(--space-1) * 5.4);
   }
   .cf-exit-modal__btn {
-    padding: 0.85rem 1.1rem;
+    padding: calc(var(--space-1) * 3.4) calc(var(--space-1) * 4.4);
     font-size: 0.8rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cf-exit-modal,
-  .cf-exit-modal__card,
+  .cf-exit-modal__panel,
   .cf-exit-modal__backdrop {
     transition: none !important;
     animation: none !important;
@@ -17804,3 +17819,14 @@ html.has-modal-open body {
 
 
 
+/* Filtered cards leave both layout and the accessibility tree. Match the
+   archive grid's specificity so its card display rule cannot win. */
+.cf-news-grid .cf-blog-card--filtered-out { display: none; }
+@media print {
+  .cf-exit-modal, .cf-exit-modal__backdrop { display: none !important; }
+}
+
+/* Text-bearing blocks introduced by the V2 telemetry and evidence sections. */
+.cf-wrap { overflow-wrap: break-word; }
+
+.cf-news-more-wrap--empty { display: none; }

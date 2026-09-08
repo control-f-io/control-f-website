@@ -2355,7 +2355,7 @@ off the mockups:
 
 | | |
 |---|---|
-| **default** | Content sits `--section-header-gap` (80 px) below the hairline. For content that is not itself a ruled box: the logo wall, the team strip, a block of copy. |
+| **default** | Content sits `--section-header-gap` (16 px) below the hairline. For content that is not itself a ruled box: the logo wall, the team strip, a block of copy. |
 | **`--flush`** | The content below *is* a ruled container — process card, accordion, blog grid — and its own top border is the header's rule. The header drops its border and its gap so one hairline does both jobs. This is how all three are drawn in the mockups. |
 
 Before this rule the same relationship was set six different ways across the two pages

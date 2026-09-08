@@ -96,6 +96,8 @@ and an allow-list would call it fine.
 Exit code 0 when every reference resolves, 1 otherwise.
 """
 
+from site_source import read_source, is_partial
+
 import os
 import re
 import sys
@@ -131,8 +133,7 @@ def mask(text, tag):
 
 def readable(path):
     """The file's source with everything unquotable blanked out."""
-    with open(path, encoding="utf-8") as fh:
-        text = fh.read()
+    text = read_source(path)
     # Comments first: a commented-out <pre> should not eat live markup after it.
     text = re.sub(r"<!--.*?-->", lambda m: re.sub(r"[^\n]", " ", m.group(0)),
                   text, flags=re.S)
@@ -398,8 +399,7 @@ def check_css(path, failures, counter):
     reckoning — a url resolves relative to the css file, not the page."""
     rel = os.path.relpath(path, ROOT)
     here = os.path.dirname(path)
-    with open(path, encoding="utf-8") as fh:
-        text = fh.read()
+    text = read_source(path)
 
     for value, line in css_urls(text):
         if not value or value.startswith("#") or OFFSITE.match(value):
@@ -463,7 +463,7 @@ def main():
     pages = []
     for dirpath, _, filenames in os.walk(TREE):
         for name in sorted(filenames):
-            if name.endswith(".html"):
+            if name.endswith(".html") and not is_partial(os.path.join(dirpath, name)):
                 pages.append(os.path.join(dirpath, name))
     pages.sort()
 

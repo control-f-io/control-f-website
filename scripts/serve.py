@@ -6,6 +6,8 @@ Usage:
     Default port: 8000
 """
 
+from site_source import PreviewHandler
+
 import http.server
 import socketserver
 import os
@@ -15,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-class CleanURLHandler(http.server.SimpleHTTPRequestHandler):
+class CleanURLHandler(PreviewHandler):
     def do_GET(self):
         raw_path = urllib.parse.urlsplit(self.path).path
         

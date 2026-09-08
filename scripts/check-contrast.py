@@ -255,6 +255,12 @@ def ratio(a, b):
 WASH = "wash"
 
 REGISTER = [
+    ("navigation labels over the brightest backdrop", "root",
+     "var(--nav-label)", ["#FFFFFF", "var(--surface-nav-glass)"], 4.5,
+     "the grey glass navigation keeps white labels legible on any page frame"),
+    ("current navigation label over the brightest backdrop", "root",
+     "var(--nav-label)", ["#FFFFFF", "var(--surface-nav-glass)", "var(--nav-current)"], 4.5,
+     "the selected page marker may not wash out its label"),
     ("text-primary on the page wash", "root",
      "var(--text-primary)", [WASH], 4.5,
      "colors.html: never drops below 11.91:1"),
