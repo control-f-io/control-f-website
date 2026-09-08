@@ -1,0 +1,641 @@
+/* Control-F — "who we are" section (act 4 / #wer-wir-sind), scoped override.
+
+   This section used to reuse the site's shared pinned-scroll engine (the
+   @supports/@media gate in acts.css, plus cf-stream.js for the copy). Per
+   request it is switched to a simpler behaviour instead:
+
+     - no pinning/sticky stage, no 400vh scroll track — the two plates
+       (Management, Team) sit in normal document flow, one after another
+     - every element in a plate (label, name, photo frame) fades up into
+       view once when it is scrolled to, via plain IntersectionObserver
+     - the description paragraph ADDITIONALLY plays a one-shot typing
+       animation on the same trigger, instead of a scroll-scrubbed one
+
+   Scoped entirely to `.cf-reveal-track` (the class added next to `.sp4-track`
+   on this one section) so the shared engine is untouched for every other
+   consumer (cf-values on this same page, expertise.html, the landing page).
+   Loaded after acts.css, so normal cascade order gives it the override
+   without needing !important for the layout parts. */
+
+.cf-reveal-track {
+  height: auto !important;
+  view-timeline-name: none !important;
+  position: static !important;
+}
+
+.cf-reveal-track .sp4-stage {
+  position: static !important;
+  block-size: auto !important;
+  overflow: visible !important;
+  /* Top and bottom were matched (both var(--section-gap)) previously, but the
+     photo then sat too close to the hero/scroll-prompt above it on this page.
+     Bottom stays at --section-gap (matches rhythm into "Unsere Werte" below);
+     top gets extra breathing room via calc() so it clears the hero. */
+  padding-block-start: calc(var(--section-gap, var(--space-30)) + var(--space-12)) !important;
+  padding-block-end: var(--section-gap, var(--space-30)) !important;
+}
+
+.cf-reveal-track .sp4-set {
+  grid-template-areas: none !important;
+  grid-template-columns: none !important;
+  display: grid;
+  gap: var(--space-16);
+  /* Match the width every other section on the page uses (.container),
+     instead of the old cap sized for a 100vh pinned stage. */
+  inline-size: 100% !important;
+  max-inline-size: calc(var(--container-max, 80rem) + var(--gutter, 5rem) * 2) !important;
+  padding-inline: var(--gutter, var(--space-20)) !important;
+  margin-inline: auto !important;
+}
+
+.cf-reveal-track .sp4-plate {
+  grid-area: auto !important;
+  animation: none !important;
+  opacity: 1;
+}
+
+@media (min-width: 64rem) {
+  /* The photo took 8 of 12 columns under the old pinned-stage sizing, which
+     was tuned to fill a 100vh sticky stage. In normal flow at the page's
+     full container width that made the picture too large next to the text
+     column; capping it at 32rem then swung too far the other way and made
+     it too small. This split (4/12 text, 8/12 image, same ratio the pinned
+     tier used) at the page's normal container width lands as a normal
+     photo-beside-text layout without either extreme. */
+  .cf-reveal-track .sp4-plate {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr) !important;
+    column-gap: var(--space-12);
+  }
+  .cf-reveal-track .sp4-shot {
+    inline-size: 100%;
+    max-inline-size: 40rem;
+    justify-self: end;
+  }
+}
+
+.cf-reveal-track [data-cf-reveal],
+.cf-reveal-track [data-cf-reveal-item] {
+  opacity: 0;
+  transform: translateY(1rem);
+  transition: opacity calc(var(--duration-fast) * 5) var(--ease-standard), transform calc(var(--duration-fast) * 5) var(--ease-standard);
+}
+
+.cf-reveal-track [data-cf-reveal].is-revealed,
+.cf-reveal-track [data-cf-reveal-item].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+.cf-reveal-track .sp4-mark { transition-delay: 0s; }
+.cf-reveal-track .sp4-say__lead { transition-delay: calc(var(--duration-fast) * 0.66666667); }
+.cf-reveal-track .sp4-shot { transition-delay: calc(var(--duration-fast) * 1.3333333); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-reveal-track [data-cf-reveal],
+  .cf-reveal-track [data-cf-reveal-item] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+.cf-reveal-track [data-cf-type] {
+  min-block-size: 7.4em;
+}
+
+@media (min-width: 64rem) {
+  .cf-reveal-track [data-cf-type] { min-block-size: 5.2em; }
+}
+
+.cf-reveal-track [data-cf-type] .cf-type__caret {
+  display: inline-block;
+  width: 0.1em;
+  margin-inline-start: 0.05em;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.cf-reveal-track [data-cf-type].is-typed .cf-type__caret {
+  animation: cf-type-blink calc(var(--duration-fast) * 8.3333333) step-end infinite;
+}
+
+@keyframes cf-type-blink {
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-reveal-track [data-cf-type] .cf-type__caret { display: none; }
+}
+
+/* ============================================================
+   CFV2 — "What we believe" / "Woran wir glauben", replacing the old
+   700vh pinned scroll-hijack (.cf-values__track, six full-screen stages).
+
+   Per request: normal document flow (no pin, no scroll-scrubbing), the
+   real isometric mark drawn once on the left exactly as it always
+   rendered at rest, and on the right a list of all six values that
+   autoplays — the active row highlighted, a timer bar UNDER EACH ROW
+   (not under the drawing) counting down to the next value, looping
+   continuously once the section scrolls into view. Clicking a row jumps
+   to it directly.
+
+   Scoped to .cfv2 only. .cf-values__mark and its children keep their
+   original classes so the ink/stroke rules in components.css
+   (.cf-values__mark line, .cf-values__contour, .cf-values__solid, the
+   forced-colors block) keep applying to the drawing unchanged — this
+   file only lays the two columns out and skips every animation-timeline
+   rule scoped to .cf-values__track, so the mark simply renders at rest,
+   fully drawn, with no per-stage reveal. */
+
+/* Spacing above and below the team closer group photo.
+
+   margin-bottom is 0: the photo is the LAST thing in "Das Team"'s own
+   <section>, and the very next section (Werte) immediately adds its own
+   top padding (--section-gap) -- so a separate margin-bottom here would
+   stack on top of that and double the space below the photo compared to
+   above it (this was fixed once already, from a flat 8rem bottom margin
+   that measured out to roughly double the top gap).
+
+   margin-top is --section-gap itself, the same responsive token the next
+   section's own top padding uses for the bottom gap, rather than a fixed
+   8rem -- 8rem (128px) doesn't equal --section-gap at every viewport
+   (e.g. 116.67px at 1400px wide), so a fixed value here still drifted
+   slightly from the bottom gap depending on width. Using the same token on
+   both sides keeps them equal at every width instead of only at whichever
+   width 8rem happens to match --section-gap's clamp. */
+.cf-team-closer {
+  margin-top: var(--section-gap);
+  margin-bottom: 0 !important;
+}
+
+section.cf-values {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+.cfv2[data-scroll-to-play="true"] {
+  height: 280vh;
+  position: relative;
+}
+
+.cfv2[data-scroll-to-play="true"] .cfv2-frame {
+  position: sticky;
+  top: calc(var(--nav-height, 4.5rem) + 1.5rem);
+}
+
+.cfv2-frame {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: var(--space-12);
+  align-items: start;
+  padding-block: var(--space-8) var(--space-12);
+  width: 100%;
+}
+
+
+@media (max-width: 55rem) {
+  .cfv2-frame {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-8);
+  }
+  .cfv2-art {
+    position: static;
+    justify-content: center;
+  }
+  .cfv2-art .cf-values__mark {
+    margin-inline: auto;
+  }
+  .cfv2-content {
+    justify-self: start;
+    max-width: 100%;
+  }
+  .cfv2-item,
+  .cfv2-timer,
+  .cfv2-desc-wrap,
+  .cfv2-desc {
+    max-width: 100%;
+  }
+}
+
+.cfv2-art {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  position: sticky;
+  top: calc(var(--nav-height, 4.5rem) + 2rem);
+  align-self: start;
+  justify-self: start;
+  padding-top: var(--space-2);
+  width: 100%;
+}
+
+.cfv2-art .cf-values__mark {
+  display: block;
+  width: 100%;
+  max-width: 24rem;
+  margin-inline: 0 auto;
+}
+
+.cfv2-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  justify-self: end;
+  width: 100%;
+  max-width: 38rem;
+}
+
+.cfv2-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.cfv2-item {
+  padding: var(--space-3) 0 var(--space-2);
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity calc(var(--duration-fast) * 2.0833333) var(--ease-standard);
+  min-width: 0;
+  max-width: 38rem;
+  width: 100%;
+}
+
+.cfv2-item:hover {
+  opacity: 0.85;
+}
+
+.cfv2-item.is-active {
+  opacity: 1;
+}
+
+.cfv2-item-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.cfv2-num {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.cfv2-title {
+  margin: 0;
+  font-size: var(--text-h4);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-tight, 1.3);
+  color: var(--cf-schwarz, var(--text-primary));
+  transition: font-weight calc(var(--duration-fast) * 1.6666667) var(--ease-standard);
+}
+
+.cfv2-item.is-active .cfv2-title {
+  font-weight: var(--weight-semibold);
+}
+
+/* The separator AND the loading bar are the exact same single line */
+.cfv2-timer {
+  height: 1.5px;
+  width: 100%;
+  max-width: 38rem;
+  background: var(--border-subtle, var(--veil-ink-12));
+  overflow: hidden;
+  position: relative;
+  border-radius: calc(var(--radius-sm) * 0.5);
+}
+
+.cfv2-timer-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--cf-schwarz, var(--cf-schwarz));
+}
+
+
+
+
+.cfv2-timer-bar.is-animating {
+  transition: width linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cfv2-timer-bar.is-animating { transition: none; }
+}
+
+/* Description accordion under each title */
+.cfv2-desc-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows calc(var(--duration-fast) * 2.5) var(--ease-standard);
+  overflow: hidden;
+  width: 100%;
+  max-width: 38rem;
+}
+
+.cfv2-item.is-active .cfv2-desc-wrap {
+  grid-template-rows: 1fr;
+}
+
+.cfv2-desc {
+  min-height: 0;
+  margin: 0;
+  padding-top: var(--space-2);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed, 1.6);
+  color: var(--text-secondary);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity calc(var(--duration-fast) * 2.0833333) var(--ease-standard) calc(var(--duration-fast) * 0.41666667), transform calc(var(--duration-fast) * 2.0833333) var(--ease-standard) calc(var(--duration-fast) * 0.41666667);
+  width: 100%;
+  max-width: 38rem;
+}
+
+.cfv2-item.is-active .cfv2-desc {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+/* ---- CFV2 mark: one construction step per active value ----
+   Stage 0 (Value 01): Contour outline only, inside is completely clean.
+   Stage 1 (Value 02): + First diagonal grid layer.
+   Stage 2 (Value 03): + Second intersecting diagonal grid layer (crosshatch).
+   Stage 3 (Value 04): + Third subdivision grid layer.
+   Stage 4 (Value 05): + Fourth ultra-fine grid layer (all grids active).
+   Stage 5 (Value 06): + Solid black fill completes the mark. */
+
+.cfv2-art .cf-values__mark {
+  max-width: 24rem;
+}
+
+.cfv2-art .cf-values__contour,
+.cfv2-art .cf-values__grid-layer,
+.cfv2-art .cf-values__solid {
+  animation: none !important;
+  transition: opacity calc(var(--duration-fast) * 3.3333333) var(--ease-standard);
+  opacity: 0;
+}
+
+.cfv2-art .cf-values__contour {
+  stroke: var(--cf-schwarz, var(--cf-schwarz)) !important;
+}
+
+.cfv2-art .cf-values__grid-layer line {
+  stroke: var(--cf-schwarz, var(--cf-schwarz)) !important;
+  stroke-dasharray: 1;
+}
+
+.cfv2-art .cf-values__solid {
+  fill: var(--cf-schwarz, var(--cf-schwarz)) !important;
+}
+
+@keyframes cfv2-layer-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* Newly added layer draws on in clean black ink */
+.cfv2-art .cf-values__grid-layer.cfv2-drawing line {
+  stroke: var(--cf-schwarz, var(--cf-schwarz)) !important;
+  animation: cfv2-layer-draw calc(var(--duration-fast) * 6.6666667) var(--ease-out, ease-out) forwards !important;
+}
+
+/* Previously drawn layers stay solid black ink */
+.cfv2-art .cf-values__grid-layer.cfv2-drawn line {
+  stroke-dashoffset: 0;
+  stroke: var(--cf-schwarz, var(--cf-schwarz)) !important;
+}
+
+/* Step 0 (Value 01): CONTOUR ONLY. No grid lines inside at all! */
+.cfv2-art.cfv2-step-0 .cf-values__contour { opacity: 1; }
+
+/* Step 1 (Value 02): Contour + Grid Layer 0 */
+.cfv2-art.cfv2-step-1 .cf-values__contour { opacity: 1; }
+.cfv2-art.cfv2-step-1 .cf-values__grid-layer[style*="--layer:0"],
+.cfv2-art.cfv2-step-1 .cf-values__grid-layer.cfv2-drawn,
+.cfv2-art.cfv2-step-1 .cf-values__grid-layer.cfv2-drawing { opacity: 1; }
+
+/* Step 2 (Value 03): Contour + Grid Layers 0 & 1 */
+.cfv2-art.cfv2-step-2 .cf-values__contour { opacity: 1; }
+.cfv2-art.cfv2-step-2 .cf-values__grid-layer[style*="--layer:0"],
+.cfv2-art.cfv2-step-2 .cf-values__grid-layer[style*="--layer:1"],
+.cfv2-art.cfv2-step-2 .cf-values__grid-layer.cfv2-drawn,
+.cfv2-art.cfv2-step-2 .cf-values__grid-layer.cfv2-drawing { opacity: 1; }
+
+/* Step 3 (Value 04): Contour + Grid Layers 0, 1 & 2 */
+.cfv2-art.cfv2-step-3 .cf-values__contour { opacity: 1; }
+.cfv2-art.cfv2-step-3 .cf-values__grid-layer[style*="--layer:0"],
+.cfv2-art.cfv2-step-3 .cf-values__grid-layer[style*="--layer:1"],
+.cfv2-art.cfv2-step-3 .cf-values__grid-layer[style*="--layer:2"],
+.cfv2-art.cfv2-step-3 .cf-values__grid-layer.cfv2-drawn,
+.cfv2-art.cfv2-step-3 .cf-values__grid-layer.cfv2-drawing { opacity: 1; }
+
+/* Step 4 (Value 05): Contour + ALL 4 Grid Layers */
+.cfv2-art.cfv2-step-4 .cf-values__contour { opacity: 1; }
+.cfv2-art.cfv2-step-4 .cf-values__grid-layer { opacity: 1; }
+
+/* Step 5 (Value 06): Contour + ALL 4 Grid Layers + Solid Fill */
+.cfv2-art.cfv2-step-5 .cf-values__contour { opacity: 1; }
+.cfv2-art.cfv2-step-5 .cf-values__grid-layer { opacity: 1; }
+.cfv2-art.cfv2-step-5 .cf-values__solid { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cfv2-art .cf-values__contour,
+  .cfv2-art .cf-values__grid-layer,
+  .cfv2-art .cf-values__solid {
+    transition: none;
+  }
+  .cfv2-art .cf-values__grid-layer line {
+    animation: none !important;
+    stroke-dashoffset: 0;
+    stroke: var(--cf-schwarz, var(--cf-schwarz));
+  }
+}
+
+/* ============================================================
+   Footer V2 — Styles matching Landing Page (Home)
+   ============================================================ */
+.cf-footer--v2 .cf-footer__title {
+  font-size: clamp(calc(var(--text-lg) * 1.75), 3vw, calc(var(--text-lg) * 2.35)) !important;
+  line-height: 1.15 !important;
+  margin-bottom: var(--space-3) !important;
+}
+.cf-footer--v2 .cf-footer__subtitle {
+  font-size: clamp(calc(var(--text-lg) * 0.92), 1.4vw, calc(var(--text-lg) * 1.05)) !important;
+  max-width: 32rem !important;
+  margin-bottom: var(--space-6) !important;
+}
+.cf-footer--v2 .cf-footer__meta {
+  align-items: start !important;
+}
+.cf-footer--v2 .cf-footer__col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  align-self: start;
+}
+.cf-footer--v2 .cf-footer__col-title {
+  margin: 0 0 var(--space-3);
+  line-height: 1.2;
+}
+.cf-footer--v2 .cf-footer__cta {
+  position: relative !important;
+  max-width: 100% !important;
+}
+.cf-footer--v2 .cf-footer__mark {
+  position: absolute !important;
+  top: auto !important;
+  bottom: calc(var(--space-16) - 10px) !important;
+  right: 0 !important;
+  width: 18.5rem !important;
+  max-height: 15rem !important;
+  pointer-events: none !important;
+  overflow: visible !important;
+}
+@media (max-width: 56.25rem) {
+  .cf-footer--v2 .cf-footer__mark {
+    display: none !important;
+  }
+}
+.cf-footer-layer {
+  will-change: transform;
+}
+
+/* ============================================================
+   Team Grid — Hover White Effect matching Home Page
+   ============================================================ */
+.cf-team-grid__item {
+  background: transparent;
+  transition: background calc(var(--duration-fast) * 1.6666667) var(--ease-standard);
+}
+
+.cf-team-grid__item:hover {
+  background: var(--cf-weiss);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-team-grid__item {
+    transition: none;
+  }
+}
+
+
+/* ============================================================
+   Team Closer — Hover Spotlight + Name Reveal
+   ------------------------------------------------------------
+   Seven decorative hotspots sit over the group photo (see the HTML
+   comment above .cf-team-closer__spots for how their --x1/--y1/--x2/--y2
+   percentages were derived, and the small inline script at the bottom of
+   this page for how hovering one sets --spot-cx/--spot-cy/--spot-r on
+   .cf-team-closer). Hovering a spot darkens the rest of the photo and
+   animates that person's name in under them, with the person picked out
+   by a soft round glow rather than a hard-edged box, so the light falls
+   off the way a spotlight would instead of drawing a rectangle through
+   the group.
+
+   A single shared radial-gradient overlay (.cf-team-closer::after) does
+   the darkening, its centre and radius driven by --spot-cx/--spot-cy/
+   --spot-r; those three custom properties are set on .cf-team-closer
+   itself by the few lines of JS below (a plain :hover cannot forward a
+   hovered CHILD's position to a gradient painted on its PARENT, so this
+   is the one place a few lines of script are simpler and more correct
+   than a pure-CSS approximation).
+   ============================================================ */
+.cf-team-closer {
+  position: relative;
+  --spot-cx: 50%;
+  --spot-cy: 50%;
+  --spot-r: 0%;
+}
+
+.cf-team-closer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle var(--spot-r) at var(--spot-cx) var(--spot-cy),
+    transparent 0%,
+    transparent 62%,
+    var(--surface-spotlight-shade) 100%
+  );
+  opacity: 0;
+  transition: opacity calc(var(--duration-fast) * 2.6666667) var(--ease-standard);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cf-team-closer.is-spotlit::after {
+  opacity: 1;
+}
+
+.cf-team-closer__spots {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.cf-team-closer__spot {
+  position: absolute;
+  left: var(--x1);
+  top: var(--y1);
+  width: calc(var(--x2) - var(--x1));
+  height: calc(var(--y2) - var(--y1));
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* Name label: positioned by --label-x/--label-y (each spot's own copy of
+   its person's face centre, set inline in the markup), placed just below
+   their chin regardless of how tall or short that person's own hit-box is
+   -- anchoring the label to the SPOT's box (its bottom edge, or its top)
+   put the label at the person's waist for a body-height box, or off the
+   top of the photo for someone near the frame's edge. --label-x/--label-y
+   are coordinates within the whole figure, not the spot, so the label
+   sits at a fixed, predictable spot relative to the photo instead of
+   drifting with each hit-box's own size. */
+.cf-team-closer__spot::after {
+  content: attr(data-name);
+  position: absolute;
+  /* --label-x/--label-y are pre-computed (in the markup) as percentages
+     relative to THIS SPOT's own box, not the figure -- CSS calc() can't
+     divide one percentage by another to convert figure-relative into
+     spot-relative here, so that conversion is done once, ahead of time,
+     when each spot's inline style is written. */
+  left: var(--label-x);
+  top: var(--label-y);
+  transform: translate(-50%, 0.4rem);
+  white-space: nowrap;
+  color: var(--cf-weiss);
+  /* Match the team grid's own name styling (.cf-person__name above) rather
+     than the page's display font, so the hover label reads as the same
+     "person's name" typographic treatment used elsewhere on this page --
+     font-sans (Geist), --text-lg, semibold, normal tracking. */
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  letter-spacing: normal;
+  opacity: 0;
+  z-index: 3;
+  transition: opacity calc(var(--duration-fast) * 2.6666667) var(--ease-standard) calc(var(--duration-fast) * 0.41666667), transform calc(var(--duration-fast) * 2.6666667) var(--ease-standard) calc(var(--duration-fast) * 0.41666667);
+  pointer-events: none;
+  text-shadow: 0 1px 12px var(--veil-ink-70);
+}
+
+.cf-team-closer__spot:hover::after,
+.cf-team-closer__spot:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-team-closer::after,
+  .cf-team-closer__spot::after {
+    transition: none;
+  }
+}

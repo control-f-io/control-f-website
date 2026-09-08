@@ -95,6 +95,7 @@ COUNT = re.compile(r"^(\d+)(?:\s+von\s+(\d+))?(?:\s+([^\d/]+))?$")
 # header's 7 promises a reader, and — unlike the class the items used to carry
 # — it cannot be present without a mark being drawn.
 REGISTER = {
+    "faq-title": ('<details class="cf-accordion__item"', "question"),
     # AND THEY GOT IT BACK. The steps lost cf-pin__step when the pinned chain
     # moved to prototypes/statement-to-process.html (2026-07-28) and the exact
     # form with the closing quote was what kept the lectern plate out of the
@@ -112,7 +113,6 @@ REGISTER = {
     # keeps the name. section_body() below still finds the section through
     # aria-labelledby, so the pairing is unchanged; only the key moved.
     # → scripts/check-sticky-address.py
-    "prozess-titel": ('<article class="cf-process cf-pin__step"', "process step"),
     # EVIDENZ, act 6's four cards, 2026-09-01. Same shape as the entry above
     # and for the same reason: the marker is the card's own opening, and this
     # stage's lectern is a ::before rather than a fifth <article>, so there is
@@ -121,7 +121,6 @@ REGISTER = {
     # the foot of a sticky stage the way "Service Offering" does — so
     # section_body() reads forward from the heading and the aria-labelledby
     # branch is not exercised. Counted: four .lp-ev-card steps under "4 Belege".
-    "evidenz-titel": ('<article class="lp-ev-card cf-pin__step"', "Beleg"),
     # The blog strip and the team grid left the landing page when the five acts
     # arrived (2026-07-29): act 4 IS the team, and the page the review asked for
     # is hero, acts, partners, FAQ, footer. Both components still exist and are

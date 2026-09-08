@@ -120,7 +120,7 @@ PATTERNS = ROOT / "design-system" / "patterns"
 COMPONENT = ROOT / "design-system" / "components" / "navigation.html"
 
 COMMENT = re.compile(r"<!--.*?-->", re.S)
-NAV = re.compile(r"<nav\s+class=\"cf-nav\"[^>]*>.*?</nav>", re.S)
+NAV = re.compile(r"<nav\s+class=\"cf-nav(?:\s+[^\"]*)?\"[^>]*>.*?</nav>", re.S)
 
 
 def flatten(nav_html):

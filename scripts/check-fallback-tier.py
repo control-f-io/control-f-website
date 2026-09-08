@@ -71,8 +71,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 ACTS = ROOT / "design-system/assets/css/acts.css"
 # acts.css has one lab and one shipped consumer, and the drawing is in both.
-PAGES = [ROOT / "design-system/patterns/landing-page.html",
-         ROOT / "design-system/prototypes/statement-to-process.html"]
+PAGES = [ROOT / "design-system/prototypes/statement-to-process.html"]
 
 # The gate the acts' choreography is behind. The first occurrence in the file is
 # acts 1 and 2; the second is act 5's own.

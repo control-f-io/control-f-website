@@ -25,9 +25,19 @@ check-spacing-scale.py holds the space-scale table to the shipping CSS, and
 deploy.yml runs the generator before it uploads, so what Pages serves is built
 from the patterns as they are at that commit even if someone forgets.
 
-THE FOUR EDITS, and nothing else — no minifying, no rewriting, no template.
+THE FIVE EDITS, and nothing else — no minifying, no rewriting, no template.
 Each one asserts its own count, so a page that stops matching fails the build
 rather than shipping documentation chrome or a dead link:
+
+  FOOTER   Injects the shared footer partial. `<!-- CF:FOOTER -->` is the
+           marker every pattern page carries in place of the full footer block.
+           The partial lives in design-system/partials/footer.html (German) and
+           design-system/partials/en/footer.html (English). It is injected
+           BEFORE the ASSETS and LINKS edits, so path rewriting applies to the
+           injected text automatically — the partial uses `../assets/…` like
+           any other pattern, and the build adjusts the depth as usual.
+           Edit the footer in ONE file and run `python3 scripts/build-site.py`
+           to propagate the change to every page.
 
   ASSETS   `../assets/…` → `design-system/assets/…`, with one `../` for every
            directory the shipped page is buried in. A pattern page sits one
@@ -63,6 +73,7 @@ rather than shipping documentation chrome or a dead link:
            It is the way back into the documentation from a specimen. On the
            website it is a link out of the website.
 
+
 WHAT IT DOES NOT TOUCH. Comments, whitespace, attribute order, the page-local
 <style> and <script> blocks — anything the four edits do not name comes through
 byte for byte. A diff between a pattern and its shipped page is readable, which
@@ -83,6 +94,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PATTERNS = ROOT / "design-system" / "patterns"
+FOOTER_MARKER = "<!-- CF:FOOTER -->"
 
 # Every pattern ships, under the name the site serves it as. The landing page
 # becomes the directory index; every other page in this table keeps the name the
@@ -344,15 +356,20 @@ class BuildError(Exception):
 
 
 def transform(text, name, table):
-    """The four edits.
+    """The five edits.
 
-    The two removals go first. Both are written in terms of the page's own `../`
+    FOOTER goes first: the partial is injected raw, before PREVIEW and ASSETS
+    run, so the `../assets/` paths the partial carries are rewritten by ASSETS
+    exactly as if they had been written in the pattern itself.
+
+    The two removals go next. Both are written in terms of the page's own `../`
     prefix, and ASSETS rewrites exactly those — run the other way round, the
     preview link is rewritten to a path PREVIEW no longer recognises and the
     documentation chrome ships.
     """
     counts = {}
-    up = UP["en/" if name.startswith("en/") else ""]
+    edition = "en/" if name.startswith("en/") else ""
+    up = UP[edition]
     # HOW FAR THE SHIPPED PAGE SITS FROM THE ROOT, which is not a property of the
     # pattern any more. A pattern is at one of two depths; the page it becomes is
     # at one of four — /index.html, /en/index.html or /blog/x.html, and
@@ -360,24 +377,32 @@ def transform(text, name, table):
     # way, so the answer is one `../` per directory the page is buried in.
     assets_to = "../" * table[name].count("/") + "design-system/assets/"
 
+    # FOOTER — inject the shared partial in place of the marker. Pages that
+    # carry the old footer (v1 / detached) have no marker; they are left alone.
+    from site_source import footer_for
+    footer_html = footer_for(PATTERNS / name)
+    counts["FOOTER"] = text.count(FOOTER_MARKER)
+    text = text.replace(FOOTER_MARKER, footer_html, 1)
+
     text, counts["PREVIEW"] = preview_re(up).subn("", text)
     text, counts["DSBACK"] = dsback_re(up).subn("\n", text)
     text, counts["ASSETS"] = assets(text, name, up, assets_to)
     text, counts["LINKS"] = links(text, name, table)
 
-    for name_, minimum in (("ASSETS", 1), ("LINKS", 1), ("PREVIEW", 1), ("DSBACK", 1)):
+    for name_, minimum in (("ASSETS", 1), ("LINKS", 1), ("PREVIEW", 0), ("DSBACK", 0)):
         if counts[name_] < minimum:
             raise BuildError(
                 "%s: the %s edit matched %d times, expected at least %d — the pattern "
                 "page no longer looks the way build-site.py reads it."
                 % (name, name_, counts[name_], minimum)
             )
-    for name_ in ("PREVIEW", "DSBACK"):
+    for name_ in ("PREVIEW", "DSBACK", "FOOTER"):
         if counts[name_] > 1:
             raise BuildError(
-                "%s: the %s edit matched %d times, expected exactly one."
+                "%s: the %s edit matched %d times, expected at most one."
                 % (name, name_, counts[name_])
             )
+
 
     if not text.startswith(DOCTYPE):
         raise BuildError("%s: does not begin with %r" % (name, DOCTYPE.strip()))

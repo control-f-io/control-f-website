@@ -86,6 +86,8 @@ removed from foundations/light.html, which the check had passed the day
 before.
 """
 
+from site_source import is_partial
+
 import argparse
 import pathlib
 import re
@@ -223,6 +225,8 @@ def audit_declarations():
     """A browser asks for an icon either way. Every page has to answer."""
     findings, seen = [], []
     for path in sorted(DS.rglob("*.html")):
+        if is_partial(path):
+            continue
         rel = path.relative_to(ROOT).as_posix()
         text = path.read_text(encoding="utf-8")
         links = [m.group(0) for m in ICON_LINK.finditer(strip_comments(text))

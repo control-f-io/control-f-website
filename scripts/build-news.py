@@ -661,60 +661,70 @@ def columns(page_posts):
     return out
 
 
-def grid(page_posts, indent="      "):
-    """The subdivision: the card row, the year axis, and the element they sit in.
-
-    ONE REGION AND NOT TWO. The cards and the axis were spliced separately and
-    the element around them was authored, which was right while every page drew
-    five columns and wrong the moment one drew three: `--late` and the track
-    count belong to that element, they are a function of how many columns the
-    page actually has, and neither could be written from inside it.
-
-    .subdivide--late is what five columns take — the fold width is a property of
-    the column count, base.css carries the measurement — and it is what fewer
-    than five must NOT take, which is the same check read backwards.
-    → scripts/check-subdivide-late.py
-    """
-    cols = columns(page_posts)
-    if len(cols) >= 5:
-        # Five is the primitive's own default count, so it is not written out.
-        opens = '<div class="subdivide subdivide--even subdivide--late">'
-    else:
-        opens = ('<div class="subdivide subdivide--even" style="--subdivide-count:%d">'
-                 % len(cols))
+def grid(posts, indent="      ", is_en=False, active_topic=None):
+    """The 2-column card grid and the Load More button."""
+    lines = ['%s<div class="cf-news-grid" id="cf-news-grid">' % indent]
     inner = indent + "  "
-    return "\n".join([
-        indent + opens,
-        # --port is the fixed-height scroll port: the archive's grid is twice
-        # the height it drew before and each column scrolls its own year. The
-        # Weiterlesen grid under an article uses the same .cf-blog-grid and does
-        # NOT take it — three cards have nothing to scroll, and a port there
-        # would be a fixed height with air under it.
-        '%s<div class="cf-blog-grid cf-blog-grid--port subdivide__row">' % inner,
-        cards(cols, inner + "  "),
-        "%s</div>" % inner,
-        '%s<div class="cf-blog-axis subdivide__row" aria-hidden="true">' % inner,
-        axis(cols, inner + "  "),
-        "%s</div>" % inner,
-        indent + "</div>",
-    ])
+    up = "../../assets/img/" if is_en else "../assets/img/"
+    
+    matching_count = 0
+    for p in posts:
+        topic_slugs = [t[0] for t in p.get("topics", [])]
+        is_match = (active_topic is None) or (active_topic in topic_slugs)
+        
+        classes = []
+        
+        picture = image(p, 1, inner + "  ", up=up)
+        if picture:
+            classes.append("cf-blog-card--media")
+            
+        if is_match:
+            matching_count += 1
+            if matching_count > 4:
+                classes.append("cf-blog-card--hidden")
+        else:
+            classes.append("cf-blog-card--filtered-out")
+
+        cls_str = (" " + " ".join(classes)) if classes else ""
+        href = page_name(p)
+        topic_attr = (' data-topic="%s"' % " ".join(topic_slugs)) if topic_slugs else ""
+        
+        open_tag = ('<a class="cf-blog-card%s" href="%s"%s>' % (cls_str, href, topic_attr)) if href else (
+            '<span class="cf-blog-card%s cf-blog-card--listing"%s>' % (cls_str, topic_attr))
+        close_tag = "</a>" if href else "</span>"
+
+        meta = []
+        if p.get("autor"):
+            meta.append(esc(p["autor"]))
+        meta.append(en_meta(p["datum"]) if is_en else german(p["datum"]))
+        if p.get("minuten"):
+            meta.append("%s min" % p["minuten"])
+        meta_html = ('<span class="cf-blog-card__meta">%s</span>'
+                     % esc(" · ".join(meta))) if meta else ""
+        title_text = p["title"] if is_en else p["titel"]
+        title_html = '<span class="cf-blog-card__title">%s</span>' % esc(title_text)
+
+        lines.append("%s%s" % (inner, open_tag))
+        if picture:
+            lines.append(picture)
+        lines.append("%s  %s" % (inner, title_html))
+        if meta_html:
+            lines.append("%s  %s" % (inner, meta_html))
+        lines.append("%s%s" % (inner, close_tag))
+    lines.append("%s</div>" % indent)
+
+    if len(posts) > 4:
+        btn_text = "Load more posts" if is_en else "Mehr Beiträge laden"
+        wrap_class = ' cf-news-more-wrap--empty' if matching_count <= 4 else ''
+        lines.append('%s<div class="cf-news-more-wrap%s" id="cf-news-more-wrap">' % (indent, wrap_class))
+        lines.append('%s  <button type="button" class="cf-btn cf-btn--outline" id="cf-news-load-more">%s</button>' % (indent, btn_text))
+        lines.append('%s</div>' % indent)
+    return "\n".join(lines)
 
 
 def image(post, width, pad, up="../assets/img/"):
-    """The card's title picture, or nothing at all.
-
-    Nothing on a single-line row and nothing for a post that has no picture: a
-    card without one is the card this grid has always drawn, and the modifier
-    that changes the padding is only worn when there is something to change it
-    for. An archive half of whose posts carry a photograph reads as an archive,
-    not as a fault — which is why the picture is optional and the layout does
-    not reserve a hole for it.
-
-    `loading="lazy"` because eighteen of these stand on one page and five of
-    them are below the fold on every viewport this grid opens at; `decoding`
-    so a large file cannot hold up the paint of the text beside it.
-    """
-    if width > 3 or not post.get("bild"):
+    """The card's title picture, or nothing at all."""
+    if not post.get("bild"):
         return ""
     rel, w, h = post["bild"]
     return ('%s<img class="cf-blog-card__image" src="%s%s" alt=""\n'
@@ -729,9 +739,6 @@ def cards(cols, indent="          "):
         lines.append('%s<div class="cf-blog-col subdivide__col cf-blog-col--%d">' % (indent, n))
         for p in take:
             meta = []
-            # The lead is the only card that names its author: it is the one
-            # card with room for the line, and the page's composition note
-            # calls the columns "von ausführlich nach knapp".
             if n == 1 and p.get("autor"):
                 meta.append(esc(p["autor"]))
             if n <= 3:
@@ -739,32 +746,12 @@ def cards(cols, indent="          "):
                 if p.get("minuten"):
                     meta.append("%s min" % p["minuten"])
             mod = {1: " cf-blog-card--lead", 6: " cf-blog-card--compact"}.get(n, "")
-            # THE PICTURE STOPS WHERE THE ROOM STOPS, which is the same place
-            # the byline and the date stop. Columns 1 to 3 are cards with a text
-            # block; the last two are single lines 2rem high, and a picture in
-            # one of them is a 48 px stamp painted from a file sized for a
-            # 1008 px plate — "512,000 source pixels for 3,136 painted ones" is
-            # the fault scripts/check-image-scale.py was written for, and it is
-            # bytes a reader on a train pays for a thumbnail nobody can read.
-            # A second, smaller derivative would fix that; there is no image
-            # library in this lane to write one, and inventing a dependency to
-            # put a stamp on a one-line row is the wrong trade.
-            # → design-system/components/blog-grid.html
             picture = image(p, n, indent + "    ")
             if picture:
                 mod += " cf-blog-card--media"
             title = '<span class="cf-blog-card__title">%s</span>' % esc(p["titel"])
             meta_html = ('<span class="cf-blog-card__meta">%s</span>'
                          % esc(" · ".join(meta))) if meta else ""
-            # A CARD IS A LINK WHEN THERE IS SOMETHING BEHIND IT AND NOT
-            # OTHERWISE. Every one of these used to point at blog-artikel.html,
-            # so all eighteen headlines opened the same article about digital
-            # twins — the card said one thing and the page said another, which
-            # is the failure this file exists to stop making with numbers.
-            # A post with text gets its own page and links to it; one of the
-            # mock-up's text-less entries stays a listing, and .cf-blog-card
-            # is written for any element rather than for <a> so the row looks
-            # the same either way. → scripts/build-articles.py
             href = page_name(p)
             open_, close = (
                 ('<a class="cf-blog-card%s" href="%s">' % (mod, href), "</a>") if href
@@ -784,13 +771,7 @@ def cards(cols, indent="          "):
 
 
 def axis(cols, indent="          "):
-    """One tick per column, naming the era that column holds.
-
-    The newest column is "Aktuell" whatever year it is in — the tick says where
-    the reader is in the archive, and the top of an archive is now. Every other
-    column is named by the years its own cards carry, which is why a column
-    spanning two years reads "2022–2023" on the page today.
-    """
+    """One tick per column, naming the era that column holds."""
     ticks = []
     for k, (n, take) in enumerate(cols):
         years = sorted({p["datum"][:4] for p in take})
@@ -800,95 +781,61 @@ def axis(cols, indent="          "):
     return "\n".join(ticks)
 
 
-def meta_left(posts, topic=None):
-    """The left mono line: what this page holds, and what makes it that.
-
-    "seit YYYY" is the oldest post's year rather than a constant: an archive
-    that loses its oldest post stops having started that year. On a filtered
-    page the year is replaced by the topic, because the number is no longer the
-    archive's age but the slice's size — the page's own note says the two
-    editions of that line are the whole difference between the states.
-
-    Singular is written out. "1 Beiträge zum Thema Architektur" is the kind of
-    sentence a generator writes and nobody reads back.
-    """
+def meta_left(posts, topic=None, is_en=False):
+    """The left mono line: what this page holds, and what makes it that."""
+    if is_en:
+        if topic is None:
+            return "%d posts since %s" % (len(posts), min(p["datum"][:4] for p in posts))
+        return "%d %s on %s" % (
+            len(posts), "post" if len(posts) == 1 else "posts", topic[2])
     if topic is None:
         return "%d Beiträge seit %s" % (len(posts), min(p["datum"][:4] for p in posts))
     return "%d %s zum Thema %s" % (
         len(posts), "Beitrag" if len(posts) == 1 else "Beiträge", topic[1])
 
 
-def meta(posts, topic=None, indent="          "):
-    """The page header's mono line.
-
-    ONE LINE NOW, WHERE THERE WERE TWO. The right-hand one answered "which page
-    am I on", and there are no pages any more: every post stands in its year's
-    column and the column scrolls. A reader who wants to know how far the
-    archive goes reads the axis under it, which names the years it holds.
-    """
-    return "%s<span>%s</span>" % (indent, esc(meta_left(posts, topic)))
+def meta(posts, topic=None, indent="          ", is_en=False):
+    """The page header's mono line."""
+    return "%s<span>%s</span>" % (indent, esc(meta_left(posts, topic, is_en=is_en)))
 
 
-def head(topic, indent=""):
-    """The topic page's <title> and description.
-
-    THE STATE IS IN THE TITLE. suche.html writes its six and suche-leer.html its
-    zero into the title for the same reason the page's own note gives: a screen
-    reader reads the title first, and "News" alone is the same name for the
-    archive and for every slice of it.
-    """
-    title = "Thema %s — News — Control-F" % esc(topic[1])
-    desc = ("Beiträge von Control-F zum Thema %s — der gefilterte Ausschnitt "
-            "des Archivs, nach Zeit sortiert." % esc(topic[1]))
+def head(topic, indent="", is_en=False):
+    """The topic page's <title> and description."""
+    if is_en:
+        title = "%s — News — Control-F" % esc(topic[2])
+        desc = ("Posts by Control-F on %s — the filtered archive, "
+                "sorted by date." % esc(topic[3] or topic[2]))
+    else:
+        title = "Thema %s — News — Control-F" % esc(topic[1])
+        desc = ("Beiträge von Control-F zum Thema %s — der gefilterte Ausschnitt "
+                "des Archivs, nach Zeit sortiert." % esc(topic[1]))
     return "\n".join(indent + line for line in (
         ["<title>%s</title>" % title,
          '<meta name="description" content="%s">' % desc]
         + og_meta.block(title, desc, "news-thema", name=thema_name(topic[0]))))
 
 
-# THE SHARE CARD IS IN THIS REGION TOO, and it has to be: `og:title` and
-# `og:description` are the page's own title and description said again, and on a
-# topic page both of those are written here. Left outside the fence, every
-# generated topic page would advertise itself as the Energiewirtschaft specimen
-# the region was spliced out of.
-#
-# ALL THE TOPIC PAGES SHARE /news/thema's PLATE. A per-topic mark is one
-# argument's change here and one entry in build-og-plates.py the day somebody
-# wants it — the seed is a slug and the generator takes any. Today the section's
-# own mark stands for all of them, and the topic is named in the title beside
-# it. → scripts/og_meta.py
-
-
-def chips(used, active, indent="      "):
-    """The topic filter: the section header and one chip per topic.
-
-    THE ACTIVE CHIP IS A <span>. A link to the state the reader is already in
-    does nothing, and both pages have said so in their own comments since they
-    were drawn — this is the file that finally draws it, on the archive where
-    "Alle" is the state and on each topic page where the topic is.
-
-    ONLY TOPICS THAT POSTS CARRY. A chip is a filter, and a filter onto nothing
-    is a control that answers with an empty page. The vocabulary can hold a name
-    the archive has not used yet; the chips hold the ones it has.
-
-    The count is the number of chips, which is what stands under the header —
-    "Alle" included, because it is one of them and the reader counting them
-    counts four. → design-system/components/section-header.html
-    """
+def chips(used, active, indent="      ", is_en=False):
+    """The topic filter: the section header and one chip per topic."""
     items = []
-    for slug, de, _en, _prose in [(None, "Alle", None, None)] + list(used):
+    for slug, de, en, _prose in [(None, "Alle", "All", None)] + list(used):
+        filter_slug = slug or "all"
+        label = en if is_en else de
+        active_attr = ' data-filter-topic="%s"' % filter_slug
         if slug == active:
-            items.append('<li><span class="cf-article__tag" aria-current="page">%s</span></li>'
-                         % esc(de))
+            items.append('<li><span class="cf-article__tag" aria-current="page"%s>%s</span></li>'
+                         % (active_attr, esc(label)))
         else:
             href = "news.html" if slug is None else thema_name(slug)
-            items.append('<li><a class="cf-article__tag" href="%s">%s</a></li>'
-                         % (href, esc(de)))
+            items.append('<li><a class="cf-article__tag" href="%s"%s>%s</a></li>'
+                         % (href, active_attr, esc(label)))
+    label_text = "Topics" if is_en else "Themen"
+    nav_aria = "Filter by topic" if is_en else "Nach Thema filtern"
     out = ['%s<div class="cf-section-header">' % indent,
-           '%s  <h2 class="cf-section-header__label" id="themen">Themen</h2>' % indent,
+           '%s  <h2 class="cf-section-header__label" id="themen">%s</h2>' % (indent, label_text),
            '%s  <span class="cf-section-header__count">%d</span>' % (indent, len(items)),
            "%s</div>" % indent,
-           '%s<nav aria-label="Nach Thema filtern">' % indent,
+           '%s<nav aria-label="%s">' % (indent, nav_aria),
            '%s  <ul class="cf-article__tags" role="list">' % indent]
     out += ["%s    %s" % (indent, it) for it in items]
     out += ["%s  </ul>" % indent, "%s</nav>" % indent]
@@ -959,25 +906,18 @@ def derived(posts, total, first_year=None, topic=None):
     only keeps writing them.
     """
     pairs = {}
-    # THE SAME WALK THE MARKUP MAKES, and not a second description of it: which
-    # cards carry a meta line is a property of the column they land in, and
-    # columns() is the one place that decides which column a post lands in. Read
-    # separately, the two disagreed the first time a year ran long.
-    for rank, take in columns(posts):
-        for p in take:
-            pairs[p["titel"]] = p["title"]
-            if rank > 3:
-                continue        # a compact card is a title and nothing else
-            parts_de, parts_en = [], []
-            if rank == 1 and p.get("autor"):
-                parts_de.append(p["autor"])
-                parts_en.append(p["autor"])      # a name is not translated
-            parts_de.append(german(p["datum"]))
-            parts_en.append(en_meta(p["datum"]))
-            if p.get("minuten"):
-                parts_de.append("%s min" % p["minuten"])
-                parts_en.append("%s min" % p["minuten"])
-            pairs[" · ".join(parts_de)] = " · ".join(parts_en)
+    for p in posts:
+        pairs[p["titel"]] = p["title"]
+        parts_de, parts_en = [], []
+        if p.get("autor"):
+            parts_de.append(p["autor"])
+            parts_en.append(p["autor"])
+        parts_de.append(german(p["datum"]))
+        parts_en.append(en_meta(p["datum"]))
+        if p.get("minuten"):
+            parts_de.append("%s min" % p["minuten"])
+            parts_en.append("%s min" % p["minuten"])
+        pairs[" · ".join(parts_de)] = " · ".join(parts_en)
     if topic is None:
         pairs["%d Beiträge seit %s" % (total, first_year)] = \
             "%d posts since %s" % (total, first_year)
@@ -1152,7 +1092,7 @@ DOCTYPE = "<!DOCTYPE html>\n"
 SELF = re.compile(r'(href=")((?:\.\./|en/)?)news-thema\.html"')
 
 
-def render(template, where, posts, page_posts, total, used, topic, pairs):
+def render(template, where, posts, page_posts, total, used, topic, pairs, is_en=False):
     """One page of the archive — the whole of it, or one topic's slice.
 
     ONE FUNCTION FOR BOTH STATES, because they are one page in two states and
@@ -1165,11 +1105,11 @@ def render(template, where, posts, page_posts, total, used, topic, pairs):
         # Only the topic page carries a generated head: the archive's title and
         # description are authored, and there is nothing in them that changes
         # when a post lands.
-        doc = splice(doc, "head", head(topic), where)
-    doc = splice(doc, "meta", meta(page_posts, topic), where)
-    doc = splice(doc, "themen", chips(used, topic[0] if topic else None), where)
+        doc = splice(doc, "head", head(topic, is_en=is_en), where)
+    doc = splice(doc, "meta", meta(page_posts, topic, is_en=is_en), where)
+    doc = splice(doc, "themen", chips(used, topic[0] if topic else None, is_en=is_en), where)
     doc = splice(doc, "count", count(total, total), where)
-    doc = splice(doc, "grid", grid(page_posts), where)
+    doc = splice(doc, "grid", grid(posts, is_en=is_en, active_topic=topic[0] if topic else None), where)
     # NOTHING IN THE PAGINATION REGION, AND NOTHING TO PUT THERE. The archive
     # does not page any more: the columns are years and they scroll, so there is
     # no second page to step to and no "Seite 1 von 11" to state. The fences
@@ -1191,7 +1131,7 @@ def render(template, where, posts, page_posts, total, used, topic, pairs):
 # The chip a filtered page draws for the state the reader is already in. It is
 # the one place the specimen says which topic it is a specimen of.
 CURRENT = re.compile(
-    r'<span class="cf-article__tag" aria-current="page">([^<]*)</span>')
+    r'<span class="cf-article__tag"[^>]*aria-current="page"[^>]*>([^<]*)</span>')
 
 
 def own_topic(html):
@@ -1267,7 +1207,7 @@ def specimens(thema, used, pairs):
     # word with no English one.
     pairs[own[1]] = own[2]
     out = {THEMA: splice(thema, "themen",
-                         lambda pad: chips(shown, own[0], pad), THEMA.name)}
+                         lambda pad: chips(shown, own[0], pad, is_en=False), THEMA.name)}
 
     if not ARTICLE.exists():
         fail("no design-system/patterns/blog-artikel.html to write the tag list "
@@ -1330,21 +1270,33 @@ def build():
     out = {}
 
     out[PAGE] = render(PAGE.read_text(encoding="utf-8"), PAGE.name,
-                       posts, posts, len(posts), used, None, pairs)
+                       posts, posts, len(posts), used, None, pairs, is_en=False)
+    page_en = PATTERNS / "en" / PAGE.name
+    if page_en.exists():
+        out[page_en] = render(page_en.read_text(encoding="utf-8"), page_en.name,
+                              posts, posts, len(posts), used, None, pairs, is_en=True)
 
     if not THEMA.exists():
         fail("no design-system/patterns/news-thema.html to build the filtered "
              "pages from. It is the specimen of that state, and it is authored.")
     specimen = THEMA.read_text(encoding="utf-8")
+    thema_en = PATTERNS / "en" / "news-thema.html"
+    specimen_en = thema_en.read_text(encoding="utf-8") if thema_en.exists() else None
+
     for topic in used:
         name = thema_name(topic[0])
         slice_ = with_topic(posts, topic[0])
-        doc = render(specimen, name, posts, slice_, len(slice_), used, topic, pairs)
+        doc = render(specimen, name, posts, slice_, len(slice_), used, topic, pairs, is_en=False)
         doc = SELF.sub(lambda m: '%s%s%s"' % (m.group(1), m.group(2), name), doc)
         if not doc.startswith(DOCTYPE):
             fail("design-system/patterns/news-thema.html does not begin with a "
                  "doctype")
         out[PATTERNS / name] = DOCTYPE + BANNER % topic[1] + doc[len(DOCTYPE):]
+
+        if specimen_en:
+            doc_en = render(specimen_en, name, posts, slice_, len(slice_), used, topic, pairs, is_en=True)
+            doc_en = SELF.sub(lambda m: '%s%s%s"' % (m.group(1), m.group(2), name), doc_en)
+            out[PATTERNS / "en" / name] = DOCTYPE + BANNER % topic[2] + doc_en[len(DOCTYPE):]
 
     # AND THE PAGES THAT LINK AT THEM FROM OUTSIDE THE ARCHIVE. Last, because
     # both are read above — news-thema.html as the template every page in the

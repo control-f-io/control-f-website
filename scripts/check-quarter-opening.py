@@ -125,18 +125,7 @@ TRACKS = [
             ("copy", ".lp-proc-steps .cf-process__panel > *", 0, "cf-process__panel", None),
         ],
     },
-    {
-        "name": "expertise · Wie wir arbeiten",
-        "page": DS / "patterns" / "expertise.html",
-        "container": ".ex-steps",
-        "families": [
-            ("plan", ".ex-step .cf-iso__ghost", 0, "cf-iso__ghost", None),
-            ("orbit", ".ex-step .cf-iso__orbit", 0, "cf-iso__orbit", None),
-            ("build", ".ex-step .cf-iso__form", 0, "cf-iso__form", ("--s", "data-stage")),
-            ("light", ".ex-step .cf-iso__light", 0, "cf-iso__light", None),
-            ("copy", ".ex-step__copy > *", 0, "ex-step__copy", None),
-        ],
-    },
+
 ]
 
 

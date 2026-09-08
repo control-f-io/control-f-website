@@ -74,7 +74,7 @@ SHIPPING = [
     DS / "assets" / "css" / "acts.css",
 ]
 
-PAGE = DS / "patterns" / "landing-page.html"
+PAGE = DS / "prototypes" / "statement-to-process.html"
 
 CQ_UNIT = re.compile(r"\d\s*cq(?:w|h|i|b|min|max)\b")
 CUSTOM_PROP = re.compile(r"(--[A-Za-z0-9_-]+)\s*:\s*([^;{}]*);")

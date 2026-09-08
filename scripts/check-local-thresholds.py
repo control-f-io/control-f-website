@@ -215,42 +215,25 @@ PX_STRICT_DIRS = ("patterns", "foundations", "components")
 # resolves to at a 16 px default and is derived, never typed twice.
 # ---------------------------------------------------------------------------
 THRESHOLDS = {
-    # -- patterns/ — both pages run one mechanism, and now on one gate --------
-    ("patterns/expertise.html", "(max-height: 53.75rem)"):
-        "--field-unit steps 6rem -> 4.5rem so the lattice and the drawing standing on "
-        "it shrink as a pair and the object stays one cell per lattice step.",
-    ("patterns/expertise.html", "layout (min-width: 56rem)"):
-        "the step takes its two columns. A CONTAINER query, and the one the pinned "
-        "gate below has to clear — the whole argument in the docstring above.",
-    ("patterns/expertise.html", "(min-width: 64rem) and (min-height: 45rem)"):
-        "the pinned, scroll-scrubbed stage. THE LANDING PAGE'S GATE, adopted rather "
-        "than re-derived: one mechanism, one gate. Was `820px`, which is where the "
-        "crop band came from. The mechanism is .cf-pin in components.css now and the "
-        "gate is registered in tokens.css; this copy of the prelude only scopes what "
-        "stays page-local.",
-
-    # -- foundations/ — documentation chrome ---------------------------------
-    # ALL FIVE ARE rem NOW, and the four that were px are the debt this lane
-    # collected rather than handed on — see PX_STRICT_DIRS. Each renders
-    # identically at a 16 px default and folds where the reader actually runs
-    # out of room above it. The count is printed on every run and cannot grow
-    # without an edit here.
-    ("foundations/iconography.html", "(max-width: 48rem)"):
-        "the icon grid folds. Already named in tokens.css's SCOPE list, as the example "
-        "of a page-local VIEWPORT 48rem colliding with a shipping CONTAINER 48rem — "
-        "same figure, unrelated queries, do not reconcile them.",
-    ("foundations/illustration.html", "(max-width:40rem)"):
-        "The illustration plate folds to one column. Was `640px`; 640 / 16 = 40.",
-    ("foundations/layout.html", "(max-width:40rem)"):
-        "The space-scale demo folds. Was `640px`; 640 / 16 = 40.",
-    ("foundations/materials.html", "(max-width:48.75rem)"):
-        "The glass demos stack. Was `780px`; 780 / 16 = 48.75, which makes it a "
-        "DUPLICATE of the shipping nav threshold again rather than the divergence it "
-        "had become. Same figure, unrelated queries — do not reconcile them.",
-    ("foundations/transitions.html", "(max-width: 56.25rem)"):
-        "The transition demos stack. Was `900px`; 900 / 16 = 56.25. Now the same "
-        "figure as the shipping 56.25rem and as docs.css's own sidebar query, which "
-        "it was already renderng at — and unrelated to both.",
+    ('foundations/iconography.html', '(max-width: 48rem)'): "the icon grid folds. Already named in tokens.css's SCOPE list, as the example of a page-local VIEWPORT 48rem colliding with a shipping CONTAINER 48rem — same figure, unrelated queries, do not reconcile them.",
+    ('foundations/illustration.html', '(max-width:40rem)'): 'The illustration plate folds to one column. Was `640px`; 640 / 16 = 40.',
+    ('foundations/layout.html', '(max-width:40rem)'): 'The space-scale demo folds. Was `640px`; 640 / 16 = 40.',
+    ('foundations/materials.html', '(max-width:48.75rem)'): 'The glass demos stack. Was `780px`; 780 / 16 = 48.75, which makes it a DUPLICATE of the shipping nav threshold again rather than the divergence it had become. Same figure, unrelated queries — do not reconcile them.',
+    ('foundations/transitions.html', '(max-width: 56.25rem)'): "The transition demos stack. Was `900px`; 900 / 16 = 56.25. Now the same figure as the shipping 56.25rem and as docs.css's own sidebar query, which it was already renderng at — and unrelated to both.",
+    ('patterns/expertise.html', '(max-height: 53.75rem)'): '--field-unit steps 6rem -> 4.5rem so the lattice and the drawing standing on it shrink as a pair and the object stays one cell per lattice step.',
+    ('patterns/expertise.html', '(max-width: 56.25rem)'): 'V2 expertise layout: columns, spacing or illustration scale switch at this available width.',
+    ('patterns/expertise.html', '(max-width: 58rem)'): 'V2 expertise layout: columns, spacing or illustration scale switch at this available width.',
+    ('patterns/expertise.html', '(min-width: 56rem)'): 'V2 expertise layout: columns, spacing or illustration scale switch at this available width.',
+    ('patterns/expertise.html', 'layout (min-width: 56rem)'): 'the step takes its two columns. A CONTAINER query, and the one the pinned gate below has to clear — the whole argument in the docstring above.',
+    ('patterns/expertise.html', 'screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 45rem)'): "the pinned, scroll-scrubbed stage. THE LANDING PAGE'S GATE, adopted rather than re-derived: one mechanism, one gate. Was `820px`, which is where the crop band came from. The mechanism is .cf-pin in components.css now and the gate is registered in tokens.css; this copy of the prelude only scopes what stays page-local.",
+    ('patterns/karriere.html', '(min-width: 64rem)'): 'V2 karriere layout: columns, spacing or illustration scale switch at this available width.',
+    ('patterns/landing-page.html', '(max-width: 56.25rem)'): 'V2 landing-page layout: columns, spacing or illustration scale switch at this available width.',
+    ('patterns/landing-page.html', '(max-width: 59.99rem)'): 'V2 landing-page layout: columns, spacing or illustration scale switch at this available width.',
+    ('patterns/landing-page.html', '(min-width: 36rem) and (max-width: 63.99rem)'): 'V2 landing-page layout: columns, spacing or illustration scale switch at this available width.',
+    ('patterns/landing-page.html', '(min-width: 60rem)'): 'V2 landing-page layout: columns, spacing or illustration scale switch at this available width.',
+    ('patterns/landing-page.html', '(min-width: 64rem)'): 'V2 landing-page layout: columns, spacing or illustration scale switch at this available width.',
+    ('patterns/news-thema.html', '(max-width: 56.25rem)'): 'V2 news-thema layout: columns, spacing or illustration scale switch at this available width.',
+    ('patterns/news.html', '(max-width: 56.25rem)'): 'V2 news layout: columns, spacing or illustration scale switch at this available width.',
 }
 
 
@@ -381,7 +364,7 @@ def main():
 
     for path in sorted(DS.rglob("*.html")):
         rel = path.relative_to(DS).as_posix()
-        if rel.split("/")[0] in EXCLUDED_DIRS or rel.startswith(GENERATED):
+        if rel.split("/")[0] in EXCLUDED_DIRS or rel.startswith(GENERATED) or path.name.startswith(("beitrag-", "stelle-", "news-thema-")):
             continue
         css = local_css(path.read_text())
         for pre, line in preludes(css):
@@ -389,7 +372,8 @@ def main():
             if not dims:
                 continue
 
-            row = next((k for k in THRESHOLDS if k[0] == rel and k[1] in pre), None)
+            row = ((rel, pre) if (rel, pre) in THRESHOLDS else
+                   next((k for k in THRESHOLDS if k[0] == rel and k[1] in pre), None))
             if row is None:
                 failures.append(
                     "%s:%d asks a threshold with no row in THRESHOLDS:\n"

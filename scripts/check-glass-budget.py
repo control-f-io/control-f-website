@@ -187,7 +187,7 @@ SHIPPING_BUDGET = 2
 # first one in the system that is not free, and the cheaper answer it was
 # weighed against is in the page: --surface-glass-solid on the same cards,
 # which is the material's own no-blur stand-in and costs nothing.
-PAGE_BUDGET = {"patterns/landing-page.html": 3, "patterns/expertise.html": 6}
+PAGE_BUDGET = {}  # The V2 pages fit the default two simultaneous surfaces.
 
 # Documentation pages are censused, not capped. A page whose subject IS the
 # material has to be allowed to show it: foundations/materials.html carries
@@ -230,7 +230,7 @@ STATE_PSEUDO = "hover|focus|focus-within|focus-visible|active"
 # skip, so the failure mode is "teach me or simplify it" and never "quietly
 # stopped counting that one".
 SIMPLE_SELECTOR = re.compile(
-    r"^\.([A-Za-z0-9_-]+)(?::(?:%s))?(::[a-z-]+)?$" % STATE_PSEUDO
+    r"^(?:\[data-cf-nav\] )?\.([A-Za-z0-9_-]+)(?::(?:%s))?(::[a-z-]+)?$" % STATE_PSEUDO
 )
 
 # The same shape read for its middle rather than its ends: which state a rule is
@@ -238,7 +238,7 @@ SIMPLE_SELECTOR = re.compile(
 # distinction, and asking SIMPLE_SELECTOR for it would mean a third capture
 # group on a pattern two other call sites already read by position.
 SELECTOR_PARTS = re.compile(
-    r"^\.([A-Za-z0-9_-]+)(:(?:%s))?(::[a-z-]+)?$" % STATE_PSEUDO
+    r"^(?:\[data-cf-nav\] )?\.([A-Za-z0-9_-]+)(:(?:%s))?(::[a-z-]+)?$" % STATE_PSEUDO
 )
 
 # Properties whose animation re-rasterises the blur underneath on every frame.
@@ -675,6 +675,10 @@ class GlassCounter(HTMLParser):
     def handle_starttag(self, tag, attrs):
         cls = dict(attrs).get("class") or ""
         names = set(cls.split())
+        # V2 removes the base navigation band's pseudo-elements. The floating
+        # bar and its disclosure panel are counted as their own elements.
+        if 'cf-nav--v2' in names:
+            names.discard('cf-nav')
         if names & self.classes:
             self.hits.append(tag + "." + ".".join(sorted(names & self.classes)))
             self.seen |= names & self.classes

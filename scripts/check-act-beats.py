@@ -132,8 +132,7 @@ ACTS_CSS = DS / "assets/css/acts.css"
 # because this list is quoted rather than derived — which is the argument for
 # scripts/check-rail-stagger.py finding its pages instead, and for that script
 # printing the row count it found on every run.
-PAGES = [DS / "patterns/landing-page.html",
-         DS / "patterns/ueber-uns.html",
+PAGES = [DS / "patterns/ueber-uns.html",
          DS / "patterns/expertise.html",
          DS / "prototypes/statement-to-process.html"]
 
@@ -175,8 +174,11 @@ def check_page(page):
     # the tracks, in the order they appear in the document
     order = {}
     for sel, _ in marks:
-        cls = sel.lstrip(".")
-        m = re.search(r'class="[^"]*\b' + re.escape(cls) + r'\b', html)
+        if sel.startswith('#'):
+            m = re.search(r'\bid="' + re.escape(sel[1:]) + '"', html)
+        else:
+            cls = sel.lstrip(".")
+            m = re.search(r'class="[^"]*\b' + re.escape(cls) + r'\b', html)
         if not m:
             bad |= fail(f"{page.name}: mark on {sel}, which is not an element of the page")
             continue

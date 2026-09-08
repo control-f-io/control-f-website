@@ -343,8 +343,8 @@
      three. The drawing is scrubbed by the reader now and nothing in it is
      driven by a clock; the only thing that moves on its own is the readout.
 
-     The bead uses the same non-scaling .7 CSS px illustration contour as the
-     source orb, so its rim stays slim through every slice scale.
+     The stroke is in USER UNITS, matching the lattice's own 1, so the beads
+     and the ground they stand on keep one weight through every slice scale.
 
      AND THE CONTOUR IS THE ROOT'S BLACK, on the review's instruction — "the
      border should be black like the root system". --border-strong is
@@ -742,8 +742,9 @@
         on this list, and it is the one the page is FOR — a still root with
         no light in it is a diagram of a tree, not of a stream.
 
-     3. THE LEAF'S LIGHT IS 6 px, NOT 2. The contour uses the shared .7 CSS px
-        illustration token. The light is a separate stroke over the contour,
+     3. THE LEAF'S LIGHT IS 6 px, NOT 2. Illustration's rule is "1 px for
+        everything except the trace, which is 2", and this drawing keeps it
+        for every CONTOUR. The light is a second stroke over the contour,
         and at 2 px it covers it: half-opacity lime over black composites to
         olive, and the leaf reads as a dirty line rather than a lit one.
         Measured at both widths on the settled fringe. At 6 the black
@@ -7803,4 +7804,33 @@
   .map__dot--office   { stroke: CanvasText; }
   .map__dot--ring     { stroke: CanvasText; }
   .map__dot--asset    { stroke: Canvas; }
+}
+
+/* === SP-TRACK V2 SAFARI FIX (test page only) ===
+   User-reported: in real Safari, scrolling normally to .cf-statement (the
+   "Thousands of sensors..." moment inside .sp-track) shows blank white space
+   where .cf-statement__figure's tree drawing should be. Static analysis of
+   the animation-timeline/animation-range gating found no bug in the CSS
+   itself (every fallback tier is visible-by-default, not opacity:0) — this
+   reads as a Safari runtime failure to resolve the named view-timeline for
+   this subtree on an ordinary scroll. Rather than chase that further blind,
+   this forces the figure and its content to plain, always-visible CSS in
+   Safari only (detected via the -webkit-hyphens trick used elsewhere in this
+   file), independent of whatever the timeline is doing. Chromium and Firefox
+   are untouched. Scoped to .sp-track--v2, currently only on
+   landing-page.html. Requested 2026-09-03. */
+@supports (-webkit-hyphens: none) {
+  .sp-track--v2 .cf-statement__figure,
+  .sp-track--v2 .cf-statement__figure *,
+  .sp-track--v2 .sp-drawing,
+  .sp-track--v2 .sp-root,
+  .sp-track--v2 .lp-flow,
+  .sp-track--v2 .lp-flow__leaf,
+  .sp-track--v2 .lp-flow__seg,
+  .sp-track--v2 .lp-flow__light {
+    animation: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
 }

@@ -79,6 +79,8 @@ stdlib only, no build step, no dependency. Same python3 that serves the pages.
     python3 scripts/check-viewport-zoom.py -v    # list every page, not only failures
 """
 
+from site_source import is_partial
+
 import argparse
 import pathlib
 import re
@@ -124,6 +126,8 @@ def number(value):
 def audit_pages():
     findings, seen = [], []
     for path in sorted(TREE.rglob("*.html")):
+        if is_partial(path):
+            continue
         rel = path.relative_to(ROOT)
         text = MASK.sub(blank, path.read_text(encoding="utf-8"))
         tags = [(text.count("\n", 0, m.start()) + 1, m.group(0))

@@ -169,6 +169,35 @@
   --surface-glass-thin:  rgba(255, 255, 255, 0.30);
   --surface-glass-veil:  rgba(255, 255, 255, 0.04);
   --surface-glass-solid: var(--grey-100);
+  /* V2 surface tints: shared by the telemetry, news and team compositions.
+     Keep opacity at the material layer; label ink uses text-primary/secondary. */
+  --surface-spotlight-shade: rgba(10, 10, 8, 0.68);
+  --veil-ink-10: color-mix(in srgb, var(--cf-schwarz) 10%, transparent);
+  --veil-ink-12: color-mix(in srgb, var(--cf-schwarz) 12%, transparent);
+  --veil-ink-14: color-mix(in srgb, var(--cf-schwarz) 14%, transparent);
+  --veil-ink-15: color-mix(in srgb, var(--cf-schwarz) 15%, transparent);
+  --veil-ink-18: color-mix(in srgb, var(--cf-schwarz) 18%, transparent);
+  --veil-ink-22: color-mix(in srgb, var(--cf-schwarz) 22%, transparent);
+  --veil-ink-25: color-mix(in srgb, var(--cf-schwarz) 25%, transparent);
+  --veil-ink-3: color-mix(in srgb, var(--cf-schwarz) 3%, transparent);
+  --veil-ink-30: color-mix(in srgb, var(--cf-schwarz) 30%, transparent);
+  --veil-ink-4: color-mix(in srgb, var(--cf-schwarz) 4%, transparent);
+  --veil-ink-40: color-mix(in srgb, var(--cf-schwarz) 40%, transparent);
+  --veil-ink-5: color-mix(in srgb, var(--cf-schwarz) 5%, transparent);
+  --veil-ink-6: color-mix(in srgb, var(--cf-schwarz) 6%, transparent);
+  --veil-ink-7: color-mix(in srgb, var(--cf-schwarz) 7%, transparent);
+  --veil-ink-70: color-mix(in srgb, var(--cf-schwarz) 70%, transparent);
+  --veil-ink-8: color-mix(in srgb, var(--cf-schwarz) 8%, transparent);
+  --veil-lime-22: color-mix(in srgb, var(--cf-lime) 22%, transparent);
+  --veil-white-18: color-mix(in srgb, var(--cf-weiss) 18%, transparent);
+  --veil-white-35: color-mix(in srgb, var(--cf-weiss) 35%, transparent);
+  --veil-white-65: color-mix(in srgb, var(--cf-weiss) 65%, transparent);
+  --veil-white-90: color-mix(in srgb, var(--cf-weiss) 90%, transparent);
+  --veil-white-92: color-mix(in srgb, var(--cf-weiss) 92%, transparent);
+  --veil-ink-55: rgba(0, 0, 0, 0.55);
+  --nav-label: var(--grey-000);
+  --nav-current: rgba(0, 0, 0, 0.14);
+  --surface-nav-glass: rgba(0, 0, 0, 0.55); /* Floating bar and mobile dropdown. */
 
   /* THE PAGE ITSELF IS A SLOW VERTICAL WASH FROM CF-GRAU TO WHITE, and it is
      the largest gradient in the system by two orders of magnitude — roughly
@@ -1213,7 +1242,22 @@
 
      Nothing above 1440 moves by a pixel, and neither does the reference frame.
      → foundations/layout.html#rhythm */
-  --section-header-gap: clamp(var(--space-12), calc(100vw / 18), var(--space-20));
+  /* UNIVERSAL, TIGHT: the title/hairline to first-content gap under every
+     .cf-section-header on every page. This used to be
+     clamp(--space-12, 100vw/18, --space-20) -- 3 to 5rem, responsive -- and
+     index.html (and, briefly, ueber-uns.html) each carried their own local
+     !important override down to --space-3 (12px) because that default read
+     as a large, page-specific gap under the header rule compared to how
+     tight the rest of each page's rhythm is. Rather than keep copy-pasting
+     that override into every page that wants it, the token itself is now
+     the tight number -- one place to tune it, and every page (index,
+     ueber-uns, expertise, karriere, ...) gets it automatically without a
+     local !important. History: --space-2 (8px) first pass, --space-1 (4px)
+     on request ("smaller, not too small"), then 0.375rem / 6px on request
+     ("a bit larger, not large") -- no token sits exactly between
+     --space-1 and --space-2, so this is a literal value rather than a new
+     token for one in-between step. */
+  --section-header-gap: var(--space-4);
 
   /* ------------------------------------------------------------------
      7. LAYOUT
@@ -1609,6 +1653,13 @@
                      it. → components.css
 
      VIEWPORT thresholds — page furniture only:
+       37.5rem / 600   exit dialog padding compacts
+       38rem / 608   values grid takes one column
+       40rem / 640   footer columns stack
+       50rem / 800   news cards take two columns
+       61.25rem / 980   footer meta takes two columns
+       62rem / 992   values grid takes two columns
+
 
        48.75rem / 780   nav collapses to a toggle; the accordion loses its
                         indent; the footer CTA folds
@@ -2718,6 +2769,7 @@
      10. MOTION
      Isometric objects rotate and settle; UI moves short and fast.
      ------------------------------------------------------------------ */
+  --ease-reveal: cubic-bezier(0.16, 1, 0.3, 1); /* Telemetry and accordion entrance. */
   --duration-fast:  120ms;
   --duration-base:  240ms;
   --duration-slow:  480ms;
@@ -3264,6 +3316,7 @@
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   :root {
     --glass-blur:          none;
+    --surface-nav-glass:   var(--cf-schwarz);
     --surface-glass:       var(--surface-glass-solid);
     --surface-glass-thin:  var(--surface-glass-solid);
     --surface-glass-veil:  rgba(255, 255, 255, 0.72);
@@ -3273,6 +3326,7 @@
   }
   [data-theme="inverse"] {
     --glass-blur:          none;
+    --surface-nav-glass:   var(--cf-schwarz);
     --surface-glass:       var(--surface-glass-solid);
     --surface-glass-thin:  var(--surface-glass-solid);
     --surface-glass-veil:  rgba(0, 0, 0, 0.72);
@@ -3307,6 +3361,7 @@
 @media (prefers-reduced-transparency: reduce) {
   :root {
     --glass-blur:          none;
+    --surface-nav-glass:   var(--cf-schwarz);
     --surface-glass:       var(--surface-glass-solid);
     --surface-glass-thin:  var(--surface-glass-solid);
     --surface-glass-veil:  var(--surface-glass-solid);
@@ -3316,6 +3371,7 @@
   }
   [data-theme="inverse"] {
     --glass-blur:          none;
+    --surface-nav-glass:   var(--cf-schwarz);
     --surface-glass:       var(--surface-glass-solid);
     --surface-glass-thin:  var(--surface-glass-solid);
     --surface-glass-veil:  var(--surface-glass-solid);

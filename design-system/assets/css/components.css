@@ -845,110 +845,16 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
 .cf-btn--solid {
   background: var(--surface-inverse);
   color: var(--text-inverse);
+  -webkit-text-fill-color: var(--text-inverse);
 }
 .cf-btn--solid:hover,
-.cf-btn--solid:focus-visible { background: var(--grey-800); }
-
-/* The gradient box is the WHOLE button, not the label, and that is what makes
-   the effect read. At 116.57° across a 352 x 48 slab the ramp is 336 px long
-   and runs left to right, so the label — which sits in the left half — gets
-   the Weiss -> Glas -> Sky leg and the arrow at the far right gets Violett.
-   Light enters at the first letter and arrives, coloured, at the arrow. Scope
-   the gradient to a label span instead and every button ramps the full
-   spectrum inside ten characters, which reads as a rainbow rather than as
-   light crossing a plate.
-
-   It also means no markup changes: a label span would have to be added to
-   every .cf-btn--solid on the site, and the ones that were missed would
-   silently keep white text.
-
-   TWO BACKGROUND LAYERS WITH TWO CLIPS, and the second one is not optional.
-   background-clip: text clips the whole background — background-color
-   included — so a single-layer version leaves the button with no plate and a
-   label that reads as pale type directly on the page. The layer list splits
-   the two jobs: layer 1 is the foil, clipped to the glyphs; layer 2 is empty
-   and exists only to carry `border-box`, because the background-color is
-   painted with the clip of the FINAL layer. The plate is therefore still a
-   plain background-color and still transitions on hover, which a pseudo-
-   element plate would not have done.
-
-   The obvious alternative — plate on a ::before at z-index: -1 — is wrong,
-   and wrong in a way that looks like a browser bug. Within a stacking
-   context, negative-z-index children paint AFTER the element's own
-   background, so the plate covers the clipped-to-text gradient and the label
-   disappears entirely. Measured, not reasoned about: it renders as a black
-   slab with a violet arrow and no text.
-
-   Everything is inside @supports, and the condition names two things, not
-   one. background-clip: text is not the whole trick this rule depends on —
-   the plate needs LAYER 1 clipped to text and LAYER 2 clipped to border-box
-   in the SAME declaration, which is a browser committing to per-layer
-   background-clip, not merely to background-clip: text on its own. Firefox
-   153 parses `background-clip: text, border-box` as valid — CSS.supports
-   reports true, so the query above alone lets it into this block — and then
-   does not honour the split at paint time: every layer clips the same way,
-   the foil paints as an ordinary box fill instead of glyph shapes, and the
-   label, `color: transparent` throughout this block, has nothing underneath
-   it to read. Measured on the shipped 404 page's "Zur Startseite" and on
-   every other .cf-btn--solid on the site, in Firefox: a plain gradient
-   rectangle, no visible character, over the fallback's own black plate —
-   worse than the unenhanced rule above, which this block exists to improve
-   on. `and (not (-moz-appearance: none))` is a second gate for a fact
-   @supports has no direct way to ask: it does not test per-layer clip
-   support, because there is no such feature query — the syntax above is
-   valid everywhere and the failure is in what a layer clip DOES, not in
-   whether it parses. -moz-appearance is a Mozilla-only ident no non-Gecko
-   engine has ever recognised, so `not (-moz-appearance: none)` reads "not
-   Firefox" without asserting anything about what Firefox — or any other
-   engine — supports of the feature actually in question. The unenhanced
-   state is the rule above it, untouched — opaque plate, white label.
-   Nothing to fall back to, because nothing was taken away. */
-@supports ((-webkit-background-clip: text) or (background-clip: text))
-      and (not (-moz-appearance: none)) {
-  .cf-btn--solid {
-    background-image: var(--gradient-foil), none;
-    -webkit-background-clip: text, border-box;
-    background-clip: text, border-box;
-    background-color: var(--surface-inverse);
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-  }
-  /* The hover state has to RESTATE the layer list, not just recolour the
-     plate. `.cf-btn--solid:hover { background: … }` above is a shorthand, so
-     it sets every background longhand for the hovered state — including
-     background-image: none and background-clip: border-box. Overriding only
-     background-color here leaves those two standing, and the button loses its
-     foil the moment a pointer touches it: clip gone, image gone, and the label
-     is still -webkit-text-fill-color: transparent, so it disappears entirely.
-     Caught in review, before it shipped.
-
-     Restating is the fix rather than removing the shorthand above, because
-     that shorthand is the fallback path's hover and has to stay intact for
-     browsers that never enter this block. */
-  /* :focus-visible is here because it is on the shorthand above. The two
-     selector lists have to stay identical: the shorthand sets
-     background-image: none and background-clip: border-box for every state it
-     names, so a state named there and not here loses the foil and the label —
-     still -webkit-text-fill-color: transparent — vanishes. That is the bug the
-     comment above records, and adding a state to only one of the two rules is
-     how it comes back. */
-  .cf-btn--solid:hover,
-  .cf-btn--solid:focus-visible {
-    background-image: var(--gradient-foil), none;
-    -webkit-background-clip: text, border-box;
-    background-clip: text, border-box;
-    background-color: var(--grey-800);
-  }
-
-  /* fill: currentColor would resolve to transparent and the arrow would
-     disappear. --violett-300 is not a picked colour: it is the foil's own
-     100 % stop, which is where the ramp stands at the arrow's x. */
-  .cf-btn--solid .cf-arrow { fill: var(--violett-300); }
-
-  /* NO ::selection RULE HERE. It was the second copy of the same three
-     declarations — this clipping context and .text-foil each carried one,
-     because the global ::selection stated `color` and not the fill. It states
-     both now, so both copies are gone. See base.css, ::selection. */
+.cf-btn--solid:focus-visible {
+  background: var(--grey-800);
+  color: var(--text-inverse);
+  -webkit-text-fill-color: var(--text-inverse);
+}
+.cf-btn--solid .cf-arrow {
+  fill: var(--violett-300);
 }
 
 /* All three of these hand the label back a real colour. Ink on paper has no
@@ -1546,10 +1452,17 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   width: max-content;
   max-width: 100%;
   padding: var(--space-2);
-  background: var(--surface-inverse);
+  /* The shipping navigation material: one grey-black glass plate. Its 55%
+     tint, blur, label contrast, and opaque accessibility fallbacks are tokens
+     shared by the desktop bar and mobile dropdown. */
+  background: var(--surface-nav-glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
   border: var(--stroke-1) solid var(--border-inverse);
   border-radius: var(--radius-sm);
+  transition: border-radius var(--duration-fast) var(--ease-standard);
 }
+
 /* The lockup is inside the plate now, so it brings no plate of its own: the
    mark, and the --space-2 that keeps it off the plate's own border. Its
    `background` and its --space-6 padding were the plate — .cf-logo is a
@@ -1912,7 +1825,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.72);   /* 10.6:1 on black */
+  color: var(--nav-label); /* 4.74:1 on 55% black over white. */
   transition: color var(--duration-fast) var(--ease-standard),
               background var(--duration-fast) var(--ease-standard);
 }
@@ -1936,7 +1849,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
    both draw the same — scripts/check-a11y.py keeps the tokens honest. */
 .cf-nav__link:is([aria-current="page"], [aria-current="true"]) {
   color: var(--grey-000);
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--nav-current);
 }
 /* LIME PLUS AN INNER RING, AND THE INNER RING IS THE HALF THAT WAS MISSING.
 
@@ -2097,7 +2010,12 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      --space-2 and the plate stands in their place. Measured at 320: the
      lockup's first pixel lands at 20.05 px, which is the --gutter it stood on
      before, to a twentieth of a pixel. */
-  .cf-nav { padding-inline: var(--space-2); }
+  .cf-nav {
+    padding-inline: var(--space-2);
+    isolation: auto;
+  }
+  .cf-nav::before,
+  .cf-nav::after { display: none; }
 
   /* THE ROWS THE TOGGLE DISCLOSES MEET THE SAME FLOOR THE TOGGLE DOES.
 
@@ -2116,6 +2034,10 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
     display: flex;
     align-items: center;
     min-height: 2.75rem;
+  }
+  [data-cf-nav] .cf-nav__link:is([aria-current="page"], [aria-current="true"]) {
+    background: transparent;
+    color: var(--grey-000);
   }
 
   /* THE ONE PANEL IN THE SYSTEM THAT OPENS AND CLOSES, and until now the only
@@ -2153,121 +2075,63 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      shorthand is dropped at parse time, the open state's clip-path still
      applies, and the panel snaps exactly as it does today. The un-enhanced
      state is the settled one. */
+  .cf-nav__bar {
+    --nav-inline-space: min(var(--space-4), 5.25vw);
+    min-width: 0;
+    gap: var(--nav-inline-space);
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-color: transparent;
+  }
+  .cf-nav__bar > .cf-logo {
+    min-width: 0;
+  }
+  .cf-nav__bar > .cf-logo img {
+    max-width: 100%;
+    height: auto;
+  }
+  .cf-nav__bar::before {
+    content: "";
+    position: absolute;
+    inset: calc(var(--stroke-1) * -1);
+    background: var(--surface-nav-glass);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: var(--stroke-1) solid var(--border-inverse);
+    border-radius: var(--radius-sm);
+    z-index: -1;
+    pointer-events: none;
+  }
+
   [data-cf-nav] .cf-nav__list {
     display: none;
+    view-transition-name: none;
     position: absolute;
-    /* FLUSH WITH THE PLATE IT UNFOLDS FROM. The inset was --gutter on both
-       sides when the panel hung off the band, because the band was
-       full-bleed and the gutter was the only thing putting the panel under
-       the plates rather than under the screen. It hangs off the plate now,
-       and the plate is already inset — repeating the gutter here would inset
-       it twice and stand a narrower panel under a wider bar.
-
-       It carries the plate the bar's own fill can no longer give it: out of
-       flow, so it is over the hero rather than on the black it dropped from.
-       Same fill, same border, same 2 px corner, same 8 px inset — the block
-       that used to be ul.cf-nav__list's, moved here whole. At (0,2,0) it
-       outweighs base.css's `ul[role="list"] { padding: 0 }` on its own.
-
-       The three --stroke-1 terms are the plate's border, which the offsets
-       would otherwise sit inside: a percentage and a zero inset both resolve
-       against the containing block's PADDING box, so `100% 0 auto 0` would
-       stand a panel 2 px narrow, 1 px high, aligned to nothing a reader can
-       see. These put the panel's border box on the plate's border box. */
     inset: calc(100% + var(--stroke-1))
            calc(var(--stroke-1) * -1)
            auto
            calc(var(--stroke-1) * -1);
-    background: var(--surface-inverse);
+    background: var(--surface-nav-glass);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
     border: var(--stroke-1) solid var(--border-inverse);
     border-radius: var(--radius-sm);
     padding: var(--space-2);
     flex-direction: column;
-    /* AND NOWRAP, WHICH IS THE HALF THE BASE RULE'S CENSUS MISSED. This list
-       carries `flex-wrap: wrap` from .cf-nav__list, where it is right: above
-       the fold the seven routes take a second line inside the bar's plate.
-       That rule's note clears this tier in as many words — "below the fold
-       this list is `display: none` (the panel is out of flow)" — and that is
-       true of the CLOSED panel only. Open, the [data-open="true"] rule below
-       puts `display: flex` back, and the wrap comes back with it, now on a
-       column whose main size the max-height 30 lines down has bounded.
-
-       A wrapping column flex container answers a full main axis by starting a
-       new flex LINE, and a column's lines run sideways. So the cap never
-       fills, `overflow-y: auto` never has anything to scroll, and the panel
-       the note over that cap describes as scrolling inside itself is instead
-       dealt out into two, three and four columns. Measured on the shipped
-       panel, WebKit 26.5 and Chromium 141 agreeing to the tenth of a pixel on
-       all 66 cells — 11 viewports x roots 16/20/24 x both engines, of which
-       32 wrap:
-
-         320 x 568  root 24   2 cols   rows 142.1 and 121.9 px wide
-         360 x 640  root 24   2 cols   rows 172.1 and 131.9
-         667 x 375  root 16   2 cols   rows 152.2 and 138.8
-         740 x 360  root 20   3 cols   rows 133.3 / 124.9 / 99.7
-         568 x 320  root 24   4 cols   "Suche" 58.4 px past the panel's right
-                                       edge, clipped, and reachable only by
-                                       scrolling a vertical menu sideways
-
-       scrollHeight - clientHeight was 0 in all 66. 320 x 568 at a 24 px root
-       is a small phone whose reader has turned the type up; 667 x 375 is the
-       iPhone SE on its side, which is the exact viewport the cap's own note
-       was written for. Neither is an edge case, and on the 568 x 320 row the
-       primary control on a phone loses a route outright.
-
-       IT IS ALSO WHY THE ROWS CAME OUT RAGGED. `align-items: stretch` below
-       stretches an item to its own flex LINE's cross size and not the
-       container's, so the moment there are two lines the columns take two
-       different widths — 152.2 against 138.8 at 667 x 375 — and a menu whose
-       rows are one plate wide is drawn as two unequal ones.
-
-       nowrap rather than unsetting the base declaration: the panel is a single
-       column by design, this states it where the direction is stated, and the
-       bar above the fold is untouched because none of this rule reaches it. */
     flex-wrap: nowrap;
     align-items: stretch;
-    /* Closed is the panel wiped away upward, back under the bar.
-
-       THE THREE NEGATIVE SIDES ARE LOAD-BEARING AND THE OBVIOUS `inset(0)`
-       IS A BUG. A clip-path clips everything the element paints, and the
-       focus ring is painted outside the border box: measured at 375 px, the
-       first link's ring reaches 3 px above and 3 px left of the panel's own
-       box, so a clip sitting exactly on that box cuts the ring on the first
-       and last links and on both edges of every one of them. 4 px of slop on
-       every side that is not the travelling edge — 2 px of outline plus the
-       2 px offset base.css sets — puts the whole ring inside the region while
-       leaving the wipe visually unchanged.
-
-       Those two numbers live in base.css and this one does not read them, so
-       a heavier focus ring has to be answered here. */
     clip-path: inset(-4px -4px 100% -4px);
     transition: clip-path var(--duration-slow) var(--ease-standard),
                 display   var(--duration-slow) var(--ease-standard) allow-discrete;
-    /* Six 2.75rem rows plus the plate's padding put the open panel at 302 px,
-       and the bar above it holds 84. A portrait phone has room to spare; the
-       same phone on its side is 375 tall, and 84 + 302 leaves the Kontakt row
-       starting 11 px past the bottom of the screen with no way to reach it —
-       the panel is out of flow, so the page's own scroll never brings it up.
-       So the panel scrolls inside itself, which is the rule the system
-       already applies to any box bigger than the room it is given. The ring
-       slop the clip-path holds (4 px) sits 9 px inside the padding edge where
-       this scrollport clips, so no focus ring is cut by it. vh first and dvh
-       on top: the dynamic unit tracks the browser chrome a phone collapses,
-       and where it does not exist the older unit errs only that much tall. */
     max-height: calc(100vh - var(--nav-height) - var(--space-2));
     max-height: calc(100dvh - var(--nav-height) - var(--space-2));
     overflow-y: auto;
   }
   [data-cf-nav] .cf-nav__list[data-open="true"] {
     display: flex;
-    /* An inset and not `none`: `none` is not an interpolable clip-path, so the
-       wipe would have nothing to travel to. At rest every side is outside the
-       panel, so an open panel is clipped in no direction at all. */
     clip-path: inset(-4px);
   }
-  /* AFTER the rule it starts, never before. @starting-style adds no
-     specificity of its own, so an earlier placement is overwritten by the open
-     state and the entry wipe silently does not happen. */
   @starting-style {
     [data-cf-nav] .cf-nav__list[data-open="true"] { clip-path: inset(-4px -4px 100% -4px); }
   }
@@ -2277,6 +2141,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-3) var(--space-4);
+    padding-inline: var(--nav-inline-space);
     /* 44 px. The label's own metric — 11 px mono inside --space-3 padding —
        lands the plate at 42, and this is the primary control on a phone: the
        only way to reach any other page. 2.75rem is the 44 px touch convention
@@ -2289,7 +2154,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
        84 px both. Above 48.75rem the toggle is not rendered and this reaches
        nothing. foundations/mobile.html carried this as its open question. */
     min-height: 2.75rem;
-    background: var(--surface-inverse);
+    background: transparent;
     color: var(--grey-000);
     border: var(--stroke-1) solid var(--border-inverse);
     border-radius: var(--radius-sm);
@@ -2342,6 +2207,7 @@ button:focus-visible > .cf-icon--motion { transform: translateX(4px); }
      switch 44. */
   .cf-nav__lang {
     padding: var(--space-3) var(--space-4);
+    padding-inline: var(--nav-inline-space);
     min-height: 2.75rem;
   }
 }
@@ -5114,41 +4980,67 @@ ul.cf-info-card__chips {
      as a 480 ms travelling light on screen. Nothing rendered wrong; the two
      halves of one component simply disagreed about what it does. One block,
      one transition. */
-  background-image: var(--sheen-panel);
-  background-repeat: no-repeat;
-  /* The band and its two endpoints are the material's, and are read rather
-     than restated — the same move --glass-rim-band made for the lit rim, one
-     material over. --sheen-park is the gradient's own transparent half; what
-     makes it transparent is an equality between the band and the gradient's
-     head, stated once beside the token and re-derived by claim 10. */
-  background-size: var(--sheen-band) 100%;
-  background-position: var(--sheen-park) 0;
-  transition: background-position var(--duration-slow) var(--ease-standard);
+  background: transparent;
+  background-image: none;
+  background-color: transparent;
+  transition: color var(--duration-fast) var(--ease-standard);
 }
 .cf-accordion__summary::-webkit-details-marker { display: none; }
 .cf-accordion__summary:hover,
-.cf-accordion__summary:focus-visible { background-position: var(--sheen-cross) 0; }
-.cf-accordion__item[open] .cf-accordion__summary .cf-arrow { transform: rotate(90deg); }
-
-/* The panel slides open instead of jumping. interpolate-size is Chromium-only
-   as of mid-2026, so everywhere else this block does not apply and the panel
-   opens exactly as it does today — the fallback is the current behaviour, not
-   a degraded one. Scoped to the accordion rather than :root so it does not
-   quietly change every other auto-sized transition in the system. */
-@supports (interpolate-size: allow-keywords) {
-  @media (prefers-reduced-motion: no-preference) {
-    .cf-accordion__item {
-      interpolate-size: allow-keywords;
-    }
-    .cf-accordion__item::details-content {
-      block-size: 0;
-      overflow-y: clip;
-      transition: block-size var(--duration-slow) var(--ease-standard),
-                  content-visibility var(--duration-slow) allow-discrete;
-    }
-    .cf-accordion__item[open]::details-content { block-size: auto; }
-  }
+.cf-accordion__summary:focus-visible {
+  background-image: none;
+  background-color: transparent;
 }
+.cf-accordion__item[open] .cf-accordion__summary {
+  background-image: none;
+  background-color: transparent;
+}
+.cf-accordion__item[open] .cf-accordion__summary .cf-arrow { transform: rotate(90deg); }
+/* Pages that use the + / × icon pattern instead of cf-arrow. The icon is a
+   plain text node toggled by the JS accordion helper via .is-open on the item.
+   No sheen on these rows — the background reset above covers both patterns. */
+.cf-accordion__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 1.45rem;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--text-primary);
+  transition: transform 0.35s var(--ease-reveal), color 0.15s var(--ease-standard);
+  user-select: none;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  transform-origin: center center;
+  will-change: transform;
+}
+.cf-accordion__item.is-open .cf-accordion__icon {
+  transform: rotate(45deg);
+  transition: transform 0.35s var(--ease-reveal), color 0.15s var(--ease-standard);
+}
+
+.cf-accordion__content-wrap {
+  display: grid;
+  grid-template-rows: minmax(0, 0fr);
+  opacity: 0;
+  visibility: hidden;
+  transition: grid-template-rows 0.32s var(--ease-reveal),
+              opacity 0.22s var(--ease-standard),
+              visibility 0.32s step-end;
+  overflow: hidden;
+  overflow: clip;
+}
+.cf-accordion__item.is-open .cf-accordion__content-wrap {
+  grid-template-rows: minmax(0, 1fr);
+  opacity: 1;
+  visibility: visible;
+  transition: grid-template-rows 0.32s var(--ease-reveal),
+              opacity 0.28s var(--ease-standard),
+              visibility 0s;
+}
+
 /* The one <div> in the tree that holds its own copy, so it is the one that
    carries base.css's net itself. The net is a list of elements that hold text
    and deliberately does not include div — see the note there for why a single
@@ -5156,16 +5048,33 @@ ul.cf-info-card__chips {
    makes this the other half of that decision rather than a stray property.
    → base.css, "THE LIST IS THE WHOLE NET"; scripts/check-wrap-net.py */
 .cf-accordion__content {
-  padding: 0 var(--space-4) var(--space-6) var(--space-20);
+  min-height: 0;
+  overflow: hidden;
+  overflow: clip;
+  /* Bottom padding is only 0 here (not --space-6) while the item is closed.
+     The row's grid-template-rows animates 1fr -> 0fr, but the row cannot
+     shrink past this box's own padding -- padding is not affected by
+     min-height: 0. With --space-6 (24px) always present, the row stalled at
+     24px partway through the close transition and the rest of the collapse
+     was carried by opacity alone: a visible stall-then-fade instead of one
+     continuous shrink. Padding now transitions in lockstep with the row so
+     the box can reach a true 0 and the two animations finish together. */
+  padding: 0 var(--space-4) 0 var(--space-20);
+  transition: padding-bottom 0.32s var(--ease-reveal);
   max-width: 76ch;
   font-size: var(--text-md);
   color: var(--text-secondary);
   overflow-wrap: break-word;
 }
+.cf-accordion__item.is-open .cf-accordion__content {
+  padding-bottom: var(--space-6);
+}
 @media (max-width: 48.75rem) {
   .cf-accordion__summary { padding-left: var(--space-4); font-size: var(--text-md); }
   .cf-accordion__content { padding-left: var(--space-4); }
 }
+
+
 
 /* --------------------------------------------------------------------------
    BLOG GRID — the subdivision layout
@@ -5193,6 +5102,81 @@ ul.cf-info-card__chips {
 .cf-blog-col--2 { --rank: 2; }
 .cf-blog-col--3 { --rank: 3; }
 .cf-blog-col--6 { --rank: 6; }
+
+/* 2-COLUMN NEWS ARCHIVE GRID (Matches Home page hairline matrix style, transparent background) */
+.cf-news-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.25);
+  border-left: 1px solid rgba(0, 0, 0, 0.25);
+  background: transparent;
+  width: 100%;
+  max-width: 100%;
+  margin-top: var(--space-4);
+}
+@media (min-width: 50rem) {
+  .cf-news-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.cf-news-grid .cf-blog-card,
+.cf-news-grid .cf-blog-card:last-child {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background: transparent;
+  border: none;
+  border-right: 1px solid rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25) !important;
+  border-radius: 0;
+  padding: 0;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s var(--ease-standard);
+  position: relative;
+}
+.cf-news-grid .cf-blog-card:hover,
+.cf-news-grid .cf-blog-card:focus-visible {
+  border-color: var(--border-strong);
+}
+.cf-news-grid .cf-blog-card__image {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  display: block;
+  flex: none;
+  border-bottom: none;
+}
+.cf-news-grid .cf-blog-card__title,
+.cf-news-grid .cf-blog-card--media > .cf-blog-card__title {
+  display: block;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-tight, 1.25);
+  color: var(--text-primary);
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  margin: 0;
+}
+.cf-news-grid .cf-blog-card__meta,
+.cf-news-grid .cf-blog-card--media > .cf-blog-card__meta {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-secondary);
+  padding: 0 var(--space-4) var(--space-4);
+  margin-top: auto;
+}
+.cf-blog-card--hidden {
+  display: none !important;
+}
+.cf-news-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-8);
+}
 
 /* THE PORT — the archive's own form of the grid, where a column is a year and
    the year is longer than the box.
@@ -5405,7 +5389,7 @@ ul.cf-info-card__chips {
 }
 /* The last card in a column would otherwise draw its own hairline 0 px above
    the column's, doubling the grid's bottom edge. */
-.cf-blog-card:last-child { border-bottom: 0; }
+.cf-blog-col .cf-blog-card:last-child { border-bottom: 0; }
 .cf-blog-card:hover,
 .cf-blog-card:focus-visible,
 .cf-blog-card:focus-within { background-position: var(--sheen-cross) 0; }
@@ -9397,7 +9381,7 @@ a.cf-calendar__day > time,
   font-size: var(--text-display-2);
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-display);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-3);
   /* `anywhere` AND NOT THE NET'S `break-word`, and the difference is the whole
      reason this line exists. The net in base.css covers this element already —
      computed overflow-wrap here is break-word, inherited correctly, and it does
@@ -9434,6 +9418,17 @@ a.cf-calendar__day > time,
      foundations/layout.html#intrinsic-minimum */
   overflow-wrap: anywhere;
 }
+.cf-footer__subtitle {
+  max-width: 32rem;
+  margin-bottom: var(--space-6);
+  font-family: var(--font-sans);
+  font-size: var(--text-md, var(--text-sm));
+  line-height: var(--leading-normal, 1.5);
+  color: var(--text-inverse-dim);
+}
+@media print {
+  .cf-footer__subtitle { color: var(--cf-schwarz); }
+}
 .cf-footer__meta {
   display: flex;
   flex-wrap: wrap;
@@ -9461,6 +9456,24 @@ a.cf-calendar__day > time,
    byline). */
 @media print {
   .cf-footer__meta { color: var(--grey-700); }
+}
+.cf-footer__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  max-width: 22rem;
+}
+.cf-footer__tagline {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  letter-spacing: normal;
+  text-transform: none;
+  line-height: var(--leading-normal, 1.5);
+  color: var(--text-inverse-dim);
+}
+@media print {
+  .cf-footer__tagline { color: var(--grey-700); }
 }
 .cf-footer__links { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .cf-footer__meta a { text-decoration: none; }
@@ -9985,11 +9998,11 @@ a.cf-calendar__day > time,
    -------------------------------------------------------------------------- */
 .cf-iso { display: block; }
 
-/* One .7 CSS px contour at every size. Setting it on the actual shapes also
-   overrides inherited weights in exported SVG groups. Filled nodes and shapes
-   with stroke="none" stay unoutlined: this rule assigns no stroke paint.
-   .cf-illustration is the same contour contract for non-isometric diagrams.
-   Normalized draw-on paths and broad light strokes retain their own geometry. */
+/* "1 px contour at every size" is a device pixel, not a viewBox unit. A 640-unit
+   drawing rendered at 352 px would otherwise put its contours on screen at
+   0.55 px — grey, not black. non-scaling-stroke makes the rule literally true,
+   and pins the dash patterns to the px values in --dash-*, which is what keeps a
+   ghost's 1-4 dash a 1-4 dash at any size. The trace is excluded — see below. */
 .cf-iso :is(path, line, circle, ellipse, rect, polygon, polyline):not(.cf-iso__trace),
 .cf-illustration :is(path, line, circle, ellipse, rect, polygon, polyline):not(.cf-illustration__light, .cf-illustration__trace) {
   stroke-width: var(--illustration-stroke);
@@ -11782,6 +11795,100 @@ a.cf-calendar__day > time,
 }
 
 /* --------------------------------------------------------------------------
+   VALUES GRID — 3x2 Editorial Precision Grid
+   Clean, stable layout presenting company values without
+   layout shifting, auto-cycling timers, or jumping accordions.
+   -------------------------------------------------------------------------- */
+.cf-values-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: var(--stroke-1, 1px) solid var(--border-strong);
+  border-left: var(--stroke-1, 1px) solid var(--border-strong);
+  /* No background here on purpose: the grid sits on the section's own grey
+     wash, and each .cf-values-grid__item is transparent at rest and turns
+     white only on hover (matching .cf-team-grid__item). A white background
+     on the grid itself defeated that -- every cell showed white all the
+     time because the grid's own fill was behind the "transparent" cells,
+     not the page.
+
+     No margin-top either: .cf-section-header already sets
+     margin-bottom: var(--section-header-gap) (clamp(--space-12, 100vw/18,
+     --space-20) -- 3rem to 5rem depending on viewport), the same rule every
+     other section on the page relies on for the gap under its header/hairline
+     (Team, the FAQ, etc). Adding --space-6 here stacked a second, smaller gap
+     on top of that and pushed the grid further down than any other section's
+     content sits under its header. */
+}
+
+.cf-values-grid__item {
+  border-right: var(--stroke-1, 1px) solid var(--border-strong);
+  border-bottom: var(--stroke-1, 1px) solid var(--border-strong);
+  padding: var(--space-8) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  /* Same hover as .cf-team-grid__item (cf-reveal.css, "Team Grid — Hover
+     White Effect matching Home Page"): transparent at rest so the section's
+     grey wash shows through the cell, white on hover. Matched here rather
+     than left as its own grey-tint hover so every editorial grid on the
+     site (Team, Values) responds to the cursor the same way. */
+  background: transparent;
+  transition: background 0.2s var(--ease-standard);
+}
+
+.cf-values-grid__item:hover,
+.cf-values-grid__item:focus-visible {
+  background: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-values-grid__item {
+    transition: none;
+  }
+}
+
+.cf-values-grid__num {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-4);
+}
+
+.cf-values-grid__title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-h4);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight, 1.25);
+  color: var(--cf-schwarz, #111418);
+  letter-spacing: -0.01em;
+}
+
+.cf-values-grid__body {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed, 1.6);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 62rem) {
+  .cf-values-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 38rem) {
+  .cf-values-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cf-values-grid__item {
+    padding: var(--space-6) var(--space-4);
+  }
+}
+
+
+
+/* --------------------------------------------------------------------------
    PLOT — the isometric column diagram
    The system could draw an object in space, and it could set a number in mono.
    It could not put a number IN space, which is the one thing a brand about
@@ -12801,8 +12908,9 @@ a.cf-calendar__day > time,
   clip-path: inset(0 calc((1 - clamp(0, var(--line-draw), 1)) * 100%) 0 0);
 }
 
-/* The one black line in the box uses the illustration contour under
-   non-scaling-stroke, matching .cf-plot__draw at every width.
+/* The one black line in the box. stroke-width is a plain 1 under
+   non-scaling-stroke, which is the system's contour made literally true at
+   every width — the same declaration .cf-plot__draw's paths carry.
 
    Round joins rather than the drafting default: at a sharp reversal a mitre on
    a 1 px stroke grows to the mitre limit before it bevels, which is a 4 px
@@ -15909,7 +16017,7 @@ a.cf-calendar__day > time,
    is what every spatial object in the system is cut from — so the ghost of an
    illustration is the ground it will stand on. Stroked in SVG for the same
    reason the plot is: a transform on a bordered box scales its contour, and
-   the illustration contour stays .7 CSS px at every size. */
+   1 px means 1 px at every size. */
 .cf-arrive__object {
   display: block;
   width: 100%;
@@ -17311,3 +17419,416 @@ a.cf-calendar__day > time,
     .cf-team-strip::after { content: none; }
   }
 }
+
+/* === FOOTER V2 (test page only) ===
+   Scoped under .cf-footer--v2 so the redesign lives on landing-page.html
+   without touching .cf-footer, which every other page still uses.
+   TEMPORARY: for review before deciding whether to roll out everywhere. */
+.cf-footer--v2 {
+  position: relative;
+  overflow: hidden;
+  overflow: clip;
+}
+.cf-footer--v2 .cf-footer__cta {
+  display: block;
+  grid-template-columns: unset;
+  justify-content: unset;
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  padding-bottom: var(--space-16);
+}
+.cf-footer--v2 .cf-footer__mark {
+  position: absolute;
+  top: auto;
+  bottom: calc(var(--space-16) - 10px);
+  right: 0;
+  width: 18.5rem;
+  max-height: 15rem;
+  opacity: 0.9;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.cf-footer--v2 .cf-footer__eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--cf-lime);
+  margin: 0 0 var(--space-4);
+}
+.cf-footer--v2 .cf-footer__title {
+  font-size: var(--text-display-2);
+  line-height: 1.15;
+  margin-bottom: var(--space-3);
+}
+.cf-footer--v2 .cf-footer__subtitle {
+  font-size: var(--text-base);
+  max-width: 32rem;
+  margin-bottom: var(--space-6);
+}
+.cf-footer--v2 .cf-footer__divider {
+  position: relative;
+  z-index: 1;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  margin: 0;
+}
+.cf-footer--v2 .cf-footer__meta {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-8);
+  padding-block: var(--space-8);
+  font-family: initial;
+  font-size: initial;
+  letter-spacing: initial;
+  text-transform: initial;
+  color: initial;
+}
+.cf-footer--v2 .cf-footer__brand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 20rem;
+}
+.cf-footer--v2 .cf-footer__tagline {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal, 1.5);
+  color: var(--text-inverse-dim);
+}
+.cf-footer--v2 .cf-footer__col-title {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-inverse-dim);
+  margin: 0 0 var(--space-3);
+}
+.cf-footer--v2 .cf-footer__col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.cf-footer--v2 .cf-footer__col a,
+.cf-footer--v2 .cf-footer__col button {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-inverse);
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  display: inline;
+}
+.cf-footer--v2 .cf-footer__col a:hover,
+.cf-footer--v2 .cf-footer__col button:hover,
+.cf-footer--v2 .cf-footer__col a:focus-visible,
+.cf-footer--v2 .cf-footer__col button:focus-visible {
+  color: var(--cf-lime);
+}
+.cf-footer--v2 .cf-footer__bottom {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-top: var(--space-6);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-inverse-dim);
+}
+@media (max-width: 61.25rem) {
+  .cf-footer--v2 .cf-footer__meta { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+@media (max-width: 56.25rem) {
+  .cf-footer--v2 .cf-footer__mark { display: none; }
+}
+@media (max-width: 40rem) {
+  .cf-footer--v2 .cf-footer__meta { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* === BLACK GLASS NAVIGATION ===
+   The shipping variant: the bar and mobile dropdown carry their own black
+   glass. Remove both the full-width frost and its bottom edge so only the
+   floating bar remains. Live specimen: components/navigation.html#demo. */
+.cf-nav--v2::before {
+  content: none;
+}
+.cf-nav--v2::after {
+  content: none;
+}
+
+/* ==========================================================================
+   Exit Intent & Inactivity Timeout CTA Modal
+   ========================================================================== */
+
+.cf-exit-modal {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-width: 100%;
+  max-height: 100vh;
+  max-height: 100dvh;
+  padding: var(--space-4);
+  margin: 0;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease-reveal), visibility 0.3s;
+}
+
+.cf-exit-modal[open],
+.cf-exit-modal.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.cf-exit-modal::backdrop,
+.cf-exit-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  cursor: pointer;
+}
+
+.cf-exit-modal__panel {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 34rem;
+  background: #0C0E10;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  padding: calc(var(--space-1) * 9) calc(var(--space-1) * 10) var(--space-8);
+  box-shadow: 0 28px 64px -8px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  transform: scale(0.96) translateY(10px);
+  transition: transform 0.35s var(--ease-reveal);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.cf-exit-modal.is-active .cf-exit-modal__panel,
+.cf-exit-modal[open] .cf-exit-modal__panel {
+  transform: scale(1) translateY(0);
+}
+
+.cf-exit-modal__close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s var(--ease-standard);
+  padding: 0;
+  z-index: 3;
+}
+
+.cf-exit-modal__close:hover,
+.cf-exit-modal__close:focus-visible {
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF;
+  transform: scale(1.08);
+}
+
+.cf-exit-modal__close:focus-visible {
+  outline: none;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.cf-exit-modal__eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--cf-lime, #E1FF00);
+  margin: 0 0 var(--space-3);
+  display: block;
+}
+
+.cf-exit-modal__title {
+  font-family: var(--font-sans);
+  font-size: clamp(1.5rem, 3.5vw, 1.85rem);
+  font-weight: 300 !important;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 var(--space-3);
+  display: block;
+  width: 100%;
+  color: #FFFFFF;
+}
+
+.cf-exit-modal__subtitle {
+  font-family: var(--font-sans);
+  font-size: 0.925rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 300;
+  margin: 0 0 calc(var(--space-1) * 7);
+  display: block;
+  width: 100%;
+}
+
+.cf-exit-modal__btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: calc(var(--space-1) * 4.2) calc(var(--space-1) * 5.6);
+  border-radius: 6px;
+  background: linear-gradient(90deg, #D4D9DC 0%, #C5EBE2 40%, #E1FF00 90%, #E1FF00 100%);
+  background: linear-gradient(90deg in oklab, #D4D9DC 0%, #C5EBE2 40%, #E1FF00 90%, #E1FF00 100%);
+  color: #000000;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: none;
+  border: none;
+  outline: none;
+  transition: filter 0.2s var(--ease-standard), transform 0.2s var(--ease-standard);
+  box-sizing: border-box;
+}
+
+.cf-exit-modal__btn:hover,
+.cf-exit-modal__btn:focus-visible {
+  filter: brightness(1.04);
+}
+
+.cf-exit-modal__btn:hover .cf-exit-modal__arrow,
+.cf-exit-modal__btn:focus-visible .cf-exit-modal__arrow {
+  transform: translateX(3px);
+}
+
+.cf-exit-modal__btn:active {
+  filter: brightness(0.96);
+}
+
+.cf-exit-modal__btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.cf-exit-modal__arrow {
+  width: 18px;
+  height: 15px;
+  fill: #000000;
+  transition: transform 0.2s var(--ease-standard);
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+}
+
+.cf-exit-modal__dismiss {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin: calc(var(--space-1) * 4.4) auto 0;
+  padding: var(--space-1) var(--space-2);
+  background: none;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s var(--ease-standard);
+  outline: none;
+}
+
+.cf-exit-modal__dismiss:hover,
+.cf-exit-modal__dismiss:focus-visible {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.cf-exit-modal__dismiss:focus,
+.cf-exit-modal__dismiss:focus-visible {
+  outline: none;
+  color: #FFFFFF;
+}
+
+html.has-modal-open,
+html.has-modal-open body {
+  overflow: hidden !important;
+}
+
+@media (max-width: 37.5rem) {
+  .cf-exit-modal__panel {
+    padding: calc(var(--space-1) * 7.4) calc(var(--space-1) * 5.6) var(--space-6);
+    border-radius: 14px;
+  }
+  .cf-exit-modal__title {
+    font-size: 1.55rem;
+  }
+  .cf-exit-modal__subtitle {
+    font-size: 0.88rem;
+    margin-bottom: calc(var(--space-1) * 5.4);
+  }
+  .cf-exit-modal__btn {
+    padding: calc(var(--space-1) * 3.4) calc(var(--space-1) * 4.4);
+    font-size: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-exit-modal,
+  .cf-exit-modal__panel,
+  .cf-exit-modal__backdrop {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+
+
+
+/* Filtered cards leave both layout and the accessibility tree. Match the
+   archive grid's specificity so its card display rule cannot win. */
+.cf-news-grid .cf-blog-card--filtered-out { display: none; }
+@media print {
+  .cf-exit-modal, .cf-exit-modal__backdrop { display: none !important; }
+}
+
+/* Text-bearing blocks introduced by the V2 telemetry and evidence sections. */
+.cf-wrap { overflow-wrap: break-word; }
+
+.cf-news-more-wrap--empty { display: none; }

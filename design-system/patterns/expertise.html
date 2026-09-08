@@ -63,6 +63,102 @@
      open on every load below 780 px — see the file's own header. -->
 <script src="../assets/js/cf-nav.js"></script>
 <style>
+  /* Statement Section Top Alignment & Rightward Spacing */
+  .cf-page-header {
+    padding-block: var(--space-16) var(--space-6) !important;
+  }
+  .cf-page-header__title {
+    color: var(--cf-schwarz) !important;
+    -webkit-text-fill-color: var(--cf-schwarz) !important;
+    background: none !important;
+  }
+  .section.section--tight {
+    padding-block: var(--space-4) var(--space-12) !important;
+  }
+  .cf-statement {
+    align-items: start !important;
+  }
+  @media (min-width: 56rem) {
+    .cf-statement {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr) !important;
+      gap: var(--space-12) !important;
+    }
+    .cf-statement > div:last-child {
+      justify-self: end !important;
+      max-width: 50ch !important;
+    }
+  }
+  .cf-statement__title {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    line-height: 1.16 !important;
+  }
+  .cf-statement__body:first-child,
+  .cf-statement__body:first-of-type {
+    margin-top: 0 !important;
+  }
+  .cf-statement__body {
+    margin-top: var(--space-4) !important;
+    max-width: 50ch !important;
+  }
+
+  /* Compact Unified Spacing for Section Headers & Stage Matching Main Page */
+  .cf-section-header {
+    margin-bottom: var(--space-3) !important;
+    padding-bottom: var(--space-2) !important;
+  }
+  .v2-iso-stage {
+    margin-top: var(--space-4) !important;
+  }
+
+  /* Footer CTA and Columns Alignment */
+  .cf-footer--v2 .cf-footer__title {
+    font-size: clamp(calc(var(--text-lg) * 1.75), 3vw, calc(var(--text-lg) * 2.35)) !important;
+    line-height: 1.15 !important;
+    margin-bottom: var(--space-3) !important;
+  }
+  .cf-footer--v2 .cf-footer__subtitle {
+    font-size: clamp(calc(var(--text-lg) * 0.92), 1.4vw, calc(var(--text-lg) * 1.05)) !important;
+    max-width: 32rem !important;
+    margin-bottom: var(--space-6) !important;
+  }
+  .cf-footer--v2 .cf-footer__meta {
+    align-items: start !important;
+  }
+  .cf-footer--v2 .cf-footer__col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    align-self: start;
+  }
+  .cf-footer--v2 .cf-footer__col-title {
+    margin: 0 0 var(--space-3);
+    line-height: 1.2;
+  }
+  .cf-footer--v2 .cf-footer__cta {
+    position: relative !important;
+    max-width: 100% !important;
+  }
+  .cf-footer--v2 .cf-footer__mark {
+    position: absolute !important;
+    top: auto !important;
+    bottom: calc(var(--space-16) - 10px) !important;
+    right: 0 !important;
+    width: 18.5rem !important;
+    max-height: 15rem !important;
+    pointer-events: none !important;
+    overflow: visible !important;
+  }
+  @media (max-width: 56.25rem) {
+    .cf-footer--v2 .cf-footer__mark {
+      display: none !important;
+    }
+  }
+  .cf-footer-layer {
+    will-change: transform;
+  }
+
   /* ------------------------------------------------------------------
      Expertise — the four fields, built in place.
 
@@ -187,9 +283,6 @@
      96 px rhombus reads as mesh rather than as a floor, and the objects
      standing on it are drawn at roughly one cell per lattice step. */
   .ex-stage, .ex-steps { --field-unit: 6rem; }
-  /* Keep the construction field atmospheric: the object owns the contour. */
-  .ex-stage.cf-ground::before { opacity: 0.5; }
-
 
   /* A cell is 6 rem at stage size. On a short viewport the object and the copy
      meet in the middle, so the whole surface steps down together: the lattice
@@ -473,6 +566,351 @@
     }
     to { opacity: 1; transform: translate(0, 0); }
   }
+/* ------------------------------------------------------------
+     05 · INDUSTRIES & ASSET CLASSES (Interactive Isometric Showcase)
+     ------------------------------------------------------------ */
+  .v2-iso-stage {
+    position: relative;
+    border: 1px solid var(--veil-ink-22);
+    border-radius: calc(var(--radius-sm) * 2);
+    background-color: transparent;
+    /* Crop the artwork without capturing its view timelines in a scrollport. */
+    overflow: clip;
+    margin-top: var(--space-6);
+    isolation: isolate;
+  }
+  .v2-iso-stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    --field-rake: 30deg;
+    --field-rake-mirror: 150deg;
+    --field-step: 4.8rem;
+    --field-half: 2.4rem;
+    --field-line: 1px;
+    --field-edge: 0.5px;
+    --field-ink: var(--veil-ink-8);
+    --field-stops: transparent 0,
+                   transparent calc(var(--field-half) - var(--field-edge)),
+                   var(--field-ink) var(--field-half),
+                   var(--field-ink) calc(var(--field-half) + var(--field-line)),
+                   transparent calc(var(--field-half) + var(--field-line) + var(--field-edge)),
+                   transparent var(--field-step);
+    background-image: repeating-linear-gradient(var(--field-rake), var(--field-stops)),
+                      repeating-linear-gradient(var(--field-rake-mirror), var(--field-stops));
+  }
+  .v2-iso-nav {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-bottom: 1px solid var(--veil-ink-18);
+    background: var(--veil-white-65);
+    backdrop-filter: blur(10px);
+  }
+  .v2-iso-tab {
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--veil-ink-15);
+    padding: calc(var(--space-1) * 3.8) calc(var(--space-1) * 4.6);
+    text-align: left;
+    cursor: pointer;
+    transition: all calc(var(--duration-fast) * 1.6666667) var(--ease-standard);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-1) * 0.75);
+    font-family: inherit;
+    position: relative;
+  }
+  .v2-iso-tab:last-child {
+    border-right: none;
+  }
+  .v2-iso-tab:hover {
+    background: var(--veil-white-90);
+  }
+  .v2-iso-tab.is-active {
+    background: var(--cf-weiss);
+    box-shadow: 0 4px 12px var(--veil-ink-4);
+  }
+  .v2-iso-tab.is-active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--text-primary);
+  }
+  .v2-iso-tab__num {
+    font-family: var(--font-mono);
+    font-size: calc(var(--text-lg) * 0.72);
+    font-weight: var(--weight-bold);
+    color: var(--text-secondary);
+    letter-spacing: calc(var(--tracking-label) * 5);
+  }
+  .v2-iso-tab.is-active .v2-iso-tab__num {
+    color: var(--text-primary);
+  }
+  .v2-iso-tab__title {
+    font-size: calc(var(--text-lg) * 0.88);
+    font-weight: var(--weight-bold);
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden; overflow: clip;
+    text-overflow: ellipsis;
+  }
+  .v2-iso-body {
+    position: relative;
+    z-index: 1;
+    min-height: 520px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    padding: calc(var(--space-1) * 10) var(--space-12);
+  }
+  @media (max-width: 58rem) {
+    .v2-iso-nav {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .v2-iso-body {
+      padding: var(--space-6);
+    }
+  }
+  .v2-iso-view {
+    grid-area: 1 / 1 / 2 / 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.95fr);
+    align-items: center;
+    gap: calc(var(--space-1) * 10);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity calc(var(--duration-fast) * 3.3333333) var(--ease-standard), visibility calc(var(--duration-fast) * 3.3333333) var(--ease-standard);
+  }
+  @media (max-width: 58rem) {
+    .v2-iso-view {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-6);
+    }
+  }
+  .v2-iso-view.is-active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+  .v2-iso-art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 440px;
+    overflow: visible;
+  }
+  .v2-iso-art svg {
+    width: 100%;
+    max-width: 520px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    overflow: visible;
+    filter: drop-shadow(0 18px 36px var(--veil-ink-8));
+  }
+
+  /* Layered Isometric Machine Assembly Animations (Stages & Details Move In) */
+  .v2-iso-view.is-active.is-animating .cf-iso__form[data-stage="0"] {
+    animation: cf-iso-layer0 calc(var(--duration-fast) * 4.5833333) var(--ease-reveal) both;
+  }
+  .v2-iso-view.is-active.is-animating .cf-iso__form[data-stage="1"] {
+    animation: cf-iso-layer1 calc(var(--duration-fast) * 5.4166667) calc(var(--duration-fast) * 0.66666667) var(--ease-reveal) both;
+  }
+  .v2-iso-view.is-active.is-animating .cf-iso__form[data-stage="2"] {
+    animation: cf-iso-layer2 calc(var(--duration-fast) * 5.8333333) calc(var(--duration-fast) * 1.3333333) var(--ease-reveal) both;
+  }
+  .v2-iso-view.is-active.is-animating .cf-iso__form[data-stage="3"] {
+    animation: cf-iso-layer3 calc(var(--duration-fast) * 6.25) calc(var(--duration-fast) * 2) var(--ease-reveal) both;
+  }
+  .v2-iso-view.is-active.is-animating .cf-iso__ghost:not(.cf-iso__orbit) {
+    animation: cf-iso-ghost-in calc(var(--duration-fast) * 4.1666667) calc(var(--duration-fast) * 0.41666667) var(--ease-reveal) both;
+  }
+  .v2-iso-view.is-active.is-animating .cf-iso__light {
+    animation: cf-iso-glow calc(var(--duration-fast) * 6.6666667) calc(var(--duration-fast) * 2.5) var(--ease-reveal) both;
+  }
+  .v2-iso-view.is-active.is-animating .cf-iso__node {
+    animation: cf-iso-node-in calc(var(--duration-fast) * 3.75) calc(var(--duration-fast) * 3) var(--ease-reveal) both;
+  }
+  .v2-iso-view.is-active .cf-iso__orbit {
+    animation: cf-iso-ghost-in calc(var(--duration-fast) * 4.1666667) calc(var(--duration-fast) * 1.25) var(--ease-reveal) both, cf-iso-orbit calc(var(--duration-fast) * 66.666667) linear infinite calc(var(--duration-fast) * 1.25);
+  }
+  .v2-iso-view.is-active .cf-iso__node {
+    animation: cf-iso-node-pulse calc(var(--duration-fast) * 16.666667) ease-in-out infinite alternate calc(var(--duration-fast) * 3.75);
+  }
+
+  @keyframes cf-iso-layer0 {
+    from { opacity: 0; translate: 0 16px; }
+    to   { opacity: 1; translate: 0 0; }
+  }
+  @keyframes cf-iso-layer1 {
+    from { opacity: 0; translate: 0 24px; }
+    to   { opacity: 1; translate: 0 0; }
+  }
+  @keyframes cf-iso-layer2 {
+    from { opacity: 0; translate: 0 32px; }
+    to   { opacity: 1; translate: 0 0; }
+  }
+  @keyframes cf-iso-layer3 {
+    from { opacity: 0; translate: 0 40px; }
+    to   { opacity: 1; translate: 0 0; }
+  }
+  @keyframes cf-iso-ghost-in {
+    from { opacity: 0; }
+    to   { opacity: var(--iso-rest, 1); }
+  }
+  @keyframes cf-iso-glow {
+    from { opacity: 0; fill-opacity: 0; }
+    to   { opacity: 1; fill-opacity: 1; }
+  }
+  @keyframes cf-iso-node-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes cf-iso-orbit {
+    0%   { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: 40; }
+  }
+  @keyframes cf-iso-node-pulse {
+    0%   { fill: var(--text-primary); }
+    100% { fill: var(--cf-lime); }
+  }
+
+  .v2-iso-card {
+    background: var(--cf-weiss);
+    border: 1px solid var(--veil-ink-18);
+    border-radius: calc(var(--radius-sm) * 3);
+    padding: calc(var(--space-1) * 8.8);
+    box-shadow: 0 16px 40px var(--veil-ink-7);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-1) * 3.2);
+  }
+  @keyframes v2-iso-card-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .v2-iso-card__count {
+    font-family: var(--font-mono);
+    font-size: calc(var(--text-lg) * 0.72);
+    font-weight: var(--weight-bold);
+    color: var(--text-secondary);
+    letter-spacing: calc(var(--tracking-label) * 5);
+  }
+  .v2-iso-card__title {
+    font-size: calc(var(--text-lg) * 1.65);
+    font-weight: var(--weight-bold);
+    color: var(--text-primary);
+    line-height: 1.15;
+    margin: 0;
+  }
+  .v2-iso-card__sub {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--text-secondary);
+    font-weight: var(--weight-bold);
+    margin: 0;
+  }
+  .v2-iso-card__body {
+    font-size: calc(var(--text-lg) * 0.88);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+  }
+  .v2-iso-card__ask {
+    font-size: calc(var(--text-lg) * 0.9);
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+    line-height: 1.45;
+    margin: calc(var(--space-1) * 0.8) 0 0 0;
+    padding: calc(var(--space-1) * 2.6) calc(var(--space-1) * 3.6);
+    background: var(--veil-ink-4);
+    border-left: 2.5px solid var(--text-primary);
+    border-radius: 0 calc(var(--radius-sm) * 2) calc(var(--radius-sm) * 2) 0;
+  }
+  .v2-iso-card__stat {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: calc(var(--space-1) * 2.6) calc(var(--space-1) * 3.6);
+    background: var(--veil-ink-4);
+    border: 1px solid var(--veil-ink-8);
+    border-radius: calc(var(--radius-sm) * 2);
+    margin-top: calc(var(--space-1) * 0.8);
+  }
+  .v2-iso-stat-val {
+    font-family: var(--font-mono);
+    font-size: calc(var(--text-lg) * 1.05);
+    font-weight: var(--weight-bold);
+    color: var(--text-primary);
+    line-height: 1;
+  }
+  .v2-iso-stat-desc {
+    font-size: calc(var(--text-lg) * 0.82);
+    color: var(--text-secondary);
+    font-weight: var(--weight-medium);
+    line-height: 1.3;
+  }
+  .v2-iso-chips-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-4);
+    margin-top: calc(var(--space-1) * 1.4);
+    border-top: 1px solid var(--veil-ink-8);
+    padding-top: var(--space-3);
+  }
+  .v2-iso-chips-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    font-weight: var(--weight-bold);
+    margin-bottom: calc(var(--space-1) * 1.4);
+  }
+  .v2-iso-chips {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+  .v2-iso-chips li {
+    font-family: var(--font-mono);
+    font-size: calc(var(--text-lg) * 0.68);
+    color: var(--text-primary);
+    background: var(--veil-ink-5);
+    padding: calc(var(--space-1) * 0.5) calc(var(--space-1) * 1.75);
+    border-radius: calc(var(--radius-sm) * 1.5);
+    border: 1px solid var(--veil-ink-6);
+  }
+  .v2-iso-progress {
+    position: relative;
+    z-index: 1;
+    height: 2.5px;
+    background: var(--veil-ink-8);
+    width: 100%;
+    overflow: hidden; overflow: clip;
+  }
+  .v2-iso-progress__fill {
+    height: 100%;
+    background: var(--text-primary);
+    width: 25%;
+    will-change: width;
+  }
+
+  
+
 </style>
 </head>
 <body class="page-wash">
@@ -571,20 +1009,20 @@
   </g></symbol>
 </svg>
 
-<nav class="cf-nav" aria-label="Hauptnavigation">
+<nav class="cf-nav cf-nav--v2" aria-label="Hauptnavigation">
   <div class="cf-nav__bar">
-    <a class="cf-logo" href="landing-page.html"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
+    <a class="cf-logo" href="/"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
     <button class="cf-nav__toggle" type="button" aria-controls="hauptnav" aria-expanded="false">Menü</button>
     <ul class="cf-nav__list" id="hauptnav" role="list">
-      <li><a class="cf-nav__link" href="landing-page.html">Home</a></li>
-      <li><a class="cf-nav__link" href="expertise.html" aria-current="page">Expertise</a></li>
-      <li><a class="cf-nav__link" href="ueber-uns.html">Über uns</a></li>
-      <li><a class="cf-nav__link" href="news.html">News</a></li>
-      <li><a class="cf-nav__link" href="karriere.html">Karriere</a></li>
-      <li><a class="cf-nav__link" href="kontakt.html">Kontakt</a></li>
-      <li><a class="cf-nav__link" href="suche.html">Suche</a></li>
+      <li><a class="cf-nav__link" href="/">Home</a></li>
+      <li><a class="cf-nav__link" href="/expertise" aria-current="page">Expertise</a></li>
+      <li><a class="cf-nav__link" href="/ueber-uns">Über uns</a></li>
+      <li><a class="cf-nav__link" href="/news">News</a></li>
+      <li><a class="cf-nav__link" href="/karriere">Karriere</a></li>
+      <li><a class="cf-nav__link" href="/kontakt">Kontakt</a></li>
+      <li><a class="cf-nav__link" href="/suche">Suche</a></li>
     </ul>
-    <a class="cf-nav__lang" href="en/expertise.html" hreflang="en" lang="en" aria-label="Switch to English">EN</a>
+    <a class="cf-nav__lang" href="/en/expertise" hreflang="en" lang="en" aria-label="Switch to English">EN</a>
   </div>
 </nav>
 
@@ -608,7 +1046,7 @@
   <header class="cf-page-header" id="anfang">
     <div class="container">
       <div class="cf-page-header__body">
-        <h1 class="cf-page-header__title text-foil text-foil--ink">Expertise</h1>
+        <h1 class="cf-page-header__title">Expertise</h1>
         <div class="cf-page-header__rule"></div>
         <p class="cf-page-header__meta">
           <span>Telemetrie-Analytik und Datenintegration</span>
@@ -723,6 +1161,7 @@
        element. → scripts/check-focus-reach.py
        → assets/css/acts.css, "THE ACT RAIL"; scripts/check-act-beats.py
        ============================================================ -->
+  <!-- SIDE MENU TEMPORARILY COMMENTED OUT:
   <nav class="act-rail" aria-label="Kapitel">
     <a class="act-rail__jump" href="#anfang">
       <span class="visually-hidden">Zum Seitenanfang</span>
@@ -731,56 +1170,45 @@
     <ol class="act-rail__list" role="list">
       <li class="act-rail__item" style="--i:0">
         <a class="act-rail__link" href="#felder"
-           data-act-track=".cf-pin" data-act-at="0">
+           data-act-track="#felder" data-act-at="0">
           <span class="act-rail__tick" aria-hidden="true"></span>
           <span class="act-rail__num" aria-hidden="true">01</span>
           <svg class="cf-icon act-rail__glyph" aria-hidden="true"><use href="#cf-cube"></use></svg>
           <span class="act-rail__label">Unsere Felder</span>
         </a>
       </li>
-      <!-- MAP DISABLED: chapter 02 is the map, which this page no longer shows.
       <li class="act-rail__item" style="--i:1">
-        <a class="act-rail__link" href="#wo-die-daten"
-           data-act-track=".map-track" data-act-at="0">
-          <span class="act-rail__tick" aria-hidden="true"></span>
-          <span class="act-rail__num" aria-hidden="true">02</span>
-          <svg class="cf-icon act-rail__glyph" aria-hidden="true"><use href="#cf-globe"></use></svg>
-          <span class="act-rail__label">Wo die Daten herkommen</span>
-        </a>
-      </li>
-      -->
-      <li class="act-rail__item" style="--i:1"><!--MAP DISABLED: was --i:2-->
         <a class="act-rail__link" href="#kette"
            data-act-track=".cf-value-table" data-act-at="0">
           <span class="act-rail__tick" aria-hidden="true"></span>
-          <span class="act-rail__num" aria-hidden="true">02</span><!--MAP DISABLED: was 03-->
+          <span class="act-rail__num" aria-hidden="true">02</span>
           <svg class="cf-icon act-rail__glyph" aria-hidden="true"><use href="#cf-signal"></use></svg>
           <span class="act-rail__label">Vom Sensor bis zur Auswertung</span>
         </a>
       </li>
-      <li class="act-rail__item" style="--i:2"><!--MAP DISABLED: was --i:3-->
+      <li class="act-rail__item" style="--i:2">
         <a class="act-rail__link" href="#partner"
            data-act-track=".cf-logo-wall" data-act-at="0">
           <span class="act-rail__tick" aria-hidden="true"></span>
-          <span class="act-rail__num" aria-hidden="true">03</span><!--MAP DISABLED: was 04-->
+          <span class="act-rail__num" aria-hidden="true">03</span>
           <svg class="cf-icon act-rail__glyph" aria-hidden="true"><use href="#cf-node"></use></svg>
           <span class="act-rail__label">Partner &amp; Technologien</span>
         </a>
       </li>
-      <li class="act-rail__item" style="--i:3"><!--MAP DISABLED: was --i:4-->
+      <li class="act-rail__item" style="--i:3">
         <a class="act-rail__link" href="#faq"
            data-act-track=".cf-accordion" data-act-at="0">
           <span class="act-rail__tick" aria-hidden="true"></span>
-          <span class="act-rail__num" aria-hidden="true">04</span><!--MAP DISABLED: was 05-->
+          <span class="act-rail__num" aria-hidden="true">04</span>
           <svg class="cf-icon act-rail__glyph" aria-hidden="true"><use href="#cf-plus"></use></svg>
           <span class="act-rail__label">FAQ</span>
         </a>
       </li>
-      <li class="act-rail__item" style="--i:4"><!--MAP DISABLED: was --i:5-->
+      <li class="act-rail__item" style="--i:4">
         <a class="act-rail__link" href="#ihr-fall"
            data-act-track=".cf-prose" data-act-at="0">
           <span class="act-rail__tick" aria-hidden="true"></span>
-          <span class="act-rail__num" aria-hidden="true">05</span><!--MAP DISABLED: was 06-->
+          <span class="act-rail__num" aria-hidden="true">05</span>
           <svg class="cf-icon act-rail__glyph" aria-hidden="true"><use href="#cf-target"></use></svg>
           <span class="act-rail__label">Ihr Fall</span>
         </a>
@@ -791,6 +1219,7 @@
       <svg class="cf-icon act-rail__glyph" aria-hidden="true"><use href="#cf-chevron-double-down"></use></svg>
     </a>
   </nav>
+  -->
 
   <!-- 02 · Was das Feld verbindet -->
   <section class="section section--tight">
@@ -823,58 +1252,41 @@
   </section>
 
   <!-- 03 · Die vier Felder, im Scrollen gebaut -->
-  <section class="section section--flush" aria-labelledby="felder">
+    <!-- 03 · Our fields (Interactive Isometric Showcase) -->
+  <section class="section" id="felder" aria-labelledby="felder-title">
     <div class="container">
-      <!-- NOT --flush. Nothing follows this header inside the container at all:
-           the pin stage below is full-bleed and a sibling of .container, so the
-           modifier gave the rule up to an element that was never there and the
-           label stood alone on the lattice with no hairline and no clearance.
-           The landing page settles the precedent — .sp-head is a plain
-           .cf-section-header inside a sticky full-bleed stage and keeps its own
-           rule. → scripts/check-section-header-rule.py -->
       <div class="cf-section-header">
-        <!-- No counter. It read "01 / 04" — a position pair, frozen, directly
-             above a LIVE one: .cf-pin__index's four marks light one at a time
-             off the track's timeline, and each card states its own place in
-             the four a second time (.cf-info-card__count). Three statements of
-             the same number, of which the frozen one is wrong for three of the
-             four quarters the reader scrubs through. That is the fault
-             check-section-counts.py opens with, found on the landing page's
-             "Was wir machen" and shipped here in the same shape; the register
-             that would have caught it is that one page. The fix is not to
-             animate a fourth counter — the index is already the answer to
-             "which of the four" — so the right end of this rule is empty, the
-             way Das Team's is on Über uns. -->
-        <h2 class="cf-section-header__label" id="felder">Unsere Felder</h2>
+        <h2 class="cf-section-header__label" id="felder-title">Unsere Felder</h2>
       </div>
-    </div>
 
-    <!-- data-cf-idle, and this track has wanted it for as long as it has
-         streamed: cf-stream.js builds one .cf-stream__caret per [data-stream]
-         box and components.css pauses it under [data-idle], so an unmarked
-         track blinks on the document clock for the life of the tab. Nothing
-         held it here because nothing on this page loaded cf-idle.js until the
-         map arrived below and brought the second caret with it. One script,
-         both tracks. → scripts/check-idle-reach.py -->
-    <div class="cf-pin" data-cf-idle data-stream>
-      <!-- The ground is the stage itself, so the lattice runs to both edges of
-           the screen while the copy stays in the content column. Unlit on
-           purpose — see THE GROUND UNDER THE BUILD above. -->
-      <div class="cf-pin__stage ex-stage cf-ground">
-        <div class="container cf-pin__inner ex-stage__inner">
-          <ol class="cf-pin__index" role="list" aria-hidden="true">
-              <li class="cf-pin__mark" style="--i:0">01</li>
-              <li class="cf-pin__mark" style="--i:1">02</li>
-              <li class="cf-pin__mark" style="--i:2">03</li>
-              <li class="cf-pin__mark" style="--i:3">04</li>
-          </ol>
+      <!-- Isometric Showcase Stage -->
+      <div class="v2-iso-stage">
+        <!-- Top Industry Tabs -->
+        <div class="v2-iso-nav" role="tablist">
+          <button type="button" class="v2-iso-tab is-active" data-target="0" role="tab" aria-selected="true">
+            <span class="v2-iso-tab__num">01</span>
+            <span class="v2-iso-tab__title">Mechanical Engineering</span>
+          </button>
+          <button type="button" class="v2-iso-tab" data-target="1" role="tab" aria-selected="false">
+            <span class="v2-iso-tab__num">02</span>
+            <span class="v2-iso-tab__title">Large Plants</span>
+          </button>
+          <button type="button" class="v2-iso-tab" data-target="2" role="tab" aria-selected="false">
+            <span class="v2-iso-tab__num">03</span>
+            <span class="v2-iso-tab__title">Renewable Energy</span>
+          </button>
+          <button type="button" class="v2-iso-tab" data-target="3" role="tab" aria-selected="false">
+            <span class="v2-iso-tab__num">04</span>
+            <span class="v2-iso-tab__title">Fleets</span>
+          </button>
+        </div>
 
-          <div class="ex-steps cf-pin__steps">
-            <!-- ONE plate, not four. See THE LECTERN below. -->
-            <div class="ex-plate cf-info-card cf-info-card--glass" aria-hidden="true"></div>
-            <article class="ex-step cf-pin__step" style="--i:0" aria-labelledby="feld-01" data-stream-stage>
-              <div class="ex-step__figure">
-<svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:657.6; --iso-travel: 16.44" viewBox="-146 -75.52 657.6 552.32" fill="none" aria-hidden="true">
+        <!-- Stage Body with 4 Views -->
+        <div class="v2-iso-body">
+          <!-- View 01: Mechanical Engineering -->
+          <div class="v2-iso-view is-active" data-view="0">
+            <div class="v2-iso-art">
+              <svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:657.6; --iso-travel: 16.44" viewBox="-146 -75.52 657.6 552.32" fill="none" aria-hidden="true">
                   <style>.cf-iso__scene :is(path,line,circle,ellipse,rect,polygon,polyline):not(.cf-iso__trace){vector-effect:non-scaling-stroke}</style>
                   <defs><linearGradient id="cf-ex-01" x1="367.6" y1="226.68" x2="367.6" y2="269.24" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
                   <g class="cf-iso__scene" stroke="#000" stroke-width="0.7" stroke-linejoin="round">
@@ -1061,40 +1473,44 @@
                     <circle class="cf-iso__node" cx="325.04" cy="247.96" r="3" fill="#000" stroke="none"/>
                   </g>
                 </svg>
-              </div>
-              <div class="cf-info-card cf-info-card--glass ex-step__copy cf-pin__copy">
-                <p class="cf-info-card__count t-label">01 / 04</p>
-                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-01" data-stream-line="0.20 0.22">Maschinenbau</h3>
-                <p class="cf-info-card__sub t-label" data-stream-line="0.34 0.12">Rotierende Assets</p>
-                <p class="cf-info-card__body" data-stream-line="0.40 0.42">Drehzahl, Schwingung, Temperatur: Das sind nur ein paar der anfallenden Prozesswerte, die direkt an der Anlage gemessen werden. Maschinen erzeugen die dichtesten Telemetriedaten. Und dies oft nicht nur im Millisekundentakt, sondern über viele Jahre hinweg. Damit Sie den Überblick behalten, Muster erkennen können oder womöglich sogar neue Geschäftsmodelle ableiten können, analysieren wir Ihre Daten aus Ihrem Anlagenpark.</p>
-                <p class="cf-info-card__ask" data-stream-line="0.80 0.19">Welche Einheit läuft aus dem Muster — und soll das so bleiben?</p>
-                <div class="cf-info-card__facts tiles tiles--fit">
-                  <div>
-                    <p class="cf-info-card__label t-label">Signale</p>
-                    <ul class="cf-info-card__chips" role="list">
-                      <li>Drehzahl</li>
-                      <li>Schwingung</li>
-                      <li>Lagertemperatur</li>
-                      <li>Öldruck</li>
-                      <li>Abgastemperatur</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <p class="cf-info-card__label t-label">Assets</p>
-                    <ul class="cf-info-card__chips" role="list">
-                      <li>Motoren</li>
-                      <li>Gasturbinen</li>
-                      <li>Benzinmotoren</li>
-                      <li>Generatoren</li>
-                      <li>Pumpensysteme</li>
-                    </ul>
-                  </div>
+            </div>
+            <div class="v2-iso-card">
+              <div class="v2-iso-card__count cf-wrap">01 / 04</div>
+              <h3 class="v2-iso-card__title">Mechanical engineering</h3>
+              <p class="v2-iso-card__sub">ROTATING ASSETS</p>
+              <p class="v2-iso-card__body">
+                Speed, vibration, temperature: those are only a few of the process values measured directly at the machine. Machines produce the densest telemetry there is — often not merely at millisecond intervals, but over many years. So that you keep the overview, can recognise patterns and perhaps even derive new business models from them, we analyse the data from across your asset base.
+              </p>
+              <p class="v2-iso-card__ask">Which unit is running out of pattern — and should it stay that way?</p>
+              <div class="v2-iso-chips-grid">
+                <div>
+                  <p class="v2-iso-chips-label">Signals</p>
+                  <ul class="v2-iso-chips">
+                    <li>Speed</li>
+                    <li>Vibration</li>
+                    <li>Bearing temperature</li>
+                    <li>Oil pressure</li>
+                    <li>Exhaust temperature</li>
+                  </ul>
+                </div>
+                <div>
+                  <p class="v2-iso-chips-label">Assets</p>
+                  <ul class="v2-iso-chips">
+                    <li>Engines</li>
+                    <li>Gas turbines</li>
+                    <li>Petrol engines</li>
+                    <li>Generators</li>
+                    <li>Pump systems</li>
+                  </ul>
                 </div>
               </div>
-            </article>
-            <article class="ex-step cf-pin__step" style="--i:1" aria-labelledby="feld-02" data-stream-stage>
-              <div class="ex-step__figure">
-<svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:642.4; --iso-travel: 16.06" viewBox="-1.2 37.94 642.4 509.66" fill="none" aria-hidden="true">
+            </div>
+          </div>
+
+          <!-- View 02: Chemical & Process Engineering -->
+          <div class="v2-iso-view" data-view="1">
+            <div class="v2-iso-art">
+              <svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:642.4; --iso-travel: 16.06" viewBox="-1.2 37.94 642.4 509.66" fill="none" aria-hidden="true">
                   <style>.cf-iso__scene :is(path,line,circle,ellipse,rect,polygon,polyline):not(.cf-iso__trace){vector-effect:non-scaling-stroke}</style>
                   <defs><linearGradient id="cf-ex-02" x1="289.2" y1="67.94" x2="289.2" y2="96.46" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
                   <g class="cf-iso__scene" stroke="#000" stroke-width="0.7" stroke-linejoin="round">
@@ -1397,41 +1813,45 @@
                     <circle class="cf-iso__node" cx="260.69" cy="82.2" r="3" fill="#000" stroke="none"/>
                   </g>
                 </svg>
-              </div>
-              <div class="cf-info-card cf-info-card--glass ex-step__copy cf-pin__copy">
-                <p class="cf-info-card__count t-label">02 / 04</p>
-                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-02" data-stream-line="0.20 0.22">Großanlagen</h3>
-                <p class="cf-info-card__sub t-label" data-stream-line="0.34 0.12">Prozess und Verfügbarkeit</p>
-                <p class="cf-info-card__body" data-stream-line="0.40 0.42">Eine Anlage ist kein Asset, sondern ein Netz aus tausenden. Wir modellieren diese verbundenen Ströme für Sie und machen den jeweiligen Status für Sie sichtbar. Unsere Analysen und Datenplattformen verarbeiten Millionen Assets skalierbar und zukunftssicher. Damit können Sie schon heute die Fragen von morgen beantworten — und feststellen, wo Abweichungen wirklich herkommen.</p>
-                <p class="cf-info-card__ask" data-stream-line="0.80 0.19">Wo ist der Engpass in Ihrem Prozess?</p>
-                <div class="cf-info-card__facts tiles tiles--fit">
-                  <div>
-                    <p class="cf-info-card__label t-label">Signale</p>
-                    <ul class="cf-info-card__chips" role="list">
-                      <li>Durchfluss</li>
-                      <li>Druck</li>
-                      <li>Füllstand</li>
-                      <li>Ventilstellung</li>
-                      <li>Analysewerte</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <p class="cf-info-card__label t-label">Assets</p>
-                    <ul class="cf-info-card__chips" role="list">
-                      <li>Bohrinseln</li>
-                      <li>Gaspipelines</li>
-                      <li>Kraftwerke</li>
-                      <li>Chemieanlagen</li>
-                      <li>Industrielle Produktion</li>
-                      <li>Raffinerien</li>
-                    </ul>
-                  </div>
+            </div>
+            <div class="v2-iso-card">
+              <div class="v2-iso-card__count cf-wrap">02 / 04</div>
+              <h3 class="v2-iso-card__title">Large plants</h3>
+              <p class="v2-iso-card__sub">PROCESS AND AVAILABILITY</p>
+              <p class="v2-iso-card__body">
+                A plant is not one asset, it is a network of thousands. We model those connected streams for you and make the state of each one visible. Our analytics and our data platforms handle millions of assets, scalably and with room to grow. That lets you answer tomorrow's questions today — and find out where a deviation really comes from.
+              </p>
+              <p class="v2-iso-card__ask">Where is the bottleneck in your process?</p>
+              <div class="v2-iso-chips-grid">
+                <div>
+                  <p class="v2-iso-chips-label">Signals</p>
+                  <ul class="v2-iso-chips">
+                    <li>Flow</li>
+                    <li>Pressure</li>
+                    <li>Fill level</li>
+                    <li>Valve position</li>
+                    <li>Analysis values</li>
+                  </ul>
+                </div>
+                <div>
+                  <p class="v2-iso-chips-label">Assets</p>
+                  <ul class="v2-iso-chips">
+                    <li>Oil rigs</li>
+                    <li>Gas pipelines</li>
+                    <li>Power plants</li>
+                    <li>Chemical plants</li>
+                    <li>Industrial production</li>
+                    <li>Refineries</li>
+                  </ul>
                 </div>
               </div>
-            </article>
-            <article class="ex-step cf-pin__step" style="--i:2" aria-labelledby="feld-03" data-stream-stage>
-              <div class="ex-step__figure">
-<svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:653.6; --iso-travel: 16.34" viewBox="-6.8 20.06 653.6 530.34" fill="none" aria-hidden="true">
+            </div>
+          </div>
+
+          <!-- View 03: Renewable Energy -->
+          <div class="v2-iso-view" data-view="2">
+            <div class="v2-iso-art">
+              <svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:653.6; --iso-travel: 16.34" viewBox="-6.8 20.06 653.6 530.34" fill="none" aria-hidden="true">
                   <style>.cf-iso__scene :is(path,line,circle,ellipse,rect,polygon,polyline):not(.cf-iso__trace){vector-effect:non-scaling-stroke}</style>
                   <defs><linearGradient id="cf-ex-03" x1="124" y1="254.4" x2="124" y2="363.6" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
                   <g class="cf-iso__scene" stroke="#000" stroke-width="0.7" stroke-linejoin="round">
@@ -1644,39 +2064,43 @@
                     <circle class="cf-iso__node" cx="62.4" cy="285.2" r="3" fill="#000" stroke="none"/>
                   </g>
                 </svg>
-              </div>
-              <div class="cf-info-card cf-info-card--glass ex-step__copy cf-pin__copy">
-                <p class="cf-info-card__count t-label">03 / 04</p>
-                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-03" data-stream-line="0.20 0.22">Erneuerbare Energien</h3>
-                <p class="cf-info-card__sub t-label" data-stream-line="0.34 0.12">Erzeugung, Speicherung und Vermarktung</p>
-                <p class="cf-info-card__body" data-stream-line="0.40 0.42">Erzeugung schwankt, Speichertechnologie entwickelt sich rasend schnell weiter und die Preise an den Strommärkten sind sehr volatil. Wer hier mit Tagesmitteln rechnet, verliert genau die Auflösung, in der Degradation und Verfügbarkeit sichtbar werden. Wir rechnen auf Zellebene und geben die Information, die Sie für eine optimale Entscheidung brauchen.</p>
-                <p class="cf-info-card__ask" data-stream-line="0.80 0.19">Wo haben Sie heute wertvolle Energie verloren?</p>
-                <div class="cf-info-card__facts tiles tiles--fit">
-                  <div>
-                    <p class="cf-info-card__label t-label">Signale</p>
-                    <ul class="cf-info-card__chips" role="list">
-                      <li>Zellspannung</li>
-                      <li>Ladezustand</li>
-                      <li>Stackstrom</li>
-                      <li>Einstrahlung</li>
-                      <li>Windgeschwindigkeit</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <p class="cf-info-card__label t-label">Assets</p>
-                    <ul class="cf-info-card__chips" role="list">
-                      <li>Batteriespeicher, klein und groß</li>
-                      <li>Wasserstoff-Elektrolyseure</li>
-                      <li>Windparks</li>
-                      <li>Solarparks</li>
-                    </ul>
-                  </div>
+            </div>
+            <div class="v2-iso-card">
+              <div class="v2-iso-card__count cf-wrap">03 / 04</div>
+              <h3 class="v2-iso-card__title">Renewable energy</h3>
+              <p class="v2-iso-card__sub">GENERATION, STORAGE AND TRADING</p>
+              <p class="v2-iso-card__body">
+                Generation fluctuates, storage technology moves on at breathtaking speed, and prices on the power markets are highly volatile. Compute this on daily averages and you lose exactly the resolution in which degradation and availability become visible. We compute at cell level and give you the information you need to make the best decision.
+              </p>
+              <p class="v2-iso-card__ask">Where did you lose valuable energy today?</p>
+              <div class="v2-iso-chips-grid">
+                <div>
+                  <p class="v2-iso-chips-label">Signals</p>
+                  <ul class="v2-iso-chips">
+                    <li>Cell voltage</li>
+                    <li>State of charge</li>
+                    <li>Stack current</li>
+                    <li>Irradiance</li>
+                    <li>Wind speed</li>
+                  </ul>
+                </div>
+                <div>
+                  <p class="v2-iso-chips-label">Assets</p>
+                  <ul class="v2-iso-chips">
+                    <li>Battery storage, small and large</li>
+                    <li>Hydrogen electrolysers</li>
+                    <li>Wind farms</li>
+                    <li>Solar farms</li>
+                  </ul>
                 </div>
               </div>
-            </article>
-            <article class="ex-step cf-pin__step" style="--i:3" aria-labelledby="feld-04" data-stream-stage>
-              <div class="ex-step__figure">
-<svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:692.8; --iso-travel: 17.32" viewBox="-29.2 125 692.8 445" fill="none" aria-hidden="true">
+            </div>
+          </div>
+
+          <!-- View 04: Fleets -->
+          <div class="v2-iso-view" data-view="3">
+            <div class="v2-iso-art">
+              <svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:692.8; --iso-travel: 17.32" viewBox="-29.2 125 692.8 445" fill="none" aria-hidden="true">
                   <style>.cf-iso__scene :is(path,line,circle,ellipse,rect,polygon,polyline):not(.cf-iso__trace){vector-effect:non-scaling-stroke}</style>
                   <defs><linearGradient id="cf-ex-04" x1="317.2" y1="171.24" x2="317.2" y2="214.36" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
                   <g class="cf-iso__scene" stroke="#000" stroke-width="0.7" stroke-linejoin="round">
@@ -2133,39 +2557,43 @@
                     <circle class="cf-iso__node" cx="292.56" cy="183.56" r="3" fill="#000" stroke="none"/>
                   </g>
                 </svg>
-              </div>
-              <div class="cf-info-card cf-info-card--glass ex-step__copy cf-pin__copy">
-                <p class="cf-info-card__count t-label">04 / 04</p>
-                <h3 class="cf-info-card__title text-foil text-foil--ink" id="feld-04" data-stream-line="0.20 0.22">Flotten</h3>
-                <p class="cf-info-card__sub t-label" data-stream-line="0.34 0.12">Viele gleiche Assets</p>
-                <p class="cf-info-card__body" data-stream-line="0.40 0.42">Eine Flotte ist eine Wiederholung, und damit die beste statistische Ausgangslage, die es gibt: Was an einer Einheit auffällt, lässt sich sofort an allen anderen prüfen. Schwierig ist nicht das Modell, sondern die Verbindung. Bewegte Einheiten liefern unvollständig, verspätet und in Schüben. Wir bauen die Übertragung so, dass Lücken und Nachzügler das Ergebnis nicht verfälschen.</p>
-                <p class="cf-info-card__ask" data-stream-line="0.80 0.19">Einzelfall oder Serienfehler?</p>
-                <div class="cf-info-card__facts tiles tiles--fit">
-                  <div>
-                    <p class="cf-info-card__label t-label">Signale</p>
-                    <ul class="cf-info-card__chips" role="list">
-                      <li>Position</li>
-                      <li>Last</li>
-                      <li>Betriebsstunden</li>
-                      <li>Fehlercodes</li>
-                      <li>Verbrauch</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <p class="cf-info-card__label t-label">Assets</p>
-                    <ul class="cf-info-card__chips" role="list">
-                      <li>Baumaschinen</li>
-                      <li>Nutzfahrzeuge</li>
-                      <li>Windparks</li>
-                      <li>BHKW</li>
-                    </ul>
-                  </div>
+            </div>
+            <div class="v2-iso-card">
+              <div class="v2-iso-card__count cf-wrap">04 / 04</div>
+              <h3 class="v2-iso-card__title">Fleets</h3>
+              <p class="v2-iso-card__sub">MANY IDENTICAL ASSETS</p>
+              <p class="v2-iso-card__body">
+                A fleet is a repetition, and therefore the best statistical ground there is: what stands out on one unit can be checked against every other one at once. The hard part is not the model, it is the connection. Units in motion deliver incompletely, late and in bursts. We build the transfer so that gaps and stragglers do not distort the result.
+              </p>
+              <p class="v2-iso-card__ask">One-off or a series fault?</p>
+              <div class="v2-iso-chips-grid">
+                <div>
+                  <p class="v2-iso-chips-label">Signals</p>
+                  <ul class="v2-iso-chips">
+                    <li>Position</li>
+                    <li>Load</li>
+                    <li>Operating hours</li>
+                    <li>Fault codes</li>
+                    <li>Consumption</li>
+                  </ul>
+                </div>
+                <div>
+                  <p class="v2-iso-chips-label">Assets</p>
+                  <ul class="v2-iso-chips">
+                    <li>Construction machinery</li>
+                    <li>Commercial vehicles</li>
+                    <li>Wind farms</li>
+                    <li>CHP units</li>
+                  </ul>
                 </div>
               </div>
-            </article>
+            </div>
           </div>
+        </div>
 
-          <div class="cf-pin__bar" aria-hidden="true"></div>
+        <!-- Bottom Progress Indicator -->
+        <div class="v2-iso-progress">
+          <div class="v2-iso-progress__fill" id="v2IsoProgressFill"></div>
         </div>
       </div>
     </div>
@@ -2723,61 +3151,83 @@
       <div class="cf-accordion">
         <details class="cf-accordion__item">
           <summary class="cf-accordion__summary">Wie starte ich mein Projekt mit Control-F?
-            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
-          <div class="cf-accordion__content">Die Grundlage für außergewöhnliche Projekte liegt in robusten Partnerschaften. Bevor wir ein Projekt starten, ist es entscheidend, die einzigartigen Bedürfnisse und Ziele von Ihnen zu verstehen. Unser Ansatz beinhaltet in der Regel einen initialen Workshop, der als Vorläufer für das Hauptprojekt dient. Dieser Schritt hilft uns, eine solide Basis für einen erfolgreichen und kollaborativen Weg in die Zukunft zu schaffen.</div>
+            <span class="cf-accordion__icon" aria-hidden="true">+</span></summary>
+          <div class="cf-accordion__content-wrap">
+            <div class="cf-accordion__content">Die Grundlage für außergewöhnliche Projekte liegt in robusten Partnerschaften. Bevor wir ein Projekt starten, ist es entscheidend, die einzigartigen Bedürfnisse und Ziele von Ihnen zu verstehen. Unser Ansatz beinhaltet in der Regel einen initialen Workshop, der als Vorläufer für das Hauptprojekt dient. Dieser Schritt hilft uns, eine solide Basis für einen erfolgreichen und kollaborativen Weg in die Zukunft zu schaffen.</div>
+          </div>
         </details>
         <details class="cf-accordion__item">
           <summary class="cf-accordion__summary">Wie weiß ich, ob Control-F eine Lösung für mein Problem hat?
-            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
-          <div class="cf-accordion__content stack">
+            <span class="cf-accordion__icon" aria-hidden="true">+</span></summary>
+          <div class="cf-accordion__content-wrap">
+            <div class="cf-accordion__content stack">
             <p>Die Klärung, wie wir Sie unterstützen können, beginnt mit einem unverbindlichen Gespräch. Dieses erste Kennenlernen hilft uns, mögliche Kooperationswege zu erkunden.</p>
             <p>Ein maßgeschneiderter Workshop, der auf Ihre speziellen Bedürfnisse zugeschnitten ist, dient oft als unser erster Schritt. In diesen Workshop sammeln wir Anforderungen, führen Brainstorming-Sessions durch oder, wenn Ihre Pläne konkreter sind, skizzieren wir eine Roadmap für den Start eines PoC.</p>
+          </div>
           </div>
         </details>
         <details class="cf-accordion__item">
           <summary class="cf-accordion__summary">Wie läuft ein Projekt typischerweise ab?
-            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
-          <div class="cf-accordion__content">Es beginnt mit einem ersten Gespräch und einer gründlichen Bedarfsanalyse, die die Grundlage für einen Kickoff-Workshop bildet, in dem die Richtung des Projekts und unsere gemeinsamen Bemühungen festgelegt werden. Bei diesem Workshop wird in der Regel ein Backlog erstellt, in dem die Aufgaben aufgeführt sind, die im Laufe des Projekts umgesetzt werden sollen. Je nach den spezifischen Anforderungen des Projekts setzen wir entweder die Entwicklung unter der Leitung der Spezialisten von Control-F fort oder bieten den internen Teams unserer Kunden gezielte methodische und strategische Unterstützung.</div>
+            <span class="cf-accordion__icon" aria-hidden="true">+</span></summary>
+          <div class="cf-accordion__content-wrap">
+            <div class="cf-accordion__content">Es beginnt mit einem ersten Gespräch und einer gründlichen Bedarfsanalyse, die die Grundlage für einen Kickoff-Workshop bildet, in dem die Richtung des Projekts und unsere gemeinsamen Bemühungen festgelegt werden. Bei diesem Workshop wird in der Regel ein Backlog erstellt, in dem die Aufgaben aufgeführt sind, die im Laufe des Projekts umgesetzt werden sollen. Je nach den spezifischen Anforderungen des Projekts setzen wir entweder die Entwicklung unter der Leitung der Spezialisten von Control-F fort oder bieten den internen Teams unserer Kunden gezielte methodische und strategische Unterstützung.</div>
+          </div>
         </details>
         <details class="cf-accordion__item">
           <summary class="cf-accordion__summary">Wie kann ich feststellen, ob Control-F der richtige Partner für mich ist?
-            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
-          <div class="cf-accordion__content">Gemeinsamkeiten lassen sich am besten im direkten Gespräch herausfinden. Unsere Website bietet jedoch einen ersten Einblick in unsere Kultur und unsere Leidenschaft für Innovation. Eine partnerschaftliche Zusammenarbeit mit unseren Kunden ist uns wichtiger als kurzfristige Gewinne.</div>
+            <span class="cf-accordion__icon" aria-hidden="true">+</span></summary>
+          <div class="cf-accordion__content-wrap">
+            <div class="cf-accordion__content">Gemeinsamkeiten lassen sich am besten im direkten Gespräch herausfinden. Unsere Website bietet jedoch einen ersten Einblick in unsere Kultur und unsere Leidenschaft für Innovation. Eine partnerschaftliche Zusammenarbeit mit unseren Kunden ist uns wichtiger als kurzfristige Gewinne.</div>
+          </div>
         </details>
         <details class="cf-accordion__item">
           <summary class="cf-accordion__summary">Welche Datenquellen können angebunden werden?
-            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
-          <div class="cf-accordion__content">SPS und Leitsysteme über OPC UA und Modbus, Historians, MES- und ERP-Systeme, Cloud-Telemetrie sowie Dateiablagen.</div>
+            <span class="cf-accordion__icon" aria-hidden="true">+</span></summary>
+          <div class="cf-accordion__content-wrap">
+            <div class="cf-accordion__content">SPS und Leitsysteme über OPC UA und Modbus, Historians, MES- und ERP-Systeme, Cloud-Telemetrie sowie Dateiablagen.</div>
+          </div>
         </details>
         <details class="cf-accordion__item">
           <summary class="cf-accordion__summary">Arbeiten Sie auch mit Legacy-Infrastrukturen?
-            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
-          <div class="cf-accordion__content">Ja – das ist eher der Normalfall. Anlagen laufen 20 Jahre, Software selten. Wir bauen die Brücke, statt einen Austausch zu verlangen.</div>
+            <span class="cf-accordion__icon" aria-hidden="true">+</span></summary>
+          <div class="cf-accordion__content-wrap">
+            <div class="cf-accordion__content">Ja – das ist eher der Normalfall. Anlagen laufen 20 Jahre, Software selten. Wir bauen die Brücke, statt einen Austausch zu verlangen.</div>
+          </div>
         </details>
         <details class="cf-accordion__item">
           <summary class="cf-accordion__summary">Wie wird die Datensicherheit gewährleistet?
-            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
-          <div class="cf-accordion__content">Hosting wahlweise in Ihrem Rechenzentrum, bei STACKIT oder Hetzner – in jedem Fall in der EU. Verschlüsselung in Transit und at Rest, rollenbasierte Zugriffe, Audit-Logs.</div>
+            <span class="cf-accordion__icon" aria-hidden="true">+</span></summary>
+          <div class="cf-accordion__content-wrap">
+            <div class="cf-accordion__content">Hosting wahlweise in Ihrem Rechenzentrum, bei STACKIT oder Hetzner – in jedem Fall in der EU. Verschlüsselung in Transit und at Rest, rollenbasierte Zugriffe, Audit-Logs.</div>
+          </div>
         </details>
         <details class="cf-accordion__item">
           <summary class="cf-accordion__summary">Bieten Sie auch langfristigen Support an?
-            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
-          <div class="cf-accordion__content">Ja. Betrieb und Weiterentwicklung sind Teil des Modells – wir übergeben nicht und verschwinden.</div>
+            <span class="cf-accordion__icon" aria-hidden="true">+</span></summary>
+          <div class="cf-accordion__content-wrap">
+            <div class="cf-accordion__content">Ja. Betrieb und Weiterentwicklung sind Teil des Modells – wir übergeben nicht und verschwinden.</div>
+          </div>
         </details>
         <details class="cf-accordion__item">
           <summary class="cf-accordion__summary">Für welche Unternehmensgröße arbeiten Sie?
-            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
-          <div class="cf-accordion__content">Wir arbeiten für Mittelständler genauso wie für DAX-Konzerne und Weltmarktführer. Da in der heutigen Zeit der Erfolg eines Unternehmens und die Menge an vorhandenen Daten nicht allein an der Anzahl der Mitarbeitenden hängt, sind wir grundsätzlich ein spannender Partner für alle Unternehmen.</div>
+            <span class="cf-accordion__icon" aria-hidden="true">+</span></summary>
+          <div class="cf-accordion__content-wrap">
+            <div class="cf-accordion__content">Wir arbeiten für Mittelständler genauso wie für DAX-Konzerne und Weltmarktführer. Da in der heutigen Zeit der Erfolg eines Unternehmens und die Menge an vorhandenen Daten nicht allein an der Anzahl der Mitarbeitenden hängt, sind wir grundsätzlich ein spannender Partner für alle Unternehmen.</div>
+          </div>
         </details>
         <details class="cf-accordion__item">
           <summary class="cf-accordion__summary">An welche Branchen richten Sie Ihr Angebot?
-            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
-          <div class="cf-accordion__content">Wir fokussieren uns auf die Branchen Maschinen- und Anlagenbau sowie die Energiewirtschaft. Hier fühlen wir uns zu Hause. Gern verlassen wir aber auch unsere Komfortzone.</div>
+            <span class="cf-accordion__icon" aria-hidden="true">+</span></summary>
+          <div class="cf-accordion__content-wrap">
+            <div class="cf-accordion__content">Wir fokussieren uns auf die Branchen Maschinen- und Anlagenbau sowie die Energiewirtschaft. Hier fühlen wir uns zu Hause. Gern verlassen wir aber auch unsere Komfortzone.</div>
+          </div>
         </details>
         <details class="cf-accordion__item">
           <summary class="cf-accordion__summary">Warum sitzen Sie in Konstanz?
-            <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg></summary>
-          <div class="cf-accordion__content">Konstanz verbindet für uns das Beste aus beiden Welten: die Nähe zu innovativen Unternehmen in Baden-Württemberg und der Schweiz, kombiniert mit der Lebensqualität am Bodensee, die es uns ermöglicht, die besten Talente zu gewinnen und zu halten. Die Region ist Heimat zahlreicher Hidden Champions und Weltmarktführer im Maschinen- und Anlagenbau – genau unserer Zielgruppe. Gleichzeitig haben wir noch ein Büro in Berlin und sind durch unsere remote-first Arbeitsweise flexibel und arbeiten mit Kunden in der gesamten DACH-Region zusammen.</div>
+            <span class="cf-accordion__icon" aria-hidden="true">+</span></summary>
+          <div class="cf-accordion__content-wrap">
+            <div class="cf-accordion__content">Konstanz verbindet für uns das Beste aus beiden Welten: die Nähe zu innovativen Unternehmen in Baden-Württemberg und der Schweiz, kombiniert mit der Lebensqualität am Bodensee, die es uns ermöglicht, die besten Talente zu gewinnen und zu halten. Die Region ist Heimat zahlreicher Hidden Champions und Weltmarktführer im Maschinen- und Anlagenbau – genau unserer Zielgruppe. Gleichzeitig haben wir noch ein Büro in Berlin und sind durch unsere remote-first Arbeitsweise flexibel und arbeiten mit Kunden in der gesamten DACH-Region zusammen.</div>
+          </div>
         </details>
       </div>
     </div>
@@ -2821,47 +3271,13 @@
 
 </main>
 
-<!-- id="abschluss" is the chapter rail's down jump. The footer is the page's
-     last landmark and the one thing past the six chapters, so the jump out of
-     them lands on it; the clearance is .cf-footer's own line in acts.css, which
-     is outside the rail's gate because an id in the flow is an address at every
-     width whatever else it is for. -->
-<footer class="cf-footer" id="abschluss" data-theme="inverse">
-  <div class="container">
-    <div class="cf-footer__cta">
-      <img class="cf-footer__mark" src="../assets/img/icons/cf-footer-mark.svg" alt="">
-      <div>
-        <p class="cf-footer__title text-foil">Jetzt Projekt starten!</p>
-        <a class="cf-btn cf-btn--primary cf-btn--xwide" href="kontakt.html">
-          Kontakt aufnehmen
-          <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
-        </a>
-      </div>
-    </div>
-    <div class="cf-footer__meta">
-      <a class="cf-logo cf-logo--bare" href="landing-page.html"><img src="../assets/img/logo/cf-logo-horizontal-white.svg" alt="Control-F"></a>
-      <nav aria-label="Seiten und Rechtliches">
-        <ul class="cf-footer__links" role="list">
-          <li><a href="expertise.html" aria-current="page">Expertise</a></li>
-          <li><a href="ueber-uns.html">Über uns</a></li>
-          <li><a href="news.html">News</a></li>
-          <li><a href="karriere.html">Karriere</a></li>
-          <li><a href="suche.html">Suche</a></li>
-          <li><a href="datenschutz.html">Datenschutz</a></li>
-          <li><a href="impressum.html">Impressum</a></li>
-          <li><button type="button" class="cf-footer__linkbtn" data-cf-consent-action="open">Cookie-Einstellungen</button></li>
-        </ul>
-      </nav>
-      <span>©2026 Control-F GmbH</span>
-      <span>Am Seerhein 6, 78467 Konstanz</span>
-    </div>
-  </div>
-</footer>
+<!-- CF:FOOTER -->
 
 <nav aria-label="Zur Dokumentation"><a class="ds-back" href="../index.html">← Design System</a></nav>
 <script src="../assets/js/cf-icons.js"></script>
 <script src="../assets/js/cf-consent.js"></script>
 <script src="../assets/js/cf-sight.js" defer></script>
+<script src="../assets/js/cf-exit-intent.js" defer></script>
 <script src="../assets/js/cf-stream.js" defer></script>
 <!-- The pinned fields carry the same gate as the landing page's process
      section and were stranding the reader the same way: at 1280 x 900, half
@@ -2882,5 +3298,179 @@
      resize, so nothing it computes can be read before the layout it is computed
      from. -->
 <script src="../assets/js/act-rail.js" defer></script>
+
+<script>
+(function() {
+  const isoTabs = document.querySelectorAll('.v2-iso-tab');
+  const isoViews = document.querySelectorAll('.v2-iso-view');
+  const isoFill = document.getElementById('v2IsoProgressFill');
+
+  let currentIsoIdx = 0;
+  let slideStartTime = Date.now();
+  const SLIDE_DURATION = 4200; // 4.2 seconds per slide
+
+  function switchIsoView(targetIdx) {
+    currentIsoIdx = targetIdx;
+    slideStartTime = Date.now();
+
+    isoTabs.forEach((tab, idx) => {
+      const isActive = idx === targetIdx;
+      tab.classList.toggle('is-active', isActive);
+      tab.setAttribute('aria-selected', isActive.toString());
+    });
+
+    isoViews.forEach((view, idx) => {
+      const isActive = idx === targetIdx;
+      view.classList.toggle('is-active', isActive);
+      if (isActive) {
+        view.classList.remove('is-animating');
+        void view.offsetWidth; // trigger reflow to restart CSS layer assembly animations
+        view.classList.add('is-animating');
+      } else {
+        view.classList.remove('is-animating');
+      }
+    });
+  }
+
+  function isoLoop() {
+    const elapsed = Date.now() - slideStartTime;
+    const progress = Math.min(1, elapsed / SLIDE_DURATION);
+
+    if (isoFill) {
+      isoFill.style.width = (progress * 100).toFixed(1) + '%';
+    }
+
+    if (elapsed >= SLIDE_DURATION) {
+      const nextIdx = (currentIsoIdx + 1) % isoTabs.length;
+      switchIsoView(nextIdx);
+    }
+    requestAnimationFrame(isoLoop);
+  }
+
+  isoTabs.forEach((tab, idx) => {
+    tab.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchIsoView(idx);
+    });
+  });
+
+  // Start continuous slideshow engine
+  switchIsoView(0);
+  requestAnimationFrame(isoLoop);
+
+  // Smooth Accordion Expand/Collapse Animation
+  document.querySelectorAll('.cf-accordion__item').forEach((details) => {
+    const summary = details.querySelector('.cf-accordion__summary');
+    const wrap = details.querySelector('.cf-accordion__content-wrap') || details.querySelector('.cf-accordion__content');
+    if (!summary || !wrap) return;
+
+    if (details.open) {
+      details.classList.add('is-open');
+    }
+
+    let collapseTimer = null;
+    let onTransitionEnd = null;
+
+    function clearPendingCollapse() {
+      if (collapseTimer) {
+        clearTimeout(collapseTimer);
+        collapseTimer = null;
+      }
+      if (onTransitionEnd) {
+        wrap.removeEventListener('transitionend', onTransitionEnd);
+        onTransitionEnd = null;
+      }
+    }
+
+    summary.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isOpen = details.classList.contains('is-open');
+      const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (prefersReducedMotion) {
+        clearPendingCollapse();
+        if (isOpen) {
+          details.classList.remove('is-open');
+          details.open = false;
+        } else {
+          details.open = true;
+          details.classList.add('is-open');
+        }
+        return;
+      }
+
+      if (isOpen) {
+        // COLLAPSE: Remove is-open to trigger grid 1fr -> 0fr & opacity/icon transitions
+        clearPendingCollapse();
+        details.classList.remove('is-open');
+
+        const finishCollapse = () => {
+          clearPendingCollapse();
+          if (!details.classList.contains('is-open')) {
+            details.open = false;
+          }
+        };
+
+        onTransitionEnd = (evt) => {
+          if (evt && evt.target !== wrap) return;
+          if (evt && evt.propertyName && evt.propertyName !== 'grid-template-rows') return;
+          finishCollapse();
+        };
+
+        wrap.addEventListener('transitionend', onTransitionEnd);
+        collapseTimer = setTimeout(finishCollapse, 340);
+      } else {
+        // EXPAND: Open details, ensure 0fr baseline is registered, then trigger 1fr transition & icon rotation
+        clearPendingCollapse();
+        details.open = true;
+        // Force reflow so browser registers 0fr baseline before transitioning to 1fr
+        void wrap.offsetHeight;
+        requestAnimationFrame(() => {
+          details.classList.add('is-open');
+        });
+      }
+    });
+  });
+
+  // Footer Isometric Exploded Layers (Dynamic scroll expansion)
+  const footerEl = document.querySelector('.cf-footer--v2');
+  const topLayer = footerEl ? footerEl.querySelector('.cf-footer-layer--top') : null;
+  const midLayer = footerEl ? footerEl.querySelector('.cf-footer-layer--mid') : null;
+  const botLayer = footerEl ? footerEl.querySelector('.cf-footer-layer--bot') : null;
+
+  if (footerEl && topLayer && botLayer) {
+    let currentSpread = 0;
+    let targetSpread = 0;
+
+    const updateFooterLayers = () => {
+      const rect = footerEl.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+
+      if (rect.top < windowHeight && rect.bottom > 0) {
+        const currentDistance = windowHeight - rect.top;
+        const totalDistance = windowHeight + rect.height * 0.45;
+        const progress = Math.max(0, Math.min(1, currentDistance / totalDistance));
+        targetSpread = progress * 38;
+      } else {
+        targetSpread = 0;
+      }
+
+      currentSpread += (targetSpread - currentSpread) * 0.12;
+
+      topLayer.style.transform = `translate3d(0, ${(-currentSpread).toFixed(2)}px, 0)`;
+      if (midLayer) {
+        midLayer.style.transform = `translate3d(0, 0, 0)`;
+      }
+      botLayer.style.transform = `translate3d(0, ${(currentSpread).toFixed(2)}px, 0)`;
+
+      requestAnimationFrame(updateFooterLayers);
+    };
+
+    requestAnimationFrame(updateFooterLayers);
+  }
+
+})();
+</script>
+
 </body>
 </html>

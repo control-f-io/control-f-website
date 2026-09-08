@@ -53,7 +53,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DS = ROOT / "design-system"
-PAGE = DS / "patterns" / "landing-page.html"
+PAGE = DS / "prototypes" / "statement-to-process.html"
 ACTS = DS / "assets" / "css" / "acts.css"
 TOKENS = DS / "assets" / "css" / "tokens.css"
 

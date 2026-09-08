@@ -155,6 +155,8 @@ serves the pages.
     python3 scripts/check-a11y.py -v    # per-file counts, not only failures
 """
 
+from site_source import read_source
+
 import argparse
 import html.parser
 import pathlib
@@ -423,7 +425,7 @@ def js_ids():
     if JS.is_dir():
         for path in sorted(JS.glob("*.js")):
             found.update(re.findall(r"""\bid=["']([^"']+)["']""",
-                                    path.read_text(encoding="utf-8")))
+                                    read_source(path)))
     return found
 
 
@@ -582,7 +584,7 @@ def audit():
         if path.relative_to(TREE).as_posix().startswith(GENERATED):
             continue
         page = Page()
-        page.feed(path.read_text(encoding="utf-8"))
+        page.feed(read_source(path))
         page.close()
         strict = PATTERNS in path.parents
         out = audit_page(path, page, injected, strict)

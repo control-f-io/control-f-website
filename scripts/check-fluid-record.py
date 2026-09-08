@@ -206,7 +206,7 @@ def parse_tokens():
         )
         tokens["gutter"].literal = m.group(0).split(":", 1)[1].strip()
 
-    for gap in ("section-gap", "section-gap-sm", "section-header-gap"):
+    for gap in ("section-gap", "section-gap-sm"):
         m = re.search(
             r"--" + gap + r":\s*clamp\(\s*var\(--space-(\d+)\)\s*,\s*"
             r"calc\(\s*100vw\s*/\s*(\d+)\s*\)\s*,\s*var\(--space-(\d+)\)\s*\)",
@@ -255,7 +255,7 @@ def token_row(html, token, path, where=None):
 
 def main():
     tokens = parse_tokens()
-    for needed in ("text-display-1", "text-display-2", "text-h1", "text-h2", "gutter", "section-gap", "section-gap-sm", "section-header-gap"):
+    for needed in ("text-display-1", "text-display-2", "text-h1", "text-h2", "gutter", "section-gap", "section-gap-sm"):
         if needed not in tokens:
             fail(TOKENS, 1, f"--{needed} no longer parses as the clamp() shape this record documents")
     if failures:
@@ -290,7 +290,7 @@ def main():
     layout = LAYOUT.read_text(encoding="utf-8")
 
     # FLUID — mobile.html's floor / ramp / ceiling / binds table.
-    for name in ("gutter", "section-gap", "section-gap-sm", "section-header-gap", "text-display-1", "text-display-2", "text-h1", "text-h2"):
+    for name in ("gutter", "section-gap", "section-gap-sm", "text-display-1", "text-display-2", "text-h1", "text-h2"):
         tok = tokens[name]
         row, line = token_row(mobile, name, MOBILE)
         if row is None:
@@ -368,7 +368,7 @@ def main():
             fail(LAYOUT, line, f"--section-gap: span documented '{cells(row)[1]}', tokens.css runs {tok.floor:g} → {tok.ceiling:g} px")
 
     # RHYTHM — both gaps' floors and ceilings with the widths they bind at.
-    for gap in ("section-gap", "section-gap-sm", "section-header-gap"):
+    for gap in ("section-gap", "section-gap-sm"):
         tok = tokens[gap]
         row, line = token_row(layout, gap, LAYOUT, where=lambda c: any("below" in x for x in c))
         if row is None:
@@ -387,7 +387,6 @@ def main():
     gutter = tokens["gutter"]
     stops = {
         "section-gap-sm": tokens["section-gap-sm"].ceiling_crossover(),
-        "section-header-gap": tokens["section-header-gap"].ceiling_crossover(),
         "gutter": gutter.ceiling_crossover(),
         "section-gap": tokens["section-gap"].ceiling_crossover(),
     }
@@ -410,6 +409,14 @@ def main():
                 f"--{name}: 'stops growing at' documented {printed}, tokens.css puts the crossover at {exact:.1f}",
             )
 
+    # V2 section headers have a fixed spacing token, not a fluid ramp.
+    css = TOKENS.read_text(encoding="utf-8")
+    if not re.search(r"--section-header-gap:\s*var\(--space-4\)", css):
+        fail(TOKENS, 1, "the fixed section-header gap must read --space-4")
+    for path in (LAYOUT, MOBILE):
+        rows = token_rows(path.read_text(encoding="utf-8"), "section-header-gap")
+        if not rows or any("16" not in re.sub(r"<[^>]+>", "", row) for row, _ in rows):
+            fail(path, 1, "document the section-header gap as fixed at 16 px")
     report()
 
 

@@ -58,6 +58,7 @@
   function set(p, open) {
     p.panel.setAttribute('data-open', String(open));
     p.toggle.setAttribute('aria-expanded', String(open));
+    p.nav.setAttribute('data-open', String(open));
   }
 
   /* Is the bar in its folded form? The threshold is 780 px, and that figure is

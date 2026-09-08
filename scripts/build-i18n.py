@@ -307,9 +307,9 @@ ASSETS = re.compile(r'(href|src|poster)="\.\./(assets/|index\.html)')
 # German, and neither sentence is a translation of the other — "Auf Deutsch
 # wechseln" is what a German reader is owed, and it is what the English page
 # has to say, in German, to a reader who cannot read the page it is on.
-SWITCH = re.compile(r'<a class="cf-nav__lang" href="en/([a-z0-9-]+\.html)"'
+SWITCH = re.compile(r'<a class="cf-nav__lang" href="(?:/en/|en/)?([a-z0-9-]*)(?:\.html)?"'
                     r' hreflang="en" lang="en" aria-label="[^"]*">[^<]*</a>')
-SWITCH_EN = ('<a class="cf-nav__lang" href="../%s"'
+SWITCH_EN = ('<a class="cf-nav__lang" href="%s"'
              ' hreflang="de" lang="de" aria-label="Auf Deutsch wechseln">DE</a>')
 
 # ALTERNATE. Both editions are named on both pages, each one pointing at
@@ -388,6 +388,14 @@ def structural(doc, name):
                      % (name, doc.count(LOCALE[0])))
         doc = doc.replace(LOCALE[0], LOCALE[1], 1)
 
+    # Root-relative production routes must stay in the translated edition.
+    from site_source import route_sources
+    def translated_route(m):
+        href = m[1]
+        route = href.split('#')[0].split('?')[0]
+        return 'href="/en' + href + '"' if route in route_sources() and not route.startswith('/en/') else m[0]
+    doc = re.sub(r'href="(/[^"]*)"', translated_route, doc)
+
     doc, n = ADDRESS.subn(ADDRESS_EN, doc)
     if n not in (0, 2):
         sys.exit("%s: expected og:url and the canonical link together or not at "
@@ -400,7 +408,7 @@ def build(doc, name, cat, missing):
     doc = translate(doc, cat, missing)
     # After the copy pass, because the switch is masked from it: the label is
     # a language name, not a sentence the catalogue has an opinion about.
-    doc = once(doc, SWITCH, lambda m: SWITCH_EN % m.group(1), name, ".cf-nav__lang link")
+    doc = once(doc, SWITCH, lambda m: SWITCH_EN % (('/' + m.group(1)) if m.group(1) and m.group(1) not in ('landing-page', 'index') else '/'), name, ".cf-nav__lang link")
     if not doc.startswith(DOCTYPE):
         sys.exit("%s: does not open with a doctype" % name)
     rest = doc[len(DOCTYPE):]

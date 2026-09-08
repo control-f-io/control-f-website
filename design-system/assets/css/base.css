@@ -2358,7 +2358,13 @@ hr {
   border: 0;
 }
 .skip-link {
-  position: absolute;
+  /* fixed, not absolute: an absolutely positioned element near the top of
+     the document is still inside the page's own box, so macOS Safari's
+     rubber-band overscroll bounce -- which reveals a sliver above the
+     document's normal top edge -- exposes it, translateY(-200%) and all.
+     Anchored to the viewport instead, it stays off-screen regardless of
+     scroll position or overscroll bounce. */
+  position: fixed;
   top: var(--space-2);
   left: var(--space-2);
   z-index: var(--z-modal);
@@ -2434,6 +2440,10 @@ body > .cf-nav .cf-logo     { view-transition-name: cf-nav-logo; }
 body > .cf-nav .cf-nav__list { view-transition-name: cf-nav-links; }
 body > .cf-nav .cf-nav__toggle { view-transition-name: cf-nav-toggle; }
 body > .cf-footer { view-transition-name: cf-footer; }
+
+@media (max-width: 48.75rem) {
+  body > .cf-nav .cf-nav__list { view-transition-name: none; }
+}
 
 @media (prefers-reduced-motion: no-preference) {
   /* The UA default is mix-blend-mode: plus-lighter, which is correct for the

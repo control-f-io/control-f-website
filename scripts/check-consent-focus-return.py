@@ -67,6 +67,8 @@ which is how CI runs it.
     python3 scripts/check-consent-focus-return.py
 """
 
+from site_source import PreviewHandler
+
 import argparse
 import os
 import sys
@@ -104,7 +106,7 @@ WHERE = """
 """
 
 
-class QuietHandler(SimpleHTTPRequestHandler):
+class QuietHandler(PreviewHandler):
     def log_message(self, *args):
         pass
 

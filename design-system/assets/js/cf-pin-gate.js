@@ -243,7 +243,23 @@
     requestAnimationFrame(record);
   }, { passive: true });
 
+  var lastWidth = window.innerWidth;
+  var lastHeight = window.innerHeight;
+
   window.addEventListener('resize', function () {
+    var curWidth = window.innerWidth;
+    var curHeight = window.innerHeight;
+
+    /* On mobile devices, address bar show/hide during scrolling fires resize events
+       where width is unchanged and height changes slightly. Ignore these scroll-induced
+       resizes to avoid pulling/magneting the scroll offset while the user is reading. */
+    if (curWidth === lastWidth && Math.abs(curHeight - lastHeight) < 150) {
+      lastHeight = curHeight;
+      return;
+    }
+    lastWidth = curWidth;
+    lastHeight = curHeight;
+
     /* Freeze first. Collapsing the document can clamp scrollY and fire a scroll
        event before the correction runs, and that event would overwrite the one
        number this file exists to keep. */

@@ -152,6 +152,8 @@ GATE_ROOTS back into WIDTHS and ROOTS and delete this half of the header.
     python3 scripts/check-text-zoom.py --verbose     every cell, passing or not
 """
 
+from site_source import PreviewHandler
+
 import argparse
 import http.server
 import os
@@ -215,7 +217,7 @@ MEASURE = """(() => {
 })()"""
 
 
-class Quiet(http.server.SimpleHTTPRequestHandler):
+class Quiet(PreviewHandler):
     def __init__(self, *a, **kw):
         super().__init__(*a, directory=str(ROOT), **kw)
 

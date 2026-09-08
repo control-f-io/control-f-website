@@ -1,7 +1,7 @@
 # scripts/
 
 Everything that generates this website, and everything that refuses to let it
-ship broken. 194 files at this level, this one included, no package, no
+ship broken. 198 files at this level, this one included, no package, no
 `__init__.py`, no build step: every `.py` in it is `python3` against the
 standard library, and every one but `og_meta.py` is run by its own path. That
 pair used to read "178 of the 179", a second file count standing beside the
@@ -39,7 +39,7 @@ most.
 
 | Count | What | Who runs it |
 | --- | --- | --- |
-| 173 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
+| 174 | `check-*.py` — one design-system invariant each, exit 0 or exit 1 | `design-system.yml` on every push, one enumerated step per check; `routine-merge.yml` on every routine branch, by glob |
 | 9 | `build-*.py` — the generators, in the order below | both deploys and `news-sync.yml` (all nine, via `build-all.sh`), and both gates (via `build-and-verify.sh`) |
 | 1 | `build-all.sh` | `news-sync.yml`, and a human. Nothing else. |
 | 1 | `stage-site.py` — collects the website into `dist/` | both deploys, `--surface pages` and `--surface worker` |
@@ -47,7 +47,10 @@ most.
 | 2 | `sync-{news,jobs}-notion.py` — Notion → `content/` | `news-sync.yml`, hourly at `:25` |
 | 2 | `new-post.py`, `new-job.py` — write one file into `content/news/` or `content/jobs/` | nobody. They are human tools. |
 | 1 | `build-and-verify.sh` — build, then fail if a tracked file moved | both gates, as their first step |
-| 1 | `og_meta.py` — the Open Graph block, the only module here that is imported rather than run | nothing runs it; `build-news.py`, `build-articles.py`, `build-stellen.py` and `check-open-graph.py` import it |
+| 1 | `og_meta.py` — the Open Graph block, shared Open Graph metadata module | nothing runs it; `build-news.py`, `build-articles.py`, `build-stellen.py` and `check-open-graph.py` import it |
+| 1 | `site_source.py` — shared footer expansion, preview routes and HTTP handler | static checks, browser checks, the site builder and development server import it |
+| 1 | `serve.py` — serve rendered pattern previews with clean URLs | local development |
+| 1 | `migrate-footer-partial.py` — replace copied footers with include markers | one-time source migration |
 
 **The website is not in the checkout.** Since 2026-08-17 the 154 generated pages —
 43 at the root, 43 under `en/`, 43 English patterns, 25 generated pattern pages —
