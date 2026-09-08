@@ -326,7 +326,7 @@ def build(fn, title, size=None):
 # came out broken in the database, so the person choosing the picture could not
 # see the picture. A format the CMS cannot display is not a format this pipeline
 # can use, whatever the chapter says about contours — and the chapter is written
-# about drawings INLINE in a page, where the rule buys a 1 px contour at every
+# about drawings INLINE in a page, where the rule buys a .7 CSS px contour at every
 # size. It buys nothing through an <img> the author cannot preview.
 #
 # So the vector stays the source, under scripts/news-objects/svg/ with a stable
@@ -335,12 +335,12 @@ def build(fn, title, size=None):
 # 1008 px plate.
 #
 # THE EXPORT CARRIES A HEAVIER STROKE THAN THE SOURCE, and that is arithmetic
-# rather than taste. In a browser the source draws its contours at 1 CSS px at
+# rather than taste. In a browser the source draws its contours at .7 CSS px at
 # any size, because .cf-iso sets vector-effect: non-scaling-stroke. A raster has
 # no such thing: it is downscaled by whatever the card is, 2016 -> 380 in the
-# grid and 2016 -> 568 in the lead cell, so a contour needs to be about 5 px in
-# the file to arrive at 1. At 2016 px from a 572-unit viewBox the scale is 3.52,
-# which puts that at 1.4 user units.
+# grid and 2016 -> 568 in the lead cell. The previous 1.4 user-unit export
+# targeted the older 1 px style. Multiplying it by .7 gives .98 user units,
+# keeping the same scale compensation while reducing the visible weight 30%.
 #
 # NOTHING HERE RUNS BY ITSELF, AND THE EXPORT DOES NOT GO INTO THE SITE.
 #
@@ -364,7 +364,7 @@ SVG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'svg')
 PNG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'png')
 
 EXPORT_W = 2016          # two plates; check-content-images.py's ceiling
-EXPORT_STROKE = 1.4      # see the note above
+EXPORT_STROKE = .98      # 1.4 export compensation × .7 illustration contour
 
 
 def for_raster(svg):

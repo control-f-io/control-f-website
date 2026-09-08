@@ -4,7 +4,8 @@ Reviewed 8 September 2026 at PR commit
 `d770e06d85282784969754ac704f0c641664ebb8`.
 
 [Pull request](https://github.com/control-f-io/control-f-website/pull/673) ·
-[Failed workflow](https://github.com/control-f-io/control-f-website/actions/runs/34230723387)
+[Failed workflow](https://github.com/control-f-io/control-f-website/actions/runs/34230723387) ·
+[refined illustration PR #672](https://github.com/control-f-io/control-f-website/pull/672)
 
 ## What the red checks meant
 
@@ -48,6 +49,10 @@ page behavior; others identified stale test inputs or design-system records.
 - Moved drawing checks to the prototype that still owns those drawings and
   restored its source-sensor layer. Updated the token and documentation
   registers from the shipping CSS instead of removing their assertions.
+- Restored the merged #672 illustration work that the original #673 commit
+  had accidentally replaced: four generated Expertise SVGs, ten news SVGs,
+  their generators and reference material, and the `.7px` shared contour
+  token/check. The current Expertise layout now embeds those refined drawings.
 
 ## Validation
 
@@ -63,6 +68,5 @@ page behavior; others identified stale test inputs or design-system records.
   to the remaining legacy census.
 - Consent focus return, pinned keyboard traversal, glass contrast sampling, and
   spectrum rendering browser checks pass.
-
-The changes are local on `codex/pr-673-design-system`; the historical GitHub run
-remains red until the branch is pushed and CI runs again.
+- The four live Expertise drawings match their deterministic generator: 216,
+  297, 199, and 437 SVG shapes with the restored #672 viewBoxes.

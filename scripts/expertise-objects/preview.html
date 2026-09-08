@@ -1,225 +1,23 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="only light">
-<meta name="theme-color" content="#CFCFD2">
-<title>Expertise — Scroll-Studie</title>
-<link rel="stylesheet" href="../assets/css/tokens.css">
-<link rel="stylesheet" href="../assets/css/base.css">
-<link rel="stylesheet" href="../assets/css/components.css">
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Expertise · SVG-Galerie — Control-F</title>
+<link rel="stylesheet" href="/design-system/assets/css/tokens.css">
+<link rel="stylesheet" href="/design-system/assets/css/base.css">
 <style>
-  /* ------------------------------------------------------------------
-     Expertise — vier Felder, eine Spur.
-
-     This study proposes NO SCRIPT AT ALL. The values section shipped a
-     scroll-scrubbed sequence on a view timeline after its prototype had
-     proved the idea with 120 lines of JavaScript; this one starts where
-     that ended, so the thing being proposed here is the composition and
-     the pacing, not an engine.
-
-     One track of seven and a bit viewports, one sticky stage, four steps
-     that hand over to each other and build in place. Every step reads the
-     same timeline and differs only in --i, so adding a fifth field is one
-     more block of markup and one number in --steps.
-     ------------------------------------------------------------------ */
-  .ex-intro { padding-block: var(--space-24) var(--space-16); }
-  .ex-intro h1 {
-    font-family: var(--font-display); font-size: var(--text-display-1);
-    font-weight: var(--weight-bold); line-height: var(--leading-tight);
-    letter-spacing: var(--tracking-display); max-width: 18ch;
-  }
-  .ex-intro p { margin-top: var(--space-6); max-width: 56ch; color: var(--text-secondary); }
-  .ex-rule { height: var(--stroke-1); background: var(--border-strong); margin-top: var(--space-8); }
-
-  .ex-stage { display: grid; gap: var(--space-8); align-content: center; --field-unit: 6rem; }
-  /* Same pair-step as the pattern page: on a short viewport the object and the
-     copy would meet in the middle, and the lattice and the drawing both read
-     --field-unit, so one number moves them together. */
-  @media (max-height: 53.75rem) { .ex-stage { --field-unit: 4.5rem; } }
-  .ex-scene { display: grid; place-items: center; min-height: 18rem; }
-  .ex-scene > * { grid-area: 1 / 1; }
-  .ex-fig { margin: 0; display: grid; place-items: center; }
-  /* ON THE SAME GRID AS THE FLOOR, not merely near it: the object is drawn on
-     a lattice whose cell is 112 viewBox units wide, so rendering it at
-     (viewBox width / 112) x --field-unit makes one cell of the drawing exactly
-     one cell of the ground it stands on. --vb-w is written into each SVG by
-     the generator. */
-  .ex-fig svg { width: calc(var(--vb-w) / 112 * var(--field-unit)); max-width: 100%; height: auto; }
-  .ex-copyset { display: grid; }
-  .ex-copyset > * { grid-area: 1 / 1; }
-  .ex-copy__count { color: var(--text-muted); }
-  .ex-copy__title {
-    margin-top: var(--space-2);
-    font-family: var(--font-display); font-size: var(--text-display-2);
-    font-weight: var(--weight-bold); letter-spacing: var(--tracking-display);
-  }
-  .ex-copy__sub { margin-top: var(--space-2); color: var(--text-secondary); }
-  .ex-copy__list {
-    margin-top: var(--space-6); padding: 0; list-style: none;
-    display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6);
-    font-family: var(--font-mono); font-size: var(--text-sm);
-    color: var(--text-secondary);
-  }
-  .ex-copy__list li { position: relative; }
-  .ex-copy__list li + li::before {
-    content: ""; position: absolute; left: calc(var(--space-6) / -2);
-    top: 50%; width: 3px; height: 3px; background: var(--border-strong);
-  }
-
-  .ex-index { display: flex; gap: var(--space-4); padding: 0; list-style: none;
-               font-family: var(--font-mono); font-size: var(--text-xs);
-               letter-spacing: var(--tracking-label); color: var(--text-muted); }
-  .ex-progress { position: relative; height: var(--stroke-1); background: var(--border-default); }
-  .ex-progress::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 100%;
-                         background: var(--border-strong); transform-origin: left; transform: scaleX(0); }
-
-  /* ---- stacked and readable wherever the scrubbing cannot run ---- */
-  .ex-track { display: grid; gap: var(--space-16); }
-  .ex-scene, .ex-copyset { gap: var(--space-12); }
-  .ex-scene, .ex-copyset { grid-auto-flow: row; }
-  .ex-index, .ex-progress { display: none; }
-
-  @supports (animation-timeline: view()) {
-    /* `screen and` is not decoration: a paged medium has no scroll, so a view
-       timeline never advances and a `both`-filled animation holds its `from`
-       keyframe onto the paper. → foundations/motion.html#scroll-driven */
-    @media screen and (prefers-reduced-motion: no-preference) and (min-width: 820px) {
-      .ex-track {
-        --steps: 4;
-        display: block;
-        height: calc((var(--steps) * 1.6 + 1) * 100vh);
-        view-timeline-name: --ex;
-        view-timeline-axis: block;
-      }
-      .ex-stage {
-        position: sticky; top: 0; height: 100vh; overflow: hidden; overflow: clip;
-        grid-template-rows: auto 1fr auto;
-        padding-block: var(--space-16);
-      }
-      .ex-scene, .ex-copyset { display: grid; grid-auto-flow: initial; gap: 0; }
-      .ex-scene > *, .ex-copyset > * { grid-area: 1 / 1; }
-      .ex-index, .ex-progress { display: flex; }
-      .ex-progress { display: block; }
-
-      /* One animation, four windows. A step's window is its quarter of the
-         contain range; it arrives on the rake and leaves on it, so the
-         sequence reads as one object being replaced rather than four
-         objects taking turns. */
-      .ex-step {
-        animation: ex-step linear both;
-        animation-timeline: --ex;
-        animation-range: contain calc(var(--i) * 25% - 4%) contain calc((var(--i) + 1) * 25% + 4%);
-      }
-      .ex-index__item { animation-name: ex-mark; }
-      .ex-progress::after {
-        animation: ex-bar linear both;
-        animation-timeline: --ex;
-        animation-range: contain 0% contain 100%;
-      }
-
-      /* The build, in the object's own paint order. Each .cf-iso__form group
-         carries data-stage, assigned by DEPTH — 0 the foundation, 3 whatever
-         stands nearest the reader — so the four passes are the drawing being
-         drawn rather than a fade-in split four ways. */
-      .ex-fig .cf-iso__scene { animation-name: none; }
-      .ex-fig .cf-iso__form,
-      .ex-fig .cf-iso__ghost,
-      .ex-fig .cf-iso__orbit,
-      .ex-fig .cf-iso__light,
-      .ex-fig .cf-iso__node {
-        animation-timeline: --ex;
-        animation-duration: auto;
-        animation-fill-mode: both;
-        animation-timing-function: var(--ease-out);
-      }
-      .ex-fig .cf-iso__form {
-        --s: 0;
-        animation-name: ex-part;
-        animation-range: contain calc(var(--i) * 25% + 1%  + var(--s) * 2.4%)
-                         contain calc(var(--i) * 25% + 10% + var(--s) * 2.4%);
-      }
-      .ex-fig .cf-iso__form[data-stage="1"] { --s: 1; }
-      .ex-fig .cf-iso__form[data-stage="2"] { --s: 2; }
-      .ex-fig .cf-iso__form[data-stage="3"] { --s: 3; }
-      .ex-fig .cf-iso__ghost {
-        animation-name: cf-iso-fade;
-        animation-range: contain calc(var(--i) * 25% + 11%) contain calc(var(--i) * 25% + 18%);
-      }
-      .ex-fig .cf-iso__orbit {
-        animation-name: cf-iso-fade, cf-iso-orbit;
-        animation-timeline: --ex, --ex;
-        animation-range: contain calc(var(--i) * 25% + 11%) contain calc(var(--i) * 25% + 18%),
-                         contain calc(var(--i) * 25% + 11%) contain calc(var(--i) * 25% + 24%);
-      }
-      .ex-fig .cf-iso__light {
-        animation-name: cf-iso-light;
-        animation-range: contain calc(var(--i) * 25% + 16%) contain calc(var(--i) * 25% + 23%);
-      }
-      .ex-fig .cf-iso__node {
-        animation-name: cf-iso-fade;
-        animation-range: contain calc(var(--i) * 25% + 18%) contain calc(var(--i) * 25% + 24%);
-      }
-    }
-  }
-
-  @keyframes ex-step {
-    0%, 10%   { opacity: 0; translate: 0 0; }
-    24%       { opacity: 1; translate: 0 0; }
-    76%       { opacity: 1; translate: 0 0; }
-    92%, 100% { opacity: 0; translate: calc(var(--space-10) * 2) var(--space-10); }
-  }
-  @keyframes ex-part {
-    from {
-      opacity: 0;
-      transform: translate(calc(var(--iso-travel) * -1.4px), calc(var(--iso-travel) * -0.7px));
-    }
-    to { opacity: 1; transform: translate(0, 0); }
-  }
-  @keyframes ex-mark {
-    0%, 100% { color: var(--text-muted); }
-    16%, 84% { color: var(--text-primary); }
-  }
-  @keyframes ex-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-
-  /* Preview only: link back to the documentation. */
-  .ds-back {
-    position: fixed; left: 0; bottom: 0; z-index: calc(var(--z-overlay) - 1);
-    padding: var(--space-2) var(--space-4);
-    background: var(--cf-schwarz); color: var(--grey-000);
-    font-family: var(--font-mono); font-size: var(--text-xs);
-    letter-spacing: var(--tracking-label); text-transform: uppercase;
-  }
-</style>
-</head>
-<body class="page-wash">
-
-<main>
-  <section class="section section--flush">
-    <div class="container ex-intro">
-      <h1>Vier Felder, eine Spur.</h1>
-      <p>
-        Maschinenbau, Großanlagen, Erneuerbare, Flotten. Die Physik ist jedes Mal eine
-        andere, die Aufgabe jedes Mal dieselbe — und die Objekte stehen alle auf demselben
-        Raster. Scrollen Sie.
-      </p>
-      <div class="ex-rule"></div>
-    </div>
-  </section>
-
-  <section class="ex-track" aria-label="Unsere Felder">
-    <div class="ex-stage container cf-ground">
-      <ol class="ex-index" role="list">
-          <li class="ex-index__item ex-step" style="--i:0">01</li>
-          <li class="ex-index__item ex-step" style="--i:1">02</li>
-          <li class="ex-index__item ex-step" style="--i:2">03</li>
-          <li class="ex-index__item ex-step" style="--i:3">04</li>
-      </ol>
-
-      <div class="ex-scene">
-        <figure class="ex-fig ex-step" style="--i:0">
-<svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:657.6; --iso-travel: 16.44" viewBox="-146 -75.52 657.6 552.32" fill="none" aria-hidden="true">
+body { margin:0; padding:32px; background:var(--cf-grau); color:var(--text-primary); font-family:var(--font-sans); }
+header { display:flex; justify-content:space-between; align-items:baseline; gap:24px; margin-bottom:24px; }
+h1 { margin:0; font-size:24px; font-weight:500; letter-spacing:-.03em; }
+header a { color:inherit; font-size:12px; }
+main { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+figure { margin:0; padding:12px 16px 16px; border-top:1px solid currentColor; }
+svg { display:block; width:100%; height:310px; }
+svg :is(path,line,circle,ellipse,rect,polygon,polyline) { vector-effect:non-scaling-stroke; stroke-width:var(--illustration-stroke, .7px); }
+figcaption { display:flex; gap:16px; font-size:14px; align-items:baseline; }
+figcaption span { font:11px var(--font-mono); }
+@media (max-width:700px) { body{padding:20px} header{align-items:start;flex-direction:column;gap:8px} main{grid-template-columns:1fr} svg{height:auto;max-height:400px} }
+</style></head><body>
+<header><h1>Expertise · SVG-Galerie</h1><a href="/expertise.html#felder">Zur Expertise-Seite ↗</a></header><main>
+<figure id="feld-1"><svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:657.6; --iso-travel: 16.44" viewBox="-146 -75.52 657.6 552.32" fill="none" aria-hidden="true">
                   <style>.cf-iso__scene :is(path,line,circle,ellipse,rect,polygon,polyline):not(.cf-iso__trace){vector-effect:non-scaling-stroke}</style>
                   <defs><linearGradient id="cf-ex-01" x1="367.6" y1="226.68" x2="367.6" y2="269.24" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
                   <g class="cf-iso__scene" stroke="#000" stroke-width="0.7" stroke-linejoin="round">
@@ -406,9 +204,8 @@
                     <circle class="cf-iso__node" cx="325.04" cy="247.96" r="3" fill="#000" stroke="none"/>
                   </g>
                 </svg>
-        </figure>
-        <figure class="ex-fig ex-step" style="--i:1">
-<svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:642.4; --iso-travel: 16.06" viewBox="-1.2 37.94 642.4 509.66" fill="none" aria-hidden="true">
+<figcaption><span>01 / 04</span>Maschinenbau</figcaption></figure>
+<figure id="feld-2"><svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:642.4; --iso-travel: 16.06" viewBox="-1.2 37.94 642.4 509.66" fill="none" aria-hidden="true">
                   <style>.cf-iso__scene :is(path,line,circle,ellipse,rect,polygon,polyline):not(.cf-iso__trace){vector-effect:non-scaling-stroke}</style>
                   <defs><linearGradient id="cf-ex-02" x1="289.2" y1="67.94" x2="289.2" y2="96.46" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
                   <g class="cf-iso__scene" stroke="#000" stroke-width="0.7" stroke-linejoin="round">
@@ -711,9 +508,8 @@
                     <circle class="cf-iso__node" cx="260.69" cy="82.2" r="3" fill="#000" stroke="none"/>
                   </g>
                 </svg>
-        </figure>
-        <figure class="ex-fig ex-step" style="--i:2">
-<svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:653.6; --iso-travel: 16.34" viewBox="-6.8 20.06 653.6 530.34" fill="none" aria-hidden="true">
+<figcaption><span>02 / 04</span>Großanlagen</figcaption></figure>
+<figure id="feld-3"><svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:653.6; --iso-travel: 16.34" viewBox="-6.8 20.06 653.6 530.34" fill="none" aria-hidden="true">
                   <style>.cf-iso__scene :is(path,line,circle,ellipse,rect,polygon,polyline):not(.cf-iso__trace){vector-effect:non-scaling-stroke}</style>
                   <defs><linearGradient id="cf-ex-03" x1="124" y1="254.4" x2="124" y2="363.6" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
                   <g class="cf-iso__scene" stroke="#000" stroke-width="0.7" stroke-linejoin="round">
@@ -926,9 +722,8 @@
                     <circle class="cf-iso__node" cx="62.4" cy="285.2" r="3" fill="#000" stroke="none"/>
                   </g>
                 </svg>
-        </figure>
-        <figure class="ex-fig ex-step" style="--i:3">
-<svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:692.8; --iso-travel: 17.32" viewBox="-29.2 125 692.8 445" fill="none" aria-hidden="true">
+<figcaption><span>03 / 04</span>Erneuerbare Energien</figcaption></figure>
+<figure id="feld-4"><svg xmlns="http://www.w3.org/2000/svg" class="cf-iso" style="--vb-w:692.8; --iso-travel: 17.32" viewBox="-29.2 125 692.8 445" fill="none" aria-hidden="true">
                   <style>.cf-iso__scene :is(path,line,circle,ellipse,rect,polygon,polyline):not(.cf-iso__trace){vector-effect:non-scaling-stroke}</style>
                   <defs><linearGradient id="cf-ex-04" x1="317.2" y1="171.24" x2="317.2" y2="214.36" gradientUnits="userSpaceOnUse"><stop stop-color="#E1FF00"/><stop offset="0.0608" stop-color="#DBFC60"/><stop offset="0.32" stop-color="#C5EBE2"/><stop offset="1" stop-color="#CFCFCF"/></linearGradient></defs>
                   <g class="cf-iso__scene" stroke="#000" stroke-width="0.7" stroke-linejoin="round">
@@ -1385,73 +1180,5 @@
                     <circle class="cf-iso__node" cx="292.56" cy="183.56" r="3" fill="#000" stroke="none"/>
                   </g>
                 </svg>
-        </figure>
-      </div>
-
-      <div class="ex-copyset">
-        <div class="ex-copy ex-step" style="--i:0">
-          <p class="ex-copy__count t-label">01 / 04</p>
-          <h2 class="ex-copy__title">Maschinenbau</h2>
-          <p class="ex-copy__sub t-label">Rotierende Assets</p>
-          <ul class="ex-copy__list" role="list">
-            <li>Motoren</li>
-            <li>Gasturbinen</li>
-            <li>Benzinmotoren</li>
-            <li>Generatoren</li>
-            <li>Pumpensysteme</li>
-          </ul>
-        </div>
-        <div class="ex-copy ex-step" style="--i:1">
-          <p class="ex-copy__count t-label">02 / 04</p>
-          <h2 class="ex-copy__title">Großanlagen</h2>
-          <p class="ex-copy__sub t-label">Prozess und Verfügbarkeit</p>
-          <ul class="ex-copy__list" role="list">
-            <li>Bohrinseln</li>
-            <li>Gaspipelines</li>
-            <li>Kraftwerke</li>
-            <li>Chemieanlagen</li>
-            <li>Industrielle Produktion</li>
-            <li>Raffinerien</li>
-          </ul>
-        </div>
-        <div class="ex-copy ex-step" style="--i:2">
-          <p class="ex-copy__count t-label">03 / 04</p>
-          <h2 class="ex-copy__title">Erneuerbare</h2>
-          <p class="ex-copy__sub t-label">Speicher und Wandlung</p>
-          <ul class="ex-copy__list" role="list">
-            <li>Batteriespeicher</li>
-            <li>Wasserstoff-Elektrolyseure</li>
-            <li>Windparks</li>
-            <li>Solarparks</li>
-          </ul>
-        </div>
-        <div class="ex-copy ex-step" style="--i:3">
-          <p class="ex-copy__count t-label">04 / 04</p>
-          <h2 class="ex-copy__title">Flotten</h2>
-          <p class="ex-copy__sub t-label">Viele gleiche Assets</p>
-          <ul class="ex-copy__list" role="list">
-            <li>Flugzeuge</li>
-            <li>Minenausrüstung</li>
-            <li>Schiffe</li>
-            <li>Züge</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="ex-progress" aria-hidden="true"></div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <div class="ex-rule"></div>
-      <p class="t-label" style="margin-top:var(--space-4);color:var(--text-secondary)">
-        Ende der Spur
-      </p>
-    </div>
-  </section>
-</main>
-
-<a class="ds-back" href="../index.html">← Design System</a>
-</body>
-</html>
+<figcaption><span>04 / 04</span>Flotten</figcaption></figure>
+</main></body></html>
