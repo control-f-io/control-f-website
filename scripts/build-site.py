@@ -311,8 +311,10 @@ def folder_address(target):
     return None
 
 
-def links(text, src, table):
-    """Every reference to a pattern page, rewritten to where that page ships."""
+def links(text, src, table, absolute=False):
+    """Every reference to a pattern page, rewritten to where that page ships.
+    `absolute` writes the address from the root instead of from the page — for
+    the one page whose own address is not where it is shown, see ANYWHERE."""
     edition = "en/" if src.startswith("en/") else ""
     here = posixpath.dirname(table[src])
 
@@ -329,6 +331,8 @@ def links(text, src, table):
         dest = table.get(target) or folder_address(target)
         if dest is None:
             return m.group(0)
+        if absolute:
+            return '%s="/%s%s"' % (attr, dest, frag)
         return '%s="%s%s"' % (attr, posixpath.relpath(dest, here or "."), frag)
 
     return LINK.subn(one, text)
@@ -376,6 +380,15 @@ def transform(text, name, table):
     # /en/news/thema/x.html two below that. The assets live at the root either
     # way, so the answer is one `../` per directory the page is buried in.
     assets_to = "../" * table[name].count("/") + "design-system/assets/"
+    # ANYWHERE. GitHub Pages answers every missing address with /404.html, so
+    # the one page that ships at the root is shown at any depth — /en/x, /blog/x,
+    # /en/news/thema/x — and a relative `design-system/assets/…` resolves under
+    # whatever folder the reader mistyped. Seen live: /en/expertise/ehh rendered
+    # the German 404 unstyled, every stylesheet a second 404. Its paths are
+    # written from the root instead; the page's own address never changes.
+    anywhere = table[name] == "404.html"
+    if anywhere:
+        assets_to = "/design-system/assets/"
 
     # FOOTER — inject the shared partial in place of the marker. Pages that
     # carry the old footer (v1 / detached) have no marker; they are left alone.
@@ -387,7 +400,19 @@ def transform(text, name, table):
     text, counts["PREVIEW"] = preview_re(up).subn("", text)
     text, counts["DSBACK"] = dsback_re(up).subn("\n", text)
     text, counts["ASSETS"] = assets(text, name, up, assets_to)
-    text, counts["LINKS"] = links(text, name, table)
+    text, counts["LINKS"] = links(text, name, table, absolute=anywhere)
+    if anywhere:
+        # The same page answers a miss under /en/, where the reader asked for
+        # English. Pages has one 404 document per site, so the German one hands
+        # over to the English edition it names in its hreflang — before any
+        # stylesheet is requested, so nothing paints twice. /en/404.html is a
+        # shipped page and not itself a miss, so Pages never runs this there.
+        text, counts["ANYWHERE"] = re.subn(
+            r'(<meta charset="UTF-8">\n)',
+            r'\1<script>if(location.pathname.indexOf("/en/")===0)'
+            r'location.replace("/en/404.html")</script>\n', text, count=1)
+        if counts["ANYWHERE"] != 1:
+            raise BuildError("%s: no <meta charset> to hand the English miss over from." % name)
 
     for name_, minimum in (("ASSETS", 1), ("LINKS", 1), ("PREVIEW", 0), ("DSBACK", 0)):
         if counts[name_] < minimum:
