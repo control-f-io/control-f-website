@@ -16,19 +16,19 @@
     de: {
       eyebrow: 'BEREIT FÜR DEN NÄCHSTEN SCHRITT?',
       title: 'Starten Sie Ihr Projekt jetzt.',
-      subtitle: 'Weniger ungeplante Stillstände, mehr Durchsatz aus Daten, die Sie schon haben.',
+      subtitle: 'Weniger ungeplante Stillstände und Performance in Ihren Anlagen.',
       btn: 'KONTAKT AUFNEHMEN',
       btnHref: '/kontakt',
-      dismiss: 'Nein danke, ich möchte nur die Seite verlassen',
+      dismiss: 'Nein, ich möchte mich weiter informieren.',
       closeAria: 'Schließen'
     },
     en: {
       eyebrow: 'READY FOR THE NEXT STEP?',
       title: 'Launch your project today.',
-      subtitle: 'Fewer unplanned downtimes, higher throughput from data you already have.',
+      subtitle: 'Fewer unplanned downtimes and more performance from your assets.',
       btn: 'GET IN TOUCH',
       btnHref: '/en/kontakt',
-      dismiss: 'No thanks, just let me leave',
+      dismiss: 'No, I would like to keep reading.',
       closeAria: 'Close'
     }
   };
