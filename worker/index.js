@@ -55,7 +55,8 @@
 
 import * as apply from "./apply.js";
 import * as contact from "./validate.js";
-import { sendApplication, sendEnquiry } from "./mail.js";
+import * as webinar from "./webinar.js";
+import { sendApplication, sendEnquiry, sendWebinarRegistration } from "./mail.js";
 import { renderForm } from "./render.js";
 
 /* Die Kontaktseiten, je Ausgabe: der Pfad, an den sie postet, die Sprache, in
@@ -69,6 +70,8 @@ const FORMS = {
   "/en/kontakt.html":   { locale: "en", kind: "contact", thanks: "/en/kontakt-danke.html" },
   "/bewerbung.html":    { locale: "de", kind: "apply",   thanks: "/bewerbung-danke.html" },
   "/en/bewerbung.html": { locale: "en", kind: "apply",   thanks: "/en/bewerbung-danke.html" },
+  "/blog/webinar-wenn-sie-ihre-daten-nicht-nutzen-laeuft-.html": { locale: "de", kind: "webinar", thanks: "/webinar-danke.html" },
+  "/en/blog/webinar-wenn-sie-ihre-daten-nicht-nutzen-laeuft-.html": { locale: "en", kind: "webinar", thanks: "/en/webinar-danke.html" },
 };
 
 /* Was ein Formular ausmacht, an einer Stelle je Art. `kind` in FORMS wählt
@@ -80,6 +83,14 @@ const FORMS = {
    nimmt keine Dateien an, und ein Feld, das nicht in dieser Liste steht, wird
    aus dem Body nie gelesen. */
 const KINDS = {
+  webinar: {
+    module: webinar,
+    textFields: ["name", "email", "company"],
+    fileFields: [],
+    options: () => [],
+    failTarget: "anmelden",
+    send: (values, files, env, source) => sendWebinarRegistration(values, env, source),
+  },
   contact: {
     module: contact,
     /* Neun, seit die zweite Spalte der Seite Felder trägt und keine Prosa

@@ -105,6 +105,18 @@ FORMS = [
             ("en", PATTERNS / "en" / "bewerbung.html", "/en/bewerbung.html"),
         ],
     },
+    {
+        "name": "webinar",
+        "module": "webinar.js",
+        "messages": "validate.js",
+        "options": None,
+        "editions": [
+            ("de", PATTERNS / "beitrag-webinar-wenn-sie-ihre-daten-nicht-nutzen-laeuft-.html",
+             "/blog/webinar-wenn-sie-ihre-daten-nicht-nutzen-laeuft-.html"),
+            ("en", PATTERNS / "en" / "beitrag-webinar-wenn-sie-ihre-daten-nicht-nutzen-laeuft-.html",
+             "/en/blog/webinar-wenn-sie-ihre-daten-nicht-nutzen-laeuft-.html"),
+        ],
+    },
 ]
 
 EDITIONS = [e for f in FORMS for e in f["editions"]]
@@ -338,14 +350,16 @@ def audit(verbose):
 
     for form in FORMS:
         module = (WORKER / form["module"]).read_text(encoding="utf-8")
+        messages = (WORKER / form.get("messages", form["module"])).read_text(encoding="utf-8")
         fields = js_fields(module)
         if fields is None:
             say("worker/%s has no readable FIELDS table" % form["module"])
 
         # 9. THE EDITIONS. Every table this form needs, in every language it
         # is served in. The option table differs per form; the rest do not.
-        tables = ("FIELDS", form["options"], "FIELD_LABELS", "MESSAGES",
-                  "SEND_FAILED", "RATE_LIMITED", "COUNT_WORDS")
+        tables = ["FIELD_LABELS", "SEND_FAILED"]
+        if form["options"]:
+            tables.append(form["options"])
 
         keysets = {}
 
@@ -404,7 +418,7 @@ def audit(verbose):
                          % (field, form["module"]))
 
             # 3. THE OPTIONS, against this edition's own list.
-            options = js_branch(module, form["options"], locale)
+            options = js_branch(module, form["options"], locale) if form["options"] else []
             if options is None:
                 tell("worker/%s has no readable %s branch for %r"
                      % (form["module"], form["options"], locale))
@@ -420,14 +434,17 @@ def audit(verbose):
 
             # 9. Every table needs this locale.
             for table in tables:
-                if table == "FIELDS":
-                    continue
                 if not js_has_branch(module, table, locale):
                     tell("worker/%s's %s has no %r branch — this edition would "
                          "answer in another language, or not at all"
                          % (form["module"], table, locale))
 
-            keysets[locale] = js_message_keys(module, locale)
+            for table in ("MESSAGES", "RATE_LIMITED", "COUNT_WORDS"):
+                if not js_has_branch(messages, table, locale):
+                    tell("worker/%s's %s has no %r branch" %
+                         (form.get("messages", form["module"]), table, locale))
+
+            keysets[locale] = js_message_keys(messages, locale)
 
             # The form must reach the Worker route for its own edition,
             # carrying the #fehler fragment. Two shapes are legitimate:
