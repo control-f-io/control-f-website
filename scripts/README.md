@@ -1,7 +1,7 @@
 # scripts/
 
 Everything that generates this website, and everything that refuses to let it
-ship broken. 198 files at this level, this one included, no package, no
+ship broken. 199 files at this level, this one included, no package, no
 `__init__.py`, no build step: every `.py` in it is `python3` against the
 standard library, and every one but `og_meta.py` is run by its own path. That
 pair used to read "178 of the 179", a second file count standing beside the
@@ -50,7 +50,26 @@ most.
 | 1 | `og_meta.py` — the Open Graph block, shared Open Graph metadata module | nothing runs it; `build-news.py`, `build-articles.py`, `build-stellen.py` and `check-open-graph.py` import it |
 | 1 | `site_source.py` — shared footer expansion, preview routes and HTTP handler | static checks, browser checks, the site builder and development server import it |
 | 1 | `serve.py` — serve rendered pattern previews with clean URLs | local development |
+| 1 | `test-webinar.mjs` — webinar validation, notification routing and form responses | local development after a Wrangler dry build; mail delivery is mocked |
 | 1 | `migrate-footer-partial.py` — replace copied footers with include markers | one-time source migration |
+
+The webinar form is configured in `content/webinar.json`, separately from the
+Notion-imported article so the hourly sync preserves it. `build-articles.py`
+adds it only to that post, in both languages. The Worker validates the booking
+and emails `WEBINAR_TO` (or `CONTACT_TO` when unset); the team then sends the
+invitation link. Update the matching routes in `worker/index.js`,
+`wrangler.toml` and `check-form-contract.py` if the article's address changes.
+
+To test notification delivery without sending real mail:
+
+```sh
+npx wrangler@4.119.0 deploy --dry-run --outdir /tmp/cf-worker
+node scripts/test-webinar.mjs /tmp/cf-worker/index.js
+```
+
+For the optional error-rendering checks, start `wrangler dev --local --port 8787
+--var RESEND_API_KEY:` with mail explicitly disabled, then append
+`http://localhost:8787` to the test command.
 
 **The website is not in the checkout.** Since 2026-08-17 the 154 generated pages —
 43 at the root, 43 under `en/`, 43 English patterns, 25 generated pattern pages —
@@ -185,7 +204,7 @@ python3 scripts/build-search-index.py
 | 1 | `build-news.py` | `patterns/news.html`, `news-thema-<slug>.html` (3 today, one per topic in use), and the archive's titles into `i18n/en.json` | 5 `news:` regions |
 | 2 | `build-jobs.py` | `patterns/karriere.html`, and the register's strings into `i18n/en.json` | 2 `jobs:` regions |
 | 3 | `build-i18n.py` | `patterns/en/` — 21 source pages, translated | nothing; it rewrites whole pages |
-| 4 | `build-articles.py` | `beitrag-<slug>.html` (18 today) in **both** editions | 9 `article:` regions of `blog-artikel.html` and `en/blog-artikel.html` |
+| 4 | `build-articles.py` | `beitrag-<slug>.html` (18 today) in **both** editions | 10 `article:` regions of `blog-artikel.html` and `en/blog-artikel.html`, including optional webinar registration from `content/webinar.json` |
 | 5 | `build-stellen.py` | `stelle-<slug>.html` (4 today) in **both** editions | 10 `stelle:` regions of `karriere-stelle.html` and `en/karriere-stelle.html` |
 | 6 | `build-site.py` | the 86 shipped pages — 43 German, 43 English. 18 per edition at the root, the other 25 under `blog/`, `stellen/` and `news/thema/` | nothing; four textual edits and no template |
 | 7 | `build-og-plates.py` | `assets/og/<route>.png` — one 1200 × 630 share plate per route, 12 today, drawn from the route's own signet | nothing; it renders rasters with `scripts/og-plate/` |

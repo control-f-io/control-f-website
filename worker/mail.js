@@ -27,6 +27,7 @@
    dass dann auch nichts davon erhoben wird. */
 
 import { DETAIL_FIELDS, FIELD_LABELS } from "./validate.js";
+import webinar from "../content/webinar.json";
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
@@ -141,6 +142,31 @@ export async function sendEnquiry(values, env, source) {
     replyTo: values.email,
     subject: subjectFor(values),
     text: bodyFor(values, source),
+  });
+}
+
+export async function sendWebinarRegistration(values, env, source) {
+  const to = env.WEBINAR_TO || env.CONTACT_TO;
+  if (!env.RESEND_API_KEY || !env.CONTACT_FROM || !to) {
+    throw new Error("Webinar-Mailversand nicht konfiguriert");
+  }
+  const lines = [
+    `Webinar:      ${webinar.title}`,
+    `Termin:       ${webinar.when.de}`,
+    `Veranstaltung: ${webinar.id}`,
+    "",
+    `Name:         ${values.name}`,
+    `E-Mail:       ${values.email}`,
+  ];
+  if (values.company) lines.push(`Unternehmen:  ${values.company}`);
+  lines.push("", "Bitte den Einladungslink an die angemeldete Person senden.",
+    "", "--", `Gesendet über die Webinar-Anmeldung auf ${source}`);
+  await sendViaResend(env, {
+    from: env.CONTACT_FROM,
+    to,
+    replyTo: values.email,
+    subject: `Webinar wurde gebucht: ${webinar.title} — ${values.name}`,
+    text: lines.join("\n"),
   });
 }
 

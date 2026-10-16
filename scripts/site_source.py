@@ -42,7 +42,7 @@ def footer_for(path):
     edition = 'en/' if path.parent.name == 'en' else ''
     text = (PARTIALS / edition / 'footer.html').read_text(encoding='utf-8')
     name = path.name
-    section = ('news' if name.startswith(('beitrag-', 'news-thema')) else
+    section = ('news' if name.startswith(('beitrag-', 'news-thema')) or name == 'webinar-danke.html' else
                'karriere' if name.startswith(('stelle-', 'karriere-')) else
                'suche' if name == 'suche-leer.html' else
                'kontakt' if name == 'kontakt-danke.html' else None)

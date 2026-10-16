@@ -27,7 +27,7 @@ script writes the page. Nothing else has to change.
 THE FURNITURE IS NOT COPIED, IT IS READ. blog-artikel.html is the specimen of
 the reading surface and it is written by hand, with figures, a plot, a table
 and a pull quote that the markdown a post is written in cannot express. This
-script reads that file and replaces the nine regions fenced by `article:…`
+script reads that file and replaces the ten regions fenced by `article:…`
 comments — the title, the byline, the text, the contents rail, what follows.
 Everything outside those fences comes through untouched: the head, the consent
 banner, the navigation, the article grid, the footer. A change to the reading
@@ -95,6 +95,7 @@ KIND = {"de": "Beitrag", "en": "Post"}
 READ = {"de": "%s Min. Lesezeit", "en": "%s min read"}
 CONTENTS = {"de": "Inhalt", "en": "Contents"}
 MORE = {"de": "%d von %d", "en": "%d of %d"}
+WEBINAR = json.loads((ROOT / "content" / "webinar.json").read_text(encoding="utf-8"))
 
 # WHO WROTE IT. The archive carries an author's name and nothing else, and the
 # name gets the job title ueber-uns.html shows for the same person from
@@ -605,8 +606,73 @@ def related(post, posts, edition, total, pad):
 
 # --------------------------------------------------------------------------
 
+def registration(post, edition, name, pad):
+    """Only the configured webinar gets a form; Notion syncs leave this config intact."""
+    if post["file"] != WEBINAR["post"]:
+        return ""
+    # Read the destination origin from the existing form so a host cutover
+    # cannot leave registrations pointing at a different Worker.
+    contact = (PATTERNS / "kontakt.html").read_text(encoding="utf-8")
+    match = re.search(r'action="(https://[^/" ]+)/kontakt.html#fehler"', contact)
+    origin = match.group(1) if match else ""
+    action = origin + "/" + og_meta.address(name, edition) + "#fehler"
+    copy = {
+        "de": {
+            "heading": "Jetzt Webinar buchen",
+            "intro": "Melden Sie sich zum gemeinsamen Webinar von control-f und bbh an. Den Einladungslink senden wir Ihnen per E-Mail.",
+            "email": "E-Mail", "company": "Unternehmen", "optional": "(optional)",
+            "name_hint": "Vor- und Nachname",
+            "privacy": "Wir verwenden Ihre Angaben zur Organisation des Webinars und zum Versand des Einladungslinks. Weitere Informationen finden Sie in der",
+            "privacy_link": "Datenschutzerklärung", "submit": "Jetzt Webinar buchen",
+        },
+        "en": {
+            "heading": "Book the webinar now",
+            "intro": "Register for the joint webinar hosted by control-f and bbh. We will email you the invitation link.",
+            "email": "Email", "company": "Company", "optional": "(optional)",
+            "name_hint": "First and last name",
+            "privacy": "We use your details to organise the webinar and send you the invitation link. For more information, see our",
+            "privacy_link": "privacy policy", "submit": "Book the webinar now",
+        },
+    }[edition]
+    html = f'''<section class="cf-webinar stack flow-8" aria-labelledby="anmelden">
+  <div class="stack flow-6">
+    <h2 class="t-h3" id="anmelden">{copy["heading"]}</h2>
+    <p class="t-body-sm t-secondary"><time datetime="{WEBINAR["start"]}">{WEBINAR["when"][edition]}</time></p>
+    <p class="measure">{copy["intro"]}</p>
+  </div>
+  <form class="stack flow-8" method="post" action="{action}">
+    <div hidden aria-hidden="true">
+      <label for="f-website">Website</label>
+      <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off">
+    </div>
+    <div class="cf-field" data-field="name">
+      <label class="cf-field__label" for="f-name">Name</label>
+      <input class="cf-field__input" id="f-name" name="name" type="text" autocomplete="name"
+             placeholder="{copy["name_hint"]}" maxlength="120" required>
+    </div>
+    <div class="cf-field" data-field="email">
+      <label class="cf-field__label" for="f-mail">{copy["email"]}</label>
+      <input class="cf-field__input" id="f-mail" name="email" type="email" autocomplete="email"
+             placeholder="name@unternehmen.de" maxlength="200" required>
+    </div>
+    <div class="cf-field" data-field="company">
+      <label class="cf-field__label" for="f-firma">{copy["company"]} <span class="cf-field__optional">{copy["optional"]}</span></label>
+      <input class="cf-field__input" id="f-firma" name="company" type="text" autocomplete="organization" maxlength="160">
+    </div>
+    <p class="cf-field__hint measure">{copy["privacy"]} <a href="datenschutz.html">{copy["privacy_link"]}</a>.</p>
+    <div>
+      <button class="cf-btn cf-btn--primary" type="submit">
+        {copy["submit"]}
+        <svg class="cf-arrow" aria-hidden="true"><use href="#cf-arrow"></use></svg>
+      </button>
+    </div>
+  </form>
+</section>'''
+    return textwrap.indent(html, pad)
+
+
 def page(template, post, posts, edition, total, name):
-    """One edition of one post: the specimen with nine regions replaced."""
+    """One edition of one post: the specimen with ten regions replaced."""
     bs = post["text_de"] if edition == "de" else post["text_en"]
     where = ("design-system/patterns/%s" if edition == "de"
              else "design-system/patterns/en/%s") % SPECIMEN
@@ -621,6 +687,7 @@ def page(template, post, posts, edition, total, name):
             ("rail", lambda pad: rail(bs, edition, pad)),
             ("byline", lambda pad: byline(post, pad)),
             ("prose", lambda pad: prose(bs, edition, pad)),
+            ("registration", lambda pad: registration(post, edition, name, pad)),
             ("tail", lambda pad: tags(post, edition, pad)),
             ("related", lambda pad: related(post, posts, edition, total, pad))):
         doc = splice(doc, region, body, where)
