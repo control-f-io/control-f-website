@@ -108,7 +108,7 @@ async function sendViaResend(env, { from, to, replyTo, subject, text, attachment
     },
     body: JSON.stringify({
       from,
-      to: [to],
+      to: Array.isArray(to) ? to : [to],
       /* Antworten geht an den Absender der Anfrage, nicht an das Postfach,
          aus dem die Benachrichtigung kam. Ein Klick auf "Antworten" trifft
          damit den Menschen, der geschrieben hat. */
@@ -146,8 +146,9 @@ export async function sendEnquiry(values, env, source) {
 }
 
 export async function sendWebinarRegistration(values, env, source) {
-  const to = env.WEBINAR_TO || env.CONTACT_TO;
-  if (!env.RESEND_API_KEY || !env.CONTACT_FROM || !to) {
+  const to = (env.WEBINAR_TO || env.CONTACT_TO || "")
+    .split(",").map((address) => address.trim()).filter(Boolean);
+  if (!env.RESEND_API_KEY || !env.CONTACT_FROM || to.length === 0) {
     throw new Error("Webinar-Mailversand nicht konfiguriert");
   }
   const lines = [

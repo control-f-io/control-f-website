@@ -8,6 +8,10 @@ import { pathToFileURL } from "node:url";
 import { validate } from "../worker/webinar.js";
 
 const event = JSON.parse(await readFile(new URL("../content/webinar.json", import.meta.url)));
+const config = await readFile(new URL("../wrangler.toml", import.meta.url), "utf8");
+const bookingRecipients = config.match(/^WEBINAR_TO = "([^"]+)"/m)?.[1];
+assert.deepEqual(bookingRecipients?.split(",").map(address => address.trim()),
+  ["sebastian@control-f.io", "info@control-f.io"]);
 const worker = (await import(pathToFileURL(process.argv[2]).href)).default;
 const path = "/blog/webinar-wenn-sie-ihre-daten-nicht-nutzen-laeuft-.html";
 const valid = { name: "Erika Muster", email: "erika@example.test", company: "Beispiel GmbH" };
@@ -36,7 +40,7 @@ const env = {
   RESEND_API_KEY: "test-key",
   CONTACT_FROM: "Form <form@example.test>",
   CONTACT_TO: "contact@example.test",
-  WEBINAR_TO: "webinar@example.test",
+  WEBINAR_TO: "webinar@example.test, info@example.test",
   SITE_ORIGIN: "https://site.example.test",
   ASSETS: { fetch: async () => new Response("asset") },
 };
@@ -51,7 +55,7 @@ try {
     assert.equal(response.headers.get("location"), `${env.SITE_ORIGIN}${prefix}/webinar-danke.html`);
     assert.equal(response.headers.get("cache-control"), "no-store");
     const message = sent.at(-1);
-    assert.deepEqual(message.to, [env.WEBINAR_TO]);
+    assert.deepEqual(message.to, ["webinar@example.test", "info@example.test"]);
     assert.equal(message.reply_to, valid.email);
     assert.match(message.subject, /^Webinar wurde gebucht:/);
     for (const value of [valid.name, valid.email, valid.company, event.id, event.when.de]) {
@@ -64,6 +68,10 @@ try {
     assert.equal(sent.length, count);
   }
   await worker.fetch(request(path, valid), { ...env, WEBINAR_TO: undefined }, {});
+  assert.deepEqual(sent.at(-1).to, [env.CONTACT_TO]);
+  await worker.fetch(request(path, valid), { ...env, WEBINAR_TO: "webinar@example.test" }, {});
+  assert.deepEqual(sent.at(-1).to, ["webinar@example.test"]);
+  await worker.fetch(request("/kontakt.html", { ...valid, message: "Contact form delivery check." }), env, {});
   assert.deepEqual(sent.at(-1).to, [env.CONTACT_TO]);
   const limited = await worker.fetch(request(path), {
     ...env, CONTACT_RATE_LIMIT: { limit: async () => ({ success: false }) },
