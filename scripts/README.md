@@ -56,8 +56,8 @@ most.
 The webinar form is configured in `content/webinar.json`, separately from the
 Notion-imported article so the hourly sync preserves it. `build-articles.py`
 adds it only to that post, in both languages. The Worker validates the booking
-and emails `WEBINAR_TO` (or `CONTACT_TO` when unset); the team then sends the
-invitation link. Update the matching routes in `worker/index.js`,
+and emails the comma-separated recipients in `WEBINAR_TO` (or `CONTACT_TO`
+when unset); the team then sends the invitation link. Update the matching routes in `worker/index.js`,
 `wrangler.toml` and `check-form-contract.py` if the article's address changes.
 
 To test notification delivery without sending real mail:
