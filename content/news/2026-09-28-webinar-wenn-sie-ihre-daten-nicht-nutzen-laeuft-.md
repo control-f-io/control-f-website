@@ -50,8 +50,6 @@ Nach einem kurzen Auftakt zur Ausgangslage übernimmt bbh die rechtliche Einordn
 
 Bringen Sie idealerweise eine konkrete Anlage und einen konkreten Anwendungsfall aus Ihrem Betrieb mit. Wer möchte, kann daraus im Anschluss einen individuellen Deep Dive mit control-f und bbh machen, in dem Datenanspruch, technische Machbarkeit und wirtschaftlicher Hebel für die eigene Anlage zusammengeführt werden.
 
-**Melden Sie sich mit einer einfachen E-Mail an **[**sebastian@control-f.io**](mailto:sebastian@control-f.io)** für das Webinar an. Wir senden Ihnen dann den Einladungslink.**
-
 --- en ---
 
 A wind turbine, battery storage system or gas turbine produces data during every hour of operation that shows exactly how the asset is performing. Yet much of this information never reaches the people who need it most: the operators themselves. On 20 November 2026, we will be exploring this topic in a joint webinar with the renowned law firm bbh.
@@ -97,7 +95,5 @@ After a brief introduction to the situation, bbh will provide the legal classifi
 ## Register now
 
 Ideally, bring a specific asset and a specific use case from your operations. Anyone interested can follow up with an individual deep dive with control-f and bbh, bringing together the data entitlement, technical feasibility and economic potential for their own asset.
-
-**To register for the webinar, simply email **[**sebastian@control-f.io**](mailto:sebastian@control-f.io)**. We will then send you the invitation link.**
 
 Kategorie / Category: [Blogposts](https://www.control-f.io/blog/categories/blogposts)
