@@ -4,8 +4,8 @@ area:       Analytics
 bild:       jobs/machine-learning-engineer-f4bb27b4.png
 titel:      {Machine Learning Engineer} (m/w/d)
 title:      Machine Learning Engineer (m/f/d)
-anriss:     Modelle für Zustandsüberwachung und vorausschauende Wartung — von der ersten Hypothese bis in den Betrieb, inklusive der Frage, wie man ihnen später ansieht, dass sie noch stimmen.
-excerpt:    Models for condition monitoring and predictive maintenance — from the first hypothesis into operation, including the question of how you later tell that they still hold.
+anriss:     Du entwickelst Machine-Learning-Modelle für Zustandsüberwachung und vorausschauende Wartung auf Basis industrieller Zeitreihen. Gemeinsam mit Data Engineering und den Fachleuten aus dem Anlagenbetrieb bringst Du zuverlässige Lösungen von der ersten Analyse bis in den produktiven Einsatz.
+excerpt:    Develop machine learning models for condition monitoring and predictive maintenance using industrial time series. Work with data engineers and domain experts to deliver reliable solutions—from initial analysis to deployment and ongoing operation.
 standort:   Konstanz, hybrid
 location:   Konstanz, hybrid
 anstellung: Festanstellung
@@ -21,84 +21,104 @@ gehalt_bis: 80000
 art:        FULL_TIME
 seit:       2026-07-06
 
-Die Modelle, die bei uns in Betrieb gehen, laufen auf Anlagendaten aus dem echten Betrieb: Pressen, Trockner, Windparks, Flotten. Das heißt Zeitreihen mit Lücken, Sensoren, die driften, und Betriebszustände, die im Datensatz nicht beschriftet sind. Sie bauen darauf Zustandsüberwachung und vorausschauende Wartung — von der ersten Hypothese bis zu dem Punkt, an dem jemand im Leitstand danach handelt.
+Als Machine Learning Engineer entwickelst Du Modelle für die Zustandsüberwachung und vorausschauende Wartung industrieller Anlagen. Du arbeitest mit Zeitreihen aus dem realen Betrieb – unter anderem von Pressen, Trocknern, Windparks und Flotten – und berücksichtigst dabei unvollständige Messreihen, Sensordrift und nicht vollständig gekennzeichnete Betriebszustände.
 
-Der schwierige Teil kommt nach dem ersten guten Ergebnis. Ein Modell, das auf historischen Daten überzeugt, muss im Betrieb überwacht werden: Wir wollen jederzeit sagen können, ob es noch stimmt, und woran man das sieht. Was Sie bauen, betreiben Sie mit — es gibt hier kein Team, das Ihre Modelle übernimmt, wenn sie einmal laufen.
+Du begleitest den gesamten Lebenszyklus Deiner Modelle: von der Datenanalyse und der Entwicklung geeigneter Verfahren über die Validierung bis zum produktiven Einsatz und zur laufenden Überwachung. Dabei arbeitest Du eng mit dem Data Engineering und den Fachleuten aus dem Anlagenbetrieb zusammen, um technische Zusammenhänge zu verstehen und belastbare, praxisgerechte Lösungen zu entwickeln.
 
-Sie arbeiten eng mit den Kolleginnen und Kollegen aus dem Data Engineering am selben Datenmodell. Die Frage, was ein Signal bedeutet, wird bei uns gemeinsam beantwortet und nicht per Ticket weitergereicht.
+## Deine Aufgaben
 
-## Was Sie tun
+- Machine-Learning-Modelle für Zustandsüberwachung, Anomalieerkennung und vorausschauende Wartung auf industriellen Zeitreihen entwickeln.
 
-- Zustandsüberwachung und Anomalieerkennung auf Zeitreihen aus dem Anlagenbetrieb — mit dem Wissen, dass ein fehlender Messwert, ein eingefrorener Sensor und ein echter Ausreißer drei verschiedene Dinge sind.
+- Sensordaten analysieren und Datenqualitätsprobleme wie fehlende Messwerte, eingefrorene Sensorsignale und tatsächliche Anomalien systematisch unterscheiden.
 
-- Modelle für vorausschauende Wartung, gemeinsam mit den Menschen, die die Anlage kennen. Deren Erfahrung ist das Label, das im Datensatz fehlt.
+- Gemeinsam mit Fachleuten aus dem Anlagenbetrieb relevante Betriebszustände, Fehlerbilder und Bewertungskriterien erarbeiten.
 
-- Die Frage der Belastbarkeit vor der Frage der Genauigkeit: Welche Fehlalarmrate hält ein Betrieb aus, und was kostet ein übersehener Fall?
+- Geeignete Validierungsverfahren für Zeitreihen anwenden und Modelle hinsichtlich Robustheit, Fehlalarmrate und der Auswirkungen übersehener Fehler bewerten.
 
-- Modelle in den Betrieb bringen und dort beobachten — Drift, Datenqualität, Nachtrainieren, und eine Kennzahl, an der man den Verfall sieht, bevor der Kunde ihn sieht.
+- Modelle in den produktiven Betrieb überführen und ihre Leistungsfähigkeit durch Monitoring von Datenqualität, Drift und Modellgüte kontinuierlich überprüfen.
 
-- Ergebnisse so aufschreiben, dass sie nachvollziehbar sind. Ein Modell, dessen Aussage niemand prüfen kann, wird im Betrieb nicht benutzt.
+- Nachtraining und Modellanpassungen bei veränderten Daten oder Betriebsbedingungen umsetzen und Verantwortung für den laufenden Betrieb übernehmen.
 
-## Was notwendig ist
+- Methoden, Ergebnisse und technische Entscheidungen nachvollziehbar dokumentieren und für technische sowie betriebliche Ansprechpartner verständlich aufbereiten.
 
-- Mehrere Jahre angewandte Erfahrung mit maschinellem Lernen auf realen Daten, nicht nur auf Wettbewerbsdatensätzen.
+## Dein Profil
 
-- Python auf einem Niveau, auf dem Sie fremden Code aufräumen; sicher im Umgang mit den üblichen Bibliotheken für Zeitreihen und Modellierung.
+- Abgeschlossenes Studium (Bachelor, Master oder Promotion) in Physik, Mathematik, Ingenieurwissenschaften, Informatik oder einem verwandten Fach.
 
-- Ein belastbares Verständnis von Validierung: Warum ein zufälliger Split bei Zeitreihen die falsche Antwort gibt, und was stattdessen zu tun ist.
+- Mehrjährige praktische Erfahrung in der Anwendung von Machine Learning auf reale Datensätze.
 
-- Die Bereitschaft, Modelle auch zu betreiben — Deployment, Überwachung, Bereitschaft für den Fall, dass etwas kippt.
+- Fundierte Kenntnisse in Python und den gängigen Bibliotheken für Zeitreihenanalyse und maschinelles Lernen sowie die Fähigkeit, bestehenden Code strukturiert weiterzuentwickeln.
 
-- Deutsch für die Abstimmung mit dem Betrieb, Englisch für die Dokumentation.
+- Sicheres Verständnis geeigneter Validierungsverfahren für zeitabhängige Daten und der Vermeidung von Data Leakage.
 
-## Was hilft und keine Bedingung ist
+- Fähigkeit, Modelle nicht nur anhand ihrer Vorhersagegüte, sondern auch im Hinblick auf ihre Zuverlässigkeit und ihren betrieblichen Nutzen zu beurteilen.
 
-- Erfahrung mit industrieller Sensorik, Anlagenphysik oder Instandhaltung. Wer sie nicht hat, bekommt sie beim ersten Projekt.
+- Bereitschaft, den gesamten Modelllebenszyklus zu verantworten – einschließlich Deployment, Monitoring und der Bearbeitung von Störungen im Betrieb.
 
-- Kausale Inferenz, Unsicherheitsschätzung, Bayes'sche Verfahren — überall dort nützlich, wo eine Punktvorhersage zu wenig ist.
+- Analytische Denkweise, klare Kommunikation und Freude an der Zusammenarbeit mit Data Engineering und Fachleuten aus dem Anlagenbetrieb.
 
-- Erfahrung mit MLOps-Werkzeugen, oder die Neugier, unsere zu verbessern.
+- Deutschkenntnisse für die Abstimmung mit dem Anlagenbetrieb und Englischkenntnisse für die technische Dokumentation.
 
-- Ein Promotionshintergrund. Wir haben im Team beides und die Arbeit unterscheidet sich nicht danach.
+## Zusätzliche Qualifikationen
+
+Die folgenden Erfahrungen sind hilfreich, aber keine Voraussetzung:
+
+- Kenntnisse in industrieller Sensorik, Anlagenphysik oder Instandhaltung.
+
+- Erfahrung mit kausaler Inferenz, Unsicherheitsschätzung oder bayesschen Verfahren.
+
+- Erfahrung mit MLOps-Werkzeugen und Interesse an der Weiterentwicklung von Deployment- und Monitoring-Prozessen.
+
+- Eine Promotion mit Bezug zum Aufgabenbereich.
 
 --- en ---
 
-The models we put into operation run on plant data from real operation: presses, dryers, wind farms, fleets. That means time series with gaps, sensors that drift, and operating states nobody labelled in the data set. On top of that you build condition monitoring and predictive maintenance — from the first hypothesis to the point where somebody in the control room acts on it.
+As a Machine Learning Engineer, you will develop models for condition monitoring and predictive maintenance of industrial equipment. You will work with time series from real-world operations—including presses, dryers, wind farms and fleets—addressing incomplete measurements, sensor drift and operating states that are not fully labelled.
 
-The hard part comes after the first good result. A model that convinces on historical data has to be watched in operation: we want to be able to say at any time whether it still holds, and how you can tell. What you build, you help operate — there is no team here that takes your models off you once they run.
+You will contribute across the full model lifecycle, from data analysis and method development to validation, production deployment and ongoing monitoring. Working closely with data engineers and domain experts, you will translate an understanding of equipment and operational requirements into reliable, practical solutions.
 
-You work closely with the data engineering colleagues on the same data model. The question of what a signal means is answered together here, not passed along in a ticket.
+## Your responsibilities
 
-## What you do
+- Develop machine learning models for condition monitoring, anomaly detection and predictive maintenance using industrial time series.
 
-- Condition monitoring and anomaly detection on time series from plant operation — knowing that a missing reading, a frozen sensor and a real outlier are three different things.
+- Analyse sensor data and systematically distinguish data quality issues, such as missing readings and frozen sensor signals, from genuine anomalies.
 
-- Models for predictive maintenance, together with the people who know the machine. Their experience is the label the data set is missing.
+- Work with domain experts to define relevant operating states, failure patterns and evaluation criteria.
 
-- The question of robustness before the question of accuracy: what false-alarm rate can an operation live with, and what does a missed case cost?
+- Apply appropriate time-series validation methods and evaluate models for robustness, false-alarm rates and the consequences of missed failures.
 
-- Taking models into operation and watching them there — drift, data quality, retraining, and a measure that shows decay before the customer sees it.
+- Deploy models to production and continuously assess their performance by monitoring data quality, drift and model metrics.
 
-- Writing results up so they can be followed. A model whose claim nobody can check does not get used in operation.
+- Retrain and adapt models as data or operating conditions change, taking responsibility for their ongoing operation.
 
-## What is required
+- Clearly document methods, results and technical decisions, making them accessible to technical and operational stakeholders.
 
-- Several years of applied machine learning on real data, not only on competition data sets.
+## Your qualifications
 
-- Python at a level where you tidy up other people's code; confident with the usual libraries for time series and modelling.
+- A Bachelor's, Master's or PhD in Physics, Mathematics, Engineering, Computer Science or a related field.
 
-- A solid grasp of validation: why a random split gives the wrong answer on time series, and what to do instead.
+- Several years of practical experience applying machine learning to real-world datasets.
 
-- A willingness to operate models as well — deployment, monitoring, being on hand when something tips over.
+- Strong Python skills and familiarity with common time-series analysis and machine learning libraries, including the ability to maintain and improve existing code.
 
-- German for talking to operations, English for the documentation.
+- A solid understanding of validation methods for time-dependent data and how to prevent data leakage.
 
-## What helps and is not a condition
+- Ability to evaluate models not only for predictive performance, but also for reliability and operational value.
 
-- Experience with industrial sensors, plant physics or maintenance. Anyone without it picks it up on the first project.
+- Willingness to take responsibility across the full model lifecycle, including deployment, monitoring and resolving production issues.
 
-- Causal inference, uncertainty estimation, Bayesian methods — useful wherever a point prediction is not enough.
+- Strong analytical thinking, clear communication and a collaborative approach to working with data engineers and operational domain experts.
 
-- Experience with MLOps tooling, or the curiosity to improve ours.
+- German language skills for collaboration with operations teams and English language skills for technical documentation.
 
-- A doctorate. We have both in the team and the work does not differ by it.
+## Additional qualifications
+
+The following experience is beneficial, but not required:
+
+- Knowledge of industrial sensors, equipment physics or maintenance.
+
+- Experience with causal inference, uncertainty estimation or Bayesian methods.
+
+- Experience with MLOps tooling and an interest in improving deployment and monitoring processes.
+
+- A PhD in a relevant field.
