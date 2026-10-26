@@ -312,7 +312,14 @@ def derived(jobs):
             pairs[job[de]] = job[en]
     pairs["%d offene %s" % (len(jobs), "Stelle" if len(jobs) == 1 else "Stellen")] = \
         "%d open %s" % (len(jobs), "position" if len(jobs) == 1 else "positions")
-    return pairs
+    # ESCAPED, BECAUSE THE KEY IS THE PAGE'S TEXT AND NOT THE FILE'S. entries()
+    # writes every field through esc(), and build-i18n.py looks up the run as
+    # the markup has it — so "Azure, Terraform & Databricks" is "&amp;" on the
+    # page and has to be "&amp;" here, the way the hand-written entries already
+    # are ("Energie &amp; Compliance"). The English value is spliced into that
+    # same markup, so it is escaped too. Unescaped, the first title with an
+    # ampersand in it stopped the Notion sync at UNTRANSLATED on 2026-10-26.
+    return {esc(k): esc(v) for k, v in pairs.items()}
 
 
 def strings_used_elsewhere():
