@@ -20,7 +20,6 @@ gehalt_von: 65000
 gehalt_bis: 80000
 art:        FULL_TIME
 seit:       2026-07-06
-frist:      2026-09-30
 
 Die Modelle, die bei uns in Betrieb gehen, laufen auf Anlagendaten aus dem echten Betrieb: Pressen, Trockner, Windparks, Flotten. Das heißt Zeitreihen mit Lücken, Sensoren, die driften, und Betriebszustände, die im Datensatz nicht beschriftet sind. Sie bauen darauf Zustandsüberwachung und vorausschauende Wartung — von der ersten Hypothese bis zu dem Punkt, an dem jemand im Leitstand danach handelt.
 

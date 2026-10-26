@@ -16,7 +16,6 @@ start:      ab sofort
 starts:     immediately
 art:        FULL_TIME
 seit:       2026-08-14
-frist:      2027-08-14
 
 Mit KI und Daten die Energiewende vorantreiben, Maschinen effizienter machen und dazu beitragen, dass wir Erneuerbare Energien besser nutzen? Dann bringst Du das richtige Mindset mit zu Control-F, unserer Full-Remote-Datenboutique, die für Weltmarktführer und Mittelständler arbeitet.
 

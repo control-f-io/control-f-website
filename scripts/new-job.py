@@ -88,7 +88,7 @@ FIELDS = (
     ("gehalt_bis", None, "optional. A number."),
     ("art",        None, "optional. FULL_TIME, PART_TIME — the JobPosting employmentType."),
     ("seit",       None, "required, YYYY-MM-DD. Sorts the register, newest first."),
-    ("frist",      None, "with-an-ad. The closing date the Stelle page states."),
+    ("frist",      None, "optional, YYYY-MM-DD. Omit for an ongoing opening."),
 )
 
 WIDTH = max(len(name) for name, _, _ in FIELDS) + 2
@@ -179,8 +179,8 @@ def main():
 
     if args.text:
         print("\n  It has an advertisement, so it gets a Stelle page in both "
-              "editions.\n  `frist:` is required once it does — the page states "
-              "a closing date.")
+              "editions.\n  Leave `frist:` empty to keep the opening online "
+              "without a closing date.")
     else:
         print("\n  It has no advertisement, so its register entry links to its "
               "own row\n  rather than to a page. Write the two-language body "
