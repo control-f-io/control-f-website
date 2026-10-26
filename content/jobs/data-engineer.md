@@ -4,8 +4,8 @@ area:       Platform
 bild:       jobs/data-engineer-e5d5c643.png
 titel:      {Data Engineer} (m/w/d)
 title:      Data Engineer (m/f/d)
-anriss:     Sie bauen die Strecken, auf denen Anlagendaten ankommen: Anbindung, Modellierung, Qualitätssicherung. Ohne dieses Fundament ist jede Auswertung darüber geraten.
-excerpt:    You build the routes along which plant data arrives: connection, modelling, quality assurance. Without that foundation, every analysis on top of it is guesswork.
+anriss:     Du entwickelst skalierbare Datenpipelines und effiziente Algorithmen für große Datenmengen. Mit Databricks, PySpark und Python arbeitest Du im Team mit Entwicklerinnen, Entwicklern und Engineers an zuverlässigen Datenlösungen.
+excerpt:    Develop scalable data pipelines and efficient algorithms for large datasets. Work with Databricks, PySpark and Python as part of a team of developers and engineers to deliver reliable data solutions.
 standort:   Konstanz, hybrid
 location:   Konstanz, hybrid
 anstellung: Festanstellung
@@ -23,76 +23,76 @@ gehalt_bis: 80000
 art:        FULL_TIME, PART_TIME
 seit:       2026-07-06
 
-Die Daten, mit denen wir arbeiten, liegen fast immer schon vor — nur eben in einer Steuerung von 2004, in einem OPC-UA-Server, den seit der Abnahme niemand angefasst hat, und in einer CSV-Ablage auf einem Netzlaufwerk. Sie bauen die Strecke dazwischen: Anbindung, Modellierung, Qualitätssicherung, bis eine Zahl, die im Betrieb gilt, auch in der Plattform gilt.
+Als Data Engineer entwickelst Du leistungsfähige Datenpipelines und effiziente Algorithmen für die Verarbeitung und Analyse großer Datenmengen. Mit Databricks, PySpark und Python schaffst Du zuverlässige, skalierbare Lösungen – von der Integration und Transformation der Rohdaten bis zur Bereitstellung strukturierter Daten für weiterführende Analysen.
 
-Das ist keine Arbeit an einem Referenzdatensatz. Wenn wir eine Anlage aufnehmen, fahren Sie mit — weil die Frage, was ein Signal bedeutet, in der Halle beantwortet wird und nicht im Datenblatt. Was Sie danach bauen, betreiben Sie auch: Es gibt hier kein Team, das Ihre Pipelines übernimmt, wenn sie einmal laufen.
+Du arbeitest eng mit einem Team aus Entwicklerinnen, Entwicklern und Engineers zusammen. Gemeinsam übersetzt Ihr fachliche und technische Anforderungen in wartbare Datenlösungen und entwickelt bestehende Verfahren kontinuierlich weiter.
 
-Sie kommen in eine Plattform, die es gibt, und in Strecken, die laufen. In den ersten Wochen übernehmen Sie eine bestehende Anbindung, danach die nächste Anlage von der ersten Messung an.
+## Deine Aufgaben
 
-## Was Sie tun
+- Skalierbare Datenpipelines in Databricks konzipieren, implementieren und betreiben.
 
-- Anlagen anbinden: OPC UA, Modbus, MQTT, und den Rest, der als Datei kommt. Pro Anbindung eine Entscheidung darüber, was von der Anlage überhaupt gelesen werden muss.
+- Große, komplexe Datensätze mit PySpark und Python verarbeiten, transformieren und analysieren.
 
-- Datenmodelle bauen, die eine Anlage beschreiben und nicht eine Tabelle: Signale, Aggregate, Zustände — versioniert, damit eine Auswertung von letztem Jahr auch nächstes Jahr dasselbe bedeutet.
+- Effiziente Algorithmen zur Datenverarbeitung und Analyse entwickeln und für den Einsatz auf großen Datenmengen optimieren.
 
-- Qualität messbar machen. Ein fehlender Messwert, ein eingefrorener Sensor und ein umgestellter Skalierungsfaktor sehen in der Datenbank gleich aus und sind drei verschiedene Vorfälle.
+- Verteilte Verarbeitungsprozesse hinsichtlich Laufzeit, Ressourcenverbrauch und Zuverlässigkeit optimieren.
 
-- Die Strecken betreiben: Orchestrierung, Alarmierung, Nachlauf nach einem Ausfall. Was nachts abbricht, muss morgens ohne Handarbeit vollständig sein.
+- Datenqualität durch Validierung, automatisierte Tests und Monitoring sicherstellen.
 
-- Mit den Kolleginnen und Kollegen aus der Analytik am selben Modell arbeiten — sie sind die ersten, die merken, wenn eine Definition sich verschoben hat.
+- Gemeinsam mit Entwicklerinnen, Entwicklern und Engineers technische Lösungen entwerfen, Code Reviews durchführen und wiederverwendbare Komponenten entwickeln.
 
-## Was notwendig ist
+- Datenpipelines, Algorithmen und technische Entscheidungen nachvollziehbar dokumentieren.
 
-- Drei Jahre oder mehr an Datenstrecken im Betrieb, nicht nur im Projekt.
+## Dein Profil
 
-- Python auf einem Niveau, auf dem Sie Code von anderen aufräumen; SQL auf einem Niveau, auf dem Sie einen Abfrageplan lesen.
+- Abgeschlossenes Bachelor- oder Masterstudium oder eine Promotion in Ingenieurwissenschaften, Physik, Informatik oder Mathematik.
 
-- Erfahrung mit Zeitreihen und mit dem, was sie schwierig macht: Zeitzonen, Abtastraten, Nachträge, Lücken.
+- Fähigkeit, große Datenmengen strukturiert zu erschließen und geeignete Verfahren für deren effiziente Verarbeitung auszuwählen.
 
-- Deutsch für die Halle, Englisch für die Dokumentation.
+- Fundierte Kenntnisse in Python und PySpark sowie praktische Erfahrung mit Databricks.
 
-## Was hilft und keine Bedingung ist
+- Erfahrung in der Entwicklung von Datenpipelines und im Umgang mit verteilter Datenverarbeitung.
 
-- Industrieerfahrung — SPS, Leitsystem, Feldbus. Wer sie nicht hat, bekommt sie bei der ersten Anlage.
+- Fähigkeit, Algorithmen zu entwickeln, ihre Ergebnisse zu validieren und ihre Leistungsfähigkeit systematisch zu verbessern.
 
-- Kubernetes, Terraform, alles rund um den Betrieb der Plattform selbst.
+- Strukturierte Softwareentwicklung mit Versionskontrolle, automatisierten Tests und nachvollziehbarem, wartbarem Code.
 
-- Ein Studium. Wir haben im Team beides und die Arbeit unterscheidet sich nicht danach.
+- Analytische Denkweise, klare Kommunikation und Freude an der Zusammenarbeit in einem interdisziplinären technischen Team.
 
 --- en ---
 
-The data we work with is almost always there already — only in a controller from 2004, in an OPC UA server nobody has touched since commissioning, and in a CSV folder on a network drive. You build the route in between: connection, modelling, quality assurance, until a number that holds in operation also holds in the platform.
+As a Data Engineer, you will develop high-performance data pipelines and efficient algorithms for processing and analysing large datasets. Using Databricks, PySpark and Python, you will build reliable, scalable solutions—from integrating and transforming raw data to delivering structured datasets for further analysis.
 
-This is not work on a reference data set. When we take on a plant, you come along — because the question of what a signal means is answered in the hall and not in the data sheet. And what you build afterwards, you also operate: there is no team here that takes your pipelines off you once they run.
+You will work closely with a team of developers and engineers to translate business and technical requirements into maintainable data solutions and continuously improve existing approaches.
 
-You come into a platform that exists and routes that are running. In the first weeks you take over an existing connection, then the next plant from the first measurement on.
+## Your responsibilities
 
-## What you do
+- Design, implement and operate scalable data pipelines in Databricks.
 
-- Connecting plant: OPC UA, Modbus, MQTT, and the rest that arrives as a file. One decision per connection about what actually has to be read from the machine.
+- Process, transform and analyse large, complex datasets using PySpark and Python.
 
-- Building data models that describe a plant and not a table: signals, aggregates, states — versioned, so that an analysis from last year still means the same thing next year.
+- Develop efficient data processing and analytical algorithms, optimising them for large-scale datasets.
 
-- Making quality measurable. A missing reading, a frozen sensor and a changed scaling factor look the same in the database and are three different incidents.
+- Optimise distributed processing workloads for performance, resource efficiency and reliability.
 
-- Operating the routes: orchestration, alerting, catch-up after an outage. What breaks at night has to be complete in the morning without anyone touching it.
+- Ensure data quality through validation, automated testing and monitoring.
 
-- Working on the same model as the colleagues in analytics — they are the first to notice when a definition has shifted.
+- Collaborate with developers and engineers on technical design, code reviews and reusable components.
 
-## What is required
+- Maintain clear documentation of data pipelines, algorithms and technical decisions.
 
-- Three years or more of data routes in operation, not only in projects.
+## Your qualifications
 
-- Python at a level where you tidy up other people's code; SQL at a level where you read a query plan.
+- A bachelor's degree, master's degree or PhD in Engineering, Physics, Computer Science or Mathematics.
 
-- Experience with time series and with what makes them difficult: time zones, sampling rates, late arrivals, gaps.
+- Ability to understand large datasets and select appropriate methods for processing them efficiently.
 
-- German for the hall, English for the documentation.
+- Strong Python and PySpark skills, with practical experience using Databricks.
 
-## What helps and is not a condition
+- Experience building data pipelines and working with distributed data processing.
 
-- Industrial experience — PLC, control system, fieldbus. Anyone without it picks it up on the first plant.
+- Ability to develop algorithms, validate their results and systematically improve their performance.
 
-- Kubernetes, Terraform, everything around running the platform itself.
+- Sound software engineering practices, including version control, automated testing and clear, maintainable code.
 
-- A degree. We have both in the team and the work does not differ by it.
+- Strong analytical thinking, clear communication and a collaborative approach to working in an interdisciplinary technical team.
