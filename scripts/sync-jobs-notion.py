@@ -26,7 +26,7 @@ site ships twice, and the German name is the one the post files already use:
     Gehalt von / Gehalt bis  optional; the numbers the JobPosting block carries
     Beschäftigungsart        optional; FULL_TIME, PART_TIME, … for the same block
     Ausgeschrieben           the date, and datePosted
-    Frist                    optional; the closing date, and validThrough
+    Frist                    optional; blank means no expiration
     Status                   only "Veröffentlicht" is imported
     Titelbild                files; optional — the square at the register row.
                              The row is not drawn on the job page; it is drawn
@@ -93,7 +93,7 @@ NEWS = load("sync-news-notion")        # plain(), rich(), body_from(), children(
 
 # NOT NEWS.fail, WHICH IS WHERE EVERY ERROR THIS SCRIPT PRINTS CLAIMED TO COME
 # FROM. That function prefixes "sync-news: ", so a Stellen sync that stopped on a
-# missing Frist or a register it refused to empty reported it under the archive's
+# missing field or a register it refused to empty reported it under the archive's
 # name — in a workflow that runs both scripts one after the other, into one log.
 def fail(msg):
     print("sync-jobs: " + msg, file=sys.stderr)
@@ -168,14 +168,8 @@ def job_from(page, text="", bild=""):
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", got["seit"]):
         fail("%s has Ausgeschrieben %r, which is not a plain date."
              % (url, got["seit"]))
-    # Said here as well as in build-jobs.py, because this is where the person
-    # who wrote the advertisement is looking. An opening with text gets a page,
-    # a page carries a JobPosting block, and a block without validThrough stays
-    # in search results after the position is filled.
-    if text and not got["frist"]:
-        fail("%s has an advertisement and no Frist.\n"
-             "    Set a closing date, or leave the page empty and the opening "
-             "stays a listing in the register." % url)
+    # Frist is optional even with an advertisement. An opening without one
+    # stays published until its Status changes; the page omits validThrough.
 
     name = "%s.md" % slug(got["titel"])
     body = "\n".join("%-*s%s" % (WIDTH, f + ":", got[f]) for f, _ in FIELDS if got[f])

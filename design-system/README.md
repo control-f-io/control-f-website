@@ -256,13 +256,19 @@ adresse:    Am Seerhein 6, …         address   — optional, the long form
 verguetung: 58.000–72.000 € …        salary    — optional
 gehalt_von: 58000                    gehalt_bis: 72000    — optional, for the JobPosting
 art:        FULL_TIME, PART_TIME     — optional, schema.org's employmentType
-seit:       2026-07-06               frist: 2026-09-30    — datePosted, validThrough
+seit:       2026-07-06               — required, datePosted
+frist:      2026-09-30               — optional, validThrough; omit for ongoing openings
 ```
 
 **The braces in a title are not a typo.** `{Data Engineer} (m/w/d)` is two
 languages in one line: the braces mark the English run, so the German page wraps
 it in `lang="en"` and the English page drops them. WCAG 3.1.2, and the rule
 `karriere.html` has carried in a comment since it was written.
+
+**Leave Frist empty in Notion for an ongoing opening.** It stays online without
+an expiration date; both editions omit the closing-date row and `validThrough`.
+When hiring stops, change its Status from `Veröffentlicht` so the next sync
+removes the opening and its page.
 
 The text after the header is the advertisement, in both languages divided by
 `--- en ---`, in the same grammar a post uses: the paragraphs before the first

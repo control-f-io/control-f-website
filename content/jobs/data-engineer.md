@@ -22,7 +22,6 @@ gehalt_von: 65000
 gehalt_bis: 80000
 art:        FULL_TIME, PART_TIME
 seit:       2026-07-06
-frist:      2026-09-30
 
 Die Daten, mit denen wir arbeiten, liegen fast immer schon vor — nur eben in einer Steuerung von 2004, in einem OPC-UA-Server, den seit der Abnahme niemand angefasst hat, und in einer CSV-Ablage auf einem Netzlaufwerk. Sie bauen die Strecke dazwischen: Anbindung, Modellierung, Qualitätssicherung, bis eine Zahl, die im Betrieb gilt, auch in der Plattform gilt.
 

@@ -18,10 +18,12 @@ components/vacancy.html already states the whole rule, in prose, under
     /karriere/<rolle>, and EVERY FIELD IN IT HAS TO MATCH WHAT THE READER SEES
     ON THAT PAGE.
 
-    An opening with no `validThrough` stays live in search results after it is
-    filled.
+An ongoing opening omits `validThrough`. Google's job posting documentation
+explicitly permits this when the posting never expires or its end is unknown:
+https://developers.google.com/search/docs/appearance/structured-data/job-posting#valid-through
+When hiring stops, unpublish the opening in Notion so the sync removes its page.
 
-Three sentences, three things nothing enforced. And the drift they describe is
+The drift these rules describe is
 not hypothetical maintenance work — it is the ordinary life of a job page. A
 posting gets extended and someone edits the date the reader sees; the salary
 band moves and someone edits the row in the table; the role gets renamed in the
@@ -45,11 +47,10 @@ THE RULE, in five parts. Every .html under design-system/ is read.
                  own opening may not also appear in a register on it — a job
                  page that lists itself among the others is a listing page.
 
-  SIX FIELDS     title, description, datePosted, validThrough, jobLocation and
-                 hiringOrganization are all present. The list is the component
-                 page's, not this script's; `validThrough` is in it for the
-                 reason quoted above, and `datePosted` must not be later than
-                 it.
+  FIVE FIELDS    title, description, datePosted, jobLocation and
+                 hiringOrganization are all present. validThrough is optional
+                 for ongoing openings; when present, it must be a date on the
+                 page and must not precede datePosted.
 
   THE MATCH      Every field a reader could check appears in the rendered text
                  of the same page, with the same value:
@@ -97,8 +98,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 TREE = os.path.join(ROOT, "design-system")
 
-# The six the component page names. Order is the order it names them in.
-REQUIRED = ["title", "description", "datePosted", "validThrough",
+# An ongoing opening has no expiration date, so validThrough is optional.
+REQUIRED = ["title", "description", "datePosted",
             "jobLocation", "hiringOrganization"]
 
 # schema.org's employmentType values, and the German a reader would see for
@@ -319,7 +320,7 @@ def audit(paths):
                              "the page's own opening %r is also an entry in a "
                              "register on it — that is a listing page" % title))
 
-        # SIX FIELDS.
+        # REQUIRED FIELDS; validThrough is checked below only when present.
         for field in REQUIRED:
             if field not in posting or posting[field] in ("", None, [], {}):
                 findings.append((rel, line, "no %s" % field))

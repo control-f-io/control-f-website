@@ -16,7 +16,6 @@ start:      ab sofort
 starts:     immediately
 art:        PART_TIME
 seit:       2026-07-06
-frist:      2026-09-30
 
 Wir arbeiten an Datenplattformen, Auswertungen und Oberflächen für Betreiber von Anlagen und Netzen. Vieles davon ist Arbeit, die sich gut aufteilen lässt: eine Datenquelle anbinden, eine Auswertung nachrechnen, eine Ansicht bauen, eine Dokumentation schreiben, die jemand anders benutzen kann.
 

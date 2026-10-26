@@ -159,22 +159,8 @@ def read_jobs():
         # one is the row this page has always drawn; the layout does not reserve
         # a hole for a picture an opening may never have.
         job["bild"] = news.title_picture(job, path.name)
-        # A CLOSING DATE IS REQUIRED OF AN OPENING THAT HAS A PAGE, and it is
-        # not this repository's rule: components/vacancy.html states it and
-        # scripts/check-job-posting.py enforces it — "an opening with no
-        # validThrough stays live in search results after it is filled". The
-        # JobPosting block is only written for an opening with an
-        # advertisement, so that is exactly where the field becomes required.
-        # It is a date somebody chooses, never a default: a deadline this
-        # script invented would be a promise the company did not make.
-        if job["de"] and not job.get("frist"):
-            fail("%s has an advertisement and no `frist`.\n"
-                 "    Its page carries a JobPosting block, and a posting "
-                 "without a closing date stays in search results after the "
-                 "position is filled — components/vacancy.html's rule, which "
-                 "scripts/check-job-posting.py enforces.\n"
-                 "    Set Frist in Notion, or leave the page empty and the "
-                 "opening stays a listing." % path.name)
+        # No frist means an ongoing opening. build-stellen.py omits both the
+        # closing-date row and validThrough rather than inventing a deadline.
         out.append(job)
     if not out:
         fail("content/jobs/ is empty. karriere-leer.html is the page for that "
