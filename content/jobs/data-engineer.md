@@ -6,8 +6,8 @@ titel:      {Data Engineer} (m/w/d)
 title:      Data Engineer (m/f/d)
 anriss:     Du entwickelst skalierbare Datenpipelines und effiziente Algorithmen für große Datenmengen. Mit Databricks, PySpark und Python arbeitest Du im Team mit Entwicklerinnen, Entwicklern und Engineers an zuverlässigen Datenlösungen.
 excerpt:    Develop scalable data pipelines and efficient algorithms for large datasets. Work with Databricks, PySpark and Python as part of a team of developers and engineers to deliver reliable data solutions.
-standort:   Konstanz, hybrid
-location:   Konstanz, hybrid
+standort:   remote, hybrid, Konstanz, Berlin
+location:   remote, hybrid, Konstanz, Berlin
 anstellung: Festanstellung
 employment: Permanent employment
 umfang:     Voll- oder Teilzeit

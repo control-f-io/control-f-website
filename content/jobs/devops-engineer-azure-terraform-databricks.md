@@ -6,8 +6,8 @@ titel:      DevOps Engineer (m/w/d) – Azure, Terraform & Databricks
 title:      DevOps Engineer (m/f/d) – Azure, Terraform & Databricks
 anriss:     Entwickle und betreibe unsere Azure-basierte Datenplattform: mit Terraform, CI/CD in Azure DevOps und automatisierten Deployments für Azure Databricks.
 excerpt:    Build and operate our Azure-based data platform with Terraform, CI/CD in Azure DevOps, and automated deployments for Azure Databricks.
-standort:   Remote
-location:   Remote
+standort:   Remote, Hybrid, Konstanz, Berlin
+location:   Remote, Hybrid, Konstanz, Berlin
 anstellung: Festanstellung
 employment: Permanent employment
 umfang:     Vollzeit

@@ -6,7 +6,7 @@ titel:      Werkstudent (m/w/d)
 title:      Working Student (m/f/d)
 anriss:     Sie arbeiten an unseren Datenplattformen, Auswertungen und Oberflächen — wo Sie einsteigen, richtet sich nach dem, was Sie mitbringen. Python, SQL, HTML und CSS, so viel wie die Aufgabe verlangt.
 excerpt:    You work on our data platforms, analyses and interfaces — where you start depends on what you bring with you. Python, SQL, HTML and CSS, as much as the task requires.
-standort:   Konstanz
+standort:   Konstanz, Berlin, Remote
 location:   Konstanz
 anstellung: Werkstudium
 employment: Working student
