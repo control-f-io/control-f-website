@@ -6,8 +6,8 @@ titel:      {Machine Learning Engineer} (m/w/d)
 title:      Machine Learning Engineer (m/f/d)
 anriss:     Du entwickelst Machine-Learning-Modelle für Zustandsüberwachung und vorausschauende Wartung auf Basis industrieller Zeitreihen. Gemeinsam mit Data Engineering und den Fachleuten aus dem Anlagenbetrieb bringst Du zuverlässige Lösungen von der ersten Analyse bis in den produktiven Einsatz.
 excerpt:    Develop machine learning models for condition monitoring and predictive maintenance using industrial time series. Work with data engineers and domain experts to deliver reliable solutions—from initial analysis to deployment and ongoing operation.
-standort:   Konstanz, hybrid
-location:   Konstanz, hybrid
+standort:   remote, hybrid, Konstanz, Berlin
+location:   remote, hybrid, Konstanz, Berlin
 anstellung: Festanstellung
 employment: Permanent employment
 umfang:     Vollzeit
