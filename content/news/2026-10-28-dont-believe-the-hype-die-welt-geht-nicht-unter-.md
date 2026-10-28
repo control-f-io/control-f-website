@@ -2,7 +2,7 @@ datum:   2026-10-28
 autor:   Simon Deussen
 minuten: 5
 themen:  KI, Regulierung
-bild:    news/dont-believe-the-hype-die-welt-geht-nich-51c91974.png
+bild:    news/dont-believe-the-hype-die-welt-geht-nich-6ceed526.png
 titel:   Don’t believe the hype: Die Welt geht nicht unter – nicht durch KI
 title:   Don’t believe the hype: AI is not going to end the world
 
