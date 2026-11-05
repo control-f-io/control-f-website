@@ -1,8 +1,8 @@
 datum:   2026-11-03
 autor:   Pressestelle
 themen:  Energiewirtschaft, Netzbetrieb, Datenplattform, Regulierung
-bild:    news/was-waermenetze-aus-ihren-betriebsdaten-b7e7c0e8.png
-titel:   Was Wärmenetze aus ihren Betriebsdaten machen können
+bild:    news/wie-waermenetze-mit-betriebsdaten-optimi-b7e7c0e8.png
+titel:   Wie Wärmenetze mit Betriebsdaten optimiert werden können
 title:   Remote reading is not the same as analysis: why heat networks are becoming a data question
 
 Wärmenetze werden in den kommenden zwei Jahrzehnten deutlich wachsen. Das Öko-Institut und das Fraunhofer ISE haben im Projekt KOMpare rund 380 kommunale Wärmepläne aus etwa 940 Kommunen ausgewertet. Nach diesen Plänen soll der Anteil der Wärme, die über Netze geliefert wird, von heute rund 15 Prozent auf 38 Prozent im Jahr 2045 steigen. »Wärmepumpen und Wärmenetze bilden das Rückgrat der kommunalen Wärmewende«, sagt Marc Stobbe, Energieexperte am Öko-Institut.
