@@ -58,19 +58,21 @@ bestätigt.
 
 Hier gilt es, vier Ebenen zu unterscheiden.
 
-1. **Entsteht im Untergrund Wasserstoff? Ja, das ist gut belegt.** Die Prozesse sind bekannt und gemessen. Wasser reagiert mit eisenreichem Gestein, oder natürliche Strahlung spaltet Wassermoleküle. Eine Übersichtsarbeit von 2026 schätzt, dass jährlich 40 bis über 64 Millionen Tonnen Wasserstoff auf natürlichem, nicht biologischem Weg entstehen. Rund 27 Millionen Tonnen davon gehen allerdings auf einen Wert zurück, den die Autoren selbst als höchst unsicher und unbestätigt bezeichnen.
+**Entsteht im Untergrund Wasserstoff? Ja, das ist gut belegt.** Die Prozesse sind bekannt und gemessen. Wasser reagiert mit eisenreichem Gestein, oder natürliche Strahlung spaltet Wassermoleküle. Eine Übersichtsarbeit von 2026 schätzt, dass jährlich 40 bis über 64 Millionen Tonnen Wasserstoff auf natürlichem, nicht biologischem Weg entstehen. Rund 27 Millionen Tonnen davon gehen allerdings auf einen Wert zurück, den die Autoren selbst als höchst unsicher und unbestätigt bezeichnen.
 
-1. **Tritt er in messbaren Mengen aus? Ja, an mehreren Orten.** Zu den höchsten gemessenen Ausgasungsraten gehören mindestens 200 Tonnen Wasserstoff pro Jahr in den Stollen einer Chromitmine in Albanien. Hinzu kommen Austritte im Oman, in Kanada und auf den Philippinen. In Kansas haben alle drei 2025 gebohrten Brunnen Wasserstoff und Helium geliefert, was auf ein aktives System hindeutet. In Deutschland stießen Masterstudierende des GeoZentrums Nordbayern im August 2024 in einem Meter Tiefe auf mehr als 1.000 ppm Wasserstoff in der Bodenluft.
+**Tritt er in messbaren Mengen aus? Ja, an mehreren Orten.** Zu den höchsten gemessenen Ausgasungsraten gehören mindestens 200 Tonnen Wasserstoff pro Jahr in den Stollen einer Chromitmine in Albanien. Hinzu kommen Austritte im Oman, in Kanada und auf den Philippinen. In Kansas haben alle drei 2025 gebohrten Brunnen Wasserstoff und Helium geliefert, was auf ein aktives System hindeutet. In Deutschland stießen Masterstudierende des GeoZentrums Nordbayern im August 2024 in einem Meter Tiefe auf mehr als 1.000 ppm Wasserstoff in der Bodenluft.
 
-1. **Sammelt er sich in wirtschaftlich förderbaren Lagerstätten? Bisher ist kein solcher Fall eindeutig bestätigt.** Die Bundesanstalt für Geowissenschaften und Rohstoffe (BGR) sagt, dass weder in Deutschland noch weltweit eine Lagerstätte von molekularem Wasserstoff bekannt ist, also eine eingegrenzte, wirtschaftlich förderbare Ansammlung. Der einzige produzierende Fall ist Mali. Doch selbst dort fragen Geologen, ob es sich um eine echte Gasansammlung handelt oder um im Wasser gelösten Wasserstoff mit lokalen Gastaschen. Die Fachzeitschrift GEO ExPro hat den Betreiber aufgefordert, die nötigen Daten offenzulegen.
+**Sammelt er sich in wirtschaftlich förderbaren Lagerstätten? Bisher ist kein solcher Fall eindeutig bestätigt.** Die Bundesanstalt für Geowissenschaften und Rohstoffe (BGR) sagt, dass weder in Deutschland noch weltweit eine Lagerstätte von molekularem Wasserstoff bekannt ist, also eine eingegrenzte, wirtschaftlich förderbare Ansammlung. Der einzige produzierende Fall ist Mali. Doch selbst dort fragen Geologen, ob es sich um eine echte Gasansammlung handelt oder um im Wasser gelösten Wasserstoff mit lokalen Gastaschen. Die Fachzeitschrift GEO ExPro hat den Betreiber aufgefordert, die nötigen Daten offenzulegen.
 
-1. **Gibt es solche Lagerstätten in Deutschland? Unbekannt.** Hier wird noch nicht gebohrt. Eine erste Erkundungsbohrung soll klären, ob es förderbare Vorkommen gibt.
+**Gibt es solche Lagerstätten in Deutschland? Unbekannt.** Hier wird noch nicht gebohrt. Eine erste Erkundungsbohrung soll klären, ob es förderbare Vorkommen gibt.
 
-## Wir müssen den weißen Wasserstoff (erstmal) finden
+## Drill, Baby: Wir müssen den weißen Wasserstoff (erstmal) finden
 
 Weißen Wasserstoff gibt es als natürliches Phänomen zweifelsfrei. Als Ressource, also in eingegrenzten, wirtschaftlich förderbaren Lagerstätten, ist er bisher nicht nachgewiesen, aber auch nicht widerlegt. Die Forschung steht dort, wo die Erdölgeologie vor gut hundert Jahren stand. Es gibt gute Gründe, danach zu suchen, aber noch keinen Grund, damit zu planen.
 
-Es heißt also in jedem Fall: Drill, baby, drill. Probebohrungen müssen nicht nur die Existenz und die Größenordnung der jeweiligen Vorkommen nachweisen, sondern auch ihre Güte und Tiefe klären und die Frage beantworten, ob das Gas frei oder gelöst vorliegt. Diese und weitere Fragen werden nicht nur über die Nutzbarkeit, sondern auch über den Business Case von weißem Wasserstoff entscheiden. Doch mit solchen Themen mussten sich die anderen Farben des Wasserstoffs auch schon herumschlagen.
+Es heißt also in jedem Fall: Drill, baby, drill. 
+
+Probebohrungen müssen nicht nur die Existenz und die Größenordnung der jeweiligen Vorkommen nachweisen, sondern auch ihre Güte und Tiefe klären und die Frage beantworten, ob das Gas frei oder gelöst vorliegt. Diese und weitere Fragen werden nicht nur über die Nutzbarkeit, sondern auch über den Business Case von weißem Wasserstoff entscheiden.
 
 --- en ---
 
